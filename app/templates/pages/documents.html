@@ -1,201 +1,1149 @@
 {% extends "base.html" %}
 
-{% block title %}Documents - Semptify{% endblock %}
+{% block title %}Document Center - Semptify{% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
-    .documents-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
+/* =====================================================================
+   DOCUMENT CENTER — Slice 1 Shell
+   3-pane layout: Left (vault list) | Center (viewer) | Right (overlays)
+   ===================================================================== */
 
-    .documents-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
+/* Remove base.html margin from main so DC fills to edges */
+#main-content {
+    padding: 0;
+    margin-top: 0;
+}
 
-    .upload-section {
-        margin-bottom: 40px;
-    }
+.dc-frame {
+    display: flex;
+    height: calc(100vh - 88px);
+    overflow: hidden;
+    border-top: 1px solid var(--color-border);
+}
 
-    .documents-list {
-        background: var(--color-bg-card);
-        border-radius: var(--radius-lg);
-        padding: 20px;
-        margin-top: 30px;
-    }
+/* ── LEFT PANE ── */
+.dc-left {
+    width: 280px;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+}
 
-    .documents-list h2 {
-        margin-bottom: 20px;
-        font-size: 1.25rem;
-    }
+.dc-left__header {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
 
-    .document-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-md);
-        margin-bottom: 10px;
-        transition: all var(--transition-fast);
-    }
+.dc-left__title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: 10px;
+}
 
-    .document-item:hover {
-        background: var(--color-bg-hover);
-    }
+.dc-upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.dc-upload-btn:hover { background: var(--color-accent-hover); }
 
-    .document-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+.dc-left__search {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
 
-    .document-icon {
-        font-size: 1.5rem;
-    }
+.dc-search-input {
+    width: 100%;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.82rem;
+}
+.dc-search-input::placeholder { color: var(--color-text-muted); }
+.dc-search-input:focus { outline: none; border-color: var(--color-accent); }
 
-    .document-name {
-        font-weight: 500;
-    }
+.dc-left__filters {
+    display: flex;
+    gap: 4px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
 
-    .document-date {
-        font-size: 0.875rem;
-        color: var(--color-text-muted);
-    }
+.dc-filter-btn {
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    font-size: 0.74rem;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.dc-filter-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.dc-filter-btn.active {
+    background: rgba(59,130,246,0.15);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
 
-    .document-actions {
-        display: flex;
-        gap: 8px;
-    }
+.dc-left__list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
 
-    .btn--sm {
-        padding: 6px 12px;
-        font-size: 0.875rem;
-    }
+.dc-doc-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+}
+.dc-doc-row:hover { background: var(--color-bg-hover); }
+.dc-doc-row.active {
+    background: rgba(59,130,246,0.1);
+    border-left-color: var(--color-accent);
+}
 
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--color-text-muted);
-    }
+.dc-doc-row__top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-    .upload-progress {
-        display: none;
-        margin-top: 20px;
-    }
+.dc-doc-icon { font-size: 1rem; flex-shrink: 0; }
 
-    .upload-progress--active {
-        display: block;
-    }
+.dc-doc-name {
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
 
-    .progress-bar {
-        width: 100%;
-        height: 8px;
-        background: var(--color-bg-secondary);
-        border-radius: var(--radius-sm);
-        overflow: hidden;
-    }
+.dc-status-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.dc-status-badge--verified { background: rgba(16,185,129,0.15); color: var(--color-success); }
+.dc-status-badge--review   { background: rgba(59,130,246,0.15);  color: var(--color-accent); }
+.dc-status-badge--none     { background: rgba(255,255,255,0.07); color: var(--color-text-muted); }
 
-    .progress-bar__fill {
-        height: 100%;
-        background: var(--color-accent);
-        width: 0%;
-        transition: width 0.3s ease;
-    }
+.dc-doc-row__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 24px;
+}
+
+.dc-doc-type {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+}
+
+.dc-doc-date {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin-left: auto;
+}
+
+/* ── CENTER PANE ── */
+.dc-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-bg-primary);
+}
+
+/* Default state — no doc selected */
+.dc-center__empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--color-text-muted);
+}
+.dc-center__empty-icon { font-size: 3rem; opacity: 0.4; }
+.dc-center__empty-text { font-size: 0.9rem; }
+
+/* Viewer state — doc selected */
+.dc-viewer-wrap { display: none; flex-direction: column; height: 100%; }
+.dc-viewer-wrap.visible { display: flex; }
+
+.dc-viewer-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    min-height: 46px;
+}
+
+.dc-back-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s;
+    white-space: nowrap;
+}
+.dc-back-btn:hover { color: var(--color-text-primary); background: var(--color-bg-hover); }
+
+.dc-topbar-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--color-border);
+    flex-shrink: 0;
+}
+
+.dc-doc-title-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 80px;
+}
+
+.dc-type-select {
+    padding: 3px 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+.dc-type-select:focus { outline: none; border-color: var(--color-accent); }
+
+.dc-tool-group {
+    display: flex;
+    gap: 2px;
+}
+
+.dc-tool-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.dc-tool-btn:hover { border-color: var(--color-border); color: var(--color-text-primary); background: var(--color-bg-hover); }
+.dc-tool-btn.active { background: rgba(59,130,246,0.15); border-color: var(--color-accent); color: var(--color-accent); }
+
+.dc-topbar-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.dc-viewer-frame {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #2a2a3e;
+    overflow: auto;
+    position: relative;
+}
+
+.dc-viewer-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 2rem;
+}
+.dc-viewer-placeholder-icon { font-size: 2.5rem; opacity: 0.3; }
+
+.dc-viewer-statusbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 7px 14px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.dc-page-nav { display: flex; align-items: center; gap: 6px; }
+.dc-page-nav-btn {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    padding: 2px 7px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+}
+.dc-page-nav-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+.dc-zoom-group { display: flex; gap: 4px; }
+.dc-zoom-btn {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+}
+.dc-zoom-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+/* ── RIGHT PANE ── */
+.dc-right {
+    width: 300px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    overflow: hidden;
+}
+
+.dc-right__empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.dc-right__header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.dc-right__doc-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.dc-right__section-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+}
+
+.dc-overlays-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+/* Overlay row */
+.dc-overlay-row {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.dc-overlay-row__top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.dc-overlay-status-icon { font-size: 0.9rem; flex-shrink: 0; }
+
+.dc-overlay-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    flex: 1;
+}
+
+.dc-overlay-pct {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+
+.dc-progress-bar {
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.dc-progress-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.4s ease;
+}
+.dc-progress-fill--done    { background: var(--color-success); }
+.dc-progress-fill--partial { background: var(--color-accent); }
+.dc-progress-fill--low     { background: var(--color-warning); }
+.dc-progress-fill--empty   { background: rgba(255,255,255,0.15); width: 0%; }
+
+.dc-overlay-goal {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+}
+
+.dc-overlay-open-btn {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.dc-overlay-open-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+/* Overall score section */
+.dc-overall {
+    padding: 12px 14px;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.dc-overall__label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+}
+
+.dc-overall__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.dc-overall__pct {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    min-width: 36px;
+}
+
+.dc-overall__bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+.dc-overall__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent), var(--color-success));
+    border-radius: var(--radius-full);
+    transition: width 0.4s ease;
+}
+
+/* Unlock indicator */
+.dc-unlocks {
+    padding: 10px 14px;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.dc-unlocks__label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    margin-bottom: 7px;
+}
+
+.dc-unlock-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 0;
+    font-size: 0.78rem;
+}
+
+.dc-unlock-icon { font-size: 0.85rem; }
+.dc-unlock-name { color: var(--color-text-secondary); flex: 1; }
+.dc-unlock-hint { font-size: 0.7rem; color: var(--color-text-muted); }
+.dc-unlock-item.unlocked .dc-unlock-name { color: var(--color-success); }
+
+/* Scrollbar styling for panes */
+.dc-left__list::-webkit-scrollbar,
+.dc-overlays-list::-webkit-scrollbar,
+.dc-viewer-frame::-webkit-scrollbar { width: 5px; }
+.dc-left__list::-webkit-scrollbar-track,
+.dc-overlays-list::-webkit-scrollbar-track,
+.dc-viewer-frame::-webkit-scrollbar-track { background: transparent; }
+.dc-left__list::-webkit-scrollbar-thumb,
+.dc-overlays-list::-webkit-scrollbar-thumb,
+.dc-viewer-frame::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.12);
+    border-radius: 3px;
+}
+
+/* ── Viewer states ─────────────────────────────────────────────── */
+.dc-viewer-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none;
+    background: #fff;
+}
+.dc-viewer-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: none;
+    margin: auto;
+    border-radius: 4px;
+}
+.dc-viewer-loading,
+.dc-viewer-error,
+.dc-viewer-download {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 24px;
+}
+.dc-viewer-loading-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-top-color: var(--color-accent, #6c9ef8);
+    border-radius: 50%;
+    animation: dc-spin 0.75s linear infinite;
+}
+@keyframes dc-spin { to { transform: rotate(360deg); } }
+.dc-viewer-error-icon { font-size: 2rem; }
+.dc-viewer-download-icon { font-size: 2rem; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="documents-container">
-    <div class="documents-header">
-        <h1>📄 Your Documents</h1>
-        <p class="text-secondary">Upload evidence, notices, and case documents. Everything stays in your cloud storage.</p>
+<!-- Fixed flash container — base.html showFlash needs .container in DOM -->
+<div class="container" id="dc-flash-zone" style="position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:9999;width:420px;max-width:92vw;pointer-events:none;"></div>
+
+<div class="dc-frame">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       LEFT PANE — Vault Document List
+       ════════════════════════════════════════════════════════ -->
+  <aside class="dc-left">
+
+    <div class="dc-left__header">
+      <div class="dc-left__title">Document Center</div>
+      <button class="dc-upload-btn" onclick="openVaultUpload()">
+        <span>＋</span> Upload Document
+      </button>
     </div>
 
-    <div class="upload-section">
-        {% include "components/upload_zone.html" %}
-        
-        <div class="upload-progress" id="upload-progress">
-            <p>Uploading... <span id="upload-filename"></span></p>
-            <div class="progress-bar">
-                <div class="progress-bar__fill" id="progress-fill"></div>
-            </div>
+    <div class="dc-left__search">
+      <input class="dc-search-input" type="text" placeholder="Search documents..." id="dc-search">
+    </div>
+
+    <div class="dc-left__filters">
+      <button class="dc-filter-btn active" data-filter="all">All ({{ documents|length }})</button>
+      <button class="dc-filter-btn" data-filter="verified">✅ Verified</button>
+      <button class="dc-filter-btn" data-filter="review">🔄 Review</button>
+      <button class="dc-filter-btn" data-filter="none">⬜ New</button>
+    </div>
+
+    <div class="dc-left__list" id="dc-doc-list">
+
+      {% if documents %}
+        {% for doc in documents %}
+        <div class="dc-doc-row"
+             data-doc-id="{{ doc.id }}"
+             data-doc-name="{{ doc.filename }}"
+             data-doc-type-code="{{ doc.document_type }}"
+             onclick="selectDoc(this)">
+          <div class="dc-doc-row__top">
+            <span class="dc-doc-icon">📄</span>
+            <span class="dc-doc-name">{{ doc.filename }}</span>
+            <span class="dc-status-badge dc-status-badge--none">⬜ New</span>
+          </div>
+          <div class="dc-doc-row__meta">
+            <span class="dc-doc-type">{{ doc.document_type | replace('_', ' ') | title if doc.document_type and doc.document_type != 'document' else 'Not yet identified' }}</span>
+            <span class="dc-doc-date">{{ doc.uploaded_at[:10] if doc.uploaded_at else '—' }}</span>
+          </div>
         </div>
+        {% endfor %}
+      {% else %}
+        <div style="padding:28px 14px;color:var(--color-text-muted);font-size:0.82rem;text-align:center;">
+          <div style="font-size:2.5rem;margin-bottom:10px;opacity:0.25;">�</div>
+          <div style="font-weight:500;margin-bottom:6px;">No documents yet</div>
+          <div style="font-size:0.75rem;">Upload your first document<br>using the button above.</div>
+        </div>
+      {% endif %}
+
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CENTER PANE — Semptify Viewer
+       ════════════════════════════════════════════════════════ -->
+  <main class="dc-center">
+
+    <!-- Default state (no doc selected) -->
+    <div class="dc-center__empty" id="dc-empty-state">
+      <div class="dc-center__empty-icon">📂</div>
+      <div class="dc-center__empty-text">Select a document to open it</div>
     </div>
 
-    <div class="documents-list">
-        <h2>📁 Uploaded Documents</h2>
-        
-        {% if documents %}
-            {% for doc in documents %}
-            <div class="document-item">
-                <div class="document-info">
-                    <span class="document-icon">📄</span>
-                    <div>
-                        <div class="document-name">{{ doc.filename }}</div>
-                        <div class="document-date">{{ doc.uploaded_at }}</div>
-                    </div>
-                </div>
-                <div class="document-actions">
-                    <a href="/api/vault/document/{{ doc.id }}" class="btn btn--secondary btn--sm" target="_blank">View</a>
-                    <button class="btn btn--danger btn--sm" onclick="deleteDocument('{{ doc.id }}')">Delete</button>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <p>No documents yet.</p>
-                <p class="text-secondary mt-sm">Upload your first document above.</p>
-            </div>
-        {% endif %}
+    <!-- Viewer (shown when doc selected) -->
+    <div class="dc-viewer-wrap" id="dc-viewer-wrap">
+
+      <!-- Top bar -->
+      <div class="dc-viewer-topbar">
+        <button class="dc-back-btn" onclick="deselectDoc()">← Back</button>
+        <div class="dc-topbar-divider"></div>
+        <span class="dc-doc-title-label" id="dc-viewer-title">—</span>
+        <select class="dc-type-select" id="dc-type-select" onchange="onTypeChange(this)">
+          <option value="">🏷 Identify type...</option>
+          <option value="lease">Lease Agreement</option>
+          <option value="notice_to_vacate">Notice to Vacate</option>
+          <option value="repair_request">Repair Request</option>
+          <option value="rent_receipt">Rent Receipt</option>
+          <option value="move_in_inspection">Move-in Inspection</option>
+          <option value="court_summons">Court Summons</option>
+          <option value="correspondence">Correspondence</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="dc-topbar-divider"></div>
+        <div class="dc-tool-group">
+          <button class="dc-tool-btn" id="tool-highlight" onclick="toggleTool('highlight')" title="Highlight text">🖊 Highlight</button>
+          <button class="dc-tool-btn" id="tool-note" onclick="toggleTool('note')" title="Add note">📝 Note</button>
+          <button class="dc-tool-btn" id="tool-ref" onclick="toggleTool('ref')" title="Add reference">🔗 Reference</button>
+        </div>
+        <div class="dc-topbar-actions">
+          <a class="dc-tool-btn" id="dc-topbar-download" href="#" title="Download">↓ Download</a>
+          <button class="dc-tool-btn" title="Share">⬆ Share</button>
+        </div>
+      </div>
+
+      <!-- Viewer frame — Slice 3: iframe + loading / error / download states -->
+      <div class="dc-viewer-frame" id="dc-viewer-frame">
+
+        <!-- Loading spinner -->
+        <div class="dc-viewer-loading" id="dc-viewer-loading">
+          <div class="dc-viewer-loading-spinner"></div>
+          <div>Loading document…</div>
+        </div>
+
+        <!-- Error state -->
+        <div class="dc-viewer-error" id="dc-viewer-error">
+          <div class="dc-viewer-error-icon">⚠️</div>
+          <div id="dc-viewer-error-msg">Could not load document.</div>
+          <button class="dc-tool-btn" onclick="dc_retryView()">↺ Try again</button>
+        </div>
+
+        <!-- Download fallback for non-viewable types (.docx, .zip, etc.) -->
+        <div class="dc-viewer-download" id="dc-viewer-download">
+          <div class="dc-viewer-download-icon">📎</div>
+          <div>This file type can’t be previewed in the browser.</div>
+          <a class="dc-tool-btn" id="dc-viewer-dl-link" href="#" style="margin-top:4px;text-decoration:none;">⬇ Download to open</a>
+        </div>
+
+        <!-- iframe — PDF / images (same-origin, cookie-auth, browser renders natively) -->
+        <iframe
+          id="dc-viewer-iframe"
+          class="dc-viewer-iframe"
+          title="Document viewer"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        ></iframe>
+
+        <!-- img fallback for images if iframe rejects the MIME type -->
+        <img id="dc-viewer-img" class="dc-viewer-img" alt="Document preview">
+
+      </div>
+
+      <!-- Status bar -->
+      <div class="dc-viewer-statusbar">
+        <div class="dc-page-nav">
+          <button class="dc-page-nav-btn">◀</button>
+          <span id="dc-page-label">Page 1 of —</span>
+          <button class="dc-page-nav-btn">▶</button>
+        </div>
+        <div class="dc-zoom-group">
+          <button class="dc-zoom-btn">−</button>
+          <span style="padding:0 4px;">100%</span>
+          <button class="dc-zoom-btn">+</button>
+        </div>
+      </div>
     </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       RIGHT PANE — Overlays Panel
+       ════════════════════════════════════════════════════════ -->
+  <aside class="dc-right" id="dc-right-pane">
+
+    <!-- Default state (no doc selected) -->
+    <div class="dc-right__empty" id="dc-right-empty">
+      <span style="font-size:1.5rem;opacity:0.3;">📊</span>
+      <span>Overlays appear here<br>when a document is open</span>
+    </div>
+
+    <!-- Active state (shown when doc selected) -->
+    <div id="dc-right-active" style="display:none;flex-direction:column;height:100%;">
+
+      <div class="dc-right__header">
+        <div class="dc-right__doc-label" id="dc-right-doc-label">—</div>
+        <div class="dc-right__section-title">Overlays</div>
+      </div>
+
+      <div class="dc-overlays-list" id="dc-overlays-list">
+        <!-- Overlays injected by JS based on selected doc -->
+      </div>
+
+      <!-- Overall score -->
+      <div class="dc-overall">
+        <div class="dc-overall__label">Overall Verified</div>
+        <div class="dc-overall__row">
+          <div class="dc-overall__pct" id="dc-overall-pct">—%</div>
+          <div class="dc-overall__bar">
+            <div class="dc-overall__fill" id="dc-overall-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unlock indicator -->
+      <div class="dc-unlocks">
+        <div class="dc-unlocks__label">Features</div>
+        <div id="dc-unlock-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+  </aside>
 
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/workspace-stage-model.js"></script>
 <script>
-    // Handle file selection from upload zone — open unified vault portal
-    document.getElementById('file-input').addEventListener('change', function(e) {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
+// =====================================================================
+// DOCUMENT CENTER — Slice 1 JS
+// Interactions only. No API calls yet.
+// =====================================================================
 
-        if (typeof handleVaultFiles === 'function') {
-            handleVaultFiles(files);
-        } else {
-            openVaultUpload();
-        }
-        e.target.value = '';
-    });
+// Document type code → select option value mapping
+const DC_TYPE_MAP = {
+  'lease':              'lease',
+  'notice_to_vacate':   'notice_to_vacate',
+  'repair_request':     'repair_request',
+  'rent_receipt':       'rent_receipt',
+  'move_in_inspection': 'move_in_inspection',
+  'court_summons':      'court_summons',
+  'correspondence':     'correspondence',
+  'document':           '',
+  '':                   '',
+};
 
-    // Refresh document list after a successful portal upload
-    window.addEventListener('vault:uploaded', () => {
-        window.showFlash('Document uploaded successfully!', 'success');
-        setTimeout(() => window.location.reload(), 800);
-    });
+// Mock overlay data — used for design testing until overlay API is wired (Slice 4)
+const DC_MOCK_OVERLAYS = {
+  "1": {
+    docType: "lease",
+    overlays: [
+      { name: "OCR Extraction",     icon: "🔄", pct: 82, goal: "All text extracted from document" },
+      { name: "Parties",            icon: "✅", pct: 100, goal: "All parties identified and confirmed" },
+      { name: "Dates",              icon: "🔄", pct: 58,  goal: "All key dates confirmed" },
+      { name: "Amounts",            icon: "⬜", pct: 30,  goal: "Rent, deposit, fees confirmed" },
+      { name: "Signatures",         icon: "⬜", pct: 0,   goal: "Presence of signatures confirmed" },
+    ],
+    overall: 54,
+    typeValue: "lease"
+  },
+  "2": {
+    docType: "notice_to_vacate",
+    overlays: [
+      { name: "OCR Extraction", icon: "✅", pct: 100, goal: "All text extracted" },
+      { name: "Parties",        icon: "🔄", pct: 50,  goal: "Sender and recipient identified" },
+      { name: "Dates",          icon: "⬜", pct: 20,  goal: "Notice date and vacate-by date confirmed" },
+    ],
+    overall: 57,
+    typeValue: "notice_to_vacate"
+  },
+  "3": {
+    docType: "",
+    overlays: [],
+    overall: 0,
+    typeValue: ""
+  }
+};
 
-    // Delete document
-    async function deleteDocument(docId) {
-        if (!confirm('Delete this document?')) return;
-        
-        try {
-            const response = await fetchWithCSRF(`/api/vault/document/${docId}`, {
-                method: 'DELETE'
-            });
-            
-            if (response.ok) {
-                window.showFlash('Document deleted', 'success');
-                setTimeout(() => window.location.reload(), 500);
-            } else {
-                window.showFlash('Delete failed', 'error');
-            }
-        } catch (err) {
-            window.showFlash('Delete failed: ' + err.message, 'error');
-        }
+const DC_UNLOCK_RULES = [
+  { name: "Timeline",        icon: "📅", threshold: "1 doc with Dates + Parties ≥ 80%", unlocked: true  },
+  { name: "Journal",         icon: "📓", threshold: "2+ docs verified ≥ 60%",           unlocked: false },
+  { name: "Contact Manager", icon: "👤", threshold: "Parties overlay = 100%",            unlocked: false },
+  { name: "Case Builder",    icon: "⚖️",  threshold: "3 docs verified ≥ 80%",            unlocked: false },
+];
+
+let _activeDocId       = null;
+let _activeTool        = null;
+let _retryDocId        = null;
+let _retryDocName      = null;
+let _overlayFetchDocId = null;
+
+function selectDoc(rowEl) {
+  const docId   = rowEl.dataset.docId;
+  const docName = rowEl.dataset.docName;
+  const docType = rowEl.dataset.docType;
+
+  // Highlight row
+  document.querySelectorAll('.dc-doc-row').forEach(r => r.classList.remove('active'));
+  rowEl.classList.add('active');
+  _activeDocId = docId;
+
+  // Show viewer
+  document.getElementById('dc-empty-state').style.display = 'none';
+  document.getElementById('dc-viewer-wrap').classList.add('visible');
+  document.getElementById('dc-viewer-title').textContent = docName;
+
+  // Set type dropdown — mock data takes priority, else map from vault doc_type
+  const data = DC_MOCK_OVERLAYS[docId];
+  const typeCode = rowEl.dataset.docTypeCode || '';
+  const sel = document.getElementById('dc-type-select');
+  const resolvedType = data ? data.typeValue : (DC_TYPE_MAP[typeCode] || '');
+  sel.value = resolvedType;
+  sel.dataset.prevValue = resolvedType;
+
+  // Show right pane
+  document.getElementById('dc-right-empty').style.display = 'none';
+  const activePanel = document.getElementById('dc-right-active');
+  activePanel.style.display = 'flex';
+  document.getElementById('dc-right-doc-label').textContent = docName;
+
+  // Load document into viewer
+  _retryDocId   = docId;
+  _retryDocName = docName;
+  loadDocInViewer(docId, docName);
+
+  // Render overlays
+  renderOverlays(docId);
+  renderUnlocks(docId);
+}
+
+function deselectDoc() {
+  _activeDocId  = null;
+  _retryDocId   = null;
+  _retryDocName = null;
+  document.querySelectorAll('.dc-doc-row').forEach(r => r.classList.remove('active'));
+
+  document.getElementById('dc-empty-state').style.display = '';
+  document.getElementById('dc-viewer-wrap').classList.remove('visible');
+
+  // Clear iframe so it stops any in-progress network request
+  const iframe = document.getElementById('dc-viewer-iframe');
+  if (iframe) iframe.src = 'about:blank';
+
+  document.getElementById('dc-right-empty').style.display = '';
+  document.getElementById('dc-right-active').style.display = 'none';
+
+  _activeTool = null;
+  document.querySelectorAll('.dc-tool-btn.active').forEach(b => b.classList.remove('active'));
+}
+
+// ── Viewer helpers ─────────────────────────────────────────────────────────
+
+const DC_VIEWABLE_IFRAME = new Set(['pdf']);
+const DC_VIEWABLE_IMG    = new Set(['jpg','jpeg','png','gif','webp','svg']);
+
+function loadDocInViewer(docId, docName) {
+  const viewUrl = `/api/dc/document/${docId}/view`;
+  const ext = (docName.split('.').pop() || '').toLowerCase();
+
+  // Update topbar download link
+  const dlBtn = document.getElementById('dc-topbar-download');
+  if (dlBtn) { dlBtn.href = viewUrl; dlBtn.setAttribute('download', docName); }
+
+  if (DC_VIEWABLE_IFRAME.has(ext)) {
+    showViewerState('loading');
+    const iframe = document.getElementById('dc-viewer-iframe');
+    iframe.onload = () => {
+      // onload fires even on error pages — check for empty src edge case
+      if (iframe.src && iframe.src !== 'about:blank') showViewerState('iframe');
+    };
+    iframe.onerror = () => showViewerState('error', 'Could not render this PDF.');
+    iframe.src = viewUrl;
+  } else if (DC_VIEWABLE_IMG.has(ext)) {
+    showViewerState('loading');
+    const img = document.getElementById('dc-viewer-img');
+    img.onload  = () => showViewerState('img');
+    img.onerror = () => showViewerState('error', 'Could not load this image.');
+    img.alt = docName;
+    img.src = viewUrl;
+  } else {
+    // Not directly viewable — offer download
+    const dlLink = document.getElementById('dc-viewer-dl-link');
+    if (dlLink) { dlLink.href = viewUrl; dlLink.setAttribute('download', docName); }
+    showViewerState('download');
+  }
+}
+
+function showViewerState(state, errorMsg) {
+  const iframeEl  = document.getElementById('dc-viewer-iframe');
+  const imgEl     = document.getElementById('dc-viewer-img');
+  const loadingEl = document.getElementById('dc-viewer-loading');
+  const errorEl   = document.getElementById('dc-viewer-error');
+  const dlEl      = document.getElementById('dc-viewer-download');
+
+  if (iframeEl)  iframeEl.style.display  = state === 'iframe'   ? 'block' : 'none';
+  if (imgEl)     imgEl.style.display     = state === 'img'      ? 'block' : 'none';
+  if (loadingEl) loadingEl.style.display = state === 'loading'  ? 'flex'  : 'none';
+  if (errorEl)   errorEl.style.display   = state === 'error'    ? 'flex'  : 'none';
+  if (dlEl)      dlEl.style.display      = state === 'download' ? 'flex'  : 'none';
+
+  if (state === 'error' && errorMsg) {
+    const msg = document.getElementById('dc-viewer-error-msg');
+    if (msg) msg.textContent = errorMsg;
+  }
+}
+
+function dc_retryView() {
+  if (_retryDocId) loadDocInViewer(_retryDocId, _retryDocName || '');
+}
+
+async function renderOverlays(docId) {
+  const list = document.getElementById('dc-overlays-list');
+
+  // Mock data for design testing (IDs "1", "2", "3")
+  if (DC_MOCK_OVERLAYS[docId]) {
+    const mock = DC_MOCK_OVERLAYS[docId];
+    _renderOverlayItems(mock.overlays, mock.overall);
+    return;
+  }
+
+  // Show loading state
+  list.innerHTML = '<div style="padding:16px 14px;color:var(--color-text-muted);font-size:0.82rem;">Loading overlays…</div>';
+  _overlayFetchDocId = docId;
+
+  try {
+    const resp = await fetch(`/api/dc/document/${encodeURIComponent(docId)}/overlays`);
+    // Guard: user clicked away while fetching
+    if (_overlayFetchDocId !== docId) return;
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    if (!data.has_data || !data.overlays || data.overlays.length === 0) {
+      list.innerHTML = '<div style="padding:20px 14px;color:var(--color-text-muted);font-size:0.82rem;line-height:1.6;"><strong>Processing your document.</strong><br>Semptify will extract dates, parties, and amounts. Overlays appear once processing is complete.</div>';
+      document.getElementById('dc-overall-pct').textContent = '0%';
+      document.getElementById('dc-overall-fill').style.width = '0%';
+      return;
     }
+
+    _renderOverlayItems(data.overlays, data.overall_pct);
+
+  } catch (err) {
+    console.warn('DC overlays fetch failed:', err);
+    if (_overlayFetchDocId === docId) {
+      list.innerHTML = '<div style="padding:16px 14px;color:var(--color-text-muted);font-size:0.82rem;">Could not load overlay data. Check your connection.</div>';
+    }
+  }
+}
+
+function _renderOverlayItems(overlays, overallPct) {
+  const list = document.getElementById('dc-overlays-list');
+  list.innerHTML = '';
+
+  overlays.forEach(ov => {
+    const pct = ov.pct || 0;
+    const colorClass = pct === 100 ? 'done' : pct > 50 ? 'partial' : pct > 0 ? 'low' : 'empty';
+    const row = document.createElement('div');
+    row.className = 'dc-overlay-row';
+    const detailHtml = ov.detail ? ` · <span style="opacity:0.6;">${ov.detail}</span>` : '';
+    row.innerHTML = `
+      <div class="dc-overlay-row__top">
+        <span class="dc-overlay-status-icon">${ov.icon}</span>
+        <span class="dc-overlay-name">${ov.name}</span>
+        <span class="dc-overlay-pct">${pct}%</span>
+      </div>
+      <div class="dc-progress-bar">
+        <div class="dc-progress-fill dc-progress-fill--${colorClass}" style="width:${pct}%"></div>
+      </div>
+      <div class="dc-overlay-goal">Goal: ${ov.goal}${detailHtml}</div>
+      <button class="dc-overlay-open-btn" onclick="openOverlay('${ov.name}')">Open ▾</button>
+    `;
+    list.appendChild(row);
+  });
+
+  const pct = overallPct || 0;
+  document.getElementById('dc-overall-pct').textContent = pct + '%';
+  document.getElementById('dc-overall-fill').style.width = pct + '%';
+}
+
+function renderUnlocks(docId) {
+  const list = document.getElementById('dc-unlock-list');
+  list.innerHTML = '';
+  DC_UNLOCK_RULES.forEach(rule => {
+    const item = document.createElement('div');
+    item.className = 'dc-unlock-item' + (rule.unlocked ? ' unlocked' : '');
+    item.innerHTML = `
+      <span class="dc-unlock-icon">${rule.unlocked ? '🔓' : '🔒'}</span>
+      <span class="dc-unlock-name">${rule.icon} ${rule.name}</span>
+      ${!rule.unlocked ? `<span class="dc-unlock-hint">${rule.threshold}</span>` : ''}
+    `;
+    list.appendChild(item);
+  });
+}
+
+function toggleTool(toolName) {
+  const btn = document.getElementById('tool-' + toolName);
+  if (_activeTool === toolName) {
+    _activeTool = null;
+    btn.classList.remove('active');
+  } else {
+    document.querySelectorAll('.dc-tool-btn').forEach(b => b.classList.remove('active'));
+    _activeTool = toolName;
+    btn.classList.add('active');
+  }
+}
+
+function openOverlay(name) {
+  window.showFlash('Overlay detail panel — coming in a future slice', 'info');
+}
+
+async function onTypeChange(sel) {
+  if (!_activeDocId) return;
+
+  const newType  = sel.value;
+  const label    = newType ? sel.options[sel.selectedIndex].text : null;
+  const prevVal  = sel.dataset.prevValue || '';
+
+  sel.disabled = true;
+
+  try {
+    const resp = await fetch(
+      `/api/dc/document/${encodeURIComponent(_activeDocId)}/type`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ document_type: newType }),
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      window.showFlash(
+        'Could not save type: ' + (err.detail || err.error || `HTTP ${resp.status}`),
+        'error'
+      );
+      // Revert dropdown to previous value on failure
+      sel.value = prevVal;
+      return;
+    }
+
+    const data = await resp.json();
+
+    // Store new value as prev for future rollbacks
+    sel.dataset.prevValue = newType;
+
+    // Flash confirmation
+    if (label) {
+      window.showFlash(`✓ Type saved: ${label}`, 'success');
+    } else {
+      window.showFlash('Document type cleared', 'info');
+    }
+
+    // Refresh right panel from response — no second fetch needed
+    if (data.overlays && Array.isArray(data.overlays.overlays)) {
+      _renderOverlayItems(data.overlays.overlays, data.overlays.overall_pct);
+    }
+
+  } catch (err) {
+    console.error('DC onTypeChange error:', err);
+    window.showFlash('Could not save type. Check your connection.', 'error');
+    sel.value = prevVal;
+  } finally {
+    sel.disabled = false;
+  }
+}
+
+// Filter buttons
+document.querySelectorAll('.dc-filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.dc-filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// Refresh list after upload
+window.addEventListener('vault:uploaded', () => {
+  window.showFlash('Document uploaded — refreshing list...', 'success');
+  setTimeout(() => window.location.reload(), 900);
+});
 </script>
 {% endblock %}
