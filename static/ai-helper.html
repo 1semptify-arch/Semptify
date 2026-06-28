@@ -176,49 +176,56 @@
   <!-- STEP 1: Download bundle -->
   <div class="step-card">
     <span class="step-num">1</span><span class="step-title">Download Your Document Bundle</span>
-    <p class="step-desc">One file with all 5 key Semptify docs combined. You'll drag this into the AI.</p>
+    <p class="step-desc">One file with all 8 key Semptify docs combined (158KB). You'll drag this into the AI.</p>
     <a href="/static/ai-helper-bundle.txt" download="semptify-docs-bundle.txt" class="btn btn-green">
-      ⬇️ Download Bundle (87KB)
+      ⬇️ Download Bundle (158KB)
     </a>
   </div>
 
   <!-- STEP 2: Copy prompt -->
   <div class="step-card">
     <span class="step-num">2</span><span class="step-title">Copy the Prompt</span>
-    <p class="step-desc">Click once. The prompt copies to your clipboard automatically.</p>
-    <button class="btn btn-primary" id="copy-btn" onclick="copyPrompt()">
-      📋 Copy Prompt to Clipboard
+    <p class="step-desc">Step A: Copy Prompt 1 for Claude. Step B: After Claude answers, come back and copy Prompt 2 for Gemini.</p>
+
+    <button class="btn btn-primary" id="copy-btn-1" onclick="copyPrompt(1)">
+      📋 Copy Prompt 1 — For Claude (First Pass)
     </button>
-    <div class="prompt-preview" id="prompt-preview"></div>
-    <div class="status-msg success" id="copy-status">✅ Copied! Now click "Open Claude" below.</div>
+    <div class="prompt-preview" id="prompt-preview-1"></div>
+
+    <div style="height:0.75rem"></div>
+
+    <button class="btn btn-purple" id="copy-btn-2" onclick="copyPrompt(2)">
+      📋 Copy Prompt 2 — For Gemini (Cross-Check)
+    </button>
+    <div class="prompt-preview" id="prompt-preview-2"></div>
+
+    <div class="status-msg success" id="copy-status">✅ Copied! Now open the AI and paste.</div>
   </div>
 
   <!-- STEP 3: Open AI -->
   <div class="step-card">
-    <span class="step-num">3</span><span class="step-title">Open an AI &amp; Paste</span>
-    <p class="step-desc">Click any AI below. When it opens, press Ctrl+V to paste the prompt, then drag the bundle file in.</p>
+    <span class="step-num">3</span><span class="step-title">Two-AI Workflow</span>
+    <p class="step-desc">
+      <strong>Step A — Claude (framework):</strong> Open Claude, paste Prompt 1, drag bundle in, send. Copy Claude's answer.<br><br>
+      <strong>Step B — Gemini (cross-check):</strong> Open Gemini, paste Prompt 2, drag bundle in, paste Claude's answer, send. Gemini catches gaps Claude missed.
+    </p>
     <div class="ai-grid">
       <a href="https://claude.ai/new" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('claude')">
         <div class="ai-name">🟠 Claude.ai</div>
-        <div class="ai-desc">Best for frameworks &amp; values</div>
-        <div class="ai-badge">RECOMMENDED</div>
+        <div class="ai-desc">Step A — First pass framework</div>
+        <div class="ai-badge">STEP A</div>
       </a>
       <a href="https://aistudio.google.com/app/prompts/new_chat" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('gemini')">
         <div class="ai-name">🔵 Google AI Studio</div>
-        <div class="ai-desc">1M token context — sees everything</div>
-        <div class="ai-badge">FREE</div>
-      </a>
-      <a href="https://chatgpt.com/?model=gpt-4o" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('chatgpt')">
-        <div class="ai-name">🟢 ChatGPT (GPT-4o)</div>
-        <div class="ai-desc">Good at structured outputs</div>
-        <div class="ai-badge">FREE TIER</div>
-      </a>
-      <a href="https://groq.com/" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('groq')">
-        <div class="ai-name">⚡ Groq Cloud</div>
-        <div class="ai-desc">Fastest inference, free tier</div>
-        <div class="ai-badge">FREE</div>
+        <div class="ai-desc">Step B — Cross-check with 1M context</div>
+        <div class="ai-badge">STEP B</div>
       </a>
     </div>
+    <div style="height:0.5rem"></div>
+    <a href="https://chatgpt.com/?model=gpt-4o" target="_blank" rel="noopener" class="ai-card" style="display:block">
+      <div class="ai-name">🟢 ChatGPT (optional 3rd opinion)</div>
+      <div class="ai-desc">If Claude and Gemini disagree, ask ChatGPT to break the tie</div>
+    </a>
   </div>
 
   <!-- STEP 4: Instructions -->
@@ -240,7 +247,7 @@
 </div>
 
 <script>
-const PROMPT = `I'm building Semptify — a FREE, ad-free, privacy-first housing rights platform for tenants who can't afford legal help.
+const PROMPT_1 = `I'm building Semptify — a FREE, ad-free, privacy-first housing rights platform for tenants who can't afford legal help.
 
 I need your help laying out the FOUNDATIONAL FRAMEWORK for the entire organization, website, and GUI. Not code. Just the structure.
 
@@ -326,32 +333,67 @@ Keep it structural. No code. I want the big picture I can build the entire organ
 
 Thank you.`;
 
-document.getElementById('prompt-preview').textContent = PROMPT;
+const PROMPT_2 = `I'm building Semptify — a FREE, ad-free, privacy-first housing rights non-profit platform for tenants.
 
-function copyPrompt() {
-  navigator.clipboard.writeText(PROMPT).then(() => {
-    const btn = document.getElementById('copy-btn');
-    const status = document.getElementById('copy-status');
+Another AI (Claude) already gave me a foundational framework. I want you to CROSS-CHECK it.
+
+I'm attaching:
+1. The same 8-document bundle (PROJECT_BIBLE, AGENTS, MANIFEST, CODE_MAP, BLUEPRINT, welcome.html, about.html, DISSERTATION)
+2. Claude's answer (pasted below)
+
+WHAT I NEED FROM YOU:
+1. Read all the documents yourself
+2. Read Claude's framework
+3. Tell me where Claude is RIGHT — confirm the strong parts
+4. Tell me where Claude is WRONG or GAPS exist — what did it miss?
+5. Give me your OWN version of the framework with corrections
+6. Pay special attention to:
+   - The non-profit org structure (is it realistic for a small housing-rights org?)
+   - The website structure (is the site map complete?)
+   - The role-based GUIs (mobile vs desktop — anything missing?)
+   - Module-to-pillar mapping (did Claude miss any of the 100+ modules?)
+   - The tenant home page (does it have direct nav to DC, Library, CCL?)
+
+BE HONEST. If Claude got it right, say so. If Claude missed something, flag it.
+
+=== CLAUDE'S ANSWER BELOW ===
+
+[PASTE CLAUDE'S ANSWER HERE]
+
+=== END CLAUDE'S ANSWER ===
+
+Give me your cross-checked framework. No code. Just structure.
+
+Thank you.`;
+
+document.getElementById('prompt-preview-1').textContent = PROMPT_1;
+document.getElementById('prompt-preview-2').textContent = PROMPT_2;
+
+function copyPrompt(which) {
+  const prompt = which === 1 ? PROMPT_1 : PROMPT_2;
+  const btnId = 'copy-btn-' + which;
+  const btn = document.getElementById(btnId);
+  const status = document.getElementById('copy-status');
+  navigator.clipboard.writeText(prompt).then(() => {
     btn.textContent = '✅ Copied!';
     btn.classList.add('copied');
     status.classList.add('show');
     setTimeout(() => {
-      btn.textContent = '📋 Copy Prompt to Clipboard';
+      btn.textContent = which === 1 ? '📋 Copy Prompt 1 — For Claude (First Pass)' : '📋 Copy Prompt 2 — For Gemini (Cross-Check)';
       btn.classList.remove('copied');
     }, 3000);
   }).catch(() => {
-    // Fallback for older browsers
     const ta = document.createElement('textarea');
-    ta.value = PROMPT;
+    ta.value = prompt;
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    const btn = document.getElementById('copy-btn');
     btn.textContent = '✅ Copied!';
     btn.classList.add('copied');
+    status.classList.add('show');
     setTimeout(() => {
-      btn.textContent = '📋 Copy Prompt to Clipboard';
+      btn.textContent = which === 1 ? '📋 Copy Prompt 1 — For Claude (First Pass)' : '📋 Copy Prompt 2 — For Gemini (Cross-Check)';
       btn.classList.remove('copied');
     }, 3000);
   });
@@ -362,13 +404,13 @@ function trackOpen(ai) {
   return true; // allow the link to open
 }
 
-// Auto-copy on page load for maximum laziness
+// Auto-copy Prompt 1 on page load for maximum laziness
 window.addEventListener('load', () => {
   setTimeout(() => {
     try {
-      navigator.clipboard.writeText(PROMPT);
+      navigator.clipboard.writeText(PROMPT_1);
       const status = document.getElementById('copy-status');
-      status.textContent = '✅ Prompt auto-copied! Just open an AI and paste.';
+      status.textContent = '✅ Prompt 1 auto-copied! Open Claude and paste.';
       status.classList.add('show');
     } catch (e) {
       // Some browsers block auto-copy without user interaction. That's fine.
