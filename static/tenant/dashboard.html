@@ -282,7 +282,7 @@
         let timelineData = null;
         if (timelineRes.ok) {
           timelineData = await timelineRes.json();
-          const timeline = timelineData.timeline || timelineData.events || [];
+          const timeline = timelineData.items || timelineData.timeline || timelineData.events || [];
           const recent = timeline.slice(0, 4);
           if (recent.length === 0) {
             timelineEl.innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">No events recorded yet.</div>';
@@ -301,7 +301,7 @@
         // --- Deadlines (from timeline events) ---
         const deadlinesEl = document.getElementById('deadlines-body');
         if (timelineData) {
-          const timeline = timelineData.timeline || timelineData.events || [];
+          const timeline = timelineData.items || timelineData.timeline || timelineData.events || [];
           const deadlines = timeline.filter(e => e.event_type === 'hearing' || e.event_type === 'deadline' || e.event_type === 'court').slice(0, 4);
           if (deadlines.length === 0) {
             deadlinesEl.innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">No upcoming deadlines.</div>';
