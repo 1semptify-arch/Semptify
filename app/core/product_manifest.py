@@ -637,7 +637,7 @@ _register("app.modules.testing.router", prefix="/api/testing", tags=("Automated 
 _register("app.modules.documentation.router", prefix="/api/docs", tags=("API Documentation",), tier=ProductTier.DEV,
           log_message="API Documentation router connected - Developer portal active")
 _register("app.modules.document_center.router", prefix="/api/dc", tags=("Document Center",), tier=ProductTier.DEV,
-          lifecycle="beta", requires_role=("admin",),
+          lifecycle="stable", requires_role=("admin",),
           dev_notes=(
               "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
               "✅ Slice 1: HTML shell. "
@@ -648,9 +648,11 @@ _register("app.modules.document_center.router", prefix="/api/dc", tags=("Documen
               "✅ Slice 6b: GET /api/dc/unlocks; renderUnlocks() async+cache; CSS extracted. "
               "✅ Slice 7: openOverlay() drill-down (items field + DOM toggle); "
               "_overlayDataByDoc cache; unlock invalidation on type save. "
-              "Forge: 26/26 smoke tests. 5 contracts. Promoted experimental → beta 2026-06-28."
+              "✅ Slice 8: _formatExpandItems per-type formatting (pill, code, icons); "
+              "OCR excerpt cap 200ch; items list cap 10. "
+              "Forge: 28/28 smoke tests. 5 contracts. Promoted beta → stable 2026-06-28."
           ),
-          log_message="Document Center router connected at /api/dc (beta — admin only)")
+          log_message="Document Center router connected at /api/dc (stable — admin only)")
 
 
 # =============================================================================

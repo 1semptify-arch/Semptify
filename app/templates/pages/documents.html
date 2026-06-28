@@ -650,6 +650,21 @@
     opacity: 0.45;
     font-style: italic;
 }
+.dc-pill {
+    display: inline-block;
+    background: rgba(108,158,248,0.15);
+    color: var(--color-accent, #6c9ef8);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+.dc-expand-icon { margin-right: 4px; }
+.dc-overlay-expand-item code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
 </style>
 {% endblock %}
 
@@ -1180,14 +1195,32 @@ function openOverlay(overlayType) {
 
   if (isExpanded) {
     const rawItems = (ov && ov.items) ? ov.items : [];
-    if (rawItems.length === 0) {
-      expandDiv.innerHTML = '<div class="dc-overlay-expand-empty">No data extracted yet</div>';
-    } else {
-      expandDiv.innerHTML = rawItems
-        .map(item => `<div class="dc-overlay-expand-item">${String(item).substring(0, 140)}</div>`)
-        .join('');
-    }
+    expandDiv.innerHTML = _formatExpandItems(overlayType, rawItems);
   }
+}
+
+function _formatExpandItems(overlayType, rawItems) {
+  if (rawItems.length === 0) {
+    return '<div class="dc-overlay-expand-empty">No data extracted yet</div>';
+  }
+  const icon = {
+    upload_notarization: '',
+    document_classification: '',
+    key_date_extraction: '📅 ',
+    party_extraction: '👤 ',
+    amount_extraction: '💰 ',
+    ocr_result: '',
+  }[overlayType] || '';
+
+  if (overlayType === 'upload_notarization') {
+    return `<code class="dc-overlay-expand-item">${rawItems[0]}</code>`;
+  }
+  if (overlayType === 'document_classification') {
+    return `<span class="dc-pill">${rawItems[0]}</span>`;
+  }
+  return rawItems
+    .map(item => `<div class="dc-overlay-expand-item"><span class="dc-expand-icon">${icon}</span>${String(item)}</div>`)
+    .join('');
 }
 
 async function onTypeChange(sel) {
