@@ -279,8 +279,9 @@
 
         // --- Timeline ---
         const timelineEl = document.getElementById('timeline-body');
+        let timelineData = null;
         if (timelineRes.ok) {
-          const timelineData = await timelineRes.json();
+          timelineData = await timelineRes.json();
           const timeline = timelineData.timeline || timelineData.events || [];
           const recent = timeline.slice(0, 4);
           if (recent.length === 0) {
@@ -299,8 +300,7 @@
 
         // --- Deadlines (from timeline events) ---
         const deadlinesEl = document.getElementById('deadlines-body');
-        if (timelineRes.ok) {
-          const timelineData = await timelineRes.json();
+        if (timelineData) {
           const timeline = timelineData.timeline || timelineData.events || [];
           const deadlines = timeline.filter(e => e.event_type === 'hearing' || e.event_type === 'deadline' || e.event_type === 'court').slice(0, 4);
           if (deadlines.length === 0) {
