@@ -637,7 +637,7 @@ _register("app.modules.testing.router", prefix="/api/testing", tags=("Automated 
 _register("app.modules.documentation.router", prefix="/api/docs", tags=("API Documentation",), tier=ProductTier.DEV,
           log_message="API Documentation router connected - Developer portal active")
 _register("app.modules.document_center.router", prefix="/api/dc", tags=("Document Center",), tier=ProductTier.DEV,
-          lifecycle="experimental", requires_role=("admin",),
+          lifecycle="beta", requires_role=("admin",),
           dev_notes=(
               "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
               "✅ Slice 1: HTML shell. "
@@ -645,11 +645,12 @@ _register("app.modules.document_center.router", prefix="/api/dc", tags=("Documen
               "✅ Slice 3: iframe/img/download viewer states + /view endpoint. "
               "✅ Slice 4: /overlays endpoint — synthesizes 6 progress items from VaultDocument metadata. "
               "✅ Slice 5: /type endpoint — DB persistence + DOCUMENT_CLASSIFICATION overlay + one-trip right-panel refresh. "
-              "✅ Slice 6b: GET /api/dc/unlocks — _compute_unlocks across all user docs; "
-              "renderUnlocks() async with session cache; all inline CSS extracted to classes. "
-              "Forge: 23/23 smoke tests. 5 contracts. Promoted preview → experimental 2026-06-27."
+              "✅ Slice 6b: GET /api/dc/unlocks; renderUnlocks() async+cache; CSS extracted. "
+              "✅ Slice 7: openOverlay() drill-down (items field + DOM toggle); "
+              "_overlayDataByDoc cache; unlock invalidation on type save. "
+              "Forge: 26/26 smoke tests. 5 contracts. Promoted experimental → beta 2026-06-28."
           ),
-          log_message="Document Center router connected at /api/dc (experimental — admin only)")
+          log_message="Document Center router connected at /api/dc (beta — admin only)")
 
 
 # =============================================================================

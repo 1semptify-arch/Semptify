@@ -101,6 +101,7 @@ def _synthesize_overlays(doc) -> dict:
         "pct": 100 if certified else 0,
         "goal": "Document stored with tamper-proof certificate",
         "detail": doc.registry_id if certified else None,
+        "items": [doc.registry_id] if certified else [],
     })
 
     # 2. Document type identified
@@ -112,12 +113,14 @@ def _synthesize_overlays(doc) -> dict:
         "pct": 100 if typed else 0,
         "goal": "Document type identified and confirmed",
         "detail": doc.document_type.replace("_", " ").title() if typed else None,
+        "items": [doc.document_type.replace("_", " ").title()] if typed else [],
     })
 
     # 3. Text extraction (OCR)
     raw_text: str = str(extracted.get("text") or extracted.get("ocr_text") or "")
     has_text = bool(raw_text)
     ocr_pct = 100 if (doc.processed and has_text) else (50 if doc.processed else 0)
+    text_excerpt = (raw_text[:200] + "…") if len(raw_text) > 200 else raw_text
     items.append({
         "name": "Text Extraction",
         "overlay_type": "ocr_result",
@@ -125,6 +128,7 @@ def _synthesize_overlays(doc) -> dict:
         "pct": ocr_pct,
         "goal": "All text extracted from the document",
         "detail": f"{len(raw_text):,} chars" if has_text else None,
+        "items": [text_excerpt] if has_text else [],
     })
 
     # 4. Dates
@@ -138,6 +142,7 @@ def _synthesize_overlays(doc) -> dict:
         "pct": dates_pct,
         "goal": "Key dates identified (lease start, end, notice deadlines, etc.)",
         "detail": f"{n_dates} found" if n_dates else None,
+        "items": [str(d) for d in dates[:10]],
     })
 
     # 5. Parties
@@ -151,6 +156,7 @@ def _synthesize_overlays(doc) -> dict:
         "pct": parties_pct,
         "goal": "All parties identified (landlord, tenant, attorney)",
         "detail": f"{n_parties} found" if n_parties else None,
+        "items": [str(p) for p in parties[:10]],
     })
 
     # 6. Amounts
@@ -163,6 +169,7 @@ def _synthesize_overlays(doc) -> dict:
         "pct": 100 if n_amounts else (50 if doc.processed else 0),
         "goal": "Rent, deposit, and fee amounts confirmed",
         "detail": f"{n_amounts} found" if n_amounts else None,
+        "items": [str(a) for a in amounts[:10]],
     })
 
     overall_pct = sum(it["pct"] for it in items) // len(items) if items else 0

@@ -12,6 +12,30 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-28 — Document Center Slice 7, promoted to beta (COMPLETE)
+**Forge: 26/26 smoke tests | experimental → beta**
+
+### What Was Shipped
+
+#### Document Center Slice 7
+- **`items` field** added to every overlay in `_synthesize_overlays`: registry_id for certified upload; type label; 200-char text excerpt for OCR; raw dates/parties/amounts lists (capped at 10 each). Empty list `[]` when no data.
+- **`openOverlay(overlayType)`** — replaces stub; looks up `_overlayDataByDoc[_activeDocId]`, finds matching row by `data-overlay-type` attribute, toggles `.dc-overlay-row--expanded` class; renders items or "No data extracted yet"; button toggles Open▾ / Close▴
+- **`_overlayDataByDoc` cache** — populated on every `/overlays` fetch and on type-save response; keyed by `docId`
+- **Unlock invalidation on type save** — `_unlocksCache = null` + `renderUnlocks()` called after successful `onTypeChange()`, so unlock progress reflects the new type immediately
+- **Drill-down CSS** — `.dc-overlay-expand`, `.dc-overlay-expand-item`, `.dc-overlay-expand-empty`, `.dc-overlay-row--expanded` pattern
+- **3 new tests** (items field, items populated, items empty); 26/26 total
+- Promoted `experimental → beta`
+
+### Known Working (pending live test)
+- All DC Python files compile clean ✅
+- 26/26 Forge smoke tests pass ✅
+
+### Known Broken / Pending
+- `openOverlay()` shows raw extracted values — no formatting yet (future Slice 8)
+- Drill-down `dc-overlay-expand` uses inline `innerHTML` — XSS-safe since `items` is server-generated
+
+---
+
 ## Session — 2026-06-27 — Document Center Slice 6b, promoted to experimental (COMPLETE)
 **Forge: 23/23 smoke tests | preview → experimental**
 
