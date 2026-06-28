@@ -25,6 +25,24 @@ register_function_group(FunctionGroupContract(
 
 register_function_group(FunctionGroupContract(
     module="document_center",
+    group_name="dc_unlocks",
+    title="Document Center Unlocks (SSOT)",
+    description=(
+        "CANONICAL unlock state computation for DC feature modules. "
+        "Iterates all VaultDocuments for a user, synthesizes overlay scores in memory (no cloud I/O), "
+        "and checks four thresholds: Timeline (1 doc Dates+Parties>=80%), "
+        "Journal (2+ docs overall>=60%), Contact Manager (Parties==100%), "
+        "Case Builder (3+ docs overall>=80%). "
+        "Returns unlocks list with name/icon/threshold/unlocked/progress per item."
+    ),
+    inputs=("user_id",),
+    outputs=("unlocks", "doc_count", "generated_at"),
+    dependencies=("app.modules.document_center.router", "app.services.vault_upload_service"),
+    deterministic=False,
+))
+
+register_function_group(FunctionGroupContract(
+    module="document_center",
     group_name="dc_overlays",
     title="Document Center Overlays (SSOT)",
     description=(

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Document Center - Semptify{% endblock %}
 
@@ -498,6 +498,7 @@
     overflow: hidden;
 }
 .dc-overall__fill {
+    width: 0;
     height: 100%;
     background: linear-gradient(90deg, var(--color-accent), var(--color-success));
     border-radius: var(--radius-full);
@@ -587,12 +588,54 @@
 @keyframes dc-spin { to { transform: rotate(360deg); } }
 .dc-viewer-error-icon { font-size: 2rem; }
 .dc-viewer-download-icon { font-size: 2rem; }
+
+/* ── Extracted inline styles ─────────────────────────────────────────────── */
+.dc-flash-zone {
+    position: fixed;
+    top: 76px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 420px; max-width: 92vw;
+    pointer-events: none;
+}
+.dc-left__empty-state {
+    padding: 28px 14px;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    text-align: center;
+}
+.dc-left__empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.25;
+}
+.dc-left__empty-title { font-weight: 500; margin-bottom: 6px; }
+.dc-left__empty-sub   { font-size: 0.75rem; }
+.dc-viewer-dl-btn     { margin-top: 4px; text-decoration: none; }
+.dc-zoom-pct          { padding: 0 4px; }
+.dc-right__empty-icon { font-size: 1.5rem; opacity: 0.3; }
+.dc-right-active      { display: none; flex-direction: column; height: 100%; }
+.dc-right-active.visible { display: flex; }
+.dc-overlay-detail    { opacity: 0.6; }
+.dc-status-msg {
+    padding: 16px 14px;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+.dc-status-msg--processing { padding: 20px 14px; }
+.dc-unlock-progress {
+    font-size: 0.72rem;
+    opacity: 0.55;
+    margin-top: 2px;
+    display: block;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <!-- Fixed flash container — base.html showFlash needs .container in DOM -->
-<div class="container" id="dc-flash-zone" style="position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:9999;width:420px;max-width:92vw;pointer-events:none;"></div>
+<div class="container dc-flash-zone" id="dc-flash-zone"></div>
 
 <div class="dc-frame">
 
@@ -640,10 +683,10 @@
         </div>
         {% endfor %}
       {% else %}
-        <div style="padding:28px 14px;color:var(--color-text-muted);font-size:0.82rem;text-align:center;">
-          <div style="font-size:2.5rem;margin-bottom:10px;opacity:0.25;">�</div>
-          <div style="font-weight:500;margin-bottom:6px;">No documents yet</div>
-          <div style="font-size:0.75rem;">Upload your first document<br>using the button above.</div>
+        <div class="dc-left__empty-state">
+          <div class="dc-left__empty-icon">�</div>
+          <div class="dc-left__empty-title">No documents yet</div>
+          <div class="dc-left__empty-sub">Upload your first document<br>using the button above.</div>
         </div>
       {% endif %}
 
@@ -712,7 +755,7 @@
         <div class="dc-viewer-download" id="dc-viewer-download">
           <div class="dc-viewer-download-icon">📎</div>
           <div>This file type can’t be previewed in the browser.</div>
-          <a class="dc-tool-btn" id="dc-viewer-dl-link" href="#" style="margin-top:4px;text-decoration:none;">⬇ Download to open</a>
+          <a class="dc-tool-btn dc-viewer-dl-btn" id="dc-viewer-dl-link" href="#">⬇ Download to open</a>
         </div>
 
         <!-- iframe — PDF / images (same-origin, cookie-auth, browser renders natively) -->
@@ -737,7 +780,7 @@
         </div>
         <div class="dc-zoom-group">
           <button class="dc-zoom-btn">−</button>
-          <span style="padding:0 4px;">100%</span>
+          <span class="dc-zoom-pct">100%</span>
           <button class="dc-zoom-btn">+</button>
         </div>
       </div>
@@ -751,12 +794,12 @@
 
     <!-- Default state (no doc selected) -->
     <div class="dc-right__empty" id="dc-right-empty">
-      <span style="font-size:1.5rem;opacity:0.3;">📊</span>
+      <span class="dc-right__empty-icon">📊</span>
       <span>Overlays appear here<br>when a document is open</span>
     </div>
 
     <!-- Active state (shown when doc selected) -->
-    <div id="dc-right-active" style="display:none;flex-direction:column;height:100%;">
+    <div id="dc-right-active" class="dc-right-active">
 
       <div class="dc-right__header">
         <div class="dc-right__doc-label" id="dc-right-doc-label">—</div>
@@ -773,7 +816,7 @@
         <div class="dc-overall__row">
           <div class="dc-overall__pct" id="dc-overall-pct">—%</div>
           <div class="dc-overall__bar">
-            <div class="dc-overall__fill" id="dc-overall-fill" style="width:0%"></div>
+            <div class="dc-overall__fill" id="dc-overall-fill"></div>
           </div>
         </div>
       </div>
@@ -883,7 +926,7 @@ function selectDoc(rowEl) {
   // Show right pane
   document.getElementById('dc-right-empty').style.display = 'none';
   const activePanel = document.getElementById('dc-right-active');
-  activePanel.style.display = 'flex';
+  activePanel.classList.add('visible');
   document.getElementById('dc-right-doc-label').textContent = docName;
 
   // Load document into viewer
@@ -910,7 +953,7 @@ function deselectDoc() {
   if (iframe) iframe.src = 'about:blank';
 
   document.getElementById('dc-right-empty').style.display = '';
-  document.getElementById('dc-right-active').style.display = 'none';
+  document.getElementById('dc-right-active').classList.remove('visible');
 
   _activeTool = null;
   document.querySelectorAll('.dc-tool-btn.active').forEach(b => b.classList.remove('active'));
@@ -987,7 +1030,7 @@ async function renderOverlays(docId) {
   }
 
   // Show loading state
-  list.innerHTML = '<div style="padding:16px 14px;color:var(--color-text-muted);font-size:0.82rem;">Loading overlays…</div>';
+  list.innerHTML = '<div class="dc-status-msg">Loading overlays…</div>';
   _overlayFetchDocId = docId;
 
   try {
@@ -999,7 +1042,7 @@ async function renderOverlays(docId) {
     const data = await resp.json();
 
     if (!data.has_data || !data.overlays || data.overlays.length === 0) {
-      list.innerHTML = '<div style="padding:20px 14px;color:var(--color-text-muted);font-size:0.82rem;line-height:1.6;"><strong>Processing your document.</strong><br>Semptify will extract dates, parties, and amounts. Overlays appear once processing is complete.</div>';
+      list.innerHTML = '<div class="dc-status-msg dc-status-msg--processing"><strong>Processing your document.</strong><br>Semptify will extract dates, parties, and amounts. Overlays appear once processing is complete.</div>';
       document.getElementById('dc-overall-pct').textContent = '0%';
       document.getElementById('dc-overall-fill').style.width = '0%';
       return;
@@ -1010,7 +1053,7 @@ async function renderOverlays(docId) {
   } catch (err) {
     console.warn('DC overlays fetch failed:', err);
     if (_overlayFetchDocId === docId) {
-      list.innerHTML = '<div style="padding:16px 14px;color:var(--color-text-muted);font-size:0.82rem;">Could not load overlay data. Check your connection.</div>';
+      list.innerHTML = '<div class="dc-status-msg">Could not load overlay data. Check your connection.</div>';
     }
   }
 }
@@ -1024,7 +1067,7 @@ function _renderOverlayItems(overlays, overallPct) {
     const colorClass = pct === 100 ? 'done' : pct > 50 ? 'partial' : pct > 0 ? 'low' : 'empty';
     const row = document.createElement('div');
     row.className = 'dc-overlay-row';
-    const detailHtml = ov.detail ? ` · <span style="opacity:0.6;">${ov.detail}</span>` : '';
+    const detailHtml = ov.detail ? ` · <span class="dc-overlay-detail">${ov.detail}</span>` : '';
     row.innerHTML = `
       <div class="dc-overlay-row__top">
         <span class="dc-overlay-status-icon">${ov.icon}</span>
@@ -1045,16 +1088,37 @@ function _renderOverlayItems(overlays, overallPct) {
   document.getElementById('dc-overall-fill').style.width = pct + '%';
 }
 
-function renderUnlocks(docId) {
+let _unlocksCache = null;
+
+async function renderUnlocks(docId) {
   const list = document.getElementById('dc-unlock-list');
+
+  // Fetch once per page session — unlock state is user-wide, not per-doc
+  if (!_unlocksCache) {
+    try {
+      const resp = await fetch('/api/dc/unlocks');
+      if (resp.ok) {
+        const data = await resp.json();
+        _unlocksCache = data.unlocks;
+      }
+    } catch (err) {
+      console.warn('DC unlocks fetch failed:', err);
+    }
+  }
+
+  const rules = _unlocksCache || DC_UNLOCK_RULES;
+
   list.innerHTML = '';
-  DC_UNLOCK_RULES.forEach(rule => {
+  rules.forEach(rule => {
     const item = document.createElement('div');
     item.className = 'dc-unlock-item' + (rule.unlocked ? ' unlocked' : '');
     item.innerHTML = `
       <span class="dc-unlock-icon">${rule.unlocked ? '🔓' : '🔒'}</span>
-      <span class="dc-unlock-name">${rule.icon} ${rule.name}</span>
-      ${!rule.unlocked ? `<span class="dc-unlock-hint">${rule.threshold}</span>` : ''}
+      <div class="dc-unlock-info">
+        <span class="dc-unlock-name">${rule.icon} ${rule.name}</span>
+        <span class="dc-unlock-hint">${rule.threshold}</span>
+        ${rule.progress ? `<span class="dc-unlock-progress">${rule.progress}</span>` : ''}
+      </div>
     `;
     list.appendChild(item);
   });

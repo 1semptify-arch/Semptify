@@ -12,6 +12,29 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-27 — Document Center Slice 6b, promoted to experimental (COMPLETE)
+**Forge: 23/23 smoke tests | preview → experimental**
+
+### What Was Shipped
+
+#### Document Center Slice 6b
+- **`GET /api/dc/unlocks`** — `_compute_unlocks()` iterates all user VaultDocuments, synthesizes overlay scores in memory, checks 4 thresholds: Timeline (1 doc Dates+Parties avg≥80%), Journal (2+ docs overall≥60%), Contact Manager (Parties==100%), Case Builder (3+ docs overall≥80%); returns `unlocks/doc_count/generated_at`
+- **`dc_unlocks` contract** registered in `register.py`
+- **`renderUnlocks()` now async** — fetches `/api/dc/unlocks` once per page session (`_unlocksCache`), falls back to `DC_UNLOCK_RULES` on error; shows `progress` field per unlock rule
+- **All inline CSS extracted** — 6 new CSS classes (`.dc-flash-zone`, `.dc-left__empty-state/icon/title/sub`, `.dc-viewer-dl-btn`, `.dc-zoom-pct`, `.dc-right__empty-icon`, `.dc-right-active/.visible`, `.dc-overlay-detail`, `.dc-status-msg`, `.dc-unlock-progress`); `.dc-overall__fill` gets `width:0` default; `dc-right-active` toggled via `.visible` class not `.style.display`
+- **23/23 Forge smoke tests** — 5 contracts registered; promoted `preview → experimental`
+
+### Known Working (pending live test)
+- All DC Python files compile clean ✅
+- 23/23 Forge smoke tests pass ✅
+- No remaining linter-flagged inline styles in documents.html ✅
+
+### Known Broken / Pending
+- `_unlocksCache` resets on page reload — acceptable for now (no stale data risk)
+- `openOverlay()` drill-down panel still stub — deferred to Slice 7
+
+---
+
 ## Session — 2026-06-27 — Document Center Forge Integration, Slices 1–5 (COMPLETE)
 **Promoted: dev_only → preview | Forge: 18/18 smoke tests**
 
