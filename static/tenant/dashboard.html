@@ -241,7 +241,12 @@
         // Use Core endpoints: documents, timeline-unified, briefcase
         const [docsRes, timelineRes, briefcaseRes] = await Promise.all([
           fetch('/api/documents/', { credentials: 'include' }),
-          fetch('/api/timeline-unified', { credentials: 'include' }),
+          fetch('/api/timeline/unified', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({}),
+            credentials: 'include'
+          }),
           fetch('/api/briefcase', { credentials: 'include' }),
         ]);
 
