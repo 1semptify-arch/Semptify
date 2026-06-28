@@ -637,7 +637,7 @@ _register("app.modules.testing.router", prefix="/api/testing", tags=("Automated 
 _register("app.modules.documentation.router", prefix="/api/docs", tags=("API Documentation",), tier=ProductTier.DEV,
           log_message="API Documentation router connected - Developer portal active")
 _register("app.modules.document_center.router", prefix="/api/dc", tags=("Document Center",), tier=ProductTier.DEV,
-          lifecycle="preview", requires_role=("admin",),
+          lifecycle="experimental", requires_role=("admin",),
           dev_notes=(
               "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
               "✅ Slice 1: HTML shell. "
@@ -645,10 +645,11 @@ _register("app.modules.document_center.router", prefix="/api/dc", tags=("Documen
               "✅ Slice 3: iframe/img/download viewer states + /view endpoint. "
               "✅ Slice 4: /overlays endpoint — synthesizes 6 progress items from VaultDocument metadata. "
               "✅ Slice 5: /type endpoint — DB persistence + DOCUMENT_CLASSIFICATION overlay + one-trip right-panel refresh. "
-              "Forge: 18/18 smoke tests passing. Promoted dev_only → preview 2026-06-27. "
-              "Next: Slice 6 — unlock logic wired to real overlay scores."
+              "✅ Slice 6b: GET /api/dc/unlocks — _compute_unlocks across all user docs; "
+              "renderUnlocks() async with session cache; all inline CSS extracted to classes. "
+              "Forge: 23/23 smoke tests. 5 contracts. Promoted preview → experimental 2026-06-27."
           ),
-          log_message="Document Center router connected at /api/dc (preview — admin only)")
+          log_message="Document Center router connected at /api/dc (experimental — admin only)")
 
 
 # =============================================================================
