@@ -242,41 +242,87 @@
 <script>
 const PROMPT = `I'm building Semptify — a FREE, ad-free, privacy-first housing rights platform for tenants who can't afford legal help.
 
-I need your help laying out the FOUNDATIONAL FRAMEWORK for the organization and the GUI. Not code. Just the structure.
+I need your help laying out the FOUNDATIONAL FRAMEWORK for the entire organization, website, and GUI. Not code. Just the structure.
 
 WHAT SEMPTIFY IS:
+- A tenant rights advocate organization (non-profit, seeking 501c3)
 - A document organizer for renters/tenants
 - Records everything between landlord and tenant throughout a tenancy
 - Gives tenants "armor" to protect their rights
 - Information is FACTS only, no opinions
 - Free forever, no advertising ever, privacy-respecting by design
+- Website: semptify.org
 
 THE TWO PILLARS I BELIEVE IN:
 1. RECORD — Document capture, vault, timeline, journal. Big "Add Record" button everywhere.
 2. KNOW — Library of verified facts, rights guides, context engine. Facts only, no opinions.
 
-WHAT I NEED FROM YOU:
-1. Validate or refine these two pillars — are they right? What's missing?
-2. Map everything Semptify does into a structural framework that hangs on these pillars
-3. Identify what modules/features belong under each pillar
-4. Point out what's MISSING from the foundation
-5. Suggest how to organize the tenant GUI around this framework
-6. Think about: jurisdiction/location (zip code), calendar, accountability module, law library, court forms, AI assistance, admin controls — where do they fit?
+THE ROLES IN THE SYSTEM:
+- TENANT — the primary user. Stressed, overwhelmed, needs simple. Mobile-first.
+- ADVOCATE — housing advocates who help tenants. Caseload management.
+- LEGAL — attorneys, paralegals, judges, clerks. Court filing, legal analysis.
+- MANAGER — property managers (accountability counterweight). Compliance tracking.
+- ADMIN — runs the platform, toggles modules, manages users.
+
+WHAT I NEED FROM YOU — THE FULL FRAMEWORK:
+
+1. VALIDATE OR REFINE THE TWO PILLARS
+   - Are RECORD and KNOW right? What's missing? Should there be a third pillar?
+
+2. ORGANIZE THE NON-PROFIT ITSELF
+   - How should the organization be structured (board, programs, tech, outreach)?
+   - What's the org chart for a small housing-rights non-profit?
+   - What programs/services should we offer beyond the app?
+
+3. STRUCTURE THE SEMPTIFY.ORG WEBSITE
+   - Public-facing pages (index, about, donate, help, privacy)
+   - Role-based portals (tenant, advocate, legal, manager, admin)
+   - How should the site map flow? What's the navigation tree?
+   - What's on the landing page for each role?
+
+4. GUI FRAMEWORK FOR ALL ROLES — MOBILE + DESKTOP
+   - TENANT GUI: mobile-first, brutally simple. Timeline + library + big "Add Record" button. What else?
+   - ADVOCATE GUI: desktop-first, caseload dashboard. What tools?
+   - LEGAL GUI: desktop, court forms, case review, filings. What layout?
+   - MANAGER GUI: desktop, compliance, properties. What views?
+   - ADMIN GUI: desktop, module console, user management. What controls?
+   - How do these share components? What's common vs role-specific?
+
+5. MAP EVERY SEMPTIFY MODULE TO A PILLAR
+   - Document Center, Vault, Timeline, Journal, Calendar, Capture → RECORD?
+   - Law Library, State Laws, Context Engine, Help, Accountability → KNOW?
+   - Court Forms, Case Builder, Eviction Defense, Complaints → ACTION (third pillar?)
+   - Admin Console, Module Flags, Forge → GOVERNANCE (fourth pillar?)
+   - Where do jurisdiction/location, AI assistance, contacts, search fit?
+
+6. WHAT'S MISSING FROM THE FOUNDATION
+   - Gaps in the role-based GUIs
+   - Gaps in the website structure
+   - Gaps in the non-profit org structure
+   - Gaps in the module ecosystem
+
+7. THE TENANT HOME PAGE SPECIFICALLY
+   - Should be the launchpad for everything a tenant needs
+   - Direct navigation to: Document Center, Law Library, Court Case Lookup (CCL)
+   - How should it be organized on mobile vs desktop?
 
 CONTEXT — I've attached a bundle of 5 key documents:
 - PROJECT_BIBLE.md (governance + identity)
 - AGENTS.md (rules + known failures + conventions)
-- SEMPTIFY_SYSTEM_MANIFEST.md (what exists)
+- SEMPTIFY_SYSTEM_MANIFEST.md (what exists — 100+ modules)
 - ALL_IN_ONE_CODE_MAP.md (code structure)
 - ARCHITECTURE_BLUEPRINT_V2.md (architecture vision)
 
 Read them, then give me:
-A) The foundational pillars (refined)
-B) A structural framework mapping every module to a pillar
-C) What's missing from the foundation
-D) How the tenant GUI should be organized around this
+A) The foundational pillars (refined — 2, 3, or 4 pillars?)
+B) The non-profit organization structure (org chart, programs)
+C) The semptify.org website structure (site map, navigation tree)
+D) The GUI framework for ALL roles (mobile + desktop, what each sees)
+E) Module-to-pillar mapping (every module fits somewhere)
+F) What's missing from the foundation
+G) The tenant home page layout (mobile + desktop)
 
-Keep it structural. No code. I want the big picture I can build on.
+Keep it structural. No code. I want the big picture I can build the entire organization and platform on.
 
 Thank you.`;
 
