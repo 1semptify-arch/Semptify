@@ -18,7 +18,7 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/dc", tags=["Document Center"])
+router = APIRouter(tags=["Document Center"])
 
 ALLOWED_DOCUMENT_TYPES: frozenset[str] = frozenset({
     "lease",
