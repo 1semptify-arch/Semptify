@@ -272,8 +272,13 @@
             const countEl = document.getElementById('entryCount');
 
             try {
-                // Use Core endpoint: timeline-unified
-                const eventsResp = await fetch('/api/timeline-unified', { credentials: 'include' });
+                // Use Core endpoint: timeline/unified (POST)
+                const eventsResp = await fetch('/api/timeline/unified', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({}),
+                    credentials: 'include'
+                });
                 if (!eventsResp.ok) throw new Error('Failed to load timeline');
                 const eventsData = await eventsResp.json();
 
