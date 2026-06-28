@@ -12,6 +12,34 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-28 — Document Center Slice 8, promoted to stable (COMPLETE)
+**Forge: 28/28 smoke tests | beta → stable**
+
+### What Was Shipped
+
+#### Document Center Slice 8
+- **`_formatExpandItems(overlayType, rawItems)`** — per-type formatting in `openOverlay()` drill-down:
+  - `upload_notarization` → `<code>` certificate label
+  - `document_classification` → `.dc-pill` badge
+  - `key_date_extraction` → 📅 icon per item
+  - `party_extraction` → 👤 icon per item
+  - `amount_extraction` → 💰 icon per item
+  - `ocr_result` → plain text (already truncated at 200ch server-side)
+- **2 new CSS classes**: `.dc-pill`, `.dc-expand-icon`
+- **2 new tests**: OCR excerpt cap (200ch+…), items list cap at 10
+- **28/28 Forge smoke tests**; promoted `beta → stable`
+
+### Known Working (pending live test)
+- All DC Python files compile clean ✅
+- 28/28 Forge smoke tests pass ✅
+- DC at `stable` lifecycle — still admin-only via `requires_role`
+
+### Known Broken / Pending
+- `dc-right-empty` still uses `style.display` toggle (minor, cosmetic)
+- DC access still admin-only — expand to tenants after live admin test
+
+---
+
 ## Session — 2026-06-28 — Document Center Slice 7, promoted to beta (COMPLETE)
 **Forge: 26/26 smoke tests | experimental → beta**
 
