@@ -272,24 +272,218 @@
     .quick-actions {
         grid-template-columns: 1fr;
     }
-    
+
     .welcome-section h1 {
         font-size: 1.5rem;
     }
+
+    .big-three {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Health Badges - Status at a glance */
+.health-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+}
+
+.badge-ok {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.badge-warn {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.badge-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* The Big Three - Primary quick actions */
+.big-three {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.big-action {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.big-action:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-2px);
+}
+
+.big-action-primary {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1));
+    border: 2px solid rgba(59, 130, 246, 0.4);
+}
+
+.big-action-primary:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.15));
+    border-color: rgba(59, 130, 246, 0.6);
+}
+
+.big-action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.big-action-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.big-action-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+}
+
+/* Direct Navigation - DC, Library, CCL */
+.direct-nav {
+    margin-bottom: 2rem;
+}
+
+.direct-nav h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.nav-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.nav-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.nav-card:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-2px);
+}
+
+.nav-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav-title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.nav-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+}
+
+/* Pillar Sections - ACT and Settings */
+.pillar-section {
+    margin-bottom: 2rem;
+}
+
+.pillar-heading {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="tenant-home">
-    
-    <!-- Welcome - Reassuring tone -->
+
+    <!-- Welcome - Calm, reassuring -->
     <section class="welcome-section">
-        <h1>Welcome back{% if user_name %}, {{ user_name }}{% endif %}</h1>
-        <p>This is your safe space. Everything you record here helps protect your rights. You're not alone.</p>
+        <h1>Hello{% if user_name %}, {{ user_name }}{% endif %}</h1>
+        <p>This is your safe space. Everything you record here helps protect your rights.</p>
     </section>
-    
-    <!-- Emergency Quick Capture - Prominent for stress -->
+
+    <!-- Health Badges - Status at a glance -->
+    <section class="health-badges">
+        <span class="badge {% if vault_connected %}badge-ok{% else %}badge-warn{% endif %}">
+            {% if vault_connected %}✓{% else %}⚠{% endif %} Vault: {% if vault_connected %}Connected{% else %}Not Set Up{% endif %}
+        </span>
+        <span class="badge badge-info">📍 {% if jurisdiction %}{{ jurisdiction }}{% else %}Set Location{% endif %}</span>
+        <span class="badge badge-info">Role: Tenant</span>
+    </section>
+
+    <!-- THE BIG THREE - Quick Actions (Journal is #1 per framework) -->
+    <section class="big-three">
+        <a href="/tenant/journal" class="big-action big-action-primary">
+            <div class="big-action-icon">📝</div>
+            <div class="big-action-title">Write in Journal</div>
+            <div class="big-action-desc">Record what happened</div>
+        </a>
+        <a href="/tenant/capture" class="big-action">
+            <div class="big-action-icon">📄</div>
+            <div class="big-action-title">Add Document/Photo</div>
+            <div class="big-action-desc">Upload evidence</div>
+        </a>
+        <a href="/tenant/library" class="big-action">
+            <div class="big-action-icon">⚖️</div>
+            <div class="big-action-title">Check a Right</div>
+            <div class="big-action-desc">Look up the facts</div>
+        </a>
+    </section>
+
+    <!-- Quick Capture - For stress moments -->
     <section class="emergency-capture">
         <h2>⚡ Something just happened?</h2>
         <p>Quickly record it now while it's fresh. One tap, we'll handle the rest.</p>
@@ -301,11 +495,11 @@
             <button class="capture-chip" data-capture="other">Something else</button>
         </div>
     </section>
-    
+
     <!-- Status Overview - What's happening NOW -->
     <section class="status-card">
         <h2>Your Situation</h2>
-        
+
         <div class="status-item">
             <span class="status-icon">📅</span>
             <div class="status-content">
@@ -325,7 +519,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="status-item">
             <span class="status-icon">📄</span>
             <div class="status-content">
@@ -345,7 +539,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="status-item">
             <span class="status-icon">📝</span>
             <div class="status-content">
@@ -366,35 +560,30 @@
             </div>
         </div>
     </section>
-    
-    <!-- Quick Actions -->
-    <section class="quick-actions">
-        <a href="/tenant/capture" class="action-card">
-            <div class="action-icon">⚡</div>
-            <div class="action-title">Quick Capture</div>
-            <div class="action-desc">Log something that just happened</div>
-        </a>
-        
-        <a href="/documents" class="action-card">
-            <div class="action-icon">📄</div>
-            <div class="action-title">Documents</div>
-            <div class="action-desc">Upload and organize evidence</div>
-        </a>
-        
-        <a href="/timeline" class="action-card">
-            <div class="action-icon">📅</div>
-            <div class="action-title">Timeline</div>
-            <div class="action-desc">See your case chronology</div>
-        </a>
-        
-        <a href="/tenant/journal" class="action-card">
-            <div class="action-icon">📝</div>
-            <div class="action-title">Journal</div>
-            <div class="action-desc">Record conversations & events</div>
-        </a>
+
+    <!-- Direct Navigation - DC, Library, CCL (per framework) -->
+    <section class="direct-nav">
+        <h2>Where do you need to go?</h2>
+        <div class="nav-grid">
+            <a href="/documents" class="nav-card">
+                <div class="nav-icon">�</div>
+                <div class="nav-title">Document Center</div>
+                <div class="nav-desc">Your vault of evidence</div>
+            </a>
+            <a href="/law-library" class="nav-card">
+                <div class="nav-icon">�</div>
+                <div class="nav-title">Law Library</div>
+                <div class="nav-desc">Know your rights</div>
+            </a>
+            <a href="/freeapi/courts/evictions" class="nav-card">
+                <div class="nav-icon">�</div>
+                <div class="nav-title">Court Case Lookup</div>
+                <div class="nav-desc">Search court records</div>
+            </a>
+        </div>
     </section>
-    
-    <!-- Recent Activity -->
+
+    <!-- Recent Activity - The Pulse -->
     <section class="activity-section">
         <h2>Recent Activity</h2>
         {% if recent_activity %}
@@ -402,14 +591,14 @@
         {% else %}
             <div class="activity-empty">
                 <div class="activity-empty-icon">🌱</div>
-                <p>Your activity will appear here.<br>Start by capturing something that happened.</p>
+                <p>Your activity will appear here.<br>Start by writing in your journal.</p>
             </div>
         {% endif %}
     </section>
-    
-    <!-- Legal Defense Tools -->
-    <section style="margin-bottom: 2rem;">
-        <h2 style="font-size:0.875rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-text-muted); margin-bottom:1rem;">⚖️ Defense Tools</h2>
+
+    <!-- ACT Pillar - Defense Tools -->
+    <section class="pillar-section">
+        <h2 class="pillar-heading">⚔️ Take Action</h2>
         <div class="quick-actions">
             <a href="/ui/tool/eviction-defense" class="action-card">
                 <div class="action-icon">🛡️</div>
@@ -434,12 +623,29 @@
         </div>
     </section>
 
+    <!-- Settings - Jurisdiction & Profile -->
+    <section class="pillar-section">
+        <h2 class="pillar-heading">⚙️ Settings</h2>
+        <div class="quick-actions">
+            <a href="/tenant/capture" class="action-card">
+                <div class="action-icon">📍</div>
+                <div class="action-title">My Location</div>
+                <div class="action-desc">Set your zip code for local laws</div>
+            </a>
+            <a href="/tenant/help" class="action-card">
+                <div class="action-icon">🆘</div>
+                <div class="action-title">Help</div>
+                <div class="action-desc">Get guidance on next steps</div>
+            </a>
+        </div>
+    </section>
+
     <!-- Help Footer -->
     <footer class="help-footer">
         <p>Need help understanding your rights or next steps?</p>
         <a href="/tenant/help" class="help-link">Get personalized guidance →</a>
     </footer>
-    
+
 </div>
 {% endblock %}
 
