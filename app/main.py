@@ -3591,13 +3591,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
-        journal_entries = []
-        if briefcase and briefcase.journal:
-            journal_entries = briefcase.journal.recent_entries or []
-        entries = journal_entries
-        # DEBUG: inject info as HTML comment
-        _j = briefcase.journal if briefcase and briefcase.journal else None
-        _debug = f"<!-- DEBUG: user_id={user_id[:8] if user_id else 'None'} briefcase={'yes' if briefcase else 'None'} journal={'yes' if _j else 'no'} entries={len(entries)} docs={getattr(_j, '_debug_docs', '?')} err={getattr(_j, '_debug_err', '?')} vault_docs={getattr(_j, '_debug_vault_docs', '?')} -->"
+
+        entries = []
+        if briefcase and hasattr(briefcase, "journal") and briefcase.journal:
+            entries = briefcase.journal.recent_entries or []
 
         context = {
             "briefcase": briefcase,
@@ -3617,7 +3614,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 if entries else 0
             ),
         }
-        context["debug_info"] = _debug
         return templates.TemplateResponse(request, "pages/tenant_journal.html", context)
 
     @fastapi_app.get("/tenant/inbox", response_class=HTMLResponse)
