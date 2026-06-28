@@ -236,15 +236,16 @@
     <!-- Entries -->
     <div class="entry-list">
         {% for entry in entries %}
-        <article class="entry-card" data-type="{{ entry.capture_type }}" data-urgent="{{ entry.is_urgent }}">
+        <article class="entry-card" data-type="{{ entry.entry_type }}" data-urgent="{{ entry.is_urgent }}">
             <div class="entry-header">
                 <span class="entry-type {% if entry.is_urgent %}urgent{% endif %}">
-                    {% if entry.capture_type == 'notice' %}📋 Notice
-                    {% elif entry.capture_type == 'conversation' %}💬 Conversation
-                    {% elif entry.capture_type == 'repair' %}🔧 Repair
-                    {% elif entry.capture_type == 'harassment' %}⚠️ Harassment
-                    {% elif entry.capture_type == 'payment' %}💰 Payment
-                    {% else %}📝 Other
+                    {% if entry.entry_type == 'notice' %}📋 Notice
+                    {% elif entry.entry_type == 'conversation' %}💬 Conversation
+                    {% elif entry.entry_type == 'repair' %}🔧 Repair
+                    {% elif entry.entry_type == 'harassment' %}⚠️ Harassment
+                    {% elif entry.entry_type == 'payment' %}💰 Payment
+                    {% elif entry.entry_type == 'document_upload' %}📄 Document
+                    {% else %}📝 {{ entry.entry_type|title }}
                     {% endif %}
                 </span>
                 <span class="entry-date">{{ entry.created_at|format_date }}</span>

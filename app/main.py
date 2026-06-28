@@ -3593,8 +3593,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
         entries = []
-        if briefcase and hasattr(briefcase, "journal_entries"):
-            entries = briefcase.journal_entries or []
+        if briefcase and hasattr(briefcase, "journal") and briefcase.journal:
+            entries = briefcase.journal.recent_entries or []
 
         context = {
             "briefcase": briefcase,
@@ -3602,13 +3602,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "total_entries": len(entries),
             "entries_this_month": sum(
                 1 for e in entries
-                if hasattr(e, "created_at") and e.created_at and
-                e.created_at.month == utc_now().month and
-                e.created_at.year == utc_now().year
+                if getattr(e, "created_at", None) and
+                str(e.created_at)[:7] == utc_now().strftime("%Y-%m")
             ) if entries else 0,
             "urgent_count": sum(1 for e in entries if getattr(e, "is_urgent", False)),
             "days_since_start": (
-                (utc_now() - min(e.created_at for e in entries if hasattr(e, "created_at") and e.created_at)).days
+                (utc_now() - min(
+                    (e.created_at if isinstance(e.created_at, datetime.datetime) else datetime.datetime.fromisoformat(str(e.created_at).replace("Z", "+00:00")))
+                    for e in entries if getattr(e, "created_at", None)
+                )).days
                 if entries else 0
             ),
         }
