@@ -630,6 +630,26 @@
     margin-top: 2px;
     display: block;
 }
+.dc-overlay-expand {
+    display: none;
+    padding: 6px 0 4px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 6px;
+}
+.dc-overlay-row--expanded .dc-overlay-expand { display: block; }
+.dc-overlay-expand-item {
+    font-size: 0.75rem;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    color: var(--color-text-muted);
+    padding: 2px 0;
+    word-break: break-all;
+    line-height: 1.5;
+}
+.dc-overlay-expand-empty {
+    font-size: 0.75rem;
+    opacity: 0.45;
+    font-style: italic;
+}
 </style>
 {% endblock %}
 
@@ -1040,6 +1060,8 @@ async function renderOverlays(docId) {
 
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
+    // Cache for drill-down access
+    _overlayDataByDoc[docId] = data.overlays || [];
 
     if (!data.has_data || !data.overlays || data.overlays.length === 0) {
       list.innerHTML = '<div class="dc-status-msg dc-status-msg--processing"><strong>Processing your document.</strong><br>Semptify will extract dates, parties, and amounts. Overlays appear once processing is complete.</div>';
@@ -1078,7 +1100,8 @@ function _renderOverlayItems(overlays, overallPct) {
         <div class="dc-progress-fill dc-progress-fill--${colorClass}" style="width:${pct}%"></div>
       </div>
       <div class="dc-overlay-goal">Goal: ${ov.goal}${detailHtml}</div>
-      <button class="dc-overlay-open-btn" onclick="openOverlay('${ov.name}')">Open ▾</button>
+      <button class="dc-overlay-open-btn" data-overlay-type="${ov.overlay_type}" onclick="openOverlay('${ov.overlay_type}')">Open ▾</button>
+      <div class="dc-overlay-expand"></div>
     `;
     list.appendChild(row);
   });
@@ -1136,8 +1159,35 @@ function toggleTool(toolName) {
   }
 }
 
-function openOverlay(name) {
-  window.showFlash('Overlay detail panel — coming in a future slice', 'info');
+const _overlayDataByDoc = {};
+
+function openOverlay(overlayType) {
+  const overlays = _overlayDataByDoc[_activeDocId] || [];
+  const ov = overlays.find(o => o.overlay_type === overlayType);
+
+  // Find the matching row by its button's data-overlay-type
+  const btn = document.querySelector(`.dc-overlay-open-btn[data-overlay-type="${overlayType}"]`);
+  if (!btn) return;
+
+  const row = btn.closest('.dc-overlay-row');
+  if (!row) return;
+
+  const isExpanded = row.classList.toggle('dc-overlay-row--expanded');
+  btn.textContent = isExpanded ? 'Close ▴' : 'Open ▾';
+
+  const expandDiv = row.querySelector('.dc-overlay-expand');
+  if (!expandDiv) return;
+
+  if (isExpanded) {
+    const rawItems = (ov && ov.items) ? ov.items : [];
+    if (rawItems.length === 0) {
+      expandDiv.innerHTML = '<div class="dc-overlay-expand-empty">No data extracted yet</div>';
+    } else {
+      expandDiv.innerHTML = rawItems
+        .map(item => `<div class="dc-overlay-expand-item">${String(item).substring(0, 140)}</div>`)
+        .join('');
+    }
+  }
 }
 
 async function onTypeChange(sel) {
@@ -1184,8 +1234,14 @@ async function onTypeChange(sel) {
 
     // Refresh right panel from response — no second fetch needed
     if (data.overlays && Array.isArray(data.overlays.overlays)) {
+      // Update overlay cache so drill-down shows fresh data
+      _overlayDataByDoc[_activeDocId] = data.overlays.overlays;
       _renderOverlayItems(data.overlays.overlays, data.overlays.overall_pct);
     }
+
+    // Invalidate unlock cache — type change affects overlay scores
+    _unlocksCache = null;
+    renderUnlocks(_activeDocId);
 
   } catch (err) {
     console.error('DC onTypeChange error:', err);
