@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semptify AI Helper — One Click</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container { max-width: 700px; width: 100%; }
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .step-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+  }
+  .step-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    vertical-align: middle;
+  }
+  .step-desc {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin: 0.5rem 0 1rem 0;
+    line-height: 1.5;
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-secondary {
+    background: #334155;
+    color: #e2e8f0;
+    border: 1px solid #475569;
+  }
+  .btn-secondary:hover { background: #3e4f68; }
+  .btn-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+  }
+  .btn-purple:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-green {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+  }
+  .btn-green:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn + .btn { margin-top: 0.5rem; }
+  .copied {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  }
+  .prompt-preview {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 0.75rem;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+  .ai-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .ai-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: #e2e8f0;
+    transition: all 0.15s;
+  }
+  .ai-card:hover { border-color: #3b82f6; background: #1e293b; }
+  .ai-card .ai-name { font-weight: 700; font-size: 0.95rem; }
+  .ai-card .ai-desc { font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem; }
+  .ai-card .ai-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    background: #22c55e;
+    color: white;
+  }
+  .status-msg {
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+    display: none;
+  }
+  .status-msg.show { display: block; }
+  .status-msg.success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+  .footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #334155;
+    width: 100%;
+  }
+  @media (max-width: 600px) {
+    .ai-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🤖 Semptify AI Helper</h1>
+  <p class="subtitle">One click. No typing. Get your framework.</p>
+
+  <!-- STEP 1: Download bundle -->
+  <div class="step-card">
+    <span class="step-num">1</span><span class="step-title">Download Your Document Bundle</span>
+    <p class="step-desc">One file with all 5 key Semptify docs combined. You'll drag this into the AI.</p>
+    <a href="/static/ai-helper-bundle.txt" download="semptify-docs-bundle.txt" class="btn btn-green">
+      ⬇️ Download Bundle (87KB)
+    </a>
+  </div>
+
+  <!-- STEP 2: Copy prompt -->
+  <div class="step-card">
+    <span class="step-num">2</span><span class="step-title">Copy the Prompt</span>
+    <p class="step-desc">Click once. The prompt copies to your clipboard automatically.</p>
+    <button class="btn btn-primary" id="copy-btn" onclick="copyPrompt()">
+      📋 Copy Prompt to Clipboard
+    </button>
+    <div class="prompt-preview" id="prompt-preview"></div>
+    <div class="status-msg success" id="copy-status">✅ Copied! Now click "Open Claude" below.</div>
+  </div>
+
+  <!-- STEP 3: Open AI -->
+  <div class="step-card">
+    <span class="step-num">3</span><span class="step-title">Open an AI &amp; Paste</span>
+    <p class="step-desc">Click any AI below. When it opens, press Ctrl+V to paste the prompt, then drag the bundle file in.</p>
+    <div class="ai-grid">
+      <a href="https://claude.ai/new" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('claude')">
+        <div class="ai-name">🟠 Claude.ai</div>
+        <div class="ai-desc">Best for frameworks &amp; values</div>
+        <div class="ai-badge">RECOMMENDED</div>
+      </a>
+      <a href="https://aistudio.google.com/app/prompts/new_chat" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('gemini')">
+        <div class="ai-name">🔵 Google AI Studio</div>
+        <div class="ai-desc">1M token context — sees everything</div>
+        <div class="ai-badge">FREE</div>
+      </a>
+      <a href="https://chatgpt.com/?model=gpt-4o" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('chatgpt')">
+        <div class="ai-name">🟢 ChatGPT (GPT-4o)</div>
+        <div class="ai-desc">Good at structured outputs</div>
+        <div class="ai-badge">FREE TIER</div>
+      </a>
+      <a href="https://groq.com/" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('groq')">
+        <div class="ai-name">⚡ Groq Cloud</div>
+        <div class="ai-desc">Fastest inference, free tier</div>
+        <div class="ai-badge">FREE</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- STEP 4: Instructions -->
+  <div class="step-card">
+    <span class="step-num">4</span><span class="step-title">What to Do in the AI</span>
+    <p class="step-desc" style="margin-bottom:0.5rem;">
+      1. The AI opens in a new tab.<br>
+      2. Click in the chat box, press <strong>Ctrl+V</strong> (paste prompt).<br>
+      3. Drag the downloaded <code>semptify-docs-bundle.txt</code> into the chat.<br>
+      4. Press Enter / Send.<br>
+      5. The AI gives you the foundational framework.<br>
+      6. Come back here and tell me what it said.
+    </p>
+  </div>
+
+  <div class="footer">
+    Semptify AI Helper — Built to save your fingers. 💙
+  </div>
+</div>
+
+<script>
+const PROMPT = `I'm building Semptify — a FREE, ad-free, privacy-first housing rights platform for tenants who can't afford legal help.
+
+I need your help laying out the FOUNDATIONAL FRAMEWORK for the organization and the GUI. Not code. Just the structure.
+
+WHAT SEMPTIFY IS:
+- A document organizer for renters/tenants
+- Records everything between landlord and tenant throughout a tenancy
+- Gives tenants "armor" to protect their rights
+- Information is FACTS only, no opinions
+- Free forever, no advertising ever, privacy-respecting by design
+
+THE TWO PILLARS I BELIEVE IN:
+1. RECORD — Document capture, vault, timeline, journal. Big "Add Record" button everywhere.
+2. KNOW — Library of verified facts, rights guides, context engine. Facts only, no opinions.
+
+WHAT I NEED FROM YOU:
+1. Validate or refine these two pillars — are they right? What's missing?
+2. Map everything Semptify does into a structural framework that hangs on these pillars
+3. Identify what modules/features belong under each pillar
+4. Point out what's MISSING from the foundation
+5. Suggest how to organize the tenant GUI around this framework
+6. Think about: jurisdiction/location (zip code), calendar, accountability module, law library, court forms, AI assistance, admin controls — where do they fit?
+
+CONTEXT — I've attached a bundle of 5 key documents:
+- PROJECT_BIBLE.md (governance + identity)
+- AGENTS.md (rules + known failures + conventions)
+- SEMPTIFY_SYSTEM_MANIFEST.md (what exists)
+- ALL_IN_ONE_CODE_MAP.md (code structure)
+- ARCHITECTURE_BLUEPRINT_V2.md (architecture vision)
+
+Read them, then give me:
+A) The foundational pillars (refined)
+B) A structural framework mapping every module to a pillar
+C) What's missing from the foundation
+D) How the tenant GUI should be organized around this
+
+Keep it structural. No code. I want the big picture I can build on.
+
+Thank you.`;
+
+document.getElementById('prompt-preview').textContent = PROMPT;
+
+function copyPrompt() {
+  navigator.clipboard.writeText(PROMPT).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const status = document.getElementById('copy-status');
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    status.classList.add('show');
+    setTimeout(() => {
+      btn.textContent = '📋 Copy Prompt to Clipboard';
+      btn.classList.remove('copied');
+    }, 3000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = PROMPT;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copy Prompt to Clipboard';
+      btn.classList.remove('copied');
+    }, 3000);
+  });
+}
+
+function trackOpen(ai) {
+  console.log('Opened ' + ai);
+  return true; // allow the link to open
+}
+
+// Auto-copy on page load for maximum laziness
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    try {
+      navigator.clipboard.writeText(PROMPT);
+      const status = document.getElementById('copy-status');
+      status.textContent = '✅ Prompt auto-copied! Just open an AI and paste.';
+      status.classList.add('show');
+    } catch (e) {
+      // Some browsers block auto-copy without user interaction. That's fine.
+    }
+  }, 500);
+});
+</script>
+</body>
+</html>

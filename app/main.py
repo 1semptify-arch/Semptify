@@ -2298,6 +2298,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Semptify Forge not found</h1>", status_code=404)
 
+    @fastapi_app.get("/ai-helper", response_class=HTMLResponse)
+    async def ai_helper_page(request: Request):
+        """Serve the AI Helper page - one-click prompt + bundle for external AI consultation."""
+        page_path = BASE_PATH / "static" / "ai-helper.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>AI Helper not found</h1>", status_code=404)
+
     @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
     async def admin_dev_lab_page(
         request: Request,
