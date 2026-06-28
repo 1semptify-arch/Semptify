@@ -566,19 +566,14 @@ async def upload_and_process(
             await vault_service.mark_processed(
                 vault_id=vault_id,
                 extracted_data={
-                    "doc_type": doc.doc_type.value if doc.doc_type else None,
+                    "doc_type": None,
                     "summary": doc.extraction.summary if doc.extraction else None,
                 },
                 access_token=real_token,
                 storage_provider=resolved_provider,
             )
-            if doc.doc_type:
-                await vault_service.update_document_type(
-                    vault_id,
-                    doc.doc_type.value,
-                    access_token=real_token,
-                    storage_provider=resolved_provider,
-                )
+            # (IntakeDocument has no doc_type field — vault type update handled elsewhere)
+            pass
         except Exception as e:
             logger.warning("Vault update failed: %s", e)
     
@@ -590,7 +585,7 @@ async def upload_and_process(
             "vault_id": vault_id,
             "user_id": user_id,
             "notarization_id": notarization_id,
-            "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+            "doc_type": "unknown",
             "filename": doc.filename,
         },
         user_id=user_id,
@@ -612,7 +607,7 @@ async def upload_and_process(
         id=doc.id,
         filename=doc.filename,
         status=doc.status.value if doc.status else "complete",
-        doc_type=doc.doc_type.value if doc.doc_type else "unknown",
+        doc_type="unknown",
         message=(
             f"✓ Document stored, notarized ({notarization_id}), "
             f"and processed successfully in vault ({vault_id or 'local'})"
@@ -798,8 +793,8 @@ async def process_document_from_vault(
                     doc["processed"] = True
                     doc["processed_at"] = utc_now().isoformat()
                     doc["intake_id"] = intake_doc.id
-                    if intake_doc.doc_type:
-                        doc["document_type"] = intake_doc.doc_type.value
+                    # (IntakeDocument has no doc_type field)
+                    pass
                     break
             
             vault_index["last_updated"] = utc_now().isoformat()
@@ -826,7 +821,7 @@ async def process_document_from_vault(
             id=doc_id,  # Return vault document ID
             filename=doc_info.get("original_filename", "document"),
             status=intake_doc.status.value if intake_doc.status else "complete",
-            doc_type=intake_doc.doc_type.value if intake_doc.doc_type else "unknown",
+            doc_type="unknown",
             message="Document processed successfully from vault",
             vault_id=doc_id,
             overlay_record_ids=overlay_record_ids,
@@ -886,7 +881,7 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
                         {
                             "doc_id": doc_id,
                             "user_id": user_id,
-                            "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+                            "doc_type": "unknown",
                             "flow_stages": list(flow_result.get("stages", {}).keys()),
                         },
                         user_id=user_id,
