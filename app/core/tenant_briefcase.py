@@ -649,35 +649,27 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
 
 
 async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSummary:
-    """Load journal entries (captures)."""
+    """Load journal entries from vault documents."""
     entries = []
     try:
-        from app.core.database import get_db_session
-        from app.models.models import Document as DocumentModel
-        from sqlalchemy import select as _sel
-        async with get_db_session() as _db:
-            result = await _db.execute(
-                _sel(DocumentModel)
-                .where(DocumentModel.user_id == user_id)
-                .order_by(DocumentModel.uploaded_at.desc())
-                .limit(50)
+        from app.services.vault_upload_service import get_vault_service
+        vault_service = get_vault_service()
+        docs = await vault_service.get_user_documents(user_id)
+        for doc in docs[:50]:
+            is_urgent = (doc.document_type or "") in (
+                "eviction_notice", "court_order", "lease_termination", "court_summons", "court_complaint"
             )
-            for doc in result.scalars().all():
-                is_urgent = (doc.document_type or "") in (
-                    "eviction_notice", "court_order", "lease_termination", "court_summons", "court_complaint"
-                )
-                entries.append(JournalEntry(
-                    id=str(doc.id),
-                    entry_type="document_upload",
-                    description=f"Document: {doc.original_filename or doc.filename}",
-                    created_at=doc.uploaded_at.isoformat() if doc.uploaded_at else "",
-                    is_urgent=is_urgent,
-                    has_attachments=True,
-                    attachment_count=1,
-                ))
-        # fall through to vault fallback below if nothing loaded
+            entries.append(JournalEntry(
+                id=str(doc.vault_id),
+                entry_type="document_upload",
+                description=f"Document: {doc.filename}",
+                created_at=doc.uploaded_at.isoformat() if doc.uploaded_at else "",
+                is_urgent=is_urgent,
+                has_attachments=True,
+                attachment_count=1,
+            ))
     except Exception as _e:
-        logger.warning("Journal DB load failed: %s", _e)
+        logger.warning("Journal vault load failed: %s", _e)
 
     if not entries:
         for doc in vault.documents:
