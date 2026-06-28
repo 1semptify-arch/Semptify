@@ -1,0 +1,1767 @@
+=== SEMPTIFY FOUNDATIONAL DOCUMENTS BUNDLE ===
+Generated: 2026-06-28
+Purpose: Feed to AI for structural framework planning
+=============================================
+
+
+========== FILE: PROJECT_BIBLE.md ==========
+# Semptify Project Bible
+
+This document is the canonical source-of-truth for the Semptify FastAPI repository.
+It defines the authoritative build reference, governance rules, onboarding flow, and the disciplined doc hierarchy that all developers, reviewers, and AI agents must follow.
+
+## Our Identity
+
+**Semptify is a tenant rights advocate organization.**
+
+**Tenant advocacy, not neutrality.**
+
+We exist to advance the rights of tenants facing housing insecurity,
+documentation challenges, and legal uncertainty. We are on the side
+of tenants, always—but only when they exercise their lawful rights.
+
+## Our Ethics
+
+Semptify advocates for tenants' lawful rights under housing law. We do
+not endorse, promote, or support illegal, unethical, or unjust behavior
+by any party—including tenants who violate leases, damage property, or
+refuse legitimate obligations.
+
+We believe empowered tenants who follow their leases remove every
+landlord excuse. Rights come with responsibilities.
+
+Our mission is rights protection through lawful documentation and
+education, not circumvention of the law.
+
+## 1. Canonical Source-of-Truth Hierarchy
+
+Use the following files as the primary authoritative references.
+If any other file conflicts with these, the canonical file wins unless the team explicitly agrees to a new canonical replacement.
+
+1. `PROJECT_BIBLE.md` — Project governance, doc hierarchy, and source-of-truth rules.
+2. `README.md` — Canonical developer build, run, and local onboarding instructions.
+3. `AGENTS.md` — Canonical AI behavior and product standard guide.
+4. `SECURITY_AND_PRIVACY_ARCHITECTURE.md` — Canonical integrity, security, and privacy guide.
+5. `DEPLOYMENT_READINESS.md` — Canonical production readiness and deployment verification checklist.
+6. `BUILD_GUIDE_SSOT.md` — Canonical build status, testing results, and known issues.
+7. `SEMPTIFY_SYSTEM_MANIFEST.md` — Canonical module registry: active modules, disabled modules, tier map, and rules for adding new modules. **Any AI must read this before touching any module or router.**
+
+## 2. Single Build Reference
+
+All build and startup instructions must be maintained in `README.md`.
+This is the authoritative developer build guide.
+
+Use `README.md` for:
+- local environment setup
+- dependency installation
+- running the development server
+- supported runtime modes
+- basic project structure
+- health and API endpoint references
+
+Do not treat `QUICKSTART.md`, `ENTERPRISE_README.md`, or other ad hoc docs as the primary build guide. Those are supplementary and should link back to `README.md`.
+
+## 3. Integrity and Governance Compass
+
+The project must be aligned with these core values:
+- protect tenant rights and evidence integrity
+- preserve user control and privacy
+- avoid ads, manipulation, and hidden data collection
+- keep workflows calm, transparent, and stress-safe
+- prefer deterministic, auditable behavior over cleverness
+
+For any question about ethics, AI behavior, or product policy, consult `AGENTS.md`.
+For any question about security, privacy, or production safety, consult `SECURITY_AND_PRIVACY_ARCHITECTURE.md`.
+
+## 4. Approved Onboarding Flow (Core 5.0)
+
+The canonical first-run onboarding flow is:
+
+1. Welcome screen (`/static/welcome.html`)
+2. Role selection (`/onboarding/select-role.html`) — Tenant only in Core
+3. **Storage connection (MANDATORY)** (`/onboarding/providers`) → OAuth → callback
+4. **Vault setup** (`/onboarding/vault-setup`) — creates folders, marks `vault_initialized` gate
+5. Tenant home (`/tenant/home`)
+
+**Note:** Storage connection is mandatory for Core 5.0. There is no "skip" option.
+Documents are stored in user's cloud provider (Google Drive, Dropbox, or OneDrive).
+The aspirational 9-step Extended journey has been archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`.
+
+### Gate Chain
+
+Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
+
+```
+[nothing] → storage_connected → vault_initialized → [onboarding complete]
+```
+
+Post-onboarding, the `client_activated` gate is set by `documents.py` on first document upload.
+
+### Canonical Onboarding Implementation
+
+**Primary:** `app/modules/onboarding/` — self-contained, config-driven onboarding module.
+
+| File | Responsibility |
+|------|---------------|
+| `config.py` | Product-specific settings (roles, providers, folders, gates) |
+| `gates.py` | Gate check/mark/query — reads `User.completed_groups` |
+| `oauth.py` | Token exchange, identity verification, user creation |
+| `vault.py` | Vault folder creation and verification |
+| `router.py` | All routes (pages, OAuth, vault APIs) |
+| `middleware.py` | Gate enforcement for incomplete users |
+| `register.py` | Single-call wiring: `register_onboarding(app, config)` |
+
+**Legacy (being replaced):** `app/routers/onboarding.py` + onboarding logic in `app/routers/storage.py`.
+
+### Canonical Onboarding Assets
+
+- `static/onboarding/welcome.html`
+- `static/onboarding/select-role.html`
+- `static/onboarding/validate-advocate.html`
+- `static/onboarding/validate-legal.html`
+
+This flow must land the user in an active vault session and a role-specific home page, not a dead-end or ambiguous state.
+
+## 5. Doc Rules for Developers and Agents
+
+- When making a code change, update the relevant canonical doc first.
+- If a new feature needs documentation, add it to `README.md` and only then add supplementary docs.
+- If an AI agent is asked to make a recommendation, it must cite this hierarchy and prefer the canonical files.
+- Do not create new top-level files without first checking whether `README.md`, `AGENTS.md`, or `SECURITY_AND_PRIVACY_ARCHITECTURE.md` already cover it.
+
+## 6. Practical Enforcement
+
+- `README.md` is the build bible.
+- `PROJECT_BIBLE.md` is the governance bible.
+- `AGENTS.md` is the AI and product ethics bible.
+- `SECURITY_AND_PRIVACY_ARCHITECTURE.md` is the system integrity bible.
+- `DEPLOYMENT_READINESS.md` is the production acceptance bible.
+- `SEMPTIFY_SYSTEM_MANIFEST.md` is the module registry bible. **All new modules are registered in `app/core/product_manifest.py` — never directly in `main.py`.**
+
+If there is any ambiguity, update `PROJECT_BIBLE.md` and the referenced canonical doc.
+
+## 7. Recommended Workstream
+
+1. Keep `README.md` updated with the current local build and startup steps.
+2. Keep `AGENTS.md` updated when product or AI behavior policies change.
+3. Keep `SECURITY_AND_PRIVACY_ARCHITECTURE.md` updated for any security or privacy changes.
+4. Keep `DEPLOYMENT_READINESS.md` updated for deployment and release checks.
+5. Use this file as the first-level reference before consulting other docs.
+
+
+
+
+========== FILE: AGENTS.md ==========
+# Semptify Agent Guide
+
+This repository contains a housing-rights and tenant-support product. Any AI agent working here should follow these standards.
+
+> Canonical project governance and doc hierarchy are defined in `PROJECT_BIBLE.md`.
+
+---
+
+## 🐍 PYTHON VERSION MANDATE — NON-NEGOTIABLE
+
+**Semptify requires Python 3.11.9. This is a hard mandate, not a suggestion.**
+
+- **ALL code, modules, add-ons, plugins, and extensions MUST target Python 3.11.9.**
+- **Do NOT introduce any dependency that requires Python 3.12, 3.13, 3.14, or any other version.**
+- **Do NOT suggest upgrading Python. Until further notice, 3.11.9 is the locked version.**
+- **Local dev:** Use `venv311` (`.\\venv311\\Scripts\\Activate.ps1` on Windows)
+- **Production:** `Dockerfile` uses `python:3.11-slim`, `runtime.txt` pins `3.11.9`
+- **Before adding ANY new package:** Confirm it supports Python 3.11.9
+
+If a proposed library only works on 3.12+, **reject it and find an alternative.**
+
+---
+
+## ⚠️ MANDATORY PRE-FLIGHT — Every AI Agent MUST Do This First
+
+**Before writing a single line of code, you MUST:**
+
+1. **Read `BUILD_STATE.md`** — What was last shipped, what is known broken, what is pending.
+2. **Read `ACTIVE_CONTEXT.md`** — What is being worked on RIGHT NOW. Do not start something else.
+3. **Read the Known Failure Registry below** — Do not repeat a past mistake.
+4. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
+5. **Do not ship without a verification step** — Every change needs a compile check or test run.
+6. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
+7. **Fix the root cause, not the symptom** — Trace every bug to its source. NEVER add downstream compensating checks to mask upstream failures. Band-aids compound. Fix the source.
+
+**If you skip pre-flight, you will repeat a past mistake. The history proves this.**
+
+---
+
+## 🚫 Known Failure Registry — NEVER Repeat These
+
+These failures have each cost multiple sessions to fix. Read them. Do not cause them again.
+
+### 1. Vault Folder Creation Silent Failures
+- **What happened:** `create_vault_folders()` ignored boolean return values from `create_folder()`. Failures were silent.
+- **Fix:** Every `create_folder()` call must check its return value. Raise `RuntimeError` with the specific path on failure.
+- **File:** `app/modules/onboarding/vault.py`
+
+### 2. Dropbox 409 Error Masking
+- **What happened:** All HTTP 409 responses from Dropbox were treated as success. `path_not_found` errors were swallowed.
+- **Fix:** Inspect the 409 response body. Only `folder_name_exists` is success. All other 409s must raise.
+- **File:** `app/services/storage/dropbox.py`
+
+### 3. Missing Parent Vault Folder (.Semptify5.0)
+- **What happened:** Dropbox requires explicit parent folder creation before nested folders. The root `.Semptify5.0` folder was missing from `CANONICAL_VAULT_FOLDERS`.
+- **Fix:** `.Semptify5.0` must be the first entry in `CANONICAL_VAULT_FOLDERS`.
+- **File:** `app/modules/onboarding/config.py`
+
+### 4. Vault Verification Treating Empty Folders as Missing
+- **What happened:** `verify_vault_folders()` treated `[]` (empty list) as folder not found. New vaults always failed verification.
+- **Fix:** Only fail if `list_files()` raises an exception. An empty list is a valid, accessible folder.
+- **File:** `app/modules/onboarding/vault.py`
+
+### 5. Cloudflare 504 Timeout on Vault Setup
+- **What happened:** Step 1 of vault setup did too much work (folders + files), exceeding Cloudflare's 30s gateway limit.
+- **Fix:** Step 1 creates folders only. Step 2 creates files. Never put more than ~20s of work in a single API call behind Cloudflare.
+- **File:** `app/modules/onboarding/router.py`
+
+### 6. Import Injection Breaking Syntax
+- **What happened:** An automated logging migration injected `import logging` lines inside import blocks, not at the top of files. Caused 37 syntax errors.
+- **Fix:** Imports always go at the top of the file. Never inject imports mid-file.
+
+### 7. Bare `except:` Blocks
+- **What happened:** Bare `except:` swallowed real errors silently. Replaced 45 of them.
+- **Fix:** Always use specific exception types: `except ValueError`, `except RuntimeError`, etc. Never `except:` alone.
+
+### 8. Naive `datetime.now()` Without UTC
+- **What happened:** 446 occurrences of `datetime.now()` without timezone caused token expiry bugs.
+- **Fix:** Always use `utc_now()` from `app.core.utc`. Never call `datetime.now()` directly.
+
+### 9. SSOT Navigation Violations
+- **What happened:** Hardcoded URL strings in redirects caused redirect loops and broken flows.
+- **Fix:** Always use `navigation.get_stage(...)` for redirects. See SSOT section below.
+
+### 10. `VaultResult` Missing from SDK Exports
+- **What happened:** `VaultResult` was not exported from `app/sdk/vault/__init__.py`, causing import errors across modules.
+- **Fix:** Any new model or class used outside its own module must be added to the relevant `__init__.py`.
+
+### 11. Duplicate Exception Handler Registration
+- **What happened:** `setup_exception_handlers()` was called twice in `main.py`, overwriting detailed handlers with generic ones. Real errors showed as "An unexpected error occurred".
+- **Fix:** Register exception handlers exactly once. Search for duplicates before adding new ones.
+
+### 12. Cloudflare Tunnel Not Running as Service
+- **What happened:** `cloudflared` was run manually. Every machine restart killed the tunnel, breaking `semptify.org`.
+- **Fix:** Run `sc config cloudflared start= auto` and `sc start cloudflared` as Administrator once. The service then survives reboots.
+
+### 13. File Rewrite Creating New Filename (Cascading Reference Break)
+- **What happened:** When a file needed rewriting, the AI kept the broken original and created a new file with a different name (e.g. `vault_upload_service_v2.py`). Every import across the codebase still pointed at the old broken file. The AI then had to update all references, missed some, ran out of context, and left the system broken.
+- **Fix:** Use the swap protocol:
+  1. **Ask the user** to rename the original to `<filename>_old.py` (one filesystem rename — takes 2 seconds)
+  2. AI rewrites the clean version into the **original filename** (`<filename>.py`)
+  3. Every import everywhere still works — nothing else changes
+  4. The `_old` file is the rollback. Delete it once the rewrite is verified.
+- **Rule:** NEVER create `_v2`, `_new`, `_fixed`, `_impl` as the "replacement" file. NEVER update references in other files because of a rewrite. If you need to rewrite a file, **ask the user to rename the original first**, then write into the original name.
+- **If in doubt:** Ask. One question prevents hours of cascading breakage.
+
+### 14. Wrong Python Version
+- **What happened:** Code ran on Python 3.13/3.14 (Windows default `python` command) instead of 3.11.9. Silent incompatibilities and startup failures.
+- **Fix:** Always activate `venv311` before running. `main.py` will hard-exit if the wrong Python is detected.
+- **Mandate:** Python 3.11.9 is the ONLY permitted version for this repo. Any new module, add-on, or dependency MUST support 3.11.9. Do NOT upgrade Python without explicit written approval from the project owner.
+- **Local command:** `.\\venv311\\Scripts\\Activate.ps1` then `python -m uvicorn app.main:app ...`
+
+### 15. Workaround Instead of Root Cause Fix
+- **What happened:** A bug in `google_drive.py`'s `_get_folder_id()` caused `create_folder()` to return `False` when a folder already existed. Instead of fixing the source, an additional `file_exists()` check was added in `VaultClient` as a band-aid. This masked the root cause, added an unnecessary API call per folder, and left the downstream code fragile.
+- **Fix:** Always trace the error to the source and fix it there. If a storage provider returns an incorrect value, fix the provider. If a function returns wrong results, fix that function. Do NOT add compensating checks downstream.
+- **Rule: NEVER add workarounds downstream when the root cause is upstream. Fix the root. Band-aids compound over time.**
+- **File:** `app/services/storage/google_drive.py` — fixed `_get_folder_id()` to search before create with retry logic.
+
+### 16. Hallucinated Overlay API Signatures
+- **What happened:** Three services (`filedored_service.py`, `duplicate_detection_service.py`, `court_forms/router.py`) invented their own `CreateOverlayRequest` fields (`vault_id`, `user_id`, `overlay_path`, `overlay_data`) that do not exist on the Pydantic model. They also called non-existent methods `get_overlays_by_type()` and `get_overlays_by_path()` on `UnifiedOverlayManager`. And they imported from `app.core.storage_factory` — a module that never existed. All of this crashed at runtime.
+- **Fix:** Aligned all callers to the real signature (`overlay_type`, `document_id`, `vault_path`, `payload`, `metadata`, `ephemeral`) and real methods (`get_overlays()`, `create_overlay()`, `update_overlay()`, `delete_overlay()`). Replaced `storage_factory` with the real pattern: `oauth_token_manager.get_valid_token_for_user()` + `services.storage.get_provider()` + `user_id.get_provider_from_user_id()`.
+- **Rule: BEFORE writing any code that touches the overlay system, READ THE CONTRACTS in `app/services/unified_overlay_manager.py` (bottom of file).** The `FunctionGroupContract` registrations are the SSOT for method names, field names, and signatures. If a field or method is not in the contract, it does not exist. Do not invent it.
+- **Contracts registered:** `overlays::overlay_create`, `overlays::overlay_query`, `overlays::overlay_update`, `overlays::overlay_delete`, `overlays::overlay_compose_view`.
+- **Files:** `app/services/filedored_service.py`, `app/services/duplicate_detection_service.py`, `app/modules/filedored/router.py`, `app/modules/court_forms/router.py`.
+
+---
+
+## 📋 Module Contract Mandate
+
+**Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`.**
+
+This is non-negotiable. The contract is the SSOT for:
+- Method names (no hallucinated methods)
+- Input/output field names (no wrong signatures)
+- Dependencies (no phantom imports like `app.core.storage_factory`)
+
+**Pattern:**
+```python
+from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+register_function_group(FunctionGroupContract(
+    module="<module_name>",
+    group_name="<function_name>",
+    title="<Human Title> (SSOT)",
+    description="CANONICAL ... What it does. What it does NOT do.",
+    inputs=("<required>", "<optional>?"),
+    outputs=("<output>",),
+    dependencies=("app.services.<module>",),
+    deterministic=True,
+))
+```
+
+**Before writing code that calls another service's API, check the contract registry first.** If no contract exists, ask the user — do not invent the API.
+
+---
+
+## 📋 Agent Session Checklist
+
+Before ending any session, you MUST:
+
+- [ ] Verify all changed Python files compile: `python -m py_compile <file>`
+- [ ] Run SSOT tests if any navigation changed: `python tests/test_ssot_architecture.py`
+- [ ] Update `BUILD_STATE.md` with: what was shipped, what is known working, what is pending
+- [ ] Update `ACTIVE_CONTEXT.md` if the current priority changed
+- [ ] Do NOT mark something "working" unless it was actually tested — write "pending live test" if untested
+
+---
+
+## Core Mission
+
+Semptify is built to better protect the rights of humans facing housing problems.
+It is for people who may not be able to afford a legal team, may be overwhelmed, and may need help organizing documents, evidence, timelines, and next steps.
+
+## Non-Negotiables
+
+- Free forever.
+- No advertising ever.
+- Privacy-respecting by design.
+- User-controlled documents and storage wherever possible.
+- Evidence preservation over feature novelty.
+- Calm, clear, trustworthy UX.
+
+## Truth Standard
+
+- **Semptify is on the side of tenants — always.**
+- We stand for what is lawful and factual. The law is the law. Facts are facts.
+- When the law protects a tenant, say so clearly. Do not soften it.
+- When a landlord violates the law, name it plainly. Do not excuse it.
+- Build for facts, records, chronology, and evidence — never emotion or assumption.
+- The "responsibilities" framing exists to help tenants protect themselves legally,
+  not to create false moral equivalence between tenants and landlords.
+- A tenant who follows their lease removes every landlord excuse — that is empowerment, not capitulation.
+- Do not support deceptive, retaliatory, or manipulative flows.
+- Do not produce content that victim-blames, hedges legal facts into uselessness, or treats housing as a "both sides" issue when the law is clear.
+
+## AI Behavior Standards
+
+- Give plain-language guidance.
+- Optimize for stressed users with limited time, money, and attention.
+- Avoid dark patterns, growth-hack framing, ad logic, or engagement bait.
+- Avoid introducing features that depend on surveillance, analytics, or user profiling.
+- Keep legal boundaries clear: organization and education are acceptable; unsupported legal-advice claims are not.
+
+## Architecture Preference
+
+- Prefer objects, qualifiers, functions, sequences, processes, and output objects as the structural model.
+- Treat pages as UI surfaces generated from process needs, not as the deepest source of truth.
+- Keep policy and transition logic centralized rather than duplicated across routers or templates.
+- Favor strict serial gating for high-stakes workflows where later steps must not run before earlier steps complete.
+
+## Product Decision Filter
+
+When choosing between options, prefer the one that best improves:
+
+1. Rights protection
+2. Evidence integrity
+3. User control
+4. Clarity under stress
+5. Privacy
+6. Honest representation of system capabilities
+
+Reject or challenge changes that primarily optimize for:
+
+1. Monetization
+2. Advertising
+3. Vanity UX over usability
+4. Hidden state that weakens auditability
+5. Complexity without workflow benefit
+
+## Repo Guidance
+
+- Keep implementation consistent with public promises made in welcome, about, and privacy materials.
+- If a proposed change creates a mismatch between product claims and actual behavior, flag it.
+- Prefer deterministic, testable, auditable code paths.
+- Preserve user trust as a first-order engineering concern.
+
+## Blueprint-First Mandate — NON-NEGOTIABLE
+
+**No module, plugin, or add-on may be built without a written blueprint approved by the project owner first.**
+
+Code written before a blueprint is approved will be removed.
+
+### If asked to build a module without a blueprint, you MUST say:
+
+> "This module needs a blueprint before I can build it. I can write the blueprint for your review right now — shall I?"
+
+Then write the blueprint. Present it. Wait for explicit approval ("yes build it" counts). Only then open any source files.
+
+### Blueprint must cover (minimum):
+- Module name + dotted `module_path`
+- Type: Pipeline Module or Feature Module?
+- Problem it solves (which tenant right or workflow gap)
+- Scope — what it does AND what it explicitly does NOT do
+- Which roles get it by default
+- Every new DB table (or "none")
+- Every API endpoint: method + path + one-line purpose
+- Which existing modules/services it calls
+- Capability tier: CORE / EXTENDED / ADVOCATE / ADMIN / RESEARCH / DEV
+- Risk: what could break
+
+### Where blueprints live:
+```
+docs/blueprints/your_module_name_blueprint.md
+```
+
+### Full spec: `MODULE_BLUEPRINT.md` — Part 0A
+
+---
+
+## Capability System — MANDATORY for Every New Module
+
+**As of 2026-06-16, Semptify has a live Capability System. Every new Feature Module MUST comply.**
+
+### The Two Module Types (never confuse them)
+
+| Type | What it is | Always on? | In user_capabilities? | Gated? |
+|---|---|---|---|---|
+| **Pipeline Module** | Internal processor, no UI, passes output to other modules | YES | NO | NO |
+| **Feature Module** | User-facing capability with UI + routes | NO | YES | YES |
+
+**Examples:**
+- `context_loop`, `positronic_brain`, `vault_upload_service` → Pipeline. Never gate these.
+- `case_builder`, `eviction_defense`, `timeline`, `vault` UI → Feature. Gate these.
+
+### When Building a NEW Feature Module
+
+**Step 1 — Add it to `CAPABILITY_DEFAULTS` in `app/core/product_manifest.py`**
+
+Decide which roles get it by default and add the `module_path` to the appropriate list:
+```python
+CAPABILITY_DEFAULTS = {
+    "tenant":   [..., "app.modules.your_module.router"],
+    "advocate": [..., "app.modules.your_module.router"],
+    ...
+}
+```
+If it's admin-only, skip all role lists — admins get `__all__` automatically.
+
+**Step 2 — Add the gate to your router**
+
+One line at the top of your `router.py`:
+```python
+from app.core.capabilities import require_capability
+
+router = APIRouter(
+    prefix="/api/your-module",
+    tags=["Your Module"],
+    dependencies=[Depends(require_capability("app.modules.your_module.router"))],
+)
+```
+That's it. The gate handles admin bypass, overlay grants, unseeded users, and 403 responses automatically.
+
+**Step 3 — Register in `product_manifest.py`**
+
+Add a `_register(...)` call in the correct tier block. The module_path MUST match exactly what you used in `CAPABILITY_DEFAULTS` and `require_capability()`.
+
+### When Building a NEW Pipeline Module
+
+- Do NOT add it to `CAPABILITY_DEFAULTS`
+- Do NOT add `require_capability()` to it
+- Pipeline modules are always registered and always running
+- They call DOWN to services, never UP to feature modules
+
+### The One Rule That Protects Everything
+
+```
+Feature modules  →  call DOWN to  →  Pipeline modules
+Pipeline modules →  NEVER call UP  →  Feature modules
+Feature modules  →  NEVER call     →  Other feature modules directly
+```
+
+### Admin Overlay (Dev Node / Hot-Swap)
+
+Admins can temporarily grant any module to any user without touching the database:
+```
+POST /api/capabilities/{user_id}/overlay
+{ "module_names": ["app.modules.your_module.router"] }
+```
+Expires in 1 hour. Cannot be used to REMOVE real capabilities — add-only.
+
+### Key Files
+
+- `app/core/capabilities.py` — `require_capability()`, `seed_capability_defaults()`, `can_load_module()`, overlay functions
+- `app/core/product_manifest.py` — `CAPABILITY_DEFAULTS` dict, `_register()` calls
+- `app/modules/capabilities/router.py` — Admin REST API for granting/revoking/overlaying
+- `app/models/models.py` — `UserCapability` SQLAlchemy model
+
+---
+
+## SSOT Architecture Enforcement (CRITICAL)
+
+All navigation, routing, and URL construction MUST follow Single Source of Truth (SSOT) principles:
+
+### NEVER DO (will be rejected):
+- Hardcoded URL strings: `"/onboarding-assets/select-role.html"`, `"/storage/providers"`
+- Direct `RedirectResponse(url="/some/path")` without navigation registry
+- Inline JS navigation: `window.location.href = "/path/to/page"`
+- HTML href attributes with hardcoded paths: `<a href="/onboarding/...">`
+- Middleware or routers defining their own redirect targets
+
+### ALWAYS DO:
+- Import: `from app.core.navigation import navigation`
+- Use: `navigation.get_stage("role_select").path`
+- Use: `navigation.get_onboarding_start()` for entry points
+- Use: `navigation.get_next_path(current_stage)` for transitions
+- Static files: Fetch `/onboarding/ssot-navigation` API, then navigate
+- Python redirects: Use paths from navigation registry only
+
+### Verification (MANDATORY):
+Before committing any navigation change, run:
+```bash
+python tests/test_ssot_architecture.py
+```
+All tests must pass. Violations block deployment.
+
+### Why This Matters:
+SSOT violations are the #1 cause of redirect loops, broken flows, and "many chiefs" architecture. Navigation is a **process**, not a property of individual pages. Centralize or perish.
+
+### Files that must use SSOT:
+- All files in `app/routers/*.py` that return redirects
+- All files in `app/core/*_middleware.py`
+- All files in `static/onboarding/*.html`
+- Any new navigation/routing logic
+
+### SSOT Evolution (When to Break Rules):
+
+**Rules exist to enable flow, not prevent it.** The SSOT registry is alive and grows with the product.
+
+**Legitimate exceptions:**
+- **Experimental features**: Use `navigation.add_escape_hatch(path, reason="Beta feature", ttl_days=7)`
+- **New flows**: Use `navigation.register_stage(FlowStage(...))` to expand SSOT
+- **Deprecating old paths**: Use `navigation.deprecate_path("/old", "/new")` for graceful evolution
+
+**Philosophy:** 
+- A rule that cannot evolve is a prison
+- A rule that is never enforced is a suggestion
+- Good rules have escape hatches with TTLs (time-to-live)
+- Break rules intentionally, document the exception, let it expire or integrate
+
+**When breaking SSOT:**
+1. Document WHY in code
+2. Use escape_hatch with expiration
+3. After the experiment, either: 
+   - Kill it (remove the code)
+   - Formalize it (register as proper FlowStage)
+   - Deprecate it (old path → new canonical)
+
+
+
+========== FILE: SEMPTIFY_SYSTEM_MANIFEST.md ==========
+# SEMPTIFY SYSTEM MANIFEST
+**Version:** 5.0.0 | **Last Updated:** 2026-06-14 | **Location:** `C:\Semptify\Semptify-FastAPI\`
+
+This is the FIRST file any AI or developer must read before touching Semptify. It defines what is active, what is disabled, the rules for adding modules, and the complete session context.
+
+---
+
+## PART 1 — PROJECT IDENTITY
+
+| Item | Value |
+|---|---|
+| App Name | Semptify |
+| Version | 5.0.0 |
+| Mission | Tenant rights protection platform (non-profit) |
+| Root Path | `C:\Semptify\Semptify-FastAPI\` |
+| Entry Point | `app/main.py` (DO NOT add routers here directly) |
+| Manifest | `app/core/product_manifest.py` (SINGLE SOURCE OF TRUTH) |
+| Python | **3.11.9 ONLY — hard enforced, kills server if wrong** |
+| Venv | `venv311\Scripts\Activate.ps1` |
+| Database (dev) | SQLite — `semptify.db` |
+| Database (prod) | PostgreSQL via `DATABASE_URL` in `.env` |
+| DB ORM | SQLAlchemy async (`app.core.database`) |
+| DB Base Class | `app.core.database.Base` — ALL models must use this |
+| Config | `app.core.config.get_settings()` |
+| Auth | Cookie-based via `app.core.cookie_auth.extract_user_id` |
+| Templates | Jinja2 at `app/templates/` |
+| Static Files | `static/` |
+| Uploads | `uploads/vault/` |
+
+---
+
+## PART 2 — THE GOLDEN RULE
+
+**Never add `app.include_router()` directly to `main.py`.**
+
+All modules are declared in `app/core/product_manifest.py` and loaded via:
+```python
+register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV)
+```
+
+To add a new module — only 3 steps:
+1. Create files in `app/modules/your_module/`
+2. Add one `_register(...)` line to `product_manifest.py`
+3. If needed, add the tier to the `register_tiers()` call in `main.py`
+
+**Do not touch anything else.**
+
+---
+
+## PART 3 — PRODUCT TIERS
+
+| Tier | Status | Purpose |
+|---|---|---|
+| `CORE` | ✅ **ACTIVE** | Tenant rights essentials — always on |
+| `EXTENDED` | ❌ Disabled | Legal tools, eviction defense, court forms |
+| `ADVOCATE` | ❌ Disabled | Document delivery, collaboration |
+| `ADMIN` | ❌ Disabled | Analytics, dashboards, batch ops |
+| `RESEARCH` | ❌ Disabled | AI intelligence, brain, mesh network |
+| `DEV` | ✅ **ACTIVE** | Internal dev tools |
+
+---
+
+## PART 4 — ACTIVE MODULES (CORE + DEV tiers)
+
+### CORE — Currently Running
+
+| Module Path | Endpoint Prefix | Required | Purpose |
+|---|---|---|---|
+| `app.modules.health.router` | `/health` | **YES** | Health checks |
+| `app.core.versioning` | `/version` | No | Version info |
+| `app.modules.preamble.router` | `/` | No | Landing page |
+| `app.modules.risc.router` | `/risc` | No | Risk assessment |
+| `app.modules.role_ui.router` | `/` | No | Role-based routing |
+| `app.modules.storage.router` | `/storage` | No | OAuth storage auth |
+| `app.modules.auth.router` | `/api/auth` | No | Auth status |
+| `app.modules.onboarding.reconnect` | `/storage/reconnect` | No | Reconnect flow |
+| `app.modules.documents.router` | `/documents` | No | Document upload/retrieval |
+| `app.modules.vault.router` | `/api/vault` | No | Vault access |
+| `app.modules.vault_engine.router` | `/api/vault-engine` | No | Vault access control |
+| `app.modules.timeline.router` | `/api/timeline` | No | Event timeline |
+| `app.modules.briefcase.router` | `/briefcase` | No | Tenant briefcase |
+| `app.modules.workflow.router` | `/workflow` | No | SSOT workflow engine |
+| `app.modules.workflow_validator.router` | `/admin` | No | Workflow validation |
+| `app.modules.state_laws.router` | `/state-laws` | No | State housing laws |
+| `app.modules.law_library.router` | `/law-library` | No | Law reference library |
+| `app.modules.contacts.router` | `/contacts` | No | Contact manager |
+| `app.modules.public_forms.router` | `/forms` | No | Public forms |
+| `app.modules.search.router` | `/api/search` | No | Global search |
+| `app.modules.pdf_tools.router` | `/pdf` | No | PDF tools |
+| `app.modules.preview.router` | `/api/preview` | No | Document preview |
+| `app.modules.document_converter.router` | `/convert` | No | Doc conversion |
+| `app.modules.legal_analysis.router` | `/legal-analysis` | No | Legal analysis |
+| `app.modules.websocket.router` | `/ws` | No | Real-time events |
+| `app.modules.free_api.router` | `/free-api` | No | Free public APIs |
+| `app.modules.plugins.router` | `/plugins` | No | Plugin system |
+| `app.modules.components.router` | `/components` | No | UI components |
+| `app.modules.core_system.router` | `/core` | No | Core infrastructure |
+| `app.modules.security.router` | `/api/security` | No | 2FA / session mgmt |
+| `app.modules.mndes.router` | `/mndes` | **YES** | MN court exhibit system |
+
+### DEV — Currently Running
+
+| Module Path | Endpoint Prefix | Purpose |
+|---|---|---|
+| `app.modules.setup.router` | `/api/setup` | Setup wizard |
+| `app.modules.page_index.router` | `/page-index` | Page index DB |
+| `app.modules.page_editor.router` | `/page-editor` | Template editor |
+| `app.modules.development.router` | `/dev` | Dev tools |
+| `app.modules.export_import.router` | `/api/export-import` | Data export/import |
+| `app.modules.testing.router` | `/api/testing` | Testing framework |
+| `app.modules.documentation.router` | `/api/docs` | Developer portal |
+
+---
+
+## PART 5 — DISABLED MODULES (Do NOT re-enable without explicit approval)
+
+### Services Intentionally Disabled in `main.py` Stage 5
+
+| Service | Reason |
+|---|---|
+| Positronic Brain | Memory hog |
+| Module Hub & Mesh | Memory hog |
+| Location Service | Not needed for MVP |
+| Complaint Wizard mesh registration | Not needed for MVP |
+| Plugin Manager auto-discovery | Not needed for MVP |
+
+### EXTENDED Tier (disabled, not broken — re-enable by adding `ProductTier.EXTENDED` to `register_tiers`)
+
+`eviction_defense`, `zoom_court`, `zoom_court_prep`, `court_forms`, `court_packet`, `legal_filing`, `legal_trails`, `tenant_defense`, `intake`, `guided_intake`, `case_builder`, `progress`, `actions`, `plan_maker`, `tools_api`, `complaints`, `housing_accountability`, `role_upgrade`
+
+### RESEARCH Tier (disabled — memory heavy, AI-dependent)
+
+`recognition`, `extraction`, `crawler`, `research`, `form_data`, `overlays`, `unified_overlays`, `vault_all_in_one`, `cloud_sync`, `brain`, `auto_mode`, `emotion`, `positronic_mesh`, `mesh_network`, `module_hub`, `functionx`, `funding_search`, `hud_funding`, `location`, `campaign`, `public_exposure`, `fraud_exposure`, `litigation_intelligence`
+
+---
+
+## PART 6 — HOW TO ADD A NEW MODULE (Exact Steps)
+
+### Step 1 — Create module folder
+```
+app/modules/your_module/
+├── __init__.py        # exports router + models
+├── router.py          # FastAPI APIRouter
+├── models.py          # SQLAlchemy models using Semptify Base
+├── config.py          # reads from .env via get_settings()
+└── README.md          # what your module does
+```
+
+### Step 2 — Minimum required content for `router.py`
+```python
+from fastapi import APIRouter
+router = APIRouter(prefix="/api/your_module", tags=["Your Module"])
+
+@router.get("/health")
+async def health():
+    return {"status": "healthy", "module": "your_module"}
+```
+
+### Step 3 — Minimum required content for `models.py`
+```python
+from app.core.database import Base
+from sqlalchemy import Column, Integer, String
+# Use Base from Semptify — never create a new Base
+
+class YourModel(Base):
+    __tablename__ = "your_module_table"
+    id = Column(Integer, primary_key=True)
+```
+
+### Step 4 — Register in `app/core/product_manifest.py`
+```python
+# Add under the appropriate tier section:
+_register(
+    "app.modules.your_module.router",
+    tags=("Your Module",),
+    tier=ProductTier.EXTENDED,   # or CORE, ADMIN, etc.
+    optional=True,               # ALWAYS True for new modules
+    log_message="Your Module loaded"
+)
+```
+
+### Step 5 — Enable the tier in `main.py` if not already active
+```python
+# Find this line in main.py and add your tier:
+register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED)
+```
+
+### Step 6 — Register models with SQLAlchemy (in `app/core/database.py`)
+```python
+# Add near other model imports:
+import app.modules.your_module.models  # noqa: F401
+```
+
+---
+
+## PART 7 — FEMS MODULE PLAN
+
+FEMS (Forensic Evidence Management System) is the next module to be integrated.
+
+| Item | Value |
+|---|---|
+| FEMS Source | `c:\REPOs\PPPP\` |
+| Target Path | `C:\Semptify\Semptify-FastAPI\app\modules\fems\` |
+| Tier | `EXTENDED` |
+| Endpoints | `/api/fems/health`, `/api/fems/upload`, `/api/fems/search`, `/api/fems/documents`, `/api/fems/quarantine`, `/api/fems/stats` |
+| DB Adapter | Must use SQLAlchemy async (not psycopg2) |
+| Status | Planned — not yet integrated |
+
+FEMS provides: file deduplication, OCR text extraction, phone number extraction, carrier log CSV parsing, SMS import, and forensic evidence search — feeding Semptify's EXTENDED legal modules.
+
+---
+
+## PART 8 — MODULE DEVELOPER RULES (For Any AI or Human)
+
+1. **Read this file first** before any session
+2. **`product_manifest.py` is the only place** to register routers
+3. **Never use `psycopg2`** — use SQLAlchemy async
+4. **Never create a new `Base`** — import from `app.core.database`
+5. **Never hardcode config** — use `get_settings()` or `.env`
+6. **`optional=True` on all new modules** — Semptify must start even if module fails
+7. **Python 3.11.9 only** — do not use 3.10, 3.12, or any other version
+8. **Health endpoint required** — every module needs `GET /api/{name}/health`
+9. **No circular imports** — modules must not import from each other
+10. **Test in venv311** — always activate `venv311` before running
+
+---
+
+## PART 9 — START / STOP COMMANDS
+
+```powershell
+# Activate environment
+cd "C:\Semptify\Semptify-FastAPI"
+.\venv311\Scripts\Activate.ps1
+
+# Start server (dev)
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Or use batch script
+.\start.bat
+
+# Verify health
+Invoke-RestMethod http://localhost:8000/health
+
+# Check FEMS (after integration)
+Invoke-RestMethod http://localhost:8000/api/fems/health
+```
+
+---
+
+## PART 10 — CONTEXT TRANSFER NOTES
+
+This document was created during a session that:
+- Audited the full Semptify system structure
+- Identified `product_manifest.py` as the real routing authority
+- Planned FEMS as a Semptify EXTENDED module
+- Created the Module Developer Kit plan
+- Established rules to prevent AIs from breaking `main.py`
+
+**Next steps when resuming:**
+1. Build `app/modules/fems/` files
+2. Register FEMS in `product_manifest.py`
+3. Enable `ProductTier.EXTENDED` in `main.py`
+4. Verify `/api/fems/health` returns 200
+
+
+
+
+========== FILE: docs\ALL_IN_ONE_CODE_MAP.md ==========
+# ALL-IN-ONE Vault — Code Map & Architecture Integration
+
+**Visual guide to how the metadata layer fits on top of Semptify's cloud vault.**
+
+> **Terminology**: The **Vault** = Cloud storage (`Semptify5.0/Vault/`).  
+> The `vault_items` table is a **metadata index** that describes vault contents.
+
+---
+
+## High-Level Architecture Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SEMPTIFY 5.0 ARCHITECTURE                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                        API LAYER (Routers)                           │    │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐   │    │
+│  │  │   /vault     │  │ /timeline    │  │     /documents         │   │    │
+│  │  │ (ALL-IN-ONE) │  │ (existing)   │  │   (existing)           │   │    │
+│  │  │              │  │              │  │                        │   │    │
+│  │  │ • POST items │  │ Cloud events │  │ Upload & storage       │   │    │
+│  │  │ • GET search │  │ Chronology   │  │                        │   │    │
+│  │  │ • PUT update │  │ 3 timestamps │  │                        │   │    │
+│  │  │ • DELETE     │  │              │  │                        │   │    │
+│  │  └──────────────┘  └──────────────┘  └──────────────────────────┘   │    │
+│  │           │                 │                      │                │    │
+│  └───────────┼─────────────────┼──────────────────────┼────────────────┘    │
+│              │                 │                      │                     │
+│              ▼                 ▼                      ▼                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │                      SERVICE LAYER                                  │    │
+│  │  ┌────────────────────┐  ┌──────────────────┐  ┌──────────────┐   │    │
+│  │  │ VaultIngestion     │  │ VaultSearch        │  │ TimelineChro │   │    │
+│  │  │ Service            │  │ Service            │  │ nology       │   │    │
+│  │  │                    │  │                    │  │              │   │    │
+│  │  │ • Data contract    │  │ • Deep search      │  │ • Cloud      │   │    │
+│  │  │ • 3 timestamps     │  │ • JSONB GIN        │  │   timeline   │   │    │
+│  │  │ • Audit logging    │  │ • Timeline modes   │  │ • Events     │   │    │
+│  │  └────────────────────┘  └──────────────────┘  └──────────────┘   │    │
+│  │           │                      │                      │         │    │
+│  └───────────┼──────────────────────┼──────────────────────┼─────────┘    │
+│              │                      │                      │              │
+│              ▼                      ▼                      ▼              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                      MODEL LAYER (SQLAlchemy)                     │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐   │   │
+│  │  │ VaultItem   │  │  Incident   │  │ VaultAudit  │  │ Timeline   │   │   │
+│  │  │             │  │             │  │ Log         │  │ Event      │   │   │
+│  │  │ • 3 ts      │  │ • Case grp  │  │ • Before    │  │ (existing) │   │   │
+│  │  │ • JSONB     │  │ • Timeline  │  │ • After     │  │            │   │   │
+│  │  │ • Metadata  │  │ • Metadata  │  │ • Immutable │  │            │   │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘   │   │
+│  │           │              │              │              │               │   │
+│  └───────────┼──────────────┼──────────────┼──────────────┼───────────────┘   │
+│              │              │              │              │                 │
+│              ▼              ▼              ▼              ▼                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    DATABASE (PostgreSQL)                            │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
+│  │  │ vault_items │  │  incidents  │  │vault_audit  │  │  timeline  │ │   │
+│  │  │             │  │             │  │   _logs     │  │  _events    │ │   │
+│  │  │ + GIN idx   │  │             │  │             │  │            │ │   │
+│  │  │ on metadata │  │             │  │             │  │            │ │   │
+│  │  │ location    │  │             │  │             │  │            │ │   │
+│  │  │ tags        │  │             │  │             │  │            │ │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
+│  └───────────────────────────────────────────────────────────────────┘   │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Integration Points Map
+
+### 1. Vault Ingestion → Existing Document Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DOCUMENT UPLOAD FLOW                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  User uploads document                                           │
+│         │                                                        │
+│         ▼                                                        │
+│  ┌─────────────────────┐                                         │
+│  │ /documents/upload   │ (existing)                              │
+│  │                     │                                         │
+│  │ Stores to:          │                                         │
+│  │ Semptify5.0/        │                                         │
+│  │   Vault/documents/  │                                         │
+│  └─────────────────────┘                                         │
+│         │                                                        │
+│         ▼                                                        │
+│  ┌─────────────────────┐     ┌─────────────────────────┐       │
+│  │ Timeline Extraction │───▶ │ Semptify5.0/Vault/      │       │
+│  │ (existing)          │     │   timeline/events.json  │       │
+│  └─────────────────────┘     └─────────────────────────┘       │
+│         │                                                        │
+│         │ NEW: Auto-ingest to ALL-IN-ONE vault                   │
+│         ▼                                                        │
+│  ┌─────────────────────┐                                         │
+│  │ VaultIngestionService│                                         │
+│  │                     │                                         │
+│  │ • event_time = doc  │                                         │
+│  │   creation date     │                                         │
+│  │ • record_time = doc │                                         │
+│  │   upload time       │                                         │
+│  │ • semptify_entry =  │                                         │
+│  │   NOW()             │                                         │
+│  │ • metadata = full   │                                         │
+│  │   extraction data   │                                         │
+│  └─────────────────────┘                                         │
+│         │                                                        │
+│         ▼                                                        │
+│  ┌─────────────────────┐                                         │
+│  │ PostgreSQL          │                                         │
+│  │ vault_items table   │                                         │
+│  └─────────────────────┘                                         │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 2. Metadata Index → Vault (Cloud Storage)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    VAULT + METADATA INDEX LAYERS                 │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                 THE VAULT (Cloud Storage)                │  │
+│  │                 Source of Truth                         │  │
+│  │  ┌─────────────┐    ┌─────────────┐    ┌──────────────┐ │  │
+│  │  │ Documents   │    │  Overlays   │    │   Timeline   │ │  │
+│  │  │             │    │             │    │   events.json│ │  │
+│  │  │ /Vault/     │    │ /Vault/     │    │              │ │  │
+│  │  │  documents/│    │  .overlay/  │    │              │ │  │
+│  │  └─────────────┘    └─────────────┘    └──────────────┘ │  │
+│  │         │                  │                  │          │  │
+│  └─────────┼──────────────────┼──────────────────┼──────────┘  │
+│            │                  │                  │               │
+│            ▼                  ▼                  ▼               │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │              METADATA INDEX (PostgreSQL)                 │  │
+│  │  ┌────────────────────────────────────────────────────┐  │  │
+│  │  │              vault_items table (points TO vault)    │  │  │
+│  │  │  • file_path ────────▶ cloud document location    │  │  │
+│  │  │  • metadata ─────────▶ extracted overlay data     │  │  │
+│  │  │  • location_data ────▶ GPS from extraction        │  │  │
+│  │  └────────────────────────────────────────────────────┘  │  │
+│  │                         │                                │  │
+│  │              ┌──────────┴──────────┐                     │  │
+│  │              ▼                     ▼                     │  │
+│  │  ┌──────────────────┐  ┌──────────────────┐              │  │
+│  │  │ VaultSearch      │  │ OverlayManager   │              │  │
+│  │  │ Service          │  │ (manages vault)  │              │  │
+│  │  │                  │  │                  │              │  │
+│  │  │ • Fast queries   │  │ • Reads/writes   │              │  │
+│  │  │ • Deep search    │  │   vault files    │              │  │
+│  │  │ • Timeline       │  │ • Registry       │              │  │
+│  │  └──────────────────┘  └──────────────────┘              │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  Flow: Search index → Find file_path → Fetch from vault        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 3. Timeline: Vault vs Metadata Index
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              TIMELINE DATA: Two Complementary Layers             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────────────┐    ┌─────────────────────────────┐│
+│  │   VAULT TIMELINE        │    │   METADATA INDEX TIMELINE     ││
+│  │   (Cloud - Source)      │    │   (PostgreSQL - Index)        ││
+│  │                         │    │                                ││
+│  │ • events.json in        │    │ • vault_items table            ││
+│  │   cloud storage         │    │ • JSONB GIN indexes            ││
+│  │ • The actual timeline   │    │ • Fast queryable index         ││
+│  │ • Portable with user    │    │ • Deep metadata search         ││
+│  │ • Survives DB reset     │    │ • Audit trail                  ││
+│  │ • Cross-device sync     │    │ • Complex filtering            ││
+│  │                         │    │                                ││
+│  │ Best for:               │    │ Best for:                      ││
+│  │ • Source of truth       │    │ • Fast queries                 ││
+│  │ • Long-term storage     │    │ • Reporting                    ││
+│  │ • User control          │    │ • Legal discovery              ││
+│  └─────────────────────────┘    └─────────────────────────────┘│
+│                              │                                   │
+│                              │ Index syncs TO vault             │
+│                              ▼                                   │
+│                    ┌─────────────────────┐                       │
+│                    │  vault_items keeps  │                       │
+│                    │  file_path pointer  │                       │
+│                    │  to cloud location  │                       │
+│                    └─────────────────────┘                       │
+│                                                                  │
+│  IMPORTANT: vault_items.file_path points to Semptify5.0/Vault/  │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Data Flow Maps
+
+### Vault Item Ingestion Flow
+
+```
+┌─────────────┐     ┌────────────────────────┐     ┌─────────────────┐
+│   Client    │────▶│  POST /vault/items     │────▶│   Validation    │
+│  Request    │     │  (vault_all_in_one.py) │     │  (Pydantic)     │
+└─────────────┘     └────────────────────────┘     └────────┬────────┘
+                                                          │
+                    ┌─────────────────────────────────────┘
+                    ▼
+          ┌─────────────────────────┐
+          │ VaultIngestionService   │
+          │                         │
+          │ 1. _validate_request()  │
+          │    - Check 3 timestamps │
+          │    - Check metadata     │
+          │                         │
+          │ 2. _preserve_metadata() │
+          │    - Convert datetime   │
+          │    - Serialize nested   │
+          │    - Keep everything    │
+          │                         │
+          │ 3. Create VaultItem     │
+          │ 4. Create AuditLog      │
+          └───────────┬─────────────┘
+                      │
+                      ▼
+          ┌─────────────────────────┐
+          │     PostgreSQL            │
+          │  ┌─────────────────┐      │
+          │  │ INSERT vault_items    │      │
+          │  │ INSERT vault_audit_logs│     │
+          │  └─────────────────┘      │
+          └─────────────────────────┘
+                      │
+                      ▼
+          ┌─────────────────────────┐
+          │    JSONB GIN Indexes    │
+          │    Auto-updated         │
+          │    for search           │
+          └─────────────────────────┘
+```
+
+### Search Query Flow
+
+```
+┌─────────────┐     ┌────────────────────────┐
+│   Client    │────▶│  GET /vault/items      │
+│   Query     │     │  ?timeline_mode=       │
+│             │     │    event_time           │
+└─────────────┘     └───────────┬────────────┘
+                              │
+                              ▼
+                    ┌─────────────────────┐
+                    │ SearchCriteria        │
+                    │ (Pydantic model)      │
+                    │                       │
+                    │ • query (text)        │
+                    │ • metadata_query      │
+                    │ • timeline_mode       │
+                    │ • date_from/to        │
+                    │ • filters...          │
+                    └───────────┬─────────┘
+                              │
+                              ▼
+                    ┌─────────────────────┐
+                    │ VaultSearchService    │
+                    │                       │
+                    │ _build_base_query()   │
+                    │ _apply_text_search()  │
+                    │ _apply_metadata_search()│
+                    │ _apply_date_range()   │
+                    │ _apply_sorting()      │
+                    └───────────┬─────────┘
+                              │
+                              ▼
+                    ┌─────────────────────┐
+                    │   SQL Generated     │
+                    │                     │
+                    │ SELECT * FROM       │
+                    │   vault_items       │
+                    │ WHERE user_id = ?   │
+                    │   AND metadata::text│
+                    │     ILIKE '%term%'  │
+                    │ ORDER BY event_time │
+                    │ LIMIT ? OFFSET ?    │
+                    └───────────┬─────────┘
+                              │
+                              ▼
+                    ┌─────────────────────┐
+                    │  PostgreSQL GIN     │
+                    │  Index Scan         │
+                    │  (Fast!)            │
+                    └───────────┬─────────┘
+                              │
+                              ▼
+                    ┌─────────────────────┐
+                    │  SearchResult       │
+                    │  + timeline_sequence│
+                    └─────────────────────┘
+```
+
+---
+
+## File Dependency Map
+
+```
+app/
+├── core/
+│   ├── module_contracts.py ◄─────────────────┐
+│   ├── vault_paths.py ◄───────────────────┐  │
+│   └── utc.py ◄────────────────────────────┼──┼──┐
+│                                           │  │  │
+├── models/                                 │  │  │
+│   └── models.py ◄─────────────────────────┼──┼──┼──┐
+│       • VaultItem                         │  │  │  │
+│       • Incident                        │  │  │  │
+│       • VaultAuditLog                   │  │  │  │
+│           ▲                             │  │  │  │
+│           │                             │  │  │  │
+├── services/                             │  │  │  │
+│   ├── vault_ingestion.py ◄──────────────┼──┼──┼──┤
+│   │   • VaultIngestionService             │  │  │  │
+│   │   • IngestionRequest/Result           │  │  │  │
+│   │   • register_function_group() ────────┘  │  │  │
+│   │                                          │  │  │
+│   ├── vault_search.py ◄─────────────────────┼──┤  │
+│   │   • VaultSearchService                  │  │  │
+│   │   • SearchCriteria/Result               │  │  │
+│   │   • TimelineMode                        │  │  │
+│   │   • register_function_group() ──────────┘  │  │
+│   │                                           │  │  │
+│   └── timeline_chronology.py (existing) ◄────┤  │
+│       • Uses cloud events.json               │  │
+│       • Separate from vault timeline         │  │
+│                                              │  │
+├── routers/                                   │  │
+│   └── vault_all_in_one.py ◄───────────────────┼──┤
+│       • All 15+ endpoints                   │  │
+│       • Uses vault_ingestion.py ────────────┘  │
+│       • Uses vault_search.py ─────────────────┘  │
+│                                                  │
+└── main.py ◄──────────────────────────────────────┘
+    • Imports vault_all_in_one_router
+    • Registers with FastAPI
+    • Logs: "🏛️ ALL-IN-ONE Vault router connected"
+
+alembic/
+└── versions/
+    └── a1b2c3d4e5f6_add_all_in_one_vault_tables.py
+        • Creates vault_items
+        • Creates incidents
+        • Creates vault_audit_logs
+        • Creates GIN indexes
+```
+
+---
+
+## Module Contract Integration
+
+```python
+# How the vault registers with Semptify's contract system
+
+┌─────────────────────────────────────────────────────────┐
+│           app/core/module_contracts.py                  │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ModuleContractRegistry ─────┐                          │
+│    • _contracts: dict        │                          │
+│    • register()              │                          │
+│    • validate()              │                          │
+│                              │                          │
+│         ▲                    │                          │
+│         │                    │                          │
+│    ┌────┴────────────────────┴──────────────┐          │
+│    │                                          │          │
+│    │   app/services/vault_ingestion.py        │          │
+│    │   ─────────────────────────────────       │          │
+│    │                                            │          │
+│    │   register_function_group(                 │          │
+│    │       FunctionGroupContract(               │          │
+│    │           module="vault",                   │          │
+│    │           group_name="vault_ingestion",    │          │
+│    │           title="Vault Ingestion Service", │          │
+│    │           inputs=("user_id", ...),         │          │
+│    │           outputs=("item_id", ...),        │          │
+│    │           deterministic=True, ◄────────────┼────┐   │
+│    │       )                                     │    │   │
+│    │   )                                         │    │   │
+│    │                                             │    │   │
+│    └─────────────────────────────────────────────┘    │   │
+│                                                       │   │
+│    ┌─────────────────────────────────────────────┐    │   │
+│    │   app/services/vault_search.py              │    │   │
+│    │   ───────────────────────────────────────  │    │   │
+│    │                                             │    │   │
+│    │   register_function_group(                 │    │   │
+│    │       FunctionGroupContract(               │    │   │
+│    │           module="vault",                   │    │   │
+│    │           group_name="vault_search",        │    │   │
+│    │           deterministic=True, ◄────────────┼────┼───┘
+│    │       )                                     │    │
+│    │   )                                         │    │
+│    │                                             │    │
+│    └─────────────────────────────────────────────┘    │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+
+# Deterministic = Same inputs always produce same outputs
+# Critical for legal/evidence systems
+```
+
+---
+
+## Route to Service Mapping
+
+| Route | Handler | Service | Database |
+|-------|---------|---------|----------|
+| `POST /vault/items` | `ingest_vault_item()` | `VaultIngestionService.ingest()` | INSERT vault_items, vault_audit_logs |
+| `GET /vault/items` | `search_vault_items()` | `VaultSearchService.search()` | SELECT with GIN indexes |
+| `GET /vault/items/{id}` | `get_vault_item()` | Direct SQLAlchemy query | SELECT by PK |
+| `PUT /vault/items/{id}` | `update_vault_item()` | `VaultIngestionService.update_item()` | UPDATE with audit log |
+| `DELETE /vault/items/{id}` | `delete_vault_item()` | `VaultIngestionService.delete_item()` | DELETE with audit log |
+| `GET /vault/timeline` | `get_vault_timeline()` | `VaultSearchService.search()` | ORDER BY timeline_mode |
+| `GET /vault/incidents/{id}/timeline` | `get_incident_timeline()` | `VaultSearchService.get_timeline_by_incident()` | FILTER + ORDER BY |
+| `POST /vault/incidents` | `create_incident()` | Direct SQLAlchemy | INSERT incidents |
+| `GET /vault/search/metadata` | `search_by_metadata()` | `VaultSearchService.deep_metadata_search()` | JSONB containment |
+| `GET /vault/search/location` | `search_by_location()` | `VaultSearchService.location_search()` | JSONB + distance calc |
+
+---
+
+## SSOT Compliance Check
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         SINGLE SOURCE OF TRUTH CHECKLIST                │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ ✅ Vault Paths                                          │
+│    Uses app/core/vault_paths.py constants               │
+│    VAULT_DOCUMENTS, VAULT_TIMELINE, etc.               │
+│                                                         │
+│ ✅ Module Contracts                                     │
+│    Registers via register_function_group()              │
+│    FunctionGroupContract with deterministic=True        │
+│                                                         │
+│ ✅ Routing (via main.py)                                │
+│    Uses route_user() for redirects                    │
+│    Single auth function: get_current_user_id()        │
+│                                                         │
+│ ✅ Database Layer                                        │
+│    Uses app/core/database.py Base, get_db()            │
+│    UTC timestamps via app/core/utc.utc_now()          │
+│                                                         │
+│ ✅ Deterministic Behavior                               │
+│    No AI in routing/sorting                           │
+│    Same query = same results every time                │
+│    Immutable timestamps                                │
+│                                                         │
+│ ✅ Stateless Design                                     │
+│    Services are stateless                             │
+│    All data in PostgreSQL                               │
+│    No in-memory caching of results                    │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Reference: Adding to Existing Features
+
+### Link Document Upload to Vault
+
+```python
+# In your existing document upload handler:
+
+from app.services.vault_ingestion import ingest_vault_item
+
+async def handle_upload(file, user_id):
+    # 1. Save to cloud (existing code)
+    cloud_path = await save_to_cloud(file)
+    
+    # 2. Extract metadata (existing code)
+    extracted = await extract_metadata(file)
+    
+    # 3. NEW: Ingest to ALL-IN-ONE vault
+    result = await ingest_vault_item(
+        db=db,
+        user_id=user_id,
+        item_type="document",
+        event_time=extracted.get("document_date"),
+        record_time=datetime.now(timezone.utc),
+        metadata={
+            "filename": file.filename,
+            "cloud_path": cloud_path,
+            "extraction": extracted,
+            "sha256": file_hash,
+        },
+        file_path=cloud_path,
+        title=extracted.get("title"),
+    )
+    
+    return {"cloud_path": cloud_path, "vault_item_id": result.item_id}
+```
+
+### Query Vault from Timeline
+
+```python
+## Integration with Existing Systems
+
+### Timeline Chronology
+
+The existing `app/services/timeline_chronology.py` works with cloud-based timeline (`Semptify5.0/Vault/timeline/events.json`). The ALL-IN-ONE metadata layer provides fast PostgreSQL queries as an index on top.
+
+### Overlay System
+
+Document overlays are stored in the vault at `Semptify5.0/Vault/.overlay/`. The ALL-IN-ONE layer indexes overlay metadata for fast searching while the actual overlay files stay in cloud storage.
+
+### Query Vault from Timeline
+
+```python
+# In your existing timeline endpoint:
+
+from app.services.vault_search import search_vault
+
+async def get_timeline(user_id):
+    # 1. Get cloud timeline (existing)
+    cloud_events = await load_cloud_timeline(user_id)
+    
+    # 2. NEW: Query vault for enriched data
+    vault_results = await search_vault(
+        db=db,
+        user_id=user_id,
+        timeline_mode="event_time",
+        limit=1000,
+    )
+    
+    # 3. Merge or choose primary source
+    # Cloud = portable, user-controlled
+    # Vault = fast queries, audit trail
+    return {
+        "cloud_events": cloud_events,
+        "vault_items": vault_results.items,
+        "primary_source": "cloud",  # Or "vault" based on use case
+    }
+```
+
+---
+
+*This code map shows how the ALL-IN-ONE vault integrates with Semptify's existing SSOT architecture while maintaining clear separation between cloud (portable) and database (queryable) storage.*
+
+
+
+
+========== FILE: docs\ARCHITECTURE_BLUEPRINT_V2.md ==========
+# Semptify 5.0 Architecture Blueprint v2.0
+
+## Overview
+Updated architecture blueprint reflecting Phase 2 implementation with performance optimization, scalability improvements, and advanced features.
+
+## System Architecture
+
+### Core Layers
+
+#### 1. Performance Layer
+```
+Performance Monitoring System
+- Real-time request tracking
+- System resource monitoring
+- Performance metrics collection
+- Slow query detection
+- Performance alerting
+```
+
+#### 2. Security Layer
+```
+Advanced Security System
+- Multi-tier rate limiting (Free/Basic/Premium/Enterprise)
+- Adaptive throttling
+- Violation tracking and blocking
+- Token refresh management
+- File validation and security
+```
+
+#### 3. Data Layer
+```
+Optimized Data Access
+- Connection pooling (20 base + 30 overflow)
+- Query optimization and monitoring
+- Intelligent caching (Memory/Redis/File)
+- Database health checks
+- Batch query execution
+```
+
+#### 4. Processing Layer
+```
+Background Job Processing
+- Priority-based job queues
+- Asynchronous document analysis
+- Thumbnail generation
+- Document indexing
+- Progress tracking
+```
+
+#### 5. Application Layer
+```
+FastAPI Application
+- Middleware stack (Performance, Security, Offline)
+- Router organization
+- Error handling
+- Request/Response processing
+```
+
+## Component Architecture
+
+### Performance Components
+
+#### Performance Monitor (`app/core/performance_monitor.py`)
+```python
+class PerformanceMonitor:
+    - Request metrics collection
+    - System resource monitoring
+    - Slow query tracking
+    - Performance alerting
+    - Background monitoring thread
+```
+
+#### Database Pool (`app/core/database_pool.py`)
+```python
+class DatabaseConnectionPool:
+    - Connection pooling with QueuePool
+    - Query performance monitoring
+    - Health checks and optimization
+    - Batch query support
+    - Connection event logging
+```
+
+#### Cache Manager (`app/core/cache_manager.py`)
+```python
+class CacheManager:
+    - Multi-backend caching
+    - Cache decorators
+    - TTL management
+    - Cache invalidation
+    - Performance statistics
+```
+
+### Security Components
+
+#### Advanced Rate Limiter (`app/core/advanced_rate_limiter.py`)
+```python
+class AdvancedRateLimiter:
+    - Tier-based rate limiting
+    - Multiple strategies (Sliding/Token/Leaky Bucket)
+    - Adaptive throttling
+    - Violation tracking
+    - Client blocking
+```
+
+#### OAuth Token Manager (`app/core/oauth_token_manager.py`)
+```python
+class OAuthTokenManager:
+    - Token refresh automation
+    - Provider-specific callbacks
+    - Token expiration handling
+    - Secure token storage
+```
+
+### Processing Components
+
+#### Job Processor (`app/core/job_processor.py`)
+```python
+class JobProcessor:
+    - Priority job queues
+    - Background workers
+    - Progress tracking
+    - Retry mechanisms
+    - Job cancellation
+```
+
+## Data Flow Architecture
+
+### Request Flow
+```
+1. Client Request
+2. Rate Limiting Check
+3. Performance Monitoring Start
+4. Authentication/Authorization
+5. Business Logic Processing
+6. Database Operations (with pooling)
+7. Cache Operations (if applicable)
+8. Background Job Submission (if needed)
+9. Response Generation
+10. Performance Monitoring End
+11. Response to Client
+```
+
+### Background Job Flow
+```
+1. Job Submission
+2. Priority Queue Assignment
+3. Worker Thread Processing
+4. Progress Updates
+5. Result Storage
+6. Notification (if applicable)
+7. Job Completion
+```
+
+## Integration Points
+
+### Main Application Integration (`app/main.py`)
+```python
+# Middleware Stack (order matters)
+1. Request ID Middleware
+2. CORS Middleware
+3. Security Headers Middleware
+4. Storage Requirement Middleware
+5. Performance Monitoring Middleware
+6. Offline Detection Middleware
+7. Error Handling Middleware
+
+# Background Services
+- Performance Monitor (auto-start)
+- OAuth Token Manager (auto-init)
+- Job Processor (auto-start)
+- Cache Manager (singleton)
+```
+
+### Database Integration
+```python
+# Connection Pool Configuration
+- Pool Size: 20 connections
+- Max Overflow: 30 connections
+- Pool Pre-ping: Enabled
+- Connection Recycling: 1 hour
+- Query Timeout: 30 seconds
+```
+
+### Cache Integration
+```python
+# Cache Hierarchy
+1. Memory Cache (100MB default)
+2. Redis Cache (if configured)
+3. File Cache (fallback)
+
+# Cache Decorators
+@cache_user_data(ttl_seconds=3600)
+@cache_document_data(ttl_seconds=1800)
+@cache_system_data(ttl_seconds=7200)
+```
+
+## Performance Optimizations
+
+### Database Optimizations
+- **Connection Pooling**: Reduces connection overhead
+- **Query Monitoring**: Identifies slow queries
+- **Batch Operations**: Efficient bulk processing
+- **Health Checks**: Prevents stale connections
+- **Optimization Routines**: Regular maintenance
+
+### Caching Optimizations
+- **Multi-tier Caching**: Reduces database load
+- **Intelligent Invalidation**: Keeps data fresh
+- **LRU Eviction**: Memory efficiency
+- **Background Cleanup**: Prevents memory leaks
+
+### Rate Limiting Optimizations
+- **Tier-based Limits**: Fair resource allocation
+- **Adaptive Throttling**: System load awareness
+- **Sliding Windows**: Accurate rate limiting
+- **Token Buckets**: Burst handling
+
+### Job Processing Optimizations
+- **Priority Queues**: Important jobs first
+- **Background Workers**: Non-blocking processing
+- **Retry Logic**: Resilient processing
+- **Progress Tracking**: User feedback
+
+## Security Architecture
+
+### Rate Limiting by Tier
+```
+Free Tier:
+- Read: 100 requests/minute
+- Write: 50 requests/minute
+- Upload: 10 requests/minute
+- Auth: 5 requests/minute
+- AI: 20 requests/minute
+
+Basic Tier:
+- Read: 500 requests/minute
+- Write: 200 requests/minute
+- Upload: 50 requests/minute
+- Auth: 10 requests/minute
+- AI: 100 requests/minute
+
+Premium Tier:
+- Read: 2,000 requests/minute
+- Write: 1,000 requests/minute
+- Upload: 200 requests/minute
+- Auth: 20 requests/minute
+- AI: 500 requests/minute
+
+Enterprise Tier:
+- Read: 10,000 requests/minute
+- Write: 5,000 requests/minute
+- Upload: 1,000 requests/minute
+- Auth: 100 requests/minute
+- AI: 2,000 requests/minute
+```
+
+### File Security
+- **Type Validation**: Comprehensive file type checking
+- **Size Limits**: Tier-based upload limits
+- **Security Scanning**: Malware detection
+- **Content Validation**: MIME type verification
+
+## Monitoring and Observability
+
+### Performance Metrics
+- Request latency (P50, P95, P99)
+- System resource usage
+- Database query performance
+- Cache hit rates
+- Error rates and patterns
+
+### Security Metrics
+- Rate limit violations
+- Failed authentication attempts
+- File validation failures
+- Security event counts
+
+### Business Metrics
+- Job processing rates
+- User activity patterns
+- Document processing statistics
+- System utilization
+
+## Scalability Architecture
+
+### Horizontal Scaling
+- **Stateless Design**: Easy horizontal scaling
+- **Load Balancing**: Multiple instance support
+- **Database Pooling**: Connection distribution
+- **Cache Distribution**: Redis clustering support
+
+### Vertical Scaling
+- **Resource Monitoring**: Automatic resource tracking
+- **Adaptive Throttling**: Load-based adjustments
+- **Connection Scaling**: Dynamic pool sizing
+- **Worker Scaling**: Configurable worker counts
+
+## Reliability Architecture
+
+### Error Handling
+- **Global Exception Handlers**: Consistent error responses
+- **Retry Mechanisms**: Resilient operations
+- **Circuit Breakers**: Failure isolation
+- **Graceful Degradation**: Partial functionality
+
+### Data Integrity
+- **Audit Logging**: Complete audit trail
+- **Transaction Management**: ACID compliance
+- **Backup Systems**: Data protection
+- **Validation Layers**: Data quality
+
+## Deployment Architecture
+
+### Container Support
+- **Docker Ready**: Containerized deployment
+- **Environment Configuration**: Flexible settings
+- **Health Checks**: Readiness probes
+- **Graceful Shutdown**: Clean termination
+
+### Production Considerations
+- **Security Headers**: Production security
+- **HTTPS Enforcement**: Secure communication
+- **Rate Limiting**: Production protection
+- **Monitoring**: Production observability
+
+## Future Architecture Plans
+
+### Phase 3 (Advanced Features)
+- WebSocket support for real-time updates
+- Advanced search with full-text indexing
+- Document preview generation
+- Batch operations
+- Advanced security (2FA, session management)
+
+### Phase 4 (Enterprise Features)
+- Multi-tenancy support
+- Advanced analytics
+- API versioning
+- Developer portal
+- Automated testing pipeline
+
+## Architecture Decisions
+
+### Performance First
+- All major components include performance monitoring
+- Caching and pooling are standard
+- Background processing for heavy operations
+
+### Security by Design
+- Rate limiting is tier-based and adaptive
+- File validation is comprehensive
+- Audit logging is mandatory
+
+### Scalability Built-in
+- Connection pooling for database
+- Multi-backend caching
+- Horizontal scaling support
+
+### Reliability Focused
+- Comprehensive error handling
+- Retry mechanisms everywhere
+- Graceful degradation patterns
+
+This architecture provides a solid foundation for a production-ready, scalable, and secure housing rights platform.
+
+
+
+
