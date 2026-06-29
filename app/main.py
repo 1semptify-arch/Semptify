@@ -1339,22 +1339,26 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 from app.services.vault_upload_service import VaultUploadService
                 from app.services.filedored_service import ensure_filedored_folders
                 from app.core.oauth_token_manager import get_valid_token_for_user
+                from app.services.unified_overlay_manager import get_unified_overlay_manager
+                from app.services.storage import get_provider as _get_storage_provider
+                from app.core.user_id import get_provider_from_user_id
                 vault_svc = VaultUploadService()
-                doc = await vault_svc.get_document(vault_id, user_id)
+                doc = await vault_svc.get_document(vault_id)
                 content = b""
+                access_token = None
                 if doc:
                     try:
-                        content = await vault_svc._get_document_content(doc) or b""
+                        access_token = get_valid_token_for_user(user_id)
+                        if access_token:
+                            content = await vault_svc.get_document_content(vault_id, access_token=access_token) or b""
                     except Exception:
                         pass
                     # Ensure filedored folders exist on-demand (lazy, first upload only)
                     try:
                         from app.sdk.vault.client import VaultClient
                         from app.sdk.vault.folder_spec import BASE_VAULT
-                        from app.services.storage import get_provider
-                        access_token = get_valid_token_for_user(user_id)
                         if access_token and doc.storage_provider not in ("local", None):
-                            storage = get_provider(doc.storage_provider, access_token=access_token)
+                            storage = _get_storage_provider(doc.storage_provider, access_token=access_token)
                             vault_client = VaultClient(
                                 provider=storage,
                                 access_token=access_token,
@@ -1364,6 +1368,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                             await ensure_filedored_folders(vault_client)
                     except Exception as _fe2:
                         logger.debug("Filedored folder ensure skipped: %s", _fe2)
+                # Build overlay manager for filedored (required by process_uploaded_document)
+                overlay_manager = None
+                if access_token and doc is not None:
+                    try:
+                        provider_code = get_provider_from_user_id(user_id) or "google_drive"
+                        storage = _get_storage_provider(provider_code, access_token=access_token)
+                        overlay_manager = await get_unified_overlay_manager(storage, user_id)
+                    except Exception as _om_err:
+                        logger.debug("Filedored overlay manager build skipped: %s", _om_err)
+                if overlay_manager is None:
+                    logger.debug("Filedored skipped for %s (no overlay manager)", vault_id)
+                    return
                 await process_uploaded_document(
                     vault_id=vault_id,
                     user_id=user_id,
@@ -1371,6 +1387,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     content=content,
                     sha256_hash=data.get("sha256_hash", ""),
                     enable_ai=False,
+                    overlay_manager=overlay_manager,
                 )
                 logger.debug("Filedored: sorted %s for user %s", vault_id, user_id[:6])
             except Exception as _fe:

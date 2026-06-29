@@ -58,55 +58,67 @@ async def process_documents(
     processed = []
     errors = []
     
+    # Build overlay manager for this user (required by process_uploaded_document)
+    from app.core.oauth_token_manager import get_valid_token_for_user
+    from app.core.user_id import get_provider_from_user_id
+    access_token = get_valid_token_for_user(user.user_id)
+    if not access_token:
+        raise HTTPException(status_code=400, detail="No storage token found")
+    provider_code = get_provider_from_user_id(user.user_id) or "google_drive"
+    storage = get_provider(provider_code, access_token=access_token)
+    overlay_manager = await get_unified_overlay_manager(storage, user.user_id)
+
     try:
-        # Get vault upload service
         vault_service = VaultUploadService()
-        
+
         # Determine which documents to process
         if request.process_all:
-            # Get all user documents
             documents = await vault_service.get_user_documents(user.user_id)
             vault_ids = [doc.vault_id for doc in documents]
         elif request.vault_ids:
             vault_ids = request.vault_ids
         else:
             raise HTTPException(status_code=400, detail="Either vault_ids or process_all must be specified")
-        
+
         # Process each document
         for vault_id in vault_ids:
             try:
-                # Get document details
-                doc = await vault_service.get_document(vault_id, user.user_id)
+                # Get document metadata (get_document takes only vault_id)
+                doc = await vault_service.get_document(vault_id)
                 if not doc:
                     errors.append(f"Document {vault_id} not found")
                     continue
-                
-                # Process through filedored
+
+                # Fetch content from cloud storage
+                content = await vault_service.get_document_content(vault_id, access_token=access_token) or b""
+
+                # Process through filedored (pass overlay_manager — required)
                 result = await process_uploaded_document(
                     vault_id=vault_id,
                     user_id=user.user_id,
                     filename=doc.filename,
-                    content=await vault_service._get_document_content(doc),
+                    content=content,
                     sha256_hash=doc.sha256_hash,
                     enable_ai=request.enable_ai,
+                    overlay_manager=overlay_manager,
                 )
-                
+
                 processed.append({
                     "vault_id": vault_id,
                     "filename": doc.filename,
                     "result": result,
                 })
-                
+
             except Exception as e:
                 logger.error("Failed to process document %s: %s", vault_id, e)
                 errors.append(f"Failed to process {vault_id}: {str(e)}")
-        
+
         return ProcessResponse(
             processed=processed,
             errors=errors,
             total=len(vault_ids),
         )
-        
+
     except Exception as e:
         logger.error("Filedored processing failed: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -118,7 +130,7 @@ async def check_folders(user: StorageUser = Depends(require_user)):
     try:
         # Get storage provider
         from app.core.oauth_token_manager import get_valid_token_for_user
-        token = await get_valid_token_for_user(user.user_id)
+        token = get_valid_token_for_user(user.user_id)
         if not token:
             raise HTTPException(status_code=400, detail="No storage token found")
         
@@ -160,7 +172,7 @@ async def browse_folder(
     try:
         # Get storage provider
         from app.core.oauth_token_manager import get_valid_token_for_user
-        token = await get_valid_token_for_user(user.user_id)
+        token = get_valid_token_for_user(user.user_id)
         if not token:
             raise HTTPException(status_code=400, detail="No storage token found")
         
@@ -232,7 +244,7 @@ async def list_folders(user: StorageUser = Depends(require_user)):
         
         # Get storage provider and overlay manager
         from app.core.oauth_token_manager import get_valid_token_for_user
-        token = await get_valid_token_for_user(user.user_id)
+        token = get_valid_token_for_user(user.user_id)
         if not token:
             raise HTTPException(status_code=400, detail="No storage token found")
         
