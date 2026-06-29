@@ -12,6 +12,65 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-29 PM — Filedored Overlay Integration Fixes (COMPLETE)
+**Filedored module was broken — 3 callers failed to pass overlay_manager. Now fixed.**
+
+### What Was Shipped
+
+#### Root cause
+`filedored_service.process_uploaded_document()` was refactored to require `overlay_manager` param (raises `RuntimeError` if None, per `app/services/filedored_service.py:123-127`), but 3 callers never passed it. Plus 2 more signature bugs in the filedored router.
+
+#### Fixes applied
+- **`app/modules/filedored/router.py`** (`/api/filedored/process` endpoint)
+  - Build `overlay_manager` from user token and pass it
+  - Fixed `get_document(vault_id, user.user_id)` → `get_document(vault_id)` (wrong signature — only takes vault_id)
+  - Fixed `_get_document_content(doc)` → `get_document_content(vault_id, access_token=token)` (non-existent method)
+  - Removed `await` on sync `get_valid_token_for_user()` in 4 endpoints (process_documents, check_folders, browse_folder, list_folders) — pre-existing bug
+- **`app/main.py`** (`DOCUMENT_ADDED` event subscriber)
+  - Build `overlay_manager` and pass it
+  - Fixed same `get_document` and `_get_document_content` signature bugs
+  - Graceful skip when no overlay manager can be built
+- **`app/modules/documents/router.py`** (`/api/documents/process` post-processing step 9)
+  - Build `overlay_manager` from user token and pass it
+  - Graceful skip with warning when no overlay manager
+
+#### Verification
+- All 6 affected files compile clean (`py_compile` exit 0)
+- No regressions — `duplicate_detection_service.py` already had correct self-build pattern, no changes needed
+- Root cause fixed at all 3 call sites (per AGENTS.md rule #15 — no downstream band-aids)
+
+### Known Working (pending live test)
+- Filedored `/api/filedored/process` endpoint now builds and passes overlay_manager ✅
+- Filedored `/api/filedored/folders/status`, `/browse/{folder}`, `/folders` endpoints no longer await sync function ✅
+- `DOCUMENT_ADDED` event subscriber wires overlay_manager ✅
+- `/api/documents/process` step 9 wires overlay_manager ✅
+- Overlay system itself (UnifiedOverlayManager CRUD) verified functional in previous session ✅
+
+### Known Broken / Pending
+- None new this session
+- Pre-existing pending items (from ACTIVE_CONTEXT.md):
+  - Phase 5b — Action Feedback helper (ready to build, no blockers)
+  - GUI Phase 1 — Tenant Journal restructuring (pending)
+
+### Files Changed
+- `app/modules/filedored/router.py` — 4 endpoints fixed (overlay_manager wiring + sync/await bugs)
+- `app/main.py` — DOCUMENT_ADDED subscriber fixed
+- `app/modules/documents/router.py` — step 9 filedored post-processing fixed
+- `docs/planning/DC_DESIGN_SONNET.md` — added (future DC work reference)
+- `docs/planning/DC_HANDOFF_SONNET.md` — added (future DC work reference)
+- `docs/planning/DOCUMENT_CENTER_PLAN.md` — added (future DC work reference)
+
+### Next Session Should Start With
+1. **Phase 5b — Action Feedback helper** (design doc `ACTION_FEEDBACK_AUDIT.md` ready, no blockers) — per ACTIVE_CONTEXT.md current priority
+2. Or pick up from DC planning docs committed this session (`docs/planning/DOCUMENT_CENTER_PLAN.md`)
+
+### Deploy
+- Commit: `19d0860` pushed to `origin/main`
+- Render auto-deploy triggered
+- Cloudflare Development Mode enabled (3hrs) + cache purged — changes visible immediately at https://semptify.org
+
+---
+
 ## Session — 2026-06-29 — DC Overlay Pipeline Stateless Mandate (COMPLETE)
 **All 4 remaining HANDOFF violations resolved. DC is now stateless-compliant.**
 
