@@ -1045,24 +1045,38 @@ async def process_document(
 
         # Process through filedored system for virtual folder organization
         from app.services.filedored_service import process_uploaded_document
+        from app.services.unified_overlay_manager import get_unified_overlay_manager
+        from app.services.storage import get_provider as _get_provider
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.user_id import get_provider_from_user_id
 
-        filedored_result = await process_uploaded_document(
+        _token = get_valid_token_for_user(user_id)
+        _provider_code = get_provider_from_user_id(user_id) or "google_drive"
+        _storage = _get_provider(_provider_code, access_token=_token) if _token else None
+        _overlay_manager = await get_unified_overlay_manager(_storage, user_id) if _storage else None
 
-            vault_id=vault_id,
+        if _overlay_manager is None:
+            logger.warning("Filedored skipped for %s (no overlay manager)", vault_id)
+        else:
+            filedored_result = await process_uploaded_document(
 
-            user_id=user_id,
+                vault_id=vault_id,
 
-            filename=doc.filename,
+                user_id=user_id,
 
-            content=content,
+                filename=doc.filename,
 
-            sha256_hash=content_hash,
+                content=content,
 
-            enable_ai=False  # AI classification disabled by default
+                sha256_hash=content_hash,
 
-        )
+                enable_ai=False,  # AI classification disabled by default
 
-        logger.info(f"Filedored processing: {filedored_result.get('status', 'unknown')} for {vault_id}")
+                overlay_manager=_overlay_manager,
+
+            )
+
+            logger.info(f"Filedored processing: {filedored_result.get('status', 'unknown')} for {vault_id}")
 
         # Detect duplicates across vault
         from app.services.duplicate_detection_service import detect_duplicates
