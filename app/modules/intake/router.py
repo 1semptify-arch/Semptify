@@ -559,23 +559,31 @@ async def upload_and_process(
         except Exception as flow_err:
             logger.warning("Flow orchestration partial: %s", flow_err)
     
-    # Update vault with extracted data
+    # Write extraction results to user cloud overlays — no extracted content stored in our DB
     if HAS_VAULT_SERVICE and vault_id and doc.extraction:
         try:
             vault_service = get_vault_service()
+            dates = [str(d) for d in doc.extraction.dates] if doc.extraction.dates else []
+            amounts = [str(a) for a in doc.extraction.amounts] if doc.extraction.amounts else []
+            parties = [str(p) for p in doc.extraction.parties] if doc.extraction.parties else []
+            t_events = (
+                flow_result.get("stages", {}).get("events", {}).get("items", [])
+                if FLOW_AVAILABLE and flow_result else []
+            )
             await vault_service.mark_processed(
                 vault_id=vault_id,
                 extracted_data={
-                    "doc_type": None,
-                    "summary": doc.extraction.summary if doc.extraction else None,
-                },
+                    "summary": doc.extraction.summary[:500] if doc.extraction.summary else None,
+                    "dates": dates,
+                    "amounts": amounts,
+                } if (doc.extraction.summary or dates or amounts) else None,
+                parties=parties or None,
+                timeline_events=t_events or None,
                 access_token=real_token,
                 storage_provider=resolved_provider,
             )
-            # (IntakeDocument has no doc_type field — vault type update handled elsewhere)
-            pass
         except Exception as e:
-            logger.warning("Vault update failed: %s", e)
+            logger.warning("Vault overlay creation failed: %s", e)
     
     # Publish completion event
     await event_bus.publish(
