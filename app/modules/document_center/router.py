@@ -1,11 +1,21 @@
 """Document Center API — DC-specific endpoints for the 3-pane viewer.
 
-Lifecycle: dev_only (admin-only while Slices 1-7 are under construction).
+Lifecycle: stable (all roles).
 
 Endpoints
 ---------
 GET  /api/dc/list                      — vault docs with overlay status for left pane
-POST /api/dc/document/{doc_id}/type    — set/correct document type from viewer dropdown
+GET  /api/dc/document/{vault_id}/overlays — real overlay progress from UnifiedOverlayManager
+GET  /api/dc/document/{vault_id}/view    — inline file stream for viewer iframe
+GET  /api/dc/unlocks                    — feature unlock thresholds across all docs
+POST /api/dc/document/{vault_id}/type    — set/correct document type from viewer dropdown
+
+Overlay Integration (2026-06-29):
+  The DC right panel reads REAL overlays from UnifiedOverlayManager.get_overlays()
+  in the user's cloud storage. No DB fallback. If no real overlays exist, the
+  endpoint returns status='processing_incomplete' and the frontend shows a
+  'try again' message. This enforces the mandate: no user data is served from
+  our PostgreSQL — only from the user's cloud.
 """
 import logging
 
@@ -15,6 +25,7 @@ from fastapi.responses import JSONResponse
 from app.core.cookie_auth import verify_user_id
 from app.core.user_id import COOKIE_USER_ID
 from app.core.utc import utc_now
+from app.core.overlay_types import OverlayType
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +51,225 @@ def _auth(request: Request) -> str | None:
     return verify_user_id(cookie_value)
 
 
+# ===========================================================================
+# Real Overlay Fetch — reads from UnifiedOverlayManager (cloud storage)
+# ===========================================================================
+
+async def _fetch_real_overlays(doc, user_id: str) -> list:
+    """Fetch real overlays for a document from UnifiedOverlayManager.
+
+    Overlays are keyed by document_id = doc.safe_filename (set at upload time
+    in vault_upload_service.py:502). Returns a list of UnifiedOverlay objects,
+    or empty list on any failure (cloud unavailable, no overlays, etc.).
+    """
+    if doc.storage_provider == "local":
+        return []  # local storage has no overlay system
+
+    try:
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.services.storage import get_provider
+        from app.services.unified_overlay_manager import get_unified_overlay_manager
+
+        access_token = get_valid_token_for_user(user_id)
+        if not access_token:
+            return []
+
+        storage = get_provider(doc.storage_provider, access_token=access_token)
+        manager = await get_unified_overlay_manager(storage, user_id)
+        response = await manager.get_overlays(document_id=doc.safe_filename)
+        if response.success:
+            return response.overlays
+        return []
+    except Exception as e:
+        logger.debug("Real overlay fetch failed for doc=%s user=%s: %s", doc.vault_id, user_id, e)
+        return []
+
+
+def _build_overlay_progress(doc, real_overlays: list | None = None) -> dict:
+    """Build overlay progress items for the DC right panel.
+
+    Reads REAL overlays from the user's cloud only. No DB fallback.
+    If no real overlays exist, returns processing_incomplete status.
+    """
+    if real_overlays:
+        return _build_progress_from_real(doc, real_overlays)
+    return {
+        "status": "processing_incomplete",
+        "message": "Document is vaulted but not yet processed. Overlays pending.",
+        "has_data": False,
+        "overall_pct": 0,
+        "overlays": [],
+        "overlay_count": 0,
+        "overlay_source": "none",
+    }
+
+
+def _build_progress_from_real(doc, real_overlays: list) -> dict:
+    """Map real UnifiedOverlay objects to the DC's 6 progress items.
+
+    Reads ONLY from real overlay payloads in the user's cloud. No DB extracted
+    content is used as fallback. If an overlay type is missing, that progress
+    item shows as incomplete.
+    """
+    by_type: dict = {}
+    for ov in real_overlays:
+        try:
+            t = ov.overlay_type.value if hasattr(ov.overlay_type, 'value') else str(ov.overlay_type)
+        except Exception:
+            t = str(ov.overlay_type)
+        by_type.setdefault(t, []).append(ov)
+
+    items: list[dict] = []
+
+    # 1. Certified Upload
+    manifest_ovs = by_type.get(OverlayType.VAULT_UPLOAD_MANIFEST.value, [])
+    certified = doc.registry_id is not None or bool(manifest_ovs)
+    cert_detail = doc.registry_id or (manifest_ovs[0].overlay_id if manifest_ovs else None)
+    items.append({
+        "name": "Certified Upload",
+        "overlay_type": "upload_notarization",
+        "icon": "✅" if certified else "⬜",
+        "pct": 100 if certified else 0,
+        "goal": "Document stored with tamper-proof certificate",
+        "detail": cert_detail,
+        "items": [cert_detail] if cert_detail else [],
+    })
+
+    # 2. Document Type
+    class_ovs = by_type.get(OverlayType.DOCUMENT_CLASSIFICATION.value, [])
+    typed = bool(class_ovs) or bool(doc.document_type and doc.document_type != "document")
+    type_label = None
+    if class_ovs:
+        payload = class_ovs[0].payload or {}
+        type_label = payload.get("document_type", "").replace("_", " ").title() if payload.get("document_type") else None
+    if not type_label and doc.document_type and doc.document_type != "document":
+        type_label = doc.document_type.replace("_", " ").title()
+    items.append({
+        "name": "Document Type",
+        "overlay_type": "document_classification",
+        "icon": "✅" if typed else "⬜",
+        "pct": 100 if typed else 0,
+        "goal": "Document type identified and confirmed",
+        "detail": type_label,
+        "items": [type_label] if type_label else [],
+    })
+
+    # 3. Text Extraction
+    extraction_ovs = by_type.get(OverlayType.DOCUMENT_EXTRACTION.value, [])
+    raw_text = ""
+    if extraction_ovs:
+        for ov in extraction_ovs:
+            payload = ov.payload or {}
+            raw_text = str(payload.get("text") or payload.get("ocr_text") or payload.get("summary") or "")
+            if raw_text:
+                break
+    has_text = bool(raw_text)
+    ocr_pct = 100 if has_text else 0
+    text_excerpt = (raw_text[:200] + "…") if len(raw_text) > 200 else raw_text
+    items.append({
+        "name": "Text Extraction",
+        "overlay_type": "ocr_result",
+        "icon": "✅" if ocr_pct == 100 else ("🔄" if ocr_pct else "⬜"),
+        "pct": ocr_pct,
+        "goal": "All text extracted from the document",
+        "detail": f"{len(raw_text):,} chars" if has_text else None,
+        "items": [text_excerpt] if has_text else [],
+    })
+
+    # 4. Dates
+    dates: list = []
+    if extraction_ovs:
+        for ov in extraction_ovs:
+            payload = ov.payload or {}
+            d = payload.get("dates") or []
+            if d:
+                dates = d
+                break
+    if not dates:
+        timeline_ovs = by_type.get(OverlayType.TIMELINE_EXTRACTION.value, [])
+        for ov in timeline_ovs:
+            payload = ov.payload or {}
+            d = payload.get("dates") or payload.get("events") or []
+            if d:
+                dates = d
+                break
+    n_dates = len(dates)
+    dates_pct = min(100, n_dates * 33) if n_dates else 0
+    items.append({
+        "name": "Dates",
+        "overlay_type": "key_date_extraction",
+        "icon": "✅" if n_dates >= 2 else ("🔄" if n_dates else "⬜"),
+        "pct": dates_pct,
+        "goal": "Key dates identified (lease start, end, notice deadlines, etc.)",
+        "detail": f"{n_dates} found" if n_dates else None,
+        "items": [str(d) for d in dates[:10]],
+    })
+
+    # 5. Parties
+    party_ovs = by_type.get(OverlayType.PARTY_EXTRACTION.value, [])
+    parties: list = []
+    if party_ovs:
+        for ov in party_ovs:
+            payload = ov.payload or {}
+            p = payload.get("parties") or []
+            if p:
+                parties = p
+                break
+    if not parties:
+        parties = []
+    n_parties = len(parties)
+    parties_pct = min(100, n_parties * 50) if n_parties else 0
+    items.append({
+        "name": "Parties",
+        "overlay_type": "party_extraction",
+        "icon": "✅" if n_parties >= 2 else ("🔄" if n_parties else "⬜"),
+        "pct": parties_pct,
+        "goal": "All parties identified (landlord, tenant, attorney)",
+        "detail": f"{n_parties} found" if n_parties else None,
+        "items": [str(p) for p in parties[:10]],
+    })
+
+    # 6. Amounts
+    amounts: list = []
+    if extraction_ovs:
+        for ov in extraction_ovs:
+            payload = ov.payload or {}
+            a = payload.get("amounts") or []
+            if a:
+                amounts = a
+                break
+    if not amounts:
+        amounts = []
+    n_amounts = len(amounts)
+    items.append({
+        "name": "Amounts",
+        "overlay_type": "amount_extraction",
+        "icon": "✅" if n_amounts else "⬜",
+        "pct": 100 if n_amounts else 0,
+        "goal": "Rent, deposit, and fee amounts confirmed",
+        "detail": f"{n_amounts} found" if n_amounts else None,
+        "items": [str(a) for a in amounts[:10]],
+    })
+
+    overall_pct = sum(it["pct"] for it in items) // len(items) if items else 0
+    has_data = certified or bool(real_overlays)
+
+    return {
+        "has_data": has_data,
+        "overall_pct": overall_pct,
+        "overlays": items,
+        "overlay_count": len(real_overlays),
+        "overlay_source": "real",
+    }
+
+
 @router.get("/list")
 async def dc_list_documents(request: Request) -> JSONResponse:
     """List vault documents with overlay status for the DC left panel.
 
     Returns documents with id, filename, uploaded_at, document_type,
-    overlay_count (0 until Slice 4), and verification_status ('new' until Slice 4).
+    overlay_count (null — real count requires per-doc cloud fetch via
+    /api/dc/document/{vault_id}/overlays), and verification_status.
     """
     user_id = _auth(request)
     if not user_id:
@@ -65,13 +289,17 @@ async def dc_list_documents(request: Request) -> JSONResponse:
             else:
                 uploaded_str = str(uploaded_raw)
 
+            # overlay_count is null in list view — real count requires per-doc
+            # cloud fetch via /api/dc/document/{vault_id}/overlays.
+            verification_status = "verified" if doc.registry_id else ("review" if doc.processed else "new")
+
             documents.append({
                 "id": doc.vault_id,
                 "filename": doc.filename,
                 "uploaded_at": uploaded_str,
                 "document_type": doc.document_type or "",
-                "overlay_count": 0,
-                "verification_status": "new",
+                "overlay_count": None,
+                "verification_status": verification_status,
             })
     except Exception as vault_err:
         logger.warning("DC list: vault fetch failed for user=%s: %s", user_id, vault_err)
@@ -83,155 +311,51 @@ async def dc_list_documents(request: Request) -> JSONResponse:
     })
 
 
-def _synthesize_overlays(doc) -> dict:
-    """Build overlay progress items from VaultDocument metadata stored in the DB.
-
-    No cloud storage I/O — all data is already local (processed, extracted_data, etc.).
-    Returns the structure expected by the DC right panel.
-    """
-    extracted: dict = doc.extracted_data or {}
-    items: list[dict] = []
-
-    # 1. Certified upload
-    certified = doc.registry_id is not None
-    items.append({
-        "name": "Certified Upload",
-        "overlay_type": "upload_notarization",
-        "icon": "✅" if certified else "⬜",
-        "pct": 100 if certified else 0,
-        "goal": "Document stored with tamper-proof certificate",
-        "detail": doc.registry_id if certified else None,
-        "items": [doc.registry_id] if certified else [],
-    })
-
-    # 2. Document type identified
-    typed = bool(doc.document_type and doc.document_type != "document")
-    items.append({
-        "name": "Document Type",
-        "overlay_type": "document_classification",
-        "icon": "✅" if typed else "⬜",
-        "pct": 100 if typed else 0,
-        "goal": "Document type identified and confirmed",
-        "detail": doc.document_type.replace("_", " ").title() if typed else None,
-        "items": [doc.document_type.replace("_", " ").title()] if typed else [],
-    })
-
-    # 3. Text extraction (OCR)
-    raw_text: str = str(extracted.get("text") or extracted.get("ocr_text") or "")
-    has_text = bool(raw_text)
-    ocr_pct = 100 if (doc.processed and has_text) else (50 if doc.processed else 0)
-    text_excerpt = (raw_text[:200] + "…") if len(raw_text) > 200 else raw_text
-    items.append({
-        "name": "Text Extraction",
-        "overlay_type": "ocr_result",
-        "icon": "✅" if ocr_pct == 100 else ("🔄" if ocr_pct else "⬜"),
-        "pct": ocr_pct,
-        "goal": "All text extracted from the document",
-        "detail": f"{len(raw_text):,} chars" if has_text else None,
-        "items": [text_excerpt] if has_text else [],
-    })
-
-    # 4. Dates
-    dates: list = extracted.get("dates") or []
-    n_dates = len(dates)
-    dates_pct = min(100, n_dates * 33) if n_dates else (50 if doc.processed else 0)
-    items.append({
-        "name": "Dates",
-        "overlay_type": "key_date_extraction",
-        "icon": "✅" if n_dates >= 2 else ("🔄" if n_dates else "⬜"),
-        "pct": dates_pct,
-        "goal": "Key dates identified (lease start, end, notice deadlines, etc.)",
-        "detail": f"{n_dates} found" if n_dates else None,
-        "items": [str(d) for d in dates[:10]],
-    })
-
-    # 5. Parties
-    parties: list = extracted.get("parties") or []
-    n_parties = len(parties)
-    parties_pct = min(100, n_parties * 50) if n_parties else (50 if doc.processed else 0)
-    items.append({
-        "name": "Parties",
-        "overlay_type": "party_extraction",
-        "icon": "✅" if n_parties >= 2 else ("🔄" if n_parties else "⬜"),
-        "pct": parties_pct,
-        "goal": "All parties identified (landlord, tenant, attorney)",
-        "detail": f"{n_parties} found" if n_parties else None,
-        "items": [str(p) for p in parties[:10]],
-    })
-
-    # 6. Amounts
-    amounts: list = extracted.get("amounts") or []
-    n_amounts = len(amounts)
-    items.append({
-        "name": "Amounts",
-        "overlay_type": "amount_extraction",
-        "icon": "✅" if n_amounts else "⬜",
-        "pct": 100 if n_amounts else (50 if doc.processed else 0),
-        "goal": "Rent, deposit, and fee amounts confirmed",
-        "detail": f"{n_amounts} found" if n_amounts else None,
-        "items": [str(a) for a in amounts[:10]],
-    })
-
-    overall_pct = sum(it["pct"] for it in items) // len(items) if items else 0
-    has_data = certified or doc.processed
-
-    return {
-        "has_data": has_data,
-        "overall_pct": overall_pct,
-        "overlays": items,
-    }
-
-
 def _compute_unlocks(docs: list) -> list[dict]:
     """Compute unlock states for DC feature modules from all user documents.
 
+    Uses ONLY DB index flags (processed, registry_id, document_type) — never reads
+    extracted user content from the database. This is compliant with the stateless
+    mandate: no user data is read from our PostgreSQL to compute unlocks.
+
     Rules:
-    - Timeline:        1 doc with avg(Dates pct, Parties pct) >= 80
-    - Journal:         2+ docs with overall_pct >= 60
-    - Contact Manager: any doc with Parties pct == 100
-    - Case Builder:    3+ docs with overall_pct >= 80
+    - Timeline:        1 doc with processed=True and document_type set
+    - Journal:         2+ docs with processed=True
+    - Contact Manager: any doc with processed=True and document_type set
+    - Case Builder:    3+ docs with processed=True and registry_id set
     """
-    scores = [_synthesize_overlays(doc) for doc in docs]
-
-    def _pct_for(s: dict, overlay_type: str) -> int:
-        return next((o["pct"] for o in s["overlays"] if o["overlay_type"] == overlay_type), 0)
-
-    def _dates_parties_avg(s: dict) -> int:
-        return (_pct_for(s, "key_date_extraction") + _pct_for(s, "party_extraction")) // 2
-
-    timeline_docs    = sum(1 for s in scores if _dates_parties_avg(s) >= 80)
-    verified_60_docs = sum(1 for s in scores if s["overall_pct"] >= 60)
-    contact_docs     = sum(1 for s in scores if _pct_for(s, "party_extraction") == 100)
-    verified_80_docs = sum(1 for s in scores if s["overall_pct"] >= 80)
+    processed_docs = sum(1 for d in docs if d.processed)
+    typed_docs = sum(1 for d in docs if d.processed and d.document_type and d.document_type != "document")
+    certified_docs = sum(1 for d in docs if d.processed and d.registry_id)
 
     return [
         {
             "name": "Timeline",
             "icon": "📅",
-            "threshold": "1 doc with Dates + Parties ≥ 80%",
-            "unlocked": timeline_docs >= 1,
-            "progress": f"{timeline_docs}/1 docs meet threshold",
+            "threshold": "1 processed doc with type identified",
+            "unlocked": typed_docs >= 1,
+            "progress": f"{typed_docs}/1 docs meet threshold",
         },
         {
             "name": "Journal",
             "icon": "📓",
-            "threshold": "2+ docs verified ≥ 60%",
-            "unlocked": verified_60_docs >= 2,
-            "progress": f"{verified_60_docs}/2 docs meet threshold",
+            "threshold": "2+ processed docs",
+            "unlocked": processed_docs >= 2,
+            "progress": f"{processed_docs}/2 docs meet threshold",
         },
         {
             "name": "Contact Manager",
             "icon": "👤",
-            "threshold": "Parties overlay = 100%",
-            "unlocked": contact_docs >= 1,
-            "progress": f"{contact_docs}/1 docs meet threshold",
+            "threshold": "1 processed doc with type identified",
+            "unlocked": typed_docs >= 1,
+            "progress": f"{typed_docs}/1 docs meet threshold",
         },
         {
             "name": "Case Builder",
             "icon": "⚖️",
-            "threshold": "3 docs verified ≥ 80%",
-            "unlocked": verified_80_docs >= 3,
-            "progress": f"{verified_80_docs}/3 docs meet threshold",
+            "threshold": "3+ processed docs with certificate",
+            "unlocked": certified_docs >= 3,
+            "progress": f"{certified_docs}/3 docs meet threshold",
         },
     ]
 
@@ -240,8 +364,8 @@ def _compute_unlocks(docs: list) -> list[dict]:
 async def dc_get_unlocks(request: Request) -> JSONResponse:
     """Compute unlock states for DC feature modules across all user documents.
 
-    Iterates every VaultDocument for the user, synthesizes overlay scores in memory
-    (no cloud I/O), and checks each unlock threshold.
+    Uses ONLY DB index flags (processed, registry_id, document_type) — no cloud I/O,
+    no extracted content reads. See _compute_unlocks for threshold rules.
     """
     user_id = _auth(request)
     if not user_id:
@@ -266,8 +390,9 @@ async def dc_get_unlocks(request: Request) -> JSONResponse:
 async def dc_get_overlays(vault_id: str, request: Request) -> JSONResponse:
     """Get overlay progress data for the DC right panel.
 
-    Synthesizes overlay status from VaultDocument metadata already in the DB.
-    No cloud storage I/O required — fast, always available.
+    Reads REAL overlays from UnifiedOverlayManager in the user's cloud storage.
+    No DB fallback. If no overlays exist or cloud is unavailable, returns
+    status='processing_incomplete' — the frontend shows a 'try again' message.
     """
     user_id = _auth(request)
     if not user_id:
@@ -283,7 +408,8 @@ async def dc_get_overlays(vault_id: str, request: Request) -> JSONResponse:
         if doc.user_id != user_id:
             return JSONResponse(status_code=403, content={"error": "access_denied"})
 
-        result = _synthesize_overlays(doc)
+        real_overlays = await _fetch_real_overlays(doc, user_id)
+        result = _build_overlay_progress(doc, real_overlays)
         result["vault_id"] = vault_id
         result["generated_at"] = utc_now().isoformat()
         return JSONResponse(result)
@@ -412,7 +538,9 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
         if not updated_doc:
             return JSONResponse(status_code=500, content={"error": "update_failed"})
 
-        overlay_snapshot = _synthesize_overlays(updated_doc)
+        # After type update, re-fetch real overlays to reflect the new DOCUMENT_CLASSIFICATION
+        real_overlays = await _fetch_real_overlays(updated_doc, user_id)
+        overlay_snapshot = _build_overlay_progress(updated_doc, real_overlays)
 
         logger.info(
             "DC set_type: vault_id=%s type=%r user=%s provider=%s token=%s",

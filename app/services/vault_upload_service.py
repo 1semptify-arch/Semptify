@@ -92,7 +92,6 @@ class VaultDocument:
     integrity_status: str = "unverified"  # verified, tampered, unverified
     # Processing state
     processed: bool = False
-    extracted_data: Optional[dict] = None
     # Source tracking
     source_module: str = "direct"  # Which module initiated upload
     
@@ -166,7 +165,6 @@ class VaultDocumentIndex:
             registry_id=doc.registry_id,
             integrity_status=doc.integrity_status,
             processed=doc.processed,
-            extracted_data_json=json.dumps(doc.extracted_data) if doc.extracted_data else None,
             source_module=doc.source_module,
             uploaded_at=datetime.fromisoformat(doc.uploaded_at) if doc.uploaded_at else utc_now(),
             updated_at=utc_now(),
@@ -193,7 +191,6 @@ class VaultDocumentIndex:
             registry_id=db_doc.registry_id,
             integrity_status=db_doc.integrity_status,
             processed=db_doc.processed,
-            extracted_data=json.loads(db_doc.extracted_data_json) if db_doc.extracted_data_json else None,
             source_module=db_doc.source_module,
         )
     
@@ -303,8 +300,6 @@ class VaultDocumentIndex:
                     for key, value in kwargs.items():
                         if hasattr(db_doc, key):
                             setattr(db_doc, key, value)
-                        elif key == "extracted_data":
-                            db_doc.extracted_data_json = json.dumps(value) if value else None
                         elif key == "tags":
                             db_doc.tags = ",".join(value) if value else None
                     db_doc.updated_at = utc_now()
@@ -626,46 +621,11 @@ class VaultUploadService:
         
         # =========================================================================
         # CERTIFICATION: Every vault document must be registered for chain of custody.
-        # A CertificationEvent row is written to PostgreSQL on EVERY outcome —
-        # pass or fail — before any exception is raised.
-        # This is the compliance record. No bypasses. No softening.
+        # The in-memory registry generates the SEM-YYYY-NNNNNN-XXXX ID and computes
+        # tamper-proof hashes. The cert info is then written as a VAULT_UPLOAD_MANIFEST
+        # overlay in the user's cloud storage — no DB certification tables.
         # =========================================================================
-        # Lazy imports — must happen at call time, not module load time, to avoid
-        # import-order issues when this module is first loaded before DB is ready.
         from app.services.document_registry import get_document_registry
-        from app.core.database import get_db_session
-        from app.models.models import (
-            DocumentRegistryEntry,
-            CertificationEvent,
-            CertificationResult,
-            CertificationFailureCode,
-        )
-
-        async def _write_certification_event(
-            result: str,
-            document_id: Optional[str] = None,
-            failure_code: Optional[str] = None,
-            failure_detail: Optional[str] = None,
-            stage: Optional[str] = None,
-        ) -> None:
-            """Write a CertificationEvent row to PostgreSQL. Best-effort — never raises."""
-            try:
-                async with get_db_session() as cert_session:
-                    event = CertificationEvent(
-                        vault_id=vault_id,
-                        user_id=user_id,
-                        filename=filename,
-                        result=result,
-                        document_id=document_id,
-                        failure_code=failure_code,
-                        failure_detail=failure_detail,
-                        stage=stage,
-                        source_module=source_module,
-                    )
-                    cert_session.add(event)
-                    await cert_session.commit()
-            except Exception as cert_err:
-                logger.error(f"Failed to write CertificationEvent for {vault_id}: {cert_err}")
 
         try:
             registry = get_document_registry()
@@ -684,59 +644,47 @@ class VaultUploadService:
             doc.registry_id = reg_doc.document_id
             doc.integrity_status = reg_doc.integrity_status.value
 
-            # Write to PostgreSQL DocumentRegistryEntry (persistent, survives restarts)
+            # Write cert info as VAULT_UPLOAD_MANIFEST overlay in user's cloud.
+            # Best-effort — if overlay creation fails, the doc is still indexed
+            # with registry_id and integrity_status. The overlay is the SSOT for
+            # cert details (hashes, forgery score, duplicate tracking).
             try:
-                async with get_db_session() as reg_session:
-                    db_entry = DocumentRegistryEntry(
-                        document_id=reg_doc.document_id,
-                        user_id=user_id,
-                        vault_id=vault_id,
-                        original_filename=filename,
-                        file_size=len(content),
-                        mime_type=mime_type,
-                        content_hash=reg_doc.content_hash,
-                        metadata_hash=reg_doc.metadata_hash,
-                        combined_hash=reg_doc.combined_hash,
-                        status=reg_doc.status.value,
-                        integrity_status=reg_doc.integrity_status.value,
-                        is_duplicate=reg_doc.is_duplicate,
-                        original_document_id=reg_doc.original_document_id,
-                        forgery_score=reg_doc.forgery_score,
-                        requires_review=reg_doc.requires_review,
-                    )
-                    reg_session.add(db_entry)
-                    await reg_session.commit()
-            except Exception as db_err:
-                logger.error(f"DocumentRegistryEntry DB write failed for {vault_id}: {db_err}")
-                await _write_certification_event(
-                    result=CertificationResult.FAILED.value,
-                    failure_code=CertificationFailureCode.REGISTRY_WRITE_FAILED.value,
-                    failure_detail=f"Registry computed successfully but DB write failed: {db_err}",
-                    stage="registry_db_write",
+                await self._create_unified_overlay(
+                    doc,
+                    overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+                    payload={
+                        "document_id": reg_doc.document_id,
+                        "original_filename": filename,
+                        "file_size": len(content),
+                        "mime_type": mime_type,
+                        "content_hash": reg_doc.content_hash,
+                        "metadata_hash": reg_doc.metadata_hash,
+                        "combined_hash": reg_doc.combined_hash,
+                        "status": reg_doc.status.value,
+                        "integrity_status": reg_doc.integrity_status.value,
+                        "is_duplicate": reg_doc.is_duplicate,
+                        "original_document_id": reg_doc.original_document_id,
+                        "forgery_score": reg_doc.forgery_score,
+                        "requires_review": reg_doc.requires_review,
+                        "source_module": source_module,
+                    },
+                    metadata={"stage": "certification"},
+                    access_token=access_token,
+                    storage_provider=storage_provider,
                 )
-                raise RuntimeError(f"Document could not be saved. Please retry or contact support.") from db_err
+            except Exception as overlay_err:
+                logger.warning(
+                    "VAULT_UPLOAD_MANIFEST overlay creation failed for %s: %s — "
+                    "doc is indexed with registry_id but cert overlay is missing",
+                    vault_id, overlay_err,
+                )
 
-            # SUCCESS — write compliance record
-            await _write_certification_event(
-                result=CertificationResult.CERTIFIED.value,
-                document_id=reg_doc.document_id,
-                stage="complete",
-            )
             logger.info(f"✅ Document certified: {reg_doc.document_id} for vault {vault_id}")
 
-        except RuntimeError:
-            raise
         except Exception as e:
             import traceback
-            detail = f"Registry registration raised unexpected error: {type(e).__name__}: {e}"
-            logger.error(f"Certification failed for {vault_id}: {detail}")
+            logger.error(f"Certification failed for {vault_id}: {type(e).__name__}: {e}")
             logger.error(f"Certification traceback for {vault_id}:\n{traceback.format_exc()}")
-            await _write_certification_event(
-                result=CertificationResult.FAILED.value,
-                failure_code=CertificationFailureCode.UNKNOWN_ERROR.value,
-                failure_detail=detail,
-                stage="registry_register",
-            )
             raise RuntimeError(f"Document certification failed for {vault_id}. Please retry or contact support.") from e
         
         # Add to index (now with registry info if available)
@@ -960,24 +908,43 @@ class VaultUploadService:
         self,
         vault_id: str,
         extracted_data: Optional[dict] = None,
+        parties: Optional[list] = None,
+        timeline_events: Optional[list] = None,
         access_token: Optional[str] = None,
         storage_provider: str = "google_drive",
     ) -> Optional[VaultDocument]:
-        """Mark document as processed and store extracted data."""
-        doc = await self.index.update(
-            vault_id,
-            processed=True,
-            extracted_data=extracted_data
-        )
-        if doc and extracted_data is not None:
-            await self._create_unified_overlay(
-                doc,
-                overlay_type=OverlayType.DOCUMENT_EXTRACTION,
-                payload={"extracted_data": extracted_data},
-                metadata={"stage": "extraction"},
-                access_token=access_token,
-                storage_provider=storage_provider,
-            )
+        """Mark document as processed. Extraction results go to user cloud overlays only.
+        No extracted content is written to our database — only the processed=True state flag.
+        """
+        doc = await self.index.update(vault_id, processed=True)
+        if doc:
+            if extracted_data is not None:
+                await self._create_unified_overlay(
+                    doc,
+                    overlay_type=OverlayType.DOCUMENT_EXTRACTION,
+                    payload=extracted_data,
+                    metadata={"stage": "extraction"},
+                    access_token=access_token,
+                    storage_provider=storage_provider,
+                )
+            if parties:
+                await self._create_unified_overlay(
+                    doc,
+                    overlay_type=OverlayType.PARTY_EXTRACTION,
+                    payload={"parties": parties},
+                    metadata={"stage": "party_extraction"},
+                    access_token=access_token,
+                    storage_provider=storage_provider,
+                )
+            if timeline_events:
+                await self._create_unified_overlay(
+                    doc,
+                    overlay_type=OverlayType.TIMELINE_EXTRACTION,
+                    payload={"events": timeline_events},
+                    metadata={"stage": "timeline_extraction"},
+                    access_token=access_token,
+                    storage_provider=storage_provider,
+                )
         return doc
     
     async def update_document_type(

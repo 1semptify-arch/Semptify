@@ -13,9 +13,9 @@ register_function_group(FunctionGroupContract(
     description=(
         "CANONICAL document list for the DC left panel. Returns all vault documents "
         "for the authenticated user, each with: id, filename, uploaded_at, "
-        "document_type, overlay_count, verification_status. "
-        "overlay_count and verification_status are 0/'new' until Slice 4 wires "
-        "the UnifiedOverlayManager bridge."
+        "document_type, overlay_count (null — real count requires per-doc cloud fetch), "
+        "verification_status ('new'|'review'|'verified'). "
+        "Call dc_overlays for the authoritative count per document."
     ),
     inputs=("user_id",),
     outputs=("documents", "total", "generated_at"),
@@ -47,14 +47,19 @@ register_function_group(FunctionGroupContract(
     title="Document Center Overlays (SSOT)",
     description=(
         "CANONICAL overlay progress data for the DC right panel. "
-        "Synthesizes 6 overlay progress items from VaultDocument metadata already in the DB: "
-        "Certified Upload, Document Type, Text Extraction, Dates, Parties, Amounts. "
-        "No cloud storage I/O required — always fast. "
-        "Returns has_data, overall_pct, and overlays list with pct/icon/goal per item."
+        "Reads REAL overlays from UnifiedOverlayManager.get_overlays() in the user's "
+        "cloud storage, keyed by document_id = doc.safe_filename. "
+        "Maps real overlay payloads to 6 progress items: Certified Upload, Document Type, "
+        "Text Extraction, Dates, Parties, Amounts. "
+        "NO DB FALLBACK. If no real overlays exist or cloud is unavailable, returns "
+        "status='processing_incomplete' with empty overlays — frontend shows 'try again'. "
+        "Returns has_data, overall_pct, overlays, overlay_count, overlay_source "
+        "('real'|'none'), status ('ok'|'processing_incomplete')."
     ),
     inputs=("vault_id", "user_id"),
-    outputs=("has_data", "overall_pct", "overlays"),
-    dependencies=("app.modules.document_center.router", "app.services.vault_upload_service"),
+    outputs=("has_data", "overall_pct", "overlays", "overlay_count", "overlay_source", "status"),
+    dependencies=("app.modules.document_center.router", "app.services.vault_upload_service",
+                  "app.services.unified_overlay_manager", "app.core.oauth_token_manager"),
     deterministic=True,
 ))
 
