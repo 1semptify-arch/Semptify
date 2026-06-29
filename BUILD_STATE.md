@@ -12,6 +12,119 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-29 — DC Overlay Pipeline Stateless Mandate (COMPLETE)
+**All 4 remaining HANDOFF violations resolved. DC is now stateless-compliant.**
+
+### What Was Shipped
+
+#### 1. DC DB fallback removed (`_synthesize_overlays()` deleted)
+- **`app/modules/document_center/router.py`** — `_synthesize_overlays()` function deleted entirely. `_build_overlay_progress()` now returns `status="processing_incomplete"` with empty overlays when no real overlays exist. No DB content reads.
+- **`_build_progress_from_real()`** — removed all `doc.extracted_data` fallbacks. Progress items reflect ONLY what's in real overlay payloads. Missing overlay types show as incomplete (0%), not synthesized from DB.
+- **`_compute_unlocks()`** — rewritten to use ONLY DB index flags (`processed`, `registry_id`, `document_type`). Never reads extracted user content. Rules:
+  - Timeline: 1 processed doc with type identified
+  - Journal: 2+ processed docs
+  - Contact Manager: 1 processed doc with type identified
+  - Case Builder: 3+ processed docs with certificate
+- **`app/modules/document_center/register.py`** — `dc_overlays` contract updated: outputs now include `status`, description documents `processing_incomplete` behavior. `dc_list` contract updated: `overlay_count` is null.
+- **`app/modules/document_center/tests/test_dc_smoke.py`** — removed 8 `_synthesize_overlays` tests, replaced with 2 `_build_overlay_progress` tests for `processing_incomplete` status. Updated `_compute_unlocks` tests to not use `extracted_data` field and match new unlock rules. **22/22 tests pass.**
+
+#### 2. `extracted_data_json` column dropped from VaultIndexDB
+- **`app/models/models.py`** — `VaultIndexDB.extracted_data_json` column removed.
+- **`app/services/vault_upload_service.py`** — `VaultDocument.extracted_data` field removed from dataclass. `_doc_to_db_model()`, `_doc_from_db_model()`, and `_update_in_db()` no longer handle `extracted_data` / `extracted_data_json`.
+- **`scripts/drop_extracted_data_column.py`** — new migration script. Safe to re-run, checks if column exists before dropping.
+
+#### 3. `DocumentRegistryEntry` + `CertificationEvent` tables removed
+- **`app/models/models.py`** — `DocumentRegistryEntry`, `CertificationEvent`, `CertificationResult`, `CertificationFailureCode` all removed. No DB certification tables remain.
+- **`app/services/vault_upload_service.py`** — certification block in `upload()` rewritten. In-memory `document_registry` still generates SEM-YYYY-NNNNNN-XXXX IDs and computes hashes. Cert info (hashes, forgery score, duplicate tracking) now written as `VAULT_UPLOAD_MANIFEST` overlay in user's cloud via `_create_unified_overlay()`. No DB certification writes.
+- **`scripts/drop_certification_tables.py`** — new migration script. Safe to re-run, checks if tables exist before dropping with CASCADE.
+
+#### 4. Fabricated `overlay_count` removed from DC list
+- **`app/modules/document_center/router.py`** — `dc_list_documents()` no longer fabricates `overlay_count` from DB flags. Returns `overlay_count: None` (null). Real count only available via per-doc `/api/dc/document/{vault_id}/overlays` endpoint.
+
+### Known Working (pending live test)
+- All changed files compile clean ✅
+- 22/22 DC smoke tests pass ✅
+- No references to `DocumentRegistryEntry`, `CertificationEvent`, `CertificationResult`, `CertificationFailureCode`, or `extracted_data_json` remain in app code ✅
+- DC right panel reads ONLY from real overlays — no DB fallback
+- Certification info flows to user cloud as `VAULT_UPLOAD_MANIFEST` overlay
+
+### Migration Steps (run on Render after deploy)
+1. `python scripts/drop_extracted_data_column.py` — drops `vault_index.extracted_data_json` column
+2. `python scripts/drop_certification_tables.py` — drops `document_registry` + `certification_events` tables
+
+### Files Changed
+- `app/modules/document_center/router.py` — `_synthesize_overlays()` deleted, `_build_overlay_progress()` returns `processing_incomplete`, `_build_progress_from_real()` has no DB fallbacks, `_compute_unlocks()` uses only DB index flags, `dc_list_documents()` returns `overlay_count: None`
+- `app/modules/document_center/register.py` — `dc_overlays` + `dc_list` contracts updated
+- `app/modules/document_center/tests/test_dc_smoke.py` — tests rewritten for new behavior
+- `app/models/models.py` — `VaultIndexDB.extracted_data_json`, `DocumentRegistryEntry`, `CertificationEvent`, `CertificationResult`, `CertificationFailureCode` removed
+- `app/services/vault_upload_service.py` — `VaultDocument.extracted_data` field removed, certification block rewritten to use `VAULT_UPLOAD_MANIFEST` overlay instead of DB writes
+- `scripts/drop_extracted_data_column.py` — new migration script
+- `scripts/drop_certification_tables.py` — new migration script
+
+---
+
+## Session — 2026-06-29 — Intake Pipeline → Real Overlay Creation (COMPLETE)
+**Extraction results now written to user cloud overlays, not our DB**
+
+### What Was Shipped
+- **`vault_upload_service.mark_processed()`** — no longer writes `extracted_data` to our PostgreSQL. Only `processed=True` state flag written to DB. All extracted content goes to user cloud overlays.
+- **New params on `mark_processed()`**: `parties: Optional[list]`, `timeline_events: Optional[list]`
+- **3 overlay types now created per processed document** (in user cloud via `_create_unified_overlay()`):
+  - `DOCUMENT_EXTRACTION` — `{summary, dates, amounts}`
+  - `PARTY_EXTRACTION` — `{parties: [...]}`
+  - `TIMELINE_EXTRACTION` — `{events: [...]}` (from flow orchestrator if available)
+- **Intake router** — passes full extraction payload instead of near-empty stub `{doc_type: None, summary: "..."}`
+
+### Known Working (pending live test)
+- All 3 changed files compile clean ✅
+- `mark_processed()` only touches DB for `processed=True` — no content data written
+- Real overlays flow: upload → vault → extract → overlays in user cloud → DC reads them
+
+### Remaining (in HANDOFF_DC_OVERLAY_PIPELINE.md for GLM5.2)
+- DC fallback (`_synthesize_overlays()`) still exists in `router.py` — must be removed, replaced with `processing_incomplete` response
+- `VaultIndexDB.extracted_data_json` column still in DB model — needs migration to drop
+- `DocumentRegistryEntry` + `CertificationEvent` tables — duplicate cloud cert data, need removal
+- DC list `overlay_count` is still a fabricated heuristic — should be removed or set to `null`
+
+### Files Changed
+- `app/services/vault_upload_service.py` — `mark_processed()` rewritten
+- `app/modules/intake/router.py` — full extraction payload now passed
+- `HANDOFF_DC_OVERLAY_PIPELINE.md` — violation #2 marked complete, others documented for GLM5.2
+
+---
+
+## Session — 2026-06-28 — Document Center Slice 9: Real Overlay Bridge (COMPLETE)
+**DC right panel now reads REAL overlays from UnifiedOverlayManager**
+
+### What Was Shipped
+
+#### Document Center → UnifiedOverlayManager Bridge
+- **`_fetch_real_overlays(doc, user_id)`** — new helper in `app/modules/document_center/router.py`. Reads real overlays from `UnifiedOverlayManager.get_overlays(document_id=doc.safe_filename)` in the user's cloud storage. Returns `[]` on any failure (cloud unavailable, local storage, missing token) — graceful degradation, never blocks the UI.
+- **`_build_overlay_progress(doc, real_overlays)`** — hybrid dispatcher: uses `_build_progress_from_real()` when real overlays exist, falls back to `_synthesize_overlays()` (DB-only) when they don't.
+- **`_build_progress_from_real(doc, real_overlays)`** — maps real `UnifiedOverlay` payloads to the DC's 6 progress items (Certified Upload, Document Type, Text Extraction, Dates, Parties, Amounts). Pulls from `VAULT_UPLOAD_MANIFEST`, `DOCUMENT_CLASSIFICATION`, `DOCUMENT_EXTRACTION`, `TIMELINE_EXTRACTION`, `PARTY_EXTRACTION` overlay types. Falls back to DB fields when a specific overlay type is missing but DB has data.
+- **`dc_get_overlays` endpoint** — now calls `_fetch_real_overlays()` first, then `_build_overlay_progress()`. Returns `overlay_count` (real count) and `overlay_source` ('real' | 'db_fallback') in response.
+- **`dc_list_documents` endpoint** — `overlay_count` now best-effort heuristic from DB flags (processed +1, document_type +1, registry_id +1) instead of hardcoded 0. `verification_status` now 'new'|'review'|'verified' instead of hardcoded 'new'. Per-doc cloud fetch is too slow for list view — call `dc_overlays` for authoritative count.
+- **`dc_set_document_type` endpoint** — after type update, re-fetches real overlays so the response reflects the newly created `DOCUMENT_CLASSIFICATION` overlay.
+- **`_synthesize_overlays`** — now tagged `overlay_source: 'db_fallback'` so the frontend can tell when it's seeing real vs synthesized data.
+- **`register.py` contracts** — `dc_list` and `dc_overlays` updated to reflect real overlay integration and new output fields.
+
+### Known Working (pending live test)
+- All DC Python files compile clean ✅
+- Real overlay fetch path verified — uses `get_valid_token_for_user()` + `get_provider()` + `get_unified_overlay_manager()` (the canonical pattern from Known Failure Registry Rule 16)
+- Falls back gracefully when cloud is unavailable or no overlays exist
+- Originals remain IMMUTABLE — overlays are read-only here, no write paths added
+
+### Known Broken / Pending
+- DC access still admin-only via `requires_role` in product_manifest — expand to tenants after live admin test
+- Intake pipeline does NOT yet create individual `DOCUMENT_EXTRACTION`, `PARTY_EXTRACTION`, `TIMELINE_EXTRACTION` overlays after processing — it only writes to `VaultIndexDB.extracted_data_json`. Until intake is wired to create these overlays, the DC will mostly hit the `db_fallback` path. The bridge is ready; the upstream overlay creation is the next gap.
+- `dc-right-empty` still uses `style.display` toggle (minor, cosmetic)
+
+### Files Changed
+- `app/modules/document_center/router.py` — added `_fetch_real_overlays`, `_build_overlay_progress`, `_build_progress_from_real`; updated `dc_get_overlays`, `dc_list_documents`, `dc_set_document_type`; tagged `_synthesize_overlays` as db_fallback
+- `app/modules/document_center/register.py` — updated `dc_list` and `dc_overlays` contracts
+
+---
+
 ## Session — 2026-06-28 — Document Center Slice 8, promoted to stable (COMPLETE)
 **Forge: 28/28 smoke tests | beta → stable**
 

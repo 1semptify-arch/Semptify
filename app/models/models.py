@@ -1349,7 +1349,6 @@ class VaultIndexDB(Base):
     
     # Processing state
     processed: Mapped[bool] = mapped_column(Boolean, default=False)
-    extracted_data_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # Source tracking
     source_module: Mapped[str] = mapped_column(String(50), default="direct")
@@ -1461,114 +1460,6 @@ class AdminErrorQueue(Base):
     
     # Additional details (JSON)
     details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-
-
-# =============================================================================
-# Document Registry — Persistent Chain of Custody (PostgreSQL-backed)
-# =============================================================================
-
-class DocumentRegistryEntry(Base):
-    """
-    Persistent record of every certified document.
-
-    Replaces the ephemeral data/registry/registry.json file which was wiped
-    on every Render restart. This is the authoritative chain-of-custody store.
-
-    DB BOUNDARY RULE: No document content stored here — only hashes and metadata.
-    """
-    __tablename__ = "document_registry"
-
-    document_id: Mapped[str] = mapped_column(String(64), primary_key=True)  # SEM-YYYY-NNNNNN-XXXX
-
-    # Ownership
-    user_id: Mapped[str] = mapped_column(String(256), ForeignKey("users.id"), index=True)
-    vault_id: Mapped[Optional[str]] = mapped_column(String(256), nullable=True, index=True)
-
-    # File metadata (no content)
-    original_filename: Mapped[str] = mapped_column(String(512), default="")
-    file_size: Mapped[int] = mapped_column(Integer, default=0)
-    mime_type: Mapped[str] = mapped_column(String(128), default="")
-
-    # Tamper-proof hashes
-    content_hash: Mapped[str] = mapped_column(String(64), index=True)   # SHA-256
-    metadata_hash: Mapped[str] = mapped_column(String(64), default="")
-    combined_hash: Mapped[str] = mapped_column(String(64), default="")
-
-    # Status
-    status: Mapped[str] = mapped_column(String(32), default="original", index=True)
-    integrity_status: Mapped[str] = mapped_column(String(32), default="verified", index=True)
-
-    # Duplicate tracking
-    is_duplicate: Mapped[bool] = mapped_column(Boolean, default=False)
-    original_document_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-
-    # Forgery detection results
-    forgery_score: Mapped[float] = mapped_column(Float, default=0.0)
-    requires_review: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    # Case association
-    case_number: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
-
-    # Timestamps
-    registered_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
-    last_verified_at: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
-
-
-# =============================================================================
-# Certification Events — Compliance Record for Every Upload Attempt
-# =============================================================================
-
-class CertificationResult(enum.Enum):
-    """Outcome of a document certification attempt."""
-    CERTIFIED = "certified"       # Passed all checks, registry_id assigned
-    FAILED = "failed"             # Did not meet requirements — specific reason logged
-    PENDING = "pending"           # In progress
-
-
-class CertificationFailureCode(enum.Enum):
-    """Exact reason a document failed certification. No ambiguity."""
-    REGISTRY_IMPORT_ERROR = "registry_import_error"       # Registry module failed to import at startup
-    REGISTRY_WRITE_FAILED = "registry_write_failed"       # DB write failed
-    REGISTRY_UNAVAILABLE = "registry_unavailable"         # HAS_REGISTRY=False at upload time
-    STORAGE_UPLOAD_FAILED = "storage_upload_failed"       # Cloud upload failed before registry reached
-    HASH_COMPUTATION_FAILED = "hash_computation_failed"   # Could not compute content hash
-    FORGERY_DETECTED = "forgery_detected"                 # Forgery score > threshold
-    INTEGRITY_MISMATCH = "integrity_mismatch"             # Hash mismatch on verification
-    DUPLICATE_REJECTED = "duplicate_rejected"             # Duplicate policy rejection
-    UNKNOWN_ERROR = "unknown_error"                       # Unexpected exception — see detail
-
-
-class CertificationEvent(Base):
-    """
-    Compliance record for every document upload attempt — pass or fail.
-
-    Every upload writes a row here BEFORE raising any exception.
-    This is the audit trail that tells exactly why a document did or did not
-    get certified. No bypasses. No softening. The system says what it is.
-    """
-    __tablename__ = "certification_events"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-
-    # Which document and who
-    vault_id: Mapped[str] = mapped_column(String(256), index=True)
-    user_id: Mapped[str] = mapped_column(String(256), index=True)  # No FK — audit log must never fail due to missing user
-    filename: Mapped[str] = mapped_column(String(512), default="")
-
-    # Outcome
-    result: Mapped[str] = mapped_column(String(32), index=True)         # CertificationResult value
-    document_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)  # set if CERTIFIED
-
-    # Failure details (null if CERTIFIED)
-    failure_code: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)   # CertificationFailureCode value
-    failure_detail: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)  # Human-readable explanation
-    stage: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)  # Pipeline stage where it failed
-
-    # Source context
-    source_module: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
-
-    # Timestamp
-    attempted_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True)
 
 
 # =============================================================================
