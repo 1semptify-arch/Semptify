@@ -384,6 +384,7 @@ async function loadPreview(documentId, filename, mimeType) {
         loading.style.display = 'none';
         error.style.display = 'block';
         meta.textContent = 'Error loading preview';
+        if (window.SemptifyFeedback) SemptifyFeedback.error('Preview failed.', { detail: err.message });
     }
 }
 
