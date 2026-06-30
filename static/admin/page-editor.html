@@ -517,6 +517,7 @@
         renderFileBrowser();
       } catch (error) {
         showStatus('Error loading files: ' + error.message, 'error');
+        if (window.SemptifyFeedback) SemptifyFeedback.error('Error loading files.', { detail: error.message });
       }
     }
     
@@ -618,6 +619,7 @@
         });
       } catch (error) {
         showStatus('Error opening file: ' + error.message, 'error');
+        if (window.SemptifyFeedback) SemptifyFeedback.error('Error opening file.', { detail: error.message });
       }
     }
     
@@ -752,6 +754,7 @@
         }
       } catch (error) {
         showStatus('Error saving: ' + error.message, 'error');
+        if (window.SemptifyFeedback) SemptifyFeedback.error('Error saving file.', { detail: error.message });
       }
     }
     

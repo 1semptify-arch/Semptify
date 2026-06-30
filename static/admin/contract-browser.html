@@ -195,6 +195,7 @@
     } catch(e) {
       document.getElementById('contract-grid').innerHTML =
         `<div class="loading" style="color:var(--red)">Failed to load: ${e.message}<br><small>Make sure the server is running and you are authenticated.</small></div>`;
+      if (window.SemptifyFeedback) SemptifyFeedback.error('Failed to load contracts.', { detail: e.message });
     }
   }
 

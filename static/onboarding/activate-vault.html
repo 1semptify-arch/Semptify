@@ -239,6 +239,7 @@
           console.error("Status check failed:", error);
           document.getElementById("debug-info").textContent =
             "Status check error: " + error.message;
+          if (window.SemptifyFeedback) SemptifyFeedback.error('Vault status check failed.', { detail: error.message });
         }
       }
 
@@ -337,6 +338,7 @@
           error.style.display = "block";
           error.innerHTML = `<strong>Network Error</strong><br>${err.message}`;
           installBtn.style.display = "block";
+          if (window.SemptifyFeedback) SemptifyFeedback.error('Vault installation failed.', { detail: err.message });
         }
       }
 

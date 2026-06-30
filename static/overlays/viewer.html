@@ -196,6 +196,7 @@
             data.overlays.forEach(renderOverlay);
         } catch (e) {
             setStatus(`Error: ${e.message}`, true);
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not load overlays.', { detail: e.message });
         }
     }
 
@@ -207,9 +208,11 @@
                 credentials: 'include'
             });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Overlay deleted.');
             await loadOverlays();
         } catch (e) {
             setStatus(`Delete failed: ${e.message}`, true);
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Delete failed.', { detail: e.message });
         }
     }
 
@@ -266,6 +269,7 @@
             await loadOverlays();
         } catch (e) {
             setStatus(`Submit failed: ${e.message}`, true);
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Annotation failed.', { detail: e.message });
         }
     }
 
@@ -294,6 +298,7 @@
             setStatus(`Composed view: ${data.applied_overlays.length} overlay(s) applied.`);
         } catch (e) {
             setStatus(`Compose failed: ${e.message}`, true);
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Compose view failed.', { detail: e.message });
         }
     }
 

@@ -536,6 +536,7 @@
             } catch (error) {
                 input.classList.add('error');
                 showStatus(error.message || 'Validation failed. Please try again.', 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Validation failed.', { detail: error.message });
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Validate & Continue';
             } finally {

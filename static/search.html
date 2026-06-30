@@ -431,6 +431,7 @@
             } catch (error) {
                 console.error('Search error:', error);
                 showError('Search failed. Please try again.');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Search failed.', { detail: error.message });
             }
         }
 
