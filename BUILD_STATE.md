@@ -12,6 +12,46 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-29 PM2 — Repo Cleanup + Plan Realignment (COMPLETE)
+**Archived 108 obsolete docs. ACTIVE_CONTEXT.md reset to current plan state.**
+
+### What Was Shipped
+
+#### Repo cleanup
+- 108 obsolete .md files moved to `archive/obsolete-2026-06-29/` via `git mv` (history preserved)
+- Root .md files reduced from 80+ to 17 canonical/active docs
+- `docs/` reduced from 40+ to 22 active docs
+- Categories archived: old assessments (SEMPTIFY_5.0_ASSESSMENT, CODEBASE_ASSESSMENT, etc.), old session logs (WORK_SESSION_LOG_*, HANDOFF_*, DELIVERY_*), old completion checklists (COMPLETION_CHECKLIST, ACTION_CHECKLIST), old module plans (MODULE_BLUEPRINT, SDK_MODULAR_PLAN, VAULT_SDK_BLUEPRINT), old production/deployment docs (PRODUCTION_*, DEPLOYMENT_*, RENDER_DEPLOY), old quickstarts (QUICKSTART, QUICK_START_CARD, ENTERPRISE_README), empty MASTER_INDEX.md, duplicate AGENT.md/CLAUDE.md, weird path `^^^Page ideas@@@@/library.md`
+
+#### Plan realignment
+- `ACTIVE_CONTEXT.md` rewritten to reflect current state:
+  - Phase 4 (Role Development) ✅ COMPLETE
+  - Phase 5a (Context Engine + Page Composer) ✅ COMPLETE
+  - Filedored overlay integration ✅ COMPLETE (commit 19d0860)
+  - Repo cleanup ✅ COMPLETE
+  - **Next priority: Phase 5b — Action Feedback helper** (ready to build, no blockers)
+  - Then: GUI Phase 1 (Tenant Journal/Calendar/Timeline per user's 2026-06-28 vision)
+  - Then: Document Center planning (docs/planning/DOCUMENT_CENTER_PLAN.md)
+
+### Canonical docs kept (in root)
+- PROJECT_BIBLE.md, README.md, AGENTS.md, ACTIVE_CONTEXT.md, BUILD_STATE.md
+- BLUEPRINT.md, ROADMAP_TO_PUBLIC_RELEASE.md, PRIVACY_POLICY.md
+- SECURITY_AND_PRIVACY_ARCHITECTURE.md, DEPLOYMENT_READINESS.md
+- BUILD_GUIDE_SSOT.md, SEMPTIFY_SYSTEM_MANIFEST.md
+- STATUS_AUDIT.md, STUB_AUDIT.md
+- ACTION_FEEDBACK_AUDIT.md, GUI_PHASE1_DESIGN.md
+
+### Known Working
+- All archived files recoverable from `archive/obsolete-2026-06-29/` ✅
+- All canonical docs preserved ✅
+- Git history preserved via `git mv` ✅
+
+### Next Session Should Start With
+1. **Phase 5b — Action Feedback helper** — design doc `ACTION_FEEDBACK_AUDIT.md` is the spec
+2. Build `SemptifyFeedback` helper + 5-tier retrofit per the audit doc
+
+---
+
 ## Session — 2026-06-29 PM — Filedored Overlay Integration Fixes (COMPLETE)
 **Filedored module was broken — 3 callers failed to pass overlay_manager. Now fixed.**
 
