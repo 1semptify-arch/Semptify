@@ -179,6 +179,7 @@
             } catch (err) {
                 errorDiv.textContent = 'Login failed. Please try again.';
                 errorDiv.classList.add('show');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Login failed.', { detail: err.message });
             } finally {
                 step1Btn.disabled = false;
                 step1Btn.textContent = 'Continue';
@@ -223,6 +224,7 @@
             } catch (err) {
                 errorDiv.textContent = 'Verification failed. Please try again.';
                 errorDiv.classList.add('show');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Verification failed.', { detail: err.message });
             } finally {
                 step2Btn.disabled = false;
                 step2Btn.textContent = 'Verify & Sign In';

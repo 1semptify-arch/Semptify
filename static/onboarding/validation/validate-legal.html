@@ -637,6 +637,7 @@
 
             } catch (error) {
                 showStatus(error.message || 'Verification failed. Please try again or upload documentation.', 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Bar verification failed.', { detail: error.message });
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Verify & Continue';
             } finally {
@@ -695,6 +696,7 @@
 
             } catch (error) {
                 showStatus('Upload failed. Please try again.', 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Upload failed.', { detail: error.message });
                 submitBtn.disabled = false;
             }
         }

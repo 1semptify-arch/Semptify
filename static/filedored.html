@@ -191,6 +191,7 @@
                 showMessage(`Loaded ${data.total_processed} processed documents`, 'success');
             } catch (error) {
                 showMessage(`Failed to load folders: ${error.message}`, 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Failed to load folders.', { detail: error.message });
             }
         }
         
@@ -235,6 +236,7 @@
                 
             } catch (error) {
                 showMessage(`Failed to browse folder: ${error.message}`, 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Failed to browse folder.', { detail: error.message });
             }
         }
         
@@ -275,6 +277,7 @@
                 
             } catch (error) {
                 showMessage(`Processing failed: ${error.message}`, 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Processing failed.', { detail: error.message });
             }
         }
         
@@ -296,6 +299,7 @@
                 
             } catch (error) {
                 showMessage(`Folder check failed: ${error.message}`, 'error');
+                if (window.SemptifyFeedback) SemptifyFeedback.error('Folder check failed.', { detail: error.message });
             }
         }
         
