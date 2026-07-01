@@ -173,8 +173,15 @@ It is for people who may not be able to afford a legal team, may be overwhelmed,
 
 ## Non-Negotiables
 
-- Free forever.
-- No advertising ever.
+- **Semptify is NOT a business model.** It is a public-service housing-rights tool.
+- **NEVER use the word "free"** on any page, button, label, or description. Saying "free" insinuates we charge for other things. We don't. We never have. We never will.
+- **NEVER use business-model terminology** — no "accounts", "log in", "sign up", "subscription", "upgrade", "premium", "paid plan", "trial", "pricing", or similar. These words imply a commercial product. Semptify is not one.
+- No advertising — ever. No banner ads, no sponsored content, no affiliate links, no tracking pixels for ad networks.
+- **Listing vs advertising — there is a difference.** A *listing* is a neutral directory entry of a resource (e.g., "HOME Line MN — 612-728-5767"). An *advertisement* is promotional content paid for or placed to generate revenue/clicks. Listings are permitted only when:
+  - The resource is directly relevant to tenant housing rights
+  - The user (project owner) has reviewed and approved the specific listing
+  - The listing is neutral, factual, and non-promotional
+  - **When in doubt, do NOT add the listing. Ask the user first.**
 - Privacy-respecting by design.
 - User-controlled documents and storage wherever possible.
 - Evidence preservation over feature novelty.

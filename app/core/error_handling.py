@@ -11,7 +11,7 @@ import traceback
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import ValidationError
@@ -139,12 +139,18 @@ def create_error_response(
 
 async def semptify_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler for Semptify application."""
-    
+
     # Log the error
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     # DEBUG: print full traceback to stderr for Render log capture
     import traceback as _tb, sys as _sys
     print(f"[EXCEPTION DEBUG] {request.url.path}: {type(exc).__name__}: {exc}\n{_tb.format_exc()}", file=_sys.stderr, flush=True)
+
+    # Browser fallback: redirect HTML requests to the public help page with status banner
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept and "application/json" not in accept:
+        help_url = "/help?status=down"
+        return RedirectResponse(url=help_url, status_code=302)
     
     # Handle different exception types
     if isinstance(exc, SemptifyError):

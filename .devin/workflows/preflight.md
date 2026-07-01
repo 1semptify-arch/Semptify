@@ -6,6 +6,21 @@ description: Mandatory pre-flight check - run this before starting any work sess
 
 Run this at the start of EVERY session. No exceptions.
 
+### Step 0: Semptify is NOT a business model — Read this first
+Semptify is a **public utility, not a product.** Read `CORE_CONTEXT.md` in the repo root before writing or approving any copy, UI text, or feature. Enforce these rules:
+
+- **North star metric: Time to Real Help.** Not sessions. Not return visits. Not engagement. Not signups. Every feature either reduces Time to Real Help or it doesn't belong.
+- **NEVER use the word "free"** on any page, button, label, or description. Saying "free" insinuates we charge for other things. We don't. We never have. We never will.
+- **NEVER use business-model terminology** — no "accounts", "log in", "sign up", "subscription", "upgrade", "premium", "paid plan", "trial", "pricing", or similar. These words imply a commercial product. Semptify is not one.
+- **No advertising — ever.** No banner ads, no sponsored content, no affiliate links, no tracking pixels for ad networks. This is non-negotiable and permanent.
+- **Listing vs advertising — there is a difference.** A *listing* is a neutral directory entry of a resource (e.g., "HOME Line MN — 612-728-5767"). An *advertisement* is promotional content paid for or placed to generate revenue/clicks for the advertiser's benefit. Listings are permitted only when:
+  - The resource is directly relevant to tenant housing rights
+  - The user (project owner) has reviewed and approved the specific listing
+  - The listing is neutral, factual, and non-promotional
+  - **When in doubt, do NOT add the listing. Ask the user first.**
+- **There must never be a dead end.** Every error page, every broken flow, every moment of confusion must route the user toward real help. Not leave them hanging.
+- **If you see existing text that violates these rules**, flag it to the user and propose a fix. Do not silently leave it.
+
 ### Step 1: Read current state
 Read these files before touching any code:
 1. Read `ACTIVE_CONTEXT.md` — what is being worked on right now
