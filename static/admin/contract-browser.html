@@ -181,11 +181,8 @@
       allModuleContracts = moduleData.contracts || [];
 
       // Build violations map by page_id
-      violations = {};
-      for (const v of (healthData.violations || [])) {
-        if (!violations[v.page_id]) violations[v.page_id] = [];
-        violations[v.page_id].push(v.message || v.reason || JSON.stringify(v));
-      }
+      // Backend returns violations as { page_id: [messages] } dict
+      violations = healthData.violations || {};
 
       document.getElementById('count-page').textContent = allPageContracts.length;
       document.getElementById('count-module').textContent = allModuleContracts.length;
