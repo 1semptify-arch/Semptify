@@ -14,7 +14,7 @@ their legal rights—not tenants breaking the law.
 
 ## Session — 2026-07-01 PM — Design System Implementation (SHIPPED)
 
-**Commit:** pending — pushed to main
+**Commit:** `bf97a9e` pushed to main
 **Render deploy:** triggered (auto-deploy on commit)
 
 ### What Was Shipped
