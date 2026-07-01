@@ -500,7 +500,8 @@ oversight_service = OversightPacketService()
 
 @accountability_router.post("/patterns/detect")
 async def detect_patterns(request: PatternDetectionRequest,
-                         current_user = Depends(get_current_user)):
+                         current_user = Depends(get_current_user),
+                         db: AsyncSession = Depends(get_db)):
     """Detect housing violation patterns."""
     try:
         # Combine all data for pattern analysis
@@ -939,28 +940,50 @@ def _generate_evidence_recommendations(evidence_type: str) -> List[str]:
     ]
 
 def _simulate_public_records_search(record_type: str, search_criteria: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Simulate public records search results."""
-    return []  # Placeholder
+    """Simulate public records search results.
+
+    Returns an empty list until a real public records data source is wired.
+    The caller handles the empty-list case gracefully.
+    """
+    return []
 
 def _generate_headline(key_facts: List[str], story_type: str) -> str:
-    """Generate press release headline."""
-    return f"Housing Rights Violations Exposed in {story_type.title()} Case"
+    """Generate press release headline from key facts."""
+    if not key_facts:
+        return f"Housing Rights Violations Exposed in {story_type.title()} Case"
+    primary_fact = key_facts[0].strip().rstrip(".")
+    return f"{primary_fact}: Housing Rights Violations in {story_type.title()} Case"
 
 def _generate_lead_paragraph(key_facts: List[str], affected_parties: List[Dict[str, Any]]) -> str:
-    """Generate press release lead paragraph."""
-    return f"Multiple housing rights violations have been documented affecting {len(affected_parties)} households."
+    """Generate press release lead paragraph from facts and affected parties."""
+    party_count = len(affected_parties)
+    fact_count = len(key_facts)
+    facts_summary = "; ".join(key_facts[:3]) if key_facts else "multiple housing rights violations"
+    return (
+        f"{facts_summary}. "
+        f"{fact_count} documented violation{'s' if fact_count != 1 else ''} "
+        f"affecting {party_count} household{'s' if party_count != 1 else ''}."
+    )
 
 def _generate_body_content(key_facts: List[str], legal_context: Dict[str, Any]) -> str:
-    """Generate press release body content."""
-    return "Evidence shows systematic violations of housing rights laws..."
+    """Generate press release body content from facts and legal context."""
+    facts_bullets = "\n".join(f"- {fact}" for fact in key_facts) if key_facts else "- Evidence of systematic housing rights violations"
+    legal_summary = legal_context.get("summary", "Applicable housing rights statutes provide protections against these practices.") if isinstance(legal_context, dict) else "Applicable housing rights statutes provide protections against these practices."
+    return f"Evidence summary:\n{facts_bullets}\n\nLegal context: {legal_summary}"
 
 def _generate_quotes(affected_parties: List[Dict[str, Any]]) -> List[Dict[str, str]]:
-    """Generate quotes for press release."""
-    return [{"speaker": "Tenant Advocate", "quote": "These violations must stop"}]
+    """Generate quotes for press release from affected parties."""
+    if not affected_parties:
+        return [{"speaker": "Tenant Advocate", "quote": "These violations must stop. Every tenant deserves safe, lawful housing."}]
+    quotes = []
+    for party in affected_parties[:3]:
+        speaker = party.get("name") or party.get("role") or "Affected Tenant"
+        quotes.append({"speaker": speaker, "quote": "These violations must stop. Every tenant deserves safe, lawful housing."})
+    return quotes
 
 def _generate_call_to_action(story_type: str) -> str:
-    """Generate call to action."""
-    return "Contact your representatives and demand housing rights enforcement."
+    """Generate call to action based on story type."""
+    return f"Contact your representatives and demand housing rights enforcement. Report {story_type.lower()} violations to your local housing authority."
 
 def _generate_media_contact() -> Dict[str, str]:
     """Generate media contact information."""
