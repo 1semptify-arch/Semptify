@@ -663,6 +663,14 @@ _register("app.modules.free_api_pack", tags=("Free API Pack",), tier=ProductTier
           lifecycle="dev_only", optional=True,
           dev_notes="Free API registry — PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes. No FastAPI router — utility classes only.")
 
+# Modules wired via main.py direct import (tracked here for manifest visibility)
+_register("app.modules.context_loop.router", tags=("Context Loop",), tier=ProductTier.DEV,
+          lifecycle="stable", optional=True,
+          dev_notes="Background event processing engine. Wired via main.py subscribe_context_loop_events(). Also in contract_loader.")
+_register("app.modules.vault_installer.routes", router_attr="router", tags=("Vault Installer",), tier=ProductTier.DEV,
+          lifecycle="stable", optional=True,
+          dev_notes="Simple vault installation endpoints. Wired via main.py register_vault_installer(). Uses routes.py not router.py.")
+
 # Phase 2 / internal utilities
 _register("app.modules.export_import.router", prefix="/api/export-import", tags=("Data Export/Import",), tier=ProductTier.DEV,
           log_message="Data Export/Import router connected - GDPR-compliant data management active")
