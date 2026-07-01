@@ -12,6 +12,35 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-30 — Help Page Review + Resource Fact-Check (COMPLETE)
+**Weekly help page review per /help-page-review workflow.**
+
+### What Was Shipped
+
+#### Help page rebuild — `static/tenant/help.html`
+- Removed Semptify-internal sections ("Your Tenant Journey", "Your Semptify Tools") per user request
+- Added "Semptify Tools — Eviction Defense" section linking to `/eviction/` module routes
+- Added "County Housing & Government Resources" section with 9 verified official county/state URLs
+- Expanded Emergency & Crisis Contacts with VLN, Hennepin Shelter Hotline, Dakota County Crisis Response, Lewis House, ACCAP, language-specific HOME Line numbers
+
+#### Critical fact-check corrections (both `static/tenant/help.html` and `app/templates/pages/tenant_help.html`)
+- HOME Line: `1-800-745-6686` → `612-728-5767` (metro) + `1-866-866-3546` (toll-free) + Spanish/Somali/Hmong lines
+- Legal Aid: `1-888-354-5522` → `1-877-696-6529` (statewide intake)
+- HOME Line hours: Mon-Thu 9am-6pm, Fri 9am-3pm (was wrong)
+- 211: added toll-free `1-800-543-7709`, local `651-291-0211`, text `898-211`
+- Domestic Violence Hotline: added Deaf hotline `1-855-812-1001`
+- County numbers: replaced generic lines with housing-specific lines (Dakota 651-554-5751, Anoka 763-324-1490, Washington CDA 651-202-2807, Hennepin Shelter 612-204-8200)
+- AG Handbook URL: updated to canonical `ag.state.mn.us/consumer/Handbooks/LT/default.asp`
+
+#### URLs verified live
+- homelinemn.org, lawhelpmn.org, housinglink.org, ag.state.mn.us/consumer/Handbooks/LT/default.asp, mncourts.gov, revisor.mn.gov/statutes/cite/504B, hud.gov/states/minnesota/renting
+
+### Pending
+- Live test of help page in browser
+- `staticbac/` files not edited (backup reference per workflow)
+
+---
+
 ## Session — 2026-06-29 PM2 — Repo Cleanup + Plan Realignment (COMPLETE)
 **Archived 108 obsolete docs. ACTIVE_CONTEXT.md reset to current plan state.**
 

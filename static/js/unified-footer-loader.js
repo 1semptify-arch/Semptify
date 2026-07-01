@@ -19,9 +19,11 @@
   const FOOTER_CONFIG = {
     year: '2024-2026',
     company: 'Semptify',
-    hotline: '1-800-292-4150',
+    hotline: '1-877-696-6529',
+    hotline_display: 'MN Legal Aid: 1-877-696-6529',
     links: [
       { text: 'Home', href: '/' },
+      { text: 'Feedback', href: 'mailto:feedback@semptify.org' },
       { text: 'Privacy', href: '/public/privacy.html' },
       { text: 'Terms', href: '/public/terms.html' },
       { text: 'Disclaimer', href: '/public/disclaimer.html' },
@@ -136,7 +138,7 @@
   // Generate navigation links HTML
   function generateNavLinks() {
     return FOOTER_CONFIG.links.map(link => 
-      `<a href="${link.href}">${link.text}</a>`
+      `<a href="${link.href}"${link.prominent ? ' style="color:#fbbf24;font-weight:700;"' : ''}>${link.text}</a>`
     ).join('');
   }
 
@@ -170,7 +172,7 @@
             <div class="footer-help">
               Need legal help? 
               <a href="tel:${FOOTER_CONFIG.hotline}" class="footer-hotline">
-                MN Legal Aid: ${FOOTER_CONFIG.hotline}
+                ${FOOTER_CONFIG.hotline_display}
               </a>
             </div>
           </div>
