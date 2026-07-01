@@ -15,8 +15,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts: Inter + IBM Plex Mono (Design Handoff 2026-07-01) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- SSOT Design System (Design Handoff 2026-07-01) -->
+    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
     
     <!-- Base Styles -->
     <style>
@@ -467,7 +470,7 @@
     <!-- Page-specific styles -->
     {% block styles %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     

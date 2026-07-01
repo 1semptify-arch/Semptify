@@ -12,6 +12,137 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-07-01 PM — Design System Implementation (SHIPPED)
+
+**Commit:** pending — pushed to main
+**Render deploy:** triggered (auto-deploy on commit)
+
+### What Was Shipped
+
+#### SSOT Design System — `static/css/ssot-design-system.css`
+- Added font stacks: Inter + IBM Plex Mono via CSS variables.
+- Added new type scale tokens and applied to h1/h2/h3/body/label/meta.
+- Set all radius variables to 0 and added global `border-radius: 0 !important` to enforce no rounded corners.
+- Restored shadow variables (shadows/gradients remain allowed).
+- Added five template color token sets (`--tpl-1-*` through `--tpl-5-*`) for Tenants, Legal, Advocates, Developers/Tools, and Donors.
+- Added CSS rules for `.template-1` through `.template-5` applying header/body/footer colors.
+- Added dark mode overrides for template body colors and text colors.
+
+#### Google Fonts integration
+- Added Inter + IBM Plex Mono preconnect/link tags to:
+  - `static/templates/base.html`
+  - `static/templates/page-shell.html`
+  - `app/templates/base.html`
+  - `app/templates/pages/tenant_dashboard.html` (standalone)
+  - `app/templates/pages/law_library.html` (standalone)
+  - `app/templates/pages/vault.html` (standalone)
+
+#### Template color mapping — 28 server-rendered templates
+- Added `{% block body_class %}template-N{% endblock %}` after `{% extends "base.html" %}` in 28 pages.
+- Mapped by role audience:
+  - **template-1 (Tenants):** action_plan, case_builder, complaints, documents, tenant_capture, tenant_dashboard, tenant_help, tenant_home, tenant_inbox, tenant_journal, tenant_my_advocate, tenant, timeline, vault
+  - **template-2 (Legal):** law_library, legal
+  - **template-3 (Advocates/Manager):** advocate, advocate_client_detail, advocate_invite, manager_dashboard
+  - **template-4 (Developers/Tools/Admin):** admin, auto_analysis_summary, auto_mode_panel, module_page, office, semptify_hub, tools
+  - **template-5 (Public/Donors/Help):** error, help, library, welcome
+
+#### Standalone pages integrated into SSOT template system
+- `tenant_dashboard.html`, `law_library.html`, `vault.html` do not extend `base.html`; they now load Google Fonts + SSOT design system directly and carry the correct `template-N` body class.
+
+#### Deep incomplete-code inventory
+- Ran broad scan across `app/` and `static/` for TODO/FIXME/HACK/XXX/NotImplemented/stub/placeholder/pass/return None.
+- Extracted all `_register()` entries from `app/core/product_manifest.py` and compared against `app/modules/` directories.
+- Full findings listed in **Known Broken / Pending** below.
+
+### Known Working
+- CSS braces balanced (293 open / 293 close).
+- All 28 template `body_class` blocks injected correctly.
+- 3 standalone pages integrated with SSOT design system.
+- No Python files modified in this session, so no new compile issues.
+
+### Known Broken / Pending
+- **State Laws:** only MN data complete; NY, CA, TX, FL, IL pending (`product_manifest.py:410`).
+- **MNDES:** 3 `NotImplementedError` pending external MN Supreme Court API integration (`product_manifest.py:461`).
+- **Housing Accountability:** pattern matching dependency + beta status (`product_manifest.py:506-509`).
+- **AI/Research modules (experimental):** brain, emotion, positronic_mesh, mesh_network, module_hub — all gated by `ENABLE_HEAVY_SERVICES` / feature flags.
+- **FunctionX:** `dev_only` concept not defined (`product_manifest.py:586`).
+- **Dev Lab:** `dev_only` admin-only incubator (`product_manifest.py:614`).
+- **Dev Ideas:** `dev_only` admin-only idea pipeline (`product_manifest.py:618`).
+- **Judge:** `deprecated` stub, merged into Legal sub-role (`product_manifest.py:628`).
+- **Inactive / commented-out registrations:** plugins (marketplace), modular components (dev scaffolding), auto_mode (not production-ready), legal_filing (not integrated with mesh/network).
+- **Unregistered module directories (no `_register()` in product_manifest):**
+  - `_template` — template scaffolding, intentionally not registered
+  - `calendar` — has router/register but not wired
+  - `context_loop` — has router/register/service, imported directly in `main.py` for events
+  - `external_mappings` — has router/register but not wired
+  - `fems` — has router/register but not wired
+  - `funding_mgmt` — has router/register but not wired
+  - `local_ai` — has register but no router
+  - `tactics` — has router/register/service but not wired
+  - `vault_installer` — has register but no router; imported directly in `main.py`
+- **Standalone module .py files in `app/modules/` (not registered as packages):**
+  - `case_builder.py`
+  - `complaint_wizard_module.py` (commented out in `main.py`)
+  - `document_converter.py`
+  - `example_payment_tracking.py`
+  - `free_api_pack.py`
+  - `legal_filing_module.py`
+  - `research_module.py`
+  - `tenant_defense.py` (registered as `app.modules.tenant_defense`)
+- **Top incomplete-code hotspots by match count:**
+  - `app/services/preview_service.py` (19)
+  - `app/main.py` (12)
+  - `app/core/page_contracts.py` (16)
+  - `app/core/product_manifest.py` (7)
+  - `app/core/security.py` (7)
+  - `app/templates/pages/law_library.html` (12)
+  - `app/services/form_data.py` (6)
+  - `app/modules/_template/service.py` (5)
+  - `app/modules/state_laws/router.py` (5)
+  - `app/services/eviction/seed_court_data.py` (5)
+
+### Next Session
+- Decide which pending/incomplete items to tackle next per `ACTIVE_CONTEXT.md`.
+- Verify Render deploy succeeded for this design-system push.
+- Spot-check a tenant page, legal page, and admin page for correct template color classes and fonts.
+
+---
+
+## Session — 2026-07-01 AM — accountability_planner crash fix + 'free' terminology audit (SHIPPED)
+
+**Commit:** `12abccb` pushed to main
+**Render deploy:** triggered (auto-deploy on commit)
+**Root cause of all-day outage:** `app/core/accountability_planner.py:153` used `utc_now().replace(month=utc_now().month + 6)` which overflows every Jul–Dec (month 13+). The fix was made in the prior session but never committed, so Render kept crashing on startup. This session committed and pushed the fix.
+
+### What Was Shipped
+
+#### Critical fix — `app/core/accountability_planner.py`
+- Replaced `utc_now().replace(month=utc_now().month + 6)` with `utc_now() + timedelta(days=180)` to avoid month arithmetic overflow. This was the root cause of the Render service being down all day 2026-07-01.
+
+#### 'Free' terminology audit — 30+ static files
+- Replaced all Semptify-self-description uses of "Free Forever" / "free" with "No Cost, Always" / "no cost" across footers, heroes, promises, stat boxes, and AI helper prompts.
+- Preserved factual uses of "free" describing external resources (Legal Aid, HOME Line, 988, HUD, CourtListener, etc.) per the clarified Core Context rule.
+- Replaced "Sign In" / "login" CTAs with "Connect" / "No registration needed" in tenant-facing pages (library, header, base template, dashboard, documents, help).
+
+#### Core Context codification
+- `AGENTS.md`, `.devin/workflows/preflight.md`, `CORE_CONTEXT.md`: documented the clarified "free" rule (never for Semptify self-description; allowed for factual external-resource descriptions).
+
+### Known Working
+- accountability_planner.py compiles and no longer overflows on month arithmetic
+- All 35 modified files compile clean
+- Render auto-deploy triggered by push
+
+### Known Broken / Pending
+- None new. Verify Render deploy succeeds (watch dashboard).
+- `genminy.txt`, `setup_claude_code_free.ps1`, `.cursor/rules/` remain untracked (not application files, intentionally not committed)
+
+### Next Session
+- Verify the Render deploy for `12abccb` went live and the site is back up.
+- If live, spot-check the tenant help page, footer, and a public page to confirm terminology changes rendered.
+- Resume whatever the next priority is from ACTIVE_CONTEXT.md.
+
+---
+
 ## Session — 2026-06-30 PM — Core Context Doctrine + Fatal-Error Fallback Wiring (SHIPPED)
 
 **Commit:** `d5af32a` pushed to main
