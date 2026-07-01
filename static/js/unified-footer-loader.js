@@ -164,7 +164,7 @@
           <div class="footer-divider"></div>
           <div class="footer-bottom">
             <div class="footer-copyright">
-              © ${FOOTER_CONFIG.year} ${FOOTER_CONFIG.company} — Free forever · No advertising · Privacy-first
+              © ${FOOTER_CONFIG.year} ${FOOTER_CONFIG.company} — No cost, always · No advertising · Privacy-first
             </div>
             <div class="footer-mandates">
               Built to protect tenant rights

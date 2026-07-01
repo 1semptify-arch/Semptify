@@ -161,7 +161,7 @@
     <p id="statusMessage">Semptify is having technical problems. The help resources below are still available to you. We're working to fix things — please check back shortly.</p>
   </div>
 
-  <div class="role-banner">🆘 Help & Resources — For everyone: tenants, landlords, guests. Free, no login required.</div>
+  <div class="role-banner">🆘 Help &amp; Resources — For everyone: tenants, landlords, guests. No registration needed.</div>
 
   <!-- Emergency Banner -->
   <div class="emergency-banner">
@@ -189,14 +189,14 @@
       This page provides educational information only — not legal advice. Laws vary by location and change over time. For advice specific to your situation, contact a licensed attorney or free legal aid. See our <a href="/public/disclaimer.html" style="color:#92400e;">full disclaimer</a>.
     </div>
 
-    <!-- Free Tools (educational use only) -->
+    <!-- Tools (educational use only) -->
     <section class="section" id="tools">
       <div class="disclaimer" style="margin-bottom:1rem;">
         <strong>📚 Educational Use Only</strong>
-        These tools are provided free for educational purposes. They are not legal advice and do not replace a qualified attorney. Use them to understand your situation and prepare — then contact legal aid or an attorney for your specific case.
+        These tools are provided for educational purposes. They are not legal advice and do not replace a qualified attorney. Use them to understand your situation and prepare — then contact legal aid or an attorney for your specific case.
       </div>
-      <h2 class="section-title">🛠️ Free Tools — Educational Use</h2>
-      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1rem;">Free tools to help you respond to an eviction, prepare for court, and organize your documents.</p>
+      <h2 class="section-title">🛠️ Tools — Educational Use</h2>
+      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1rem;">Tools to help you respond to an eviction, prepare for court, and organize your documents.</p>
       <div class="cards-grid">
         <div class="card">
           <div class="card-icon">🛡️</div>
@@ -620,7 +620,7 @@
       </div>
       <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
         <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">&copy; 2024-2026 Semptify</p>
-        <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">Free Forever &bull; No Ads &bull; Open Source</p>
+        <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">No Cost, Always &bull; No Ads &bull; Open Source</p>
       </div>
     </div>
   </footer>
@@ -647,6 +647,46 @@
     window.addEventListener('scroll', () => {
       document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 300);
     });
+
+    // Status banner — shown when redirected from a fatal error or maintenance
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get('status');
+      const banner = document.getElementById('statusBanner');
+      const icon = document.getElementById('statusIcon');
+      const title = document.getElementById('statusTitle');
+      const msg = document.getElementById('statusMessage');
+      if (!banner || !status) return;
+
+      const variants = {
+        down: {
+          cls: '', icon: '⚠️',
+          title: 'Semptify is having issues',
+          msg: 'A technical problem occurred. The help resources on this page are still available to you. We are working to fix things — please check back shortly.'
+        },
+        maintenance: {
+          cls: 'maintenance', icon: '🛠️',
+          title: 'Site under maintenance',
+          msg: 'Semptify is temporarily offline for scheduled maintenance. The help resources below remain available. Please check back shortly.'
+        },
+        starting: {
+          cls: 'starting', icon: '⏳',
+          title: 'Server starting...',
+          msg: 'Semptify is waking up. This usually takes less than a minute. The help resources below are available while you wait.'
+        },
+        construction: {
+          cls: 'under-construction', icon: '🚧',
+          title: 'Under construction',
+          msg: 'This section is being improved. The help resources below are still available.'
+        }
+      };
+      const v = variants[status] || variants.down;
+      if (v.cls) banner.classList.add(v.cls);
+      banner.classList.add('show');
+      if (icon) icon.textContent = v.icon;
+      if (title) title.textContent = v.title;
+      if (msg) msg.textContent = v.msg;
+    })();
   </script>
   <script src="/static/components/feedback.js"></script>
 </body>
