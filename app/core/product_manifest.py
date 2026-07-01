@@ -407,7 +407,7 @@ _register("app.modules.workflow_validator.router", tags=("Admin",), tier=Product
 
 # Rights & education
 _register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE,
-          lifecycle="beta", dev_notes="Only MN complete. Need NY, CA, TX, FL, IL data.")
+          lifecycle="beta", dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.")
 _register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE)
 _register("app.modules.law_library.router", router_attr="page_router", tags=("Law Library",), tier=ProductTier.CORE,
           log_message="Law Library page route active at /law-library")
@@ -508,6 +508,11 @@ _register("app.modules.housing_accountability.pattern_history", router_attr="pat
           tags=("Pattern History",), tier=ProductTier.EXTENDED,
           lifecycle="beta", dev_notes="Depends on housing_accountability pattern matching.")
 
+# External system mappings (court cases, properties, agencies)
+_register("app.modules.external_mappings.router", router_attr="mappings_router",
+          tags=("External Mappings", "Court Cases", "Properties", "Agencies"), tier=ProductTier.EXTENDED,
+          lifecycle="beta", dev_notes="Bridge between Semptify and external systems. CRUD for cross-system ID mappings.")
+
 # Role management
 _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=ProductTier.EXTENDED)
 
@@ -545,6 +550,8 @@ _register("app.modules.capabilities.router", prefix="", tags=("Capabilities",), 
           log_message="Capabilities router active — user capability and overlay management enabled")
 _register("app.modules.manager.router", tags=("Manager", "Case Assignment", "Reporting", "Bulk Ops"), tier=ProductTier.ADMIN,
           log_message="Manager router connected — case assignment, reporting, bulk ops active")
+_register("app.modules.funding_mgmt.router", tags=("Funding Management",), tier=ProductTier.ADMIN,
+          lifecycle="beta", dev_notes="Admin-only funding dashboard and prospectus. Requires require_admin dependency.")
 
 
 # =============================================================================
@@ -628,6 +635,33 @@ _register("app.modules.judge.router", tags=("Judge", "Deprecated", "Merged Into 
           lifecycle="deprecated", requires_role=("admin",),
           dev_notes="Judge role DEPRECATED 2026-06-23. Merged into Legal as sub_role='judge'. Stub for backward compat.",
           log_message="Judge module registered as deprecated (merged into Legal sub-role)")
+
+# Calendar — Total Recollection Viewer (per user vision 2026-06-28)
+_register("app.modules.calendar.router", tags=("Calendar",), tier=ProductTier.DEV,
+          lifecycle="beta",
+          dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.")
+
+# Tactics — Legal tactics development tools
+_register("app.modules.tactics.router", tags=("Tactics",), tier=ProductTier.DEV,
+          lifecycle="beta",
+          dev_notes="Legal tactics recommendations, evidence checklist, pre-hearing timeline, retaliation/habitability checks.")
+
+# Standalone module files (dev_only — not yet wired into main app flow)
+_register("app.modules.example_payment_tracking", tags=("Payment Tracking",), tier=ProductTier.DEV,
+          lifecycle="dev_only",
+          dev_notes="Standalone payment tracking module with /payments router. Mesh SDK pattern.")
+_register("app.modules.research_module", tags=("Research Module",), tier=ProductTier.DEV,
+          lifecycle="dev_only",
+          dev_notes="Research module SDK with /api/research-module router. Property/fraud/court research tools.")
+_register("app.modules.legal_filing_module", router_attr="legal_filing_router", tags=("Legal Filing",), tier=ProductTier.DEV,
+          lifecycle="dev_only",
+          dev_notes="Placeholder for legal filing module integration with mesh/network. Imports from app.routers.legal_filing.")
+_register("app.modules.complaint_wizard_module", tags=("Complaint Wizard",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          dev_notes="Complaint wizard using Positronic Mesh SDK. No FastAPI router — uses register_with_mesh() pattern. Currently DISABLED in main.py.")
+_register("app.modules.free_api_pack", tags=("Free API Pack",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          dev_notes="Free API registry — PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes. No FastAPI router — utility classes only.")
 
 # Phase 2 / internal utilities
 _register("app.modules.export_import.router", prefix="/api/export-import", tags=("Data Export/Import",), tier=ProductTier.DEV,

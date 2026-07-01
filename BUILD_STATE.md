@@ -12,6 +12,50 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-07-01 PM2 — Incomplete Code Cleanup (IN PROGRESS)
+
+### What Was Done
+
+#### state_laws dev_notes corrected
+- `product_manifest.py` dev_notes was wrong ("Only MN complete") — actually 6 states complete (MN, NY, CA, TX, FL, IL). Fixed.
+
+#### housing_accountability fixes
+- **Bug fix (root cause):** `detect_patterns` endpoint at `app/modules/housing_accountability/router.py:501` used `db=db` but didn't declare `db` as a dependency in its function signature. Added `db: AsyncSession = Depends(get_db)` to the signature.
+- Improved 6 placeholder functions (`_simulate_public_records_search`, `_generate_headline`, `_generate_lead_paragraph`, `_generate_body_content`, `_generate_quotes`, `_generate_call_to_action`) to use their input parameters meaningfully instead of returning hardcoded strings.
+
+#### 4 unregistered modules registered in product_manifest.py
+- `external_mappings` → EXTENDED tier, beta lifecycle (court cases, properties, agencies bridge)
+- `funding_mgmt` → ADMIN tier, beta lifecycle (admin-only funding dashboard)
+- `calendar` → DEV tier, beta lifecycle (Total Recollection Viewer per user vision 2026-06-28)
+- `tactics` → DEV tier, beta lifecycle (legal tactics recommendations)
+
+### Confirmed Not Fixable (External Dependencies)
+- **MNDES:** 3 `NotImplementedError` in `MNDESRestClient` are intentional — waiting on MN Judicial Branch API. Active client is `ManualPortalClient`.
+
+### local_ai module fixed
+- Created `app/modules/local_ai/router.py` with minimal stub router (health, chat, analyze, summarize endpoints). The `register.py` was importing a non-existent `router.py` — now the module compiles and can be registered if needed.
+- Module is NOT registered in product_manifest.py (not a priority per user vision — Semptify is a document organizer, no AI in Core).
+
+### Incomplete Code Hotspots — All False Positives
+- `preview_service.py` (19 matches): Placeholder thumbnails are legitimate fallbacks when optional libs (pdf2image) aren't available.
+- `page_contracts.py` (16 matches): Domain vocabulary ("drafted", "todo_items" for legal drafting and feature tracking).
+- `main.py` (12 matches): `wipe_and_reset` function, HTML `placeholder` attributes, `except Exception: pass` for telemetry, "Save Draft" UI label. One real TODO (line 1444) about re-enabling performance monitoring — intentionally disabled.
+- `form_data.py` (6 matches): `except ValueError: pass` for date/number parsing — legitimate.
+- `security.py` (5 matches): `except Exception: pass` for token retrieval fallbacks — legitimate.
+
+#### 5 standalone .py files registered as dev_only
+- `example_payment_tracking` → DEV, dev_only (payment tracking with /payments router)
+- `research_module` → DEV, dev_only (research SDK with /api/research-module router)
+- `legal_filing_module` → DEV, dev_only (placeholder, imports from app.routers.legal_filing)
+- `complaint_wizard_module` → DEV, dev_only (Mesh SDK pattern, no FastAPI router, DISABLED in main.py)
+- `free_api_pack` → DEV, dev_only (utility classes only — PropertyLookup, LandlordLookup, CourtScraper, etc.)
+
+### Still Pending
+- 43 state law stubs (AK, AL, AR, AZ, CO, CT, DE, GA, HI, ID, KS, KY, LA, MA, MD, ME, MI, MO, MS, MT, NC, ND, NE, NH, NJ, NM, NV, OH, OK, OR, PA, RI, SC, SD, TN, UT, VA, VT, WA, WI, WV, WY) — need full housing law data
+- Standalone .py duplicate files: `case_builder.py` and `document_converter.py` — dead duplicates of package directories, kept as harmless (Python imports the package, not the file). User decision 2026-07-01.
+
+---
+
 ## Session — 2026-07-01 PM — Design System Implementation (SHIPPED)
 
 **Commit:** `bf97a9e` pushed to main
