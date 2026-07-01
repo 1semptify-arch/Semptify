@@ -52,6 +52,12 @@ their legal rights—not tenants breaking the law.
 
 ### Still Pending
 - 43 state law stubs (AK, AL, AR, AZ, CO, CT, DE, GA, HI, ID, KS, KY, LA, MA, MD, ME, MI, MO, MS, MT, NC, ND, NE, NH, NJ, NM, NV, OH, OK, OR, PA, RI, SC, SD, TN, UT, VA, VT, WA, WI, WV, WY) — need full housing law data
+  - **API research completed 2026-07-01:** No free API matches Semptify's JSON schema. Options documented:
+    - Nolo charts (all 50 states, HTML, no API) — best source, would need scraping
+    - Vaquill API (49 states, requires key) — structured but needs auth
+    - Open Legal Codes (free, no key) — raw statute text only, not structured summaries
+    - Public.Law API (7 states only, "launching soon")
+  - **User decision 2026-07-01:** Skip for now. Stubs retain external resource links.
 - Standalone .py duplicate files: `case_builder.py` and `document_converter.py` — dead duplicates of package directories, kept as harmless (Python imports the package, not the file). User decision 2026-07-01.
 
 ---
