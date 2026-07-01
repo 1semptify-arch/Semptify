@@ -12,6 +12,60 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-30 PM — Core Context Doctrine + Fatal-Error Fallback Wiring (SHIPPED)
+
+**Commit:** `d5af32a` pushed to main
+**Cloudflare:** Dev Mode enabled (3h), cache purged
+
+### What Was Shipped
+
+#### Core Context doctrine — `CORE_CONTEXT.md` (new canonical doc)
+- Public utility, not a product. North star = Time to Real Help.
+- NEVER use "free" or business terminology (accounts, login, signup, subscription, etc.)
+- No advertising — ever. Listing vs advertising distinction with user-approval requirement.
+- No dead ends. Every error routes to real help.
+- Crisis-UX design principles: calm, one-thing-at-a-time, always-a-way-out, plain language, mobile-first, error-state-first.
+- "Done" checklist + tech principles (WCAG AA, 3G speed, progressive enhancement).
+
+#### Pre-flight workflow — `.devin/workflows/preflight.md`
+- Added Step 0: mandates reading `CORE_CONTEXT.md` and enforces all rules at session start.
+
+#### `AGENTS.md` Non-Negotiables expanded
+- Replaced brief "Free forever / No advertising ever" with full explicit rules.
+- Added listing-vs-advertising distinction with user-approval requirement.
+
+#### Fatal-error fallback wired — `app/core/error_handling.py` + `app/main.py`
+- `/help` route now serves the public static `help.html` (no auth required).
+- `semptify_exception_handler` detects browser requests (Accept: text/html) and redirects to `/help?status=down` on fatal errors.
+- JSON clients still get structured JSON error responses.
+
+#### Help page polish — `static/tenant/help.html`
+- Fixed broken emoji in section title.
+- Renamed section to "Free Tools — Educational Use" with disclaimer.
+- Added File Organizer card linking to `/tenant/documents`.
+- Corrected Zoom Court Prep link to `/zoom-court`.
+
+#### Footer link split — `static/js/unified-footer-loader.js`
+- Footer "Help" link replaced with "Feedback" mailto:`feedback@semptify.org`.
+- Nav bar "Help & Resources" remains the separate core link to `/help`.
+
+### Known Working
+- App compiles clean (`python -m py_compile` passes on all core files).
+- `/help` route serves static page without auth.
+- Cloudflare Dev Mode active for 3 hours — changes visible immediately.
+
+### Known Broken / Pending
+- `static/tenant/help.html` status banner JS not yet wired (the `?status=down` param is redirected to but the banner element still needs JS to show). The redirect works; the banner display is the next step.
+- Live test of fatal-error redirect not yet performed (need to trigger a fatal error in a browser to verify the redirect chain end-to-end).
+- "Live Edit" extension feature (interactive AI live-edit of page design) — added to long-term todo, not implemented.
+
+### Next Session Should Start With
+1. Wire the status banner JS in `static/tenant/help.html` — read `?status=down` query param and show the banner element with the appropriate message.
+2. Live-test the fatal-error redirect: trigger a 500 in a browser, verify the user lands on `/help?status=down` with the banner visible.
+3. Audit existing UI copy across the app for "free" / "account" / "log in" / "sign up" terminology violations per the new Core Context rules. Flag and fix.
+
+---
+
 ## Session — 2026-06-30 — Help Page Review + Resource Fact-Check (COMPLETE)
 **Weekly help page review per /help-page-review workflow.**
 
