@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any
 from enum import Enum
 from pydantic import BaseModel
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.core.utc import utc_now
 import json
 import hashlib
@@ -150,7 +150,7 @@ class AccountabilityPlanner:
                 findings=[],
                 recommendations=[],
                 checked_at=utc_now(),
-                next_review=utc_now().replace(month=utc_now().month + 6)
+                next_review=utc_now() + timedelta(days=180)
             ),
         }
         
