@@ -2809,7 +2809,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         )
 
     # =========================================================================
-    # Temporary Debug Endpoint â€” remove after vault issue is resolved
+    # Temporary Debug Endpoint — remove after vault issue is resolved
     # =========================================================================
 
     @fastapi_app.get("/debug/status")
