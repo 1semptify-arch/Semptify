@@ -67,11 +67,12 @@
   --space-12: 3rem;     /* 48px */
   --space-16: 4rem;     /* 64px */
   
-  /* Typography */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Typography — Design Handoff 2026-07-01 */
+  --font-sans: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
   
+  /* Legacy scale (kept for backward compat — do not use in new templates) */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -80,6 +81,21 @@
   --text-2xl: 1.5rem;
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
+  
+  /* New type scale — Design Handoff 2026-07-01 */
+  --type-h1: 22px;
+  --type-h2: 17px;
+  --type-h3: 15px;
+  --type-body: 13px;
+  --type-label: 11px;
+  --type-h1-weight: 600;
+  --type-h2-weight: 600;
+  --type-h3-weight: 500;
+  --type-body-weight: 400;
+  --type-label-weight: 500;
+  --type-body-leading: 1.45;
+  --type-label-tracking: 0.06em;
+  --type-h1-tracking: -0.01em;
   
   --font-normal: 400;
   --font-medium: 500;
@@ -90,13 +106,13 @@
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
   
-  /* Borders & Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-full: 9999px;
+  /* Borders & Radius — Design Handoff: no rounded corners */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-full: 0;
   
   --border-width: 1px;
   --border-color: var(--color-gray-200);
@@ -133,6 +149,146 @@
   --z-modal: 400;
   --z-popover: 500;
   --z-tooltip: 600;
+
+  /* ============================================================================
+     TEMPLATE COLOR TOKENS — Design Handoff 2026-07-01
+     5 sets, 3 colors each (header / body / footer).
+     Header & footer are dark (white text, WCAG AA). Body is light (black text).
+     ============================================================================ */
+
+  /* Template 1 — Tenants (blue / trust) */
+  --tpl-1-header: #0C447C;
+  --tpl-1-body:   #E6F1FB;
+  --tpl-1-footer: #042C53;
+
+  /* Template 2 — Legal / Agencies (teal / official) */
+  --tpl-2-header: #0F6E56;
+  --tpl-2-body:   #E1F5EE;
+  --tpl-2-footer: #04342C;
+
+  /* Template 3 — Advocates / Researchers (purple / analytical) */
+  --tpl-3-header: #534AB7;
+  --tpl-3-body:   #EEEDFE;
+  --tpl-3-footer: #26215C;
+
+  /* Template 4 — Developers / Tools (gray / technical) */
+  --tpl-4-header: #5F5E5A;
+  --tpl-4-body:   #F1EFE8;
+  --tpl-4-footer: #2C2C2A;
+
+  /* Template 5 — Donors (coral / warm call-to-action) */
+  --tpl-5-header: #993C1D;
+  --tpl-5-body:   #FAECE7;
+  --tpl-5-footer: #4A1B0C;
+}
+
+/* ============================================================================
+   DARK MODE — Design Handoff 2026-07-01
+   Swaps --tpl-N-body to near-black tints of the same hue.
+   Header/footer stay as-is (already dark enough for both modes).
+   Body text switches from #1a1a1a to #f0f0f0.
+   ============================================================================ */
+
+[data-theme="dark"] {
+  --tpl-1-body: #0a1a2a;   /* blue 15% into #121212 */
+  --tpl-2-body: #0a1a16;   /* teal 15% into #121212 */
+  --tpl-3-body: #100e1a;   /* purple 15% into #121212 */
+  --tpl-4-body: #161614;   /* gray 15% into #121212 */
+  --tpl-5-body: #1a0e0a;   /* coral 15% into #121212 */
+  --text-primary: #f0f0f0;
+  --text-secondary: #c0c0c0;
+  --text-muted: #909090;
+}
+
+/* ============================================================================
+   TEMPLATE CLASS RULES — Design Handoff 2026-07-01
+   Each .template-N applies its 3-color set to header/body/footer.
+   Apply via body class: <body class="template-1">
+   ============================================================================ */
+
+.template-1 .page-header,
+.template-1 header {
+  background: var(--tpl-1-header);
+  color: #fff;
+}
+.template-1 .page-body,
+.template-1 main,
+.template-1 body {
+  background: var(--tpl-1-body);
+  color: #1a1a1a;
+}
+.template-1 .page-footer,
+.template-1 footer {
+  background: var(--tpl-1-footer);
+  color: #fff;
+}
+
+.template-2 .page-header,
+.template-2 header {
+  background: var(--tpl-2-header);
+  color: #fff;
+}
+.template-2 .page-body,
+.template-2 main,
+.template-2 body {
+  background: var(--tpl-2-body);
+  color: #1a1a1a;
+}
+.template-2 .page-footer,
+.template-2 footer {
+  background: var(--tpl-2-footer);
+  color: #fff;
+}
+
+.template-3 .page-header,
+.template-3 header {
+  background: var(--tpl-3-header);
+  color: #fff;
+}
+.template-3 .page-body,
+.template-3 main,
+.template-3 body {
+  background: var(--tpl-3-body);
+  color: #1a1a1a;
+}
+.template-3 .page-footer,
+.template-3 footer {
+  background: var(--tpl-3-footer);
+  color: #fff;
+}
+
+.template-4 .page-header,
+.template-4 header {
+  background: var(--tpl-4-header);
+  color: #fff;
+}
+.template-4 .page-body,
+.template-4 main,
+.template-4 body {
+  background: var(--tpl-4-body);
+  color: #1a1a1a;
+}
+.template-4 .page-footer,
+.template-4 footer {
+  background: var(--tpl-4-footer);
+  color: #fff;
+}
+
+.template-5 .page-header,
+.template-5 header {
+  background: var(--tpl-5-header);
+  color: #fff;
+}
+.template-5 .page-body,
+.template-5 main,
+.template-5 body {
+  background: var(--tpl-5-body);
+  color: #1a1a1a;
+}
+.template-5 .page-footer,
+.template-5 footer {
+  background: var(--tpl-5-footer);
+  color: #fff;
 }
 
 /* ============================================================================
@@ -143,6 +299,8 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Design Handoff 2026-07-01: no rounded corners anywhere */
+  border-radius: 0 !important;
 }
 
 html {
@@ -172,6 +330,45 @@ input, button, textarea, select {
 
 p, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
+}
+
+/* ============================================================================
+   TYPE SCALE — Design Handoff 2026-07-01
+   Applied globally so all templates inherit automatically.
+   ============================================================================ */
+
+h1 {
+  font-size: var(--type-h1);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+h2 {
+  font-size: var(--type-h2);
+  font-weight: var(--type-h2-weight);
+}
+
+h3 {
+  font-size: var(--type-h3);
+  font-weight: var(--type-h3-weight);
+}
+
+body, p {
+  font-size: var(--type-body);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-leading);
+}
+
+.label, .meta {
+  font-size: var(--type-label);
+  font-weight: var(--type-label-weight);
+  text-transform: uppercase;
+  letter-spacing: var(--type-label-tracking);
+}
+
+/* Monospace for case numbers, dates, doc IDs, code */
+.mono, .doc-id, .case-number, code, pre {
+  font-family: var(--font-mono);
 }
 
 a {
