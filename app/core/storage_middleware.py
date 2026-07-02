@@ -106,6 +106,15 @@ PUBLIC_PATHS: Set[str] = {
     "/tools",
     "/help",
 
+    # Tenant portal hub pages — auth handled by _guard_role_page, not middleware
+    # Middleware redirect here causes ERR_TOO_MANY_REDIRECTS loop
+    "/tenant/home",
+    "/tenant/home/",
+    "/tenant/timeline",
+    "/tenant/timeline/",
+    "/tenant/library",
+    "/tenant/library/",
+
     # Public website sub-pages (semptify.org guest portal)
     "/about",
     "/services",
