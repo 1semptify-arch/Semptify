@@ -645,18 +645,11 @@ a:hover {
   font-size: var(--text-base);
 }
 
-/* Cards */
+/* Cards — flat, tone-only separation per design handoff. No shadows, no radius. */
 .card {
   background: var(--bg-card);
-  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: box-shadow var(--transition-fast);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
 }
 
 .card__header {
