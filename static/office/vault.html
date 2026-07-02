@@ -324,7 +324,7 @@
     }
 
     function showUploadPreview(files) {
-      if (window.SemptifyFeedback) { SemptifyFeedback.info(`Ready to upload ${files.length} file(s). Connect your cloud storage to complete.`); } else { alert(`Ready to upload ${files.length} file(s):\n${files.map(f => f.name).join('\n')}\n\n(Connect your cloud storage to complete upload)`); }
+      SemptifyFeedback.info(`Ready to upload ${files.length} file(s). Connect your cloud storage to complete.`);
     }
 
     let currentFilter = 'all';

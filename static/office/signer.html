@@ -372,10 +372,10 @@
     }
 
     function submitSignature() {
-      if (!hasSignature) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Please draw your signature first.'); } else { alert('Please draw your signature first.'); } return; }
+      if (!hasSignature) { SemptifyFeedback.error('Please draw your signature first.'); return; }
       const doc = docs[currentDoc];
       const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      if (window.SemptifyFeedback) { SemptifyFeedback.success(`Document signed: "${doc.title}" at ${timestamp}. Recorded in your vault as tamper-evident evidence.`); } else { alert(`✅ Document signed!\n\n"${doc.title}"\nSigned at: ${timestamp}\n\nYour signature, timestamp, and identity have been recorded in your vault as tamper-evident evidence.`); }
+      SemptifyFeedback.success(`Document signed: "${doc.title}" at ${timestamp}. Recorded in your vault as tamper-evident evidence.`);
       document.getElementById('pending-' + currentDoc).style.opacity = '0.5';
       document.getElementById('pending-' + currentDoc).querySelector('.pending-action').textContent = 'Signed';
       document.getElementById('pending-' + currentDoc).querySelector('.pending-action').disabled = true;
@@ -387,7 +387,7 @@
       if (reason === null) return;
       const doc = docs[currentDoc];
       const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      if (window.SemptifyFeedback) { SemptifyFeedback.success(`Document rejected: "${doc.title}" at ${timestamp}.${reason ? ' Reason: ' + reason : ''} Sender notified, rejection record in vault.`); } else { alert(`❌ Document rejected.\n\n"${doc.title}"\nRejected at: ${timestamp}\n${reason ? 'Reason: ' + reason : ''}\n\nThe sender has been notified. A rejection record has been added to your vault.`); }
+      SemptifyFeedback.success(`Document rejected: "${doc.title}" at ${timestamp}.${reason ? ' Reason: ' + reason : ''} Sender notified, rejection record in vault.`);
       document.getElementById('pending-' + currentDoc).style.opacity = '0.5';
       const btn = document.getElementById('pending-' + currentDoc).querySelector('.pending-action');
       btn.textContent = 'Rejected';

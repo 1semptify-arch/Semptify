@@ -470,12 +470,12 @@ ${addr}`;
 
     function copyLetter(id) {
       const text = document.getElementById(id).querySelector('pre')?.textContent || '';
-      navigator.clipboard.writeText(text).then(() => { if (window.SemptifyFeedback) { SemptifyFeedback.success('Copied to clipboard!'); } else { alert('Copied to clipboard!'); } });
+      navigator.clipboard.writeText(text).then(() => { SemptifyFeedback.success('Copied to clipboard!'); });
     }
 
     async function saveToVault(id) {
       const text = document.getElementById(id).querySelector('pre')?.textContent || '';
-      if (!text.trim()) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Generate a letter first.'); } else { alert('Generate a letter first.'); } return; }
+      if (!text.trim()) { SemptifyFeedback.error('Generate a letter first.'); return; }
       const typeMap = { 'rr-preview': 'repair', 'nr-preview': 'notice', 'sd-preview': 'deposit_demand' };
       const type = typeMap[id] || 'letter';
       const btn = document.getElementById(id.replace('preview','actions'))?.querySelector('[onclick*="saveToVault"]') || {textContent:''};
@@ -489,12 +489,12 @@ ${addr}`;
         });
         const data = await resp.json();
         if (data.success) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.success('Saved to vault: ' + (data.filename || '')); } else { alert('Saved to vault: ' + (data.filename || '')); }
+          SemptifyFeedback.success('Saved to vault: ' + (data.filename || ''));
         } else {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: data.message || resp.statusText }); } else { alert('Save failed: ' + (data.message || resp.statusText)); }
+          SemptifyFeedback.error('Save failed.', { detail: data.message || resp.statusText });
         }
       } catch (e) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: e.message }); } else { alert('Save failed: ' + e.message); }
+        SemptifyFeedback.error('Save failed.', { detail: e.message });
       } finally {
         if (originalText) btn.textContent = originalText;
       }

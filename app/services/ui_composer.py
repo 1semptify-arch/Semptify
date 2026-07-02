@@ -280,30 +280,44 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     """Compose the KNOW pillar — library of verified facts.
 
     Components:
-        subject_grid (13 subjects from /api/context/subjects)
+        subject_grid (13 subjects from the Context Engine taxonomy)
 
-    Clicking a subject triggers an HTMX swap to fact_card(s) + stories.
+    Clicking a subject triggers an HTMX swap to fact_card(s) + stories
+    via /api/ui/fragment/library/{subject}.
     """
+    from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
+
+    # Icon map for the 13 canonical subjects — keeps the grid visual
+    # without hardcoding labels (those come from SUBJECT_LABELS).
+    _SUBJECT_ICONS = {
+        "eviction": "🚪",
+        "repair": "🔧",
+        "rent": "💵",
+        "lease": "📋",
+        "deposit": "💰",
+        "discrimination": "⚖️",
+        "safety": "🛡️",
+        "habitability": "🏠",
+        "retaliation": "🛡️",
+        "small_claims": "⚖️",
+        "court_prep": "🏛️",
+        "evidence": "📄",
+        "timeline": "📅",
+    }
+
     components: List[Dict[str, Any]] = []
 
-    # 13 subjects — the KNOW pillar root
+    # 13 subjects — the KNOW pillar root (from the canonical taxonomy)
     components.append(_component("subject_grid", {
         "subjects": [
-            {"id": "eviction", "label": "Eviction", "icon": "🚪"},
-            {"id": "habitability", "label": "Habitability", "icon": "🏠"},
-            {"id": "deposits", "label": "Security Deposits", "icon": "💰"},
-            {"id": "discrimination", "label": "Discrimination", "icon": "⚖️"},
-            {"id": "retaliation", "label": "Retaliation", "icon": "🛡️"},
-            {"id": "rent", "label": "Rent & Fees", "icon": "💵"},
-            {"id": "lease", "label": "Lease Terms", "icon": "📋"},
-            {"id": "repairs", "label": "Repairs", "icon": "🔧"},
-            {"id": "privacy", "label": "Privacy & Entry", "icon": "🔒"},
-            {"id": "roommates", "label": "Roommates", "icon": "👥"},
-            {"id": "animals", "label": "Service & Emotional Support Animals", "icon": "🐾"},
-            {"id": "moving_out", "label": "Moving Out", "icon": "📦"},
-            {"id": "court", "label": "Court Process", "icon": "🏛️"},
+            {
+                "id": s,
+                "label": SUBJECT_LABELS.get(s, s),
+                "icon": _SUBJECT_ICONS.get(s, "•"),
+            }
+            for s in ALL_SUBJECTS
         ],
-        "hx_target": "/api/page/",  # /api/page/{subject} from Page Composer
+        "hx_target": "/api/ui/fragment/library/",
     }))
 
     components.append(_component("add_record_button"))

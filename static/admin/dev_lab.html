@@ -478,7 +478,7 @@ async function openModuleModal(modulePath) {
 
     document.getElementById('module-modal').classList.add('active');
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to load module.', { detail: e.message }); } else { alert('Failed to load module: ' + e.message); }
+    SemptifyFeedback.error('Failed to load module.', { detail: e.message });
   }
 }
 
@@ -505,15 +505,15 @@ async function promoteModule() {
     }
     closeModal();
     await loadModules();
-    if (window.SemptifyFeedback) { SemptifyFeedback.success('Module promoted successfully.'); } else { alert('Module promoted successfully'); }
+    SemptifyFeedback.success('Module promoted successfully.');
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Promotion failed.', { detail: e.message }); } else { alert('Promotion failed: ' + e.message); }
+    SemptifyFeedback.error('Promotion failed.', { detail: e.message });
   }
 }
 
 async function runTests() {
   if (!currentModulePath) return;
-  if (window.SemptifyFeedback) { SemptifyFeedback.info('Running tests... this may take up to 2 minutes.'); } else { alert('Running tests... this may take up to 2 minutes.'); }
+  SemptifyFeedback.info('Running tests... this may take up to 2 minutes.');
   try {
     const resp = await fetch('/dev/lab/' + encodeURIComponent(currentModulePath) + '/test', {
       method: 'POST',
@@ -525,9 +525,9 @@ async function runTests() {
       throw new Error(err.detail || resp.statusText);
     }
     const result = await resp.json();
-    if (window.SemptifyFeedback) { SemptifyFeedback.success(`Tests complete: ${result.passed} passed, ${result.failed} failed, ${result.errors} errors, ${result.skipped} skipped.`); } else { alert(`Tests complete: ${result.passed} passed, ${result.failed} failed, ${result.errors} errors, ${result.skipped} skipped`); }
+    SemptifyFeedback.success(`Tests complete: ${result.passed} passed, ${result.failed} failed, ${result.errors} errors, ${result.skipped} skipped.`);
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Test run failed.', { detail: e.message }); } else { alert('Test run failed: ' + e.message); }
+    SemptifyFeedback.error('Test run failed.', { detail: e.message });
   }
 }
 
@@ -576,7 +576,7 @@ async function submitIdea() {
     submitted_by: document.getElementById('idea-submitted-by').value || 'admin',
   };
   if (!body.name || !body.description) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Name and description are required.'); } else { alert('Name and description are required'); }
+    SemptifyFeedback.error('Name and description are required.');
     return;
   }
   try {
@@ -594,9 +594,9 @@ async function submitIdea() {
     document.getElementById('idea-dependencies').value = '';
     document.getElementById('idea-success').value = '';
     await loadIdeas();
-    if (window.SemptifyFeedback) { SemptifyFeedback.success('Idea submitted successfully.'); } else { alert('Idea submitted successfully'); }
+    SemptifyFeedback.success('Idea submitted successfully.');
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Submission failed.', { detail: e.message }); } else { alert('Submission failed: ' + e.message); }
+    SemptifyFeedback.error('Submission failed.', { detail: e.message });
   }
 }
 
@@ -615,10 +615,10 @@ async function promoteIdea(ideaId, ideaName) {
       throw new Error(err.detail || resp.statusText);
     }
     const result = await resp.json();
-    if (window.SemptifyFeedback) { SemptifyFeedback.success(`Idea promoted! Next steps: ${result.next_steps}`); } else { alert(`Idea promoted!\n\nNext steps:\n${result.next_steps}`); }
+    SemptifyFeedback.success(`Idea promoted! Next steps: ${result.next_steps}`);
     await loadIdeas();
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Promotion failed.', { detail: e.message }); } else { alert('Promotion failed: ' + e.message); }
+    SemptifyFeedback.error('Promotion failed.', { detail: e.message });
   }
 }
 

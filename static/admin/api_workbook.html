@@ -338,9 +338,8 @@ document.getElementById("file").addEventListener("change", e=>{
       const data = JSON.parse(r.result);
       Object.assign(state, data);
       save(); render();
-      if (window.SemptifyFeedback) { SemptifyFeedback.success('Imported ' + Object.keys(data).length + ' key records.'); }
-      else { alert("Imported "+Object.keys(data).length+" key records."); }
-    }catch(err){ if (window.SemptifyFeedback) { SemptifyFeedback.error('Invalid JSON file.', { detail: err.message }); } else { alert("Invalid JSON file: "+err.message); } }
+      SemptifyFeedback.success('Imported ' + Object.keys(data).length + ' key records.');
+    }catch(err){ SemptifyFeedback.error('Invalid JSON file.', { detail: err.message }); }
   };
   r.readAsText(f);
   e.target.value = "";
