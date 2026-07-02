@@ -290,7 +290,7 @@
                 hx-post="/api/tenant/capture"
                 hx-include="closest form"
                 hx-swap="none"
-                onclick="this.closest('dialog').close()"
+                hx-on::after-request="if(event.detail.successful) this.closest('dialog').close()"
             >Save to timeline</button>
         </div>
 

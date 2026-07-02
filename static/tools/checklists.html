@@ -297,12 +297,12 @@
         });
         const result = await resp.json();
         if (result.success) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.success('Saved to vault: ' + (result.filename || '') + '. Checked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length); } else { alert('Saved to vault: ' + (result.filename || '') + '\n\nChecked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length); }
+          SemptifyFeedback.success('Saved to vault: ' + (result.filename || '') + '. Checked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length);
         } else {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: result.message || resp.statusText }); } else { alert('Save failed: ' + (result.message || resp.statusText)); }
+          SemptifyFeedback.error('Save failed.', { detail: result.message || resp.statusText });
         }
       } catch (e) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: e.message }); } else { alert('Save failed: ' + e.message); }
+        SemptifyFeedback.error('Save failed.', { detail: e.message });
       }
     }
 

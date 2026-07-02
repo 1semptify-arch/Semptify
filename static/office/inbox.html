@@ -364,8 +364,8 @@
         reject: `<button class="msg-action danger" onclick="rejectDelivery('${id}')">✕ Reject</button>`,
         acknowledge: `<button class="msg-action primary" onclick="acknowledgeDelivery('${id}')">✓ Acknowledge</button>`,
         vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
-        reply: `<button class="msg-action secondary" onclick="if(window.SemptifyFeedback){SemptifyFeedback.info('Reply — coming soon')}else{alert('Reply — coming soon')}">↩ Reply</button>`,
-        message: `<button class="msg-action secondary" onclick="if(window.SemptifyFeedback){SemptifyFeedback.info('Message advocate')}else{alert('Message advocate')}">💬 Message Advocate</button>`
+        reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">↩ Reply</button>`,
+        message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">💬 Message Advocate</button>`
       };
 
       const notice = d.requires_action ? `<div class="delivery-notice"><strong>${getTypeLabel(d.delivery_type)} Required</strong>${d.notice_text || 'Action required by deadline.'} Uploader: ${escapeHtml(d.sender_name)} · Sent ${formatTime(d.sent_at)}</div><br>` : '';
@@ -396,13 +396,13 @@
           body: JSON.stringify({ signature_method: 'clickwrap', signed_at: new Date().toISOString() })
         });
         if (resp.ok) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.success('Document signed successfully. Record saved to your vault.'); } else { alert('Document signed successfully. Record saved to your vault.'); }
+          SemptifyFeedback.success('Document signed successfully. Record saved to your vault.');
           loadInbox();
         } else {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Sign failed.', { detail: (await resp.json()).detail || resp.statusText }); } else { alert('Sign failed: ' + (await resp.json()).detail || resp.statusText); }
+          SemptifyFeedback.error('Sign failed.', { detail: (await resp.json()).detail || resp.statusText });
         }
       } catch (e) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Sign failed.', { detail: e.message }); } else { alert('Sign failed: ' + e.message); }
+        SemptifyFeedback.error('Sign failed.', { detail: e.message });
       }
     }
 
@@ -415,13 +415,13 @@
           body: JSON.stringify({ rejection_reason: reason })
         });
         if (resp.ok) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.success('Document rejected. Sender has been notified.'); } else { alert('Document rejected. Sender has been notified.'); }
+          SemptifyFeedback.success('Document rejected. Sender has been notified.');
           loadInbox();
         } else {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Reject failed.', { detail: (await resp.json()).detail || resp.statusText }); } else { alert('Reject failed: ' + (await resp.json()).detail || resp.statusText); }
+          SemptifyFeedback.error('Reject failed.', { detail: (await resp.json()).detail || resp.statusText });
         }
       } catch (e) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Reject failed.', { detail: e.message }); } else { alert('Reject failed: ' + e.message); }
+        SemptifyFeedback.error('Reject failed.', { detail: e.message });
       }
     }
 
@@ -429,7 +429,7 @@
       try {
         const resp = await fetch(`/api/delivery/${id}/viewed`, { method: 'POST' });
         if (resp.ok) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.success('Acknowledged. Record saved to your vault.'); } else { alert('Acknowledged. Record saved to your vault.'); }
+          SemptifyFeedback.success('Acknowledged. Record saved to your vault.');
           const d = currentDeliveries.find(x => x.delivery_id === id);
           if (d) d.status = 'acknowledged';
           renderInbox();
@@ -522,12 +522,12 @@
       if (!m) return;
 
       const actionMap = {
-        sign: `<button class="msg-action primary" onclick="if(window.SemptifyFeedback){SemptifyFeedback.info('Signature flow — coming soon')}else{alert('Signature flow — coming soon')}">✍️ Sign Document</button>`,
-        reject: `<button class="msg-action danger" onclick="if(window.SemptifyFeedback){SemptifyFeedback.info('Rejection recorded')}else{alert('Rejection recorded')}">✕ Reject</button>`,
-        acknowledge: `<button class="msg-action primary" onclick="if(window.SemptifyFeedback){SemptifyFeedback.success('Acknowledged.')}else{alert('Acknowledged')}">✓ Acknowledge</button>`,
+        sign: `<button class="msg-action primary" onclick="SemptifyFeedback.info('Signature flow — coming soon')">✍️ Sign Document</button>`,
+        reject: `<button class="msg-action danger" onclick="SemptifyFeedback.info('Rejection recorded')">✕ Reject</button>`,
+        acknowledge: `<button class="msg-action primary" onclick="SemptifyFeedback.success('Acknowledged.')">✓ Acknowledge</button>`,
         vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
-        reply: `<button class="msg-action secondary" onclick="if(window.SemptifyFeedback){SemptifyFeedback.info('Reply — coming soon')}else{alert('Reply — coming soon')}">↩ Reply</button>`,
-        message: `<button class="msg-action secondary" onclick="if(window.SemptifyFeedback){SemptifyFeedback.info('Message advocate')}else{alert('Message advocate')}">💬 Message Advocate</button>`
+        reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">↩ Reply</button>`,
+        message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">💬 Message Advocate</button>`
       };
 
       const viewer = document.getElementById('msg-viewer');
