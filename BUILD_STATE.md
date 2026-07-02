@@ -31,6 +31,24 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-07-02 — Tenant Redirect Loop Root Cause Fix (SHIPPED)
+
+### What Was Done
+- **Root cause found**: `app/modules/calendar/router.py` was registered in `app/core/product_manifest.py:640` WITHOUT a prefix. The router defines `@router.get("/{event_id}")` with `Depends(yellow_access)` — this acted as a catch-all for ANY single-segment path, including `/help`. When a user visited `/help`, FastAPI matched the calendar route first (registered before `/help` in main.py), called `yellow_access`, got 401, global exception handler redirected to `/help?status=down`, which matched the calendar route again → infinite redirect loop (ERR_TOO_MANY_REDIRECTS).
+- **Fix 1 (root cause)**: Added `prefix="/api/calendar"` to the calendar router registration in `product_manifest.py:640`. Now `/{event_id}` → `/api/calendar/{event_id}` — no longer matches `/help`.
+- **Fix 2 (defensive)**: Updated `app/core/error_handling.py` `semptify_exception_handler` to detect when `/help` itself is the failing path and serve an inline 500 HTML fallback instead of redirecting back to `/help`. This prevents any future redirect loop if `/help` ever fails.
+- Added `HTMLResponse` to imports in `error_handling.py`.
+
+### Known Working
+- `/help` route now matches the public route in `main.py:2631` (no auth dependency) as intended
+- Calendar API routes are now properly namespaced under `/api/calendar/*`
+- Exception handler will never create a redirect loop to `/help`
+
+### Next Session Should Start With
+- Rebuild `tenant_home.html` template with four-pillar hub structure, correct links, and fixed emojis (pending live test of redirect fix first)
+
+---
+
 ## Session — 2026-07-02 — GUI Phase 1 Wiring Fixes (IN PROGRESS)
 
 ### What Was Done

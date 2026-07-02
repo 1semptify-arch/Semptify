@@ -11,7 +11,7 @@ import traceback
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import ValidationError
@@ -146,9 +146,27 @@ async def semptify_exception_handler(request: Request, exc: Exception) -> JSONRe
     import traceback as _tb, sys as _sys
     print(f"[EXCEPTION DEBUG] {request.url.path}: {type(exc).__name__}: {exc}\n{_tb.format_exc()}", file=_sys.stderr, flush=True)
 
-    # Browser fallback: redirect HTML requests to the public help page with status banner
+    # Browser fallback: redirect HTML requests to the public help page with status banner.
+    # CRITICAL: Never redirect back to /help if /help itself is the one failing — that
+    # creates an infinite redirect loop. Serve a minimal inline HTML page instead.
     accept = request.headers.get("accept", "")
+    request_path = request.url.path
     if "text/html" in accept and "application/json" not in accept:
+        if request_path == "/help" or request_path.startswith("/help?"):
+            # /help itself is failing — serve inline fallback, do NOT redirect
+            return HTMLResponse(
+                content=(
+                    "<!doctype html><html><head><title>Semptify — Status</title>"
+                    "<meta charset='utf-8'></head><body style='font-family:system-ui;"
+                    "max-width:600px;margin:2rem auto;padding:1rem'>"
+                    "<h1>Semptify is having trouble</h1>"
+                    "<p>We're working on it. If this persists, please call "
+                    "<strong>612-728-5767</strong> for assistance.</p>"
+                    "<p><a href='/'>Return home</a></p>"
+                    "</body></html>"
+                ),
+                status_code=500,
+            )
         help_url = "/help?status=down"
         return RedirectResponse(url=help_url, status_code=302)
     

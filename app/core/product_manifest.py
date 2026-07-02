@@ -637,7 +637,7 @@ _register("app.modules.judge.router", tags=("Judge", "Deprecated", "Merged Into 
           log_message="Judge module registered as deprecated (merged into Legal sub-role)")
 
 # Calendar — Total Recollection Viewer (per user vision 2026-06-28)
-_register("app.modules.calendar.router", tags=("Calendar",), tier=ProductTier.DEV,
+_register("app.modules.calendar.router", prefix="/api/calendar", tags=("Calendar",), tier=ProductTier.DEV,
           lifecycle="beta",
           dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.")
 
