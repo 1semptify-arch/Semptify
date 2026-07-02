@@ -165,15 +165,50 @@ _route_user(user_id) → home page
 
 ---
 
+## 7a. Traffic-Light Verification Model (the "express lane")
+
+Storage connection health is verified at three levels, matching how much risk
+the requested action carries. This is the SSOT mechanism behind Flows A-D above
+— it is what decides whether a user is waved straight through, silently
+refreshed, or sent back through OAuth.
+
+| Level | Ice-cube analogy | Token check | Used for |
+|-------|-------------------|--------------|----------|
+| 🟢 **GREEN** | Ice cube, any age | Memory cache only, no provider call | Read-only: library, viewing documents/timeline |
+| 🟡 **YELLOW** | Ice cube < 4hrs, not melted | Cache + auto-refresh via provider if expired | Default app use: uploads, vault writes, contacts |
+| 🔴 **RED** | Fresh ice cube < 30min | Always asks provider live, no cache accepted | Destructive/high-risk: delete, court filings, exports |
+
+Implemented as FastAPI dependencies in `app/core/security.py`:
+`Depends(green_access)`, `Depends(yellow_access)`, `Depends(red_access)`.
+
+**Identity check, not an accounts system**: the cookie holds a `semptify_uid`
+that encodes role + chosen OAuth provider directly in the ID string — nothing
+is looked up in a user table to know who someone is. Verification means
+confirming the access token on file is still the valid other half of that
+same OAuth connection (asking the provider), not authenticating against
+stored credentials.
+
+**No logging / no counting of users**: Semptify does not log reconnection
+attempts, does not count users, and does not track individual sessions for
+analytics. The user is not an "account" — they are allowing Semptify to
+process and organize files they already own in their own storage. Verification
+exists only to confirm the storage connection is live, never to record who
+connected or how often.
+
+---
+
 ## 8. Implementation Files
 
 | File | Purpose |
 |------|---------|
-| `app/routers/storage.py` | Main entry point, OAuth handlers, session management |
-| `app/core/user_id.py` | User ID generation/parsing |
+| `app/modules/storage/router.py` | Main entry point (`/storage/`), OAuth handlers, session management, provider picker (`/storage/providers`), Rehome flow |
+| `app/modules/onboarding/reconnect.py` | Owns `/storage/reconnect` (lost-cookie provider picker) as a gate-enforcement concern |
+| `app/core/security.py` | Traffic-light access levels (`green_access`/`yellow_access`/`red_access`) — see Section 7a |
+| `app/core/user_id.py` | User ID generation/parsing (encodes role + provider in the ID itself) |
 | `app/core/user_context.py` | UserRole enum, permissions |
 | `app/core/workflow_engine.py` | `route_user()` - SSOT for routing |
-| `static/reconnect/index.html` | Reconnect UI for lost-cookie users |
+
+**Note**: `returning_user_contract.md` (v1.0, Draft) is superseded by this document and has been archived to `archive/obsolete-2026-06-29/` — it contradicted the no-logging principle below (it called for logging reconnection attempts) and pointed to a non-existent file path.
 
 ---
 
