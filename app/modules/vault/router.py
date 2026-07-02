@@ -1337,83 +1337,15 @@ def _get_file_category(filename: str) -> str:
 
 
 # =============================================================================
-# Vault Setup Endpoints (used by /onboarding/vault-setup page)
+# Vault Setup Endpoints — REMOVED 2026-07-02
 # =============================================================================
-
-@router.get("/status")
-async def vault_status(user: StorageUser = Depends(yellow_access)):
-    """Check that the user is authenticated and has a storage provider configured."""
-    return {"ok": True, "user_id": user.user_id[:6] + "***", "provider": str(getattr(user, "provider", "unknown"))}
-
-
-@router.post("/init")
-async def vault_init(user: StorageUser = Depends(yellow_access), db: AsyncSession = Depends(get_db)):
-    """
-    Create the Semptify vault folder structure in the user's cloud storage.
-    Called once during onboarding vault-setup Step 1. Idempotent — safe to call again.
-
-    SSOT RULE: This endpoint creates folders ONLY.
-    vault_initialized gate is NOT marked here.
-    It is marked by POST /onboarding/api/vault/verify (Step 3) only after:
-      1. Folders created (this step)
-      2. Token backup written (Step 2)
-      3. Live write/read probe passed + document uploaded through pipeline
-    """
-    try:
-        from app.core.oauth_token_manager import get_valid_token_for_user as _get_token
-    except ImportError:
-        def _get_token(uid: str):  # type: ignore[misc]
-            return None
-
-    access_token = getattr(user, "access_token", None) or _get_token(user.user_id)
-    if not access_token or access_token == "no-token":
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "no_token", "message": "Storage token missing — please reconnect your storage."},
-        )
-
-    try:
-        storage = get_provider(user.provider, access_token=access_token)
-        await ensure_vault_folders(storage, user.provider)
-        logger.info("Vault folders created for user=%s — awaiting Steps 2+3 to mark gate", user.user_id[:6] + "***")
-    except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail={"error": "folder_init_failed", "message": str(exc)},
-        )
-
-    return {"ok": True, "message": "Vault folders created", "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider)}
-
-
-@router.get("/verify")
-async def vault_verify(user: StorageUser = Depends(yellow_access)):
-    """
-    Verify that the vault folder structure is accessible in the user's cloud storage.
-    Called after /init to confirm everything is ready.
-    """
-    try:
-        from app.core.oauth_token_manager import get_valid_token_for_user as _get_token
-    except ImportError:
-        def _get_token(uid: str):  # type: ignore[misc]
-            return None
-
-    access_token = getattr(user, "access_token", None) or _get_token(user.user_id)
-    if not access_token or access_token == "no-token":
-        raise HTTPException(
-            status_code=401,
-            detail={"error": "no_token", "message": "Storage token missing — please reconnect your storage."},
-        )
-
-    try:
-        storage = get_provider(user.provider, access_token=access_token)
-        await ensure_vault_folders(storage, user.provider)
-        items = await storage.list_files(VAULT_ROOT)
-        if items is None:
-            raise RuntimeError("Vault root folder not accessible after init")
-    except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail={"error": "vault_verify_failed", "message": str(exc)},
-        )
-
-    return {"ok": True, "message": "Vault verified and accessible"}
+# /api/vault/status, /api/vault/init, /api/vault/verify used to be defined here,
+# duplicating the canonical onboarding vault-setup flow. Verified via grep across
+# all .html/.js files and tests that nothing ever called these three endpoints —
+# every live caller uses /onboarding/api/vault/status, /init, /security, /verify
+# (see app/modules/onboarding/router.py). Removed to enforce a single entry
+# point into vault setup, per SSOT ("one way in").
+#
+# ensure_vault_folders() below is still used directly by document upload
+# endpoints in this file as a defensive folder-existence check — that usage
+# is unrelated to vault *setup* and was left in place.
