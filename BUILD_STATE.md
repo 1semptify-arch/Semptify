@@ -31,6 +31,26 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-07-02 — Design System Audit + Card/Shadow Fix (SHIPPED)
+
+### What Was Done
+- **Audit**: Found 3 parallel CSS systems in the codebase (base.html inline dark theme, `ssot-design-system.css` flat/tone-only system, and `static/css/main.css` + `themes/*.css` gradient system used by 4 static dashboard pages). Documented in `FNG_TODO.md`.
+- **Verified**: 31/31 Jinja2 page templates already have `template-1` through `template-5` body classes wired (contrary to earlier assumption) — GLM's design system migration at the template level is actually complete.
+- **Fixed**: `app/templates/base.html` — removed the `.card` background/border/radius rule that was overriding `ssot-design-system.css`'s `.card` rule via cascade order (equal specificity, base.html loads later = wins). Also removed a leftover `box-shadow` on form focus states.
+- **Fixed**: `static/css/ssot-design-system.css` — removed `box-shadow` from `.card` and `.card:hover`, which violated the design handoff's own "no shadows anywhere" rule.
+- **Did NOT touch**: the 292 usages of `--color-*` / `--radius-*` / `--space-*` variables across 27 template files defined in base.html's `:root` — too risky to change without a full visual QA pass. Documented as a deferred item in `FNG_TODO.md`.
+
+### Known Working
+- `.card` class now renders flat (no shadow, no radius) per design handoff spec
+- All 31 page templates have correct `template-N` body classes
+
+### Known Gaps (see FNG_TODO.md)
+- Dark mode CSS (`[data-theme="dark"]`) has no JS trigger anywhere — unreachable
+- 4 static dashboard pages (`static/tenant|advocate|manager|legal/index.html`) still use a 3rd, separate theme system — needs owner decision on migrate-vs-keep
+- Emoji nav icons in base.html header not yet replaced with line icons
+
+---
+
 ## Session — 2026-07-02 — Tenant Redirect Loop Root Cause Fix (SHIPPED)
 
 ### What Was Done
