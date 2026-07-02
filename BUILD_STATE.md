@@ -12,6 +12,25 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-07-01 PM — Tenant Redirect Fix + Loop Fix (SHIPPED ec526c7)
+
+### What Was Done
+- **`app/main.py`**: Corrected `/tenant`, `/tenant/`, `/tenant/dashboard`, `/tenant/journal` — all now redirect to `/tenant/home` (not `/tenant/timeline`, which was a mistake from the previous session).
+- **`app/main.py`**: Fixed infinite redirect loop — the `tenant_home` template-error fallback was `ssot_redirect("/help")` which caused a loop. Replaced with a direct `HTMLResponse` (inline HTML, no redirect) that always renders, includes HOME Line number, and links to `/help` and `/tenant/timeline`. Never a dead end.
+- **Root cause**: Previous session incorrectly sent all tenant traffic to `/tenant/timeline`. BUILD_GUIDE_SSOT.md has had `/tenant/home` as the canonical verified landing page since May 2026.
+
+### Known Working
+- `/tenant/home` is the primary tenant hub — verified in BUILD_GUIDE_SSOT.md Step 4
+- All redirect paths correct: `/tenant` → `/tenant/home`, `/tenant/dashboard` → `/tenant/home`, `/tenant/journal` → `/tenant/home`
+- Template error fallback: inline HTML response with HOME Line number (no redirect loop possible)
+- `static/tenant/help.html` is a standalone help page (no app dependency) with all MN crisis numbers
+
+### Next Session Should Start With
+- Review `tenant_home.html` — the template has broken nav icon emoji (lines 570–580 show `?` instead of emoji — encoding issue), links to `/tenant/journal` (which now redirects back home — should link to `/tenant/timeline`), and `/documents` (non-existent route)
+- Rebuild tenant_home.html properly with correct pillar links: RECORD → `/tenant/timeline`, KNOW → `/tenant/library`
+
+---
+
 ## Session — 2026-07-02 — GUI Phase 1 Wiring Fixes (IN PROGRESS)
 
 ### What Was Done
