@@ -662,6 +662,21 @@ _register("app.modules.complaint_wizard_module", tags=("Complaint Wizard",), tie
 _register("app.modules.free_api_pack", tags=("Free API Pack",), tier=ProductTier.DEV,
           lifecycle="dev_only", optional=True,
           dev_notes="Free API registry — PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes. No FastAPI router — utility classes only.")
+_register("app.modules.vault_sync", tags=("Vault Sync",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          dev_notes=(
+              "ON HOLD — user approved plan 2026-07-01, deferred until GUI Phase 1 ships. "
+              "Live encrypted replica of Semptify metadata (journal, timeline, letters, deadlines, document pointers) "
+              "streamed to user's own OAuth-connected cloud drive (Dropbox prototype first — true append API). "
+              "AES-256-GCM chunk encryption with user-passphrase-derived key (server never stores plaintext). "
+              "Background drain loop: batch flush every 3-5s OR 50 rows. Output: encrypted .jsonl on user's cloud. "
+              "Open questions on revive: (1) Dropbox-only prototype — pending final OK, "
+              "(2) passphrase model A per-session vs B persistent — user has not picked, "
+              "(3) greenlight to scaffold — not yet. "
+              "Files planned: __init__.py, register.py, router.py, sync_engine.py, providers/dropbox.py, "
+              "crypto.py, sync_log.py + alembic migration for sync_log table. "
+              "Does NOT touch documents (those already live in user's cloud). No PII, no OAuth tokens synced."
+          ))
 
 # Modules wired via main.py direct import (tracked here for manifest visibility)
 _register("app.modules.context_loop.router", tags=("Context Loop",), tier=ProductTier.DEV,

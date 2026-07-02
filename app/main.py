@@ -1838,7 +1838,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Role-Specific Dashboard Pages
     @fastapi_app.get("/tenant/dashboard", response_class=HTMLResponse)
     async def tenant_dashboard_page(request: Request):
-        """Serve the tenant dashboard with modular components."""
+        """Tenant dashboard — redirect to RECORD pillar (timeline is the new home)."""
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
 
@@ -1849,19 +1849,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
             return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
-        tenant_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_dashboard.html"
-        if tenant_dashboard_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/tenant_dashboard.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Tenant dashboard template error, falling back to static: %s", e)
-
-        # Fallback to static dashboard
-        static_fallback = BASE_PATH / "static" / "tenant" / "dashboard.html"
-        if static_fallback.exists():
-            return FileResponse(str(static_fallback))
-
-        return HTMLResponse(content="<h1>Tenant Dashboard not found</h1>", status_code=404)
+        return ssot_redirect("/tenant/home", context="tenant dashboard → tenant home")
 
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
@@ -3455,28 +3443,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/", response_class=HTMLResponse)
     async def tenant_page(request: Request):
-        """Serve the tenant My Case page."""
+        """Tenant root — go to tenant home page."""
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-
-        # Try template first
-        tenant_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant.html"
-        if tenant_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/tenant.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Tenant template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        tenant_path = BASE_PATH / "static" / "tenant" / "index.html"
-        tenant_fallback = _render_static_page(tenant_path, inject_stage_model=True)
-        if tenant_fallback:
-            return tenant_fallback
-        return HTMLResponse(
-            content="<h1>Tenant page not found</h1>",
-            status_code=404
-        )
+        return ssot_redirect("/tenant/home", context="tenant root → tenant home")
 
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
@@ -3538,8 +3509,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Tenant home template error: %s", e)
         
-        # Fallback to main tenant page
-        return await tenant_page(request)
+        # Fallback: template missing — return inline HTML (no redirect, never dead-end)
+        return HTMLResponse(content=(
+            '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<title>Semptify</title></head><body style="font-family:sans-serif;max-width:600px;margin:2rem auto;padding:1rem">'
+            '<h1>Your home page is loading</h1>'
+            '<p>If this persists, call <strong>HOME Line: 612-728-5767</strong> for free tenant help.</p>'
+            '<p><a href="/help">Get help</a> &nbsp;|&nbsp; <a href="/tenant/timeline">View your timeline</a></p>'
+            '</body></html>'
+        ), status_code=200)
 
     @fastapi_app.get("/tenant/capture", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/capture/", response_class=HTMLResponse)
@@ -3638,37 +3617,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/journal", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/journal/", response_class=HTMLResponse)
     async def tenant_journal(request: Request):
-        """Journal page for viewing recorded entries."""
+        """Journal — redirect to RECORD pillar (journal entries are in the timeline feed)."""
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
+        return ssot_redirect("/tenant/home", context="tenant journal → tenant home")
 
-        user_id = extract_user_id(request) or ""
-        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
-
-        entries = []
-        if briefcase and hasattr(briefcase, "journal") and briefcase.journal:
-            entries = briefcase.journal.recent_entries or []
-
-        context = {
-            "briefcase": briefcase,
-            "entries": entries,
-            "total_entries": len(entries),
-            "entries_this_month": sum(
-                1 for e in entries
-                if getattr(e, "created_at", None) and
-                str(e.created_at)[:7] == utc_now().strftime("%Y-%m")
-            ) if entries else 0,
-            "urgent_count": sum(1 for e in entries if getattr(e, "is_urgent", False)),
-            "days_since_start": (
-                (utc_now() - min(
-                    (e.created_at if isinstance(e.created_at, datetime.datetime) else datetime.datetime.fromisoformat(str(e.created_at).replace("Z", "+00:00")))
-                    for e in entries if getattr(e, "created_at", None)
-                )).days
-                if entries else 0
-            ),
-        }
-        return templates.TemplateResponse(request, "pages/tenant_journal.html", context)
+    @fastapi_app.get("/tenant/law-library", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/law-library/", response_class=HTMLResponse)
+    async def tenant_law_library_redirect(request: Request):
+        """Old tenant law library — redirect to KNOW pillar (/tenant/library)."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return ssot_redirect("/tenant/library", context="tenant law-library → KNOW pillar")
 
     @fastapi_app.get("/tenant/inbox", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/inbox/", response_class=HTMLResponse)
@@ -3997,6 +3959,133 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             logger.warning("UI Composer library error, falling back to law-library: %s", e)
             # Fallback to the existing law library page
             return templates.TemplateResponse(request, "pages/law_library.html")
+
+    @fastapi_app.get("/api/ui/fragment/timeline_group")
+    async def timeline_group_fragment(request: Request, type: str = "all"):
+        """Return a timeline_group fragment for HTMX filter chip swaps.
+
+        Used by the RECORD pillar filter chips. Fetches the tenant feed
+        (optionally filtered by type) and renders just the timeline_group
+        component as HTML.
+        """
+        from app.modules.tenant_feed.service import aggregate_feed_async, FEED_TYPES
+        from app.core.user_id import parse_user_id
+
+        # Map filter chip IDs to FEED_TYPES
+        chip_to_feed = {
+            "documents": "document",
+            "events": "timeline_event",
+            "journal": "journal",
+            "letters": "letter",
+            "deadlines": "deadline",
+        }
+        type_filter = chip_to_feed.get(type) if type and type != "all" else None
+        if type_filter and type_filter not in FEED_TYPES:
+            type_filter = None
+
+        user_id_cookie = request.cookies.get("semptify_uid", "")
+        user_id = ""
+        if user_id_cookie:
+            parsed = parse_user_id(user_id_cookie)
+            user_id = parsed.user_id if parsed else ""
+
+        feed_items = await aggregate_feed_async(user_id, type_filter=type_filter) if user_id else []
+
+        label = "All records" if not type_filter else type.capitalize()
+
+        return templates.TemplateResponse(
+            request,
+            "components/component_fragment.html",
+            {
+                "component": {
+                    "type": "timeline_group",
+                    "data": {
+                        "date_label": label,
+                        "events": feed_items,
+                        "empty": len(feed_items) == 0,
+                    },
+                }
+            },
+        )
+
+    @fastapi_app.get("/api/ui/fragment/library/{subject}")
+    async def library_subject_fragment(subject: str, request: Request):
+        """Return fact_card + story fragments for a KNOW pillar subject.
+
+        Fetches the Page Composer JSON for {subject}, maps each verified
+        fact to a fact_card component, and renders them as HTML for HTMX
+        swap into #library-content. Falls back to empty_state if no facts.
+        """
+        from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
+        from app.modules.page_composer.service import compose_page
+        from app.core.request_utils import require_request_user_id
+
+        if subject not in ALL_SUBJECTS:
+            return HTMLResponse(
+                content=f'<div class="uic-empty-state"><h3>Unknown topic: {subject}</h3></div>',
+                status_code=400,
+            )
+
+        # Public preview is fine — tenant may not be authenticated yet
+        user_id = ""
+        try:
+            user_id = require_request_user_id(request)
+        except Exception:  # pylint: disable=broad-exception-caught
+            user_id = ""
+
+        try:
+            page = await compose_page(
+                subject=subject,
+                jurisdiction="MN",
+                user_id=user_id or None,
+                fact_limit=10,
+                story_limit=5,
+            )
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("Page compose failed for subject %s: %s", subject, e)
+            page = {"facts": [], "stories": [], "label": SUBJECT_LABELS.get(subject, subject)}
+
+        components: list = []
+        facts = page.get("facts") or []
+        stories = page.get("stories") or []
+        label = page.get("label") or SUBJECT_LABELS.get(subject, subject)
+
+        if not facts and not stories:
+            components.append({
+                "type": "empty_state",
+                "data": {
+                    "icon": "📚",
+                    "title": f"No verified facts yet for {label}",
+                    "body": "This topic hasn't been populated. Try another topic, or check back later.",
+                },
+            })
+        else:
+            # Bundle stories onto the first fact_card per the macro's data.stories field
+            story_texts = [
+                {"text": s.get("title") or s.get("body") or ""}
+                for s in stories
+                if s.get("title") or s.get("body")
+            ]
+            for idx, fact in enumerate(facts):
+                components.append({
+                    "type": "fact_card",
+                    "data": {
+                        "title": fact.get("claim") or "Verified fact",
+                        "body": fact.get("citation") or "",
+                        "source_url": fact.get("source_url") or "",
+                        "source_label": fact.get("source_name") or fact.get("source_url") or "",
+                        "stories": story_texts if idx == 0 else [],
+                    },
+                })
+
+        return templates.TemplateResponse(
+            request,
+            "components/component_fragment.html",
+            {
+                "fragment_title": label,
+                "components": components,
+            },
+        )
 
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):

@@ -1,10 +1,23 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-29 PM
+**Last Updated**: 2026-06-30 AM
 
 ---
 
-## 🎯 Current Priority: Phase 5b — Action Feedback Helper
+## 🎯 Current Priority: Phase 5b — Action Feedback helper retrofit ✅ COMPLETE
+
+### Phase 5b — Action Feedback Helper: ✅ COMPLETE (2026-06-30 AM)
+
+`SemptifyFeedback` helper is globally loaded via `static/templates/base.html` → `static/components/feedback.js`. All retrofitted pages now call `SemptifyFeedback.*` directly with no `alert()` fallbacks.
+
+**Retrofit completed across 13 pages:**
+- **Tier 1 (tenant-facing):** `tenant/journal.html`, `tenant/tools/letters.html`, `tenant/tools/deadlines.html`
+- **Tier 2 (admin):** `admin/dashboard.html` (22 alerts removed), `admin/dev_lab.html` (11 alerts), `admin/review-checklist.html`, `admin/module_flags.html`, `admin/api_workbook.html`
+- **Tier 3 (office):** `office/inbox.html`, `office/delivery.html`, `office/signer.html`, `office/vault.html`
+- **Tier 4 (tools):** `tools/generators.html`, `tools/calculators.html`, `tools/checklists.html`
+- **Tier 5:** `components/vault-portal.html`, `templates/journal-refactored.html`
+
+**Verification:** `grep "else { alert(" static/**/*.html` returns zero results.
 
 ### Phase 4 — Role Development: ✅ COMPLETE (2026-06-24)
 
@@ -52,12 +65,12 @@
 
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
-| 1 | **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | 🅿️ Ready to build | — |
-| 2 | **GUI Phase 1 — Tenant Journal restructuring** | `GUI_PHASE1_DESIGN.md` | 🅿️ Pending | — |
+| 1 | **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | ✅ Complete 2026-06-30 | — |
+| 2 | **GUI Phase 1 — Tenant Journal restructuring** | `GUI_PHASE1_DESIGN.md` | 🅿️ Next priority | — |
 | 3 | **Document Center planning** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | 🅿️ Pending | — |
 
-### Action Feedback Helper — Scope
-Build the `SemptifyFeedback` helper and 5-tier retrofit per `ACTION_FEEDBACK_AUDIT.md`. This is the current priority. No blockers.
+### Action Feedback Helper — COMPLETE
+All 13 retrofittable pages now use `SemptifyFeedback.*` directly. No `alert()` fallbacks remain. Helper is globally loaded via `feedback.js` in `base.html`.
 
 ### GUI Phase 1 — Tenant Journal Restructuring
 Per user's canonical vision (2026-06-28):
@@ -84,6 +97,7 @@ Design docs committed this session in `docs/planning/`:
 
 | Date | Decision | Reason |
 |------|----------|--------|
+| 2026-06-30 AM | ✅ Action Feedback helper retrofit complete | 13 pages retrofitted. All `alert()` fallbacks removed. `SemptifyFeedback` is globally loaded, so `if (window.SemptifyFeedback)` guards and `else { alert() }` branches were dead code. Also added success toast to journal save (was silently succeeding). |
 | 2026-06-29 PM | ✅ Repo cleanup — 108 obsolete docs archived | Reduce doc sprawl from 130+ to ~40 active docs. All obsolete docs moved to `archive/obsolete-2026-06-29/` with git history preserved. |
 | 2026-06-29 PM | ✅ Filedored overlay integration fixed | 3 callers now wire overlay_manager. Router signature bugs fixed. Commit `19d0860`. |
 | 2026-06-24 PM | ✅ Context Engine + Page Composer complete | 9+3 endpoints live, 4 consumers wired, migration shipped (commit 375b45d) |

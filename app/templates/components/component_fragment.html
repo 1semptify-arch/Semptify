@@ -1,8 +1,16 @@
 {# ================================================================= #}
-{# Component Fragment — renders a single component for HTMX swaps     #}
+{# Component Fragment — renders one or more components for HTMX      #}
+{# swaps. Used by /api/ui/fragment/* endpoints.                      #}
 {#                                                                   #}
-{# Used by /api/ui/fragment/{ctype} and /api/ui/process/{workflow_id}.#}
-{# Renders one component via the dispatcher macro.                    #}
+{# Context variables (one of):                                       #}
+{#   component: single component dict                                #}
+{#   components: list of component dicts                             #}
+{#   fragment_title: optional heading (rendered as h2)               #}
 {# ================================================================= #}
 {% from "components/ui_composer.html" import render_component %}
-{{ render_component(component) }}
+{% if fragment_title %}<h2 class="uic-fragment-title">{{ fragment_title }}</h2>{% endif %}
+{% if components %}
+    {% for component in components %}{{ render_component(component) }}{% endfor %}
+{% else %}
+    {{ render_component(component) }}
+{% endif %}

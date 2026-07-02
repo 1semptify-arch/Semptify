@@ -12,6 +12,75 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-07-02 — GUI Phase 1 Wiring Fixes (IN PROGRESS)
+
+### What Was Done
+
+#### HTMX library added to base.html
+- Downloaded `static/js/htmx.min.js` (v1.9.12) locally — no CDN, keeps with "no third-party trackers" principle.
+- Added `<script src="/static/js/htmx.min.js"></script>` to `app/templates/base.html` after the page-specific scripts block.
+- UI Composer components (filter chips, add record modal) use `hx-*` attributes for progressive enhancement — HTMX was missing, so they were non-functional.
+
+#### Fragment endpoint for filter chips
+- Added `GET /api/ui/fragment/timeline_group` to `app/main.py` — returns a single `timeline_group` component fragment for HTMX swaps.
+- Maps filter chip IDs (`documents`, `events`, `journal`, `letters`, `deadlines`) to `FEED_TYPES` (`document`, `timeline_event`, `journal`, `letter`, `deadline`).
+- Uses `component_fragment.html` template with correct `component` dict shape.
+
+#### Add Record modal close behavior fixed
+- `app/templates/components/ui_composer.html` and `app/templates/generic_page.html`: replaced `onclick="this.closest('dialog').close()"` with `hx-on::after-request="if(event.detail.successful) this.closest('dialog').close()"`.
+- Root cause: onclick fired before HTMX could submit the form — the dialog closed and the POST never sent.
+- Now the dialog closes only after a successful HTMX response.
+
+#### KNOW pillar subjects fixed — was hallucinated
+- `app/services/ui_composer.py` `_compose_library`: replaced 13 hardcoded subjects (including non-existent `privacy`, `roommates`, `animals`, `moving_out`, `court`) with the actual canonical taxonomy from `app.modules.context_engine.taxonomy.ALL_SUBJECTS` and `SUBJECT_LABELS`.
+- Now uses real subjects: eviction, repair, rent, lease, deposit, discrimination, safety, habitability, retaliation, small_claims, court_prep, evidence, timeline.
+
+#### Library fragment endpoint added
+- Added `GET /api/ui/fragment/library/{subject}` to `app/main.py` — fetches Page Composer JSON, maps each verified fact to a `fact_card` component, renders via `component_fragment.html` for HTMX swap into `#library-content`.
+- Maps Page Composer fields (`claim`, `source_url`, `source_name`, `citation`) to `_fact_card` macro fields (`title`, `body`, `source_url`, `source_label`).
+- Bundles stories onto the first fact_card per the macro's `data.stories` field.
+- Falls back to `empty_state` component when no facts or stories exist.
+- Uses `compose_page(user_id=user_id or None)` so unauthenticated tenants still see the public preview.
+
+#### component_fragment.html extended
+- Now accepts either `component` (single) or `components` (list) plus optional `fragment_title` for rendering headings.
+- Keeps backward compat — existing single-component callers still work.
+
+### Still Pending
+- Redirects from old tenant pages (`/tenant/`, `/tenant/dashboard`) to `/tenant/timeline` — deferred until timeline has the full interactive data query viewer per user vision 2026-06-28.
+- Timeline is currently a basic chronological feed; user vision calls for color-coded key definitions, search with all variables, filter by names/event types/letters/notices/ledgers, compare two datasets, include/exclude file types.
+- Live test: verify `/api/ui/fragment/library/eviction` returns rendered fact_card HTML when Context Engine has MN eviction facts cached.
+
+---
+
+## Session — 2026-07-01 PM3 — Tenant Pillar Redirects (COMPLETED)
+
+### What Was Done
+
+#### Old tenant pages redirected to new pillars
+Per user vision 2026-06-22: tenant GUI = two pillars (RECORD + KNOW). Old pages now redirect:
+- `/tenant` and `/tenant/` → `/tenant/timeline` (RECORD = new tenant home)
+- `/tenant/dashboard` → `/tenant/timeline` (dashboard stats folded into RECORD feed)
+- `/tenant/journal` and `/tenant/journal/` → `/tenant/timeline` (journal entries are in the feed)
+- `/tenant/law-library` and `/tenant/law-library/` → `/tenant/library` (KNOW pillar replaces it)
+
+All redirects use `ssot_redirect()` from `app.core.ssot_guard` — no hardcoded URL strings.
+All redirects preserve the `_guard_role_page(request, {"tenant"})` check — unauthenticated users still get sent to providers, not to the pillar pages.
+
+#### Dead code removed
+- `tenant_page`: removed 15-line template/static fallback chain — redirect is 1 line.
+- `tenant_dashboard_page`: removed 12-line template/static fallback chain — redirect is 1 line.
+- `tenant_journal`: removed 25-line briefcase aggregation + template render — redirect is 1 line. The journal data is still in the timeline feed via `tenant_feed` service.
+
+### Files Changed
+- `app/main.py` — 4 route handlers rewritten as redirects (net -45 lines)
+
+### Still Pending
+- Timeline is currently a basic chronological feed; user vision calls for color-coded key definitions, search with all variables, filter by names/event types/letters/notices/ledgers, compare two datasets, include/exclude file types.
+- Live test: verify `/api/ui/fragment/library/eviction` returns rendered fact_card HTML when Context Engine has MN eviction facts cached.
+
+---
+
 ## Session — 2026-07-01 PM2 — Incomplete Code Cleanup (IN PROGRESS)
 
 ### What Was Done

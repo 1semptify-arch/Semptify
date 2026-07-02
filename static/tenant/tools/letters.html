@@ -635,16 +635,14 @@
       let dataURL;
       if (_currentTab === 'draw') {
         if (isCanvasEmpty()) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Please draw your signature first.'); }
-          else { alert('Please draw your signature first.'); }
+          SemptifyFeedback.error('Please draw your signature first.');
           return;
         }
         dataURL = _sigCanvas.toDataURL();
       } else {
         dataURL = getTypeSigDataURL();
         if (!dataURL) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Please type your name first.'); }
-          else { alert('Please type your name first.'); }
+          SemptifyFeedback.error('Please type your name first.');
           return;
         }
       }

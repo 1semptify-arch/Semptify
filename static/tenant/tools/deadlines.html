@@ -338,11 +338,7 @@
       const date = document.getElementById('new-date').value;
       const category = document.getElementById('new-category').value;
       if (!title || !date) {
-        if (window.SemptifyFeedback) {
-          SemptifyFeedback.error('Please enter a description and due date.');
-        } else {
-          alert('Please enter a description and due date.');
-        }
+        SemptifyFeedback.error('Please enter a description and due date.');
         return;
       }
       const items = loadDeadlines();

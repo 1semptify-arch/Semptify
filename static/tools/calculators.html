@@ -297,7 +297,7 @@
     }
     async function saveCalculation(id) {
       const data = calcResults[id];
-      if (!data) { if (window.SemptifyFeedback) { SemptifyFeedback.error('No calculation result to save.'); } else { alert('No calculation result to save.'); } return; }
+      if (!data) { SemptifyFeedback.error('No calculation result to save.'); return; }
       const btn = document.getElementById('btn-save-' + id);
       const originalText = btn.textContent;
       try {
@@ -310,12 +310,12 @@
         });
         const result = await resp.json();
         if (result.success) {
-          if (window.SemptifyFeedback) { SemptifyFeedback.success('Saved to vault: ' + (result.filename || '')); } else { alert('Saved to vault: ' + (result.filename || '')); }
+          SemptifyFeedback.success('Saved to vault: ' + (result.filename || ''));
         } else {
-          if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: result.message || resp.statusText }); } else { alert('Save failed: ' + (result.message || resp.statusText)); }
+          SemptifyFeedback.error('Save failed.', { detail: result.message || resp.statusText });
         }
       } catch (e) {
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: e.message }); } else { alert('Save failed: ' + e.message); }
+        SemptifyFeedback.error('Save failed.', { detail: e.message });
       } finally {
         btn.textContent = originalText;
         btn.disabled = false;

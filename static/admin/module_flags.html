@@ -428,7 +428,7 @@ async function saveOverride() {
     closeModal();
     await loadData();
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to save override.', { detail: e.message }); } else { alert('Failed to save override: ' + e.message); }
+    SemptifyFeedback.error('Failed to save override.', { detail: e.message });
   }
 }
 
@@ -446,7 +446,7 @@ async function deleteOverride() {
     closeModal();
     await loadData();
   } catch (e) {
-    if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to remove override.', { detail: e.message }); } else { alert('Failed to remove override: ' + e.message); }
+    SemptifyFeedback.error('Failed to remove override.', { detail: e.message });
   }
 }
 
