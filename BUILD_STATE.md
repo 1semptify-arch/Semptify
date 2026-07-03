@@ -1,6 +1,32 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-03 AM — Timeline Add-Event + Token Refresh Error (SHIPPED 3efc705)
+
+### What Was Done
+- **`app/templates/pages/timeline.html`** (Task 2): Replaced `window.location.reload()` on successful event save with direct DOM insertion — the new event is appended as a `.timeline-node` article into `.timeline-graph` without a full page reload. Fixed `r.status_code` → `r.status` (JS `Response` API uses `.status`). Added an inline `.me-error` box inside the modal for visible failure feedback instead of `alert()`. Empty-state is removed if present; `.timeline-graph` is created if missing. Endpoint confirmed: `/api/timeline/events` (prefix `/api/timeline` + `/events` route in `app/modules/timeline/router.py:885`).
+- **`app/core/stateless_oauth.py`** (Task 3): Added `RefreshResult` dataclass so token refresh failures return a distinguishable error instead of bare `None`. Changed `refresh_token_if_needed` and `_refresh_with_provider` to return `RefreshResult(access_token, error, token_data)`. Failure reasons are now distinguishable: `no_tokens_stored`, `no_refresh_token`, `refresh_failed:missing_client_credentials:google_drive`, `refresh_failed:http_400:<body>`, `refresh_failed:exception:<type>:<msg>`, etc. The `_refresh_with_provider` function was already making real HTTP POST requests to provider token endpoints — that part was NOT a stub. The fix was purely the error distinguishability. No other functions in the file were changed.
+- Scope: Tasks 2 and 3 only. No refactoring, no new features, no new files.
+
+### Known Working
+- `python -m py_compile` passes on all core files checked (`app/main.py`, `app/core/navigation.py`, `app/modules/vault/router.py`, `app/modules/onboarding/router.py`, `app/modules/documents/router.py`, `app/services/vault_upload_service.py`, `app/core/stateless_oauth.py`).
+- `refresh_token_if_needed` return type changed from `Optional[str]` to `RefreshResult`. Grep confirmed no external callers call `StatelessOAuthManager.refresh_token_if_needed` — the `refresh_token_if_needed` calls in `oauth_token_manager.py` and `auto_refresh.py` are on a different `TokenManager` class. No caller breakage expected.
+- Timeline event save: no `window.location.reload()` or `alert()` remains in the save handler. Validation guard at line 298 still has an `alert()` fallback (pre-existing, not in scope).
+
+### Known Gaps / Pending
+- **Not live-tested** — no dev server running this session. Compile + code review only.
+- **Timeline**: The new event node is appended at the end of `.timeline-graph`. If the timeline is sorted descending (newest first), the new event will appear at the bottom instead of the top. Pending live test to confirm sort order.
+- **Token refresh**: The return type change from `Optional[str]` to `RefreshResult` is a breaking API change for any caller that does `if result:` or `result is None`. Grep confirmed no external callers, but if any code path was missed, it will need updating to use `.success` or `.access_token`.
+- Pre-existing: `if css_path.exists():` block in `app/main.py` (~line 1756) still mis-scopes several unrelated debug/fallback routes. Pending future de-indent.
+- Pre-existing: `alert()` fallback at `timeline.html:298` in the validation guard (not the save handler). Out of scope for Task 2.
+
+### Next Session Should Start With
+- Live-test timeline add-event: open `/tenant/timeline`, click "+ Add Event Manually", fill form, save, verify event appears without reload.
+- Live-test token refresh: let a session expire, verify the error is distinguishable (not a silent None) and the user gets a clear message.
+- Consider de-indenting the misnested debug routes in `app/main.py` (pre-existing latent bug).
+
+---
+
 ## Session — 2026-07-03 AM — Vault Upload Button Fix (SHIPPED 25e01d8)
 
 ### What Was Done
