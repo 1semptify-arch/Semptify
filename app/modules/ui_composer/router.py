@@ -36,12 +36,11 @@ def _get_user_id_from_request(request: Request) -> str:
     degrades gracefully to an empty state for unauthenticated requests.
     """
     try:
-        from app.core.user_id import parse_user_id
+        from app.core.cookie_auth import verify_user_id
         user_id_cookie = request.cookies.get("semptify_uid", "")
         if not user_id_cookie:
             return ""
-        parsed = parse_user_id(user_id_cookie)
-        return parsed.user_id if parsed else ""
+        return verify_user_id(user_id_cookie) or ""
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.debug("UI Composer: no user_id on request: %s", e)
         return ""
