@@ -261,3 +261,8 @@ test-results/
 tests/e2e/node_modules/
 tests/e2e/test-results/
 playwright-report/
+
+# Personal / scratch files (not part of Semptify)
+genminy.txt
+setup_claude_code_free.ps1
+REPOs/
