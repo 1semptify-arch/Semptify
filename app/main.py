@@ -1760,76 +1760,76 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Onboarding Redirect (before catch-all)
     # =========================================================================
 
-        @fastapi_app.get("/onboarding", response_class=HTMLResponse)
-        async def onboarding_redirect():
-            """Redirect /onboarding to /onboarding/ for the router."""
-            onboarding_stage = navigation.get_stage("onboarding_start")
-            onboarding_path = (onboarding_stage.path if onboarding_stage else "/onboarding")
-            if not onboarding_path.endswith("/"):
-                onboarding_path += "/"
-            return ssot_redirect(onboarding_path, context="onboarding_redirect trailing slash")
+    @fastapi_app.get("/onboarding", response_class=HTMLResponse)
+    async def onboarding_redirect():
+        """Redirect /onboarding to /onboarding/ for the router."""
+        onboarding_stage = navigation.get_stage("onboarding_start")
+        onboarding_path = (onboarding_stage.path if onboarding_stage else "/onboarding")
+        if not onboarding_path.endswith("/"):
+            onboarding_path += "/"
+        return ssot_redirect(onboarding_path, context="onboarding_redirect trailing slash")
 
-        @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
-        async def welcome_html():
-            """Serve welcome page â€” canonical entry point for new users."""
-            welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
-            if welcome_path.exists():
-                return FileResponse(welcome_path)
-            root_stage = navigation.get_stage("root")
-            root_path = root_stage.path if root_stage else "/"
-            return ssot_redirect(root_path, context="welcome_html fallback")
+    @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
+    async def welcome_html():
+        """Serve welcome page â€” canonical entry point for new users."""
+        welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
+        if welcome_path.exists():
+            return FileResponse(welcome_path)
+        root_stage = navigation.get_stage("root")
+        root_path = root_stage.path if root_stage else "/"
+        return ssot_redirect(root_path, context="welcome_html fallback")
 
-        # Onboarding pages - bypass static HTML block middleware
-        @fastapi_app.get("/onboarding/select-role", response_class=HTMLResponse)
-        @fastapi_app.get("/onboarding/select-role.html", response_class=HTMLResponse)
-        async def role_select_page():
-            """Serve role selection page with no-cache headers."""
-            # Try new file first (bypasses any caching issues)
-            pick_role_path = BASE_PATH / "static" / "onboarding" / "pick-role.html"
-            if pick_role_path.exists():
-                return FileResponse(
-                    pick_role_path,
-                    headers={
-                        "Cache-Control": "no-cache, no-store, must-revalidate",
-                        "Pragma": "no-cache",
-                        "Expires": "0"
-                    }
-                )
-            # Fallback to old file
-            page_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
-            if page_path.exists():
-                return FileResponse(
-                    page_path,
-                    headers={
-                        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
-                        "Pragma": "no-cache",
-                        "Expires": "0",
-                        "Cloudflare-CDN-Cache-Control": "no-cache"
-                    }
-                )
-            # Fallback to providers if role-select doesn't exist
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role_select fallback")
+    # Onboarding pages - bypass static HTML block middleware
+    @fastapi_app.get("/onboarding/select-role", response_class=HTMLResponse)
+    @fastapi_app.get("/onboarding/select-role.html", response_class=HTMLResponse)
+    async def role_select_page():
+        """Serve role selection page with no-cache headers."""
+        # Try new file first (bypasses any caching issues)
+        pick_role_path = BASE_PATH / "static" / "onboarding" / "pick-role.html"
+        if pick_role_path.exists():
+            return FileResponse(
+                pick_role_path,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
+            )
+        # Fallback to old file
+        page_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
+        if page_path.exists():
+            return FileResponse(
+                page_path,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                    "Cloudflare-CDN-Cache-Control": "no-cache"
+                }
+            )
+        # Fallback to providers if role-select doesn't exist
+        providers_stage = navigation.get_stage("providers")
+        providers_path = providers_stage.path if providers_stage else "/storage/providers"
+        return ssot_redirect(providers_path, context="role_select fallback")
 
-        @fastapi_app.get("/storage/providers", response_class=HTMLResponse)
-        @fastapi_app.get("/storage/providers.html", response_class=HTMLResponse)
-        async def storage_providers_page():
-            """Serve storage providers selection page."""
-            page_path = BASE_PATH / "static" / "onboarding" / "providers.html"
-            if page_path.exists():
-                return FileResponse(page_path)
-            # Fallback to OAuth if providers page doesn't exist
-            return ssot_redirect("/onboarding/auth/google_drive?force_fresh=true", context="providers fallback")
+    @fastapi_app.get("/storage/providers", response_class=HTMLResponse)
+    @fastapi_app.get("/storage/providers.html", response_class=HTMLResponse)
+    async def storage_providers_page():
+        """Serve storage providers selection page."""
+        page_path = BASE_PATH / "static" / "onboarding" / "providers.html"
+        if page_path.exists():
+            return FileResponse(page_path)
+        # Fallback to OAuth if providers page doesn't exist
+        return ssot_redirect("/onboarding/auth/google_drive?force_fresh=true", context="providers fallback")
 
-        # Register page redirect - Semptify uses OAuth-based auth, no username/password registration
-        @fastapi_app.get("/register", response_class=HTMLResponse)
-        async def register_redirect(request: Request):
-            """Redirect to OAuth-based onboarding. Semptify has no username/password registration."""
-            from app.core.navigation import navigation
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="register redirect to OAuth onboarding")
+    # Register page redirect - Semptify uses OAuth-based auth, no username/password registration
+    @fastapi_app.get("/register", response_class=HTMLResponse)
+    async def register_redirect(request: Request):
+        """Redirect to OAuth-based onboarding. Semptify has no username/password registration."""
+        from app.core.navigation import navigation
+        providers_stage = navigation.get_stage("providers")
+        providers_path = providers_stage.path if providers_stage else "/storage/providers"
+        return ssot_redirect(providers_path, context="register redirect to OAuth onboarding")
 
     # =========================================================================
     # OAuth Callback Compatibility Route
@@ -3934,14 +3934,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         try:
             from app.services.ui_composer import compose_page
             from app.modules.tenant_feed.service import aggregate_feed_async
-            from app.core.user_id import parse_user_id
+            from app.core.cookie_auth import verify_user_id
 
             # Get user_id for feed aggregation
             user_id_cookie = request.cookies.get("semptify_uid", "")
-            user_id = ""
-            if user_id_cookie:
-                parsed = parse_user_id(user_id_cookie)
-                user_id = parsed.user_id if parsed else ""
+            user_id = verify_user_id(user_id_cookie) or ""
 
             # Aggregate the real feed (async — uses vault service + DB)
             feed_items = await aggregate_feed_async(user_id) if user_id else []
@@ -3982,13 +3979,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         try:
             from app.services.ui_composer import compose_page
-            from app.core.user_id import parse_user_id
+            from app.core.cookie_auth import verify_user_id
 
             user_id_cookie = request.cookies.get("semptify_uid", "")
-            user_id = ""
-            if user_id_cookie:
-                parsed = parse_user_id(user_id_cookie)
-                user_id = parsed.user_id if parsed else ""
+            user_id = verify_user_id(user_id_cookie) or ""
 
             page = compose_page(user_id, "library", context={})
 
@@ -4015,7 +4009,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         component as HTML.
         """
         from app.modules.tenant_feed.service import aggregate_feed_async, FEED_TYPES
-        from app.core.user_id import parse_user_id
+        from app.core.cookie_auth import verify_user_id
 
         # Map filter chip IDs to FEED_TYPES
         chip_to_feed = {
@@ -4030,10 +4024,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             type_filter = None
 
         user_id_cookie = request.cookies.get("semptify_uid", "")
-        user_id = ""
-        if user_id_cookie:
-            parsed = parse_user_id(user_id_cookie)
-            user_id = parsed.user_id if parsed else ""
+        user_id = verify_user_id(user_id_cookie) or ""
 
         feed_items = await aggregate_feed_async(user_id, type_filter=type_filter) if user_id else []
 
