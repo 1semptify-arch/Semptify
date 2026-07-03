@@ -1,27 +1,36 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
-## Session — 2026-07-03 AM — Timeline Add-Event + Token Refresh Error (SHIPPED 3efc705)
+## Session — 2026-07-03 AM — Timeline Add-Event + Token Refresh + Repo Hygiene (SHIPPED 047104c)
 
 ### What Was Done
-- **`app/templates/pages/timeline.html`** (Task 2): Replaced `window.location.reload()` on successful event save with direct DOM insertion — the new event is appended as a `.timeline-node` article into `.timeline-graph` without a full page reload. Fixed `r.status_code` → `r.status` (JS `Response` API uses `.status`). Added an inline `.me-error` box inside the modal for visible failure feedback instead of `alert()`. Empty-state is removed if present; `.timeline-graph` is created if missing. Endpoint confirmed: `/api/timeline/events` (prefix `/api/timeline` + `/events` route in `app/modules/timeline/router.py:885`).
+- **`app/templates/pages/timeline.html`** (Task 2): Replaced `window.location.reload()` on successful event save with direct DOM insertion — the new event is prepended as a `.timeline-node` article into `.timeline-graph` (newest first, matching the timeline's descending sort order). Fixed `r.status_code` → `r.status` (JS `Response` API uses `.status`). Added an inline `.me-error` box inside the modal for visible failure feedback instead of `alert()`. Added `escapeHtml()` helper to prevent XSS via user-entered title/description/urgency being interpolated into `innerHTML`. Empty-state is removed if present; `.timeline-graph` is created if missing. Endpoint confirmed: `/api/timeline/events` (prefix `/api/timeline` + `/events` route in `app/modules/timeline/router.py:885`).
 - **`app/core/stateless_oauth.py`** (Task 3): Added `RefreshResult` dataclass so token refresh failures return a distinguishable error instead of bare `None`. Changed `refresh_token_if_needed` and `_refresh_with_provider` to return `RefreshResult(access_token, error, token_data)`. Failure reasons are now distinguishable: `no_tokens_stored`, `no_refresh_token`, `refresh_failed:missing_client_credentials:google_drive`, `refresh_failed:http_400:<body>`, `refresh_failed:exception:<type>:<msg>`, etc. The `_refresh_with_provider` function was already making real HTTP POST requests to provider token endpoints — that part was NOT a stub. The fix was purely the error distinguishability. No other functions in the file were changed.
-- Scope: Tasks 2 and 3 only. No refactoring, no new features, no new files.
+- **Repo hygiene** (Task 4): `git rm -r --cached venv311/ venv311_clean/` — removed 83 tracked files (3216 lines, ~39MB) from git index. Both folders were already in `.gitignore` (lines 58-59) but were committed before the ignore rule existed. Folders still exist on disk, just untracked now.
+- Scope: Tasks 2, 3, and 4 only. No refactoring, no new features beyond the task scope, no new files.
+
+### Commits This Session
+- `25e01d8` — Task 1: Vault upload button fix (previous session, included for context)
+- `3efc705` — Task 2 + Task 3: Timeline add-event + token refresh error
+- `7656425` — BUILD_STATE.md update
+- `a144721` — Review fix: XSS escape + prepend newest-first in timeline DOM insertion
+- `047104c` — Task 4: Remove committed virtual environments
 
 ### Known Working
 - `python -m py_compile` passes on all core files checked (`app/main.py`, `app/core/navigation.py`, `app/modules/vault/router.py`, `app/modules/onboarding/router.py`, `app/modules/documents/router.py`, `app/services/vault_upload_service.py`, `app/core/stateless_oauth.py`).
 - `refresh_token_if_needed` return type changed from `Optional[str]` to `RefreshResult`. Grep confirmed no external callers call `StatelessOAuthManager.refresh_token_if_needed` — the `refresh_token_if_needed` calls in `oauth_token_manager.py` and `auto_refresh.py` are on a different `TokenManager` class. No caller breakage expected.
-- Timeline event save: no `window.location.reload()` or `alert()` remains in the save handler. Validation guard at line 298 still has an `alert()` fallback (pre-existing, not in scope).
+- Timeline event save: no `window.location.reload()` or `alert()` remains in the save handler. User input is escaped via `escapeHtml()` before insertion into `innerHTML`. New events are prepended (newest first, matching `router.py:750-753` descending sort).
+- `git ls-files | grep venv311` returns nothing — both venv folders are now untracked, still exist on disk.
 
 ### Known Gaps / Pending
 - **Not live-tested** — no dev server running this session. Compile + code review only.
-- **Timeline**: The new event node is appended at the end of `.timeline-graph`. If the timeline is sorted descending (newest first), the new event will appear at the bottom instead of the top. Pending live test to confirm sort order.
 - **Token refresh**: The return type change from `Optional[str]` to `RefreshResult` is a breaking API change for any caller that does `if result:` or `result is None`. Grep confirmed no external callers, but if any code path was missed, it will need updating to use `.success` or `.access_token`.
 - Pre-existing: `if css_path.exists():` block in `app/main.py` (~line 1756) still mis-scopes several unrelated debug/fallback routes. Pending future de-indent.
 - Pre-existing: `alert()` fallback at `timeline.html:298` in the validation guard (not the save handler). Out of scope for Task 2.
+- Pre-existing: ~80 Ruff lint warnings in `stateless_oauth.py` (whitespace, deprecated `Dict`/`Tuple` style). Not introduced by this session.
 
 ### Next Session Should Start With
-- Live-test timeline add-event: open `/tenant/timeline`, click "+ Add Event Manually", fill form, save, verify event appears without reload.
+- Live-test timeline add-event: open `/tenant/timeline`, click "+ Add Event Manually", fill form, save, verify event appears at top without reload, verify XSS is escaped.
 - Live-test token refresh: let a session expire, verify the error is distinguishable (not a silent None) and the user gets a clear message.
 - Consider de-indenting the misnested debug routes in `app/main.py` (pre-existing latent bug).
 
