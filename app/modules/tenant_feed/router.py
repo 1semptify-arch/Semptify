@@ -24,13 +24,11 @@ router = APIRouter(prefix="/api/tenant", tags=["Tenant Feed"])
 def _get_user_id_sync(request) -> str:
     """Extract user_id from signed cookie on the request."""
     try:
-        from fastapi import Request
-        from app.core.user_id import parse_user_id
+        from app.core.cookie_auth import verify_user_id
         user_id_cookie = request.cookies.get("semptify_uid", "")
         if not user_id_cookie:
             return ""
-        parsed = parse_user_id(user_id_cookie)
-        return parsed.user_id if parsed else ""
+        return verify_user_id(user_id_cookie) or ""
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.debug("Feed: no user_id on request: %s", e)
         return ""
