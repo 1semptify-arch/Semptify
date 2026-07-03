@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semptify — Help & Resources (Always Available)</title>
+<meta name="description" content="Emergency housing and legal help resources. No login needed. Available even if semptify.org is down.">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --ink-secondary: #4a4a4a;
+    --ink-muted: #6b6b6b;
+    --paper: #ffffff;
+    --tint: #E6F1FB;
+    --tint-strong: #0C447C;
+    --border: #dcdcdc;
+    --urgent: #993C1D;
+    --urgent-tint: #FAECE7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.5;
+    font-size: 16px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 0 3rem; }
+
+  .notice {
+    background: var(--tint);
+    border-bottom: 3px solid var(--tint-strong);
+    padding: 1rem 1.25rem;
+    text-align: center;
+  }
+  .notice p {
+    margin: 0.25rem 0 0;
+    font-size: 14px;
+    color: var(--ink-secondary);
+  }
+  .notice strong { color: var(--tint-strong); font-size: 15px; }
+
+  header { padding: 1.5rem 1.25rem 0.5rem; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { font-size: 13px; color: var(--ink-muted); margin: 0; }
+
+  .emergency {
+    margin: 1.25rem 1.25rem 0;
+    background: var(--urgent-tint);
+    border-left: 4px solid var(--urgent);
+    padding: 1rem 1.1rem;
+  }
+  .emergency h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--urgent);
+    margin: 0 0 0.6rem;
+  }
+  .emergency a.tel {
+    display: block;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  .emergency a.tel:last-child { border-bottom: none; }
+  .emergency a.tel span.label {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-secondary);
+  }
+
+  section.group { margin-top: 1.75rem; }
+  .group-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-muted);
+    padding: 0.4rem 1.25rem;
+    background: #f5f5f4;
+  }
+  .item {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .item:nth-child(even) { background: #fafaf9; }
+  .item .name { font-weight: 600; font-size: 14.5px; margin: 0 0 2px; }
+  .item a.number {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--tint-strong);
+    text-decoration: none;
+  }
+  .item .desc { font-size: 13px; color: var(--ink-secondary); margin: 3px 0 0; }
+  .item .hours { font-size: 12px; color: var(--ink-muted); margin: 3px 0 0; }
+
+  .disclaimer {
+    margin: 1.75rem 1.25rem 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+  }
+  .disclaimer strong { color: var(--ink); }
+
+  footer {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="notice">
+    <strong>⚠ Semptify.org may be temporarily unavailable</strong>
+    <p>This page works independently and does not require the main site. The resources below are always reachable here.</p>
+  </div>
+
+  <header>
+    <h1>Help &amp; Resources</h1>
+    <p class="sub">For tenants, landlords, and guests. No login. No registration. Always free.</p>
+  </header>
+
+  <div class="emergency">
+    <h2>If this is an emergency</h2>
+    <a class="tel" href="tel:988">988 — Crisis Line<span class="label">Call or text, 24/7, free and confidential</span></a>
+    <a class="tel" href="tel:211">211 — Housing Help<span class="label">Emergency rental assistance, shelter, crisis referrals</span></a>
+    <a class="tel" href="tel:6127285767">612-728-5767 — HOME Line<span class="label">Minnesota tenant hotline</span></a>
+    <a class="tel" href="tel:18776966529">1-877-696-6529 — Legal Aid<span class="label">Free legal help for low-income tenants</span></a>
+  </div>
+
+  <section class="group">
+    <p class="group-label">Crisis &amp; Emergency Contacts</p>
+
+    <div class="item">
+      <p class="name">988 Suicide &amp; Crisis Lifeline</p>
+      <a class="number" href="tel:988">Call or text 988</a>
+      <p class="desc">Mental health crisis, emotional distress, suicide prevention.</p>
+      <p class="hours">24/7 · Free · Confidential · English/Español</p>
+    </div>
+
+    <div class="item">
+      <p class="name">211 United Way</p>
+      <a class="number" href="tel:211">Dial 211</a>
+      <p class="desc">Emergency rental assistance, food, shelter, crisis referrals statewide.</p>
+      <p class="hours">24/7 · Toll-free 1-800-543-7709 · Text your zip to 898-211</p>
+    </div>
+
+    <div class="item">
+      <p class="name">National Domestic Violence Hotline</p>
+      <a class="number" href="tel:18007997233">1-800-799-7233</a>
+      <p class="desc">Confidential safety planning and urgent support. 200+ languages.</p>
+      <p class="hours">24/7 · Deaf hotline (video phone): 1-855-812-1001</p>
+    </div>
+  </section>
+
+  <section class="group">
+    <p class="group-label">Housing &amp; Tenant Help</p>
+
+    <div class="item">
+      <p class="name">HOME Line — Minnesota Tenant Hotline</p>
+      <a class="number" href="tel:6127285767">612-728-5767</a>
+      <p class="desc">Free legal advice, counseling, and rental help for tenants statewide.</p>
+      <p class="hours">Mon–Thu 9am–6pm · Fri 9am–3pm · Toll-free 1-866-866-3546</p>
+    </div>
+
+    <div class="item">
+      <p class="name">Minnesota Statewide Legal Aid</p>
+      <a class="number" href="tel:18776966529">1-877-696-6529</a>
+      <p class="desc">Free legal help for low-income tenants. Routes you to the right local legal aid office. May represent you in court.</p>
+      <p class="hours">Mon–Fri 8:30am–4:30pm</p>
+    </div>
+
+    <div class="item">
+      <p class="name">Volunteer Lawyers Network</p>
+      <a class="number" href="tel:6127526677">612-752-6677</a>
+      <p class="desc">Free legal help for Hennepin, Anoka, and Ramsey County residents. Eviction help and expungement.</p>
+      <p class="hours">Intake Mon–Thu 10am–1pm</p>
+    </div>
+
+    <div class="item">
+      <p class="name">Hennepin Shelter Hotline</p>
+      <a class="number" href="tel:6122048200">612-204-8200</a>
+      <p class="desc">Emergency shelter for Hennepin County residents.</p>
+      <p class="hours">Mon–Fri 8am–10pm · Sat–Sun &amp; holidays 1pm–9pm</p>
+    </div>
+
+    <div class="item">
+      <p class="name">Dakota County Housing Resource Line</p>
+      <a class="number" href="tel:6515545751">651-554-5751</a>
+      <p class="desc">Eviction prevention, emergency shelter, domestic violence housing resources.</p>
+      <p class="hours">Mon–Fri 8am–4:30pm · Crisis Response (24/7): 952-891-7171</p>
+    </div>
+
+    <div class="item">
+      <p class="name">Ramsey County Human Services</p>
+      <a class="number" href="tel:6512664444">651-266-4444</a>
+      <p class="desc">Financial assistance, emergency housing support, homeless prevention.</p>
+      <p class="hours">Mon–Fri 8am–4:30pm</p>
+    </div>
+
+    <div class="item">
+      <p class="name">Anoka County Housing Help Desk</p>
+      <a class="number" href="tel:7633241490">763-324-1490</a>
+      <p class="desc">Housing resources and eviction prevention for Anoka County residents.</p>
+      <p class="hours">Mon–Fri 8am–4:30pm</p>
+    </div>
+  </section>
+
+  <section class="group">
+    <p class="group-label">Know Your Rights</p>
+
+    <div class="item">
+      <p class="name">MN Attorney General — Landlord-Tenant Handbook</p>
+      <p class="desc">Official plain-language guide to Minnesota landlord-tenant law.</p>
+    </div>
+
+    <div class="item">
+      <p class="name">MN Statutes Chapter 504B</p>
+      <p class="desc">The full text of Minnesota's landlord-tenant law.</p>
+    </div>
+
+    <div class="item">
+      <p class="name">LawHelp Minnesota — lawhelpmn.org</p>
+      <p class="desc">Free legal information and lawyer referrals. English, Spanish, Hmong, Somali.</p>
+    </div>
+  </section>
+
+  <div class="disclaimer">
+    <strong>Not legal advice.</strong> This page provides contact information for real organizations only. It is not a substitute for advice from a qualified attorney. Laws vary by location and change over time. Contact one of the legal aid resources above for advice specific to your situation.
+  </div>
+
+  <footer>
+    Semptify — No Cost, Always &middot; No Ads &middot; No Login Required<br>
+    This page is hosted independently of semptify.org and does not depend on it being online.
+  </footer>
+
+</div>
+</body>
+</html>
