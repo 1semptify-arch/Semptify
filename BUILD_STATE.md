@@ -1,6 +1,30 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-03 AM — Vault Upload Button Fix (SHIPPED 25e01d8)
+
+### What Was Done
+- **`static/js/core/app.js`**: Replaced `uploadToVault()` stub. Removed all 3 `alert()` calls. Added a `showStatus(message, type)` helper that builds a colored status banner (`#dcfce7`/`#166534` for success, `#fee2e2`/`#991b1b` for error) inside the `#vault-portal` modal. Upload now POSTs to `/api/documents/upload` as `multipart/form-data`. Fixed `r.status_code` → `r.status` (JS `Response` API uses `status`, not `status_code`). Added 1.5s `setTimeout` before `closeVaultPortal()` + `window.location.reload()` so the user actually sees the success confirmation before the modal closes. No other functions in the file were modified.
+- Scope: Task 1 only (vault upload button). No refactoring, no new features, no new files.
+
+### Known Working
+- `python -m py_compile` passes on all core files checked this session (`app/main.py`, `app/core/navigation.py`, `app/modules/vault/router.py`, `app/modules/onboarding/router.py`, `app/modules/documents/router.py`, `app/services/vault_upload_service.py`).
+- `grep "alert(" static/js/core/app.js` returns zero results — no `alert()` remains in the file.
+- Diff confirmed minimal: only `uploadToVault()` (lines 39-102) changed; `openVaultPortal`, `closeVaultPortal`, `resetVaultForm`, and DOMContentLoaded listeners untouched.
+
+### Known Gaps / Pending
+- **Not live-tested** — no dev server running this session. Compile + code review only. Pending live test: open vault portal, select file, click upload, verify (a) request hits `/api/documents/upload`, (b) green success banner appears for ~1.5s, (c) modal closes and page reloads.
+- **Endpoint risk**: task specified `/api/documents/upload`, but restore-point memory mentions `/api/vault/upload` and `/api/intake/upload/auto` as the actual live upload endpoints. If upload 404s in live test, the endpoint path in `uploadToVault()` may need to be reconciled with the real backend route. Flagging only — task scope forbade changing the endpoint.
+- Pre-existing bug (not touched): `if css_path.exists():` block in `app/main.py` (~line 1756) still mis-scopes several unrelated debug/fallback routes. Pending future de-indent.
+- Pre-existing: `window.location.reload()` inside the `setTimeout` makes the preceding `refreshVaultFileList()` call effectively dead code (reload supersedes it). Not fixed per task scope.
+
+### Next Session Should Start With
+- Live-test the vault upload button end-to-end against a running dev server. Confirm the endpoint resolves and the success/error banners render correctly.
+- If `/api/documents/upload` 404s, reconcile with the actual backend upload route (likely `/api/vault/upload` or `/api/intake/upload/auto` per restore-point memory).
+- Consider de-indenting the misnested debug routes in `app/main.py` (pre-existing latent bug).
+
+---
+
 ## Session — 2026-07-02 PM — Auth Callback 404 Fix (SHIPPED 5627c5e)
 
 ### What Was Done
