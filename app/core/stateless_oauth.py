@@ -22,6 +22,7 @@ MULTI-ROLE SUPPORT:
 import asyncio
 import json
 import logging
+from dataclasses import dataclass
 from typing import Optional, Dict, Any, Tuple
 from datetime import datetime, timezone
 
@@ -31,6 +32,25 @@ from app.core.cookie_auth import sign_user_id, verify_user_id
 from app.core.vault_paths import AUTH_FOLDER, SEMPTIFY_ROOT
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class RefreshResult:
+    """Result of a token refresh attempt.
+
+    On success: access_token is set, error is None.
+    On failure: access_token is None, error describes the specific failure
+    reason so callers can distinguish "no tokens stored" from "no refresh
+    token" from "provider rejected the refresh" from "missing client
+    credentials" — instead of all of these collapsing to a bare None.
+    """
+    access_token: Optional[str] = None
+    error: Optional[str] = None
+    token_data: Optional[Dict[str, Any]] = None
+
+    @property
+    def success(self) -> bool:
+        return self.access_token is not None
 
 
 class StatelessOAuthManager:
@@ -224,7 +244,7 @@ class StatelessOAuthManager:
         self,
         user_id: str,
         provider: str,
-    ) -> Optional[str]:
+    ) -> RefreshResult:
         """
         Refresh OAuth token if expired.
         
@@ -233,11 +253,15 @@ class StatelessOAuthManager:
             provider: Storage provider
         
         Returns:
-            New access token if refreshed, None otherwise
+            RefreshResult — on success access_token is set; on failure
+            access_token is None and error describes the specific reason
+            (no_tokens_stored, no_refresh_token, refresh_failed:<reason>).
+            Callers should check .success or .error rather than truthiness
+            so that "not implemented" and "genuinely failed" are distinct.
         """
         token_data = await self.get_oauth_tokens(user_id, provider)
         if not token_data:
-            return None
+            return RefreshResult(error="no_tokens_stored")
         
         # Check if token is expired
         expires_at = token_data.get("expires_at")
@@ -245,13 +269,13 @@ class StatelessOAuthManager:
             expires_datetime = datetime.fromtimestamp(expires_at, timezone.utc)
             if utc_now() < expires_datetime:
                 # Token still valid
-                return token_data.get("access_token")
+                return RefreshResult(access_token=token_data.get("access_token"))
         
         # Token expired or no expiration - attempt refresh
         refresh_token = token_data.get("refresh_token")
         if not refresh_token:
             logger.warning(f"No refresh token available for user={user_id[:4]}... provider={provider}")
-            return None
+            return RefreshResult(error="no_refresh_token")
 
         # Serialize refresh per (user_id, provider) to prevent concurrent
         # refresh races where two requests both try the same refresh_token
@@ -265,14 +289,18 @@ class StatelessOAuthManager:
                 if expires_at:
                     expires_datetime = datetime.fromtimestamp(expires_at, timezone.utc)
                     if utc_now() < expires_datetime:
-                        return token_data.get("access_token")
+                        return RefreshResult(access_token=token_data.get("access_token"))
                 refresh_token = token_data.get("refresh_token") or refresh_token
 
-            new_tokens = await self._refresh_with_provider(provider, refresh_token)
-            if not new_tokens:
-                logger.warning(f"Token refresh failed for user={user_id[:4]}... provider={provider}")
-                return None
+            refresh_result = await self._refresh_with_provider(provider, refresh_token)
+            if not refresh_result.success:
+                logger.warning(
+                    f"Token refresh failed for user={user_id[:4]}... provider={provider}: "
+                    f"{refresh_result.error}"
+                )
+                return RefreshResult(error=f"refresh_failed:{refresh_result.error}")
 
+            new_tokens = refresh_result.token_data or {}
             new_access = new_tokens.get("access_token")
             new_refresh = new_tokens.get("refresh_token", refresh_token)
             expires_in = new_tokens.get("expires_in", 3600)
@@ -295,19 +323,19 @@ class StatelessOAuthManager:
                 )
             else:
                 logger.info(f"Token refreshed and stored for user={user_id[:4]}... provider={provider}")
-            return new_access
+            return RefreshResult(access_token=new_access, token_data=new_tokens)
 
     async def _refresh_with_provider(
         self,
         provider: str,
         refresh_token: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> RefreshResult:
         """
         Provider-specific OAuth token refresh.
 
         Posts refresh_token to the provider's token endpoint with client
-        credentials from settings. Returns the new token JSON on success,
-        None on failure.
+        credentials from settings. Returns RefreshResult with the new token
+        data on success, or a distinguishable error on failure.
         """
         try:
             from app.core.config import get_settings
@@ -317,7 +345,7 @@ class StatelessOAuthManager:
 
             if provider == "google_drive":
                 if not settings.google_drive_client_id:
-                    return None
+                    return RefreshResult(error="missing_client_credentials:google_drive")
                 token_url = "https://oauth2.googleapis.com/token"
                 data = {
                     "client_id": settings.google_drive_client_id,
@@ -327,7 +355,7 @@ class StatelessOAuthManager:
                 }
             elif provider == "dropbox":
                 if not settings.dropbox_app_key:
-                    return None
+                    return RefreshResult(error="missing_client_credentials:dropbox")
                 token_url = "https://api.dropboxapi.com/oauth2/token"
                 data = {
                     "client_id": settings.dropbox_app_key,
@@ -337,7 +365,7 @@ class StatelessOAuthManager:
                 }
             elif provider == "onedrive":
                 if not settings.onedrive_client_id:
-                    return None
+                    return RefreshResult(error="missing_client_credentials:onedrive")
                 token_url = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
                 data = {
                     "client_id": settings.onedrive_client_id,
@@ -348,21 +376,26 @@ class StatelessOAuthManager:
                 }
             else:
                 logger.warning(f"Unknown provider for token refresh: {provider}")
-                return None
+                return RefreshResult(error=f"unknown_provider:{provider}")
 
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(token_url, data=data)
                 if response.status_code != 200:
+                    body = response.text[:200]
                     logger.error(
                         f"Token refresh failed for provider={provider}: "
-                        f"HTTP {response.status_code} - {response.text}"
+                        f"HTTP {response.status_code} - {body}"
                     )
-                    return None
-                return response.json()
+                    return RefreshResult(error=f"http_{response.status_code}:{body}")
+                token_data = response.json()
+                return RefreshResult(
+                    access_token=token_data.get("access_token"),
+                    token_data=token_data,
+                )
 
         except Exception as e:
             logger.exception(f"Token refresh error for provider={provider}: {e}")
-            return None
+            return RefreshResult(error=f"exception:{type(e).__name__}:{e}")
     
     async def store_session(
         self,
