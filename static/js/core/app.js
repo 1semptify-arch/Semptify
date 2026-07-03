@@ -41,9 +41,26 @@ function uploadToVault() {
   const docType = document.getElementById('vault-doc-type')?.value;
   const description = document.getElementById('vault-description')?.value;
   const addTimestamp = document.getElementById('vault-timestamp')?.checked;
+  const portal = document.getElementById('vault-portal');
+
+  let status = portal?.querySelector('.vault-upload-status');
+  if (!status && portal) {
+    status = document.createElement('div');
+    status.className = 'vault-upload-status';
+    status.style.cssText = 'padding:12px;margin:12px 0;border-radius:6px;font-size:0.9rem;display:none;';
+    const content = portal.querySelector('.vault-portal-content, .modal-content, .modal-body');
+    (content || portal).prepend(status);
+  }
+  const showStatus = (message, type) => {
+    if (!status) return;
+    status.textContent = message;
+    status.style.display = 'block';
+    status.style.background = type === 'error' ? '#fee2e2' : '#dcfce7';
+    status.style.color = type === 'error' ? '#991b1b' : '#166534';
+  };
 
   if (!files || files.length === 0) {
-    alert('Please select files to upload');
+    showStatus('Please select files to upload.', 'error');
     return;
   }
 
@@ -57,25 +74,27 @@ function uploadToVault() {
   const originalText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
 
-  fetch('/api/vault/upload', { method: 'POST', body: formData })
+  fetch('/api/documents/upload', { method: 'POST', body: formData })
     .then(async r => {
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        const msg = data.detail || data.message || `Upload failed (HTTP ${r.status_code})`;
+        const msg = data.detail || data.message || `Upload failed (HTTP ${r.status})`;
         throw new Error(msg);
       }
       const uploaded = data.uploaded_files || data.files || [];
       const errors = data.errors || [];
       let msg = `${uploaded.length} file(s) uploaded successfully.`;
       if (errors.length > 0) msg += ` ${errors.length} error(s).`;
-      alert(msg);
-      closeVaultPortal();
-      if (typeof refreshVaultFileList === 'function') refreshVaultFileList();
-      window.location.reload();
+      showStatus(msg, 'success');
+      setTimeout(() => {
+        closeVaultPortal();
+        if (typeof refreshVaultFileList === 'function') refreshVaultFileList();
+        window.location.reload();
+      }, 1500);
     })
     .catch(err => {
       console.error('Vault upload failed:', err);
-      alert('Upload failed: ' + err.message);
+      showStatus('Upload failed: ' + err.message, 'error');
     })
     .finally(() => {
       if (btn) { btn.disabled = false; btn.textContent = originalText; }
