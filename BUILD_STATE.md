@@ -1,6 +1,28 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-02 PM — Auth Callback 404 Fix (SHIPPED 5627c5e)
+
+### What Was Done
+- **`app/main.py`**: Added `/auth/callback` compatibility route. Root cause: an OAuth provider redirect_uri (`http://localhost:<port>/auth/callback`) did not match either of the app's canonical callback routes (`/onboarding/callback/{provider}` or `/storage/callback/{provider}`), causing a 404 on OAuth return. The new route looks up the `state` token in the `oauth_states` table to determine the `provider`, then 302-redirects to the correct canonical handler with `code`/`state` preserved (urlencoded).
+- **`app/main.py`**: Added `Query` to the fastapi import (needed by the new route).
+- Confirmed via AST inspection that the new route registers unconditionally (not nested inside the pre-existing `if css_path.exists():` block that — as a pre-existing latent bug — currently gates `/onboarding`, `/welcome.html`, `/onboarding/select-role`, `/storage/providers`, and `/register` routes). Did not fix that pre-existing bug — out of scope for this session, flagged for future cleanup.
+
+### Known Working
+- `/auth/callback?code=...&state=...` now resolves to the correct onboarding or storage callback instead of 404ing.
+- `python -m py_compile app/main.py` passes.
+
+### Known Gaps / Pending
+- **Not live-tested** — no dev server was running this session, so the fix is verified by compile + code review only, not an actual OAuth round-trip. Pending live test next session (start a local server, run through Google Drive OAuth, confirm `/auth/callback` correctly proxies to `/onboarding/callback/google_drive`).
+- Pre-existing bug: `if css_path.exists():` at `app/main.py` (~line 1756) improperly scopes several unrelated debug/fallback routes (`/onboarding`, `/welcome.html`, `/onboarding/select-role*`, `/storage/providers`, `/register`) due to leftover indentation from a prior edit. Functionally harmless today since `static/css` exists in all known environments, but should be de-indented to top-level for correctness.
+- Determine if the OAuth provider's registered redirect URI should instead be corrected at the source (Google/Dropbox/OneDrive console) to point directly at `/onboarding/callback/{provider}`, making this compatibility route unnecessary long-term.
+
+### Next Session Should Start With
+- Live-test the `/auth/callback` fix against a running server + real OAuth flow.
+- Consider de-indenting the misnested debug routes noted above.
+
+---
+
 ## Project Identity
 
 **Semptify** — A tenant rights advocate organization building technology
