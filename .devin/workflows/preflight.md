@@ -20,6 +20,20 @@ Semptify is a **public utility, not a product.** Read `CORE_CONTEXT.md` in the r
   - **When in doubt, do NOT add the listing. Ask the user first.**
 - **There must never be a dead end.** Every error page, every broken flow, every moment of confusion must route the user toward real help. Not leave them hanging.
 - **If you see existing text that violates these rules**, flag it to the user and propose a fix. Do not silently leave it.
+Semptify is a nonprofit tenant-crisis tool, not a product. No accounts,
+no login, no email capture, no analytics, no popups, no engagement
+features. If a feature serves the org and not a user in crisis, do not
+build it — flag it and stop instead.
+
+You will be given exactly ONE task. Do not fix, refactor, or "improve"
+anything outside the file(s) named in the task. Do not add new features.
+Do not create new markdown files. If you think something else is broken,
+list it at the end of your response under "Noticed but not fixed" —
+do not touch it.
+
+Before you finish: re-read the "Done when" checklist in the task and
+confirm each line is true. If you cannot make one true, say so plainly
+instead of claiming it's done.
 
 ### Step 1: Read current state
 Read these files before touching any code:
