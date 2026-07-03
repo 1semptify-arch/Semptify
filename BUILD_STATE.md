@@ -1,6 +1,36 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-03 PM — Misnested Routes + UI Composer Tuple Bug (SHIPPED 3208efc)
+
+### What Was Done
+- **`app/main.py`** (Bug #1): De-indented onboarding/welcome/register routes (lines 1759-1832) from inside the `if css_path.exists():` block. These routes were silently not registering when the CSS directory was missing. Now at the same indentation level as surrounding route definitions.
+- **`app/main.py`** (Bug #3): Replaced `parse_user_id().user_id` tuple-attribute bug with `verify_user_id()` from `app.core.cookie_auth` in 3 places (timeline page, library page, feed fragment endpoint). `parse_user_id()` returns a tuple `(provider, role, unique_id)`, not an object with `.user_id` — this was causing `'tuple' object has no attribute 'user_id'` errors and falling back to the old timeline template.
+- **Live-tested** (earlier in session): Task 2 (timeline add-event error handling) and Task 3 (token refresh distinguishable error) both verified working via Playwright. Task 2 happy path (DOM insertion) not verified — blocked by no real OAuth token on seeded test user.
+
+### Commits This Session
+- `e065f43` — DOC_INDEX.md + preflight/review workflow simplification
+- `3208efc` — Fix misnested debug routes + UI Composer tuple bug in main.py
+
+### Known Working
+- `python -m py_compile app/main.py` passes clean.
+- Timeline add-event error handling: inline `.me-error` box + `SemptifyFeedback` toast, no `alert()`.
+- Token refresh: returns distinguishable `token_expired` error, not silent `None`.
+- Onboarding/welcome/register routes now register regardless of CSS directory existence.
+
+### Known Gaps / Pending
+- **Same tuple bug still exists** in `app/modules/ui_composer/router.py:43-44` and `app/modules/tenant_feed/router.py:32-33` — user canceled the edit. These will crash any UI Composer / feed API call that reaches them. Recommend fixing next session.
+- **Timeline add-event happy path** not live-tested (needs real OAuth-connected session).
+- Pre-existing: `alert()` fallback at `timeline.html:298` in the validation guard (not the save handler).
+- Pre-existing: ~80 Ruff lint warnings in `stateless_oauth.py`.
+
+### Next Session Should Start With
+- Fix `parse_user_id().user_id` tuple bug in `app/modules/ui_composer/router.py` and `app/modules/tenant_feed/router.py` (same root cause, same fix pattern).
+- GUI Phase 1 — Tenant Journal restructuring.
+- Document Center planning.
+
+---
+
 ## Session — 2026-07-03 AM — Timeline Add-Event + Token Refresh + Repo Hygiene (SHIPPED 047104c)
 
 ### What Was Done
