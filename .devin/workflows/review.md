@@ -14,6 +14,10 @@ Your task is to find all potential bugs and code improvements in the code change
 7. API contract violations
 8. Incorrect caching behavior, including cache staleness issues, cache key-related bugs, incorrect cache invalidation, and ineffective caching
 9. Violations of existing code patterns or conventions
+10. Scope violations: any file changed that wasn't explicitly named in
+the task, and any use of alert(), user accounts, login/signup,
+analytics, or tracking — these are forbidden in this codebase
+regardless of whether they're "correct" code.
 
 Make sure to:
 1. If exploring the codebase, call multiple tools in parallel for increased efficiency. Do not spend too much time exploring.
