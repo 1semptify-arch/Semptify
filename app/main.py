@@ -2686,16 +2686,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(help_path), media_type="text/html")
         return templates.TemplateResponse(request, "pages/help.html")
 
-    @fastapi_app.get("/911/semptify-help-standalone", response_class=HTMLResponse)
-    async def help_standalone_download(request: Request):
-        """Offline-safe standalone help file. No auth. Served as download."""
-        standalone_path = BASE_PATH / "static" / "public" / "semptify-help-standalone.html"
-        return FileResponse(
-            str(standalone_path),
-            media_type="text/html",
-            headers={"Content-Disposition": "attachment; filename=\"semptify-help-standalone.html\""},
-        )
-
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):
         """Serve the Auto Mode Control Panel."""
