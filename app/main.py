@@ -55,7 +55,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Request, Response, HTTPException, APIRouter, Depends
+from fastapi import FastAPI, Request, Response, HTTPException, APIRouter, Depends, Query
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -1830,6 +1830,52 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
             return ssot_redirect(providers_path, context="register redirect to OAuth onboarding")
+
+    # =========================================================================
+    # OAuth Callback Compatibility Route
+    # =========================================================================
+    # Some OAuth providers (e.g. Google Cloud Console) may have
+    # http://localhost:<port>/auth/callback registered as an authorized
+    # redirect URI.  The app's canonical callback routes are
+    # /onboarding/callback/{provider} and /storage/callback/{provider}.
+    # This route bridges the gap: it looks up the state token in the DB
+    # to determine the provider, then redirects to the correct handler
+    # with the original code and state intact.
+
+    @fastapi_app.get("/auth/callback")
+    async def auth_callback_compat(
+        request: Request,
+        code: str = Query(...),
+        state: str = Query(...),
+    ):
+        """Compatibility OAuth callback — redirects to the canonical handler."""
+        from urllib.parse import urlencode
+        from sqlalchemy import select as _select
+        from app.models.models import OAuthState as _OAuthState
+        from app.core.database import get_db as _get_db
+
+        try:
+            async for db in _get_db():
+                result = await db.execute(_select(_OAuthState).where(_OAuthState.id == state))
+                row = result.scalar_one_or_none()
+                if row and row.provider:
+                    provider = row.provider
+                    # Determine the correct callback route based on whether
+                    # this is a reconnect (existing_uid set) or onboarding flow.
+                    qs = urlencode({"code": code, "state": state})
+                    if row.existing_uid:
+                        target = f"/storage/callback/{provider}?{qs}"
+                    else:
+                        target = f"/onboarding/callback/{provider}?{qs}"
+                    logger.info("auth_callback_compat: redirecting to %s for provider=%s", target[:60], provider)
+                    return RedirectResponse(url=target, status_code=302)
+                break
+        except Exception as exc:
+            logger.error("auth_callback_compat: error looking up state: %s", exc)
+
+        # State not found or expired — redirect to onboarding start
+        logger.warning("auth_callback_compat: state not found or expired, redirecting to onboarding")
+        return ssot_redirect("/onboarding/start", context="auth_callback_compat state not found")
 
     # =========================================================================
     # Root endpoint - Serve SPA
