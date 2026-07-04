@@ -1,6 +1,36 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-04 — Vault Fragmentation Security Patch (pending commit)
+
+### What Was Done
+- **Master inventory built**: `Semptify_Master_Inventory (4).xlsx` regenerated with 13 tabs (Module Inventory, Endpoint Inventory, Core Files, Services, Models, SDK, Templates & Static, Stubs & TODOs, Duplicates, Module Contracts, Gap Check) via `build_inventory.py`, sourced live from the codebase.
+- **Vault fragmentation traced and confirmed**: `vault.router`, `vault_engine.router`, and `vault_all_in_one.router` were all registered and live at startup via `register_tiers()` in `app/main.py:1578`. `vault_engine.router` has its own internal prefix `/api/vault-engine`; `vault_all_in_one.router` has its own internal prefix `/vault`; canonical `vault.router` uses `/api/vault` (set via the manifest). No actual URL collision existed between the three (namespaces never overlapped — an earlier session note claiming "route collision risk" was inaccurate and has been corrected in the `product_manifest.py` comments). The real issue: grep of all templates and static JS confirmed only `vault.router` (`/api/vault/*`) has any frontend caller. `vault_engine.router` and `vault_all_in_one.router` were fully live, request-accepting endpoints with zero frontend usage — dead surface area, not a namespace clash.
+- **`app/core/product_manifest.py`**: Deregistered `app.modules.vault_engine.router` (line ~402) and `app.modules.vault_all_in_one.router` (line ~575) from `MANIFEST`. Both replaced with explanatory comments (same pattern as the 2026-06-18 `overlays.router` retirement) noting salvage-worthy capabilities before file deletion: `vault_engine` has a per-resource audit-log endpoint that `vault.router` currently lacks entirely (confirmed: `vault.router`/`vault_upload_service.py` never call the core `app.core.audit_logger.get_audit_logger()`); `vault_all_in_one` has an incidents + three-timestamp timeline model that may overlap with the separate `timeline.router`/briefcase timeline-event system (flagged in the inventory's Duplicates tab). `vault.router` at `/api/vault` is now the sole registered vault system.
+
+### Commits This Session
+- Pending — not yet committed.
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py` passes clean.
+- Manifest-level check: `MANIFEST.by_tier(*ProductTier.all())` confirms `vault.router` present, `vault_engine.router` and `vault_all_in_one.router` both absent. Total registered modules: 117 (manifest) / 113 (after router import skips for known dev_only stubs — unrelated to this change, pre-existing).
+- Full app import (`app.main`) succeeds with 0 errors. Startup log: "Modules: 113 registered, 4 skipped, 0 errors" (the 4 skips are pre-existing dev_only stub modules: `legal_filing_module`, `complaint_wizard_module`, `free_api_pack`, `vault_sync` — unrelated to this change).
+- `/api/vault/*` routes confirmed present and serving (27 routes found under vault.router + onboarding vault routes).
+- No leftover unprefixed routes from either deregistered module found in the live route table.
+- No other `.py` file called `include_router` directly on `vault_engine.router` or `vault_all_in_one.router` — only `register_tiers()` (now fixed) referenced them.
+
+### Known Gaps / Pending
+- **Not yet committed or deployed.** Cloudflare dev mode was enabled and cache purged this session in preparation, but the fix has not been pushed to `main` yet.
+- **Not yet decided**: whether `vault_engine`'s audit-log layer (a real gap — `vault.router` has no audit trail today) or `vault_all_in_one`'s incidents/three-timestamp timeline model (possible overlap with `timeline.router`/briefcase) are worth migrating into `vault.router` before the module files themselves are deleted. Deregistration only removed them from routing — the module files (`app/modules/vault_engine/`, `app/modules/vault_all_in_one/`) still exist on disk and can be restored by reverting the two comment blocks in `product_manifest.py` if anything needs to be salvaged.
+- Same known pre-existing pending item from last session: `parse_user_id().user_id` tuple bug in `app/modules/ui_composer/router.py:43-44` and `app/modules/tenant_feed/router.py:32-33` — not addressed, out of scope for this patch.
+
+### Next Session Should Start With
+- Commit and push this vault deregistration fix, then purge Cloudflare cache again post-deploy.
+- Review `vault_engine`'s audit-log and `vault_all_in_one`'s incidents/search capabilities against `vault.router` to decide what's worth migrating before those module files are deleted outright.
+- Fix `parse_user_id().user_id` tuple bug in `ui_composer/router.py` and `tenant_feed/router.py` (same root cause, same fix pattern, carried over from 2026-07-03 PM session).
+
+---
+
 ## Session — 2026-07-03 PM — Misnested Routes + UI Composer Tuple Bug (SHIPPED 3208efc)
 
 ### What Was Done
