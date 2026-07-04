@@ -1,7 +1,7 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
-## Session — 2026-07-04 — Vault Fragmentation Security Patch (pending commit)
+## Session — 2026-07-04 — Vault Fragmentation Security Patch (SHIPPED 8adec7f)
 
 ### What Was Done
 - **Master inventory built**: `Semptify_Master_Inventory (4).xlsx` regenerated with 13 tabs (Module Inventory, Endpoint Inventory, Core Files, Services, Models, SDK, Templates & Static, Stubs & TODOs, Duplicates, Module Contracts, Gap Check) via `build_inventory.py`, sourced live from the codebase.
@@ -20,7 +20,7 @@
 - No other `.py` file called `include_router` directly on `vault_engine.router` or `vault_all_in_one.router` — only `register_tiers()` (now fixed) referenced them.
 
 ### Known Gaps / Pending
-- **Not yet committed or deployed.** Cloudflare dev mode was enabled and cache purged this session in preparation, but the fix has not been pushed to `main` yet.
+- **Shipped**: commit `8adec7f` pushed to `main`. Render auto-deploys on push. Cloudflare cache purged post-push.
 - **Not yet decided**: whether `vault_engine`'s audit-log layer (a real gap — `vault.router` has no audit trail today) or `vault_all_in_one`'s incidents/three-timestamp timeline model (possible overlap with `timeline.router`/briefcase) are worth migrating into `vault.router` before the module files themselves are deleted. Deregistration only removed them from routing — the module files (`app/modules/vault_engine/`, `app/modules/vault_all_in_one/`) still exist on disk and can be restored by reverting the two comment blocks in `product_manifest.py` if anything needs to be salvaged.
 - Same known pre-existing pending item from last session: `parse_user_id().user_id` tuple bug in `app/modules/ui_composer/router.py:43-44` and `app/modules/tenant_feed/router.py:32-33` — not addressed, out of scope for this patch.
 
