@@ -9,7 +9,7 @@
 - **`app/core/product_manifest.py`**: Deregistered `app.modules.vault_engine.router` (line ~402) and `app.modules.vault_all_in_one.router` (line ~575) from `MANIFEST`. Both replaced with explanatory comments (same pattern as the 2026-06-18 `overlays.router` retirement) noting salvage-worthy capabilities before file deletion: `vault_engine` has a per-resource audit-log endpoint that `vault.router` currently lacks entirely (confirmed: `vault.router`/`vault_upload_service.py` never call the core `app.core.audit_logger.get_audit_logger()`); `vault_all_in_one` has an incidents + three-timestamp timeline model that may overlap with the separate `timeline.router`/briefcase timeline-event system (flagged in the inventory's Duplicates tab). `vault.router` at `/api/vault` is now the sole registered vault system.
 
 ### Commits This Session
-- Pending — not yet committed.
+- `8adec7f` — security: deregister vault_engine and vault_all_in_one routers
 
 ### Known Working
 - `python -m py_compile app/main.py app/core/product_manifest.py` passes clean.
