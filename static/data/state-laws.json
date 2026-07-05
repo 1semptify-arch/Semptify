@@ -1043,9 +1043,172 @@
     "PA": {
       "code": "PA",
       "name": "Pennsylvania",
-      "status": "stub",
-      "stub_url": "https://www.palegalaid.net/housing",
-      "notes": "Philadelphia has stronger tenant protections than state law."
+      "nickname": "Keystone State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Pennsylvania Landlord and Tenant Act of 1951 (68 P.S. § 250.101 et seq.)",
+        "statute_url": "https://www.legis.state.pa.us/cfdocs/legis/LI/consol_check.cfm?txtType=HTM&ttl=68&div=0.&chpt=25.",
+        "summary": "Pennsylvania has moderate tenant protections. Philadelphia and Pittsburgh have stronger local ordinances. State law governs security deposits, eviction procedure, and landlord duties."
+      },
+      "notice_requirements": {
+        "termination_month_to_month": "15 days written notice required (PA is unusual — only 15 days for month-to-month)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "nonpayment": "10 days written notice to pay or vacate (Landlord and Tenant Act § 250.503)",
+        "lease_violation": "15 days to remedy or vacate for residential leases",
+        "unauthorized_pets": "Per lease terms; typically 15 days",
+        "illegal_activity": "Lease may allow shorter notice for illegal activity; otherwise 15 days",
+        "notes": "Written notice required. Philadelphia requires 30 days for month-to-month termination under local ordinance."
+      },
+      "security_deposit": {
+        "limit": "No more than 2 months' rent for first year; 1 month thereafter",
+        "return_deadline": "30 days after lease ends and tenant provides forwarding address",
+        "itemized_required": true,
+        "interest_required": true,
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
+        "notes": "Interest on deposits held 2+ years must be paid to tenant. Landlord must place deposit in escrow account."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "No statewide rent control. Pennsylvania prohibits local rent control except where grandfathered.",
+        "notes": "State law preempts local rent control. Tenant can challenge unconscionable rent increases in court."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain electrical/plumbing/heating in working order",
+          "Provide garbage removal where required",
+          "Provide running water/hot water",
+          "Keep unit weatherproof and structurally sound",
+          "Comply with local housing codes"
+        ],
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Tenant can withhold rent if landlord fails to make essential repairs after written notice. Repair-and-deduct is not explicitly authorized by statute but is sometimes permitted by courts."
+        },
+        "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
+        "cold_weather_rule": "No statewide cold weather rule, but utilities must follow PA Public Utility Commission winter shutoff protections for low-income households"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours (reasonable notice)",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection (limited frequency)",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry may constitute harassment."
+      },
+      "eviction": {
+        "court": "Magisterial District Court (initial filing); Court of Common Pleas for appeals",
+        "timeline": "Typically 3-6 weeks from filing to judgment; 10-21 days for writ of possession",
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Landlord failed to maintain unit (implied warranty of habitability)",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
+        "expungement": "Eviction records generally not expunged in PA; limited exceptions",
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Age (40+)",
+          "Use of guide/support animals"
+        ],
+        "familial_status": "Cannot refuse to rent to families with children",
+        "disability_accommodations": "Reasonable accommodations/modifications required",
+        "complaint_agency": "Pennsylvania Human Relations Commission",
+        "complaint_url": "https://www.phrc.pa.gov/"
+      },
+      "legal_aid": [
+        {
+          "name": "Pennsylvania Legal Aid Network (PLAN)",
+          "phone": "800-322-9919",
+          "url": "https://www.palawhelp.org",
+          "services": "Statewide legal aid referral and housing assistance",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Community Legal Services of Philadelphia",
+          "phone": "215-981-3700",
+          "url": "https://clsphila.org",
+          "services": "Housing legal aid for low-income Philadelphia residents",
+          "counties": "Philadelphia"
+        },
+        {
+          "name": "Neighborhood Legal Services Association (Pittsburgh)",
+          "phone": "412-325-9200",
+          "toll_free": "866-761-9263",
+          "url": "https://www.nlsa.us",
+          "counties": "Allegheny, Beaver, Butler, Lawrence"
+        },
+        {
+          "name": "MidPenn Legal Services",
+          "phone": "800-326-9177",
+          "url": "https://www.midpenn.org",
+          "counties": "Central PA"
+        },
+        {
+          "name": "Lancaster-based Legal Aid of Southeastern PA (LASP)",
+          "phone": "877-429-5994",
+          "url": "https://lasp.org",
+          "counties": "Montgomery, Chester, Delaware, Bucks, Lancaster"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Pennsylvania Attorney General - Landlord/Tenant",
+          "url": "https://www.attorneygeneral.gov/resources/landlord-tenant/",
+          "phone": "717-787-3391"
+        },
+        {
+          "name": "PA Department of Community & Economic Development - Housing",
+          "url": "https://dced.pa.gov/housing/",
+          "services": "Affordable housing programs, rental assistance"
+        },
+        {
+          "name": "Pennsylvania Human Relations Commission",
+          "url": "https://www.phrc.pa.gov/",
+          "phone": "717-787-4410",
+          "services": "Discrimination complaints"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (PA)",
+          "url": "/library/forms/repair-request-pa.html",
+          "description": "PA-specific repair request with statutory citations"
+        },
+        {
+          "name": "Security Deposit Demand Letter",
+          "url": "/library/forms/deposit-demand-pa.html"
+        },
+        {
+          "name": "Notice to Vacate (PA)",
+          "url": "/library/forms/notice-to-vacate-pa.html"
+        }
+      ],
+      "special_programs": {
+        "rental_assistance": "Emergency Rental Assistance Program (ERAP) administered by PA Department of Human Services",
+        "energy_assistance": "LIHEAP - Low Income Home Energy Assistance Program",
+        "homelessness_prevention": "PA Homeless Assistance Program (HAP) through county assistance offices"
+      }
     },
     "WA": {
       "code": "WA",
@@ -1078,9 +1241,175 @@
     "MI": {
       "code": "MI",
       "name": "Michigan",
-      "status": "stub",
-      "stub_url": "https://michiganlegalhelp.org/housing",
-      "notes": "Detroit has additional local tenant protections."
+      "nickname": "Great Lakes State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Michigan Landlord and Tenant Relationships Act (MCL § 554.601 et seq.) and Truth in Renting Act (MCL § 554.631 et seq.)",
+        "statute_url": "https://www.legislature.mi.gov/(S(0eqr3o4bnhpeb5h2jqc1hq))/mileg.aspx?page=getObject&objectName=mcl-554-Act-348",
+        "summary": "Michigan has moderate tenant protections. Detroit, Ann Arbor, and some other cities have stronger local ordinances. State law governs security deposits, eviction, and landlord duties."
+      },
+      "notice_requirements": {
+        "termination_month_to_month": "One rental period (typically 30 days) written notice required",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "nonpayment": "7 days written notice to pay or vacate (MCL § 600.5714(1)(b))",
+        "lease_violation": "30 days to remedy or vacate for most violations",
+        "unauthorized_pets": "Per lease terms; typically 7-30 days",
+        "illegal_activity": "7 days notice for drug-related violations; 24 hours for serious crimes",
+        "notes": "Written notice required. Detroit requires additional notice periods under local ordinance."
+      },
+      "security_deposit": {
+        "limit": "1.5 months' rent maximum",
+        "return_deadline": "30 days after lease ends and tenant provides forwarding address",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
+        "notes": "Landlord must send itemized list within 30 days. Tenant must respond within 7 days to dispute. Michigan has strict procedural requirements — failure to comply forfeits landlord's right to withhold."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "No statewide rent control. Michigan prohibits local rent control.",
+        "notes": "State law preempts local rent control. Tenant can challenge unconscionable rent increases in court."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain electrical/plumbing/heating in working order",
+          "Provide garbage removal where required",
+          "Provide running water/hot water",
+          "Keep unit weatherproof and structurally sound",
+          "Comply with local housing codes",
+          "Exterminate pests in multi-unit buildings"
+        ],
+        "tenant_remedies": {
+          "repair_deduct": false,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Tenant can withhold rent if landlord fails to make essential repairs after reasonable notice. Repair-and-deduct not explicitly authorized by statute but sometimes permitted by courts."
+        },
+        "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
+        "cold_weather_rule": "No statewide cold weather rule, but Michigan utilities must follow MPSC winter shutoff protections for low-income households (Nov 1 - Mar 31)"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours (reasonable notice)",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection (limited frequency)",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry may constitute harassment."
+      },
+      "eviction": {
+        "court": "District Court (initial filing); Circuit Court for appeals",
+        "timeline": "Typically 3-5 weeks from filing to judgment; 10 days for writ of possession",
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Landlord failed to maintain unit (implied warranty of habitability)",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
+        "expungement": "Eviction records generally not expunged in MI; limited exceptions",
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Religion",
+          "Color",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Age",
+          "Marital status",
+          "Height",
+          "Weight"
+        ],
+        "familial_status": "Cannot refuse to rent to families with children",
+        "disability_accommodations": "Reasonable accommodations/modifications required",
+        "complaint_agency": "Michigan Department of Civil Rights",
+        "complaint_url": "https://www.michigan.gov/mdcr/"
+      },
+      "legal_aid": [
+        {
+          "name": "Michigan Legal Help",
+          "phone": "517-373-2957",
+          "url": "https://michiganlegalhelp.org",
+          "services": "Self-help legal resources and referrals for tenants statewide",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Lakeshore Legal Aid",
+          "phone": "313-923-2060",
+          "toll_free": "888-783-8190",
+          "url": "https://lakeshorelegalaid.ca",
+          "counties": "Wayne, Macomb, Oakland, Monroe"
+        },
+        {
+          "name": "Michigan Poverty Law Program",
+          "phone": "734-998-6100",
+          "url": "https://mplp.org",
+          "services": "Statewide support for local legal aid programs",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Legal Aid and Defender Association (Detroit)",
+          "phone": "313-967-5555",
+          "url": "https://www.ladadetroit.org",
+          "counties": "Wayne"
+        },
+        {
+          "name": "Legal Services of Northern Michigan",
+          "phone": "800-443-2138",
+          "url": "https://lsnm.org",
+          "counties": "Northern MI"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Michigan Attorney General - Landlord/Tenant",
+          "url": "https://www.michigan.gov/ag/consumer-protection/consumer-alerts/consumer-alerts/housing/landlord-tenant-rights",
+          "phone": "517-373-1140"
+        },
+        {
+          "name": "Michigan State Housing Development Authority (MSHDA)",
+          "url": "https://www.michigan.gov/mshda",
+          "services": "Affordable housing programs, rental assistance, homeless services"
+        },
+        {
+          "name": "Michigan Department of Civil Rights",
+          "url": "https://www.michigan.gov/mdcr/",
+          "phone": "517-335-3165",
+          "services": "Discrimination complaints"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (MI)",
+          "url": "/library/forms/repair-request-mi.html",
+          "description": "MI-specific repair request with statutory citations"
+        },
+        {
+          "name": "Security Deposit Demand Letter",
+          "url": "/library/forms/deposit-demand-mi.html"
+        },
+        {
+          "name": "Notice to Vacate (MI)",
+          "url": "/library/forms/notice-to-vacate-mi.html"
+        }
+      ],
+      "special_programs": {
+        "rental_assistance": "MI State Emergency Rental Assistance (when funded); check MSHDA for current programs",
+        "energy_assistance": "Michigan Energy Assistance Program (MEAP) - helps pay heating bills",
+        "homelessness_prevention": "MSHDA Homeless Prevention and Rapid Re-Housing Program"
+      }
     },
     "OH": {
       "code": "OH",
