@@ -1414,23 +1414,251 @@
     "OH": {
       "code": "OH",
       "name": "Ohio",
-      "status": "stub",
-      "stub_url": "https://www.ohiolegalhelp.org/housing",
-      "notes": "Ohio landlord-tenant law varies by city. Cleveland has stronger protections."
+      "nickname": "Buckeye State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Ohio Landlord-Tenant Act (ORC § 5321.01 et seq.)",
+        "statute_url": "https://codes.ohio.gov/ohio-revised-code/chapter-5321",
+        "summary": "Ohio has moderate tenant protections. Cleveland, Cincinnati, and Columbus have stronger local ordinances."
+      },
+      "notice_requirements": {
+        "termination_month_to_month": "30 days written notice required",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "nonpayment": "3 days written notice to pay or vacate (ORC § 1923.04)",
+        "lease_violation": "30 days to remedy or vacate",
+        "unauthorized_pets": "Per lease terms; typically 30 days",
+        "illegal_activity": "3 days for drug violations; immediate for serious crimes",
+        "notes": "Written notice required. Cleveland requires longer notice under local ordinance."
+      },
+      "security_deposit": {
+        "limit": "No statutory limit",
+        "return_deadline": "30 days after lease ends and tenant provides forwarding address",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "notes": "Landlord must send itemized list within 30 days. Tenant has 7 days to dispute."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "No statewide rent control. Ohio prohibits local rent control.",
+        "notes": "State law preempts local rent control."
+      },
+      "repairs": {
+        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal", "Provide running water/hot water", "Keep unit weatherproof", "Comply with housing codes", "Exterminate pests in multi-unit buildings"],
+        "tenant_remedies": {"repair_deduct": false, "rent_withholding": true, "termination": true, "notes": "Tenant can withhold rent after written notice for essential repairs."},
+        "emergency_repairs": "24-72 hours for heating/hot water",
+        "cold_weather_rule": "No statewide rule; PUCO winter shutoff protections for low-income (Nov 1 - Apr 15)"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours (reasonable notice)",
+        "allowed_reasons": ["Emergency", "Inspection (limited)", "Repairs/maintenance", "Showing to prospective tenants/buyers"],
+        "tenant_rights": "Tenant can refuse entry without proper notice."
+      },
+      "eviction": {
+        "court": "Municipal Court or County Court; Court of Appeals for appeals",
+        "timeline": "Typically 3-4 weeks from filing to judgment; 5-10 days for writ",
+        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "expungement": "Eviction records generally not expunged in OH",
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true
+      },
+      "discrimination": {
+        "protected_classes": ["Race", "Color", "Religion", "National origin", "Sex", "Familial status", "Disability", "Age", "Ancestry", "Military status"],
+        "familial_status": "Cannot refuse to rent to families with children",
+        "disability_accommodations": "Reasonable accommodations/modifications required",
+        "complaint_agency": "Ohio Civil Rights Commission",
+        "complaint_url": "https://crc.ohio.gov/"
+      },
+      "legal_aid": [
+        {"name": "Ohio State Legal Services Association (OSLSA)", "phone": "800-589-5888", "url": "https://www.oslsa.org", "services": "Statewide legal aid referral and housing assistance", "counties": "Statewide"},
+        {"name": "The Legal Aid Society of Cleveland", "phone": "216-861-5500", "url": "https://lasclev.org", "counties": "Cuyahoga, Ashtabula, Geauga, Lake, Lorain, Portage"},
+        {"name": "Legal Aid Society of Greater Cincinnati", "phone": "513-241-9400", "toll_free": "800-582-2617", "url": "https://www.lascinti.org", "counties": "Hamilton, Clermont, Brown, Butler, Clinton"},
+        {"name": "Ohio Poverty Law Center", "phone": "614-221-7201", "url": "https://www.ohiopovertylaw.org", "services": "Statewide support for local legal aid programs", "counties": "Statewide"},
+        {"name": "Community Legal Aid Services (Columbus)", "phone": "614-224-8370", "toll_free": "888-831-1721", "url": "https://www.columbuslegalaid.org", "counties": "Central OH"}
+      ],
+      "government_resources": [
+        {"name": "Ohio Attorney General - Landlord/Tenant", "url": "https://www.ohioattorneygeneral.gov/individuals/landlord-tenant", "phone": "800-282-0515"},
+        {"name": "Ohio Housing Finance Agency", "url": "https://www.ohiohome.org", "services": "Affordable housing programs, rental assistance"},
+        {"name": "Ohio Civil Rights Commission", "url": "https://crc.ohio.gov/", "phone": "888-278-7101", "services": "Discrimination complaints"}
+      ],
+      "forms_templates": [
+        {"name": "Repair Request Letter (OH)", "url": "/library/forms/repair-request-oh.html", "description": "OH-specific repair request with statutory citations"},
+        {"name": "Security Deposit Demand Letter", "url": "/library/forms/deposit-demand-oh.html"},
+        {"name": "Notice to Vacate (OH)", "url": "/library/forms/notice-to-vacate-oh.html"}
+      ],
+      "special_programs": {
+        "rental_assistance": "Ohio Development Services Agency emergency rental assistance (when funded)",
+        "energy_assistance": "Ohio Energy Assistance Program (HEAP) - helps pay heating bills",
+        "homelessness_prevention": "Ohio Homeless Crisis Response Program via local continuums of care"
+      }
     },
     "NC": {
       "code": "NC",
       "name": "North Carolina",
-      "status": "stub",
-      "stub_url": "https://www.lawhelpnc.org/issues/housing",
-      "notes": "North Carolina is generally landlord-friendly. No rent control."
+      "nickname": "Tar Heel State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "North Carolina Residential Rental Agreements Act (N.C.G.S. § 42-38 et seq.)",
+        "statute_url": "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/ByChapter/Chapter_42.html",
+        "summary": "North Carolina is generally landlord-friendly with moderate tenant protections. No rent control statewide."
+      },
+      "notice_requirements": {
+        "termination_month_to_month": "30 days written notice required (N.C.G.S. § 42-14)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "nonpayment": "10 days written notice to pay or vacate (N.C.G.S. § 42-3)",
+        "lease_violation": "Varies by lease terms; typically 30 days",
+        "unauthorized_pets": "Per lease terms; typically 30 days",
+        "illegal_activity": "Per lease terms; expedited for drug-related violations",
+        "notes": "Written notice required. NC is landlord-friendly — shorter notice periods than most states."
+      },
+      "security_deposit": {
+        "limit": "1.5 months' rent for month-to-month; 2 months' rent for longer leases",
+        "return_deadline": "30 days after lease ends and tenant provides forwarding address",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "notes": "Landlord must send itemized list within 30 days. Tenant has 7 days to dispute. NC has strict procedural requirements."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "No statewide rent control. North Carolina prohibits local rent control.",
+        "notes": "State law preempts local rent control. Tenant can challenge unconscionable rent increases in court."
+      },
+      "repairs": {
+        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal where required", "Provide running water/hot water", "Keep unit weatherproof", "Comply with housing codes", "Exterminate pests in multi-unit buildings"],
+        "tenant_remedies": {"repair_deduct": false, "rent_withholding": false, "termination": true, "notes": "NC does not explicitly authorize rent withholding or repair-and-deduct. Tenant can terminate lease if landlord fails to repair after written notice."},
+        "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
+        "cold_weather_rule": "No statewide cold weather rule; NC Utilities Commission winter shutoff protections for low-income households"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours (reasonable notice)",
+        "allowed_reasons": ["Emergency", "Inspection (limited)", "Repairs/maintenance", "Showing to prospective tenants/buyers"],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry may constitute harassment."
+      },
+      "eviction": {
+        "court": "Magistrate's Court (initial filing); District Court for appeals",
+        "timeline": "Typically 2-3 weeks from filing to judgment; 10 days for writ of possession",
+        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "expungement": "Eviction records generally not expunged in NC; limited exceptions",
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true
+      },
+      "discrimination": {
+        "protected_classes": ["Race", "Color", "Religion", "National origin", "Sex", "Familial status", "Disability", "Age", "Handicap"],
+        "familial_status": "Cannot refuse to rent to families with children",
+        "disability_accommodations": "Reasonable accommodations/modifications required",
+        "complaint_agency": "North Carolina Human Relations Commission",
+        "complaint_url": "https://www.doa.nc.gov/about/divisions/human-relations"
+      },
+      "legal_aid": [
+        {"name": "Legal Aid of North Carolina", "phone": "866-219-5262", "url": "https://www.legalaidnc.org", "services": "Statewide legal aid for low-income residents", "counties": "Statewide"},
+        {"name": "Charlotte Center for Legal Advocacy", "phone": "704-376-1600", "toll_free": "800-438-1254", "url": "https://www.charlottelegaladvocacy.org", "counties": "Mecklenburg and surrounding"},
+        {"name": "Pisgah Legal Services", "phone": "828-253-0406", "toll_free": "800-489-6154", "url": "https://www.pisgahlegal.org", "counties": "Western NC"},
+        {"name": "North Carolina Equal Access to Justice Commission", "phone": "919-835-1050", "url": "https://www.ncequalaccess.org", "services": "Statewide support for legal aid programs", "counties": "Statewide"},
+        {"name": "Durham Legal Aid", "phone": "919-688-6396", "url": "https://www.legalaidnc.org", "counties": "Durham"}
+      ],
+      "government_resources": [
+        {"name": "North Carolina Attorney General - Consumer Protection", "url": "https://www.ncdoj.gov/protecting-consumers/", "phone": "877-566-7226"},
+        {"name": "North Carolina Housing Finance Agency", "url": "https://www.nchfa.com", "services": "Affordable housing programs, rental assistance"},
+        {"name": "North Carolina Human Relations Commission", "url": "https://www.doa.nc.gov/about/divisions/human-relations", "phone": "984-224-2481", "services": "Discrimination complaints"}
+      ],
+      "forms_templates": [
+        {"name": "Repair Request Letter (NC)", "url": "/library/forms/repair-request-nc.html", "description": "NC-specific repair request with statutory citations"},
+        {"name": "Security Deposit Demand Letter", "url": "/library/forms/deposit-demand-nc.html"},
+        {"name": "Notice to Vacate (NC)", "url": "/library/forms/notice-to-vacate-nc.html"}
+      ],
+      "special_programs": {
+        "rental_assistance": "NC Housing Finance Agency emergency rental assistance (when funded)",
+        "energy_assistance": "NC Low Income Energy Assistance Program (LIEAP) - helps pay heating bills",
+        "homelessness_prevention": "NC Office of Economic Opportunity homeless prevention programs"
+      }
     },
     "GA": {
       "code": "GA",
       "name": "Georgia",
-      "status": "stub",
-      "stub_url": "https://www.georgialegalaid.org/issues/housing",
-      "notes": "Georgia has weak tenant protections. Local ordinances vary."
+      "nickname": "Peach State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Georgia Landlord-Tenant Law (O.C.G.A. § 44-7-1 et seq.)",
+        "statute_url": "https://codes.ols.dev/title-44/chapter-7/",
+        "summary": "Georgia has weak tenant protections and is landlord-friendly. No rent control statewide. Atlanta has some local protections."
+      },
+      "notice_requirements": {
+        "termination_month_to_month": "30 days written notice required (O.C.G.A. § 44-7-7)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "nonpayment": "3 days written notice to pay or vacate (O.C.G.A. § 44-7-50)",
+        "lease_violation": "Per lease terms; typically 30 days",
+        "unauthorized_pets": "Per lease terms; typically 30 days",
+        "illegal_activity": "Per lease terms; expedited for drug-related violations",
+        "notes": "Written notice required. GA is landlord-friendly — very short nonpayment notice."
+      },
+      "security_deposit": {
+        "limit": "No statutory limit",
+        "return_deadline": "30 days after lease ends and tenant provides forwarding address",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "notes": "Landlord must send itemized list within 30 days. Tenant has 7 days to dispute. GA has minimal procedural requirements."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "No statewide rent control. Georgia prohibits local rent control.",
+        "notes": "State law preempts local rent control. Tenant can challenge unconscionable rent increases in court."
+      },
+      "repairs": {
+        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal where required", "Provide running water/hot water", "Keep unit weatherproof", "Comply with housing codes", "Exterminate pests in multi-unit buildings"],
+        "tenant_remedies": {"repair_deduct": false, "rent_withholding": false, "termination": true, "notes": "GA does not explicitly authorize rent withholding or repair-and-deduct. Tenant can terminate lease if landlord fails to repair after written notice."},
+        "emergency_repairs": "Varies by severity; typically 24-72 hours for heating/hot water",
+        "cold_weather_rule": "No statewide cold weather rule; GA Public Service Commission winter shutoff protections for low-income households"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours (reasonable notice)",
+        "allowed_reasons": ["Emergency", "Inspection (limited)", "Repairs/maintenance", "Showing to prospective tenants/buyers"],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry may constitute harassment."
+      },
+      "eviction": {
+        "court": "Magistrate Court (initial filing); Superior Court for appeals",
+        "timeline": "Typically 2-3 weeks from filing to judgment; 7 days for writ of possession",
+        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "expungement": "Eviction records generally not expunged in GA; limited exceptions",
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true
+      },
+      "discrimination": {
+        "protected_classes": ["Race", "Color", "Religion", "National origin", "Sex", "Familial status", "Disability", "Age"],
+        "familial_status": "Cannot refuse to rent to families with children",
+        "disability_accommodations": "Reasonable accommodations/modifications required",
+        "complaint_agency": "Georgia Commission on Equal Opportunity",
+        "complaint_url": "https://gceo.georgia.gov/"
+      },
+      "legal_aid": [
+        {"name": "Atlanta Legal Aid Society", "phone": "404-524-5811", "toll_free": "800-821-8012", "url": "https://www.atlantalegalaid.org", "services": "Housing legal aid for low-income metro Atlanta residents", "counties": "Fulton, DeKalb, Clayton, Cobb, Gwinnett"},
+        {"name": "Georgia Legal Services Program", "phone": "706-226-5253", "toll_free": "800-498-9469", "url": "https://www.glsp.org", "services": "Statewide legal aid outside metro Atlanta", "counties": "Statewide outside metro"},
+        {"name": "State Bar of Georgia Pro Bono Project", "phone": "404-527-8760", "url": "https://www.gabar.org", "services": "Pro bono legal services for low-income Georgians", "counties": "Statewide"},
+        {"name": "Atlanta Volunteer Lawyers Foundation", "phone": "404-521-0789", "url": "https://www.avlf.org", "counties": "Fulton"},
+        {"name": "Georgia Advocacy Office", "phone": "404-885-1877", "toll_free": "800-537-2329", "url": "https://thegao.org", "services": "Disability rights and housing advocacy", "counties": "Statewide"}
+      ],
+      "government_resources": [
+        {"name": "Georgia Attorney General - Consumer Protection", "url": "https://consumer.georgia.gov/", "phone": "404-651-8600"},
+        {"name": "Georgia Department of Community Affairs - Housing", "url": "https://www.dca.ga.gov/housing", "services": "Affordable housing programs, rental assistance"},
+        {"name": "Georgia Commission on Equal Opportunity", "url": "https://gceo.georgia.gov/", "phone": "404-327-7400", "services": "Discrimination complaints"}
+      ],
+      "forms_templates": [
+        {"name": "Repair Request Letter (GA)", "url": "/library/forms/repair-request-ga.html", "description": "GA-specific repair request with statutory citations"},
+        {"name": "Security Deposit Demand Letter", "url": "/library/forms/deposit-demand-ga.html"},
+        {"name": "Notice to Vacate (GA)", "url": "/library/forms/notice-to-vacate-ga.html"}
+      ],
+      "special_programs": {
+        "rental_assistance": "Georgia Department of Community Affairs emergency rental assistance (when funded)",
+        "energy_assistance": "Georgia Energy Assistance Program (LIHEAP) - helps pay heating bills",
+        "homelessness_prevention": "Georgia Department of Community Affairs homeless prevention programs"
+      }
     },
     "AZ": {
       "code": "AZ",
