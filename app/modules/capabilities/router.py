@@ -29,7 +29,7 @@ from app.core.capabilities import (
     get_overlay_modules,
 )
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_capability
 from app.core.user_context import UserContext
 
 logger = logging.getLogger(__name__)
@@ -111,6 +111,7 @@ async def grant_module(
     body: GrantRequest,
     current_user: UserContext = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    _ = Depends(require_capability("admin_capabilities"))
 ):
     """Grant a module to a user. Admin only."""
     _require_admin(current_user)
@@ -129,6 +130,7 @@ async def revoke_module(
     body: RevokeRequest,
     current_user: UserContext = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    _ = Depends(require_capability("admin_capabilities"))
 ):
     """Revoke a module from a user. Admin only."""
     _require_admin(current_user)
@@ -155,6 +157,7 @@ async def attach_overlay_endpoint(
     user_id: str,
     body: OverlayAttachRequest,
     current_user: UserContext = Depends(get_current_user),
+    _ = Depends(require_capability("admin_capabilities"))
 ):
     """
     Attach a dev overlay to a user's session. Admin only.
@@ -178,6 +181,7 @@ async def attach_overlay_endpoint(
 async def detach_overlay_endpoint(
     user_id: str,
     current_user: UserContext = Depends(get_current_user),
+    _ = Depends(require_capability("admin_capabilities"))
 ):
     """Detach the dev overlay from a user's session. Admin only."""
     _require_admin(current_user)
