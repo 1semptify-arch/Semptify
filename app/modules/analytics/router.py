@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, require_admin, green_access
+from app.core.security import require_user, StorageUser, require_admin, green_access, require_capability
 from app.core.analytics_engine import (
     get_analytics_engine,
     AnalyticsEventType,
@@ -187,7 +187,8 @@ async def track_document_upload(
 async def get_metrics(
     period: str = Query("day", description="Time period: hour, day, week, month"),
     hours: int = Query(24, ge=1, le=720, description="Hours to look back (alternative to period)"),
-    user: StorageUser = Depends(require_admin)
+    user: StorageUser = Depends(require_admin),
+    _ = Depends(require_capability("admin_analytics"))
 ):
     """
     Get aggregated analytics metrics.
@@ -227,7 +228,8 @@ async def get_metrics(
 
 @router.get("/metrics/realtime")
 async def get_realtime_metrics(
-    user: StorageUser = Depends(require_admin)
+    user: StorageUser = Depends(require_admin),
+    _ = Depends(require_capability("admin_analytics"))
 ):
     """
     Get real-time system metrics (last 5 minutes).
