@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, red_access
+from app.core.security import require_user, StorageUser, red_access, require_capability
 from app.core.batch_operations import (
     get_batch_processor, BatchOperationType, BatchOperationStatus,
     create_batch_operation, start_batch_operation, cancel_batch_operation,
@@ -51,7 +51,8 @@ class BatchItemRequest(BaseModel):
 @router.post("/create", response_model=BatchResponse)
 async def create_batch_operation_endpoint(
     request: BatchRequest,
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Create a new batch operation.
@@ -113,7 +114,8 @@ async def create_batch_operation_endpoint(
 @router.post("/{operation_id}/start")
 async def start_batch_operation_endpoint(
     operation_id: str,
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Start processing a batch operation.
@@ -148,7 +150,8 @@ async def start_batch_operation_endpoint(
 @router.post("/{operation_id}/cancel")
 async def cancel_batch_operation_endpoint(
     operation_id: str,
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Cancel a batch operation.
@@ -183,7 +186,8 @@ async def cancel_batch_operation_endpoint(
 @router.get("/{operation_id}")
 async def get_batch_operation_endpoint(
     operation_id: str,
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Get details of a batch operation.
@@ -211,7 +215,8 @@ async def get_user_batch_operations_endpoint(
     status: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(50, ge=1, le=200, description="Max operations to return"),
     offset: int = Query(0, ge=0, description="Operations offset"),
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Get all batch operations for the current user.
@@ -259,7 +264,8 @@ async def get_user_batch_operations_endpoint(
 
 @router.get("/statistics")
 async def get_batch_statistics_endpoint(
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Get batch operations statistics.
@@ -307,7 +313,8 @@ async def get_batch_statistics_endpoint(
 @router.post("/upload/prepare")
 async def prepare_batch_upload(
     files_info: List[BatchItemRequest],
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
+    _ = Depends(require_capability("admin_batch_ops"))
 ):
     """
     Prepare a batch upload operation.
