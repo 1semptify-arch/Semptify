@@ -15,7 +15,7 @@ from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-from app.core.security import get_optional_user_id, green_access
+from app.core.security import get_optional_user_id, green_access, require_capability
 from app.core.user_context import UserContext
 from app.services.emotion_engine import emotion_engine
 from .service import progress_tracker
@@ -45,7 +45,10 @@ class DashboardContext(BaseModel):
 
 
 @router.get("/")
-async def get_unified_dashboard(user_id: str = Depends(resolve_user_id)):
+async def get_unified_dashboard(
+    user_id: str = Depends(resolve_user_id),
+    _ = Depends(require_capability("admin_dashboard"))
+):
     """
     Get complete dashboard data in a single call.
     
