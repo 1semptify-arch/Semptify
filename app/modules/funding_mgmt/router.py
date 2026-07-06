@@ -8,13 +8,13 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db_session
-from app.core.security import require_admin
+from app.core.security import require_admin, require_capability
 from .models import FundingSource, FundingApplication, FundingTask, FundingSourceType, ApplicationStatus
 
 router = APIRouter(
     prefix="/admin/funding",
     tags=["funding_management"],
-    dependencies=[Depends(require_admin)]
+    dependencies=[Depends(require_admin), Depends(require_capability("admin_funding"))]
 )
 
 
