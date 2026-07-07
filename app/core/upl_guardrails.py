@@ -222,6 +222,100 @@ def get_disclaimer_for_tier(tier: UPLRiskTier) -> str:
     return f"{UPL_DISCLAIMER}\n\n{UPL_REFERRAL_BLOCK_TEXT}"
 
 
+# ---------------------------------------------------------------------------
+# Banned-phrase checker — safety-net for AI Copilot responses
+# ---------------------------------------------------------------------------
+# This is a DEFENSIVE CHECK, not a replacement for correct prompting. The
+# Copilot system prompt must still instruct the model to give facts, not
+# advice. This checker exists to catch the model when it drifts — because
+# models do drift, and a stressed tenant facing eviction cannot be the one
+# who catches it.
+#
+# What we flag:
+#   - Directives: "you should", "you must", "you need to" — telling the user
+#     what to do is legal advice, not fact-stating.
+#   - Recommendations: "the best option is", "I recommend", "I suggest" —
+#     same problem, softer packaging.
+#   - Legal conclusions about documents: "this notice is illegal",
+#     "defective", "invalid", "unenforceable" — a tenant tool cannot tell
+#     a user their landlord's notice is legally defective. Only an attorney
+#     reviewing the specific document can make that call.
+#
+# What we do NOT flag:
+#   - Factual statements ("Minnesota law requires X days' notice for Y").
+#   - Neutral descriptions ("this notice says you owe $X").
+#   - Quotes of statutes or public records.
+#   - "Consider talking to an attorney" — that is the correct redirect.
+#
+# The checker is case-insensitive and substring-based. It returns the list
+# of matched phrases so the caller can decide whether to block, warn, or
+# strip. It does NOT modify the text — the caller owns that decision.
+
+BANNED_PHRASES: tuple = (
+    # Directives — telling the user what to do
+    "you should",
+    "you must",
+    "you need to",
+    "you have to",
+    "you ought to",
+    # Recommendations — softer packaging of advice
+    "the best option is",
+    "the best course of action is",
+    "i recommend",
+    "i suggest",
+    "i advise",
+    "my recommendation is",
+    # Legal conclusions about documents — only an attorney can make these
+    "this notice is illegal",
+    "this notice is defective",
+    "this notice is invalid",
+    "this notice is unenforceable",
+    "this document is illegal",
+    "this document is defective",
+    "this document is invalid",
+    "this document is unenforceable",
+    "your landlord broke the law",
+    "your landlord violated the law",
+)
+"""Canonical banned-phrase list. Tuple — not mutable at runtime. Add new
+phrases here, not in copies elsewhere. Keep categories grouped with comments."""
+
+
+def check_banned_phrases(text: str) -> list:
+    """
+    Check AI Copilot output text for banned advisory/legal-conclusion phrases.
+
+    Safety-net check, not a replacement for correct prompting. The Copilot
+    system prompt must still instruct the model to give facts, not advice.
+    This function catches the model when it drifts.
+
+    Case-insensitive substring match. Returns the list of banned phrases
+    found in `text` (empty list if clean). Does NOT modify the text — the
+    caller decides whether to block, warn, or strip.
+
+    Args:
+        text: The AI Copilot response text to check. Coerced to str if a
+            non-string is passed (e.g. bytes) — but callers should pass str.
+
+    Returns:
+        List of banned phrases found, in BANNED_PHRASES order. Empty list
+        if none found. Never None. Duplicates preserved if a phrase appears
+        multiple times (caller can dedupe if needed).
+
+    Raises:
+        TypeError: if `text` is None. Passing None is treated as a bug —
+            the caller should have text to check.
+    """
+    if text is None:
+        raise TypeError("check_banned_phrases requires a string, got None")
+
+    if not isinstance(text, str):
+        text = str(text)
+
+    lowered = text.lower()
+    return [phrase for phrase in BANNED_PHRASES if phrase in lowered]
+
+
 __all__ = [
     "UPLRiskTier",
     "UPL_DISCLAIMER",
@@ -229,4 +323,6 @@ __all__ = [
     "UPL_REFERRAL_CONTACTS",
     "UPL_REFERRAL_BLOCK_TEXT",
     "get_disclaimer_for_tier",
+    "BANNED_PHRASES",
+    "check_banned_phrases",
 ]
