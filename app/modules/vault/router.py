@@ -34,9 +34,11 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.id_gen import make_id
+from app.models.models import Incident
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.request_utils import raise_for_storage_error
@@ -1349,3 +1351,157 @@ def _get_file_category(filename: str) -> str:
 # ensure_vault_folders() below is still used directly by document upload
 # endpoints in this file as a defensive folder-existence check — that usage
 # is unrelated to vault *setup* and was left in place.
+
+
+# =============================================================================
+# Incident Endpoints (migrated from vault_all_in_one.router)
+# =============================================================================
+
+class IncidentCreateRequest(BaseModel):
+    """Request model for creating an incident."""
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    incident_type: Optional[str] = Field(None, description="habitability, discrimination, eviction, etc.")
+    severity: Optional[str] = Field(None, description="critical, high, normal, low")
+    incident_metadata: Optional[dict] = None
+
+
+class IncidentResponse(BaseModel):
+    """Response model for an incident."""
+    incident_id: int
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    status: str
+    incident_type: Optional[str] = None
+    severity: Optional[str] = None
+    incident_metadata: Optional[dict] = None
+    created_at: datetime
+    updated_at: datetime
+    item_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+@router.post("/incidents", response_model=IncidentResponse, status_code=201)
+async def create_incident(
+    request: IncidentCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    user: StorageUser = Depends(yellow_access),
+):
+    """Create a new incident/case for organizing related evidence."""
+    incident = Incident(
+        user_id=user.user_id,
+        title=request.title,
+        description=request.description,
+        start_date=request.start_date,
+        end_date=request.end_date,
+        incident_type=request.incident_type,
+        severity=request.severity,
+        incident_metadata=request.incident_metadata,
+        status="active",
+    )
+
+    db.add(incident)
+    await db.flush()
+    await db.refresh(incident)
+
+    return IncidentResponse.model_validate(incident)
+
+
+@router.get("/incidents", response_model=list[IncidentResponse])
+async def list_incidents(
+    status: Optional[str] = Query(None, description="Filter by status"),
+    incident_type: Optional[str] = Query(None, description="Filter by type"),
+    db: AsyncSession = Depends(get_db),
+    user: StorageUser = Depends(yellow_access),
+):
+    """List all incidents for the user."""
+    query = select(Incident).where(Incident.user_id == user.user_id)
+
+    if status:
+        query = query.where(Incident.status == status)
+    if incident_type:
+        query = query.where(Incident.incident_type == incident_type)
+
+    query = query.order_by(Incident.created_at.desc())
+
+    result = await db.execute(query)
+    incidents = result.scalars().all()
+
+    response_incidents = []
+    for incident in incidents:
+        count_result = await db.execute(
+            select(func.count())
+            .select_from(VaultItem)
+            .where(VaultItem.related_incident_id == incident.incident_id)
+        )
+        item_count = count_result.scalar() or 0
+
+        resp = IncidentResponse.model_validate(incident)
+        resp.item_count = item_count
+        response_incidents.append(resp)
+
+    return response_incidents
+
+
+@router.get("/incidents/{incident_id}", response_model=IncidentResponse)
+async def get_incident(
+    incident_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: StorageUser = Depends(yellow_access),
+):
+    """Get a single incident with item count."""
+    result = await db.execute(
+        select(Incident).where(
+            Incident.incident_id == incident_id,
+            Incident.user_id == user.user_id,
+        )
+    )
+    incident = result.scalar_one_or_none()
+
+    if not incident:
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
+
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(VaultItem)
+        .where(VaultItem.related_incident_id == incident_id)
+    )
+    item_count = count_result.scalar() or 0
+
+    resp = IncidentResponse.model_validate(incident)
+    resp.item_count = item_count
+    return resp
+
+
+@router.get("/incidents/{incident_id}/items", response_model=list[DocumentResponse])
+async def get_incident_items(
+    incident_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: StorageUser = Depends(yellow_access),
+):
+    """Get all vault items linked to a specific incident."""
+    result = await db.execute(
+        select(Incident).where(
+            Incident.incident_id == incident_id,
+            Incident.user_id == user.user_id,
+        )
+    )
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
+
+    items_result = await db.execute(
+        select(VaultItem).where(
+            VaultItem.user_id == user.user_id,
+            VaultItem.related_incident_id == incident_id,
+        )
+    )
+    items = items_result.scalars().all()
+
+    return [DocumentResponse.model_validate(item) for item in items]
