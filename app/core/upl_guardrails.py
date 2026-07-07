@@ -103,4 +103,89 @@ class UPLRiskTier(str, Enum):
     feature lands here, flag it to the project owner and stop."""
 
 
-__all__ = ["UPLRiskTier"]
+# ---------------------------------------------------------------------------
+# Standard disclaimer text — single source of truth
+# ---------------------------------------------------------------------------
+# Every module that outputs MEDIUM_HIGH or HIGH content MUST display one of
+# these disclaimers on the same screen as the output. Use UPL_DISCLAIMER for
+# compact UI surfaces (buttons, badges, inline notices); use
+# UPL_DISCLAIMER_LONG for page-level banners and footers. Both are canonical —
+# do not reword, paraphrase, or invent new variants in other modules.
+
+UPL_DISCLAIMER: str = (
+    "We do not give legal advice. Get legal advice from a qualified attorney."
+)
+"""Short canonical notice. Displayed inline with MEDIUM_HIGH+ output."""
+
+UPL_DISCLAIMER_LONG: str = (
+    "Semptify is an organizational tool and educational resource — not a law firm. "
+    "We can't give legal advice. For legal advice, contact a licensed attorney "
+    "or your local legal aid society."
+)
+"""Long canonical notice. Used in page banners, footers, and about/help pages.
+Matches the wording already shipped in public_base.html, about.html, complaints.html."""
+
+
+# ---------------------------------------------------------------------------
+# Standard referral block — legal aid and crisis contacts
+# ---------------------------------------------------------------------------
+# Every module that outputs MEDIUM_HIGH or HIGH content MUST display a visible
+# path to real outside legal help on the same screen (per the enforcement rule
+# in the module docstring). This is that path. One shared block — do not
+# duplicate or reword in other modules.
+#
+# Contacts sourced from the canonical 911 help page (static/911/) and
+# location_service.py. "Free" appears in external resource descriptions as a
+# factual statement about THEIR services (per the 2026-06-30 word rule —
+# external factual descriptions are permitted; Semptify self-description is not).
+
+UPL_REFERRAL_CONTACTS: dict = {
+    "crisis_line": {
+        "name": "988 Suicide & Crisis Lifeline",
+        "phone": "988",
+        "description": "Mental health crisis, emotional distress, suicide prevention.",
+        "hours": "24/7 · Free · Confidential · English/Español",
+    },
+    "housing_help": {
+        "name": "211 United Way",
+        "phone": "211",
+        "description": "Emergency rental assistance, food, shelter, crisis referrals statewide.",
+        "hours": "24/7 · Toll-free 1-800-543-7709 · Text your zip to 898-211",
+    },
+    "home_line_mn": {
+        "name": "HOME Line — Minnesota Tenant Hotline",
+        "phone": "612-728-5767",
+        "url": "https://homelinemn.org/",
+        "description": "Free legal advice, counseling, and rental help for tenants statewide.",
+        "hours": "Mon–Thu 9am–6pm · Fri 9am–3pm · Toll-free 1-866-866-3546",
+    },
+    "legal_aid_mn": {
+        "name": "Legal Aid Minnesota",
+        "phone": "1-888-743-5327",
+        "url": "https://www.mylegalaid.org/",
+        "description": "Free legal services for low-income Minnesotans.",
+        "hours": "Statewide intake line",
+    },
+}
+"""Canonical referral contacts. Render in UI or return from API endpoints.
+Keys are stable identifiers — do not rename. Values may be updated when
+contact info changes (update here, not in copies elsewhere)."""
+
+UPL_REFERRAL_BLOCK_TEXT: str = "\n".join(
+    f"{c['name']}\n  Call: {c['phone']}"
+    + (f"  ·  Web: {c['url']}" if c.get("url") else "")
+    + f"\n  {c['description']}\n  {c['hours']}"
+    for c in UPL_REFERRAL_CONTACTS.values()
+)
+"""Plain-text rendering of UPL_REFERRAL_CONTACTS for logs, API responses,
+SMS gateways, and any surface that needs a flat string instead of structured
+data. Generated from the dict so it never drifts."""
+
+
+__all__ = [
+    "UPLRiskTier",
+    "UPL_DISCLAIMER",
+    "UPL_DISCLAIMER_LONG",
+    "UPL_REFERRAL_CONTACTS",
+    "UPL_REFERRAL_BLOCK_TEXT",
+]
