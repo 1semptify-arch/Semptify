@@ -147,7 +147,6 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.services.vault_ingestion",
     "app.services.vault_search",
     "app.core.semptify_internal_sdk",
-    "app.modules.vault_all_in_one.service",
 )
 
 
