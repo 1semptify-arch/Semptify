@@ -62,6 +62,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from app.core.upl_guardrails import UPLRiskTier
+
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
@@ -130,6 +132,13 @@ class ModuleEntry:
         feature_flag: Optional Feature enum value that gates this module at runtime
         dev_notes: Developer notes for unfinished work, stubs, or pending decisions
 
+        --- UPL Risk Tier ---
+        upl_risk_tier: Unauthorized Practice of Law risk classification for this
+            module's output. Defaults to LOW (safest). Every module MUST declare
+            its tier — see app/core/upl_guardrails.py for the enum and enforcement
+            rules. Modules at MEDIUM_HIGH+ must display the canonical disclaimer
+            and referral block on output surfaces.
+
         --- External Module Fields (ignored for internal modules) ---
         external_repo: Git URL for external module source
         external_version: Pinned version string
@@ -153,6 +162,9 @@ class ModuleEntry:
     requires_gate: str = ""
     feature_flag: str = ""
     dev_notes: str = ""
+
+    # UPL risk classification (see app/core/upl_guardrails.py)
+    upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW
 
     # External module fields (ignored for internal)
     external_repo: str = ""
@@ -336,6 +348,8 @@ def _register(
     requires_gate: str = "",
     feature_flag: str = "",
     dev_notes: str = "",
+    # UPL risk classification
+    upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW,
     # External module fields
     external_repo: str = "",
     external_version: str = "",
@@ -363,6 +377,7 @@ def _register(
         requires_gate=requires_gate,
         feature_flag=feature_flag,
         dev_notes=dev_notes,
+        upl_risk_tier=upl_risk_tier,
         external_repo=external_repo,
         external_version=external_version,
         external_signature=external_signature,
@@ -413,9 +428,11 @@ _register("app.modules.workflow_validator.router", tags=("Admin",), tier=Product
 # Rights & education
 _register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE,
           lifecycle="beta", dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.")
-_register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE)
+_register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE,
+          upl_risk_tier=UPLRiskTier.LOW)
 _register("app.modules.law_library.router", router_attr="page_router", tags=("Law Library",), tier=ProductTier.CORE,
-          log_message="Law Library page route active at /law-library")
+          log_message="Law Library page route active at /law-library",
+          upl_risk_tier=UPLRiskTier.LOW)
 
 # Core tools
 _register("app.modules.contacts.router", tags=("Contact Manager",), tier=ProductTier.CORE)
@@ -484,7 +501,8 @@ _register(
 
 _register("app.modules.eviction_defense.router", tags=("Eviction Defense Toolkit",), tier=ProductTier.EXTENDED)
 _register("app.modules.zoom_court.router", tags=("Zoom Courtroom",), tier=ProductTier.EXTENDED)
-_register("app.modules.zoom_court_prep.router", tags=("Zoom Court Prep",), tier=ProductTier.EXTENDED)
+_register("app.modules.zoom_court_prep.router", tags=("Zoom Court Prep",), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.LOW)
 _register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED)
 _register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED)
 # _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
@@ -497,7 +515,8 @@ _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTi
 # Case management
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)
 _register("app.modules.guided_intake.router", tags=("Guided Intake",), tier=ProductTier.EXTENDED)
-_register("app.modules.case_builder.router", tags=("Case Builder",), tier=ProductTier.EXTENDED)
+_register("app.modules.case_builder.router", tags=("Case Builder",), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.LOW)
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
 _register("app.modules.plan_maker.router", tags=("Plan Maker",), tier=ProductTier.EXTENDED)
@@ -667,6 +686,7 @@ _register("app.modules.legal_filing_module", router_attr="legal_filing_router", 
           dev_notes="Placeholder for legal filing module integration with mesh/network. Imports from app.routers.legal_filing.")
 _register("app.modules.complaint_wizard_module", tags=("Complaint Wizard",), tier=ProductTier.DEV,
           lifecycle="dev_only", optional=True,
+          upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
           dev_notes="Complaint wizard using Positronic Mesh SDK. No FastAPI router — uses register_with_mesh() pattern. Currently DISABLED in main.py.")
 _register("app.modules.free_api_pack", tags=("Free API Pack",), tier=ProductTier.DEV,
           lifecycle="dev_only", optional=True,
@@ -686,6 +706,32 @@ _register("app.modules.vault_sync", tags=("Vault Sync",), tier=ProductTier.DEV,
               "crypto.py, sync_log.py + alembic migration for sync_log table. "
               "Does NOT touch documents (those already live in user's cloud). No PII, no OAuth tokens synced."
           ))
+
+# =============================================================================
+# UPL Matrix — Conceptual module registrations
+# =============================================================================
+# These modules are declared in the UPL risk matrix but do not yet have code.
+# Registered here so their UPL tier is declared and ready for when they are
+# built. All are dev_only, optional, no router — safe to import-fail.
+# When a module is built, update its entry with the real module_path and
+# move it to the appropriate tier block above.
+
+_register("app.modules.eviction_notice_explainer", tags=("Eviction Notice Explainer",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          upl_risk_tier=UPLRiskTier.HIGH,
+          dev_notes="Conceptual from UPL matrix. Explains eviction notices in plain language. HIGH tier — generates tailored legal analysis of a user's specific notice, requires attorney-review gate before output. No router yet.")
+_register("app.modules.response_letter_generator", tags=("Response Letter Generator",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          upl_risk_tier=UPLRiskTier.HIGH,
+          dev_notes="Conceptual from UPL matrix. Generates response letters (e.g. answer to complaint). HIGH tier — drafts documents intended to be filed, requires attorney-review gate. No router yet.")
+_register("app.modules.eviction_defense_content", tags=("Eviction Defense Content",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          upl_risk_tier=UPLRiskTier.LOW,
+          dev_notes="Conceptual from UPL matrix. Informational-only eviction defense content — plain-language facts and statutes, no filtering/selection flow, no tailored advice. LOW tier: pure facts and neutral listings. No router yet. DO NOT build a filtering or selection flow — that would move this to MEDIUM_HIGH+.")
+_register("app.modules.ai_copilot", tags=("AI Copilot",), tier=ProductTier.DEV,
+          lifecycle="dev_only", optional=True,
+          upl_risk_tier=UPLRiskTier.LOW,
+          dev_notes="Conceptual from UPL matrix. AI assistant for tenant questions. LOW tier per matrix — provides facts and organization, not legal advice. Banned-phrase checker in upl_guardrails.py is the safety net. No router yet.")
 
 # Modules wired via main.py direct import (tracked here for manifest visibility)
 _register("app.modules.context_loop.router", tags=("Context Loop",), tier=ProductTier.DEV,
