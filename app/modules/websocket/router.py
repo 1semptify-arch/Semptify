@@ -7,14 +7,15 @@ Enhanced with advanced WebSocket management and job notifications.
 # All imports remain absolute since websocket is a CORE module.
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
-from typing import Optional
 import logging
 import json
 
 from app.core.event_bus import event_bus, EventType
-from app.core.websocket_manager import get_websocket_manager, WebSocketMessage
+from app.core.websocket_manager import get_websocket_manager
 from app.core.job_processor import get_job_processor
 from app.core.utc import utc_now
+from app.core.security import auth_gate, is_valid_user_storage
+from app.core.user_context import UserContext
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -38,6 +39,11 @@ async def websocket_events(websocket: WebSocket):
     """
     # Get user_id from cookies (not query params - security!)
     user_id = get_user_id_from_websocket(websocket)
+    
+    # Require login for websocket connections
+    if not is_valid_user_storage(user_id):
+        await websocket.close(code=1008, reason="Authentication required")
+        return
     
     await websocket.accept()
     logger.info(f"Enhanced WebSocket connected: {user_id}")
@@ -140,7 +146,9 @@ async def websocket_events(websocket: WebSocket):
 
 
 @router.get("/status")
-async def get_websocket_status():
+async def get_websocket_status(
+    user: UserContext = Depends(auth_gate),
+):
     """Get enhanced WebSocket connection status"""
     ws_manager = get_websocket_manager()
     job_processor = get_job_processor()
@@ -161,7 +169,10 @@ async def get_websocket_status():
     }
 
 @router.get("/connections/{user_id}")
-async def get_user_connections(user_id: str):
+async def get_user_connections(
+    user_id: str,
+    user: UserContext = Depends(auth_gate),
+):
     """Get WebSocket connections for a specific user"""
     ws_manager = get_websocket_manager()
     connections = ws_manager.get_user_connections(user_id)
@@ -173,7 +184,11 @@ async def get_user_connections(user_id: str):
     }
 
 @router.post("/notify/{user_id}")
-async def send_notification_to_user(user_id: str, notification: dict):
+async def send_notification_to_user(
+    user_id: str,
+    notification: dict,
+    user: UserContext = Depends(auth_gate),
+):
     """Send a notification to a specific user via WebSocket"""
     ws_manager = get_websocket_manager()
     
@@ -199,7 +214,10 @@ async def send_notification_to_user(user_id: str, notification: dict):
     }
 
 @router.post("/broadcast")
-async def broadcast_notification(notification: dict):
+async def broadcast_notification(
+    notification: dict,
+    user: UserContext = Depends(auth_gate),
+):
     """Broadcast a notification to all connected users"""
     ws_manager = get_websocket_manager()
     
