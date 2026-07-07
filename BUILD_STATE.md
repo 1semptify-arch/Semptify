@@ -1,6 +1,48 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-04 — Security Sweep + Timeline/Vault Migration + Lint (SHIPPED 9b26d11)
+
+### What Was Done
+- **Security sweep — admin routers**: Added `require_capability()` gates to `dashboard.router` (`admin_dashboard`), `analytics.router` (`admin_analytics`), `batch.router` (`admin_batch_ops`), `capabilities.router` (`admin_capabilities`), and `funding_mgmt.router` (`admin_funding`).
+- **Security sweep — core routers**: Added `auth_gate` (canonical login-required dependency) to `legal_analysis.router`, `page_composer.router`, `websocket.router`, and `risc.router`. Created `auth_gate` in `app/core/security.py`.
+- **Module deregistration**: Commented out `brain`, `positronic_mesh`, and `mesh_network` router registrations in `app/core/product_manifest.py`.
+- **Timeline/incidents migration**: Added `incident_id` filter to `TimelineViewRequest` and `_load_db_vault_items` in `timeline.router`; migrated incident endpoints (`POST /incidents`, `GET /incidents`, `GET /incidents/{incident_id}`, `GET /incidents/{incident_id}/items`) into `vault.router`.
+- **Module cleanup**: Deleted the entire `app/modules/vault_all_in_one/` module (`service.py`, `router.py`, `__init__.py`, `manifest.py`, `register.py`) and removed its contract entry from `app/core/contract_loader.py`.
+- **Lint cleanup**: Resolved all remaining Ruff issues in `app/core/security.py` including duplicate definitions, missing `utc_now` import, bare `except: pass`, `is_active == True`, and `Path.open()` warnings.
+
+### Commits This Session
+- `47773e4` — security: add require_capability gate to dashboard.router
+- `ca619de` — security: add require_capability gate to analytics.router
+- `d9605a7` — security: add require_capability gate to batch.router
+- `2dba255` — security: add require_capability gate to capabilities.router
+- `31f5c47` — security: add require_capability gate to funding_mgmt.router
+- `af6d78a` — security: create canonical auth_gate dependency
+- `e464217` — security: add auth_gate to legal_analysis.router
+- `b9eac91` — security: add auth_gate to page_composer.router
+- `512ef02` — deregister: brain, positronic_mesh, mesh_network routers from product_manifest.py
+- `5e86268` — timeline: add incident_id filter to unified timeline
+- `94c8bfa` — vault: migrate incident endpoints from vault_all_in_one
+- `932832e` — vault_all_in_one: remove deprecated module
+- `9b26d11` — lint: resolve ruff issues in app/core/security.py
+
+### Known Working
+- `python -m py_compile app/main.py` passes clean.
+- `python -m py_compile app/core/security.py` passes clean.
+- `python -m ruff check app/core/security.py` passes clean.
+- `app/main.py` imports successfully with 0 errors at startup.
+
+### Known Gaps / Pending
+- **Audit-log implementation** on `feature/vault-audit-log` branch: fix DB session, implement service, wire into `vault.router`.
+- **Attorney/Legal Aid Intake Packet** scaffold in Case Builder (new feature, branch only).
+- **Update `Semptify_Master_Inventory_LIVE.xlsx`** Module Inventory and Gap Check tabs.
+- Same pre-existing pending items: `parse_user_id().user_id` tuple bug in `ui_composer/router.py` and `tenant_feed/router.py` remains unaddressed; ~80 Ruff warnings in `stateless_oauth.py` remain.
+
+### Next Session Should Start With
+- Continue with the highest-priority pending item: audit-log implementation on `feature/vault-audit-log` branch, or update `BUILD_STATE.md` / master inventory if shipping is the goal.
+
+---
+
 ## Session — 2026-07-04 — Vault Fragmentation Security Patch (SHIPPED 8adec7f)
 
 ### What Was Done
