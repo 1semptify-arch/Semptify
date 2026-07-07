@@ -1,10 +1,15 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-30 AM
+**Last Updated**: 2026-07-07
 
 ---
 
-## 🎯 Current Priority: Phase 5b — Action Feedback helper retrofit ✅ COMPLETE
+## 🎯 Current Priority: UPL guardrail infrastructure + GUI Phase 1 prep
+
+### UPL Guardrail Infrastructure — IN PROGRESS (2026-07-07)
+- `app/core/upl_guardrails.py` shipped to main — `UPLRiskTier` enum (LOW, LOW_MEDIUM, MEDIUM, MEDIUM_HIGH, HIGH, VERY_HIGH_DO_NOT_BUILD) is the SSOT for legal-risk classification.
+- **Follow-up (not urgent)**: Add `upl_risk_tier: UPLRiskTier` field to `ModuleEntry` in `product_manifest.py` and register the 8 modules (eviction_notice_explainer, complaint_wizard, court_prep, case_builder, response_letter_generator, eviction_defense_content, library, ai_copilot) with their tiers from the matrix. Requires the tier matrix from the project owner.
+- **Parallel branch**: `feature/attorney-intake-packet` has uncommitted attorney intake packet scaffold work (separate, in-progress). Do not mix with UPL work.
 
 ### Phase 5b — Action Feedback Helper: ✅ COMPLETE (2026-06-30 AM)
 
@@ -65,9 +70,10 @@
 
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
-| 1 | **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | ✅ Complete 2026-06-30 | — |
+| 1 | **UPL guardrail wiring** — add `upl_risk_tier` to `ModuleEntry`, register 8 modules with tiers | `app/core/upl_guardrails.py` | 🅿️ Next priority | Tier matrix from project owner |
 | 2 | **GUI Phase 1 — Tenant Journal restructuring** | `GUI_PHASE1_DESIGN.md` | 🅿️ Next priority | — |
 | 3 | **Document Center planning** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | 🅿️ Pending | — |
+| 4 | **Attorney Intake Packet** (parallel branch) | `feature/attorney-intake-packet` | 🅿️ In progress (uncommitted) | User review of scaffold |
 
 ### Action Feedback Helper — COMPLETE
 All 13 retrofittable pages now use `SemptifyFeedback.*` directly. No `alert()` fallbacks remain. Helper is globally loaded via `feedback.js` in `base.html`.
