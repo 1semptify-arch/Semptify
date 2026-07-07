@@ -1,6 +1,29 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-07 — UPL Guardrails Module Scaffold (SHIPPED to main)
+
+### What Was Done
+- **New shared module**: `app/core/upl_guardrails.py` — single source of truth for Unauthorized Practice of Law (UPL) risk-tier classification.
+- **`UPLRiskTier` enum**: 6 tiers — `LOW`, `LOW_MEDIUM`, `MEDIUM`, `MEDIUM_HIGH`, `HIGH`, `VERY_HIGH_DO_NOT_BUILD`. Inherits from `str` for clean JSON serialization. Each tier has a docstring defining its boundary and examples.
+- **Enforcement rule documented in module docstring**: features at or above `MEDIUM_HIGH` must display the canonical "We do not give legal advice" notice + a visible path to outside legal help on the same screen. `HIGH` tier requires an attorney-review gate before output. `VERY_HIGH_DO_NOT_BUILD` is a hard stop — do not build, flag to project owner, stop.
+- **No other files touched**. Foundation module only — classifier/gate functions and `FunctionGroupContract` registration land when the first consumer is built on top of it.
+
+### Known Working
+- `python -m py_compile app/core/upl_guardrails.py` passes clean.
+- `python -m py_compile app/main.py` passes clean (no regression).
+- Enum is importable: `from app.core.upl_guardrails import UPLRiskTier`.
+
+### Known Gaps / Pending
+- **No consumers yet** — no module currently imports `UPLRiskTier`. Intentional: the enum is the SSOT foundation; downstream enforcement lands when the first feature needs it.
+- **Follow-up task (not urgent)**: Add `upl_risk_tier: UPLRiskTier` field to `ModuleEntry` in `product_manifest.py` and register the 8 modules (eviction_notice_explainer, complaint_wizard, court_prep, case_builder, response_letter_generator, eviction_defense_content, library, ai_copilot) with their tiers from the matrix.
+- **Parallel branch**: `feature/attorney-intake-packet` has uncommitted attorney intake packet scaffold work (separate from this UPL work).
+
+### Next Session Should Start With
+- Follow-up: wire `upl_risk_tier` into `ModuleEntry` and register the 8 modules with their tiers. Requires the tier matrix from the project owner.
+
+---
+
 ## Session — 2026-07-04 — Security Sweep + Timeline/Vault Migration + Lint (SHIPPED 9b26d11)
 
 ### What Was Done
