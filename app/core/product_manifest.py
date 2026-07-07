@@ -582,19 +582,19 @@ _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTie
           log_message="Cloud Sync router connected - User-controlled data persistence active")
 
 # AI infrastructure
-_register("app.modules.brain.router", prefix="/brain", tags=("Positronic Brain",), tier=ProductTier.RESEARCH,
-          lifecycle="experimental", feature_flag="experimental_ai_model",
-          dev_notes="Heavy service. Memory-optimized load. Guarded by ENABLE_HEAVY_SERVICES.",
-          log_message="Positronic Brain connected - Central intelligence hub active")
+# _register("app.modules.brain.router", prefix="/brain", tags=("Positronic Brain",), tier=ProductTier.RESEARCH,
+#           lifecycle="experimental", feature_flag="experimental_ai_model",
+#           dev_notes="Heavy service. Memory-optimized load. Guarded by ENABLE_HEAVY_SERVICES.",
+#           log_message="Positronic Brain connected - Central intelligence hub active")
 # _register("app.modules.auto_mode.router", tags=("Auto Mode",), tier=ProductTier.RESEARCH)  # INACTIVE: Not production-ready
 # Tagged as preview in roadmap — not registered until production-ready
 _register("app.modules.emotion.router", tags=("Emotion Engine",), tier=ProductTier.RESEARCH,
           lifecycle="experimental")
-_register("app.modules.positronic_mesh.router", prefix="/api", tags=("Positronic Mesh",), tier=ProductTier.RESEARCH,
-          lifecycle="experimental", feature_flag="experimental_ai_model",
-          dev_notes="Heavy service. Guarded by ENABLE_HEAVY_SERVICES.")
-_register("app.modules.mesh_network.router", prefix="/api", tags=("Mesh Network",), tier=ProductTier.RESEARCH,
-          lifecycle="experimental", feature_flag="beta_mesh_network")
+# _register("app.modules.positronic_mesh.router", prefix="/api", tags=("Positronic Mesh",), tier=ProductTier.RESEARCH,
+#           lifecycle="experimental", feature_flag="experimental_ai_model",
+#           dev_notes="Heavy service. Guarded by ENABLE_HEAVY_SERVICES.")
+# _register("app.modules.mesh_network.router", prefix="/api", tags=("Mesh Network",), tier=ProductTier.RESEARCH,
+#           lifecycle="experimental", feature_flag="beta_mesh_network")
 _register("app.modules.module_hub.router", prefix="/api", tags=("Module Hub",), tier=ProductTier.RESEARCH,
           lifecycle="experimental", feature_flag="experimental_ui",
           dev_notes="Heavy service. Memory-optimized load.")
