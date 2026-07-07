@@ -16,37 +16,36 @@ Additional Features (Flask Parity):
 """
 
 import hashlib
+import html
 import json
+import logging
 import os
+import re
 import secrets
 import string
 import time
-from datetime import datetime, timedelta, timezone
+from collections import defaultdict
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-from collections import defaultdict
-from contextlib import contextmanager
-import logging
-import tempfile
 
-from fastapi import Depends, HTTPException, Request, Cookie, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.config import Settings, get_settings
 from app.core.user_context import (
-    UserContext,
-    UserRole,
     StorageProvider,
     StoredSession,
-    get_permissions,
-    get_ui_config,
+    UserContext,
+    UserRole,
 )
-from app.core.oauth_token_manager import get_token_manager, get_valid_token_for_user
+from app.core.utc import utc_now
 
 try:
-    from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy import select
-    from app.models.models import UserRelationship, RelationshipType
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from app.models.models import UserRelationship
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
     SQLALCHEMY_AVAILABLE = False
@@ -96,7 +95,7 @@ def record_request_latency(latency_ms: float) -> None:
 def get_metrics() -> dict:
     """Get all metrics for /metrics endpoint."""
     uptime = time.time() - _startup_time
-    
+
     # Calculate latency percentiles
     latency_stats = {}
     if _latencies:
@@ -109,7 +108,7 @@ def get_metrics() -> dict:
             "mean_ms": sum(sorted_lat) / n if n > 0 else 0,
             "max_ms": max(sorted_lat) if n > 0 else 0,
         }
-    
+
     return {
         **_metrics,
         "uptime_seconds": uptime,
@@ -121,7 +120,7 @@ def get_metrics() -> dict:
 # Event Logging (JSON events to logs/events.log)
 # =============================================================================
 
-_events_log_path: Optional[Path] = None
+_events_log_path: Path | None = None
 
 
 def _get_events_log_path() -> Path:
@@ -134,10 +133,10 @@ def _get_events_log_path() -> Path:
     return _events_log_path
 
 
-def log_event(event_type: str, details: Optional[dict] = None) -> None:
+def log_event(event_type: str, details: dict | None = None) -> None:
     """
     Log a structured JSON event to events.log.
-    
+
     Args:
         event_type: Type of event (e.g., "admin_login", "rate_limited", "breakglass_used")
         details: Additional event details
@@ -150,9 +149,9 @@ def log_event(event_type: str, details: Optional[dict] = None) -> None:
         }
 
         log_path = _get_events_log_path()
-        with open(log_path, "a", encoding="utf-8") as f:
+        with log_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(event) + "\n")
-        
+
         logger.debug(f"Event logged: {event_type}")
     except Exception as e:
         logger.error(f"Failed to log event {event_type}: {e}")
@@ -182,14 +181,14 @@ class UserTokenStore:
     def _atomic_write(self, data: dict):
         """Write JSON atomically (temp file + rename)."""
         temp_path = self.users_file.with_suffix(".tmp")
-        with open(temp_path, "w", encoding="utf-8") as f:
+        with temp_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
         temp_path.replace(self.users_file)
 
     def _read_json(self) -> dict:
         """Read JSON file safely."""
         try:
-            with open(self.users_file, "r", encoding="utf-8") as f:
+            with self.users_file.open(encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
             return {}
@@ -198,17 +197,17 @@ class UserTokenStore:
         """Generate a 12-digit numeric token."""
         return "".join(secrets.choice(string.digits) for _ in range(12))
 
-    def save_user_token(self, token: Optional[str] = None) -> tuple[str, str]:
+    def save_user_token(self, token: str | None = None) -> tuple[str, str]:
         """
         Generate and save a new user token.
         Returns: (token, user_id)
         """
         if token is None:
             token = self.generate_user_token()
-        
+
         token_hash = hash_token(token)
         user_id = f"user_{secrets.token_hex(8)}"
-        
+
         users = self._read_json()
         users[user_id] = {
             "hash": token_hash,
@@ -221,25 +220,25 @@ class UserTokenStore:
         log_event("user_registered", {"user_id": user_id})
         return token, user_id
 
-    def validate_user_token(self, token: str) -> Optional[str]:
+    def validate_user_token(self, token: str) -> str | None:
         """
         Validate a user token.
         Returns user_id if valid, None otherwise.
         """
         if not token:
             return None
-        
+
         token_hash = hash_token(token)
         users = self._read_json()
-        
+
         for user_id, user_data in users.items():
             if user_data.get("hash") == token_hash:
                 return user_id
-        
+
         return None
 
 
-_user_token_store: Optional[UserTokenStore] = None
+_user_token_store: UserTokenStore | None = None
 
 
 def get_user_token_store() -> UserTokenStore:
@@ -250,7 +249,7 @@ def get_user_token_store() -> UserTokenStore:
     return _user_token_store
 
 
-def validate_user_token(token: Optional[str]) -> Optional[str]:
+def validate_user_token(token: str | None) -> str | None:
     """Convenience function: validate user token and return user_id."""
     if not token:
         return None
@@ -286,8 +285,6 @@ def consume_breakglass() -> None:
 # Session Store (Redis-backed, in-memory fallback for dev)
 # =============================================================================
 
-import json as _json
-
 _REDIS_SESSION_PREFIX = "semptify:session:"
 _REDIS_CLIENT = None
 
@@ -297,8 +294,9 @@ def _get_redis():
     if _REDIS_CLIENT is not None:
         return _REDIS_CLIENT
     try:
-        import redis as _redis
         import os as _os
+
+        import redis as _redis
         url = _os.getenv("REDIS_URL", "")
         if not url:
             return None
@@ -337,7 +335,7 @@ def _store_session(session_id: str, session: "StoredSession") -> None:
             ttl = None
             if session.expires_at:
                 ttl = int((session.expires_at - utc_now()).total_seconds())
-            payload = _json.dumps(_session_to_dict(session))
+            payload = json.dumps(_session_to_dict(session))
             key = _REDIS_SESSION_PREFIX + session_id
             if ttl and ttl > 0:
                 r.setex(key, ttl, payload)
@@ -355,7 +353,7 @@ def _load_session(session_id: str) -> Optional["StoredSession"]:
         try:
             raw = r.get(_REDIS_SESSION_PREFIX + session_id)
             if raw:
-                return _session_from_dict(_json.loads(raw))
+                return _session_from_dict(json.loads(raw))
             return None
         except Exception as _e:
             logger.warning("Redis session read failed, falling back to memory: %s", _e)
@@ -404,7 +402,7 @@ def _purge_expired_function_tokens() -> None:
 def issue_function_access_token(
     user_id: str,
     ttl_seconds: int = FUNCTION_TOKEN_DEFAULT_TTL_SECONDS,
-    context: Optional[dict] = None,
+    context: dict | None = None,
 ) -> dict:
     """Create a short-lived function token tied to a user session context."""
     _purge_expired_function_tokens()
@@ -488,7 +486,7 @@ def verify_function_token_for_operation(
     user_id: str,
     token: str,
     action: str,
-    document_id: Optional[str] = None,
+    document_id: str | None = None,
     refresh: bool = False,
     refresh_ttl_seconds: int = FUNCTION_TOKEN_DEFAULT_TTL_SECONDS,
 ) -> dict:
@@ -523,14 +521,13 @@ def verify_function_token_for_operation(
     if isinstance(allowed_documents, str):
         allowed_documents = [allowed_documents]
 
-    if document_id and allowed_documents:
-        if "*" not in allowed_documents and document_id not in allowed_documents:
-            return {
-                "valid": False,
-                "reason": "token_document_denied",
-                "required_document": document_id,
-                "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
-            }
+    if document_id and allowed_documents and "*" not in allowed_documents and document_id not in allowed_documents:
+        return {
+            "valid": False,
+            "reason": "token_document_denied",
+            "required_document": document_id,
+            "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        }
 
     base["authorized_action"] = action
     if document_id:
@@ -538,7 +535,7 @@ def verify_function_token_for_operation(
     return base
 
 
-def get_function_token_user_id(token: str) -> Optional[str]:
+def get_function_token_user_id(token: str) -> str | None:
     """
     Resolve the user_id stored inside a function access token.
 
@@ -573,7 +570,7 @@ def invalidate_function_access_tokens(user_id: str) -> int:
     return len(tokens)
 
 
-def get_session(session_id: str) -> Optional[StoredSession]:
+def get_session(session_id: str) -> StoredSession | None:
     """Get session by ID."""
     session = _load_session(session_id)
     if not session:
@@ -587,7 +584,7 @@ def get_session(session_id: str) -> Optional[StoredSession]:
     return session
 
 
-def update_session_role(session_id: str, role: str) -> Optional[StoredSession]:
+def update_session_role(session_id: str, role: str) -> StoredSession | None:
     """Update the role for an existing session."""
     session = _load_session(session_id)
     if session:
@@ -599,9 +596,9 @@ def update_session_role(session_id: str, role: str) -> Optional[StoredSession]:
 
 def update_session_impersonation(
     session_id: str,
-    acting_as: Optional[str],
-    acting_as_role: Optional[str],
-) -> Optional[StoredSession]:
+    acting_as: str | None,
+    acting_as_role: str | None,
+) -> StoredSession | None:
     """Set or clear the acting_as impersonation state on a session."""
     session = _load_session(session_id)
     if session:
@@ -612,7 +609,7 @@ def update_session_impersonation(
     return None
 
 
-def update_session_token(session_id: str, access_token: str) -> Optional[StoredSession]:
+def update_session_token(session_id: str, access_token: str) -> StoredSession | None:
     """Update the access token for an existing session."""
     session = _load_session(session_id)
     if session:
@@ -631,52 +628,7 @@ def invalidate_session(session_id: str) -> bool:
 # User ID Extraction (FastAPI Dependencies)
 # =============================================================================
 
-from app.core.user_id import parse_user_id, COOKIE_USER_ID
-
-
-def get_user_id(request: Request) -> Optional[str]:
-    """
-    Extract and validate user ID from request cookies.
-    
-    FastAPI dependency for protected routes. Returns the user_id if valid,
-    or None if no valid user ID is present.
-    
-    Args:
-        request: FastAPI Request object
-        
-    Returns:
-        User ID string if valid cookie present, None otherwise
-        
-    Example:
-        @router.get("/protected")
-        async def protected_route(user_id: str = Depends(get_user_id)):
-            if not user_id:
-                raise HTTPException(status_code=401)
-            return {"user_id": user_id}
-    """
-    cookie_value = request.cookies.get(COOKIE_USER_ID)
-    if not cookie_value:
-        return None
-    
-    # Parse and validate the user_id format
-    provider, role, unique_part = parse_user_id(cookie_value)
-    if not provider or not role or not unique_part:
-        return None
-    
-    # Return the full cookie value (includes HMAC signature if present)
-    return cookie_value
-
-
-def get_optional_user_id(request: Request) -> Optional[str]:
-    """
-    Optional user ID extraction - same as get_user_id but for optional auth routes.
-    
-    Returns user_id if present and valid, None otherwise (no error).
-    """
-    return get_user_id(request)
-
-
-def get_client_ip_from_request(request: Request) -> Optional[str]:
+def get_client_ip_from_request(request: Request) -> str | None:
     """
     Extract the real client IP address from a request.
 
@@ -708,7 +660,7 @@ def get_client_ip_from_request(request: Request) -> Optional[str]:
 def derive_user_id(provider: str, storage_user_id: str) -> str:
     """
     Derive a stable internal user ID from storage identity.
-    
+
     This is deterministic - same provider + storage_user_id always gets same internal ID.
     The user ID does NOT encode role or provider - those are in the session.
     """
@@ -755,22 +707,22 @@ class AdminTokenStore:
     def _atomic_write(self, path: Path, data: dict | list):
         """Write JSON atomically (temp file + rename)."""
         temp_path = path.with_suffix(".tmp")
-        with open(temp_path, "w", encoding="utf-8") as f:
+        with temp_path.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
         temp_path.replace(path)
 
     def _read_json(self, path: Path) -> dict | list:
         """Read JSON file safely."""
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with path.open(encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
             return []
 
-    def validate_admin_token(self, token: str) -> Optional[dict]:
+    def validate_admin_token(self, token: str) -> dict | None:
         """
         Validate an admin token.
-        
+
         Priority:
         1. MASTER_KEY env var -> returns {"id": "master_admin"}
         2. Breakglass flag + token with breakglass:true -> returns {"id": "breakglass_<id>"}
@@ -783,7 +735,7 @@ class AdminTokenStore:
             log_event("admin_auth", {"method": "master_key"})
             incr_metric("admin_requests_total")
             return {"id": "master_admin", "method": "master_key"}
-        
+
         token_hash = hash_token(token)
         admins = self._read_json(self.admin_file)
 
@@ -824,11 +776,11 @@ class AdminTokenStore:
                     log_event("admin_auth", {"method": "token_file", "id": admin_id})
                     incr_metric("admin_requests_total")
                     return {"id": admin_id, **admin_data}
-        
+
         return None
 
 
-_admin_token_store: Optional[AdminTokenStore] = None
+_admin_token_store: AdminTokenStore | None = None
 
 
 def get_admin_token_store() -> AdminTokenStore:
@@ -854,7 +806,7 @@ class RateLimiter:
         key: str,
         window_seconds: int = 60,
         max_requests: int = 100,
-    ) -> tuple[bool, Optional[int]]:
+    ) -> tuple[bool, int | None]:
         """
         Check if request is allowed.
         Returns: (allowed: bool, retry_after: Optional[int])
@@ -875,7 +827,7 @@ class RateLimiter:
         return True, None
 
 
-_rate_limiter: Optional[RateLimiter] = None
+_rate_limiter: RateLimiter | None = None
 
 
 def get_rate_limiter() -> RateLimiter:
@@ -890,10 +842,10 @@ def get_rate_limiter() -> RateLimiter:
 # Request Token Extraction (Flask Parity)
 # =============================================================================
 
-def get_token_from_request(request: Request) -> Optional[str]:
+def get_token_from_request(request: Request) -> str | None:
     """
     Extract user token from request (multiple sources).
-    
+
     Priority:
     1. X-User-Token header
     2. user_token query parameter
@@ -904,16 +856,16 @@ def get_token_from_request(request: Request) -> Optional[str]:
     token = request.headers.get("X-User-Token")
     if token:
         return token
-    
+
     # Query params
     token = request.query_params.get("user_token")
     if token:
         return token
-    
+
     token = request.query_params.get("token")
     if token:
         return token
-    
+
     # Note: Form data extraction requires async, so handled in route
     return None
 
@@ -922,16 +874,13 @@ def get_token_from_request(request: Request) -> Optional[str]:
 # Input Sanitization
 # =============================================================================
 
-import html
-import re as _re
-
 # Dangerous patterns for path traversal and injection
-_PATH_TRAVERSAL_PATTERN = _re.compile(r'\.\.[\\/]|[\\/]\.\.|\.\./|/\.\.')
-_SCRIPT_TAG_PATTERN = _re.compile(r'<\s*script', _re.IGNORECASE)
+_PATH_TRAVERSAL_PATTERN = re.compile(r'\.\.[\\/]|[\\/]\.\.|\.\./|/\.\.')
+_SCRIPT_TAG_PATTERN = re.compile(r'<\s*script', re.IGNORECASE)
 _SQL_INJECTION_PATTERNS = [
-    _re.compile(r";\s*(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE)\s", _re.IGNORECASE),
-    _re.compile(r"'\s*OR\s+'?1'?\s*=\s*'?1'?", _re.IGNORECASE),
-    _re.compile(r"UNION\s+SELECT", _re.IGNORECASE),
+    re.compile(r";\s*(DROP|DELETE|INSERT|UPDATE|ALTER|CREATE)\s", re.IGNORECASE),
+    re.compile(r"'\s*OR\s+'?1'?\s*=\s*'?1'?", re.IGNORECASE),
+    re.compile(r"UNION\s+SELECT", re.IGNORECASE),
 ]
 
 
@@ -952,22 +901,22 @@ def sanitize_filename(filename: str) -> str:
     """
     if not filename:
         return ""
-    
+
     # Remove path components
     filename = str(filename)
     filename = filename.replace("\\", "/")
     filename = filename.split("/")[-1]  # Take only the filename part
-    
+
     # Remove null bytes and control characters
-    filename = _re.sub(r'[\x00-\x1f\x7f]', '', filename)
-    
+    filename = re.sub(r'[\x00-\x1f\x7f]', '', filename)
+
     # Remove dangerous characters
-    filename = _re.sub(r'[<>:"|?*]', '', filename)
-    
+    filename = re.sub(r'[<>:"|?*]', '', filename)
+
     # Limit length
     if len(filename) > 255:
         filename = filename[:255]
-    
+
     return filename
 
 
@@ -990,19 +939,19 @@ def sanitize_user_input(text: str, max_length: int = 10000) -> str:
     """
     if not text:
         return ""
-    
+
     text = str(text)
-    
+
     # Remove null bytes
     text = text.replace("\x00", "")
-    
+
     # Truncate
     if len(text) > max_length:
         text = text[:max_length]
-    
+
     # Escape HTML
     text = html.escape(text)
-    
+
     return text
 
 
@@ -1010,18 +959,18 @@ def check_sql_injection(text: str) -> bool:
     """
     Check for common SQL injection patterns.
     Returns True if text is SAFE, False if suspicious.
-    
+
     Note: This is a basic check - always use parameterized queries!
     """
     if not text:
         return True
-    
+
     text = str(text)
     for pattern in _SQL_INJECTION_PATTERNS:
         if pattern.search(text):
             logger.warning("Potential SQL injection detected: %s...", text[:50])
             return False
-    
+
     return True
 
 
@@ -1032,29 +981,29 @@ def check_xss(text: str) -> bool:
     """
     if not text:
         return True
-    
+
     text = str(text)
     if _SCRIPT_TAG_PATTERN.search(text):
         logger.warning("Potential XSS detected: %s...", text[:50])
         return False
-    
+
     # Check for javascript: URLs
-    if _re.search(r'javascript\s*:', text, _re.IGNORECASE):
+    if re.search(r'javascript\s*:', text, re.IGNORECASE):
         logger.warning("Potential XSS (javascript:) detected: %s...", text[:50])
         return False
-    
+
     # Check for event handlers
-    if _re.search(r'on\w+\s*=', text, _re.IGNORECASE):
+    if re.search(r'on\w+\s*=', text, re.IGNORECASE):
         logger.warning("Potential XSS (event handler) detected: %s...", text[:50])
         return False
-    
+
     return True
 
 
-def get_admin_token_from_request(request: Request) -> Optional[str]:
+def get_admin_token_from_request(request: Request) -> str | None:
     """
     Extract admin token from request.
-    
+
     Priority:
     1. X-Admin-Token header
     2. Authorization: Bearer <token>
@@ -1065,21 +1014,21 @@ def get_admin_token_from_request(request: Request) -> Optional[str]:
     token = request.headers.get("X-Admin-Token")
     if token:
         return token
-    
+
     # Authorization header
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
         return auth_header[7:]
-    
+
     # Query params
     token = request.query_params.get("admin_token")
     if token:
         return token
-    
+
     token = request.query_params.get("token")
     if token:
         return token
-    
+
     return None
 
 
@@ -1092,11 +1041,11 @@ security_bearer = HTTPBearer(auto_error=False)
 
 async def get_current_user(
     request: Request,
-    semptify_session: Optional[str] = Cookie(None),
-    semptify_uid: Optional[str] = Cookie(None),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),
+    semptify_session: str | None = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_bearer),
     settings: Settings = Depends(get_settings),
-) -> Optional[UserContext]:
+) -> UserContext | None:
     """
     Get current user context from session.
 
@@ -1137,7 +1086,7 @@ async def get_current_user(
 
         provider_code = raw_uid[0].upper()
         role_code = raw_uid[1].upper()
-        
+
         # Map provider code to StorageProvider
         provider_map = {
             'G': StorageProvider.GOOGLE_DRIVE,
@@ -1153,10 +1102,10 @@ async def get_current_user(
             'V': UserRole.ADVOCATE,
             'L': UserRole.LEGAL,
         }
-        
+
         provider = provider_map.get(provider_code)
         role = role_map.get(role_code)
-        
+
         # Only create context if we have valid provider and role codes
         if provider and role:
             # Get real access token: in-memory cache first, then DB (survives server restarts)
@@ -1165,21 +1114,21 @@ async def get_current_user(
             try:
                 from app.core.oauth_token_manager import get_valid_token_for_user
                 real_token = get_valid_token_for_user(raw_uid)
-            except Exception:
-                pass
+            except Exception as _e:
+                logger.debug("Failed to load cached token for %s: %s", raw_uid[:6], _e)
 
             if not real_token:
                 # In-memory cache empty (e.g. after server restart) — load from DB
                 try:
-                    from app.modules.storage.router import get_session_from_db
                     from app.core.database import get_session_factory
+                    from app.modules.storage.router import get_session_from_db
                     _factory = get_session_factory()
                     async with _factory() as _db:
                         _session = await get_session_from_db(_db, raw_uid)
                         if _session:
                             real_token = _session.get("access_token")
-                except Exception:
-                    pass
+                except Exception as _e:
+                    logger.debug("Failed to load session from DB for %s: %s", raw_uid[:6], _e)
 
             return UserContext(
                 user_id=raw_uid,
@@ -1188,7 +1137,7 @@ async def get_current_user(
                 access_token=real_token or "no-token",
                 role=role,
             )
-    
+
     # No valid cookie - user needs to connect storage
     return None
 
@@ -1196,55 +1145,52 @@ async def get_current_user(
 def is_valid_user_storage(user_id: str) -> bool:
     """
     Check if user ID represents a valid user with connected storage.
-    
+
     SECURITY: System users and demo users are NOT valid for production use.
     Users MUST connect their own cloud storage.
-    
+
     Valid user ID format: <provider><role><8-char-random>
     Example: GU7x9kM2pQ = Google Drive + User + 7x9kM2pQ
-    
+
     Invalid patterns:
     - "open-mode-user" - demo/testing only
-    - "system-*" - system processes only  
+    - "system-*" - system processes only
     - "su*" or "SU*" - system user prefix
     - "test*" - testing only
     - IDs shorter than 10 characters
     """
     if not user_id:
         return False
-    
+
     # Block system/demo user patterns
     invalid_prefixes = ["open-mode", "system", "su", "test", "demo", "admin-", "guest"]
     user_lower = user_id.lower()
     for prefix in invalid_prefixes:
         if user_lower.startswith(prefix):
             return False
-    
+
     # Valid user IDs are at least 10 chars (1 provider + 1 role + 8 random)
     if len(str(user_id)) < 10:
         return False
-    
+
     # Check provider code is valid (G, D, O)
     provider_code = user_id[0].upper()
     if provider_code not in ['G', 'D', 'O']:
         return False
-    
+
     # Check role code is valid (A, M, U, V, L)
     role_code = user_id[1].upper()
-    if role_code not in ['A', 'M', 'U', 'V', 'L']:
-        return False
-    
-    return True
+    return role_code in ['A', 'M', 'U', 'V', 'L']
 
 
 async def require_user(
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
     settings: Settings = Depends(get_settings),
 ) -> UserContext:
     """
     Require authenticated user WITH connected storage.
     Returns UserContext with role, provider, and permissions.
-    
+
     SECURITY POLICY:
     - Every user MUST have their own cloud storage connected
     - System users and demo users are NEVER allowed
@@ -1299,7 +1245,7 @@ async def require_user(
 # =============================================================================
 
 def auth_gate(
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
 ) -> UserContext:
     """
     Basic login gate: user must be authenticated (any valid session).
@@ -1315,7 +1261,7 @@ def auth_gate(
 
 
 def green_access(
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
 ) -> UserContext:
     """
     GREEN — cookie present and valid. Ice cube any age.
@@ -1330,7 +1276,7 @@ def green_access(
 
 
 async def yellow_access(
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
 ) -> UserContext:
     """
     YELLOW — cookie valid + token not expired (auto-refresh if melted).
@@ -1358,7 +1304,7 @@ async def yellow_access(
 
 async def red_access(
     request: Request,
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
 ) -> UserContext:
     """
     RED — cookie valid + provider confirms token is live right now.
@@ -1411,7 +1357,7 @@ async def red_access(
 def require_role(*roles: UserRole):
     """
     Dependency factory: require specific role(s).
-    
+
     Usage:
         @router.get("/admin-only")
         async def admin_endpoint(user: UserContext = Depends(require_role(UserRole.ADMIN))):
@@ -1427,14 +1373,14 @@ def require_role(*roles: UserRole):
                 detail=f"This action requires one of these roles: {[r.value for r in roles]}",
             )
         return user
-    
+
     return check_role
 
 
 def require_permission(*permissions: str):
     """
     Dependency factory: require specific permission(s).
-    
+
     Usage:
         @router.post("/upload")
         async def upload(user: UserContext = Depends(require_permission("vault_write"))):
@@ -1450,13 +1396,13 @@ def require_permission(*permissions: str):
                 detail=f"Missing required permissions: {permissions}",
             )
         return user
-    
+
     return check_permission
 
 
 async def require_admin(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_bearer),
     settings: Settings = Depends(get_settings),
 ) -> dict:
     """Require admin authentication (separate from user auth)."""
@@ -1464,13 +1410,13 @@ async def require_admin(
     limiter = get_rate_limiter()
     client_ip = request.client.host if request.client else "unknown"
     key = f"admin:{client_ip}:{request.url.path}"
-    
+
     allowed, retry_after = limiter.check(
-        key, 
-        settings.admin_rate_limit_window, 
+        key,
+        settings.admin_rate_limit_window,
         settings.admin_rate_limit_max_requests
     )
-    
+
     if not allowed:
         incr_metric("rate_limited_total")
         log_event("rate_limited", {"key": key, "retry_after": retry_after})
@@ -1504,17 +1450,17 @@ async def require_admin(
 
 
 async def get_user_id(
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
 ) -> str:
     """
     Get user_id from authenticated session.
-    
+
     This is the SECURE way to get user_id - it comes from the session,
     not from query parameters that can be spoofed.
     """
     if user:
         return user.user_id
-    
+
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={
@@ -1528,24 +1474,24 @@ async def get_user_id(
 
 
 async def get_optional_user_id(
-    user: Optional[UserContext] = Depends(get_current_user),
-) -> Optional[str]:
+    user: UserContext | None = Depends(get_current_user),
+) -> str | None:
     """
     Get user_id from session if available, otherwise None.
-    
+
     This is for endpoints where auth is optional but we still want
     to avoid user_id query parameter spoofing.
     """
     if user:
         return user.user_id
-    
+
     return None
 
 
 def rate_limit_dependency(
     key_prefix: str = "api",
-    window: Optional[int] = None,
-    max_requests: Optional[int] = None,
+    window: int | None = None,
+    max_requests: int | None = None,
 ):
     """Create a rate limiting dependency."""
     async def check_rate_limit(
@@ -1617,33 +1563,33 @@ async def require_anonymous_user(
     """
     # Extract token from request
     token = get_token_from_request(request)
-    
+
     # Also try form data for POST requests
     if not token and request.method == "POST":
         try:
             form_data = await request.form()
             token = form_data.get("user_token")
-        except Exception:
-            pass
-    
+        except Exception as _e:
+            logger.debug("Failed to read user_token from form data: %s", _e)
+
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User token required. Provide via X-User-Token header or user_token query param.",
         )
-    
+
     user_id = validate_user_token(token)
-    
+
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid user token",
         )
-    
+
     return user_id
 
 
-def optional_anonymous_user(request: Request) -> Optional[str]:
+def optional_anonymous_user(request: Request) -> str | None:
     """
     Optional anonymous user token - returns user_id or None.
     Use when auth is optional.
@@ -1732,57 +1678,56 @@ async def can_access(
     from_user_id: str,
     to_user_id: str,
     db: AsyncSession,
-    relationship_type: Optional[str] = None,
+    relationship_type: str | None = None,
 ) -> bool:
     """
     Check if from_user has permission to access to_user's resources.
-    
+
     Permission rules:
     - Admin users (default_role='admin') can access any user via ADMIN_OVERRIDE
     - Manager can access tenant if LEASE relationship exists
     - Advocate can access client if ADVOCACY relationship exists
     - Team members can access each other if TEAM_MEMBER relationship exists
-    
+
     Args:
         from_user_id: User requesting access
         to_user_id: User being accessed
         db: Database session
         relationship_type: Optional filter for specific relationship type
-    
+
     Returns:
         True if access is permitted, False otherwise
     """
     if not SQLALCHEMY_AVAILABLE:
         logger.warning("SQLAlchemy not available - can_access check skipped")
         return False
-    
+
     # Self-access always allowed
     if from_user_id == to_user_id:
         return True
-    
+
     # Build query for active relationships
     query = select(UserRelationship).where(
         UserRelationship.from_user_id == from_user_id,
         UserRelationship.to_user_id == to_user_id,
-        UserRelationship.is_active == True,
+        UserRelationship.is_active.is_(True),
     )
-    
+
     # Filter by relationship type if specified
     if relationship_type:
         query = query.where(UserRelationship.relationship_type == relationship_type)
-    
+
     # Check for non-expired relationships
-    from app.core.utc import utc_now
     query = query.where(
         (UserRelationship.expires_at.is_(None)) | (UserRelationship.expires_at > utc_now())
     )
-    
+
     result = await db.execute(query)
     relationship = result.scalar_one_or_none()
-    
+
     if relationship:
         logger.info(f"Access granted: {from_user_id[:6]}... -> {to_user_id[:6]}... via {relationship.relationship_type}")
         return True
-    
+
     logger.info(f"Access denied: {from_user_id[:6]}... -> {to_user_id[:6]}... (no active relationship)")
     return False
