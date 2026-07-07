@@ -1298,6 +1298,22 @@ async def require_user(
 #
 # =============================================================================
 
+def auth_gate(
+    user: Optional[UserContext] = Depends(get_current_user),
+) -> UserContext:
+    """
+    Basic login gate: user must be authenticated (any valid session).
+    This is the canonical dependency for endpoints that require login
+    but do not need a specific role, capability, or traffic-light level.
+    """
+    if not user or not is_valid_user_storage(user.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "auth_required", "gate": "auth_gate"},
+        )
+    return user
+
+
 def green_access(
     user: Optional[UserContext] = Depends(get_current_user),
 ) -> UserContext:
