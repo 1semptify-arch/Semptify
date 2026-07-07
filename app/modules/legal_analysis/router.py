@@ -15,6 +15,8 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import logging
 
+from app.core.security import auth_gate
+
 # Import legal analysis engine with fallback
 try:
     from ..services.legal_analysis_engine import (
@@ -78,7 +80,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/legal-analysis", tags=["Legal Analysis"])
+router = APIRouter(
+    prefix="/api/legal-analysis",
+    tags=["Legal Analysis"],
+    dependencies=[Depends(auth_gate)],
+)
 
 
 # =============================================================================
