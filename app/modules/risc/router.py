@@ -26,12 +26,19 @@ import time
 from typing import Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from jose import JWTError, jwt
+
+from app.core.security import auth_gate
+from app.core.user_context import UserContext
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/risc/google", tags=["RISC"])
+router = APIRouter(
+    prefix="/risc/google",
+    tags=["RISC"],
+    dependencies=[Depends(auth_gate)],
+)
 
 # Google's RISC issuer and JWKS endpoint
 _GOOGLE_RISC_ISSUER = "https://accounts.google.com"
