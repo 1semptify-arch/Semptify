@@ -6,22 +6,18 @@ Endpoints:
 """
 
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, Depends
 
-from app.core.request_utils import require_request_user_id
+from app.core.security import auth_gate
+from app.core.user_context import UserContext
+
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
 from app.modules.page_composer.service import compose_page
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/page", tags=["Page Composer"])
-
-
-def _require_authenticated(user_id: str) -> None:
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication required.")
 
 
 @router.get("/{subject}")
@@ -31,14 +27,14 @@ async def get_composed_page(
     jurisdiction: str = Query(default="MN"),
     fact_limit: int = Query(default=10, ge=1, le=50),
     story_limit: int = Query(default=5, ge=1, le=20),
+    user: UserContext = Depends(auth_gate),
 ):
     """Compose a unified page view for a subject.
 
     Returns verified facts, published tenant stories, and the user's own
     case data for this subject. All facts include source URLs (no hallucination).
     """
-    user_id = require_request_user_id(request)
-    _require_authenticated(user_id)
+    user_id = user.user_id
     if subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
     try:
