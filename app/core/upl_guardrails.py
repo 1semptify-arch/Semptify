@@ -182,10 +182,51 @@ SMS gateways, and any surface that needs a flat string instead of structured
 data. Generated from the dict so it never drifts."""
 
 
+def get_disclaimer_for_tier(tier: UPLRiskTier) -> str:
+    """
+    Return the canonical disclaimer text appropriate for a UPL risk tier.
+
+    - LOW / LOW_MEDIUM / MEDIUM: returns the short canonical disclaimer only.
+      These tiers surface facts and organization — no tailored legal advice —
+      so the inline notice is sufficient.
+    - MEDIUM_HIGH / HIGH: returns the short disclaimer followed by the full
+      referral block. Per the enforcement rule, MEDIUM_HIGH+ output MUST
+      display both the disclaimer and a visible path to real outside legal
+      help on the same screen. This helper returns both as a single string
+      for easy rendering.
+    - VERY_HIGH_DO_NOT_BUILD: also returns disclaimer + referral block, but
+      callers MUST NOT use this to render output — VERY_HIGH features must
+      not be built. The return value is provided so a caller that
+      defensively checks a tier at runtime can still surface help text if
+      it ever encounters this value, rather than returning an empty string.
+
+    Args:
+        tier: A UPLRiskTier member. Accept the enum member, not a string —
+            comparing strings is fragile and discouraged per the enum doc.
+
+    Returns:
+        A string. Never empty. Always contains at minimum UPL_DISCLAIMER.
+
+    Raises:
+        TypeError: if `tier` is not a UPLRiskTier member.
+    """
+    if not isinstance(tier, UPLRiskTier):
+        raise TypeError(
+            f"get_disclaimer_for_tier requires a UPLRiskTier member, got {type(tier).__name__}"
+        )
+
+    if tier in (UPLRiskTier.LOW, UPLRiskTier.LOW_MEDIUM, UPLRiskTier.MEDIUM):
+        return UPL_DISCLAIMER
+
+    # MEDIUM_HIGH, HIGH, VERY_HIGH_DO_NOT_BUILD
+    return f"{UPL_DISCLAIMER}\n\n{UPL_REFERRAL_BLOCK_TEXT}"
+
+
 __all__ = [
     "UPLRiskTier",
     "UPL_DISCLAIMER",
     "UPL_DISCLAIMER_LONG",
     "UPL_REFERRAL_CONTACTS",
     "UPL_REFERRAL_BLOCK_TEXT",
+    "get_disclaimer_for_tier",
 ]
