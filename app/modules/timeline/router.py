@@ -142,6 +142,10 @@ class TimelineViewRequest(BaseModel):
         None,
         description="Search in titles and descriptions"
     )
+    incident_id: Optional[int] = Field(
+        None,
+        description="Filter vault items by related incident_id"
+    )
     limit: int = Field(default=100, ge=1, le=500)
     offset: int = Field(default=0, ge=0)
 
@@ -607,10 +611,15 @@ async def _load_db_vault_items(
     start_date: Optional[datetime],
     end_date: Optional[datetime],
     date_axis: DateAxis,
-    evidence_only: bool
+    evidence_only: bool,
+    incident_id: Optional[int] = None,
 ) -> List[TimelineItem]:
     """Load vault items (evidence with three timestamps)."""
     query = select(VaultItem).where(VaultItem.user_id == user_id)
+    
+    # Filter by incident
+    if incident_id is not None:
+        query = query.where(VaultItem.related_incident_id == incident_id)
     
     # Filter by evidence
     if evidence_only:
@@ -737,7 +746,8 @@ async def get_unified_timeline(
         if ItemType.VAULT_ITEM in request.item_types:
             vault_items = await _load_db_vault_items(
                 session, user.user_id, start_date, end_date,
-                request.date_axis, request.evidence_only
+                request.date_axis, request.evidence_only,
+                request.incident_id
             )
             all_items.extend(vault_items)
     
