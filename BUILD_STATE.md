@@ -1,6 +1,39 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-10 — UPL Tiers + Vault ZIP Export + require_capability Fixes (SHIPPED 596afe0)
+
+### What Was Done
+- **TQ-009**: Wired `upl_risk_tier` field into `ModuleEntry` in `product_manifest.py`. Assigned correct UPL tiers to 8 legal-adjacent modules (eviction_defense=HIGH, court_forms=HIGH, legal=MEDIUM_HIGH, court_packet=MEDIUM, case_builder=MEDIUM, legal_analysis=LOW_MEDIUM, state_laws=LOW, law_library=LOW).
+- **TQ-003**: Completed GET `/api/vault/export` endpoint — streams ZIP of all vault documents with `manifest.json`. Added "Export My Case (ZIP)" button to `vault.html` + `exportCase()` JS function.
+- **TQ-007**: Marked obsolete (source file `vault_all_in_one.router` deleted 2026-07-04).
+- **Bug fix**: 7 router files had broken `require_capability` imports — either importing from `app.core.security` (wrong module) or missing the import entirely. Fixed: `documents`, `batch`, `analytics`, `admin_console`, `dashboard`, `funding_mgmt`, `capabilities` routers.
+- **Merge**: Merged `feature/attorney-intake-packet` into `main` (resolved 3 conflicts in product_manifest.py, ACTIVE_CONTEXT.md, BUILD_STATE.md).
+- **Cloudflare**: Dev mode enabled + cache purged.
+
+### Commits This Session
+- `4d01e4a` — feat: UPL guardrails, vault ZIP export, require_capability import fixes (75 files, +11189/-256)
+- `596afe0` — merge: feature/attorney-intake-packet into main
+
+### Known Working
+- All 7 router files compile clean (`py_compile`).
+- `product_manifest.py` compiles clean with UPL tier assignments.
+- `/api/vault/export` endpoint registered and wired to frontend.
+- App starts successfully (confirmed via user's restart log).
+
+### Known Gaps / Pending
+- **Vault ZIP export**: Not live-tested with real documents yet (needs a session with uploaded files).
+- **TQ-004** [EI]: OH/NC/GA state-law data (data-entry task).
+- **TQ-008** [EF]: Audit-log on feature branch.
+- **TQ-010** [EF]: GUI Screens 1-4 (in progress).
+- `scriptscompile_ai_context.py.t` — typo filename committed; should be cleaned up next session.
+
+### Next Session Should Start With
+- Live-test vault ZIP export with real uploaded documents.
+- TQ-004 (state-law data) or TQ-010 (GUI screens) per user priority.
+
+---
+
 ## Session — 2026-07-07 — UPL Guardrails Module Scaffold (SHIPPED to main)
 
 ### What Was Done
