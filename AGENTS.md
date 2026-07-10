@@ -4,6 +4,14 @@ This repository contains a housing-rights and tenant-support product. Any AI age
 
 > Canonical project governance and doc hierarchy are defined in `PROJECT_BIBLE.md`.
 
+**This file is read by every AI assistant in this repo** — Cascade/Devin, GitHub Copilot
+(via `.github/copilot-instructions.md`), Cursor (via `.cursor/rules/00-semptify-agents.mdc`),
+and Claude — not only one tool. Repeatable slash-command procedures (pre-flight, ship,
+forge, review, etc.) are defined once in `.devin/workflows/*.md` and mirrored as VS Code
+prompt files in `.github/prompts/*.prompt.md` so they run as `/preflight`, `/ship`, `/forge`,
+`/review`, `/cloudflare-dev-mode`, `/help-page-review`, `/ssot-analysis` in Copilot Chat too.
+If you edit a workflow, update both copies.
+
 ---
 
 ## 🐍 PYTHON VERSION MANDATE — NON-NEGOTIABLE

@@ -1,86 +1,29 @@
 {
   "documents": {
-    "doc_5BXXy816wwvL2bhp": {
-      "vault_id": "doc_5BXXy816wwvL2bhp",
-      "user_id": "e2e_test_1781936221",
-      "filename": "lease_agreement.txt",
-      "safe_filename": "doc_5BXXy816wwvL2bhp.txt",
-      "sha256_hash": "c9bdf77cda0b736499596141ecb84d7211ee9adb0677f3cc1caaf8fdad9ed159",
-      "file_size": 573,
-      "mime_type": "text/plain",
-      "document_type": "lease",
-      "description": "Residential lease for 123 Main St",
-      "tags": [
-        "lease",
-        "minneapolis"
-      ],
-      "storage_path": "Semptify5.0/Vault/documents/doc_5BXXy816wwvL2bhp.txt",
-      "storage_provider": "local",
-      "provider_file_id": null,
-      "certificate_id": "cert_ITRCElcBvqzAhcot",
-      "uploaded_at": "2026-06-20T06:17:03.010101+00:00",
-      "registry_id": "SEM-2026-000001-9589",
-      "integrity_status": "verified",
-      "processed": true,
-      "extracted_data": {
-        "dates": [
-          "2025-01-15",
-          "2025-02-01"
-        ],
-        "parties": [
-          "John Smith",
-          "Jane Doe"
-        ]
-      },
-      "source_module": "e2e_test"
-    },
-    "doc_G1FmrOVHfHV73Ju8": {
-      "vault_id": "doc_G1FmrOVHfHV73Ju8",
-      "user_id": "e2e_test_1781936221",
-      "filename": "eviction_notice.txt",
-      "safe_filename": "doc_G1FmrOVHfHV73Ju8.txt",
-      "sha256_hash": "04f59a318c9ed28bf1e320a0dcede87ddb33b624c3f050e74b2d4ed9894fbb95",
-      "file_size": 399,
-      "mime_type": "text/plain",
-      "document_type": "notice",
-      "description": "Eviction notice for non-payment",
-      "tags": [
-        "eviction",
-        "notice"
-      ],
-      "storage_path": "Semptify5.0/Vault/documents/doc_G1FmrOVHfHV73Ju8.txt",
-      "storage_provider": "local",
-      "provider_file_id": null,
-      "certificate_id": "cert_OuM2Dpe9JbAKFZXz",
-      "uploaded_at": "2026-06-20T06:17:05.670719+00:00",
-      "registry_id": "SEM-2026-000002-9719",
-      "integrity_status": "verified",
-      "processed": false,
-      "extracted_data": null,
-      "source_module": "e2e_test"
-    },
-    "doc_keR60y13LuNeowaA": {
-      "vault_id": "doc_keR60y13LuNeowaA",
-      "user_id": "testuser",
-      "filename": "greeting.txt",
-      "safe_filename": "doc_keR60y13LuNeowaA.txt",
-      "sha256_hash": "38dea95d30d280b987f0630ccc774bda163cdc2ee266234b1fb903c86007a863",
-      "file_size": 14,
-      "mime_type": "text/plain",
+    "doc_s8y9sA3EVo1lo24j": {
+      "vault_id": "doc_s8y9sA3EVo1lo24j",
+      "user_id": "GUqTJFGjdo",
+      "filename": "MCRO_19AV-CV-25-3477_Notice to Remove Judicial Officer_2025-12-03_20251203175833.pdf",
+      "safe_filename": "doc_s8y9sA3EVo1lo24j.pdf",
+      "sha256_hash": "65d2fa8aa30628bb571221cbcf8c2f693fb00519e9f6dd5329c3c57a1775d366",
+      "file_size": 138590,
+      "mime_type": "application/pdf",
       "document_type": null,
-      "description": null,
-      "tags": [],
-      "storage_path": "Semptify5.0/Vault/documents/doc_keR60y13LuNeowaA.txt",
-      "storage_provider": "local",
-      "provider_file_id": null,
-      "certificate_id": "cert_I0oeSqCXGxKREFwg",
-      "uploaded_at": "2026-06-20T06:17:12.987233+00:00",
-      "registry_id": "SEM-2026-000003-4506",
+      "description": "First document \u2014 uploaded during vault setup",
+      "tags": [
+        "onboarding",
+        "first_document"
+      ],
+      "storage_path": "Semptify5.0/Vault/documents/doc_s8y9sA3EVo1lo24j.pdf",
+      "storage_provider": "google_drive",
+      "provider_file_id": "1-hUyUgoWRBH88UNTRwJpvmzO4Qudn2HJ",
+      "certificate_id": "cert_GGs6JrwsbUBzSlyF",
+      "uploaded_at": "2026-07-09T12:19:54.389359+00:00",
+      "registry_id": "SEM-2026-000002-EA0C",
       "integrity_status": "verified",
       "processed": false,
-      "extracted_data": null,
-      "source_module": "direct"
+      "source_module": "onboarding"
     }
   },
-  "updated_at": "2026-06-20T06:17:14.150209+00:00"
+  "updated_at": "2026-07-09T12:20:35.726852+00:00"
 }

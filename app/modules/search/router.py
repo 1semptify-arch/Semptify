@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser, green_access
+from app.core.capabilities import require_capability
 from app.core.search_engine import get_search_engine, SearchType, SearchOperator
 from app.models.models import (
     Document as DocumentModel,
@@ -32,7 +33,9 @@ from app.models.models import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(require_capability("app.modules.search.router"))]
+)
 
 
 # =============================================================================

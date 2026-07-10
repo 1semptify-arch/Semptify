@@ -27,9 +27,10 @@ from app.core.capabilities import (
     attach_overlay,
     detach_overlay,
     get_overlay_modules,
+    require_capability,
 )
 from app.core.database import get_db
-from app.core.security import get_current_user, require_capability
+from app.core.security import get_current_user
 from app.core.user_context import UserContext
 
 logger = logging.getLogger(__name__)
