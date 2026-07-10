@@ -239,18 +239,13 @@ class DocumentNotarizationService:
         # Register in document registry if available
         if self.registry and HAS_REGISTRY:
             try:
-                registry_result = await self.registry.register_document(
+                registry_result = self.registry.register_document(
+                    user_id=user_id,
+                    content=file_content,
                     filename=filename,
-                    content_hash=file_hash,
-                    document_type=document_type,
-                    source="upload",
-                    metadata={
-                        "notarization_id": notarization_id,
-                        "user_id": user_id,
-                        "upload_method": upload_method,
-                    }
+                    mime_type=mime_type,
                 )
-                notarization.registry_id = registry_result.get("registry_id")
+                notarization.registry_id = registry_result.document_id
                 notarization.status = "registered"
                 logger.info(
                     f"Document {document_id} registered in registry: {notarization.registry_id}"

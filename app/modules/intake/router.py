@@ -404,7 +404,7 @@ class AutoProcessResponse(BaseModel):
 @router.post("/upload/auto", response_model=AutoProcessResponse)
 async def upload_and_process(
     file: UploadFile = File(...),
-    user_id: str = Form(..., description="User ID"),
+    user_id: Optional[str] = Form(None, description="User ID (ignored — authenticated session is authoritative)"),
     username: str = Form("unknown", description="Username for notarization"),
     access_token: Optional[str] = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider"),
@@ -436,6 +436,18 @@ async def upload_and_process(
     """
     engine = get_intake_engine()
 
+    # Authoritative identity: authenticated session overrides form field.
+    # The form user_id is client-supplied and unreliable (frontend sends raw
+    # signed cookie value, not the verified user_id prefix). yellow_access
+    # already verified the HMAC signature and stripped it — use that.
+    if user and user.user_id:
+        if user_id and user_id != user.user_id:
+            logger.warning(
+                "user_id mismatch: form=%s... (len=%d) vs session=%s... — using session identity",
+                user_id[:6], len(user_id), user.user_id[:6],
+            )
+        user_id = user.user_id
+
     # Resolve real access token with fallback chain (matches vault/router.py:216-225)
     real_token = access_token
     if not real_token or real_token == "auto":
@@ -454,7 +466,7 @@ async def upload_and_process(
         user_provider = getattr(user, "provider", None)
         if user_provider:
             resolved_provider = user_provider
-    
+
     # Read file content
     content = await file.read()
     

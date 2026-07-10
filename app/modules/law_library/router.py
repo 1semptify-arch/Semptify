@@ -14,11 +14,16 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from app.core.security import require_user, StorageUser, green_access
+from app.core.capabilities import require_capability
 import logging
 logger = logging.getLogger(__name__)
 
 
-router = APIRouter(prefix="/api/law-library", tags=["Law Library"])
+router = APIRouter(
+    prefix="/api/law-library",
+    tags=["Law Library"],
+    dependencies=[Depends(require_capability("app.modules.law_library.router"))],
+)
 
 
 # =============================================================================

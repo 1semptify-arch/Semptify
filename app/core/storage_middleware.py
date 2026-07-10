@@ -144,6 +144,7 @@ PUBLIC_PREFIXES = (
     "/storage/",
     "/static/",   # All static files are public (HTML, CSS, JS)
     "/public/",   # Policy pages: privacy, terms, disclaimer, contact, feedback
+    "/gui/",  # GUI nav shell sub-paths (home, record, know, act) — public like /gui
     "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
     "/onboarding-assets/",  # Onboarding static files
     "/api/vault-installer/",  # Vault installer — auth checked by route
@@ -289,7 +290,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                     status_code=401,
                     content={
                         "error": "storage_required",
-                        "message": "Please connect your cloud storage to continue",
+                        "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
                         "action": "redirect",
                         "redirect_url": navigation.get_onboarding_start()
                     }

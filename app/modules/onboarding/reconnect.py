@@ -111,8 +111,8 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
             auto_redirect = f"""
             <div id="reconnecting-msg" style="text-align:center;padding:2rem;">
                 <div style="font-size:3rem;margin-bottom:1rem;">🔄</div>
-                <h3>Reconnecting to {name}...</h3>
-                <p>Your documents are safe. Redirecting you now.</p>
+                <h3>We're reconnecting you to {name}...</h3>
+                <p>Your documents are safe. You'll be back to your work in just a moment.</p>
             </div>
             <script>
                 setTimeout(function() {{ reconnect('{known_provider}'); }}, 1500);
@@ -187,10 +187,10 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
     <div class="container">
         <div class="icon">👋</div>
         <h1>Welcome Back!</h1>
-        <p class="subtitle">Reconnect your storage to restore your documents</p>
+        <p class="subtitle">We're reconnecting you to your documents</p>
         <div class="info-box">
             <strong>No data is lost.</strong> Your documents are safely stored in your cloud account.
-            Just reconnect with the same provider you used before.
+            We just need to verify your connection — pick your provider and we'll handle the rest.
         </div>
         <div class="button-grid">
             {providers_html}

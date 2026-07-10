@@ -151,7 +151,12 @@
     <div class="container">
         <header>
             <h1>Document Vault</h1>
-            <span class="status" id="provider-status">Loading...</span>
+            <div style="display:flex; gap:0.75rem; align-items:center;">
+                <button class="btn" id="export-btn" onclick="exportCase()" style="display:none;">
+                    ⬇ Export My Case (ZIP)
+                </button>
+                <span class="status" id="provider-status">Loading...</span>
+            </div>
         </header>
 
         <div id="message"></div>
@@ -299,6 +304,7 @@
                 
                 const list = document.getElementById('documents-list');
                 if (data.documents && data.documents.length > 0) {
+                    document.getElementById('export-btn').style.display = 'inline-flex';
                     list.innerHTML = data.documents.map(doc => `
                         <div class="doc-item">
                             <span class="doc-icon">${getIcon(doc.mime_type)}</span>
@@ -353,6 +359,38 @@
 
         async function downloadDoc(id, token) {
             window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
+        }
+
+        async function exportCase() {
+            const btn = document.getElementById('export-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Preparing ZIP...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/vault/export', { credentials: 'include' });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({ detail: 'Export failed' }));
+                    showMessage(err.detail || 'Export failed', 'error');
+                    return;
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const disposition = res.headers.get('Content-Disposition') || '';
+                const match = disposition.match(/filename="([^"]+)"/);
+                a.download = match ? match[1] : 'semptify-my-case.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('✅ Case exported as ZIP', 'success');
+            } catch (e) {
+                showMessage('Export failed: ' + e.message, 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         }
 
         // File upload handling — route through unified vault portal

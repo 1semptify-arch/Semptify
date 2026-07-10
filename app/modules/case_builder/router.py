@@ -2471,3 +2471,155 @@ async def get_suggested_counterclaims(user: StorageUser = Depends(yellow_access)
         "documents_analyzed": case_data.document_count,
         "all_available_counterclaims": list(MN_COUNTERCLAIMS.keys()),
     }
+
+
+# =============================================================================
+# ATTORNEY INTAKE PACKET EXPORT (Task 6 — scaffold)
+# =============================================================================
+# Distinct from the court_packet module export (which is court-filing-ready
+# with cover sheets, highlights, extractions). This export is a streamlined,
+# chronological, evidence-labeled packet optimized for a first-time attorney's
+# intake review. Facts and dates only — no editorializing, no recommendations,
+# no "next steps". The attorney decides what to do with the facts.
+#
+# Contract: case_builder_intake_packet_export (see register.py)
+# =============================================================================
+
+
+def _sort_chronological(items: List[Dict[str, Any]], date_key: str) -> List[Dict[str, Any]]:
+    """Sort items ascending by a date string field (ISO format). Items with
+    missing or unparseable dates sort to the end while preserving input order.
+    Non-destructive — returns a new list."""
+    def _key(item: Dict[str, Any]):
+        raw = item.get(date_key)
+        if not raw:
+            return (1, "")
+        return (0, str(raw))
+    return sorted(items, key=_key)
+
+
+def _build_attorney_intake_packet(case: Dict[str, Any]) -> Dict[str, Any]:
+    """Assemble a streamlined, facts-only intake packet from a case dict.
+
+    Output schema (all fields are facts sourced from the case record):
+      - case_identification: case_number, court, parties, property_address,
+        filing_date, hearing_date
+      - timeline: chronological list of {date, title, description, category,
+        importance, source}
+      - evidence_index: list of {label, title, evidence_type, date_obtained,
+        date_of_event, source, relevance, file_path} labeled by category
+      - pending_deadlines: chronological list of {deadline, title, description,
+        priority, status} excluding completed deadlines
+      - generated_at: utc_now() ISO timestamp (when the packet was built)
+
+    No recommendations. No summaries. No editorializing. The attorney reads
+    the facts and reaches their own conclusions.
+    """
+    plaintiff = case.get("plaintiff") or {}
+    defendant = case.get("defendant") or {}
+    dates = case.get("dates") or {}
+
+    # Chronological timeline (sort by date ascending)
+    timeline_raw = list(case.get("timeline") or [])
+    timeline_sorted = _sort_chronological(timeline_raw, "date")
+    timeline_out = [
+        {
+            "date": evt.get("date"),
+            "title": evt.get("title"),
+            "description": evt.get("description"),
+            "category": evt.get("category"),
+            "importance": evt.get("importance"),
+            "source": evt.get("source"),
+        }
+        for evt in timeline_sorted
+    ]
+
+    # Evidence index — labeled by evidence_type, facts only
+    evidence_raw = list(case.get("evidence") or [])
+    evidence_out = [
+        {
+            "label": f"EX-{idx + 1:03d}",
+            "title": ev.get("title"),
+            "evidence_type": ev.get("evidence_type"),
+            "date_obtained": ev.get("date_obtained"),
+            "date_of_event": ev.get("date_of_event"),
+            "source": ev.get("source"),
+            "relevance": ev.get("relevance"),
+            "file_path": ev.get("file_path"),
+        }
+        for idx, ev in enumerate(evidence_raw)
+    ]
+
+    # Pending deadlines — chronological, completed excluded
+    deadlines_raw = list(case.get("deadlines") or [])
+    pending = [d for d in deadlines_raw if not d.get("completed")]
+    pending_sorted = _sort_chronological(pending, "deadline")
+    deadlines_out = [
+        {
+            "deadline": d.get("deadline"),
+            "title": d.get("title"),
+            "description": d.get("description"),
+            "priority": d.get("priority"),
+            "status": d.get("status"),
+        }
+        for d in pending_sorted
+    ]
+
+    return {
+        "packet_type": "attorney_intake",
+        "packet_version": "0.1.0-scaffold",
+        "generated_at": utc_now().isoformat(),
+        "case_identification": {
+            "case_number": case.get("case_number"),
+            "court": case.get("court"),
+            "case_type": case.get("case_type"),
+            "status": case.get("status"),
+            "property_address": case.get("property_address"),
+            "filing_date": dates.get("filing_date") or case.get("filing_date"),
+            "hearing_date": case.get("hearing_date"),
+            "answer_deadline": dates.get("answer_deadline"),
+            "plaintiff": {
+                "name": plaintiff.get("name"),
+                "role": plaintiff.get("role"),
+                "type": plaintiff.get("type"),
+            },
+            "defendant": {
+                "name": defendant.get("name"),
+                "role": defendant.get("role"),
+                "type": defendant.get("type"),
+                "is_pro_se": defendant.get("is_pro_se"),
+            },
+        },
+        "timeline": timeline_out,
+        "evidence_index": evidence_out,
+        "pending_deadlines": deadlines_out,
+        "counts": {
+            "timeline_events": len(timeline_out),
+            "evidence_items": len(evidence_out),
+            "pending_deadlines": len(deadlines_out),
+        },
+    }
+
+
+@router.get("/cases/{case_id}/intake-packet")
+async def export_attorney_intake_packet(
+    case_id: str,
+    user: StorageUser = Depends(yellow_access),
+):
+    """Export a streamlined, chronological, evidence-labeled intake packet
+    for first-time attorney review. Facts and dates only.
+
+    Distinct from the court_packet module export (court-filing-ready with
+    cover sheets, highlights, extractions). This endpoint returns a JSON
+    packet — no PDF/ZIP generation in this scaffold. A future task can add
+    rendering on top of this canonical data shape.
+
+    Contract: case_builder_intake_packet_export
+    """
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    packet = _build_attorney_intake_packet(case)
+    return {"success": True, "packet": packet}

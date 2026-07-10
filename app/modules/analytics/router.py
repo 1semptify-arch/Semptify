@@ -18,7 +18,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, require_admin, green_access, require_capability
+from app.core.security import require_user, StorageUser, require_admin, green_access
+from app.core.capabilities import require_capability
 from app.core.analytics_engine import (
     get_analytics_engine,
     AnalyticsEventType,
