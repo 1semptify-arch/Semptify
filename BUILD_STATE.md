@@ -22,6 +22,54 @@
 ### Next Session Should Start With
 - Follow-up: wire `upl_risk_tier` into `ModuleEntry` and register the 8 modules with their tiers. Requires the tier matrix from the project owner.
 
+### Known Working
+- `python -m py_compile app/core/upl_guardrails.py` passes clean.
+- `python -m py_compile app/main.py` passes clean (pre-flight, no regression).
+- Enum is importable: `from app.core.upl_guardrails import UPLRiskTier`.
+
+### Known Gaps / Pending
+- **No consumers yet** — no module currently imports `UPLRiskTier`. This is intentional: the enum is the SSOT foundation; downstream enforcement (classifier function, gate dependency, contract registration) lands when the first feature needs it.
+- **No tests added yet** — scaffold is a pure enum + docstring; behavior testing belongs with the first consumer.
+- **Not live-tested** — no runtime path exercises this module yet.
+- **Uncommitted** — awaiting user review before commit/push.
+
+### Next Session Should Start With
+- User review of the tier definitions and the enforcement rule in the module docstring. If approved: wire the first consumer (likely the attorney intake packet export or the context engine) to classify its output against `UPLRiskTier` and enforce the disclaimer/attorney-review gate per the rule.
+
+---
+
+## Session — 2026-07-07 — Attorney Intake Packet Scaffold (UNCOMMITTED on feature/attorney-intake-packet)
+
+### What Was Done
+- **Task 6 scaffold**: New export endpoint `GET /api/case-builder/cases/{case_id}/intake-packet` distinct from the existing `court_packet` module export. Streamlined, chronological, evidence-labeled packet optimized for first-time attorney intake review. Facts and dates only — no editorializing, no recommendations, no "next steps".
+- **`app/modules/case_builder/router.py`**: Added `_sort_chronological()` helper, `_build_attorney_intake_packet()` pure builder, and `export_attorney_intake_packet()` endpoint. Output schema: `case_identification`, `timeline` (chronological), `evidence_index` (labeled EX-001…), `pending_deadlines` (chronological, completed excluded), `counts`, `generated_at`. No PDF/ZIP rendering in this scaffold — returns canonical JSON shape a future task can render on top of.
+- **`app/modules/case_builder/register.py`**: Registered `case_builder_intake_packet_export` FunctionGroupContract per Module Contract Mandate.
+- **Task 7 — Paper trail update**:
+  - `DOCUMENTS/Semptify_Master_Inventory_LIVE_reviewed.xlsx` → Module Inventory tab: `app.modules.brain.router`, `app.modules.positronic_mesh.router`, `app.modules.mesh_network.router` status changed Partial → Deprecated (reflects 2026-07-04 deregistration in `product_manifest.py`).
+  - Gap Check tab: Priority Flag #2 (brain/mesh consolidation) marked RESOLVED 2026-07-04. OPEN 2 (timeline/incidents overlap) marked RESOLVED 2026-07-04. OPEN 1 (vault audit-log gap) marked IN PROGRESS 2026-07-07.
+
+### Branch State
+- Branched `feature/attorney-intake-packet` from clean `main`. Vault audit work was stashed (`stash@{0}: vault-audit-log WIP 2026-07-07`) on `feature/vault-audit-log` before branching.
+- **Not merged to main** — awaiting user review per task instructions.
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/case_builder/router.py app/modules/case_builder/register.py` passes clean.
+- `import app.main` succeeds with 0 errors.
+- Route confirmed registered: `/api/case-builder/cases/{case_id}/intake-packet`.
+- Endpoint uses `yellow_access` (authenticated user) + `load_case()` (ownership-enforced) — no new auth surface.
+
+### Known Gaps / Pending
+- **Scaffold only**: No PDF/ZIP rendering. Returns JSON only. Future task can add rendering on top of this canonical data shape.
+- **No tests added yet** — scaffold is for review.
+- **No frontend caller yet** — scaffold is API-only.
+- **Not live-tested** — needs a real case in the DB to exercise.
+- **Vault audit work stashed** on `feature/vault-audit-log` — restore with `git stash pop` after switching back to that branch.
+
+### Next Session Should Start With
+- User review of the intake packet scaffold. If approved: add tests, then PDF/ZIP rendering, then frontend caller.
+- Or: switch back to `feature/vault-audit-log`, `git stash pop`, and finish the vault audit work (Ruff lint cleanup, BUILD_STATE update, commit + push).
+>>>>>>> feature/attorney-intake-packet
+
 ---
 
 ## Session — 2026-07-04 — Security Sweep + Timeline/Vault Migration + Lint (SHIPPED 9b26d11)

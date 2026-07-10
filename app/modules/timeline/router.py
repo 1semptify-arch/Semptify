@@ -46,9 +46,13 @@ from app.models.models import (
     VaultItem,
 )
 from app.services.unified_overlay_manager import UnifiedOverlayManager
+from app.core.capabilities import require_capability
 
 
-router = APIRouter(tags=["Unified Timeline"])
+router = APIRouter(
+    tags=["Unified Timeline"],
+    dependencies=[Depends(require_capability("app.modules.timeline.router"))],
+)
 
 
 # =============================================================================

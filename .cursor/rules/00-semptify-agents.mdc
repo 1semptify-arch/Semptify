@@ -1,0 +1,18 @@
+---
+description: Semptify mandatory pre-flight and doc hierarchy for all AI assistants
+alwaysApply: true
+---
+
+Before making any change in this repo, read in order:
+1. `AGENTS.md` — Python 3.11.9 mandate, Known Failure Registry, module contract rules.
+2. `ACTIVE_CONTEXT.md` — current priority. Do not start something else.
+3. `BUILD_STATE.md` (last 2 entries) — what shipped, what is known broken/pending.
+4. `PROJECT_BIBLE.md` — canonical doc hierarchy: BIBLE > README > AGENTS > SECURITY > DEPLOYMENT > BUILD_GUIDE.
+
+Slash-command workflows for this repo are defined in `.devin/workflows/*.md` and mirrored
+as VS Code prompt files in `.github/prompts/*.prompt.md` (`/preflight`, `/ship`, `/forge`,
+`/review`, `/cloudflare-dev-mode`, `/help-page-review`, `/ssot-analysis`). Read the relevant
+one before doing that kind of task. If you update a workflow, update both copies.
+
+State your plan (files to touch, why it won't repeat a Known Failure) before editing.
+Verify changed Python files compile (`python -m py_compile <file>`) before ending the session.

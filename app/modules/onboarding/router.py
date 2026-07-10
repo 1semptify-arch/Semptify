@@ -930,7 +930,7 @@ def _render_providers_page(config: OnboardingConfig) -> str:
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connect Storage — {config.product_name}</title>
+<title>Setting Up Your Storage — {config.product_name}</title>
 <style>
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; }}
@@ -947,7 +947,7 @@ body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-he
 .trust {{ margin-top: 2rem; padding: 1.25rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem; color: #166534; }}
 </style></head><body>
 <div class="header">
-    <h1>Connect Your Storage</h1>
+    <h1>Let's Set Up Your Storage</h1>
     <div class="sub">Your documents stay in YOUR cloud — we never store them on our servers</div>
 </div>
 <div class="container">
@@ -1252,13 +1252,13 @@ def _render_status_page(config: OnboardingConfig, incomplete_gate: str) -> str:
     """Render a page showing which gate the user needs to complete next."""
     gate_actions = {
         "storage_connected": (
-            "Connect Your Storage",
-            "You need to connect a cloud storage provider to continue.",
+            "Setting Up Your Storage",
+            "We're getting your storage ready. Pick your provider and we'll handle the rest.",
             f"{config.route_prefix}/providers",
         ),
         "vault_initialized": (
-            "Set Up Your Vault",
-            "Your storage is connected but vault folders haven't been created yet.",
+            "Preparing Your Vault",
+            "Your storage is connected. We're creating your vault folders now.",
             f"{config.route_prefix}/vault-setup",
         ),
         "document_uploaded": (

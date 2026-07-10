@@ -27,6 +27,7 @@ from app.core.semptify_internal_sdk import (
     ModuleCapability,
 )
 from app.core.database import get_db
+from app.core.capabilities import require_capability
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.models.models import AdminErrorQueue
@@ -128,7 +129,10 @@ async def _stealth_admin(request: Request) -> UserContext:
 # Admin role guard (legacy - returns 403)
 require_admin = require_role(UserRole.ADMIN)
 
-router = APIRouter(tags=["Admin Console"])
+router = APIRouter(
+    tags=["Admin Console"],
+    dependencies=[Depends(require_capability("admin_console"))],
+)
 
 # =============================================================================
 # Phase 3: Runtime Configuration Store

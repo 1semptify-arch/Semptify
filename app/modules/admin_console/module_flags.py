@@ -29,10 +29,15 @@ from app.core.module_overrides import (
 )
 from app.core.module_resolver import get_user_module_summary, invalidate_all_caches
 from app.core.utc import utc_now
+from app.core.capabilities import require_capability
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/admin/api/module-flags", tags=["Module Flag Overlay"])
+router = APIRouter(
+    prefix="/admin/api/module-flags",
+    tags=["Module Flag Overlay"],
+    dependencies=[Depends(require_capability("admin_module_flags"))],
+)
 
 
 # =============================================================================

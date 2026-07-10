@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block description %}Semptify — Tenant rights protection{% endblock %}">
+    <title>{% block title %}Semptify{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+    <link rel="stylesheet" href="/static/css/gui-panels.css">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .gui-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Nav shell */
+        .gui-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .gui-nav--brand {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .gui-nav--items {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .gui-nav--link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.25rem 0;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .gui-nav--link:hover,
+        .gui-nav--link.active {
+            color: #fff;
+            border-bottom-color: #3b82f6;
+        }
+
+        .gui-main { padding-bottom: 3rem; }
+
+        .gui-footer {
+            padding: 2rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .gui-footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        @media (max-width: 375px) {
+            .gui-nav { flex-direction: column; gap: 0.75rem; }
+            .gui-nav--items { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <div class="gui-container">
+        <nav class="gui-nav">
+            <a href="/gui/home" class="gui-nav--brand">Semptify</a>
+            <ul class="gui-nav--items">
+                <li><a href="/gui/home" class="gui-nav--link {% block nav_home %}{% endblock %}">Home</a></li>
+                <li><a href="/gui/record" class="gui-nav--link {% block nav_record %}{% endblock %}">Record</a></li>
+                <li><a href="/gui/know" class="gui-nav--link {% block nav_know %}{% endblock %}">Know</a></li>
+                <li><a href="/gui/act" class="gui-nav--link {% block nav_act %}{% endblock %}">Act</a></li>
+            </ul>
+        </nav>
+
+        <main class="gui-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="gui-footer">
+            <p>Semptify does not give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a>.</p>
+        </footer>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

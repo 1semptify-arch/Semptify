@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db_session
-from app.core.security import require_admin, require_capability
+from app.core.security import require_admin
+from app.core.capabilities import require_capability
 from .models import FundingSource, FundingApplication, FundingTask, FundingSourceType, ApplicationStatus
 
 router = APIRouter(

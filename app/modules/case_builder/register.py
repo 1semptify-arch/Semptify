@@ -313,3 +313,22 @@ register_function_group(FunctionGroupContract(
     dependencies=("app.modules.case_builder.router",),
     deterministic=True,
 ))
+
+# --- Attorney Intake Packet Export ---
+
+register_function_group(FunctionGroupContract(
+    module="case_builder",
+    group_name="case_builder_intake_packet_export",
+    title="Case Builder Attorney Intake Packet Export (SSOT)",
+    description=(
+        "CANONICAL export a streamlined, chronological, evidence-labeled "
+        "intake packet for first-time attorney review. Facts and dates only. "
+        "Distinct from court_packet module export (which is court-filing-ready). "
+        "Returns: case identification, chronological timeline, evidence index, "
+        "pending deadlines. No recommendations, no editorializing."
+    ),
+    inputs=("case_id", "user_id"),
+    outputs=("packet",),
+    dependencies=("app.modules.case_builder.router",),
+    deterministic=True,
+))
