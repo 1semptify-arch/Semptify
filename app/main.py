@@ -72,6 +72,7 @@ from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 
+
 # PyInstaller frozen executable detection
 def get_base_path() -> Path:
     """Get base path - handles PyInstaller frozen mode."""
@@ -84,6 +85,27 @@ BASE_PATH = get_base_path()
 
 # Jinja2 templates for frontend UI pages
 templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
+
+from datetime import datetime as _dt
+
+# Minimal, privacy-first stateless landing route for the On-The-Fly Composer demo
+
+def register_stateless_routes(app: FastAPI):
+    """Register a small, completely stateless landing route and mount static files.
+
+    This function is intentionally minimal: no session, no cookies, no logging of
+    user interactions. It mounts `app/static` at `/static` and serves
+    `index.html` for the root path with a `year` context value.
+    """
+    try:
+        app.mount("/static", StaticFiles(directory=str(BASE_PATH / "app" / "static")), name="static")
+    except Exception:
+        pass
+
+    @app.get("/", response_class=HTMLResponse)
+    async def root(request: Request):
+        ctx = {"request": request, "year": _dt.utcnow().year}
+        return templates.TemplateResponse("index.html", ctx)
 
 # Add custom Jinja2 filters
 def format_date_filter(value):
@@ -1585,43 +1607,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         ProductTier.DEV
     )
 
-    # Root route — serve the public guest portal (services catalog + branch routing).
-    # The portal is server-rendered via Jinja2 for SEO. The services catalog comes
-    # from app.modules.portal.registry (SSOT — additive, not rewrite).
-    # User clicks a service CTA → /preamble (routing logic) or a direct branch path.
+    # Stateless composer landing prototype for the public utility experience.
+    app_static_path = BASE_PATH / "app" / "static"
+    if app_static_path.exists():
+        fastapi_app.mount("/assets", StaticFiles(directory=str(app_static_path)), name="app_static")
+
     @fastapi_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-    async def root_portal(request: Request):
-        """Serve the public guest portal at /. Preamble is the routing decision, not the entry."""
-        # HEAD probes from uptime monitors (Render/Cloudflare/UptimeRobot) — return empty 200.
+    async def root_compose(request: Request):
+        """Serve a calm, stateless landing experience with hash-based panel routing."""
         if request.method == "HEAD":
             return Response(status_code=200)
-        # Render the portal via Jinja2 with the services catalog from the registry
-        portal_template_path = BASE_PATH / "app" / "templates" / "public" / "portal.html"
-        if portal_template_path.exists():
-            try:
-                from app.modules.portal.service import get_portal_catalog
-                from app.modules.portal.pages import portal_pages as _pp
-                catalog = get_portal_catalog()
-                return templates.TemplateResponse(
-                    request,
-                    "public/portal.html",
-                    {
-                        "services": catalog["services"],
-                        "categories": catalog["categories"],
-                        "total_services": catalog["total_services"],
-                        "footer_pages": _pp.get_footer_pages(),
-                    },
-                )
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Portal template error, falling back to static welcome: %s", e)
-        # Fallback: serve the static welcome page if the portal template is missing
-        welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
-        if welcome_path.exists():
-            return FileResponse(str(welcome_path))
-        # Final fallback: redirect to preamble
-        preamble_stage = navigation.get_stage("preamble")
-        preamble_path = preamble_stage.path if preamble_stage else "/preamble"
-        return ssot_redirect(preamble_path, context="root_portal fallback")
+
+        current_year = datetime.datetime.now(datetime.timezone.utc).year
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            {
+                "year": current_year,
+                "page_title": "Semptify Composer",
+                "page_description": "A calm, stateless landing workspace for triage, vault, and timeline support.",
+            },
+        )
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")
@@ -2816,6 +2822,31 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """.format(app_name=app_settings.app_name)
         
         return HTMLResponse(content=vault_html)
+
+    # =========================================================================
+    # GUI Screens — Jinja2-templated nav shell (Home / Record / Know / Act)
+    # =========================================================================
+
+    @fastapi_app.get("/gui", response_class=HTMLResponse)
+    @fastapi_app.get("/gui/home", response_class=HTMLResponse)
+    async def gui_home_page(request: Request):
+        """GUI Tenant Home — welcome + entry to Record."""
+        return templates.TemplateResponse(request, "gui/home.html")
+
+    @fastapi_app.get("/gui/record", response_class=HTMLResponse)
+    async def gui_record_page(request: Request):
+        """GUI Record — Vault document list with upload/view/download."""
+        return templates.TemplateResponse(request, "gui/record.html")
+
+    @fastapi_app.get("/gui/know", response_class=HTMLResponse)
+    async def gui_know_page(request: Request):
+        """GUI Know — placeholder."""
+        return templates.TemplateResponse(request, "gui/know.html")
+
+    @fastapi_app.get("/gui/act", response_class=HTMLResponse)
+    async def gui_act_page(request: Request):
+        """GUI Act — placeholder."""
+        return templates.TemplateResponse(request, "gui/act.html")
 
     # =========================================================================
     # Calendar Page
@@ -4491,9 +4522,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.utc import utc_now
         return {"status": "ok", "ts": utc_now().isoformat()}
 
+    register_stateless_routes(fastapi_app)
     return fastapi_app
+
 # Create the app instance
 app = create_app()
+fastapi_app = app
 
 
 # =============================================================================

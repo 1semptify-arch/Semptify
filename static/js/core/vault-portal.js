@@ -341,7 +341,7 @@ async function uploadToVault(fileCount, skipDetails = false) {
   }
 
   if (authRedirectUrl) {
-    if (confirm('Your storage connection expired. Reconnect now?')) {
+    if (confirm("We're reconnecting you to your storage. Your documents are safe. Continue?")) {
       window.location.href = authRedirectUrl;
       return;
     }

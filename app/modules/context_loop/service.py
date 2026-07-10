@@ -1086,12 +1086,15 @@ async def _on_document_added(event):
     """Handle document added event."""
     logger.info(f"Context Loop: Document added {event.data.get('doc_id')}")
     # Trigger document analysis through context loop
-    await context_loop.process_input({
-        "type": EventType.DOCUMENT_UPLOADED,
-        "doc_id": event.data.get("doc_id"),
-        "filename": event.data.get("filename"),
-        "user_id": event.user_id,
-    })
+    context_loop.emit_event(
+        EventType.DOCUMENT_UPLOADED,
+        event.user_id or "system",
+        {
+            "doc_id": event.data.get("doc_id"),
+            "filename": event.data.get("filename"),
+        },
+        source="event_bus",
+    )
 
 
 async def _on_document_processed(event):
