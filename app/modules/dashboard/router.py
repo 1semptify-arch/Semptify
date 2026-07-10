@@ -15,12 +15,13 @@ from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-from app.core.security import get_optional_user_id, green_access, require_capability
+from app.core.security import get_optional_user_id, green_access
 from app.core.user_context import UserContext
 from app.services.emotion_engine import emotion_engine
 from .service import progress_tracker
 from app.services.action_router import action_router
 from app.core.utc import utc_now
+from app.core.capabilities import require_capability
 import logging
 logger = logging.getLogger(__name__)
 

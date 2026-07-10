@@ -699,7 +699,7 @@ class DocumentRegistry:
             "mime_type": mime_type,
             "user_id": user_id,
             "case_number": case_number,
-            "registered_at": datetime.now(UTC).isoformat(),
+            "registered_at": utc_now().isoformat(),
         }
 
         metadata_hash = HashGenerator.metadata_hash(metadata)
@@ -748,7 +748,7 @@ class DocumentRegistry:
         # Add initial custody record
         doc.custody_chain.append(
             CustodyRecord(
-                timestamp=datetime.now(UTC),
+                timestamp=utc_now(),
                 action=CustodyAction.RECEIVED,
                 actor=user_id,
                 details=f"Document registered: {filename}",
@@ -762,7 +762,7 @@ class DocumentRegistry:
         doc.versions.append(
             DocumentVersion(
                 version=1,
-                timestamp=datetime.now(UTC),
+                timestamp=utc_now(),
                 content_hash=content_hash,
                 changes="Initial registration",
                 changed_by=user_id,
@@ -805,7 +805,7 @@ class DocumentRegistry:
             doc.integrity_status = IntegrityStatus.TAMPERED
             doc.custody_chain.append(
                 CustodyRecord(
-                    timestamp=datetime.now(UTC),
+                    timestamp=utc_now(),
                     action=CustodyAction.INTEGRITY_CHECK,
                     actor="system",
                     details="TAMPER DETECTED: Content hash mismatch",
@@ -837,7 +837,7 @@ class DocumentRegistry:
             doc.integrity_status = IntegrityStatus.CORRUPTED
             doc.custody_chain.append(
                 CustodyRecord(
-                    timestamp=datetime.now(UTC),
+                    timestamp=utc_now(),
                     action=CustodyAction.INTEGRITY_CHECK,
                     actor="system",
                     details="Integrity hash mismatch: Stored combined hash invalid",
@@ -849,10 +849,10 @@ class DocumentRegistry:
 
         # All checks passed
         doc.integrity_status = IntegrityStatus.VERIFIED
-        doc.last_verified_at = datetime.now(UTC)
+        doc.last_verified_at = utc_now()
         doc.custody_chain.append(
             CustodyRecord(
-                timestamp=datetime.now(UTC),
+                timestamp=utc_now(),
                 action=CustodyAction.INTEGRITY_CHECK,
                 actor="system",
                 details="Integrity verified: All hashes match",
@@ -867,7 +867,7 @@ class DocumentRegistry:
         """Get a document by ID."""
         doc = self._documents.get(doc_id)
         if doc:
-            doc.last_accessed_at = datetime.now(UTC)
+            doc.last_accessed_at = utc_now()
         return doc
 
     def get_documents_by_case(self, case_number: str) -> list[RegisteredDocument]:
@@ -915,7 +915,7 @@ class DocumentRegistry:
         # Record in custody chain
         doc.custody_chain.append(
             CustodyRecord(
-                timestamp=datetime.now(UTC),
+                timestamp=utc_now(),
                 action=CustodyAction.MODIFIED,
                 actor=actor,
                 details=f"Case association changed: {old_case} -> {case_number}",
@@ -947,7 +947,7 @@ class DocumentRegistry:
 
         doc.custody_chain.append(
             CustodyRecord(
-                timestamp=datetime.now(UTC),
+                timestamp=utc_now(),
                 action=CustodyAction.FLAGGED,
                 actor=actor,
                 details=f"Flagged: {reason}",
@@ -965,10 +965,10 @@ class DocumentRegistry:
         if not doc:
             return
 
-        doc.last_accessed_at = datetime.now(UTC)
+        doc.last_accessed_at = utc_now()
         doc.custody_chain.append(
             CustodyRecord(
-                timestamp=datetime.now(UTC),
+                timestamp=utc_now(),
                 action=action,
                 actor=actor,
                 details=details,

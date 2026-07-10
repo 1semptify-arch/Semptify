@@ -8,12 +8,18 @@ Provides dynamic state law information with MN as the complete reference impleme
 import json
 import os
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 import logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/states", tags=["State Laws"])
+from app.core.capabilities import require_capability
+
+router = APIRouter(
+    prefix="/api/states",
+    tags=["State Laws"],
+    dependencies=[Depends(require_capability("app.modules.state_laws.router"))],
+)
 
 # Load state laws data
 DATA_PATH = os.path.join(os.path.dirname(__file__), "../../static/data/state-laws.json")

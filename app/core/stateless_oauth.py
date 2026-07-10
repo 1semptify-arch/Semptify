@@ -127,10 +127,11 @@ class StatelessOAuthManager:
             token_path = f"{AUTH_FOLDER}/{provider}_tokens.json"
             token_json = json.dumps(token_data)
             
-            await self.vault.write_file(
-                path=token_path,
-                content=token_json.encode('utf-8'),
-                metadata={"purpose": "oauth_tokens", "encrypted": True}
+            await self.vault.upload_file(
+                file_content=token_json.encode('utf-8'),
+                destination_path=AUTH_FOLDER,
+                filename=f"{provider}_tokens.json",
+                mime_type="application/json",
             )
             
             logger.info(f"OAuth tokens stored in cloud storage for user={raw_user_id[:4]}... provider={provider}")
@@ -161,7 +162,7 @@ class StatelessOAuthManager:
             
             # Read from user's cloud storage
             token_path = f"{AUTH_FOLDER}/{provider}_tokens.json"
-            token_content = await self.vault.read_file(token_path)
+            token_content = await self.vault.download_file(token_path)
             
             if not token_content:
                 logger.warning(f"No OAuth tokens found in cloud storage for user={raw_user_id[:4]}... provider={provider}")

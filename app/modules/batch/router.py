@@ -10,7 +10,8 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, red_access, require_capability
+from app.core.security import require_user, StorageUser, red_access
+from app.core.capabilities import require_capability
 from app.core.batch_operations import (
     get_batch_processor, BatchOperationType, BatchOperationStatus,
     create_batch_operation, start_batch_operation, cancel_batch_operation,

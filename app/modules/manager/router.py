@@ -20,7 +20,7 @@ import io
 import logging
 from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -28,6 +28,7 @@ from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
 from app.core.user_context import get_role_from_user_id, UserRole
 from app.core.utc import utc_now
+from app.core.capabilities import require_capability
 from app.models.models import (
     User,
     UserRelationship,
@@ -38,7 +39,11 @@ from app.models.models import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/manager", tags=["Manager"])
+router = APIRouter(
+    prefix="/api/manager",
+    tags=["Manager"],
+    dependencies=[Depends(require_capability("app.modules.manager.router"))],
+)
 
 
 # =============================================================================

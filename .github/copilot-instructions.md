@@ -1,5 +1,25 @@
 # Semptify Workspace Instructions
 
+## Mandatory Pre-Flight — Read Before Any Code Change
+
+This applies to every AI assistant working in this repo (Copilot Chat, Cascade, Cursor, Claude, etc.), not just one tool.
+
+1. Read `AGENTS.md` first — Python 3.11.9 mandate, Known Failure Registry, module contract rules.
+2. Read `ACTIVE_CONTEXT.md` — what is being worked on right now. Do not start something else.
+3. Read the last 2 entries of `BUILD_STATE.md` — what shipped, what is known broken/pending.
+4. Read `PROJECT_BIBLE.md` for the canonical doc hierarchy: BIBLE > README > AGENTS > SECURITY > DEPLOYMENT > BUILD_GUIDE.
+5. State your plan (files to touch, why it won't repeat a Known Failure) before editing.
+6. Verify changed Python files compile (`python -m py_compile <file>`) before ending the session.
+7. Update `BUILD_STATE.md` with what changed.
+
+## Repo-Wide Slash Workflows (available to every assistant)
+
+Canonical workflow definitions live in `.devin/workflows/*.md` (read by Cascade/Devin-style agents).
+The same workflows are mirrored as VS Code prompt files in `.github/prompts/*.prompt.md` so they run as
+`/preflight`, `/ship`, `/forge`, `/review`, `/cloudflare-dev-mode`, `/help-page-review`, `/ssot-analysis`
+slash commands in GitHub Copilot Chat (and any other assistant that supports VS Code prompt files).
+If you update a workflow, update **both** the `.devin/workflows/` file and its `.github/prompts/` mirror.
+
 Semptify exists to better protect the rights of humans facing housing problems.
 It is built for tenants, advocates, legal helpers, and people under stress who need clear organization, evidence preservation, and practical next steps.
 

@@ -62,6 +62,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from app.core.upl_guardrails import UPLRiskTier
+
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
@@ -153,6 +155,11 @@ class ModuleEntry:
     requires_gate: str = ""
     feature_flag: str = ""
     dev_notes: str = ""
+
+    # UPL risk tier — Unauthorized Practice of Law classification
+    # Defaults to LOW (safest). Legal-adjacent modules MUST override.
+    # See app/core/upl_guardrails.py for tier definitions and enforcement rules.
+    upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW
 
     # External module fields (ignored for internal)
     external_repo: str = ""
@@ -336,6 +343,7 @@ def _register(
     requires_gate: str = "",
     feature_flag: str = "",
     dev_notes: str = "",
+    upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW,
     # External module fields
     external_repo: str = "",
     external_version: str = "",
@@ -363,6 +371,7 @@ def _register(
         requires_gate=requires_gate,
         feature_flag=feature_flag,
         dev_notes=dev_notes,
+        upl_risk_tier=upl_risk_tier,
         external_repo=external_repo,
         external_version=external_version,
         external_signature=external_signature,
@@ -412,8 +421,10 @@ _register("app.modules.workflow_validator.router", tags=("Admin",), tier=Product
 
 # Rights & education
 _register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE,
-          lifecycle="beta", dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.")
-_register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE)
+          lifecycle="beta", upl_risk_tier=UPLRiskTier.LOW,
+          dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.")
+_register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE,
+          upl_risk_tier=UPLRiskTier.LOW)
 _register("app.modules.law_library.router", router_attr="page_router", tags=("Law Library",), tier=ProductTier.CORE,
           log_message="Law Library page route active at /law-library")
 
@@ -425,7 +436,8 @@ _register("app.modules.pdf_tools.router", tags=("PDF Tools",), tier=ProductTier.
 _register("app.modules.preview.router", prefix="/api/preview", tags=("Document Preview",), tier=ProductTier.CORE,
           log_message="Document Preview router connected - Multi-format preview generation active")
 _register("app.modules.document_converter.router", tags=("Document Converter",), tier=ProductTier.CORE)
-_register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE)
+_register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE,
+          upl_risk_tier=UPLRiskTier.LOW_MEDIUM)
 _register("app.modules.context_engine.router", tags=("Context Engine", "Facts", "Stories"), tier=ProductTier.CORE,
           log_message="Context Engine router connected — verified facts + tenant stories active")
 _register("app.modules.page_composer.router", tags=("Page Composer", "Facts", "Stories", "Case"), tier=ProductTier.CORE,
@@ -482,14 +494,18 @@ _register(
     log_message="FEMS router loaded — Forensic Evidence Management active at /api/fems",
 )
 
-_register("app.modules.eviction_defense.router", tags=("Eviction Defense Toolkit",), tier=ProductTier.EXTENDED)
+_register("app.modules.eviction_defense.router", tags=("Eviction Defense Toolkit",), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.HIGH)
 _register("app.modules.zoom_court.router", tags=("Zoom Courtroom",), tier=ProductTier.EXTENDED)
 _register("app.modules.zoom_court_prep.router", tags=("Zoom Court Prep",), tier=ProductTier.EXTENDED)
-_register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED)
-_register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED)
+_register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.HIGH)
+_register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.MEDIUM)
 # _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
 _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
 _register("app.modules.legal.router", tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
           log_message="Legal workspace router connected — matters, filings, discovery, exhibits active")
 _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
           log_message="Tenant Defense module loaded - Evidence, petitions, and screening disputes")
@@ -497,7 +513,8 @@ _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTi
 # Case management
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)
 _register("app.modules.guided_intake.router", tags=("Guided Intake",), tier=ProductTier.EXTENDED)
-_register("app.modules.case_builder.router", tags=("Case Builder",), tier=ProductTier.EXTENDED)
+_register("app.modules.case_builder.router", tags=("Case Builder",), tier=ProductTier.EXTENDED,
+          upl_risk_tier=UPLRiskTier.MEDIUM)
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
 _register("app.modules.plan_maker.router", tags=("Plan Maker",), tier=ProductTier.EXTENDED)

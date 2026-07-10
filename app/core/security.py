@@ -1204,7 +1204,7 @@ async def require_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
                     "error": "storage_required",
-                    "message": "You must connect your own cloud storage to use Semptify. System accounts are not allowed.",
+                    "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
                     "action": "redirect",
                     "redirect_url": "/storage/providers"
                 },
@@ -1215,7 +1215,7 @@ async def require_user(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={
             "error": "auth_required",
-            "message": "Authentication required. Connect your cloud storage to continue.",
+            "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
             "action": "redirect",
             "redirect_url": "/storage/providers"
         },
@@ -1294,7 +1294,7 @@ async def yellow_access(
             detail={
                 "error": "token_required",
                 "level": "yellow",
-                "message": "Storage token unavailable. Please reconnect.",
+                "message": "We're reconnecting you to your storage. Your documents are safe.",
                 "action": "redirect",
                 "redirect_url": "/storage/reconnect",
             },
@@ -1322,7 +1322,7 @@ async def red_access(
             detail={
                 "error": "token_required",
                 "level": "red",
-                "message": "Fresh storage token required for this action.",
+                "message": "We're refreshing your storage connection. You'll be ready to continue in just a moment.",
                 "action": "redirect",
                 "redirect_url": "/storage/reconnect",
             },
@@ -1342,7 +1342,7 @@ async def red_access(
                     detail={
                         "error": "token_expired",
                         "level": "red",
-                        "message": "Your storage token has expired. Please reconnect.",
+                        "message": "We're reconnecting you to your storage. Your documents are safe.",
                         "action": "redirect",
                         "redirect_url": "/storage/reconnect",
                     },
@@ -1465,7 +1465,7 @@ async def get_user_id(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={
             "error": "storage_required",
-            "message": "Please connect your cloud storage to continue",
+            "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
             "action": "redirect",
             "redirect_url": "/storage/providers"
         },
@@ -1607,6 +1607,11 @@ def optional_anonymous_user(request: Request) -> str | None:
 # Re-export for backward compatibility with routers using StorageUser
 StorageUser = UserContext
 
+# Re-export require_capability from app.core.capabilities for routers that
+# import it from app.core.security (analytics, dashboard, batch, funding_mgmt,
+# capabilities). Keeps a single SSOT definition in capabilities.py.
+from app.core.capabilities import require_capability as require_capability  # noqa: E402,F401
+
 # Export all security functions for easy imports
 __all__ = [
     # Session management
@@ -1646,6 +1651,7 @@ __all__ = [
     "require_anonymous_user",
     "optional_anonymous_user",
     "rate_limit_dependency",
+    "require_capability",
     "get_user_id",
     "get_optional_user_id",
     # Input Sanitization

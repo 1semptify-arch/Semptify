@@ -84,7 +84,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+from app.core.capabilities import require_capability
+
+router = APIRouter(
+    dependencies=[Depends(require_capability("app.modules.vault.router"))]
+)
 
 
 # =============================================================================
@@ -1505,3 +1509,161 @@ async def get_incident_items(
     items = items_result.scalars().all()
 
     return [DocumentResponse.model_validate(item) for item in items]
+
+
+# =============================================================================
+# Export — "Export my case" (download all vault documents as a ZIP)
+# =============================================================================
+
+@router.get("/export")
+async def export_vault_zip(
+    user: StorageUser = Depends(yellow_access),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Export all vault documents as a single ZIP archive.
+
+    Combines every document in the user's vault with a manifest.json
+    listing metadata (filename, date, size, type, vault_id).
+    Streams the ZIP to the browser for download.
+    """
+    import io
+    import zipfile
+    from fastapi.responses import StreamingResponse
+
+    # Resolve access token via the same fallback chain as download endpoint
+    real_token = getattr(user, "access_token", None)
+    if not real_token or real_token in ("auto", "no-token", None):
+        try:
+            from app.core.oauth_token_manager import get_valid_token_for_user
+            real_token = get_valid_token_for_user(user.user_id) or real_token
+        except ImportError:
+            pass
+    if not real_token or real_token in ("auto", "no-token", None):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Storage access token required. Reconnect your storage.",
+        )
+
+    try:
+        storage = get_provider(user.provider, access_token=real_token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Gather all certificates to find document metadata + storage paths
+    try:
+        cert_files = await storage.list_files(VAULT_CERTIFICATES)
+    except Exception as e:
+        logger.error(f"export: failed to list certificates: {e}")
+        raise HTTPException(status_code=500, detail="Could not list vault documents.")
+
+    certificates = []
+    for cert_file in cert_files:
+        if not cert_file.name.lower().endswith(".json"):
+            continue
+        try:
+            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
+            cert = json.loads(cert_content.decode("utf-8"))
+            certificates.append(cert)
+        except Exception as e:
+            logger.warning(f"export: skipping cert {cert_file.name}: {e}")
+            continue
+
+    if not certificates:
+        raise HTTPException(status_code=404, detail="No documents found in vault to export.")
+
+    # Sort by uploaded_at descending (newest first)
+    certificates.sort(key=lambda c: c.get("uploaded_at", ""), reverse=True)
+
+    # Build the ZIP in memory, then stream it
+    buf = io.BytesIO()
+    manifest = []
+    used_names = {}
+
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for cert in certificates:
+            doc_id = cert.get("document_id", "unknown")
+            original_name = cert.get("original_filename") or cert.get("filename") or doc_id
+            storage_path = cert.get("storage_path", "")
+            mime_type = cert.get("mime_type", "application/octet-stream")
+            uploaded_at = cert.get("uploaded_at", "")
+            file_size = cert.get("file_size", 0)
+
+            # De-duplicate filename inside the zip
+            safe_name = original_name.replace("/", "_").replace("\\", "_")
+            if safe_name in used_names:
+                used_names[safe_name] += 1
+                base, dot, ext = safe_name.rpartition(".")
+                safe_name = f"{base}_{used_names[safe_name]}{dot}{ext}" if dot else f"{safe_name}_{used_names[safe_name]}"
+            else:
+                used_names[safe_name] = 0
+
+            # Download the file bytes
+            file_bytes = None
+            provider_file_id = cert.get("provider_file_id")
+            if provider_file_id:
+                try:
+                    file_bytes = await storage.download_file(f"id:{provider_file_id}")
+                except Exception:
+                    file_bytes = None
+            if not file_bytes and storage_path:
+                try:
+                    file_bytes = await storage.download_file(storage_path)
+                except Exception as e:
+                    logger.warning(f"export: could not download {doc_id}: {e}")
+                    file_bytes = None
+
+            if file_bytes:
+                zf.writestr(safe_name, file_bytes)
+                manifest.append({
+                    "filename": safe_name,
+                    "original_filename": original_name,
+                    "document_id": doc_id,
+                    "mime_type": mime_type,
+                    "uploaded_at": uploaded_at,
+                    "file_size": file_size if file_size else len(file_bytes),
+                    "status": "included",
+                })
+            else:
+                manifest.append({
+                    "filename": safe_name,
+                    "original_filename": original_name,
+                    "document_id": doc_id,
+                    "mime_type": mime_type,
+                    "uploaded_at": uploaded_at,
+                    "file_size": file_size,
+                    "status": "failed_to_download",
+                })
+
+        manifest_bytes = json.dumps({
+            "exported_at": utc_now().isoformat(),
+            "user_id": user.user_id,
+            "total_documents": len(certificates),
+            "included": sum(1 for m in manifest if m["status"] == "included"),
+            "failed": sum(1 for m in manifest if m["status"] == "failed_to_download"),
+            "documents": manifest,
+        }, indent=2).encode("utf-8")
+        zf.writestr("manifest.json", manifest_bytes)
+
+    buf.seek(0)
+    zip_bytes = buf.getvalue()
+
+    async def streamer():
+        chunk_size = 64 * 1024
+        offset = 0
+        while offset < len(zip_bytes):
+            chunk = zip_bytes[offset:offset + chunk_size]
+            offset += chunk_size
+            yield chunk
+
+    zip_filename = f"semptify-my-case-{utc_now().strftime('%Y-%m-%d')}.zip"
+
+    return StreamingResponse(
+        streamer(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{zip_filename}"',
+            "Content-Length": str(len(zip_bytes)),
+            "X-Export-Count": str(len(certificates)),
+        },
+    )

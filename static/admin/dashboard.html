@@ -275,6 +275,7 @@
         <a href="/admin/manual.html" class="btn-block">📖 Admin Manual</a>
         <a href="/admin/module-flags.html" class="btn-block">🚩 Module Flags</a>
         <a href="/admin/forge.html" class="btn-block">⚒️ Semptify Forge</a>
+        <a href="#" class="btn-block" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none" onclick="openTaskQueue();return false;">📋 Task Queue (Workbook)</a>
         <a href="/docs/component-inventory.html" class="btn-block">📦 Component Inventory</a>
         <a href="/docs/navigation-structure.html" class="btn-block">🧭 Navigation Structure</a>
         <a href="/mndes/compliance-guide?role=admin" class="btn-block">🏛️ MNDES Compliance</a>
@@ -433,6 +434,14 @@
     // Drawer functions
     function openDrawer(){document.getElementById('nav-drawer').classList.add('open');document.getElementById('drawer-backdrop').classList.add('open')}
     function closeDrawer(){document.getElementById('nav-drawer').classList.remove('open');document.getElementById('drawer-backdrop').classList.remove('open')}
+
+    function openTaskQueue() {
+      const path = 'C:\\Semptify\\Semptify-FastAPI\\Semptify_Master_Inventory_LIVE_reviewed.xlsx';
+      const link = document.createElement('a');
+      link.href = 'file:///' + path.replace(/\\/g, '/');
+      link.target = '_blank';
+      link.click();
+    }
 
     // Logout function
     async function logout() {
