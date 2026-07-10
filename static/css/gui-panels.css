@@ -1,0 +1,150 @@
+/* =========================================================================
+   GUI Panel System — Shared frame/panel styling for Record, Timeline, Library
+   Bordered, no shadow, no rounded-card look. Reusable across screens.
+   ========================================================================= */
+
+.frame-panel {
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    background: var(--color-bg-card, rgba(255, 255, 255, 0.03));
+    padding: var(--space-md, 1rem);
+    margin-bottom: var(--space-md, 1rem);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.frame-panel--header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-sm, 0.5rem);
+    margin-bottom: var(--space-sm, 0.5rem);
+    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+}
+
+.frame-panel--title {
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    color: var(--color-text-secondary, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.frame-panel--body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 0.5rem);
+}
+
+/* Individual record/list entry — reusable across Record, Timeline, Library */
+.frame-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md, 1rem);
+    padding: var(--space-md, 1rem);
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    transition: border-color var(--transition-fast, 0.15s ease);
+}
+
+.frame-item:hover {
+    border-color: var(--color-border-hover, rgba(255, 255, 255, 0.2));
+}
+
+.frame-item--icon {
+    flex-shrink: 0;
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: 600;
+    color: var(--color-text-secondary, #94a3b8);
+    min-width: 3rem;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.frame-item--main {
+    flex: 1;
+    min-width: 0;
+}
+
+.frame-item--title {
+    font-weight: 500;
+    color: var(--color-text-primary, #fff);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.frame-item--meta {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-muted, #64748b);
+    margin-top: 0.125rem;
+}
+
+.frame-item--actions {
+    display: flex;
+    gap: var(--space-sm, 0.5rem);
+    flex-shrink: 0;
+}
+
+/* Frame item button — bordered, no shadow */
+.frame-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    background: transparent;
+    color: var(--color-text-primary, #fff);
+    border-radius: 0;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.15s ease);
+    box-shadow: none;
+}
+
+.frame-btn:hover {
+    border-color: var(--color-accent, #3b82f6);
+    color: var(--color-accent, #3b82f6);
+}
+
+.frame-btn--primary {
+    border-color: var(--color-accent, #3b82f6);
+    color: var(--color-accent, #3b82f6);
+}
+
+.frame-btn--primary:hover {
+    background: var(--color-accent, #3b82f6);
+    color: #fff;
+}
+
+/* Empty state inside a panel */
+.frame-empty {
+    text-align: center;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+    color: var(--color-text-muted, #64748b);
+}
+
+.frame-empty--icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm, 0.5rem);
+    opacity: 0.5;
+}
+
+.frame-empty--hint {
+    font-size: var(--font-size-sm, 0.875rem);
+    margin-top: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 375px) {
+    .frame-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm, 0.5rem);
+    }
+    .frame-item--actions {
+        width: 100%;
+    }
+}

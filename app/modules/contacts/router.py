@@ -29,13 +29,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import require_user, StorageUser, yellow_access
+from app.core.capabilities import require_capability
 from app.models.models import Contact, ContactInteraction
 from app.core.event_bus import event_bus, EventType as BusEventType
 import logging
 logger = logging.getLogger(__name__)
 
 
-router = APIRouter(prefix="/api/contacts", tags=["Contact Manager"])
+router = APIRouter(
+    prefix="/api/contacts",
+    tags=["Contact Manager"],
+    dependencies=[Depends(require_capability("app.modules.contacts.router"))],
+)
 
 
 # =============================================================================

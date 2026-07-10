@@ -29,6 +29,8 @@ from app.core.config import get_settings, Settings
 
 from app.core.security import require_user, StorageUser, yellow_access
 
+from app.core.capabilities import require_capability
+
 from app.core.event_bus import event_bus, EventType
 
 from app.core.database import get_db
@@ -136,7 +138,11 @@ logger = logging.getLogger(__name__)
 
 
 
-router = APIRouter(prefix="/api/documents", tags=["Documents"])
+router = APIRouter(
+    prefix="/api/documents",
+    tags=["Documents"],
+    dependencies=[Depends(require_capability("app.modules.documents.router"))],
+)
 
 
 
