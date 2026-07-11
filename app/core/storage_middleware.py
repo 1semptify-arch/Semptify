@@ -151,6 +151,7 @@ PUBLIC_PREFIXES = (
     "/api/law-library/",  # Law library — public education content (page is already public)
     "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
     "/debug/",  # TEMPORARY: diagnostic endpoints
+    "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
 )
 
 
