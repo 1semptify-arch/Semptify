@@ -1,6 +1,35 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-11 — Vault Check Before Document Access (SHIPPED f838e51)
+
+### What Was Done
+- **Vault check on vault page**: Replaced dead-end "Not connected" state in `vault.html` with `vaultCheck()` function. When `/storage/status` returns `authenticated: false` or no access_token, user is redirected to `/storage/reconnect?return_to=/vault` — runs the reconnect cycle and lands back on vault after.
+- **Vault check before upload**: Added `vaultCheckBeforeAction()` to `vault-portal.js`. `openVaultUpload()` now awaits this check before opening the file picker. If not connected, redirects to reconnect cycle instead of letting upload fail with auth error.
+- **No dead ends**: Both vault page load and upload attempt now route through reconnect cycle when storage is not connected. User always has a path forward.
+
+### Commits This Session
+- `f838e51` — fix(vault): add vault check before document access and upload (2 files, +56/-18)
+
+### Known Working
+- `app/main.py` and all core files compile clean.
+- `return_to` parameter threads through OAuth state machine — confirmed via `app/modules/storage/router.py` (lines 766-783, 1629, 2023-2037). Reconnect from vault lands back at `/vault` after successful reconnect (if vault already initialized).
+- All `openVaultUpload()` callers (17+ templates) use fire-and-forget onclick — making it async is safe.
+
+### Known Gaps / Pending
+- **Vault ZIP export**: Not live-tested with real documents yet.
+- **Other uncommitted changes in repo**: Several CSS files deleted, new `storage-session-monitor.js` file, modified `base.html` and preflight docs — NOT committed by this session. Left for user to review/commit separately.
+- **TQ-004** [EI]: OH/NC/GA state-law data.
+- **TQ-008** [EF]: Audit-log on feature branch.
+- **TQ-010** [EF]: GUI Screens 1-4.
+
+### Next Session Should Start With
+- Live-test vault check + reconnect flow on dev server.
+- Live-test vault ZIP export with real uploaded documents.
+- Review uncommitted CSS deletions and new files from other source.
+
+---
+
 ## Session — 2026-07-10 — UPL Tiers + Vault ZIP Export + require_capability Fixes (SHIPPED 596afe0)
 
 ### What Was Done
