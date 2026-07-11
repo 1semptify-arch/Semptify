@@ -102,6 +102,13 @@ def register_stateless_routes(app: FastAPI):
     except Exception:
         pass
 
+    @app.get("/.well-known/microsoft-identity-association.json", include_in_schema=False)
+    async def microsoft_identity_association():
+        return FileResponse(
+            str(BASE_PATH / "static" / ".well-known" / "microsoft-identity-association.json"),
+            media_type="application/json",
+        )
+
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request):
         ctx = {"request": request, "year": _dt.utcnow().year}
