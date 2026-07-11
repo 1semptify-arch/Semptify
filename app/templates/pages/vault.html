@@ -269,29 +269,41 @@
             }, Math.max(30, functionTokenReverifySeconds) * 1000);
         }
 
-        // Check session and get storage status
-        async function init() {
+        // Vault check — run before any document access.
+        // If not connected or token expired, route through reconnect cycle
+        // with return_to so user lands back on vault after reconnecting.
+        async function vaultCheck() {
             try {
                 const status = await fetch('/storage/status', { credentials: 'include' });
                 const data = await status.json();
-                
-                if (data.authenticated) {
-                    document.getElementById('provider-status').textContent = 
-                        'Connected: ' + data.provider;
-                    try {
-                        await ensureFunctionToken();
-                        startFunctionTokenReverifyLoop();
-                    } catch (e) {
-                        showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
-                    }
-                    loadDocuments(data.access_token);
-                } else {
-                    document.getElementById('provider-status').textContent = 'Not connected';
-                    document.getElementById('provider-status').style.background = '#ef4444';
+                if (data.authenticated && data.access_token) {
+                    return data;
                 }
+                // Not connected — run reconnect cycle
+                const returnTo = encodeURIComponent(window.location.pathname);
+                window.location.href = '/storage/reconnect?return_to=' + returnTo;
+                return null;
             } catch (e) {
-                showMessage('Failed to load status', 'error');
+                // Network error — try reconnect cycle
+                const returnTo = encodeURIComponent(window.location.pathname);
+                window.location.href = '/storage/reconnect?return_to=' + returnTo;
+                return null;
             }
+        }
+
+        async function init() {
+            const data = await vaultCheck();
+            if (!data) return; // redirecting to reconnect
+
+            document.getElementById('provider-status').textContent =
+                'Connected: ' + data.provider;
+            try {
+                await ensureFunctionToken();
+                startFunctionTokenReverifyLoop();
+            } catch (e) {
+                showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
+            }
+            loadDocuments(data.access_token);
         }
 
         async function loadDocuments(accessToken) {
