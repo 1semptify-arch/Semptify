@@ -74,9 +74,35 @@ const DOCUMENT_TYPES = {
 };
 
 /**
+ * Vault check — run before any upload attempt.
+ * If not connected, route through reconnect cycle with return_to.
+ * Returns true if connected, false if redirecting.
+ */
+async function vaultCheckBeforeAction() {
+  try {
+    const status = await fetch('/storage/status', { credentials: 'include' });
+    const data = await status.json();
+    if (data.authenticated && data.access_token) {
+      return true;
+    }
+    const returnTo = encodeURIComponent(window.location.pathname);
+    window.location.href = '/storage/reconnect?return_to=' + returnTo;
+    return false;
+  } catch (e) {
+    const returnTo = encodeURIComponent(window.location.pathname);
+    window.location.href = '/storage/reconnect?return_to=' + returnTo;
+    return false;
+  }
+}
+
+/**
  * Open file picker → Upload → Overlay extraction → Cloud storage
  */
-function openVaultUpload() {
+async function openVaultUpload() {
+  // Vault check before upload — if not connected, reconnect cycle
+  const connected = await vaultCheckBeforeAction();
+  if (!connected) return;
+
   // Create and trigger file input
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
