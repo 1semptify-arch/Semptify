@@ -655,6 +655,10 @@ _register("app.modules.dev_lab.router", prefix="/dev/lab", tags=("Dev Lab",), ti
           lifecycle="dev_only", requires_role=("admin",),
           dev_notes="Phase 3.1a — Incubator hub for dev modules. Lists dev_only modules, runs tests, promotes lifecycle stages.",
           log_message="Dev Lab router active — /dev/lab (admin-only)")
+_register("app.modules.agent_orchestrator.router", prefix="/api/agent-orchestrator", tags=("Agent Orchestrator",), tier=ProductTier.DEV,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Forge task queue for parallel agent work. v1 in-memory. Generates copy-paste prompts for the unlimited model fleet (GLM-5.2, SWE-1.6, SWE-1.7, Kimi 2.7) from workbook stub/duplicate rows.",
+          log_message="Agent Orchestrator router active — /api/agent-orchestrator (admin-only)")
 _register("app.modules.dev_lab.ideas", prefix="/dev/lab/ideas", tags=("Dev Ideas",), tier=ProductTier.DEV,
           lifecycle="dev_only", requires_role=("admin",),
           dev_notes="Phase 3.1b/3.6 — Idea submission pipeline. Submit/list/promote ideas to dev modules.",
