@@ -237,7 +237,8 @@ async def generate_form(
             "title": result["title"],
             "generated_at": result["generated_at"],
         })
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Optional form data service enrichment failed: {e}")
         pass  # Event publishing is optional
 
     return FormResponse(
@@ -432,8 +433,8 @@ async def preview_form(
             case_data["property_address"] = vault_data["property_address"]
         if vault_data.get("landlord_address"):
             case_data["plaintiff_address"] = vault_data["landlord_address"]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Optional form data service enrichment failed: {e}")
 
     # Layer 2: FormDataHub
     try:
@@ -445,8 +446,8 @@ async def preview_form(
             for key, value in hub_data.items():
                 if key not in case_data or not case_data[key]:
                     case_data[key] = value
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Optional form data service enrichment failed: {e}")
 
     if request.case_data:
         case_data.update(request.case_data)
@@ -512,8 +513,8 @@ async def quick_generate_answer(
             case_data["property_address"] = vault_data["property_address"]
         if vault_data.get("landlord_address"):
             case_data["plaintiff_address"] = vault_data["landlord_address"]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Optional form data service enrichment failed: {e}")
 
     # Layer 2: FormDataHub
     try:
@@ -525,8 +526,8 @@ async def quick_generate_answer(
             for key, value in hub_data.items():
                 if key not in case_data or not case_data[key]:
                     case_data[key] = value
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Optional form data service enrichment failed: {e}")
 
     if case_number:
         case_data["case_number"] = case_number
@@ -795,4 +796,6 @@ try:
     ))
 
 except Exception:
-    pass
+
+
+
