@@ -441,7 +441,7 @@ async def get_user_complaints(
             status = ComplaintStatus(status_filter)
             drafts = [d for d in drafts if d.status == status]
         except ValueError:
-            pass
+            logger.warning(f"Invalid status filter: {status_filter}. Returning all drafts.")
     
     # Build stats
     stats = {
