@@ -1,6 +1,27 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-12 — Timeline Bare Except Fix
+
+### What Was Done
+- **Fixed `app/modules/timeline/router.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `_load_cloud_timeline_events`.
+- Added `import logging` and `logger = logging.getLogger(__name__)` at module level.
+- No hardcoded URLs. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/timeline/router.py` passes.
+
+### Known Gaps / Pending
+- None.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
 ## Session — 2026-07-12 — Intake Overlay Record IDs Stub Fix
 
 ### What Was Done

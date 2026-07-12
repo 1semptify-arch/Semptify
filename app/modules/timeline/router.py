@@ -25,6 +25,7 @@ Date Axes:
 - entry_time: When the item was added to Semptify (uploaded_at fallback)
 """
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any, Literal
 from enum import Enum
@@ -53,6 +54,8 @@ router = APIRouter(
     tags=["Unified Timeline"],
     dependencies=[Depends(require_capability("app.modules.timeline.router"))],
 )
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -397,8 +400,8 @@ async def _load_cloud_timeline_events(user: StorageUser) -> List[Dict[str, Any]]
             import json
             data = json.loads(content)
             return data.get("events", [])
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("Failed to load cloud timeline events: %s", e)
     return []
 
 
