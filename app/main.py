@@ -2362,6 +2362,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Semptify Forge not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/agent_orchestrator.html", response_class=HTMLResponse)
+    async def admin_agent_orchestrator_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Agent Orchestrator admin page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "agent_orchestrator.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Agent Orchestrator not found</h1>", status_code=404)
+
     @fastapi_app.get("/ai-helper", response_class=HTMLResponse)
     async def ai_helper_page(request: Request):
         """Serve the AI Helper page - one-click prompt + bundle for external AI consultation."""

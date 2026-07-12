@@ -1,0 +1,364 @@
+"""Bridge from Semptify_Master_Inventory_LIVE_reviewed.xlsx to agent_orchestrator.json.
+
+Reads the 'Stubs & TODOs' and 'Duplicates' tabs using only the Python standard library
+(zipfile + xml.etree), maps rows to agent tasks, assigns models/heuristics, and writes a
+JSON file that can be imported into tools/agent_orchestrator.html.
+
+Usage:
+    .\\venv311\\Scripts\\Activate.ps1
+    python tools/workbook_bridge.py
+    # produces tools/agent_orchestrator_tasks.json
+
+Then open tools/agent_orchestrator.html in Windsurf preview or browser and click
+"Import JSON".
+"""
+
+import json
+import re
+import sys
+import uuid
+import zipfile
+import xml.etree.ElementTree as ET
+from datetime import UTC, datetime
+from pathlib import Path
+
+
+# ---------------------------------------------------------------------------
+# Minimal .xlsx reader (stdlib only)
+# ---------------------------------------------------------------------------
+
+MAIN_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+REL_RID = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+NS = {"main": MAIN_NS}
+RNS = {"rel": REL_NS}
+
+
+class XlsxReader:
+    """Read simple text/numeric data from an .xlsx file without external deps."""
+
+    def __init__(self, path: str | Path):
+        self.path = Path(path)
+        self.shared: list[str] = []
+        self.sheets: dict[str, str] = {}  # name -> rId
+        self.sheet_targets: dict[str, str] = {}  # rId -> worksheet xml path
+        self._load_meta()
+
+    def _load_meta(self):
+        with zipfile.ZipFile(self.path) as z:
+            # shared strings
+            try:
+                sst = ET.fromstring(z.read("xl/sharedStrings.xml"))
+                for si in sst.findall("main:si", NS):
+                    texts = [t.text or "" for t in si.findall(".//main:t", NS)]
+                    self.shared.append("".join(texts))
+            except KeyError:
+                self.shared = []
+
+            # workbook -> sheet rIds
+            wb = ET.fromstring(z.read("xl/workbook.xml"))
+            for sheet in wb.findall(".//main:sheet", NS):
+                name = sheet.get("name")
+                rid = sheet.get(f"{{{REL_RID}}}id")
+                if name and rid:
+                    self.sheets[name] = rid
+
+            # relationships -> worksheet filenames
+            rels = ET.fromstring(z.read("xl/_rels/workbook.xml.rels"))
+            for rel in rels.findall("rel:Relationship", RNS):
+                rid = rel.get("Id")
+                target = rel.get("Target")
+                if rid and target:
+                    self.sheet_targets[rid] = target.lstrip("/")
+
+    def read_sheet(self, name: str) -> list[list[str | None]]:
+        rid = self.sheets.get(name)
+        if not rid:
+            raise KeyError(f"Sheet '{name}' not found. Available: {list(self.sheets.keys())}")
+        target = self.sheet_targets.get(rid)
+        if not target:
+            raise KeyError(f"No relationship target for sheet '{name}'")
+
+        rows_out: list[list[str | None]] = []
+        with zipfile.ZipFile(self.path) as z:
+            sheet_xml = ET.fromstring(z.read(target))
+            sheet_data = sheet_xml.find("main:sheetData", NS)
+            if sheet_data is None:
+                return rows_out
+            for row in sheet_data.findall("main:row", NS):
+                cells: dict[int, str | None] = {}
+                max_col = 0
+                for c in row.findall("main:c", NS):
+                    ref = c.get("r", "")
+                    col = self._col_index(ref)
+                    if col is None:
+                        continue
+                    max_col = max(max_col, col)
+                    cell_type = c.get("t")
+                    if cell_type == "s":
+                        v = c.find("main:v", NS)
+                        idx = int(v.text) if v is not None and v.text else 0
+                        cells[col] = self.shared[idx] if idx < len(self.shared) else None
+                    elif cell_type == "inlineStr":
+                        texts = [t.text or "" for t in c.findall(".//main:t", NS)]
+                        cells[col] = "".join(texts) if texts else None
+                    else:
+                        v = c.find("main:v", NS)
+                        cells[col] = v.text if v is not None else None
+                if max_col:
+                    rows_out.append([cells.get(i) for i in range(1, max_col + 1)])
+        return rows_out
+
+    @staticmethod
+    def _col_index(cell_ref: str) -> int | None:
+        """Convert 'A1' -> 1, 'B2' -> 2, 'AA3' -> 27."""
+        m = re.match(r"([A-Za-z]+)(\d+)", cell_ref)
+        if not m:
+            return None
+        letters = m.group(1).upper()
+        idx = 0
+        for ch in letters:
+            idx = idx * 26 + (ord(ch) - ord("A") + 1)
+        return idx
+
+
+# ---------------------------------------------------------------------------
+# Task mapping
+# ---------------------------------------------------------------------------
+
+
+def category_for_stub(stub_type: str) -> str:
+    text = (stub_type or "").lower()
+    if "test" in text:
+        return "test_add"
+    if "doc" in text:
+        return "doc_update"
+    if "duplicate" in text:
+        return "duplicate_resolve"
+    if "refactor" in text:
+        return "refactor"
+    return "stub_fix"
+
+
+def model_for_task(category: str, priority: str) -> str:
+    if category == "duplicate_resolve":
+        return "kimi-2.7"
+    if category == "test_add":
+        return "swe-1.6"
+    if category == "doc_update":
+        return "kimi-2.7"
+    if category == "refactor":
+        return "swe-1.7"
+    # stub_fix default by priority
+    priority = (priority or "").lower()
+    if priority == "high":
+        return "swe-1.7"
+    if priority == "medium":
+        return "swe-1.6"
+    return "glm-5.2"
+
+
+def file_path_for_stub(file_cell: str | None) -> str:
+    if not file_cell:
+        return ""
+    file_cell = str(file_cell).strip()
+    # If it already looks like a path, leave it.
+    if "/" in file_cell or "\\" in file_cell:
+        return file_cell.replace("\\", "/")
+    # Best-guess module prefix for bare filenames.
+    return f"app/modules/{file_cell}"
+
+
+def parse_line(line_cell: str | None) -> int | None:
+    if not line_cell:
+        return None
+    try:
+        return int(str(line_cell).strip())
+    except ValueError:
+        return None
+
+
+def make_prompt(task: dict) -> str:
+    """Generate the same prompt the standalone tool uses (kept in sync manually)."""
+    model_name = {
+        "glm-5.2": "GLM-5.2",
+        "swe-1.6": "SWE-1.6",
+        "swe-1.7": "SWE-1.7",
+        "kimi-2.7": "Kimi 2.7",
+    }.get(task["target_model"], task["target_model"])
+    category_label = {
+        "stub_fix": "Stub Fix",
+        "duplicate_resolve": "Duplicate Resolve",
+        "test_add": "Test Add",
+        "doc_update": "Doc Update",
+        "refactor": "Refactor",
+        "other": "Other",
+    }.get(task["category"], task["category"])
+    location = ""
+    if task.get("file_path"):
+        line_part = f" lines {task['line_start']}" if task.get('line_start') else ""
+        location = f"Target: `{task['file_path']}`{line_part}"
+    when = task.get("created_at", "")
+    return f"""AGENT TASK — {model_name} ({task.get('priority', 'medium').upper()} priority)
+Semptify repository — Python 3.11.9 / FastAPI / PostgreSQL
+
+Task: {task['title']}
+Category: {category_label}
+{location}
+Created: {when}
+
+Description:
+{task.get('description') or '(no description)'}
+
+MANDATORY RULES FROM AGENTS.md:
+1. Work on a feature branch; never touch main directly.
+2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.
+3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.
+4. Use utc_now() from app.core.utc for all timestamps.
+5. Never use bare except: — catch specific exception types.
+6. Never hardcode URL strings; use navigation.get_stage() for redirects.
+7. Fix root causes, not symptoms. Do not add downstream band-aids.
+8. If you rewrite a file, follow the swap protocol (ask to rename original first).
+9. Add regression tests for bug fixes when possible.
+10. Verify changed files compile before ending the session.
+
+DELIVERABLE:
+- Make the minimal change that fixes this {category_label.lower()}.
+- If the fix touches another service, check module contracts first.
+- Return the exact file paths changed and a short verification command.
+- If you cannot complete it cleanly, stop and explain why rather than guessing.
+"""
+
+
+def build_task(
+    *,
+    title: str,
+    description: str,
+    category: str,
+    priority: str,
+    file_path: str = "",
+    line_start: int | None = None,
+    line_end: int | None = None,
+) -> dict:
+    now = datetime.now(UTC).isoformat()
+    task = {
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "description": description,
+        "category": category,
+        "target_model": model_for_task(category, priority),
+        "priority": priority.lower() if priority else "medium",
+        "file_path": file_path,
+        "line_start": line_start,
+        "line_end": line_end,
+        "status": "pending",
+        "notes": "",
+        "created_at": now,
+        "updated_at": now,
+    }
+    task["prompt"] = make_prompt(task)
+    return task
+
+
+# ---------------------------------------------------------------------------
+# Bridge
+# ---------------------------------------------------------------------------
+
+
+def load_workbook_rows(path: Path, sheet_name: str) -> list[list[str | None]]:
+    reader = XlsxReader(path)
+    return reader.read_sheet(sheet_name)
+
+
+def rows_to_stub_tasks(rows: list[list[str | None]]) -> list[dict]:
+    """Map Stubs & TODOs rows to tasks.
+
+    Expected columns (header row ignored):
+        A: ID, B: File, C: Line, D: Stub Type, E: Description, F: Severity
+    """
+    tasks: list[dict] = []
+    for row in rows[1:]:
+        if len(row) < 6 or not any(row[:6]):
+            continue
+        file_cell = row[1]
+        line_cell = row[2]
+        stub_type = row[3]
+        description = row[4]
+        severity = row[5]
+        if not file_cell and not description:
+            continue
+        category = category_for_stub(stub_type)
+        priority = (severity or "MEDIUM").strip().lower()
+        file_path = file_path_for_stub(file_cell)
+        line_start = parse_line(line_cell)
+        title = f"Fix {stub_type or 'stub'} in {file_cell or 'repo'}"
+        tasks.append(build_task(
+            title=title,
+            description=description or title,
+            category=category,
+            priority=priority,
+            file_path=file_path,
+            line_start=line_start,
+        ))
+    return tasks
+
+
+def rows_to_duplicate_tasks(rows: list[list[str | None]]) -> list[dict]:
+    """Map Duplicates rows to tasks.
+
+    Expected columns (header row ignored):
+        A: ID, B: Systems, C: Overlap Description, D: Details/Notes
+    """
+    tasks: list[dict] = []
+    for row in rows[1:]:
+        if len(row) < 4 or not any(row[:4]):
+            continue
+        systems = row[1]
+        overlap = row[2]
+        details = row[3]
+        if not systems:
+            continue
+        title = f"Resolve duplicate: {systems}"
+        description = f"{overlap or ''}\n\n{details or ''}".strip()
+        tasks.append(build_task(
+            title=title,
+            description=description or title,
+            category="duplicate_resolve",
+            priority="high",
+            file_path="app/core/product_manifest.py",
+        ))
+    return tasks
+
+
+def main() -> int:
+    repo_root = Path(__file__).resolve().parent.parent
+    workbook_path = repo_root / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
+    output_path = repo_root / "tools" / "agent_orchestrator_tasks.json"
+
+    if not workbook_path.exists():
+        print(f"Workbook not found: {workbook_path}", file=sys.stderr)
+        print("Place Semptify_Master_Inventory_LIVE_reviewed.xlsx in the repo root.", file=sys.stderr)
+        return 1
+
+    print(f"Reading workbook: {workbook_path}")
+
+    stub_rows = load_workbook_rows(workbook_path, "Stubs & TODOs")
+    dup_rows = load_workbook_rows(workbook_path, "Duplicates")
+
+    stub_tasks = rows_to_stub_tasks(stub_rows)
+    dup_tasks = rows_to_duplicate_tasks(dup_rows)
+    all_tasks = stub_tasks + dup_tasks
+
+    if not all_tasks:
+        print("No tasks generated. Check sheet names and headers.", file=sys.stderr)
+        return 1
+
+    output_path.write_text(json.dumps(all_tasks, indent=2), encoding="utf-8")
+    print(f"Wrote {len(all_tasks)} tasks ({len(stub_tasks)} stubs, {len(dup_tasks)} duplicates) to {output_path}")
+    print("Next: open tools/agent_orchestrator.html and click 'Import JSON' to load the queue.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
