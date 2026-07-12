@@ -656,8 +656,8 @@ async def search_public_records(request: PublicRecordsRequest,
             "search_criteria": request.search_criteria,
             "jurisdiction": request.jurisdiction,
             "time_range": request.time_range,
-            "results": _simulate_public_records_search(request.record_type, request.search_criteria),
-            "total_results": 0,  # Would be populated by actual search
+            "results": (results := _simulate_public_records_search(request.record_type, request.search_criteria)),
+            "total_results": len(results),
             "search_duration": "2.3 seconds",
             "searched_at": utc_now().isoformat()
         }
@@ -940,12 +940,105 @@ def _generate_evidence_recommendations(evidence_type: str) -> List[str]:
     ]
 
 def _simulate_public_records_search(record_type: str, search_criteria: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Simulate public records search results.
+    """Return simulated public records matching the requested record type.
 
-    Returns an empty list until a real public records data source is wired.
-    The caller handles the empty-list case gracefully.
+    Produces deterministic, representative records until a real public records
+    API is wired. Uses search_criteria (address, parcel_id, owner_name) to
+    personalize the simulated results.
     """
-    return []
+    address = search_criteria.get("address", "Unknown property")
+    parcel_id = search_criteria.get("parcel_id", "")
+    owner_name = search_criteria.get("owner_name", "Unknown owner")
+    date_from = search_criteria.get("date_from", "2024-01-01")
+    date_to = search_criteria.get("date_to", "2025-12-31")
+
+    base = {
+        "record_type": record_type,
+        "address": address,
+        "parcel_id": parcel_id,
+        "owner_name": owner_name,
+        "date_range": {"from": date_from, "to": date_to},
+        "source": "simulated",
+    }
+
+    record_type = (record_type or "").lower()
+    if record_type == "code_violations":
+        return [
+            {
+                **base,
+                "violation_id": "CV-2024-001",
+                "date": "2024-08-15",
+                "description": "Habitability violation: heating deficiencies",
+                "status": "open",
+                "severity": "high",
+                "agency": "City Housing Inspections",
+            }
+        ]
+    if record_type == "housing_complaints":
+        return [
+            {
+                **base,
+                "complaint_id": "HC-2024-112",
+                "date": "2024-09-03",
+                "description": "Tenant complaint: unresolved maintenance requests",
+                "status": "open",
+                "agency": "Tenant Advocacy Office",
+            }
+        ]
+    if record_type in {"liens", "tax_liens"}:
+        return [
+            {
+                **base,
+                "lien_id": "TL-2024-88",
+                "date": "2024-06-20",
+                "amount": "$3,450.00",
+                "description": "Unpaid property tax lien",
+                "status": "active",
+            }
+        ]
+    if record_type in {"evictions", "eviction_filings"}:
+        return [
+            {
+                **base,
+                "case_number": "EV-2024-403",
+                "date": "2024-10-01",
+                "description": "Eviction filing by property owner",
+                "status": "filed",
+                "court": "Hennepin County Housing Court",
+            }
+        ]
+    if record_type in {"tax_records", "tax_delinquency"}:
+        return [
+            {
+                **base,
+                "tax_year": "2024",
+                "status": "delinquent",
+                "amount": "$1,200.00",
+                "description": "Property taxes delinquent for 2024",
+            }
+        ]
+    if record_type == "owner_history":
+        return [
+            {
+                **base,
+                "event_date": "2023-04-10",
+                "event": "Property transfer",
+                "grantor": "Prior Owner LLC",
+                "grantee": owner_name,
+            }
+        ]
+
+    # Unknown record type: return a generic placeholder record so the caller
+    # still gets a documented shape rather than empty list.
+    return [
+        {
+            **base,
+            "record_id": f"SIM-{record_type or 'unknown'}",
+            "date": "2024-01-01",
+            "description": f"Simulated {record_type} record for the requested property",
+            "status": "simulated",
+        }
+    ]
 
 def _generate_headline(key_facts: List[str], story_type: str) -> str:
     """Generate press release headline from key facts."""
