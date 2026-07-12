@@ -1,6 +1,39 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-12 — Agent Orchestrator Module + Workbook Bridge (SHIPPED 11bac59)
+
+### What Was Done
+- **New module**: `app/modules/agent_orchestrator/` — DEV-tier, dev_only, admin-only Forge tool for queueing parallel AI-agent tasks.
+- **API**: CRUD endpoints for tasks, batch create, model list, and summary counts. In-memory v1 store.
+- **Prompt generator**: every task gets a copy-paste prompt tailored to category (stub_fix, duplicate_resolve, test_add, doc_update, refactor, other) with AGENTS.md rules baked in.
+- **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
+- **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
+- **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
+- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
+
+### Commits This Session
+- `11bac59` — feat(agent_orchestrator): add Forge task queue, workbook bridge, standalone UI, and manual
+
+### Known Working
+- `python -m py_compile` passes on all new and modified Python files.
+- Module registered in `product_manifest.py` and resolved by `MANIFEST.find()`.
+- Workbook bridge successfully generates 171 tasks from the .xlsx.
+- Standalone HTML imports the JSON and displays tasks with copy-paste prompts.
+
+### Known Gaps / Pending
+- v1 in-memory store resets on app server restart (acceptable for dev_only tool).
+- Workbook bridge file paths are best-guess (`app/modules/<filename>`); some paths need manual correction before dispatch.
+- In-app admin UI is functional but lacks in-place task editing.
+- Other pre-existing uncommitted files (CSS deletions, `base.html` changes, data files, preflight docs) remain uncommitted and need separate review.
+
+### Next Session Should Start With
+- Open `tools/agent_orchestrator.html` in Windsurf preview, import the workbook JSON, and dispatch the first batch of HIGH stubs to SWE-1.7 / Kimi 2.7.
+- Review and commit the other uncommitted files in the repo if they are ready.
+
+---
+
 ## Session — 2026-07-11 — Vault Check Before Document Access (SHIPPED f838e51)
 
 ### What Was Done
@@ -27,6 +60,9 @@
 - Live-test vault check + reconnect flow on dev server.
 - Live-test vault ZIP export with real uploaded documents.
 - Review uncommitted CSS deletions and new files from other source.
+
+### ⚠️ PRE-LAUNCH TODO (before Semptify gets real users)
+- **Switch local `.env.local` to a SEPARate Neon database** — currently local dev uses the SAME Neon PostgreSQL as Render so testing mirrors production. Before real users arrive, create a second Neon DB (e.g. `semptify_dev`) and point `.env.local` at it so local testing can't affect real user data.
 
 ---
 
