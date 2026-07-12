@@ -1,6 +1,47 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-12 — Complaint Wizard Bare Pass Fix (feature branch)
+
+### What Was Done
+- **Fixed `app/modules/complaint_wizard_module.py` line 444**: Replaced bare `pass` statement with `logger.warning()` for invalid status filter values.
+- The behavior remains the same (returns all drafts if status_filter is invalid), but now logs the issue for debugging.
+- Aligns with Known Failure Registry #7 (no bare except/bare pass).
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/modules/complaint_wizard_module.py` passes.
+
+### Known Gaps / Pending
+- Branch needs to be merged to main after review.
+
+### Next Session Should Start With
+- Merge feature branch to main or continue with next stub from orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Case Builder get_case_summary Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/case_builder.py`**: `get_case_summary` now returns a meaningful summary and `next_steps` from the available `context` case dict instead of an empty dict/list.
+- No new files or modules. No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- `c1b5676` — fix(case_builder): implement get_case_summary stub
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/case_builder.py` passes.
+
+### Known Gaps / Pending
+- `get_upcoming_deadlines` and `generate_counterclaim_document` remain example stubs and are listed under Noticed but not fixed for this task.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
 ## Session — 2026-07-12 — Agent Orchestrator Module + Workbook Bridge (SHIPPED 11bac59)
 
 ### What Was Done
