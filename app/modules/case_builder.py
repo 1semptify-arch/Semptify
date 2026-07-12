@@ -778,11 +778,43 @@ async def get_case_summary(
     params: Dict[str, Any],
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Get case summary."""
+    """Get case summary from available context."""
+    case = context.get("case", {})
+    case_id = params.get("case_id", case.get("case_number", "unknown"))
+
+    summary = {
+        "case_id": case_id,
+        "case_number": case.get("case_number"),
+        "case_type": case.get("case_type"),
+        "court": case.get("court"),
+        "property_address": case.get("property_address"),
+        "hearing_date": case.get("hearing_date"),
+        "counts": {
+            "timeline": len(case.get("timeline", [])),
+            "evidence": len(case.get("evidence", [])),
+            "deadlines": len(case.get("deadlines", [])),
+            "counterclaims": len(case.get("counterclaims", [])),
+            "motions": len(case.get("motions", [])),
+            "defenses": len(case.get("defenses", [])),
+        },
+    }
+
+    next_steps = []
+    if not case.get("hearing_date"):
+        next_steps.append("Set hearing date")
+    if not case.get("deadlines"):
+        next_steps.append("Add court deadlines")
+    if not case.get("evidence"):
+        next_steps.append("Add evidence")
+    if not case.get("timeline"):
+        next_steps.append("Add timeline events")
+    if not case.get("counterclaims") and case.get("case_type") != "eviction_defense":
+        next_steps.append("Consider counterclaims")
+
     return {
-        "summary": {},
+        "summary": summary,
         "status": "active",
-        "next_steps": []
+        "next_steps": next_steps,
     }
 
 
