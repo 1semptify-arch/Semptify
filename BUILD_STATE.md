@@ -12,6 +12,7 @@
 - **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
 - **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
+- **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
 ### Commits This Session
 - `11bac59` — feat(agent_orchestrator): add Forge task queue, workbook bridge, standalone UI, and manual
