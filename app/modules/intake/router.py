@@ -32,7 +32,7 @@ directly — it does not create its own POST route.
 import logging
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Optional
 
 from app.core.security import get_user_id, require_user, StorageUser, yellow_access
 from app.core.config import get_settings, Settings
@@ -47,6 +47,8 @@ from app.services.document_intake import (
 )
 from app.core.event_bus import event_bus, EventType as BusEventType
 from app.core.utc import utc_now
+from app.services.storage import get_provider
+from app.services.unified_overlay_manager import UnifiedOverlayManager
 
 logger = logging.getLogger(__name__)
 
@@ -76,15 +78,45 @@ except ImportError:
 router = APIRouter(prefix="/api/intake", tags=["Document Intake"])
 
 
-def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
-    """Resolve overlay records linked to a vault artifact.
+async def _get_overlay_record_ids(
+    vault_id: Optional[str],
+    user_id: Optional[str] = None,
+    storage: Optional[Any] = None,
+    storage_provider: Optional[str] = None,
+    access_token: Optional[str] = None,
+) -> list[str]:
+    """Resolve overlay record IDs linked to a vault artifact.
 
-    Overlay records now live in user cloud storage via the unified overlay
-    manager (async, requires storage context).  This sync helper returns an
-    empty list; callers that need real overlay IDs should query the unified
-    overlay manager directly from an async endpoint with storage context.
+    Queries the user's cloud storage via the unified overlay manager. If a
+    live storage client is already available (e.g. from CloudSyncService) it
+    can be passed directly; otherwise a provider will be instantiated from
+    storage_provider + access_token.
     """
-    return []
+    if not vault_id or not user_id:
+        return []
+
+    if storage is None:
+        if not storage_provider or not access_token or storage_provider == "local":
+            return []
+        try:
+            storage = get_provider(storage_provider, access_token=access_token)
+        except Exception as e:
+            logger.warning(
+                "Failed to create storage provider for overlay lookup %s: %s",
+                vault_id,
+                e,
+            )
+            return []
+
+    try:
+        manager = UnifiedOverlayManager(storage, user_id)
+        response = await manager.get_overlays(document_id=vault_id)
+        if not response.success:
+            return []
+        return [o.overlay_id for o in response.overlays]
+    except Exception as e:
+        logger.warning("Failed to get overlay records for %s: %s", vault_id, e)
+        return []
 
 
 # =============================================================================
@@ -371,7 +403,12 @@ async def upload_document(
         logger.error(f"Intake failed: {e}")
         doc = None
 
-    overlay_record_ids = _get_overlay_record_ids(vault_id)
+    overlay_record_ids = await _get_overlay_record_ids(
+        vault_id,
+        user_id=user_id,
+        storage_provider=storage_provider,
+        access_token=access_token,
+    )
     
     return UploadResponse(
         id=doc.id if doc else "",
@@ -621,7 +658,12 @@ async def upload_and_process(
             "summary": doc.extraction.summary[:200] if doc.extraction.summary else "",
         }
 
-    overlay_record_ids = _get_overlay_record_ids(vault_id)
+    overlay_record_ids = await _get_overlay_record_ids(
+        vault_id,
+        user_id=user_id,
+        storage_provider=resolved_provider,
+        access_token=real_token,
+    )
     
     return AutoProcessResponse(
         id=doc.id,
@@ -835,7 +877,11 @@ async def process_document_from_vault(
                 "summary": intake_doc.extraction.summary[:200] if intake_doc.extraction.summary else "",
             }
 
-        overlay_record_ids = _get_overlay_record_ids(doc_id)
+        overlay_record_ids = await _get_overlay_record_ids(
+            doc_id,
+            user_id=user.user_id,
+            storage=sync.storage,
+        )
         
         return AutoProcessResponse(
             id=doc_id,  # Return vault document ID

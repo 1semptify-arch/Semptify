@@ -1,6 +1,28 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-12 — Intake Overlay Record IDs Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/intake/router.py`**: `_get_overlay_record_ids` now resolves overlay record IDs from the user's cloud storage via `UnifiedOverlayManager` instead of always returning `[]`.
+- Updated all three callers (`/upload`, `/upload/auto`, `/process/vault/{doc_id}`) to provide the required storage context.
+- Falls back to `[]` when local storage is used or a cloud provider cannot be instantiated.
+- No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/intake/router.py` passes.
+
+### Known Gaps / Pending
+- Local storage path still returns `[]` because `UnifiedOverlayManager` is cloud-only; local overlay support is future work.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
 ## Session — 2026-07-12 — Housing Accountability Public Records Stub Fix
 
 ### What Was Done
