@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Orchestrator — Standalone (Windsurf)</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e4e6eb;
+    --muted: #8b8e98;
+    --accent: #4f8cff;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --purple: #a855f7;
+    --orange: #f97316;
+    --forge: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1.5rem;
+    line-height: 1.45;
+  }
+  a { color: var(--accent); }
+  .header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; }
+  .header-logo { font-size: 1.75rem; color: var(--forge); }
+  h1 { font-size: 1.5rem; margin: 0; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
+  .offline-badge {
+    display: inline-block;
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--green);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+  h2 { font-size: 1.1rem; margin: 0 0 0.75rem; }
+  label { display: block; font-size: 0.8rem; color: var(--muted); margin: 0.6rem 0 0.2rem; }
+  input, select, textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.45rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  textarea { min-height: 4.5rem; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+  .btn-green { background: var(--green); }
+  .btn-red { background: var(--red); }
+  .btn-secondary { background: var(--border); }
+  .actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.5rem; }
+  th, td { text-align: left; padding: 0.55rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; }
+  tr:hover { background: rgba(79, 140, 255, 0.05); }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .badge-pending { background: rgba(139, 142, 152, 0.2); color: var(--muted); }
+  .badge-in_progress { background: rgba(245, 158, 11, 0.2); color: var(--forge); }
+  .badge-review { background: rgba(168, 85, 247, 0.2); color: var(--purple); }
+  .badge-resolved { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .badge-rejected { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+  .badge-high { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+  .badge-medium { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
+  .badge-low { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .mono { font-family: 'SF Mono', Monaco, monospace; font-size: 0.78rem; }
+  .prompt-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    max-height: 16rem;
+    overflow: auto;
+    margin-top: 0.5rem;
+  }
+  .toast {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: var(--green);
+    color: white;
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .empty { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+  .hint { color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <span class="header-logo">🤖</span>
+    <h1>Agent Orchestrator <span class="offline-badge">Standalone</span></h1>
+  </div>
+  <p class="subtitle">No server needed. Runs in your browser using localStorage. Open this file in Windsurf preview or any browser tab.</p>
+
+  <div class="card">
+    <div class="grid-4" id="summary">
+      <div class="stat"><div class="stat-value" id="total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat"><div class="stat-value" id="pending">0</div><div class="stat-label">Pending</div></div>
+      <div class="stat"><div class="stat-value" id="in_progress">0</div><div class="stat-label">In Progress</div></div>
+      <div class="stat"><div class="stat-value" id="review">0</div><div class="stat-label">Review</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Create Task</h2>
+    <form id="create-form">
+      <label for="title">Title</label>
+      <input id="title" placeholder="Fix HIGH stub in court_scraper.py" required>
+
+      <label for="description">Description / acceptance criteria</label>
+      <textarea id="description" placeholder="Empty return at line 68 masks missing court data."></textarea>
+
+      <div class="form-row">
+        <div>
+          <label for="category">Category</label>
+          <select id="category">
+            <option value="stub_fix" selected>Stub Fix</option>
+            <option value="duplicate_resolve">Duplicate Resolve</option>
+            <option value="test_add">Test Add</option>
+            <option value="doc_update">Doc Update</option>
+            <option value="refactor">Refactor</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="target_model">Model</label>
+          <select id="target_model"></select>
+        </div>
+        <div>
+          <label for="priority">Priority</label>
+          <select id="priority">
+            <option value="high" selected>High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="file_path">File path (repo-relative)</label>
+      <input id="file_path" class="mono" placeholder="app/modules/litigation_intelligence/court_scraper.py">
+
+      <div class="form-row">
+        <div>
+          <label for="line_start">Line start</label>
+          <input id="line_start" type="number" min="1" placeholder="68">
+        </div>
+        <div>
+          <label for="line_end">Line end</label>
+          <input id="line_end" type="number" min="1" placeholder="72">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn">Create Task</button>
+        <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <p class="hint">Export your queue to a JSON file, or import a previously exported queue. To import from the workbook, run <code>python tools/workbook_bridge.py</code> then load <code>tools/agent_orchestrator_tasks.json</code> here.</p>
+    <div class="actions">
+      <button class="btn btn-green" onclick="exportJson()">Export JSON</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import JSON</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importJson(this)">
+      <button class="btn btn-red" onclick="clearAll()">Clear all</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Task Queue</h2>
+    <div id="task-list"><p class="empty">No tasks yet.</p></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'semptify_agent_orchestrator_tasks';
+
+const MODELS = [
+  { id: 'glm-5.2', name: 'GLM-5.2', note: 'General reasoning, good for planning and broad fixes' },
+  { id: 'swe-1.6', name: 'SWE-1.6', note: 'Strong coding agent for implementation tasks' },
+  { id: 'swe-1.7', name: 'SWE-1.7', note: 'Latest SWE, preferred for complex refactors' },
+  { id: 'kimi-2.7', name: 'Kimi 2.7', note: 'Long-context, great for docs and cross-file work' },
+];
+
+const CATEGORY_LABELS = {
+  stub_fix: 'Stub Fix',
+  duplicate_resolve: 'Duplicate Resolve',
+  test_add: 'Test Add',
+  doc_update: 'Doc Update',
+  refactor: 'Refactor',
+  other: 'Other',
+};
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function utcNow() {
+  return new Date().toISOString();
+}
+
+function loadTasks() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+let tasks = loadTasks();
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function initModels() {
+  const sel = document.getElementById('target_model');
+  sel.innerHTML = '';
+  MODELS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = `${m.name} — ${m.note}`;
+    sel.appendChild(opt);
+  });
+}
+
+function updateSummary() {
+  const byStatus = {};
+  tasks.forEach(t => { byStatus[t.status] = (byStatus[t.status] || 0) + 1; });
+  document.getElementById('total').textContent = tasks.length;
+  document.getElementById('pending').textContent = byStatus.pending || 0;
+  document.getElementById('in_progress').textContent = byStatus.in_progress || 0;
+  document.getElementById('review').textContent = byStatus.review || 0;
+}
+
+function generatePrompt(task) {
+  const model = MODELS.find(m => m.id === task.target_model) || { name: task.target_model };
+  const categoryLabel = CATEGORY_LABELS[task.category] || task.category;
+  const location = task.file_path
+    ? `Target: \`${task.file_path}\`${task.line_start ? ` lines ${task.line_start}${task.line_end ? `-${task.line_end}` : ''}` : ''}`
+    : '';
+  const when = new Date(task.created_at || Date.now()).toLocaleString();
+
+  return `AGENT TASK — ${model.name} (${task.priority.toUpperCase()} priority)
+Semptify repository — Python 3.11.9 / FastAPI / PostgreSQL
+
+Task: ${task.title}
+Category: ${categoryLabel}
+${location}
+Created: ${when}
+
+Description:
+${task.description || '(no description)'}
+
+MANDATORY RULES FROM AGENTS.md:
+1. Work on a feature branch; never touch main directly.
+2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.
+3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.
+4. Use utc_now() from app.core.utc for all timestamps.
+5. Never use bare except: — catch specific exception types.
+6. Never hardcode URL strings; use navigation.get_stage() for redirects.
+7. Fix root causes, not symptoms. Do not add downstream band-aids.
+8. If you rewrite a file, follow the swap protocol (ask to rename original first).
+9. Add regression tests for bug fixes when possible.
+10. Verify changed files compile before ending the session.
+
+DELIVERABLE:
+- Make the minimal change that fixes this ${categoryLabel.toLowerCase()}.
+- If the fix touches another service, check module contracts first.
+- Return the exact file paths changed and a short verification command.
+- If you cannot complete it cleanly, stop and explain why rather than guessing.
+`;
+}
+
+function statusBadge(status) {
+  return `<span class="badge badge-${status}">${status.replace('_', ' ')}</span>`;
+}
+
+function priorityBadge(priority) {
+  return `<span class="badge badge-${priority}">${priority}</span>`;
+}
+
+function renderTasks() {
+  const container = document.getElementById('task-list');
+  updateSummary();
+  if (!tasks.length) {
+    container.innerHTML = '<p class="empty">No tasks yet. Create one above.</p>';
+    return;
+  }
+
+  const statusOptions = ['pending', 'in_progress', 'review', 'resolved', 'rejected'];
+  const rows = tasks.map(t => {
+    const loc = t.file_path ? `${t.file_path}${t.line_start ? ':' + t.line_start : ''}${t.line_end ? '-' + t.line_end : ''}` : '—';
+    return `<tr>
+      <td><strong>${escapeHtml(t.title)}</strong><br><span class="mono">${escapeHtml(loc)}</span></td>
+      <td>${statusBadge(t.status)}</td>
+      <td>${priorityBadge(t.priority)}</td>
+      <td>${escapeHtml(t.target_model)}</td>
+      <td>
+        <select onchange="updateStatus('${t.id}', this.value)">${statusOptions.map(s => `<option value="${s}" ${s === t.status ? 'selected' : ''}>${s.replace('_', ' ')}</option>`).join('')}</select>
+      </td>
+      <td>
+        <button class="btn btn-sm" onclick="showPrompt('${t.id}')">View prompt</button>
+        <button class="btn btn-sm" onclick="copyPrompt('${t.id}')">Copy</button>
+        <button class="btn btn-sm btn-red" onclick="deleteTask('${t.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `<table><thead><tr><th>Task</th><th>Status</th><th>Priority</th><th>Model</th><th>Update</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function createTask(e) {
+  e.preventDefault();
+  const task = {
+    id: uuid(),
+    title: document.getElementById('title').value,
+    description: document.getElementById('description').value,
+    category: document.getElementById('category').value,
+    target_model: document.getElementById('target_model').value,
+    priority: document.getElementById('priority').value,
+    file_path: document.getElementById('file_path').value,
+    line_start: document.getElementById('line_start').valueAsNumber || null,
+    line_end: document.getElementById('line_end').valueAsNumber || null,
+    status: 'pending',
+    notes: '',
+    created_at: utcNow(),
+    updated_at: utcNow(),
+  };
+  task.prompt = generatePrompt(task);
+  tasks.unshift(task);
+  saveTasks(tasks);
+  showToast('Task created');
+  clearForm();
+  renderTasks();
+}
+
+function clearForm() {
+  document.getElementById('create-form').reset();
+}
+
+function updateStatus(id, status) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.status = status;
+  task.updated_at = utcNow();
+  saveTasks(tasks);
+  showToast('Status updated');
+  renderTasks();
+}
+
+function deleteTask(id) {
+  if (!confirm('Delete this task?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(tasks);
+  showToast('Task deleted');
+  renderTasks();
+}
+
+function showPrompt(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const container = document.getElementById('task-list');
+  const back = `<button class="btn btn-sm btn-secondary" onclick="renderTasks()">← Back to list</button>`;
+  container.innerHTML = `${back}<div class="prompt-box">${escapeHtml(task.prompt)}</div>`;
+}
+
+async function copyPrompt(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  await navigator.clipboard.writeText(task.prompt);
+  showToast('Prompt copied');
+}
+
+function exportJson() {
+  const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `agent-orchestrator-tasks-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  showToast(`Exported ${tasks.length} tasks`);
+}
+
+function importJson(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const imported = Array.isArray(data) ? data : (data.created || data.tasks || []);
+      if (!Array.isArray(imported)) throw new Error('JSON must be an array or contain a created/tasks list');
+      tasks = imported.map(t => ({ ...t, prompt: generatePrompt(t) }));
+      saveTasks(tasks);
+      renderTasks();
+      showToast(`Imported ${tasks.length} tasks`);
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL tasks? This cannot be undone.')) return;
+  tasks = [];
+  saveTasks(tasks);
+  renderTasks();
+  showToast('All tasks cleared');
+}
+
+document.getElementById('create-form').addEventListener('submit', createTask);
+
+initModels();
+renderTasks();
+</script>
+</body>
+</html>
