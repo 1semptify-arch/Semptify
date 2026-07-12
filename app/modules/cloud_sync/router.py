@@ -516,8 +516,8 @@ async def get_documents(
             "source": "vault",
             "user_id": user.user_id
         }
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Vault document index load failed, falling back to legacy: {e}")
     
     # Fallback to legacy document index
     docs = await sync.load_document_index()
