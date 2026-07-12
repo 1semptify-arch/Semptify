@@ -920,7 +920,7 @@ async def list_cases(user: StorageUser = Depends(yellow_access)):
             try:
                 urgent = (datetime.fromisoformat(next_deadline).date() - date.today()).days <= 7
             except ValueError:
-                pass
+                logger.warning(f"Invalid hearing_date format: {next_deadline}. Not marking as urgent.")
 
         cases.append({
             "id": case["case_id"],
@@ -1968,7 +1968,7 @@ async def get_case_summary(case_id: str, user: StorageUser = Depends(yellow_acce
             hearing_date = datetime.strptime(case["hearing_date"], "%Y-%m-%d").date()
             hearing_days = (hearing_date - today).days
         except ValueError:
-            pass
+            logger.warning(f"Invalid hearing_date format: {case.get('hearing_date')}. Skipping hearing date calculation.")
     
     # Get urgent deadlines
     urgent_deadlines = []
@@ -1983,7 +1983,7 @@ async def get_case_summary(case_id: str, user: StorageUser = Depends(yellow_acce
                         "days_until": days
                     })
             except ValueError:
-                pass
+                logger.warning(f"Invalid deadline format: {d.get('deadline')}. Skipping deadline.")
     
     # Build reminders
     reminders = []
