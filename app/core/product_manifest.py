@@ -415,12 +415,6 @@ _register("app.modules.onboarding.reconnect", tags=("Onboarding", "Reconnect"), 
 # Document & vault system
 _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
 _register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault",), tier=ProductTier.CORE)
-# app.modules.vault_engine.router deregistered 2026-07-04 — router had its own internal prefix
-# (/api/vault-engine) so no URL collision with vault.router existed, but grep of all templates/static JS
-# confirmed zero frontend callers for any /api/vault-engine/* path. Live, request-accepting endpoints
-# (check-access, read, write, delete, share, unshare, audit, etc.) sat unused. vault.router at /api/vault
-# is the canonical SSOT vault. See Duplicates tab in inventory. Module files kept on disk for review before
-# deletion — vault_engine's per-resource audit-log capability does not currently exist in vault.router.
 _register("app.modules.timeline.router", prefix="/api/timeline", tags=("Unified Timeline",), tier=ProductTier.CORE)
 _register("app.modules.briefcase.router", tags=("Briefcase",), tier=ProductTier.CORE)
 _register("app.modules.workflow.router", tags=("Workflow",), tier=ProductTier.CORE)
@@ -597,12 +591,6 @@ _register("app.modules.form_data.router", prefix="/api/form-data", tags=("Form D
 # 943-line legacy router removed from registration; no callers used /api/overlays/ paths.
 _register("app.modules.unified_overlays.router", tags=("Unified Overlays",), tier=ProductTier.RESEARCH,
           log_message="Unified Overlays router connected - Non-destructive annotation system active")
-# app.modules.vault_all_in_one.router deregistered 2026-07-04 — router had its own internal prefix (/vault)
-# so no URL collision with vault.router (/api/vault) existed, but grep of all templates/static JS confirmed
-# zero frontend callers for any /vault/* path. Live, request-accepting endpoints (items CRUD, timeline,
-# incidents, search/metadata, search/location) sat unused. vault.router at /api/vault is the canonical SSOT
-# vault. See Duplicates tab in inventory. Module files kept on disk for review — its incidents/three-timestamp
-# timeline model may overlap with the separate timeline.router/briefcase timeline-event system (see Duplicates).
 _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTier.RESEARCH,
           log_message="Cloud Sync router connected - User-controlled data persistence active")
 
