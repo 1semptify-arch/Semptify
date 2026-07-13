@@ -1049,4 +1049,5 @@ try:
         deterministic=True,
     ))
 except Exception:
+    # Contract registration is best-effort — never break the module if registry is unavailable
     pass

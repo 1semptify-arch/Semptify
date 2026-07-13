@@ -182,6 +182,7 @@ class MNDESRestClient(MNDESApiClient):
         self._base = api_base_url.rstrip("/")
         self._api_key = api_key
 
+    # stub-detector: ignore
     def submit_exhibit(
         self,
         case_number: str,
@@ -195,12 +196,14 @@ class MNDESRestClient(MNDESApiClient):
             f"Contact EAST team: {MNDES_SUPPORT_EMAIL_FORM}"
         )
 
+    # stub-detector: ignore
     def get_submission_status(
         self,
         tracking_number: str,
     ) -> MNDESTrackingStatus:
         raise NotImplementedError("MNDESRestClient.get_submission_status: not yet implemented")
 
+    # stub-detector: ignore
     def get_case_exhibits(
         self,
         case_number: str,

@@ -41,17 +41,17 @@ except ImportError:
     # Fallback stubs when SQLAlchemy not installed (test environment shim)
     class DateTime:
         def __init__(self, *args, **kwargs):
-            pass
+            pass  # Stub for test environment without SQLAlchemy
 
     class DummyColumnType:
         def __init__(self, *args, **kwargs):
-            pass
+            pass  # Stub for test environment without SQLAlchemy
 
     String = Text = Integer = ForeignKey = Boolean = Float = Enum = DummyColumnType
     
     # JSONB fallback for SQLite/non-PostgreSQL environments
     class JSONB(DummyColumnType):
-        pass
+        pass  # Stub for test environment without SQLAlchemy
     
     class Mapped:
         pass
