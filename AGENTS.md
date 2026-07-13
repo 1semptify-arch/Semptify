@@ -131,6 +131,11 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Contracts registered:** `overlays::overlay_create`, `overlays::overlay_query`, `overlays::overlay_update`, `overlays::overlay_delete`, `overlays::overlay_compose_view`.
 - **Files:** `app/services/filedored_service.py`, `app/services/duplicate_detection_service.py`, `app/modules/filedored/router.py`, `app/modules/court_forms/router.py`.
 
+### 17. Half-Finished Static Asset Migration Left Uncommitted
+- **What happened:** An earlier session deleted `static/css/` live files and created copies in `static/data/css/` as part of a CSS migration, but never updated template `<link>` tags, never added a static mount for the new path, and never committed any of it. The app's CSS was silently broken on disk (7 files missing) while git still showed them as present. A later session found the orphan copy directory, assumed it was an intentional migration target, and nearly deleted the originals permanently before catching the problem.
+- **Fix:** Restored all files from the orphan copy back to `static/css/` (the correctly mounted location). Deleted the orphan `static/data/css/` directory.
+- **Rule: NEVER delete a static asset file (CSS, JS, image) that is referenced by a template until the replacement is verified live in the running app. If a migration is started and cannot be completed in the same session, revert the deletions before committing. A half-finished migration committed or left on disk overnight is worse than no migration at all.**
+
 ---
 
 ## 📋 Module Contract Mandate
