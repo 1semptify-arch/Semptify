@@ -1,6 +1,58 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-12 PM — Stub Detector Build + Alembic False-Positive Filter
+
+### What Was Done
+- **Built `tools/stub_detector.py`**: AST-based stub detector that replaces the keyword-grep approach which produced 123 false positives. Parses Python syntax trees and only flags functions whose executable body is a genuine stub (`pass`, `...`, `raise NotImplementedError`, or lone `return` of an empty literal).
+- **Expanded skip list** (`SKIP_DIR_NAMES` + `SKIP_DIR_PREFIXES`): filters all venv variants (`venv311_clean`, `.venv`, etc.), caches (`__pycache__`, `.mypy_cache`, `.ruff_cache`, `.pytest_cache`), build artifacts (`dist`, `build`, `htmlcov`, `test-results`), non-app dirs (`archive`, `logs`, `uploads`, `REPOs`, `installer`, `mobile_ai_host`, `semptify_dakota_eviction`, `legal_intel`), agent work dirs (`.agent`, `.agent-mem`, `.agents`, `.semptify`, `.zenflow`, `.zencoder`, `.windsurf`, `.cursor`, `.devin`, `.github`, `.vscode`), and scaffolds (`_template`, `templates_scaffold`).
+- **Added alembic merge migration filter** (`ALEMBIC_SKIP_FN_NAMES`): permanently skips `upgrade()`/`downgrade()` stub bodies in `alembic/versions/` — this is the correct pattern for merge revisions, not a stub.
+- **Updated `tools/agent_orchestrator_tasks.json`**: marked 2 tasks `completed` (already fixed in prior sessions) and 33 tasks `skipped` (false positives with explanatory notes). All 35 previously-pending `stub_fix` tasks now resolved.
+
+### Commits This Session
+- (uncommitted — on working tree)
+
+### Known Working
+- `python -m py_compile tools/stub_detector.py` passes.
+- `python tools/stub_detector.py . --out tools/stub_tasks_new.json` reports **61 real stubs** (35 `app/` + 26 `Semptify-Housing-Accountability/`).
+- `tools/agent_orchestrator_tasks.json` shows 0 pending `stub_fix` tasks.
+
+### Known Gaps / Pending
+- **61 genuine stubs identified** by the new detector (35 in `app/`, 26 in `Semptify-Housing-Accountability/`). These are real pending `stub_fix` tasks to work through.
+- `tools/stub_detector.py` is untracked — needs commit.
+- `tools/agent_orchestrator_tasks.json` modifications uncommitted.
+
+### Next Session Should Start With
+- Work through the 61 real stubs starting with `app/` (35 stubs in sessions.py, models.py, storage/base.py, security/router.py, litigation_intelligence/intelligence_engine.py, mndes_api_client.py, etc.).
+- Then `Semptify-Housing-Accountability/` (26 `pass`-body stubs across coalition, intake, oversight_packets, pattern_engine, press_builder, public_records).
+
+---
+
+## Session — 2026-07-12 — Orchestrator Stub Fix Cleanup
+
+### What Was Done
+- **Processed all remaining `pending` tasks in `tools/agent_orchestrator_tasks.json`**: 51 tasks were reviewed and marked `skipped` with descriptive reasons.
+  - 16 `duplicate_resolve` architectural duplicate tasks (e.g., vault vs vault_engine, timeline duplicates).
+  - 20 `Fix placeholder` tasks (HTML/CSS/template comments, docstrings, placeholder values).
+  - 10 `Fix TODO/FIXME` tasks (commented-out deferred features like `graph_engine`).
+  - 5 `_template` scaffold TODOs.
+- No code files were modified; no bare-pass stubs remained among pending tasks.
+- Committed on branch `fix/complaint-wizard-stub-pass`.
+
+### Commits This Session
+- `chore(orchestrator): mark 51 remaining pending tasks as skipped with reasons`
+
+### Known Working
+- `tools/agent_orchestrator_tasks.json` shows 0 pending tasks.
+
+### Known Gaps / Pending
+- None from orchestrator queue.
+
+### Next Session Should Start With
+- Proceed to **UPL guardrail tier registration** or **GUI Phase 1 prep** per `ACTIVE_CONTEXT.md`.
+
+---
+
 ## Session — 2026-07-12 — Legal Filing Bare Except Fix
 
 ### What Was Done
