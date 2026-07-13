@@ -4,16 +4,56 @@
 {% block nav_act %}active{% endblock %}
 
 {% block content %}
-<div class="frame-panel">
+<section class="frame-panel">
     <div class="frame-panel--header">
-        <span class="frame-panel--title">Act</span>
+        <span class="frame-panel--title">Take Action</span>
     </div>
     <div class="frame-panel--body">
-        <div class="frame-empty">
-            <div class="frame-empty--icon">ACT</div>
-            <p>Guided lawful action tools.</p>
-            <p class="frame-empty--hint">Coming soon.</p>
+        <p style="color:#94a3b8; font-size:0.9375rem;">
+            Letters, complaints, deadlines, and next steps — organized, not advised.
+        </p>
+    </div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Action Tools</span>
+    </div>
+    <div class="frame-panel--body">
+        <div class="frame-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+            <a href="/tenant/tools/letters" class="frame-card" style="display:block; padding:1rem; background:#1e293b; border-radius:0.5rem; text-decoration:none;">
+                <span style="font-size:1.25rem;">&#9993;</span>
+                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Letter Builder</strong>
+                <span style="color:#94a3b8; font-size:0.875rem;">Maintenance request, deposit demand, etc.</span>
+            </a>
+            <a href="/ui/tool/complaints" class="frame-card" style="display:block; padding:1rem; background:#1e293b; border-radius:0.5rem; text-decoration:none;">
+                <span style="font-size:1.25rem;">&#127970;</span>
+                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">File a Complaint</strong>
+                <span style="color:#94a3b8; font-size:0.875rem;">Find the right housing agency.</span>
+            </a>
+            <a href="/ui/tool/case-builder" class="frame-card" style="display:block; padding:1rem; background:#1e293b; border-radius:0.5rem; text-decoration:none;">
+                <span style="font-size:1.25rem;">&#128736;</span>
+                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Case Builder</strong>
+                <span style="color:#94a3b8; font-size:0.875rem;">Add facts and link evidence.</span>
+            </a>
+            <a href="/ui/tool/plan-maker" class="frame-card" style="display:block; padding:1rem; background:#1e293b; border-radius:0.5rem; text-decoration:none;">
+                <span style="font-size:1.25rem;">&#128197;</span>
+                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Action Plan</strong>
+                <span style="color:#94a3b8; font-size:0.875rem;">Prioritized steps and deadlines.</span>
+            </a>
         </div>
     </div>
-</div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Need legal help?</span>
+    </div>
+    <div class="frame-panel--body">
+        <p style="color:#94a3b8; font-size:0.9375rem;">
+            Semptify does not give legal advice. Talk to a qualified attorney or legal aid society.
+        </p>
+        <a href="/help" class="frame-btn" style="margin-top:1rem; display:inline-block;">Find Help</a>
+    </div>
+</section>
 {% endblock %}

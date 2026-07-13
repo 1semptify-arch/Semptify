@@ -91,8 +91,8 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
                 test_file.write_text("test")
                 test_file.unlink()
                 writable = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional operation failed: {e}")
         
         key = f"dir_{dir_name.replace('/', '_')}"
         checks[key] = exists and writable

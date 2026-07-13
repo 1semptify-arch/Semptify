@@ -1,3 +1,4 @@
+import logging
 """
 Document Registry API Router
 
@@ -267,8 +268,8 @@ async def list_documents(
         try:
             status_filter = DocumentStatus(status)
             docs = [d for d in docs if d.status == status_filter]
-        except ValueError:
-            pass
+        except ValueError as e:
+            logging.warning(f"Document query failed: {e}")
     
     return [_doc_to_response(d) for d in docs]
 
