@@ -1,6 +1,27 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-13 PM (2) — Resolve Duplicate: vault vs vault_engine vs vault_all_in_one
+
+### What Was Done
+- **Resolved duplicate vault modules** in `app/core/product_manifest.py`.
+- `app.modules.vault.router` at `/api/vault` remains the canonical SSOT vault.
+- Removed dead deregistration comments for `app.modules.vault_engine.router` and `app.modules.vault_all_in_one.router`; both were already deregistered.
+
+### Commits This Session
+- `fix(manifest): resolve vault/vault_engine/vault_all_in_one duplicate`
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py` passes.
+
+### Known Gaps / Pending
+- `app/modules/vault_engine/` and `app/modules/vault_all_in_one/` module files remain on disk for future review before deletion.
+
+### Next Session Should Start With
+- Continue with the next task from `tools/agent_orchestrator_tasks.json` or current priorities.
+
+---
+
 ## Session — 2026-07-13 PM — Sync Orchestrator Wired + Stub Pass Comments Merged to Main
 
 ### What Was Done
