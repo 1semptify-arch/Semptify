@@ -514,56 +514,239 @@ class TimelinePredictor:
         
         return predictions
 
+def _parties_from_case(case_data: Dict[str, Any]) -> Tuple[str, str]:
+    """Extract tenant and landlord names from case data."""
+    parties = case_data.get("parties") or {}
+    tenant = parties.get("tenant") if isinstance(parties, dict) else None
+    landlord = parties.get("landlord") if isinstance(parties, dict) else None
+    return tenant or "tenant", landlord or "landlord"
+
+
 # Pattern Detector Classes
 class RepeatOffenderDetector:
     """Detects repeat offender patterns."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect if landlord is repeat offender."""
-        # This would integrate with court scraper data
-        # For now, return a placeholder
+        prior_cases = case_data.get("landlord_prior_cases", [])
+        if not isinstance(prior_cases, list):
+            prior_cases = []
+
+        if case_data.get("landlord_repeat_offender") or len(prior_cases) >= 3:
+            count = len(prior_cases)
+            confidence = min(0.95, 0.65 + count * 0.04)
+            tenant, landlord = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.REPEAT_OFFENDER,
+                confidence=confidence,
+                description=f"Landlord has {count} prior cases, indicating a repeat offender pattern",
+                affected_parties=[tenant, landlord],
+                legal_basis="Pattern of repeated landlord-tenant litigation",
+                precedent_cases=[],
+                recommended_actions=[
+                    "Document pattern of repeat offenses for enhanced damages",
+                    "Request enhanced discovery procedures",
+                    "Consider punitive damages claim",
+                ],
+            )
         return None
+
 
 class SerialFilerDetector:
     """Detects serial filing patterns."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect serial filing patterns."""
+        filing_count = case_data.get("landlord_filing_count", 0)
+        if isinstance(filing_count, list):
+            filing_count = len(filing_count)
+        try:
+            filing_count = int(filing_count)
+        except (TypeError, ValueError):
+            filing_count = 0
+
+        if filing_count >= 5:
+            confidence = min(0.95, 0.65 + filing_count * 0.03)
+            tenant, landlord = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.SERIAL_FILER,
+                confidence=confidence,
+                description=f"Landlord has filed {filing_count} recent cases, indicating serial litigation",
+                affected_parties=[tenant, landlord],
+                legal_basis="Pattern of frequent filings against tenants",
+                precedent_cases=[],
+                recommended_actions=[
+                    "Request filing history in discovery",
+                    "Investigate other affected tenants",
+                    "Consider bad faith litigation claim",
+                ],
+            )
         return None
+
 
 class FrivolousClaimDetector:
     """Detects potentially frivolous claims."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect frivolous claim patterns."""
+        indicators = case_data.get("frivolous_claim_indicators", [])
+        procedural_defects = case_data.get("procedural_defects", [])
+        if not isinstance(indicators, list):
+            indicators = []
+        if not isinstance(procedural_defects, list):
+            procedural_defects = []
+
+        total_indicators = len(indicators) + len(procedural_defects)
+        if total_indicators >= 2 or case_data.get("frivolous_claim", False):
+            confidence = min(0.9, 0.65 + total_indicators * 0.05)
+            tenant, landlord = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.FRIVOLOUS_CLAIM,
+                confidence=confidence,
+                description="Claim includes indicators of being meritless or procedurally defective",
+                affected_parties=[tenant, landlord],
+                legal_basis="Lack of good faith basis or procedural compliance",
+                precedent_cases=[],
+                recommended_actions=[
+                    "Challenge pleadings for specificity and good faith",
+                    "Document procedural defects",
+                    "Request attorney fees if successful",
+                ],
+            )
         return None
+
 
 class RetaliationPatternDetector:
     """Detects retaliation patterns."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect retaliation patterns."""
+        retaliatory_actions = case_data.get("retaliatory_actions", [])
+        if not isinstance(retaliatory_actions, list):
+            retaliatory_actions = []
+
+        if (
+            case_data.get("retaliation_pattern", False)
+            or case_data.get("complaint_then_adverse_action", False)
+            or len(retaliatory_actions) >= 1
+        ):
+            count = len(retaliatory_actions)
+            confidence = min(0.95, 0.75 + count * 0.05)
+            tenant, landlord = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.RETALIATION_PATTERN,
+                confidence=confidence,
+                description="Landlord action appears retaliatory after tenant complaint",
+                affected_parties=[tenant, landlord],
+                legal_basis="Retaliation protections under housing law",
+                precedent_cases=[],
+                recommended_actions=[
+                    "Document all retaliatory actions and communications",
+                    "File complaint with housing authority",
+                    "Request injunctive relief",
+                ],
+            )
         return None
+
 
 class HabitabilityIssueDetector:
     """Detects habitability violation patterns."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect habitability issues."""
+        violations = case_data.get("habitability_violations", [])
+        repair_requests = case_data.get("repair_requests", [])
+        if not isinstance(violations, list):
+            violations = []
+        if not isinstance(repair_requests, list):
+            repair_requests = []
+
+        total = len(violations) + len(repair_requests)
+        if total >= 2 or case_data.get("habitability_issue", False):
+            confidence = min(0.95, 0.65 + total * 0.04)
+            tenant, landlord = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.HABITABILITY_ISSUE,
+                confidence=confidence,
+                description=f"{total} habitability violations or unresolved repair requests detected",
+                affected_parties=[tenant, landlord],
+                legal_basis="Warranty of habitability and housing code compliance",
+                precedent_cases=[],
+                recommended_actions=[
+                    "Document all habitability violations with photos/videos",
+                    "Request rent reduction or abatement",
+                    "Consider constructive eviction claim",
+                ],
+            )
         return None
+
 
 class DiscriminationPatternDetector:
     """Detects discrimination patterns."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect discrimination patterns."""
+        protected_class = case_data.get("protected_class")
+        differential_treatment = case_data.get("differential_treatment")
+        discriminatory_statements = case_data.get("discriminatory_statements", [])
+        if not isinstance(discriminatory_statements, list):
+            discriminatory_statements = []
+
+        if protected_class and (differential_treatment or len(discriminatory_statements) >= 1):
+            confidence = min(0.95, 0.75 + len(discriminatory_statements) * 0.05)
+            tenant, landlord = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.DISCRIMINATION_PATTERN,
+                confidence=confidence,
+                description=f"Evidence suggests discrimination based on {protected_class}",
+                affected_parties=[tenant, landlord],
+                legal_basis="Fair housing and anti-discrimination protections",
+                precedent_cases=[],
+                recommended_actions=[
+                    "File discrimination complaint with HUD",
+                    "Request protected class status",
+                    "Consider fair housing lawsuit",
+                ],
+            )
         return None
+
 
 class ProfessionalLandlordDetector:
     """Detects professional landlord patterns."""
-    
+
     async def detect_pattern(self, case_data: Dict[str, Any]) -> Optional[PatternMatch]:
         """Detect professional landlord patterns."""
+        landlord = case_data.get("parties", {}).get("landlord", "") or case_data.get("landlord_name", "")
+        landlord = str(landlord)
+        entity_type = case_data.get("landlord_entity_type", "")
+        portfolio_size = case_data.get("landlord_portfolio_size", 0)
+        try:
+            portfolio_size = int(portfolio_size)
+        except (TypeError, ValueError):
+            portfolio_size = 0
+
+        is_professional = (
+            entity_type in {"LLC", "CORPORATION", "PROPERTY_MANAGEMENT", "TRUST"}
+            or portfolio_size >= 10
+            or re.search(r"LLC|Properties|Property Management|Corp|Inc\.|Trust|Holdings", landlord, re.IGNORECASE)
+        )
+
+        if is_professional:
+            confidence = min(0.95, 0.7 + min(portfolio_size, 20) * 0.01)
+            tenant, _ = _parties_from_case(case_data)
+            return PatternMatch(
+                pattern_type=PatternType.PROFESSIONAL_LANDLORD,
+                confidence=confidence,
+                description="Landlord appears to be a professional or institutional entity",
+                affected_parties=[tenant, landlord or "landlord"],
+                legal_basis="Professional landlords have greater resources and repeat legal practices",
+                precedent_cases=[],
+                recommended_actions=[
+                    "Expect aggressive procedural tactics",
+                    "Request complete ownership and management disclosures",
+                    "Investigate other properties owned by entity",
+                ],
+            )
         return None
 
 # Factory function

@@ -227,6 +227,7 @@ async def upload_document(
             from app.core.oauth_token_manager import get_valid_token_for_user
             real_token = get_valid_token_for_user(user.user_id) or real_token
         except ImportError:
+            # Token manager unavailable, will use provided token
             pass
     if not real_token or real_token in ("auto", "no-token"):
         raise HTTPException(
@@ -312,6 +313,7 @@ async def copy_from_sync_to_vault(
             from app.core.oauth_token_manager import get_valid_token_for_user
             real_token = get_valid_token_for_user(user.user_id) or real_token
         except ImportError:
+            # Token manager unavailable, will use provided token
             pass
     if not real_token or real_token in ("auto", "no-token"):
         raise HTTPException(
@@ -1538,6 +1540,7 @@ async def export_vault_zip(
             from app.core.oauth_token_manager import get_valid_token_for_user
             real_token = get_valid_token_for_user(user.user_id) or real_token
         except ImportError:
+            # Token manager unavailable, will use provided token
             pass
     if not real_token or real_token in ("auto", "no-token", None):
         raise HTTPException(

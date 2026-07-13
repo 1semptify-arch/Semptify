@@ -93,6 +93,40 @@ STUB_REASONS = {
 }
 
 
+def is_abstract_method(node) -> bool:
+    """Return True if a function/method is decorated with @abstractmethod."""
+    for decorator in getattr(node, "decorator_list", []):
+        if isinstance(decorator, ast.Name) and decorator.id == "abstractmethod":
+            return True
+        if isinstance(decorator, ast.Attribute) and decorator.attr == "abstractmethod":
+            return True
+        if isinstance(decorator, ast.Call):
+            func = decorator.func
+            if isinstance(func, ast.Name) and func.id == "abstractmethod":
+                return True
+            if isinstance(func, ast.Attribute) and func.attr == "abstractmethod":
+                return True
+    return False
+
+
+def _type_names(node):
+    """Collect bare names appearing in an except handler type expression."""
+    names = set()
+    if node is None:
+        return names
+    if isinstance(node, ast.Name):
+        names.add(node.id)
+    elif isinstance(node, ast.Tuple):
+        for elt in node.elts:
+            names.update(_type_names(elt))
+    elif isinstance(node, ast.Attribute):
+        names.add(node.attr)
+    return names
+
+
+IMPORT_ERROR_NAMES = {"ImportError", "ModuleNotFoundError"}
+
+
 def is_skipped_path(path: Path) -> bool:
     for part in path.parts:
         if part in SKIP_DIR_NAMES:
@@ -201,13 +235,38 @@ def find_enclosing_except(node, tree):
     return False
 
 
+IGNORE_PRAGMA = "# stub-detector: ignore"
+
+
 class StubVisitor(ast.NodeVisitor):
-    def __init__(self, filename, tree):
+    def __init__(self, filename, tree, source_lines):
         self.filename = filename
         self.tree = tree
+        self.source_lines = source_lines
         self.findings = []
+        self._in_import_error_handler = 0
+
+    def _is_ignored(self, node):
+        """Check the line immediately above the function definition for an ignore pragma."""
+        if not self.source_lines or node.lineno < 2:
+            return False
+        prev_line = self.source_lines[node.lineno - 2]
+        return IGNORE_PRAGMA in prev_line
 
     def _check(self, node):
+        # Abstract base class methods are intentionally empty.
+        if is_abstract_method(node):
+            return
+
+        # Functions defined inside an `except ImportError:` block are fallback
+        # shims for optional dependencies, not stubs to fix.
+        if self._in_import_error_handler > 0:
+            return
+
+        # Allow an explicit pragma to mark an intentionally empty helper.
+        if self._is_ignored(node):
+            return
+
         reason = body_is_stub(node.body)
         if reason is None:
             return
@@ -235,6 +294,15 @@ class StubVisitor(ast.NodeVisitor):
             "reason": reason,
         })
 
+    def visit_ExceptHandler(self, node):
+        handler_names = _type_names(node.type)
+        is_import_error = bool(handler_names & IMPORT_ERROR_NAMES)
+        if is_import_error:
+            self._in_import_error_handler += 1
+        self.generic_visit(node)
+        if is_import_error:
+            self._in_import_error_handler -= 1
+
     def visit_FunctionDef(self, node):
         self._check(node)
         self.generic_visit(node)
@@ -255,7 +323,7 @@ def scan_file(path: Path, root: Path, list_todos=False):
     except SyntaxError:
         return [], []
 
-    visitor = StubVisitor(str(path.relative_to(root)), tree)
+    visitor = StubVisitor(str(path.relative_to(root)), tree, source.splitlines())
     visitor.visit(tree)
 
     todos = []

@@ -30,6 +30,8 @@ from app.services.unified_overlay_manager import get_unified_overlay_manager
 from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import CreateOverlayRequest
 from app.services.user_service import get_user_by_id
+from app.sdk.vault.errors import VaultError
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -563,18 +565,46 @@ class CommunicationService:
         try:
             manager = await self._get_manager()
             overlays = await manager.get_overlays(overlay_type=OverlayType.COMMUNICATION)
-            
-            messages = []
-            for overlay in overlays.overlays:
-                if (overlay.metadata.get("type") == "message" and 
+        except VaultError as e:
+            logger.error(
+                f"Storage unavailable for conversation {conversation_id}: {e}",
+                exc_info=True,
+            )
+            return []
+
+        messages: List[Message] = []
+        if overlays is None or not overlays.overlays:
+            return messages
+
+        for overlay in overlays.overlays:
+            try:
+                if not isinstance(overlay.metadata, dict):
+                    logger.warning(
+                        "Skipping overlay %s with non-dict metadata",
+                        getattr(overlay, "overlay_id", "unknown"),
+                    )
+                    continue
+
+                if (overlay.metadata.get("type") == "message" and
                     overlay.metadata.get("conversation_id") == conversation_id):
                     messages.append(Message(**overlay.payload))
-            
-            return messages
-            
-        except Exception as e:
-            logger.error(f"Get messages for conversation failed: {e}")
-            return []
+
+            except ValidationError as e:
+                logger.warning(
+                    "Skipping malformed message overlay %s: %s",
+                    getattr(overlay, "overlay_id", "unknown"),
+                    e,
+                )
+                continue
+            except (TypeError, AttributeError) as e:
+                logger.warning(
+                    "Skipping unreadable overlay for conversation %s: %s",
+                    conversation_id,
+                    e,
+                )
+                continue
+
+        return messages
     
     async def _get_last_message_preview(self, conversation_id: str) -> Optional[str]:
         """Get preview of last message in conversation."""

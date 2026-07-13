@@ -1,26 +1,70 @@
-"""Scaffold for public-records research workflows."""
+"""Public-records research workflows for landlord and property research."""
+
+from typing import Any, Dict, List
 
 
-def lookup_llc_structure():
-    """Look up placeholder LLC structure data."""
-    pass
+def lookup_llc_structure(entity_name: str, state: str = "MN") -> Dict[str, Any]:
+    """Return a structured request for LLC ownership research.
+
+    Real lookups require state Secretary of State APIs; this helper returns
+    the parameters and an empty placeholder result set for later wiring.
+    """
+    return {
+        "entity_name": entity_name,
+        "state": state,
+        "lookup_type": "llc_structure",
+        "members": [],
+        "registered_agent": None,
+        "status": "lookup_not_yet_implemented",
+    }
 
 
-def lookup_property_records():
-    """Look up placeholder property-record data."""
-    pass
+def lookup_property_records(parcel_id: str, county: str = "Hennepin") -> Dict[str, Any]:
+    """Return a structured request for county property records."""
+    return {
+        "parcel_id": parcel_id,
+        "county": county,
+        "lookup_type": "property_records",
+        "owner": None,
+        "tax_status": None,
+        "assessed_value": None,
+        "status": "lookup_not_yet_implemented",
+    }
 
 
-def lookup_eviction_history():
-    """Look up placeholder eviction-history data."""
-    pass
+def lookup_eviction_history(party_name: str, case_number: str = "") -> Dict[str, Any]:
+    """Return a structured request for eviction filing history."""
+    return {
+        "party_name": party_name,
+        "case_number": case_number,
+        "lookup_type": "eviction_history",
+        "filings": [],
+        "status": "lookup_not_yet_implemented",
+    }
 
 
-def lookup_subsidy_participation():
-    """Look up placeholder subsidy-participation data."""
-    pass
+def lookup_subsidy_participation(property_address: str) -> Dict[str, Any]:
+    """Return a structured request for housing subsidy participation."""
+    return {
+        "property_address": property_address,
+        "lookup_type": "subsidy_participation",
+        "programs": [],
+        "status": "lookup_not_yet_implemented",
+    }
 
 
-def generate_public_profile():
-    """Generate a placeholder public profile."""
-    pass
+def generate_public_profile(
+    entity_name: str,
+    property_address: str = "",
+    parcel_id: str = "",
+) -> Dict[str, Any]:
+    """Generate a consolidated public-profile request from the lookups above."""
+    return {
+        "entity_name": entity_name,
+        "property_address": property_address,
+        "parcel_id": parcel_id,
+        "llc_structure": lookup_llc_structure(entity_name),
+        "property_records": lookup_property_records(parcel_id) if parcel_id else None,
+        "eviction_history": lookup_eviction_history(entity_name),
+        "subsidy_participation": lookup_subsidy_participation(property_address) if property_address else None,
+    }
