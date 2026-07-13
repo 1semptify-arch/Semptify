@@ -58,6 +58,7 @@ def _parse_any_datetime(value: Any) -> datetime | None:
         try:
             dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
         except ValueError:
+            # ISO format failed, will try other formats below
             pass
         if dt is None:
             for fmt in (

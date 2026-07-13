@@ -100,6 +100,7 @@ def register_stateless_routes(app: FastAPI):
     try:
         app.mount("/static", StaticFiles(directory=str(BASE_PATH / "app" / "static")), name="static")
     except Exception:
+        # Static mount failed, app will still run without static files
         pass
 
     @app.get("/.well-known/microsoft-identity-association.json", include_in_schema=False)
@@ -1381,6 +1382,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         if access_token:
                             content = await vault_svc.get_document_content(vault_id, access_token=access_token) or b""
                     except Exception:
+                        # Token fetch failed, will continue without content
                         pass
                     # Ensure filedored folders exist on-demand (lazy, first upload only)
                     try:
@@ -2172,7 +2174,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning(f"Failed 2FA attempt for admin: {username}")
                 raise HTTPException(status_code=401, detail="Invalid two-step code")
         elif totp_code != "000000":
-            pass
+            pass  # TOTP not configured but code provided - ignore
+        
         
         # Get OAuth user_id for the elevation token (may be None if no OAuth session yet)
         oauth_uid = extract_user_id(request) or f"admin_{username}"
@@ -2463,6 +2466,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             from app.core.telemetry_hooks import EMITTER
             EMITTER.emit("manager_portal_load", "manager", user_id)
         except Exception:
+            # Telemetry failed, non-critical
             pass
 
         # Try Jinja2 template first, then static fallback
@@ -2625,6 +2629,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 briefcase = await _get_tenant_briefcase(user_id)
                 user_name = briefcase.user_name
             except Exception:  # pylint: disable=broad-exception-caught
+                # Briefcase fetch failed, will render without user data
                 pass
 
         ctx = {
@@ -2786,6 +2791,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             _rc = request.cookies.get(COOKIE_USER_ID, "anon")
             EMITTER.emit("vault_load", "vault", str(_rc) if _rc is not None else "anon")
         except Exception:  # pylint: disable=broad-exception-caught
+            # Telemetry failed, non-critical
             pass
 
         # Use template instead of embedded HTML to avoid syntax conflicts

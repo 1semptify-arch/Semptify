@@ -115,7 +115,7 @@ class IngestionResult:
 
 class VaultIngestionError(Exception):
     """Raised when vault ingestion fails due to contract violations."""
-    pass
+    pass  # Empty exception class - custom error type
 
 
 class VaultIngestionService:

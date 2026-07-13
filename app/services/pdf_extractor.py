@@ -52,18 +52,21 @@ class PDFExtractor:
             import pdfplumber
             self.has_pdfplumber = True
         except ImportError:
+            # pdfplumber not installed, will use other methods
             pass
 
         try:
             import fitz  # PyMuPDF
             self.has_pymupdf = True
         except ImportError:
+            # PyMuPDF not installed, will use other methods
             pass
 
         try:
             import PyPDF2
             self.has_pypdf2 = True
         except ImportError:
+            # PyPDF2 not installed, will use other methods
             pass
 
         logger.info(f"PDF methods: pdfplumber={self.has_pdfplumber}, "

@@ -563,6 +563,7 @@ async def upload_and_process(
                 try:
                     notarization.storage_path = vault_doc.storage_path
                 except Exception:
+                    # Notarization update failed, non-critical
                     pass
             
             logger.info(f"📁 Document stored in vault: {vault_id}")
