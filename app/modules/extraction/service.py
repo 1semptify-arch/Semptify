@@ -801,8 +801,8 @@ class FormFieldExtractor:
                     needs_review=True,
                     review_reason="Calculated as 7 days from summons date",
                 )
-            except ValueError:
-                pass
+            except ValueError as e:
+                logger.warning(f"Calendar/deadline query failed: {e}")
         
         # Notice type
         if '14' in text.lower() and 'day' in text.lower() and 'notice' in text.lower():

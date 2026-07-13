@@ -1,0 +1,61 @@
+/* ========================================
+   THEME: FOREST GREEN
+   For: Advocate dashboard
+   ======================================== */
+
+[data-theme="forest"] {
+  /* Header - Forest Green gradient */
+  --header-bg-start: #064e3b;
+  --header-bg-end: #065f46;
+  --header-accent: #047857;
+  --header-text: #ecfdf5;
+  
+  /* Footer - Darker forest */
+  --footer-bg-start: #022c22;
+  --footer-bg-end: #064e3b;
+  --footer-text: #d1fae5;
+  --footer-accent: #6ee7b7;
+  
+  /* Body - White */
+  --body-bg: #ffffff;
+  --body-text: #064e3b;
+  
+  /* Cards - Very light green */
+  --card-bg: #f0fdf4;
+  --card-border: #bbf7d0;
+  --card-text: #064e3b;
+  
+  /* Text */
+  --text-primary: #064e3b;
+  --text-secondary: #065f46;
+  --text-muted: #059669;
+  
+  /* Accents */
+  --accent-primary: #10b981;
+  --accent-secondary: #f59e0b;
+  --accent-success: #22c55e;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+  
+  /* Interactive */
+  --hover-bg: #dcfce7;
+  --focus-ring: #10b981;
+}
+
+/* Header Gradient */
+[data-theme="forest"] .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 60%, var(--header-accent) 100%);
+  color: var(--header-text);
+}
+
+/* Footer Gradient */
+[data-theme="forest"] .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 100%);
+  color: var(--footer-text);
+}
+
+/* Body */
+[data-theme="forest"] .page-body {
+  background: var(--body-bg);
+  color: var(--body-text);
+}

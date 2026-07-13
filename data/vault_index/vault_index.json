@@ -1,29 +1,26 @@
 {
   "documents": {
-    "doc_s8y9sA3EVo1lo24j": {
-      "vault_id": "doc_s8y9sA3EVo1lo24j",
-      "user_id": "GUqTJFGjdo",
-      "filename": "MCRO_19AV-CV-25-3477_Notice to Remove Judicial Officer_2025-12-03_20251203175833.pdf",
-      "safe_filename": "doc_s8y9sA3EVo1lo24j.pdf",
-      "sha256_hash": "65d2fa8aa30628bb571221cbcf8c2f693fb00519e9f6dd5329c3c57a1775d366",
-      "file_size": 138590,
+    "doc_63nz16gnzJrRKvtX": {
+      "vault_id": "doc_63nz16gnzJrRKvtX",
+      "user_id": "GUWkjgVHe2",
+      "filename": "Move-Out Declaration.pdf",
+      "safe_filename": "doc_63nz16gnzJrRKvtX.pdf",
+      "sha256_hash": "2f9b05c540429a2bb4761ebdb89a2b936ff44a1a5d6fbbd031ff3c5c3062c4fa",
+      "file_size": 84865,
       "mime_type": "application/pdf",
       "document_type": null,
-      "description": "First document \u2014 uploaded during vault setup",
-      "tags": [
-        "onboarding",
-        "first_document"
-      ],
-      "storage_path": "Semptify5.0/Vault/documents/doc_s8y9sA3EVo1lo24j.pdf",
+      "description": null,
+      "tags": [],
+      "storage_path": "Semptify5.0/Vault/documents/doc_63nz16gnzJrRKvtX.pdf",
       "storage_provider": "google_drive",
-      "provider_file_id": "1-hUyUgoWRBH88UNTRwJpvmzO4Qudn2HJ",
-      "certificate_id": "cert_GGs6JrwsbUBzSlyF",
-      "uploaded_at": "2026-07-09T12:19:54.389359+00:00",
-      "registry_id": "SEM-2026-000002-EA0C",
+      "provider_file_id": "1WWG8bhTPp6bGnfDaugSiXyWvEuMJzGYk",
+      "certificate_id": "cert_hCrUaTo7qHAs5BoO",
+      "uploaded_at": "2026-07-12T01:43:13.858039+00:00",
+      "registry_id": "SEM-2026-000002-0E99",
       "integrity_status": "verified",
-      "processed": false,
-      "source_module": "onboarding"
+      "processed": true,
+      "source_module": "intake_auto"
     }
   },
-  "updated_at": "2026-07-09T12:20:35.726852+00:00"
+  "updated_at": "2026-07-12T01:43:51.076789+00:00"
 }
