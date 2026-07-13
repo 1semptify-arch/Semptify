@@ -173,8 +173,8 @@ async def get_case_summary(
         summary["pending_action_items"] = len(extracted_info.get("action_items", []))
         summary["timeline_events_count"] = len(extracted_info.get("timeline_events", []))
         
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Document query failed: {e}")
     
     return summary
 
@@ -238,8 +238,8 @@ async def get_answer_form_data(
         form_data["extracted_amounts"] = extracted_info.get("amounts", [])
         form_data["action_items"] = extracted_info.get("action_items", [])
         
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Form data lookup failed: {e}")
     
     return {
         "form_id": "HOU301",

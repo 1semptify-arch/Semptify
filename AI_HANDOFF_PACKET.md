@@ -1,5 +1,5 @@
 # SEMPTIFY — AI HANDOFF PACKET
-**Generated:** 2026-07-10 10:35:08 UTC | **Git commit at generation:** `f875920be258476b83dcf554fd3feab0a4efc27c`
+**Generated:** 2026-07-12 22:42:11 UTC | **Git commit at generation:** `171de54825aab58bc0ecf4d98ac1ca3a222a0ee2`
 
 **Instructions for the AI reading this:** this packet bundles the current, real state of the Semptify project. Read it fully before proposing or making any change. Do not assume file names or structures beyond what's shown here.
 
@@ -478,6 +478,154 @@ This is a stronger promise than "we don't store your files" — it's not a polic
 - What's the offline/low-connectivity fallback for a user with an unstable phone plan?
 - How is the "Advocate/Helper" persona (legal aid workers, case managers) supported — a distinct view, or just shared export?
 
+---
+
+## 10. Rendering Architecture — Module Manifest & Object Spaces (Phase 0 Spec)
+
+**Status: SPEC ONLY — no code exists yet.** This section captures a decision made in a separate planning conversation, before it was lost. It is a content-first alternative to card-based UI: every module declares a data contract (what it needs, what it's doing, what it produces) completely separate from how that gets drawn on screen. The visual layer becomes one possible renderer of that contract, not baked into the module itself.
+
+**Why "not cards":** cards hard-code a visual shape into every module. This spec instead defines a *data contract* per module — the same contract can later render as a card, a row, a panel, or anything else, without touching module code.
+
+### 10.1 The Five Canonical Space Types
+
+Every module/pipeline (Vault, Timeline, AI Planner, future ones) breaks into the same five space types, regardless of what it does:
+
+| Space Type | Purpose | Example (Document Vault) |
+|---|---|---|
+| **INTAKE** | What the user/system must provide to activate this module | file upload, folder selector, provider token |
+| **PROCESS** | What the module is doing / its current state while working | "scanning 12 files", progress bar, classification running |
+| **OUTPUT** | The result the module produces | classified doc list, extracted evidence, generated packet |
+| **CONTEXT** | Supporting info the user needs to understand the space (not data, but meaning) | disclaimer text, help copy, provider connection status |
+| **META** | System-level state not shown as content but used for control | last_updated, error_state, permissions, sync_status |
+
+Exactly 5 types, same meaning, every module. Renaming a type (e.g. `INTAKE` → `ENTRY`) is fine; adding a 6th type is not — if something doesn't fit one of these five, it's a sign the module boundary is wrong, not that the taxonomy needs to grow.
+
+### 10.2 Naming Convention
+
+Strict namespaced ID so the expediter (below) can resolve a space programmatically from any layer of the stack (Jinja2, JS, API response) with zero ambiguity:
+
+```
+{module}.{space_type}.{slot_index}
+
+vault.intake.01
+vault.process.01
+vault.output.01
+vault.context.01
+vault.meta.01
+
+timeline.output.01   # e.g. "maintenance" events
+timeline.output.02   # e.g. "lease update" events
+```
+
+### 10.3 The Module Manifest
+
+Each module declares its own space needs in a manifest file — **YAML files on disk, one per module, not Python dicts.** This was an explicit decision: dicts are the "fast now, rework later" option — not diffable, not validatable independent of the running app, and every module addition means touching Python. Files let the *shape* of the system be validated before a single line of rendering code runs.
+
+```yaml
+module: vault
+label: "Document Vault"
+spaces:
+  - id: vault.context.01
+    type: context
+    order: 1
+    source: static
+    content: "Zero-knowledge storage. Files never leave your provider."
+
+  - id: vault.intake.01
+    type: intake
+    order: 2
+    source: endpoint
+    endpoint: /api/vault/connection-status
+
+  - id: vault.output.01
+    type: output
+    order: 3
+    source: endpoint
+    endpoint: /api/vault/folders
+    depends_on: vault.intake.01
+```
+
+Key fields:
+- **order** — explicit placement priority (lower = earlier). Default sort mechanism; sufficient for ~90% of cases.
+- **depends_on** — for spaces that cannot populate until another space resolves (e.g. can't show folders until the connection is confirmed). If a dependency hasn't resolved, that space renders in a pending/placeholder state instead of blocking the whole page. No full dependency-graph engine needed yet — check `depends_on` before firing each space's data call; upgrade to real topological sort only if circular/multi-level dependencies actually appear.
+- **source** — `static` (hardcoded), `endpoint` (calls a FastAPI route), or `computed` (derived from another space).
+
+### 10.4 The System Expediter
+
+The orchestrator. A single service that:
+
+1. Loads every module manifest at startup (or from a registry file)
+2. Resolves final render order using `order` + `depends_on`
+3. Calls each space's data source (`endpoint` / `static` / `computed`)
+4. Assembles a flat **render tree** — a list of resolved space objects, each with its id, type, and populated data
+5. Hands that render tree to whatever template/renderer is chosen (Jinja2, JS component, anything)
+
+The render tree is the contract boundary: modules never know or care how they're displayed; the renderer never has to know module internals — it just iterates the resolved list and draws each space by `type`.
+
+```
+Module Manifest (YAML) ──> Registry ──> System Expediter ──> Render Tree ──> Renderer
+                                              │
+                              (order + depends_on resolution,
+                               calls static/endpoint/computed sources)
+```
+
+### 10.5 Applying It to Current Modules (worked example)
+
+- **Document Vault** → `vault.context.01` (zero-knowledge disclaimer), `vault.intake.01` (connection status), `vault.output.01` (folder list, depends on intake)
+- **Timeline** → `timeline.intake.01` (log entry form), `timeline.output.01` (maintenance events), `timeline.output.02` (lease update events)
+- **AI Planner** (see naming rule in 10.6) → `ai_planner.intake.01` (query input), `ai_planner.process.01` (thinking/status), `ai_planner.output.01` (plan result)
+
+### 10.6 Naming Rule — No Vendor Endorsement
+
+Internally, calling the AI assistant "Copilot" or by any vendor's product name is fine in conversation. In code, manifests, and anything public-facing, it must be vendor-neutral: `ai_planner` module path / "AI Planning Assistant" in copy. This is not a style preference — it avoids implying endorsement of a specific AI vendor on a public-facing nonprofit site, which is a real liability line, not a cosmetic one.
+
+### 10.7 Build Sequence (Phase 0 → Reference Module)
+
+This order exists specifically to avoid rework — each phase only builds on a layer that's already been locked:
+
+1. **Phase 0 — Naming & schema lock.** Decide every field name, required vs. optional, valid `type` values, and what happens when a `depends_on` target is missing (fail loud vs. render pending). This is a document/spec artifact, reviewed before any code — this section *is* that artifact, pending final sign-off.
+2. **Manifest validator.** Fails loud on a malformed manifest at the door — never silently produces a broken page three layers downstream. This is the root-cause-vs-band-aid line: bad input dies at validation, not somewhere in the renderer.
+3. **Registry.** Loads and holds all valid manifests at startup.
+4. **System Expediter.** Resolves order + dependencies, calls data sources, builds the render tree.
+5. **Renderer contract.** Locked before any visual work starts — this is what keeps the system "not cards": once the render tree format is fixed, swapping visual treatment later touches zero module code.
+6. **One reference module, fully working, before scaling.** **Vault is the reference module** — it has all three data sources (static, endpoint, computed) and a real `depends_on` case (output waits on intake), making it a genuine end-to-end exercise of every mechanism the system will ever need. Get Vault's manifest fully validated, registered, expedited, and rendered — tested and reviewed — before touching Timeline or AI Planner. A flaw discovered on module 3 that requires redoing modules 1 and 2 is exactly the rework this sequence exists to prevent.
+
+**Reminder — this is a spec, not a build order for right now.** Per `ACTIVE_CONTEXT.md`, this does not preempt the current priority queue (ZIP export, GUI screens 1–4, capability gate sweep). It is captured here so Phase 0 can be picked up deliberately, not accidentally half-started mid-session.
+
+---
+
+## 11. Execution Instructions — SWE-1.7 / GLM-5.2 (Handoff, Not Yet Started)
+
+Per the Fast-Tag Routing System (`Semptify_AI_Orchestration_Blueprint.md`, Section 2), this work is tagged **[EI] — Execution / Isolated**: single-module scaffolding, no cross-module dependencies yet, no security/auth/migration surface. Routes to Windsurf house models (SWE-1.7) or GLM-5.2, per Section 3 of that document.
+
+**Do not start this until the project owner explicitly says go.** Section 10 above is a spec for review, not a green light. If asked to execute, follow this exact order — do not skip ahead to the registry or expediter before the manifest schema for Vault is confirmed correct against Section 10.3.
+
+### Task 1 — Manifest schema + validator (Vault only)
+- **Target:** new file, path TBD by whoever's executing but must live under `app/core/` (e.g. `app/core/object_spaces.py` or similar — confirm naming with project owner before creating, per the "no new files without a reason" rule)
+- **Input:** the YAML shape in Section 10.3
+- **Output:** a function/class that loads a manifest YAML, validates every field against the rules in 10.1–10.3, and raises a clear error (not a silent failure) on anything malformed — missing `id`, invalid `type`, `depends_on` pointing at a nonexistent space, etc.
+- **Verification:** a test manifest for `vault` (using the real Vault endpoints already live — `/api/vault/all`, `/api/vault/document/{vault_id}/content`, etc., per the Module Contract Template in the orchestration blueprint) validates cleanly; a deliberately broken manifest (bad `depends_on` target) fails loud with a specific error message naming the bad field.
+- **Do not touch:** `app/modules/vault/router.py` or any live endpoint. This task only builds the manifest/validator layer — it does not wire anything into the running Vault module yet.
+
+### Task 2 — Registry (loads all validated manifests)
+- **Depends on:** Task 1 passing verification.
+- **Output:** a startup-time loader that reads all manifest files from a designated folder (folder name TBD — propose one, confirm before creating), validates each via Task 1, and holds them in memory keyed by module name.
+- **Verification:** registry loads the Vault manifest from Task 1 and exposes it by `module` name; loading a folder with one broken manifest fails loud and names which file broke, without crashing app startup silently.
+
+### Task 3 — System Expediter (Vault only, read-only)
+- **Depends on:** Task 2.
+- **Output:** resolves `order` + `depends_on` for the Vault manifest's spaces, calls each space's declared `source` (for Vault: real `static` and `endpoint` calls against the already-working Vault API — no new endpoints), and produces the render tree structure described in Section 10.4.
+- **Verification:** running the expediter against the Vault manifest produces a render tree where `vault.output.01` only resolves after `vault.intake.01` has resolved, and the tree can be printed/inspected as plain data (JSON-serializable) — no template rendering required yet.
+- **Explicitly out of scope for this task:** wiring this render tree into any HTML template or replacing any existing Vault page. This task proves the mechanism works, nothing more.
+
+### Rules for whoever executes this (SWE-1.7 or GLM-5.2)
+- Follow `AGENTS.md` Known Failure Registry — especially #6 (imports at top of file only) and #13 (never create `_v2`/`_new` files; if a rewrite is needed, ask the project owner to rename the original first).
+- No bare `except:` — specific exception types only.
+- All new code targets Python 3.11.9 (`venv311`).
+- Do not modify `app/modules/vault/router.py`, `app/main.py`, or any live/working route as part of Tasks 1–3. This is additive scaffolding beside the working system, not a replacement of it.
+- If any part of the schema in Section 10 is ambiguous when actually writing code, stop and ask — do not guess a field name or behavior that isn't explicitly spelled out above.
+- Report back per the Verification Step for each task before starting the next one.
+
 
 ---
 
@@ -515,13 +663,36 @@ Do not create new markdown files. If you think something else is broken,
 list it at the end of your response under "Noticed but not fixed" —
 do not touch it
 
-### Step 1: Read current state
+### Step 1: Prove you know Semptify — NO LAZY WORK
+
+**Before you touch a single file, you must demonstrate working knowledge of this system.** If you cannot answer these from the docs, you are not ready to write code. Go back and read until you can.
+
+Read ALL of the following — not skim, READ:
+1. `AGENTS.md` — Full document including Known Failure Registry (all 16 items)
+2. `PROJECT_BIBLE.md` — Governance, gate chain, onboarding flow, doc hierarchy
+3. `BUILD_GUIDE_SSOT.md` — Build philosophy, active features, SSOT rules
+4. `CORE_CONTEXT.md` — What Semptify IS, who it's for, what we never build
+
+Then **state the following out loud** before proceeding (this is your proof of comprehension):
+- What Semptify is (one sentence — if you say "product" or "SaaS" you failed)
+- The Four Pillars (RECORD, KNOW, ACT, GOVERN) and what each one does
+- The gate chain for onboarding (what gates exist, what order)
+- The Python version mandate and why it exists
+- At least 3 items from the Known Failure Registry that are relevant to your task
+- What SSOT means in this codebase and why hardcoded URLs are banned
+- What the Forge is and how module lifecycle works
+
+**If you cannot state these clearly, STOP. Do not proceed. Do not guess. Do not wing it.**
+
+We do it right or we don't do it at all. There is no "figure it out as I go" here. Every lazy shortcut costs hours to fix. The history in AGENTS.md proves this. Read it. Learn it. Then work.
+
+### Step 2: Read current state
 Read these files before touching any code:
 1. Read `ACTIVE_CONTEXT.md` — what is being worked on right now
 2. Read `BUILD_STATE.md` — last 2 entries only (what shipped, what is broken, what is pending)
 3. Read the Known Failure Registry in `AGENTS.md` — do not repeat past mistakes
 
-### Step 2: Check pending Fix-It reports from admin dashboard
+### Step 3: Check pending Fix-It reports from admin dashboard
 The admin dashboard has "Fix It" buttons that queue errors to the `admin_error_queue` Postgres table AND log a distinctive `FIXIT_REPORT|id=N|section=...|endpoint=...|priority=...|error=...` line to Render logs.
 
 To check for pending errors the user clicked since the last session:
@@ -539,20 +710,20 @@ To check for pending errors the user clicked since the last session:
 
 If no FIXIT_REPORT lines found: "No pending Fix-It reports. Admin dashboard is clean."
 
-### Step 3: Check the app
+### Step 4: Check the app
 // turbo
 Run this to verify the app compiles:
 ```powershell
 cd c:\Semptify\Semptify-FastAPI; python -m py_compile app/main.py
 ```
 
-### Step 4: State your plan
+### Step 5: State your plan
 Before editing any file, tell the user:
 - What you are going to change
 - What file(s) you will touch
 - Why this will not repeat a known failure
 
-### Step 5: After making changes
+### Step 6: After making changes
 // turbo
 Verify changed files compile:
 ```powershell
@@ -572,7 +743,12 @@ Then update `BUILD_STATE.md` with what changed.
 
 ---
 
-## 🎯 Current Priority: Phase 5b — Action Feedback helper retrofit ✅ COMPLETE
+## 🎯 Current Priority: UPL guardrail infrastructure + GUI Phase 1 prep
+
+### UPL Guardrail Infrastructure — IN PROGRESS (2026-07-07)
+- `app/core/upl_guardrails.py` shipped to main — `UPLRiskTier` enum (LOW, LOW_MEDIUM, MEDIUM, MEDIUM_HIGH, HIGH, VERY_HIGH_DO_NOT_BUILD) is the SSOT for legal-risk classification.
+- **Follow-up (not urgent)**: Add `upl_risk_tier: UPLRiskTier` field to `ModuleEntry` in `product_manifest.py` and register the 8 modules (eviction_notice_explainer, complaint_wizard, court_prep, case_builder, response_letter_generator, eviction_defense_content, library, ai_copilot) with their tiers from the matrix. Requires the tier matrix from the project owner.
+- **Parallel branch**: `feature/attorney-intake-packet` has uncommitted attorney intake packet scaffold work (separate, in-progress). Do not mix with UPL work.
 
 ### Phase 5b — Action Feedback Helper: ✅ COMPLETE (2026-06-30 AM)
 
@@ -633,9 +809,10 @@ Then update `BUILD_STATE.md` with what changed.
 
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
-| 1 | **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | ✅ Complete 2026-06-30 | — |
+| 1 | **UPL guardrail wiring** — add `upl_risk_tier` to `ModuleEntry`, register 8 modules with tiers | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
 | 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` + `Semptify_Master_Inventory_LIVE.xlsx` | 🅿️ Next priority | — |
 | 3 | **Document Center planning** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | 🅿️ Pending | — |
+| 4 | **Attorney Intake Packet** (parallel branch) | `feature/attorney-intake-packet` | 🅿️ In progress (uncommitted) | User review of scaffold |
 
 ### Action Feedback Helper — COMPLETE
 All 13 retrofittable pages now use `SemptifyFeedback.*` directly. No `alert()` fallbacks remain. Helper is globally loaded via `feedback.js` in `base.html`.
@@ -715,13 +892,250 @@ Design docs committed this session in `docs/planning/`:
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
-## Session — 2026-07-07 — UPL Guardrails Module Scaffold (UNCOMMITTED on main)
+## Session — 2026-07-12 — Legal Filing Bare Except Fix
+
+### What Was Done
+- **Fixed `app/modules/legal_filing/service.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `list_evidence`.
+- No hardcoded URLs. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/legal_filing/service.py` passes.
+
+### Known Gaps / Pending
+- None.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Timeline Bare Except Fix
+
+### What Was Done
+- **Fixed `app/modules/timeline/router.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `_load_cloud_timeline_events`.
+- Added `import logging` and `logger = logging.getLogger(__name__)` at module level.
+- No hardcoded URLs. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/timeline/router.py` passes.
+
+### Known Gaps / Pending
+- None.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Intake Overlay Record IDs Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/intake/router.py`**: `_get_overlay_record_ids` now resolves overlay record IDs from the user's cloud storage via `UnifiedOverlayManager` instead of always returning `[]`.
+- Updated all three callers (`/upload`, `/upload/auto`, `/process/vault/{doc_id}`) to provide the required storage context.
+- Falls back to `[]` when local storage is used or a cloud provider cannot be instantiated.
+- No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/intake/router.py` passes.
+
+### Known Gaps / Pending
+- Local storage path still returns `[]` because `UnifiedOverlayManager` is cloud-only; local overlay support is future work.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Housing Accountability Public Records Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/housing_accountability/router.py`**: `_simulate_public_records_search` now returns representative simulated public records by `record_type` instead of an empty list.
+- **Updated `/public-records/search` endpoint**: `total_results` now reflects the actual count of returned results.
+- No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/housing_accountability/router.py` passes.
+
+### Known Gaps / Pending
+- `_simulate_public_records_search` is a simulation; real public records API integration is future work.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Complaint Wizard Bare Pass Fix (feature branch)
+
+### What Was Done
+- **Fixed `app/modules/complaint_wizard_module.py` line 444**: Replaced bare `pass` statement with `logger.warning()` for invalid status filter values.
+- The behavior remains the same (returns all drafts if status_filter is invalid), but now logs the issue for debugging.
+- Aligns with Known Failure Registry #7 (no bare except/bare pass).
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/modules/complaint_wizard_module.py` passes.
+
+### Known Gaps / Pending
+- Branch needs to be merged to main after review.
+
+### Next Session Should Start With
+- Merge feature branch to main or continue with next stub from orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Case Builder get_case_summary Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/case_builder.py`**: `get_case_summary` now returns a meaningful summary and `next_steps` from the available `context` case dict instead of an empty dict/list.
+- No new files or modules. No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- `c1b5676` — fix(case_builder): implement get_case_summary stub
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/case_builder.py` passes.
+
+### Known Gaps / Pending
+- `get_upcoming_deadlines` and `generate_counterclaim_document` remain example stubs and are listed under Noticed but not fixed for this task.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Agent Orchestrator Module + Workbook Bridge (SHIPPED 11bac59)
+
+### What Was Done
+- **New module**: `app/modules/agent_orchestrator/` — DEV-tier, dev_only, admin-only Forge tool for queueing parallel AI-agent tasks.
+- **API**: CRUD endpoints for tasks, batch create, model list, and summary counts. In-memory v1 store.
+- **Prompt generator**: every task gets a copy-paste prompt tailored to category (stub_fix, duplicate_resolve, test_add, doc_update, refactor, other) with AGENTS.md rules baked in.
+- **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
+- **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
+- **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
+- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
+- **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
+
+### Commits This Session
+- `11bac59` — feat(agent_orchestrator): add Forge task queue, workbook bridge, standalone UI, and manual
+
+### Known Working
+- `python -m py_compile` passes on all new and modified Python files.
+- Module registered in `product_manifest.py` and resolved by `MANIFEST.find()`.
+- Workbook bridge successfully generates 171 tasks from the .xlsx.
+- Standalone HTML imports the JSON and displays tasks with copy-paste prompts.
+
+### Known Gaps / Pending
+- v1 in-memory store resets on app server restart (acceptable for dev_only tool).
+- Workbook bridge file paths are best-guess (`app/modules/<filename>`); some paths need manual correction before dispatch.
+- In-app admin UI is functional but lacks in-place task editing.
+- Other pre-existing uncommitted files (CSS deletions, `base.html` changes, data files, preflight docs) remain uncommitted and need separate review.
+
+### Next Session Should Start With
+- Open `tools/agent_orchestrator.html` in Windsurf preview, import the workbook JSON, and dispatch the first batch of HIGH stubs to SWE-1.7 / Kimi 2.7.
+- Review and commit the other uncommitted files in the repo if they are ready.
+
+---
+
+## Session — 2026-07-11 — Vault Check Before Document Access (SHIPPED f838e51)
+
+### What Was Done
+- **Vault check on vault page**: Replaced dead-end "Not connected" state in `vault.html` with `vaultCheck()` function. When `/storage/status` returns `authenticated: false` or no access_token, user is redirected to `/storage/reconnect?return_to=/vault` — runs the reconnect cycle and lands back on vault after.
+- **Vault check before upload**: Added `vaultCheckBeforeAction()` to `vault-portal.js`. `openVaultUpload()` now awaits this check before opening the file picker. If not connected, redirects to reconnect cycle instead of letting upload fail with auth error.
+- **No dead ends**: Both vault page load and upload attempt now route through reconnect cycle when storage is not connected. User always has a path forward.
+
+### Commits This Session
+- `f838e51` — fix(vault): add vault check before document access and upload (2 files, +56/-18)
+
+### Known Working
+- `app/main.py` and all core files compile clean.
+- `return_to` parameter threads through OAuth state machine — confirmed via `app/modules/storage/router.py` (lines 766-783, 1629, 2023-2037). Reconnect from vault lands back at `/vault` after successful reconnect (if vault already initialized).
+- All `openVaultUpload()` callers (17+ templates) use fire-and-forget onclick — making it async is safe.
+
+### Known Gaps / Pending
+- **Vault ZIP export**: Not live-tested with real documents yet.
+- **Other uncommitted changes in repo**: Several CSS files deleted, new `storage-session-monitor.js` file, modified `base.html` and preflight docs — NOT committed by this session. Left for user to review/commit separately.
+- **TQ-004** [EI]: OH/NC/GA state-law data.
+- **TQ-008** [EF]: Audit-log on feature branch.
+- **TQ-010** [EF]: GUI Screens 1-4.
+
+### Next Session Should Start With
+- Live-test vault check + reconnect flow on dev server.
+- Live-test vault ZIP export with real uploaded documents.
+- Review uncommitted CSS deletions and new files from other source.
+
+### ⚠️ PRE-LAUNCH TODO (before Semptify gets real users)
+- **Switch local `.env.local` to a SEPARate Neon database** — currently local dev uses the SAME Neon PostgreSQL as Render so testing mirrors production. Before real users arrive, create a second Neon DB (e.g. `semptify_dev`) and point `.env.local` at it so local testing can't affect real user data.
+
+---
+
+## Session — 2026-07-10 — UPL Tiers + Vault ZIP Export + require_capability Fixes (SHIPPED 596afe0)
+
+### What Was Done
+- **TQ-009**: Wired `upl_risk_tier` field into `ModuleEntry` in `product_manifest.py`. Assigned correct UPL tiers to 8 legal-adjacent modules (eviction_defense=HIGH, court_forms=HIGH, legal=MEDIUM_HIGH, court_packet=MEDIUM, case_builder=MEDIUM, legal_analysis=LOW_MEDIUM, state_laws=LOW, law_library=LOW).
+- **TQ-003**: Completed GET `/api/vault/export` endpoint — streams ZIP of all vault documents with `manifest.json`. Added "Export My Case (ZIP)" button to `vault.html` + `exportCase()` JS function.
+- **TQ-007**: Marked obsolete (source file `vault_all_in_one.router` deleted 2026-07-04).
+- **Bug fix**: 7 router files had broken `require_capability` imports — either importing from `app.core.security` (wrong module) or missing the import entirely. Fixed: `documents`, `batch`, `analytics`, `admin_console`, `dashboard`, `funding_mgmt`, `capabilities` routers.
+- **Merge**: Merged `feature/attorney-intake-packet` into `main` (resolved 3 conflicts in product_manifest.py, ACTIVE_CONTEXT.md, BUILD_STATE.md).
+- **Cloudflare**: Dev mode enabled + cache purged.
+
+### Commits This Session
+- `4d01e4a` — feat: UPL guardrails, vault ZIP export, require_capability import fixes (75 files, +11189/-256)
+- `596afe0` — merge: feature/attorney-intake-packet into main
+
+### Known Working
+- All 7 router files compile clean (`py_compile`).
+- `product_manifest.py` compiles clean with UPL tier assignments.
+- `/api/vault/export` endpoint registered and wired to frontend.
+- App starts successfully (confirmed via user's restart log).
+
+### Known Gaps / Pending
+- **Vault ZIP export**: Not live-tested with real documents yet (needs a session with uploaded files).
+- **TQ-004** [EI]: OH/NC/GA state-law data (data-entry task).
+- **TQ-008** [EF]: Audit-log on feature branch.
+- **TQ-010** [EF]: GUI Screens 1-4 (in progress).
+- `scriptscompile_ai_context.py.t` — typo filename committed; should be cleaned up next session.
+
+### Next Session Should Start With
+- Live-test vault ZIP export with real uploaded documents.
+- TQ-004 (state-law data) or TQ-010 (GUI screens) per user priority.
+
+---
+
+## Session — 2026-07-07 — UPL Guardrails Module Scaffold (SHIPPED to main)
 
 ### What Was Done
 - **New shared module**: `app/core/upl_guardrails.py` — single source of truth for Unauthorized Practice of Law (UPL) risk-tier classification.
 - **`UPLRiskTier` enum**: 6 tiers — `LOW`, `LOW_MEDIUM`, `MEDIUM`, `MEDIUM_HIGH`, `HIGH`, `VERY_HIGH_DO_NOT_BUILD`. Inherits from `str` for clean JSON serialization. Each tier has a docstring defining its boundary and examples.
 - **Enforcement rule documented in module docstring**: features at or above `MEDIUM_HIGH` must display the canonical "We do not give legal advice" notice + a visible path to outside legal help on the same screen. `HIGH` tier requires an attorney-review gate before output. `VERY_HIGH_DO_NOT_BUILD` is a hard stop — do not build, flag to project owner, stop.
-- **No other files touched**. This is the foundation module; classifier/gate functions and `FunctionGroupContract` registration will be added when a consumer is built on top of it.
+- **No other files touched**. Foundation module only — classifier/gate functions and `FunctionGroupContract` registration land when the first consumer is built on top of it.
+
+### Known Working
+- `python -m py_compile app/core/upl_guardrails.py` passes clean.
+- `python -m py_compile app/main.py` passes clean (no regression).
+- Enum is importable: `from app.core.upl_guardrails import UPLRiskTier`.
+
+### Known Gaps / Pending
+- **No consumers yet** — no module currently imports `UPLRiskTier`. Intentional: the enum is the SSOT foundation; downstream enforcement lands when the first feature needs it.
+- **Follow-up task (not urgent)**: Add `upl_risk_tier: UPLRiskTier` field to `ModuleEntry` in `product_manifest.py` and register the 8 modules (eviction_notice_explainer, complaint_wizard, court_prep, case_builder, response_letter_generator, eviction_defense_content, library, ai_copilot) with their tiers from the matrix.
+- **Parallel branch**: `feature/attorney-intake-packet` has uncommitted attorney intake packet scaffold work (separate from this UPL work).
+
+### Next Session Should Start With
+- Follow-up: wire `upl_risk_tier` into `ModuleEntry` and register the 8 modules with their tiers. Requires the tier matrix from the project owner.
 
 ### Known Working
 - `python -m py_compile app/core/upl_guardrails.py` passes clean.
@@ -769,6 +1183,7 @@ Design docs committed this session in `docs/planning/`:
 ### Next Session Should Start With
 - User review of the intake packet scaffold. If approved: add tests, then PDF/ZIP rendering, then frontend caller.
 - Or: switch back to `feature/vault-audit-log`, `git stash pop`, and finish the vault audit work (Ruff lint cleanup, BUILD_STATE update, commit + push).
+>>>>>>> feature/attorney-intake-packet
 
 ---
 
