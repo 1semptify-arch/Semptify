@@ -1599,10 +1599,10 @@ async def initiate_oauth(
         # For fresh OAuth flows (no existing_uid), always generate new ID
         if existing_uid and not cookie_uid:
             # Reauth flow with existing_uid but no cookie - proceed with existing_uid
-            pass
+            pass  # Intentional: use existing_uid as-is
         elif existing_uid and cookie_uid and existing_uid == cookie_uid:
             # Reauth flow with matching cookie - proceed with existing_uid
-            pass
+            pass  # Intentional: use existing_uid as-is
         # DO NOT automatically set existing_uid from cookie_uid for fresh flows
 
         if existing_uid:

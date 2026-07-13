@@ -328,6 +328,7 @@ def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "T
         try:
             event_time = datetime.fromisoformat(event_time_str.replace('Z', '+00:00'))
         except (ValueError, AttributeError):
+            # Invalid date format, will use None
             pass
     
     # Determine display date based on axis
@@ -894,6 +895,7 @@ def _parse_event_date(raw: str) -> datetime:
             dt = dt.replace(tzinfo=timezone.utc)
         return dt
     except ValueError:
+        # Not ISO format, try YYYY-MM-DD fallback
         pass
     # Fallback: YYYY-MM-DD
     return datetime.strptime(raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)

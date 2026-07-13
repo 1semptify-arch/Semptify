@@ -924,6 +924,7 @@ class DocumentIntakeEngine:
                         doc_data["extraction"] = None
                         self._documents[doc_id] = IntakeDocument(**doc_data)
             except Exception:
+                # Failed to load documents from cache, will start fresh
                 pass
 
     def _save_documents(self):

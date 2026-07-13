@@ -599,6 +599,7 @@ class DocumentPipeline:
                     try:
                         all_dates.append(datetime.fromisoformat(date_info["date"]))
                     except ValueError:
+                        # Invalid date format, skip this date
                         pass
         
         if not all_dates:
