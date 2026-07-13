@@ -1,5 +1,30 @@
-# BUILD_STATE.md — Semptify Live Deployment State
+# BUILD_STATE.md -- Semptify Live Deployment State
 # Update this file at the end of every session using /ship
+
+## Session -- 2026-07-12 -- GUI Phase 1: Know and Act Pillar Pages
+
+### What Was Done
+- **Implemented `app/templates/gui/know.html`**: a `Know` pillar hub with links to the law library and fact topics (eviction, repairs, deposits).
+- **Implemented `app/templates/gui/act.html`**: an `Act` pillar hub with links to the letter builder, complaint tool, case builder, and action plan tool.
+- **Both pages extend `gui/base.html`**, set the appropriate `nav_*` active state, and include the UPL disclaimer.
+- **Committed `app/modules/dev_lab/ideas.py` UPL import** from the previous step.
+
+### Commits This Session
+- `feat(gui): implement Know and Act pillar placeholder pages with real pillar links`
+- `chore(dev_lab): import UPL guardrail types in ideas.py`
+
+### Known Working
+- `/gui/know` and `/gui/act` routes serve the updated templates.
+- `gui/base.html` four-pillar navigation (Home / Record / Know / Act) is intact.
+
+### Known Gaps / Pending
+- `know.html` and `act.html` use static hub cards; future work can wire them to the Page Composer / tool catalog endpoints.
+- UPL guardrail tier registration is still pending the project owner's tier matrix.
+
+### Next Session Should Start With
+- Complete **UPL guardrail tier registration** once the matrix is provided, or continue **GUI Phase 1** with the home page refinements and Calendar/Timeline integration.
+
+---
 
 ## Session — 2026-07-12 PM — Stub Detector Build + Alembic False-Positive Filter
 
