@@ -1,6 +1,37 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-13 PM — Sync Orchestrator Wired + Stub Pass Comments Merged to Main
+
+### What Was Done
+- **Wired `tools/sync_orchestrator.py` into `.pre-commit-config.yaml`** as a local `always_run` hook.
+- **Committed and merged the `fix/stub-pass-0713` branch** to `main`:
+  - Added explanatory inline comments to bare `except`/`pass` blocks across `app/main.py`, `app/modules/*`, and `app/services/*`.
+  - Updated `tools/workbook_bridge.py` to read live stubs from `tools/stub_tasks_new.json` and write them back to the workbook.
+  - Committed `docs/blueprints/EVIDENCE_SEALING_UPGRADE_CANDIDATE.md`.
+  - Committed `tools/agent_orchestrator_sync_review/` and `tools/hooks/pre-commit`.
+- **Pushed deploy commit `edee4ff` to `main`**. Render will deploy from this commit.
+
+### Commits This Session
+- `feat(stubs): annotate bare pass/except blocks and wire workbook bridge to live stub list`
+- `Merge branch 'fix/stub-pass-0713' into main` (`edee4ff`)
+
+### Known Working
+- `python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py` passes.
+- `python tools/sync_orchestrator.py` runs cleanly; reports `0 stubs`, `16 orchestrator tasks`.
+
+### Known Gaps / Pending
+- `tools/agent_orchestrator_tasks.json` now contains **16 duplicate-resolve tasks**; the previous count of 171 tasks was overwritten when `workbook_bridge.py` started consuming the live `tools/stub_tasks_new.json` output. Verify whether this is the intended target state.
+- `pre-commit` Python package is installed in `venv311`, but `pre-commit install` has not been run, so `.git/hooks/pre-commit` is not active. Run it manually if the hook is needed locally.
+- UPL guardrail tier registration and GUI Phase 1 refinements remain pending.
+
+### Next Session Should Start With
+- Verify `agent_orchestrator_tasks.json` task count (16 vs expected 171) and adjust `tools/workbook_bridge.py` or `Semptify_Master_Inventory_LIVE_reviewed.xlsx` if needed.
+- Run `pre-commit install` to activate the new `sync-orchestrator` hook.
+- Continue with the next task from `agent_orchestrator_tasks.json` or current priorities.
+
+---
+
 ## Session — 2026-07-13 AM — Stub Pass Fixes: Litigation Intelligence + Brain Context + Stub Detector
 
 ### What Was Done
