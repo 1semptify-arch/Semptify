@@ -177,9 +177,33 @@ def _setup_event_handlers(brain):
     
     # When context updated -> notify UI
     async def on_context_updated(event: BrainEvent):
-        # This will automatically broadcast to all WebSocket clients
-        pass
-    
+        """Broadcast context updates to connected WebSocket clients."""
+        try:
+            from app.core.websocket_manager import (
+                get_websocket_manager,
+                NotificationType,
+                WebSocketMessage,
+            )
+
+            ws_manager = get_websocket_manager()
+            message = WebSocketMessage(
+                type=NotificationType.CONTEXT_UPDATE.value,
+                data={
+                    "event_type": event.event_type.value,
+                    "source_module": event.source_module.value,
+                    "data": event.data,
+                },
+                timestamp=utc_now(),
+                user_id=event.user_id,
+            )
+
+            if event.user_id:
+                await ws_manager.send_to_user(event.user_id, message)
+            else:
+                await ws_manager.broadcast_to_all(message)
+        except Exception as e:
+            logger.error(f"Failed to broadcast context update: {e}")
+
     brain.subscribe(EventType.CONTEXT_UPDATED, on_context_updated)
 
 
