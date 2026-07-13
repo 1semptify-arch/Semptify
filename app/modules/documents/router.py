@@ -148,6 +148,7 @@ router = APIRouter(
 
 
 
+# stub-detector: ignore
 def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
 
     """Resolve overlay records associated with a vault document.

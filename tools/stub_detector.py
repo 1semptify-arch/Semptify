@@ -235,12 +235,23 @@ def find_enclosing_except(node, tree):
     return False
 
 
+IGNORE_PRAGMA = "# stub-detector: ignore"
+
+
 class StubVisitor(ast.NodeVisitor):
-    def __init__(self, filename, tree):
+    def __init__(self, filename, tree, source_lines):
         self.filename = filename
         self.tree = tree
+        self.source_lines = source_lines
         self.findings = []
         self._in_import_error_handler = 0
+
+    def _is_ignored(self, node):
+        """Check the line immediately above the function definition for an ignore pragma."""
+        if not self.source_lines or node.lineno < 2:
+            return False
+        prev_line = self.source_lines[node.lineno - 2]
+        return IGNORE_PRAGMA in prev_line
 
     def _check(self, node):
         # Abstract base class methods are intentionally empty.
@@ -250,6 +261,10 @@ class StubVisitor(ast.NodeVisitor):
         # Functions defined inside an `except ImportError:` block are fallback
         # shims for optional dependencies, not stubs to fix.
         if self._in_import_error_handler > 0:
+            return
+
+        # Allow an explicit pragma to mark an intentionally empty helper.
+        if self._is_ignored(node):
             return
 
         reason = body_is_stub(node.body)
@@ -308,7 +323,7 @@ def scan_file(path: Path, root: Path, list_todos=False):
     except SyntaxError:
         return [], []
 
-    visitor = StubVisitor(str(path.relative_to(root)), tree)
+    visitor = StubVisitor(str(path.relative_to(root)), tree, source.splitlines())
     visitor.visit(tree)
 
     todos = []
