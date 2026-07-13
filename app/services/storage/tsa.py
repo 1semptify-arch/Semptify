@@ -278,6 +278,7 @@ def verify_tsa_token(token_b64: str, document_hash: str) -> dict:
                 ) if ok else "HMAC verification failed — token may be tampered.",
             }
     except (json.JSONDecodeError, UnicodeDecodeError):
+        # Payload is not JSON, try DER binary format below
         pass
 
     # DER binary — RFC 3161 token

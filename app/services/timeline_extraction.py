@@ -208,6 +208,7 @@ class TimelineExtractor:
             try:
                 return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
             except ValueError:
+                # This format didn't match, try next
                 pass
 
         # Month name + day without year — inject current year
@@ -222,6 +223,7 @@ class TimelineExtractor:
                 try:
                     return datetime.strptime(f"{s} {year}", f"{fmt} %Y").strftime("%Y-%m-%d")
                 except ValueError:
+                    # This format didn't match, try next
                     pass
 
         return None

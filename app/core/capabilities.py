@@ -284,6 +284,7 @@ def require_capability(module_name: str) -> Callable:
             if role == "admin":
                 return
         except Exception:
+            # User ID parse failed, will check capabilities normally
             pass
 
         # Check overlay first — overlay grants always win
