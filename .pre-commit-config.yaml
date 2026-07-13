@@ -67,6 +67,15 @@ repos:
         always_run: true
         description: "Enforces Single Source of Truth architecture - no hardcoded URLs allowed"
 
+  - repo: local
+    hooks:
+      - id: sync-orchestrator
+        name: Sync stub/task/workbook state
+        entry: python tools/sync_orchestrator.py --git-add
+        language: system
+        pass_filenames: false
+        always_run: true
+
 # Configuration for specific hooks
 default_language_version:
   python: python3.11
