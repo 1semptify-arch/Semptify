@@ -29,8 +29,18 @@ from app.models.document_delivery_models import (
 from app.services.unified_overlay_manager import get_unified_overlay_manager
 from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import CreateOverlayRequest
+from app.services.user_service import get_user_by_id
 
 logger = logging.getLogger(__name__)
+
+_ROLE_TO_PARTICIPANT = {
+    "user": ParticipantRole.TENANT,
+    "tenant": ParticipantRole.TENANT,
+    "advocate": ParticipantRole.ADVOCATE,
+    "manager": ParticipantRole.MANAGER,
+    "legal": ParticipantRole.LEGAL,
+    "admin": ParticipantRole.ADMIN,
+}
 
 
 class CommunicationService:
@@ -76,11 +86,20 @@ class CommunicationService:
             
             # Add other participants
             for recipient_id in request.recipient_ids:
-                # In production, look up user profile to get role and name
+                # Look up role from user record (default_role is a preference, not PII)
+                recipient = await get_user_by_id(recipient_id)
+                role = _ROLE_TO_PARTICIPANT.get(
+                    recipient.default_role if recipient else "tenant",
+                    ParticipantRole.TENANT,
+                )
+                # Name stays as recipient_id: per SSOT privacy rule, user name is PII
+                # and lives only in the user's cloud vault. We don't have the recipient's
+                # token, so we can't fetch their display name. The recipient sees their
+                # own name when they open the conversation from their vault.
                 participants.append(Participant(
                     user_id=recipient_id,
-                    role=ParticipantRole.TENANT,  # Default, should look up
-                    name=recipient_id  # Placeholder
+                    role=role,
+                    name=recipient_id,
                 ))
             
             conversation = Conversation(

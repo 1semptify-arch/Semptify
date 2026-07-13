@@ -323,7 +323,7 @@ async def get_recent_events(
             try:
                 event_type_enum = AnalyticsEventType(event_type)
             except ValueError:
-                pass
+                logger.warning(f"Invalid event_type: {event_type}. Returning all events.")
         
         events = engine.get_recent_events(
             event_type=event_type_enum,

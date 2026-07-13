@@ -1709,26 +1709,8 @@
     "registered_at": "2026-07-09T12:14:30.691757+00:00",
     "last_verified_at": null,
     "last_accessed_at": null,
-    "custody_chain": [
-      {
-        "timestamp": "2026-07-09T12:14:30.691757+00:00",
-        "action": "received",
-        "actor": "GUqTJFGjdo",
-        "details": "Document registered: MCRO_19AV-CV-25-3477_Amended Motion_2025-12-03_20251207202459.pdf",
-        "ip_address": null,
-        "device_info": null,
-        "integrity_hash": "4a24a7fbff3a6e2892d3fdf3fc6edc38f5382fa8507c033eaaf0d2a0c73b727a"
-      }
-    ],
-    "versions": [
-      {
-        "version": 1,
-        "timestamp": "2026-07-09T12:14:30.691757+00:00",
-        "content_hash": "4511c6c05aa080e072463597daf599c5167445df4ab499658c16c6e70b5b928e",
-        "changes": "Initial registration",
-        "changed_by": "GUqTJFGjdo"
-      }
-    ],
+    "custody_chain": [],
+    "versions": [],
     "current_version": 1,
     "storage_path": null,
     "intake_document_id": null
@@ -1755,24 +1737,100 @@
     "registered_at": "2026-07-09T12:20:20.317316+00:00",
     "last_verified_at": null,
     "last_accessed_at": null,
+    "custody_chain": [],
+    "versions": [],
+    "current_version": 1,
+    "storage_path": null,
+    "intake_document_id": null
+  },
+  "SEM-2026-000001-FE5C": {
+    "document_id": "SEM-2026-000001-FE5C",
+    "user_id": "GUWkjgVHe2",
+    "case_number": null,
+    "original_filename": "Move-Out Declaration.pdf",
+    "file_size": 84865,
+    "mime_type": "application/pdf",
+    "content_hash": "2f9b05c540429a2bb4761ebdb89a2b936ff44a1a5d6fbbd031ff3c5c3062c4fa",
+    "metadata_hash": "90ccdd917c9ce56a977418b3cb6e0ad8ca4c88687022e3aacd107d7e9d46fa7d",
+    "combined_hash": "a1ef4d00676b67c10c102fcde22e16818c363b005aa935c505b3d956bf8f6c19",
+    "status": "original",
+    "integrity_status": "verified",
+    "is_duplicate": false,
+    "original_document_id": null,
+    "duplicate_ids": [
+      "SEM-2026-000002-0E99"
+    ],
+    "duplicate_count": 1,
+    "forgery_alerts": [],
+    "forgery_score": 0.0,
+    "requires_review": false,
+    "registered_at": "2026-07-12T01:43:13.557585+00:00",
+    "last_verified_at": null,
+    "last_accessed_at": null,
     "custody_chain": [
       {
-        "timestamp": "2026-07-09T12:20:20.317316+00:00",
+        "timestamp": "2026-07-12T01:43:13.557585+00:00",
         "action": "received",
-        "actor": "GUqTJFGjdo",
-        "details": "Document registered: MCRO_19AV-CV-25-3477_Notice to Remove Judicial Officer_2025-12-03_20251203175833.pdf",
+        "actor": "GUWkjgVHe2",
+        "details": "Document registered: Move-Out Declaration.pdf",
         "ip_address": null,
         "device_info": null,
-        "integrity_hash": "6ccf4a3685e07bab3294d3ee3f5686122ed98761fb382b1a50398a97b12bf88b"
+        "integrity_hash": "a1ef4d00676b67c10c102fcde22e16818c363b005aa935c505b3d956bf8f6c19"
       }
     ],
     "versions": [
       {
         "version": 1,
-        "timestamp": "2026-07-09T12:20:20.317316+00:00",
-        "content_hash": "65d2fa8aa30628bb571221cbcf8c2f693fb00519e9f6dd5329c3c57a1775d366",
+        "timestamp": "2026-07-12T01:43:13.557585+00:00",
+        "content_hash": "2f9b05c540429a2bb4761ebdb89a2b936ff44a1a5d6fbbd031ff3c5c3062c4fa",
         "changes": "Initial registration",
-        "changed_by": "GUqTJFGjdo"
+        "changed_by": "GUWkjgVHe2"
+      }
+    ],
+    "current_version": 1,
+    "storage_path": null,
+    "intake_document_id": null
+  },
+  "SEM-2026-000002-0E99": {
+    "document_id": "SEM-2026-000002-0E99",
+    "user_id": "GUWkjgVHe2",
+    "case_number": null,
+    "original_filename": "Move-Out Declaration.pdf",
+    "file_size": 84865,
+    "mime_type": "application/pdf",
+    "content_hash": "2f9b05c540429a2bb4761ebdb89a2b936ff44a1a5d6fbbd031ff3c5c3062c4fa",
+    "metadata_hash": "4a2cb8c3a0266b6b8cc5cac649550a3e04d36ba8470bf2d78b4d36c231e34016",
+    "combined_hash": "3e690340f451147462aed5da67ef4420c251407e90759c9f265a1875f964bd15",
+    "status": "copy",
+    "integrity_status": "verified",
+    "is_duplicate": true,
+    "original_document_id": "SEM-2026-000001-FE5C",
+    "duplicate_ids": [],
+    "duplicate_count": 0,
+    "forgery_alerts": [],
+    "forgery_score": 0.0,
+    "requires_review": false,
+    "registered_at": "2026-07-12T01:43:39.662446+00:00",
+    "last_verified_at": null,
+    "last_accessed_at": null,
+    "custody_chain": [
+      {
+        "timestamp": "2026-07-12T01:43:39.662446+00:00",
+        "action": "received",
+        "actor": "GUWkjgVHe2",
+        "details": "Document registered: Move-Out Declaration.pdf",
+        "ip_address": null,
+        "device_info": null,
+        "integrity_hash": "3e690340f451147462aed5da67ef4420c251407e90759c9f265a1875f964bd15"
+      }
+    ],
+    "versions": [
+      {
+        "version": 1,
+        "timestamp": "2026-07-12T01:43:39.662446+00:00",
+        "content_hash": "2f9b05c540429a2bb4761ebdb89a2b936ff44a1a5d6fbbd031ff3c5c3062c4fa",
+        "changes": "Initial registration",
+        "changed_by": "GUWkjgVHe2"
       }
     ],
     "current_version": 1,

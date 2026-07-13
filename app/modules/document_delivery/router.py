@@ -16,6 +16,7 @@ Routes:
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Form, status, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -25,6 +26,7 @@ from app.core.security import require_user, StorageUser
 from app.core.workflow_engine import route_user
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+from app.models.models import Document
 from app.models.document_delivery_models import (
     SendDocumentRequest,
     SendDocumentResponse,
@@ -135,15 +137,28 @@ async def send_document(
     storage = await get_storage_client(user, db, settings)
     
     # Get sender info
-    sender_name = user.user_id  # Simplified - would normally look up profile
+    sender_name = user.user_id  # Not PII — user_id is a derived hash, not personal data
     sender_org = None
-    
-    # Get recipient name (would normally look up profile)
-    recipient_name = recipient_id  # Simplified
-    
-    # Get document info (would normally fetch from vault)
-    document_filename = f"document_{document_id}.pdf"  # Simplified
-    document_hash = "placeholder_hash"  # Would compute from actual document
+
+    # Get recipient name (per SSOT privacy rule, name is PII in recipient's vault)
+    recipient_name = recipient_id
+
+    # Look up document metadata from DB (sha256_hash and filename are stored at upload time)
+    doc_result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.user_id == user.user_id,
+        )
+    )
+    doc = doc_result.scalar_one_or_none()
+    if doc:
+        document_filename = doc.filename
+        document_hash = doc.sha256_hash
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found in your vault",
+        )
     
     # Build request
     from app.models.document_delivery_models import DeliveryType

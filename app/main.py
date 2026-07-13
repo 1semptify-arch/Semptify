@@ -4018,6 +4018,66 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             # Fallback to the existing timeline page
             return templates.TemplateResponse(request, "pages/timeline.html")
 
+    @fastapi_app.get("/tenant/library/{subject}", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/library/{subject}/", response_class=HTMLResponse)
+    async def tenant_library_subject_page(request: Request, subject: str):
+        """KNOW pillar — subject-specific library page, assembled by UI Composer."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        try:
+            from app.services.ui_composer import compose_page
+            from app.core.cookie_auth import verify_user_id
+            from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
+            from app.modules.page_composer.service import compose_page as page_compose_page
+            from app.modules.context_engine import cache as ctx_cache, stories as ctx_stories
+
+            user_id_cookie = request.cookies.get("semptify_uid", "")
+            user_id = verify_user_id(user_id_cookie) or ""
+
+            if subject not in ALL_SUBJECTS:
+                library_stage = navigation.get_stage("library")
+                library_path = library_stage.path if library_stage else "/tenant/library"
+                return ssot_redirect(library_path, context=f"unknown subject {subject}")
+
+            page_data = await page_compose_page(
+                subject, "default", user_id, fact_limit=5, story_limit=3
+            )
+            jurisdiction = page_data.get("jurisdiction", "default")
+            facts = page_data.get("selected_facts", page_data.get("facts", []))
+            if not facts:
+                facts = await ctx_cache.get_facts(subject, jurisdiction)
+            stories = await ctx_stories.get_published_stories(
+                subject, jurisdiction, limit=3
+            )
+
+            context = {
+                "subject": subject,
+                "facts": facts,
+                "stories": stories,
+                "label": SUBJECT_LABELS.get(subject, subject),
+            }
+            page = compose_page(user_id, "library", context=context)
+
+            return templates.TemplateResponse(
+                request,
+                "generic_page.html",
+                {
+                    "page_title": page["page_title"],
+                    "pillar": page["pillar"],
+                    "components": page["components"],
+                },
+            )
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning(
+                "UI Composer subject library error for %s, falling back to law-library: %s",
+                subject,
+                e,
+            )
+            # Fallback to the existing law library page
+            return templates.TemplateResponse(request, "pages/law_library.html")
+
     @fastapi_app.get("/tenant/library", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/library/", response_class=HTMLResponse)
     async def tenant_library_page(request: Request):

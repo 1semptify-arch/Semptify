@@ -267,8 +267,8 @@ async def handle_capture_input(
                         uploaded_at=utc_now(),
                     ))
                     await _db.commit()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional DB save for capture input failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -311,8 +311,8 @@ async def handle_capture_voice(
                         uploaded_at=utc_now(),
                     ))
                     await _db.commit()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional DB save for voice recording failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -350,8 +350,8 @@ async def handle_understand_timeline(
                 if svc:
                     await svc.load()
                     detail["case_stage"] = svc.get_case_summary().get("stage", "unknown")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional form data service lookup for timeline failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -382,8 +382,8 @@ async def handle_understand_rights(
             matched = [d for d in DEFENSE_LIBRARY if event.right_id in (d.get("id", ""), d.get("code", ""))]
             if matched:
                 analysis["defense"] = matched[0]
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Optional eviction defense library lookup for rights failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -418,8 +418,8 @@ async def handle_understand_risk(
                     summary = svc.get_case_summary()
                     risk_detail["case_stage"] = summary.get("stage")
                     risk_detail["defenses_available"] = summary.get("defenses_count", 0)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional form data service lookup for risk failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -489,8 +489,8 @@ async def handle_plan_deadline(
                         .limit(5)
                     )
                     upcoming = [{"id": e.id, "title": e.title, "date": e.start_datetime.isoformat(), "critical": e.is_critical} for e in q.scalars().all()]
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional calendar query for deadlines failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -527,8 +527,8 @@ async def handle_tenant_emergency(
             from app.modules.eviction_defense.router import DEFENSE_LIBRARY
             if action in ("file_answer", "answer"):
                 guidance = [{"step": d.get("title", ""), "detail": d.get("description", "")} for d in DEFENSE_LIBRARY[:3]]
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Optional eviction defense library lookup for emergency failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -600,8 +600,8 @@ async def handle_legal_review(
                         .limit(5)
                     )
                     docs_summary = [{"id": d.id, "filename": d.original_filename or d.filename, "type": d.document_type} for d in q.scalars().all()]
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional document query for legal review failed: {e}")
 
         return JSONResponse({
             "success": True,
@@ -693,8 +693,8 @@ async def get_workspace_stage(
                         stage_data["days_to_deadline"] = days
                         stage_data["urgency"] = "critical" if days <= 3 else "high" if days <= 7 else "medium"
                     stage_data["stage"] = summary.get("stage", "planning")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional form data service lookup for admin status failed: {e}")
             try:
                 from app.models.models import User as UserModel
                 from app.core.database import get_db_session
@@ -704,8 +704,8 @@ async def get_workspace_stage(
                     u = r.scalar_one_or_none()
                     if u:
                         stage_data["storage_connected"] = bool(getattr(u, "storage_provider", None))
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional user query for storage connection failed: {e}")
 
         return JSONResponse({
             **stage_data,
@@ -752,8 +752,8 @@ async def get_next_step(
                         step = {"step": "plan", "title": "Prepare for Your Hearing", "description": "Review your defenses and gather your evidence packet.", "priority": "high", "component": "hearing-prep"}
                     else:
                         step = {"step": "understand", "title": "Review Your Rights", "description": "Understand which defenses apply to your situation.", "priority": "medium", "component": "rights-viewer"}
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Optional form data service lookup for next step failed: {e}")
 
         return JSONResponse({
             **step,
