@@ -1,6 +1,37 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-13 AM — Stub Pass Fixes: Litigation Intelligence + Brain Context + Stub Detector
+
+### What Was Done
+- **Implemented rule-based pattern detectors** in `app/modules/litigation_intelligence/intelligence_engine.py` for all 7 `detect_pattern` classes:
+  - `RepeatOffenderDetector`, `SerialFilerDetector`, `FrivolousClaimDetector`, `RetaliationPatternDetector`, `HabitabilityIssueDetector`, `DiscriminationPatternDetector`, `ProfessionalLandlordDetector`.
+  - Each detector returns a `PatternMatch` with confidence, legal basis, and recommended actions when case data shows relevant indicators.
+- **Implemented `on_context_updated` brain event handler** in `app/services/brain_integrations.py` to broadcast `CONTEXT_UPDATED` events through `app/core/websocket_manager.py`.
+- **Added `CONTEXT_UPDATE` notification type** to `NotificationType` enum in `app/core/websocket_manager.py`.
+- **Improved `tools/stub_detector.py`** to filter false positives:
+  - Skip functions decorated with `@abstractmethod`.
+  - Skip functions defined inside `except ImportError:` fallback blocks.
+- **Regenerated `tools/stub_tasks_new.json`**; real `app/` stubs reduced from 14 to 5 (and to 31 total including `Semptify-Housing-Accountability/`).
+
+### Commits This Session
+- (pending) `feat(stubs): litigation intelligence detectors, brain context broadcast, stub detector filtering`
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/litigation_intelligence/intelligence_engine.py app/services/brain_integrations.py app/core/websocket_manager.py tools/stub_detector.py` passes.
+
+### Known Gaps / Pending
+- **5 remaining `app/` stubs** per `tools/stub_tasks_new.json`:
+  - `app/modules/documents/router.py:151 _get_overlay_record_ids()` — documented sync helper; likely intentional.
+  - `app/services/mndes_api_client.py:185,198,204` — `MNDESRestClient` future skeleton (no public API available).
+- **26 stubs in `Semptify-Housing-Accountability/`** remain to be worked through after `app/` stubs.
+- UPL guardrail tier registration and GUI Phase 1 refinements remain pending.
+
+### Next Session Should Start With
+- Decide whether to annotate/document the remaining 2 `app/` intentional stubs, implement `MNDESRestClient` (requires external API spec), or continue with `Semptify-Housing-Accountability/` stubs.
+
+---
+
 ## Session -- 2026-07-12 -- GUI Phase 1: Know and Act Pillar Pages
 
 ### What Was Done

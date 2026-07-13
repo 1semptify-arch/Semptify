@@ -1,0 +1,281 @@
+[
+  {
+    "id": 1,
+    "category": "stub_fix",
+    "file": "app\\modules\\documents\\router.py",
+    "line": 151,
+    "function": "_get_overlay_record_ids",
+    "reason": "function body is only a bare return of an empty literal",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "category": "stub_fix",
+    "file": "app\\services\\brain_integrations.py",
+    "line": 179,
+    "function": "on_context_updated",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 3,
+    "category": "stub_fix",
+    "file": "app\\services\\mndes_api_client.py",
+    "line": 185,
+    "function": "submit_exhibit",
+    "reason": "raises NotImplementedError",
+    "status": "pending"
+  },
+  {
+    "id": 4,
+    "category": "stub_fix",
+    "file": "app\\services\\mndes_api_client.py",
+    "line": 198,
+    "function": "get_submission_status",
+    "reason": "raises NotImplementedError",
+    "status": "pending"
+  },
+  {
+    "id": 5,
+    "category": "stub_fix",
+    "file": "app\\services\\mndes_api_client.py",
+    "line": 204,
+    "function": "get_case_exhibits",
+    "reason": "raises NotImplementedError",
+    "status": "pending"
+  },
+  {
+    "id": 6,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\coalition\\coalition_manager.py",
+    "line": 4,
+    "function": "add_tenant_statement",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 7,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\coalition\\coalition_manager.py",
+    "line": 9,
+    "function": "merge_patterns",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 8,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\coalition\\coalition_manager.py",
+    "line": 14,
+    "function": "generate_group_summary",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 9,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\intake\\intake_engine.py",
+    "line": 4,
+    "function": "extract_metadata",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 10,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\intake\\intake_engine.py",
+    "line": 9,
+    "function": "tag_category",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 11,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\intake\\intake_engine.py",
+    "line": 14,
+    "function": "append_to_timeline",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 12,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\intake\\intake_engine.py",
+    "line": 19,
+    "function": "save_intake_record",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 13,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\oversight_packets\\packet_builder.py",
+    "line": 4,
+    "function": "build_ag_packet",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 14,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\oversight_packets\\packet_builder.py",
+    "line": 9,
+    "function": "build_hud_packet",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 15,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\oversight_packets\\packet_builder.py",
+    "line": 14,
+    "function": "build_mdhr_packet",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 16,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\oversight_packets\\packet_builder.py",
+    "line": 19,
+    "function": "build_cfpb_packet",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 17,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\oversight_packets\\packet_builder.py",
+    "line": 24,
+    "function": "export_packet",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 18,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\pattern_engine\\pattern_engine.py",
+    "line": 4,
+    "function": "detect_repeated_fees",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 19,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\pattern_engine\\pattern_engine.py",
+    "line": 9,
+    "function": "detect_eviction_patterns",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 20,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\pattern_engine\\pattern_engine.py",
+    "line": 14,
+    "function": "detect_subsidy_interference",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 21,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\pattern_engine\\pattern_engine.py",
+    "line": 19,
+    "function": "detect_court_order_violations",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 22,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\pattern_engine\\pattern_engine.py",
+    "line": 24,
+    "function": "generate_pattern_summary",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 23,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\press_builder\\press_builder.py",
+    "line": 4,
+    "function": "build_fact_summary",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 24,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\press_builder\\press_builder.py",
+    "line": 9,
+    "function": "build_timeline_narrative",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 25,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\press_builder\\press_builder.py",
+    "line": 14,
+    "function": "build_public_money_analysis",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 26,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\press_builder\\press_builder.py",
+    "line": 19,
+    "function": "export_press_packet",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 27,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\public_records\\records_scanner.py",
+    "line": 4,
+    "function": "lookup_llc_structure",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 28,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\public_records\\records_scanner.py",
+    "line": 9,
+    "function": "lookup_property_records",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 29,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\public_records\\records_scanner.py",
+    "line": 14,
+    "function": "lookup_eviction_history",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 30,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\public_records\\records_scanner.py",
+    "line": 19,
+    "function": "lookup_subsidy_participation",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  },
+  {
+    "id": 31,
+    "category": "stub_fix",
+    "file": "Semptify-Housing-Accountability\\public_records\\records_scanner.py",
+    "line": 24,
+    "function": "generate_public_profile",
+    "reason": "function body is only `pass`",
+    "status": "pending"
+  }
+]

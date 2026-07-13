@@ -27,6 +27,7 @@ class NotificationType(Enum):
     USER_MESSAGE = "user_message"
     STORAGE_EVENT = "storage_event"
     SECURITY_EVENT = "security_event"
+    CONTEXT_UPDATE = "context_update"
 
 @dataclass
 class WebSocketMessage:
