@@ -10,9 +10,14 @@
 
 ### Commits This Session
 - `fix(manifest): resolve vault/vault_engine/vault_all_in_one duplicate`
+- `docs(build_state): record vault duplicate resolution`
+- Merged `fix/resolve-vault-duplicates` into `main` → `6edef3f`
 
 ### Known Working
 - `python -m py_compile app/main.py app/core/product_manifest.py` passes.
+
+### Deployed
+- **2026-07-13 18:44 CT** — Render is deploying commit `6edef3f`.
 
 ### Known Gaps / Pending
 - `app/modules/vault_engine/` and `app/modules/vault_all_in_one/` module files remain on disk for future review before deletion.
