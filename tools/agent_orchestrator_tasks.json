@@ -9,10 +9,10 @@
     "file_path": "app/modules/case_builder.py",
     "line_start": 860,
     "line_end": null,
-    "status": "pending",
-    "notes": "",
+    "status": "completed",
+    "notes": "Stub already implemented in commit c1b5676 (get_case_summary returns populated summary/next_steps). No code change required.",
     "created_at": "2026-07-13T06:54:17.093367+00:00",
-    "updated_at": "2026-07-13T06:54:17.093367+00:00",
+    "updated_at": "2026-07-13T19:54:17+00:00",
     "prompt": "AGENT TASK — SWE-1.7 (HIGH priority)\nSemptify repository — Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Fix empty return in case_builder.py\nCategory: Stub Fix\nTarget: `app/modules/case_builder.py` lines 860\nCreated: 2026-07-13T06:54:17.093367+00:00\n\nDescription:\nReturns empty list/dict\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: — catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this stub fix.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -25,10 +25,10 @@
     "file_path": "app/modules/complaint_wizard_module.py",
     "line_start": 444,
     "line_end": null,
-    "status": "pending",
-    "notes": "",
+    "status": "completed",
+    "notes": "No bare pass stub found in file; stub detector reports 0 stubs.",
     "created_at": "2026-07-13T06:54:17.093367+00:00",
-    "updated_at": "2026-07-13T06:54:17.093367+00:00",
+    "updated_at": "2026-07-13T19:54:17+00:00",
     "prompt": "AGENT TASK — SWE-1.6 (MEDIUM priority)\nSemptify repository — Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Fix pass stub in complaint_wizard_module.py\nCategory: Stub Fix\nTarget: `app/modules/complaint_wizard_module.py` lines 444\nCreated: 2026-07-13T06:54:17.093367+00:00\n\nDescription:\nBare pass statement\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: — catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this stub fix.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -41,10 +41,10 @@
     "file_path": "app/modules/complaint_wizard_module.py",
     "line_start": 618,
     "line_end": null,
-    "status": "pending",
-    "notes": "",
+    "status": "completed",
+    "notes": "Line 618 is `return []` inside an exception fallback in `_get_complaint_context_facts`; intentional, not a stub.",
     "created_at": "2026-07-13T06:54:17.093367+00:00",
-    "updated_at": "2026-07-13T06:54:17.093367+00:00",
+    "updated_at": "2026-07-13T19:54:17+00:00",
     "prompt": "AGENT TASK — SWE-1.7 (HIGH priority)\nSemptify repository — Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Fix empty return in complaint_wizard_module.py\nCategory: Stub Fix\nTarget: `app/modules/complaint_wizard_module.py` lines 618\nCreated: 2026-07-13T06:54:17.093367+00:00\n\nDescription:\nReturns empty list/dict\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: — catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this stub fix.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -57,10 +57,10 @@
     "file_path": "app/modules/legal_filing_module.py",
     "line_start": 6,
     "line_end": null,
-    "status": "pending",
-    "notes": "",
+    "status": "completed",
+    "notes": "File is a real router wrapper; no placeholder stub found.",
     "created_at": "2026-07-13T06:54:17.093367+00:00",
-    "updated_at": "2026-07-13T06:54:17.093367+00:00",
+    "updated_at": "2026-07-13T19:54:17+00:00",
     "prompt": "AGENT TASK — GLM-5.2 (LOW priority)\nSemptify repository — Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Fix placeholder in legal_filing_module.py\nCategory: Stub Fix\nTarget: `app/modules/legal_filing_module.py` lines 6\nCreated: 2026-07-13T06:54:17.093367+00:00\n\nDescription:\n# Placeholder for actual module integration with mesh/network.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: — catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this stub fix.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -73,10 +73,10 @@
     "file_path": "app/modules/research_module.py",
     "line_start": 315,
     "line_end": null,
-    "status": "pending",
-    "notes": "",
+    "status": "completed",
+    "notes": "Line 315 is an unreachable `return {}` fallback in `_get_json`; not a stub.",
     "created_at": "2026-07-13T06:54:17.093367+00:00",
-    "updated_at": "2026-07-13T06:54:17.093367+00:00",
+    "updated_at": "2026-07-13T19:54:17+00:00",
     "prompt": "AGENT TASK — SWE-1.7 (HIGH priority)\nSemptify repository — Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Fix empty return in research_module.py\nCategory: Stub Fix\nTarget: `app/modules/research_module.py` lines 315\nCreated: 2026-07-13T06:54:17.093367+00:00\n\nDescription:\nReturns empty list/dict\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: — catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this stub fix.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -89,10 +89,10 @@
     "file_path": "app/modules/tenant_defense.py",
     "line_start": 1284,
     "line_end": null,
-    "status": "pending",
-    "notes": "",
+    "status": "completed",
+    "notes": "Line 1284 is `return []` inside an exception fallback in `_get_context_facts`; intentional, not a stub.",
     "created_at": "2026-07-13T06:54:17.093367+00:00",
-    "updated_at": "2026-07-13T06:54:17.093367+00:00",
+    "updated_at": "2026-07-13T19:54:17+00:00",
     "prompt": "AGENT TASK — SWE-1.7 (HIGH priority)\nSemptify repository — Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Fix empty return in tenant_defense.py\nCategory: Stub Fix\nTarget: `app/modules/tenant_defense.py` lines 1284\nCreated: 2026-07-13T06:54:17.093367+00:00\n\nDescription:\nReturns empty list/dict\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: — catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this stub fix.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
