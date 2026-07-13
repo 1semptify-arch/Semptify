@@ -323,8 +323,8 @@ async def save_case_info(
         try:
             summons = datetime.strptime(case_info.summons_date, "%Y-%m-%d")
             answer_deadline = (summons + timedelta(days=7)).strftime("%Y-%m-%d")
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger.warning(f"Calendar/deadline query failed: {e}")
     
     # Update Form Data Hub
     from app.services.form_data import get_form_data_service

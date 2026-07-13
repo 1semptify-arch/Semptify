@@ -67,6 +67,7 @@ def list_evidence(case_id: str) -> list:
         if not isinstance(entries, list):
             return []
         return entries
-    except Exception:
+    except Exception as e:
+        logger.debug("Failed to load evidence file %s: %s", p, e)
         return []
 

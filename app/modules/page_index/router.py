@@ -61,8 +61,8 @@ def get_repo_from_path(full_path: str, base_path: str = "C:\\Semptify") -> str:
         parts = rel_path.parts
         if parts:
             return parts[0]
-    except ValueError:
-        pass
+    except ValueError as e:
+        logger.warning(f"Optional operation failed: {e}")
     return "Unknown"
 
 

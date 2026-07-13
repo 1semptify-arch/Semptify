@@ -428,6 +428,54 @@
 
         .hidden { display: none !important; }
         
+        /* Storage Session Indicator (header, every page) */
+        .storage-session-indicator {
+            display: none; /* shown by JS once we know a storage session exists */
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-family: inherit;
+            color: var(--color-text-muted);
+            background: transparent;
+            border: 1px solid var(--color-border);
+            cursor: default;
+            flex-shrink: 0;
+        }
+
+        .storage-session-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-text-muted);
+            flex-shrink: 0;
+        }
+
+        .storage-session-indicator[data-state="connected"] .storage-session-dot {
+            background: var(--color-success);
+        }
+
+        .storage-session-indicator[data-state="reconnect"] .storage-session-dot {
+            background: var(--color-warning);
+        }
+
+        .storage-session-indicator--actionable {
+            cursor: pointer;
+            border-color: var(--color-warning);
+            color: var(--color-warning);
+        }
+
+        .storage-session-indicator--actionable:hover {
+            background: rgba(245, 158, 11, 0.12);
+        }
+
+        @media (max-width: 768px) {
+            .storage-session-indicator .storage-session-label-text {
+                display: none;
+            }
+        }
+
         /* Loading Spinner */
         .spinner {
             width: 24px;
@@ -492,6 +540,11 @@
                     <a href="/help">🆘 Help</a>
                     {% endblock %}
                 </nav>
+                <button type="button" id="storage-session-indicator" class="storage-session-indicator"
+                        data-state="unknown" title="Storage connection status">
+                    <span id="storage-session-dot" class="storage-session-dot"></span>
+                    <span id="storage-session-label" class="storage-session-label-text">Checking storage&hellip;</span>
+                </button>
             </div>
         </div>
     </header>
@@ -564,6 +617,9 @@
     <!-- Vault Portal (single consistent upload UX) -->
     <link rel="stylesheet" href="/css/components/vault-portal.css">
     <script src="/js/core/vault-portal.js?v=20260626d"></script>
+
+    <!-- Storage Session Monitor (background reconnect cycle, header indicator) -->
+    <script src="/js/core/storage-session-monitor.js?v=20260710a"></script>
 
     <!-- Logo quick upload -->
     <div id="logo-toast-container"></div>

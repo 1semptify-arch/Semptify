@@ -33,32 +33,55 @@ Do not create new markdown files. If you think something else is broken,
 list it at the end of your response under "Noticed but not fixed" —
 do not touch it
 
-### Step 1: Read current state
+### Step 1: Prove you know Semptify — NO LAZY WORK
+
+**Before you touch a single file, you must demonstrate working knowledge of this system.** If you cannot answer these from the docs, you are not ready to write code. Go back and read until you can.
+
+Read ALL of the following — not skim, READ:
+1. `AGENTS.md` — Full document including Known Failure Registry (all 16 items)
+2. `PROJECT_BIBLE.md` — Governance, gate chain, onboarding flow, doc hierarchy
+3. `BUILD_GUIDE_SSOT.md` — Build philosophy, active features, SSOT rules
+4. `CORE_CONTEXT.md` — What Semptify IS, who it's for, what we never build
+
+Then **state the following out loud** before proceeding (this is your proof of comprehension):
+- What Semptify is (one sentence — if you say "product" or "SaaS" you failed)
+- The Four Pillars (RECORD, KNOW, ACT, GOVERN) and what each one does
+- The gate chain for onboarding (what gates exist, what order)
+- The Python version mandate and why it exists
+- At least 3 items from the Known Failure Registry that are relevant to your task
+- What SSOT means in this codebase and why hardcoded URLs are banned
+- What the Forge is and how module lifecycle works
+
+**If you cannot state these clearly, STOP. Do not proceed. Do not guess. Do not wing it.**
+
+We do it right or we don't do it at all. There is no "figure it out as I go" here. Every lazy shortcut costs hours to fix. The history in AGENTS.md proves this. Read it. Learn it. Then work.
+
+### Step 2: Read current state
 Read these files before touching any code:
 1. Read `ACTIVE_CONTEXT.md` — what is being worked on right now
 2. Read `BUILD_STATE.md` — last 2 entries only (what shipped, what is broken, what is pending)
 3. Read the Known Failure Registry in `AGENTS.md` — do not repeat past mistakes
 
-### Step 2: Check pending Fix-It reports from admin dashboard
+### Step 3: Check pending Fix-It reports from admin dashboard
 The admin dashboard has "Fix It" buttons that queue errors to the `admin_error_queue` Postgres table AND log a distinctive `FIXIT_REPORT|id=N|section=...|endpoint=...|priority=...|error=...` line to Render logs.
 
 To check for pending errors the user clicked since the last session, use whatever Render log/MCP tooling is available in your assistant to search Render logs for `FIXIT_REPORT` in the last 7 days. Parse the `FIXIT_REPORT|...` lines — each is a pending issue the user wants fixed. Tell the user what was found and ask if they want to address any of them before starting new work.
 
 If no `FIXIT_REPORT` lines found or no log tooling is available: state that plainly and continue.
 
-### Step 3: Check the app
+### Step 4: Check the app
 Run this to verify the app compiles (PowerShell, cwd repo root):
 ```powershell
 python -m py_compile app/main.py
 ```
 
-### Step 4: State your plan
+### Step 5: State your plan
 Before editing any file, tell the user:
 - What you are going to change
 - What file(s) you will touch
 - Why this will not repeat a known failure
 
-### Step 5: After making changes
+### Step 6: After making changes
 Verify changed files compile:
 ```powershell
 python -m py_compile app/main.py app/core/navigation.py

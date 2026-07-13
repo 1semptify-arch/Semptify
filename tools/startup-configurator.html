@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify System Server Startup Configurator</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-2: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--panel-2);
+      background: var(--panel);
+    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    header p { margin: 0.25rem 0 0; color: var(--muted); }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+    section {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--panel-2);
+    }
+    section h2 {
+      margin: 0 0 1rem;
+      font-size: 1.1rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--panel-2);
+      padding-bottom: 0.5rem;
+    }
+    .field {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--panel-2);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+      accent-color: var(--accent);
+    }
+    .inline { display: inline-block; margin-right: 1rem; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    .option {
+      padding: 0.5rem 0.5rem 0.5rem 0;
+    }
+    .warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--warn);
+      color: var(--warn);
+      padding: 0.75rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    .output {
+      grid-column: 1 / -1;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .tab {
+      background: var(--panel-2);
+      border: none;
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .tab.active { background: var(--accent); color: #0f172a; }
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--panel-2);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .btn-2 { background: var(--accent-2); }
+    .btn:hover { opacity: 0.9; }
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .pipeline .box {
+      background: var(--panel-2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+    .pipeline .arrow {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .hidden { display: none; }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .key-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .key-grid .field { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Semptify System Server Startup Configurator</h1>
+    <p>Standalone control board. Generate the exact command and environment file for your run mode.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Launch Mode</h2>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="devMode" checked> DevMode (open security, no auth required)</label>
+      </div>
+      <div class="field">
+        <label for="securityMode">Security mode</label>
+        <select id="securityMode">
+          <option value="open">open</option>
+          <option value="enforced">enforced</option>
+        </select>
+        <div class="hint">DevMode sets this to open. In production, choose enforced.</div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="host">Listen host</label>
+          <input type="text" id="host" value="127.0.0.1">
+        </div>
+        <div class="field">
+          <label for="port">Port</label>
+          <input type="number" id="port" value="8000">
+        </div>
+      </div>
+      <div class="field">
+        <label for="publicBaseUrl">Public base URL (for OAuth callbacks / tunnels)</label>
+        <input type="text" id="publicBaseUrl" placeholder="https://semptify.org or blank for localhost">
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Database</h2>
+      <div class="field">
+        <label><input type="radio" name="db" value="sqlite" class="inline" checked> SQLite (dev default)</label>
+        <label><input type="radio" name="db" value="postgres" class="inline"> Local PostgreSQL service</label>
+        <label><input type="radio" name="db" value="docker" class="inline"> Docker PostgreSQL</label>
+      </div>
+      <div class="field" id="dbUrlField">
+        <label for="databaseUrl">DATABASE_URL</label>
+        <input type="text" id="databaseUrl" value="sqlite+aiosqlite:///./semptify.db">
+        <div class="hint">Auto-updates when you switch radio buttons.</div>
+      </div>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="render"> RENDER=true (auto Alembic migrations)</label>
+        <div class="hint">Only set this for Render production deploys.</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Module Tiers</h2>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="tierCore" checked disabled> CORE (always enabled)</label>
+        <label class="toggle-row"><input type="checkbox" id="tierExtended" checked> EXTENDED</label>
+        <label class="toggle-row"><input type="checkbox" id="tierAdvocate"> ADVOCATE</label>
+        <label class="toggle-row"><input type="checkbox" id="tierAdmin" checked> ADMIN</label>
+        <label class="toggle-row"><input type="checkbox" id="tierResearch"> RESEARCH</label>
+        <label class="toggle-row"><input type="checkbox" id="tierDev" checked> DEV (Forge / dev tools)</label>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. AI Provider</h2>
+      <div class="field">
+        <label for="aiProvider">AI provider</label>
+        <select id="aiProvider">
+          <option value="anthropic" selected>anthropic</option>
+          <option value="openai">openai</option>
+          <option value="azure">azure</option>
+          <option value="ollama">ollama</option>
+          <option value="groq">groq</option>
+          <option value="gemini">gemini</option>
+          <option value="none">none</option>
+        </select>
+      </div>
+      <div id="aiKeyFields" class="key-grid">
+        <div class="field" id="anthropicKeyField">
+          <label for="anthropicKey">ANTHROPIC_API_KEY</label>
+          <input type="password" id="anthropicKey" placeholder="sk-ant-...">
+        </div>
+        <div class="field" id="openaiKeyField">
+          <label for="openaiKey">OPENAI_API_KEY</label>
+          <input type="password" id="openaiKey" placeholder="sk-...">
+        </div>
+        <div class="field" id="groqKeyField">
+          <label for="groqKey">GROQ_API_KEY</label>
+          <input type="password" id="groqKey" placeholder="gsk_...">
+        </div>
+        <div class="field" id="googleKeyField">
+          <label for="googleKey">GOOGLE_AI_API_KEY / GEMINI_API_KEY</label>
+          <input type="password" id="googleKey" placeholder="AI...">
+        </div>
+        <div class="field" id="azureKeyField">
+          <label for="azureKey">AZURE_OPENAI_API_KEY</label>
+          <input type="password" id="azureKey" placeholder="">
+        </div>
+        <div class="field" id="azureEndpointField">
+          <label for="azureEndpoint">AZURE_OPENAI_ENDPOINT</label>
+          <input type="text" id="azureEndpoint" placeholder="https://...openai.azure.com/">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. OAuth Storage Providers</h2>
+      <p class="hint">Check the providers you want available. Leave keys blank to omit them from .env.</p>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="useGoogle" checked> Google Drive</label>
+        <div class="key-grid" id="googleKeys">
+          <div class="field"><label for="googleClientId">GOOGLE_DRIVE_CLIENT_ID</label><input type="text" id="googleClientId"></div>
+          <div class="field"><label for="googleClientSecret">GOOGLE_DRIVE_CLIENT_SECRET</label><input type="password" id="googleClientSecret"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="useDropbox" checked> Dropbox</label>
+        <div class="key-grid" id="dropboxKeys">
+          <div class="field"><label for="dropboxKey">DROPBOX_APP_KEY</label><input type="text" id="dropboxKey"></div>
+          <div class="field"><label for="dropboxSecret">DROPBOX_APP_SECRET</label><input type="password" id="dropboxSecret"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="useOneDrive" checked> OneDrive</label>
+        <div class="key-grid" id="onedriveKeys">
+          <div class="field"><label for="onedriveClientId">ONEDRIVE_CLIENT_ID</label><input type="text" id="onedriveClientId"></div>
+          <div class="field"><label for="onedriveClientSecret">ONEDRIVE_CLIENT_SECRET</label><input type="password" id="onedriveClientSecret"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>6. Advanced Toggles</h2>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="heavyServices" checked> ENABLE_HEAVY_SERVICES</label>
+        <div class="hint">Positronic Brain, Module Hub, Location Service.</div>
+      </div>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="mockData" checked> USE_MOCK_DATA</label>
+        <div class="hint">Use fake data instead of real APIs.</div>
+      </div>
+      <div class="field">
+        <label class="toggle-row"><input type="checkbox" id="realApis"> ENABLE_REAL_APIS</label>
+        <div class="hint">Requires API keys above.</div>
+      </div>
+      <div class="field">
+        <label for="logLevel">LOG_LEVEL</label>
+        <select id="logLevel">
+          <option value="INFO" selected>INFO</option>
+          <option value="DEBUG">DEBUG</option>
+          <option value="WARNING">WARNING</option>
+          <option value="ERROR">ERROR</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cors">CORS_ORIGINS</label>
+        <input type="text" id="cors" value="*">
+      </div>
+      <div class="field">
+        <label for="secretKey">SECRET_KEY</label>
+        <input type="password" id="secretKey" placeholder="Leave blank to auto-generate">
+        <div class="hint">Required for enforced security mode.</div>
+      </div>
+    </section>
+
+    <section class="output">
+      <h2>Output</h2>
+      <div class="tabs">
+        <button class="tab active" data-tab="command">Command</button>
+        <button class="tab" data-tab="env">.env</button>
+        <button class="tab" data-tab="pipeline">Pipeline</button>
+      </div>
+
+      <div id="tab-command">
+        <pre id="commandOutput">.\start-semptify.ps1</pre>
+        <div style="margin-top:0.5rem">
+          <button class="btn" onclick="copy('commandOutput')">Copy command</button>
+          <button class="btn btn-2" onclick="runCommand()">Run in terminal</button>
+        </div>
+      </div>
+
+      <div id="tab-env" class="hidden">
+        <pre id="envOutput"># .env
+</pre>
+        <button class="btn" onclick="copy('envOutput')">Copy .env</button>
+        <button class="btn btn-2" onclick="downloadEnv()">Download .env</button>
+      </div>
+
+      <div id="tab-pipeline" class="hidden">
+        <div class="pipeline" id="pipelineOutput">
+          <span class="box">Run start script</span>
+          <span class="arrow">--></span>
+          <span class="box">Verify requirements</span>
+          <span class="arrow">--></span>
+          <span class="box">Create folders</span>
+          <span class="arrow">--></span>
+          <span class="box">Init database</span>
+          <span class="arrow">--></span>
+          <span class="box">Load config</span>
+          <span class="arrow">--></span>
+          <span class="box">Register services</span>
+          <span class="arrow">--></span>
+          <span class="box">Server live</span>
+        </div>
+        <p class="hint">The app runs these stages in order. If one stage fails, startup stops.</p>
+        <div id="pipelineWarnings"></div>
+      </div>
+
+      <div id="validationOutput"></div>
+    </section>
+  </main>
+
+  <script>
+    const inputs = document.querySelectorAll('input, select, textarea');
+    const tabs = document.querySelectorAll('.tab');
+    const tabPanes = {
+      command: document.getElementById('tab-command'),
+      env: document.getElementById('tab-env'),
+      pipeline: document.getElementById('tab-pipeline'),
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        Object.values(tabPanes).forEach(p => p.classList.add('hidden'));
+        tab.classList.add('active');
+        tabPanes[tab.dataset.tab].classList.remove('hidden');
+      });
+    });
+
+    function getVal(id) {
+      const el = document.getElementById(id);
+      if (!el) return '';
+      if (el.type === 'checkbox') return el.checked;
+      return el.value.trim();
+    }
+
+    function getRadio(name) {
+      return document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+    }
+
+    function setDbUrl() {
+      const db = getRadio('db');
+      const urlField = document.getElementById('databaseUrl');
+      if (db === 'sqlite') urlField.value = 'sqlite+aiosqlite:///./semptify.db';
+      if (db === 'postgres') urlField.value = 'postgresql+asyncpg://semptify:semptify@localhost:5432/semptify';
+      if (db === 'docker') urlField.value = 'postgresql+asyncpg://semptify:semptify@localhost:5432/semptify';
+      update();
+    }
+
+    document.querySelectorAll('input[name="db"]').forEach(r => r.addEventListener('change', setDbUrl));
+
+    document.getElementById('devMode').addEventListener('change', function() {
+      document.getElementById('securityMode').value = this.checked ? 'open' : 'enforced';
+      update();
+    });
+
+    document.getElementById('securityMode').addEventListener('change', function() {
+      document.getElementById('devMode').checked = (this.value === 'open');
+      update();
+    });
+
+    document.getElementById('aiProvider').addEventListener('change', update);
+
+    function generate() {
+      const dev = getVal('devMode');
+      const db = getRadio('db');
+      const host = getVal('host') || '127.0.0.1';
+      const port = getVal('port') || '8000';
+      const dbUrl = getVal('databaseUrl');
+      const publicUrl = getVal('publicBaseUrl');
+      const security = getVal('securityMode');
+      const ai = getVal('aiProvider');
+      const render = getVal('render');
+      const heavy = getVal('heavyServices');
+      const mock = getVal('mockData');
+      const real = getVal('realApis');
+      const log = getVal('logLevel');
+      const cors = getVal('cors');
+      const secret = getVal('secretKey');
+
+      const tiers = [];
+      if (getVal('tierCore')) tiers.push('CORE');
+      if (getVal('tierExtended')) tiers.push('EXTENDED');
+      if (getVal('tierAdvocate')) tiers.push('ADVOCATE');
+      if (getVal('tierAdmin')) tiers.push('ADMIN');
+      if (getVal('tierResearch')) tiers.push('RESEARCH');
+      if (getVal('tierDev')) tiers.push('DEV');
+
+      const parts = ['.\\start-semptify.ps1'];
+      if (dev) parts.push('-DevMode');
+      if (db === 'postgres') parts.push('-WithPostgres');
+      if (db === 'docker') parts.push('-WithDocker');
+      if (port !== '8000') parts.push(`-Port ${port}`);
+      if (host !== '127.0.0.1') parts.push(`-ListenHost "${host}"`);
+
+      const env = [
+        '# Semptify .env generated by Startup Configurator',
+        `SECURITY_MODE=${security}`,
+        `DATABASE_URL=${dbUrl}`,
+        `AI_PROVIDER=${ai}`,
+        `LOG_LEVEL=${log}`,
+        `CORS_ORIGINS=${cors}`,
+        `USE_MOCK_DATA=${mock}`,
+        `ENABLE_REAL_APIS=${real}`,
+        `ENABLE_HEAVY_SERVICES=${heavy}`,
+        `PUBLIC_BASE_URL=${publicUrl}`,
+        render ? 'RENDER=true' : '',
+        '',
+        `# Modules: ${tiers.join(', ')}`,
+      ];
+
+      if (secret) env.push(`SECRET_KEY=${secret}`);
+
+      if (getVal('useGoogle')) {
+        const id = getVal('googleClientId');
+        const sec = getVal('googleClientSecret');
+        if (id) env.push(`GOOGLE_DRIVE_CLIENT_ID=${id}`);
+        if (sec) env.push(`GOOGLE_DRIVE_CLIENT_SECRET=${sec}`);
+      }
+      if (getVal('useDropbox')) {
+        const k = getVal('dropboxKey');
+        const s = getVal('dropboxSecret');
+        if (k) env.push(`DROPBOX_APP_KEY=${k}`);
+        if (s) env.push(`DROPBOX_APP_SECRET=${s}`);
+      }
+      if (getVal('useOneDrive')) {
+        const id = getVal('onedriveClientId');
+        const sec = getVal('onedriveClientSecret');
+        if (id) env.push(`ONEDRIVE_CLIENT_ID=${id}`);
+        if (sec) env.push(`ONEDRIVE_CLIENT_SECRET=${sec}`);
+      }
+
+      if (ai === 'anthropic') {
+        const k = getVal('anthropicKey');
+        if (k) env.push(`ANTHROPIC_API_KEY=${k}`);
+      }
+      if (ai === 'openai') {
+        const k = getVal('openaiKey');
+        if (k) env.push(`OPENAI_API_KEY=${k}`);
+      }
+      if (ai === 'groq') {
+        const k = getVal('groqKey');
+        if (k) env.push(`GROQ_API_KEY=${k}`);
+      }
+      if (ai === 'gemini') {
+        const k = getVal('googleKey');
+        if (k) env.push(`GEMINI_API_KEY=${k}`);
+      }
+      if (ai === 'azure') {
+        const k = getVal('azureKey');
+        const e = getVal('azureEndpoint');
+        if (k) env.push(`AZURE_OPENAI_API_KEY=${k}`);
+        if (e) env.push(`AZURE_OPENAI_ENDPOINT=${e}`);
+      }
+
+      const command = parts.join(' ');
+      const envText = env.filter(Boolean).join('\n');
+
+      let warnings = [];
+      if (security === 'enforced' && !secret) warnings.push('SECURITY_MODE=enforced requires a SECRET_KEY. Set one above or the server will fail startup.');
+      if (db === 'postgres' && dbUrl.includes('semptify:semptify')) warnings.push('Using default local Postgres credentials. Make sure PostgreSQL is installed and running.');
+      if (db === 'docker') warnings.push('Docker Desktop must be running for -WithDocker.');
+      if (real && mock) warnings.push('USE_MOCK_DATA=true and ENABLE_REAL_APIS=true are contradictory. Pick one.');
+      if (getRadio('db') === 'postgres' && getRadio('db') === 'docker') warnings.push('You cannot use both -WithPostgres and -WithDocker at the same time.');
+
+      return { command, envText, warnings };
+    }
+
+    function update() {
+      const { command, envText, warnings } = generate();
+      document.getElementById('commandOutput').textContent = command;
+      document.getElementById('envOutput').textContent = envText;
+
+      const valOut = document.getElementById('validationOutput');
+      valOut.innerHTML = '';
+      if (warnings.length) {
+        const div = document.createElement('div');
+        div.className = 'warning';
+        div.innerHTML = '<strong>Heads up:</strong><ul>' + warnings.map(w => `<li>${w}</li>`).join('') + '</ul>';
+        valOut.appendChild(div);
+      }
+
+      // AI key visibility
+      const ai = getVal('aiProvider');
+      document.getElementById('anthropicKeyField').style.display = ai === 'anthropic' ? 'block' : 'none';
+      document.getElementById('openaiKeyField').style.display = ai === 'openai' ? 'block' : 'none';
+      document.getElementById('groqKeyField').style.display = ai === 'groq' ? 'block' : 'none';
+      document.getElementById('googleKeyField').style.display = ai === 'gemini' ? 'block' : 'none';
+      document.getElementById('azureKeyField').style.display = ai === 'azure' ? 'block' : 'none';
+      document.getElementById('azureEndpointField').style.display = ai === 'azure' ? 'block' : 'none';
+    }
+
+    function copy(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard'));
+    }
+
+    function downloadEnv() {
+      const text = document.getElementById('envOutput').textContent;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '.env';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function runCommand() {
+      const cmd = document.getElementById('commandOutput').textContent;
+      alert('Run this in PowerShell at the repo root:\n\n' + cmd);
+    }
+
+    inputs.forEach(i => i.addEventListener('input', update));
+    update();
+  </script>
+</body>
+</html>

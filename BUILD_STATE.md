@@ -1,5 +1,207 @@
-# BUILD_STATE.md — Semptify Live Deployment State
+# BUILD_STATE.md -- Semptify Live Deployment State
 # Update this file at the end of every session using /ship
+
+## Session -- 2026-07-12 -- GUI Phase 1: Know and Act Pillar Pages
+
+### What Was Done
+- **Implemented `app/templates/gui/know.html`**: a `Know` pillar hub with links to the law library and fact topics (eviction, repairs, deposits).
+- **Implemented `app/templates/gui/act.html`**: an `Act` pillar hub with links to the letter builder, complaint tool, case builder, and action plan tool.
+- **Both pages extend `gui/base.html`**, set the appropriate `nav_*` active state, and include the UPL disclaimer.
+- **Committed `app/modules/dev_lab/ideas.py` UPL import** from the previous step.
+
+### Commits This Session
+- `feat(gui): implement Know and Act pillar placeholder pages with real pillar links`
+- `chore(dev_lab): import UPL guardrail types in ideas.py`
+
+### Known Working
+- `/gui/know` and `/gui/act` routes serve the updated templates.
+- `gui/base.html` four-pillar navigation (Home / Record / Know / Act) is intact.
+
+### Known Gaps / Pending
+- `know.html` and `act.html` use static hub cards; future work can wire them to the Page Composer / tool catalog endpoints.
+- UPL guardrail tier registration is still pending the project owner's tier matrix.
+
+### Next Session Should Start With
+- Complete **UPL guardrail tier registration** once the matrix is provided, or continue **GUI Phase 1** with the home page refinements and Calendar/Timeline integration.
+
+---
+
+## Session — 2026-07-12 PM — Stub Detector Build + Alembic False-Positive Filter
+
+### What Was Done
+- **Built `tools/stub_detector.py`**: AST-based stub detector that replaces the keyword-grep approach which produced 123 false positives. Parses Python syntax trees and only flags functions whose executable body is a genuine stub (`pass`, `...`, `raise NotImplementedError`, or lone `return` of an empty literal).
+- **Expanded skip list** (`SKIP_DIR_NAMES` + `SKIP_DIR_PREFIXES`): filters all venv variants (`venv311_clean`, `.venv`, etc.), caches (`__pycache__`, `.mypy_cache`, `.ruff_cache`, `.pytest_cache`), build artifacts (`dist`, `build`, `htmlcov`, `test-results`), non-app dirs (`archive`, `logs`, `uploads`, `REPOs`, `installer`, `mobile_ai_host`, `semptify_dakota_eviction`, `legal_intel`), agent work dirs (`.agent`, `.agent-mem`, `.agents`, `.semptify`, `.zenflow`, `.zencoder`, `.windsurf`, `.cursor`, `.devin`, `.github`, `.vscode`), and scaffolds (`_template`, `templates_scaffold`).
+- **Added alembic merge migration filter** (`ALEMBIC_SKIP_FN_NAMES`): permanently skips `upgrade()`/`downgrade()` stub bodies in `alembic/versions/` — this is the correct pattern for merge revisions, not a stub.
+- **Updated `tools/agent_orchestrator_tasks.json`**: marked 2 tasks `completed` (already fixed in prior sessions) and 33 tasks `skipped` (false positives with explanatory notes). All 35 previously-pending `stub_fix` tasks now resolved.
+
+### Commits This Session
+- (uncommitted — on working tree)
+
+### Known Working
+- `python -m py_compile tools/stub_detector.py` passes.
+- `python tools/stub_detector.py . --out tools/stub_tasks_new.json` reports **61 real stubs** (35 `app/` + 26 `Semptify-Housing-Accountability/`).
+- `tools/agent_orchestrator_tasks.json` shows 0 pending `stub_fix` tasks.
+
+### Known Gaps / Pending
+- **61 genuine stubs identified** by the new detector (35 in `app/`, 26 in `Semptify-Housing-Accountability/`). These are real pending `stub_fix` tasks to work through.
+- `tools/stub_detector.py` is untracked — needs commit.
+- `tools/agent_orchestrator_tasks.json` modifications uncommitted.
+
+### Next Session Should Start With
+- Work through the 61 real stubs starting with `app/` (35 stubs in sessions.py, models.py, storage/base.py, security/router.py, litigation_intelligence/intelligence_engine.py, mndes_api_client.py, etc.).
+- Then `Semptify-Housing-Accountability/` (26 `pass`-body stubs across coalition, intake, oversight_packets, pattern_engine, press_builder, public_records).
+
+---
+
+## Session — 2026-07-12 — Orchestrator Stub Fix Cleanup
+
+### What Was Done
+- **Processed all remaining `pending` tasks in `tools/agent_orchestrator_tasks.json`**: 51 tasks were reviewed and marked `skipped` with descriptive reasons.
+  - 16 `duplicate_resolve` architectural duplicate tasks (e.g., vault vs vault_engine, timeline duplicates).
+  - 20 `Fix placeholder` tasks (HTML/CSS/template comments, docstrings, placeholder values).
+  - 10 `Fix TODO/FIXME` tasks (commented-out deferred features like `graph_engine`).
+  - 5 `_template` scaffold TODOs.
+- No code files were modified; no bare-pass stubs remained among pending tasks.
+- Committed on branch `fix/complaint-wizard-stub-pass`.
+
+### Commits This Session
+- `chore(orchestrator): mark 51 remaining pending tasks as skipped with reasons`
+
+### Known Working
+- `tools/agent_orchestrator_tasks.json` shows 0 pending tasks.
+
+### Known Gaps / Pending
+- None from orchestrator queue.
+
+### Next Session Should Start With
+- Proceed to **UPL guardrail tier registration** or **GUI Phase 1 prep** per `ACTIVE_CONTEXT.md`.
+
+---
+
+## Session — 2026-07-12 — Legal Filing Bare Except Fix
+
+### What Was Done
+- **Fixed `app/modules/legal_filing/service.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `list_evidence`.
+- No hardcoded URLs. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/legal_filing/service.py` passes.
+
+### Known Gaps / Pending
+- None.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Timeline Bare Except Fix
+
+### What Was Done
+- **Fixed `app/modules/timeline/router.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `_load_cloud_timeline_events`.
+- Added `import logging` and `logger = logging.getLogger(__name__)` at module level.
+- No hardcoded URLs. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/timeline/router.py` passes.
+
+### Known Gaps / Pending
+- None.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Intake Overlay Record IDs Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/intake/router.py`**: `_get_overlay_record_ids` now resolves overlay record IDs from the user's cloud storage via `UnifiedOverlayManager` instead of always returning `[]`.
+- Updated all three callers (`/upload`, `/upload/auto`, `/process/vault/{doc_id}`) to provide the required storage context.
+- Falls back to `[]` when local storage is used or a cloud provider cannot be instantiated.
+- No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/intake/router.py` passes.
+
+### Known Gaps / Pending
+- Local storage path still returns `[]` because `UnifiedOverlayManager` is cloud-only; local overlay support is future work.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Housing Accountability Public Records Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/housing_accountability/router.py`**: `_simulate_public_records_search` now returns representative simulated public records by `record_type` instead of an empty list.
+- **Updated `/public-records/search` endpoint**: `total_results` now reflects the actual count of returned results.
+- No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/housing_accountability/router.py` passes.
+
+### Known Gaps / Pending
+- `_simulate_public_records_search` is a simulation; real public records API integration is future work.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Complaint Wizard Bare Pass Fix (feature branch)
+
+### What Was Done
+- **Fixed `app/modules/complaint_wizard_module.py` line 444**: Replaced bare `pass` statement with `logger.warning()` for invalid status filter values.
+- The behavior remains the same (returns all drafts if status_filter is invalid), but now logs the issue for debugging.
+- Aligns with Known Failure Registry #7 (no bare except/bare pass).
+
+### Commits This Session
+- (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
+
+### Known Working
+- `python -m py_compile app/modules/complaint_wizard_module.py` passes.
+
+### Known Gaps / Pending
+- Branch needs to be merged to main after review.
+
+### Next Session Should Start With
+- Merge feature branch to main or continue with next stub from orchestrator queue.
+
+---
+
+## Session — 2026-07-12 — Case Builder get_case_summary Stub Fix
+
+### What Was Done
+- **Fixed `app/modules/case_builder.py`**: `get_case_summary` now returns a meaningful summary and `next_steps` from the available `context` case dict instead of an empty dict/list.
+- No new files or modules. No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
+
+### Commits This Session
+- `c1b5676` — fix(case_builder): implement get_case_summary stub
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/case_builder.py` passes.
+
+### Known Gaps / Pending
+- `get_upcoming_deadlines` and `generate_counterclaim_document` remain example stubs and are listed under Noticed but not fixed for this task.
+
+### Next Session Should Start With
+- Continue dispatching the next HIGH stub from the orchestrator queue.
+
+---
 
 ## Session — 2026-07-12 — Agent Orchestrator Module + Workbook Bridge (SHIPPED 11bac59)
 

@@ -124,8 +124,8 @@ async def get_recommendations(
     if case_summary.get("hearing_date"):
         try:
             hearing_date = datetime.fromisoformat(case_summary["hearing_date"])
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger.warning(f"Form data lookup failed: {e}")
     
     # Get timeline events
     timeline_events = []

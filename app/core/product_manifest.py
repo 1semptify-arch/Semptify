@@ -693,7 +693,7 @@ _register("app.modules.research_module", tags=("Research Module",), tier=Product
           dev_notes="Research module SDK with /api/research-module router. Property/fraud/court research tools.")
 _register("app.modules.legal_filing_module", router_attr="legal_filing_router", tags=("Legal Filing",), tier=ProductTier.DEV,
           lifecycle="dev_only",
-          dev_notes="Placeholder for legal filing module integration with mesh/network. Imports from app.routers.legal_filing.")
+          dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.")
 _register("app.modules.complaint_wizard_module", tags=("Complaint Wizard",), tier=ProductTier.DEV,
           lifecycle="dev_only", optional=True,
           upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,

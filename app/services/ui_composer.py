@@ -281,6 +281,7 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
 
     Components:
         subject_grid (13 subjects from the Context Engine taxonomy)
+        fact_card list when a pre-selected subject is passed in ctx
 
     Clicking a subject triggers an HTMX swap to fact_card(s) + stories
     via /api/ui/fragment/library/{subject}.
@@ -307,6 +308,33 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
 
     components: List[Dict[str, Any]] = []
 
+    selected_subject = ctx.get("subject")
+    if selected_subject and selected_subject in ALL_SUBJECTS:
+        facts = ctx.get("facts") or []
+        stories = ctx.get("stories") or []
+        label = ctx.get("label") or SUBJECT_LABELS.get(selected_subject, selected_subject)
+
+        if not facts and not stories:
+            components.append(_component("empty_state", {
+                "icon": "📚",
+                "title": f"No verified facts yet for {label}",
+                "body": "This topic has not been populated yet. Choose another topic or check back later.",
+            }))
+        else:
+            story_texts = [
+                {"text": s.get("title") or s.get("body") or ""}
+                for s in stories
+                if s.get("title") or s.get("body")
+            ]
+            for idx, fact in enumerate(facts):
+                components.append(_component("fact_card", {
+                    "title": fact.get("claim") or "Verified fact",
+                    "body": fact.get("citation") or fact.get("body") or "",
+                    "source_url": fact.get("source_url") or "",
+                    "source_label": fact.get("source_name") or fact.get("source_url") or "",
+                    "stories": story_texts if idx == 0 else [],
+                }))
+
     # 13 subjects — the KNOW pillar root (from the canonical taxonomy)
     components.append(_component("subject_grid", {
         "subjects": [
@@ -317,14 +345,21 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
             }
             for s in ALL_SUBJECTS
         ],
+        "active_subject": selected_subject,
         "hx_target": "/api/ui/fragment/library/",
     }))
 
     components.append(_component("add_record_button"))
     components.append(_component("add_record_modal", _modal_data()))
 
+    if selected_subject and selected_subject in ALL_SUBJECTS:
+        label = SUBJECT_LABELS.get(selected_subject, selected_subject)
+        page_title = f"{label} — Know Your Rights — Semptify"
+    else:
+        page_title = "Library — Know Your Rights — Semptify"
+
     return {
-        "page_title": "Library — Know Your Rights — Semptify",
+        "page_title": page_title,
         "pillar": PILLAR_KNOW,
         "components": components,
     }
