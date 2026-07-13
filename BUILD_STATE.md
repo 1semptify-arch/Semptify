@@ -7,10 +7,9 @@
 - **Resolved duplicate vault modules** in `app/core/product_manifest.py`.
 - `app.modules.vault.router` at `/api/vault` remains the canonical SSOT vault.
 - Removed dead deregistration comments for `app.modules.vault_engine.router` and `app.modules.vault_all_in_one.router`; both were already deregistered.
-- Updated `tools/agent_orchestrator_tasks.json` to mark the duplicate-resolve task as completed.
 
 ### Commits This Session
-- (pending) `fix(manifest): resolve vault/vault_engine/vault_all_in_one duplicate`
+- `fix(manifest): resolve vault/vault_engine/vault_all_in_one duplicate`
 
 ### Known Working
 - `python -m py_compile app/main.py app/core/product_manifest.py` passes.
