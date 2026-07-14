@@ -441,7 +441,8 @@ _register("app.modules.search.router", prefix="/api/search", tags=("Global Searc
 _register("app.modules.pdf_tools.router", tags=("PDF Tools",), tier=ProductTier.CORE)
 _register("app.modules.preview.router", prefix="/api/preview", tags=("Document Preview",), tier=ProductTier.CORE,
           log_message="Document Preview router connected - Multi-format preview generation active")
-_register("app.modules.document_converter.router", tags=("Document Converter",), tier=ProductTier.CORE)
+_register("app.modules.document_converter.router", tags=("Document Converter",), tier=ProductTier.CORE,
+          dev_notes="Canonical document converter module. Legacy app/modules/document_converter.py standalone file removed — it was shadowed by this package.")
 _register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE,
           upl_risk_tier=UPLRiskTier.LOW_MEDIUM)
 _register("app.modules.context_engine.router", tags=("Context Engine", "Facts", "Stories"), tier=ProductTier.CORE,
