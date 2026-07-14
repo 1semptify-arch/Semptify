@@ -601,7 +601,8 @@ _register("app.modules.form_data.router", prefix="/api/form-data", tags=("Form D
 _register("app.modules.unified_overlays.router", tags=("Unified Overlays",), tier=ProductTier.RESEARCH,
           log_message="Unified Overlays router connected - Non-destructive annotation system active")
 _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTier.RESEARCH,
-          log_message="Cloud Sync router connected - User-controlled data persistence active")
+          log_message="Cloud Sync router connected - User-controlled data persistence active",
+          dev_notes="Canonical cloud-sync module. Legacy app/services/user_cloud_sync.py duplicate removed — identical to cloud_sync/service.py. Single caller (public_forms/router.py) repointed to canonical path.")
 
 # AI infrastructure
 # _register("app.modules.brain.router", prefix="/brain", tags=("Positronic Brain",), tier=ProductTier.RESEARCH,
