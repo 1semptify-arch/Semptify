@@ -414,7 +414,11 @@ _register("app.modules.onboarding.reconnect", tags=("Onboarding", "Reconnect"), 
 
 # Document & vault system
 _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
-_register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault",), tier=ProductTier.CORE)
+_register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault",), tier=ProductTier.CORE,
+          dev_notes="Canonical document storage vault. Upload, certify, and serve documents from the user's cloud provider. UI uploads go through /api/intake/upload/auto.")
+_register("app.modules.vault_engine.router", prefix="/api/vault-engine", tags=("Vault Engine", "Access Control"), tier=ProductTier.CORE,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Access-control engine for vault resources (permissions, sharing, audit). Distinct from document-storage vault. Not yet user-facing.")
 _register("app.modules.timeline.router", prefix="/api/timeline", tags=("Unified Timeline",), tier=ProductTier.CORE)
 _register("app.modules.briefcase.router", tags=("Briefcase",), tier=ProductTier.CORE)
 _register("app.modules.workflow.router", tags=("Workflow",), tier=ProductTier.CORE)
