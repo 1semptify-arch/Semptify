@@ -91,8 +91,8 @@ def _discover_components(base_dir: Path, category: str) -> List[ModuleCompliance
 
 MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
     ModuleCompliance(
-        name="tenant_defense",
-        file_path="app/modules/tenant_defense.py",
+        name="eviction_defense",
+        file_path="app/modules/eviction_defense/router.py",
         status="Implemented",
         privacy_scope="Handles tenant defense information and case narrative. Should avoid unnecessary PII beyond case context.",
         evidence_role="Builds defense arguments and stores case-related evidence references for court filings.",
@@ -100,8 +100,8 @@ MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
         next_action="Review hooks for module_hub updates and ensure audit logging on case state changes.",
     ),
     ModuleCompliance(
-        name="research_module",
-        file_path="app/modules/research_module.py",
+        name="research",
+        file_path="app/modules/research/router.py",
         status="Implemented",
         privacy_scope="Research data is non-sensitive external legal information, but case-linked queries must not leak user identifiers.",
         evidence_role="Provides statute and case-law support for tenant claims.",
