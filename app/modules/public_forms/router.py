@@ -142,7 +142,7 @@ async def load_tenant_autofill(user_id: str) -> dict:
     try:
         from app.core.database import get_db_session
         from app.modules.storage.router import get_valid_session
-        from app.services.user_cloud_sync import UserCloudSync
+        from app.modules.cloud_sync.service import UserCloudSync
 
         async with get_db_session() as db:
             session = await get_valid_session(db, user_id)
