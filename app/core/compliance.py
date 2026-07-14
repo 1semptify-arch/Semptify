@@ -118,8 +118,8 @@ MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
         next_action="Confirm case_builder does not duplicate raw document content outside the vault or storage service.",
     ),
     ModuleCompliance(
-        name="complaint_wizard_module",
-        file_path="app/modules/complaint_wizard_module.py",
+        name="complaints",
+        file_path="app/modules/complaints/router.py",
         status="Implemented",
         privacy_scope="Supports multi-agency complaints; should limit sensitive fields to only required complaint data.",
         evidence_role="Guides users through complaint filing while preserving agency deadlines and document attachments.",
@@ -128,7 +128,7 @@ MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
     ),
     ModuleCompliance(
         name="document_converter",
-        file_path="app/modules/document_converter.py",
+        file_path="app/modules/document_converter/router.py",
         status="Implemented",
         privacy_scope="Converts documents between formats; must maintain original document integrity and avoid data loss.",
         evidence_role="Supports court-ready export and document preservation for filings.",
