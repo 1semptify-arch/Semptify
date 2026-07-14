@@ -9,10 +9,14 @@
 - The standalone `app/modules/case_builder.py` remains on disk as a legacy SDK-style module but is not registered.
 
 ### Commits This Session
-- (pending) `fix(compliance): point case_builder entry to canonical router package`
+- `fix(compliance): point case_builder entry to canonical router package`
+- Merged `fix/resolve-case-builder-duplicate` into `main` → `8192cac`
 
 ### Known Working
 - `python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py` passes.
+
+### Deployed
+- **2026-07-13 19:49 CT** — Render is deploying commit `8192cac`.
 
 ### Known Gaps / Pending
 - Legacy `app/modules/case_builder.py` standalone file remains on disk for future review before deletion.
