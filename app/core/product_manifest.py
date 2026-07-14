@@ -469,7 +469,8 @@ _register("app.modules.tenant_feed.router", tags=("Tenant Feed", "RECORD"), tier
 _register("app.modules.websocket.router", prefix="/ws", tags=("WebSocket Events",), tier=ProductTier.CORE)
 
 # Free APIs
-_register("app.modules.free_api.router", tags=("Free APIs",), tier=ProductTier.CORE)
+_register("app.modules.free_api.router", tags=("Free APIs",), tier=ProductTier.CORE,
+          dev_notes="Canonical free API router at /freeapi/*. Backed by app/modules/free_api_pack.py utility library (PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes). free_api_pack is a shared library, not a separate module — no longer registered independently.")
 
 # Plugins
 # _register("app.modules.plugins.router", tags=("Plugin System",), tier=ProductTier.CORE)  # INACTIVE: Marketplace not built
@@ -688,9 +689,6 @@ _register("app.modules.example_payment_tracking", tags=("Payment Tracking",), ti
 _register("app.modules.legal_filing_module", router_attr="legal_filing_router", tags=("Legal Filing",), tier=ProductTier.DEV,
           lifecycle="dev_only",
           dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.")
-_register("app.modules.free_api_pack", tags=("Free API Pack",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          dev_notes="Free API registry — PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes. No FastAPI router — utility classes only.")
 _register("app.modules.vault_sync", tags=("Vault Sync",), tier=ProductTier.DEV,
           lifecycle="dev_only", optional=True,
           dev_notes=(
