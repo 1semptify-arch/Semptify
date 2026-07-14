@@ -437,7 +437,8 @@ _register("app.modules.law_library.router", router_attr="page_router", tags=("La
 # Core tools
 _register("app.modules.contacts.router", tags=("Contact Manager",), tier=ProductTier.CORE)
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)
-_register("app.modules.search.router", prefix="/api/search", tags=("Global Search",), tier=ProductTier.CORE)
+_register("app.modules.search.router", prefix="/api/search", tags=("Global Search",), tier=ProductTier.CORE,
+          dev_notes="Canonical global search API. Distinct from app.services.vault_search (vault deep-search service with its own FunctionGroupContract) and app.core.postgres_fts (PostgreSQL FTS utility). Not duplicates — three different layers.")
 _register("app.modules.pdf_tools.router", tags=("PDF Tools",), tier=ProductTier.CORE)
 _register("app.modules.preview.router", prefix="/api/preview", tags=("Document Preview",), tier=ProductTier.CORE,
           log_message="Document Preview router connected - Multi-format preview generation active")
