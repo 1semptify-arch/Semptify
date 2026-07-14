@@ -605,7 +605,11 @@ _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTie
           log_message="Cloud Sync router connected - User-controlled data persistence active",
           dev_notes="Canonical cloud-sync module. Legacy app/services/user_cloud_sync.py duplicate removed — identical to cloud_sync/service.py. Single caller (public_forms/router.py) repointed to canonical path.")
 
-# AI infrastructure
+# AI infrastructure — brain/mesh subsystem (3 distinct layers, NOT duplicates):
+#   - app.services.positronic_brain  : brain service (imported by calendar, documents, location, recognition, workflow, case_auto_creation)
+#   - app.core.positronic_mesh       : mesh core utility (imported by vault, module_hub, module_sdk, ui_composer, location_service)
+#   - app.core.mesh_network          : network layer (imported by mesh_handlers)
+# All three module routers below are intentionally DISABLED (experimental, guarded by ENABLE_HEAVY_SERVICES).
 # _register("app.modules.brain.router", prefix="/brain", tags=("Positronic Brain",), tier=ProductTier.RESEARCH,
 #           lifecycle="experimental", feature_flag="experimental_ai_model",
 #           dev_notes="Heavy service. Memory-optimized load. Guarded by ENABLE_HEAVY_SERVICES.",
