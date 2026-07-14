@@ -5701,6 +5701,29 @@ Set these in Render Dashboard > Service > Environment:
 
 ---
 
+## Session Ship — 2026-07-13 23:45 CT / 2026-07-14 04:45 UTC
+
+**Deployed commit:** `de9c5b8`
+
+**What was shipped:**
+- Resolved duplicate vault modules in `app/core/product_manifest.py`: clarified `vault.router` as canonical document-storage vault and registered `vault_engine.router` as dev-only, admin-only access-control engine.
+- Resolved duplicate `case_builder` module: removed legacy shadowed standalone `app/modules/case_builder.py` and updated `product_manifest.py` dev_notes to mark `case_builder.router` as canonical.
+
+**Known working:**
+- `python -m py_compile app/main.py` and core file compile check pass.
+- `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (current ACTIVE_CONTEXT priority).
+- Document Center planning (`docs/planning/DOCUMENT_CENTER_PLAN.md`).
+- Attorney Intake Packet scaffold (`feature/attorney-intake-packet`) awaiting user review.
+- Remaining `agent_orchestrator_tasks.json` duplicate-resolve items (e.g., `document_converter`, `litigation_intelligence`, `context_engine vs context_loop`).
+
+**Next session should start with:**
+- Either continue the next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT priority.
+
+---
+
 ## How to Use /ship
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
