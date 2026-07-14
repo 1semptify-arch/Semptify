@@ -530,7 +530,8 @@ _register("app.modules.tools_api.router", tags=("Tools",), tier=ProductTier.EXTE
 
 # Complaints / accountability
 _register("app.modules.complaints.router", tags=("Complaint Wizard",), tier=ProductTier.EXTENDED,
-          log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active")
+          log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active",
+          dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router.")
 _register("app.modules.housing_accountability.router", router_attr="accountability_router",
           tags=("Housing Accountability",), tier=ProductTier.EXTENDED,
           lifecycle="beta", dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.")
@@ -687,10 +688,6 @@ _register("app.modules.example_payment_tracking", tags=("Payment Tracking",), ti
 _register("app.modules.legal_filing_module", router_attr="legal_filing_router", tags=("Legal Filing",), tier=ProductTier.DEV,
           lifecycle="dev_only",
           dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.")
-_register("app.modules.complaint_wizard_module", tags=("Complaint Wizard",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
-          dev_notes="Complaint wizard using Positronic Mesh SDK. No FastAPI router — uses register_with_mesh() pattern. Currently DISABLED in main.py.")
 _register("app.modules.free_api_pack", tags=("Free API Pack",), tier=ProductTier.DEV,
           lifecycle="dev_only", optional=True,
           dev_notes="Free API registry — PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes. No FastAPI router — utility classes only.")
