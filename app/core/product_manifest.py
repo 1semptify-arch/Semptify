@@ -446,6 +446,7 @@ _register("app.modules.document_converter.router", tags=("Document Converter",),
 _register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE,
           upl_risk_tier=UPLRiskTier.LOW_MEDIUM)
 _register("app.modules.context_engine.router", tags=("Context Engine", "Facts", "Stories"), tier=ProductTier.CORE,
+          dev_notes="Verified-facts + tenant-stories engine. Distinct from context_loop (runtime state/event loop).",
           log_message="Context Engine router connected — verified facts + tenant stories active")
 _register("app.modules.page_composer.router", tags=("Page Composer", "Facts", "Stories", "Case"), tier=ProductTier.CORE,
           log_message="Page Composer router connected — unified page view (facts + stories + case)")
@@ -741,7 +742,7 @@ _register("app.modules.ai_copilot", tags=("AI Copilot",), tier=ProductTier.DEV,
 # Modules wired via main.py direct import (tracked here for manifest visibility)
 _register("app.modules.context_loop.router", tags=("Context Loop",), tier=ProductTier.DEV,
           lifecycle="stable", optional=True,
-          dev_notes="Background event processing engine. Wired via main.py subscribe_context_loop_events(). Also in contract_loader.")
+          dev_notes="Runtime state/event loop (nervous system). Distinct from context_engine (verified-facts + tenant-stories engine). Wired via main.py subscribe_context_loop_events().")
 _register("app.modules.vault_installer.routes", router_attr="router", tags=("Vault Installer",), tier=ProductTier.DEV,
           lifecycle="stable", optional=True,
           dev_notes="Simple vault installation endpoints. Wired via main.py register_vault_installer(). Uses routes.py not router.py.")
