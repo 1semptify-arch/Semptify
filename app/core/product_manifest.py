@@ -520,7 +520,8 @@ _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTi
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)
 _register("app.modules.guided_intake.router", tags=("Guided Intake",), tier=ProductTier.EXTENDED)
 _register("app.modules.case_builder.router", tags=("Case Builder",), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.MEDIUM)
+          upl_risk_tier=UPLRiskTier.MEDIUM,
+          dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package.")
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
 _register("app.modules.plan_maker.router", tags=("Plan Maker",), tier=ProductTier.EXTENDED)
