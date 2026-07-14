@@ -460,10 +460,8 @@ async def lifespan(_app: FastAPI):
                 except Exception as e:
                     logger.warning(f"   Location Service init failed (non-fatal): {e}")
 
-            # Complaint Wizard - DISABLED
-            # from app.modules.complaint_wizard_module import register_with_mesh as register_complaint_wizard
-            # register_complaint_wizard()
-            # logger.info("   ðŸ“ Complaint Wizard initialized")
+            # Complaint Wizard legacy standalone (app.modules.complaint_wizard_module) removed.
+            # Canonical complaint wizard lives at app.modules.complaints.router (EXTENDED tier).
             
             # Mesh Network - DISABLED (major memory consumer)
             # from app.services.mesh_handlers import register_all_mesh_handlers
