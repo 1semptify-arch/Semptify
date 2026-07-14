@@ -5747,6 +5747,30 @@ Set these in Render Dashboard > Service > Environment:
 
 ---
 
+## Session Ship — 2026-07-14 01:27 CT / 2026-07-14 06:27 UTC
+
+**Deployed commit:** `5cd9764`
+
+**What was shipped:**
+- Resolved duplicate `research router vs research_module.py`: removed legacy standalone `app/modules/research_module.py`, made `app/modules/research/router.py` canonical in `product_manifest.py` and `compliance.py`.
+- Resolved duplicate `tenant_defense vs eviction_defense`: removed legacy standalone `app/modules/tenant_defense.py`, made `app/modules/eviction_defense/router.py` canonical, updated `compliance.py`.
+- Fixed `module_routes_list.txt`: removed duplicate `storage` function-token entries and corrected route count from 31 to 29.
+
+**Known working:**
+- Core compile check passes (`python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py`).
+- `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (ACTIVE_CONTEXT priority).
+- Document Center planning.
+- Attorney Intake Packet scaffold awaiting user review.
+- Remaining `agent_orchestrator_tasks.json` duplicate-resolve items: `complaints`, `free_api`, `cloud_sync`, `search`, `brain/mesh`, `timeline`, `housing_accountability`, etc.
+
+**Next session should start with:**
+- Continue next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT.
+
+---
+
 ## How to Use /ship
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
