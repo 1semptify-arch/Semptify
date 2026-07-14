@@ -110,7 +110,7 @@ MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
     ),
     ModuleCompliance(
         name="case_builder",
-        file_path="app/modules/case_builder.py",
+        file_path="app/modules/case_builder/router.py",
         status="Implemented",
         privacy_scope="Constructs the user’s case package; must preserve evidence chain and document provenance.",
         evidence_role="Assembles court-ready packets and links documents to timeline events.",
