@@ -1,6 +1,25 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-13 PM (3) — Resolve Duplicate: case_builder router vs case_builder.py standalone
+
+### What Was Done
+- **Verified** `app/core/product_manifest.py` already registers only `app.modules.case_builder.router` as the canonical Case Builder.
+- **Updated** `app/core/compliance.py` to point the `case_builder` compliance entry at `app/modules/case_builder/router.py` instead of the legacy standalone `app/modules/case_builder.py`.
+- The standalone `app/modules/case_builder.py` remains on disk as a legacy SDK-style module but is not registered.
+
+### Commits This Session
+- (pending) `fix(compliance): point case_builder entry to canonical router package`
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py` passes.
+
+### Known Gaps / Pending
+- Legacy `app/modules/case_builder.py` standalone file remains on disk for future review before deletion.
+- Continue with next duplicate-resolve task from `tools/agent_orchestrator_tasks.json` or current priorities.
+
+---
+
 ## Session — 2026-07-13 PM (2) — Resolve Duplicate: vault vs vault_engine vs vault_all_in_one
 
 ### What Was Done
