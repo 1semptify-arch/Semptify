@@ -5724,6 +5724,29 @@ Set these in Render Dashboard > Service > Environment:
 
 ---
 
+## Session Ship — 2026-07-14 00:12 CT / 2026-07-14 05:12 UTC
+
+**Deployed commit:** `0304485`
+
+**What was shipped:**
+- Resolved duplicate `document_converter`: removed shadowed legacy standalone `app/modules/document_converter.py` and updated `product_manifest.py` dev_notes.
+- Resolved duplicate `litigation_intelligence` route-count discrepancy: added dev_notes in `product_manifest.py` and updated `module_routes_list.txt` to list 17 live endpoints.
+- Resolved duplicate `context_engine` vs `context_loop`: clarified dev_notes in `product_manifest.py` distinguishing the verified-facts/stories engine from the runtime state/event loop.
+
+**Known working:**
+- Core compile check passes (`python -m py_compile app/main.py` + core files).
+- `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (ACTIVE_CONTEXT priority).
+- Document Center planning.
+- Attorney Intake Packet scaffold awaiting user review.
+
+**Next session should start with:**
+- Continue next `agent_orchestrator_tasks.json` item or resume GUI Phase 1 work per ACTIVE_CONTEXT.
+
+---
+
 ## How to Use /ship
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
