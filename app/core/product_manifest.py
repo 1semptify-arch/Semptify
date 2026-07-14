@@ -503,7 +503,8 @@ _register(
 )
 
 _register("app.modules.eviction_defense.router", tags=("Eviction Defense Toolkit",), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.HIGH)
+          upl_risk_tier=UPLRiskTier.HIGH,
+          dev_notes="Canonical eviction-defense toolkit. Legacy app/modules/tenant_defense.py standalone file removed — it was shadowed by this router.")
 _register("app.modules.zoom_court.router", tags=("Zoom Courtroom",), tier=ProductTier.EXTENDED)
 _register("app.modules.zoom_court_prep.router", tags=("Zoom Court Prep",), tier=ProductTier.EXTENDED)
 _register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED,
@@ -515,8 +516,6 @@ _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=Produc
 _register("app.modules.legal.router", tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"), tier=ProductTier.EXTENDED,
           upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
           log_message="Legal workspace router connected — matters, filings, discovery, exhibits active")
-_register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
-          log_message="Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
 # Case management
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)
@@ -592,7 +591,8 @@ _register("app.modules.funding_mgmt.router", tags=("Funding Management",), tier=
 _register("app.modules.recognition.router", tags=("Document Recognition",), tier=ProductTier.RESEARCH)
 _register("app.modules.extraction.router", tags=("Form Field Extraction",), tier=ProductTier.RESEARCH)
 _register("app.modules.crawler.router", tags=("Crawler",), tier=ProductTier.RESEARCH)
-_register("app.modules.research.router", tags=("Research Module",), tier=ProductTier.RESEARCH)
+_register("app.modules.research.router", tags=("Research Module",), tier=ProductTier.RESEARCH,
+          dev_notes="Canonical landlord/property research router. Legacy app/modules/research_module.py standalone file removed — it was shadowed by this package.")
 _register("app.modules.form_data.router", prefix="/api/form-data", tags=("Form Data Hub",), tier=ProductTier.RESEARCH)
 # Old app.modules.overlays.router retired 2026-06-18 — superseded by unified_overlays.router (SSOT).
 # 943-line legacy router removed from registration; no callers used /api/overlays/ paths.
@@ -684,9 +684,6 @@ _register("app.modules.tactics.router", tags=("Tactics",), tier=ProductTier.DEV,
 _register("app.modules.example_payment_tracking", tags=("Payment Tracking",), tier=ProductTier.DEV,
           lifecycle="dev_only",
           dev_notes="Standalone payment tracking module with /payments router. Mesh SDK pattern.")
-_register("app.modules.research_module", tags=("Research Module",), tier=ProductTier.DEV,
-          lifecycle="dev_only",
-          dev_notes="Research module SDK with /api/research-module router. Property/fraud/court research tools.")
 _register("app.modules.legal_filing_module", router_attr="legal_filing_router", tags=("Legal Filing",), tier=ProductTier.DEV,
           lifecycle="dev_only",
           dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.")

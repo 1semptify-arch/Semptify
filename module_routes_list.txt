@@ -1001,7 +1001,7 @@
   @router.get("/{state_code}", response_model=StateDetails)
   @router.get("/nearby/search")
   @router.get("/detect/location")
-=== storage (31 routes) ===
+=== storage (29 routes) ===
   @router.get("/session/status", response_model=SessionStatusResponse)
   @router.get("/entry")
   @router.get("/connect")
@@ -1028,8 +1028,6 @@
   @router.post("/integrity/proof")
   @router.post("/integrity/verify")
   @router.get("/integrity/timestamp")
-  @router.post("/function-token/issue")
-  @router.post("/function-token/verify")
   @router.post("/certificate/generate")
   @router.post("/certificate/html")
   @router.get("/certificate/verify/{certificate_id}")
