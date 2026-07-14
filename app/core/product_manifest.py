@@ -633,6 +633,7 @@ _register("app.modules.fraud_exposure.router", tags=("Fraud Exposure",), tier=Pr
 # Litigation intelligence
 _register("app.modules.litigation_intelligence.router", router_attr="lis_router",
           tags=("Litigation Intelligence",), tier=ProductTier.RESEARCH,
+          dev_notes="17 live endpoints in lis_router. module_routes_list.txt route-count discrepancy resolved.",
           log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active")
 
 
