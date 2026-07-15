@@ -653,6 +653,12 @@ _register("app.modules.litigation_intelligence.router", router_attr="lis_router"
 # DEV TIER — Internal Tools (Enabled in Development)
 # =============================================================================
 
+_register("app.modules.context_engine.router", prefix="/api/context", tags=("Context Engine",), tier=ProductTier.DEV,
+          lifecycle="dev_only",
+          dev_notes="Public-facing facts/stories context (KNOW pillar). Distinct from context_loop, which is the per-user state nervous system.")
+_register("app.modules.context_loop.router", prefix="/api/core", tags=("Context Loop",), tier=ProductTier.DEV,
+          lifecycle="dev_only",
+          dev_notes="Internal per-user state/context loop (GOVERN pillar). Distinct from context_engine, which serves verified facts.")
 _register("app.modules.setup.router", prefix="/api/setup", tags=("Setup Wizard",), tier=ProductTier.DEV)
 _register("app.modules.page_index.router", tags=("Page Index",), tier=ProductTier.DEV)
 _register("app.modules.page_editor.router", tags=("Page Editor",), tier=ProductTier.DEV,
