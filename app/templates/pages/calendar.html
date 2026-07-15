@@ -1,0 +1,192 @@
+{% extends "gui/base.html" %}
+
+{% block title %}Calendar — Semptify{% endblock %}
+{% block nav_record %}active{% endblock %}
+
+{% block content %}
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Calendar</span>
+    </div>
+    <div class="frame-panel--body">
+        <p style="color:#94a3b8; font-size:0.9375rem;">
+            Deadlines, hearings, and reminders in one place. Adding a court date unlocks the Court Prep toolkit.
+        </p>
+    </div>
+</section>
+
+<section class="frame-panel" id="addEventPanel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Add an event</span>
+    </div>
+    <div class="frame-panel--body">
+        <form id="eventForm" style="display:grid; gap:0.75rem;">
+            <label style="color:#cbd5e1; font-size:0.875rem;">
+                Title
+                <input type="text" id="eventTitle" required placeholder="e.g., Court hearing, Rent due" style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+            </label>
+            <label style="color:#cbd5e1; font-size:0.875rem;">
+                Type
+                <select id="eventType" style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+                    <option value="deadline">Deadline</option>
+                    <option value="hearing">Hearing</option>
+                    <option value="appointment">Appointment</option>
+                    <option value="reminder">Reminder</option>
+                    <option value="rent_due">Rent due</option>
+                </select>
+            </label>
+            <label style="color:#cbd5e1; font-size:0.875rem;">
+                Date & time
+                <input type="datetime-local" id="eventDate" required style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+            </label>
+            <label style="color:#cbd5e1; font-size:0.875rem; display:flex; align-items:center; gap:0.5rem;">
+                <input type="checkbox" id="eventCritical" style="accent-color:#3b82f6;">
+                This is critical
+            </label>
+            <button type="submit" class="frame-btn frame-btn--primary" style="justify-self:start;">Add event</button>
+            <div id="eventStatus" style="font-size:0.8125rem; color:#94a3b8;"></div>
+        </form>
+    </div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Upcoming</span>
+    </div>
+    <div class="frame-panel--body" id="eventList">
+        <div class="frame-empty" id="eventEmpty">
+            <div class="frame-empty--icon">∅</div>
+            <p>No events yet.</p>
+            <p class="frame-empty--hint">Add your first deadline or hearing above.</p>
+        </div>
+    </div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--body">
+        <p style="font-size:0.8125rem; color:#64748b;">
+            Semptify does not give legal advice.
+            <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">Find legal help near you</a>.
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const eventList = document.getElementById('eventList');
+    const eventEmpty = document.getElementById('eventEmpty');
+    const eventForm = document.getElementById('eventForm');
+    const eventStatus = document.getElementById('eventStatus');
+
+    function fmtDate(s) {
+        if (!s) return '—';
+        try {
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+                + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+        } catch (e) { return s; }
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function typeColor(t) {
+        if (t === 'hearing') return '#ef4444';
+        if (t === 'deadline') return '#f59e0b';
+        if (t === 'rent_due') return '#10b981';
+        return '#3b82f6';
+    }
+
+    async function loadEvents() {
+        try {
+            const r = await fetch('/api/calendar/upcoming?days=90', { credentials: 'include' });
+            if (!r.ok) {
+                if (r.status === 401) {
+                    eventEmpty.querySelector('p').textContent = 'Connect your storage to see events.';
+                    return;
+                }
+                throw new Error('HTTP ' + r.status);
+            }
+            const data = await r.json();
+            const events = (data.critical || []).concat(data.upcoming || []);
+            render(events);
+        } catch (e) {
+            eventEmpty.querySelector('p').textContent = 'Could not load events.';
+            eventEmpty.querySelector('.frame-empty--hint').textContent = e.message;
+        }
+    }
+
+    function render(events) {
+        eventList.innerHTML = '';
+        if (!events.length) {
+            eventList.appendChild(eventEmpty);
+            eventEmpty.style.display = '';
+            return;
+        }
+        events.forEach(e => {
+            const item = document.createElement('div');
+            item.className = 'frame-item';
+            const icon = document.createElement('div');
+            icon.className = 'frame-item--icon';
+            icon.style.color = typeColor(e.event_type);
+            icon.textContent = e.event_type === 'hearing' ? '⚖️' : (e.event_type === 'deadline' ? '⏰' : '📅');
+            const main = document.createElement('div');
+            main.className = 'frame-item--main';
+            const title = document.createElement('div');
+            title.className = 'frame-item--title';
+            title.textContent = e.title || 'Untitled';
+            const meta = document.createElement('div');
+            meta.className = 'frame-item--meta';
+            meta.textContent = fmtDate(e.start_datetime) + (e.is_critical ? ' · Critical' : '');
+            main.appendChild(title);
+            main.appendChild(meta);
+            item.appendChild(icon);
+            item.appendChild(main);
+            eventList.appendChild(item);
+        });
+    }
+
+    eventForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const title = document.getElementById('eventTitle').value.trim();
+        const eventType = document.getElementById('eventType').value;
+        const dateVal = document.getElementById('eventDate').value;
+        const isCritical = document.getElementById('eventCritical').checked;
+        if (!title || !dateVal) return;
+
+        const start = new Date(dateVal);
+        const iso = start.toISOString();
+
+        eventStatus.textContent = 'Saving…';
+        try {
+            const r = await fetch('/api/calendar/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    title: title,
+                    event_type: eventType,
+                    start_datetime: iso,
+                    all_day: false,
+                    is_critical: isCritical
+                })
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(data.detail || data.message || ('HTTP ' + r.status));
+            eventStatus.textContent = 'Event added.';
+            eventForm.reset();
+            await loadEvents();
+            setTimeout(() => { eventStatus.textContent = ''; }, 2000);
+        } catch (err) {
+            eventStatus.textContent = 'Could not save: ' + (err.message || 'unknown error');
+        }
+    });
+
+    loadEvents();
+})();
+</script>
+{% endblock %}
