@@ -419,9 +419,12 @@ _register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault
 _register("app.modules.vault_engine.router", prefix="/api/vault-engine", tags=("Vault Engine", "Access Control"), tier=ProductTier.CORE,
           lifecycle="dev_only", requires_role=("admin",),
           dev_notes="Access-control engine for vault resources (permissions, sharing, audit). Distinct from document-storage vault. Not yet user-facing.")
-_register("app.modules.timeline.router", prefix="/api/timeline", tags=("Unified Timeline",), tier=ProductTier.CORE)
-_register("app.modules.briefcase.router", tags=("Briefcase",), tier=ProductTier.CORE)
-_register("app.modules.workflow.router", tags=("Workflow",), tier=ProductTier.CORE)
+_register("app.modules.timeline.router", prefix="/api/timeline", tags=("Unified Timeline",), tier=ProductTier.CORE,
+          dev_notes="Canonical timeline API (DB-backed TimelineEvent model). Briefcase router's in-memory timeline-event CRUD removed 2026-07-15 as duplicate. Workflow router is NOT a duplicate — it only reads timeline counts for routing decisions.")
+_register("app.modules.briefcase.router", tags=("Briefcase",), tier=ProductTier.CORE,
+          dev_notes="Annotation + document-briefcase API. Timeline-event CRUD removed 2026-07-15 (was duplicate of app.modules.timeline.router). Annotations still store linked_event_id for cross-reference to canonical timeline events.")
+_register("app.modules.workflow.router", tags=("Workflow",), tier=ProductTier.CORE,
+          dev_notes="Deterministic routing engine. Reads timeline_events count as a routing signal — NOT a timeline implementation. Distinct from app.modules.timeline.router.")
 _register("app.modules.workflow_validator.router", tags=("Admin",), tier=ProductTier.CORE)
 
 # Rights & education
