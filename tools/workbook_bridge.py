@@ -237,6 +237,18 @@ DELIVERABLE:
 """
 
 
+def _task_key(task: dict) -> str:
+    """Stable key used to match regenerated tasks with existing state."""
+    return "|".join(
+        [
+            str(task.get("title", "")),
+            str(task.get("file_path", "")),
+            str(task.get("line_start") or ""),
+            str(task.get("category", "")),
+        ]
+    )
+
+
 def build_task(
     *,
     title: str,
@@ -259,6 +271,7 @@ def build_task(
         "line_start": line_start,
         "line_end": line_end,
         "status": "pending",
+        "claimed_by": None,
         "notes": "",
         "created_at": now,
         "updated_at": now,
@@ -429,6 +442,34 @@ def main() -> int:
     if not all_tasks:
         print("No tasks generated. Check sheet names and headers.", file=sys.stderr)
         return 1
+
+    # Preserve in_progress/done statuses and claim metadata from the previous JSON
+    # so regeneration does not reset work already in flight.
+    if output_path.exists():
+        try:
+            existing_tasks = json.loads(output_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            existing_tasks = []
+    else:
+        existing_tasks = []
+
+    existing_by_key = {
+        _task_key(t): t
+        for t in existing_tasks
+        if isinstance(t, dict)
+    }
+
+    for task in all_tasks:
+        key = _task_key(task)
+        old = existing_by_key.get(key)
+        if old:
+            task["id"] = old.get("id", task["id"])
+            task["status"] = old.get("status", task["status"])
+            task["claimed_by"] = old.get("claimed_by", task["claimed_by"])
+            task["created_at"] = old.get("created_at", task["created_at"])
+            task["updated_at"] = old.get("updated_at", task["updated_at"])
+            # Keep prompt in sync with preserved timestamps/metadata.
+            task["prompt"] = make_prompt(task)
 
     output_path.write_text(json.dumps(all_tasks, indent=2), encoding="utf-8")
     print(f"Wrote {len(all_tasks)} tasks ({len(stub_tasks)} stubs, {len(dup_tasks)} duplicates) to {output_path}")
