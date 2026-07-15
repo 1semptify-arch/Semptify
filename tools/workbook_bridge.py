@@ -229,6 +229,13 @@ MANDATORY RULES FROM AGENTS.md:
 9. Add regression tests for bug fixes when possible.
 10. Verify changed files compile before ending the session.
 
+WORKFLOW (required, in order):
+1. Claim this task: python tools/workorder_runner.py --agent {task['target_model']} claim
+   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.
+2. Do the work described in DELIVERABLE.
+3. Mark the task done: python tools/workorder_runner.py done {task['id']}
+4. Commit (one commit, per MANDATORY RULES above).
+
 DELIVERABLE:
 - Make the minimal change that fixes this {category_label.lower()}.
 - If the fix touches another service, check module contracts first.
