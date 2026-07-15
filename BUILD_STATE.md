@@ -3,6 +3,29 @@
 ### Stub Sync Log — 2026-07-15 15:03 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
 
+## Session — 2026-07-15 PM — /ship after court_forms fix + merge cleanup
+
+### Last Deployed Commit
+- `0027d10` on `main` (pushed 2026-07-15 ~17:15 UTC)
+- Includes: court_forms IndentationError fix (`8b8ec78`), duplicate-resolves-batch-2 merge (`7da7076`), GUI home dashboard redesign + calendar page.
+
+### What Was Shipped This Session
+- **Fix: court_forms IndentationError** — `app/modules/court_forms/router.py:798` had empty `except Exception:` block causing `IndentationError` on Render startup. Added logging.warning body. (commit `8b8ec78`)
+- **Merge: fix/duplicate-resolves-batch-2** into `main` — resolved 16 duplicate-module tasks, vault/context_engine/context_loop duplicate registrations removed. (commit `7da7076`)
+- **Sync artifacts** — BUILD_STATE sync log updated. (commit `0027d10`)
+
+### Known Working
+- `app/main.py` and core routers compile clean (`py_compile` passes).
+- Orchestrator queue: 16/16 tasks done. 0 pending.
+- Workbook sync: 116 modules validated, 0 duplicates, 0 new stubs.
+
+### Known Broken / Pending
+- Uncommitted `tools/` sync artifacts (agent_orchestrator.html, orchestrator_dashboard.html, .sync_orchestrator_hash) — auto-generated, not staged per /ship workflow.
+- Render deploy of `0027d10` should be picked up automatically (autoDeploy enabled).
+
+### Next Session Should Start With
+- Pick up from `ACTIVE_CONTEXT.md` priority list: GUI Phase 1 (Calendar/Timeline integration + home dashboard cards) or Document Center planning.
+
 ## Session — 2026-07-15 AM — Final Duplicate Cleanup (Shipped)
 
 ### What Was Done
