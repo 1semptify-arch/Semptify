@@ -19,6 +19,7 @@ All checks passed.
   - `status` command: counts tasks by status.
   - Uses a `Timeout`ed `FileLock` to prevent concurrent agents from double-claiming.
 - **Updated** `tools/workbook_bridge.py` to preserve existing `id`, `status`, `claimed_by`, `created_at`, and `updated_at` across regeneration.
+- **Added** a `WORKFLOW` section to `make_prompt` so each generated task prompt tells the agent to claim, do the work, mark done, and commit — with the real `target_model` as `--agent` and the real `task id` filled in.
 - **Verified** concurrent agents: only one of two parallel `claim` processes succeeds.
 - **Verified** single-agent flow: claim → done → status works.
 - **Verified** `workbook_bridge.py` regeneration preserves an `in_progress` task and its `claimed_by` metadata.
