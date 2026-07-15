@@ -135,26 +135,35 @@
   .toast.show { opacity: 1; }
   .empty { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
   .hint { color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem; }
-  .instructions summary {
-    cursor: pointer;
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-  .instructions ol {
+  .workflow ol.steps {
     margin: 0.75rem 0 0 1.25rem;
     color: var(--muted);
     font-size: 0.85rem;
   }
-  .instructions li { margin-bottom: 0.4rem; }
-  .instructions code {
-    background: var(--bg);
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
-    font-size: 0.78rem;
+  .workflow ol.steps li {
+    margin-bottom: 0.9rem;
+    padding-left: 0.25rem;
+  }
+  .workflow ol.steps li strong {
     color: var(--text);
   }
-  .instructions .actions { margin-top: 0.75rem; }
+  .workflow .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 0.8rem;
+    margin: 0.4rem 0;
+    color: var(--text);
+  }
+  .workflow .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+  }
+  .workflow #load-hint.ready { color: var(--green); }
+  .workflow #load-hint.blocked { color: var(--red); }
 </style>
 </head>
 <body>
@@ -164,23 +173,46 @@
   </div>
   <p class="subtitle">No server needed. Runs in your browser using localStorage. Open this file in Windsurf preview or any browser tab.</p>
 
-  <div class="card instructions">
-    <details>
-      <summary>How to use this Agent Orchestrator</summary>
-      <ol>
-        <li><strong>Generate fresh tasks from the repo:</strong> Run <code>python tools/sync_orchestrator.py</code> in the terminal. It scans stubs, reads the workbook, and updates <code>tools/agent_orchestrator_tasks.json</code> and this page.</li>
-        <li><strong>Open the page fresh:</strong> Reload this tab. If no local queue is saved, the page auto-loads the embedded tasks (the JSON block the sync tool just produced).</li>
-        <li><strong>Pick a task:</strong> Use the Task Queue table below. Click <em>View prompt</em> to read the generated prompt, or <em>Copy</em> to paste it into an agent.</li>
-        <li><strong>Work the task:</strong> Paste the prompt into an AI agent. The agent returns file changes and a verification command.</li>
-        <li><strong>Update status:</strong> Change the task status from <em>pending</em> to <em>in_progress</em>, <em>review</em>, or <em>resolved</em>. Your queue is saved in localStorage.</li>
-        <li><strong>Sync again later:</strong> Run the sync script again to refresh the queue. Then click <strong>Start fresh ↺</strong> below to clear local cache and load the newest embedded tasks.</li>
-        <li><strong>Export/import:</strong> Use the Data card to back up your queue as JSON or move it between machines.</li>
-      </ol>
-      <div class="actions">
-        <button type="button" class="btn btn-green" onclick="startFresh()">Start fresh ↺</button>
-        <button type="button" class="btn btn-secondary" onclick="showHelpStatus()">Show current load source</button>
-      </div>
-    </details>
+  <div class="card workflow">
+    <h2>How to use this Agent Orchestrator</h2>
+    <ol class="steps">
+      <li>
+        <strong>1. Generate the task queue</strong>
+        <p class="hint">Run the sync script in your terminal. This cannot be triggered from the browser for security reasons.</p>
+        <div class="code-block" id="sync-cmd">python tools/sync_orchestrator.py</div>
+        <button class="btn btn-sm" onclick="copySyncCommand()">Copy command</button>
+      </li>
+      <li>
+        <strong>2. Load the latest tasks</strong>
+        <p class="hint" id="load-hint">Clears your local queue and loads the freshest embedded/project JSON.</p>
+        <button type="button" class="btn btn-green" onclick="startFresh()" id="start-fresh-btn">Start fresh ↺</button>
+      </li>
+      <li>
+        <strong>3. Pick a task</strong>
+        <p class="hint">In the Task Queue below, click <em>Copy</em> to copy the prompt for an AI agent, or <em>View prompt</em> to read it first.</p>
+        <button class="btn btn-sm btn-secondary" onclick="scrollToTasks()">Jump to Task Queue</button>
+      </li>
+      <li>
+        <strong>4. Mark progress</strong>
+        <p class="hint">Use the status dropdown in each row to set <em>in_progress</em>, <em>review</em>, <em>resolved</em>, or <em>rejected</em>. Your queue auto-saves to localStorage.</p>
+      </li>
+      <li>
+        <strong>5. Create custom tasks (optional)</strong>
+        <p class="hint">Use the Create Task form below to add one-off items the sync script doesn't know about.</p>
+      </li>
+      <li>
+        <strong>6. Backup or move your queue</strong>
+        <p class="hint">Export JSON saves your current queue. Import JSON loads it on another machine.</p>
+        <div class="actions">
+          <button class="btn btn-green" onclick="exportJson()">Export JSON</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('workflow-import-file').click()">Import JSON</button>
+          <input type="file" id="workflow-import-file" accept="application/json" style="display:none" onchange="importJson(this)">
+        </div>
+      </li>
+    </ol>
+    <div class="actions" style="margin-top:0.75rem">
+      <button type="button" class="btn btn-secondary" onclick="showHelpStatus()">Show current load source</button>
+    </div>
   </div>
 
   <div class="card">
@@ -838,12 +870,39 @@ async function autoLoadProjectJson() {
   }
 }
 
+function copySyncCommand() {
+  const cmd = document.getElementById('sync-cmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => showToast('Sync command copied'));
+}
+
+function scrollToTasks() {
+  document.getElementById('task-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateWorkflowState() {
+  const embedded = loadEmbeddedTasks();
+  const projectAvailable = tasks.length > 0 || embedded.length > 0;
+  const btn = document.getElementById('start-fresh-btn');
+  const hint = document.getElementById('load-hint');
+  if (!btn || !hint) return;
+  if (!projectAvailable) {
+    btn.disabled = true;
+    hint.className = 'hint blocked';
+    hint.textContent = 'No tasks available yet. Complete Step 1 (run python tools/sync_orchestrator.py) to generate the queue before loading fresh tasks.';
+  } else {
+    btn.disabled = false;
+    hint.className = 'hint ready';
+    hint.textContent = `Ready: ${embedded.length} embedded task(s) available. Click to reload from the latest embedded/project JSON.`;
+  }
+}
+
 document.getElementById('create-form').addEventListener('submit', createTask);
 
 initModels();
 (async () => {
   await autoLoadProjectJson();
   renderTasks();
+  updateWorkflowState();
 })();
 </script>
 </body>
