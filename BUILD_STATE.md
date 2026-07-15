@@ -1,7 +1,26 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 
-### Stub Sync Log — 2026-07-15 05:55 UTC
+### Stub Sync Log — 2026-07-15 06:04 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
+
+## Session — 2026-07-15 AM (3) — Added WORKFLOW Section to HTML generatePrompt()
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` `generatePrompt()` (line 687) to include the same `WORKFLOW` section that `workbook_bridge.py`'s `make_prompt()` includes.
+  - WORKFLOW block inserted between `MANDATORY RULES` and `DELIVERABLE` sections, matching the Python version exactly.
+  - `${task.target_model}` and `${task.id}` substituted dynamically — no literal placeholder text in generated output.
+- **Verified**: generated a prompt for the same task (`3b5bb7ad-...`) via both Python `make_prompt()` and JS `generatePrompt()`. WORKFLOW content is identical:
+  - `python tools/workorder_runner.py --agent kimi-2.7 claim`
+  - `python tools/workorder_runner.py done 3b5bb7ad-d885-40cb-84db-991ce26657bf`
+  - Same 4-step order, same wording.
+
+### Duplication Risk
+The WORKFLOW template text is now duplicated between `tools/workbook_bridge.py` (`make_prompt`) and `tools/agent_orchestrator.html` (`generatePrompt`). Sharing a single template between Python and JS would require non-trivial rework (template file + loader in both runtimes) — flagged for a future task if drift becomes a problem. For now, the two copies are identical and any change to one must be mirrored in the other.
+
+### Files Changed
+- `tools/agent_orchestrator.html` — added WORKFLOW section to `generatePrompt()`
+- `BUILD_STATE.md` — this note
+
 
 ## Session — 2026-07-15 AM (2) — Fixed Status Vocabulary Mismatch
 
