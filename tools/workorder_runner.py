@@ -3,9 +3,11 @@
 
 Usage:
     .\\venv311\\Scripts\\Activate.ps1
-    python tools/workorder_runner.py claim --agent swe-1.6
-    python tools/workorder_runner.py done <task_id>
+    python tools/workorder_runner.py --agent swe-1.6 claim
+    python tools/workorder_runner.py --agent swe-1.6 done <task_id>
     python tools/workorder_runner.py status
+
+Note: --agent is a global flag that must come BEFORE the subcommand.
 
 Environment:
     AGENT_NAME — default agent name used in `claimed_by`.
@@ -122,8 +124,13 @@ def claim_next_pending(
 def mark_done(
     tasks_path: Path,
     task_id: str,
+    agent_name: str,
 ) -> dict | None:
-    """Atomically mark a task as done."""
+    """Atomically mark a task as done.
+
+    Requires the caller's agent name to match the task's claimed_by.agent.
+    Prevents one agent from silently marking another agent's task as done.
+    """
     if not tasks_path.exists():
         raise FileNotFoundError(tasks_path)
 
@@ -132,6 +139,18 @@ def mark_done(
         tasks = _load_tasks(tasks_path)
         for task in tasks:
             if task.get("id") == task_id:
+                claimed_by = task.get("claimed_by") or {}
+                claimant = claimed_by.get("agent") if isinstance(claimed_by, dict) else None
+                if claimant and claimant != agent_name:
+                    raise PermissionError(
+                        f"Task {task_id} is claimed by '{claimant}', not '{agent_name}'. "
+                        f"Only the claiming agent can mark it done."
+                    )
+                if not claimant:
+                    raise PermissionError(
+                        f"Task {task_id} is not claimed. Claim it first with: "
+                        f"python tools/workorder_runner.py --agent {agent_name} claim"
+                    )
                 task["status"] = "done"
                 task["updated_at"] = _now_iso()
                 _save_tasks(tasks_path, tasks)
@@ -220,7 +239,11 @@ def main() -> int:
         return 0
 
     if args.command == "done":
-        task = mark_done(args.tasks, args.task_id)
+        try:
+            task = mark_done(args.tasks, args.task_id, args.agent)
+        except (FileNotFoundError, PermissionError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
         if task is None:
             print(f"Task not found: {args.task_id}", file=sys.stderr)
             return 1
