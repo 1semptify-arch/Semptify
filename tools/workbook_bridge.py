@@ -299,32 +299,122 @@ def load_stub_tasks_json(path: Path) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def update_excel_stubs(workbook_path: Path, stub_tasks: list[dict]) -> bool:
-    """Write the live stub list back into the workbook 'Stubs & TODOs' tab."""
+STUB_SOURCE_MARKER = "auto"  # column G marker for script-written rows
+
+
+def _read_stub_sheet_rows(ws) -> list[list]:
+    """Read all data rows (row 2 onwards) from the Stubs & TODOs sheet."""
+    rows = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if any(cell is not None for cell in row):
+            rows.append(list(row))
+    return rows
+
+
+def _filter_manual_stub_rows(rows: list[list]) -> list[list]:
+    """Keep rows that were hand-typed (no 'auto' marker in column G)."""
+    manual = []
+    for row in rows:
+        source = row[6] if len(row) > 6 else None
+        if source != STUB_SOURCE_MARKER:
+            manual.append(row)
+    return manual
+
+
+def _ensure_source_header(ws) -> None:
+    """Add 'Source' header to column G if missing."""
+    header_g = ws.cell(row=1, column=7).value
+    if not header_g:
+        ws.cell(row=1, column=7, value="Source")
+
+
+def update_excel_stubs(
+    workbook_path: Path, stub_tasks: list[dict]
+) -> tuple[bool, int, int, int]:
+    """Write the live stub list back into the workbook 'Stubs & TODOs' tab.
+
+    Preserves hand-typed rows (those without the 'auto' marker in column G).
+    Only replaces rows previously written by this script.
+
+    Returns (success, rows_before, rows_after, manual_preserved) for logging.
+    """
     if openpyxl is None:
         print("openpyxl not installed; skipping Excel stub update.", file=sys.stderr)
-        return False
+        return False, 0, 0, 0
     try:
         wb = openpyxl.load_workbook(workbook_path)
         if "Stubs & TODOs" not in wb.sheetnames:
             print("Sheet 'Stubs & TODOs' not found in workbook.", file=sys.stderr)
-            return False
+            return False, 0, 0, 0
         ws = wb["Stubs & TODOs"]
-        # Clear existing data rows below the header
+
+        _ensure_source_header(ws)
+
+        existing_rows = _read_stub_sheet_rows(ws)
+        rows_before = len(existing_rows)
+        manual_rows = _filter_manual_stub_rows(existing_rows)
+
+        # Clear all data rows below header
         max_row = ws.max_row
         if max_row > 1:
             ws.delete_rows(2, max_row - 1)
+
+        # Re-append manual rows first (preserving Brad's hand-typed entries)
+        for row in manual_rows:
+            padded = list(row) + [None] * (7 - len(row))
+            ws.append(padded[:7])
+
+        # Append fresh auto-detected stub rows
         for idx, task in enumerate(stub_tasks, start=1):
             file_path = str(task.get("file", "")).replace("\\", "/")
             line = task.get("line", "")
             reason = task.get("reason", "")
             severity = "HIGH" if "NotImplementedError" in reason else "MEDIUM"
-            ws.append([idx, file_path, line, "stub", reason, severity])
+            ws.append([idx, file_path, line, "stub", reason, severity, STUB_SOURCE_MARKER])
+
         wb.save(workbook_path)
-        return True
+        rows_after = ws.max_row - 1  # subtract header
+        return True, rows_before, rows_after, len(manual_rows)
     except Exception as e:
         print(f"Could not update Excel stubs: {e}", file=sys.stderr)
-        return False
+        return False, 0, 0, 0
+
+
+def _log_stub_sync_to_build_state(
+    build_state_path: Path,
+    rows_before: int,
+    rows_after: int,
+    manual_preserved: int,
+) -> None:
+    """Append a stub-sync log line to BUILD_STATE.md."""
+    if not build_state_path.exists():
+        return
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+    log_line = (
+        f"### Stub Sync Log — {timestamp}\n"
+        f"Stubs sheet: {rows_before} rows before sync, "
+        f"{rows_after} rows after — {manual_preserved} manual rows preserved.\n"
+    )
+    content = build_state_path.read_text(encoding="utf-8")
+    marker = "### Stub Sync Log"
+    if marker in content:
+        # Replace existing log section
+        import re
+        content = re.sub(
+            r"### Stub Sync Log.*?(?=\n###|\n## |\Z)",
+            log_line,
+            content,
+            count=1,
+            flags=re.DOTALL,
+        )
+    else:
+        # Insert after the guardrail engine run section
+        content = content.replace(
+            "# BUILD_STATE.md -- Semptify Live Deployment State\n",
+            f"# BUILD_STATE.md -- Semptify Live Deployment State\n\n{log_line}",
+            1,
+        )
+    build_state_path.write_text(content, encoding="utf-8")
 
 
 def stub_tasks_json_to_tasks(stub_tasks: list[dict]) -> list[dict]:
@@ -435,7 +525,15 @@ def main() -> int:
     if stub_source_path.exists():
         stub_tasks_json = load_stub_tasks_json(stub_source_path)
         print(f"Found {len(stub_tasks_json)} live stub(s) in {stub_source_path.relative_to(repo_root)}")
-        update_excel_stubs(workbook_path, stub_tasks_json)
+        success, before, after, manual = update_excel_stubs(workbook_path, stub_tasks_json)
+        if success:
+            print(
+                f"Stubs sheet: {before} rows before sync, {after} rows after "
+                f"— {manual} manual rows preserved."
+            )
+            _log_stub_sync_to_build_state(
+                repo_root / "BUILD_STATE.md", before, after, manual
+            )
         stub_tasks = stub_tasks_json_to_tasks(stub_tasks_json)
     else:
         print("No live stub source found; reading workbook 'Stubs & TODOs' tab.")
