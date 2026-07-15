@@ -1,5 +1,22 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 
+### Stub Sync Log — 2026-07-15 05:44 UTC
+Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
+
+## Session — 2026-07-15 AM — Fixed Stub-Sync Data-Loss Risk
+
+### What Was Done
+- **Fixed** `tools/workbook_bridge.py` `update_excel_stubs()` to preserve hand-typed rows in the "Stubs & TODOs" sheet across syncs.
+  - Added a `Source` marker column (column G). Script-written rows are tagged `auto`; hand-typed rows are left alone.
+  - On sync: only rows with `source=auto` are replaced. Manual rows are re-appended untouched.
+  - Added `_log_stub_sync_to_build_state()` to log before/after row counts into BUILD_STATE.md on every sync, so a silent wipe would be visible in the log.
+- **Verified**: added a fake stub to `stub_tasks_new.json` and a hand-typed row to the workbook. After sync, both rows present — auto row updated, manual row untouched.
+- **Verified**: BUILD_STATE.md shows the before/after row count from the test run.
+
+### Files Changed
+- `tools/workbook_bridge.py` — marker-based selective row replacement + BUILD_STATE.md sync log
+- `BUILD_STATE.md` — session note + stub sync log
+
 ### Guardrail Engine Run — 2026-07-14T19:08:48
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
