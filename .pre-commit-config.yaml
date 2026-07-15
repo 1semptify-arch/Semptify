@@ -69,12 +69,13 @@ repos:
 
   - repo: local
     hooks:
-      - id: sync-orchestrator
-        name: Sync stub/task/workbook state
-        entry: python tools/sync_orchestrator.py --git-add
+      - id: guardrail-engine
+        name: Run all guardrail checks
+        entry: python tools/guardrail_engine.py
         language: system
         pass_filenames: false
         always_run: true
+        description: "Unified guardrail engine: stub detection, manifest/sync check, and future checks"
 
 # Configuration for specific hooks
 default_language_version:
