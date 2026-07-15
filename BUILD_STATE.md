@@ -10,6 +10,33 @@ All checks passed.
 **16-vs-171 task count finding:** The workbook `Semptify_Master_Inventory_LIVE_reviewed.xlsx` currently has an empty 'Stubs & TODOs' tab (header only) and 16 data rows in the 'Duplicates' tab, so `agent_orchestrator_tasks.json` containing 16 tasks is the correct intended state. The earlier 171 count reflected prior stub entries that have since been resolved.
 # Update this file at the end of every session using /ship
 
+## Session — 2026-07-15 AM — Concurrent Agent Task Locking
+
+### What Was Done
+- **Added** `tools/workorder_runner.py` for atomic task claiming with `filelock`.
+  - `claim` command: flips the next `pending` (or stale `in_progress`) task to `in_progress` and writes `claimed_by` (`agent` + `claimed_at` timestamp).
+  - `done` command: marks a task as `done`.
+  - `status` command: counts tasks by status.
+  - Uses a `Timeout`ed `FileLock` to prevent concurrent agents from double-claiming.
+- **Updated** `tools/workbook_bridge.py` to preserve existing `id`, `status`, `claimed_by`, `created_at`, and `updated_at` across regeneration.
+- **Verified** concurrent agents: only one of two parallel `claim` processes succeeds.
+- **Verified** single-agent flow: claim → done → status works.
+- **Verified** `workbook_bridge.py` regeneration preserves an `in_progress` task and its `claimed_by` metadata.
+
+### Verification Commands
+- `python temp/test_concurrent.py`
+- `python tools/workorder_runner.py --tasks temp/test_single.json --agent swe-1.6 claim`
+- `python tools/workorder_runner.py --tasks temp/test_single.json --agent swe-1.6 done single-1`
+- `python tools/workorder_runner.py --tasks temp/test_single.json status`
+
+### Files Changed
+- `tools/workorder_runner.py` (new)
+- `tools/workbook_bridge.py`
+- `tools/agent_orchestrator_tasks.json` (regenerated with `claimed_by` field)
+- `BUILD_STATE.md`
+
+---
+
 ## Session — 2026-07-13 PM (3) — Resolve Duplicate: case_builder router vs case_builder.py standalone
 
 ### What Was Done
