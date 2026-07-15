@@ -3,6 +3,19 @@
 ### Stub Sync Log — 2026-07-15 09:01 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
 
+## Session — 2026-07-15 AM (9) — Orchestrator Task: timeline vs briefcase timeline vs workflow timeline
+
+### Task 6fb6aeec — Resolve duplicate: timeline vs briefcase timeline vs workflow timeline
+- **Result:** Real duplicate found and removed. Briefcase had in-memory timeline-event CRUD that duplicated the canonical DB-backed timeline module.
+- **Investigation:**
+  - `app/modules/timeline/router.py` — Canonical unified timeline API at `/api/timeline/*`, DB-backed via `TimelineEvent` model. Aggregates documents, events, calendar, vault items, cloud events.
+  - `app/modules/briefcase/router.py` lines 1229-1475 — Had in-memory `timeline_events_data = {}` dict with full CRUD: POST/GET/PUT/DELETE `/timeline-event`, `/timeline-events`, `/timeline-event/{id}/chain`, `/timeline-event/from-annotation/{id}`. Zero callers (no grep matches in .py, .html, or .js files). Used in-memory dict, not DB — would lose data on restart.
+  - `app/modules/workflow/router.py` — NOT a duplicate. Reads `timeline_events` count as a routing signal for case-state decisions. No timeline CRUD.
+- **Fix:** Removed the duplicate timeline-event CRUD block (247 lines) from `briefcase/router.py`. Updated `product_manifest.py` dev_notes for all three modules to document the distinction.
+- **Files changed:**
+  - `app/modules/briefcase/router.py` — removed lines 1229-1475 (timeline-event CRUD block)
+  - `app/core/product_manifest.py` — updated dev_notes for timeline, briefcase, workflow registrations
+
 ## Session — 2026-07-15 AM (6) — Pending Decisions Resolved
 
 ### Decision 1: review/rejected status path → Option C (reject only)
