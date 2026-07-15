@@ -1,7 +1,34 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 
-### Stub Sync Log — 2026-07-15 05:47 UTC
+### Stub Sync Log — 2026-07-15 05:55 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
+
+## Session — 2026-07-15 AM (2) — Fixed Status Vocabulary Mismatch
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` status vocabulary mismatch:
+  - Added `done` to the status dropdown (`statusOptions` at line 739).
+  - Added `done` stat card to the summary section.
+  - Added `resolved` and `rejected` stat cards to the summary section.
+  - Updated `updateSummary()` to count all 6 statuses: `pending`, `in_progress`, `done`, `review`, `resolved`, `rejected`.
+  - Added `.badge-done` CSS class.
+- **Verified**: marked a real task `done` via `workorder_runner.py`, re-synced the HTML, confirmed the embedded JSON contains 4 `done` tasks that will now be counted.
+- **Verified**: no existing status (pending/in_progress) broke — `status` command shows 4 done, 12 pending.
+
+### Status Vocabulary Findings
+- `pending` — initial, set by `workbook_bridge.py`
+- `in_progress` — set by `workorder_runner.py claim`
+- `done` — set by `workorder_runner.py done`
+- `review` — UI dropdown only (manually set by Brad via `updateStatus()`). Nothing in the runner sets it.
+- `resolved` — UI dropdown only. Nothing in the runner sets it.
+- `rejected` — UI dropdown only. Nothing in the runner sets it.
+- **`review`/`resolved`/`rejected` are NOT dead** — they're reachable via the HTML dropdown's `updateStatus()` function. They're just never set by the runner. Kept all three in the UI per task instructions. Confirm with Brad whether a review step is wanted before removing.
+
+### Files Changed
+- `tools/agent_orchestrator.html` — added `done` to dropdown + summary, added `resolved`/`rejected` to summary, added `.badge-done` CSS
+- `tools/agent_orchestrator_tasks.json` — 1 task marked done during verification (research router duplicate)
+- `BUILD_STATE.md` — this note
+
 
 ## Session — 2026-07-15 AM — Fixed Stub-Sync Data-Loss Risk
 
