@@ -1,36 +1,26 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 
-### Stub Sync Log — 2026-07-15 08:10 UTC
+### Stub Sync Log — 2026-07-15 09:01 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
 
-## Session — 2026-07-15 AM (5) — Batch Cleanup Pass (Tasks 5A-E)
+## Session — 2026-07-15 AM (6) — Pending Decisions Resolved
 
-### Sub-item A — Task key collision risk
-- **Fixed** `tools/workbook_bridge.py` `_task_key()` to include `row_index` (workbook row number) in the key, preventing collisions when two rows have identical `systems`/`file_path`/`line_start`/`category` values.
-- **Verified**: two rows with identical `systems` values now produce unique keys (row 2 vs row 3).
+### Decision 1: review/rejected status path → Option C (reject only)
+- **Added** `reject` command to `tools/workorder_runner.py`. Any agent can reject any pending/in_progress task as invalid/duplicate/wrong-scope. Records `rejected_by` with agent, reason, and timestamp.
+- **Rejected tasks cannot be re-rejected or done'd** — raises `ValueError` if already `done` or `rejected`.
+- **Agents do NOT self-promote to review** — `done` remains the agent's terminal state. Brad manually moves `done → resolved` or `done → rejected` via the HTML UI when reviewing.
+- **Lifecycle is now**: `pending → in_progress → done` (terminal for agents) or `→ rejected` (invalid). Brad handles `done → resolved` manually.
+- **Updated** docstring with full lifecycle diagram.
 
-### Sub-item B — Dead routing code
-- **Confirmed** `model_for_task()` branches for `stub_fix`/`test_add`/`doc_update`/`refactor` are sane and intentional — kept for when those task types appear in the workbook. Added comment noting they're currently unused but intentional. Do not remove.
-
-### Sub-item C — Runner issues
-- **Fixed** `tools/workorder_runner.py` docstring: `--agent` flag must come BEFORE the subcommand (e.g. `python tools/workorder_runner.py --agent swe-1.6 claim`), not after.
-- **Fixed** `done` command: now requires `--agent` and rejects the call if `claimed_by.agent` doesn't match. Prevents one agent from silently marking another agent's task as done. Raises `PermissionError` with a clear message.
-- **Pending decision**: `review`/`rejected` transition path in the runner is NOT built yet. Depends on the decision flagged in Task 2 about whether review/rejected are wanted at all. Confirm with Brad before building.
-
-### Sub-item D — Orphan files
-- **`tools/orchestrator_dashboard.html`** (44 KB, untracked): investigated. It's a read-only dashboard view with different features (progress bars, category/agent breakdowns, filters) from `agent_orchestrator.html`. It's a genuine second view, not a superseded version. **Left it as-is** — untracked, not deleted. Brad can decide whether to commit or remove it.
-- **`temp/`**: confirmed nothing in the codebase depends on it. Added `temp/` to `.gitignore` so it stops showing up in `git status`.
-- **`agent_orchestrator_tasks.json` .gitignore inconsistency**: the file was in `.gitignore` but also tracked in git. Removed the stale `.gitignore` rule — the file is actively committed and embedded into `agent_orchestrator.html` by `sync_orchestrator.py`, so it needs to be tracked.
-
-### Sub-item E — Pre-commit hook inefficiency
-- **Fixed** `tools/sync_orchestrator.py` to skip regeneration when nothing changed. Uses mtime+size of the workbook + `.py` file mtimes under `app/` and `tools/` as a fast signature. Stores the post-run hash in `tools/.sync_orchestrator_hash`. On the next run, if the pre-run hash matches the stored post-run hash, skips stub_detector + workbook_bridge + HTML embed entirely.
-- **Verified**: Run 1 regenerates, Run 2 (no changes) skips, Run 3 (touched .py file) regenerates.
+### Decision 2: orchestrator_dashboard.html → Option B (commit and wire up)
+- **Committed** `tools/orchestrator_dashboard.html` as a genuine second read-only view alongside `tools/agent_orchestrator.html`.
+- **Wired** into `tools/sync_orchestrator.py` — `embed_tasks_into_html()` now takes a path parameter and is called for both HTML files. Both get the same embedded tasks JSON on every sync.
+- **Dashboard purpose**: read-only overview with progress bars, category/agent breakdowns, and filters. `agent_orchestrator.html` remains the working view for claiming/completing tasks.
 
 ### Files Changed
-- `tools/workbook_bridge.py` — `_task_key()` includes `row_index`; `build_task()` accepts `row_index` param; `rows_to_duplicate_tasks()` passes row number; `model_for_task()` comment added.
-- `tools/workorder_runner.py` — docstring fixed; `mark_done()` requires `agent_name` and checks `claimed_by`; `main()` passes `args.agent` to `mark_done()`.
-- `tools/sync_orchestrator.py` — hash-based skip logic with `_compute_sync_hash()`, `_stored_sync_hash()`, `_store_sync_hash()`.
-- `.gitignore` — removed stale `tools/agent_orchestrator_tasks.json` rule; added `temp/`.
+- `tools/workorder_runner.py` — added `reject_task()` function, `reject` subparser, `reject` command handler, updated docstring with lifecycle.
+- `tools/sync_orchestrator.py` — `embed_tasks_into_html()` takes `html_path` param; embeds into both `ORCHESTRATOR_HTML` and `DASHBOARD_HTML`; `git_add` includes `DASHBOARD_HTML`.
+- `tools/orchestrator_dashboard.html` — now tracked, tasks embedded by sync.
 - `BUILD_STATE.md` — this note.
 
 ## Session — 2026-07-15 AM (4) — Fixed localStorage Shadowing Live Task Data

@@ -37,6 +37,7 @@ WORKBOOK_BRIDGE = TOOLS_DIR / "workbook_bridge.py"
 STUB_TASKS_OUT = TOOLS_DIR / "stub_tasks_new.json"
 ORCHESTRATOR_TASKS = TOOLS_DIR / "agent_orchestrator_tasks.json"
 ORCHESTRATOR_HTML = TOOLS_DIR / "agent_orchestrator.html"
+DASHBOARD_HTML = TOOLS_DIR / "orchestrator_dashboard.html"
 WORKBOOK_XLSX = REPO_ROOT / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
 SYNC_HASH_FILE = TOOLS_DIR / ".sync_orchestrator_hash"
 
@@ -159,10 +160,10 @@ def verify_orchestrator_tasks() -> tuple[int, int]:
     return len(tasks), len(missing_paths)
 
 
-def embed_tasks_into_html(tasks_json_text: str) -> None:
-    if not ORCHESTRATOR_HTML.exists():
-        raise SyncError(f"missing {ORCHESTRATOR_HTML}")
-    html = ORCHESTRATOR_HTML.read_text(encoding="utf-8")
+def embed_tasks_into_html(html_path: Path, tasks_json_text: str) -> None:
+    if not html_path.exists():
+        raise SyncError(f"missing {html_path}")
+    html = html_path.read_text(encoding="utf-8")
 
     block = (
         f'{EMBED_START}\n'
@@ -183,14 +184,14 @@ def embed_tasks_into_html(tasks_json_text: str) -> None:
         # time, before the browser has parsed anything later in the
         # document, so the data element has to already exist above it.
         if "<script>" not in html:
-            raise SyncError(f"{ORCHESTRATOR_HTML} has no <script> tag to anchor the embed")
+            raise SyncError(f"{html_path} has no <script> tag to anchor the embed")
         new_html = html.replace("<script>", block + "\n<script>", 1)
 
     if new_html != html:
-        ORCHESTRATOR_HTML.write_text(new_html, encoding="utf-8")
-        print(f"-> embedded tasks JSON into {ORCHESTRATOR_HTML.name}")
+        html_path.write_text(new_html, encoding="utf-8")
+        print(f"-> embedded tasks JSON into {html_path.name}")
     else:
-        print(f"-> {ORCHESTRATOR_HTML.name} already up to date")
+        print(f"-> {html_path.name} already up to date")
 
 
 def git_add(paths: list[Path]) -> None:
@@ -237,9 +238,13 @@ def main() -> int:
         task_count, missing = verify_orchestrator_tasks()
 
         if not args.check and not skip_regen:
-            embed_tasks_into_html(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+            embed_tasks_into_html(ORCHESTRATOR_HTML, ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+            if DASHBOARD_HTML.exists():
+                embed_tasks_into_html(DASHBOARD_HTML, ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
         elif not args.check and skip_regen:
             print(f"-> {ORCHESTRATOR_HTML.name} not re-embedded (no changes)")
+            if DASHBOARD_HTML.exists():
+                print(f"-> {DASHBOARD_HTML.name} not re-embedded (no changes)")
 
         print(
             f"\nOK: {stub_count} stub(s) in {STUB_TASKS_OUT.name}, "
@@ -248,7 +253,7 @@ def main() -> int:
         )
 
         if args.git_add and not args.check:
-            git_add([STUB_TASKS_OUT, ORCHESTRATOR_TASKS, ORCHESTRATOR_HTML])
+            git_add([STUB_TASKS_OUT, ORCHESTRATOR_TASKS, ORCHESTRATOR_HTML, DASHBOARD_HTML])
 
         return 0
     except SyncError as e:
