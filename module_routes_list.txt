@@ -50,6 +50,32 @@
   @router.post("/api/error-queue")
   @router.get("/api/error-queue")
   @router.put("/api/error-queue/{error_id}")
+=== advocate (15 routes) ===
+  @router.get("/dashboard")
+  @router.get("/clients")
+  @router.get("/clients/{client_id}")
+  @router.get("/queue")
+  @router.post("/intake")
+  @router.get("/timeline")
+  @router.get("/clients/{client_id}/documents")
+  @router.post("/clients/{client_id}/documents/{doc_id}/review")
+  @router.post("/clients/{client_id}/documents/{doc_id}/annotate")
+  @router.get("/clients/{client_id}/documents/{doc_id}/overlays")
+  @router.delete("/clients/{client_id}/overlays/{overlay_id}")
+  @router.get("/invite-codes")
+  @router.post("/link-request")
+  @router.get("/my-advocates")
+  @router.delete("/my-advocates/{advocate_user_id}")
+=== agent_orchestrator (9 routes) ===
+  @router.get("/tasks", response_model=list[AgentTaskResponse])
+  @router.post("/tasks", response_model=AgentTaskResponse, status_code=status.HTTP_201_CREATED)
+  @router.get("/tasks/{task_id}", response_model=AgentTaskResponse)
+  @router.get("/tasks/{task_id}/prompt")
+  @router.patch("/tasks/{task_id}/status", response_model=AgentTaskResponse)
+  @router.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+  @router.post("/batch", response_model=BatchCreateResponse)
+  @router.get("/models", response_model=ModelListResponse)
+  @router.get("/summary")
 === analytics (11 routes) ===
   @router.post("/track", response_model=EventTrackResponse)
   @router.post("/pageview", response_model=EventTrackResponse)
@@ -97,7 +123,7 @@
   @router.get("/workflows/{workflow_id}")
   @router.post("/think")
   @router.post("/sync")
-=== briefcase (49 routes) ===
+=== briefcase (42 routes) ===
   @router.get("/")
   @router.get("/folder/{folder_id}")
   @router.post("/folder")
@@ -138,13 +164,6 @@
   @router.post("/annotation/{annotation_id}/link-event")
   @router.get("/annotations/by-document/{document_id}")
   @router.post("/annotations/reset-counters")
-  @router.post("/timeline-event")
-  @router.get("/timeline-events")
-  @router.get("/timeline-event/{event_id}")
-  @router.put("/timeline-event/{event_id}")
-  @router.delete("/timeline-event/{event_id}")
-  @router.get("/timeline-event/{event_id}/chain")
-  @router.post("/timeline-event/from-annotation/{annotation_id}")
   @router.get("/extraction-codes")
   @router.get("/event-statuses")
 === calendar (10 routes) ===
@@ -173,10 +192,11 @@
   @router.get("/{user_id}/overlay", response_model=list[str])
   @router.post("/{user_id}/overlay", status_code=status.HTTP_204_NO_CONTENT)
   @router.delete("/{user_id}/overlay", status_code=status.HTTP_204_NO_CONTENT)
-=== case_builder (36 routes) ===
+=== case_builder (38 routes) ===
   @router.get("/")
   @router.get("/cases")
   @router.get("/cases/{case_id}")
+  @router.get("/cases/{case_id}/context")
   @router.post("/cases")
   @router.post("/validate-freshness")
   @router.post("/validate-minnesota")
@@ -210,6 +230,7 @@
   @router.post("/cases/{case_id}/populate-from-documents")
   @router.get("/suggested-defenses")
   @router.get("/suggested-counterclaims")
+  @router.get("/cases/{case_id}/intake-packet")
 === cloud_sync (19 routes) ===
   @router.get("/status", response_model=SyncResponse)
   @router.post("/full", response_model=SyncResponse)
@@ -292,6 +313,16 @@
   @router.post("/quick-add/witness", response_model=ContactResponse)
   @router.get("/for-forms")
   @router.get("/types")
+=== context_engine (9 routes) ===
+  @router.get("/subjects")
+  @router.get("/facts")
+  @router.post("/facts/refresh")
+  @router.get("/stories")
+  @router.post("/stories")
+  @router.get("/stories/pending")
+  @router.post("/stories/{story_id}/moderate")
+  @router.post("/verify")
+  @router.get("/overview")
 === context_loop (11 routes) ===
   @router.get("/state")
   @router.get("/intensity")
@@ -355,12 +386,43 @@
   @router.post("/cron/daily-refresh")
   @router.post("/cron/hourly-deadlines")
   @router.get("/health")
+=== dev_lab (5 routes) ===
+  @router.get("")
+  @router.get("/{module_path:path}")
+  @router.get("/{module_path:path}/status")
+  @router.post("/{module_path:path}/promote")
+  @router.post("/{module_path:path}/test")
 === development (5 routes) ===
   @router.post("/crawl", response_model=CrawlResponse)
   @router.get("/crawl/report")
   @router.post("/analyze", response_model=AnalysisResponse)
   @router.get("/health", response_model=DevHealthResponse)
   @router.get("/metrics")
+=== document_center (5 routes) ===
+  @router.get("/list")
+  @router.get("/unlocks")
+  @router.get("/document/{vault_id}/overlays")
+  @router.get("/document/{vault_id}/view")
+  @router.post("/document/{vault_id}/type")
+=== document_converter (8 routes) ===
+  @router.post("/docx", response_model=ConvertResponse)
+  @router.post("/html", response_model=ConvertResponse)
+  @router.post("/both", response_model=ConvertResponse)
+  @router.post("/file")
+  @router.post("/path")
+  @router.get("/download/{filename}")
+  @router.get("/list")
+  @router.delete("/cleanup")
+=== document_delivery (9 routes) ===
+  @router.get("/health")
+  @router.get("/inbox", response_class=HTMLResponse)
+  @router.post("/send", response_model=SendDocumentResponse)
+  @router.get("/inbox", response_model=DeliveryListResponse)
+  @router.get("/outbox", response_model=DeliveryListResponse)
+  @router.get("/{delivery_id}", response_model=DeliveryDetailResponse)
+  @router.post("/{delivery_id}/viewed")
+  @router.post("/{delivery_id}/sign", response_model=SignDocumentResponse)
+  @router.post("/{delivery_id}/reject", response_model=RejectDocumentResponse)
 === documentation (13 routes) ===
   @router.get("/openapi.json")
   @router.get("/postman")
@@ -402,25 +464,6 @@
   @router.post("/train/confirm")
   @router.get("/train/stats")
   @router.get("/train/patterns")
-=== document_converter (8 routes) ===
-  @router.post("/docx", response_model=ConvertResponse)
-  @router.post("/html", response_model=ConvertResponse)
-  @router.post("/both", response_model=ConvertResponse)
-  @router.post("/file")
-  @router.post("/path")
-  @router.get("/download/{filename}")
-  @router.get("/list")
-  @router.delete("/cleanup")
-=== document_delivery (9 routes) ===
-  @router.get("/health")
-  @router.get("/inbox", response_class=HTMLResponse)
-  @router.post("/send", response_model=SendDocumentResponse)
-  @router.get("/inbox", response_model=DeliveryListResponse)
-  @router.get("/outbox", response_model=DeliveryListResponse)
-  @router.get("/{delivery_id}", response_model=DeliveryDetailResponse)
-  @router.post("/{delivery_id}/viewed")
-  @router.post("/{delivery_id}/sign", response_model=SignDocumentResponse)
-  @router.post("/{delivery_id}/reject", response_model=RejectDocumentResponse)
 === emotion (8 routes) ===
   @router.get("/state")
   @router.post("/trigger")
@@ -476,7 +519,18 @@
   @router.get("/export/statistics")
   @router.get("/supported-formats")
   @router.post("/cleanup")
-=== external_mappings (0 routes) ===
+=== external_mappings (11 routes) ===
+  @mappings_router.post("/mapping")
+  @mappings_router.get("/mappings")
+  @mappings_router.get("/mapping/{mapping_id}")
+  @mappings_router.put("/mapping/{mapping_id}/status")
+  @mappings_router.post("/court-case")
+  @mappings_router.get("/court-cases")
+  @mappings_router.post("/property")
+  @mappings_router.get("/properties")
+  @mappings_router.post("/agency")
+  @mappings_router.get("/agencies")
+  @mappings_router.get("/search")
 === extraction (6 routes) ===
   @router.post("/extract")
   @router.post("/extract-from-vault")
@@ -573,7 +627,15 @@
   @router.get("/metrics/json")
   @router.get("/system-dashboard", response_class=HTMLResponse)
   @router.get("/api-summary")
-=== housing_accountability (0 routes) ===
+=== housing_accountability (8 routes) ===
+  @accountability_router.post("/patterns/detect")
+  @accountability_router.post("/oversight/packet/generate")
+  @accountability_router.post("/coalition/build")
+  @accountability_router.post("/evidence/intake")
+  @accountability_router.post("/public-records/search")
+  @accountability_router.post("/press/build")
+  @accountability_router.get("/dashboard")
+  @accountability_router.get("/analyst")
 === hud_funding (17 routes) ===
   @router.get("/programs")
   @router.get("/programs/{program_id}")
@@ -631,7 +693,9 @@
   @router.get("/list")
   @router.delete("/{code}")
   @router.get("/{code}/stats")
-=== law_library (10 routes) ===
+=== judge (1 routes) ===
+  @router.get("/info")
+=== law_library (11 routes) ===
   @router.get("/statutes")
   @router.get("/statutes/{statute_id}")
   @router.get("/court-rules")
@@ -642,6 +706,21 @@
   @router.get("/categories")
   @router.post("/librarian/ask", response_model=LibrarianResponse)
   @router.get("/quick-reference/{topic}")
+  @page_router.get("/law-library", response_class=HTMLResponse)
+=== legal (13 routes) ===
+  @router.get("/matters")
+  @router.post("/matters")
+  @router.get("/matters/{matter_id}")
+  @router.patch("/matters/{matter_id}")
+  @router.get("/matters/{matter_id}/filings")
+  @router.post("/matters/{matter_id}/filings")
+  @router.patch("/matters/{matter_id}/filings/{filing_id}")
+  @router.get("/matters/{matter_id}/discovery")
+  @router.post("/matters/{matter_id}/discovery")
+  @router.patch("/matters/{matter_id}/discovery/{discovery_id}")
+  @router.get("/matters/{matter_id}/exhibits")
+  @router.post("/matters/{matter_id}/exhibits")
+  @router.get("/matters/{matter_id}/overlay")
 === legal_analysis (14 routes) ===
   @router.post("/classify-evidence")
   @router.post("/classify-evidence/batch")
@@ -704,6 +783,11 @@
   @lis_router.delete("/task/{task_id}")
   @lis_router.get("/statistics")
   @lis_router.get("/health")
+=== local_ai (4 routes) ===
+  @router.get("/health")
+  @router.post("/chat", response_model=ChatResponse)
+  @router.post("/analyze")
+  @router.post("/summarize")
 === location (10 routes) ===
   @router.get("/current", response_model=LocationResponse)
   @router.post("/update", response_model=LocationResponse)
@@ -715,6 +799,13 @@
   @router.get("/counties/mn")
   @router.get("/county/{county}")
   @router.get("/context")
+=== manager (6 routes) ===
+  @router.post("/cases/{tenant_id}/assign")
+  @router.post("/cases/{tenant_id}/status")
+  @router.post("/bulk/export")
+  @router.get("/reports/cases")
+  @router.get("/reports/staff")
+  @router.post("/staff/{staff_id}/role")
 === mesh_network (11 routes) ===
   @router.get("/network/status")
   @router.get("/network/graph")
@@ -782,6 +873,10 @@
   @router.get("/complete")
   @router.get("/status", response_class=HTMLResponse)
   @router.get("/ssot-navigation")
+=== page_composer (3 routes) ===
+  @router.get("/{subject}")
+  @router.get("/{subject}/preview")
+  @router.get("/")
 === page_editor (6 routes) ===
   @router.get("/files", response_model=FileListResponse)
   @router.get("/file")
@@ -826,6 +921,13 @@
   @router.post("/{plugin_name}/action/{action_name}", response_model=PluginActionResponse)
   @router.get("/marketplace/browse")
   @router.get("/health")
+=== portal (6 routes) ===
+  @router.get("/services")
+  @router.get("/services/{service_id}")
+  @router.get("/pages")
+  @router.get("/sitemap")
+  @seo_router.get("/sitemap.xml")
+  @seo_router.get("/robots.txt")
 === positronic_mesh (13 routes) ===
   @router.get("/mesh/status")
   @router.get("/mesh/workflows/available")
@@ -914,11 +1016,11 @@
   @router.get("/cases/{case_number}/documents", response_model=list[RegisteredDocumentResponse])
   @router.get("/cases")
 === rent (5 routes) ===
-  @router.post("/api/rent/payments")
-  @router.get("/api/rent/payments")
-  @router.get("/api/rent/payments/{payment_id}")
-  @router.put("/api/rent/payments/{payment_id}")
-  @router.delete("/api/rent/payments/{payment_id}")
+  @router.post("/payments")
+  @router.get("/payments")
+  @router.get("/payments/{payment_id}")
+  @router.put("/payments/{payment_id}")
+  @router.delete("/payments/{payment_id}")
 === research (18 routes) ===
   @router.get("/health")
   @router.post("/property/{property_id}")
@@ -1066,6 +1168,8 @@
   @router.get("/cases/{case_id}/context/{context_type}")
   @router.get("/enums")
   @router.get("/context-types")
+=== tenant_feed (1 routes) ===
+  @router.get("/feed")
 === testing (11 routes) ===
   @router.post("/suites")
   @router.get("/suites/{suite_id}")
@@ -1086,6 +1190,10 @@
   @router.post("/save-letter", response_model=ToolsSaveResponse)
   @router.post("/save-checklist", response_model=ToolsSaveResponse)
   @router.post("/save-calculation", response_model=ToolsSaveResponse)
+=== ui_composer (3 routes) ===
+  @router.get("/page/{intent}", response_class=HTMLResponse)
+  @router.get("/fragment/{component_type}", response_class=HTMLResponse)
+  @router.get("/process/{workflow_id}", response_class=HTMLResponse)
 === unified_overlays (9 routes) ===
   @router.get("/health")
   @router.post("/create", response_model=CreateOverlayResponse)
@@ -1099,7 +1207,7 @@
 === user (2 routes) ===
   @router.post("/api/user/act-as")
   @router.delete("/api/user/act-as")
-=== vault (17 routes) ===
+=== vault (19 routes) ===
   @router.post(
   @router.post(
   @router.get("/", response_model=DocumentListResponse)
@@ -1114,23 +1222,11 @@
   @router.post("/sidebar/upload")
   @router.get("/sidebar/stats")
   @router.get("/sidebar/search")
-  @router.get("/status")
-  @router.post("/init")
-  @router.get("/verify")
-=== vault_all_in_one (13 routes) ===
-  @router.post("/items", response_model=VaultItemResponse)
-  @router.get("/items", response_model=VaultSearchResponse)
-  @router.post("/items/search", response_model=VaultSearchResponse)
-  @router.get("/items/{item_id}", response_model=VaultItemResponse)
-  @router.put("/items/{item_id}", response_model=VaultItemResponse)
-  @router.delete("/items/{item_id}")
-  @router.get("/timeline", response_model=TimelineResponse)
-  @router.post("/incidents", response_model=IncidentResponse)
+  @router.post("/incidents", response_model=IncidentResponse, status_code=201)
   @router.get("/incidents", response_model=list[IncidentResponse])
   @router.get("/incidents/{incident_id}", response_model=IncidentResponse)
-  @router.get("/incidents/{incident_id}/timeline", response_model=TimelineResponse)
-  @router.get("/search/metadata")
-  @router.get("/search/location")
+  @router.get("/incidents/{incident_id}/items", response_model=list[DocumentResponse])
+  @router.get("/export")
 === vault_engine (11 routes) ===
   @router.post("/check-access")
   @router.post("/read")
