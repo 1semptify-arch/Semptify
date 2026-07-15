@@ -3,6 +3,32 @@
 ### Stub Sync Log — 2026-07-15 09:01 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
 
+## Session — 2026-07-15 AM — Final Duplicate Cleanup (Shipped)
+
+### What Was Done
+- Merged `fix/vault-duplicate` branch into `main`.
+- Removed empty `app/modules/vault_all_in_one/` directory (already unregistered).
+- Fixed duplicate `context_engine.router` and `context_loop.router` registrations in `app/core/product_manifest.py`.
+  - Kept canonical `context_engine.router` in CORE tier and `context_loop.router` visibility entry.
+  - Removed duplicate DEV-tier `dev_only` entries that shadowed them.
+- Updated `vault.router` dev_notes to document `vault_all_in_one` retirement and `vault_engine.router` distinct role.
+- Marked remaining duplicate-module orchestrator tasks (`document_converter`, `context_engine vs context_loop`) as done.
+- Stashed unrelated working-tree changes in `app/templates/gui/home.html` and `app/templates/pages/calendar.html` before shipping.
+
+### Commits Shipped
+- `add08d7` merge: resolve vault duplicate and clean manifest
+- `22b5f56` fix(product_manifest): remove duplicate context_engine/context_loop registrations and keep vault resolution
+- `4c4d077` chore(tasks): mark remaining duplicate-module tasks done
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py` passes.
+- `MANIFEST.validate()` reports no duplicate qualified names.
+- Duplicate task queue empty (16/16 done).
+
+### Next Session
+- Pick up from `ACTIVE_CONTEXT.md` priority list (GUI Phase 1: Journal/Calendar/Timeline).
+- Restore or review the stashed `home.html` / `calendar.html` changes if still needed.
+
 ## Session — 2026-07-15 AM — Duplicate Module Resolution (Shipped)
 
 ### What Was Done
