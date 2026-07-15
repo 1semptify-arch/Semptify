@@ -60,6 +60,8 @@ venv311_clean/
 
 # Agent Orchestrator generated exports
 tools/agent_orchestrator_tasks.json
+stub_tasks.json
+todo_comments.json
 ENV/
 env.bak/
 venv.bak/

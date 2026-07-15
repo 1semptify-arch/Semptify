@@ -342,7 +342,7 @@ def scan_file(path: Path, root: Path, list_todos=False):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("root", help="Root directory to scan")
+    ap.add_argument("root", nargs="?", default=".", help="Root directory to scan (default: current working directory)")
     ap.add_argument("--out", default="stub_tasks.json", help="Output JSON path")
     ap.add_argument("--list-todos", action="store_true",
                      help="Also write todo_comments.json listing documented TODO/FIXME comments (informational only, never turned into tasks)")
@@ -386,6 +386,8 @@ def main():
         print(f"\nAlso found {len(all_todos)} documented TODO/FIXME comment(s) "
               f"(informational only -- see {todo_path}). These are NOT tasks.")
 
+    return len(tasks)
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(0 if main() == 0 else 1)
