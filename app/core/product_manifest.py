@@ -415,7 +415,7 @@ _register("app.modules.onboarding.reconnect", tags=("Onboarding", "Reconnect"), 
 # Document & vault system
 _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
 _register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault",), tier=ProductTier.CORE,
-          dev_notes="Canonical document storage vault. Upload, certify, and serve documents from the user's cloud provider. UI uploads go through /api/intake/upload/auto.")
+          dev_notes="Canonical document storage vault. Upload, certify, and serve documents from the user's cloud provider. UI uploads go through /api/intake/upload/auto. Incident endpoints migrated from retired app.modules.vault_all_in_one.router; that module is removed. vault_engine.router is the separate access-control layer and is NOT a duplicate.")
 _register("app.modules.vault_engine.router", prefix="/api/vault-engine", tags=("Vault Engine", "Access Control"), tier=ProductTier.CORE,
           lifecycle="dev_only", requires_role=("admin",),
           dev_notes="Access-control engine for vault resources (permissions, sharing, audit). Distinct from document-storage vault. Not yet user-facing.")
@@ -653,12 +653,6 @@ _register("app.modules.litigation_intelligence.router", router_attr="lis_router"
 # DEV TIER — Internal Tools (Enabled in Development)
 # =============================================================================
 
-_register("app.modules.context_engine.router", prefix="/api/context", tags=("Context Engine",), tier=ProductTier.DEV,
-          lifecycle="dev_only",
-          dev_notes="Public-facing facts/stories context (KNOW pillar). Distinct from context_loop, which is the per-user state nervous system.")
-_register("app.modules.context_loop.router", prefix="/api/core", tags=("Context Loop",), tier=ProductTier.DEV,
-          lifecycle="dev_only",
-          dev_notes="Internal per-user state/context loop (GOVERN pillar). Distinct from context_engine, which serves verified facts.")
 _register("app.modules.setup.router", prefix="/api/setup", tags=("Setup Wizard",), tier=ProductTier.DEV)
 _register("app.modules.page_index.router", tags=("Page Index",), tier=ProductTier.DEV)
 _register("app.modules.page_editor.router", tags=("Page Editor",), tier=ProductTier.DEV,
