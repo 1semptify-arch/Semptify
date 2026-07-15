@@ -1,7 +1,26 @@
 # BUILD_STATE.md -- Semptify Live Deployment State
 
-### Stub Sync Log — 2026-07-15 06:04 UTC
+### Stub Sync Log — 2026-07-15 06:31 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
+
+## Session — 2026-07-15 AM (4) — Fixed localStorage Shadowing Live Task Data
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` task-loading precedence so the live file is always the source of truth:
+  - `loadTasks()` now reads embedded JSON first, then falls back to localStorage only if embedded is empty (offline/file:// CORS scenario).
+  - `autoLoadProjectJson()` no longer early-exits when `tasks.length > 0` — it always fetches the live `agent_orchestrator_tasks.json` on page load and overwrites both `tasks` and localStorage with the file contents.
+  - localStorage is now a cache, not the primary source.
+- **Added** a visible "Refresh from file ↻" button next to "Start fresh ↺" — a manual escape hatch so Brad never has to remember "clear localStorage" as a troubleshooting step. Calls new `refreshFromFile()` which always re-fetches the live JSON.
+- **Updated** `showHelpStatus()` to reflect the new precedence.
+- **Verified** via Node simulation:
+  - Embedded JSON wins over stale localStorage (16 real tasks replace 1 stale task).
+  - `autoLoadProjectJson()` overwrites stale localStorage with file data.
+  - `file://` CORS workaround preserved — if fetch fails, embedded JSON is used first, then localStorage as last resort.
+
+### Files Changed
+- `tools/agent_orchestrator.html` — flipped load precedence (file > embedded > localStorage), added "Refresh from file ↻" button, added `refreshFromFile()`, updated `showHelpStatus()`
+- `BUILD_STATE.md` — this note
+
 
 ## Session — 2026-07-15 AM (3) — Added WORKFLOW Section to HTML generatePrompt()
 
