@@ -311,11 +311,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "status": "pending",
-    "claimed_by": null,
+    "status": "done",
+    "claimed_by": {
+      "agent": "cascade",
+      "claimed_at": "2026-07-15T05:04:05.731154+00:00"
+    },
     "notes": "",
     "created_at": "2026-07-15T04:01:37.862580+00:00",
-    "updated_at": "2026-07-15T04:01:37.862580+00:00",
+    "updated_at": "2026-07-15T05:04:45.987626+00:00",
     "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: vault vs vault_engine vs vault_all_in_one\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T04:01:37.862580+00:00\n\nDescription:\n3 vault modules with overlapping functionality\n\nvault.router (17 routes), vault_engine.router (11 routes), vault_all_in_one.router (13 routes) \u2014 all deal with vault operations.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done e2cc6e27-8787-4f68-addd-c21b49af446f\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -328,11 +331,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "status": "pending",
-    "claimed_by": null,
+    "status": "done",
+    "claimed_by": {
+      "agent": "cascade",
+      "claimed_at": "2026-07-15T05:09:32.153519+00:00"
+    },
     "notes": "",
     "created_at": "2026-07-15T04:01:37.862580+00:00",
-    "updated_at": "2026-07-15T04:01:37.862580+00:00",
+    "updated_at": "2026-07-15T05:10:44.666063+00:00",
     "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: case_builder router vs case_builder.py standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T04:01:37.862580+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/case_builder/router.py (36 routes) and app/modules/case_builder.py (27917 bytes). Standalone may be legacy.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 01c5c8d0-a0ac-4804-8a19-8b0543fd68b5\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
@@ -345,11 +351,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "status": "pending",
-    "claimed_by": null,
+    "status": "done",
+    "claimed_by": {
+      "agent": "cascade",
+      "claimed_at": "2026-07-15T05:15:04.731936+00:00"
+    },
     "notes": "",
     "created_at": "2026-07-15T04:01:37.862580+00:00",
-    "updated_at": "2026-07-15T04:01:37.862580+00:00",
+    "updated_at": "2026-07-15T05:15:51.661286+00:00",
     "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: document_converter router vs standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T04:01:37.862580+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/document_converter/router.py (8 routes) and app/modules/document_converter.py (44828 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 749dd48a-bdc3-4aa0-856f-f2470728dbc0\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
