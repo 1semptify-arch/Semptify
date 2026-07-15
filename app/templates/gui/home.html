@@ -16,37 +16,51 @@
 
 <section class="frame-panel">
     <div class="frame-panel--header">
-        <span class="frame-panel--title">Start here</span>
+        <span class="frame-panel--title">Your dashboard</span>
     </div>
-    <div class="frame-panel--body">
-        <div class="frame-item">
-            <div class="frame-item--icon">01</div>
+    <div class="frame-panel--body" id="dashboardBody">
+        <div class="frame-item" id="nextDeadlineCard">
+            <div class="frame-item--icon">!</div>
             <div class="frame-item--main">
-                <div class="frame-item--title">Record what's happened</div>
-                <div class="frame-item--meta">Upload documents, photos, letters. We organize them by date.</div>
+                <div class="frame-item--title">Next deadline</div>
+                <div class="frame-item--meta" id="nextDeadlineMeta">Loading deadlines…</div>
             </div>
             <div class="frame-item--actions">
-                <a href="/gui/record" class="frame-btn frame-btn--primary">Go to Record →</a>
+                <a href="/calendar" class="frame-btn" id="nextDeadlineBtn">Calendar</a>
             </div>
         </div>
+
         <div class="frame-item">
-            <div class="frame-item--icon">02</div>
+            <div class="frame-item--icon">📋</div>
             <div class="frame-item--main">
-                <div class="frame-item--title">Know your rights</div>
-                <div class="frame-item--meta">Plain-language facts about tenant protections in your state.</div>
+                <div class="frame-item--title">Case timeline</div>
+                <div class="frame-item--meta" id="timelineMeta">Loading recent events…</div>
+                <div id="timelinePreview" style="margin-top:0.5rem;"></div>
             </div>
             <div class="frame-item--actions">
-                <a href="/gui/know" class="frame-btn">Know →</a>
+                <a href="/timeline" class="frame-btn">View timeline</a>
             </div>
         </div>
+
         <div class="frame-item">
-            <div class="frame-item--icon">03</div>
+            <div class="frame-item--icon">📚</div>
             <div class="frame-item--main">
-                <div class="frame-item--title">Take action</div>
-                <div class="frame-item--meta">Guided steps — letters, deadlines, court forms.</div>
+                <div class="frame-item--title">Ask the Library</div>
+                <div class="frame-item--meta">Get plain-language facts about your rights and next steps.</div>
             </div>
             <div class="frame-item--actions">
-                <a href="/gui/act" class="frame-btn">Act →</a>
+                <a href="/gui/know" class="frame-btn">Ask →</a>
+            </div>
+        </div>
+
+        <div class="frame-item" id="courtPrepCard">
+            <div class="frame-item--icon">⚖️</div>
+            <div class="frame-item--main">
+                <div class="frame-item--title">Prepare for court</div>
+                <div class="frame-item--meta" id="courtPrepMeta">Add a court date to your calendar to unlock this.</div>
+            </div>
+            <div class="frame-item--actions">
+                <a href="/gui/act" class="frame-btn" id="courtPrepBtn" disabled>Act</a>
             </div>
         </div>
     </div>
@@ -60,4 +74,85 @@
         </p>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    function fmtDate(s) {
+        if (!s) return '—';
+        try {
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        } catch (e) { return s; }
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    async function loadUpcoming() {
+        const meta = document.getElementById('nextDeadlineMeta');
+        try {
+            const r = await fetch('/api/calendar/upcoming?days=30', { credentials: 'include' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            const events = data.upcoming || [];
+            const critical = data.critical || [];
+            if (critical.length) {
+                const e = critical[0];
+                meta.innerHTML = '<strong>' + escapeHtml(e.title) + '</strong> — ' + escapeHtml(fmtDate(e.start_datetime)) + ' <span style="color:#ef4444;">(' + data.days_to_next_critical + ' days left)</span>';
+            } else if (events.length) {
+                const e = events[0];
+                meta.innerHTML = '<strong>' + escapeHtml(e.title) + '</strong> — ' + escapeHtml(fmtDate(e.start_datetime));
+            } else {
+                meta.textContent = 'No upcoming deadlines in the next 30 days.';
+            }
+            const hasHearing = events.some(e => e.event_type === 'hearing');
+            const courtBtn = document.getElementById('courtPrepBtn');
+            const courtMeta = document.getElementById('courtPrepMeta');
+            if (hasHearing) {
+                courtMeta.textContent = 'You have a court date coming up. Review your packet and what to expect.';
+                courtBtn.removeAttribute('disabled');
+                courtBtn.classList.add('frame-btn--primary');
+            }
+        } catch (e) {
+            meta.textContent = 'Could not load deadlines.';
+        }
+    }
+
+    async function loadTimeline() {
+        const meta = document.getElementById('timelineMeta');
+        const preview = document.getElementById('timelinePreview');
+        try {
+            const r = await fetch('/api/timeline/unified', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ limit: 3, date_axis: 'event_time' })
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            const items = (data.items || []).slice(0, 3);
+            if (!items.length) {
+                meta.textContent = 'No timeline events yet. Upload documents to build your record.';
+                return;
+            }
+            meta.textContent = 'Recent events:';
+            preview.innerHTML = items.map(it => {
+                return '<div style="font-size:0.8125rem; color:#cbd5e1; padding:0.25rem 0; border-bottom:1px solid rgba(255,255,255,0.05);">'
+                    + '<span style="color:#94a3b8;">' + escapeHtml(fmtDate(it.date_display || it.event_date || it.entry_date)) + '</span> '
+                    + escapeHtml(it.title)
+                    + '</div>';
+            }).join('');
+        } catch (e) {
+            meta.textContent = 'Could not load timeline.';
+        }
+    }
+
+    loadUpcoming();
+    loadTimeline();
+})();
+</script>
 {% endblock %}
