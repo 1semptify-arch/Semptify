@@ -795,7 +795,7 @@ try:
         deterministic=True,
     ))
 
-except Exception:
-
-
+except Exception as exc:
+    import logging
+    logging.getLogger(__name__).warning("court_forms contract registration failed: %s", exc)
 
