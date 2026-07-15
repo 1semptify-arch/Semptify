@@ -3,6 +3,28 @@
 ### Stub Sync Log — 2026-07-15 09:01 UTC
 Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
 
+## Session — 2026-07-15 AM — Duplicate Module Resolution (Shipped)
+
+### What Was Done
+- Resolved all 16 duplicate-module tasks in `tools/agent_orchestrator_tasks.json`.
+- Removed duplicate timeline-event CRUD from `app/modules/briefcase/router.py`; canonical timeline lives in `app/modules/timeline.router`.
+- Added manifest `dev_notes` to clarify SSOT for `timeline`, `briefcase`, `workflow`, `context_engine`, `context_loop`.
+- Fixed stale `module_routes_list.txt` by adding `tools/generate_module_routes_list.py`.
+  - `housing_accountability` now reports 8 routes (was 0).
+  - `briefcase` updated from 49 to 42 routes after timeline-event removal.
+
+### Commits Shipped
+- `0a1d6ee` fix(briefcase): remove duplicate timeline-event endpoints
+- `f222398` fix(tools): regenerate module_routes_list.txt and add generator
+- `584111e` fix(product_manifest): register context_engine and context_loop as distinct dev-only modules
+
+### Known Working
+- `app/main.py`, `app/core/product_manifest.py`, `app/modules/briefcase/router.py` compile clean.
+- Duplicate task queue empty (16/16 done).
+
+### Next Session
+- Pick up from `ACTIVE_CONTEXT.md` priority list (GUI Phase 1: Journal/Calendar/Timeline).
+
 ## Session — 2026-07-15 AM (9) — Orchestrator Task: timeline vs briefcase timeline vs workflow timeline
 
 ### Task 6fb6aeec — Resolve duplicate: timeline vs briefcase timeline vs workflow timeline
