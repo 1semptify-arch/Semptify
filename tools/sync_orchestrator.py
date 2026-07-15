@@ -23,6 +23,7 @@ Exit codes: 0 = success, 1 = a step failed or verification failed.
 """
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -37,6 +38,7 @@ STUB_TASKS_OUT = TOOLS_DIR / "stub_tasks_new.json"
 ORCHESTRATOR_TASKS = TOOLS_DIR / "agent_orchestrator_tasks.json"
 ORCHESTRATOR_HTML = TOOLS_DIR / "agent_orchestrator.html"
 WORKBOOK_XLSX = REPO_ROOT / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
+SYNC_HASH_FILE = TOOLS_DIR / ".sync_orchestrator_hash"
 
 EMBED_START = "<!-- SYNC_ORCHESTRATOR:TASKS_START -->"
 EMBED_END = "<!-- SYNC_ORCHESTRATOR:TASKS_END -->"
@@ -44,6 +46,55 @@ EMBED_END = "<!-- SYNC_ORCHESTRATOR:TASKS_END -->"
 
 class SyncError(RuntimeError):
     pass
+
+
+def _compute_sync_hash() -> str:
+    """Compute a fast signature of the inputs that drive task generation.
+
+    Uses mtime+size of the workbook (content hash is unreliable because
+    workbook_bridge.py modifies the file as a side effect) and a quick
+    walk of .py file mtimes for stub detection. If neither changed since
+    the last run, the tasks JSON and HTML embed won't change either.
+    """
+    hasher = hashlib.sha256()
+    # Workbook: mtime + size (content hash unreliable — workbook_bridge
+    # modifies the file as a side effect even when nothing changes)
+    if WORKBOOK_XLSX.exists():
+        stat = WORKBOOK_XLSX.stat()
+        hasher.update(f"wb:{stat.st_mtime_ns}:{stat.st_size}".encode())
+    else:
+        hasher.update(b"wb:<missing>")
+    # Source files: walk .py files under app/ and tools/, hash their mtimes
+    # This is the input to stub_detector.py — if no .py files changed,
+    # stub detection output won't change either.
+    for scan_dir in [REPO_ROOT / "app", REPO_ROOT / "tools"]:
+        if not scan_dir.exists():
+            continue
+        for py_file in sorted(scan_dir.rglob("*.py")):
+            if "__pycache__" in py_file.parts:
+                continue
+            try:
+                stat = py_file.stat()
+                hasher.update(f"{py_file}:{stat.st_mtime_ns}:{stat.st_size};".encode())
+            except OSError:
+                continue
+    return hasher.hexdigest()
+
+
+def _stored_sync_hash() -> str | None:
+    if not SYNC_HASH_FILE.exists():
+        return None
+    try:
+        return SYNC_HASH_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+
+
+def _store_sync_hash(hash_value: str) -> None:
+    try:
+        SYNC_HASH_FILE.write_text(hash_value, encoding="utf-8")
+    except OSError:
+        pass
 
 
 def run(cmd: list[str], label: str) -> None:
@@ -165,14 +216,30 @@ def main() -> int:
 
     try:
         if not args.check:
-            step_stub_detector()
-            step_workbook_bridge()
+            current_hash = _compute_sync_hash()
+            stored_hash = _stored_sync_hash()
+            if current_hash == stored_hash:
+                print("-> skipping regeneration (workbook + source files unchanged since last run)")
+                skip_regen = True
+            else:
+                step_stub_detector()
+                step_workbook_bridge()
+                # Re-hash AFTER steps complete — workbook_bridge modifies the
+                # workbook as a side effect, so the post-run hash is what the
+                # next run's pre-run hash will look like if nothing changes.
+                post_run_hash = _compute_sync_hash()
+                _store_sync_hash(post_run_hash)
+                skip_regen = False
+        else:
+            skip_regen = True
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()
 
-        if not args.check:
+        if not args.check and not skip_regen:
             embed_tasks_into_html(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+        elif not args.check and skip_regen:
+            print(f"-> {ORCHESTRATOR_HTML.name} not re-embedded (no changes)")
 
         print(
             f"\nOK: {stub_count} stub(s) in {STUB_TASKS_OUT.name}, "

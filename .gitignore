@@ -58,10 +58,12 @@ venv/
 venv311/
 venv311_clean/
 
-# Agent Orchestrator generated exports
-tools/agent_orchestrator_tasks.json
+# Agent Orchestrator generated exports (tasks.json is committed — it's
+# embedded into agent_orchestrator.html by sync_orchestrator.py and
+# needs to be tracked. The other files are truly generated artifacts.)
 stub_tasks.json
 todo_comments.json
+temp/
 ENV/
 env.bak/
 venv.bak/

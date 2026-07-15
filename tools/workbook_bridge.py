@@ -148,6 +148,10 @@ def category_for_stub(stub_type: str) -> str:
 
 
 def model_for_task(category: str, priority: str) -> str:
+    # NOTE: As of 2026-07-15, all 16 live tasks are duplicate_resolve assigned
+    # to kimi-2.7, so the stub_fix/test_add/doc_update/refactor branches below
+    # are not exercised. They are intentional — kept for when those task
+    # types appear in the workbook. Do not remove.
     if category == "duplicate_resolve":
         return "kimi-2.7"
     if category == "test_add":
@@ -245,13 +249,19 @@ DELIVERABLE:
 
 
 def _task_key(task: dict) -> str:
-    """Stable key used to match regenerated tasks with existing state."""
+    """Stable key used to match regenerated tasks with existing state.
+
+    Includes row_index when present so workbook rows with identical
+    systems/file_path/line_start/category don't collide and silently
+    inherit each other's id/status/claimed_by.
+    """
     return "|".join(
         [
             str(task.get("title", "")),
             str(task.get("file_path", "")),
             str(task.get("line_start") or ""),
             str(task.get("category", "")),
+            str(task.get("row_index") or ""),
         ]
     )
 
@@ -265,6 +275,7 @@ def build_task(
     file_path: str = "",
     line_start: int | None = None,
     line_end: int | None = None,
+    row_index: int | None = None,
 ) -> dict:
     now = datetime.now(UTC).isoformat()
     task = {
@@ -277,6 +288,7 @@ def build_task(
         "file_path": file_path,
         "line_start": line_start,
         "line_end": line_end,
+        "row_index": row_index,
         "status": "pending",
         "claimed_by": None,
         "notes": "",
@@ -489,7 +501,7 @@ def rows_to_duplicate_tasks(rows: list[list[str | None]]) -> list[dict]:
         A: ID, B: Systems, C: Overlap Description, D: Details/Notes
     """
     tasks: list[dict] = []
-    for row in rows[1:]:
+    for idx, row in enumerate(rows[1:], start=2):
         if len(row) < 4 or not any(row[:4]):
             continue
         systems = row[1]
@@ -505,6 +517,7 @@ def rows_to_duplicate_tasks(rows: list[list[str | None]]) -> list[dict]:
             category="duplicate_resolve",
             priority="high",
             file_path="app/core/product_manifest.py",
+            row_index=idx,
         ))
     return tasks
 
