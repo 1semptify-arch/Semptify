@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-"""workorder_runner.py — claim and mark tasks from agent_orchestrator_tasks.json safely for concurrent agents.
+"""workorder_runner.py — claim, complete, and reject tasks from agent_orchestrator_tasks.json safely for concurrent agents.
 
 Usage:
     .\\venv311\\Scripts\\Activate.ps1
     python tools/workorder_runner.py --agent swe-1.6 claim
     python tools/workorder_runner.py --agent swe-1.6 done <task_id>
+    python tools/workorder_runner.py --agent swe-1.6 reject <task_id> --reason "duplicate of xyz"
     python tools/workorder_runner.py status
 
 Note: --agent is a global flag that must come BEFORE the subcommand.
+
+Lifecycle:
+    pending --> in_progress --> done (terminal for agents)
+                              \-> rejected (invalid/duplicate/wrong-scope)
+    Brad manually moves done --> resolved or rejected via the HTML UI.
+    Agents do NOT self-promote to review — Brad reviews done work.
 
 Environment:
     AGENT_NAME — default agent name used in `claimed_by`.
@@ -158,6 +165,47 @@ def mark_done(
     return None
 
 
+def reject_task(
+    tasks_path: Path,
+    task_id: str,
+    agent_name: str,
+    reason: str = "",
+) -> dict | None:
+    """Atomically mark a task as rejected.
+
+    Used when an agent discovers a task is invalid (duplicate, already fixed,
+    wrong scope, etc.) and should not be worked on. Any agent can reject any
+    pending or in_progress task — this is not a claim-gated operation because
+    an agent might reject a task they just claimed without wanting to 'done' it.
+
+    Rejecting a task that is already 'done' or 'rejected' is a no-op error.
+    """
+    if not tasks_path.exists():
+        raise FileNotFoundError(tasks_path)
+
+    lock = FileLock(str(_lock_path(tasks_path)), timeout=10)
+    with lock:
+        tasks = _load_tasks(tasks_path)
+        for task in tasks:
+            if task.get("id") == task_id:
+                current_status = task.get("status", "pending")
+                if current_status in ("done", "rejected"):
+                    raise ValueError(
+                        f"Task {task_id} is already '{current_status}'. "
+                        f"Cannot reject a finished task."
+                    )
+                task["status"] = "rejected"
+                task["rejected_by"] = {
+                    "agent": agent_name,
+                    "reason": reason,
+                    "rejected_at": _now_iso(),
+                }
+                task["updated_at"] = _now_iso()
+                _save_tasks(tasks_path, tasks)
+                return task
+    return None
+
+
 def _status_summary(tasks_path: Path) -> dict:
     tasks = _load_tasks(tasks_path)
     counts = {}
@@ -200,8 +248,16 @@ def _parse_args() -> argparse.Namespace:
         help="Print the full task JSON instead of a summary.",
     )
 
-    done = sub.add_parser("done", help="Mark a task as done.")
+    done = sub.add_parser("done", help="Mark a task as done (must be claimed by you).")
     done.add_argument("task_id", help="ID of the task to mark done.")
+
+    reject = sub.add_parser("reject", help="Reject a task as invalid/duplicate/wrong-scope.")
+    reject.add_argument("task_id", help="ID of the task to reject.")
+    reject.add_argument(
+        "--reason",
+        default="",
+        help="Short reason for rejection (e.g. 'duplicate of task xyz', 'already fixed in commit abc').",
+    )
 
     sub.add_parser("status", help="Show task counts by status.")
 
@@ -248,6 +304,19 @@ def main() -> int:
             print(f"Task not found: {args.task_id}", file=sys.stderr)
             return 1
         print(f"Marked done: {task.get('title')} ({task.get('id')})")
+        return 0
+
+    if args.command == "reject":
+        try:
+            task = reject_task(args.tasks, args.task_id, args.agent, reason=args.reason)
+        except (FileNotFoundError, ValueError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+        if task is None:
+            print(f"Task not found: {args.task_id}", file=sys.stderr)
+            return 1
+        reason_suffix = f" — {args.reason}" if args.reason else ""
+        print(f"Rejected: {task.get('title')} ({task.get('id')}){reason_suffix}")
         return 0
 
     return 0
