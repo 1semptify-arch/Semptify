@@ -187,6 +187,7 @@
         <strong>2. Load the latest tasks</strong>
         <p class="hint" id="load-hint">Clears your local queue and loads the freshest embedded/project JSON.</p>
         <button type="button" class="btn btn-green" onclick="startFresh()" id="start-fresh-btn">Start fresh ↺</button>
+        <button type="button" class="btn btn-secondary" onclick="refreshFromFile()" id="refresh-file-btn" style="margin-left:0.5rem">Refresh from file ↻</button>
       </li>
       <li>
         <strong>3. Pick a task</strong>
@@ -633,17 +634,19 @@ function loadEmbeddedTasks() {
   }
 }
 
+// File is the source of truth. localStorage is only an offline fallback
+// (e.g. file:// CORS restrictions prevent fetching the JSON).
 function loadTasks() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (stored.length > 0) return stored;
-  } catch {
-    // fall through to embedded tasks
-  }
   const embedded = loadEmbeddedTasks();
   if (embedded.length > 0) {
     saveTasks(embedded);
     return embedded;
+  }
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (stored.length > 0) return stored;
+  } catch {
+    // fall through to empty
   }
   return [];
 }
@@ -878,38 +881,63 @@ function startFresh() {
     localStorage.removeItem(STORAGE_KEY);
   } catch {}
   tasks = [];
-  autoLoadProjectJson().then(() => {
+  autoLoadProjectJson().then((loaded) => {
     if (!tasks.length) {
       tasks = loadEmbeddedTasks();
       if (tasks.length) saveTasks(tasks);
     }
     renderTasks();
-    showToast(`Loaded ${tasks.length} fresh tasks`);
+    showToast(loaded ? `Loaded ${tasks.length} tasks from file` : `Loaded ${tasks.length} fresh tasks`);
+  });
+}
+
+// Manual "Refresh from file" — always re-fetches the live JSON regardless of
+// what's in localStorage. Escape hatch so Brad never has to remember
+// "clear localStorage" as a troubleshooting step.
+function refreshFromFile() {
+  autoLoadProjectJson().then((loaded) => {
+    if (loaded) {
+      renderTasks();
+      showToast(`Refreshed ${tasks.length} tasks from file`);
+    } else {
+      // Fetch failed (likely file://). Fall back to embedded.
+      const embedded = loadEmbeddedTasks();
+      if (embedded.length) {
+        tasks = embedded.map(t => ({ ...t, prompt: generatePrompt(t) }));
+        saveTasks(tasks);
+        renderTasks();
+        showToast(`File fetch failed — loaded ${tasks.length} embedded tasks`);
+      } else {
+        showToast('File fetch failed and no embedded tasks available');
+      }
+    }
   });
 }
 
 function showHelpStatus() {
   const source = localStorage.getItem(STORAGE_KEY)
-    ? 'Your queue is currently loaded from localStorage (saved from a previous session).'
-    : 'Your queue is currently loaded from embedded/project JSON (fresh from the last sync).';
-  alert(`${source}\n\nRun 'python tools/sync_orchestrator.py' to regenerate, then click "Start fresh ↺" to load it.`);
+    ? 'File is the source of truth. localStorage is only used as an offline fallback (e.g. file:// CORS). Use "Refresh from file ↻" to force a re-fetch.'
+    : 'No localStorage cache. Tasks loaded from embedded/project JSON.';
+  alert(`${source}\n\nRun 'python tools/sync_orchestrator.py' to regenerate, then click "Refresh from file ↻" to load it.`);
 }
 
+// Always try to fetch the live file first. Only fall back to localStorage
+// if the fetch fails (e.g. file:// CORS restrictions).
 async function autoLoadProjectJson() {
-  if (tasks.length) return;
   try {
     const res = await fetch('agent_orchestrator_tasks.json?_=' + Date.now());
-    if (!res.ok) return;
+    if (!res.ok) return false;
     const data = await res.json();
     const imported = Array.isArray(data) ? data : [];
     if (imported.length) {
       tasks = imported.map(t => ({ ...t, prompt: generatePrompt(t) }));
       saveTasks(tasks);
-      showToast('Loaded project tasks');
+      return true;
     }
   } catch (err) {
-    // file:// or missing JSON; keep localStorage as-is
+    // file:// or missing JSON; keep whatever was loaded from embedded/localStorage
   }
+  return false;
 }
 
 function copySyncCommand() {
