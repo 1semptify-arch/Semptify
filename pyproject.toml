@@ -16,7 +16,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3 :: Only",
-    "Topic :: Legal",
 ]
 
 [project.urls]
@@ -77,6 +76,7 @@ ignore = [
 "tests/**/*.py" = ["S101", "ARG"]
 "alembic/**/*.py" = ["F401", "E402"]
 "app/main.py" = ["E402"]  # imports not at top
+"scripts/verify_ssot.py" = ["S603"]  # subprocess call with fixed args, no untrusted input
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
