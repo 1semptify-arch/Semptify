@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semptify Page Shell — Demo</title>
+  <link rel="stylesheet" href="/static/page_shell/page_shell.css">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .demo-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      padding: 0.5rem 1rem; background: #1a1a1a; color: #fff;
+      display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+      font-size: 0.9rem;
+    }
+    .demo-bar button {
+      padding: 0.3rem 0.8rem; border: 1px solid #555; background: #2a2a2a;
+      color: #fff; border-radius: 3px; cursor: pointer; font: inherit;
+    }
+    .demo-bar button.active { background: #2e7d32; border-color: #2e7d32; }
+    .demo-bar .meta { color: #aaa; font-size: 0.85rem; }
+    .demo-bar .report { color: #ffd54f; font-size: 0.8rem; }
+    .demo-bar .spacer { flex: 1; }
+    #shell-mount { padding-top: 3.5rem; }
+    #shell-mount.mobile-frame {
+      padding-top: 3.5rem;
+      display: flex; justify-content: center;
+      background: #f0f0f0; min-height: 100vh;
+    }
+    #shell-mount.mobile-frame iframe {
+      width: 375px; height: 667px; border: 2px solid #333;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2); background: #fff;
+    }
+    .raw-config {
+      font-family: ui-monospace, Consolas, monospace; font-size: 0.75rem;
+      white-space: pre-wrap; background: #222; color: #eee; padding: 1rem;
+      border-radius: 4px; margin: 1rem;
+    }
+    .error-banner {
+      background: #ffebee; color: #b71c1c; padding: 1rem; margin: 1rem;
+      border: 1px solid #ef9a9a; border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-bar">
+    <strong>Semptify Page Shell — Demo</strong>
+    <button id="btn-record" class="active">record_focus</button>
+    <button id="btn-govern">govern_focus</button>
+    <span class="spacer"></span>
+    <button id="btn-mobile">📱 mobile</button>
+    <span class="meta" id="meta">Loading…</span>
+    <span class="report" id="report"></span>
+  </div>
+
+  <div id="shell-mount"></div>
+  <div id="raw-config" class="raw-config" hidden></div>
+  <div id="error" class="error-banner" hidden></div>
+
+  <script>
+    const btnRecord = document.getElementById('btn-record');
+    const btnGovern = document.getElementById('btn-govern');
+    const btnMobile = document.getElementById('btn-mobile');
+    const mount = document.getElementById('shell-mount');
+    const metaEl = document.getElementById('meta');
+    const reportEl = document.getElementById('report');
+    const rawEl = document.getElementById('raw-config');
+    const errEl = document.getElementById('error');
+
+    let mobileMode = false;
+    let currentKey = 'record_focus';
+
+    async function renderDemo(key) {
+      currentKey = key;
+      btnRecord.classList.toggle('active', key === 'record_focus');
+      btnGovern.classList.toggle('active', key === 'govern_focus');
+      errEl.hidden = true; rawEl.hidden = true;
+      mount.innerHTML = '';
+      mount.classList.toggle('mobile-frame', mobileMode);
+      try {
+        const res = await fetch('/api/page-shell/demo');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const entry = data[key];
+        if (!entry) throw new Error('Missing demo entry: ' + key);
+        if (entry.error) {
+          errEl.hidden = false;
+          errEl.textContent = entry.error + (entry.field ? ' (field: ' + entry.field + ')' : '');
+          return;
+        }
+        if (mobileMode) {
+          const iframe = document.createElement('iframe');
+          iframe.setAttribute('aria-label', 'Mobile preview (375px)');
+          mount.appendChild(iframe);
+          const doc = iframe.contentDocument;
+          doc.open();
+          doc.write('<!doctype html><html><head><meta charset="utf-8">'
+            + '<meta name="viewport" content="width=375, initial-scale=1">'
+            + '<link rel="stylesheet" href="/static/page_shell/page_shell.css">'
+            + '<style>body{margin:0}</style></head><body>'
+            + entry.html + '</body></html>');
+          doc.close();
+        } else {
+          mount.innerHTML = entry.html;
+        }
+        const r = entry.govern_report || {};
+        metaEl.textContent =
+          'skeleton: ' + entry.skeleton +
+          ' · blend: ' + entry.blend +
+          ' · risk_tier: ' + (r.risk_tier || '?') +
+          ' · govern: ' + (r.govern_effective ?? '?') +
+          (r.govern_clamped ? ' (clamped from ' + r.govern_original + ')' : '') +
+          (mobileMode ? ' · mobile (375px)' : '');
+        reportEl.textContent =
+          r.suppressed_act_blocks && r.suppressed_act_blocks.length
+            ? 'GOVERN suppressed ACT blocks: ' + r.suppressed_act_blocks.join(', ')
+            : '';
+        rawEl.hidden = false;
+        rawEl.textContent = JSON.stringify(entry.config, null, 2);
+      } catch (e) {
+        errEl.hidden = false;
+        errEl.textContent = String(e);
+      }
+    }
+
+    btnRecord.addEventListener('click', () => renderDemo('record_focus'));
+    btnGovern.addEventListener('click', () => renderDemo('govern_focus'));
+    btnMobile.addEventListener('click', () => {
+      mobileMode = !mobileMode;
+      btnMobile.classList.toggle('active', mobileMode);
+      renderDemo(currentKey);
+    });
+    renderDemo('record_focus');
+  </script>
+</body>
+</html>
