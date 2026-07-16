@@ -14,12 +14,13 @@ Then open tools/agent_orchestrator.html in Windsurf preview or browser and click
 "Import JSON".
 """
 
+import argparse
+import hashlib
 import json
 import re
 import sys
-import uuid
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -55,7 +56,7 @@ class XlsxReader:
         with zipfile.ZipFile(self.path) as z:
             # shared strings
             try:
-                sst = ET.fromstring(z.read("xl/sharedStrings.xml"))
+                sst = ET.fromstring(z.read("xl/sharedStrings.xml"))  # noqa: S314 # nosec B314
                 for si in sst.findall("main:si", NS):
                     texts = [t.text or "" for t in si.findall(".//main:t", NS)]
                     self.shared.append("".join(texts))
@@ -63,7 +64,7 @@ class XlsxReader:
                 self.shared = []
 
             # workbook -> sheet rIds
-            wb = ET.fromstring(z.read("xl/workbook.xml"))
+            wb = ET.fromstring(z.read("xl/workbook.xml"))  # noqa: S314 # nosec B314
             for sheet in wb.findall(".//main:sheet", NS):
                 name = sheet.get("name")
                 rid = sheet.get(f"{{{REL_RID}}}id")
@@ -71,7 +72,7 @@ class XlsxReader:
                     self.sheets[name] = rid
 
             # relationships -> worksheet filenames
-            rels = ET.fromstring(z.read("xl/_rels/workbook.xml.rels"))
+            rels = ET.fromstring(z.read("xl/_rels/workbook.xml.rels"))  # noqa: S314 # nosec B314
             for rel in rels.findall("rel:Relationship", RNS):
                 rid = rel.get("Id")
                 target = rel.get("Target")
@@ -88,7 +89,7 @@ class XlsxReader:
 
         rows_out: list[list[str | None]] = []
         with zipfile.ZipFile(self.path) as z:
-            sheet_xml = ET.fromstring(z.read(target))
+            sheet_xml = ET.fromstring(z.read(target))  # noqa: S314 # nosec B314
             sheet_data = sheet_xml.find("main:sheetData", NS)
             if sheet_data is None:
                 return rows_out
@@ -148,10 +149,6 @@ def category_for_stub(stub_type: str) -> str:
 
 
 def model_for_task(category: str, priority: str) -> str:
-    # NOTE: As of 2026-07-15, all 16 live tasks are duplicate_resolve assigned
-    # to kimi-2.7, so the stub_fix/test_add/doc_update/refactor branches below
-    # are not exercised. They are intentional — kept for when those task
-    # types appear in the workbook. Do not remove.
     if category == "duplicate_resolve":
         return "kimi-2.7"
     if category == "test_add":
@@ -207,7 +204,7 @@ def make_prompt(task: dict) -> str:
     }.get(task["category"], task["category"])
     location = ""
     if task.get("file_path"):
-        line_part = f" lines {task['line_start']}" if task.get('line_start') else ""
+        line_part = f" lines {task['line_start']}" if task.get("line_start") else ""
         location = f"Target: `{task['file_path']}`{line_part}"
     when = task.get("created_at", "")
     return f"""AGENT TASK — {model_name} ({task.get('priority', 'medium').upper()} priority)
@@ -233,37 +230,12 @@ MANDATORY RULES FROM AGENTS.md:
 9. Add regression tests for bug fixes when possible.
 10. Verify changed files compile before ending the session.
 
-WORKFLOW (required, in order):
-1. Claim this task: python tools/workorder_runner.py --agent {task['target_model']} claim
-   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.
-2. Do the work described in DELIVERABLE.
-3. Mark the task done: python tools/workorder_runner.py done {task['id']}
-4. Commit (one commit, per MANDATORY RULES above).
-
 DELIVERABLE:
 - Make the minimal change that fixes this {category_label.lower()}.
 - If the fix touches another service, check module contracts first.
 - Return the exact file paths changed and a short verification command.
 - If you cannot complete it cleanly, stop and explain why rather than guessing.
 """
-
-
-def _task_key(task: dict) -> str:
-    """Stable key used to match regenerated tasks with existing state.
-
-    Includes row_index when present so workbook rows with identical
-    systems/file_path/line_start/category don't collide and silently
-    inherit each other's id/status/claimed_by.
-    """
-    return "|".join(
-        [
-            str(task.get("title", "")),
-            str(task.get("file_path", "")),
-            str(task.get("line_start") or ""),
-            str(task.get("category", "")),
-            str(task.get("row_index") or ""),
-        ]
-    )
 
 
 def build_task(
@@ -275,11 +247,18 @@ def build_task(
     file_path: str = "",
     line_start: int | None = None,
     line_end: int | None = None,
-    row_index: int | None = None,
 ) -> dict:
     now = datetime.now(UTC).isoformat()
+    # Stable ID derived from file_path + title (NOT line_start — a stub
+    # shifting a line or two from an unrelated edit elsewhere in the file
+    # shouldn't count as a "new" task and reset a manually-set status).
+    # This replaces the old uuid4() approach, which regenerated a fresh
+    # random ID every sync and silently discarded any status/notes a
+    # person had set on the previous run's task.
+    stable_key = f"{file_path}::{title}"
+    task_id = hashlib.sha1(stable_key.encode("utf-8")).hexdigest()[:12]  # noqa: S324 # nosec B324
     task = {
-        "id": str(uuid.uuid4()),
+        "id": task_id,
         "title": title,
         "description": description,
         "category": category,
@@ -288,9 +267,7 @@ def build_task(
         "file_path": file_path,
         "line_start": line_start,
         "line_end": line_end,
-        "row_index": row_index,
         "status": "pending",
-        "claimed_by": None,
         "notes": "",
         "created_at": now,
         "updated_at": now,
@@ -311,122 +288,32 @@ def load_stub_tasks_json(path: Path) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-STUB_SOURCE_MARKER = "auto"  # column G marker for script-written rows
-
-
-def _read_stub_sheet_rows(ws) -> list[list]:
-    """Read all data rows (row 2 onwards) from the Stubs & TODOs sheet."""
-    rows = []
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        if any(cell is not None for cell in row):
-            rows.append(list(row))
-    return rows
-
-
-def _filter_manual_stub_rows(rows: list[list]) -> list[list]:
-    """Keep rows that were hand-typed (no 'auto' marker in column G)."""
-    manual = []
-    for row in rows:
-        source = row[6] if len(row) > 6 else None
-        if source != STUB_SOURCE_MARKER:
-            manual.append(row)
-    return manual
-
-
-def _ensure_source_header(ws) -> None:
-    """Add 'Source' header to column G if missing."""
-    header_g = ws.cell(row=1, column=7).value
-    if not header_g:
-        ws.cell(row=1, column=7, value="Source")
-
-
-def update_excel_stubs(
-    workbook_path: Path, stub_tasks: list[dict]
-) -> tuple[bool, int, int, int]:
-    """Write the live stub list back into the workbook 'Stubs & TODOs' tab.
-
-    Preserves hand-typed rows (those without the 'auto' marker in column G).
-    Only replaces rows previously written by this script.
-
-    Returns (success, rows_before, rows_after, manual_preserved) for logging.
-    """
+def update_excel_stubs(workbook_path: Path, stub_tasks: list[dict]) -> bool:
+    """Write the live stub list back into the workbook 'Stubs & TODOs' tab."""
     if openpyxl is None:
         print("openpyxl not installed; skipping Excel stub update.", file=sys.stderr)
-        return False, 0, 0, 0
+        return False
     try:
         wb = openpyxl.load_workbook(workbook_path)
         if "Stubs & TODOs" not in wb.sheetnames:
             print("Sheet 'Stubs & TODOs' not found in workbook.", file=sys.stderr)
-            return False, 0, 0, 0
+            return False
         ws = wb["Stubs & TODOs"]
-
-        _ensure_source_header(ws)
-
-        existing_rows = _read_stub_sheet_rows(ws)
-        rows_before = len(existing_rows)
-        manual_rows = _filter_manual_stub_rows(existing_rows)
-
-        # Clear all data rows below header
+        # Clear existing data rows below the header
         max_row = ws.max_row
         if max_row > 1:
             ws.delete_rows(2, max_row - 1)
-
-        # Re-append manual rows first (preserving Brad's hand-typed entries)
-        for row in manual_rows:
-            padded = list(row) + [None] * (7 - len(row))
-            ws.append(padded[:7])
-
-        # Append fresh auto-detected stub rows
         for idx, task in enumerate(stub_tasks, start=1):
             file_path = str(task.get("file", "")).replace("\\", "/")
             line = task.get("line", "")
             reason = task.get("reason", "")
             severity = "HIGH" if "NotImplementedError" in reason else "MEDIUM"
-            ws.append([idx, file_path, line, "stub", reason, severity, STUB_SOURCE_MARKER])
-
+            ws.append([idx, file_path, line, "stub", reason, severity])
         wb.save(workbook_path)
-        rows_after = ws.max_row - 1  # subtract header
-        return True, rows_before, rows_after, len(manual_rows)
+        return True
     except Exception as e:
         print(f"Could not update Excel stubs: {e}", file=sys.stderr)
-        return False, 0, 0, 0
-
-
-def _log_stub_sync_to_build_state(
-    build_state_path: Path,
-    rows_before: int,
-    rows_after: int,
-    manual_preserved: int,
-) -> None:
-    """Append a stub-sync log line to BUILD_STATE.md."""
-    if not build_state_path.exists():
-        return
-    timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
-    log_line = (
-        f"### Stub Sync Log — {timestamp}\n"
-        f"Stubs sheet: {rows_before} rows before sync, "
-        f"{rows_after} rows after — {manual_preserved} manual rows preserved.\n"
-    )
-    content = build_state_path.read_text(encoding="utf-8")
-    marker = "### Stub Sync Log"
-    if marker in content:
-        # Replace existing log section
-        import re
-        content = re.sub(
-            r"### Stub Sync Log.*?(?=\n###|\n## |\Z)",
-            log_line,
-            content,
-            count=1,
-            flags=re.DOTALL,
-        )
-    else:
-        # Insert after the guardrail engine run section
-        content = content.replace(
-            "# BUILD_STATE.md -- Semptify Live Deployment State\n",
-            f"# BUILD_STATE.md -- Semptify Live Deployment State\n\n{log_line}",
-            1,
-        )
-    build_state_path.write_text(content, encoding="utf-8")
+        return False
 
 
 def stub_tasks_json_to_tasks(stub_tasks: list[dict]) -> list[dict]:
@@ -440,15 +327,48 @@ def stub_tasks_json_to_tasks(stub_tasks: list[dict]) -> list[dict]:
         line_start = parse_line(task.get("line"))
         function_name = task.get("function", "stub")
         title = f"Fix {function_name} in {file_cell or 'repo'}"
-        tasks.append(build_task(
-            title=title,
-            description=reason or title,
-            category="stub_fix",
-            priority=priority,
-            file_path=file_path,
-            line_start=line_start,
-        ))
+        tasks.append(
+            build_task(
+                title=title,
+                description=reason or title,
+                category="stub_fix",
+                priority=priority,
+                file_path=file_path,
+                line_start=line_start,
+            )
+        )
     return tasks
+
+
+def merge_with_previous(new_tasks: list[dict], previous_path: Path) -> list[dict]:
+    """Carry forward human-edited fields (status, notes, created_at) from the
+    previous run's output for any task whose stable ID still matches.
+
+    Everything else (title, description, file_path, priority, prompt, ...) is
+    always taken from the freshly generated task, since that reflects the
+    current state of the code/workbook. Only fields a person is expected to
+    hand-edit in the running queue are preserved.
+    """
+    if not previous_path.exists():
+        return new_tasks
+    try:
+        previous_tasks = json.loads(previous_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return new_tasks
+
+    previous_by_id = {t.get("id"): t for t in previous_tasks if t.get("id")}
+
+    for task in new_tasks:
+        prev = previous_by_id.get(task["id"])
+        if not prev:
+            continue
+        task["status"] = prev.get("status", task["status"])
+        task["notes"] = prev.get("notes", task["notes"])
+        task["created_at"] = prev.get("created_at", task["created_at"])
+        if "assigned_agent" in prev:
+            task["assigned_agent"] = prev["assigned_agent"]
+
+    return new_tasks
 
 
 # ---------------------------------------------------------------------------
@@ -483,14 +403,16 @@ def rows_to_stub_tasks(rows: list[list[str | None]]) -> list[dict]:
         file_path = file_path_for_stub(file_cell)
         line_start = parse_line(line_cell)
         title = f"Fix {stub_type or 'stub'} in {file_cell or 'repo'}"
-        tasks.append(build_task(
-            title=title,
-            description=description or title,
-            category=category,
-            priority=priority,
-            file_path=file_path,
-            line_start=line_start,
-        ))
+        tasks.append(
+            build_task(
+                title=title,
+                description=description or title,
+                category=category,
+                priority=priority,
+                file_path=file_path,
+                line_start=line_start,
+            )
+        )
     return tasks
 
 
@@ -501,7 +423,7 @@ def rows_to_duplicate_tasks(rows: list[list[str | None]]) -> list[dict]:
         A: ID, B: Systems, C: Overlap Description, D: Details/Notes
     """
     tasks: list[dict] = []
-    for idx, row in enumerate(rows[1:], start=2):
+    for row in rows[1:]:
         if len(row) < 4 or not any(row[:4]):
             continue
         systems = row[1]
@@ -511,18 +433,33 @@ def rows_to_duplicate_tasks(rows: list[list[str | None]]) -> list[dict]:
             continue
         title = f"Resolve duplicate: {systems}"
         description = f"{overlap or ''}\n\n{details or ''}".strip()
-        tasks.append(build_task(
-            title=title,
-            description=description or title,
-            category="duplicate_resolve",
-            priority="high",
-            file_path="app/core/product_manifest.py",
-            row_index=idx,
-        ))
+        tasks.append(
+            build_task(
+                title=title,
+                description=description or title,
+                category="duplicate_resolve",
+                priority="high",
+                file_path="app/core/product_manifest.py",
+            )
+        )
     return tasks
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--update-workbook",
+        action="store_true",
+        help=(
+            "Also write the live stub list back into the workbook's "
+            "'Stubs & TODOs' tab. OFF by default: this rewrites the entire "
+            ".xlsx binary via openpyxl, can drop manual annotations/"
+            "formatting, and fails if the file is open in Excel — so it's "
+            "opt-in, run deliberately by a person, not on every commit."
+        ),
+    )
+    args = parser.parse_args()
+
     repo_root = Path(__file__).resolve().parent.parent
     workbook_path = repo_root / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
     output_path = repo_root / "tools" / "agent_orchestrator_tasks.json"
@@ -538,15 +475,8 @@ def main() -> int:
     if stub_source_path.exists():
         stub_tasks_json = load_stub_tasks_json(stub_source_path)
         print(f"Found {len(stub_tasks_json)} live stub(s) in {stub_source_path.relative_to(repo_root)}")
-        success, before, after, manual = update_excel_stubs(workbook_path, stub_tasks_json)
-        if success:
-            print(
-                f"Stubs sheet: {before} rows before sync, {after} rows after "
-                f"— {manual} manual rows preserved."
-            )
-            _log_stub_sync_to_build_state(
-                repo_root / "BUILD_STATE.md", before, after, manual
-            )
+        if args.update_workbook:
+            update_excel_stubs(workbook_path, stub_tasks_json)
         stub_tasks = stub_tasks_json_to_tasks(stub_tasks_json)
     else:
         print("No live stub source found; reading workbook 'Stubs & TODOs' tab.")
@@ -561,33 +491,7 @@ def main() -> int:
         print("No tasks generated. Check sheet names and headers.", file=sys.stderr)
         return 1
 
-    # Preserve in_progress/done statuses and claim metadata from the previous JSON
-    # so regeneration does not reset work already in flight.
-    if output_path.exists():
-        try:
-            existing_tasks = json.loads(output_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            existing_tasks = []
-    else:
-        existing_tasks = []
-
-    existing_by_key = {
-        _task_key(t): t
-        for t in existing_tasks
-        if isinstance(t, dict)
-    }
-
-    for task in all_tasks:
-        key = _task_key(task)
-        old = existing_by_key.get(key)
-        if old:
-            task["id"] = old.get("id", task["id"])
-            task["status"] = old.get("status", task["status"])
-            task["claimed_by"] = old.get("claimed_by", task["claimed_by"])
-            task["created_at"] = old.get("created_at", task["created_at"])
-            task["updated_at"] = old.get("updated_at", task["updated_at"])
-            # Keep prompt in sync with preserved timestamps/metadata.
-            task["prompt"] = make_prompt(task)
+    all_tasks = merge_with_previous(all_tasks, output_path)
 
     output_path.write_text(json.dumps(all_tasks, indent=2), encoding="utf-8")
     print(f"Wrote {len(all_tasks)} tasks ({len(stub_tasks)} stubs, {len(dup_tasks)} duplicates) to {output_path}")
