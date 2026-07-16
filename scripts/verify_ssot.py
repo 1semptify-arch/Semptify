@@ -16,20 +16,20 @@ import subprocess
 from pathlib import Path
 
 def main():
-    print("🔍 Running SSOT Architecture Verification...\n")
+    print("Running SSOT Architecture Verification...\n")
     
     # Run the pytest-based audit
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603 # nosec B603
         [sys.executable, "-m", "pytest", "tests/test_ssot_architecture.py", "-v", "--tb=short"],
         capture_output=False,
-        text=True
+        text=True,
     )
     
     if result.returncode == 0:
-        print("\n✅ SSOT Architecture clean - safe to commit")
+        print("\nSSOT Architecture clean - safe to commit")
         return 0
     else:
-        print("\n❌ SSOT violations found!")
+        print("\nSSOT violations found!")
         print("\nFix these before committing:")
         print("  1. All redirects must use ssot_redirect() from navigation registry")
         print("  2. No hardcoded URLs in Python or static files")

@@ -23,7 +23,6 @@ Exit codes: 0 = success, 1 = a step failed or verification failed.
 """
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -39,7 +38,6 @@ ORCHESTRATOR_TASKS = TOOLS_DIR / "agent_orchestrator_tasks.json"
 ORCHESTRATOR_HTML = TOOLS_DIR / "agent_orchestrator.html"
 DASHBOARD_HTML = TOOLS_DIR / "orchestrator_dashboard.html"
 WORKBOOK_XLSX = REPO_ROOT / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
-SYNC_HASH_FILE = TOOLS_DIR / ".sync_orchestrator_hash"
 
 EMBED_START = "<!-- SYNC_ORCHESTRATOR:TASKS_START -->"
 EMBED_END = "<!-- SYNC_ORCHESTRATOR:TASKS_END -->"
@@ -49,58 +47,9 @@ class SyncError(RuntimeError):
     pass
 
 
-def _compute_sync_hash() -> str:
-    """Compute a fast signature of the inputs that drive task generation.
-
-    Uses mtime+size of the workbook (content hash is unreliable because
-    workbook_bridge.py modifies the file as a side effect) and a quick
-    walk of .py file mtimes for stub detection. If neither changed since
-    the last run, the tasks JSON and HTML embed won't change either.
-    """
-    hasher = hashlib.sha256()
-    # Workbook: mtime + size (content hash unreliable — workbook_bridge
-    # modifies the file as a side effect even when nothing changes)
-    if WORKBOOK_XLSX.exists():
-        stat = WORKBOOK_XLSX.stat()
-        hasher.update(f"wb:{stat.st_mtime_ns}:{stat.st_size}".encode())
-    else:
-        hasher.update(b"wb:<missing>")
-    # Source files: walk .py files under app/ and tools/, hash their mtimes
-    # This is the input to stub_detector.py — if no .py files changed,
-    # stub detection output won't change either.
-    for scan_dir in [REPO_ROOT / "app", REPO_ROOT / "tools"]:
-        if not scan_dir.exists():
-            continue
-        for py_file in sorted(scan_dir.rglob("*.py")):
-            if "__pycache__" in py_file.parts:
-                continue
-            try:
-                stat = py_file.stat()
-                hasher.update(f"{py_file}:{stat.st_mtime_ns}:{stat.st_size};".encode())
-            except OSError:
-                continue
-    return hasher.hexdigest()
-
-
-def _stored_sync_hash() -> str | None:
-    if not SYNC_HASH_FILE.exists():
-        return None
-    try:
-        return SYNC_HASH_FILE.read_text(encoding="utf-8").strip()
-    except OSError:
-        return None
-
-
-def _store_sync_hash(hash_value: str) -> None:
-    try:
-        SYNC_HASH_FILE.write_text(hash_value, encoding="utf-8")
-    except OSError:
-        pass
-
-
 def run(cmd: list[str], label: str) -> None:
     print(f"-> {label}: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    result = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)  # noqa: S603 # nosec B603
     if result.stdout.strip():
         print(result.stdout.strip())
     if result.returncode != 0:
@@ -121,9 +70,7 @@ def step_workbook_bridge() -> None:
     if not WORKBOOK_BRIDGE.exists():
         raise SyncError(f"missing {WORKBOOK_BRIDGE}")
     if not WORKBOOK_XLSX.exists():
-        raise SyncError(
-            f"missing {WORKBOOK_XLSX.name} at repo root — workbook_bridge.py needs it"
-        )
+        raise SyncError(f"missing {WORKBOOK_XLSX.name} at repo root — workbook_bridge.py needs it")
     run([sys.executable, str(WORKBOOK_BRIDGE)], "workbook_bridge.py")
 
 
@@ -154,23 +101,21 @@ def verify_orchestrator_tasks() -> tuple[int, int]:
         raise SyncError(f"{ORCHESTRATOR_TASKS} has no recognizable task list")
     missing_paths = [t for t in tasks if not t.get("file_path")]
     if missing_paths:
-        raise SyncError(
-            f"{len(missing_paths)} orchestrator task(s) have no file_path field"
-        )
+        raise SyncError(f"{len(missing_paths)} orchestrator task(s) have no file_path field")
     return len(tasks), len(missing_paths)
 
 
-def embed_tasks_into_html(html_path: Path, tasks_json_text: str) -> None:
-    if not html_path.exists():
-        raise SyncError(f"missing {html_path}")
-    html = html_path.read_text(encoding="utf-8")
+def embed_tasks_into_html(tasks_json_text: str, target: Path) -> None:
+    if not target.exists():
+        raise SyncError(f"missing {target}")
+    html = target.read_text(encoding="utf-8")
 
     block = (
-        f'{EMBED_START}\n'
+        f"{EMBED_START}\n"
         f'<script type="application/json" id="embedded-tasks">\n'
-        f'{tasks_json_text}\n'
-        f'</script>\n'
-        f'{EMBED_END}'
+        f"{tasks_json_text}\n"
+        f"</script>\n"
+        f"{EMBED_END}"
     )
 
     if EMBED_START in html and EMBED_END in html:
@@ -184,14 +129,14 @@ def embed_tasks_into_html(html_path: Path, tasks_json_text: str) -> None:
         # time, before the browser has parsed anything later in the
         # document, so the data element has to already exist above it.
         if "<script>" not in html:
-            raise SyncError(f"{html_path} has no <script> tag to anchor the embed")
+            raise SyncError(f"{target} has no <script> tag to anchor the embed")
         new_html = html.replace("<script>", block + "\n<script>", 1)
 
     if new_html != html:
-        html_path.write_text(new_html, encoding="utf-8")
-        print(f"-> embedded tasks JSON into {html_path.name}")
+        target.write_text(new_html, encoding="utf-8")
+        print(f"-> embedded tasks JSON into {target.name}")
     else:
-        print(f"-> {html_path.name} already up to date")
+        print(f"-> {target.name} already up to date")
 
 
 def git_add(paths: list[Path]) -> None:
@@ -217,34 +162,17 @@ def main() -> int:
 
     try:
         if not args.check:
-            current_hash = _compute_sync_hash()
-            stored_hash = _stored_sync_hash()
-            if current_hash == stored_hash:
-                print("-> skipping regeneration (workbook + source files unchanged since last run)")
-                skip_regen = True
-            else:
-                step_stub_detector()
-                step_workbook_bridge()
-                # Re-hash AFTER steps complete — workbook_bridge modifies the
-                # workbook as a side effect, so the post-run hash is what the
-                # next run's pre-run hash will look like if nothing changes.
-                post_run_hash = _compute_sync_hash()
-                _store_sync_hash(post_run_hash)
-                skip_regen = False
-        else:
-            skip_regen = True
+            step_stub_detector()
+            step_workbook_bridge()
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()
 
-        if not args.check and not skip_regen:
-            embed_tasks_into_html(ORCHESTRATOR_HTML, ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+        if not args.check:
+            tasks_text = ORCHESTRATOR_TASKS.read_text(encoding="utf-8")
+            embed_tasks_into_html(tasks_text, ORCHESTRATOR_HTML)
             if DASHBOARD_HTML.exists():
-                embed_tasks_into_html(DASHBOARD_HTML, ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
-        elif not args.check and skip_regen:
-            print(f"-> {ORCHESTRATOR_HTML.name} not re-embedded (no changes)")
-            if DASHBOARD_HTML.exists():
-                print(f"-> {DASHBOARD_HTML.name} not re-embedded (no changes)")
+                embed_tasks_into_html(tasks_text, DASHBOARD_HTML)
 
         print(
             f"\nOK: {stub_count} stub(s) in {STUB_TASKS_OUT.name}, "
