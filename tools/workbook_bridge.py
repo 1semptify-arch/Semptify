@@ -487,14 +487,12 @@ def main() -> int:
     dup_tasks = rows_to_duplicate_tasks(dup_rows)
     all_tasks = stub_tasks + dup_tasks
 
-    if not all_tasks:
-        print("No tasks generated. Check sheet names and headers.", file=sys.stderr)
-        return 1
-
     all_tasks = merge_with_previous(all_tasks, output_path)
 
     output_path.write_text(json.dumps(all_tasks, indent=2), encoding="utf-8")
     print(f"Wrote {len(all_tasks)} tasks ({len(stub_tasks)} stubs, {len(dup_tasks)} duplicates) to {output_path}")
+    if not all_tasks:
+        print("Queue is empty — no stubs and no duplicates. This is expected after archiving.")
     print("Next: open tools/agent_orchestrator.html and click 'Import JSON' to load the queue.")
     return 0
 
