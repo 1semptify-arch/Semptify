@@ -100,9 +100,8 @@
   }
   .badge-pending { background: rgba(139, 142, 152, 0.2); color: var(--muted); }
   .badge-in_progress { background: rgba(245, 158, 11, 0.2); color: var(--forge); }
-  .badge-done { background: rgba(34, 197, 94, 0.2); color: var(--green); }
   .badge-review { background: rgba(168, 85, 247, 0.2); color: var(--purple); }
-  .badge-resolved { background: rgba(16, 185, 129, 0.25); color: var(--green); }
+  .badge-resolved { background: rgba(34, 197, 94, 0.2); color: var(--green); }
   .badge-rejected { background: rgba(239, 68, 68, 0.2); color: var(--red); }
   .badge-high { background: rgba(239, 68, 68, 0.2); color: var(--red); }
   .badge-medium { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
@@ -136,35 +135,26 @@
   .toast.show { opacity: 1; }
   .empty { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
   .hint { color: var(--muted); font-size: 0.8rem; margin-top: 0.5rem; }
-  .workflow ol.steps {
+  .instructions summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .instructions ol {
     margin: 0.75rem 0 0 1.25rem;
     color: var(--muted);
     font-size: 0.85rem;
   }
-  .workflow ol.steps li {
-    margin-bottom: 0.9rem;
-    padding-left: 0.25rem;
-  }
-  .workflow ol.steps li strong {
-    color: var(--text);
-  }
-  .workflow .code-block {
+  .instructions li { margin-bottom: 0.4rem; }
+  .instructions code {
     background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-    font-family: 'SF Mono', Monaco, monospace;
-    font-size: 0.8rem;
-    margin: 0.4rem 0;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.78rem;
     color: var(--text);
   }
-  .workflow .btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    filter: grayscale(0.6);
-  }
-  .workflow #load-hint.ready { color: var(--green); }
-  .workflow #load-hint.blocked { color: var(--red); }
+  .instructions .actions { margin-top: 0.75rem; }
 </style>
 </head>
 <body>
@@ -174,47 +164,36 @@
   </div>
   <p class="subtitle">No server needed. Runs in your browser using localStorage. Open this file in Windsurf preview or any browser tab.</p>
 
-  <div class="card workflow">
-    <h2>How to use this Agent Orchestrator</h2>
-    <ol class="steps">
-      <li>
-        <strong>1. Generate the task queue</strong>
-        <p class="hint">Run the sync script in your terminal. This cannot be triggered from the browser for security reasons.</p>
-        <div class="code-block" id="sync-cmd">python tools/sync_orchestrator.py</div>
-        <button class="btn btn-sm" onclick="copySyncCommand()">Copy command</button>
-      </li>
-      <li>
-        <strong>2. Load the latest tasks</strong>
-        <p class="hint" id="load-hint">Clears your local queue and loads the freshest embedded/project JSON.</p>
-        <button type="button" class="btn btn-green" onclick="startFresh()" id="start-fresh-btn">Start fresh ↺</button>
-        <button type="button" class="btn btn-secondary" onclick="refreshFromFile()" id="refresh-file-btn" style="margin-left:0.5rem">Refresh from file ↻</button>
-      </li>
-      <li>
-        <strong>3. Pick a task</strong>
-        <p class="hint">In the Task Queue below, click <em>Copy</em> to copy the prompt for an AI agent, or <em>View prompt</em> to read it first.</p>
-        <button class="btn btn-sm btn-secondary" onclick="scrollToTasks()">Jump to Task Queue</button>
-      </li>
-      <li>
-        <strong>4. Mark progress</strong>
-        <p class="hint">Use the status dropdown in each row to set <em>in_progress</em>, <em>review</em>, <em>resolved</em>, or <em>rejected</em>. Your queue auto-saves to localStorage.</p>
-      </li>
-      <li>
-        <strong>5. Create custom tasks (optional)</strong>
-        <p class="hint">Use the Create Task form below to add one-off items the sync script doesn't know about.</p>
-      </li>
-      <li>
-        <strong>6. Backup or move your queue</strong>
-        <p class="hint">Export JSON saves your current queue. Import JSON loads it on another machine.</p>
-        <div class="actions">
-          <button class="btn btn-green" onclick="exportJson()">Export JSON</button>
-          <button class="btn btn-secondary" onclick="document.getElementById('workflow-import-file').click()">Import JSON</button>
-          <input type="file" id="workflow-import-file" accept="application/json" style="display:none" onchange="importJson(this)">
-        </div>
-      </li>
-    </ol>
-    <div class="actions" style="margin-top:0.75rem">
-      <button type="button" class="btn btn-secondary" onclick="showHelpStatus()">Show current load source</button>
-    </div>
+  <div class="card instructions">
+    <details open>
+      <summary>How to use this Agent Orchestrator (full pipeline)</summary>
+      <p class="hint" style="margin:0.5rem 0 0.75rem"><strong>Manually changing status in this UI is a fallback.</strong> Agents should update their own task's status directly via <code>tools/mark_task_status.py</code> the moment they pick up or finish work — that's what keeps this queue accurate without you tracking it by hand.</p>
+      <ol>
+        <li><strong>Generate fresh tasks from the repo:</strong> Run <code>python tools/sync_orchestrator.py</code>. It scans stubs (<code>stub_detector.py</code>), reads the workbook (<code>workbook_bridge.py</code>), merges the result against the previous run so nobody's status/notes/agent get lost, and embeds the result into both this page and <code>tools/orchestrator_dashboard.html</code>.</li>
+        <li><strong>Open the page fresh:</strong> Reload this tab, or click <strong>Start fresh ↺</strong> below to clear local cache and pull the newest embedded tasks.</li>
+        <li><strong>Pick a task:</strong> Use the Task Queue table below, or open <code>tools/orchestrator_dashboard.html</code> for the overview (status/category/agent breakdowns, filterable table). Click <em>View prompt</em> to read the generated prompt, or <em>Copy</em> to paste it into an agent.</li>
+        <li><strong>Agent picks up the task:</strong> Before starting work, the agent runs:<br>
+          <code>python tools/mark_task_status.py &lt;task_id&gt; in_progress --agent &lt;model-name&gt;</code></li>
+        <li><strong>Agent finishes the task:</strong> The agent runs:<br>
+          <code>python tools/mark_task_status.py &lt;task_id&gt; resolved --notes "&lt;one-line summary&gt;" --agent &lt;model-name&gt;</code><br>
+          (use <code>review</code> instead of <code>resolved</code> if blocked or unsure, and say why in <code>--notes</code>)</li>
+        <li><strong>Clear out finished duplicate-resolve tasks:</strong> Resolved/rejected tasks stay visible (correctly marked) until someone runs the archive step — they don't disappear on their own, because the underlying workbook row is still there until archived. Periodically run:<br>
+          <code>python tools/archive_resolved_duplicates.py --dry-run</code> to preview, then without <code>--dry-run</code> to actually move the rows into the workbook's <code>Archive</code> sheet and drop them from the active queue.</li>
+        <li><strong>Export/import:</strong> Use the Data card to back up your queue as JSON or move it between machines.</li>
+      </ol>
+      <p class="hint" style="margin-top:0.75rem"><strong>Full refresh, in order</strong> (run from the repo root):</p>
+      <ol>
+        <li><code>python tools/sync_orchestrator.py</code> — rebuild stubs + tasks, embed into both HTML views</li>
+        <li><code>python tools/archive_resolved_duplicates.py --dry-run</code> — check if anything's ready to clear</li>
+        <li><code>python tools/archive_resolved_duplicates.py</code> — clear it if the preview looked right</li>
+        <li><code>python tools/sync_orchestrator.py</code> — re-run once more so the HTML views reflect the archive</li>
+        <li>Reload this page and <code>tools/orchestrator_dashboard.html</code></li>
+      </ol>
+      <div class="actions">
+        <button type="button" class="btn btn-green" onclick="startFresh()">Start fresh ↺</button>
+        <button type="button" class="btn btn-secondary" onclick="showHelpStatus()">Show current load source</button>
+      </div>
+    </details>
   </div>
 
   <div class="card">
@@ -222,10 +201,7 @@
       <div class="stat"><div class="stat-value" id="total">0</div><div class="stat-label">Total</div></div>
       <div class="stat"><div class="stat-value" id="pending">0</div><div class="stat-label">Pending</div></div>
       <div class="stat"><div class="stat-value" id="in_progress">0</div><div class="stat-label">In Progress</div></div>
-      <div class="stat"><div class="stat-value" id="done">0</div><div class="stat-label">Done</div></div>
       <div class="stat"><div class="stat-value" id="review">0</div><div class="stat-label">Review</div></div>
-      <div class="stat"><div class="stat-value" id="resolved">0</div><div class="stat-label">Resolved</div></div>
-      <div class="stat"><div class="stat-value" id="rejected">0</div><div class="stat-label">Rejected</div></div>
     </div>
   </div>
 
@@ -307,7 +283,7 @@
 <script type="application/json" id="embedded-tasks">
 [
   {
-    "id": "220efa92-3c5a-461f-8284-5a2e0cfba354",
+    "id": "d0ddc6f7b028",
     "title": "Resolve duplicate: vault vs vault_engine vs vault_all_in_one",
     "description": "3 vault modules with overlapping functionality\n\nvault.router (17 routes), vault_engine.router (11 routes), vault_all_in_one.router (13 routes) \u2014 all deal with vault operations.",
     "category": "duplicate_resolve",
@@ -316,16 +292,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 2,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: vault vs vault_engine vs vault_all_in_one\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\n3 vault modules with overlapping functionality\n\nvault.router (17 routes), vault_engine.router (11 routes), vault_all_in_one.router (13 routes) \u2014 all deal with vault operations.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 220efa92-3c5a-461f-8284-5a2e0cfba354\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579367+00:00",
+    "updated_at": "2026-07-16T07:15:23.008096+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: vault vs vault_engine vs vault_all_in_one\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008096+00:00\n\nDescription:\n3 vault modules with overlapping functionality\n\nvault.router (17 routes), vault_engine.router (11 routes), vault_all_in_one.router (13 routes) \u2014 all deal with vault operations.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "bdc1a003-be07-490d-a99e-9d8b3b714bb7",
+    "id": "6420b527a016",
     "title": "Resolve duplicate: case_builder router vs case_builder.py standalone",
     "description": "Module router vs standalone file\n\napp/modules/case_builder/router.py (36 routes) and app/modules/case_builder.py (27917 bytes). Standalone may be legacy.",
     "category": "duplicate_resolve",
@@ -334,16 +308,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 3,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: case_builder router vs case_builder.py standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/case_builder/router.py (36 routes) and app/modules/case_builder.py (27917 bytes). Standalone may be legacy.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done bdc1a003-be07-490d-a99e-9d8b3b714bb7\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008715+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: case_builder router vs case_builder.py standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008715+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/case_builder/router.py (36 routes) and app/modules/case_builder.py (27917 bytes). Standalone may be legacy.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "c6be7697-31e4-4c8c-8c5f-c62b131fdad2",
+    "id": "11e523888160",
     "title": "Resolve duplicate: document_converter router vs standalone",
     "description": "Module router vs standalone file\n\napp/modules/document_converter/router.py (8 routes) and app/modules/document_converter.py (44828 bytes).",
     "category": "duplicate_resolve",
@@ -352,16 +324,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 4,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: document_converter router vs standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/document_converter/router.py (8 routes) and app/modules/document_converter.py (44828 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done c6be7697-31e4-4c8c-8c5f-c62b131fdad2\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008761+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: document_converter router vs standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008761+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/document_converter/router.py (8 routes) and app/modules/document_converter.py (44828 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "db64b4ea-c583-4579-8c5c-1711d0d705a2",
+    "id": "df38b548e38d",
     "title": "Resolve duplicate: research router vs research_module.py standalone",
     "description": "Module router vs standalone file\n\napp/modules/research/router.py (18 routes) and app/modules/research_module.py (52568 bytes).",
     "category": "duplicate_resolve",
@@ -370,16 +340,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 5,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: research router vs research_module.py standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/research/router.py (18 routes) and app/modules/research_module.py (52568 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done db64b4ea-c583-4579-8c5c-1711d0d705a2\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008787+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: research router vs research_module.py standalone\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008787+00:00\n\nDescription:\nModule router vs standalone file\n\napp/modules/research/router.py (18 routes) and app/modules/research_module.py (52568 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "4a4043f2-aebf-4012-93ce-185d79912682",
+    "id": "65dc3ed76d4d",
     "title": "Resolve duplicate: tenant_defense vs eviction_defense",
     "description": "Overlapping domain\n\ntenant_defense.py (11 endpoints) and eviction_defense/router.py (18 endpoints) \u2014 both deal with tenant defense.",
     "category": "duplicate_resolve",
@@ -388,16 +356,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 6,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: tenant_defense vs eviction_defense\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nOverlapping domain\n\ntenant_defense.py (11 endpoints) and eviction_defense/router.py (18 endpoints) \u2014 both deal with tenant defense.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 4a4043f2-aebf-4012-93ce-185d79912682\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008809+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: tenant_defense vs eviction_defense\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008809+00:00\n\nDescription:\nOverlapping domain\n\ntenant_defense.py (11 endpoints) and eviction_defense/router.py (18 endpoints) \u2014 both deal with tenant defense.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "9d8432f1-a5fb-4849-b1c5-6f5d5ef2574b",
+    "id": "0ca59221a933",
     "title": "Resolve duplicate: complaints router vs complaint_wizard_module.py",
     "description": "Module router vs standalone file\n\ncomplaints/router.py (18 routes) and complaint_wizard_module.py (24293 bytes, dev_only).",
     "category": "duplicate_resolve",
@@ -406,16 +372,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 7,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: complaints router vs complaint_wizard_module.py\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nModule router vs standalone file\n\ncomplaints/router.py (18 routes) and complaint_wizard_module.py (24293 bytes, dev_only).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 9d8432f1-a5fb-4849-b1c5-6f5d5ef2574b\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008830+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: complaints router vs complaint_wizard_module.py\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008830+00:00\n\nDescription:\nModule router vs standalone file\n\ncomplaints/router.py (18 routes) and complaint_wizard_module.py (24293 bytes, dev_only).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "e8929886-dc21-408c-90ff-375ef317d069",
+    "id": "44305caa57c9",
     "title": "Resolve duplicate: free_api router vs free_api_pack.py",
     "description": "Module router vs standalone file\n\nfree_api/router.py (11 routes) and free_api_pack.py (27681 bytes, dev_only).",
     "category": "duplicate_resolve",
@@ -424,16 +388,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 8,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: free_api router vs free_api_pack.py\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nModule router vs standalone file\n\nfree_api/router.py (11 routes) and free_api_pack.py (27681 bytes, dev_only).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done e8929886-dc21-408c-90ff-375ef317d069\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008849+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: free_api router vs free_api_pack.py\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008849+00:00\n\nDescription:\nModule router vs standalone file\n\nfree_api/router.py (11 routes) and free_api_pack.py (27681 bytes, dev_only).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "d24c2882-e855-4f86-a837-cf6f4a13bc05",
+    "id": "df02bd87cc80",
     "title": "Resolve duplicate: storage function-token/issue (duplicate route)",
     "description": "Duplicate route registration\n\nstorage/router.py registers POST /function-token/issue twice (lines 1003 and 1014).",
     "category": "duplicate_resolve",
@@ -442,16 +404,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 9,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: storage function-token/issue (duplicate route)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nDuplicate route registration\n\nstorage/router.py registers POST /function-token/issue twice (lines 1003 and 1014).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done d24c2882-e855-4f86-a837-cf6f4a13bc05\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008868+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: storage function-token/issue (duplicate route)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008868+00:00\n\nDescription:\nDuplicate route registration\n\nstorage/router.py registers POST /function-token/issue twice (lines 1003 and 1014).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "44040666-5a62-4904-96ef-43a69a464387",
+    "id": "b441ab294de3",
     "title": "Resolve duplicate: storage function-token/verify (duplicate route)",
     "description": "Duplicate route registration\n\nstorage/router.py registers POST /function-token/verify twice (lines 1004 and 1015).",
     "category": "duplicate_resolve",
@@ -460,16 +420,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 10,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: storage function-token/verify (duplicate route)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nDuplicate route registration\n\nstorage/router.py registers POST /function-token/verify twice (lines 1004 and 1015).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 44040666-5a62-4904-96ef-43a69a464387\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008887+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: storage function-token/verify (duplicate route)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008887+00:00\n\nDescription:\nDuplicate route registration\n\nstorage/router.py registers POST /function-token/verify twice (lines 1004 and 1015).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "6fb6aeec-3d12-4dfc-975c-cea7d7716a0b",
+    "id": "f1f59ceb7373",
     "title": "Resolve duplicate: timeline vs briefcase timeline vs workflow timeline",
     "description": "3 timeline systems\n\ntimeline.router (3 routes), briefcase.router has 7 timeline-event routes, workflow has timeline logic.",
     "category": "duplicate_resolve",
@@ -478,16 +436,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 11,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: timeline vs briefcase timeline vs workflow timeline\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\n3 timeline systems\n\ntimeline.router (3 routes), briefcase.router has 7 timeline-event routes, workflow has timeline logic.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 6fb6aeec-3d12-4dfc-975c-cea7d7716a0b\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008907+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: timeline vs briefcase timeline vs workflow timeline\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008907+00:00\n\nDescription:\n3 timeline systems\n\ntimeline.router (3 routes), briefcase.router has 7 timeline-event routes, workflow has timeline logic.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "8a002765-c8aa-4823-a1df-f3514995b2cd",
+    "id": "014cdf5f6a02",
     "title": "Resolve duplicate: cloud_sync vs user_cloud_sync service",
     "description": "Module vs service overlap\n\ncloud_sync.router (19 routes) and services/user_cloud_sync.py (21881 bytes).",
     "category": "duplicate_resolve",
@@ -496,16 +452,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 12,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.935959+00:00",
-    "updated_at": "2026-07-15T07:58:46.935959+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: cloud_sync vs user_cloud_sync service\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.935959+00:00\n\nDescription:\nModule vs service overlap\n\ncloud_sync.router (19 routes) and services/user_cloud_sync.py (21881 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 8a002765-c8aa-4823-a1df-f3514995b2cd\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008927+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: cloud_sync vs user_cloud_sync service\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008927+00:00\n\nDescription:\nModule vs service overlap\n\ncloud_sync.router (19 routes) and services/user_cloud_sync.py (21881 bytes).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "e61ee593-378e-45bb-803b-8f1a713638d8",
+    "id": "e7b6791ddf14",
     "title": "Resolve duplicate: search vs vault_search vs postgres_fts",
     "description": "3 search systems\n\nsearch.router (7 routes), services/vault_search.py, core/postgres_fts.py.",
     "category": "duplicate_resolve",
@@ -514,16 +468,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 13,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.936968+00:00",
-    "updated_at": "2026-07-15T07:58:46.936968+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: search vs vault_search vs postgres_fts\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.936968+00:00\n\nDescription:\n3 search systems\n\nsearch.router (7 routes), services/vault_search.py, core/postgres_fts.py.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done e61ee593-378e-45bb-803b-8f1a713638d8\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008969+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: search vs vault_search vs postgres_fts\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008969+00:00\n\nDescription:\n3 search systems\n\nsearch.router (7 routes), services/vault_search.py, core/postgres_fts.py.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "b6224a8b-b3b8-459a-a545-cf9841cb5857",
+    "id": "f42766061e21",
     "title": "Resolve duplicate: brain vs positronic_brain vs positronic_mesh vs mesh_network",
     "description": "4 brain/mesh systems\n\nbrain.router (11), positronic_brain.py, positronic_mesh.router (13), mesh_network.router (11).",
     "category": "duplicate_resolve",
@@ -532,16 +484,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 14,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.936968+00:00",
-    "updated_at": "2026-07-15T07:58:46.936968+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: brain vs positronic_brain vs positronic_mesh vs mesh_network\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.936968+00:00\n\nDescription:\n4 brain/mesh systems\n\nbrain.router (11), positronic_brain.py, positronic_mesh.router (13), mesh_network.router (11).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done b6224a8b-b3b8-459a-a545-cf9841cb5857\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.008991+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: brain vs positronic_brain vs positronic_mesh vs mesh_network\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.008991+00:00\n\nDescription:\n4 brain/mesh systems\n\nbrain.router (11), positronic_brain.py, positronic_mesh.router (13), mesh_network.router (11).\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "3fae001b-0a34-4084-a282-103d13b8f529",
+    "id": "eb21d1b2bd72",
     "title": "Resolve duplicate: housing_accountability (0 routes in list)",
     "description": "Router exists but no routes listed\n\nRegistered in product_manifest but module_routes_list.txt shows 0 routes.",
     "category": "duplicate_resolve",
@@ -550,16 +500,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 15,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.936968+00:00",
-    "updated_at": "2026-07-15T07:58:46.936968+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: housing_accountability (0 routes in list)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.936968+00:00\n\nDescription:\nRouter exists but no routes listed\n\nRegistered in product_manifest but module_routes_list.txt shows 0 routes.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 3fae001b-0a34-4084-a282-103d13b8f529\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.009011+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: housing_accountability (0 routes in list)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.009011+00:00\n\nDescription:\nRouter exists but no routes listed\n\nRegistered in product_manifest but module_routes_list.txt shows 0 routes.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "ebc58173-f698-4dd9-b4db-974e42b386d8",
+    "id": "dfaa54a66837",
     "title": "Resolve duplicate: litigation_intelligence (0 routes in list)",
     "description": "Router exists but no routes listed\n\nRegistered in product_manifest but module_routes_list.txt shows 0 routes. 17 endpoints claimed in ACTIVE_CONTEXT.",
     "category": "duplicate_resolve",
@@ -568,16 +516,14 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 16,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.936968+00:00",
-    "updated_at": "2026-07-15T07:58:46.936968+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: litigation_intelligence (0 routes in list)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.936968+00:00\n\nDescription:\nRouter exists but no routes listed\n\nRegistered in product_manifest but module_routes_list.txt shows 0 routes. 17 endpoints claimed in ACTIVE_CONTEXT.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done ebc58173-f698-4dd9-b4db-974e42b386d8\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.009029+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: litigation_intelligence (0 routes in list)\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.009029+00:00\n\nDescription:\nRouter exists but no routes listed\n\nRegistered in product_manifest but module_routes_list.txt shows 0 routes. 17 endpoints claimed in ACTIVE_CONTEXT.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   },
   {
-    "id": "5690bb68-477a-4b98-add6-9297dbd30a74",
+    "id": "5f5d4ab0462d",
     "title": "Resolve duplicate: context_engine vs context_loop",
     "description": "Two context systems\n\ncontext_engine.router (9 routes) and context_loop.router (11 routes) \u2014 both deal with context.",
     "category": "duplicate_resolve",
@@ -586,13 +532,11 @@
     "file_path": "app/core/product_manifest.py",
     "line_start": null,
     "line_end": null,
-    "row_index": 17,
     "status": "pending",
-    "claimed_by": null,
     "notes": "",
-    "created_at": "2026-07-15T07:58:46.936968+00:00",
-    "updated_at": "2026-07-15T07:58:46.936968+00:00",
-    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: context_engine vs context_loop\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-15T07:58:46.936968+00:00\n\nDescription:\nTwo context systems\n\ncontext_engine.router (9 routes) and context_loop.router (11 routes) \u2014 both deal with context.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nWORKFLOW (required, in order):\n1. Claim this task: python tools/workorder_runner.py --agent kimi-2.7 claim\n   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.\n2. Do the work described in DELIVERABLE.\n3. Mark the task done: python tools/workorder_runner.py done 5690bb68-477a-4b98-add6-9297dbd30a74\n4. Commit (one commit, per MANDATORY RULES above).\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
+    "created_at": "2026-07-16T05:31:55.579941+00:00",
+    "updated_at": "2026-07-16T07:15:23.009048+00:00",
+    "prompt": "AGENT TASK \u2014 Kimi 2.7 (HIGH priority)\nSemptify repository \u2014 Python 3.11.9 / FastAPI / PostgreSQL\n\nTask: Resolve duplicate: context_engine vs context_loop\nCategory: Duplicate Resolve\nTarget: `app/core/product_manifest.py`\nCreated: 2026-07-16T07:15:23.009048+00:00\n\nDescription:\nTwo context systems\n\ncontext_engine.router (9 routes) and context_loop.router (11 routes) \u2014 both deal with context.\n\nMANDATORY RULES FROM AGENTS.md:\n1. Work on a feature branch; never touch main directly.\n2. Target Python 3.11.9 only. Do NOT add 3.12+ dependencies.\n3. Run pre-flight: read BUILD_STATE.md and ACTIVE_CONTEXT.md first.\n4. Use utc_now() from app.core.utc for all timestamps.\n5. Never use bare except: \u2014 catch specific exception types.\n6. Never hardcode URL strings; use navigation.get_stage() for redirects.\n7. Fix root causes, not symptoms. Do not add downstream band-aids.\n8. If you rewrite a file, follow the swap protocol (ask to rename original first).\n9. Add regression tests for bug fixes when possible.\n10. Verify changed files compile before ending the session.\n\nDELIVERABLE:\n- Make the minimal change that fixes this duplicate resolve.\n- If the fix touches another service, check module contracts first.\n- Return the exact file paths changed and a short verification command.\n- If you cannot complete it cleanly, stop and explain why rather than guessing.\n"
   }
 ]
 </script>
@@ -638,19 +582,17 @@ function loadEmbeddedTasks() {
   }
 }
 
-// File is the source of truth. localStorage is only an offline fallback
-// (e.g. file:// CORS restrictions prevent fetching the JSON).
 function loadTasks() {
-  const embedded = loadEmbeddedTasks();
-  if (embedded.length > 0) {
-    saveTasks(embedded);
-    return embedded;
-  }
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     if (stored.length > 0) return stored;
   } catch {
-    // fall through to empty
+    // fall through to embedded tasks
+  }
+  const embedded = loadEmbeddedTasks();
+  if (embedded.length > 0) {
+    saveTasks(embedded);
+    return embedded;
   }
   return [];
 }
@@ -685,10 +627,7 @@ function updateSummary() {
   document.getElementById('total').textContent = tasks.length;
   document.getElementById('pending').textContent = byStatus.pending || 0;
   document.getElementById('in_progress').textContent = byStatus.in_progress || 0;
-  document.getElementById('done').textContent = byStatus.done || 0;
   document.getElementById('review').textContent = byStatus.review || 0;
-  document.getElementById('resolved').textContent = byStatus.resolved || 0;
-  document.getElementById('rejected').textContent = byStatus.rejected || 0;
 }
 
 function generatePrompt(task) {
@@ -722,13 +661,6 @@ MANDATORY RULES FROM AGENTS.md:
 9. Add regression tests for bug fixes when possible.
 10. Verify changed files compile before ending the session.
 
-WORKFLOW (required, in order):
-1. Claim this task: python tools/workorder_runner.py --agent ${task.target_model} claim
-   - If claiming fails (already claimed by another agent), STOP. Report back that the task was already taken. Do not proceed with the work.
-2. Do the work described in DELIVERABLE.
-3. Mark the task done: python tools/workorder_runner.py done ${task.id}
-4. Commit (one commit, per MANDATORY RULES above).
-
 DELIVERABLE:
 - Make the minimal change that fixes this ${categoryLabel.toLowerCase()}.
 - If the fix touches another service, check module contracts first.
@@ -753,7 +685,7 @@ function renderTasks() {
     return;
   }
 
-  const statusOptions = ['pending', 'in_progress', 'done', 'review', 'resolved', 'rejected'];
+  const statusOptions = ['pending', 'in_progress', 'review', 'resolved', 'rejected'];
   const rows = tasks.map(t => {
     const loc = t.file_path ? `${t.file_path}${t.line_start ? ':' + t.line_start : ''}${t.line_end ? '-' + t.line_end : ''}` : '—';
     return `<tr>
@@ -885,88 +817,37 @@ function startFresh() {
     localStorage.removeItem(STORAGE_KEY);
   } catch {}
   tasks = [];
-  autoLoadProjectJson().then((loaded) => {
+  autoLoadProjectJson().then(() => {
     if (!tasks.length) {
       tasks = loadEmbeddedTasks();
       if (tasks.length) saveTasks(tasks);
     }
     renderTasks();
-    showToast(loaded ? `Loaded ${tasks.length} tasks from file` : `Loaded ${tasks.length} fresh tasks`);
-  });
-}
-
-// Manual "Refresh from file" — always re-fetches the live JSON regardless of
-// what's in localStorage. Escape hatch so Brad never has to remember
-// "clear localStorage" as a troubleshooting step.
-function refreshFromFile() {
-  autoLoadProjectJson().then((loaded) => {
-    if (loaded) {
-      renderTasks();
-      showToast(`Refreshed ${tasks.length} tasks from file`);
-    } else {
-      // Fetch failed (likely file://). Fall back to embedded.
-      const embedded = loadEmbeddedTasks();
-      if (embedded.length) {
-        tasks = embedded.map(t => ({ ...t, prompt: generatePrompt(t) }));
-        saveTasks(tasks);
-        renderTasks();
-        showToast(`File fetch failed — loaded ${tasks.length} embedded tasks`);
-      } else {
-        showToast('File fetch failed and no embedded tasks available');
-      }
-    }
+    showToast(`Loaded ${tasks.length} fresh tasks`);
   });
 }
 
 function showHelpStatus() {
   const source = localStorage.getItem(STORAGE_KEY)
-    ? 'File is the source of truth. localStorage is only used as an offline fallback (e.g. file:// CORS). Use "Refresh from file ↻" to force a re-fetch.'
-    : 'No localStorage cache. Tasks loaded from embedded/project JSON.';
-  alert(`${source}\n\nRun 'python tools/sync_orchestrator.py' to regenerate, then click "Refresh from file ↻" to load it.`);
+    ? 'Your queue is currently loaded from localStorage (saved from a previous session).'
+    : 'Your queue is currently loaded from embedded/project JSON (fresh from the last sync).';
+  alert(`${source}\n\nRun 'python tools/sync_orchestrator.py' to regenerate, then click "Start fresh ↺" to load it.`);
 }
 
-// Always try to fetch the live file first. Only fall back to localStorage
-// if the fetch fails (e.g. file:// CORS restrictions).
 async function autoLoadProjectJson() {
+  if (tasks.length) return;
   try {
     const res = await fetch('agent_orchestrator_tasks.json?_=' + Date.now());
-    if (!res.ok) return false;
+    if (!res.ok) return;
     const data = await res.json();
     const imported = Array.isArray(data) ? data : [];
     if (imported.length) {
       tasks = imported.map(t => ({ ...t, prompt: generatePrompt(t) }));
       saveTasks(tasks);
-      return true;
+      showToast('Loaded project tasks');
     }
   } catch (err) {
-    // file:// or missing JSON; keep whatever was loaded from embedded/localStorage
-  }
-  return false;
-}
-
-function copySyncCommand() {
-  const cmd = document.getElementById('sync-cmd').textContent;
-  navigator.clipboard.writeText(cmd).then(() => showToast('Sync command copied'));
-}
-
-function scrollToTasks() {
-  document.getElementById('task-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function updateWorkflowState() {
-  const embedded = loadEmbeddedTasks();
-  const projectAvailable = tasks.length > 0 || embedded.length > 0;
-  const btn = document.getElementById('start-fresh-btn');
-  const hint = document.getElementById('load-hint');
-  if (!btn || !hint) return;
-  if (!projectAvailable) {
-    btn.disabled = true;
-    hint.className = 'hint blocked';
-    hint.textContent = 'No tasks available yet. Complete Step 1 (run python tools/sync_orchestrator.py) to generate the queue before loading fresh tasks.';
-  } else {
-    btn.disabled = false;
-    hint.className = 'hint ready';
-    hint.textContent = `Ready: ${embedded.length} embedded task(s) available. Click to reload from the latest embedded/project JSON.`;
+    // file:// or missing JSON; keep localStorage as-is
   }
 }
 
@@ -976,7 +857,6 @@ initModels();
 (async () => {
   await autoLoadProjectJson();
   renderTasks();
-  updateWorkflowState();
 })();
 </script>
 </body>

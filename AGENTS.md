@@ -177,6 +177,16 @@ Before ending any session, you MUST:
 - [ ] Update `ACTIVE_CONTEXT.md` if the current priority changed
 - [ ] Do NOT mark something "working" unless it was actually tested — write "pending live test" if untested
 
+### Orchestrator Task Status Rule
+
+Whenever you pick up a task from `agent_orchestrator_tasks.json`, immediately run:
+`python tools/mark_task_status.py <task_id> in_progress --agent <your-model-name>`
+
+When you finish:
+`python tools/mark_task_status.py <task_id> resolved --notes "<one-line summary>" --agent <your-model-name>`
+
+If you get blocked, use `review` instead of `resolved` and explain why in `--notes`. Do this every time, without being asked — it's how the queue stays accurate without a human tracking it by hand.
+
 ---
 
 ## Core Mission
@@ -411,7 +421,7 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 - **New flows**: Use `navigation.register_stage(FlowStage(...))` to expand SSOT
 - **Deprecating old paths**: Use `navigation.deprecate_path("/old", "/new")` for graceful evolution
 
-**Philosophy:** 
+**Philosophy:**
 - A rule that cannot evolve is a prison
 - A rule that is never enforced is a suggestion
 - Good rules have escape hatches with TTLs (time-to-live)
@@ -420,7 +430,7 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 **When breaking SSOT:**
 1. Document WHY in code
 2. Use escape_hatch with expiration
-3. After the experiment, either: 
+3. After the experiment, either:
    - Kill it (remove the code)
    - Formalize it (register as proper FlowStage)
    - Deprecate it (old path → new canonical)
