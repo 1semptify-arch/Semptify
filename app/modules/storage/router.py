@@ -39,6 +39,7 @@ except ImportError:
     select = None
     SQLALCHEMY_AVAILABLE = False
 
+from app.core.auto_refresh import _decrypt_string, _encrypt_string
 from app.core.config import get_settings
 from app.core.cookie_auth import set_auth_cookie
 from app.core.database import get_db
@@ -102,6 +103,9 @@ OAUTH_CONFIGS = {
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
 ALLOWED_ROLES = {"user", "tenant", "manager", "advocate", "legal", "judge", "admin"}
+
+# In-memory session cache for transitional compatibility (primary sessions are in DB)
+SESSIONS: dict = {}
 
 # ============================================================================
 # Session Status Endpoint - For Returning User Auto-Reconnect (SSOT)
@@ -3039,41 +3043,51 @@ async def switch_role(
         if not request.household_members or request.household_members < 2:
             raise HTTPException(status_code=403, detail="Manager access requires more than one person on lease")
 
-    # Generate new user ID with new role
-    new_uid = update_user_id_role(semptify_uid, request.role)
-    if not new_uid:
-        raise HTTPException(status_code=400, detail="Invalid user ID format")
+    try:
+        # Generate new user ID with new role
+        new_uid = update_user_id_role(semptify_uid, request.role)
+        if not new_uid:
+            raise HTTPException(status_code=400, detail="Invalid user ID format")
 
-    # Get existing session from database
-    session = await get_session_from_db(db, semptify_uid)
-    if session:
-        # Save session with new user ID
-        await save_session_to_db(
-            db=db,
-            user_id=new_uid,
-            provider=session["provider"],
-            access_token=session["access_token"],
-            refresh_token=session.get("refresh_token"),
+        # Get existing session from database
+        session = await get_session_from_db(db, semptify_uid)
+        if session:
+            # Save session with new user ID
+            await save_session_to_db(
+                db=db,
+                user_id=new_uid,
+                provider=session["provider"],
+                access_token=session["access_token"],
+                refresh_token=session.get("refresh_token"),
+            )
+            # Update user record
+            await create_or_update_user(db, new_uid, session["provider"])
+            # Update storage config
+            await get_or_create_storage_config(db, new_uid, session["provider"])
+            # Clear old compatibility cache entry.
+            SESSIONS.pop(semptify_uid, None)
+        # Role transition invalidates prior function tokens bound to the old role context.
+        invalidate_function_access_tokens(semptify_uid)
+
+        # Update cookie
+        set_auth_cookie(response, new_uid, secure=request.url.scheme == "https")
+
+        return {
+            "success": True,
+            "old_user_id": semptify_uid,
+            "new_user_id": new_uid,
+            "role": request.role,
+            "authorized": True,
+        }
+    except HTTPException:
+        # Re-raise HTTP exceptions (already formatted)
+        raise
+    except Exception as e:
+        logger.error(f"Role switch failed for {semptify_uid} → {request.role}: {type(e).__name__}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Role switch failed: {type(e).__name__}. Check server logs for details."
         )
-        # Update user record
-        await create_or_update_user(db, new_uid, session["provider"])
-        # Update storage config
-        await get_or_create_storage_config(db, new_uid, session["provider"])
-        # Clear old compatibility cache entry.
-        SESSIONS.pop(semptify_uid, None)
-    # Role transition invalidates prior function tokens bound to the old role context.
-    invalidate_function_access_tokens(semptify_uid)
-
-    # Update cookie
-    set_auth_cookie(response, new_uid, secure=request.url.scheme == "https")
-
-    return {
-        "success": True,
-        "old_user_id": semptify_uid,
-        "new_user_id": new_uid,
-        "role": request.role,
-        "authorized": True,
-    }
 
 
 # ============================================================================
