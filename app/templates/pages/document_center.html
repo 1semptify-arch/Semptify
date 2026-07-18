@@ -45,6 +45,12 @@
                     <option value="correspondence">Correspondence</option>
                     <option value="other">Other</option>
                 </select>
+                <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:#1e293b; border:1px solid #f59e0b; border-radius:0.25rem; padding:0.1875rem 0.5rem; font-size:0.75rem;">
+                    <span style="color:#f59e0b;">💡 Semptify suggests:</span>
+                    <span id="dcSuggestedType" style="color:#e2e8f0; font-weight:600;"></span>
+                    <button type="button" id="dcAcceptSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem; background:#052e16; color:#22c55e;">Accept</button>
+                    <button type="button" id="dcDismissSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem;">✕</button>
+                </div>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
                 <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">⚙ Process now</button>
                 <button id="dcShareBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">↗ Share</button>
@@ -1075,12 +1081,70 @@
             renderDocs();
             if (data.overlays) renderOverlays(data.overlays);
             renderChecklist(currentDoc);
+            hideTypeSuggestion();
             if (newType && window.SemptifyFeedback) {
                 SemptifyFeedback.info('Type set to ' + (documentTypes[newType] ? documentTypes[newType].label : newType) + '. Checklist updated.');
             }
         } catch (e) {
             if (window.SemptifyFeedback) SemptifyFeedback.error('Could not update type: ' + e.message);
         }
+    });
+
+    // Semptify-suggested document type — banner with Accept/Dismiss
+    function typeLabel(value) {
+        const map = {
+            lease: 'Lease Agreement',
+            notice_to_vacate: 'Notice to Vacate',
+            repair_request: 'Repair Request',
+            rent_receipt: 'Rent Receipt',
+            move_in_inspection: 'Move-in Inspection',
+            court_summons: 'Court Summons',
+            correspondence: 'Correspondence',
+            other: 'Other'
+        };
+        return map[value] || (value ? value.replace(/_/g, ' ') : 'Unknown');
+    }
+
+    function showTypeSuggestion(suggestedType) {
+        const banner = document.getElementById('dcTypeSuggest');
+        const label = document.getElementById('dcSuggestedType');
+        if (!banner || !label) return;
+        label.textContent = typeLabel(suggestedType);
+        banner.dataset.suggested = suggestedType;
+        banner.style.display = 'flex';
+    }
+
+    function hideTypeSuggestion() {
+        const banner = document.getElementById('dcTypeSuggest');
+        if (banner) banner.style.display = 'none';
+    }
+
+    document.getElementById('dcAcceptSuggest').addEventListener('click', async () => {
+        const banner = document.getElementById('dcTypeSuggest');
+        const suggested = banner.dataset.suggested;
+        if (!suggested || !currentDoc) return;
+        typeSelect.value = suggested;
+        try {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(currentDoc.id) + '/type', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ document_type: suggested }),
+                credentials: 'include',
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            currentDoc.document_type = suggested;
+            renderDocs();
+            renderChecklist(currentDoc);
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Type set to ' + typeLabel(suggested) + '.');
+        } catch (e) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not apply suggestion: ' + e.message);
+        }
+        hideTypeSuggestion();
+    });
+
+    document.getElementById('dcDismissSuggest').addEventListener('click', () => {
+        hideTypeSuggestion();
+        if (window.SemptifyFeedback) SemptifyFeedback.info('Suggestion dismissed. You can still pick a type manually.');
     });
 
     // Download
@@ -1110,6 +1174,10 @@
             renderChecklist(currentDoc);
             if (window.pdfjsLib && /\.pdf$/i.test(currentDoc.filename || '')) {
                 applyHighlights(currentDoc);
+            }
+            // Semptify suggests a document type from classification
+            if (data.doc_type && data.doc_type !== 'unknown' && data.doc_type !== currentDoc.document_type) {
+                showTypeSuggestion(data.doc_type);
             }
         } catch (err) {
             if (window.SemptifyFeedback) SemptifyFeedback.error('Processing failed: ' + err.message);
