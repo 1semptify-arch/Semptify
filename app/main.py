@@ -2366,6 +2366,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Review Checklist not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/page_shell_demo.html", response_class=HTMLResponse)
+    async def admin_page_shell_demo(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve page shell demo - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "page_shell_demo.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Page Shell Demo not found</h1>", status_code=404)
+
     @fastapi_app.get("/admin/manual.html", response_class=HTMLResponse)
     async def admin_manual(
         request: Request,
@@ -3650,6 +3661,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from starlette.responses import RedirectResponse
 
         return RedirectResponse(url="/tenant/timeline", status_code=302)
+
+    @fastapi_app.get("/dc", response_class=HTMLResponse)
+    async def document_center_page(request: Request):
+        """Serve the Document Center GUI page (RECORD pillar — 3-pane viewer)."""
+        dc_template_path = BASE_PATH / "app" / "templates" / "pages" / "document_center.html"
+        if dc_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/document_center.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("DC template error, falling back to documents page: %s", e)
+        from starlette.responses import RedirectResponse
+
+        return RedirectResponse(url="/documents", status_code=302)
 
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
