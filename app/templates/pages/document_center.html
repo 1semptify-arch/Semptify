@@ -45,6 +45,7 @@
                     <option value="other">Other</option>
                 </select>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
+                <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">⚙ Process now</button>
                 <div id="dcAnnotTools" style="display:none; gap:0.25rem; margin-left:auto;">
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="highlight" style="padding:0.25rem 0.5rem; font-size:0.75rem;">🖍 Highlight</button>
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="note" style="padding:0.25rem 0.5rem; font-size:0.75rem;">📝 Note</button>
@@ -226,6 +227,7 @@
         typeSelect.value = d.document_type || '';
         downloadBtn.style.display = '';
         document.getElementById('dcAnnotTools').style.display = 'flex';
+        document.getElementById('dcProcessBtn').style.display = '';
         const isPdf = /\.pdf$/i.test(d.filename || '');
         if (isPdf && window.pdfjsLib) {
             await renderPdf(d);
@@ -901,6 +903,36 @@
     downloadBtn.addEventListener('click', () => {
         if (!currentDoc) return;
         window.location.href = '/api/vault/' + encodeURIComponent(currentDoc.id) + '/download';
+    });
+
+    // Process now — triggers OCR + extraction on demand
+    const processBtn = document.getElementById('dcProcessBtn');
+    processBtn.addEventListener('click', async () => {
+        if (!currentDoc) return;
+        if (processBtn.disabled) return;
+        processBtn.disabled = true;
+        processBtn.textContent = '⚙ Processing…';
+        if (window.SemptifyFeedback) SemptifyFeedback.info('Processing started. This may take a few moments.', { timeout: 5000 });
+        try {
+            const r = await fetch('/api/intake/process/vault/' + encodeURIComponent(currentDoc.id), {
+                method: 'POST',
+                credentials: 'include',
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Processing complete. Overlays updated.');
+            await loadOverlays(currentDoc.id);
+            await loadDocs();
+            renderChecklist(currentDoc);
+            if (window.pdfjsLib && /\.pdf$/i.test(currentDoc.filename || '')) {
+                applyHighlights(currentDoc);
+            }
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Processing failed: ' + err.message);
+        } finally {
+            processBtn.disabled = false;
+            processBtn.textContent = '⚙ Process now';
+        }
     });
 
     // Upload modal
