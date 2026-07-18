@@ -40,7 +40,7 @@ def main():
     # (pytest starts the FastAPI app which blocks on DB connection).
     try:
         result = subprocess.run(  # noqa: S603 # nosec B603
-            [_resolve_python(), "-m", "pytest", "tests/test_ssot_architecture.py", "-v", "--tb=short"],
+            [_resolve_python(), "-m", "pytest", "tests/test_ssot_architecture.py", "-v", "--tb=short", "--no-cov"],
             capture_output=False,
             text=True,
             timeout=120,
