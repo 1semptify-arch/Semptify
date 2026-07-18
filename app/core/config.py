@@ -44,6 +44,7 @@ def _resolve_secret_key() -> str:
 def _resolve_database_url() -> str:
     """Return DATABASE_URL, converting postgres:// / postgresql:// to the asyncpg driver."""
     import re
+
     url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./semptify.db")
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
@@ -72,7 +73,7 @@ class Settings:
     app_description: str = "Semptify - Tenant Rights Protection Platform"
     debug: bool = False
     enable_docs: bool = True
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # nosec B104 — intentional bind address for FastAPI server
     port: int = 8000
     # open = no auth (dev/testing); enforced = storage OAuth required (production)
     security_mode: Literal["open", "enforced"] = os.getenv("SECURITY_MODE", "open")
@@ -86,6 +87,7 @@ class Settings:
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_json_format: bool = os.getenv("LOG_JSON_FORMAT", "False").lower() in ("1", "true", "yes", "on")
     cors_origins: str = os.getenv("CORS_ORIGINS", "https://semptify.org,http://localhost:8000")
+
     # Explicit public URL for OAuth callbacks (bypasses request.base_url detection)
     # Local: http://localhost:8000
     # Production: https://semptify.org
@@ -121,6 +123,10 @@ class Settings:
     azure_ai_region: str = os.getenv("AZURE_AI_REGION", "eastus")
     github_token: str = os.getenv("GITHUB_TOKEN", "")
 
+    # api.data.gov / Congress.gov / federal dataset API key
+    # Get one at: https://api.data.gov/signup/
+    data_gov_api_key: str = os.getenv("DATA_GOV_API_KEY", "")
+
     # Database SSL mode
     db_ssl_mode: str = os.getenv("DB_SSL_MODE", "prefer")
 
@@ -140,7 +146,7 @@ class Settings:
         return cls()
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     return Settings.get_settings()
 

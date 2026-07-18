@@ -1,0 +1,103 @@
+{
+  "page_id": "draft_answer_review",
+  "major_pillar": "govern",
+  "blend": "high_stakes_review",
+  "channels": {
+    "record": 20,
+    "know": 30,
+    "act": 40,
+    "govern": 90
+  },
+  "zones": {
+    "record": {
+      "zone_id": "record",
+      "level": 20,
+      "max_blocks": 2,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_case_ref",
+          "kind": "input",
+          "input_type": "text",
+          "label": "Case reference",
+          "required": false,
+          "writes_to": "case.ref"
+        }
+      ]
+    },
+    "know": {
+      "zone_id": "know",
+      "level": 30,
+      "max_blocks": 2,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_answer_requirements",
+          "kind": "info",
+          "content_ref": "know/answer_requirements.md",
+          "reading_level": "intermediate",
+          "collapsed_by_default": false,
+          "summary": "What a drafted answer must include"
+        }
+      ]
+    },
+    "act": {
+      "zone_id": "act",
+      "level": 40,
+      "max_blocks": 4,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_download_draft",
+          "kind": "output",
+          "action_type": "button",
+          "label": "Download draft (attorney review required)",
+          "risk_tier": "high",
+          "on_trigger": "fn:download_draft"
+        },
+        {
+          "block_id": "blk_file_with_court",
+          "kind": "output",
+          "action_type": "button",
+          "label": "File with court",
+          "risk_tier": "high",
+          "on_trigger": "fn:file_with_court"
+        }
+      ]
+    },
+    "govern": {
+      "zone_id": "govern",
+      "level": 90,
+      "max_blocks": 3,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_upl_banner",
+          "kind": "info",
+          "content_ref": "govern/upl_high_stakes.md",
+          "reading_level": "plain",
+          "collapsed_by_default": false,
+          "summary": "This is a draft. A licensed attorney must review it before filing. We do not give legal advice."
+        },
+        {
+          "block_id": "blk_escalate_to_attorney",
+          "kind": "output",
+          "action_type": "banner",
+          "label": "Talk to a qualified attorney before filing",
+          "risk_tier": "high",
+          "on_trigger": "route:legal_aid_contact",
+          "suppresses_act_block": "blk_file_with_court"
+        }
+      ]
+    }
+  },
+  "audit_hook": {
+    "log_on_render": true,
+    "log_on_action_taken": true,
+    "fields": ["page_id", "blend", "channels", "timestamp", "case_id"]
+  },
+  "escalation": {
+    "threshold_govern": 85,
+    "escalation_action": "surface_legal_aid_contact_banner"
+  }
+}

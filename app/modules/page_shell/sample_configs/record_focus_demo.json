@@ -1,0 +1,119 @@
+{
+  "page_id": "eviction_notice_received",
+  "major_pillar": "record",
+  "blend": "first_contact",
+  "channels": {
+    "record": 70,
+    "know": 60,
+    "act": 15,
+    "govern": 30
+  },
+  "zones": {
+    "record": {
+      "zone_id": "record",
+      "level": 70,
+      "max_blocks": 4,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_notice_upload",
+          "kind": "input",
+          "input_type": "file_upload",
+          "label": "Upload the notice you received",
+          "required": true,
+          "writes_to": "case.notice_upload_id"
+        },
+        {
+          "block_id": "blk_notice_date",
+          "kind": "input",
+          "input_type": "date",
+          "label": "Date on the notice",
+          "required": true,
+          "writes_to": "case.notice_date"
+        },
+        {
+          "block_id": "blk_notes",
+          "kind": "input",
+          "input_type": "text",
+          "label": "What happened (in your words)",
+          "required": false,
+          "writes_to": "case.tenant_notes",
+          "placeholder": "Describe what led up to this"
+        }
+      ]
+    },
+    "know": {
+      "zone_id": "know",
+      "level": 60,
+      "max_blocks": 3,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_eviction_basics",
+          "kind": "info",
+          "content_ref": "know/eviction_notice_basics.md",
+          "reading_level": "plain",
+          "collapsed_by_default": false,
+          "summary": "What an eviction notice is and what it means"
+        },
+        {
+          "block_id": "blk_deadline_rules",
+          "kind": "info",
+          "content_ref": "know/mn_eviction_deadlines.md",
+          "reading_level": "plain",
+          "collapsed_by_default": true,
+          "summary": "Minnesota eviction deadline rules"
+        }
+      ]
+    },
+    "act": {
+      "zone_id": "act",
+      "level": 15,
+      "max_blocks": 4,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_log_timeline",
+          "kind": "output",
+          "action_type": "button",
+          "label": "Save to timeline",
+          "risk_tier": "low",
+          "on_trigger": "fn:log_timeline"
+        },
+        {
+          "block_id": "blk_contact_legal_aid",
+          "kind": "output",
+          "action_type": "button",
+          "label": "Find legal aid near you",
+          "risk_tier": "low_medium",
+          "on_trigger": "route:legal_aid_contact"
+        }
+      ]
+    },
+    "govern": {
+      "zone_id": "govern",
+      "level": 30,
+      "max_blocks": 2,
+      "layout": "stack",
+      "blocks": [
+        {
+          "block_id": "blk_upl_disclaimer",
+          "kind": "info",
+          "content_ref": "govern/upl_standard.md",
+          "reading_level": "plain",
+          "collapsed_by_default": false,
+          "summary": "We do not give legal advice. Get legal advice from a qualified attorney."
+        }
+      ]
+    }
+  },
+  "audit_hook": {
+    "log_on_render": true,
+    "log_on_action_taken": true,
+    "fields": ["page_id", "blend", "channels", "timestamp", "case_id"]
+  },
+  "escalation": {
+    "threshold_govern": 85,
+    "escalation_action": "surface_legal_aid_contact_banner"
+  }
+}

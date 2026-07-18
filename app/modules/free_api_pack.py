@@ -29,33 +29,34 @@ HTML responses are parsed with BeautifulSoup4.
 
 from __future__ import annotations
 
+import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
-from urllib.parse import quote_plus, urlencode
+from typing import Any
+from urllib.parse import quote_plus
 
 import httpx
 from bs4 import BeautifulSoup
 
+from app.core.config import get_settings
 from app.core.utc import utc_now
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-def _data_gov_key() -> Optional[str]:
-    """Return the api.data.gov key from env, or None if not set."""
-    return os.environ.get("DATA_GOV_API_KEY") or os.environ.get("DATA_GOV_API_KEY")
+def _data_gov_key() -> str | None:
+    """Return the api.data.gov key from settings/env, or None if not set."""
+    key = get_settings().data_gov_api_key
+    if key:
+        return key
+    return os.environ.get("DATA_GOV_API_KEY")
 
 
 # =============================================================================
 # Shared HTTP helpers
 # =============================================================================
 
-_USER_AGENT = (
-    "Mozilla/5.0 (compatible; Semptify/5.0; +https://semptify.org) "
-    "Free-API-Pack/2.0"
-)
+_USER_AGENT = "Mozilla/5.0 (compatible; Semptify/5.0; +https://semptify.org) " "Free-API-Pack/2.0"
 _DEFAULT_TIMEOUT = 10.0
 _HEADERS = {
     "User-Agent": _USER_AGENT,
@@ -64,14 +65,14 @@ _HEADERS = {
 }
 
 
-def _ok(**fields) -> Dict[str, Any]:
+def _ok(**fields) -> dict[str, Any]:
     """Build a success response."""
-    out: Dict[str, Any] = {"status": "ok", "retrieved_at": utc_now().isoformat()}
+    out: dict[str, Any] = {"status": "ok", "retrieved_at": utc_now().isoformat()}
     out.update(fields)
     return out
 
 
-def _no_results(query: str, message: str = "No records found") -> Dict[str, Any]:
+def _no_results(query: str, message: str = "No records found") -> dict[str, Any]:
     return {
         "status": "no_results",
         "query": query,
@@ -80,8 +81,8 @@ def _no_results(query: str, message: str = "No records found") -> Dict[str, Any]
     }
 
 
-def _error(query: str, message: str, source: Optional[str] = None) -> Dict[str, Any]:
-    resp: Dict[str, Any] = {
+def _error(query: str, message: str, source: str | None = None) -> dict[str, Any]:
+    resp: dict[str, Any] = {
         "status": "error",
         "query": query,
         "message": message,
@@ -97,14 +98,12 @@ async def _fetch_text(
     url: str,
     *,
     method: str = "GET",
-    data: Optional[Dict[str, Any]] = None,
-    params: Optional[Dict[str, Any]] = None,
-) -> Optional[str]:
+    data: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
+) -> str | None:
     """Fetch URL and return text, or None on failure. Logs warnings."""
     try:
-        resp = await client.request(
-            method, url, headers=_HEADERS, data=data, params=params, follow_redirects=True
-        )
+        resp = await client.request(method, url, headers=_HEADERS, data=data, params=params, follow_redirects=True)
         if resp.status_code >= 400:
             logger.warning("FreeAPI: %s %s -> HTTP %s", method, url, resp.status_code)
             return None
@@ -121,9 +120,9 @@ async def _fetch_json(
     client: httpx.AsyncClient,
     url: str,
     *,
-    params: Optional[Dict[str, Any]] = None,
-    headers: Optional[Dict[str, str]] = None,
-) -> Optional[Any]:
+    params: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+) -> Any | None:
     """Fetch URL and return parsed JSON, or None on failure.
 
     Some upstream APIs (EPA FRS) return JSON with invalid escape sequences.
@@ -141,9 +140,10 @@ async def _fetch_json(
             return resp.json()
         except ValueError:
             text = resp.text
-            repaired = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', text)
+            repaired = re.sub(r'\\(?!["\\/bfnrtu])', r"\\\\", text)
             try:
                 import json as _json
+
                 return _json.loads(repaired)
             except ValueError as exc:
                 logger.warning("FreeAPI: GET %s -> JSON repair failed: %s", url, exc)
@@ -175,7 +175,7 @@ _BLOCKED_COUNTIES = {"ramsey"}
 class PropertyLookup:
     """Unified interface for county parcel lookups (Dakota, Ramsey, Hennepin)."""
 
-    async def lookup_parcel(self, county: str, parcel_id: str) -> Dict[str, Any]:
+    async def lookup_parcel(self, county: str, parcel_id: str) -> dict[str, Any]:
         """Lookup parcel information by county and parcel ID."""
         county_lower = (county or "").strip().lower()
         if county_lower not in _COUNTY_PARCEL_URLS:
@@ -209,7 +209,11 @@ class PropertyLookup:
                 extra_headers["Referer"] = "https://maps.co.ramsey.mn.us/"
             data = await _fetch_json(client, url, params=params, headers=extra_headers)
             if data is None:
-                return _error(f"{county}/{parcel_id}", f"{county.title()} county parcel lookup failed.", source=f"{county_lower}_gis")
+                return _error(
+                    f"{county}/{parcel_id}",
+                    f"{county.title()} county parcel lookup failed.",
+                    source=f"{county_lower}_gis",
+                )
             features = data.get("features", []) if isinstance(data, dict) else []
             if not features:
                 return _no_results(f"{county}/{parcel_id}", "No parcel found with that PIN.")
@@ -222,7 +226,7 @@ class PropertyLookup:
                 parcel=attrs,
             )
 
-    async def lookup_address(self, county: str, address: str) -> Dict[str, Any]:
+    async def lookup_address(self, county: str, address: str) -> dict[str, Any]:
         """Lookup property information by county and address."""
         county_lower = (county or "").strip().lower()
         if county_lower not in ("dakota", "ramsey", "hennepin"):
@@ -257,7 +261,9 @@ class PropertyLookup:
                 extra_headers["Referer"] = "https://maps.co.ramsey.mn.us/"
             data = await _fetch_json(client, url, params=params, headers=extra_headers)
             if data is None:
-                return _error(f"{county}/{address}", f"{county.title()} address search failed.", source=f"{county_lower}_gis")
+                return _error(
+                    f"{county}/{address}", f"{county.title()} address search failed.", source=f"{county_lower}_gis"
+                )
             features = data.get("features", []) if isinstance(data, dict) else []
             if not features:
                 return _no_results(f"{county}/{address}", "No parcels match that address.")
@@ -274,7 +280,7 @@ class PropertyLookup:
 class LandlordLookup:
     """MN Secretary of State business search + HUD property lookup."""
 
-    async def lookup_business(self, name: str) -> Dict[str, Any]:
+    async def lookup_business(self, name: str) -> dict[str, Any]:
         """Search for business entity in MN Secretary of State records.
 
         The MN SOS portal is a JavaScript-rendered SPA that does not return
@@ -293,7 +299,7 @@ class LandlordLookup:
             note="MN SOS portal requires JavaScript. Click the source_url to search in your browser.",
         )
 
-    async def lookup_owner(self, property_id: str) -> Dict[str, Any]:
+    async def lookup_owner(self, property_id: str) -> dict[str, Any]:
         """Lookup property owner via HUD or county records."""
         if not property_id or not property_id.strip():
             return _error(property_id or "", "Property ID required.", source="hud")
@@ -320,7 +326,7 @@ class LandlordLookup:
 class CourtScraper:
     """MN Court Records (public) + CourtListener federal docket API."""
 
-    async def search_evictions(self, name: str) -> Dict[str, Any]:
+    async def search_evictions(self, name: str) -> dict[str, Any]:
         """Search for eviction cases by party name in MN courts.
 
         The MN Courts MCRO portal is protected by a Volterra WAF that blocks
@@ -339,7 +345,7 @@ class CourtScraper:
             note="MN Courts MCRO portal blocks automated access. Click the source_url to search in your browser.",
         )
 
-    async def fetch_federal_cases(self, query: str) -> Dict[str, Any]:
+    async def fetch_federal_cases(self, query: str) -> dict[str, Any]:
         """Search federal court cases via CourtListener API (Free Law Project)."""
         if not query or not query.strip():
             return _error(query or "", "Search query required.", source="courtlistener")
@@ -354,14 +360,16 @@ class CourtScraper:
                 return _no_results(query, "No federal cases found for that query.")
             trimmed = []
             for r in results[:10]:
-                trimmed.append({
-                    "case_name": r.get("caseName") or r.get("case_name", ""),
-                    "case_number": r.get("docketNumber") or r.get("docket_number", ""),
-                    "court": r.get("court") or "",
-                    "date_filed": r.get("dateFiled") or r.get("date_filed", ""),
-                    "citation": r.get("citation", []),
-                    "snippet": (r.get("snippet") or "")[:300],
-                })
+                trimmed.append(
+                    {
+                        "case_name": r.get("caseName") or r.get("case_name", ""),
+                        "case_number": r.get("docketNumber") or r.get("docket_number", ""),
+                        "court": r.get("court") or "",
+                        "date_filed": r.get("dateFiled") or r.get("date_filed", ""),
+                        "citation": r.get("citation", []),
+                        "snippet": (r.get("snippet") or "")[:300],
+                    }
+                )
             return _ok(
                 query=query,
                 source="CourtListener (Free Law Project)",
@@ -374,7 +382,7 @@ class CourtScraper:
 class Violations:
     """City inspections, MPCA violations, EPA ECHO."""
 
-    async def city_inspections(self, city: str, address: str) -> Dict[str, Any]:
+    async def city_inspections(self, city: str, address: str) -> dict[str, Any]:
         """Lookup city inspection records for an address."""
         if not city or not address:
             return _error(f"{city}/{address}", "City and address required.", source="city_inspections")
@@ -393,7 +401,9 @@ class Violations:
                         inspections=[],
                         note="API returned no data. Visit the portal link for manual lookup.",
                     )
-                inspections = data.get("results", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+                inspections = (
+                    data.get("results", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+                )
                 if not inspections:
                     return _no_results(f"{city}/{address}", "No inspection records for that address.")
                 return _ok(
@@ -416,7 +426,9 @@ class Violations:
                         inspections=[],
                         note="API returned no data. Visit the portal link for manual lookup.",
                     )
-                inspections = data.get("results", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+                inspections = (
+                    data.get("results", []) if isinstance(data, dict) else data if isinstance(data, list) else []
+                )
                 if not inspections:
                     return _no_results(f"{city}/{address}", "No inspection records for that address.")
                 return _ok(
@@ -435,7 +447,7 @@ class Violations:
                 note=f"Automated lookup not available for {city}. Contact the city's inspection department directly.",
             )
 
-    async def environmental_violations(self, facility: str) -> Dict[str, Any]:
+    async def environmental_violations(self, facility: str) -> dict[str, Any]:
         """Lookup environmental violations via EPA FRS or MPCA.
 
         Uses EPA FRS (Facility Registry Service) public API. If
@@ -459,9 +471,7 @@ class Violations:
             data = await _fetch_json(client, url, params=params)
             if data is None:
                 return _error(facility, "EPA FRS search failed.", source="epa_frs")
-            facilities = (
-                data.get("Results", {}).get("FRSFacility", []) if isinstance(data, dict) else []
-            )
+            facilities = data.get("Results", {}).get("FRSFacility", []) if isinstance(data, dict) else []
             if not facilities:
                 return await self._mpca_lookup(client, facility)
             trimmed = []
@@ -473,15 +483,17 @@ class Violations:
                     programs = pf
                 else:
                     programs = []
-                trimmed.append({
-                    "name": f.get("FacilityName", ""),
-                    "registry_id": f.get("RegistryId", ""),
-                    "city": f.get("CityName", ""),
-                    "state": f.get("StateAbbr", ""),
-                    "zip": f.get("ZipCode", ""),
-                    "county": f.get("CountyName", ""),
-                    "programs": [p.get("PgmSysAcrnm", "") for p in programs] if isinstance(programs, list) else [],
-                })
+                trimmed.append(
+                    {
+                        "name": f.get("FacilityName", ""),
+                        "registry_id": f.get("RegistryId", ""),
+                        "city": f.get("CityName", ""),
+                        "state": f.get("StateAbbr", ""),
+                        "zip": f.get("ZipCode", ""),
+                        "county": f.get("CountyName", ""),
+                        "programs": [p.get("PgmSysAcrnm", "") for p in programs] if isinstance(programs, list) else [],
+                    }
+                )
             return _ok(
                 query=facility,
                 source="EPA FRS (Facility Registry Service)",
@@ -490,7 +502,7 @@ class Violations:
                 used_api_data_gov=bool(key),
             )
 
-    async def _mpca_lookup(self, client: httpx.AsyncClient, facility: str) -> Dict[str, Any]:
+    async def _mpca_lookup(self, client: httpx.AsyncClient, facility: str) -> dict[str, Any]:
         """Fallback MPCA lookup when EPA ECHO returns no results."""
         url = "https://www.pca.state.mn.us/api/v1/facilities"
         params = {"q": facility, "limit": 10}
@@ -509,7 +521,7 @@ class Violations:
 class Inspections:
     """HUD REAC scores + local inspection endpoints."""
 
-    async def hud_reac(self, property_id: str) -> Dict[str, Any]:
+    async def hud_reac(self, property_id: str) -> dict[str, Any]:
         """Lookup HUD REAC inspection scores for a property."""
         if not property_id or not property_id.strip():
             return _error(property_id or "", "Property ID required.", source="hud_reac")
@@ -532,7 +544,7 @@ class Inspections:
                 scores=scores[:10],
             )
 
-    async def local_inspections(self, city: str, address: str) -> Dict[str, Any]:
+    async def local_inspections(self, city: str, address: str) -> dict[str, Any]:
         """Lookup local inspection records for an address.
 
         Delegates to Violations.city_inspections() — same data source.
@@ -543,10 +555,10 @@ class Inspections:
 class Statutes:
     """MN Revisor of Statutes API (504B, 504C, 580, etc.)."""
 
-    _cache: Dict[str, tuple] = {}
+    _cache: dict[str, tuple] = {}
     _CACHE_TTL = 86400.0  # 24 hours
 
-    def _cache_get(self, section: str) -> Optional[Dict[str, Any]]:
+    def _cache_get(self, section: str) -> dict[str, Any] | None:
         entry = self._cache.get(section)
         if not entry:
             return None
@@ -565,7 +577,7 @@ class Statutes:
     def _cache_put(self, section: str, text: str) -> None:
         self._cache[section] = (text, utc_now().timestamp())
 
-    async def get_statute(self, section: str) -> Dict[str, Any]:
+    async def get_statute(self, section: str) -> dict[str, Any]:
         """Retrieve statute text from MN Revisor by section number."""
         if not section or not section.strip():
             return _error(section or "", "Statute section required.", source="mn_revisor")

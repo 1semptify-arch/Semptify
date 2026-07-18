@@ -1,5 +1,5 @@
 # SEMPTIFY — AI HANDOFF PACKET
-**Generated:** 2026-07-13 05:24:02 UTC | **Git commit at generation:** `745635cf48f256a00ddb353b82773050ef85276d`
+**Generated:** 2026-07-15 17:52:43 UTC | **Git commit at generation:** `8185be013293cddcac73ad8e0d754ef54e7b5391`
 
 **Instructions for the AI reading this:** this packet bundles the current, real state of the Semptify project. Read it fully before proposing or making any change. Do not assume file names or structures beyond what's shown here.
 
@@ -837,7 +837,378 @@ Design docs committed this session in `docs/planning/`:
 ## SOURCE FILE: BUILD_STATE.md
 
 # BUILD_STATE.md -- Semptify Live Deployment State
+
+### Stub Sync Log — 2026-07-15 15:03 UTC
+Stubs sheet: 0 rows before sync, 0 rows after — 0 manual rows preserved.
+
+## Session — 2026-07-15 PM — Page Shell system built (dev_only, admin-only)
+
+### What Was Built
+- **New module: `app/modules/page_shell/`** — shell + rendering engine for the pillar-mixer backbone spec (`temp/semptify_pillar_mixer_backbone.md`). DEV tier, `dev_only` lifecycle, admin-only.
+  - `models.py` — Pydantic: `PageConfig`, `Zone`, `InputBlock`, `InfoBlock`, `OutputBlock` (§4, §8)
+  - `blends.py` — six named blend presets (§2)
+  - `skeletons.py` — four skeleton grid-template-areas (§10): `record_focus`, `know_focus`, `act_focus`, `govern_focus`
+  - `govern.py` — GOVERN floor by risk_tier + override authority (§3)
+  - `zones.py` — single configurable `level_to_prominence()` function (0–25 / 26–60 / 61–100 thresholds, §8)
+  - `renderer.py` — data-driven zone + three block-kind renderers → HTML
+  - `loader.py` — config loader/validator (rejects missing `major_pillar` or unknown blend)
+  - `router.py` — `/api/page-shell/{health,skeletons,blends,render,demo}` endpoints
+  - `sample_configs/record_focus_demo.json` + `govern_focus_demo.json` — two different major_pillars
+  - `README.md` — assumptions documented where spec was ambiguous
+- **CSS:** `static/page_shell/page_shell.css` — §9 layout (100vh, overflow hidden, clamp scaling) + four skeletons + mobile breakpoint (900px falls back to normal scroll)
+- **Demo UI:** `static/admin/page_shell_demo.html` — toggle between record_focus + govern_focus, see GOVERN report
+- **Manifest:** registered in `app/core/product_manifest.py` DEV tier block as `dev_only`, `requires_role=("admin",)`
+
+### GOVERN rules verified
+- `govern_focus_demo.json` demonstrates GOVERN override: `blk_escalate_to_attorney` in GOVERN zone sets `suppresses_act_block: "blk_file_with_court"` → the "File with court" ACT button is filtered out during render, regardless of ACT's level. Verified: HTML does not contain `blk_file_with_court`, does contain `blk_download_draft`.
+- GOVERN floor clamping path tested but not triggered by sample configs (both have GOVERN ≥ floor for their inferred risk tier).
+
+### Known Working
+- All module files compile clean (`py_compile` passes, exit 0).
+- Both sample configs load + render successfully.
+- Router imports cleanly.
+
+### Out of Scope (per task brief)
+- Context engine, blend selection logic, real content loading, audit hook firing, case data binding.
+
+### Next Session Should Start With
+- Pick up from `ACTIVE_CONTEXT.md` priority list: GUI Phase 1 (Calendar/Timeline integration + home dashboard cards) or Document Center planning.
+
+## Session — 2026-07-15 PM — /ship after court_forms fix + merge cleanup
+
+### Last Deployed Commit
+- `0027d10` on `main` (pushed 2026-07-15 ~17:15 UTC)
+- Includes: court_forms IndentationError fix (`8b8ec78`), duplicate-resolves-batch-2 merge (`7da7076`), GUI home dashboard redesign + calendar page.
+
+### What Was Shipped This Session
+- **Fix: court_forms IndentationError** — `app/modules/court_forms/router.py:798` had empty `except Exception:` block causing `IndentationError` on Render startup. Added logging.warning body. (commit `8b8ec78`)
+- **Merge: fix/duplicate-resolves-batch-2** into `main` — resolved 16 duplicate-module tasks, vault/context_engine/context_loop duplicate registrations removed. (commit `7da7076`)
+- **Sync artifacts** — BUILD_STATE sync log updated. (commit `0027d10`)
+
+### Known Working
+- `app/main.py` and core routers compile clean (`py_compile` passes).
+- Orchestrator queue: 16/16 tasks done. 0 pending.
+- Workbook sync: 116 modules validated, 0 duplicates, 0 new stubs.
+
+### Known Broken / Pending
+- Uncommitted `tools/` sync artifacts (agent_orchestrator.html, orchestrator_dashboard.html, .sync_orchestrator_hash) — auto-generated, not staged per /ship workflow.
+- Render deploy of `0027d10` should be picked up automatically (autoDeploy enabled).
+
+### Next Session Should Start With
+- Pick up from `ACTIVE_CONTEXT.md` priority list: GUI Phase 1 (Calendar/Timeline integration + home dashboard cards) or Document Center planning.
+
+## Session — 2026-07-15 AM — Final Duplicate Cleanup (Shipped)
+
+### What Was Done
+- Merged `fix/vault-duplicate` branch into `main`.
+- Removed empty `app/modules/vault_all_in_one/` directory (already unregistered).
+- Fixed duplicate `context_engine.router` and `context_loop.router` registrations in `app/core/product_manifest.py`.
+  - Kept canonical `context_engine.router` in CORE tier and `context_loop.router` visibility entry.
+  - Removed duplicate DEV-tier `dev_only` entries that shadowed them.
+- Updated `vault.router` dev_notes to document `vault_all_in_one` retirement and `vault_engine.router` distinct role.
+- Marked remaining duplicate-module orchestrator tasks (`document_converter`, `context_engine vs context_loop`) as done.
+- Stashed unrelated working-tree changes in `app/templates/gui/home.html` and `app/templates/pages/calendar.html` before shipping.
+
+### Commits Shipped
+- `add08d7` merge: resolve vault duplicate and clean manifest
+- `22b5f56` fix(product_manifest): remove duplicate context_engine/context_loop registrations and keep vault resolution
+- `4c4d077` chore(tasks): mark remaining duplicate-module tasks done
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py` passes.
+- `MANIFEST.validate()` reports no duplicate qualified names.
+- Duplicate task queue empty (16/16 done).
+
+### Next Session
+- Pick up from `ACTIVE_CONTEXT.md` priority list (GUI Phase 1: Journal/Calendar/Timeline).
+- Restore or review the stashed `home.html` / `calendar.html` changes if still needed.
+
+## Session — 2026-07-15 AM — Duplicate Module Resolution (Shipped)
+
+### What Was Done
+- Resolved all 16 duplicate-module tasks in `tools/agent_orchestrator_tasks.json`.
+- Removed duplicate timeline-event CRUD from `app/modules/briefcase/router.py`; canonical timeline lives in `app/modules/timeline.router`.
+- Added manifest `dev_notes` to clarify SSOT for `timeline`, `briefcase`, `workflow`, `context_engine`, `context_loop`.
+- Fixed stale `module_routes_list.txt` by adding `tools/generate_module_routes_list.py`.
+  - `housing_accountability` now reports 8 routes (was 0).
+  - `briefcase` updated from 49 to 42 routes after timeline-event removal.
+
+### Commits Shipped
+- `0a1d6ee` fix(briefcase): remove duplicate timeline-event endpoints
+- `f222398` fix(tools): regenerate module_routes_list.txt and add generator
+- `584111e` fix(product_manifest): register context_engine and context_loop as distinct dev-only modules
+
+### Known Working
+- `app/main.py`, `app/core/product_manifest.py`, `app/modules/briefcase/router.py` compile clean.
+- Duplicate task queue empty (16/16 done).
+
+### Next Session
+- Pick up from `ACTIVE_CONTEXT.md` priority list (GUI Phase 1: Journal/Calendar/Timeline).
+
+## Session — 2026-07-15 AM (9) — Orchestrator Task: timeline vs briefcase timeline vs workflow timeline
+
+### Task 6fb6aeec — Resolve duplicate: timeline vs briefcase timeline vs workflow timeline
+- **Result:** Real duplicate found and removed. Briefcase had in-memory timeline-event CRUD that duplicated the canonical DB-backed timeline module.
+- **Investigation:**
+  - `app/modules/timeline/router.py` — Canonical unified timeline API at `/api/timeline/*`, DB-backed via `TimelineEvent` model. Aggregates documents, events, calendar, vault items, cloud events.
+  - `app/modules/briefcase/router.py` lines 1229-1475 — Had in-memory `timeline_events_data = {}` dict with full CRUD: POST/GET/PUT/DELETE `/timeline-event`, `/timeline-events`, `/timeline-event/{id}/chain`, `/timeline-event/from-annotation/{id}`. Zero callers (no grep matches in .py, .html, or .js files). Used in-memory dict, not DB — would lose data on restart.
+  - `app/modules/workflow/router.py` — NOT a duplicate. Reads `timeline_events` count as a routing signal for case-state decisions. No timeline CRUD.
+- **Fix:** Removed the duplicate timeline-event CRUD block (247 lines) from `briefcase/router.py`. Updated `product_manifest.py` dev_notes for all three modules to document the distinction.
+- **Files changed:**
+  - `app/modules/briefcase/router.py` — removed lines 1229-1475 (timeline-event CRUD block)
+  - `app/core/product_manifest.py` — updated dev_notes for timeline, briefcase, workflow registrations
+
+## Session — 2026-07-15 AM (6) — Pending Decisions Resolved
+
+### Decision 1: review/rejected status path → Option C (reject only)
+- **Added** `reject` command to `tools/workorder_runner.py`. Any agent can reject any pending/in_progress task as invalid/duplicate/wrong-scope. Records `rejected_by` with agent, reason, and timestamp.
+- **Rejected tasks cannot be re-rejected or done'd** — raises `ValueError` if already `done` or `rejected`.
+- **Agents do NOT self-promote to review** — `done` remains the agent's terminal state. Brad manually moves `done → resolved` or `done → rejected` via the HTML UI when reviewing.
+- **Lifecycle is now**: `pending → in_progress → done` (terminal for agents) or `→ rejected` (invalid). Brad handles `done → resolved` manually.
+- **Updated** docstring with full lifecycle diagram.
+
+### Decision 2: orchestrator_dashboard.html → Option B (commit and wire up)
+- **Committed** `tools/orchestrator_dashboard.html` as a genuine second read-only view alongside `tools/agent_orchestrator.html`.
+- **Wired** into `tools/sync_orchestrator.py` — `embed_tasks_into_html()` now takes a path parameter and is called for both HTML files. Both get the same embedded tasks JSON on every sync.
+- **Dashboard purpose**: read-only overview with progress bars, category/agent breakdowns, and filters. `agent_orchestrator.html` remains the working view for claiming/completing tasks.
+
+### Files Changed
+- `tools/workorder_runner.py` — added `reject_task()` function, `reject` subparser, `reject` command handler, updated docstring with lifecycle.
+- `tools/sync_orchestrator.py` — `embed_tasks_into_html()` takes `html_path` param; embeds into both `ORCHESTRATOR_HTML` and `DASHBOARD_HTML`; `git_add` includes `DASHBOARD_HTML`.
+- `tools/orchestrator_dashboard.html` — now tracked, tasks embedded by sync.
+- `BUILD_STATE.md` — this note.
+
+## Session — 2026-07-15 AM (4) — Fixed localStorage Shadowing Live Task Data
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` task-loading precedence so the live file is always the source of truth:
+  - `loadTasks()` now reads embedded JSON first, then falls back to localStorage only if embedded is empty (offline/file:// CORS scenario).
+  - `autoLoadProjectJson()` no longer early-exits when `tasks.length > 0` — it always fetches the live `agent_orchestrator_tasks.json` on page load and overwrites both `tasks` and localStorage with the file contents.
+  - localStorage is now a cache, not the primary source.
+- **Added** a visible "Refresh from file ↻" button next to "Start fresh ↺" — a manual escape hatch so Brad never has to remember "clear localStorage" as a troubleshooting step. Calls new `refreshFromFile()` which always re-fetches the live JSON.
+- **Updated** `showHelpStatus()` to reflect the new precedence.
+- **Verified** via Node simulation:
+  - Embedded JSON wins over stale localStorage (16 real tasks replace 1 stale task).
+  - `autoLoadProjectJson()` overwrites stale localStorage with file data.
+  - `file://` CORS workaround preserved — if fetch fails, embedded JSON is used first, then localStorage as last resort.
+
+### Files Changed
+- `tools/agent_orchestrator.html` — flipped load precedence (file > embedded > localStorage), added "Refresh from file ↻" button, added `refreshFromFile()`, updated `showHelpStatus()`
+- `BUILD_STATE.md` — this note
+
+
+## Session — 2026-07-15 AM (3) — Added WORKFLOW Section to HTML generatePrompt()
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` `generatePrompt()` (line 687) to include the same `WORKFLOW` section that `workbook_bridge.py`'s `make_prompt()` includes.
+  - WORKFLOW block inserted between `MANDATORY RULES` and `DELIVERABLE` sections, matching the Python version exactly.
+  - `${task.target_model}` and `${task.id}` substituted dynamically — no literal placeholder text in generated output.
+- **Verified**: generated a prompt for the same task (`3b5bb7ad-...`) via both Python `make_prompt()` and JS `generatePrompt()`. WORKFLOW content is identical:
+  - `python tools/workorder_runner.py --agent kimi-2.7 claim`
+  - `python tools/workorder_runner.py done 3b5bb7ad-d885-40cb-84db-991ce26657bf`
+  - Same 4-step order, same wording.
+
+### Duplication Risk
+The WORKFLOW template text is now duplicated between `tools/workbook_bridge.py` (`make_prompt`) and `tools/agent_orchestrator.html` (`generatePrompt`). Sharing a single template between Python and JS would require non-trivial rework (template file + loader in both runtimes) — flagged for a future task if drift becomes a problem. For now, the two copies are identical and any change to one must be mirrored in the other.
+
+### Files Changed
+- `tools/agent_orchestrator.html` — added WORKFLOW section to `generatePrompt()`
+- `BUILD_STATE.md` — this note
+
+
+## Session — 2026-07-15 AM (2) — Fixed Status Vocabulary Mismatch
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` status vocabulary mismatch:
+  - Added `done` to the status dropdown (`statusOptions` at line 739).
+  - Added `done` stat card to the summary section.
+  - Added `resolved` and `rejected` stat cards to the summary section.
+  - Updated `updateSummary()` to count all 6 statuses: `pending`, `in_progress`, `done`, `review`, `resolved`, `rejected`.
+  - Added `.badge-done` CSS class.
+- **Verified**: marked a real task `done` via `workorder_runner.py`, re-synced the HTML, confirmed the embedded JSON contains 4 `done` tasks that will now be counted.
+- **Verified**: no existing status (pending/in_progress) broke — `status` command shows 4 done, 12 pending.
+
+### Status Vocabulary Findings
+- `pending` — initial, set by `workbook_bridge.py`
+- `in_progress` — set by `workorder_runner.py claim`
+- `done` — set by `workorder_runner.py done`
+- `review` — UI dropdown only (manually set by Brad via `updateStatus()`). Nothing in the runner sets it.
+- `resolved` — UI dropdown only. Nothing in the runner sets it.
+- `rejected` — UI dropdown only. Nothing in the runner sets it.
+- **`review`/`resolved`/`rejected` are NOT dead** — they're reachable via the HTML dropdown's `updateStatus()` function. They're just never set by the runner. Kept all three in the UI per task instructions. Confirm with Brad whether a review step is wanted before removing.
+
+### Files Changed
+- `tools/agent_orchestrator.html` — added `done` to dropdown + summary, added `resolved`/`rejected` to summary, added `.badge-done` CSS
+- `tools/agent_orchestrator_tasks.json` — 1 task marked done during verification (research router duplicate)
+- `BUILD_STATE.md` — this note
+
+
+## Session — 2026-07-15 AM — Fixed Stub-Sync Data-Loss Risk
+
+### What Was Done
+- **Fixed** `tools/workbook_bridge.py` `update_excel_stubs()` to preserve hand-typed rows in the "Stubs & TODOs" sheet across syncs.
+  - Added a `Source` marker column (column G). Script-written rows are tagged `auto`; hand-typed rows are left alone.
+  - On sync: only rows with `source=auto` are replaced. Manual rows are re-appended untouched.
+  - Added `_log_stub_sync_to_build_state()` to log before/after row counts into BUILD_STATE.md on every sync, so a silent wipe would be visible in the log.
+- **Verified**: added a fake stub to `stub_tasks_new.json` and a hand-typed row to the workbook. After sync, both rows present — auto row updated, manual row untouched.
+- **Verified**: BUILD_STATE.md shows the before/after row count from the test run.
+
+### Files Changed
+- `tools/workbook_bridge.py` — marker-based selective row replacement + BUILD_STATE.md sync log
+- `BUILD_STATE.md` — session note + stub sync log
+
+### Guardrail Engine Run — 2026-07-14T19:08:48
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+**16-vs-171 task count finding:** The workbook `Semptify_Master_Inventory_LIVE_reviewed.xlsx` currently has an empty 'Stubs & TODOs' tab (header only) and 16 data rows in the 'Duplicates' tab, so `agent_orchestrator_tasks.json` containing 16 tasks is the correct intended state. The earlier 171 count reflected prior stub entries that have since been resolved.
 # Update this file at the end of every session using /ship
+
+## Session — 2026-07-15 AM — Concurrent Agent Task Locking
+
+### What Was Done
+- **Added** `tools/workorder_runner.py` for atomic task claiming with `filelock`.
+  - `claim` command: flips the next `pending` (or stale `in_progress`) task to `in_progress` and writes `claimed_by` (`agent` + `claimed_at` timestamp).
+  - `done` command: marks a task as `done`.
+  - `status` command: counts tasks by status.
+  - Uses a `Timeout`ed `FileLock` to prevent concurrent agents from double-claiming.
+- **Updated** `tools/workbook_bridge.py` to preserve existing `id`, `status`, `claimed_by`, `created_at`, and `updated_at` across regeneration.
+- **Added** a `WORKFLOW` section to `make_prompt` so each generated task prompt tells the agent to claim, do the work, mark done, and commit — with the real `target_model` as `--agent` and the real `task id` filled in.
+- **Verified** concurrent agents: only one of two parallel `claim` processes succeeds.
+- **Verified** single-agent flow: claim → done → status works.
+- **Verified** `workbook_bridge.py` regeneration preserves an `in_progress` task and its `claimed_by` metadata.
+
+### Verification Commands
+- `python temp/test_concurrent.py`
+- `python tools/workorder_runner.py --tasks temp/test_single.json --agent swe-1.6 claim`
+- `python tools/workorder_runner.py --tasks temp/test_single.json --agent swe-1.6 done single-1`
+- `python tools/workorder_runner.py --tasks temp/test_single.json status`
+
+### Files Changed
+- `tools/workorder_runner.py` (new)
+- `tools/workbook_bridge.py`
+- `tools/agent_orchestrator_tasks.json` (regenerated with `claimed_by` field)
+- `BUILD_STATE.md`
+
+---
+
+## Session — 2026-07-13 PM (3) — Resolve Duplicate: case_builder router vs case_builder.py standalone
+
+### What Was Done
+- **Verified** `app/core/product_manifest.py` already registers only `app.modules.case_builder.router` as the canonical Case Builder.
+- **Updated** `app/core/compliance.py` to point the `case_builder` compliance entry at `app/modules/case_builder/router.py` instead of the legacy standalone `app/modules/case_builder.py`.
+- The standalone `app/modules/case_builder.py` remains on disk as a legacy SDK-style module but is not registered.
+
+### Commits This Session
+- `fix(compliance): point case_builder entry to canonical router package`
+- Merged `fix/resolve-case-builder-duplicate` into `main` → `8192cac`
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py` passes.
+
+### Deployed
+- **2026-07-13 19:49 CT** — Render is deploying commit `8192cac`.
+
+### Known Gaps / Pending
+- Legacy `app/modules/case_builder.py` standalone file remains on disk for future review before deletion.
+- Continue with next duplicate-resolve task from `tools/agent_orchestrator_tasks.json` or current priorities.
+
+---
+
+## Session — 2026-07-13 PM (2) — Resolve Duplicate: vault vs vault_engine vs vault_all_in_one
+
+### What Was Done
+- **Resolved duplicate vault modules** in `app/core/product_manifest.py`.
+- `app.modules.vault.router` at `/api/vault` remains the canonical SSOT vault.
+- Removed dead deregistration comments for `app.modules.vault_engine.router` and `app.modules.vault_all_in_one.router`; both were already deregistered.
+
+### Commits This Session
+- `fix(manifest): resolve vault/vault_engine/vault_all_in_one duplicate`
+- `docs(build_state): record vault duplicate resolution`
+- Merged `fix/resolve-vault-duplicates` into `main` → `6edef3f`
+
+### Known Working
+- `python -m py_compile app/main.py app/core/product_manifest.py` passes.
+
+### Deployed
+- **2026-07-13 18:44 CT** — Render is deploying commit `6edef3f`.
+
+### Known Gaps / Pending
+- `app/modules/vault_engine/` and `app/modules/vault_all_in_one/` module files remain on disk for future review before deletion.
+
+### Next Session Should Start With
+- Continue with the next task from `tools/agent_orchestrator_tasks.json` or current priorities.
+
+---
+
+## Session — 2026-07-13 PM — Sync Orchestrator Wired + Stub Pass Comments Merged to Main
+
+### What Was Done
+- **Wired `tools/sync_orchestrator.py` into `.pre-commit-config.yaml`** as a local `always_run` hook.
+- **Committed and merged the `fix/stub-pass-0713` branch** to `main`:
+  - Added explanatory inline comments to bare `except`/`pass` blocks across `app/main.py`, `app/modules/*`, and `app/services/*`.
+  - Updated `tools/workbook_bridge.py` to read live stubs from `tools/stub_tasks_new.json` and write them back to the workbook.
+  - Committed `docs/blueprints/EVIDENCE_SEALING_UPGRADE_CANDIDATE.md`.
+  - Committed `tools/agent_orchestrator_sync_review/` and `tools/hooks/pre-commit`.
+- **Pushed deploy commit `edee4ff` to `main`**. Render will deploy from this commit.
+
+### Commits This Session
+- `feat(stubs): annotate bare pass/except blocks and wire workbook bridge to live stub list`
+- `Merge branch 'fix/stub-pass-0713' into main` (`edee4ff`)
+
+### Known Working
+- `python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py` passes.
+- `python tools/sync_orchestrator.py` runs cleanly; reports `0 stubs`, `16 orchestrator tasks`.
+
+### Known Gaps / Pending
+- `tools/agent_orchestrator_tasks.json` now contains **16 duplicate-resolve tasks**; the previous count of 171 tasks was overwritten when `workbook_bridge.py` started consuming the live `tools/stub_tasks_new.json` output. Verify whether this is the intended target state.
+- `pre-commit` Python package is installed in `venv311`, but `pre-commit install` has not been run, so `.git/hooks/pre-commit` is not active. Run it manually if the hook is needed locally.
+- UPL guardrail tier registration and GUI Phase 1 refinements remain pending.
+
+### Next Session Should Start With
+- Verify `agent_orchestrator_tasks.json` task count (16 vs expected 171) and adjust `tools/workbook_bridge.py` or `Semptify_Master_Inventory_LIVE_reviewed.xlsx` if needed.
+- Run `pre-commit install` to activate the new `sync-orchestrator` hook.
+- Continue with the next task from `agent_orchestrator_tasks.json` or current priorities.
+
+---
+
+## Session — 2026-07-13 AM — Stub Pass Fixes: Litigation Intelligence + Brain Context + Stub Detector
+
+### What Was Done
+- **Implemented rule-based pattern detectors** in `app/modules/litigation_intelligence/intelligence_engine.py` for all 7 `detect_pattern` classes:
+  - `RepeatOffenderDetector`, `SerialFilerDetector`, `FrivolousClaimDetector`, `RetaliationPatternDetector`, `HabitabilityIssueDetector`, `DiscriminationPatternDetector`, `ProfessionalLandlordDetector`.
+  - Each detector returns a `PatternMatch` with confidence, legal basis, and recommended actions when case data shows relevant indicators.
+- **Implemented `on_context_updated` brain event handler** in `app/services/brain_integrations.py` to broadcast `CONTEXT_UPDATED` events through `app/core/websocket_manager.py`.
+- **Added `CONTEXT_UPDATE` notification type** to `NotificationType` enum in `app/core/websocket_manager.py`.
+- **Improved `tools/stub_detector.py`** to filter false positives:
+  - Skip functions decorated with `@abstractmethod`.
+  - Skip functions defined inside `except ImportError:` fallback blocks.
+- **Regenerated `tools/stub_tasks_new.json`**; real `app/` stubs reduced from 14 to 5 (and to 31 total including `Semptify-Housing-Accountability/`).
+- **Verified `app/modules/case_builder.py` empty-return stub task** (line 860) is already implemented in `get_case_summary` (commit `c1b5676`); closed the corresponding entry in `tools/agent_orchestrator_tasks.json`.
+- **Implemented all `Semptify-Housing-Accountability/` stub functions** in `coalition/coalition_manager.py`, `intake/intake_engine.py`, `oversight_packets/packet_builder.py`, `pattern_engine/pattern_engine.py`, `press_builder/press_builder.py`, and `public_records/records_scanner.py`.
+- **Regenerated `tools/stub_tasks_new.json`** after S-H-A fixes; real stubs now reduced to 4 (`app/modules/documents/router.py` intentional sync helper + 3 `app/services/mndes_api_client.py` future REST skeleton methods).
+
+### Commits This Session
+- (pending) `feat(stubs): litigation intelligence detectors, brain context broadcast, stub detector filtering`
+
+### Known Working
+- `python -m py_compile app/main.py app/modules/litigation_intelligence/intelligence_engine.py app/services/brain_integrations.py app/core/websocket_manager.py tools/stub_detector.py` passes.
+
+### Known Gaps / Pending
+- **Parked blueprint:** `docs/blueprints/EVIDENCE_SEALING_UPGRADE_CANDIDATE.md` — `evidence_seal` module (SHA-256 sealed PDF export + chain-of-custody); SHELVED until vault audit-log branch is resolved and stub count is near zero.
+- **0 remaining real stubs** per `tools/stub_tasks_new.json`.
+  - `app/modules/documents/router.py:151 _get_overlay_record_ids()` now marked with `# stub-detector: ignore` as an intentional sync helper.
+  - `app/services/mndes_api_client.py:185,198,204` `MNDESRestClient` future skeleton methods now marked with `# stub-detector: ignore`.
+- **All `Semptify-Housing-Accountability/` stubs** have been implemented.
+- UPL guardrail tier registration and GUI Phase 1 refinements remain pending.
+
+### Next Session Should Start With
+- Continue with the next task from `agent_orchestrator_tasks.json` or current priorities; stub count is now zero.
+
+---
 
 ## Session -- 2026-07-12 -- GUI Phase 1: Know and Act Pillar Pages
 
@@ -4207,7 +4578,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 
 **Files Fixed:**
 - `app/core/checkpoint_middleware.py:76` — Session check with `str()` wrapper
-- `app/core/user_id.py:159` — parse_user_id validation with `str()` wrapper  
+- `app/core/user_id.py:159` — parse_user_id validation with `str()` wrapper
 - `app/core/storage_middleware.py:189,200` — is_valid_storage_user checks with `str()` wrapper
 - `app/core/security.py:1200` — is_valid_user_storage check with `str()` wrapper
 
@@ -6424,6 +6795,76 @@ Set these in Render Dashboard > Service > Environment:
 
 ---
 
+## Session Ship — 2026-07-13 23:45 CT / 2026-07-14 04:45 UTC
+
+**Deployed commit:** `de9c5b8`
+
+**What was shipped:**
+- Resolved duplicate vault modules in `app/core/product_manifest.py`: clarified `vault.router` as canonical document-storage vault and registered `vault_engine.router` as dev-only, admin-only access-control engine.
+- Resolved duplicate `case_builder` module: removed legacy shadowed standalone `app/modules/case_builder.py` and updated `product_manifest.py` dev_notes to mark `case_builder.router` as canonical.
+
+**Known working:**
+- `python -m py_compile app/main.py` and core file compile check pass.
+- `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (current ACTIVE_CONTEXT priority).
+- Document Center planning (`docs/planning/DOCUMENT_CENTER_PLAN.md`).
+- Attorney Intake Packet scaffold (`feature/attorney-intake-packet`) awaiting user review.
+- Remaining `agent_orchestrator_tasks.json` duplicate-resolve items (e.g., `document_converter`, `litigation_intelligence`, `context_engine vs context_loop`).
+
+**Next session should start with:**
+- Either continue the next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT priority.
+
+---
+
+## Session Ship — 2026-07-14 00:12 CT / 2026-07-14 05:12 UTC
+
+**Deployed commit:** `0304485`
+
+**What was shipped:**
+- Resolved duplicate `document_converter`: removed shadowed legacy standalone `app/modules/document_converter.py` and updated `product_manifest.py` dev_notes.
+- Resolved duplicate `litigation_intelligence` route-count discrepancy: added dev_notes in `product_manifest.py` and updated `module_routes_list.txt` to list 17 live endpoints.
+- Resolved duplicate `context_engine` vs `context_loop`: clarified dev_notes in `product_manifest.py` distinguishing the verified-facts/stories engine from the runtime state/event loop.
+
+**Known working:**
+- Core compile check passes (`python -m py_compile app/main.py` + core files).
+- `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (ACTIVE_CONTEXT priority).
+- Document Center planning.
+- Attorney Intake Packet scaffold awaiting user review.
+
+**Next session should start with:**
+- Continue next `agent_orchestrator_tasks.json` item or resume GUI Phase 1 work per ACTIVE_CONTEXT.
+
+---
+
+## Session Ship — 2026-07-14 01:27 CT / 2026-07-14 06:27 UTC
+
+**Deployed commit:** `5cd9764`
+
+**What was shipped:**
+- Resolved duplicate `research router vs research_module.py`: removed legacy standalone `app/modules/research_module.py`, made `app/modules/research/router.py` canonical in `product_manifest.py` and `compliance.py`.
+- Resolved duplicate `tenant_defense vs eviction_defense`: removed legacy standalone `app/modules/tenant_defense.py`, made `app/modules/eviction_defense/router.py` canonical, updated `compliance.py`.
+- Fixed `module_routes_list.txt`: removed duplicate `storage` function-token entries and corrected route count from 31 to 29.
+
+**Known working:**
+- Core compile check passes (`python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py`).
+- `main` branch pushed to origin.
+
+**Known broken / pending:**
+- GUI Phase 1 four-pillar interface (ACTIVE_CONTEXT priority).
+- Document Center planning.
+- Attorney Intake Packet scaffold awaiting user review.
+- Remaining `agent_orchestrator_tasks.json` duplicate-resolve items: `complaints`, `free_api`, `cloud_sync`, `search`, `brain/mesh`, `timeline`, `housing_accountability`, etc.
+
+**Next session should start with:**
+- Continue next orchestrator duplicate-resolve task or resume GUI Phase 1 work per ACTIVE_CONTEXT.
+
+---
+
 ## How to Use /ship
 At the end of every session, type `/ship` in Windsurf chat.
 It will: verify → stage → commit → push → update this file.
@@ -6432,3 +6873,366 @@ Nothing is real until it is pushed.
 
 ---
 
+## SOURCE FILE: temp/semptify_pillar_mixer_backbone (1).md
+
+# Semptify Pillar-Mixer Backbone
+### Core spec for context engine + composer + page builder
+
+---
+
+## 1. The Concept
+
+Every page is made of the same four pillars. What makes pages *feel* different
+isn't which pillars are present — all four always are — it's the **mix ratio**
+between them. Same four ingredients, different proportions, different result.
+Like color mixing: red + blue isn't "more color," it's purple. That's the model.
+
+Each pillar is a **channel**, 0–100:
+
+| Channel | What it governs |
+|---|---|
+| `RECORD` | how much is captured/asked of the tenant on this page |
+| `KNOW`   | how much explaining/context is surfaced |
+| `ACT`    | how many actions surface, how forcefully |
+| `GOVERN` | how strict the guardrails/disclaimers/escalation are |
+
+A page isn't "a RECORD page." A page is `RECORD:80, KNOW:20, ACT:10, GOVERN:40`
+— mostly capture, light explanation, almost no action prompts, moderate guardrails.
+That's a different *animal* than `RECORD:10, KNOW:30, ACT:90, GOVERN:70` — an
+urgent action page with tight legal guardrails and minimal re-explaining.
+
+**This is the "color/flavor" layer you were describing.** The pillars are the
+pigments. The mix is the color. Changing 3+ channels together doesn't just
+adjust volume — it produces a different page *character* entirely, same as
+you said.
+
+---
+
+## 2. Named Blends (presets)
+
+Don't make every page hand-tune 4 sliders from scratch. Define named blends
+that map to recurring situations. Coding agents build against these; you tune
+the numbers later without changing architecture.
+
+```
+BLEND: "first_contact"       RECORD:70 KNOW:60 ACT:15 GOVERN:30
+  → tenant just landed, scared/unsure. Capture gently, explain a lot, don't push action yet.
+
+BLEND: "orientation"         RECORD:20 KNOW:80 ACT:20 GOVERN:20
+  → tenant knows their situation, needs to understand rights/options.
+
+BLEND: "quiet_capture"       RECORD:90 KNOW:10 ACT:5  GOVERN:25
+  → pure evidence logging, no drama, minimal interruption.
+
+BLEND: "urgent_action"       RECORD:15 KNOW:25 ACT:90 GOVERN:70
+  → deadline close (e.g. eviction hearing <5 days). Push action, tighten guardrails hard.
+
+BLEND: "post_filing_calm"    RECORD:30 KNOW:40 ACT:30 GOVERN:50
+  → action taken, waiting period. Steady, informative, moderate guardrail.
+
+BLEND: "high_stakes_review"  RECORD:20 KNOW:30 ACT:40 GOVERN:90
+  → UPL-risk-tier-red content. GOVERN dominates — heavy disclaimers, escalate to
+    real legal help prominently, ACT options limited to "safe" ones only.
+```
+
+You'll invent more of these as you build — that's fine, the blend list is meant
+to grow. The point is: **a page requests a blend name, not four raw numbers.**
+Raw numbers stay tunable in one config file, not scattered through page code.
+
+---
+
+## 3. Hard Rules (non-negotiable regardless of mix)
+
+These stop the mixer from doing something unsafe just because the math says so.
+
+- **GOVERN floor**: no blend may set GOVERN below the minimum required for the
+  page's UPL risk tier. If risk tier = red, GOVERN has a hard floor (e.g. 60)
+  no matter what blend is requested.
+- **GOVERN ceiling override**: GOVERN can *always* override ACT — i.e. if
+  GOVERN logic says "this action requires a licensed attorney," that suppresses
+  the action regardless of how high ACT is dialed.
+- **Intensity reflects real case facts only** — deadline proximity, case stage,
+  explicit tenant input. Never synthetic/engagement-driven urgency. This is a
+  trust product; manufactured urgency breaks the mission.
+- **All four channels always present in the data model**, even if a channel
+  renders visually empty at low values. Nothing is ever truly "off."
+
+---
+
+## 4. Page Config Schema (what a page actually is, data-wise)
+
+```json
+{
+  "page_id": "eviction_notice_received",
+  "blend": "urgent_action",
+  "intensity_override": null,
+  "intensity_source": "deadline_proximity",
+
+  "channels": {
+    "record": { "level": 15, "context_inputs": ["case_id", "notice_upload_id"] },
+    "know":   { "level": 25, "content_ref": "know/eviction_notice_basics.md" },
+    "act":    { "level": 90, "actions": ["upload_response", "contact_legal_aid", "log_timeline"] },
+    "govern": { "level": 70, "risk_tier": "yellow", "disclaimer_ref": "govern/upl_standard.md" }
+  },
+
+  "audit_hook": {
+    "log_on_render": true,
+    "log_on_action_taken": true,
+    "fields": ["page_id", "blend", "channels", "timestamp", "case_id"]
+  },
+
+  "escalation": {
+    "threshold_govern": 85,
+    "escalation_action": "surface_legal_aid_contact_banner"
+  }
+}
+```
+
+This is the object the **context engine** builds, the **composer** merges with
+tenant/case state, and the **page builder** renders from. One schema, every page.
+
+---
+
+## 5. How the pieces talk to each other
+
+```
+1. Page request comes in (tenant lands on a page, or case event fires)
+2. Context engine determines: case_stage, deadline_proximity, risk_tier, user_state
+3. Context engine picks a blend (or accepts a manual override) → produces channel levels
+4. GOVERN floor/ceiling rules applied as a final pass (safety net)
+5. Composer merges channel config with actual content refs + case data
+6. Page builder renders 4 zones (RECORD/KNOW/ACT/GOVERN) using channel levels
+   to decide: how much to show, how prominent, what tone/depth
+7. Audit hook fires, logged via GOVERN regardless of what channel levels were
+```
+
+---
+
+## 6. Build order suggestion
+
+1. Lock the JSON schema above (§4) — this is the contract every agent codes against.
+2. Build the blend config file (§2) as its own editable JSON/YAML, not hardcoded per page.
+3. Build the GOVERN floor/ceiling rule engine (§3) — small, but this is the safety layer, build it early and test it hard.
+4. Wire context engine → blend selection logic last, once schema + rules are proven with 2-3 real pages hand-tuned.
+
+Don't build the "auto-detect intensity from behavior" idea yet (mentioned earlier
+as a future risk) — start with explicit inputs only (deadline, case stage,
+tenant-declared urgency). Inferred emotional state is a later, riskier feature.
+
+---
+
+## 7. Pipeline model: fixed shape, dynamic content
+
+Every page's zone structure is **predetermined**. What populates each zone is
+**decided at render time**. Never rebuild the shape per page — that defeats the
+whole point of having one page builder.
+
+```
+FIXED (same for every page, coded once):
+  - 4 zones exist, always, in the page object
+  - zone → block-type rules (what kinds of blocks a zone is allowed to hold)
+  - GOVERN override authority over ACT
+  - layout grid shell (§9)
+
+DYNAMIC (decided per page-request):
+  - which blend / channel levels apply
+  - which blocks populate each zone
+  - which content_refs / case data feed those blocks
+  - how many blocks appear (driven by channel level, see §8)
+```
+
+If a future situation seems to need a 5th zone or a totally different shape,
+that's a signal to stop and redesign the shell — not a signal to bolt on a
+one-off page. Keep the shell sacred.
+
+---
+
+## 8. Object model — the missing layer between "channel level" and pixels
+
+This is what was missing: the actual objects that live *inside* a zone.
+
+### `Zone`
+The container for one pillar (RECORD / KNOW / ACT / GOVERN).
+
+```json
+{
+  "zone_id": "act",
+  "level": 90,
+  "max_blocks": 4,
+  "block_ids": ["blk_upload_response", "blk_contact_legal_aid", "blk_log_timeline"],
+  "layout": "stack"
+}
+```
+
+`level` drives **how many blocks show and how prominent they are** — not
+arbitrary, a simple rule works fine to start:
+
+```
+level 0–25   → 0-1 blocks, collapsed/low-emphasis styling
+level 26–60  → 1-2 blocks, standard styling
+level 61–100 → up to max_blocks, high-emphasis styling (color, size, position)
+```
+
+### `Block` — the actual reusable unit (this is your real "object" list)
+
+Three block *kinds* cover everything so far:
+
+**`InputBlock`** (used mainly in RECORD)
+```json
+{
+  "block_id": "blk_notice_upload",
+  "kind": "input",
+  "input_type": "file_upload | text | date | select | signature",
+  "label": "string",
+  "required": true,
+  "writes_to": "case.notice_upload_id"
+}
+```
+
+**`InfoBlock`** (used mainly in KNOW, and inside GOVERN for disclaimers)
+```json
+{
+  "block_id": "blk_eviction_basics",
+  "kind": "info",
+  "content_ref": "know/eviction_notice_basics.md",
+  "reading_level": "plain",
+  "collapsed_by_default": false
+}
+```
+
+**`OutputBlock`** (used mainly in ACT, and GOVERN for escalation banners)
+```json
+{
+  "block_id": "blk_contact_legal_aid",
+  "kind": "output",
+  "action_type": "button | form | link | banner",
+  "label": "string",
+  "risk_tier": "yellow",
+  "on_trigger": "route:legal_aid_contact | fn:submit_response"
+}
+```
+
+Every block in the system is one of these three kinds. A zone is just an
+ordered list of blocks, filtered/ranked by that zone's `level`. This is the
+full object vocabulary — Zone, InputBlock, InfoBlock, OutputBlock — nothing
+else is needed to build any page currently spec'd.
+
+---
+
+## 9. Layout spec: whole-page scaling, no scroll (desktop)
+
+Goal: the page behaves like a poster, not a document — it shrinks/grows as one
+unit to fit the viewport, it does not reflow-and-scroll.
+
+**Shell structure** — CSS Grid, locked to viewport height:
+
+```css
+.page-shell {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-rows: auto 1fr 1fr auto; /* RECORD / KNOW / ACT / GOVERN */
+  gap: clamp(0.5rem, 1vh, 1.5rem);
+  padding: clamp(0.5rem, 2vh, 2rem);
+  overflow: hidden; /* page itself never scrolls */
+}
+
+.zone {
+  min-height: 0;      /* required for grid children to shrink properly */
+  overflow-y: auto;    /* ONLY this zone scrolls, if its own content overflows */
+}
+```
+
+Rules:
+- `.page-shell` has `overflow: hidden` — the page as a whole never scrolls.
+- Row sizing uses `fr` units so zones share available height proportionally —
+  when `level` is high for a zone, that zone's row can request more `fr`
+  share dynamically (e.g. ACT at level 90 gets `2fr` instead of `1fr`).
+- Font sizes, gaps, and padding use `clamp()` / `vh` / `vw` units, not fixed
+  `px`, so the whole shell scales together when the window resizes — this is
+  what makes it feel like scaling a poster instead of a responsive reflow.
+- If a single zone's content genuinely can't fit (e.g. long GOVERN disclaimer
+  text), **that zone alone** gets internal scroll (`overflow-y: auto`) rather
+  than breaking the no-scroll rule for the whole page. This is the pressure
+  valve — use it sparingly, and prefer collapsing/summarizing content over
+  triggering it.
+- Mobile is explicitly out of scope for this rule — this "no scroll, scale as
+  whole" behavior is a **desktop/full-spec mode** decision only. Mobile should
+  behave like a normal scrolling document; don't try to force the poster
+  behavior onto a small viewport.
+
+---
+
+## 10. Four skeleton types — major pillar = perspective/scope
+
+§9 gave one grid whose zone *sizes* flex via `fr`/level. That's not quite
+enough — the point Brad's making is that the page's fundamental **perspective**
+(which pillar is in charge of this page's purpose) should also change the
+**shape/arrangement**, not just the size. So: four skeleton variants, one per
+pillar, each still containing all four zones (nothing ever disappears — see
+§7's "shell is sacred" rule), but arranged differently.
+
+Every page now declares its `major_pillar` first — that picks the skeleton.
+Blend/levels (§2, §8) still apply *within* that skeleton afterward.
+
+```
+SKELETON: record_focus
+  grid-template-areas:
+    "record record know"
+    "record record act"
+    "govern govern govern"
+  → RECORD gets the dominant block (2/3 width, top-heavy). KNOW rides beside it
+    as light context. ACT stays small/secondary. GOVERN is a full-width strip,
+    always visible, never dominant.
+
+SKELETON: know_focus
+  grid-template-areas:
+    "know   know   record"
+    "know   know   act"
+    "govern govern govern"
+  → KNOW dominates, explaining takes center stage. RECORD/ACT ride as
+    secondary side blocks. GOVERN unchanged — always its own strip.
+
+SKELETON: act_focus
+  grid-template-areas:
+    "act    act    know"
+    "act    act    record"
+    "govern govern govern"
+  → ACT dominates — action buttons/forms front and center, large. KNOW/RECORD
+    become supporting sidebar content. GOVERN strip may get visually heavier
+    here (thicker, more prominent) since this is where risk is highest.
+
+SKELETON: govern_focus
+  grid-template-areas:
+    "govern govern govern"
+    "know   act    record"
+  → Reserved for high-stakes/red-tier pages. GOVERN takes the top, full width,
+    dominant — disclaimers/escalation read first, before anything else. The
+    other three sit equally as a secondary row underneath.
+```
+
+Rules that keep this from fragmenting into 4 unrelated products:
+- **All four zones exist in all four skeletons.** Only arrangement/dominance
+  changes. A tenant should still recognize "this is Semptify" no matter which
+  skeleton is active — same zone identities, same GOVERN strip habits, just
+  rearranged.
+- **GOVERN never loses its own dedicated space** in any skeleton — it's never
+  merged into another zone's block, even when it's not the major pillar. This
+  keeps the trust/audit layer visually consistent everywhere.
+- **`major_pillar` is a page-level decision, made once**, by whoever designs
+  that page/flow — it's not computed dynamically like blend/intensity is. It
+  answers "what is this page fundamentally *for*," which doesn't change
+  moment-to-moment the way urgency does.
+- Page config (§4) gets one new top-level field:
+  ```json
+  "major_pillar": "act"
+  ```
+  which selects the skeleton; `blend`/`channels` then operate inside it exactly
+  as already spec'd.
+
+This is the piece that was missing: **major_pillar answers "what is this page,"
+blend/intensity answers "how loud should it be."** Two independent decisions,
+one composes into the other.
+
+
+---

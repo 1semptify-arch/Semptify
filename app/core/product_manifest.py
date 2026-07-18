@@ -58,7 +58,7 @@ from __future__ import annotations
 
 import importlib
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -73,6 +73,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Product Tiers
 # =============================================================================
+
 
 class ProductTier(str, Enum):
     """Semptify product tiers. Each tier is a bounded context."""
@@ -103,6 +104,7 @@ class ProductTier(str, Enum):
 # =============================================================================
 # Module Entry
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class ModuleEntry:
@@ -177,9 +179,7 @@ class ModuleEntry:
     def __post_init__(self) -> None:
         # Tags must be non-empty for OpenAPI discoverability
         if not self.tags:
-            object.__setattr__(
-                self, "tags", (self._default_tag(),)
-            )
+            object.__setattr__(self, "tags", (self._default_tag(),))
         # Validate lifecycle against allowed values
         allowed_lifecycles = ("stable", "beta", "experimental", "dev_only", "preview", "internal", "deprecated")
         if self.lifecycle not in allowed_lifecycles:
@@ -195,10 +195,7 @@ class ModuleEntry:
             )
         # External modules must have external_repo
         if self.origin == "external" and not self.external_repo:
-            raise ValueError(
-                f"ModuleEntry {self.module_path}: origin='external' requires "
-                f"external_repo to be set"
-            )
+            raise ValueError(f"ModuleEntry {self.module_path}: origin='external' requires " f"external_repo to be set")
 
     def _default_tag(self) -> str:
         """Derive a tag from the module name if none provided."""
@@ -245,6 +242,7 @@ class ModuleEntry:
 # =============================================================================
 # Manifest Registry
 # =============================================================================
+
 
 class _ManifestRegistry:
     """In-memory registry of all declared module entries."""
@@ -403,78 +401,175 @@ _register("app.modules.role_ui.router", tags=("Role UI",), tier=ProductTier.CORE
 
 # Storage & identity
 _register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
-_register("app.modules.user.router", tags=("User",), tier=ProductTier.CORE,
-          log_message="User router active — act-as impersonation endpoints enabled")
-_register("app.modules.rent.router", prefix="/api/rent", tags=("Rent Ledger",), tier=ProductTier.CORE,
-          log_message="Rent ledger router active — payment tracking endpoints enabled")
-_register("app.modules.auth.router", tags=("Authentication",), tier=ProductTier.CORE,
-          log_message="Auth status router active at /api/auth/me")
-_register("app.modules.onboarding.reconnect", tags=("Onboarding", "Reconnect"), tier=ProductTier.CORE,
-          log_message="Reconnect router active at /storage/reconnect (owned by onboarding module)")
+_register(
+    "app.modules.user.router",
+    tags=("User",),
+    tier=ProductTier.CORE,
+    log_message="User router active — act-as impersonation endpoints enabled",
+)
+_register(
+    "app.modules.rent.router",
+    prefix="/api/rent",
+    tags=("Rent Ledger",),
+    tier=ProductTier.CORE,
+    log_message="Rent ledger router active — payment tracking endpoints enabled",
+)
+_register(
+    "app.modules.auth.router",
+    tags=("Authentication",),
+    tier=ProductTier.CORE,
+    log_message="Auth status router active at /api/auth/me",
+)
+_register(
+    "app.modules.onboarding.reconnect",
+    tags=("Onboarding", "Reconnect"),
+    tier=ProductTier.CORE,
+    log_message="Reconnect router active at /storage/reconnect (owned by onboarding module)",
+)
 
 # Document & vault system
 _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
-_register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault",), tier=ProductTier.CORE,
-          dev_notes="Canonical document storage vault. Upload, certify, and serve documents from the user's cloud provider. UI uploads go through /api/intake/upload/auto. Incident endpoints migrated from retired app.modules.vault_all_in_one.router; that module is removed. vault_engine.router is the separate access-control layer and is NOT a duplicate.")
-_register("app.modules.vault_engine.router", prefix="/api/vault-engine", tags=("Vault Engine", "Access Control"), tier=ProductTier.CORE,
-          lifecycle="dev_only", requires_role=("admin",),
-          dev_notes="Access-control engine for vault resources (permissions, sharing, audit). Distinct from document-storage vault. Not yet user-facing.")
-_register("app.modules.timeline.router", prefix="/api/timeline", tags=("Unified Timeline",), tier=ProductTier.CORE,
-          dev_notes="Canonical timeline API (DB-backed TimelineEvent model). Briefcase router's in-memory timeline-event CRUD removed 2026-07-15 as duplicate. Workflow router is NOT a duplicate — it only reads timeline counts for routing decisions.")
-_register("app.modules.briefcase.router", tags=("Briefcase",), tier=ProductTier.CORE,
-          dev_notes="Annotation + document-briefcase API. Timeline-event CRUD removed 2026-07-15 (was duplicate of app.modules.timeline.router). Annotations still store linked_event_id for cross-reference to canonical timeline events.")
-_register("app.modules.workflow.router", tags=("Workflow",), tier=ProductTier.CORE,
-          dev_notes="Deterministic routing engine. Reads timeline_events count as a routing signal — NOT a timeline implementation. Distinct from app.modules.timeline.router.")
+_register(
+    "app.modules.vault.router",
+    prefix="/api/vault",
+    tags=("Document Vault",),
+    tier=ProductTier.CORE,
+    dev_notes="Canonical document storage vault. Upload, certify, and serve documents from the user's cloud provider. UI uploads go through /api/intake/upload/auto. Incident endpoints migrated from retired app.modules.vault_all_in_one.router; that module is removed. vault_engine.router is the separate access-control layer and is NOT a duplicate.",
+)
+_register(
+    "app.modules.vault_engine.router",
+    prefix="/api/vault-engine",
+    tags=("Vault Engine", "Access Control"),
+    tier=ProductTier.CORE,
+    lifecycle="dev_only",
+    requires_role=("admin",),
+    dev_notes="Access-control engine for vault resources (permissions, sharing, audit). Distinct from document-storage vault. Not yet user-facing.",
+)
+_register(
+    "app.modules.timeline.router",
+    prefix="/api/timeline",
+    tags=("Unified Timeline",),
+    tier=ProductTier.CORE,
+    dev_notes="Canonical timeline API (DB-backed TimelineEvent model). Briefcase router's in-memory timeline-event CRUD removed 2026-07-15 as duplicate. Workflow router is NOT a duplicate — it only reads timeline counts for routing decisions.",
+)
+_register(
+    "app.modules.briefcase.router",
+    tags=("Briefcase",),
+    tier=ProductTier.CORE,
+    dev_notes="Annotation + document-briefcase API. Timeline-event CRUD removed 2026-07-15 (was duplicate of app.modules.timeline.router). Annotations still store linked_event_id for cross-reference to canonical timeline events.",
+)
+_register(
+    "app.modules.workflow.router",
+    tags=("Workflow",),
+    tier=ProductTier.CORE,
+    dev_notes="Deterministic routing engine. Reads timeline_events count as a routing signal — NOT a timeline implementation. Distinct from app.modules.timeline.router.",
+)
 _register("app.modules.workflow_validator.router", tags=("Admin",), tier=ProductTier.CORE)
 
 # Rights & education
-_register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE,
-          lifecycle="beta", upl_risk_tier=UPLRiskTier.LOW,
-          dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.")
-_register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE,
-          upl_risk_tier=UPLRiskTier.LOW)
-_register("app.modules.law_library.router", router_attr="page_router", tags=("Law Library",), tier=ProductTier.CORE,
-          log_message="Law Library page route active at /law-library",
-          upl_risk_tier=UPLRiskTier.LOW)
+_register(
+    "app.modules.state_laws.router",
+    tags=("State Laws",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    upl_risk_tier=UPLRiskTier.LOW,
+    dev_notes="6 states complete (MN, NY, CA, TX, FL, IL). 43 states remain stubs with external resource links only.",
+)
+_register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE, upl_risk_tier=UPLRiskTier.LOW)
+_register(
+    "app.modules.law_library.router",
+    router_attr="page_router",
+    tags=("Law Library",),
+    tier=ProductTier.CORE,
+    log_message="Law Library page route active at /law-library",
+    upl_risk_tier=UPLRiskTier.LOW,
+)
 
 # Core tools
 _register("app.modules.contacts.router", tags=("Contact Manager",), tier=ProductTier.CORE)
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)
-_register("app.modules.search.router", prefix="/api/search", tags=("Global Search",), tier=ProductTier.CORE,
-          dev_notes="Canonical global search API. Distinct from app.services.vault_search (vault deep-search service with its own FunctionGroupContract) and app.core.postgres_fts (PostgreSQL FTS utility). Not duplicates — three different layers.")
+_register(
+    "app.modules.search.router",
+    prefix="/api/search",
+    tags=("Global Search",),
+    tier=ProductTier.CORE,
+    dev_notes="Canonical global search API. Distinct from app.services.vault_search (vault deep-search service with its own FunctionGroupContract) and app.core.postgres_fts (PostgreSQL FTS utility). Not duplicates — three different layers.",
+)
 _register("app.modules.pdf_tools.router", tags=("PDF Tools",), tier=ProductTier.CORE)
-_register("app.modules.preview.router", prefix="/api/preview", tags=("Document Preview",), tier=ProductTier.CORE,
-          log_message="Document Preview router connected - Multi-format preview generation active")
-_register("app.modules.document_converter.router", tags=("Document Converter",), tier=ProductTier.CORE,
-          dev_notes="Canonical document converter module. Legacy app/modules/document_converter.py standalone file removed — it was shadowed by this package.")
-_register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE,
-          upl_risk_tier=UPLRiskTier.LOW_MEDIUM)
-_register("app.modules.context_engine.router", tags=("Context Engine", "Facts", "Stories"), tier=ProductTier.CORE,
-          dev_notes="Verified-facts + tenant-stories engine. Distinct from context_loop (runtime state/event loop).",
-          log_message="Context Engine router connected — verified facts + tenant stories active")
-_register("app.modules.page_composer.router", tags=("Page Composer", "Facts", "Stories", "Case"), tier=ProductTier.CORE,
-          log_message="Page Composer router connected — unified page view (facts + stories + case)")
+_register(
+    "app.modules.preview.router",
+    prefix="/api/preview",
+    tags=("Document Preview",),
+    tier=ProductTier.CORE,
+    log_message="Document Preview router connected - Multi-format preview generation active",
+)
+_register(
+    "app.modules.document_converter.router",
+    tags=("Document Converter",),
+    tier=ProductTier.CORE,
+    dev_notes="Canonical document converter module. Legacy app/modules/document_converter.py standalone file removed — it was shadowed by this package.",
+)
+_register(
+    "app.modules.legal_analysis.router",
+    tags=("Legal Analysis",),
+    tier=ProductTier.CORE,
+    upl_risk_tier=UPLRiskTier.LOW_MEDIUM,
+)
+_register(
+    "app.modules.context_engine.router",
+    tags=("Context Engine", "Facts", "Stories"),
+    tier=ProductTier.CORE,
+    dev_notes="Verified-facts + tenant-stories engine. Distinct from context_loop (runtime state/event loop).",
+    log_message="Context Engine router connected — verified facts + tenant stories active",
+)
+_register(
+    "app.modules.page_composer.router",
+    tags=("Page Composer", "Facts", "Stories", "Case"),
+    tier=ProductTier.CORE,
+    log_message="Page Composer router connected — unified page view (facts + stories + case)",
+)
 
 # Public portal — guest portal + services catalog for semptify.org
-_register("app.modules.portal.router", tags=("Portal", "Public", "Services"), tier=ProductTier.CORE,
-          log_message="Portal router connected — guest portal + services catalog active at /api/portal")
-_register("app.modules.portal.router", router_attr="seo_router", tags=("Portal", "SEO"), tier=ProductTier.CORE,
-          log_message="Portal SEO router connected — sitemap.xml + robots.txt active")
+_register(
+    "app.modules.portal.router",
+    tags=("Portal", "Public", "Services"),
+    tier=ProductTier.CORE,
+    log_message="Portal router connected — guest portal + services catalog active at /api/portal",
+)
+_register(
+    "app.modules.portal.router",
+    router_attr="seo_router",
+    tags=("Portal", "SEO"),
+    tier=ProductTier.CORE,
+    log_message="Portal SEO router connected — sitemap.xml + robots.txt active",
+)
 
 # UI Composer — self-assembling tenant GUI (Phase 1A)
-_register("app.modules.ui_composer.router", tags=("UI Composer", "GUI"), tier=ProductTier.CORE,
-          log_message="UI Composer router connected — /api/ui/page, /api/ui/fragment, /api/ui/process active")
+_register(
+    "app.modules.ui_composer.router",
+    tags=("UI Composer", "GUI"),
+    tier=ProductTier.CORE,
+    log_message="UI Composer router connected — /api/ui/page, /api/ui/fragment, /api/ui/process active",
+)
 
 # Tenant Feed Aggregator — RECORD pillar data source (Phase 1B)
-_register("app.modules.tenant_feed.router", tags=("Tenant Feed", "RECORD"), tier=ProductTier.CORE,
-          log_message="Tenant Feed router connected — /api/tenant/feed active (aggregated timeline)")
+_register(
+    "app.modules.tenant_feed.router",
+    tags=("Tenant Feed", "RECORD"),
+    tier=ProductTier.CORE,
+    log_message="Tenant Feed router connected — /api/tenant/feed active (aggregated timeline)",
+)
 
 # Real-time
 _register("app.modules.websocket.router", prefix="/ws", tags=("WebSocket Events",), tier=ProductTier.CORE)
 
 # Free APIs
-_register("app.modules.free_api.router", tags=("Free APIs",), tier=ProductTier.CORE,
-          dev_notes="Canonical free API router at /freeapi/*. Backed by app/modules/free_api_pack.py utility library (PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes). free_api_pack is a shared library, not a separate module — no longer registered independently.")
+_register(
+    "app.modules.free_api.router",
+    tags=("Free APIs",),
+    tier=ProductTier.CORE,
+    dev_notes="Canonical free API router at /freeapi/*. Backed by app/modules/free_api_pack.py utility library (PropertyLookup, LandlordLookup, CourtScraper, Violations, Inspections, Statutes). free_api_pack is a shared library, not a separate module — no longer registered independently.",
+)
 
 # Plugins
 # _register("app.modules.plugins.router", tags=("Plugin System",), tier=ProductTier.CORE)  # INACTIVE: Marketplace not built
@@ -483,14 +578,24 @@ _register("app.modules.free_api.router", tags=("Free APIs",), tier=ProductTier.C
 # _register("app.modules.components.router", tags=("Modular Components",), tier=ProductTier.CORE,
 #           log_message="Modular Components router connected - Component system integration active")  # INACTIVE: Dev scaffolding
 _register("app.modules.core_system.router", router_attr="core_router", tags=("Core System",), tier=ProductTier.CORE)
-_register("app.modules.security.router", prefix="/api/security", tags=("Advanced Security",), tier=ProductTier.CORE,
-          log_message="Advanced Security router connected - 2FA and session management active")
+_register(
+    "app.modules.security.router",
+    prefix="/api/security",
+    tags=("Advanced Security",),
+    tier=ProductTier.CORE,
+    log_message="Advanced Security router connected - 2FA and session management active",
+)
 
 # MNDES — Court Exhibit System (MN Supreme Court Order ADM09-8010 compliance)
-_register("app.modules.mndes.router", tags=("MNDES",), optional=False, tier=ProductTier.CORE,
-          lifecycle="beta",
-          dev_notes="3 NotImplementedError pending external MN Supreme Court API. Contact EAST team.",
-          log_message="MNDES router loaded — Court Exhibit System active")
+_register(
+    "app.modules.mndes.router",
+    tags=("MNDES",),
+    optional=False,
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="3 NotImplementedError pending external MN Supreme Court API. Contact EAST team.",
+    log_message="MNDES router loaded — Court Exhibit System active",
+)
 
 
 # =============================================================================
@@ -507,47 +612,83 @@ _register(
     log_message="FEMS router loaded — Forensic Evidence Management active at /api/fems",
 )
 
-_register("app.modules.eviction_defense.router", tags=("Eviction Defense Toolkit",), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.HIGH,
-          dev_notes="Canonical eviction-defense toolkit. Legacy app/modules/tenant_defense.py standalone file removed — it was shadowed by this router.")
+_register(
+    "app.modules.eviction_defense.router",
+    tags=("Eviction Defense Toolkit",),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.HIGH,
+    dev_notes="Canonical eviction-defense toolkit. Legacy app/modules/tenant_defense.py standalone file removed — it was shadowed by this router.",
+)
 _register("app.modules.zoom_court.router", tags=("Zoom Courtroom",), tier=ProductTier.EXTENDED)
 _register("app.modules.zoom_court_prep.router", tags=("Zoom Court Prep",), tier=ProductTier.EXTENDED)
-_register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.HIGH)
-_register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.MEDIUM)
+_register(
+    "app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED, upl_risk_tier=UPLRiskTier.HIGH
+)
+_register(
+    "app.modules.court_packet.router",
+    tags=("Court Packet",),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+)
 # _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
 _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
-_register("app.modules.legal.router", tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
-          log_message="Legal workspace router connected — matters, filings, discovery, exhibits active")
+_register(
+    "app.modules.legal.router",
+    tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
+    log_message="Legal workspace router connected — matters, filings, discovery, exhibits active",
+)
 
 # Case management
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)
 _register("app.modules.guided_intake.router", tags=("Guided Intake",), tier=ProductTier.EXTENDED)
-_register("app.modules.case_builder.router", tags=("Case Builder",), tier=ProductTier.EXTENDED,
-          upl_risk_tier=UPLRiskTier.MEDIUM,
-          dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package.")
+_register(
+    "app.modules.case_builder.router",
+    tags=("Case Builder",),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    dev_notes="Canonical case-builder module. Legacy app/modules/case_builder.py standalone file removed — it was shadowed by this package.",
+)
 _register("app.modules.progress.router", tags=("Progress Tracker",), tier=ProductTier.EXTENDED)
 _register("app.modules.actions.router", tags=("Smart Actions",), tier=ProductTier.EXTENDED)
 _register("app.modules.plan_maker.router", tags=("Plan Maker",), tier=ProductTier.EXTENDED)
 _register("app.modules.tools_api.router", tags=("Tools",), tier=ProductTier.EXTENDED)
 
 # Complaints / accountability
-_register("app.modules.complaints.router", tags=("Complaint Wizard",), tier=ProductTier.EXTENDED,
-          log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active",
-          dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router.")
-_register("app.modules.housing_accountability.router", router_attr="accountability_router",
-          tags=("Housing Accountability",), tier=ProductTier.EXTENDED,
-          lifecycle="beta", dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.")
-_register("app.modules.housing_accountability.pattern_history", router_attr="pattern_history_router",
-          tags=("Pattern History",), tier=ProductTier.EXTENDED,
-          lifecycle="beta", dev_notes="Depends on housing_accountability pattern matching.")
+_register(
+    "app.modules.complaints.router",
+    tags=("Complaint Wizard",),
+    tier=ProductTier.EXTENDED,
+    log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active",
+    dev_notes="Canonical complaint-filing wizard. Legacy app/modules/complaint_wizard_module.py standalone (Mesh SDK, DISABLED in main.py) removed — shadowed by this router.",
+)
+_register(
+    "app.modules.housing_accountability.router",
+    router_attr="accountability_router",
+    tags=("Housing Accountability",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="beta",
+    dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.",
+)
+_register(
+    "app.modules.housing_accountability.pattern_history",
+    router_attr="pattern_history_router",
+    tags=("Pattern History",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="beta",
+    dev_notes="Depends on housing_accountability pattern matching.",
+)
 
 # External system mappings (court cases, properties, agencies)
-_register("app.modules.external_mappings.router", router_attr="mappings_router",
-          tags=("External Mappings", "Court Cases", "Properties", "Agencies"), tier=ProductTier.EXTENDED,
-          lifecycle="beta", dev_notes="Bridge between Semptify and external systems. CRUD for cross-system ID mappings.")
+_register(
+    "app.modules.external_mappings.router",
+    router_attr="mappings_router",
+    tags=("External Mappings", "Court Cases", "Properties", "Agencies"),
+    tier=ProductTier.EXTENDED,
+    lifecycle="beta",
+    dev_notes="Bridge between Semptify and external systems. CRUD for cross-system ID mappings.",
+)
 
 # Role management
 _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=ProductTier.EXTENDED)
@@ -567,27 +708,59 @@ _register("app.modules.advocate.router", tags=("Advocate", "Clients", "Case Mana
 # ADMIN TIER — Dashboards, Analytics, Batch Ops (Disabled by Default)
 # =============================================================================
 
-_register("app.modules.admin_console.router", prefix="/admin-console", tags=("Admin Console",), tier=ProductTier.ADMIN,
-          log_message="Admin Console router connected - System maintenance and diagnostics active")
-_register("app.modules.admin_console.module_flags", tier=ProductTier.ADMIN,
-          lifecycle="internal",
-          requires_role=("admin",),
-          dev_notes="Phase 2.4 — Module Flag Overlay admin UI. Provides /admin/api/module-flags endpoints for runtime lifecycle/feature_flag overrides.",
-          log_message="Module Flag Overlay admin router active — /admin/api/module-flags")
-_register("app.modules.analytics.router", prefix="/api/analytics", tags=("Analytics",), tier=ProductTier.ADMIN,
-          log_message="Analytics router connected - Usage and performance tracking active")
+_register(
+    "app.modules.admin_console.router",
+    prefix="/admin-console",
+    tags=("Admin Console",),
+    tier=ProductTier.ADMIN,
+    log_message="Admin Console router connected - System maintenance and diagnostics active",
+)
+_register(
+    "app.modules.admin_console.module_flags",
+    tier=ProductTier.ADMIN,
+    lifecycle="internal",
+    requires_role=("admin",),
+    dev_notes="Phase 2.4 — Module Flag Overlay admin UI. Provides /admin/api/module-flags endpoints for runtime lifecycle/feature_flag overrides.",
+    log_message="Module Flag Overlay admin router active — /admin/api/module-flags",
+)
+_register(
+    "app.modules.analytics.router",
+    prefix="/api/analytics",
+    tags=("Analytics",),
+    tier=ProductTier.ADMIN,
+    log_message="Analytics router connected - Usage and performance tracking active",
+)
 _register("app.modules.dashboard.router", tags=("Unified Dashboard",), tier=ProductTier.ADMIN)
 _register("app.modules.enterprise_dashboard.router", tags=("Enterprise Dashboard",), tier=ProductTier.ADMIN)
-_register("app.modules.batch.router", prefix="/api/batch", tags=("Batch Operations",), tier=ProductTier.ADMIN,
-          log_message="Batch Operations router connected - Bulk document management active")
+_register(
+    "app.modules.batch.router",
+    prefix="/api/batch",
+    tags=("Batch Operations",),
+    tier=ProductTier.ADMIN,
+    log_message="Batch Operations router connected - Bulk document management active",
+)
 _register("app.modules.registry.router", tags=("Document Registry",), tier=ProductTier.ADMIN)
 _register("app.modules.tenancy_hub.router", tags=("Tenancy Hub",), tier=ProductTier.ADMIN)
-_register("app.modules.capabilities.router", prefix="", tags=("Capabilities",), tier=ProductTier.ADMIN,
-          log_message="Capabilities router active — user capability and overlay management enabled")
-_register("app.modules.manager.router", tags=("Manager", "Case Assignment", "Reporting", "Bulk Ops"), tier=ProductTier.ADMIN,
-          log_message="Manager router connected — case assignment, reporting, bulk ops active")
-_register("app.modules.funding_mgmt.router", tags=("Funding Management",), tier=ProductTier.ADMIN,
-          lifecycle="beta", dev_notes="Admin-only funding dashboard and prospectus. Requires require_admin dependency.")
+_register(
+    "app.modules.capabilities.router",
+    prefix="",
+    tags=("Capabilities",),
+    tier=ProductTier.ADMIN,
+    log_message="Capabilities router active — user capability and overlay management enabled",
+)
+_register(
+    "app.modules.manager.router",
+    tags=("Manager", "Case Assignment", "Reporting", "Bulk Ops"),
+    tier=ProductTier.ADMIN,
+    log_message="Manager router connected — case assignment, reporting, bulk ops active",
+)
+_register(
+    "app.modules.funding_mgmt.router",
+    tags=("Funding Management",),
+    tier=ProductTier.ADMIN,
+    lifecycle="beta",
+    dev_notes="Admin-only funding dashboard and prospectus. Requires require_admin dependency.",
+)
 
 
 # =============================================================================
@@ -597,16 +770,28 @@ _register("app.modules.funding_mgmt.router", tags=("Funding Management",), tier=
 _register("app.modules.recognition.router", tags=("Document Recognition",), tier=ProductTier.RESEARCH)
 _register("app.modules.extraction.router", tags=("Form Field Extraction",), tier=ProductTier.RESEARCH)
 _register("app.modules.crawler.router", tags=("Crawler",), tier=ProductTier.RESEARCH)
-_register("app.modules.research.router", tags=("Research Module",), tier=ProductTier.RESEARCH,
-          dev_notes="Canonical landlord/property research router. Legacy app/modules/research_module.py standalone file removed — it was shadowed by this package.")
+_register(
+    "app.modules.research.router",
+    tags=("Research Module",),
+    tier=ProductTier.RESEARCH,
+    dev_notes="Canonical landlord/property research router. Legacy app/modules/research_module.py standalone file removed — it was shadowed by this package.",
+)
 _register("app.modules.form_data.router", prefix="/api/form-data", tags=("Form Data Hub",), tier=ProductTier.RESEARCH)
 # Old app.modules.overlays.router retired 2026-06-18 — superseded by unified_overlays.router (SSOT).
 # 943-line legacy router removed from registration; no callers used /api/overlays/ paths.
-_register("app.modules.unified_overlays.router", tags=("Unified Overlays",), tier=ProductTier.RESEARCH,
-          log_message="Unified Overlays router connected - Non-destructive annotation system active")
-_register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTier.RESEARCH,
-          log_message="Cloud Sync router connected - User-controlled data persistence active",
-          dev_notes="Canonical cloud-sync module. Legacy app/services/user_cloud_sync.py duplicate removed — identical to cloud_sync/service.py. Single caller (public_forms/router.py) repointed to canonical path.")
+_register(
+    "app.modules.unified_overlays.router",
+    tags=("Unified Overlays",),
+    tier=ProductTier.RESEARCH,
+    log_message="Unified Overlays router connected - Non-destructive annotation system active",
+)
+_register(
+    "app.modules.cloud_sync.router",
+    tags=("Cloud Sync",),
+    tier=ProductTier.RESEARCH,
+    log_message="Cloud Sync router connected - User-controlled data persistence active",
+    dev_notes="Canonical cloud-sync module. Legacy app/services/user_cloud_sync.py duplicate removed — identical to cloud_sync/service.py. Single caller (public_forms/router.py) repointed to canonical path.",
+)
 
 # AI infrastructure — brain/mesh subsystem (3 distinct layers, NOT duplicates):
 #   - app.services.positronic_brain  : brain service (imported by calendar, documents, location, recognition, workflow, case_auto_creation)
@@ -619,18 +804,28 @@ _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTie
 #           log_message="Positronic Brain connected - Central intelligence hub active")
 # _register("app.modules.auto_mode.router", tags=("Auto Mode",), tier=ProductTier.RESEARCH)  # INACTIVE: Not production-ready
 # Tagged as preview in roadmap — not registered until production-ready
-_register("app.modules.emotion.router", tags=("Emotion Engine",), tier=ProductTier.RESEARCH,
-          lifecycle="experimental")
+_register("app.modules.emotion.router", tags=("Emotion Engine",), tier=ProductTier.RESEARCH, lifecycle="experimental")
 # _register("app.modules.positronic_mesh.router", prefix="/api", tags=("Positronic Mesh",), tier=ProductTier.RESEARCH,
 #           lifecycle="experimental", feature_flag="experimental_ai_model",
 #           dev_notes="Heavy service. Guarded by ENABLE_HEAVY_SERVICES.")
 # _register("app.modules.mesh_network.router", prefix="/api", tags=("Mesh Network",), tier=ProductTier.RESEARCH,
 #           lifecycle="experimental", feature_flag="beta_mesh_network")
-_register("app.modules.module_hub.router", prefix="/api", tags=("Module Hub",), tier=ProductTier.RESEARCH,
-          lifecycle="experimental", feature_flag="experimental_ui",
-          dev_notes="Heavy service. Memory-optimized load.")
-_register("app.modules.functionx.router", tags=("FunctionX",), tier=ProductTier.RESEARCH,
-          lifecycle="dev_only", dev_notes="FunctionX concept — not yet defined.")
+_register(
+    "app.modules.module_hub.router",
+    prefix="/api",
+    tags=("Module Hub",),
+    tier=ProductTier.RESEARCH,
+    lifecycle="experimental",
+    feature_flag="experimental_ui",
+    dev_notes="Heavy service. Memory-optimized load.",
+)
+_register(
+    "app.modules.functionx.router",
+    tags=("FunctionX",),
+    tier=ProductTier.RESEARCH,
+    lifecycle="dev_only",
+    dev_notes="FunctionX concept — not yet defined.",
+)
 
 # Funding / location
 _register("app.modules.funding_search.router", tags=("Funding & Tax Credit Search",), tier=ProductTier.RESEARCH)
@@ -643,10 +838,14 @@ _register("app.modules.public_exposure.router", tags=("Public Exposure",), tier=
 _register("app.modules.fraud_exposure.router", tags=("Fraud Exposure",), tier=ProductTier.RESEARCH)
 
 # Litigation intelligence
-_register("app.modules.litigation_intelligence.router", router_attr="lis_router",
-          tags=("Litigation Intelligence",), tier=ProductTier.RESEARCH,
-          dev_notes="17 live endpoints in lis_router. module_routes_list.txt route-count discrepancy resolved.",
-          log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active")
+_register(
+    "app.modules.litigation_intelligence.router",
+    router_attr="lis_router",
+    tags=("Litigation Intelligence",),
+    tier=ProductTier.RESEARCH,
+    dev_notes="17 live endpoints in lis_router. module_routes_list.txt route-count discrepancy resolved.",
+    log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active",
+)
 
 
 # =============================================================================
@@ -655,64 +854,136 @@ _register("app.modules.litigation_intelligence.router", router_attr="lis_router"
 
 _register("app.modules.setup.router", prefix="/api/setup", tags=("Setup Wizard",), tier=ProductTier.DEV)
 _register("app.modules.page_index.router", tags=("Page Index",), tier=ProductTier.DEV)
-_register("app.modules.page_editor.router", tags=("Page Editor",), tier=ProductTier.DEV,
-          log_message="Page Editor router connected - Interactive editor for static & Jinja2 templates")
+_register(
+    "app.modules.page_editor.router",
+    tags=("Page Editor",),
+    tier=ProductTier.DEV,
+    log_message="Page Editor router connected - Interactive editor for static & Jinja2 templates",
+)
 _register("app.modules.development.router", tags=("Development Tools",), tier=ProductTier.DEV)
-_register("app.modules.dev_lab.router", prefix="/dev/lab", tags=("Dev Lab",), tier=ProductTier.DEV,
-          lifecycle="dev_only", requires_role=("admin",),
-          dev_notes="Phase 3.1a — Incubator hub for dev modules. Lists dev_only modules, runs tests, promotes lifecycle stages.",
-          log_message="Dev Lab router active — /dev/lab (admin-only)")
-_register("app.modules.agent_orchestrator.router", prefix="/api/agent-orchestrator", tags=("Agent Orchestrator",), tier=ProductTier.DEV,
-          lifecycle="dev_only", requires_role=("admin",),
-          dev_notes="Forge task queue for parallel agent work. v1 in-memory. Generates copy-paste prompts for the unlimited model fleet (GLM-5.2, SWE-1.6, SWE-1.7, Kimi 2.7) from workbook stub/duplicate rows.",
-          log_message="Agent Orchestrator router active — /api/agent-orchestrator (admin-only)")
-_register("app.modules.dev_lab.ideas", prefix="/dev/lab/ideas", tags=("Dev Ideas",), tier=ProductTier.DEV,
-          lifecycle="dev_only", requires_role=("admin",),
-          dev_notes="Phase 3.1b/3.6 — Idea submission pipeline. Submit/list/promote ideas to dev modules.",
-          log_message="Dev Ideas router active — /dev/lab/ideas (admin-only)")
-_register("app.modules.filedored.router", tags=("Filedored",), tier=ProductTier.DEV,
-          log_message="Filedored router connected - Virtual document organization active")
-_register("app.modules.data_freshness.router", tags=("Data Freshness",), tier=ProductTier.DEV,
-          log_message="Data Freshness router connected - Automated data staleness prevention active")
-_register("app.modules.inventory.router", tags=("Inventory Management",), tier=ProductTier.DEV,
-          log_message="Inventory Management router connected - File rotation and dating system active")
-_register("app.modules.judge.router", tags=("Judge", "Deprecated", "Merged Into Legal"), tier=ProductTier.DEV,
-          lifecycle="deprecated", requires_role=("admin",),
-          dev_notes="Judge role DEPRECATED 2026-06-23. Merged into Legal as sub_role='judge'. Stub for backward compat.",
-          log_message="Judge module registered as deprecated (merged into Legal sub-role)")
+_register(
+    "app.modules.dev_lab.router",
+    prefix="/dev/lab",
+    tags=("Dev Lab",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    requires_role=("admin",),
+    dev_notes="Phase 3.1a — Incubator hub for dev modules. Lists dev_only modules, runs tests, promotes lifecycle stages.",
+    log_message="Dev Lab router active — /dev/lab (admin-only)",
+)
+_register(
+    "app.modules.agent_orchestrator.router",
+    prefix="/api/agent-orchestrator",
+    tags=("Agent Orchestrator",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    requires_role=("admin",),
+    dev_notes="Forge task queue for parallel agent work. v1 in-memory. Generates copy-paste prompts for the unlimited model fleet (GLM-5.2, SWE-1.6, SWE-1.7, Kimi 2.7) from workbook stub/duplicate rows.",
+    log_message="Agent Orchestrator router active — /api/agent-orchestrator (admin-only)",
+)
+_register(
+    "app.modules.dev_lab.ideas",
+    prefix="/dev/lab/ideas",
+    tags=("Dev Ideas",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    requires_role=("admin",),
+    dev_notes="Phase 3.1b/3.6 — Idea submission pipeline. Submit/list/promote ideas to dev modules.",
+    log_message="Dev Ideas router active — /dev/lab/ideas (admin-only)",
+)
+_register(
+    "app.modules.filedored.router",
+    tags=("Filedored",),
+    tier=ProductTier.DEV,
+    log_message="Filedored router connected - Virtual document organization active",
+)
+_register(
+    "app.modules.data_freshness.router",
+    tags=("Data Freshness",),
+    tier=ProductTier.DEV,
+    log_message="Data Freshness router connected - Automated data staleness prevention active",
+)
+_register(
+    "app.modules.inventory.router",
+    tags=("Inventory Management",),
+    tier=ProductTier.DEV,
+    log_message="Inventory Management router connected - File rotation and dating system active",
+)
+_register(
+    "app.modules.judge.router",
+    tags=("Judge", "Deprecated", "Merged Into Legal"),
+    tier=ProductTier.DEV,
+    lifecycle="deprecated",
+    requires_role=("admin",),
+    dev_notes="Judge role DEPRECATED 2026-06-23. Merged into Legal as sub_role='judge'. Stub for backward compat.",
+    log_message="Judge module registered as deprecated (merged into Legal sub-role)",
+)
 
 # Calendar — Total Recollection Viewer (per user vision 2026-06-28)
-_register("app.modules.calendar.router", prefix="/api/calendar", tags=("Calendar",), tier=ProductTier.DEV,
-          lifecycle="beta",
-          dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.")
+_register(
+    "app.modules.calendar.router",
+    prefix="/api/calendar",
+    tags=("Calendar",),
+    tier=ProductTier.DEV,
+    lifecycle="beta",
+    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.",
+)
 
 # Tactics — Legal tactics development tools
-_register("app.modules.tactics.router", tags=("Tactics",), tier=ProductTier.DEV,
-          lifecycle="beta",
-          dev_notes="Legal tactics recommendations, evidence checklist, pre-hearing timeline, retaliation/habitability checks.")
+_register(
+    "app.modules.tactics.router",
+    tags=("Tactics",),
+    tier=ProductTier.DEV,
+    lifecycle="beta",
+    dev_notes="Legal tactics recommendations, evidence checklist, pre-hearing timeline, retaliation/habitability checks.",
+)
 
 # Standalone module files (dev_only — not yet wired into main app flow)
-_register("app.modules.example_payment_tracking", tags=("Payment Tracking",), tier=ProductTier.DEV,
-          lifecycle="dev_only",
-          dev_notes="Standalone payment tracking module with /payments router. Mesh SDK pattern.")
-_register("app.modules.legal_filing_module", router_attr="legal_filing_router", tags=("Legal Filing",), tier=ProductTier.DEV,
-          lifecycle="dev_only",
-          dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.")
-_register("app.modules.vault_sync", tags=("Vault Sync",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          dev_notes=(
-              "ON HOLD — user approved plan 2026-07-01, deferred until GUI Phase 1 ships. "
-              "Live encrypted replica of Semptify metadata (journal, timeline, letters, deadlines, document pointers) "
-              "streamed to user's own OAuth-connected cloud drive (Dropbox prototype first — true append API). "
-              "AES-256-GCM chunk encryption with user-passphrase-derived key (server never stores plaintext). "
-              "Background drain loop: batch flush every 3-5s OR 50 rows. Output: encrypted .jsonl on user's cloud. "
-              "Open questions on revive: (1) Dropbox-only prototype — pending final OK, "
-              "(2) passphrase model A per-session vs B persistent — user has not picked, "
-              "(3) greenlight to scaffold — not yet. "
-              "Files planned: __init__.py, register.py, router.py, sync_engine.py, providers/dropbox.py, "
-              "crypto.py, sync_log.py + alembic migration for sync_log table. "
-              "Does NOT touch documents (those already live in user's cloud). No PII, no OAuth tokens synced."
-          ))
+_register(
+    "app.modules.page_shell.router",
+    prefix="/api/page-shell",
+    tags=("Page Shell", "Pillar Mixer"),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    requires_role=("admin",),
+    dev_notes="Shell + rendering engine for the pillar-mixer backbone. Renders four skeletons (RECORD/KNOW/ACT/GOVERN) from a validated page config. Does not pick blends or compute intensity. Spec: temp/semptify_pillar_mixer_backbone.md",
+    log_message="Page Shell router active — /api/page-shell (admin-only)",
+)
+_register(
+    "app.modules.example_payment_tracking",
+    tags=("Payment Tracking",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    dev_notes="Standalone payment tracking module with /payments router. Mesh SDK pattern.",
+)
+_register(
+    "app.modules.legal_filing_module",
+    router_attr="legal_filing_router",
+    tags=("Legal Filing",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    dev_notes="Thin wrapper that mounts the legal_filing router from app.modules.legal_filing. 5 endpoints under /api/legal-filing.",
+)
+_register(
+    "app.modules.vault_sync",
+    tags=("Vault Sync",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    optional=True,
+    dev_notes=(
+        "ON HOLD — user approved plan 2026-07-01, deferred until GUI Phase 1 ships. "
+        "Live encrypted replica of Semptify metadata (journal, timeline, letters, deadlines, document pointers) "
+        "streamed to user's own OAuth-connected cloud drive (Dropbox prototype first — true append API). "
+        "AES-256-GCM chunk encryption with user-passphrase-derived key (server never stores plaintext). "
+        "Background drain loop: batch flush every 3-5s OR 50 rows. Output: encrypted .jsonl on user's cloud. "
+        "Open questions on revive: (1) Dropbox-only prototype — pending final OK, "
+        "(2) passphrase model A per-session vs B persistent — user has not picked, "
+        "(3) greenlight to scaffold — not yet. "
+        "Files planned: __init__.py, register.py, router.py, sync_engine.py, providers/dropbox.py, "
+        "crypto.py, sync_log.py + alembic migration for sync_log table. "
+        "Does NOT touch documents (those already live in user's cloud). No PII, no OAuth tokens synced."
+    ),
+)
 
 # =============================================================================
 # UPL Matrix — Conceptual module registrations
@@ -723,55 +994,107 @@ _register("app.modules.vault_sync", tags=("Vault Sync",), tier=ProductTier.DEV,
 # When a module is built, update its entry with the real module_path and
 # move it to the appropriate tier block above.
 
-_register("app.modules.eviction_notice_explainer", tags=("Eviction Notice Explainer",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          upl_risk_tier=UPLRiskTier.HIGH,
-          dev_notes="Conceptual from UPL matrix. Explains eviction notices in plain language. HIGH tier — generates tailored legal analysis of a user's specific notice, requires attorney-review gate before output. No router yet.")
-_register("app.modules.response_letter_generator", tags=("Response Letter Generator",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          upl_risk_tier=UPLRiskTier.HIGH,
-          dev_notes="Conceptual from UPL matrix. Generates response letters (e.g. answer to complaint). HIGH tier — drafts documents intended to be filed, requires attorney-review gate. No router yet.")
-_register("app.modules.eviction_defense_content", tags=("Eviction Defense Content",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          upl_risk_tier=UPLRiskTier.LOW,
-          dev_notes="Conceptual from UPL matrix. Informational-only eviction defense content — plain-language facts and statutes, no filtering/selection flow, no tailored advice. LOW tier: pure facts and neutral listings. No router yet. DO NOT build a filtering or selection flow — that would move this to MEDIUM_HIGH+.")
-_register("app.modules.ai_copilot", tags=("AI Copilot",), tier=ProductTier.DEV,
-          lifecycle="dev_only", optional=True,
-          upl_risk_tier=UPLRiskTier.LOW,
-          dev_notes="Conceptual from UPL matrix. AI assistant for tenant questions. LOW tier per matrix — provides facts and organization, not legal advice. Banned-phrase checker in upl_guardrails.py is the safety net. No router yet.")
+_register(
+    "app.modules.eviction_notice_explainer",
+    tags=("Eviction Notice Explainer",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    optional=True,
+    upl_risk_tier=UPLRiskTier.HIGH,
+    dev_notes="Conceptual from UPL matrix. Explains eviction notices in plain language. HIGH tier — generates tailored legal analysis of a user's specific notice, requires attorney-review gate before output. No router yet.",
+)
+_register(
+    "app.modules.response_letter_generator",
+    tags=("Response Letter Generator",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    optional=True,
+    upl_risk_tier=UPLRiskTier.HIGH,
+    dev_notes="Conceptual from UPL matrix. Generates response letters (e.g. answer to complaint). HIGH tier — drafts documents intended to be filed, requires attorney-review gate. No router yet.",
+)
+_register(
+    "app.modules.eviction_defense_content",
+    tags=("Eviction Defense Content",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    optional=True,
+    upl_risk_tier=UPLRiskTier.LOW,
+    dev_notes="Conceptual from UPL matrix. Informational-only eviction defense content — plain-language facts and statutes, no filtering/selection flow, no tailored advice. LOW tier: pure facts and neutral listings. No router yet. DO NOT build a filtering or selection flow — that would move this to MEDIUM_HIGH+.",
+)
+_register(
+    "app.modules.ai_copilot",
+    tags=("AI Copilot",),
+    tier=ProductTier.DEV,
+    lifecycle="dev_only",
+    optional=True,
+    upl_risk_tier=UPLRiskTier.LOW,
+    dev_notes="Conceptual from UPL matrix. AI assistant for tenant questions. LOW tier per matrix — provides facts and organization, not legal advice. Banned-phrase checker in upl_guardrails.py is the safety net. No router yet.",
+)
 
 # Modules wired via main.py direct import (tracked here for manifest visibility)
-_register("app.modules.context_loop.router", tags=("Context Loop",), tier=ProductTier.DEV,
-          lifecycle="stable", optional=True,
-          dev_notes="Runtime state/event loop (nervous system). Distinct from context_engine (verified-facts + tenant-stories engine). Wired via main.py subscribe_context_loop_events().")
-_register("app.modules.vault_installer.routes", router_attr="router", tags=("Vault Installer",), tier=ProductTier.DEV,
-          lifecycle="stable", optional=True,
-          dev_notes="Simple vault installation endpoints. Wired via main.py register_vault_installer(). Uses routes.py not router.py.")
+_register(
+    "app.modules.context_loop.router",
+    tags=("Context Loop",),
+    tier=ProductTier.DEV,
+    lifecycle="stable",
+    optional=True,
+    dev_notes="Runtime state/event loop (nervous system). Distinct from context_engine (verified-facts + tenant-stories engine). Wired via main.py subscribe_context_loop_events().",
+)
+_register(
+    "app.modules.vault_installer.routes",
+    router_attr="router",
+    tags=("Vault Installer",),
+    tier=ProductTier.DEV,
+    lifecycle="stable",
+    optional=True,
+    dev_notes="Simple vault installation endpoints. Wired via main.py register_vault_installer(). Uses routes.py not router.py.",
+)
 
 # Phase 2 / internal utilities
-_register("app.modules.export_import.router", prefix="/api/export-import", tags=("Data Export/Import",), tier=ProductTier.DEV,
-          log_message="Data Export/Import router connected - GDPR-compliant data management active")
-_register("app.modules.testing.router", prefix="/api/testing", tags=("Automated Testing",), tier=ProductTier.DEV,
-          log_message="Automated Testing router connected - Comprehensive testing framework active")
-_register("app.modules.documentation.router", prefix="/api/docs", tags=("API Documentation",), tier=ProductTier.DEV,
-          log_message="API Documentation router connected - Developer portal active")
-_register("app.modules.document_center.router", prefix="/api/dc", tags=("Document Center",), tier=ProductTier.DEV,
-          lifecycle="stable", requires_role=("admin",),
-          dev_notes=(
-              "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
-              "✅ Slice 1: HTML shell. "
-              "✅ Slice 2: real vault list from DB. "
-              "✅ Slice 3: iframe/img/download viewer states + /view endpoint. "
-              "✅ Slice 4: /overlays endpoint — synthesizes 6 progress items from VaultDocument metadata. "
-              "✅ Slice 5: /type endpoint — DB persistence + DOCUMENT_CLASSIFICATION overlay + one-trip right-panel refresh. "
-              "✅ Slice 6b: GET /api/dc/unlocks; renderUnlocks() async+cache; CSS extracted. "
-              "✅ Slice 7: openOverlay() drill-down (items field + DOM toggle); "
-              "_overlayDataByDoc cache; unlock invalidation on type save. "
-              "✅ Slice 8: _formatExpandItems per-type formatting (pill, code, icons); "
-              "OCR excerpt cap 200ch; items list cap 10. "
-              "Forge: 28/28 smoke tests. 5 contracts. Promoted beta → stable 2026-06-28."
-          ),
-          log_message="Document Center router connected at /api/dc (stable — admin only)")
+_register(
+    "app.modules.export_import.router",
+    prefix="/api/export-import",
+    tags=("Data Export/Import",),
+    tier=ProductTier.DEV,
+    log_message="Data Export/Import router connected - GDPR-compliant data management active",
+)
+_register(
+    "app.modules.testing.router",
+    prefix="/api/testing",
+    tags=("Automated Testing",),
+    tier=ProductTier.DEV,
+    log_message="Automated Testing router connected - Comprehensive testing framework active",
+)
+_register(
+    "app.modules.documentation.router",
+    prefix="/api/docs",
+    tags=("API Documentation",),
+    tier=ProductTier.DEV,
+    log_message="API Documentation router connected - Developer portal active",
+)
+_register(
+    "app.modules.document_center.router",
+    prefix="/api/dc",
+    tags=("Document Center",),
+    tier=ProductTier.DEV,
+    lifecycle="stable",
+    requires_role=("admin",),
+    dev_notes=(
+        "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
+        "✅ Slice 1: HTML shell. "
+        "✅ Slice 2: real vault list from DB. "
+        "✅ Slice 3: iframe/img/download viewer states + /view endpoint. "
+        "✅ Slice 4: /overlays endpoint — synthesizes 6 progress items from VaultDocument metadata. "
+        "✅ Slice 5: /type endpoint — DB persistence + DOCUMENT_CLASSIFICATION overlay + one-trip right-panel refresh. "
+        "✅ Slice 6b: GET /api/dc/unlocks; renderUnlocks() async+cache; CSS extracted. "
+        "✅ Slice 7: openOverlay() drill-down (items field + DOM toggle); "
+        "_overlayDataByDoc cache; unlock invalidation on type save. "
+        "✅ Slice 8: _formatExpandItems per-type formatting (pill, code, icons); "
+        "OCR excerpt cap 200ch; items list cap 10. "
+        "Forge: 28/28 smoke tests. 5 contracts. Promoted beta → stable 2026-06-28."
+    ),
+    log_message="Document Center router connected at /api/dc (stable — admin only)",
+)
 
 
 # =============================================================================
@@ -884,6 +1207,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
 # Registration API
 # =============================================================================
 
+
 def _load_router(entry: ModuleEntry):
     """Import a module and extract its router attribute.
 
@@ -902,9 +1226,7 @@ def _load_router(entry: ModuleEntry):
                 exc,
             )
             return None
-        raise RuntimeError(
-            f"Required router failed to load: {entry.qualified_name}"
-        ) from exc
+        raise RuntimeError(f"Required router failed to load: {entry.qualified_name}") from exc
 
 
 def register_tiers(app: FastAPI, *tiers: ProductTier) -> dict:
