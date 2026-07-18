@@ -1,3 +1,51 @@
+## Session — 2026-07-18 — GUI Card-to-Zone Styling Migration (feature/gui-timeline-integration)
+
+### Guardrail Engine Run — 2026-07-18T18:27:13
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Changed
+Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zone-based background separation. Shared design tokens added to SSOT stylesheet. One commit per file, per handoff discipline.
+
+#### Commits (in order)
+| Commit | File | Summary |
+|--------|------|---------|
+| `10106ba` | `static/css/ssot-design-system.css` + `static/css/gui-panels.css` | Added `--zone-bg-primary`/`secondary`/`tertiary`/`inverse`, `--zone-gap-*`, `--zone-header-weight` tokens to `:root`. Removed `border` from `.frame-panel`, `.frame-panel--header`, `.frame-item`; now uses zone backgrounds + `nth-child(even)` rhythm + hover state. `.frame-btn` keeps border (genuine interactive control). |
+| `830c750` | `app/templates/pages/document_center.html` | 3-pane layout: panes use `var(--zone-bg-primary/secondary/tertiary)` instead of `border-right`/`border-left`/`border-bottom`. Modals lost `border-radius:0.5rem`. JS-generated image/PDF wrappers and highlight popover lost `box-shadow`. `#dcTypeSuggest` lost border → zone background. Form controls (`<select>`, `<input>`, `<textarea>`) kept their borders per rule. |
+| `619660b` | `app/templates/gui/record.html` | 4 `.frame-card` tool links lost `border-radius:0.5rem` + hardcoded `#1e293b` → `var(--zone-bg-secondary)`. `#dropZone` lost `border-style:dashed` → `var(--zone-bg-tertiary)`. Drag handlers switched from `borderColor` to `background` toggling. |
+| `d17e0e1` | `app/templates/gui/home.html` | JS-generated timeline preview rows lost inline `border-bottom:1px solid rgba(255,255,255,0.05)`. Separation now from `.frame-panel`/`.frame-item` zone backgrounds. |
+| `b8241ad` | `app/templates/gui/act.html` | 4 `.frame-card` tool links lost `border-radius:0.5rem` + hardcoded `#1e293b` → `var(--zone-bg-secondary)`. |
+| `409de4b` | `app/templates/gui/know.html` | 4 `.frame-card` topic links lost `border-radius:0.5rem` + hardcoded `#1e293b` → `var(--zone-bg-secondary)`. |
+
+### Verification
+- Python 3.11.9 ✅ (venv311 active)
+- Compile: `venv311\Scripts\python.exe -m py_compile app/main.py app/core/navigation.py` → exit 0 ✅
+- Grep verification: no `border:`, `border-radius:`, `box-shadow:` remain on content-wrapping elements in any of the 5 target files (form controls excluded, per rule)
+- Pre-commit: all hooks passed clean on every commit (ruff, ruff-format, bandit, SSOT, guardrail, secrets, stub-sync)
+- No layout, content, or functionality changes — visual separation mechanism only
+
+### Icons Flagged (Not Removed)
+Per Step 4 of the handoff, icon/illustration elements were flagged for Brad to decide on later:
+- `document_center.html`: `💡` `📄` `🖍` `📝` `🔗` `✕` `∅` `📋`
+- `record.html`: `📅` `📝` `💰` `∅`
+- `home.html`: `!` `📋` `📚` `⚖️`
+- `act.html`: `✉` `🏛` `🛠` `📅`
+- `know.html`: `📚` `🏠` `🔧` `💰`
+
+### Known Working
+- All 5 target files compile and render with zone-based separation
+- Shared tokens in `ssot-design-system.css` :root are the SSOT — all 5 files reference `var(--zone-bg-*)` rather than redefining
+- `.frame-panel`, `.frame-panel--header`, `.frame-item` shared classes do the bulk of separation work via `gui-panels.css`
+
+### Known Broken / Pending
+- None from this migration
+- Icons still present in all 5 files (flagged, not removed — awaiting Brad's decision)
+
+---
+
 ## Session — 2026-07-17 — Browser Switch Validation & Storage Connection Health (Autopilot)
 
 ### Guardrail Engine Run — 2026-07-17T22:39:18
