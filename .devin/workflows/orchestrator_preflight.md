@@ -27,9 +27,17 @@ python -m py_compile app/main.py
 
 ## Step 3: Open the orchestrator
 
-- Standalone UI: `http://127.0.0.1:8088/agent_orchestrator.html`
-- In-app UI: `/admin/agent_orchestrator.html` (requires admin login)
-- Import `tools/agent_orchestrator_tasks.json` if the queue is empty.
+Two UIs, same queue data:
+
+- **Standalone UI** (works offline or served by FastAPI):
+  - `file:///C:/Semptify/Semptify-FastAPI/tools/agent_orchestrator.html` (open directly in browser)
+  - `http://localhost:8000/tools/agent_orchestrator.html` (when dev server is running on port 8000)
+  - Click **Start fresh ↺** to load `tools/agent_orchestrator_tasks.json` into localStorage.
+- **In-app Admin UI**: `http://localhost:8000/admin/agent_orchestrator.html` (requires stealth admin login)
+  - Uses the in-memory API at `/api/agent-orchestrator/*` — queue wipes on server restart.
+  - Click **Import JSON** to load `tools/agent_orchestrator_tasks.json` into the API store via `/batch`.
+
+**Port is 8000** (uvicorn default). No server runs on 8088.
 
 ## Step 4: Pick the next task
 

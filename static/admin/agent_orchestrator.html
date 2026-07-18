@@ -145,6 +145,23 @@
   <div class="back"><a href="/admin/dashboard.html">← Back to Admin Dashboard</a></div>
 
   <div class="card">
+    <h2>How to use this page</h2>
+    <p style="font-size:0.85rem;color:var(--muted);margin:0.25rem 0 0.75rem">
+      This admin UI stores tasks in <strong>server memory</strong> (via <code>/api/agent-orchestrator/*</code>).
+      Tasks <strong>wipe on server restart</strong>. For persistence across restarts, use the
+      <strong>standalone UI</strong> at <code>tools/agent_orchestrator.html</code> (double-click the
+      desktop shortcut) or see <code>docs/AGENT_ORCHESTRATOR_MANUAL.md</code>.
+    </p>
+    <ol style="font-size:0.85rem;color:var(--muted);margin:0.25rem 0 0.75rem 1.25rem">
+      <li><strong>Generate tasks:</strong> Run <code>python tools/sync_orchestrator.py</code> (venv311 / Python 3.11.9). Three sources merge: stubs, workbook, doc-sourced TODOs.</li>
+      <li><strong>Load them here:</strong> Click <strong>Import JSON</strong> in the Data card below, select <code>tools/agent_orchestrator_tasks.json</code>. Tasks POST to <code>/api/agent-orchestrator/batch</code>.</li>
+      <li><strong>Dispatch:</strong> Click <strong>Copy prompt</strong> on a task row, paste into a new Windsurf session with the assigned model.</li>
+      <li><strong>Update status:</strong> Use the dropdown on each row, or have agents run <code>python tools/mark_task_status.py &lt;id&gt; &lt;status&gt; --agent &lt;model&gt;</code> directly.</li>
+      <li><strong>Export:</strong> Click <strong>Export JSON</strong> to back up the current queue before restarting the server.</li>
+    </ol>
+  </div>
+
+  <div class="card">
     <div class="grid-4" id="summary">
       <div class="stat"><div class="stat-value" id="total">0</div><div class="stat-label">Total</div></div>
       <div class="stat"><div class="stat-value" id="pending">0</div><div class="stat-label">Pending</div></div>
@@ -212,6 +229,17 @@
   <div class="card">
     <h2>Task Queue</h2>
     <div id="task-list"><p class="empty">Loading tasks...</p></div>
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <p class="hint" style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem">Load tasks from <code>tools/agent_orchestrator_tasks.json</code> into the API store, or export the current queue.</p>
+    <div class="actions">
+      <button class="btn btn-green" onclick="document.getElementById('import-file').click()">Import JSON</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importJson(this)">
+      <button class="btn btn-secondary" onclick="exportJson()">Export JSON</button>
+      <button class="btn btn-red" onclick="clearAll()">Clear all</button>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -352,6 +380,59 @@ async function deleteTask(id) {
   if (!confirm('Delete this task?')) return;
   await api(`/tasks/${id}`, { method: 'DELETE' });
   showToast('Task deleted');
+  await loadTasks();
+}
+
+async function importJson(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const imported = Array.isArray(data) ? data : (data.created || data.tasks || []);
+      if (!Array.isArray(imported) || imported.length === 0) throw new Error('JSON must be a non-empty array or contain a created/tasks list');
+      const payload = imported.map(t => ({
+        title: t.title || 'Untitled',
+        description: t.description || '',
+        category: t.category || 'stub_fix',
+        target_model: t.target_model || 'swe-1.7',
+        priority: t.priority || 'medium',
+        file_path: t.file_path || '',
+        line_start: t.line_start || null,
+        line_end: t.line_end || null,
+      }));
+      await api('/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks: payload }),
+      });
+      showToast(`Imported ${payload.length} tasks`);
+      await loadTasks();
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+async function exportJson() {
+  const res = await api('/tasks');
+  const blob = new Blob([JSON.stringify(res, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `agent-orchestrator-tasks-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  showToast(`Exported ${res.length} tasks`);
+}
+
+async function clearAll() {
+  if (!confirm('Delete ALL tasks? This cannot be undone.')) return;
+  for (const t of [...tasks]) {
+    await api(`/tasks/${t.id}`, { method: 'DELETE' });
+  }
+  showToast('All tasks cleared');
   await loadTasks();
 }
 

@@ -33,7 +33,9 @@ TOOLS_DIR = REPO_ROOT / "tools"
 
 STUB_DETECTOR = TOOLS_DIR / "stub_detector.py"
 WORKBOOK_BRIDGE = TOOLS_DIR / "workbook_bridge.py"
+DOCS_TODO_SEED = TOOLS_DIR / "_seed_orchestrator_tasks.py"
 STUB_TASKS_OUT = TOOLS_DIR / "stub_tasks_new.json"
+DOCS_TODOS_OUT = TOOLS_DIR / "docs_todos.json"
 ORCHESTRATOR_TASKS = TOOLS_DIR / "agent_orchestrator_tasks.json"
 ORCHESTRATOR_HTML = TOOLS_DIR / "agent_orchestrator.html"
 DASHBOARD_HTML = TOOLS_DIR / "orchestrator_dashboard.html"
@@ -72,6 +74,60 @@ def step_workbook_bridge() -> None:
     if not WORKBOOK_XLSX.exists():
         raise SyncError(f"missing {WORKBOOK_XLSX.name} at repo root — workbook_bridge.py needs it")
     run([sys.executable, str(WORKBOOK_BRIDGE)], "workbook_bridge.py")
+
+
+def step_docs_todos() -> None:
+    """Run _seed_orchestrator_tasks.py to produce docs_todos.json.
+
+    This is the third source: doc-sourced TODOs from BUILD_STATE.md,
+    ACTIVE_CONTEXT.md, FNG_TODO.md, and STUB_AUDIT.md. Writes to
+    tools/docs_todos.json, which merge_tasks() combines with workbook
+    output into the final agent_orchestrator_tasks.json.
+    """
+    if not DOCS_TODO_SEED.exists():
+        print(f"-> skipping docs_todos (missing {DOCS_TODO_SEED.name})")
+        return
+    run([sys.executable, str(DOCS_TODO_SEED)], "_seed_orchestrator_tasks.py")
+
+
+def merge_tasks() -> int:
+    """Merge workbook tasks + docs_todos.json into agent_orchestrator_tasks.json.
+
+    workbook_bridge.py writes agent_orchestrator_tasks.json with stub/duplicate
+    tasks. This step reads docs_todos.json (if present), merges by task id, and
+    writes the combined list back. Dedup by id: workbook tasks win on conflict.
+    """
+    try:
+        workbook_data = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        workbook_data = []
+    if not isinstance(workbook_data, list):
+        workbook_data = (
+            workbook_data.get("created", workbook_data.get("tasks", [])) if isinstance(workbook_data, dict) else []
+        )
+
+    docs_data = []
+    if DOCS_TODOS_OUT.exists():
+        try:
+            docs_data = json.loads(DOCS_TODOS_OUT.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as e:
+            print(f"-> WARNING: {DOCS_TODOS_OUT.name} is not valid JSON: {e}")
+            docs_data = []
+        if not isinstance(docs_data, list):
+            docs_data = []
+
+    seen_ids = {t.get("id") for t in workbook_data if isinstance(t, dict)}
+    merged = list(workbook_data)
+    added = 0
+    for t in docs_data:
+        if isinstance(t, dict) and t.get("id") not in seen_ids:
+            merged.append(t)
+            seen_ids.add(t.get("id"))
+            added += 1
+
+    ORCHESTRATOR_TASKS.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"-> merged {added} doc-sourced task(s) into {ORCHESTRATOR_TASKS.name} (total: {len(merged)})")
+    return len(merged)
 
 
 def verify_stub_tasks() -> int:
@@ -164,6 +220,8 @@ def main() -> int:
         if not args.check:
             step_stub_detector()
             step_workbook_bridge()
+            step_docs_todos()
+            merge_tasks()
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()
