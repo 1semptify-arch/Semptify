@@ -1,14 +1,14 @@
 /**
  * Semptify SSOT Design System
  * Single Source of Truth for all UI styling
- * 
+ *
  * Philosophy:
  * - One design system to rule them all
  * - CSS variables for theming (SSOT for colors, spacing, typography)
  * - Utility-first approach for rapid development
  * - Component classes for common patterns
  * - Mobile-first responsive design
- * 
+ *
  * Usage:
  * <link rel="stylesheet" href="/static/css/ssot-design-system.css">
  */
@@ -24,13 +24,13 @@
   --color-primary-dark: #15294a;
   --color-accent: #fbbf24;
   --color-accent-hover: #f59e0b;
-  
+
   /* Semantic Colors */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
-  
+
   /* Neutral Colors */
   --color-white: #ffffff;
   --color-gray-50: #f9fafb;
@@ -43,18 +43,18 @@
   --color-gray-700: #374151;
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
-  
+
   /* Text Colors */
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-muted: #9ca3af;
   --text-inverse: #ffffff;
-  
+
   /* Background Colors */
   --bg-page: #f8fafc;
   --bg-card: #ffffff;
   --bg-header: linear-gradient(135deg, #1e3a5f 0%, #2c5aa0 100%);
-  
+
   /* Spacing Scale (8px base) */
   --space-1: 0.25rem;   /* 4px */
   --space-2: 0.5rem;    /* 8px */
@@ -66,12 +66,12 @@
   --space-10: 2.5rem;   /* 40px */
   --space-12: 3rem;     /* 48px */
   --space-16: 4rem;     /* 64px */
-  
+
   /* Typography — Design Handoff 2026-07-01 */
   --font-sans: 'Inter', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-serif: Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
-  
+
   /* Legacy scale (kept for backward compat — do not use in new templates) */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -81,7 +81,7 @@
   --text-2xl: 1.5rem;
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
-  
+
   /* New type scale — Design Handoff 2026-07-01 */
   --type-h1: 22px;
   --type-h2: 17px;
@@ -96,16 +96,16 @@
   --type-body-leading: 1.45;
   --type-label-tracking: 0.06em;
   --type-h1-tracking: -0.01em;
-  
+
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
-  
+
   --leading-tight: 1.25;
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
-  
+
   /* Borders & Radius — Design Handoff: no rounded corners */
   --radius-sm: 0;
   --radius-md: 0;
@@ -113,16 +113,16 @@
   --radius-xl: 0;
   --radius-2xl: 0;
   --radius-full: 0;
-  
+
   --border-width: 1px;
   --border-color: var(--color-gray-200);
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  
+
   /* Layout */
   --max-width-xs: 20rem;      /* 320px */
   --max-width-sm: 24rem;      /* 384px */
@@ -136,12 +136,12 @@
   --max-width-6xl: 72rem;     /* 1152px */
   --max-width-7xl: 80rem;     /* 1280px */
   --max-width-full: 100%;
-  
+
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --transition-slow: 350ms ease;
-  
+
   /* Z-Index Scale */
   --z-dropdown: 100;
   --z-sticky: 200;
@@ -180,6 +180,30 @@
   --tpl-5-header: #993C1D;
   --tpl-5-body:   #FAECE7;
   --tpl-5-footer: #4A1B0C;
+
+  /* ============================================================================
+     ZONE BACKGROUND TIERS — replaces border/shadow separation
+     Derived from the existing dark palette (body gradient #1a1a2e → #16213e).
+     Primary = base page, secondary = adjacent zone, tertiary = nested/emphasized,
+     inverse = high-emphasis dark band (GOVERN-style).
+     ============================================================================ */
+  --zone-bg-primary:   #16213e;   /* base page background — main / center content */
+  --zone-bg-secondary: #1e293b;   /* one step lighter — adjacent zone (sidebars, lists) */
+  --zone-bg-tertiary:  #334155;   /* two steps — nested or emphasized zone (headers, toolbars) */
+  --zone-bg-inverse:   #0f172a;   /* darkest — high-emphasis sections, viewer area */
+
+  /* Shape cues — replaces border-radius-as-container-edge */
+  --zone-corner-cut: 0;           /* default: flat edge meets flat edge */
+  --zone-corner-soft: 4px;        /* used only where a genuinely soft transition is intentional */
+
+  /* Spacing rhythm — does the separation work borders used to do */
+  --zone-gap-tight: 8px;
+  --zone-gap-standard: 24px;
+  --zone-gap-loose: 48px;
+
+  /* Type-weight as boundary signal */
+  --zone-header-weight: 600;
+  --zone-body-weight: 400;
 }
 
 /* ============================================================================
@@ -1024,13 +1048,13 @@ a:hover {
     padding-left: var(--space-4);
     padding-right: var(--space-4);
   }
-  
+
   .hide-mobile { display: none !important; }
-  
+
   .page-header__title {
     font-size: var(--text-2xl);
   }
-  
+
   .main-content {
     padding: var(--space-4);
   }
@@ -1225,12 +1249,12 @@ a:hover {
   .unified-footer {
     padding: var(--space-8) var(--space-4) var(--space-5);
   }
-  
+
   .footer-nav {
     gap: var(--space-4);
     font-size: var(--text-sm);
   }
-  
+
   .footer-disclaimer-text {
     font-size: var(--text-sm);
   }

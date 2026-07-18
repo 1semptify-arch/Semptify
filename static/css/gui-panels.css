@@ -1,13 +1,14 @@
 /* =========================================================================
    GUI Panel System — Shared frame/panel styling for Record, Timeline, Library
-   Bordered, no shadow, no rounded-card look. Reusable across screens.
+   Zone-based separation: background-color tiers, no borders, no shadows.
+   Reusable across screens.
    ========================================================================= */
 
 .frame-panel {
-    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-    background: var(--color-bg-card, rgba(255, 255, 255, 0.03));
-    padding: var(--space-md, 1rem);
-    margin-bottom: var(--space-md, 1rem);
+    background: var(--zone-bg-secondary, #1e293b);
+    padding: var(--zone-gap-standard, 1.5rem);
+    margin-bottom: var(--zone-gap-standard, 1.5rem);
+    border: none;
     border-radius: 0;
     box-shadow: none;
 }
@@ -16,9 +17,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: var(--space-sm, 0.5rem);
-    margin-bottom: var(--space-sm, 0.5rem);
-    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    padding-bottom: var(--zone-gap-tight, 8px);
+    margin-bottom: var(--zone-gap-tight, 8px);
+    border-bottom: none;
 }
 
 .frame-panel--title {
@@ -35,21 +36,26 @@
     gap: var(--space-sm, 0.5rem);
 }
 
-/* Individual record/list entry — reusable across Record, Timeline, Library */
+/* Individual record/list entry — reusable across Record, Timeline, Library.
+   Separation by background rhythm and hover state, not borders. */
 .frame-item {
     display: flex;
     align-items: center;
     gap: var(--space-md, 1rem);
-    padding: var(--space-md, 1rem);
-    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+    padding: var(--zone-gap-tight, 8px) var(--zone-gap-standard, 24px);
+    border: none;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
-    transition: border-color var(--transition-fast, 0.15s ease);
+    transition: background-color var(--transition-fast, 0.15s ease);
+}
+
+.frame-item:nth-child(even) {
+    background: var(--zone-bg-primary, #16213e);
 }
 
 .frame-item:hover {
-    border-color: var(--color-border-hover, rgba(255, 255, 255, 0.2));
+    background: var(--zone-bg-tertiary, #334155);
 }
 
 .frame-item--icon {
