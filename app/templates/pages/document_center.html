@@ -271,14 +271,77 @@
         downloadBtn.style.display = '';
         document.getElementById('dcAnnotTools').style.display = 'flex';
         document.getElementById('dcProcessBtn').style.display = '';
-        const isPdf = /\.pdf$/i.test(d.filename || '');
+        const fname = (d.filename || '').toLowerCase();
+        const isPdf = fname.endsWith('.pdf');
+        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(fname);
         if (isPdf && window.pdfjsLib) {
             await renderPdf(d);
+        } else if (isImage) {
+            renderImage(d);
         } else {
             showIframeViewer(d);
         }
         loadOverlays(d.id);
         renderChecklist(d);
+    }
+
+    function renderImage(doc) {
+        const container = document.getElementById('dcPdfContainer');
+        const empty = document.getElementById('dcViewerEmpty');
+        const iframe = document.getElementById('dcIframeFallback');
+        empty.style.display = 'none';
+        iframe.style.display = 'none';
+        container.style.display = 'flex';
+        container.style.position = 'relative';
+        container.innerHTML = '';
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.maxWidth = '100%';
+        wrapper.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+        const img = document.createElement('img');
+        img.src = '/api/dc/document/' + encodeURIComponent(doc.id) + '/view';
+        img.style.display = 'block';
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.background = '#fff';
+        img.draggable = false;
+        img.addEventListener('load', () => {
+            applyImageHighlights(doc, wrapper, img);
+        });
+        wrapper.appendChild(img);
+        const overlay = document.createElement('div');
+        overlay.className = 'dc-image-overlay';
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.pointerEvents = 'none';
+        wrapper.appendChild(overlay);
+        container.appendChild(wrapper);
+    }
+
+    function applyImageHighlights(doc, wrapper, img) {
+        if (!currentDoc || !doc || doc.id !== currentDoc.id) return;
+        const overlay = wrapper.querySelector('.dc-image-overlay');
+        if (!overlay) return;
+        fetch('/api/dc/document/' + encodeURIComponent(doc.id) + '/overlays', { credentials: 'include' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data || !data.overlays) return;
+                const terms = [];
+                (data.overlays || []).forEach(ov => {
+                    (ov.items || []).forEach(item => {
+                        const s = String(item).trim();
+                        if (s.length >= 3) terms.push({ term: s, overlay: ov.name, icon: ov.icon });
+                    });
+                });
+                if (!terms.length) return;
+                if (window.SemptifyFeedback) {
+                    SemptifyFeedback.info('Image loaded. ' + terms.length + ' extracted item(s) found in overlays. Use Process now to run OCR on this image.', { timeout: 6000 });
+                }
+            })
+            .catch(() => {});
     }
 
     function showIframeViewer(d) {
@@ -506,6 +569,55 @@
         else if (activeAnnotTool === 'note') handleNoteClick(e);
         else if (activeAnnotTool === 'reference') handleReferenceClick(e);
     });
+
+    // Image-based annotation handlers (for non-PDF images)
+    function handleImageHighlight(e) {
+        const img = e.target.closest('img');
+        if (!img) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Click on the image to highlight a region.');
+            return;
+        }
+        const wrapper = img.parentElement;
+        const overlay = wrapper.querySelector('.dc-image-overlay');
+        const rect = img.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        const box = document.createElement('div');
+        box.style.position = 'absolute';
+        box.style.left = (x - 2) + '%';
+        box.style.top = (y - 2) + '%';
+        box.style.width = '4%';
+        box.style.height = '4%';
+        box.style.background = 'rgba(59, 130, 246, 0.40)';
+        box.style.border = '1px solid #3b82f6';
+        box.style.borderRadius = '2px';
+        box.style.pointerEvents = 'auto';
+        box.style.cursor = 'pointer';
+        box.title = 'User highlight';
+        overlay.appendChild(box);
+        const rangeData = { page: 1, text: '', x: Math.round(x), y: Math.round(y), width: 4, height: 4, image: true };
+        fetch('/api/unified-overlays/annotations/highlight?document_id=' + encodeURIComponent(currentDoc.id) + '&vault_path=' + encodeURIComponent(currentDoc.vault_path || currentDoc.id) + '&color=blue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rangeData),
+            credentials: 'include'
+        }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(() => { if (window.SemptifyFeedback) SemptifyFeedback.success('Highlight saved.'); })
+          .catch(err => { if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save highlight: ' + err.message); box.remove(); });
+    }
+
+    // Route image clicks to image handlers when in tool mode
+    document.getElementById('dcPdfContainer').addEventListener('click', function (e) {
+        if (activeAnnotTool === 'none' || !currentDoc) return;
+        if (e.target.tagName === 'BUTTON') return;
+        const isImage = e.target.tagName === 'IMG';
+        if (isImage) {
+            e.stopPropagation();
+            if (activeAnnotTool === 'highlight') handleImageHighlight(e);
+            else if (activeAnnotTool === 'note') handleNoteClick(e);
+            else if (activeAnnotTool === 'reference') handleReferenceClick(e);
+        }
+    }, true);
 
     async function handleHighlightClick(e) {
         const span = e.target.closest('span[data-text]');
