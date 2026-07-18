@@ -1,0 +1,294 @@
+/* Semptify Page Shell — §9 + §10 + §11 of the pillar-mixer backbone spec.
+ *
+ * Visual language (§11): no cards, no borders, no shadows, no icons.
+ * Zone separation is achieved through background-color shifts, gradients,
+ * and shape — never drawn lines. Severity/weight comes from wording +
+ * shade depth + space, never from alert styling.
+ *
+ * Four skeletons (§10): record_focus, know_focus, act_focus, govern_focus.
+ * Each has its own grid-template-areas. GOVERN always has its own
+ * dedicated grid area in all four.
+ *
+ * Visual weight (§11) is level-driven via level_to_visual_weight:
+ *   0–30   → low (near-invisible shade shift)
+ *   31–70  → moderate (clear shade/gradient shift)
+ *   71–100 → deep (deepest shade on the page)
+ * Applied to ALL four zones — no per-skeleton special cases.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Shell — desktop (poster mode, ≥ 900px viewport width)
+ * ------------------------------------------------------------------------- */
+.page-shell {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  gap: clamp(0.5rem, 1vh, 1.5rem);
+  padding: clamp(0.5rem, 2vh, 2rem);
+  overflow: hidden;            /* page itself never scrolls as a whole */
+  box-sizing: border-box;
+  font-size: clamp(0.875rem, 1.4vh, 1.125rem);
+  background: #f7f7f5;
+  color: #1a1a1a;
+}
+
+.page-shell *,
+.page-shell *::before,
+.page-shell *::after {
+  box-sizing: border-box;
+}
+
+/* Skeleton class sets grid-template-areas + rows inline (from renderer).
+ * No skeleton-specific visual overrides — §11 deletes the earlier
+ * act_focus-specific heavier-GOVERN rule. GOVERN weight is level-driven. */
+.page-shell.skeleton-record_focus { /* areas set inline */ }
+.page-shell.skeleton-know_focus   { /* areas set inline */ }
+.page-shell.skeleton-act_focus    { /* areas set inline */ }
+.page-shell.skeleton-govern_focus { /* areas set inline */ }
+
+/* ---------------------------------------------------------------------------
+ * Zones — §8 + §11
+ *
+ * No borders, no box-shadows, no stroke outlines. Separation comes from
+ * background-color shifts and subtle gradients. Each zone has a faint
+ * base hue (warm/cool) so adjacent zones are distinguishable without
+ * drawn lines; visual-weight classes deepen the shade as level rises.
+ * ------------------------------------------------------------------------- */
+.zone {
+  min-height: 0;               /* required for grid children to shrink */
+  overflow-y: auto;            /* ONLY this zone scrolls, if its own content overflows */
+  padding: clamp(0.5rem, 1vh, 1rem);
+  border-radius: clamp(4px, 0.8vh, 8px);  /* shape, not a drawn border */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.25rem, 0.6vh, 0.75rem);
+}
+
+/* Per-zone base hues — very subtle, just enough to separate neighbors.
+ * These are the LOW visual-weight backgrounds (level 0–30). */
+.zone[data-zone="record"] { background: #faf9f5; }   /* warm neutral */
+.zone[data-zone="know"]   { background: #f5f7fa; }   /* cool neutral */
+.zone[data-zone="act"]    { background: #f9f5fa; }   /* faint violet */
+.zone[data-zone="govern"] { background: #faf7f0; }   /* warm amber */
+
+/* Visual weight — §11 level-driven shade depth.
+ * Moderate: clear shift from the base. Deep: deepest shade on the page.
+ * No alert colors, no warning styling — just darker shades of the same
+ * hue family. GOVERN at 'deep' is the heaviest thing on the page, but
+ * still calm (no yellow/red alert blocks). */
+.zone.visual-weight-low {
+  background: var(--zone-base, #faf9f5);
+}
+.zone.visual-weight-moderate {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--zone-base, #faf9f5) 88%, #e0e0d8),
+    color-mix(in srgb, var(--zone-base, #faf9f5) 78%, #d0d0c8)
+  );
+}
+.zone.visual-weight-deep {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--zone-base, #faf9f5) 72%, #c8c8c0),
+    color-mix(in srgb, var(--zone-base, #faf9f5) 60%, #b8b8b0)
+  );
+}
+
+/* Bind --zone-base per zone so the visual-weight gradients pick up the
+ * right hue family. */
+.zone[data-zone="record"] { --zone-base: #faf9f5; }
+.zone[data-zone="know"]   { --zone-base: #f5f7fa; }
+.zone[data-zone="act"]    { --zone-base: #f9f5fa; }
+.zone[data-zone="govern"] { --zone-base: #faf7f0; }
+
+/* GOVERN at deep is the heaviest shade anywhere — but still no alert
+ * styling. The gradient above already handles depth; this just ensures
+ * GOVERN-deep reads as the most visually weighted thing on the page
+ * without crossing into warning-banner territory. */
+.zone[data-zone="govern"].visual-weight-deep {
+  background: linear-gradient(
+    160deg,
+    #e8e3d4,
+    #ddd6c2
+  );
+}
+
+/* Empty zone placeholder — all four zones always exist (§7). */
+.zone-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2ee;
+  color: #888;
+  font-style: italic;
+  font-size: 0.85em;
+}
+.zone-empty-placeholder::before { content: "(empty zone — all four zones always exist)"; }
+
+/* Zone header — no border-bottom. Separation via spacing + weight. */
+.zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: clamp(0.7rem, 1vh, 0.9rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555;
+  padding-bottom: clamp(0.2rem, 0.4vh, 0.4rem);
+}
+.zone-label { font-weight: 600; }
+.zone-level {
+  font-variant-numeric: tabular-nums;
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* Emphasis levels — driven by level_to_prominence (§8).
+ * §11: no box-shadow on high emphasis. Weight comes from shade
+ * (visual-weight classes above) + font sizing, not from shadows. */
+.zone.emphasis-low      { opacity: 0.8; font-size: 0.9em; }
+.zone.emphasis-standard { /* default */ }
+.zone.emphasis-high     { font-size: 1.05em; }
+
+.zone[data-collapsed="true"] .zone-blocks {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Blocks — §8. Three kinds: input, info, output.
+ *
+ * No borders, no box-shadows, no stroke outlines on blocks. Blocks are
+ * separated from their zone background by a subtle background shift only.
+ * ------------------------------------------------------------------------- */
+.block {
+  padding: clamp(0.4rem, 0.8vh, 0.75rem);
+  border-radius: clamp(3px, 0.5vh, 5px);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* InputBlock — form fields need a visible boundary to be identifiable
+ * as inputs. We use a subtle background fill, not a drawn border. */
+.block-input label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+.block-input .required { color: #c62828; }
+.block-input input,
+.block-input select,
+.block-input textarea {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  border: none;
+  border-bottom: 1px solid #c8c8c0;  /* minimal underline only */
+  border-radius: 2px;
+  background: #fff;
+}
+
+/* InfoBlock — collapsed summary is the visible affordance. No borders. */
+.block-info-summary {
+  font-weight: 500;
+  cursor: pointer;
+}
+.block-info[data-collapsed="true"] .block-info-content { display: none; }
+
+/* OutputBlock — §11: no alert-style bright colors, no warning-banner
+ * treatment. risk_tier is NOT visually styled; visual weight comes from
+ * the zone's level. Buttons are calm: plain background, no colored
+ * borders, no bright alert fills. */
+.block-output .output-trigger {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  background: #f0f0ec;
+  cursor: pointer;
+}
+.block-output .output-trigger:hover { background: #e8e8e2; }
+
+/* Banner action_type (used in GOVERN for escalation) — full-width,
+ * left-aligned, reads as calm text. No yellow/red alert background. */
+.block-output.output-banner .output-trigger {
+  width: 100%;
+  background: transparent;
+  text-align: left;
+  padding: 0.25rem 0;
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile renderer — §12: one config, two renderers.
+ * ≤1024px → mobile (single column, normal scroll, GOVERN pinned).
+ * >1024px → desktop skeleton renderer (§10), unchanged.
+ *
+ * Breakpoint values and stack order come directly from spec §12 — not
+ * assumptions. 768–1024px uses the same mobile layout with wider
+ * horizontal padding via the existing clamp() (vw-based, scales naturally
+ * with viewport width — no separate query needed).
+ * ------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .page-shell {
+    height: auto;
+    min-height: 100vh;
+    width: 100%;
+    overflow: visible;          /* normal document flow on mobile (§9/§12) */
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 2vw, 1rem);
+    padding: clamp(0.5rem, 3vw, 1.5rem);  /* wider on 768–1024 via vw */
+    font-size: 16px;            /* fixed readable size on mobile */
+  }
+  .zone {
+    overflow-y: visible;        /* zone scrolls with the document */
+    min-height: auto;
+  }
+  .zone[data-collapsed="true"] .zone-blocks {
+    display: block;             /* collapsed zones expand on mobile */
+  }
+
+  /* --- Zone stack order (§12) ---
+   * Default: KNOW → RECORD → ACT. Major_pillar zone gets order:0 (first).
+   * GOVERN is NOT in the scroll stack — pinned separately below.
+   * The skeleton class already encodes major_pillar (e.g. skeleton-record_focus
+   * → record is major), so CSS can order without any renderer-side branching. */
+  .zone[data-zone="know"]   { order: 1; }
+  .zone[data-zone="record"] { order: 2; }
+  .zone[data-zone="act"]    { order: 3; }
+
+  .skeleton-record_focus .zone[data-zone="record"] { order: 0; }
+  .skeleton-know_focus   .zone[data-zone="know"]   { order: 0; }
+  .skeleton-act_focus    .zone[data-zone="act"]    { order: 0; }
+  /* govern_focus: no override — GOVERN is major but pinned, scroll stack
+   * is KNOW → RECORD → ACT in default order. */
+
+  /* --- GOVERN persistent band (§12) ---
+   * Pinned to bottom of viewport, stays visible regardless of scroll.
+   * Small, quiet, per §11 — no border, no icon, background/shade only.
+   * level_to_visual_weight still applies via the existing visual-weight-*
+   * classes on the zone. max-height prevents GOVERN from consuming the
+   * screen on mobile if its content is long.
+   *
+   * Default: bottom pin for record_focus / know_focus / act_focus — keeps
+   * the major_pillar content visible first on load.
+   * Override below: govern_focus pins TOP (matches its desktop top-dominant
+   * layout and the skeleton's high-stakes purpose per §10 — disclaimer
+   * must be read first on red-tier pages). */
+  .zone[data-zone="govern"] {
+    position: sticky;
+    bottom: 0;
+    order: 99;
+    z-index: 5;
+    max-height: 35vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .skeleton-govern_focus .zone[data-zone="govern"] {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    order: 0;
+  }
+}
