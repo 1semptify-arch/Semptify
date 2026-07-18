@@ -17,30 +17,33 @@ Overlay Integration (2026-06-29):
   'try again' message. This enforces the mandate: no user data is served from
   our PostgreSQL — only from the user's cloud.
 """
+
 import logging
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app.core.cookie_auth import verify_user_id
+from app.core.overlay_types import OverlayType
 from app.core.user_id import COOKIE_USER_ID
 from app.core.utc import utc_now
-from app.core.overlay_types import OverlayType
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Document Center"])
 
-ALLOWED_DOCUMENT_TYPES: frozenset[str] = frozenset({
-    "lease",
-    "notice_to_vacate",
-    "repair_request",
-    "rent_receipt",
-    "move_in_inspection",
-    "court_summons",
-    "correspondence",
-    "other",
-})
+ALLOWED_DOCUMENT_TYPES: frozenset[str] = frozenset(
+    {
+        "lease",
+        "notice_to_vacate",
+        "repair_request",
+        "rent_receipt",
+        "move_in_inspection",
+        "court_summons",
+        "correspondence",
+        "other",
+    }
+)
 
 
 def _auth(request: Request) -> str | None:
@@ -54,6 +57,7 @@ def _auth(request: Request) -> str | None:
 # ===========================================================================
 # Real Overlay Fetch — reads from UnifiedOverlayManager (cloud storage)
 # ===========================================================================
+
 
 async def _fetch_real_overlays(doc, user_id: str) -> list:
     """Fetch real overlays for a document from UnifiedOverlayManager.
@@ -114,7 +118,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
     by_type: dict = {}
     for ov in real_overlays:
         try:
-            t = ov.overlay_type.value if hasattr(ov.overlay_type, 'value') else str(ov.overlay_type)
+            t = ov.overlay_type.value if hasattr(ov.overlay_type, "value") else str(ov.overlay_type)
         except Exception:
             t = str(ov.overlay_type)
         by_type.setdefault(t, []).append(ov)
@@ -125,15 +129,17 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
     manifest_ovs = by_type.get(OverlayType.VAULT_UPLOAD_MANIFEST.value, [])
     certified = doc.registry_id is not None or bool(manifest_ovs)
     cert_detail = doc.registry_id or (manifest_ovs[0].overlay_id if manifest_ovs else None)
-    items.append({
-        "name": "Certified Upload",
-        "overlay_type": "upload_notarization",
-        "icon": "✅" if certified else "⬜",
-        "pct": 100 if certified else 0,
-        "goal": "Document stored with tamper-proof certificate",
-        "detail": cert_detail,
-        "items": [cert_detail] if cert_detail else [],
-    })
+    items.append(
+        {
+            "name": "Certified Upload",
+            "overlay_type": "upload_notarization",
+            "icon": "✅" if certified else "⬜",
+            "pct": 100 if certified else 0,
+            "goal": "Document stored with tamper-proof certificate",
+            "detail": cert_detail,
+            "items": [cert_detail] if cert_detail else [],
+        }
+    )
 
     # 2. Document Type
     class_ovs = by_type.get(OverlayType.DOCUMENT_CLASSIFICATION.value, [])
@@ -141,18 +147,22 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
     type_label = None
     if class_ovs:
         payload = class_ovs[0].payload or {}
-        type_label = payload.get("document_type", "").replace("_", " ").title() if payload.get("document_type") else None
+        type_label = (
+            payload.get("document_type", "").replace("_", " ").title() if payload.get("document_type") else None
+        )
     if not type_label and doc.document_type and doc.document_type != "document":
         type_label = doc.document_type.replace("_", " ").title()
-    items.append({
-        "name": "Document Type",
-        "overlay_type": "document_classification",
-        "icon": "✅" if typed else "⬜",
-        "pct": 100 if typed else 0,
-        "goal": "Document type identified and confirmed",
-        "detail": type_label,
-        "items": [type_label] if type_label else [],
-    })
+    items.append(
+        {
+            "name": "Document Type",
+            "overlay_type": "document_classification",
+            "icon": "✅" if typed else "⬜",
+            "pct": 100 if typed else 0,
+            "goal": "Document type identified and confirmed",
+            "detail": type_label,
+            "items": [type_label] if type_label else [],
+        }
+    )
 
     # 3. Text Extraction
     extraction_ovs = by_type.get(OverlayType.DOCUMENT_EXTRACTION.value, [])
@@ -166,15 +176,17 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
     has_text = bool(raw_text)
     ocr_pct = 100 if has_text else 0
     text_excerpt = (raw_text[:200] + "…") if len(raw_text) > 200 else raw_text
-    items.append({
-        "name": "Text Extraction",
-        "overlay_type": "ocr_result",
-        "icon": "✅" if ocr_pct == 100 else ("🔄" if ocr_pct else "⬜"),
-        "pct": ocr_pct,
-        "goal": "All text extracted from the document",
-        "detail": f"{len(raw_text):,} chars" if has_text else None,
-        "items": [text_excerpt] if has_text else [],
-    })
+    items.append(
+        {
+            "name": "Text Extraction",
+            "overlay_type": "ocr_result",
+            "icon": "✅" if ocr_pct == 100 else ("🔄" if ocr_pct else "⬜"),
+            "pct": ocr_pct,
+            "goal": "All text extracted from the document",
+            "detail": f"{len(raw_text):,} chars" if has_text else None,
+            "items": [text_excerpt] if has_text else [],
+        }
+    )
 
     # 4. Dates
     dates: list = []
@@ -195,15 +207,17 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
                 break
     n_dates = len(dates)
     dates_pct = min(100, n_dates * 33) if n_dates else 0
-    items.append({
-        "name": "Dates",
-        "overlay_type": "key_date_extraction",
-        "icon": "✅" if n_dates >= 2 else ("🔄" if n_dates else "⬜"),
-        "pct": dates_pct,
-        "goal": "Key dates identified (lease start, end, notice deadlines, etc.)",
-        "detail": f"{n_dates} found" if n_dates else None,
-        "items": [str(d) for d in dates[:10]],
-    })
+    items.append(
+        {
+            "name": "Dates",
+            "overlay_type": "key_date_extraction",
+            "icon": "✅" if n_dates >= 2 else ("🔄" if n_dates else "⬜"),
+            "pct": dates_pct,
+            "goal": "Key dates identified (lease start, end, notice deadlines, etc.)",
+            "detail": f"{n_dates} found" if n_dates else None,
+            "items": [str(d) for d in dates[:10]],
+        }
+    )
 
     # 5. Parties
     party_ovs = by_type.get(OverlayType.PARTY_EXTRACTION.value, [])
@@ -219,15 +233,17 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         parties = []
     n_parties = len(parties)
     parties_pct = min(100, n_parties * 50) if n_parties else 0
-    items.append({
-        "name": "Parties",
-        "overlay_type": "party_extraction",
-        "icon": "✅" if n_parties >= 2 else ("🔄" if n_parties else "⬜"),
-        "pct": parties_pct,
-        "goal": "All parties identified (landlord, tenant, attorney)",
-        "detail": f"{n_parties} found" if n_parties else None,
-        "items": [str(p) for p in parties[:10]],
-    })
+    items.append(
+        {
+            "name": "Parties",
+            "overlay_type": "party_extraction",
+            "icon": "✅" if n_parties >= 2 else ("🔄" if n_parties else "⬜"),
+            "pct": parties_pct,
+            "goal": "All parties identified (landlord, tenant, attorney)",
+            "detail": f"{n_parties} found" if n_parties else None,
+            "items": [str(p) for p in parties[:10]],
+        }
+    )
 
     # 6. Amounts
     amounts: list = []
@@ -241,15 +257,17 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
     if not amounts:
         amounts = []
     n_amounts = len(amounts)
-    items.append({
-        "name": "Amounts",
-        "overlay_type": "amount_extraction",
-        "icon": "✅" if n_amounts else "⬜",
-        "pct": 100 if n_amounts else 0,
-        "goal": "Rent, deposit, and fee amounts confirmed",
-        "detail": f"{n_amounts} found" if n_amounts else None,
-        "items": [str(a) for a in amounts[:10]],
-    })
+    items.append(
+        {
+            "name": "Amounts",
+            "overlay_type": "amount_extraction",
+            "icon": "✅" if n_amounts else "⬜",
+            "pct": 100 if n_amounts else 0,
+            "goal": "Rent, deposit, and fee amounts confirmed",
+            "detail": f"{n_amounts} found" if n_amounts else None,
+            "items": [str(a) for a in amounts[:10]],
+        }
+    )
 
     overall_pct = sum(it["pct"] for it in items) // len(items) if items else 0
     has_data = certified or bool(real_overlays)
@@ -261,6 +279,18 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         "overlay_count": len(real_overlays),
         "overlay_source": "real",
     }
+
+
+@router.get("/document-types")
+async def dc_get_document_types(request: Request) -> JSONResponse:
+    """Return all document type definitions with required field checklists.
+
+    SSOT lives in app/core/document_types.py. Frontend uses this to render
+    type-specific verification checklists in the right pane.
+    """
+    from app.core.document_types import get_all_document_types
+
+    return JSONResponse({"types": get_all_document_types()})
 
 
 @router.get("/list")
@@ -278,6 +308,7 @@ async def dc_list_documents(request: Request) -> JSONResponse:
     documents: list[dict] = []
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
         vault_docs = await vault_service.get_user_documents(user_id)
         for doc in vault_docs:
@@ -293,22 +324,26 @@ async def dc_list_documents(request: Request) -> JSONResponse:
             # cloud fetch via /api/dc/document/{vault_id}/overlays.
             verification_status = "verified" if doc.registry_id else ("review" if doc.processed else "new")
 
-            documents.append({
-                "id": doc.vault_id,
-                "filename": doc.filename,
-                "uploaded_at": uploaded_str,
-                "document_type": doc.document_type or "",
-                "overlay_count": None,
-                "verification_status": verification_status,
-            })
+            documents.append(
+                {
+                    "id": doc.vault_id,
+                    "filename": doc.filename,
+                    "uploaded_at": uploaded_str,
+                    "document_type": doc.document_type or "",
+                    "overlay_count": None,
+                    "verification_status": verification_status,
+                }
+            )
     except Exception as vault_err:
         logger.warning("DC list: vault fetch failed for user=%s: %s", user_id, vault_err)
 
-    return JSONResponse({
-        "documents": documents,
-        "total": len(documents),
-        "generated_at": utc_now().isoformat(),
-    })
+    return JSONResponse(
+        {
+            "documents": documents,
+            "total": len(documents),
+            "generated_at": utc_now().isoformat(),
+        }
+    )
 
 
 def _compute_unlocks(docs: list) -> list[dict]:
@@ -373,14 +408,17 @@ async def dc_get_unlocks(request: Request) -> JSONResponse:
 
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
         docs = await vault_service.get_user_documents(user_id)
         unlocks = _compute_unlocks(docs)
-        return JSONResponse({
-            "unlocks": unlocks,
-            "doc_count": len(docs),
-            "generated_at": utc_now().isoformat(),
-        })
+        return JSONResponse(
+            {
+                "unlocks": unlocks,
+                "doc_count": len(docs),
+                "generated_at": utc_now().isoformat(),
+            }
+        )
     except Exception as e:
         logger.error("DC unlocks error user=%s: %s", user_id, e, exc_info=True)
         return JSONResponse(status_code=500, content={"error": "unlocks_failed", "detail": str(e)})
@@ -400,6 +438,7 @@ async def dc_get_overlays(vault_id: str, request: Request) -> JSONResponse:
 
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
 
         doc = await vault_service.get_document(vault_id)
@@ -435,6 +474,7 @@ async def dc_view_document(vault_id: str, request: Request):
 
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
 
         doc = await vault_service.get_document(vault_id)
@@ -446,6 +486,7 @@ async def dc_view_document(vault_id: str, request: Request):
         access_token: str | None = None
         if doc.storage_provider != "local":
             from app.core.oauth_token_manager import get_valid_token_for_user
+
             access_token = get_valid_token_for_user(user_id)
             if not access_token:
                 return JSONResponse(
@@ -510,6 +551,7 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
 
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
 
         doc = await vault_service.get_document(vault_id)
@@ -522,6 +564,7 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
         access_token: str | None = None
         if doc.storage_provider != "local":
             from app.core.oauth_token_manager import get_valid_token_for_user
+
             access_token = get_valid_token_for_user(user_id)
 
         if document_type:
@@ -544,16 +587,21 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
 
         logger.info(
             "DC set_type: vault_id=%s type=%r user=%s provider=%s token=%s",
-            vault_id, document_type or "(cleared)", user_id,
-            doc.storage_provider, "yes" if access_token else "no",
+            vault_id,
+            document_type or "(cleared)",
+            user_id,
+            doc.storage_provider,
+            "yes" if access_token else "no",
         )
 
-        return JSONResponse({
-            "ok": True,
-            "vault_id": vault_id,
-            "document_type": document_type or None,
-            "overlays": overlay_snapshot,
-        })
+        return JSONResponse(
+            {
+                "ok": True,
+                "vault_id": vault_id,
+                "document_type": document_type or None,
+                "overlays": overlay_snapshot,
+            }
+        )
 
     except Exception as e:
         logger.error("DC set_type error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
