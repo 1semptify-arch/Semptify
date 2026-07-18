@@ -93,6 +93,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/feedback.js"></script>
 <script>
 (function () {
     const docList = document.getElementById('dcDocList');
@@ -109,6 +110,7 @@
     let currentDoc = null;
     let allDocs = [];
     let currentFilter = 'all';
+    let previousUnlocks = null;
 
     function escapeHtml(s) {
         return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -293,13 +295,26 @@
             const r = await fetch('/api/dc/unlocks', { credentials: 'include' });
             if (!r.ok) return;
             const data = await r.json();
+            const unlocks = data.unlocks || [];
             unlocksDiv.innerHTML = '';
-            (data.unlocks || []).forEach(u => {
+            unlocks.forEach(u => {
                 const line = document.createElement('div');
                 line.style.marginBottom = '0.25rem';
                 line.textContent = (u.unlocked ? '🔓' : '🔒') + ' ' + u.name + ' — ' + (u.unlocked ? 'unlocked' : u.progress);
                 unlocksDiv.appendChild(line);
             });
+            if (previousUnlocks !== null) {
+                unlocks.forEach(u => {
+                    const prev = previousUnlocks.find(p => p.name === u.name);
+                    const wasUnlocked = prev ? prev.unlocked : false;
+                    if (u.unlocked && !wasUnlocked) {
+                        if (window.SemptifyFeedback) {
+                            SemptifyFeedback.success(u.name + ' is now available.', { timeout: 7000 });
+                        }
+                    }
+                });
+            }
+            previousUnlocks = unlocks.map(u => ({ name: u.name, unlocked: u.unlocked }));
         } catch (e) { /* silent */ }
     }
 
