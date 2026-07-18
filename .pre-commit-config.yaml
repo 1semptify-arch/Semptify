@@ -67,7 +67,7 @@ repos:
     hooks:
       - id: ssot-architecture-check
         name: SSOT Architecture Verification
-        entry: python scripts/verify_ssot.py
+        entry: venv311/Scripts/python.exe scripts/verify_ssot.py
         language: system
         pass_filenames: false
         always_run: true
@@ -77,7 +77,7 @@ repos:
     hooks:
       - id: guardrail-engine
         name: Run all guardrail checks
-        entry: python tools/guardrail_engine.py
+        entry: venv311/Scripts/python.exe tools/guardrail_engine.py
         language: system
         pass_filenames: false
         always_run: true
@@ -87,7 +87,7 @@ repos:
     hooks:
       - id: sync-orchestrator
         name: Sync stub/task state
-        entry: python tools/sync_orchestrator.py --git-add
+        entry: venv311/Scripts/python.exe tools/sync_orchestrator.py --git-add
         language: system
         pass_filenames: false
         always_run: true
