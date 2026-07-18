@@ -1,4 +1,3 @@
-from app.modules.admin_console.module_admin_console import register_admin_console_module
 """
 Semptify - FastAPI Application
 Tenant rights protection platform.
@@ -9,14 +8,17 @@ in court if it goes that far - hopefully it won't.
 
 # Fix Windows console encoding for emojis
 import sys
-if sys.platform == 'win32':
+
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Fix Vertex AI session ID collisions that block OAuth
 try:
     from app.services.vertex_session_fix import patch_vertex_session_creation
+
     patch_vertex_session_creation()
 except ImportError:
     pass  # Vertex AI not available
@@ -46,28 +48,23 @@ else:
 
 import asyncio
 import datetime
-import json
 import logging
 import os
 import time
-import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional
 
-from fastapi import FastAPI, Request, Response, HTTPException, APIRouter, Depends, Query
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, FileResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.config import get_settings
 from app.core.compliance import validate_app_compliance
+from app.core.config import get_settings
 from app.core.cookie_auth import extract_user_id
-from app.core.database import init_db, close_db
+from app.core.database import close_db, init_db
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
@@ -76,10 +73,11 @@ from app.core.tenant_briefcase import get_tenant_briefcase
 # PyInstaller frozen executable detection
 def get_base_path() -> Path:
     """Get base path - handles PyInstaller frozen mode."""
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # Running as compiled exe
         return Path(getattr(sys, "_MEIPASS", "."))
-    return Path(".")
+    return Path()
+
 
 BASE_PATH = get_base_path()
 
@@ -90,6 +88,7 @@ from datetime import datetime as _dt
 
 # Minimal, privacy-first stateless landing route for the On-The-Fly Composer demo
 
+
 def register_stateless_routes(app: FastAPI):
     """Register a small, completely stateless landing route and mount static files.
 
@@ -97,9 +96,9 @@ def register_stateless_routes(app: FastAPI):
     user interactions. It mounts `app/static` at `/static` and serves
     `index.html` for the root path with a `year` context value.
     """
-    try:
+    try:  # noqa: SIM105
         app.mount("/static", StaticFiles(directory=str(BASE_PATH / "app" / "static")), name="static")
-    except Exception:
+    except Exception:  # noqa: S110
         # Static mount failed, app will still run without static files
         pass
 
@@ -115,6 +114,7 @@ def register_stateless_routes(app: FastAPI):
         ctx = {"request": request, "year": _dt.utcnow().year}
         return templates.TemplateResponse("index.html", ctx)
 
+
 # Add custom Jinja2 filters
 def format_date_filter(value):
     """Format datetime for display in templates."""
@@ -123,26 +123,29 @@ def format_date_filter(value):
     if isinstance(value, str):
         try:
             from datetime import datetime
+
             value = datetime.fromisoformat(value)
         except (ValueError, TypeError):
             return value
     return value.strftime("%B %d, %Y") if hasattr(value, "strftime") else str(value)
 
+
 templates.env.filters["format_date"] = format_date_filter
 
 # Product Manifest — replaces the 200+ line router-import block
+from app.core.contract_loader import load_all_contracts
 from app.core.product_manifest import ProductTier, register_tiers
 from app.core.utc import utc_now
-from app.core.contract_loader import load_all_contracts
-
 
 # =============================================================================
 # Logging Setup
 # =============================================================================
 
+
 def setup_logging():
     """Configure logging based on settings using enhanced logging config."""
     from app.core.logging_config import setup_logging as configure_logging
+
     logging_settings = get_settings()
     configure_logging(
         level=logging_settings.log_level.upper(),
@@ -155,6 +158,7 @@ def setup_logging():
 # Lifespan (Startup/Shutdown)
 # =============================================================================
 
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     """
@@ -166,48 +170,57 @@ async def lifespan(_app: FastAPI):
     """
     lifespan_settings = get_settings()
     lifespan_logger = logging.getLogger(__name__)
-    
+
     # Configuration
     TOTAL_TIMEOUT = 120  # Total seconds allowed for setup (increased for slow migrations)
-    MAX_RETRIES = 3     # Max retries per stage
-    STAGE_DELAY = 0.5   # Delay between retries
-    
-    import time
+    MAX_RETRIES = 3  # Max retries per stage
+    STAGE_DELAY = 0.5  # Delay between retries
+
     import shutil
+
     start_time = time.time()
-    
+
     def time_remaining():
         return max(0, TOTAL_TIMEOUT - (time.time() - start_time))
-    
+
     def log_stage(stage_num: int, total: int, name: str, status: str):
         elapsed = time.time() - start_time
         remaining = time_remaining()
         bar = "â–ˆ" * stage_num + "â–‘" * (total - stage_num)
-        lifespan_logger.info("[%s] Stage %s/%s: %s - %s (%.1fs elapsed, %.1fs remaining)", bar, stage_num, total, name, status, elapsed, remaining)
-    
+        lifespan_logger.info(
+            "[%s] Stage %s/%s: %s - %s (%.1fs elapsed, %.1fs remaining)",
+            bar,
+            stage_num,
+            total,
+            name,
+            status,
+            elapsed,
+            remaining,
+        )
+
     async def run_stage(stage_num: int, total: int, name: str, action, verify=None):
         """Run a stage with retries and verification."""
         for attempt in range(1, MAX_RETRIES + 1):
             if time_remaining() <= 0:
                 raise TimeoutError(f"Setup timeout - exceeded {TOTAL_TIMEOUT}s")
-            
+
             try:
                 log_stage(stage_num, total, name, f"Attempt {attempt}/{MAX_RETRIES}...")
                 if asyncio.iscoroutinefunction(action):
                     await action()
                 else:
                     action()
-                
+
                 # Verify if verification function provided
                 if verify:
                     await asyncio.sleep(0.2)  # Brief pause before verify
                     is_valid = await verify() if asyncio.iscoroutinefunction(verify) else verify()
                     if not is_valid:
                         raise RuntimeError(f"Verification failed for {name}")
-                
+
                 log_stage(stage_num, total, name, "âœ… COMPLETE")
                 return True
-                
+
             except (ValueError, RuntimeError, ImportError, AssertionError, TimeoutError) as e:
                 lifespan_logger.warning("Stage %s '%s' attempt %s failed: %s", stage_num, name, attempt, e)
                 if attempt < MAX_RETRIES:
@@ -215,13 +228,13 @@ async def lifespan(_app: FastAPI):
                 else:
                     raise RuntimeError(f"Stage {stage_num} '{name}' failed after {MAX_RETRIES} attempts: {e}") from e
         return False
-    
+
     async def wipe_and_reset():
         """Wipe everything clean for fresh start."""
         lifespan_logger.warning("=" * 50)
         lifespan_logger.warning("âš ï¸  WIPING EVERYTHING FOR FRESH START...")
         lifespan_logger.warning("=" * 50)
-        
+
         # Remove runtime directories
         dirs_to_wipe = ["uploads", "logs", "data/semptify.db"]
         for dir_path in dirs_to_wipe:
@@ -233,18 +246,18 @@ async def lifespan(_app: FastAPI):
                 else:
                     shutil.rmtree(path, ignore_errors=True)
                     lifespan_logger.info("  Removed directory: %s", dir_path)
-        
+
         # Sessions and OAuth states are now DB-backed (no in-memory dicts to clear)
         lifespan_logger.info("  Sessions/OAuth states are DB-backed - no cache to clear")
-        
+
         lifespan_logger.warning("ðŸ§¹ Wipe complete - ready for fresh start")
-    
+
     # =========================================================================
     # STAGED SETUP PROCESS
     # =========================================================================
-    
+
     TOTAL_STAGES = 7
-    
+
     # Required packages for each feature area
     REQUIRED_PACKAGES = {
         # Core
@@ -268,7 +281,7 @@ async def lifespan(_app: FastAPI):
         "jinja2": "HTML Templates",
         "aiofiles": "Async File I/O",
     }
-    
+
     # Optional packages (warn if missing, don't fail)
     OPTIONAL_PACKAGES = {
         "PIL": "Image Processing (Pillow)",
@@ -276,119 +289,124 @@ async def lifespan(_app: FastAPI):
         "xhtml2pdf": "Advanced PDF (xhtml2pdf)",
         "asyncpg": "PostgreSQL Driver",
     }
-    
+
     lifespan_logger.info("=" * 60)
     lifespan_logger.info("ðŸš€ STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
     lifespan_logger.info("   Security mode: %s", lifespan_settings.security_mode)
     lifespan_logger.info("   Timeout: %ss | Retries per stage: %s", TOTAL_TIMEOUT, MAX_RETRIES)
     lifespan_logger.info("=" * 60)
-    
+
     try:
         # --- STAGE 1: Verify Requirements ---
         missing_required: list[str] = []
         missing_optional: list[str] = []
-        
+
         def check_requirements():
             nonlocal missing_required, missing_optional
             import importlib
-            
+
             # Clear lists before checking (fix for retry accumulation)
             missing_required.clear()
             missing_optional.clear()
-            
+
             # Check required packages
             for pkg, desc in REQUIRED_PACKAGES.items():
                 try:
                     importlib.import_module(pkg)
                 except ImportError:
                     missing_required.append(f"{pkg} ({desc})")
-            
+
             # Check optional packages
             for pkg, desc in OPTIONAL_PACKAGES.items():
                 try:
                     importlib.import_module(pkg)
                 except ImportError:
                     missing_optional.append(f"{pkg} ({desc})")
-            
+
             if missing_required:
                 raise ImportError(f"Missing required packages: {', '.join(missing_required)}")
-        
+
         def verify_requirements():
             if missing_optional:
                 for pkg in missing_optional:
                     lifespan_logger.warning("   âš ï¸  Optional: %s not installed", pkg)
             return len(missing_required) == 0
-        
+
         await run_stage(1, TOTAL_STAGES, "Verify Requirements", check_requirements, verify_requirements)
-        
+
         # --- STAGE 2: Create Runtime Directories ---
         runtime_dirs = ["uploads", "uploads/vault", "logs", "security", "data"]
-        
+
         def create_directories():
             for dir_path in runtime_dirs:
                 Path(dir_path).mkdir(parents=True, exist_ok=True)
-        
+
         def verify_directories():
             return all(Path(d).exists() for d in runtime_dirs)
-        
+
         await run_stage(2, TOTAL_STAGES, "Create Directories", create_directories, verify_directories)
-        
+
         # --- STAGE 3: Initialize Database ---
         async def init_database():
             await init_db()
-        
+
         async def verify_database():
             # Quick DB check
             from app.core.database import get_db
+
             try:
                 async for db in get_db():
                     from sqlalchemy import text
+
                     await db.execute(text("SELECT 1"))
                     return True
             except SQLAlchemyError:
                 return False
-        
+
         await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
-        
+
         # --- STAGE 3b: Run Database Migrations (Alembic) ---
         async def run_migrations():
             """Auto-run Alembic migrations on startup for Render deploys."""
-            import asyncio, os
-            
+            import asyncio
+            import os
+
             # Only run auto-migration in production (Render sets RENDER=true)
             if not os.environ.get("RENDER"):
                 lifespan_logger.info("   â­ï¸  Auto-migration skipped (local dev)")
                 return
-            
+
             def _sync_migrate():
-                from alembic.config import Config
                 from alembic import command
+                from alembic.config import Config
+
                 alembic_cfg = Config("alembic.ini")
                 command.upgrade(alembic_cfg, "head")
-            
+
             try:
                 # Run in thread executor to avoid blocking the async event loop
                 loop = asyncio.get_event_loop()
                 await asyncio.wait_for(loop.run_in_executor(None, _sync_migrate), timeout=120)
                 lifespan_logger.info("   âœ… Database migrations applied")
-                
-            except asyncio.TimeoutError:
+
+            except TimeoutError:
                 lifespan_logger.warning("   âš ï¸  Migration timed out after 30s - continuing startup")
             except Exception as e:
                 lifespan_logger.warning("   âš ï¸  Migration check failed (may be first run): %s", e)
                 # Don't fail startup - migrations can be run manually if needed
-        
+
         def verify_migrations():
             # Migrations are optional auto-step, always return True
             # App will work without them (though new features may fail)
             return True
-        
+
         await run_stage(3, TOTAL_STAGES, "Database Migrations", run_migrations, verify_migrations)
 
         # --- STAGE 3b: Initialize module_overrides schema + warm cache ---
         async def init_module_overrides():
             from app.core.database import get_session_factory
             from app.core.module_overrides import ensure_schema, load_overrides
+
             factory = get_session_factory()
             async with factory() as db:
                 await ensure_schema(db)
@@ -403,11 +421,16 @@ async def lifespan(_app: FastAPI):
         # --- STAGE 3.5: Load Module Contracts ---
         async def load_contracts():
             result = load_all_contracts()
-            lifespan_logger.info("   Contracts: %s loaded, %s failed, %s total",
-                                 result["loaded"], result["failed"], result["total_contracts"])
+            lifespan_logger.info(
+                "   Contracts: %s loaded, %s failed, %s total",
+                result["loaded"],
+                result["failed"],
+                result["total_contracts"],
+            )
 
         def verify_contracts():
             from app.core.module_contracts import contract_registry
+
             return len(contract_registry.list_contracts()) > 0
 
         await run_stage(4, TOTAL_STAGES, "Load Module Contracts", load_contracts, verify_contracts)
@@ -422,7 +445,7 @@ async def lifespan(_app: FastAPI):
             return lifespan_settings.app_name is not None
 
         await run_stage(5, TOTAL_STAGES, "Load Configuration", load_config, verify_config)
-        
+
         # --- STAGE 5: Initialize Services ---
         async def init_services():
             # Heavy services re-enabled with memory fixes (deque bounds, no net_connections).
@@ -435,6 +458,7 @@ async def lifespan(_app: FastAPI):
             if enable_heavy:
                 try:
                     from app.services.brain_integrations import initialize_brain_connections
+
                     await initialize_brain_connections()
                     logger.info("   Positronic Brain initialized with all modules")
                 except Exception as e:
@@ -443,8 +467,9 @@ async def lifespan(_app: FastAPI):
             # Module Hub - re-enabled (unbounded lists replaced with deque(maxlen=N))
             if enable_heavy:
                 try:
-                    from app.services.module_registration import register_all_modules
                     from app.services.module_actions import register_all_actions
+                    from app.services.module_registration import register_all_modules
+
                     register_all_modules()
                     register_all_actions()
                     logger.info("   Module Hub initialized")
@@ -455,6 +480,7 @@ async def lifespan(_app: FastAPI):
             if enable_heavy:
                 try:
                     from app.services.location_service import register_with_mesh
+
                     register_with_mesh()
                     logger.info("   Location Service initialized")
                 except Exception as e:
@@ -462,7 +488,7 @@ async def lifespan(_app: FastAPI):
 
             # Complaint Wizard legacy standalone (app.modules.complaint_wizard_module) removed.
             # Canonical complaint wizard lives at app.modules.complaints.router (EXTENDED tier).
-            
+
             # Mesh Network - DISABLED (major memory consumer)
             # from app.services.mesh_handlers import register_all_mesh_handlers
             # mesh_stats = register_all_mesh_handlers()
@@ -472,13 +498,14 @@ async def lifespan(_app: FastAPI):
             # from app.sdk.plugin_manager import plugin_manager
             # discovered_plugins = plugin_manager.discover_plugins()
             # plugin_stats = plugin_manager.load_all()
-            
+
             logger.info("   âš¡ Core services only - mesh/brain/plugins DISABLED for memory optimization")
 
             from app.core.event_subscribers import register_all_subscribers
+
             register_all_subscribers()
             logger.info("   Event subscribers registered")
-        
+
         await run_stage(6, TOTAL_STAGES, "Initialize Services", init_services)
 
         # --- STAGE 7: Final Verification ---
@@ -486,31 +513,32 @@ async def lifespan(_app: FastAPI):
             # Verify critical paths exist
             assert Path("uploads/vault").exists(), "Vault directory missing"
             assert Path("data").exists(), "Data directory missing"
-        
+
         async def verify_final():
             # Test a simple endpoint would work
             return True
-        
+
         await run_stage(7, TOTAL_STAGES, "Final Verification", final_check, verify_final)
 
         # --- STAGE 8: PRODUCTION MODE VALIDATION (if enforced) ---
         if lifespan_settings.security_mode == "enforced":
             TOTAL_STAGES = 8
-            
+
             async def validate_production():
                 """Validate production security requirements."""
                 from app.core.production_init import validate_production_mode
+
                 # This will raise an error if any security requirement fails
                 validate_production_mode()
-            
+
             def verify_production():
                 return True  # If we get here, validation passed
-            
+
             await run_stage(8, TOTAL_STAGES, "Production Security Validation", validate_production, verify_production)
-        
+
         # --- SETUP COMPLETE ---
         total_time = time.time() - start_time
-        
+
         lifespan_logger.info("")
         lifespan_logger.info("=" * 60)
         lifespan_logger.info("âœ… âœ… âœ…  ALL STAGES COMPLETE  âœ… âœ… âœ…")
@@ -523,21 +551,22 @@ async def lifespan(_app: FastAPI):
         lifespan_logger.info("   ðŸ“š API Docs: http://localhost:8000/api/docs")
         lifespan_logger.info("=" * 60)
         lifespan_logger.info("")
-        
+
     except TimeoutError as e:
         lifespan_logger.error("âŒ SETUP TIMEOUT: %s", e)
         await wipe_and_reset()
         raise SystemExit("Setup failed - timeout exceeded") from e
-        
+
     except (RuntimeError, ValueError, ImportError, AssertionError, OSError) as e:
         lifespan_logger.error("âŒ SETUP FAILED: %s", e)
         await wipe_and_reset()
         raise SystemExit(f"Setup failed after retries: {e}") from e
-    
+
     # Register graceful shutdown handler
     from app.core.shutdown import register_shutdown_handler, task_manager
+
     register_shutdown_handler()
-    
+
     # DISABLED: Distributed mesh network (memory hog)
     # try:
     #     await start_mesh_network()
@@ -552,7 +581,7 @@ async def lifespan(_app: FastAPI):
     lifespan_logger.info("=" * 50)
     lifespan_logger.info("ðŸ›‘ SHUTTING DOWN GRACEFULLY...")
     lifespan_logger.info("=" * 50)
-    
+
     # Wait for background tasks to complete
     await task_manager.wait_for_completion(timeout=10.0)
     lifespan_logger.info("   Background tasks completed")
@@ -568,6 +597,8 @@ async def lifespan(_app: FastAPI):
     lifespan_logger.info("   Database connections closed")
     lifespan_logger.info("   Goodbye! ðŸ‘‹")
     lifespan_logger.info("=" * 50)
+
+
 # =============================================================================
 # HTML Page Generators for Legal Tools
 # =============================================================================
@@ -756,7 +787,7 @@ def generate_eviction_defense_html() -> str:
     <div class="container">
         <h1 class="page-title">Dakota County Eviction Defense</h1>
         <p class="page-subtitle">Complete toolkit for defending against eviction in Dakota County, MN</p>
-        
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value" id="stat-motions">6</div>
@@ -775,7 +806,7 @@ def generate_eviction_defense_html() -> str:
                 <div class="stat-label">Counterclaim Types</div>
             </div>
         </div>
-        
+
         <div class="tabs">
             <button class="tab active" onclick="showPanel('motions')">ðŸ“‹ Motions</button>
             <button class="tab" onclick="showPanel('forms')">ðŸ“ Forms</button>
@@ -784,39 +815,39 @@ def generate_eviction_defense_html() -> str:
             <button class="tab" onclick="showPanel('counterclaims')">âš”ï¸ Counterclaims</button>
             <button class="tab" onclick="showPanel('timeline')">ðŸ“… Case Timeline</button>
         </div>
-        
+
         <div id="motions" class="content-panel active">
             <div class="grid" id="motions-grid">Loading motions...</div>
         </div>
-        
+
         <div id="forms" class="content-panel">
             <div class="grid" id="forms-grid">Loading forms...</div>
         </div>
-        
+
         <div id="procedures" class="content-panel">
             <div class="timeline" id="procedures-list">Loading procedures...</div>
         </div>
-        
+
         <div id="defenses" class="content-panel">
             <div class="grid" id="defenses-grid">Loading defenses...</div>
         </div>
-        
+
         <div id="counterclaims" class="content-panel">
             <div class="grid" id="counterclaims-grid">Loading counterclaims...</div>
         </div>
-        
+
         <div id="timeline" class="content-panel">
             <div class="timeline" id="case-timeline">Loading timeline...</div>
         </div>
     </div>
-    
+
     <div id="motion-modal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal()">Ã—</button>
             <div id="modal-body"></div>
         </div>
     </div>
-    
+
     <script>
         async function loadData() {
             // Load motions
@@ -831,7 +862,7 @@ def generate_eviction_defense_html() -> str:
                     <button class="card-btn" onclick="showMotion('${m.id}')">View Template</button>
                 </div>
             `).join('');
-            
+
             // Load forms
             const forms = await fetch('/api/eviction-defense/forms').then(r => r.json());
             document.getElementById('forms-grid').innerHTML = forms.map(f => `
@@ -844,7 +875,7 @@ def generate_eviction_defense_html() -> str:
                     <button class="card-btn" onclick="showForm('${f.id}')">View Form</button>
                 </div>
             `).join('');
-            
+
             // Load defenses
             const defenses = await fetch('/api/eviction-defense/defenses').then(r => r.json());
             document.getElementById('defenses-grid').innerHTML = defenses.map(d => `
@@ -856,7 +887,7 @@ def generate_eviction_defense_html() -> str:
                     <p style="margin-top:0.5rem;font-size:0.85rem;"><strong>Legal Basis:</strong> ${d.legal_basis}</p>
                 </div>
             `).join('');
-            
+
             // Load counterclaims
             const claims = await fetch('/api/eviction-defense/counterclaims').then(r => r.json());
             document.getElementById('counterclaims-grid').innerHTML = claims.map(c => `
@@ -868,7 +899,7 @@ def generate_eviction_defense_html() -> str:
                     <button class="card-btn" onclick="showCounterclaim('${c.id}')">Learn More</button>
                 </div>
             `).join('');
-            
+
             // Load procedures
             const procedures = await fetch('/api/eviction-defense/procedures').then(r => r.json());
             document.getElementById('procedures-list').innerHTML = procedures.map((p, i) => `
@@ -881,14 +912,14 @@ def generate_eviction_defense_html() -> str:
                 </div>
             `).join('');
         }
-        
+
         function showPanel(panel) {
             document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(panel).classList.add('active');
             event.target.classList.add('active');
         }
-        
+
         async function showMotion(id) {
             const motions = await fetch('/api/eviction-defense/motions').then(r => r.json());
             const motion = motions.find(m => m.id === id);
@@ -906,7 +937,7 @@ def generate_eviction_defense_html() -> str:
                 document.getElementById('motion-modal').style.display = 'flex';
             }
         }
-        
+
         async function showForm(id) {
             const forms = await fetch('/api/eviction-defense/forms').then(r => r.json());
             const form = forms.find(f => f.id === id);
@@ -922,7 +953,7 @@ def generate_eviction_defense_html() -> str:
                 document.getElementById('motion-modal').style.display = 'flex';
             }
         }
-        
+
         async function showCounterclaim(id) {
             const claims = await fetch('/api/eviction-defense/counterclaims').then(r => r.json());
             const claim = claims.find(c => c.id === id);
@@ -938,15 +969,15 @@ def generate_eviction_defense_html() -> str:
                 document.getElementById('motion-modal').style.display = 'flex';
             }
         }
-        
+
         function closeModal() {
             document.getElementById('motion-modal').style.display = 'none';
         }
-        
+
         document.getElementById('motion-modal').addEventListener('click', e => {
             if (e.target.id === 'motion-modal') closeModal();
         });
-        
+
         loadData();
     </script>
 </body>
@@ -1087,7 +1118,7 @@ def generate_zoom_court_html() -> str:
     <div class="container">
         <h1 class="page-title">Zoom Court Helper</h1>
         <p class="page-subtitle">Prepare for your virtual court hearing with confidence</p>
-        
+
         <div class="grid">
             <div class="card" onclick="scrollTo('checklist')">
                 <div class="card-icon">âœ…</div>
@@ -1110,28 +1141,28 @@ def generate_zoom_court_html() -> str:
                 <div class="card-desc">Essential tips for before, during, and after</div>
             </div>
         </div>
-        
+
         <div class="checklist" id="checklist">
             <h2 class="checklist-title">ðŸ“‹ Technology Checklist</h2>
             <div id="tech-checklist">Loading checklist...</div>
         </div>
-        
+
         <div class="etiquette" id="etiquette">
             <h2 class="checklist-title">ðŸŽ© Court Etiquette Rules</h2>
             <div id="etiquette-rules">Loading etiquette rules...</div>
         </div>
-        
+
         <div class="phrases-section" id="phrases">
             <h2 class="checklist-title">ðŸ—£ï¸ Helpful Phrases</h2>
             <div id="phrases-list">Loading phrases...</div>
         </div>
-        
+
         <div class="tips-section" id="tips">
             <h2 class="checklist-title">ðŸ’¡ Quick Tips</h2>
             <div class="tips-grid" id="quick-tips">Loading tips...</div>
         </div>
     </div>
-    
+
     <script>
         async function loadData() {
             // Load tech checklist
@@ -1145,7 +1176,7 @@ def generate_zoom_court_html() -> str:
                     </label>
                 </div>
             `).join('');
-            
+
             // Load etiquette
             const etiquette = await fetch('/api/zoom-court/etiquette').then(r => r.json());
             document.getElementById('etiquette-rules').innerHTML = etiquette.map(rule => `
@@ -1155,7 +1186,7 @@ def generate_zoom_court_html() -> str:
                 </div>
             `).join('');
         }
-        
+
         loadData();
     </script>
 </body>
@@ -1168,11 +1199,12 @@ def generate_zoom_court_html() -> str:
 # Module-level logger for middleware functions
 logger = logging.getLogger(__name__)
 
+
 def create_app() -> FastAPI:
     """Application factory. Creates and configures the FastAPI application."""
     # Use module-level logger for create_app
-    app_logger = logger
-    
+    app_logger = logger  # noqa: F841
+
     app_settings = get_settings()
     setup_logging()
     validate_app_compliance(app_settings)
@@ -1262,7 +1294,7 @@ Semptify uses **storage-based authentication**. Connect your cloud storage (Goog
 
 ## Rate Limits
 - Standard endpoints: 60 requests/minute
-- AI endpoints: 10 requests/minute  
+- AI endpoints: 10 requests/minute
 - Auth endpoints: 5 requests/minute
 - File uploads: 20 requests/minute
 
@@ -1295,7 +1327,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     # Onboarding Module (self-contained, config-driven onboarding system)
     # =========================================================================
-    from app.modules.onboarding import register_onboarding, OnboardingConfig
+    from app.modules.onboarding import OnboardingConfig, register_onboarding
 
     onboarding_config = OnboardingConfig(
         product_name="Semptify Tenant Rights",
@@ -1313,14 +1345,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Vault Installer - Simple Direct Installation
     # =========================================================================
     from app.modules.vault_installer import register_vault_installer
+
     register_vault_installer(fastapi_app)
 
     # =========================================================================
     # Rate Limiting
     # =========================================================================
-    from slowapi import _rate_limit_exceeded_handler
-    from slowapi.middleware import SlowAPIMiddleware
     from slowapi.errors import RateLimitExceeded
+    from slowapi.middleware import SlowAPIMiddleware
+
     from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
     fastapi_app.state.limiter = limiter
@@ -1331,20 +1364,24 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Dev Mode Middleware — strict logging for modules in development
     # =========================================================================
     from app.core.dev_mode_middleware import DevModeMiddleware
+
     fastapi_app.add_middleware(DevModeMiddleware)
-    
+
     # Initialize OAuth token manager
     from app.core.oauth_token_manager import init_oauth_token_manager
+
     init_oauth_token_manager()
-    
+
     # Initialize Event Bus (central nervous system)
-    from app.core.event_bus import event_bus, EventType
+    from app.core.event_bus import EventType, event_bus
+
     logger.info("ðŸ“¢ Event Bus initialized with %d event types", len(EventType))
-    
+
     # Initialize Context Loop (background processing engine)
     # Wire up event subscribers
     try:
         from app.modules.context_loop.service import subscribe_context_loop_events
+
         subscribe_context_loop_events()
         logger.info("ðŸ§ Context Loop event subscribers wired")
     except ImportError:
@@ -1352,8 +1389,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Wire filedored on-demand folder creation + document sorting
     try:
-        from app.services.filedored_service import process_uploaded_document
         from app.core.event_bus import EventType as _ET
+        from app.services.filedored_service import process_uploaded_document
 
         async def _on_document_added(event, data: dict = None):
             if data is None:
@@ -1364,12 +1401,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if not vault_id or not user_id:
                 return
             try:
-                from app.services.vault_upload_service import VaultUploadService
-                from app.services.filedored_service import ensure_filedored_folders
                 from app.core.oauth_token_manager import get_valid_token_for_user
-                from app.services.unified_overlay_manager import get_unified_overlay_manager
-                from app.services.storage import get_provider as _get_storage_provider
                 from app.core.user_id import get_provider_from_user_id
+                from app.services.filedored_service import ensure_filedored_folders
+                from app.services.storage import get_provider as _get_storage_provider
+                from app.services.unified_overlay_manager import get_unified_overlay_manager
+                from app.services.vault_upload_service import VaultUploadService
+
                 vault_svc = VaultUploadService()
                 doc = await vault_svc.get_document(vault_id)
                 content = b""
@@ -1379,13 +1417,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         access_token = get_valid_token_for_user(user_id)
                         if access_token:
                             content = await vault_svc.get_document_content(vault_id, access_token=access_token) or b""
-                    except Exception:
+                    except Exception:  # noqa: S110
                         # Token fetch failed, will continue without content
                         pass
                     # Ensure filedored folders exist on-demand (lazy, first upload only)
                     try:
                         from app.sdk.vault.client import VaultClient
                         from app.sdk.vault.folder_spec import BASE_VAULT
+
                         if access_token and doc.storage_provider not in ("local", None):
                             storage = _get_storage_provider(doc.storage_provider, access_token=access_token)
                             vault_client = VaultClient(
@@ -1426,12 +1465,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logger.info("📂 Filedored event subscriber wired")
     except ImportError:
         logger.warning("Filedored service not available (optional module)")
-    
+
     # Performance monitoring - re-enabled with memory fixes
     # (removed psutil.net_connections(), shrank deques, 60s sampling)
     if os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false":
         try:
             from app.core.performance_monitor import get_performance_monitor
+
             performance_monitor = get_performance_monitor()
             performance_monitor.start_monitoring()
             logger.info("Performance monitoring started (slim mode)")
@@ -1445,130 +1485,135 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     # Global Exception Handlers
     # =========================================================================
-    
+
     # Import error handling system
-    from app.core.error_handling import (
-        semptify_exception_handler,
-        SemptifyError,
-        UserError,
-        StorageError,
-        AuthenticationError,
-        ValidationError
-    )
     from fastapi.exceptions import RequestValidationError
     from starlette.exceptions import HTTPException as StarletteHTTPException
-    
+
+    from app.core.error_handling import (
+        SemptifyError,
+        semptify_exception_handler,
+    )
+
     # Register global exception handlers
     fastapi_app.add_exception_handler(Exception, semptify_exception_handler)
     fastapi_app.add_exception_handler(SemptifyError, semptify_exception_handler)
     fastapi_app.add_exception_handler(RequestValidationError, semptify_exception_handler)
     fastapi_app.add_exception_handler(StarletteHTTPException, semptify_exception_handler)
-    
+
     logger.info("Global error handling system registered")
-    
+
     # =========================================================================
     # Performance Monitoring Middleware - DISABLED
     # =========================================================================
     # DISABLED: Causing 85%+ memory usage
     # TODO: Re-enable after optimization
-    
+
     # @fastapi_app.middleware("http")
     # async def performance_monitoring_middleware(request: Request, call_next):
     #     """Monitor request performance."""
     #     from app.core.performance_monitor import get_performance_monitor
     #     ...
-    
+
     logger.info("Performance monitoring middleware DISABLED (memory optimization)")
-    
+
     # =========================================================================
     # Middleware (order matters - first added = last to run)
     # =========================================================================
-    
+
     is_production = app_settings.security_mode == "enforced"
-    
+
     # =========================================================================
     # Offline Detection Middleware
     # =========================================================================
-    
+
     @fastapi_app.middleware("http")
     async def offline_detection_middleware(request: Request, call_next):
         """Add offline detection to all responses."""
         response = await call_next(request)
-        
+
         # Add offline indicators to HTML responses
         if response.headers.get("content-type", "").startswith("text/html"):
             from app.core.offline_manager import get_offline_indicators
+
             offline_indicators = get_offline_indicators()
-            
+
             # Inject offline indicators into HTML
-            if hasattr(response, 'body'):
+            if hasattr(response, "body"):
                 body = response.body.decode() if isinstance(response.body, bytes) else response.body
-                if '<head>' in body:
+                if "<head>" in body:
                     # Insert after <head> tag
-                    body = body.replace('<head>', f'<head>{offline_indicators}')
-                elif '<html>' in body:
+                    body = body.replace("<head>", f"<head>{offline_indicators}")
+                elif "<html>" in body:
                     # Insert after <html> tag
-                    body = body.replace('<html>', f'<html>{offline_indicators}')
+                    body = body.replace("<html>", f"<html>{offline_indicators}")
                 else:
                     # Insert at beginning of body
-                    body = f'{offline_indicators}{body}'
-                
+                    body = f"{offline_indicators}{body}"
+
                 response.body = body.encode() if isinstance(response.body, bytes) else body
-        
+
         return response
-    
+
     logger.info("Offline detection middleware registered")
-    
+
     # PRODUCTION SECURITY MIDDLEWARE (if enforced mode)
     if is_production:
         try:
             from app.core.logging_middleware import RequestLoggingMiddleware as ProdRequestLogging
-            
+
             # Request logging (security audit trail)
             fastapi_app.add_middleware(ProdRequestLogging)
             logger.info("ðŸš€ Request logging middleware enabled (production mode)")
         except ImportError as e:
             logger.error("âš ï¸  Failed to load request logging middleware: %s", e)
             logger.warning("Request logging not available - continuing without it")
-    
+
     # Smart Gate Checkpoint (enforces welcome page for new users)
     from app.core.checkpoint_middleware import SmartCheckpointMiddleware
+
     fastapi_app.add_middleware(SmartCheckpointMiddleware)
     logger.info("ðŸšª Smart checkpoint gate enabled (welcome page checkpoint)")
-    
+
     # Storage requirement (CRITICAL: Enforces everyone has storage connected)
     from app.core.storage_middleware import StorageRequirementMiddleware
+
     fastapi_app.add_middleware(
         StorageRequirementMiddleware,
-        enforce=is_production  # Only enforce in production
+        enforce=is_production,  # Only enforce in production
     )
     logger.info("ðŸ”’ Storage requirement middleware enabled (enforce=%s)", is_production)
-    
+
     # Module Gate Middleware (role + jurisdiction module activation)
     from app.core.module_gate import ModuleGateMiddleware
+
     fastapi_app.add_middleware(ModuleGateMiddleware)
     logger.info("ðŸšª Module gate middleware enabled (role + jurisdiction activation)")
 
     # Jurisdiction Engine — auto-detects user state/county from IP (once per session)
     from app.core.jurisdiction_middleware import JurisdictionMiddleware
+
     fastapi_app.add_middleware(JurisdictionMiddleware)
     logger.info("📍 Jurisdiction middleware enabled (auto-detect state from IP)")
 
     # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
+
     fastapi_app.add_middleware(
         SecurityHeadersMiddleware,
         enable_hsts=is_production,  # HSTS only in production
     )
-    
+
     # Request timeout (prevents hung requests)
     from app.core.timeout import TimeoutMiddleware
+
     fastapi_app.add_middleware(TimeoutMiddleware)
-    
+
     # Request logging (all modes â€” audit trail is required for evidence integrity)
     from app.core.logging_middleware import RequestLoggingMiddleware
+
     fastapi_app.add_middleware(RequestLoggingMiddleware)
-    
+
     # CORS (with stricter config in production)
     cors_config = {
         "allow_origins": app_settings.cors_origins_list,
@@ -1578,18 +1623,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     }
     fastapi_app.add_middleware(CORSMiddleware, **cors_config)
     logger.info("ðŸ”’ CORS middleware configured (production=%s)", is_production)
-    
+
     # Request ID middleware
     @fastapi_app.middleware("http")
     async def add_request_id(request: Request, call_next):
         from app.core.id_gen import make_id
+
         request_id = request.headers.get("X-Request-Id", make_id("req"))
         if "/admin/api" in request.url.path:
             logger.info(f"=== ADMIN API REQUEST: {request.method} {request.url.path} ===")
         response = await call_next(request)
         response.headers["X-Request-Id"] = request_id
         return response
-    
+
     # =========================================================================
     # Exception Handlers
     # =========================================================================
@@ -1597,7 +1643,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # from app.core.error_handling import semptify_exception_handler
     # The setup_exception_handlers from app.core.errors is NOT called here
     # because it would overwrite the detailed error handlers.
-    
+
     # =========================================================================
     # Register Routers via Product Manifest
     # =========================================================================
@@ -1611,7 +1657,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         ProductTier.ADVOCATE,
         ProductTier.ADMIN,
         ProductTier.RESEARCH,
-        ProductTier.DEV
+        ProductTier.DEV,
     )
 
     # Stateless composer landing prototype for the public utility experience.
@@ -1625,7 +1671,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if request.method == "HEAD":
             return Response(status_code=200)
 
-        current_year = datetime.datetime.now(datetime.timezone.utc).year
+        current_year = datetime.datetime.now(datetime.UTC).year
         return templates.TemplateResponse(
             request,
             "index.html",
@@ -1640,11 +1686,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/favicon.ico")
     async def favicon():
         """Serve favicon as SVG."""
-        svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        svg = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
             <rect width="100" height="100" rx="20" fill="#2c5aa0"/>
             <text x="50" y="70" font-size="50" text-anchor="middle" fill="white">S</text>
-        </svg>'''
+        </svg>"""
         from fastapi.responses import Response
+
         return Response(content=svg, media_type="image/svg+xml")
 
     # ------------------------------------------------------------------
@@ -1707,12 +1754,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     DAKOTA_AVAILABLE = False
     if DAKOTA_AVAILABLE:
         from app.routers.eviction import (
+            case_router as dakota_case,
             flows_router as dakota_flows,
             forms_router as dakota_forms,
-            case_router as dakota_case,
             learning_router as dakota_learning,
             procedures_router as dakota_procedures,
         )
+
         fastapi_app.include_router(dakota_case, prefix="/eviction", tags=["Eviction Case"])
         fastapi_app.include_router(dakota_learning, prefix="/eviction/learn", tags=["Court Learning"])
         fastapi_app.include_router(dakota_procedures, tags=["Dakota Procedures"])
@@ -1723,7 +1771,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("â„¹ï¸  Dakota County module not available (optional)")
 
     logging.getLogger(__name__).info("ðŸš€ Product Manifest router registration complete")
-    
+
     # =========================================================================
     # Static Files (for any frontend assets)
     # =========================================================================
@@ -1740,7 +1788,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             and not path.startswith("/static/components/")
         ):
             return JSONResponse(
-                content={"error": "forbidden", "message": "Static HTML pages are not served directly. Use the rendered route."},
+                content={
+                    "error": "forbidden",
+                    "message": "Static HTML pages are not served directly. Use the rendered route.",
+                },
                 status_code=403,
             )
         return await call_next(request)
@@ -1758,7 +1809,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # /onboarding router. The router prefix /onboarding must take priority.
     onboarding_static_path = BASE_PATH / "static" / "onboarding"
     if onboarding_static_path.exists():
-        fastapi_app.mount("/onboarding-assets", StaticFiles(directory=str(onboarding_static_path)), name="onboarding_static")
+        fastapi_app.mount(
+            "/onboarding-assets", StaticFiles(directory=str(onboarding_static_path)), name="onboarding_static"
+        )
 
     # Shortcut mounts so pages can use /js/... and /css/... without /static prefix
     js_path = BASE_PATH / "static" / "js"
@@ -1777,7 +1830,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def onboarding_redirect():
         """Redirect /onboarding to /onboarding/ for the router."""
         onboarding_stage = navigation.get_stage("onboarding_start")
-        onboarding_path = (onboarding_stage.path if onboarding_stage else "/onboarding")
+        onboarding_path = onboarding_stage.path if onboarding_stage else "/onboarding"
         if not onboarding_path.endswith("/"):
             onboarding_path += "/"
         return ssot_redirect(onboarding_path, context="onboarding_redirect trailing slash")
@@ -1802,11 +1855,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if pick_role_path.exists():
             return FileResponse(
                 pick_role_path,
-                headers={
-                    "Cache-Control": "no-cache, no-store, must-revalidate",
-                    "Pragma": "no-cache",
-                    "Expires": "0"
-                }
+                headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"},
             )
         # Fallback to old file
         page_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
@@ -1817,8 +1866,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
                     "Pragma": "no-cache",
                     "Expires": "0",
-                    "Cloudflare-CDN-Cache-Control": "no-cache"
-                }
+                    "Cloudflare-CDN-Cache-Control": "no-cache",
+                },
             )
         # Fallback to providers if role-select doesn't exist
         providers_stage = navigation.get_stage("providers")
@@ -1840,6 +1889,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def register_redirect(request: Request):
         """Redirect to OAuth-based onboarding. Semptify has no username/password registration."""
         from app.core.navigation import navigation
+
         providers_stage = navigation.get_stage("providers")
         providers_path = providers_stage.path if providers_stage else "/storage/providers"
         return ssot_redirect(providers_path, context="register redirect to OAuth onboarding")
@@ -1863,9 +1913,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     ):
         """Compatibility OAuth callback — redirects to the canonical handler."""
         from urllib.parse import urlencode
+
         from sqlalchemy import select as _select
-        from app.models.models import OAuthState as _OAuthState
+
         from app.core.database import get_db as _get_db
+        from app.models.models import OAuthState as _OAuthState
 
         try:
             async for db in _get_db():
@@ -1968,19 +2020,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Admin Routes (Protected - ADMIN role required)
     # =========================================================================
 
-    from app.core.security import require_role, get_current_user
-    from app.core.user_context import UserRole, UserContext
+    from app.core.user_context import UserRole
 
     # Admin credentials from environment (set in Render dashboard)
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Must be set in production
     ADMIN_TOTP_SECRET = os.getenv("ADMIN_TOTP_SECRET")  # Base32 secret for 2FA
-    
+
     @fastapi_app.get("/admin/login", response_class=HTMLResponse)
     async def admin_login_page(request: Request):
         """Admin elevation prompt — requires existing OAuth session."""
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
         from app.core.cookie_auth import extract_user_id
+
         logger.info("=== ADMIN ELEVATION PAGE REQUESTED ===")
         # If already elevated, go straight to dashboard
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
@@ -1989,15 +2041,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Check if user has an OAuth session
         oauth_uid = extract_user_id(request)
         has_session = oauth_uid is not None
-        has_session_js = 'true' if has_session else 'false'
+        has_session_js = "true" if has_session else "false"
         # Build page — simplified prompt if OAuth session exists, full login if not
-        session_hint = f'<p class="session-badge">&#x2713; Connected as {oauth_uid[:6]}...</p>' if has_session else ''
-        username_field = '' if has_session else '''
+        session_hint = f'<p class="session-badge">&#x2713; Connected as {oauth_uid[:6]}...</p>' if has_session else ""
+        username_field = (
+            ""
+            if has_session
+            else """
             <div class="input-group">
                 <label>Username</label>
                 <input type="text" id="username" placeholder="admin" autocomplete="username">
-            </div>'''
-        return HTMLResponse(content=f'''<!DOCTYPE html>
+            </div>"""
+        )
+        return HTMLResponse(
+            content=f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2099,8 +2156,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         }}
     </script>
 </body>
-</html>''')
-    
+</html>"""
+        )
+
     @fastapi_app.post("/admin/api/login-step1")
     async def admin_login_step1(request: Request):
         """
@@ -2115,34 +2173,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception as e:
             logger.error(f"JSON parse error: {e}")
             raise HTTPException(status_code=400, detail="Invalid JSON")
-        
+
         # Debug: Log credential status (without logging actual passwords)
-        logger.info(f"Admin login attempt - Username: {username}, ADMIN_USERNAME set: {bool(ADMIN_USERNAME)}, ADMIN_PASSWORD set: {bool(ADMIN_PASSWORD)}, ADMIN_TOTP_SECRET set: {bool(ADMIN_TOTP_SECRET)}")
-        
+        logger.info(
+            f"Admin login attempt - Username: {username}, ADMIN_USERNAME set: {bool(ADMIN_USERNAME)}, ADMIN_PASSWORD set: {bool(ADMIN_PASSWORD)}, ADMIN_TOTP_SECRET set: {bool(ADMIN_TOTP_SECRET)}"
+        )
+
         # Validate credentials
         if not ADMIN_PASSWORD:
             logger.error("ADMIN_PASSWORD not set - admin login disabled")
             raise HTTPException(status_code=503, detail="Admin login not configured")
-        
+
         if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
             logger.warning(f"Failed admin login step 1: {username} (expected: {ADMIN_USERNAME})")
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
         # Check if 2FA is enabled
         if ADMIN_TOTP_SECRET:
-            return {
-                "success": True,
-                "step2_required": True,
-                "message": "Two-step verification required"
-            }
+            return {"success": True, "step2_required": True, "message": "Two-step verification required"}
         else:
             # No 2FA configured - skip to step 2 directly
-            return {
-                "success": True,
-                "step2_required": True,
-                "message": "Two-step verification required"
-            }
-    
+            return {"success": True, "step2_required": True, "message": "Two-step verification required"}
+
     @fastapi_app.post("/admin/api/login-step2")
     async def admin_login_step2(request: Request, response: Response):
         """
@@ -2150,9 +2202,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Requires existing OAuth session. Issues a 4-hour elevation cookie.
         """
         import pyotp
+
         from app.core.admin_elevation import set_elevation_cookie
         from app.core.cookie_auth import extract_user_id
-        
+
         try:
             data = await request.json()
             username = data.get("username", "").strip()
@@ -2160,11 +2213,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             totp_code = data.get("totp_code", "").strip()
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid JSON")
-        
+
         # Re-validate credentials
         if not ADMIN_PASSWORD or username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        
+
         # Validate TOTP code if 2FA is configured
         if ADMIN_TOTP_SECRET:
             totp = pyotp.TOTP(ADMIN_TOTP_SECRET)
@@ -2173,33 +2226,30 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 raise HTTPException(status_code=401, detail="Invalid two-step code")
         elif totp_code != "000000":
             pass  # TOTP not configured but code provided - ignore
-        
-        
+
         # Get OAuth user_id for the elevation token (may be None if no OAuth session yet)
         oauth_uid = extract_user_id(request) or f"admin_{username}"
-        
+
         # Issue 4-hour elevation cookie
         set_elevation_cookie(response, oauth_uid)
         logger.info(f"Admin elevation granted for {oauth_uid[:6]}...")
-        
+
         # If no OAuth session yet, redirect to onboarding to connect storage
         has_oauth = extract_user_id(request) is not None
         if not has_oauth:
             return {
                 "success": True,
                 "redirect": "/onboarding/providers?role=admin",
-                "message": "Please connect your storage to continue"
+                "message": "Please connect your storage to continue",
             }
-        
-        return {
-            "success": True,
-            "redirect": "/admin/dashboard"
-        }
-    
+
+        return {"success": True, "redirect": "/admin/dashboard"}
+
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
         """Clear admin elevation (not the OAuth session)."""
         from app.core.admin_elevation import clear_elevation_cookie
+
         clear_elevation_cookie(response)
         return RedirectResponse(url="/admin/login")
 
@@ -2222,6 +2272,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Elevation is valid for 2 hours and requires TOTP re-verification.
         """
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
         if not payload:
@@ -2442,8 +2493,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def manager_portal_page(request: Request):
         """Serve the manager portal for case workers and counselors."""
         from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_context import get_role_from_user_id
         from app.core.user_id import COOKIE_USER_ID
-        from app.core.user_context import get_role_from_user_id, UserRole
 
         _raw = request.cookies.get(COOKIE_USER_ID)
         user_id = str(_raw) if _raw is not None else None
@@ -2462,8 +2513,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Telemetry
         try:
             from app.core.telemetry_hooks import EMITTER
+
             EMITTER.emit("manager_portal_load", "manager", user_id)
-        except Exception:
+        except Exception:  # noqa: S110
             # Telemetry failed, non-critical
             pass
 
@@ -2491,11 +2543,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/api/manager/dashboard-stats")
     async def manager_dashboard_stats(request: Request):
         """API endpoint for manager dashboard statistics (auto-refresh)."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.user_context import get_role_from_user_id, UserRole
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_dashboard_stats
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_context import get_role_from_user_id
+        from app.core.user_id import COOKIE_USER_ID
 
         _raw = request.cookies.get(COOKIE_USER_ID)
         user_id = str(_raw) if _raw is not None else None
@@ -2517,24 +2569,26 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception as e:
             logger.warning("Dashboard stats query failed: %s", e)
             # Return fallback stats on error
-            return JSONResponse({
-                "total_cases": 0,
-                "new_cases_this_week": 0,
-                "pending_documents": 0,
-                "urgent_documents": 0,
-                "active_staff": 0,
-                "total_staff": 0,
-                "overdue_tasks": 0
-            })
+            return JSONResponse(
+                {
+                    "total_cases": 0,
+                    "new_cases_this_week": 0,
+                    "pending_documents": 0,
+                    "urgent_documents": 0,
+                    "active_staff": 0,
+                    "total_staff": 0,
+                    "overdue_tasks": 0,
+                }
+            )
 
     @fastapi_app.get("/api/manager/cases")
     async def manager_cases(request: Request):
         """API endpoint for manager's organization cases."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.user_context import get_role_from_user_id, UserRole
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_recent_cases
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_context import get_role_from_user_id
+        from app.core.user_id import COOKIE_USER_ID
 
         _raw = request.cookies.get(COOKIE_USER_ID)
         user_id = str(_raw) if _raw is not None else None
@@ -2558,11 +2612,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/api/manager/staff")
     async def manager_staff(request: Request):
         """API endpoint for manager's organization staff."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.user_context import get_role_from_user_id, UserRole
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_staff_list
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_context import get_role_from_user_id
+        from app.core.user_id import COOKIE_USER_ID
 
         _raw = request.cookies.get(COOKIE_USER_ID)
         user_id = str(_raw) if _raw is not None else None
@@ -2586,11 +2640,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/api/manager/activity")
     async def manager_activity(request: Request):
         """API endpoint for manager's organization activity feed."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.user_context import get_role_from_user_id, UserRole
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_recent_activity
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_context import get_role_from_user_id
+        from app.core.user_id import COOKIE_USER_ID
 
         _raw = request.cookies.get(COOKIE_USER_ID)
         user_id = str(_raw) if _raw is not None else None
@@ -2626,7 +2680,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             try:
                 briefcase = await _get_tenant_briefcase(user_id)
                 user_name = briefcase.user_name
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:  # pylint: disable=broad-exception-caught  # noqa: S110
                 # Briefcase fetch failed, will render without user data
                 pass
 
@@ -2658,25 +2712,31 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             activity = []
             if briefcase.vault and briefcase.vault.documents:
                 for doc in briefcase.vault.documents[:3]:
-                    activity.append({
-                        "icon": "ðŸ“„",
-                        "description": f"Document: {doc.get('title', 'Uploaded')}",
-                        "time_ago": doc.get("uploaded_at", "Recently"),
-                    })
+                    activity.append(
+                        {
+                            "icon": "ðŸ“„",
+                            "description": f"Document: {doc.get('title', 'Uploaded')}",
+                            "time_ago": doc.get("uploaded_at", "Recently"),
+                        }
+                    )
             if briefcase.journal and briefcase.journal.recent_entries:
                 for entry in briefcase.journal.recent_entries[:3]:
-                    activity.append({
-                        "icon": entry.icon or "ðŸ“",
-                        "description": entry.description,
-                        "time_ago": entry.created_at,
-                    })
+                    activity.append(
+                        {
+                            "icon": entry.icon or "ðŸ“",
+                            "description": entry.description,
+                            "time_ago": entry.created_at,
+                        }
+                    )
             if briefcase.timeline and briefcase.timeline.recent_events:
                 for event in briefcase.timeline.recent_events[:3]:
-                    activity.append({
-                        "icon": event.icon or "ðŸ“…",
-                        "description": event.title,
-                        "time_ago": event.date or "Recently",
-                    })
+                    activity.append(
+                        {
+                            "icon": event.icon or "ðŸ“…",
+                            "description": event.title,
+                            "time_ago": event.date or "Recently",
+                        }
+                    )
             ctx["recent_activity"] = activity[:5]
 
         return templates.TemplateResponse(request, "pages/tenant_home.html", ctx)
@@ -2749,7 +2809,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return HTMLResponse(content="<h1>Auto Analysis Summary not found</h1>", status_code=404)
 
-
     @fastapi_app.get("/dev/elbow", response_class=HTMLResponse)
     async def elbow_dev():
         """
@@ -2759,7 +2818,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not app_settings.debug:
             return HTMLResponse(
                 content="<h1>404 - Not Found</h1><p>This page is only available in development mode.</p>",
-                status_code=404
+                status_code=404,
             )
         index_path = BASE_PATH / "static" / "index.html"
         index_fallback = _render_static_page(index_path)
@@ -2786,9 +2845,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         try:
             from app.core.telemetry_hooks import EMITTER
             from app.core.user_id import COOKIE_USER_ID
+
             _rc = request.cookies.get(COOKIE_USER_ID, "anon")
             EMITTER.emit("vault_load", "vault", str(_rc) if _rc is not None else "anon")
-        except Exception:  # pylint: disable=broad-exception-caught
+        except Exception:  # pylint: disable=broad-exception-caught  # noqa: S110
             # Telemetry failed, non-critical
             pass
 
@@ -2796,12 +2856,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         vault_template_path = BASE_PATH / "app" / "templates" / "pages" / "vault.html"
         if vault_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/vault.html", {
-                    "app_name": app_settings.app_name
-                })
+                return templates.TemplateResponse(request, "pages/vault.html", {"app_name": app_settings.app_name})
             except Exception as e:
                 logger.warning("Vault template error: %s", e)
-        
+
         # Fallback to simple HTML if template fails
         vault_html = f"""
 <!DOCTYPE html>
@@ -2811,22 +2869,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Vault - {app_settings.app_name}</title>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-               background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); 
-               color: #fff; 
-               min-height: 100vh; 
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+               color: #fff;
+               min-height: 100vh;
                padding: 2rem; }}
-        .container {{ max-width: 800px; margin: 0 auto; 
-                     background: rgba(255,255,255,0.05); 
-                     border-radius: 16px; 
-                     padding: 2rem; 
+        .container {{ max-width: 800px; margin: 0 auto;
+                     background: rgba(255,255,255,0.05);
+                     border-radius: 16px;
+                     padding: 2rem;
                      backdrop-filter: blur(10px); }}
         h1 {{ margin-bottom: 1rem; font-size: 2rem; }}
-        .status {{ background: rgba(16, 185, 129, 0.1); 
-                  border: 1px solid #10b981; 
-                  border-radius: 8px; 
-                  padding: 1rem; 
-                  margin: 1rem 0; 
+        .status {{ background: rgba(16, 185, 129, 0.1);
+                  border: 1px solid #10b981;
+                  border-radius: 8px;
+                  padding: 1rem;
+                  margin: 1rem 0;
                   color: #d1fae5; }}
     </style>
 </head>
@@ -2842,7 +2900,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 </body>
 </html>
         """.format(app_name=app_settings.app_name)
-        
+
         return HTMLResponse(content=vault_html)
 
     # =========================================================================
@@ -2890,10 +2948,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         calendar_fallback = _render_static_page(calendar_path, inject_stage_model=True)
         if calendar_fallback:
             return calendar_fallback
-        return HTMLResponse(
-            content="<h1>Calendar not found</h1>",
-            status_code=404
-        )
+        return HTMLResponse(content="<h1>Calendar not found</h1>", status_code=404)
 
     # =========================================================================
     # Temporary Debug Endpoint — remove after vault issue is resolved
@@ -2903,25 +2958,30 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def debug_status(request: Request):
         """Temporary: show user/gate/middleware state for debugging."""
         import traceback as _tb
+
         info = {"step": "init"}
         try:
             from app.core.user_id import COOKIE_USER_ID
+
             _rc = request.cookies.get(COOKIE_USER_ID, "")
             raw_cookie = str(_rc) if _rc is not None else ""
             info["cookie_present"] = bool(raw_cookie)
             info["cookie_prefix"] = raw_cookie[:12] + "..." if raw_cookie else "NONE"
 
             from app.core.cookie_auth import verify_user_id
+
             raw_uid = verify_user_id(raw_cookie)
             info["hmac_valid"] = raw_uid is not None
             info["raw_user_id"] = raw_uid[:6] + "***" if raw_uid else "NONE"
 
             from app.core.storage_middleware import is_valid_storage_user
+
             info["is_valid_storage_user"] = is_valid_storage_user(raw_cookie)
 
             if raw_uid:
                 from app.core.database import get_session_factory
                 from app.core.onboarding_state import get_onboarding_state
+
                 factory = get_session_factory()
                 async with factory() as db:
                     ob = await get_onboarding_state(raw_uid, db)
@@ -2931,8 +2991,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     info["next_gate"] = ob.next_required_gate
                     info["next_path"] = ob.next_required_path
 
-                    from app.models.models import User
                     from sqlalchemy import select
+
+                    from app.models.models import User
+
                     result = await db.execute(select(User).where(User.id == raw_uid))
                     user = result.scalar_one_or_none()
                     if user:
@@ -2952,10 +3014,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def debug_alembic(request: Request):
         """Temporary: check alembic state and force migration if drifted."""
         import traceback as _tb
+
         info = {"step": "init"}
         try:
             from sqlalchemy import text
+
             from app.core.database import get_session_factory
+
             factory = get_session_factory()
             async with factory() as db:
                 # Check current alembic version
@@ -2968,10 +3033,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
                 # Check if legal_sub_role column exists
                 try:
-                    result = await db.execute(text(
-                        "SELECT column_name FROM information_schema.columns "
-                        "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
-                    ))
+                    result = await db.execute(
+                        text(
+                            "SELECT column_name FROM information_schema.columns "
+                            "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
+                        )
+                    )
                     cols = [r[0] for r in result.fetchall()]
                     info["legal_sub_role_column_exists"] = "legal_sub_role" in cols
                     info["bar_license_number_column_exists"] = "bar_license_number" in cols
@@ -2989,25 +3056,31 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def debug_force_migrate(request: Request):
         """Temporary: force alembic to stamp pre-legal_sub_role then upgrade head."""
         import traceback as _tb
+
         info = {"step": "init"}
         try:
             import asyncio
+
             def _sync_fix():
-                from alembic.config import Config
                 from alembic import command
+                from alembic.config import Config
+
                 cfg = Config("alembic.ini")
                 # Stamp to the revision before legal_sub_role was added
                 command.stamp(cfg, "20260618_add_admin_error_queue")
                 # Now upgrade to head — this will run the legal_sub_role migration
                 command.upgrade(cfg, "head")
                 # Return current version
-                from alembic.runtime.migration import MigrationContext
                 from sqlalchemy import create_engine
+
+                from alembic.runtime.migration import MigrationContext
+
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
                 with eng.connect() as conn:
                     mc = MigrationContext.configure(conn)
                     return mc.get_current_revision()
+
             loop = asyncio.get_event_loop()
             final_rev = await loop.run_in_executor(None, _sync_fix)
             info["final_revision"] = str(final_rev)
@@ -3025,54 +3098,57 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         alembic_version says head but columns are missing.
         """
         import traceback as _tb
+
         info = {"step": "init"}
         try:
             from sqlalchemy import text
+
             from app.core.database import get_session_factory
+
             factory = get_session_factory()
             async with factory() as db:
                 # Check current state
-                result = await db.execute(text(
-                    "SELECT column_name FROM information_schema.columns "
-                    "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
-                ))
+                result = await db.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
+                    )
+                )
                 existing = [r[0] for r in result.fetchall()]
                 info["before"] = existing
 
                 if "legal_sub_role" not in existing:
-                    await db.execute(text(
-                        "ALTER TABLE users ADD COLUMN legal_sub_role VARCHAR(20) NULL"
-                    ))
+                    await db.execute(text("ALTER TABLE users ADD COLUMN legal_sub_role VARCHAR(20) NULL"))
                     info["added_legal_sub_role"] = True
                 else:
                     info["added_legal_sub_role"] = False
 
                 if "bar_license_number" not in existing:
-                    await db.execute(text(
-                        "ALTER TABLE users ADD COLUMN bar_license_number VARCHAR(50) NULL"
-                    ))
+                    await db.execute(text("ALTER TABLE users ADD COLUMN bar_license_number VARCHAR(50) NULL"))
                     info["added_bar_license_number"] = True
                 else:
                     info["added_bar_license_number"] = False
 
                 # Add indexes if missing
                 try:
-                    await db.execute(text(
-                        "CREATE INDEX IF NOT EXISTS ix_users_legal_sub_role ON users (legal_sub_role)"
-                    ))
-                    await db.execute(text(
-                        "CREATE INDEX IF NOT EXISTS ix_users_bar_license_number ON users (bar_license_number)"
-                    ))
+                    await db.execute(
+                        text("CREATE INDEX IF NOT EXISTS ix_users_legal_sub_role ON users (legal_sub_role)")
+                    )
+                    await db.execute(
+                        text("CREATE INDEX IF NOT EXISTS ix_users_bar_license_number ON users (bar_license_number)")
+                    )
                 except Exception as ie:
                     info["index_warning"] = str(ie)
 
                 await db.commit()
 
                 # Verify
-                result = await db.execute(text(
-                    "SELECT column_name FROM information_schema.columns "
-                    "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
-                ))
+                result = await db.execute(
+                    text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
+                    )
+                )
                 after = [r[0] for r in result.fetchall()]
                 info["after"] = after
 
@@ -3090,21 +3166,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         calls don't try to re-run already-applied migrations.
         """
         import traceback as _tb
+
         info = {"step": "init"}
         try:
             import asyncio
+
             def _sync_stamp():
-                from alembic.config import Config
                 from alembic import command
+                from alembic.config import Config
+
                 cfg = Config("alembic.ini")
                 command.stamp(cfg, "head")
-                from alembic.runtime.migration import MigrationContext
                 from sqlalchemy import create_engine
+
+                from alembic.runtime.migration import MigrationContext
+
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
                 with eng.connect() as conn:
                     mc = MigrationContext.configure(conn)
                     return mc.get_current_revision()
+
             loop = asyncio.get_event_loop()
             final_rev = await loop.run_in_executor(None, _sync_stamp)
             info["stamped_to"] = str(final_rev)
@@ -3123,50 +3205,57 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         and role guards let the user through to tenant pages.
         """
         import traceback as _tb
+
         info = {"step": "init"}
         try:
             from sqlalchemy import text
+
             from app.core.database import get_session_factory
+
             factory = get_session_factory()
             async with factory() as db:
                 # Check if user exists
-                result = await db.execute(text(
-                    "SELECT id FROM users WHERE id = :uid"
-                ), {"uid": "GUbGQUTpK6"})
+                result = await db.execute(text("SELECT id FROM users WHERE id = :uid"), {"uid": "GUbGQUTpK6"})
                 existing = result.scalar_one_or_none()
 
                 if existing:
                     # Update existing user to be fully onboarded
-                    await db.execute(text(
-                        "UPDATE users SET "
-                        "primary_provider = 'google_drive', "
-                        "default_role = 'tenant', "
-                        "completed_groups = :groups, "
-                        "updated_at = NOW() "
-                        "WHERE id = :uid"
-                    ), {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized"})
+                    await db.execute(
+                        text(
+                            "UPDATE users SET "
+                            "primary_provider = 'google_drive', "
+                            "default_role = 'tenant', "
+                            "completed_groups = :groups, "
+                            "updated_at = NOW() "
+                            "WHERE id = :uid"
+                        ),
+                        {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized"},
+                    )
                     info["action"] = "updated"
                 else:
                     # Insert new user
-                    await db.execute(text(
-                        "INSERT INTO users (id, primary_provider, storage_user_id, "
-                        "default_role, intensity_level, completed_groups, created_at, updated_at) "
-                        "VALUES (:uid, 'google_drive', :sid, 'tenant', 'low', "
-                        ":groups, NOW(), NOW())"
-                    ), {
-                        "uid": "GUbGQUTpK6",
-                        "sid": "test-storage-user-id",
-                        "groups": "storage_connected,vault_initialized",
-                    })
+                    await db.execute(
+                        text(
+                            "INSERT INTO users (id, primary_provider, storage_user_id, "
+                            "default_role, intensity_level, completed_groups, created_at, updated_at) "
+                            "VALUES (:uid, 'google_drive', :sid, 'tenant', 'low', "
+                            ":groups, NOW(), NOW())"
+                        ),
+                        {
+                            "uid": "GUbGQUTpK6",
+                            "sid": "test-storage-user-id",
+                            "groups": "storage_connected,vault_initialized",
+                        },
+                    )
                     info["action"] = "inserted"
 
                 await db.commit()
 
                 # Verify
-                result = await db.execute(text(
-                    "SELECT id, primary_provider, default_role, completed_groups "
-                    "FROM users WHERE id = :uid"
-                ), {"uid": "GUbGQUTpK6"})
+                result = await db.execute(
+                    text("SELECT id, primary_provider, default_role, completed_groups " "FROM users WHERE id = :uid"),
+                    {"uid": "GUbGQUTpK6"},
+                )
                 row = result.fetchone()
                 if row:
                     info["user"] = {
@@ -3186,10 +3275,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
         import traceback as _tb
+
         info = {"step": "init"}
         try:
-            from app.core.user_id import COOKIE_USER_ID
             from app.core.cookie_auth import verify_user_id
+            from app.core.user_id import COOKIE_USER_ID
+
             raw_cookie = request.cookies.get(COOKIE_USER_ID, "")
             raw_uid = verify_user_id(raw_cookie)
             if not raw_uid:
@@ -3199,6 +3290,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
             # Get token from token_manager
             from app.core.oauth_token_manager import token_manager
+
             cached = token_manager.get_token(raw_uid)
             if cached:
                 access_token = cached.access_token
@@ -3208,10 +3300,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             else:
                 # Try DB
                 from app.core.database import get_session_factory
+
                 factory = get_session_factory()
                 async with factory() as db:
-                    from app.models.models import User
                     from sqlalchemy import select
+
+                    from app.models.models import User
+
                     result = await db.execute(select(User).where(User.id == raw_uid))
                     user = result.scalar_one_or_none()
                     provider = user.primary_provider if user else None
@@ -3222,7 +3317,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["provider"] = provider
 
             # Use Vault SDK â€” isolated, no gate/DB dependencies
-            from app.sdk.vault import VaultClient, TENANT_VAULT
+            from app.sdk.vault import TENANT_VAULT, VaultClient
+
             vault = VaultClient(
                 provider=provider,
                 access_token=access_token,
@@ -3239,6 +3335,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if vault_result.all_ok:
                 from app.core.database import get_session_factory
                 from app.modules.onboarding.gates import mark_gate
+
                 factory2 = get_session_factory()
                 async with factory2() as db2:
                     await mark_gate(db2, raw_uid, "vault_initialized")
@@ -3261,6 +3358,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def documents_page(request: Request):
         """Serve the document intake page."""
         import traceback as _tb
+
         try:
             # Apply PageContract guard
             guard_redirect = _guard_by_contract("documents", request)
@@ -3271,9 +3369,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             try:
                 from app.core.telemetry_hooks import EMITTER
                 from app.core.user_id import COOKIE_USER_ID
+
                 _rc = request.cookies.get(COOKIE_USER_ID, "anon")
                 EMITTER.emit("documents_page_load", "documents", str(_rc) if _rc is not None else "anon")
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:  # pylint: disable=broad-exception-caught  # noqa: S110
                 pass
 
             # Try template first
@@ -3283,9 +3382,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     # Fetch documents from vault for the authenticated user
                     documents_data = []
                     try:
-                        from app.services.vault_upload_service import get_vault_service
                         from app.core.cookie_auth import verify_user_id
                         from app.core.user_id import COOKIE_USER_ID
+                        from app.services.vault_upload_service import get_vault_service
 
                         cookie_value = request.cookies.get(COOKIE_USER_ID)
                         if cookie_value:
@@ -3297,14 +3396,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                                     {
                                         "id": doc.vault_id,
                                         "filename": doc.filename,
-                                        "uploaded_at": doc.uploaded_at if isinstance(doc.uploaded_at, str) else doc.uploaded_at.isoformat() if hasattr(doc.uploaded_at, 'isoformat') else str(doc.uploaded_at),
+                                        "uploaded_at": doc.uploaded_at
+                                        if isinstance(doc.uploaded_at, str)
+                                        else doc.uploaded_at.isoformat()
+                                        if hasattr(doc.uploaded_at, "isoformat")
+                                        else str(doc.uploaded_at),
                                         "document_type": doc.document_type or "document",
                                     }
                                     for doc in vault_docs
                                 ]
                     except Exception as doc_err:
                         logger.warning("Failed to fetch documents for page: %s", doc_err)
-                    
+
                     return templates.TemplateResponse(request, "pages/documents.html", {"documents": documents_data})
                 except Exception as e:  # pylint: disable=broad-exception-caught
                     logger.warning("Documents template error, falling back to static: %s", e)
@@ -3314,17 +3417,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             documents_fallback = _render_static_page(documents_path, inject_stage_model=True)
             if documents_fallback:
                 return documents_fallback
-            return HTMLResponse(
-                content="<h1>Documents page not found</h1>",
-                status_code=404
-            )
+            return HTMLResponse(content="<h1>Documents page not found</h1>", status_code=404)
         except Exception as exc:
             logger.error("DOCUMENTS_DEBUG: %s\n%s", exc, _tb.format_exc())
             return JSONResponse(
                 status_code=500,
                 content={"error": "documents_crash", "detail": str(exc), "traceback": _tb.format_exc()},
             )
-
 
     # =========================================================================
     # Command Center Page
@@ -3337,10 +3436,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         command_center_content = _render_static_page(command_center_path)
         if command_center_content:
             return command_center_content
-        return HTMLResponse(
-            content="<h1>Command Center not found</h1>",
-            status_code=404
-        )
+        return HTMLResponse(content="<h1>Command Center not found</h1>", status_code=404)
 
     # =========================================================================
     # Eviction Defense Page
@@ -3371,10 +3467,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         invite_fallback = _render_static_page(invite_path)
         if invite_fallback:
             return invite_fallback
-        return HTMLResponse(
-            content="<h1>Invite Advocate page not found</h1>",
-            status_code=404
-        )
+        return HTMLResponse(content="<h1>Invite Advocate page not found</h1>", status_code=404)
 
     # =========================================================================
     # Document Delivery Pages (Professional Send Flow)
@@ -3406,16 +3499,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         send_fallback = _render_static_page(send_path)
         if send_fallback:
             return send_fallback
-        return HTMLResponse(
-            content="<h1>Document Send page not found</h1>",
-            status_code=404
-        )
+        return HTMLResponse(content="<h1>Document Send page not found</h1>", status_code=404)
 
     # =========================================================================
     # Tenant Pages (My Case)
     # =========================================================================
 
-    async def _guard_role_page(request: Request, allowed_roles: set[str]) -> Optional[RedirectResponse]:
+    async def _guard_role_page(request: Request, allowed_roles: set[str]) -> RedirectResponse | None:
         """Lightweight guard: storage connected + expected role for portal page."""
         from app.core.cookie_auth import extract_user_id
         from app.core.storage_middleware import is_valid_storage_user
@@ -3444,14 +3534,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Page Contract-Based Route Guards (High-Priority Pages)
     # =========================================================================
 
-    def _guard_by_contract(page_id: str, request: Request) -> Optional[RedirectResponse]:
+    def _guard_by_contract(page_id: str, request: Request) -> RedirectResponse | None:
         """
         Guard a page using its PageContract from route_guards.py.
         Returns RedirectResponse if access denied, None if allowed.
         """
         try:
-            from app.core.route_guards import guard, GuardResult
-            from app.core.page_contracts import PAGE_CONTRACTS, UserRole
+            from app.core.page_contracts import PAGE_CONTRACTS, UserRole  # noqa: F401
+            from app.core.route_guards import GuardResult, guard  # noqa: F401
             from app.core.storage_middleware import is_valid_storage_user
             from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
             from app.core.workflow_engine import route_user as _route_user
@@ -3486,7 +3576,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             # Guards not available, allow through
             return None
 
-    def _render_static_page(path: Path, inject_stage_model: bool = False) -> Optional[HTMLResponse]:
+    def _render_static_page(path: Path, inject_stage_model: bool = False) -> HTMLResponse | None:
         """Read a static HTML page and optionally inject stage-model assets/markup."""
         if not path.exists():
             return None
@@ -3497,7 +3587,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     def _inject_workspace_stage_model(html: str) -> str:
         """Inject normalized workspace stage model shell into static role pages."""
-        if "id=\"workspaceStageModel\"" in html:
+        if 'id="workspaceStageModel"' in html:
             return html
 
         css_link = '<link rel="stylesheet" href="/static/css/workspace-stage-model.css">'
@@ -3550,11 +3640,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
-        """Universal timeline page - redirects to tenant timeline for authenticated users."""
+        """Serve the GUI timeline page (RECORD pillar — unified timeline view)."""
+        timeline_template_path = BASE_PATH / "app" / "templates" / "pages" / "timeline.html"
+        if timeline_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/timeline.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Timeline template error, falling back to tenant timeline: %s", e)
         from starlette.responses import RedirectResponse
+
         return RedirectResponse(url="/tenant/timeline", status_code=302)
 
-    async def _get_tenant_briefcase(user_id: str, user_name: Optional[str] = None):
+    async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
         return await get_tenant_briefcase(user_id, user_name)
 
@@ -3565,7 +3662,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        
+
         # Get user from cookie/session
         user_id = extract_user_id(request) or ""
         briefcase = None
@@ -3574,22 +3671,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 briefcase = await _get_tenant_briefcase(user_id)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Tenant briefcase load failed for %s: %s", user_id[:6] + "***", e)
-        
+
         # Try tenant home template first, then fall back to main tenant template
         tenant_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_home.html"
         if tenant_home_template_path.exists():
             try:
-                context = {"briefcase": briefcase} if briefcase else {
-                    "briefcase": None,
-                    "vault": {"total_documents": 0, "has_documents": False},
-                    "timeline": {"has_timeline": False},
-                    "journal": {"has_journal": False},
-                    "inbox": {"unread_count": 0},
-                    "has_any_data": False,
-                    "is_new_tenant": True,
-                }
+                context = (
+                    {"briefcase": briefcase}
+                    if briefcase
+                    else {
+                        "briefcase": None,
+                        "vault": {"total_documents": 0, "has_documents": False},
+                        "timeline": {"has_timeline": False},
+                        "journal": {"has_journal": False},
+                        "inbox": {"unread_count": 0},
+                        "has_any_data": False,
+                        "is_new_tenant": True,
+                    }
+                )
                 # Add framework fields for the redesigned tenant home
-                context["vault_connected"] = bool(briefcase and briefcase.vault and briefcase.vault.total_documents is not None)
+                context["vault_connected"] = bool(
+                    briefcase and briefcase.vault and briefcase.vault.total_documents is not None
+                )
                 context["jurisdiction"] = None
                 context["user_name"] = briefcase.user_name if briefcase else None
                 context["document_count"] = briefcase.vault.total_documents if briefcase and briefcase.vault else 0
@@ -3607,29 +3710,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/tenant_home.html", context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Tenant home template error: %s", e)
-        
+
         # Fallback: template missing — return inline HTML (no redirect, never dead-end)
-        return HTMLResponse(content=(
-            '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
-            '<meta name="viewport" content="width=device-width,initial-scale=1">'
-            '<title>Semptify</title></head><body style="font-family:sans-serif;max-width:600px;margin:2rem auto;padding:1rem">'
-            '<h1>Your home page is loading</h1>'
-            '<p>If this persists, call <strong>HOME Line: 612-728-5767</strong> for free tenant help.</p>'
-            '<p><a href="/help">Get help</a> &nbsp;|&nbsp; <a href="/tenant/timeline">View your timeline</a></p>'
-            '</body></html>'
-        ), status_code=200)
+        return HTMLResponse(
+            content=(
+                '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+                '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                '<title>Semptify</title></head><body style="font-family:sans-serif;max-width:600px;margin:2rem auto;padding:1rem">'
+                "<h1>Your home page is loading</h1>"
+                "<p>If this persists, call <strong>HOME Line: 612-728-5767</strong> for free tenant help.</p>"
+                '<p><a href="/help">Get help</a> &nbsp;|&nbsp; <a href="/tenant/timeline">View your timeline</a></p>'
+                "</body></html>"
+            ),
+            status_code=200,
+        )
 
     @fastapi_app.get("/tenant/capture", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/capture/", response_class=HTMLResponse)
-    async def tenant_capture(request: Request, type: str = None):
+    async def tenant_capture(request: Request, type: str = None):  # noqa: A002
         """Quick capture page for recording events."""
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        
+
         user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
-        
+
         context = {
             "briefcase": briefcase,
             "capture_type": type,
@@ -3641,19 +3747,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.post("/api/tenant/capture")
     async def tenant_capture_post(request: Request):
         """Create a timeline event from quick capture form."""
-        from app.models.models import TimelineEvent
         from app.core.database import get_db_session
-        
+        from app.models.models import TimelineEvent
+
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        
+
         user_id = extract_user_id(request)
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")
-        
+
         form_data = await request.form()
-        
+
         capture_type = form_data.get("capture_type", "other")
         is_urgent = form_data.get("is_urgent") == "true"
         description = form_data.get("description", "")
@@ -3661,13 +3767,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         event_time_str = form_data.get("event_time", "")
         who_involved = form_data.get("who_involved", "")
         location = form_data.get("location", "")
-        
+
         if not description:
             raise HTTPException(status_code=400, detail="Description is required")
-        
+
         if not event_date_str:
             raise HTTPException(status_code=400, detail="Date is required")
-        
+
         # Parse date/time (must be UTC-aware — event_date is DateTimeTZ)
         try:
             event_date = datetime.datetime.strptime(event_date_str, "%Y-%m-%d").date()
@@ -3675,15 +3781,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 event_datetime = datetime.datetime.combine(
                     event_date,
                     datetime.datetime.strptime(event_time_str, "%H:%M").time(),
-                    tzinfo=datetime.timezone.utc,
+                    tzinfo=datetime.UTC,
                 )
             else:
                 event_datetime = datetime.datetime.combine(
-                    event_date, datetime.datetime.min.time(), tzinfo=datetime.timezone.utc
+                    event_date, datetime.datetime.min.time(), tzinfo=datetime.UTC
                 )
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date or time format")
-        
+
         # Map capture types to event types
         type_mapping = {
             "notice": "notice",
@@ -3691,10 +3797,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "repair": "maintenance",
             "harassment": "communication",
             "payment": "payment",
-            "other": "other"
+            "other": "other",
         }
         event_type = type_mapping.get(capture_type, "other")
-        
+
         async with get_db_session() as db:
             event = TimelineEvent(
                 user_id=user_id,
@@ -3706,11 +3812,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 who_involved=who_involved,
                 location=location,
                 is_evidence=False,
-                created_at=utc_now()
+                created_at=utc_now(),
             )
             db.add(event)
             await db.commit()
-        
+
         return {"success": True, "event_id": event.id}
 
     @fastapi_app.get("/tenant/journal", response_class=HTMLResponse)
@@ -3738,10 +3844,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        
+
         user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
-        
+
         context = {"briefcase": briefcase}
         return templates.TemplateResponse(request, "pages/tenant_inbox.html", context)
 
@@ -3825,58 +3931,144 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         with contract metadata. This allows any module with a PageContract
         to have a UI without creating a dedicated route.
         """
-        from app.core.page_contracts import get_contract, PAGE_CONTRACTS
-        from app.core.user_context import UserRole
-        
+        from app.core.page_contracts import PAGE_CONTRACTS, get_contract
+
         # Validate page_id exists
         if page_id not in PAGE_CONTRACTS:
             return HTMLResponse(
                 content=f"<h1>Module '{page_id}' not found</h1><p>Available modules: {', '.join(list(PAGE_CONTRACTS.keys())[:20])}...</p>",
-                status_code=404
+                status_code=404,
             )
-        
+
         contract = get_contract(page_id)
-        
+
         # Check role access
-        guard_redirect = await _guard_role_page(
-            request, 
-            {role.value for role in contract.roles_supported}
-        )
+        guard_redirect = await _guard_role_page(request, {role.value for role in contract.roles_supported})
         if guard_redirect:
             return guard_redirect
-        
+
         # Build template context from PageContract
         # Map PageContract fields to template expectations
-        
+
         # Module-specific action definitions
         MODULE_ACTIONS = {
             "eviction_answer": [
-                {"icon": "📋", "label": "Start Answer", "description": "Begin filling out eviction answer form", "endpoint": "/start", "method": "POST"},
-                {"icon": "📄", "label": "Load Template", "description": "Load eviction answer template", "endpoint": "/template", "method": "GET"},
-                {"icon": "💾", "label": "Save Draft", "description": "Save current progress", "endpoint": "/save", "method": "POST"},
+                {
+                    "icon": "📋",
+                    "label": "Start Answer",
+                    "description": "Begin filling out eviction answer form",
+                    "endpoint": "/start",
+                    "method": "POST",
+                },
+                {
+                    "icon": "📄",
+                    "label": "Load Template",
+                    "description": "Load eviction answer template",
+                    "endpoint": "/template",
+                    "method": "GET",
+                },
+                {
+                    "icon": "💾",
+                    "label": "Save Draft",
+                    "description": "Save current progress",
+                    "endpoint": "/save",
+                    "method": "POST",
+                },
             ],
             "counterclaim": [
-                {"icon": "⚖️", "label": "Build Counterclaim", "description": "Create a counterclaim against landlord", "endpoint": "/build", "method": "POST"},
-                {"icon": "📚", "label": "Legal Grounds", "description": "Browse valid counterclaim grounds", "endpoint": "/grounds", "method": "GET"},
-                {"icon": "📎", "label": "Attach Evidence", "description": "Link supporting documents", "endpoint": "/attach", "method": "POST"},
+                {
+                    "icon": "⚖️",
+                    "label": "Build Counterclaim",
+                    "description": "Create a counterclaim against landlord",
+                    "endpoint": "/build",
+                    "method": "POST",
+                },
+                {
+                    "icon": "📚",
+                    "label": "Legal Grounds",
+                    "description": "Browse valid counterclaim grounds",
+                    "endpoint": "/grounds",
+                    "method": "GET",
+                },
+                {
+                    "icon": "📎",
+                    "label": "Attach Evidence",
+                    "description": "Link supporting documents",
+                    "endpoint": "/attach",
+                    "method": "POST",
+                },
             ],
             "complaints": [
-                {"icon": "📝", "label": "File Complaint", "description": "Submit a new housing complaint", "endpoint": "/file", "method": "POST"},
-                {"icon": "📊", "label": "Track Status", "description": "Check complaint status", "endpoint": "/status", "method": "GET"},
-                {"icon": "🏛️", "label": "Agency Guide", "description": "Find the right agency to complain to", "endpoint": "/agencies", "method": "GET"},
+                {
+                    "icon": "📝",
+                    "label": "File Complaint",
+                    "description": "Submit a new housing complaint",
+                    "endpoint": "/file",
+                    "method": "POST",
+                },
+                {
+                    "icon": "📊",
+                    "label": "Track Status",
+                    "description": "Check complaint status",
+                    "endpoint": "/status",
+                    "method": "GET",
+                },
+                {
+                    "icon": "🏛️",
+                    "label": "Agency Guide",
+                    "description": "Find the right agency to complain to",
+                    "endpoint": "/agencies",
+                    "method": "GET",
+                },
             ],
             "case_builder": [
-                {"icon": "🏗️", "label": "Add Fact", "description": "Add case fact or event", "endpoint": "/facts", "method": "POST"},
-                {"icon": "📎", "label": "Link Evidence", "description": "Attach documents to facts", "endpoint": "/evidence", "method": "POST"},
-                {"icon": "📋", "label": "View Timeline", "description": "See case chronology", "endpoint": "/timeline", "method": "GET"},
+                {
+                    "icon": "🏗️",
+                    "label": "Add Fact",
+                    "description": "Add case fact or event",
+                    "endpoint": "/facts",
+                    "method": "POST",
+                },
+                {
+                    "icon": "📎",
+                    "label": "Link Evidence",
+                    "description": "Attach documents to facts",
+                    "endpoint": "/evidence",
+                    "method": "POST",
+                },
+                {
+                    "icon": "📋",
+                    "label": "View Timeline",
+                    "description": "See case chronology",
+                    "endpoint": "/timeline",
+                    "method": "GET",
+                },
             ],
             "timeline": [
-                {"icon": "➕", "label": "Add Event", "description": "Add event to timeline", "endpoint": "/events", "method": "POST"},
-                {"icon": "📅", "label": "View Calendar", "description": "See deadline calendar", "endpoint": "/calendar", "method": "GET"},
-                {"icon": "🔔", "label": "Set Reminder", "description": "Set deadline reminders", "endpoint": "/remind", "method": "POST"},
+                {
+                    "icon": "➕",
+                    "label": "Add Event",
+                    "description": "Add event to timeline",
+                    "endpoint": "/events",
+                    "method": "POST",
+                },
+                {
+                    "icon": "📅",
+                    "label": "View Calendar",
+                    "description": "See deadline calendar",
+                    "endpoint": "/calendar",
+                    "method": "GET",
+                },
+                {
+                    "icon": "🔔",
+                    "label": "Set Reminder",
+                    "description": "Set deadline reminders",
+                    "endpoint": "/remind",
+                    "method": "POST",
+                },
             ],
         }
-        
+
         # Icon mapping for common modules
         ICON_MAP = {
             "eviction_answer": "🏠",
@@ -3890,22 +4082,45 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "hearing_prep": "🎤",
             "dakota_defense": "🏛️",
         }
-        
+
         template_contract = {
             "title": contract.title,
             "description": contract.expectations or contract.qualification,
             "icon": ICON_MAP.get(page_id, "🔧"),
             "tags": contract.primary_groups + contract.secondary_groups,
             "disclaimer": "This is a legal self-help tool. Consult an attorney for your specific situation.",
-            "actions": MODULE_ACTIONS.get(page_id, [
-                {"icon": "▶️", "label": "Get Started", "description": "Begin using this tool", "endpoint": "/start", "method": "POST"},
-                {"icon": "📖", "label": "Learn More", "description": "Read documentation", "endpoint": "/docs", "method": "GET"},
-            ]),
+            "actions": MODULE_ACTIONS.get(
+                page_id,
+                [
+                    {
+                        "icon": "▶️",
+                        "label": "Get Started",
+                        "description": "Begin using this tool",
+                        "endpoint": "/start",
+                        "method": "POST",
+                    },
+                    {
+                        "icon": "📖",
+                        "label": "Learn More",
+                        "description": "Read documentation",
+                        "endpoint": "/docs",
+                        "method": "GET",
+                    },
+                ],
+            ),
             "api_base": f"/api/modules/{page_id}",
             "sections": [
-                {"title": "Entry Criteria", "body": "\n".join(f"• {c}" for c in contract.entry_criteria) or "None specified"},
-                {"title": "Exit Criteria", "body": "\n".join(f"• {c}" for c in contract.exit_criteria) or "None specified"},
-            ] if contract.entry_criteria or contract.exit_criteria else [],
+                {
+                    "title": "Entry Criteria",
+                    "body": "\n".join(f"• {c}" for c in contract.entry_criteria) or "None specified",
+                },
+                {
+                    "title": "Exit Criteria",
+                    "body": "\n".join(f"• {c}" for c in contract.exit_criteria) or "None specified",
+                },
+            ]
+            if contract.entry_criteria or contract.exit_criteria
+            else [],
             "page_id": page_id,
             "route": contract.route,
             "status": contract.status,
@@ -3913,14 +4128,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "primary_groups": contract.primary_groups,
             "telemetry_events": contract.telemetry_events,
         }
-        
+
         return templates.TemplateResponse(
-            request, 
-            "pages/module_page.html", 
+            request,
+            "pages/module_page.html",
             {
                 "request": request,
                 "contract": template_contract,
-            }
+            },
         )
 
     # Module Access API — Returns which modules are accessible to current user
@@ -3928,14 +4143,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def get_module_access_api(request: Request):
         """
         Get module access for current user based on role + jurisdiction.
-        
+
         Returns active modules and any restrictions.
         """
-        from app.core.module_gate import get_module_access, get_jurisdiction
-        
+        from app.core.module_gate import get_jurisdiction, get_module_access
+
         access = get_module_access(request)
         jurisdiction = get_jurisdiction(request)
-        
+
         return {
             "user_role": access.user_role.value,
             "jurisdiction": {
@@ -3985,9 +4200,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         try:
-            from app.services.ui_composer import compose_page
-            from app.modules.tenant_feed.service import aggregate_feed_async
             from app.core.cookie_auth import verify_user_id
+            from app.modules.tenant_feed.service import aggregate_feed_async
+            from app.services.ui_composer import compose_page
 
             # Get user_id for feed aggregation
             user_id_cookie = request.cookies.get("semptify_uid", "")
@@ -3997,10 +4212,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             feed_items = await aggregate_feed_async(user_id) if user_id else []
 
             # Compose the page structure
-            page = compose_page(user_id, "timeline", context={
-                "document_count": len([i for i in feed_items if i["type"] == "document"]),
-                "upcoming_deadlines": len([i for i in feed_items if i["type"] == "deadline"]),
-            })
+            page = compose_page(
+                user_id,
+                "timeline",
+                context={
+                    "document_count": len([i for i in feed_items if i["type"] == "document"]),
+                    "upcoming_deadlines": len([i for i in feed_items if i["type"] == "deadline"]),
+                },
+            )
 
             # Inject the real feed into the timeline_group component
             for component in page["components"]:
@@ -4031,11 +4250,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         try:
-            from app.services.ui_composer import compose_page
             from app.core.cookie_auth import verify_user_id
+            from app.modules.context_engine import cache as ctx_cache, stories as ctx_stories
             from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
             from app.modules.page_composer.service import compose_page as page_compose_page
-            from app.modules.context_engine import cache as ctx_cache, stories as ctx_stories
+            from app.services.ui_composer import compose_page
 
             user_id_cookie = request.cookies.get("semptify_uid", "")
             user_id = verify_user_id(user_id_cookie) or ""
@@ -4045,16 +4264,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 library_path = library_stage.path if library_stage else "/tenant/library"
                 return ssot_redirect(library_path, context=f"unknown subject {subject}")
 
-            page_data = await page_compose_page(
-                subject, "default", user_id, fact_limit=5, story_limit=3
-            )
+            page_data = await page_compose_page(subject, "default", user_id, fact_limit=5, story_limit=3)
             jurisdiction = page_data.get("jurisdiction", "default")
             facts = page_data.get("selected_facts", page_data.get("facts", []))
             if not facts:
                 facts = await ctx_cache.get_facts(subject, jurisdiction)
-            stories = await ctx_stories.get_published_stories(
-                subject, jurisdiction, limit=3
-            )
+            stories = await ctx_stories.get_published_stories(subject, jurisdiction, limit=3)
 
             context = {
                 "subject": subject,
@@ -4091,8 +4306,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         try:
-            from app.services.ui_composer import compose_page
             from app.core.cookie_auth import verify_user_id
+            from app.services.ui_composer import compose_page
 
             user_id_cookie = request.cookies.get("semptify_uid", "")
             user_id = verify_user_id(user_id_cookie) or ""
@@ -4114,15 +4329,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return templates.TemplateResponse(request, "pages/law_library.html")
 
     @fastapi_app.get("/api/ui/fragment/timeline_group")
-    async def timeline_group_fragment(request: Request, type: str = "all"):
+    async def timeline_group_fragment(request: Request, type: str = "all"):  # noqa: A002
         """Return a timeline_group fragment for HTMX filter chip swaps.
 
         Used by the RECORD pillar filter chips. Fetches the tenant feed
         (optionally filtered by type) and renders just the timeline_group
         component as HTML.
         """
-        from app.modules.tenant_feed.service import aggregate_feed_async, FEED_TYPES
         from app.core.cookie_auth import verify_user_id
+        from app.modules.tenant_feed.service import FEED_TYPES, aggregate_feed_async
 
         # Map filter chip IDs to FEED_TYPES
         chip_to_feed = {
@@ -4166,9 +4381,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fact to a fact_card component, and renders them as HTML for HTMX
         swap into #library-content. Falls back to empty_state if no facts.
         """
+        from app.core.request_utils import require_request_user_id
         from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
         from app.modules.page_composer.service import compose_page
-        from app.core.request_utils import require_request_user_id
 
         if subject not in ALL_SUBJECTS:
             return HTMLResponse(
@@ -4201,32 +4416,34 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         label = page.get("label") or SUBJECT_LABELS.get(subject, subject)
 
         if not facts and not stories:
-            components.append({
-                "type": "empty_state",
-                "data": {
-                    "icon": "📚",
-                    "title": f"No verified facts yet for {label}",
-                    "body": "This topic hasn't been populated. Try another topic, or check back later.",
-                },
-            })
+            components.append(
+                {
+                    "type": "empty_state",
+                    "data": {
+                        "icon": "📚",
+                        "title": f"No verified facts yet for {label}",
+                        "body": "This topic hasn't been populated. Try another topic, or check back later.",
+                    },
+                }
+            )
         else:
             # Bundle stories onto the first fact_card per the macro's data.stories field
             story_texts = [
-                {"text": s.get("title") or s.get("body") or ""}
-                for s in stories
-                if s.get("title") or s.get("body")
+                {"text": s.get("title") or s.get("body") or ""} for s in stories if s.get("title") or s.get("body")
             ]
             for idx, fact in enumerate(facts):
-                components.append({
-                    "type": "fact_card",
-                    "data": {
-                        "title": fact.get("claim") or "Verified fact",
-                        "body": fact.get("citation") or "",
-                        "source_url": fact.get("source_url") or "",
-                        "source_label": fact.get("source_name") or fact.get("source_url") or "",
-                        "stories": story_texts if idx == 0 else [],
-                    },
-                })
+                components.append(
+                    {
+                        "type": "fact_card",
+                        "data": {
+                            "title": fact.get("claim") or "Verified fact",
+                            "body": fact.get("citation") or "",
+                            "source_url": fact.get("source_url") or "",
+                            "source_label": fact.get("source_name") or fact.get("source_url") or "",
+                            "stories": story_texts if idx == 0 else [],
+                        },
+                    }
+                )
 
         return templates.TemplateResponse(
             request,
@@ -4357,7 +4574,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"advocate"})
         if guard_redirect:
             return guard_redirect
-        
+
         # Try advocate home template first, then fall back to main advocate template
         advocate_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_home.html"
         if advocate_home_template_path.exists():
@@ -4365,7 +4582,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/advocate_home.html")
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Advocate home template error: %s", e)
-        
+
         # Fallback to main advocate page
         return await advocate_page(request)
 
@@ -4441,7 +4658,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"legal"})
         if guard_redirect:
             return guard_redirect
-        
+
         # Try legal home template first, then fall back to main legal template
         legal_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal_home.html"
         if legal_home_template_path.exists():
@@ -4449,7 +4666,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/legal_home.html")
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Legal home template error: %s", e)
-        
+
         # Fallback to main legal page
         return await legal_page(request)
 
@@ -4512,12 +4729,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """
         if is_production:
             from fastapi import HTTPException as _HTTPException
+
             raise _HTTPException(status_code=404, detail="Not found")
 
         from app.core.cookie_auth import verify_user_id as _verify
-        from app.core.user_id import COOKIE_USER_ID as _COOKIE
-        from app.core.onboarding_state import get_onboarding_state as _get_state
         from app.core.database import get_session_factory as _factory
+        from app.core.onboarding_state import get_onboarding_state as _get_state
+        from app.core.user_id import COOKIE_USER_ID as _COOKIE
 
         raw_cookie = request.cookies.get(_COOKIE)
         if not raw_cookie:
@@ -4551,10 +4769,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Everything else â†’ 404 (must have a proper rendered route)
     # =========================================================================
 
-    ALLOWED_STATIC_PAGES = frozenset({
-        "welcome", "terms", "privacy", "disclaimer",
-        "about", "contact", "credits",
-    })
+    ALLOWED_STATIC_PAGES = frozenset(
+        {
+            "welcome",
+            "terms",
+            "privacy",
+            "disclaimer",
+            "about",
+            "contact",
+            "credits",
+        }
+    )
 
     @fastapi_app.get("/{page_name}.html", response_class=HTMLResponse)
     async def serve_html_page(page_name: str, request: Request):
@@ -4567,7 +4792,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         if page_name not in ALLOWED_STATIC_PAGES:
             return JSONResponse(
-                content={"error": "not_found", "message": f"Page '{page_name}.html' is not a public page. Use the rendered route instead."},
+                content={
+                    "error": "not_found",
+                    "message": f"Page '{page_name}.html' is not a public page. Use the rendered route instead.",
+                },
                 status_code=404,
             )
 
@@ -4587,13 +4815,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/activate-vault", response_class=HTMLResponse)
     async def activate_vault_page():
         """Serve the vault activation page."""
+
         from fastapi.responses import FileResponse
-        from pathlib import Path
-        
+
         page_path = BASE_PATH / "static" / "onboarding" / "activate-vault.html"
         if page_path.exists():
             return FileResponse(page_path)
-        
+
         return HTMLResponse("<h1>Vault activation page not found</h1>", status_code=404)
 
     # =========================================================================
@@ -4602,10 +4830,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/health", tags=["system"])
     async def health_check():
         from app.core.utc import utc_now
+
         return {"status": "ok", "ts": utc_now().isoformat()}
 
     register_stateless_routes(fastapi_app)
     return fastapi_app
+
 
 # Create the app instance
 app = create_app()
@@ -4618,7 +4848,7 @@ fastapi_app = app
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     runtime_settings = get_settings()
     uvicorn.run(
         "app.main:app",

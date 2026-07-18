@@ -1,389 +1,260 @@
-{% extends "base.html" %}
-{% block body_class %}template-1{% endblock %}
+{% extends "gui/base.html" %}
 
-{% block title %}Timeline - Semptify{% endblock %}
-
-{% block styles %}
-<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
-<style>
-    .timeline-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .timeline-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .timeline-events {
-        background: var(--color-bg-card);
-        border-radius: var(--radius-lg);
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    .timeline-graph {
-        position: relative;
-        display: grid;
-        gap: 14px;
-        margin-top: 12px;
-    }
-
-    .timeline-node {
-        position: relative;
-        display: grid;
-        grid-template-columns: 52px 1fr;
-        gap: 14px;
-    }
-
-    .timeline-node::after {
-        content: "";
-        position: absolute;
-        left: 25px;
-        top: 34px;
-        bottom: -14px;
-        width: 2px;
-        background: rgba(59, 130, 246, 0.35);
-    }
-
-    .timeline-node:last-child::after {
-        display: none;
-    }
-
-    .timeline-seq {
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        font-weight: 700;
-        color: var(--color-accent);
-        border: 2px solid rgba(59, 130, 246, 0.45);
-        background: rgba(59, 130, 246, 0.14);
-    }
-
-    .timeline-card {
-        background: var(--color-bg-secondary);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: var(--radius-md);
-        padding: 14px;
-    }
-
-    .timeline-meta-grid {
-        margin-top: 10px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-        gap: 8px;
-    }
-
-    .timeline-meta-item {
-        border-radius: var(--radius-sm);
-        padding: 8px 10px;
-        background: rgba(15, 23, 42, 0.08);
-        font-size: 0.82rem;
-        color: var(--color-text-muted);
-    }
-
-    .timeline-meta-label {
-        display: block;
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        margin-bottom: 3px;
-    }
-
-    .timeline-event {
-        display: flex;
-        gap: 20px;
-        padding: 20px;
-        border-left: 3px solid var(--color-accent);
-        margin-left: 20px;
-        margin-bottom: 20px;
-        background: var(--color-bg-secondary);
-        border-radius: var(--radius-md);
-    }
-
-    .timeline-event__date {
-        min-width: 120px;
-        font-weight: 600;
-        color: var(--color-accent);
-    }
-
-    .timeline-event__content {
-        flex: 1;
-    }
-
-    .timeline-event__title {
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
-
-    .timeline-event__description {
-        color: var(--color-text-muted);
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-    }
-
-    .timeline-event__source {
-        font-size: 0.8rem;
-        color: var(--color-text-muted);
-    }
-
-    .timeline-event__badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: var(--radius-sm);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-    }
-
-    .badge--auto {
-        background: rgba(59, 130, 246, 0.2);
-        color: var(--color-accent);
-    }
-
-    .badge--verified {
-        background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--color-text-muted);
-    }
-
-    .add-event-btn {
-        margin-top: 20px;
-        text-align: center;
-    }
-</style>
-{% endblock %}
+{% block title %}Timeline — Semptify{% endblock %}
+{% block nav_record %}active{% endblock %}
 
 {% block content %}
-<div class="timeline-container">
-    <div class="timeline-header">
-        <h1>📅 Your Timeline</h1>
-        <p class="text-secondary">Important dates and events from your documents. Extracted automatically, verified by you.</p>
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Timeline</span>
+        <button id="addEventBtn" class="frame-btn" type="button">+ Add event</button>
     </div>
-
-    <div class="timeline-events">
-        {% if chronology_items %}
-            <div class="timeline-graph">
-                {% for item in chronology_items %}
-                <article class="timeline-node">
-                    <div class="timeline-seq">{{ item.sequence }}</div>
-                    <div class="timeline-card">
-                        <div class="timeline-event__title">
-                            {{ item.title }}
-                            {% if not item.verified %}
-                                <span class="timeline-event__badge badge--auto">Auto</span>
-                            {% else %}
-                                <span class="timeline-event__badge badge--verified">✓ Verified</span>
-                            {% endif %}
-                        </div>
-                        <div class="timeline-event__description">{{ item.description }}</div>
-                        <div class="timeline-event__source">Source: {{ item.source_document_name }}</div>
-                        <div class="timeline-meta-grid">
-                            <div class="timeline-meta-item">
-                                <span class="timeline-meta-label">Event Time</span>
-                                {{ item.event_time_display }}
-                            </div>
-                            <div class="timeline-meta-item">
-                                <span class="timeline-meta-label">Document Created</span>
-                                {{ item.document_time_display }}
-                            </div>
-                            <div class="timeline-meta-item">
-                                <span class="timeline-meta-label">Ingested by Semptify</span>
-                                {{ item.ingested_time_display }}
-                            </div>
-                        </div>
-                    </div>
-                </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <p>No timeline events yet.</p>
-                <p class="text-secondary mt-sm">Upload documents and we'll automatically extract important dates.</p>
-                <a href="/documents" class="btn btn--primary mt-md">📄 Upload Your First Document</a>
-            </div>
-        {% endif %}
+    <div class="frame-panel--body">
+        <p style="color:#94a3b8; font-size:0.9375rem;">
+            Everything that happened in your tenancy, in one vertical list. Newest first.
+        </p>
     </div>
+</section>
 
-    <div class="add-event-btn">
-        <a href="/documents" class="btn btn--primary">📄 Upload Documents</a>
-        <button class="btn btn--secondary" onclick="addManualEvent()">+ Add Event Manually</button>
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Recent events</span>
+        <span id="timelineCount" style="font-size:0.8125rem; color:#64748b;"></span>
     </div>
-
-</div>
-
-<script>
-function addManualEvent() {
-  // Build a simple inline form modal
-  const existing = document.getElementById('manual-event-modal');
-  if (existing) existing.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'manual-event-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;';
-  modal.innerHTML = `
-    <div style="background:var(--bg-card,#1f2937);border-radius:.75rem;padding:1.5rem;max-width:480px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);">
-      <h3 style="margin:0 0 1rem;font-size:1.1rem;">Add Timeline Event</h3>
-      <div style="display:grid;gap:.75rem;">
-        <div>
-          <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Date (YYYY-MM-DD) *</label>
-          <input id="me-date" type="date" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;" required>
+    <div class="frame-panel--body" id="timelineList">
+        <div class="frame-empty" id="timelineEmpty">
+            <div class="frame-empty--icon">∅</div>
+            <p>No events yet.</p>
+            <p class="frame-empty--hint">Upload documents or add an event above.</p>
         </div>
-        <div>
-          <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Title *</label>
-          <input id="me-title" type="text" placeholder="e.g., Landlord called about rent" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;" required>
-        </div>
-        <div>
-          <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Description (optional)</label>
-          <textarea id="me-desc" rows="3" placeholder="Additional details..." style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;resize:vertical;"></textarea>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
-          <div>
-            <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Type</label>
-            <select id="me-type" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;">
-              <option value="manual">Manual</option>
-              <option value="notice">Notice</option>
-              <option value="payment">Payment</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="communication">Communication</option>
-              <option value="court">Court</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Urgency</label>
-            <select id="me-urgency" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;">
-              <option value="normal">Normal</option>
-              <option value="low">Low</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:flex;gap:1rem;align-items:center;font-size:.85rem;">
-          <label><input id="me-deadline" type="checkbox"> Deadline</label>
-          <label><input id="me-evidence" type="checkbox"> Evidence</label>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.25rem;">
-        <button id="me-cancel" style="padding:.6rem 1.2rem;background:transparent;border:1px solid var(--border,#374151);border-radius:.5rem;color:var(--text,#f9fafb);cursor:pointer;">Cancel</button>
-        <button id="me-save" style="padding:.6rem 1.2rem;background:var(--primary,#3b82f6);color:#fff;border:none;border-radius:.5rem;font-weight:600;cursor:pointer;">Save Event</button>
-      </div>
     </div>
-  `;
-  document.body.appendChild(modal);
-  document.body.style.overflow = 'hidden';
+</section>
 
-  const close = () => { modal.remove(); document.body.style.overflow = ''; };
-  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
-  document.getElementById('me-cancel').addEventListener('click', close);
-
-  document.getElementById('me-save').addEventListener('click', async () => {
-    const date = document.getElementById('me-date').value;
-    const title = document.getElementById('me-title').value.trim();
-    const description = document.getElementById('me-desc').value.trim() || null;
-    const event_type = document.getElementById('me-type').value;
-    const urgency = document.getElementById('me-urgency').value;
-    const is_deadline = document.getElementById('me-deadline').checked;
-    const is_evidence = document.getElementById('me-evidence').checked;
-
-    if (!date || !title) {
-      if (window.SemptifyFeedback) { SemptifyFeedback.error('Date and title are required.'); } else { alert('Date and title are required'); }
-      return;
-    }
-
-    const btn = document.getElementById('me-save');
-    btn.disabled = true; btn.textContent = 'Saving...';
-
-    // Inline error area inside the modal (visible, not a popup)
-    let errBox = modal.querySelector('.me-error');
-    if (!errBox) {
-      errBox = document.createElement('div');
-      errBox.className = 'me-error';
-      errBox.style.cssText = 'padding:.6rem .8rem;margin-top:.75rem;border-radius:.4rem;background:#fee2e2;color:#991b1b;font-size:.85rem;display:none;';
-      btn.parentElement.parentElement.appendChild(errBox);
-    }
-    const showError = (msg) => {
-      errBox.textContent = msg;
-      errBox.style.display = 'block';
-    };
-
-    try {
-      const r = await fetch('/api/timeline/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_type, title, description, event_date: date, urgency, is_deadline, is_evidence }),
-      });
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
-
-      // Insert the new event into the timeline DOM without a full reload.
-      // Timeline is sorted descending (newest first), so prepend.
-      const container = document.querySelector('.timeline-events');
-      if (container) {
-        let graph = container.querySelector('.timeline-graph');
-        const empty = container.querySelector('.empty-state');
-        if (empty) empty.remove();
-        if (!graph) {
-          graph = document.createElement('div');
-          graph.className = 'timeline-graph';
-          container.appendChild(graph);
-        }
-        const escapeHtml = (s) => String(s || '')
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-        const seq = graph.querySelectorAll('.timeline-node').length + 1;
-        const node = document.createElement('article');
-        node.className = 'timeline-node';
-        const dateDisplay = data.event_date ? data.event_date.split('T')[0] : date;
-        const descHtml = data.description
-          ? `<div class="timeline-event__description">${escapeHtml(data.description)}</div>` : '';
-        const urgencyBadge = data.urgency && data.urgency !== 'normal'
-          ? `<span class="timeline-event__badge badge--auto">${escapeHtml(data.urgency)}</span>` : '';
-        const deadlineMark = data.is_deadline ? ' ⏰ Deadline' : '';
-        const evidenceMark = data.is_evidence ? ' 📋 Evidence' : '';
-        node.innerHTML = `
-          <div class="timeline-seq">${seq}</div>
-          <div class="timeline-card">
-            <div class="timeline-event__title">
-              ${escapeHtml(data.title || title)}
-              <span class="timeline-event__badge badge--verified">✓ Verified</span>
-              ${urgencyBadge}
-            </div>
-            ${descHtml}
-            <div class="timeline-event__source">Source: Manual entry${deadlineMark}${evidenceMark}</div>
-            <div class="timeline-meta-grid">
-              <div class="timeline-meta-item"><span class="timeline-meta-label">Event Time</span>${escapeHtml(dateDisplay)}</div>
-              <div class="timeline-meta-item"><span class="timeline-meta-label">Added</span>Just now</div>
-            </div>
-          </div>
-        `;
-        graph.prepend(node);
-      }
-
-      close();
-      if (window.SemptifyFeedback) { SemptifyFeedback.success('Event added to your timeline.'); }
-    } catch (err) {
-      console.error('Timeline event save failed:', err);
-      showError('Could not save event: ' + err.message);
-      if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to save event.', { detail: err.message }); }
-      btn.disabled = false; btn.textContent = 'Save Event';
-    }
-  });
-
-  // Focus the date input
-  setTimeout(() => document.getElementById('me-date').focus(), 50);
-}
-</script>
+<section class="frame-panel">
+    <div class="frame-panel--body">
+        <p style="font-size:0.8125rem; color:#64748b;">
+            Semptify does not give legal advice.
+            <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">Find legal help near you</a>.
+        </p>
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/workspace-stage-model.js"></script>
+<script>
+(function () {
+    const timelineList = document.getElementById('timelineList');
+    const timelineEmpty = document.getElementById('timelineEmpty');
+    const timelineCount = document.getElementById('timelineCount');
+    const addEventBtn = document.getElementById('addEventBtn');
+
+    function fmtDate(s) {
+        if (!s) return '—';
+        try {
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) { return s; }
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function urgencyColor(u) {
+        if (u === 'critical') return '#ef4444';
+        if (u === 'high') return '#f59e0b';
+        return '#3b82f6';
+    }
+
+    function typeIcon(t) {
+        if (t === 'court' || t === 'hearing') return '⚖️';
+        if (t === 'deadline') return '⏰';
+        if (t === 'payment' || t === 'rent_payment') return '💵';
+        if (t === 'notice') return '📜';
+        if (t === 'maintenance') return '🔧';
+        if (t === 'communication') return '✉️';
+        if (t === 'calendar_event') return '📅';
+        if (t === 'document') return '📄';
+        return '•';
+    }
+
+    async function loadTimeline() {
+        try {
+            const r = await fetch('/api/timeline/unified', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ limit: 50, date_axis: 'event_time' })
+            });
+            if (!r.ok) {
+                if (r.status === 401) {
+                    timelineEmpty.querySelector('p').textContent = 'Connect your storage to see events.';
+                    return;
+                }
+                throw new Error('HTTP ' + r.status);
+            }
+            const data = await r.json();
+            const items = data.items || [];
+            render(items);
+        } catch (e) {
+            timelineEmpty.querySelector('p').textContent = 'Could not load timeline.';
+            timelineEmpty.querySelector('.frame-empty--hint').textContent = e.message;
+        }
+    }
+
+    function render(items) {
+        timelineList.innerHTML = '';
+        timelineCount.textContent = items.length ? items.length + ' event' + (items.length === 1 ? '' : 's') : '';
+        if (!items.length) {
+            timelineList.appendChild(timelineEmpty);
+            timelineEmpty.style.display = '';
+            return;
+        }
+        items.forEach(it => {
+            const item = document.createElement('div');
+            item.className = 'frame-item';
+            const icon = document.createElement('div');
+            icon.className = 'frame-item--icon';
+            icon.style.color = urgencyColor(it.urgency);
+            icon.textContent = typeIcon(it.item_type || it.item_subtype);
+            const main = document.createElement('div');
+            main.className = 'frame-item--main';
+            const title = document.createElement('div');
+            title.className = 'frame-item--title';
+            title.textContent = it.title || 'Untitled';
+            const meta = document.createElement('div');
+            meta.className = 'frame-item--meta';
+            const dateStr = fmtDate(it.date_display || it.event_date || it.entry_date);
+            meta.textContent = dateStr + (it.is_evidence ? ' · Evidence' : '') + (it.is_deadline ? ' · Deadline' : '');
+            if (it.description) {
+                const desc = document.createElement('div');
+                desc.style.cssText = 'font-size:0.8125rem; color:#94a3b8; margin-top:0.25rem;';
+                desc.textContent = it.description;
+                main.appendChild(title);
+                main.appendChild(meta);
+                main.appendChild(desc);
+            } else {
+                main.appendChild(title);
+                main.appendChild(meta);
+            }
+            item.appendChild(icon);
+            item.appendChild(main);
+            timelineList.appendChild(item);
+        });
+    }
+
+    function openAddModal() {
+        const existing = document.getElementById('manual-event-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'manual-event-modal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;';
+        modal.innerHTML = `
+            <div style="background:#1f2937;border-radius:.75rem;padding:1.5rem;max-width:480px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);">
+                <h3 style="margin:0 0 1rem;font-size:1.1rem;color:#fff;">Add Timeline Event</h3>
+                <div style="display:grid;gap:.75rem;">
+                    <div>
+                        <label style="font-size:.85rem;display:block;margin-bottom:.25rem;color:#cbd5e1;">Date (YYYY-MM-DD) *</label>
+                        <input id="me-date" type="date" style="width:100%;padding:.6rem;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);border-radius:.4rem;color:#fff;font-size:.9rem;" required>
+                    </div>
+                    <div>
+                        <label style="font-size:.85rem;display:block;margin-bottom:.25rem;color:#cbd5e1;">Title *</label>
+                        <input id="me-title" type="text" placeholder="e.g., Landlord called about rent" style="width:100%;padding:.6rem;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);border-radius:.4rem;color:#fff;font-size:.9rem;" required>
+                    </div>
+                    <div>
+                        <label style="font-size:.85rem;display:block;margin-bottom:.25rem;color:#cbd5e1;">Description (optional)</label>
+                        <textarea id="me-desc" rows="3" placeholder="Additional details..." style="width:100%;padding:.6rem;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);border-radius:.4rem;color:#fff;font-size:.9rem;resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                        <div>
+                            <label style="font-size:.85rem;display:block;margin-bottom:.25rem;color:#cbd5e1;">Type</label>
+                            <select id="me-type" style="width:100%;padding:.6rem;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);border-radius:.4rem;color:#fff;font-size:.9rem;">
+                                <option value="manual">Manual</option>
+                                <option value="notice">Notice</option>
+                                <option value="payment">Payment</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="communication">Communication</option>
+                                <option value="court">Court</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:.85rem;display:block;margin-bottom:.25rem;color:#cbd5e1;">Urgency</label>
+                            <select id="me-urgency" style="width:100%;padding:.6rem;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);border-radius:.4rem;color:#fff;font-size:.9rem;">
+                                <option value="normal">Normal</option>
+                                <option value="low">Low</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:1rem;align-items:center;font-size:.85rem;color:#cbd5e1;">
+                        <label><input id="me-deadline" type="checkbox"> Deadline</label>
+                        <label><input id="me-evidence" type="checkbox"> Evidence</label>
+                    </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.25rem;">
+                    <button id="me-cancel" style="padding:.6rem 1.2rem;background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:.5rem;color:#fff;cursor:pointer;">Cancel</button>
+                    <button id="me-save" style="padding:.6rem 1.2rem;background:#3b82f6;color:#fff;border:none;border-radius:.5rem;font-weight:600;cursor:pointer;">Save Event</button>
+                </div>
+                <div class="me-error" style="padding:.6rem .8rem;margin-top:.75rem;border-radius:.4rem;background:#fee2e2;color:#991b1b;font-size:.85rem;display:none;"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+
+        const close = () => { modal.remove(); document.body.style.overflow = ''; };
+        modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        document.getElementById('me-cancel').addEventListener('click', close);
+
+        document.getElementById('me-save').addEventListener('click', async () => {
+            const date = document.getElementById('me-date').value;
+            const title = document.getElementById('me-title').value.trim();
+            const description = document.getElementById('me-desc').value.trim() || null;
+            const event_type = document.getElementById('me-type').value;
+            const urgency = document.getElementById('me-urgency').value;
+            const is_deadline = document.getElementById('me-deadline').checked;
+            const is_evidence = document.getElementById('me-evidence').checked;
+
+            if (!date || !title) {
+                if (window.SemptifyFeedback) { SemptifyFeedback.error('Date and title are required.'); } else { alert('Date and title are required'); }
+                return;
+            }
+
+            const btn = document.getElementById('me-save');
+            btn.disabled = true; btn.textContent = 'Saving...';
+
+            const errBox = modal.querySelector('.me-error');
+            const showError = (msg) => { errBox.textContent = msg; errBox.style.display = 'block'; };
+
+            try {
+                const r = await fetch('/api/timeline/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ event_type, title, description, event_date: date, urgency, is_deadline, is_evidence }),
+                });
+                const data = await r.json().catch(() => ({}));
+                if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+
+                close();
+                if (window.SemptifyFeedback) { SemptifyFeedback.success('Event added to your timeline.'); }
+                await loadTimeline();
+            } catch (err) {
+                console.error('Timeline event save failed:', err);
+                showError('Could not save event: ' + err.message);
+                if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to save event.', { detail: err.message }); }
+                btn.disabled = false; btn.textContent = 'Save Event';
+            }
+        });
+
+        setTimeout(() => document.getElementById('me-date').focus(), 50);
+    }
+
+    addEventBtn.addEventListener('click', openAddModal);
+
+    loadTimeline();
+})();
+</script>
 {% endblock %}
