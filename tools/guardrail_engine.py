@@ -21,12 +21,15 @@ Exit code 0 = all checks passed. Exit code 1 = at least one check failed
 """
 
 import importlib.util
+import logging
 import sys
 import time
 import traceback
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CHECKS_DIR = Path(__file__).resolve().parent / "checks"
@@ -168,9 +171,25 @@ def format_build_state_entry(report: EngineReport) -> str:
     return "\n".join(lines)
 
 
+def _entry_signature(entry: str) -> str:
+    """Strip the timestamp line so two entries with the same pass/fail
+    results but different timestamps compare equal. The timestamp is
+    the only non-substantive part of the entry."""
+    lines = entry.splitlines()
+    return "\n".join(line for line in lines if not line.strip().startswith("### Guardrail Engine Run —")).strip()
+
+
 def append_to_build_state(report: EngineReport):
     """Best-effort append. Never blocks the commit if BUILD_STATE.md is
-    missing or unwritable — logging is a nice-to-have, not a gate."""
+    missing or unwritable — logging is a nice-to-have, not a gate.
+
+    Idempotency: pre-commit auto-stages hook modifications and retries the
+    commit, which re-runs this hook. If we always insert a fresh timestamped
+    entry, the file changes every run → pre-commit never converges → infinite
+    loop. Skip the write when the top entry's substantive content (everything
+    except the timestamp line) already matches what we'd write. This makes
+    retry a no-op so the commit can succeed.
+    """
     try:
         entry = format_build_state_entry(report)
         if BUILD_STATE_PATH.exists():
@@ -182,12 +201,30 @@ def append_to_build_state(report: EngineReport):
                 new_content = existing + entry
             else:
                 new_content = existing[: first_newline + 1] + entry + existing[first_newline + 1 :]
+
+            # Idempotency guard: if the top entry's substantive content already
+            # matches what we'd write, skip the write so pre-commit's retry sees
+            # no diff and can converge. Only the timestamp line varies between
+            # runs; everything else (check names, pass/fail, summaries) is stable
+            # for the same commit being retried.
+            body_after_header = existing[first_newline + 1 :] if first_newline != -1 else ""
+            if body_after_header.lstrip().startswith("### Guardrail Engine Run —"):
+                rest = body_after_header.lstrip()
+                # Find the end of the top entry (next "### " heading or "---" separator).
+                next_heading_pos = rest.find("\n### ", 1)
+                separator_pos = rest.find("\n---", 1)
+                end_positions = [p for p in (next_heading_pos, separator_pos) if p != -1]
+                top_entry_end = min(end_positions) + 1 if end_positions else len(rest)
+                top_entry = rest[:top_entry_end]
+                if _entry_signature(top_entry) == _entry_signature(entry):
+                    return  # Already logged; no diff → pre-commit can converge.
+
             BUILD_STATE_PATH.write_text(new_content, encoding="utf-8")
         # If BUILD_STATE.md doesn't exist, silently skip — don't create
         # surprise files during a commit hook.
     except Exception:
-        # Never let logging failures block a commit.
-        pass
+        # Never let logging failures block a commit, but surface them for debugging.
+        logger.debug("append_to_build_state failed", exc_info=True)
 
 
 def main():
