@@ -47,6 +47,7 @@
                 </select>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
                 <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">⚙ Process now</button>
+                <button id="dcShareBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">↗ Share</button>
                 <div id="dcAnnotTools" style="display:none; gap:0.25rem; margin-left:auto;">
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="highlight" style="padding:0.25rem 0.5rem; font-size:0.75rem;">🖍 Highlight</button>
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="note" style="padding:0.25rem 0.5rem; font-size:0.75rem;">📝 Note</button>
@@ -103,6 +104,31 @@
             <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
                 <button type="button" id="dcUploadCancel" class="frame-btn">Cancel</button>
                 <button type="submit" id="dcUploadSubmit" class="frame-btn" disabled>Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Share modal -->
+<div id="dcShareModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:#16213e; border-radius:0.5rem; padding:1.5rem; max-width:500px; width:90%;">
+        <h3 style="color:#e2e8f0; margin-bottom:0.25rem;">Share document</h3>
+        <p style="color:#94a3b8; font-size:0.8125rem; margin-bottom:1rem;">You control who sees your documents. Semptify never shares without your action.</p>
+        <p style="color:#64748b; font-size:0.75rem; margin-bottom:1rem;">Sharing: <span id="dcShareDocName" style="color:#e2e8f0; font-weight:600;"></span></p>
+        <form id="dcShareForm">
+            <label style="display:block; color:#94a3b8; font-size:0.8125rem; margin-bottom:0.25rem;">Recipient (advocate ID, legal ID, or email)</label>
+            <input type="text" id="dcShareRecipient" required style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; margin-bottom:0.75rem;">
+            <label style="display:block; color:#94a3b8; font-size:0.8125rem; margin-bottom:0.25rem;">What they can do</label>
+            <select id="dcShareScope" style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; margin-bottom:0.75rem;">
+                <option value="view">View only</option>
+                <option value="comment">View + add notes</option>
+                <option value="download">View + download</option>
+            </select>
+            <label style="display:block; color:#94a3b8; font-size:0.8125rem; margin-bottom:0.25rem;">Message (optional)</label>
+            <textarea id="dcShareMessage" rows="3" style="width:100%; background:#0f172a; border:1px solid #334155; border-radius:0.25rem; padding:0.5rem; color:#e2e8f0; margin-bottom:1rem; resize:vertical;"></textarea>
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button type="button" id="dcShareCancel" class="frame-btn">Cancel</button>
+                <button type="submit" class="frame-btn">Share</button>
             </div>
         </form>
     </div>
@@ -271,6 +297,7 @@
         downloadBtn.style.display = '';
         document.getElementById('dcAnnotTools').style.display = 'flex';
         document.getElementById('dcProcessBtn').style.display = '';
+        document.getElementById('dcShareBtn').style.display = '';
         const fname = (d.filename || '').toLowerCase();
         const isPdf = fname.endsWith('.pdf');
         const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/.test(fname);
@@ -1089,6 +1116,64 @@
         } finally {
             processBtn.disabled = false;
             processBtn.textContent = '⚙ Process now';
+        }
+    });
+
+    // Share dialog — 5th verb of Document Center
+    const shareBtn = document.getElementById('dcShareBtn');
+    const shareModal = document.getElementById('dcShareModal');
+    const shareCancel = document.getElementById('dcShareCancel');
+    const shareForm = document.getElementById('dcShareForm');
+    shareBtn.addEventListener('click', () => {
+        if (!currentDoc) return;
+        document.getElementById('dcShareDocName').textContent = currentDoc.filename || 'Untitled';
+        shareModal.style.display = 'flex';
+    });
+    shareCancel.addEventListener('click', () => { shareModal.style.display = 'none'; });
+    shareModal.addEventListener('click', (e) => {
+        if (e.target === shareModal) shareModal.style.display = 'none';
+    });
+    shareForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentDoc) return;
+        const recipient = document.getElementById('dcShareRecipient').value.trim();
+        const message = document.getElementById('dcShareMessage').value.trim();
+        const scope = document.getElementById('dcShareScope').value;
+        if (!recipient) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Enter a recipient.');
+            return;
+        }
+        const submitBtn = shareForm.querySelector('button[type=submit]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sharing…';
+        try {
+            const r = await fetch('/api/unified-overlays/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    overlay_type: 'communication',
+                    document_id: currentDoc.id,
+                    vault_path: currentDoc.vault_path || currentDoc.id,
+                    payload: {
+                        share_recipient: recipient,
+                        share_message: message,
+                        share_scope: scope,
+                        shared_at: new Date().toISOString()
+                    },
+                    metadata: { annotation_kind: 'share', created_by_tool: 'dc_gui' },
+                    ephemeral: false
+                }),
+                credentials: 'include'
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Share recorded for ' + recipient + '.');
+            shareModal.style.display = 'none';
+            shareForm.reset();
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Share failed: ' + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Share';
         }
     });
 
