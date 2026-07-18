@@ -46,12 +46,14 @@
                 </select>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
             </div>
-            <div id="dcViewer" style="flex:1; overflow:hidden; background:#0f172a; display:flex; align-items:center; justify-content:center;">
+            <div id="dcViewer" style="flex:1; overflow:hidden; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
                 <div class="frame-empty" id="dcViewerEmpty">
                     <div class="frame-empty--icon">📄</div>
                     <p>No document selected</p>
                     <p class="frame-empty--hint">Pick a file from the left panel.</p>
                 </div>
+                <div id="dcPdfContainer" style="display:none; width:100%; height:100%; overflow:auto; padding:1rem; gap:1rem; flex-direction:column; align-items:center;"></div>
+                <iframe id="dcIframeFallback" style="display:none; width:100%; height:100%; border:none;"></iframe>
             </div>
         </div>
 
@@ -101,8 +103,12 @@
 
 {% block scripts %}
 <script src="/static/components/feedback.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (function () {
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
     const docList = document.getElementById('dcDocList');
     const docEmpty = document.getElementById('dcDocEmpty');
     const docName = document.getElementById('dcDocName');
@@ -213,16 +219,208 @@
         typeSelect.style.display = '';
         typeSelect.value = d.document_type || '';
         downloadBtn.style.display = '';
-        viewer.innerHTML = '';
-        const iframe = document.createElement('iframe');
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        iframe.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
-        viewer.appendChild(iframe);
+        const isPdf = /\.pdf$/i.test(d.filename || '');
+        if (isPdf && window.pdfjsLib) {
+            await renderPdf(d);
+        } else {
+            showIframeViewer(d);
+        }
         loadOverlays(d.id);
         renderChecklist(d);
     }
+
+    function showIframeViewer(d) {
+        document.getElementById('dcViewerEmpty').style.display = 'none';
+        document.getElementById('dcPdfContainer').style.display = 'none';
+        const iframe = document.getElementById('dcIframeFallback');
+        iframe.style.display = '';
+        iframe.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
+    }
+
+    let currentPdfDoc = null;
+    let currentExtractedText = [];
+
+    async function renderPdf(doc) {
+        const container = document.getElementById('dcPdfContainer');
+        const empty = document.getElementById('dcViewerEmpty');
+        const iframe = document.getElementById('dcIframeFallback');
+        empty.style.display = 'none';
+        iframe.style.display = 'none';
+        container.style.display = 'flex';
+        container.innerHTML = '<div style="color:#94a3b8; padding:2rem;">Loading PDF…</div>';
+        try {
+            const url = '/api/dc/document/' + encodeURIComponent(doc.id) + '/view';
+            const loadingTask = pdfjsLib.getDocument(url);
+            currentPdfDoc = await loadingTask.promise;
+            container.innerHTML = '';
+            currentExtractedText = [];
+            for (let pageNum = 1; pageNum <= currentPdfDoc.numPages; pageNum++) {
+                const page = await currentPdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1.5 });
+                const pageWrapper = document.createElement('div');
+                pageWrapper.style.position = 'relative';
+                pageWrapper.style.marginBottom = '1rem';
+                pageWrapper.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                canvas.style.display = 'block';
+                canvas.style.background = '#fff';
+                pageWrapper.appendChild(canvas);
+                const textLayerDiv = document.createElement('div');
+                textLayerDiv.className = 'dc-text-layer';
+                textLayerDiv.style.position = 'absolute';
+                textLayerDiv.style.top = '0';
+                textLayerDiv.style.left = '0';
+                textLayerDiv.style.width = viewport.width + 'px';
+                textLayerDiv.style.height = viewport.height + 'px';
+                textLayerDiv.style.overflow = 'hidden';
+                textLayerDiv.style.pointerEvents = 'auto';
+                pageWrapper.appendChild(textLayerDiv);
+                container.appendChild(pageWrapper);
+                const renderContext = { canvasContext: canvas.getContext('2d'), viewport: viewport };
+                await page.render(renderContext).promise;
+                const textContent = await page.getTextContent();
+                textContent.items.forEach(item => {
+                    const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+                    const span = document.createElement('span');
+                    span.textContent = item.str;
+                    span.style.position = 'absolute';
+                    span.style.left = tx[4] + 'px';
+                    span.style.top = (tx[5] - item.height * viewport.scale) + 'px';
+                    span.style.fontSize = (item.height * viewport.scale) + 'px';
+                    span.style.fontFamily = 'sans-serif';
+                    span.style.color = 'transparent';
+                    span.style.whiteSpace = 'pre';
+                    span.dataset.text = item.str;
+                    span.dataset.page = pageNum;
+                    textLayerDiv.appendChild(span);
+                    if (item.str.trim()) currentExtractedText.push({ text: item.str, page: pageNum, span: span });
+                });
+            }
+            applyHighlights(doc);
+        } catch (err) {
+            container.innerHTML = '<div style="color:#ef4444; padding:2rem;">Could not render PDF: ' + escapeHtml(err.message) + '</div>';
+        }
+    }
+
+    function applyHighlights(doc) {
+        if (!currentDoc || !doc || doc.id !== currentDoc.id) return;
+        fetch('/api/dc/document/' + encodeURIComponent(doc.id) + '/overlays', { credentials: 'include' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (!data || !data.overlays) return;
+                const searchTerms = [];
+                (data.overlays || []).forEach(ov => {
+                    (ov.items || []).forEach(item => {
+                        const s = String(item).trim();
+                        if (s.length >= 3) searchTerms.push({ term: s, overlay: ov.name, icon: ov.icon });
+                    });
+                });
+                searchTerms.forEach(term => {
+                    const normalized = term.term.toLowerCase();
+                    currentExtractedText.forEach(entry => {
+                        if (entry.text.toLowerCase().includes(normalized)) {
+                            const span = entry.span;
+                            if (span.dataset.highlighted) return;
+                            span.dataset.highlighted = '1';
+                            span.style.background = 'rgba(245, 158, 11, 0.35)';
+                            span.style.borderRadius = '2px';
+                            span.style.cursor = 'pointer';
+                            span.style.color = 'transparent';
+                            span.addEventListener('click', function (e) {
+                                e.stopPropagation();
+                                showHighlightPopover(span, term);
+                            });
+                        }
+                    });
+                });
+            })
+            .catch(() => {});
+    }
+
+    let activePopover = null;
+    function showHighlightPopover(span, term) {
+        if (activePopover) activePopover.remove();
+        const popover = document.createElement('div');
+        popover.style.position = 'fixed';
+        popover.style.zIndex = '200';
+        popover.style.background = '#16213e';
+        popover.style.border = '1px solid #334155';
+        popover.style.borderRadius = '0.5rem';
+        popover.style.padding = '0.75rem';
+        popover.style.maxWidth = '300px';
+        popover.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+        const rect = span.getBoundingClientRect();
+        popover.style.left = rect.left + 'px';
+        popover.style.top = (rect.bottom + 8) + 'px';
+        const title = document.createElement('div');
+        title.style.color = '#f59e0b';
+        title.style.fontSize = '0.75rem';
+        title.style.marginBottom = '0.25rem';
+        title.textContent = (term.icon || '🔍') + ' ' + term.overlay + ' — extracted';
+        popover.appendChild(title);
+        const value = document.createElement('div');
+        value.style.color = '#e2e8f0';
+        value.style.fontSize = '0.875rem';
+        value.style.marginBottom = '0.5rem';
+        value.style.wordBreak = 'break-word';
+        value.textContent = term.term;
+        popover.appendChild(value);
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '0.25rem';
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'frame-btn';
+        confirmBtn.style.flex = '1';
+        confirmBtn.style.padding = '0.25rem 0.5rem';
+        confirmBtn.style.fontSize = '0.75rem';
+        confirmBtn.textContent = '✓ Confirm';
+        confirmBtn.addEventListener('click', () => {
+            span.style.background = 'rgba(34, 197, 94, 0.35)';
+            span.dataset.confirmed = '1';
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Extraction confirmed: ' + term.term);
+            popover.remove();
+            activePopover = null;
+        });
+        const correctBtn = document.createElement('button');
+        correctBtn.className = 'frame-btn';
+        correctBtn.style.flex = '1';
+        correctBtn.style.padding = '0.25rem 0.5rem';
+        correctBtn.style.fontSize = '0.75rem';
+        correctBtn.textContent = '✎ Correct';
+        correctBtn.addEventListener('click', () => {
+            const corrected = prompt('Correct value:', term.term);
+            if (corrected !== null && corrected !== term.term) {
+                span.style.background = 'rgba(59, 130, 246, 0.35)';
+                span.dataset.corrected = '1';
+                if (window.SemptifyFeedback) SemptifyFeedback.success('Corrected to: ' + corrected);
+            }
+            popover.remove();
+            activePopover = null;
+        });
+        actions.appendChild(confirmBtn);
+        actions.appendChild(correctBtn);
+        popover.appendChild(actions);
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'frame-btn';
+        closeBtn.style.width = '100%';
+        closeBtn.style.marginTop = '0.25rem';
+        closeBtn.style.padding = '0.25rem';
+        closeBtn.style.fontSize = '0.75rem';
+        closeBtn.textContent = 'Close';
+        closeBtn.addEventListener('click', () => { popover.remove(); activePopover = null; });
+        popover.appendChild(closeBtn);
+        document.body.appendChild(popover);
+        activePopover = popover;
+        setTimeout(() => {
+            if (activePopover === popover) { popover.remove(); activePopover = null; }
+        }, 10000);
+    }
+
+    document.addEventListener('click', () => {
+        if (activePopover) { activePopover.remove(); activePopover = null; }
+    });
 
     async function loadOverlays(vaultId) {
         overlayList.innerHTML = '';
