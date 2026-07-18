@@ -375,6 +375,7 @@
                 }
             })
             .catch(() => {});
+        loadUserAnnotations(doc);
     }
 
     function showIframeViewer(d) {
@@ -447,6 +448,7 @@
                 });
             }
             applyHighlights(doc);
+            loadUserAnnotations(doc);
         } catch (err) {
             container.innerHTML = '<div style="color:#ef4444; padding:2rem;">Could not render PDF: ' + escapeHtml(err.message) + '</div>';
         }
@@ -485,6 +487,116 @@
                 });
             })
             .catch(() => {});
+    }
+
+    // Load saved user annotations (highlights, notes, references) from overlays
+    async function loadUserAnnotations(doc) {
+        if (!doc) return;
+        try {
+            const r = await fetch('/api/unified-overlays/list?document_id=' + encodeURIComponent(doc.id), { credentials: 'include' });
+            if (!r.ok) return;
+            const data = await r.json();
+            const overlays = data.overlays || [];
+            const container = document.getElementById('dcPdfContainer');
+            if (!container) return;
+            const isPdf = /\.pdf$/i.test(doc.filename || '');
+            const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test((doc.filename || '').toLowerCase());
+
+            overlays.forEach(ov => {
+                const type = ov.overlay_type || ov.type || '';
+                const payload = ov.payload || {};
+
+                if (type === 'highlight' && payload.range) {
+                    if (isPdf && payload.range.text) {
+                        const normalized = String(payload.range.text).toLowerCase();
+                        currentExtractedText.forEach(entry => {
+                            if (entry.text.toLowerCase().includes(normalized) && !entry.span.dataset.userHighlight) {
+                                const span = entry.span;
+                                span.dataset.userHighlight = '1';
+                                span.style.background = 'rgba(59, 130, 246, 0.40)';
+                                span.style.borderRadius = '2px';
+                            }
+                        });
+                    } else if (isImage && payload.range.image) {
+                        const wrapper = container.querySelector('div[style*="position: relative"]');
+                        if (!wrapper) return;
+                        const overlay = wrapper.querySelector('.dc-image-overlay');
+                        if (!overlay) return;
+                        const x = payload.range.x || 0;
+                        const y = payload.range.y || 0;
+                        const w = payload.range.width || 4;
+                        const h = payload.range.height || 4;
+                        const box = document.createElement('div');
+                        box.style.position = 'absolute';
+                        box.style.left = (x - w / 2) + '%';
+                        box.style.top = (y - h / 2) + '%';
+                        box.style.width = w + '%';
+                        box.style.height = h + '%';
+                        box.style.background = 'rgba(59, 130, 246, 0.40)';
+                        box.style.border = '1px solid #3b82f6';
+                        box.style.borderRadius = '2px';
+                        box.style.pointerEvents = 'auto';
+                        box.style.cursor = 'pointer';
+                        overlay.appendChild(box);
+                    }
+                } else if (type === 'note' && payload.content) {
+                    const range = payload.range || {};
+                    const pin = document.createElement('div');
+                    pin.style.position = 'absolute';
+                    pin.style.width = '20px';
+                    pin.style.height = '20px';
+                    pin.style.background = '#3b82f6';
+                    pin.style.borderRadius = '50%';
+                    pin.style.cursor = 'pointer';
+                    pin.style.zIndex = '50';
+                    pin.style.display = 'flex';
+                    pin.style.alignItems = 'center';
+                    pin.style.justifyContent = 'center';
+                    pin.style.color = '#fff';
+                    pin.style.fontSize = '0.6875rem';
+                    pin.textContent = '📝';
+                    pin.title = payload.content;
+                    pin.addEventListener('click', function (ev) {
+                        ev.stopPropagation();
+                        alert(payload.content);
+                    });
+                    if (range.x !== undefined && range.y !== undefined) {
+                        pin.style.left = range.x + 'px';
+                        pin.style.top = range.y + 'px';
+                        container.style.position = 'relative';
+                        container.appendChild(pin);
+                    }
+                } else if (type === 'communication' && ov.metadata && ov.metadata.annotation_kind === 'reference' && payload.reference_target) {
+                    const pin = document.createElement('div');
+                    pin.style.position = 'absolute';
+                    pin.style.width = '20px';
+                    pin.style.height = '20px';
+                    pin.style.background = '#8b5cf6';
+                    pin.style.borderRadius = '50%';
+                    pin.style.cursor = 'pointer';
+                    pin.style.zIndex = '50';
+                    pin.style.display = 'flex';
+                    pin.style.alignItems = 'center';
+                    pin.style.justifyContent = 'center';
+                    pin.style.color = '#fff';
+                    pin.style.fontSize = '0.6875rem';
+                    pin.textContent = '🔗';
+                    pin.title = 'References: ' + payload.reference_target;
+                    pin.addEventListener('click', function (ev) {
+                        ev.stopPropagation();
+                        alert('References: ' + payload.reference_target);
+                    });
+                    if (payload.x !== undefined && payload.y !== undefined) {
+                        pin.style.left = payload.x + 'px';
+                        pin.style.top = payload.y + 'px';
+                        container.style.position = 'relative';
+                        container.appendChild(pin);
+                    }
+                }
+            });
+        } catch (e) {
+            // Silently fail — annotations are non-critical
+        }
     }
 
     let activePopover = null;
@@ -1175,6 +1287,7 @@
             if (window.pdfjsLib && /\.pdf$/i.test(currentDoc.filename || '')) {
                 applyHighlights(currentDoc);
             }
+            loadUserAnnotations(currentDoc);
             // Semptify suggests a document type from classification
             if (data.doc_type && data.doc_type !== 'unknown' && data.doc_type !== currentDoc.document_type) {
                 showTypeSuggestion(data.doc_type);
