@@ -45,6 +45,12 @@
                     <option value="other">Other</option>
                 </select>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
+                <div id="dcAnnotTools" style="display:none; gap:0.25rem; margin-left:auto;">
+                    <button type="button" class="frame-btn dc-annot-tool" data-tool="highlight" style="padding:0.25rem 0.5rem; font-size:0.75rem;">🖍 Highlight</button>
+                    <button type="button" class="frame-btn dc-annot-tool" data-tool="note" style="padding:0.25rem 0.5rem; font-size:0.75rem;">📝 Note</button>
+                    <button type="button" class="frame-btn dc-annot-tool" data-tool="reference" style="padding:0.25rem 0.5rem; font-size:0.75rem;">🔗 Reference</button>
+                    <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
+                </div>
             </div>
             <div id="dcViewer" style="flex:1; overflow:hidden; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
                 <div class="frame-empty" id="dcViewerEmpty">
@@ -219,6 +225,7 @@
         typeSelect.style.display = '';
         typeSelect.value = d.document_type || '';
         downloadBtn.style.display = '';
+        document.getElementById('dcAnnotTools').style.display = 'flex';
         const isPdf = /\.pdf$/i.test(d.filename || '');
         if (isPdf && window.pdfjsLib) {
             await renderPdf(d);
@@ -421,6 +428,173 @@
     document.addEventListener('click', () => {
         if (activePopover) { activePopover.remove(); activePopover = null; }
     });
+
+    // =========================================================================
+    // Slice 6 — User Annotation Tools (Highlight, Note, Reference)
+    // =========================================================================
+    let activeAnnotTool = 'none';
+
+    document.querySelectorAll('.dc-annot-tool').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activeAnnotTool = btn.dataset.tool;
+            document.querySelectorAll('.dc-annot-tool').forEach(b => b.style.background = '');
+            if (activeAnnotTool !== 'none') btn.style.background = '#1e293b';
+            const container = document.getElementById('dcPdfContainer');
+            container.style.cursor = activeAnnotTool === 'none' ? '' : 'crosshair';
+            if (activeAnnotTool !== 'none' && window.SemptifyFeedback) {
+                const hints = {
+                    highlight: 'Click a word in the PDF to highlight it.',
+                    note: 'Click anywhere on the PDF to place a note.',
+                    reference: 'Click anywhere on the PDF to link a reference.'
+                };
+                SemptifyFeedback.info(hints[activeAnnotTool] || '', { timeout: 4000 });
+            }
+        });
+    });
+
+    document.getElementById('dcPdfContainer').addEventListener('click', function (e) {
+        if (activeAnnotTool === 'none' || !currentDoc) return;
+        if (e.target.tagName === 'BUTTON') return;
+        e.stopPropagation();
+        if (activeAnnotTool === 'highlight') handleHighlightClick(e);
+        else if (activeAnnotTool === 'note') handleNoteClick(e);
+        else if (activeAnnotTool === 'reference') handleReferenceClick(e);
+    });
+
+    async function handleHighlightClick(e) {
+        const span = e.target.closest('span[data-text]');
+        if (!span) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Click directly on a word in the PDF text.');
+            return;
+        }
+        const text = span.dataset.text || '';
+        if (!text.trim()) return;
+        span.style.background = 'rgba(59, 130, 246, 0.40)';
+        span.style.borderRadius = '2px';
+        span.dataset.userHighlight = '1';
+        const page = span.dataset.page || 1;
+        const rect = span.getBoundingClientRect();
+        const rangeData = {
+            page: parseInt(page, 10),
+            text: text,
+            x: Math.round(rect.left),
+            y: Math.round(rect.top),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height)
+        };
+        try {
+            const r = await fetch('/api/unified-overlays/annotations/highlight?document_id=' + encodeURIComponent(currentDoc.id) + '&vault_path=' + encodeURIComponent(currentDoc.vault_path || currentDoc.id) + '&color=blue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rangeData),
+                credentials: 'include'
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Highlight saved.');
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save highlight: ' + err.message);
+        }
+    }
+
+    async function handleNoteClick(e) {
+        const text = prompt('Note:');
+        if (text === null || !text.trim()) return;
+        const container = document.getElementById('dcPdfContainer');
+        const containerRect = container.getBoundingClientRect();
+        const x = e.clientX - containerRect.left + container.scrollLeft;
+        const y = e.clientY - containerRect.top + container.scrollTop;
+        const pin = document.createElement('div');
+        pin.style.position = 'absolute';
+        pin.style.left = x + 'px';
+        pin.style.top = y + 'px';
+        pin.style.width = '20px';
+        pin.style.height = '20px';
+        pin.style.background = '#3b82f6';
+        pin.style.borderRadius = '50%';
+        pin.style.cursor = 'pointer';
+        pin.style.zIndex = '50';
+        pin.style.display = 'flex';
+        pin.style.alignItems = 'center';
+        pin.style.justifyContent = 'center';
+        pin.style.color = '#fff';
+        pin.style.fontSize = '0.6875rem';
+        pin.style.fontWeight = 'bold';
+        pin.textContent = '📝';
+        pin.title = text;
+        pin.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            alert(text);
+        });
+        container.style.position = 'relative';
+        container.appendChild(pin);
+        try {
+            const r = await fetch('/api/unified-overlays/annotations/note?document_id=' + encodeURIComponent(currentDoc.id) + '&vault_path=' + encodeURIComponent(currentDoc.vault_path || currentDoc.id) + '&content=' + encodeURIComponent(text) + '&note_type=user&priority=normal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+                credentials: 'include'
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Note saved.');
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save note: ' + err.message);
+            pin.remove();
+        }
+    }
+
+    async function handleReferenceClick(e) {
+        const target = prompt('Reference target (document name or ID):');
+        if (target === null || !target.trim()) return;
+        const container = document.getElementById('dcPdfContainer');
+        const containerRect = container.getBoundingClientRect();
+        const x = e.clientX - containerRect.left + container.scrollLeft;
+        const y = e.clientY - containerRect.top + container.scrollTop;
+        const pin = document.createElement('div');
+        pin.style.position = 'absolute';
+        pin.style.left = x + 'px';
+        pin.style.top = y + 'px';
+        pin.style.width = '20px';
+        pin.style.height = '20px';
+        pin.style.background = '#8b5cf6';
+        pin.style.borderRadius = '50%';
+        pin.style.cursor = 'pointer';
+        pin.style.zIndex = '50';
+        pin.style.display = 'flex';
+        pin.style.alignItems = 'center';
+        pin.style.justifyContent = 'center';
+        pin.style.color = '#fff';
+        pin.style.fontSize = '0.6875rem';
+        pin.textContent = '🔗';
+        pin.title = 'References: ' + target;
+        pin.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            alert('References: ' + target);
+        });
+        container.style.position = 'relative';
+        container.appendChild(pin);
+        try {
+            const r = await fetch('/api/unified-overlays/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    overlay_type: 'communication',
+                    document_id: currentDoc.id,
+                    vault_path: currentDoc.vault_path || currentDoc.id,
+                    payload: { reference_target: target, x: x, y: y },
+                    metadata: { annotation_kind: 'reference', created_by_tool: 'dc_gui' },
+                    ephemeral: false
+                }),
+                credentials: 'include'
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            if (window.SemptifyFeedback) SemptifyFeedback.success('Reference saved.');
+        } catch (err) {
+            if (window.SemptifyFeedback) SemptifyFeedback.error('Could not save reference: ' + err.message);
+            pin.remove();
+        }
+    }
 
     async function loadOverlays(vaultId) {
         overlayList.innerHTML = '';
