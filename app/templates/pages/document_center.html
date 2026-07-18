@@ -3,20 +3,20 @@
 {% block nav_record %}active{% endblock %}
 
 {% block content %}
-<section class="frame-panel" style="padding:0; overflow:hidden;">
-    <div class="frame-panel--header" style="padding:0.75rem 1rem; border-bottom:1px solid #1e293b;">
+<section class="frame-panel" style="padding:0; overflow:hidden; background:var(--zone-bg-secondary);">
+    <div class="frame-panel--header" style="padding:0.75rem 1rem; background:var(--zone-bg-tertiary);">
         <span class="frame-panel--title">Document Center</span>
         <span id="dcOverall" style="font-size:0.8125rem; color:#64748b; margin-left:auto;"></span>
     </div>
     <div id="dcShell" style="display:grid; grid-template-columns: 280px 1fr 320px; gap:0; height:calc(100vh - 180px); min-height:500px;">
 
         <!-- LEFT PANE: Vault List -->
-        <div id="dcLeft" style="border-right:1px solid #1e293b; display:flex; flex-direction:column; overflow:hidden;">
-            <div style="padding:0.75rem; border-bottom:1px solid #1e293b; display:flex; gap:0.5rem;">
+        <div id="dcLeft" style="background:var(--zone-bg-secondary); display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:0.75rem; background:var(--zone-bg-tertiary); display:flex; gap:0.5rem;">
                 <button id="dcUploadBtn" class="frame-btn" type="button" style="flex:1;">+ Upload</button>
             </div>
-            <div style="padding:0.5rem 0.75rem; border-bottom:1px solid #1e293b; display:flex; gap:0.5rem; font-size:0.8125rem;">
-                <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:#1e293b;">All</button>
+            <div style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); display:flex; gap:0.5rem; font-size:0.8125rem;">
+                <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:var(--zone-bg-primary);">All</button>
                 <button class="frame-btn dc-filter" data-filter="new" style="flex:1;">New</button>
                 <button class="frame-btn dc-filter" data-filter="review" style="flex:1;">Review</button>
                 <button class="frame-btn dc-filter" data-filter="verified" style="flex:1;">Verified</button>
@@ -31,8 +31,8 @@
         </div>
 
         <!-- CENTER PANE: Viewer -->
-        <div id="dcCenter" style="display:flex; flex-direction:column; overflow:hidden;">
-            <div id="dcTopBar" style="padding:0.5rem 0.75rem; border-bottom:1px solid #1e293b; display:flex; align-items:center; gap:0.5rem; min-height:48px;">
+        <div id="dcCenter" style="background:var(--zone-bg-primary); display:flex; flex-direction:column; overflow:hidden;">
+            <div id="dcTopBar" style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); display:flex; align-items:center; gap:0.5rem; min-height:48px;">
                 <span id="dcDocName" style="color:#94a3b8; font-size:0.875rem; flex:1;">Select a document</span>
                 <select id="dcTypeSelect" style="background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
                     <option value="">— Type —</option>
@@ -45,7 +45,7 @@
                     <option value="correspondence">Correspondence</option>
                     <option value="other">Other</option>
                 </select>
-                <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:#1e293b; border:1px solid #f59e0b; border-radius:0.25rem; padding:0.1875rem 0.5rem; font-size:0.75rem;">
+                <div id="dcTypeSuggest" style="display:none; align-items:center; gap:0.375rem; background:var(--zone-bg-tertiary); padding:0.1875rem 0.5rem; font-size:0.75rem;">
                     <span style="color:#f59e0b;">💡 Semptify suggests:</span>
                     <span id="dcSuggestedType" style="color:#e2e8f0; font-weight:600;"></span>
                     <button type="button" id="dcAcceptSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem; background:#052e16; color:#22c55e;">Accept</button>
@@ -61,7 +61,7 @@
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="none" style="padding:0.25rem 0.5rem; font-size:0.75rem;">✕ Cancel</button>
                 </div>
             </div>
-            <div id="dcViewer" style="flex:1; overflow:hidden; background:#0f172a; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+            <div id="dcViewer" style="flex:1; overflow:hidden; background:var(--zone-bg-inverse); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
                 <div class="frame-empty" id="dcViewerEmpty">
                     <div class="frame-empty--icon">📄</div>
                     <p>No document selected</p>
@@ -73,9 +73,9 @@
         </div>
 
         <!-- RIGHT PANE: Overlays -->
-        <div id="dcRight" style="border-left:1px solid #1e293b; display:flex; flex-direction:column; overflow:hidden;">
-            <div style="padding:0.5rem 0.75rem; border-bottom:1px solid #1e293b; display:flex; gap:0.5rem; font-size:0.8125rem;">
-                <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:#1e293b;">Overlays</button>
+        <div id="dcRight" style="background:var(--zone-bg-secondary); display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); display:flex; gap:0.5rem; font-size:0.8125rem;">
+                <button class="frame-btn dc-tab" data-tab="overlays" style="flex:1; background:var(--zone-bg-primary);">Overlays</button>
                 <button class="frame-btn dc-tab" data-tab="checklist" style="flex:1;">Checklist</button>
             </div>
             <div id="dcOverlayList" style="flex:1; overflow-y:auto; padding:0.5rem;">
@@ -90,7 +90,7 @@
                     <p>Declare a document type to see its verification checklist.</p>
                 </div>
             </div>
-            <div id="dcUnlocks" style="padding:0.5rem 0.75rem; border-top:1px solid #1e293b; font-size:0.75rem; color:#64748b;"></div>
+            <div id="dcUnlocks" style="padding:0.5rem 0.75rem; background:var(--zone-bg-tertiary); font-size:0.75rem; color:#64748b;"></div>
         </div>
 
     </div>
@@ -98,10 +98,10 @@
 
 <!-- Upload modal -->
 <div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:#16213e; border-radius:0.5rem; padding:1.5rem; max-width:500px; width:90%;">
+    <div style="background:var(--zone-bg-secondary); padding:1.5rem; max-width:500px; width:90%;">
         <h3 style="color:#e2e8f0; margin-bottom:1rem;">Upload a document</h3>
         <form id="dcUploadForm" enctype="multipart/form-data">
-            <div id="dcDropZone" style="border:2px dashed #334155; border-radius:0.5rem; padding:2rem; text-align:center; cursor:pointer; margin-bottom:1rem;">
+            <div id="dcDropZone" style="background:var(--zone-bg-primary); padding:2rem; text-align:center; cursor:pointer; margin-bottom:1rem;">
                 <div id="dcDropTitle" style="color:#94a3b8;">Tap here to choose a file</div>
                 <div id="dcDropHint" style="color:#64748b; font-size:0.8125rem; margin-top:0.5rem;">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
             </div>
@@ -117,7 +117,7 @@
 
 <!-- Share modal -->
 <div id="dcShareModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
-    <div style="background:#16213e; border-radius:0.5rem; padding:1.5rem; max-width:500px; width:90%;">
+    <div style="background:var(--zone-bg-secondary); padding:1.5rem; max-width:500px; width:90%;">
         <h3 style="color:#e2e8f0; margin-bottom:0.25rem;">Share document</h3>
         <p style="color:#94a3b8; font-size:0.8125rem; margin-bottom:1rem;">You control who sees your documents. Semptify never shares without your action.</p>
         <p style="color:#64748b; font-size:0.75rem; margin-bottom:1rem;">Sharing: <span id="dcShareDocName" style="color:#e2e8f0; font-weight:600;"></span></p>
@@ -330,7 +330,7 @@
         const wrapper = document.createElement('div');
         wrapper.style.position = 'relative';
         wrapper.style.maxWidth = '100%';
-        wrapper.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+        wrapper.style.background = 'var(--zone-bg-inverse)';
         const img = document.createElement('img');
         img.src = '/api/dc/document/' + encodeURIComponent(doc.id) + '/view';
         img.style.display = 'block';
@@ -409,7 +409,7 @@
                 const pageWrapper = document.createElement('div');
                 pageWrapper.style.position = 'relative';
                 pageWrapper.style.marginBottom = '1rem';
-                pageWrapper.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                pageWrapper.style.background = 'var(--zone-bg-inverse)';
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
@@ -605,12 +605,9 @@
         const popover = document.createElement('div');
         popover.style.position = 'fixed';
         popover.style.zIndex = '200';
-        popover.style.background = '#16213e';
-        popover.style.border = '1px solid #334155';
-        popover.style.borderRadius = '0.5rem';
+        popover.style.background = 'var(--zone-bg-tertiary)';
         popover.style.padding = '0.75rem';
         popover.style.maxWidth = '300px';
-        popover.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
         const rect = span.getBoundingClientRect();
         popover.style.left = rect.left + 'px';
         popover.style.top = (rect.bottom + 8) + 'px';
@@ -1044,7 +1041,7 @@
         header.style.marginBottom = '0.5rem';
         header.innerHTML = '<div style="color:#e2e8f0; font-size:0.875rem; font-weight:600; margin-bottom:0.25rem;">' + escapeHtml(def.label) + '</div>' +
             '<div style="color:#64748b; font-size:0.75rem; margin-bottom:0.5rem;">' + escapeHtml(def.description) + '</div>' +
-            '<div style="background:#0f172a; height:6px; border-radius:3px; overflow:hidden;"><div style="background:' + (overallPct >= 100 ? '#22c55e' : overallPct > 0 ? '#f59e0b' : '#334155') + '; height:100%; width:' + overallPct + '%; transition:width 0.3s;"></div></div>' +
+            '<div style="background:var(--zone-bg-inverse); height:6px; overflow:hidden;"><div style="background:' + (overallPct >= 100 ? '#22c55e' : overallPct > 0 ? '#f59e0b' : '#334155') + '; height:100%; width:' + overallPct + '%; transition:width 0.3s;"></div></div>' +
             '<div style="color:#94a3b8; font-size:0.75rem; margin-top:0.25rem;">' + confirmedCount + '/' + required.length + ' required fields confirmed · ' + overallPct + '%</div>';
         checklist.appendChild(header);
 
