@@ -141,7 +141,7 @@
             }
             meta.textContent = 'Recent events:';
             preview.innerHTML = items.map(it => {
-                return '<div style="font-size:0.8125rem; color:#cbd5e1; padding:0.25rem 0; border-bottom:1px solid rgba(255,255,255,0.05);">'
+                return '<div style="font-size:0.8125rem; color:#cbd5e1; padding:0.25rem 0;">'
                     + '<span style="color:#94a3b8;">' + escapeHtml(fmtDate(it.date_display || it.event_date || it.entry_date)) + '</span> '
                     + escapeHtml(it.title)
                     + '</div>';
