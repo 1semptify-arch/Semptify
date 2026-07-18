@@ -1,0 +1,430 @@
+{% extends "gui/base.html" %}
+{% block title %}Document Center — Semptify{% endblock %}
+{% block nav_record %}active{% endblock %}
+
+{% block content %}
+<section class="frame-panel" style="padding:0; overflow:hidden;">
+    <div class="frame-panel--header" style="padding:0.75rem 1rem; border-bottom:1px solid #1e293b;">
+        <span class="frame-panel--title">Document Center</span>
+        <span id="dcOverall" style="font-size:0.8125rem; color:#64748b; margin-left:auto;"></span>
+    </div>
+    <div id="dcShell" style="display:grid; grid-template-columns: 280px 1fr 320px; gap:0; height:calc(100vh - 180px); min-height:500px;">
+
+        <!-- LEFT PANE: Vault List -->
+        <div id="dcLeft" style="border-right:1px solid #1e293b; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:0.75rem; border-bottom:1px solid #1e293b; display:flex; gap:0.5rem;">
+                <button id="dcUploadBtn" class="frame-btn" type="button" style="flex:1;">+ Upload</button>
+            </div>
+            <div style="padding:0.5rem 0.75rem; border-bottom:1px solid #1e293b; display:flex; gap:0.5rem; font-size:0.8125rem;">
+                <button class="frame-btn dc-filter" data-filter="all" style="flex:1; background:#1e293b;">All</button>
+                <button class="frame-btn dc-filter" data-filter="new" style="flex:1;">New</button>
+                <button class="frame-btn dc-filter" data-filter="review" style="flex:1;">Review</button>
+                <button class="frame-btn dc-filter" data-filter="verified" style="flex:1;">Verified</button>
+            </div>
+            <div id="dcDocList" style="flex:1; overflow-y:auto; padding:0.25rem;">
+                <div class="frame-empty" id="dcDocEmpty">
+                    <div class="frame-empty--icon">∅</div>
+                    <p>Loading documents…</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER PANE: Viewer -->
+        <div id="dcCenter" style="display:flex; flex-direction:column; overflow:hidden;">
+            <div id="dcTopBar" style="padding:0.5rem 0.75rem; border-bottom:1px solid #1e293b; display:flex; align-items:center; gap:0.5rem; min-height:48px;">
+                <span id="dcDocName" style="color:#94a3b8; font-size:0.875rem; flex:1;">Select a document</span>
+                <select id="dcTypeSelect" style="background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:0.25rem; padding:0.25rem 0.5rem; font-size:0.8125rem; display:none;">
+                    <option value="">— Type —</option>
+                    <option value="lease">Lease Agreement</option>
+                    <option value="notice_to_vacate">Notice to Vacate</option>
+                    <option value="repair_request">Repair Request</option>
+                    <option value="rent_receipt">Rent Receipt</option>
+                    <option value="move_in_inspection">Move-in Inspection</option>
+                    <option value="court_summons">Court Summons</option>
+                    <option value="correspondence">Correspondence</option>
+                    <option value="other">Other</option>
+                </select>
+                <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
+            </div>
+            <div id="dcViewer" style="flex:1; overflow:hidden; background:#0f172a; display:flex; align-items:center; justify-content:center;">
+                <div class="frame-empty" id="dcViewerEmpty">
+                    <div class="frame-empty--icon">📄</div>
+                    <p>No document selected</p>
+                    <p class="frame-empty--hint">Pick a file from the left panel.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANE: Overlays -->
+        <div id="dcRight" style="border-left:1px solid #1e293b; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:0.5rem 0.75rem; border-bottom:1px solid #1e293b; font-size:0.8125rem; color:#94a3b8;">
+                Overlays
+            </div>
+            <div id="dcOverlayList" style="flex:1; overflow-y:auto; padding:0.5rem;">
+                <div class="frame-empty" id="dcOverlayEmpty">
+                    <div class="frame-empty--icon">∅</div>
+                    <p>Select a document to see overlays.</p>
+                </div>
+            </div>
+            <div id="dcUnlocks" style="padding:0.5rem 0.75rem; border-top:1px solid #1e293b; font-size:0.75rem; color:#64748b;"></div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Upload modal -->
+<div id="dcUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;">
+    <div style="background:#16213e; border-radius:0.5rem; padding:1.5rem; max-width:500px; width:90%;">
+        <h3 style="color:#e2e8f0; margin-bottom:1rem;">Upload a document</h3>
+        <form id="dcUploadForm" enctype="multipart/form-data">
+            <div id="dcDropZone" style="border:2px dashed #334155; border-radius:0.5rem; padding:2rem; text-align:center; cursor:pointer; margin-bottom:1rem;">
+                <div id="dcDropTitle" style="color:#94a3b8;">Tap here to choose a file</div>
+                <div id="dcDropHint" style="color:#64748b; font-size:0.8125rem; margin-top:0.5rem;">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
+            </div>
+            <input type="file" id="dcFileInput" name="file" accept="*/*" style="display:none;">
+            <div id="dcUploadStatus" style="font-size:0.8125rem; color:#94a3b8; margin-bottom:0.5rem;"></div>
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button type="button" id="dcUploadCancel" class="frame-btn">Cancel</button>
+                <button type="submit" id="dcUploadSubmit" class="frame-btn" disabled>Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const docList = document.getElementById('dcDocList');
+    const docEmpty = document.getElementById('dcDocEmpty');
+    const docName = document.getElementById('dcDocName');
+    const typeSelect = document.getElementById('dcTypeSelect');
+    const downloadBtn = document.getElementById('dcDownloadBtn');
+    const viewer = document.getElementById('dcViewer');
+    const viewerEmpty = document.getElementById('dcViewerEmpty');
+    const overlayList = document.getElementById('dcOverlayList');
+    const overlayEmpty = document.getElementById('dcOverlayEmpty');
+    const unlocksDiv = document.getElementById('dcUnlocks');
+    const overallSpan = document.getElementById('dcOverall');
+    let currentDoc = null;
+    let allDocs = [];
+    let currentFilter = 'all';
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmtDate(s) {
+        if (!s) return '';
+        try {
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch (e) { return s; }
+    }
+    function statusIcon(s) {
+        if (s === 'verified') return '✅';
+        if (s === 'review') return '🔄';
+        return '⬜';
+    }
+
+    async function loadDocs() {
+        try {
+            const r = await fetch('/api/dc/list', { credentials: 'include' });
+            if (!r.ok) {
+                if (r.status === 401) {
+                    docEmpty.querySelector('p').textContent = 'Sign in to see your documents.';
+                    return;
+                }
+                throw new Error('HTTP ' + r.status);
+            }
+            const data = await r.json();
+            allDocs = data.documents || [];
+            renderDocs();
+        } catch (e) {
+            docEmpty.querySelector('p').textContent = 'Could not load documents.';
+            docEmpty.querySelector('.frame-empty--hint') = e.message;
+        }
+    }
+
+    function renderDocs() {
+        const filtered = currentFilter === 'all'
+            ? allDocs
+            : allDocs.filter(d => d.verification_status === currentFilter);
+        docList.innerHTML = '';
+        if (!filtered.length) {
+            docList.appendChild(docEmpty);
+            docEmpty.querySelector('p').textContent = currentFilter === 'all' ? 'No documents yet.' : 'No ' + currentFilter + ' documents.';
+            return;
+        }
+        filtered.forEach(d => {
+            const row = document.createElement('div');
+            row.className = 'frame-item';
+            row.style.cursor = 'pointer';
+            if (currentDoc && currentDoc.id === d.id) {
+                row.style.background = '#1e293b';
+            }
+            const icon = document.createElement('div');
+            icon.className = 'frame-item--icon';
+            icon.textContent = statusIcon(d.verification_status);
+            const main = document.createElement('div');
+            main.className = 'frame-item--main';
+            const title = document.createElement('div');
+            title.className = 'frame-item--title';
+            title.textContent = d.filename || 'Untitled';
+            title.style.fontSize = '0.875rem';
+            const meta = document.createElement('div');
+            meta.className = 'frame-item--meta';
+            const typeLabel = d.document_type ? d.document_type.replace(/_/g, ' ') : '—';
+            meta.textContent = fmtDate(d.uploaded_at) + ' · ' + typeLabel;
+            main.appendChild(title);
+            main.appendChild(meta);
+            row.appendChild(icon);
+            row.appendChild(main);
+            row.addEventListener('click', () => selectDoc(d));
+            docList.appendChild(row);
+        });
+    }
+
+    async function selectDoc(d) {
+        currentDoc = d;
+        renderDocs();
+        docName.textContent = d.filename || 'Untitled';
+        typeSelect.style.display = '';
+        typeSelect.value = d.document_type || '';
+        downloadBtn.style.display = '';
+        viewer.innerHTML = '';
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.src = '/api/dc/document/' + encodeURIComponent(d.id) + '/view';
+        viewer.appendChild(iframe);
+        loadOverlays(d.id);
+    }
+
+    async function loadOverlays(vaultId) {
+        overlayList.innerHTML = '';
+        overlayList.appendChild(overlayEmpty);
+        try {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(vaultId) + '/overlays', { credentials: 'include' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            renderOverlays(data);
+        } catch (e) {
+            overlayEmpty.querySelector('p').textContent = 'Could not load overlays.';
+        }
+    }
+
+    function renderOverlays(data) {
+        overlayList.innerHTML = '';
+        overallSpan.textContent = '';
+        if (data.status === 'processing_incomplete' || !data.overlays || !data.overlays.length) {
+            const empty = document.createElement('div');
+            empty.className = 'frame-empty';
+            empty.innerHTML = '<div class="frame-empty--icon">⬜</div><p>' + escapeHtml(data.message || 'No overlays yet.') + '</p><p class="frame-empty--hint">Process the document to see progress.</p>';
+            overlayList.appendChild(empty);
+            return;
+        }
+        data.overlays.forEach(ov => {
+            const row = document.createElement('div');
+            row.className = 'frame-item';
+            row.style.flexDirection = 'column';
+            row.style.alignItems = 'stretch';
+            row.style.padding = '0.5rem';
+            row.style.marginBottom = '0.5rem';
+            row.style.background = '#1e293b';
+            row.style.borderRadius = '0.375rem';
+            const header = document.createElement('div');
+            header.style.display = 'flex';
+            header.style.alignItems = 'center';
+            header.style.gap = '0.5rem';
+            header.style.marginBottom = '0.25rem';
+            const icon = document.createElement('span');
+            icon.textContent = ov.icon || '⬜';
+            const name = document.createElement('strong');
+            name.style.color = '#e2e8f0';
+            name.style.fontSize = '0.8125rem';
+            name.style.flex = '1';
+            name.textContent = ov.name;
+            const pct = document.createElement('span');
+            pct.style.color = '#94a3b8';
+            pct.style.fontSize = '0.75rem';
+            pct.textContent = ov.pct + '%';
+            header.appendChild(icon);
+            header.appendChild(name);
+            header.appendChild(pct);
+            const bar = document.createElement('div');
+            bar.style.background = '#0f172a';
+            bar.style.height = '4px';
+            bar.style.borderRadius = '2px';
+            bar.style.overflow = 'hidden';
+            bar.style.marginBottom = '0.25rem';
+            const fill = document.createElement('div');
+            fill.style.background = ov.pct >= 100 ? '#22c55e' : (ov.pct > 0 ? '#f59e0b' : '#334155');
+            fill.style.height = '100%';
+            fill.style.width = ov.pct + '%';
+            fill.style.transition = 'width 0.3s';
+            bar.appendChild(fill);
+            const goal = document.createElement('div');
+            goal.style.color = '#64748b';
+            goal.style.fontSize = '0.75rem';
+            goal.textContent = ov.goal || '';
+            row.appendChild(header);
+            row.appendChild(bar);
+            if (ov.goal) row.appendChild(goal);
+            if (ov.items && ov.items.length) {
+                const detail = document.createElement('div');
+                detail.style.color = '#94a3b8';
+                detail.style.fontSize = '0.75rem';
+                detail.style.marginTop = '0.25rem';
+                detail.style.whiteSpace = 'pre-wrap';
+                detail.textContent = ov.items.slice(0, 5).join('\n');
+                row.appendChild(detail);
+            }
+            overlayList.appendChild(row);
+        });
+        if (data.overall_pct !== undefined) {
+            overallSpan.textContent = 'Overall: ' + data.overall_pct + '%';
+        }
+    }
+
+    async function loadUnlocks() {
+        try {
+            const r = await fetch('/api/dc/unlocks', { credentials: 'include' });
+            if (!r.ok) return;
+            const data = await r.json();
+            unlocksDiv.innerHTML = '';
+            (data.unlocks || []).forEach(u => {
+                const line = document.createElement('div');
+                line.style.marginBottom = '0.25rem';
+                line.textContent = (u.unlocked ? '🔓' : '🔒') + ' ' + u.name + ' — ' + (u.unlocked ? 'unlocked' : u.progress);
+                unlocksDiv.appendChild(line);
+            });
+        } catch (e) { /* silent */ }
+    }
+
+    // Filter buttons
+    document.querySelectorAll('.dc-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.dc-filter').forEach(b => b.style.background = '');
+            btn.style.background = '#1e293b';
+            currentFilter = btn.dataset.filter;
+            renderDocs();
+        });
+    });
+
+    // Type select
+    typeSelect.addEventListener('change', async () => {
+        if (!currentDoc) return;
+        const newType = typeSelect.value;
+        try {
+            const r = await fetch('/api/dc/document/' + encodeURIComponent(currentDoc.id) + '/type', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ document_type: newType }),
+                credentials: 'include',
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const data = await r.json();
+            currentDoc.document_type = newType;
+            renderDocs();
+            if (data.overlays) renderOverlays(data.overlays);
+        } catch (e) {
+            alert('Could not update type: ' + e.message);
+        }
+    });
+
+    // Download
+    downloadBtn.addEventListener('click', () => {
+        if (!currentDoc) return;
+        window.location.href = '/api/vault/' + encodeURIComponent(currentDoc.id) + '/download';
+    });
+
+    // Upload modal
+    const uploadBtn = document.getElementById('dcUploadBtn');
+    const uploadModal = document.getElementById('dcUploadModal');
+    const uploadCancel = document.getElementById('dcUploadCancel');
+    const uploadForm = document.getElementById('dcUploadForm');
+    const fileInput = document.getElementById('dcFileInput');
+    const dropZone = document.getElementById('dcDropZone');
+    const dropTitle = document.getElementById('dcDropTitle');
+    const dropHint = document.getElementById('dcDropHint');
+    const uploadStatus = document.getElementById('dcUploadStatus');
+    const uploadSubmit = document.getElementById('dcUploadSubmit');
+    let selectedFile = null;
+
+    uploadBtn.addEventListener('click', () => { uploadModal.style.display = 'flex'; });
+    uploadCancel.addEventListener('click', () => {
+        uploadModal.style.display = 'none';
+        resetUpload();
+    });
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        selectedFile = fileInput.files && fileInput.files[0];
+        if (selectedFile) {
+            dropTitle.textContent = selectedFile.name;
+            dropHint.textContent = (selectedFile.size / 1024).toFixed(1) + ' KB';
+            uploadSubmit.disabled = false;
+        }
+    });
+    ['dragenter', 'dragover'].forEach(ev => dropZone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#3b82f6';
+    }));
+    ['dragleave', 'drop'].forEach(ev => dropZone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '';
+    }));
+    dropZone.addEventListener('drop', e => {
+        if (e.dataTransfer.files && e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    function resetUpload() {
+        selectedFile = null;
+        fileInput.value = '';
+        dropTitle.textContent = 'Tap here to choose a file';
+        dropHint.textContent = 'Photos, letters, PDFs, screenshots — anything about your tenancy.';
+        uploadStatus.textContent = '';
+        uploadSubmit.disabled = true;
+    }
+
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!selectedFile) return;
+        uploadSubmit.disabled = true;
+        uploadSubmit.textContent = 'Uploading…';
+        uploadStatus.textContent = '';
+        const fd = new FormData();
+        fd.append('file', selectedFile);
+        fd.append('user_id', (document.cookie.match(/(^|; )semptify_uid=([^;]+)/) || [,'',''])[2] || 'anon');
+        fd.append('username', 'tenant');
+        try {
+            const r = await fetch('/api/intake/upload/auto', {
+                method: 'POST',
+                body: fd,
+                credentials: 'include',
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(data.detail || data.message || 'HTTP ' + r.status);
+            uploadStatus.textContent = 'Uploaded.';
+            uploadModal.style.display = 'none';
+            resetUpload();
+            uploadSubmit.textContent = 'Upload';
+            await loadDocs();
+            await loadUnlocks();
+        } catch (err) {
+            uploadStatus.textContent = 'Upload failed: ' + (err.message || 'unknown error');
+            uploadSubmit.disabled = false;
+            uploadSubmit.textContent = 'Upload';
+        }
+    });
+
+    // Init
+    loadDocs();
+    loadUnlocks();
+})();
+</script>
+{% endblock %}
