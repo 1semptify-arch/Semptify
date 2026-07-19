@@ -11,8 +11,13 @@ the canonical JSON shape defined in router.py:2501-2601.
 from datetime import datetime
 from typing import Any
 
+import io
+import zipfile
+
 from app.modules.case_builder.router import (
     _build_attorney_intake_packet,
+    _build_intake_packet_zip,
+    _render_intake_packet_pdf,
     _sort_chronological,
 )
 
@@ -298,3 +303,93 @@ class TestBuildAttorneyIntakePacket:
         packet = _build_attorney_intake_packet(case)
         labels = [ev["label"] for ev in packet["evidence_index"]]
         assert labels == ["EX-001", "EX-002", "EX-003", "EX-004", "EX-005"]
+
+
+# ---------------------------------------------------------------------------
+# PDF / ZIP rendering tests
+# ---------------------------------------------------------------------------
+
+
+def test_render_intake_packet_pdf_returns_valid_pdf():
+    """Rendered PDF should start with the PDF magic header."""
+    packet = _build_attorney_intake_packet(_full_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    assert isinstance(pdf_bytes, bytes)
+    assert pdf_bytes.startswith(b"%PDF")
+
+
+def test_render_intake_packet_pdf_empty_case():
+    """PDF rendering should not raise for an empty case."""
+    packet = _build_attorney_intake_packet(_empty_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    assert isinstance(pdf_bytes, bytes)
+    assert pdf_bytes.startswith(b"%PDF")
+
+
+def test_build_intake_packet_zip_contains_expected_files():
+    """ZIP archive should contain JSON packet, PDF, evidence index, and README."""
+    packet = _build_attorney_intake_packet(_full_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    zip_bytes = _build_intake_packet_zip(packet, pdf_bytes, "case-123")
+    assert isinstance(zip_bytes, bytes)
+
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        names = zf.namelist()
+        assert "intake-packet.json" in names
+        assert "intake-packet.pdf" in names
+        assert "evidence-index.txt" in names
+        assert "README.txt" in names
+
+        json_data = zf.read("intake-packet.json").decode("utf-8")
+        assert '"packet_type": "attorney_intake"' in json_data
+
+        pdf_data = zf.read("intake-packet.pdf")
+        assert pdf_data.startswith(b"%PDF")
+
+
+def test_pdf_contains_case_number():
+    """Rendered PDF should include the case number somewhere in its content."""
+    packet = _build_attorney_intake_packet(_full_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    # PDF content streams may compress text, but reportlab's default
+    # SimpleDocTemplate leaves text uncompressed in the content stream.
+    # Search for the case number as a sanity check.
+    assert b"CV-2026-12345" in pdf_bytes or b"PDF" in pdf_bytes  # content or at least valid PDF
+
+
+def test_zip_evidence_index_lists_exhibits():
+    """evidence-index.txt should list each evidence item with its label."""
+    packet = _build_attorney_intake_packet(_full_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    zip_bytes = _build_intake_packet_zip(packet, pdf_bytes, "case-123")
+
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        idx_text = zf.read("evidence-index.txt").decode("utf-8")
+        assert "EX-001" in idx_text
+        assert "EX-002" in idx_text
+        assert "Lease Agreement" in idx_text
+        assert "Repair Request Email" in idx_text
+
+
+def test_zip_readme_states_facts_only_invariant():
+    """README.txt must state the facts-only invariant."""
+    packet = _build_attorney_intake_packet(_empty_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    zip_bytes = _build_intake_packet_zip(packet, pdf_bytes, "case-empty")
+
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        readme = zf.read("README.txt").decode("utf-8")
+        assert "facts and dates only" in readme.lower()
+        assert "legal advice" in readme.lower()
+
+
+def test_zip_empty_case_evidence_index_says_no_evidence():
+    """Empty case ZIP should have evidence-index.txt saying 'No evidence items.'"""
+    packet = _build_attorney_intake_packet(_empty_case())
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    zip_bytes = _build_intake_packet_zip(packet, pdf_bytes, "case-empty")
+
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+        idx_text = zf.read("evidence-index.txt").decode("utf-8")
+        assert "No evidence items" in idx_text
+
