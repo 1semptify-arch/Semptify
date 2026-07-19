@@ -1,43 +1,74 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-10 AM
+**Last Updated**: 2026-07-19 PM
 
 ---
 
 ## 🎯 Current Priority: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`)
 
-Focusing on the tenant-facing GUI. The `/gui/*` four-pillar navigation is in place. `know.html` and `act.html` are now real hubs linking to existing routes. Next: integrate Calendar/Timeline and the home-page dashboard cards, or return to UPL guardrail tier registration when the matrix is provided.
+Focusing on the tenant-facing GUI. The `/gui/*` four-pillar navigation is in place.
+`know.html`, `act.html`, `record.html`, `home.html` all extend `gui/base.html` and
+link to real routes. Icon policy decided and applied 2026-07-19: minimal unicode
+markers (`▸`, `◆`, `●`, `○`) replace emoji across all 5 GUI templates + Document Center.
 
-## ✅ Completed This Session
+Sync-orchestrator pre-commit hook loop fixed 2026-07-19 (commits `05119a1`, `b53b780`):
+LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-verify`.
 
-- **All `agent_orchestrator_tasks.json` stub tasks processed**: 51 remaining pending tasks were reviewed and marked `skipped` with descriptive reasons. No pending tasks remain. Committed on `fix/complaint-wizard-stub-pass`.
-- **UPL guardrail import**: `app/modules/dev_lab/ideas.py` now imports `UPLRiskTier` and `get_default_upl_tier` from `app.core.upl_guardrails`.
-- **GUI Phase 1 Know/Act pages**: `app/templates/gui/know.html` and `app/templates/gui/act.html` now extend `gui/base.html`, set active nav state, and link to real library and action-tool routes.
+## ✅ Completed 2026-07-19 Session
+
+- **Icon replacement policy applied**: 5 GUI templates + `document_center.html` now use
+  minimal unicode markers (`▸`, `◆`, `●`, `○`) instead of emoji. Functional status markers
+  (`✕`, `⚙`, `↗`, `✅`, `🔄`, `⚠️`, `⬜`, `∅`, `!`) preserved.
+- **Sync-orchestrator hook loop fixed**: root cause was CRLF writes + non-idempotent
+  timestamps. All sync-chain Python scripts now use `newline="\n"` + trailing newline +
+  only-write-if-changed.
+- **Document Center verified live**: 22 DC tests pass, 3-pane layout live at
+  `/tenant/documents`, OAuth-gated as expected.
+- **Visual smoke test passed**: all 4 public GUI pages verified on live deploy.
 
 ## 🅿️ NEXT TO BUILD (in priority order)
 
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
-| 1 | **UPL guardrail wiring** — add `upl_risk_tier` to `ModuleEntry`, register 8 modules with tiers | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
-| 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` + `Semptify_Master_Inventory_LIVE.xlsx` | 🅿️ Next priority | — |
-| 3 | **Document Center planning** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | 🅿️ Pending | — |
-| 4 | **Attorney Intake Packet** (parallel branch) | `feature/attorney-intake-packet` | 🅿️ In progress (uncommitted) | User review of scaffold |
+| 1 | **UPL guardrail wiring** | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
+| 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
+| 3 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
+| 4 | ~~Attorney Intake Packet~~ | ~~`feature/attorney-intake-packet`~~ | ❌ Branch does not exist in repo — stale entry, needs user clarification | — |
+
+> **Note**: Rows #1-#3 are complete. Row #4 is stale — the referenced branch
+> does not exist locally or on origin. User needs to clarify the actual next
+> priority. Candidates below.
+
+## 🎯 Candidate Next Priorities (awaiting user direction)
+
+- **Journal capture** — RECORD pillar input vessel (user vision 2026-06-28). Not yet built.
+- **Calendar total-recollection viewer** — RECORD pillar. Not yet built.
+- **Timeline interactive query viewer** — RECORD pillar. Not yet built.
+- **Rent Ledger** — RECORD pillar. Stub on `record.html`.
+- **Comms Log** — RECORD pillar. Not yet built.
+- **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
+- **DC Slice 2+** — viewer rendering, unlock pattern wiring (DC_DESIGN_SONNET.md open checkboxes)
 
 ### Action Feedback Helper — COMPLETE
-All 13 retrofittable pages now use `SemptifyFeedback.*` directly. No `alert()` fallbacks remain. Helper is globally loaded via `feedback.js` in `base.html`.
+All 13 retrofittable pages now use `SemptifyFeedback.*` directly. No `alert()` fallbacks
+remain. Helper is globally loaded via `feedback.js` in `base.html`.
 
 ### GUI Phase 1 — Four-Pillar Interface Model
-The user-facing GUI is now organized around the four-pillar model defined in `Semptify_Site_GUI_Framework.md`:
+The user-facing GUI is organized around the four-pillar model defined in
+`Semptify_Site_GUI_Framework.md`:
 - **RECORD** — capture and organize evidence (Vault, Timeline, Document Center, Calendar, Journal, Comms Log, Rent Ledger, PDF Tools)
 - **KNOW** — facts only, no opinions (Library, State Laws, Context Engine, RISC, Court Case Lookup, Search)
 - **ACT** — lawful, guided action (Case Builder, Eviction Defense, Court Forms, Complaint Wizard, Plan Maker)
 - **GOVERN** — platform integrity (Admin Console, Forge, Capabilities, Onboarding, Auth, Audit Logs)
 
-The older 2026-06-28 Journal/Calendar/Timeline vision is superseded by this framework. Each RECORD feature still does the same work (Journal captures, Calendar shows all events, Timeline queries data), but now sits inside the four-pillar structure instead of being its own top-level model.
+The older 2026-06-28 Journal/Calendar/Timeline vision is superseded by this framework.
+Each RECORD feature still does the same work (Journal captures, Calendar shows all
+events, Timeline queries data), but now sits inside the four-pillar structure.
 
-### Document Center Planning
-Design docs committed this session in `docs/planning/`:
-- `DC_DESIGN_SONNET.md`, `DC_HANDOFF_SONNET.md`, `DOCUMENT_CENTER_PLAN.md`
+### Document Center — IMPLEMENTED
+Design docs in `docs/planning/`, implementation in `app/modules/document_center/`.
+3-pane layout (vault list / viewer / overlays), 5 actions (upload/store/process/review/share),
+per-document-type checklists, verification states, unlock pattern. 22 tests pass.
 
 ---
 
