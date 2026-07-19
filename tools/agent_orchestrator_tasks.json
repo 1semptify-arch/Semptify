@@ -310,10 +310,11 @@
     "priority": "medium",
     "file_path": "app/modules/housing_accountability/router.py",
     "line_start": 83,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.3",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.3\n[2026-07-19 16:24 UTC - SWE-1.7] detect_repeated_fees now extracts fee_history from evidence_data; string amounts and UTC-aware dates handled; regression tests added",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T16:24:46.376017+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-023",
