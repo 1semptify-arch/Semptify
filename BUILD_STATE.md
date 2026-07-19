@@ -1,3 +1,73 @@
+## Session — 2026-07-19 — GUI Icon Replacement + Sync-Orchestrator Hook Loop Fix
+
+### Guardrail Engine Run — 2026-07-18T23:23:40
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Deployed
+- **Commits:** `2e13c90` (icon replacements), `05119a1` (LF + trailing newline), `b53b780` (idempotent sync chain)
+- **Render service:** `srv-d7pja7km0tmc739j6m30` (semptify-jsam)
+- **Deploy URL:** https://semptify-jsam.onrender.com
+
+### What Shipped This Session
+
+#### Icon Replacement (5 commits, one per file)
+Replaced emoji icons with minimal unicode markers across 5 GUI templates. Per Step 4 of the 2026-07-18 handoff.
+| Commit | File | Markers |
+|--------|------|--------|
+| `5b24db2` | `app/templates/gui/record.html` | 📅📝💰 → ▸ |
+| `b780c23` | `app/templates/gui/know.html` | 📚🏡🔧💰 → ▸ |
+| `03beef0` | `app/templates/gui/act.html` | ✉🏛🛠📅 → ▸ |
+| `75575ff` | `app/templates/gui/home.html` | 📋📚⚖️ → ◆ (kept `!` for Next deadline) |
+| `2e13c90` | `app/templates/pages/document_center.html` | 💡🖍📝🔗📄📋🔍🔓🔒 → ◆/▸/●/○ (kept ✕⚙↗✅🔄⚠️⬜∅ as functional status markers) |
+
+#### Sync-Orchestrator Pre-Commit Hook Loop Fix (2 commits)
+Root cause fix for the CRLF/LF infinite loop that forced `--no-verify` on every commit.
+
+**Root cause:** `.gitattributes` forces `eol=lf` for `*.json` and `*.html`, but the sync scripts used Python's default Windows text mode (CRLF) and `json.dump()` without trailing newline. Every hook run regenerated files that `end-of-file-fixer` and git would then modify, causing an infinite loop. Additionally, `_seed_orchestrator_tasks.py` used `datetime.now()` for static seed timestamps, making every run produce different content.
+
+**Fix (commit `05119a1`):**
+- Add `newline="\n"` to all `write_text`/`open` calls in the sync chain
+- Add trailing `"\n"` after `json.dump()` to satisfy `end-of-file-fixer`
+- Fix ruff UP038 in `stub_detector.py` (use `X | Y` in `isinstance`)
+- Fix ruff E402 in `workorder_runner.py` (noqa — `sys.path` manipulation precedes import)
+
+**Fix (commit `b53b780`):**
+- `_seed_orchestrator_tasks.py`: replace `datetime.now()` with fixed `TS = "2026-07-19T00:00:00Z"` constant
+- `sync_orchestrator.py` `merge_tasks()`: only write if content changed
+- `workbook_bridge.py`: only write if content changed
+- `stub_detector.py`: only write if content changed
+
+**Verified:** All pre-commit hooks now pass clean (no `--no-verify` needed). Two consecutive `sync_orchestrator.py` runs produce no git diff.
+
+### Verification
+- Python 3.11.9 ✅ (venv311 active)
+- Compile: `venv311\Scripts\python.exe -m py_compile app/main.py app/core/navigation.py` → exit 0 ✅
+- Pre-commit: all hooks pass clean on every commit (ruff, ruff-format, bandit, detect-secrets, check-json, SSOT, guardrail, sync-orchestrator)
+- Line endings: all sync-chain output files verified LF-only with trailing newline
+- Idempotency: two consecutive sync_orchestrator.py runs produce no git diff
+
+### Known Working
+- All 5 GUI templates render with minimal unicode markers (▸◆●○) instead of emoji
+- Sync-orchestrator pre-commit hook converges on first run
+- All sync-chain JSON/HTML outputs use LF line endings with trailing newlines
+
+### Known Broken / Pending
+- None new this session
+
+### Next Session Should Start With
+1. Resume ACTIVE_CONTEXT.md priority list:
+   - UPL guardrail tier registration (✅ complete per row #1)
+   - GUI Phase 1 four-pillar interface (in progress — icon policy decided and applied)
+   - Document Center planning (`docs/planning/DOCUMENT_CENTER_PLAN.md`)
+   - Attorney Intake Packet review (feature/attorney-intake-packet branch)
+2. Visual smoke test of the 5 icon-replaced GUI pages on the live deploy
+
+---
+
 ## Session — 2026-07-18 — GUI Card-to-Zone Styling Migration (feature/gui-timeline-integration)
 
 ### Guardrail Engine Run — 2026-07-18T18:27:13
