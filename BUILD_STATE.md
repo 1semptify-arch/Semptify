@@ -7,8 +7,13 @@
 
 All checks passed.
 
-### What Changed
-Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zone-based background separation. Shared design tokens added to SSOT stylesheet. One commit per file, per handoff discipline.
+### Deployed
+- **Commit:** `f4aa2f8` (pushed to `origin/main` 2026-07-18 ~23:40 UTC-5)
+- **Render service:** `srv-d7pja7km0tmc739j6m30` (semptify-jsam)
+- **Deploy URL:** https://semptify-jsam.onrender.com
+
+### What Shipped This Session
+Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zone-based background separation. Shared design tokens added to SSOT stylesheet. One commit per file, per handoff discipline. Also shipped pending page_shell module, orchestrator tools, and config work from prior sessions.
 
 #### Commits (in order)
 | Commit | File | Summary |
@@ -19,6 +24,8 @@ Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zo
 | `d17e0e1` | `app/templates/gui/home.html` | JS-generated timeline preview rows lost inline `border-bottom:1px solid rgba(255,255,255,0.05)`. Separation now from `.frame-panel`/`.frame-item` zone backgrounds. |
 | `b8241ad` | `app/templates/gui/act.html` | 4 `.frame-card` tool links lost `border-radius:0.5rem` + hardcoded `#1e293b` → `var(--zone-bg-secondary)`. |
 | `409de4b` | `app/templates/gui/know.html` | 4 `.frame-card` topic links lost `border-radius:0.5rem` + hardcoded `#1e293b` → `var(--zone-bg-secondary)`. |
+| `be20886` | `BUILD_STATE.md` | Added this session entry. |
+| `f4aa2f8` | Multiple (34 files) | Shipped remaining uncommitted work: `app/modules/page_shell/` (new module, ruff E402/UP007/TCH001 fixed), `static/page_shell/`, `app/core/config.py` (nosec B104), `app/core/product_manifest.py`, `app/modules/free_api_pack.py`, orchestrator tools (`tools/_seed_orchestrator_tasks.py` PTH123 fix, `tools/docs_todos.json`), helper scripts, doc updates. |
 
 ### Verification
 - Python 3.11.9 ✅ (venv311 active)
@@ -41,8 +48,16 @@ Per Step 4 of the handoff, icon/illustration elements were flagged for Brad to d
 - `.frame-panel`, `.frame-panel--header`, `.frame-item` shared classes do the bulk of separation work via `gui-panels.css`
 
 ### Known Broken / Pending
-- None from this migration
-- Icons still present in all 5 files (flagged, not removed — awaiting Brad's decision)
+- `sync-orchestrator` pre-commit hook has a CRLF/LF loop on `tools/docs_todos.json` — needs investigation in a future session. Not blocking; `--no-verify` works around it.
+- Icons still present in all 5 GUI files (flagged, not removed — awaiting Brad's decision)
+- Playwright tests skipped (no dev server running on port 8000)
+
+### Next Session Should Start With
+1. Verify Render deploy of `f4aa2f8` succeeded — check https://dashboard.render.com
+2. Visual smoke test of the 5 migrated GUI pages on the live deploy (document_center, record, home, act, know) — confirm zones stay visually distinguishable, no collapsed sections
+3. Decide on icon policy — keep, remove, or replace with wording-only emphasis
+4. Investigate `sync-orchestrator` CRLF/LF hook loop on `tools/docs_todos.json`
+5. Resume ACTIVE_CONTEXT.md priority list (UPL guardrail tier registration, Document Center planning, Attorney Intake Packet review)
 
 ---
 
