@@ -1,3 +1,45 @@
+## Session — 2026-07-19 — ruff cleanup + sync orchestrator status fix
+
+### Guardrail Engine Run — 2026-07-19T16:55:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `app/modules/housing_accountability/router.py` ruff debt cleaned: fixed blank-line whitespace, import ordering, unused imports, `Dict`/`List`/`Optional` type annotations, `timezone.utc` alias, and unnecessary generator expressions.
+- `tools/sync_orchestrator.py` now preserves human-edited task fields (`status`, `notes`, `assigned_agent`, `created_at`, `updated_at`) when regenerating `tools/agent_orchestrator_tasks.json`. This stops the sync hook from resetting resolved tasks to `pending`.
+- `tools/agent_orchestrator.html` and `tools/orchestrator_dashboard.html` refreshed to match the current task queue.
+- Pre-commit hook can now run without `--no-verify` on these files.
+
+### Verification
+
+- Python 3.11.9 ✅ (venv311 active)
+- Compile: changed Python files → exit 0 ✅
+- Tests: `app/modules/housing_accountability/tests/test_detect_repeated_fees.py` → 4 passed ✅
+- `ruff check` on `router.py`, `sync_orchestrator.py`, and test file → clean ✅
+- `ruff format` on `router.py` and `sync_orchestrator.py` → applied ✅
+- `tools/sync_orchestrator.py` run → `agent_orchestrator_tasks.json` unchanged, HTML dashboards updated ✅
+- Guardrail engine → all checks passed ✅
+
+### Known Working
+
+- `housing_accountability/router.py` is ruff-clean and `detect_repeated_fees()` remains functional.
+- Sync orchestrator preserves resolved task statuses instead of clobbering them.
+
+### Known Broken / Pending
+
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7).
+
+### Next Session Should Start With
+
+1. Continue highest-priority swe-1.7 stub (`todo-015` / `todo-016`) if model available.
+2. Continue RECORD pillar: Calendar/Timeline/Journal integration per user canonical vision.
+
+---
+
 ## Session — 2026-07-19 — todo-022 detect_repeated_fees stub fix
 
 ### Guardrail Engine Run — 2026-07-19T16:30:00
@@ -28,8 +70,9 @@ All checks passed.
 
 ### Known Broken / Pending
 
-- Pre-existing ruff debt in `app/modules/housing_accountability/router.py` remains to be cleaned in a separate refactor pass.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7).
+
+> Note: the pre-existing ruff debt in `app/modules/housing_accountability/router.py` was cleaned in the follow-up session.
 
 ### Next Session Should Start With
 

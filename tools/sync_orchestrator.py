@@ -90,6 +90,61 @@ def step_docs_todos() -> None:
     run([sys.executable, str(DOCS_TODO_SEED)], "_seed_orchestrator_tasks.py")
 
 
+def _load_previous_tasks() -> list[dict]:
+    """Load the existing agent_orchestrator_tasks.json before it is regenerated."""
+    if not ORCHESTRATOR_TASKS.exists():
+        return []
+    try:
+        data = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        return data.get("created", data.get("tasks", []))
+    return []
+
+
+def preserve_manual_fields(previous_tasks: list[dict]) -> int:
+    """Carry forward human-edited fields from the previous task queue.
+
+    sync_orchestrator regenerates task metadata from the workbook and doc
+    sources, which resets manually-set status/notes/assigned_agent timestamps.
+    This restores those fields for any task whose id still exists in the
+    freshly generated queue.
+    """
+    if not previous_tasks:
+        return 0
+    prev_by_id = {t.get("id"): t for t in previous_tasks if t.get("id")}
+    if not prev_by_id:
+        return 0
+
+    try:
+        tasks = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return 0
+    if not isinstance(tasks, list):
+        return 0
+
+    preserved = 0
+    preserved_fields = ("status", "notes", "assigned_agent", "created_at", "updated_at")
+    for task in tasks:
+        prev = prev_by_id.get(task.get("id"))
+        if not prev:
+            continue
+        for field in preserved_fields:
+            if field in prev:
+                task[field] = prev[field]
+        preserved += 1
+
+    new_content = json.dumps(tasks, indent=2) + "\n"
+    old_content = ORCHESTRATOR_TASKS.read_text(encoding="utf-8") if ORCHESTRATOR_TASKS.exists() else ""
+    if new_content != old_content:
+        ORCHESTRATOR_TASKS.write_text(new_content, encoding="utf-8", newline="\n")
+        print(f"-> preserved manual fields for {preserved} task(s) in {ORCHESTRATOR_TASKS.name}")
+    return preserved
+
+
 def merge_tasks() -> int:
     """Merge workbook tasks + docs_todos.json into agent_orchestrator_tasks.json.
 
@@ -125,7 +180,7 @@ def merge_tasks() -> int:
             seen_ids.add(t.get("id"))
             added += 1
 
-    new_content = json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
+    new_content = json.dumps(merged, indent=2) + "\n"
     old_content = ORCHESTRATOR_TASKS.read_text(encoding="utf-8") if ORCHESTRATOR_TASKS.exists() else ""
     if new_content != old_content:
         ORCHESTRATOR_TASKS.write_text(new_content, encoding="utf-8", newline="\n")
@@ -223,10 +278,12 @@ def main() -> int:
 
     try:
         if not args.check:
+            previous_tasks = _load_previous_tasks()
             step_stub_detector()
             step_workbook_bridge()
             step_docs_todos()
             merge_tasks()
+            preserve_manual_fields(previous_tasks)
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()
