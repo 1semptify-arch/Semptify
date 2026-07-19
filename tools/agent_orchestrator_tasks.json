@@ -257,10 +257,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "static/js/workspace-stage-model.js",
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.5",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.5\n[2026-07-19 12:31 UTC - swe-1.6] workspace-stage-model.js already calls /api/workflow/case-state and /api/workflow/next-step with fallbacks; test_workspace_stage_model_js.py passes.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T12:31:00.825386+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-020",
