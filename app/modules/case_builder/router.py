@@ -30,6 +30,28 @@ from app.core.id_gen import make_id
 from app.core.utc import utc_now
 from app.models.models import Incident
 
+logger = logging.getLogger(__name__)
+
+import io
+import json
+import re
+import zipfile
+from html import escape
+
+from fastapi.responses import StreamingResponse
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
 # Import data freshness manager for legal accuracy validation
 try:
     from app.core.data_freshness_manager import data_freshness_manager, FreshnessStatus
@@ -37,8 +59,6 @@ try:
 except ImportError:
     logger.warning("Data freshness manager not available - legal accuracy validation disabled")
     FRESHNESS_AVAILABLE = False
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/case-builder", tags=["Case Builder"])
 
@@ -2623,3 +2643,381 @@ async def export_attorney_intake_packet(
 
     packet = _build_attorney_intake_packet(case)
     return {"success": True, "packet": packet}
+
+
+# =============================================================================
+# ATTORNEY INTAKE PACKET — PDF + ZIP RENDERING
+# =============================================================================
+# Renders the canonical JSON packet into a facts-only PDF using reportlab,
+# and offers a ZIP bundle (PDF + JSON + evidence index). No recommendations
+# or editorializing — the attorney reads facts and reaches their own conclusions.
+# =============================================================================
+
+
+def _safe_text(value: Any) -> str:
+    """Convert a value to an XML-escaped string safe for reportlab Paragraph."""
+    if value is None:
+        return ""
+    return escape(str(value))
+
+
+def _sanitize_filename(value: Any) -> str:
+    """Sanitize a value for use in a downloaded filename."""
+    if value is None:
+        return ""
+    text = re.sub(r"[^\w\-. ]", "_", str(value)).strip()
+    text = re.sub(r"\s+", "_", text)
+    return text or "case"
+
+
+def _render_intake_packet_pdf_fallback(packet: Dict[str, Any]) -> bytes:
+    """Minimal fallback PDF when reportlab is unavailable.
+
+    Produces a valid single-page PDF with the packet serialized as plain text
+    so the endpoint still returns a downloadable artifact instead of erroring.
+    """
+    buf = io.BytesIO()
+    text = json.dumps(packet, indent=2, ensure_ascii=False, default=str)
+    escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    lines = escaped.split("\n")
+    stream_lines: List[str] = []
+    for line in lines:
+        stream_lines.append(f"({line}) Tj 0 -12 Td")
+    stream = "\n".join(stream_lines)
+    pdf = (
+        "%PDF-1.4\n"
+        "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+        "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+        "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+        "/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n"
+        "4 0 obj\n<< /Length LEN >>\nstream\nBT /F1 8 Tf 72 720 Td\n"
+        f"{stream}\nET\nendstream\nendobj\n"
+        "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>\nendobj\n"
+        "xref\n0 6\n0000000000 65535 f \n"
+        "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n0\n%%EOF\n"
+    )
+    buf.write(pdf.encode("latin-1", errors="replace"))
+    buf.seek(0)
+    return buf.getvalue()
+
+
+def _render_intake_packet_pdf(packet: Dict[str, Any]) -> bytes:
+    """Render a canonical intake packet dict as a facts-only PDF.
+
+    Returns PDF bytes. Falls back to a plain-text PDF if reportlab is not
+    installed (reportlab is in requirements.txt, so this should be rare).
+    """
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.platypus import (
+            SimpleDocTemplate,
+            Paragraph,
+            Spacer,
+            Table,
+            TableStyle,
+        )
+        from reportlab.lib import colors
+    except ImportError:
+        return _render_intake_packet_pdf_fallback(packet)
+
+    buf = io.BytesIO()
+    ident = packet.get("case_identification") or {}
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=letter,
+        leftMargin=0.75 * inch,
+        rightMargin=0.75 * inch,
+        topMargin=0.75 * inch,
+        bottomMargin=0.75 * inch,
+        title=f"Attorney Intake Packet — {ident.get('case_number') or 'Unknown'}",
+        author="Semptify",
+    )
+    styles = getSampleStyleSheet()
+
+    story: List[Any] = []
+    story.append(Paragraph("Attorney Intake Packet", styles["Title"]))
+    story.append(
+        Paragraph(
+            f"Generated: {packet.get('generated_at', '—')}",
+            styles["Normal"],
+        )
+    )
+    story.append(Spacer(1, 0.2 * inch))
+
+    # --- Case Identification ---
+    story.append(Paragraph("Case Identification", styles["Heading2"]))
+    plaintiff = ident.get("plaintiff") or {}
+    defendant = ident.get("defendant") or {}
+    ident_rows: List[List[str]] = [
+        ["Case number", _safe_text(ident.get("case_number")) or "—"],
+        ["Court", _safe_text(ident.get("court")) or "—"],
+        ["Case type", _safe_text(ident.get("case_type")) or "—"],
+        ["Status", _safe_text(ident.get("status")) or "—"],
+        ["Property address", _safe_text(ident.get("property_address")) or "—"],
+        ["Filing date", _safe_text(ident.get("filing_date")) or "—"],
+        ["Hearing date", _safe_text(ident.get("hearing_date")) or "—"],
+        ["Answer deadline", _safe_text(ident.get("answer_deadline")) or "—"],
+        ["Plaintiff", _safe_text(plaintiff.get("name")) or "—"],
+        ["Plaintiff type", _safe_text(plaintiff.get("type")) or "—"],
+        ["Defendant", _safe_text(defendant.get("name")) or "—"],
+        ["Defendant type", _safe_text(defendant.get("type")) or "—"],
+        ["Defendant pro se", "Yes" if defendant.get("is_pro_se") else "No"],
+    ]
+    ident_table = Table(ident_rows, colWidths=[2 * inch, 4.5 * inch])
+    ident_table.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1f5f9")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    story.append(ident_table)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # --- Timeline ---
+    story.append(Paragraph("Timeline", styles["Heading2"]))
+    timeline = packet.get("timeline") or []
+    if timeline:
+        timeline_rows = [["Date", "Title", "Category", "Description"]]
+        for evt in timeline:
+            timeline_rows.append(
+                [
+                    _safe_text(evt.get("date")) or "—",
+                    _safe_text(evt.get("title")) or "—",
+                    _safe_text(evt.get("category")) or "—",
+                    _safe_text(evt.get("description")) or "—",
+                ]
+            )
+        t_table = Table(
+            timeline_rows,
+            colWidths=[1 * inch, 1.8 * inch, 1 * inch, 2.7 * inch],
+            repeatRows=1,
+        )
+        t_table.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        story.append(t_table)
+    else:
+        story.append(Paragraph("No timeline events.", styles["Normal"]))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # --- Evidence Index ---
+    story.append(Paragraph("Evidence Index", styles["Heading2"]))
+    evidence = packet.get("evidence_index") or []
+    if evidence:
+        evidence_rows = [
+            ["Label", "Title", "Type", "Date obtained", "Relevance"],
+        ]
+        for ev in evidence:
+            evidence_rows.append(
+                [
+                    _safe_text(ev.get("label")) or "—",
+                    _safe_text(ev.get("title")) or "—",
+                    _safe_text(ev.get("evidence_type")) or "—",
+                    _safe_text(ev.get("date_obtained")) or "—",
+                    _safe_text(ev.get("relevance")) or "—",
+                ]
+            )
+        e_table = Table(
+            evidence_rows,
+            colWidths=[0.8 * inch, 2.2 * inch, 1.2 * inch, 1.2 * inch, 1.1 * inch],
+            repeatRows=1,
+        )
+        e_table.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        story.append(e_table)
+    else:
+        story.append(Paragraph("No evidence items.", styles["Normal"]))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # --- Pending Deadlines ---
+    story.append(Paragraph("Pending Deadlines", styles["Heading2"]))
+    deadlines = packet.get("pending_deadlines") or []
+    if deadlines:
+        deadline_rows = [["Deadline", "Title", "Priority", "Status"]]
+        for d in deadlines:
+            deadline_rows.append(
+                [
+                    _safe_text(d.get("deadline")) or "—",
+                    _safe_text(d.get("title")) or "—",
+                    _safe_text(d.get("priority")) or "—",
+                    _safe_text(d.get("status")) or "—",
+                ]
+            )
+        d_table = Table(
+            deadline_rows,
+            colWidths=[1.2 * inch, 3 * inch, 1 * inch, 1.3 * inch],
+            repeatRows=1,
+        )
+        d_table.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        story.append(d_table)
+    else:
+        story.append(Paragraph("No pending deadlines.", styles["Normal"]))
+
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(
+        Paragraph(
+            "This packet contains facts and dates sourced from the case record. "
+            "It does not include legal advice, recommendations, or editorial analysis.",
+            styles["Italic"],
+        )
+    )
+
+    doc.build(story)
+    return buf.getvalue()
+
+
+def _build_intake_packet_zip(
+    packet: Dict[str, Any],
+    pdf_bytes: bytes,
+    case_id: str,
+) -> bytes:
+    """Package the JSON packet, PDF, and a plain-text evidence index into a ZIP."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(
+            "intake-packet.json",
+            (json.dumps(packet, indent=2, ensure_ascii=False, default=str) + "\n").encode("utf-8"),
+        )
+        zf.writestr("intake-packet.pdf", pdf_bytes)
+
+        case_number = _safe_text(
+            (packet.get("case_identification") or {}).get("case_number")
+        ) or case_id
+        lines: List[str] = [
+            "Attorney Intake Packet - Evidence Index",
+            "=" * 50,
+            f"Generated: {packet.get('generated_at', '')}",
+            f"Case: {case_number}",
+            "",
+        ]
+        for ev in packet.get("evidence_index") or []:
+            lines.append(f"{ev.get('label', '')}: {ev.get('title', '')}")
+            lines.append(f"  Type: {ev.get('evidence_type', '')}")
+            lines.append(f"  Date obtained: {ev.get('date_obtained', '')}")
+            lines.append(f"  Date of event: {ev.get('date_of_event', '')}")
+            lines.append(f"  Source: {ev.get('source', '')}")
+            lines.append(f"  Relevance: {ev.get('relevance', '')}")
+            lines.append(f"  File path: {ev.get('file_path', '')}")
+            lines.append("")
+        if not packet.get("evidence_index"):
+            lines.append("No evidence items.")
+        zf.writestr("evidence-index.txt", "\n".join(lines).encode("utf-8"))
+
+        readme = (
+            "Attorney Intake Packet\n"
+            "======================\n"
+            "This ZIP contains:\n"
+            "  - intake-packet.json: structured case data (canonical shape)\n"
+            "  - intake-packet.pdf: formatted printable packet\n"
+            "  - evidence-index.txt: plain-text exhibit list\n\n"
+            "The packet includes facts and dates only. It does not contain "
+            "legal advice, recommendations, or editorial analysis."
+        )
+        zf.writestr("README.txt", readme.encode("utf-8"))
+
+    return buf.getvalue()
+
+
+@router.get("/cases/{case_id}/intake-packet.pdf")
+async def export_attorney_intake_packet_pdf(
+    case_id: str,
+    user: StorageUser = Depends(yellow_access),
+):
+    """Download the attorney intake packet as a facts-only PDF.
+
+    Contract: case_builder_intake_packet_export (rendered variant).
+    """
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    packet = _build_attorney_intake_packet(case)
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    prefix = _sanitize_filename(
+        (packet.get("case_identification") or {}).get("case_number")
+    ) or case_id
+    filename = f"intake-packet-{prefix}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/cases/{case_id}/intake-packet.zip")
+async def export_attorney_intake_packet_zip(
+    case_id: str,
+    user: StorageUser = Depends(yellow_access),
+):
+    """Download the attorney intake packet as a ZIP (PDF + JSON + evidence index).
+
+    Contract: case_builder_intake_packet_export (rendered variant).
+    """
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    packet = _build_attorney_intake_packet(case)
+    pdf_bytes = _render_intake_packet_pdf(packet)
+    zip_bytes = _build_intake_packet_zip(packet, pdf_bytes, case_id)
+    prefix = _sanitize_filename(
+        (packet.get("case_identification") or {}).get("case_number")
+    ) or case_id
+    filename = f"intake-packet-{prefix}.zip"
+    return StreamingResponse(
+        io.BytesIO(zip_bytes),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
