@@ -33,11 +33,9 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 | 1 | **UPL guardrail wiring** | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
 | 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
 | 3 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
-| 4 | ~~Attorney Intake Packet~~ | ~~`feature/attorney-intake-packet`~~ | ❌ Branch does not exist in repo — stale entry, needs user clarification | — |
+| 4 | **Attorney Intake Packet** — scaffold merged, rendering pending | `app/modules/case_builder/router.py:2477-2625` | 🟡 Scaffold merged (commit `596afe0` 2026-07-10) | Tests + PDF/ZIP rendering + GUI trigger |
 
-> **Note**: Rows #1-#3 are complete. Row #4 is stale — the referenced branch
-> does not exist locally or on origin. User needs to clarify the actual next
-> priority. Candidates below.
+> **Note:** Rows #1-#3 are complete. Row #4 scaffold is merged — the `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet (case_identification, timeline, evidence_index, pending_deadlines). Pending work: tests, PDF/ZIP rendering on top of the JSON shape, GUI trigger button.
 
 ## 🎯 Candidate Next Priorities (awaiting user direction)
 
