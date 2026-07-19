@@ -63,10 +63,11 @@
     "target_model": "glm-5.2",
     "priority": "high",
     "file_path": "app/templates/gui/",
-    "status": "in_progress",
-    "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.",
+    "status": "resolved",
+    "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.\n[2026-07-19 14:49 UTC - swe-1.6] [2026-07-19 - swe-1.6] /gui/home.html already calls /api/calendar/upcoming and /api/timeline/unified for dashboard cards; /gui/record.html loads /api/vault/all, uploads via /api/intake/upload/auto, and exports via /api/vault/export; /gui/know.html and /gui/act.html are real hubs. Four-pillar GUI wired.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:49:03.166504+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-006",
