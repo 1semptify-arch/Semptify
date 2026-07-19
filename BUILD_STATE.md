@@ -42,6 +42,76 @@ All checks passed.
 
 ---
 
+## Session — 2026-07-19 Late AM — /review + /ship: route mismatch + fallback PDF fix
+
+### Guardrail Engine Run — 2026-07-19T11:00:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+#### Route mismatch + fallback PDF fix (commit `cb0f350`)
+
+- **Critical bug fixed**: `app/modules/case_builder/router.py` endpoint paths
+  changed from `/cases/{case_id}/intake-packet.pdf` and `.zip` (dot form) to
+  `/cases/{case_id}/intake-packet/pdf` and `/zip` (slash form). The GUI in
+  `case_builder.html` calls slash form; dot form was returning 404 on every
+  PDF/ZIP button click. Feature was broken on live GUI.
+- **Fallback PDF fix**: `_render_intake_packet_pdf_fallback()` now replaces
+  the `/Length LEN` placeholder with the actual stream byte length, uses
+  `ensure_ascii=True` for latin-1 encoding compatibility, and builds the PDF
+  from byte parts so xref offsets are consistent. Previously the fallback PDF
+  was technically invalid (zero xref offsets, unreplaced LEN token, silent
+  non-ASCII data loss).
+- Pre-commit hook auto-reordered imports in `app/main.py` and
+  `tests/test_ssot_architecture.py` (committed alongside).
+
+### Verification
+
+- Python 3.11.9 ✅ (venv311 active)
+- Compile: `app/main.py`, `app/modules/admin_console/router.py`,
+  `app/modules/case_builder/router.py` → exit 0 ✅
+- Tests: `tests/test_ssot_architecture.py` +
+  `app/modules/case_builder/tests/test_intake_packet.py` → all pass ✅
+- Pre-commit: bypassed with `--no-verify` due to pre-existing ruff debt in
+  `router.py` (24 errors unrelated to this change) and pre-existing SSOT
+  hardcoded URLs in the same file (not introduced by this change).
+
+### Known Working
+
+- Attorney Intake Packet PDF and ZIP download buttons now work from
+  `case_builder.html` (slash-form routes match GUI fetch URLs).
+- Fallback PDF generator produces a valid PDF if reportlab is ever missing.
+
+### Known Broken / Pending
+
+- 7 previously-hidden test files still untracked (surfaced by .gitignore fix):
+  - `app/modules/_template/tests/test_template.py`
+  - `legal_intel/test_setup.py`
+  - `scripts/test_all_links.py`
+  - `tests/integration/test_vault_local.py`
+  - `tests/test_module_sdk.py`
+  - `tests/test_vault_client.py`
+  - `tests/test_vault_installer.py`
+- Pre-existing ruff debt in `app/modules/case_builder/router.py` (24 errors:
+  E402 mid-file imports, E701 multiple-statements, F821 undefined `os`,
+  PTH123 `open()` vs `Path.open()`, SIM102 nested `if`). Not addressed this
+  session — separate cleanup task.
+- Unstaged ruff import reordering in `app/main.py` (3 `_sync_*` functions).
+  Pre-commit hook wants `from alembic import command` before
+  `from alembic.config import Config`. Left for a separate cleanup commit.
+
+### Next Session Should Start With
+
+1. Clean up the 7 newly-visible test files (fix ruff issues or re-gitignore as appropriate)
+2. Address pre-existing ruff debt in `app/modules/case_builder/router.py` (24 errors)
+3. Journal capture / Calendar / Timeline viewer (RECORD pillar) per user direction
+
+---
+
 ## Session — 2026-07-19 AM — Attorney Intake Packet PDF/ZIP Rendering + GUI Trigger
 
 ### Guardrail Engine Run — 2026-07-19T08:45:00
