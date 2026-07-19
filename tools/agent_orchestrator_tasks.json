@@ -7,10 +7,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/routers/",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-19 - swe-1.7] Fixed in commit 9cfd9b2. 8 RedirectResponse calls in app/main.py + 1 in app/modules/admin_console/router.py converted to ssot_redirect(). test_no_hardcoded_urls_in_routers broadened to scan app/main.py and app/modules/.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T13:00:00+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-002",
@@ -199,10 +200,11 @@
     "priority": "high",
     "file_path": "app/core/stateless_oauth.py",
     "line_start": 239,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.1",
+    "notes": "STUB_AUDIT.md Tier 1.1\n[2026-07-19 - swe-1.7] Verified already implemented. refresh_token_if_needed() at line 244 and _refresh_with_provider() at line 329 are fully implemented for google_drive, dropbox, onedrive with per-(user,provider) refresh locks and cloud-storage persistence.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T13:05:00+00:00",
+    "status": "resolved",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-016",
@@ -213,10 +215,11 @@
     "priority": "high",
     "file_path": "app/core/storage_middleware.py",
     "line_start": 284,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.2",
+    "notes": "STUB_AUDIT.md Tier 1.2\n[2026-07-19 - swe-1.7] Verified already implemented. storage_middleware.py:312-325 documents ice-cube token model (ICE-CUBE-TOKEN-001 resolved). Uses app.core.auto_refresh.ensure_valid_token() — in-memory token with DB refresh_token fallback, no per-request DB hit.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T13:10:00+00:00",
+    "status": "resolved",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-017",
