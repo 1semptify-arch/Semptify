@@ -119,10 +119,11 @@
     "file_path": "app/templates/base.html",
     "line_start": 490,
     "line_end": 494,
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-19 15:00 UTC - swe-1.6] [2026-07-19 - swe-1.6] Replaced emoji nav icons in base.html with single-color line-style unicode markers.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T15:00:50.445371+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-010",
