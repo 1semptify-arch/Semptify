@@ -20,10 +20,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".pre-commit-config.yaml",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending\n[2026-07-19 12:25 UTC - swe-1.6] .pre-commit-config.yaml already uses venv311/Scripts/python.exe tools/sync_orchestrator.py --git-add.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T12:25:19.514793+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-003",
