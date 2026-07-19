@@ -2676,29 +2676,30 @@ def _render_intake_packet_pdf_fallback(packet: Dict[str, Any]) -> bytes:
     Produces a valid single-page PDF with the packet serialized as plain text
     so the endpoint still returns a downloadable artifact instead of erroring.
     """
-    buf = io.BytesIO()
-    text = json.dumps(packet, indent=2, ensure_ascii=False, default=str)
+    text = json.dumps(packet, indent=2, ensure_ascii=True, default=str)
     escaped = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
     lines = escaped.split("\n")
     stream_lines: List[str] = []
     for line in lines:
         stream_lines.append(f"({line}) Tj 0 -12 Td")
     stream = "\n".join(stream_lines)
-    pdf = (
+    stream_bytes = (
+        f"BT /F1 8 Tf 72 720 Td\n{stream}\nET\n"
+    ).encode("latin-1", errors="replace")
+    header = (
         "%PDF-1.4\n"
         "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
         "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
         "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
         "/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n"
-        "4 0 obj\n<< /Length LEN >>\nstream\nBT /F1 8 Tf 72 720 Td\n"
-        f"{stream}\nET\nendstream\nendobj\n"
+        f"4 0 obj\n<< /Length {len(stream_bytes)} >>\nstream\n"
+    ).encode("latin-1")
+    footer = (
+        "\nendstream\nendobj\n"
         "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>\nendobj\n"
-        "xref\n0 6\n0000000000 65535 f \n"
         "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n0\n%%EOF\n"
-    )
-    buf.write(pdf.encode("latin-1", errors="replace"))
-    buf.seek(0)
-    return buf.getvalue()
+    ).encode("latin-1")
+    return header + stream_bytes + footer
 
 
 def _render_intake_packet_pdf(packet: Dict[str, Any]) -> bytes:
@@ -2968,7 +2969,7 @@ def _build_intake_packet_zip(
     return buf.getvalue()
 
 
-@router.get("/cases/{case_id}/intake-packet.pdf")
+@router.get("/cases/{case_id}/intake-packet/pdf")
 async def export_attorney_intake_packet_pdf(
     case_id: str,
     user: StorageUser = Depends(yellow_access),
@@ -2995,7 +2996,7 @@ async def export_attorney_intake_packet_pdf(
     )
 
 
-@router.get("/cases/{case_id}/intake-packet.zip")
+@router.get("/cases/{case_id}/intake-packet/zip")
 async def export_attorney_intake_packet_zip(
     case_id: str,
     user: StorageUser = Depends(yellow_access),

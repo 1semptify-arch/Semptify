@@ -320,7 +320,7 @@ def test_no_pii_written_to_user_model_in_routers():
                 for match in re.finditer(attr_assign, content, re.IGNORECASE):
                     line_num = content[: match.start()].count("\n") + 1
                     violations.append(
-                        f"{relative_path}:{line_num} — user.{field} assigned " f"(tenant PII must not be written to DB)"
+                        f"{relative_path}:{line_num} — user.{field} assigned (tenant PII must not be written to DB)"
                     )
 
                 # Pattern 2: User(email=...) constructor kwarg
