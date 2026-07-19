@@ -412,7 +412,10 @@ def main():
             }
         )
 
-    Path(args.out).write_text(json.dumps(tasks, indent=2) + "\n", encoding="utf-8", newline="\n")
+    new_content = json.dumps(tasks, indent=2) + "\n"
+    old_content = Path(args.out).read_text(encoding="utf-8") if Path(args.out).exists() else ""
+    if new_content != old_content:
+        Path(args.out).write_text(new_content, encoding="utf-8", newline="\n")
     print(f"Found {len(tasks)} real stub(s). Wrote {args.out}")
     for t in tasks:
         print(f"  {t['file']}:{t['line']}  {t['function']}()  -- {t['reason']}")

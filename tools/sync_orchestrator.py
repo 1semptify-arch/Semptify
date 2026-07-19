@@ -125,10 +125,13 @@ def merge_tasks() -> int:
             seen_ids.add(t.get("id"))
             added += 1
 
-    ORCHESTRATOR_TASKS.write_text(
-        json.dumps(merged, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
-    )
-    print(f"-> merged {added} doc-sourced task(s) into {ORCHESTRATOR_TASKS.name} (total: {len(merged)})")
+    new_content = json.dumps(merged, indent=2, ensure_ascii=False) + "\n"
+    old_content = ORCHESTRATOR_TASKS.read_text(encoding="utf-8") if ORCHESTRATOR_TASKS.exists() else ""
+    if new_content != old_content:
+        ORCHESTRATOR_TASKS.write_text(new_content, encoding="utf-8", newline="\n")
+        print(f"-> merged {added} doc-sourced task(s) into {ORCHESTRATOR_TASKS.name} (total: {len(merged)})")
+    else:
+        print(f"-> {ORCHESTRATOR_TASKS.name} already up to date ({len(merged)} tasks)")
     return len(merged)
 
 
