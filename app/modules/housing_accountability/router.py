@@ -71,14 +71,97 @@ class PressBuilderRequest(BaseModel):
     media_targets: List[str] = Field(..., description="Target media outlets")
     urgency: str = Field("standard", description="Story urgency level")
 
-def _parse_date_safe(date_str: str) -> Optional[datetime]:
-    """Parse ISO date string safely, returning None on failure."""
-    if not date_str or not isinstance(date_str, str):
+def _parse_date_safe(value) -> Optional[datetime]:
+    """Parse ISO date string or datetime safely, returning a UTC-aware datetime or None."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+    if not isinstance(value, str):
+        value = str(value)
+    if not value:
         return None
     try:
-        return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
     except (ValueError, TypeError):
         return None
+
+
+def _parse_amount(value, default: Optional[float] = None) -> Optional[float]:
+    """Parse a fee amount, tolerating strings with currency symbols and commas."""
+    if value is None:
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        cleaned = value.replace("$", "").replace(",", "").replace("€", "").replace("£", "").strip()
+        try:
+            return float(cleaned)
+        except ValueError:
+            return default
+    return default
+
+
+def _extract_fee_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Derive fee records from evidence_data when no explicit fee_history is provided."""
+    fees: List[Dict[str, Any]] = []
+    seen: set = set()
+    evidence = data.get("evidence_data", [])
+    if not isinstance(evidence, list):
+        return fees
+
+    for item in evidence:
+        if not isinstance(item, dict):
+            continue
+
+        candidates = [item]
+        for key in ("metadata", "extracted_data", "analysis", "document_metadata"):
+            nested = item.get(key)
+            if isinstance(nested, dict):
+                candidates.append(nested)
+
+        for candidate in candidates:
+            amount = _parse_amount(candidate.get("amount"))
+            if amount is None:
+                continue
+
+            date_value = (
+                candidate.get("date")
+                or candidate.get("date_paid")
+                or candidate.get("paid_date")
+                or candidate.get("occurred_at")
+            )
+            if not date_value:
+                continue
+
+            fee_type = (
+                candidate.get("fee_type")
+                or candidate.get("type")
+                or candidate.get("description")
+                or candidate.get("category")
+            )
+            if not fee_type:
+                continue
+
+            date_str = date_value.isoformat() if hasattr(date_value, "isoformat") else str(date_value)
+            key = (str(fee_type).strip().lower(), float(amount), date_str)
+            if key in seen:
+                continue
+            seen.add(key)
+
+            fees.append({
+                "type": fee_type,
+                "amount": amount,
+                "date": date_str,
+            })
+            break
+
+    return fees
 
 
 # Legal basis by jurisdiction for repeated-fee / harassment patterns
@@ -107,7 +190,7 @@ class PatternDetectionService:
         legal basis. Confidence scales with amount of evidence found.
         """
         patterns: List[Dict[str, Any]] = []
-        fee_history = data.get("fee_history", [])
+        fee_history = data.get("fee_history") or _extract_fee_history(data)
         jurisdiction = str(data.get("jurisdiction", "MN")).upper()
 
         if len(fee_history) < 2:
@@ -116,7 +199,12 @@ class PatternDetectionService:
         # Group fees by type or description (case-insensitive)
         fee_groups: Dict[str, List[Dict[str, Any]]] = {}
         for fee in fee_history:
-            fee_type = str(fee.get("type") or fee.get("description") or "unknown").strip().lower()
+            fee_type = str(
+                fee.get("fee_type")
+                or fee.get("type")
+                or fee.get("description")
+                or "unknown"
+            ).strip().lower()
             fee_groups.setdefault(fee_type, []).append(fee)
 
         legal_basis = _REPEATED_FEES_LEGAL_BASIS.get(
@@ -129,7 +217,11 @@ class PatternDetectionService:
             if len(fees) < 2:
                 continue
             # Sort by parsed date (fees with unparseable dates sort to end)
-            sorted_fees = sorted(fees, key=lambda f: _parse_date_safe(f.get("date", "")) or datetime.min.replace(tzinfo=timezone.utc))
+            sorted_fees = sorted(
+                fees,
+                key=lambda f: _parse_date_safe(f.get("date", ""))
+                or datetime.min.replace(tzinfo=timezone.utc),
+            )
             # Check all pairs within each fee type (not just adjacent)
             for i in range(len(sorted_fees)):
                 for j in range(i + 1, len(sorted_fees)):
@@ -141,8 +233,8 @@ class PatternDetectionService:
                         continue
                     days_apart = abs((compare_date - current_date).days)
                     amount_diff = abs(
-                        float(current_fee.get("amount", 0) or 0)
-                        - float(compare_fee.get("amount", 0) or 0)
+                        _parse_amount(current_fee.get("amount"), 0.0)
+                        - _parse_amount(compare_fee.get("amount"), 0.0)
                     )
                     # Same type, similar amount (within $5), within 35 days
                     if days_apart <= 35 and amount_diff < 5:
@@ -178,7 +270,7 @@ class PatternDetectionService:
             return {"patterns": patterns, "confidence": confidence}
 
         return {"patterns": patterns, "confidence": 0.4, "reason": "no_recurring_patterns_detected"}
-    
+
     def detect_eviction_patterns(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Detect eviction-related patterns."""
         patterns = []
