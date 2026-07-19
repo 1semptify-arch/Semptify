@@ -42,6 +42,7 @@ exclude = [
     "static/_archive",
     "build",
     "dist",
+    "legal_intel/**/*.py",
 ]
 
 [tool.ruff.lint]
