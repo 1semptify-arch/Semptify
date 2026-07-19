@@ -298,10 +298,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/routers/",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-19 14:38 UTC - swe-1.7] [2026-07-19 - swe-1.7] Fixed in commit 9cfd9b2. 8 RedirectResponse calls in app/main.py + 1 in app/modules/admin_console/router.py converted to ssot_redirect(). verify_ssot.py passes.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:38:41.528219+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-002",
@@ -311,10 +312,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".pre-commit-config.yaml",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 12:25 UTC - swe-1.6] .pre-commit-config.yaml already uses venv311/Scripts/python.exe tools/sync_orchestrator.py --git-add.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:38:42.323669+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-003",
@@ -324,10 +326,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".env.example",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 - swe-1.6] Drift cleaned: app/main.py import ordering committed; 7 surfaced test/script files committed with ruff fixes in bc9dc09.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:38:43.023083+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-004",
@@ -337,10 +340,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "static/page_shell/page_shell.css",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending. Prior session work.",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending. Prior session work.\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 - swe-1.6] Page Shell module files tracked and registered in app/core/product_manifest.py; /api/page-shell endpoints present.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:38:43.960700+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-005",
@@ -350,10 +354,11 @@
     "target_model": "glm-5.2",
     "priority": "high",
     "file_path": "app/templates/gui/",
-    "status": "in_progress",
-    "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.",
+    "status": "resolved",
+    "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.\n[2026-07-19 14:49 UTC - swe-1.6] [2026-07-19 - swe-1.6] /gui/home.html already calls /api/calendar/upcoming and /api/timeline/unified for dashboard cards; /gui/record.html loads /api/vault/all, uploads via /api/intake/upload/auto, and exports via /api/vault/export; /gui/know.html and /gui/act.html are real hubs. Four-pillar GUI wired.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:49:03.166504+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-006",
@@ -376,10 +381,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/attorney_intake_packet/",
-    "status": "in_progress",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet",
+    "status": "resolved",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Attorney Intake Packet PDF/ZIP rendering + GUI trigger shipped in commit 20b5b0e.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:38:44.828663+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-008",
@@ -404,10 +410,11 @@
     "file_path": "app/templates/base.html",
     "line_start": 490,
     "line_end": 494,
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-19 15:00 UTC - swe-1.6] [2026-07-19 - swe-1.6] Replaced emoji nav icons in base.html with single-color line-style unicode markers.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T15:00:50.445371+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-010",
@@ -445,10 +452,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/templates/pages/tenant_home.html",
-    "status": "pending",
-    "notes": "FNG_TODO.md tenant home rebuild",
+    "status": "resolved",
+    "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-19 14:39 UTC - swe-1.6] [2026-07-19 12:03 UTC - swe-1.6] Replaced corrupted nav-icon placeholders with minimal unicode markers.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:39:52.697921+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-013",
@@ -458,10 +466,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/templates/pages/tenant_home.html",
-    "status": "pending",
-    "notes": "FNG_TODO.md tenant home rebuild",
+    "status": "resolved",
+    "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-19 14:39 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Link now points to /tenant/timeline.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:39:54.920034+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-014",
@@ -471,10 +480,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/templates/pages/tenant_home.html",
-    "status": "pending",
-    "notes": "FNG_TODO.md tenant home rebuild",
+    "status": "resolved",
+    "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-19 14:39 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Link now points to /tenant/documents.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:39:56.258889+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-015",
@@ -485,10 +495,11 @@
     "priority": "high",
     "file_path": "app/core/stateless_oauth.py",
     "line_start": 239,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.1",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.1\n[2026-07-19 14:39 UTC - swe-1.7] [2026-07-19 - swe-1.7] Verified already implemented. refresh_token_if_needed() at line 244 and _refresh_with_provider() at line 329 are fully implemented for google_drive, dropbox, onedrive with per-(user,provider) refresh locks and cloud-storage persistence.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:39:57.217583+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-016",
@@ -499,10 +510,11 @@
     "priority": "high",
     "file_path": "app/core/storage_middleware.py",
     "line_start": 284,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.2",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.2\n[2026-07-19 14:39 UTC - swe-1.7] [2026-07-19 - swe-1.7] Verified already implemented. storage_middleware.py:312-325 documents ice-cube token model. Uses app.core.auto_refresh.ensure_valid_token() \u2014 in-memory token with DB refresh_token fallback, no per-request DB hit.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:39:57.862219+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-017",
@@ -514,10 +526,11 @@
     "file_path": "static/js/core/app.js",
     "line_start": 40,
     "line_end": 61,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.3. May overlap with vault-portal.js reactive pattern.",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.3. May overlap with vault-portal.js reactive pattern.\n[2026-07-19 14:40 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Wired uploadToVault to /api/intake/upload/auto with reactive 401/token_expired/storage_required handling.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:40:25.894973+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-018",
@@ -528,10 +541,11 @@
     "priority": "medium",
     "file_path": "app/templates/pages/timeline.html",
     "line_start": 232,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.4",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.4\n[2026-07-19 14:40 UTC - swe-1.6] [2026-07-19 12:23 UTC - swe-1.6] timeline.html already posts to /api/timeline/events with JSON and reloads via loadTimeline().",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:40:26.703215+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-019",
@@ -541,10 +555,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "static/js/workspace-stage-model.js",
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.5",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.5\n[2026-07-19 14:40 UTC - swe-1.6] [2026-07-19 12:31 UTC - swe-1.6] workspace-stage-model.js already calls /api/workflow/case-state and /api/workflow/next-step with fallbacks; test_workspace_stage_model_js.py passes.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:40:27.356723+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-020",
@@ -556,10 +571,11 @@
     "file_path": "app/modules/litigation_intelligence/router.py",
     "line_start": 218,
     "line_end": 275,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.1",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.1\n[2026-07-19 14:40 UTC - swe-1.7] [2026-07-19 - swe-1.7] Litigation intelligence graph endpoints return honest HTTP 501 instead of NameError; fixed in commit 7aaa851.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T14:40:27.972132+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-021",
@@ -585,10 +601,11 @@
     "priority": "medium",
     "file_path": "app/modules/housing_accountability/router.py",
     "line_start": 83,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.3",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.3\n[2026-07-19 16:24 UTC - SWE-1.7] detect_repeated_fees now extracts fee_history from evidence_data; string amounts and UTC-aware dates handled; regression tests added",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T16:24:46.376017+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-023",
