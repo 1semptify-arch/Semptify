@@ -1,3 +1,53 @@
+## Session — 2026-07-19 PM — Attorney Intake Packet Tests + .gitignore Fix
+
+### Guardrail Engine Run — 2026-07-19T02:28:03
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+#### Attorney Intake Packet Tests (commit `6377f3a`)
+Added 18 unit tests for the existing scaffold at `app/modules/case_builder/router.py:2477-2625`:
+- `test_intake_packet.py` — pure-function tests, no live server or DB needed
+- Covers `_build_attorney_intake_packet()` and `_sort_chronological()`
+- Tests: empty case shape, full case identification, chronological timeline sorting, evidence index labeling (EX-001 zero-padded), pending deadlines filter (completed excluded), counts accuracy, facts-only invariant (no recommendations/editorializing), missing optional fields, non-destructive sorting
+- All 18 tests pass: `python -m pytest app/modules/case_builder/tests/ -v`
+
+#### .gitignore Fix (commit `6377f3a`)
+Root cause fix: `.gitignore:252` pattern `test_*.py` was not anchored to root, blocking legitimate module test files anywhere in the repo. Fixed to `/test_*.py` — now only matches loose test files in root, as the comment intended.
+
+### Verification
+- Python 3.11.9 ✅ (venv311 active)
+- Compile: `app/main.py` + `app/modules/case_builder/router.py` → exit 0 ✅
+- Tests: 18/18 pass in 2.18s ✅
+- Pre-commit: all hooks pass clean ✅
+
+### Known Working
+- Attorney Intake Packet scaffold has full test coverage
+- Module test files under `app/modules/*/tests/` are no longer gitignored
+
+### Known Broken / Pending
+- 7 previously-hidden test files are now untracked (surfaced by .gitignore fix):
+  - `app/modules/_template/tests/test_template.py`
+  - `legal_intel/test_setup.py`
+  - `scripts/test_all_links.py`
+  - `tests/integration/test_vault_local.py`
+  - `tests/test_module_sdk.py`
+  - `tests/test_vault_client.py`
+  - `tests/test_vault_installer.py`
+- These have pre-existing ruff issues (35 errors total). Not addressed this session — separate task.
+- Attorney Intake Packet rendering (PDF/ZIP) + GUI trigger button still pending.
+
+### Next Session Should Start With
+1. Attorney Intake Packet PDF/ZIP rendering on top of canonical JSON shape
+2. GUI trigger button for the intake packet export
+3. Clean up the 7 newly-visible test files (fix ruff issues or re-gitignore as appropriate)
+
+---
+
 ## Session — 2026-07-19 — GUI Icon Replacement + Sync-Orchestrator Hook Loop Fix
 
 ### Guardrail Engine Run — 2026-07-18T23:23:40
