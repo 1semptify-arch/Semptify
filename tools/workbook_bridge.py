@@ -489,7 +489,10 @@ def main() -> int:
 
     all_tasks = merge_with_previous(all_tasks, output_path)
 
-    output_path.write_text(json.dumps(all_tasks, indent=2) + "\n", encoding="utf-8", newline="\n")
+    new_content = json.dumps(all_tasks, indent=2) + "\n"
+    old_content = output_path.read_text(encoding="utf-8") if output_path.exists() else ""
+    if new_content != old_content:
+        output_path.write_text(new_content, encoding="utf-8", newline="\n")
     print(f"Wrote {len(all_tasks)} tasks ({len(stub_tasks)} stubs, {len(dup_tasks)} duplicates) to {output_path}")
     if not all_tasks:
         print("Queue is empty — no stubs and no duplicates. This is expected after archiving.")

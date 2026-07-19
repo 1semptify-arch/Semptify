@@ -12,10 +12,9 @@ Run once to refresh the orchestrator queue. Idempotent: overwrites the file.
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
 from pathlib import Path
 
-TS = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+TS = "2026-07-19T00:00:00Z"
 
 TASKS = [
     # BUILD_STATE.md — Known Broken / Pending + Next Session Should Start With
