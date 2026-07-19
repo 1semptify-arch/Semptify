@@ -242,10 +242,11 @@
     "priority": "medium",
     "file_path": "app/templates/pages/timeline.html",
     "line_start": 232,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 1.4",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 1.4\n[2026-07-19 12:23 UTC - swe-1.6] timeline.html already posts to /api/timeline/events with JSON and reloads via loadTimeline(). Save modal implemented.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-19T12:23:38.112406+00:00",
+    "assigned_agent": "swe-1.6"
   },
   {
     "id": "todo-019",
