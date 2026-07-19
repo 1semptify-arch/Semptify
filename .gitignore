@@ -248,8 +248,8 @@ staticbac/
 DOCUMENTS/
 MASTER_INDEX.md
 
-# Loose test files in root (proper tests live in tests/)
-test_*.py
+# Loose test files in root (proper tests live in tests/ dirs)
+/test_*.py
 sdk_demo.py
 sdk_modules_demo.py
 semptify_desktop.py
