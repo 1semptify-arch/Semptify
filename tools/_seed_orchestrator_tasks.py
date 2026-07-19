@@ -540,8 +540,9 @@ TASKS = [
 
 def main() -> int:
     out = "tools/docs_todos.json"
-    with Path(out).open("w", encoding="utf-8") as fh:
+    with Path(out).open("w", encoding="utf-8", newline="\n") as fh:
         json.dump(TASKS, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
     print(f"wrote {len(TASKS)} doc-sourced tasks to {out}")
     by_status: dict[str, int] = {}
     by_priority: dict[str, int] = {}
