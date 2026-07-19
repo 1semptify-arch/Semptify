@@ -10,29 +10,32 @@ Phase 4 Features:
 - Content management (help articles, law library)
 - Audit logging and compliance
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone, timedelta
-import logging
 
-from app.core.security import require_role, ACTIVE_SESSIONS, get_metrics, update_session_impersonation, get_session
-from app.core.user_context import UserRole, UserContext, StorageProvider
-from app.core.utc import utc_now
-from app.core.navigation import navigation
-from app.core.semptify_internal_sdk import (
-    get_module_status, 
-    module_registry, 
-    ProductTier,
-    ModuleCapability,
-)
-from app.core.database import get_db
-from app.core.capabilities import require_capability
+import logging
+from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import HTMLResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+
+from app.core.capabilities import require_capability
+from app.core.database import get_db
+from app.core.navigation import navigation
+from app.core.security import ACTIVE_SESSIONS, get_metrics, require_role, update_session_impersonation
+from app.core.semptify_internal_sdk import (
+    ProductTier,
+    get_module_status,
+    module_registry,
+)
+from app.core.ssot_guard import ssot_redirect
+from app.core.user_context import StorageProvider, UserContext, UserRole
+from app.core.utc import utc_now
 from app.models.models import AdminErrorQueue
 
 logger = logging.getLogger(__name__)
+
 
 # Stealth admin guard - returns 404 (not 403) to hide admin API existence
 async def _stealth_admin(request: Request) -> UserContext:
@@ -44,10 +47,9 @@ async def _stealth_admin(request: Request) -> UserContext:
     1. Normal user session with UserRole.ADMIN (via OAuth)
     2. Admin token via X-Admin-Token header or admin_token query param
     """
-    from app.core.security import get_current_user, get_admin_token_from_request, get_admin_token_store
-    from app.core.rate_limit import limiter
+
+    from app.core.security import get_admin_token_from_request, get_admin_token_store, get_current_user
     from app.core.utc import utc_now
-    from datetime import timedelta
 
     # Try admin token first (for testing/dev)
     admin_token = get_admin_token_from_request(request)
@@ -100,6 +102,7 @@ async def _stealth_admin(request: Request) -> UserContext:
     # has expired, preventing the /admin/dashboard ↔ /admin/login redirect loop.
     if not user:
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
         if payload:
@@ -125,6 +128,7 @@ async def _stealth_admin(request: Request) -> UserContext:
         raise HTTPException(status_code=404, detail="Not Found")
 
     return user
+
 
 # Admin role guard (legacy - returns 403)
 require_admin = require_role(UserRole.ADMIN)
@@ -158,7 +162,7 @@ _RUNTIME_CONFIG = {
 @router.get("/panel", response_class=HTMLResponse)
 async def admin_panel(user: UserContext = Depends(_stealth_admin)):
     """Redirect stub panel to real dashboard."""
-    return RedirectResponse(url="/admin/dashboard.html")
+    return ssot_redirect("/admin/dashboard.html", context="admin_console.panel → dashboard")
 
 
 @router.get("/health")
@@ -175,37 +179,38 @@ async def health_check(user: UserContext = Depends(_stealth_admin)):
 # Admin API Endpoints (Phase 1)
 # =============================================================================
 
+
 @router.get("/api/users")
 async def list_users(
     limit: int = 100,
     offset: int = 0,
-    search: Optional[str] = None,
+    search: str | None = None,
     active_only: bool = True,
     user: UserContext = Depends(_stealth_admin),
 ) -> dict:
     """
     List users from session store (active sessions).
-    
+
     Query params:
         limit: Max results (default 100, max 500)
         offset: Pagination offset
         search: Optional search string for user_id or role
         active_only: Only show users with active sessions (default true)
-    
+
     Returns:
         List of user records with session info
     """
     limit = min(limit, 500)
     logger.info(f"Admin {user.user_id[:6]}... listing users (limit={limit}, offset={offset}, search={search})")
-    
+
     # Get all active sessions from memory store
     # Note: In production with Redis, this would scan Redis keys
     all_sessions = []
-    for session_id, session in ACTIVE_SESSIONS.items():
+    for _session_id, session in ACTIVE_SESSIONS.items():
         # Skip expired sessions
         if session.expires_at and session.expires_at < utc_now():
             continue
-            
+
         user_data = {
             "user_id": session.user_id,
             "session_id": session.session_id[:8] + "...",  # Truncated for security
@@ -216,17 +221,18 @@ async def list_users(
             "is_active": True,
         }
         all_sessions.append(user_data)
-    
+
     # Apply search filter if provided
     if search:
         search_lower = search.lower()
         all_sessions = [
-            s for s in all_sessions 
-            if search_lower in s["user_id"].lower() 
+            s
+            for s in all_sessions
+            if search_lower in s["user_id"].lower()
             or search_lower in s["role"].lower()
             or search_lower in s["provider"].lower()
         ]
-    
+
     # Get unique users (a user may have multiple sessions)
     seen_users = set()
     unique_users = []
@@ -237,12 +243,12 @@ async def list_users(
             session_count = sum(1 for s in all_sessions if s["user_id"] == session["user_id"])
             session["session_count"] = session_count
             unique_users.append(session)
-    
+
     total = len(unique_users)
-    
+
     # Apply pagination
-    paginated_users = unique_users[offset:offset + limit]
-    
+    paginated_users = unique_users[offset : offset + limit]
+
     return {
         "users": paginated_users,
         "total": total,
@@ -264,29 +270,30 @@ async def get_user_details(
     Includes all active sessions and basic metadata.
     """
     logger.info(f"Admin {admin_user.user_id[:6]}... requesting details for user {user_id[:6]}...")
-    
+
     # Find all sessions for this user
     user_sessions = []
     for session_id, session in ACTIVE_SESSIONS.items():
         if session.user_id == user_id:
-            user_sessions.append({
-                "session_id": session_id[:8] + "...",
-                "provider": session.provider,
-                "role": session.role,
-                "created_at": session.created_at.isoformat() if session.created_at else None,
-                "expires_at": session.expires_at.isoformat() if session.expires_at else None,
-                "is_expired": session.expires_at and session.expires_at < utc_now(),
-            })
-    
+            user_sessions.append(
+                {
+                    "session_id": session_id[:8] + "...",
+                    "provider": session.provider,
+                    "role": session.role,
+                    "created_at": session.created_at.isoformat() if session.created_at else None,
+                    "expires_at": session.expires_at.isoformat() if session.expires_at else None,
+                    "is_expired": session.expires_at and session.expires_at < utc_now(),
+                }
+            )
+
     if not user_sessions:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User {user_id} not found in active sessions"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found in active sessions"
         )
-    
+
     # Get primary session info
     primary = user_sessions[0]
-    
+
     return {
         "user_id": user_id,
         "provider": primary["provider"],
@@ -331,7 +338,7 @@ async def impersonate_user(
 
     # Find the target user's active session to read their role/provider
     target_session = None
-    for session_id, session in ACTIVE_SESSIONS.items():
+    for _session_id, session in ACTIVE_SESSIONS.items():
         if session.user_id == user_id and (not session.expires_at or session.expires_at > utc_now()):
             target_session = session
             break
@@ -357,7 +364,9 @@ async def impersonate_user(
 
     logger.warning(
         "IMPERSONATION START: admin=%s acting_as=%s role=%s",
-        admin_user.user_id[:8], user_id[:8], target_session.role,
+        admin_user.user_id[:8],
+        user_id[:8],
+        target_session.role,
     )
 
     await _log_admin_action(
@@ -392,7 +401,8 @@ async def stop_impersonation(
 
     logger.warning(
         "IMPERSONATION STOP: admin=%s was acting_as=%s",
-        admin_user.user_id[:8], user_id[:8],
+        admin_user.user_id[:8],
+        user_id[:8],
     )
 
     await _log_admin_action(
@@ -412,31 +422,22 @@ async def system_status(user: UserContext = Depends(_stealth_admin)) -> dict:
     Includes active sessions, metrics, modules, tiers, and navigation info.
     """
     metrics = get_metrics()
-    
+
     # Count active sessions
-    active_count = sum(
-        1 for s in ACTIVE_SESSIONS.values()
-        if not s.expires_at or s.expires_at > utc_now()
-    )
-    
+    active_count = sum(1 for s in ACTIVE_SESSIONS.values() if not s.expires_at or s.expires_at > utc_now())
+
     # Count unique users
-    unique_users = set(s.user_id for s in ACTIVE_SESSIONS.values())
-    
+    unique_users = {s.user_id for s in ACTIVE_SESSIONS.values()}
+
     # Get navigation stages count
-    nav_stages = len(navigation._stages) if hasattr(navigation, '_stages') else 0
-    
+    nav_stages = len(navigation._stages) if hasattr(navigation, "_stages") else 0
+
     # Get module counts by tier
-    tier_module_counts = {
-        t.value: len(module_registry.list_by_tier(t))
-        for t in ProductTier.all()
-    }
-    
+    tier_module_counts = {t.value: len(module_registry.list_by_tier(t)) for t in ProductTier.all()}
+
     # Calculate total active modules (from enabled tiers, not disabled)
-    total_modules = sum(
-        count for tier, count in tier_module_counts.items()
-        if tier in _RUNTIME_CONFIG["enabled_tiers"]
-    )
-    
+    total_modules = sum(count for tier, count in tier_module_counts.items() if tier in _RUNTIME_CONFIG["enabled_tiers"])
+
     return {
         "status": "operational",
         "mode": "full_live",
@@ -466,10 +467,11 @@ async def system_status(user: UserContext = Depends(_stealth_admin)) -> dict:
 # Phase 2: User Management Endpoints
 # =============================================================================
 
+
 @router.post("/api/users/{user_id}/reset-gates")
 async def reset_user_gates(
     user_id: str,
-    gates: List[str],
+    gates: list[str],
     admin_user: UserContext = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
@@ -477,38 +479,34 @@ async def reset_user_gates(
     Reset onboarding gates for a user.
     Use with caution - forces user to re-complete onboarding steps.
     """
-    logger.warning(
-        f"GATE_RESET: Admin {admin_user.user_id} resetting gates {gates} for user {user_id}"
-    )
-    
+    logger.warning(f"GATE_RESET: Admin {admin_user.user_id} resetting gates {gates} for user {user_id}")
+
     # Import gate functions
-    from app.modules.onboarding.gates import get_user_gates, mark_gate
-    
+    from app.modules.onboarding.gates import get_user_gates
+
     # Get current gates before reset
     current_gates = await get_user_gates(db, user_id)
-    
+
     # Reset requested gates by removing them from completed_groups
     # Note: Gates are stored as comma-separated values in User.completed_groups
-    from app.models.models import User
     from sqlalchemy import select
-    
+
+    from app.models.models import User
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User {user_id} not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found")
+
     # Remove the specified gates from completed_groups
-    existing_gates = set(g.strip() for g in (user.completed_groups or "").split(",") if g.strip())
+    existing_gates = {g.strip() for g in (user.completed_groups or "").split(",") if g.strip()}
     removed_gates = existing_gates.intersection(set(gates))
     remaining_gates = existing_gates - set(gates)
-    
+
     user.completed_groups = ",".join(sorted(remaining_gates)) if remaining_gates else None
     await db.commit()
-    
+
     # Log the action
     await _log_admin_action(
         admin_user=admin_user,
@@ -521,7 +519,7 @@ async def reset_user_gates(
         },
         db=db,
     )
-    
+
     return {
         "status": "gates_reset",
         "user_id": user_id,
@@ -541,20 +539,19 @@ async def get_user_vault_summary(
     Shows document count, types, and storage usage (metadata only).
     """
     logger.info(f"Admin {admin_user.user_id[:6]}... requesting vault summary for {user_id[:6]}...")
-    
+
     # Find user's session to get provider info
     target_session = None
     for session in ACTIVE_SESSIONS.values():
         if session.user_id == user_id:
             target_session = session
             break
-    
+
     if not target_session:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User {user_id} not found in active sessions"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found in active sessions"
         )
-    
+
     # Log the access (privacy-sensitive)
     await _log_admin_action(
         admin_user=admin_user,
@@ -562,41 +559,55 @@ async def get_user_vault_summary(
         target_user=user_id,
         details={"provider": target_session.provider},
     )
-    
+
     # Get live vault data from vault service
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
         docs = await vault_service.get_user_documents(user_id)
-        
+
         # Calculate storage stats
         total_size_bytes = sum(doc.file_size for doc in docs if doc.file_size)
         storage_used_mb = round(total_size_bytes / (1024 * 1024), 2)
-        
+
         # Get unique folder paths from document storage paths
-        folders = list(set(
-            doc.storage_path.split('/')[0] if '/' in doc.storage_path else 'root'
-            for doc in docs if hasattr(doc, 'storage_path') and doc.storage_path
-        )) if docs else []
-        
+        folders = (
+            list(
+                {
+                    doc.storage_path.split("/")[0] if "/" in doc.storage_path else "root"
+                    for doc in docs
+                    if hasattr(doc, "storage_path") and doc.storage_path
+                }
+            )
+            if docs
+            else []
+        )
+
         # Recent documents (last 5)
-        recent_docs = sorted(
-            docs,
-            key=lambda d: d.uploaded_at if hasattr(d, 'uploaded_at') and d.uploaded_at else datetime.min,
-            reverse=True
-        )[:5] if docs else []
-        
+        recent_docs = (
+            sorted(
+                docs,
+                key=lambda d: d.uploaded_at if hasattr(d, "uploaded_at") and d.uploaded_at else datetime.min,
+                reverse=True,
+            )[:5]
+            if docs
+            else []
+        )
+
         recent_documents = [
             {
                 "vault_id": doc.vault_id,
                 "filename": doc.filename,
                 "document_type": doc.document_type,
                 "file_size": doc.file_size,
-                "uploaded_at": doc.uploaded_at.isoformat() if hasattr(doc.uploaded_at, 'isoformat') else str(doc.uploaded_at),
+                "uploaded_at": doc.uploaded_at.isoformat()
+                if hasattr(doc.uploaded_at, "isoformat")
+                else str(doc.uploaded_at),
             }
             for doc in recent_docs
         ]
-        
+
         return {
             "user_id": user_id,
             "provider": target_session.provider,
@@ -606,16 +617,17 @@ async def get_user_vault_summary(
             "recent_documents": recent_documents,
             "document_types": {
                 doc_type: sum(1 for d in docs if d.document_type == doc_type)
-                for doc_type in set(d.document_type for d in docs if d.document_type)
-            } if docs else {},
+                for doc_type in {d.document_type for d in docs if d.document_type}
+            }
+            if docs
+            else {},
             "live_data": True,
             "timestamp": utc_now().isoformat(),
         }
     except Exception as e:
         logger.error(f"Failed to fetch vault summary for {user_id}: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve vault data: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to retrieve vault data: {str(e)}"
         )
 
 
@@ -623,17 +635,18 @@ async def get_user_vault_summary(
 # Phase 2: Audit Log Endpoints
 # =============================================================================
 
+
 async def _log_admin_action(
-    admin_user: UserContext, 
-    action: str, 
-    target_user: str, 
+    admin_user: UserContext,
+    action: str,
+    target_user: str,
     details: dict,
     db: AsyncSession = None,
     request: Request = None,
 ) -> None:
     """
     Log an admin action to the database audit log.
-    
+
     Args:
         admin_user: The admin performing the action
         action: Action type (e.g., "reset_gates", "view_vault_summary")
@@ -642,16 +655,16 @@ async def _log_admin_action(
         db: Optional DB session (if None, creates new session)
         request: Optional FastAPI request for IP/UA logging
     """
-    from app.models.models import AdminAuditLog
     from app.core.database import get_db_session
-    
+    from app.models.models import AdminAuditLog
+
     # Extract client info if request provided
     ip_address = None
     user_agent = None
     if request:
         ip_address = request.client.host if request.client else None
         user_agent = request.headers.get("user-agent") if request.headers else None
-    
+
     entry = AdminAuditLog(
         admin_user_id=admin_user.user_id,
         admin_role=admin_user.role.value,
@@ -662,7 +675,7 @@ async def _log_admin_action(
         user_agent=user_agent,
         timestamp=utc_now(),
     )
-    
+
     # Write to DB
     if db:
         db.add(entry)
@@ -671,7 +684,7 @@ async def _log_admin_action(
         async with get_db_session() as session:
             session.add(entry)
             await session.commit()
-    
+
     logger.info(f"AUDIT: {action} by {admin_user.user_id} on {target_user}")
 
 
@@ -679,15 +692,15 @@ async def _log_admin_action(
 async def get_audit_log(
     limit: int = 100,
     offset: int = 0,
-    admin_user: Optional[str] = None,
-    target_user: Optional[str] = None,
-    action: Optional[str] = None,
+    admin_user: str | None = None,
+    target_user: str | None = None,
+    action: str | None = None,
     user: UserContext = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Get admin audit log from database.
-    
+
     Query params:
         limit: Max results (default 100)
         offset: Pagination offset
@@ -695,33 +708,34 @@ async def get_audit_log(
         target_user: Filter by target user_id
         action: Filter by action type
     """
+    from sqlalchemy import desc, func, select
+
     from app.models.models import AdminAuditLog
-    from sqlalchemy import select, func, desc
-    
+
     limit = min(limit, 500)
-    
+
     # Build query with filters
     query = select(AdminAuditLog)
-    
+
     if admin_user:
         query = query.where(AdminAuditLog.admin_user_id.ilike(f"%{admin_user}%"))
-    
+
     if target_user:
         query = query.where(AdminAuditLog.target_user.ilike(f"%{target_user}%"))
-    
+
     if action:
         query = query.where(AdminAuditLog.action == action)
-    
+
     # Count total matching records
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(count_query)
     total = total_result.scalar()
-    
+
     # Get paginated results sorted by timestamp desc
     query = query.order_by(desc(AdminAuditLog.timestamp)).offset(offset).limit(limit)
     result = await db.execute(query)
     entries = result.scalars().all()
-    
+
     # Format entries
     formatted_entries = [
         {
@@ -736,12 +750,12 @@ async def get_audit_log(
         }
         for e in entries
     ]
-    
+
     # Get distinct action types for filtering
     actions_query = select(AdminAuditLog.action).distinct()
     actions_result = await db.execute(actions_query)
     available_actions = [a for a in actions_result.scalars().all() if a]
-    
+
     return {
         "entries": formatted_entries,
         "total": total,
@@ -758,19 +772,21 @@ async def get_audit_actions(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get list of all audit action types from database."""
-    from app.models.models import AdminAuditLog
     from sqlalchemy import select
-    
+
+    from app.models.models import AdminAuditLog
+
     query = select(AdminAuditLog.action).distinct()
     result = await db.execute(query)
     actions = [a for a in result.scalars().all() if a]
-    
+
     return {"actions": actions, "live_data": True}
 
 
 # =============================================================================
 # Phase 3: System Configuration Endpoints
 # =============================================================================
+
 
 @router.get("/api/system/config")
 async def get_system_config(user: UserContext = Depends(require_admin)) -> dict:
@@ -791,13 +807,13 @@ async def get_modules_status(user: UserContext = Depends(require_admin)) -> dict
     Shows all installed modules, their tiers, capabilities, and runtime status.
     """
     status = get_module_status()
-    
+
     # Add runtime enabled/disabled status
     for module in status.get("installed_modules", []):
         module_name = module.get("manifest", {}).get("name", "")
         module["runtime_enabled"] = module_name not in _RUNTIME_CONFIG["disabled_modules"]
         module["tier_enabled"] = module.get("manifest", {}).get("tier", "") in _RUNTIME_CONFIG["enabled_tiers"]
-    
+
     return {
         **status,
         "runtime_disabled": _RUNTIME_CONFIG["disabled_modules"],
@@ -813,27 +829,24 @@ async def toggle_module(
 ) -> dict:
     """
     Enable or disable a module at runtime.
-    
+
     Note: This affects runtime routing only. Restart required for full effect.
     """
     # Check if module exists
     module = module_registry.get(module_name)
     if not module:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Module {module_name} not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Module {module_name} not found")
+
     # Toggle the module
     currently_disabled = module_name in _RUNTIME_CONFIG["disabled_modules"]
-    
+
     if currently_disabled:
         _RUNTIME_CONFIG["disabled_modules"].remove(module_name)
         new_status = "enabled"
     else:
         _RUNTIME_CONFIG["disabled_modules"].append(module_name)
         new_status = "disabled"
-    
+
     # Log the action
     await _log_admin_action(
         admin_user=user,
@@ -842,9 +855,9 @@ async def toggle_module(
         details={"new_status": new_status, "tier": module.manifest.tier.value},
         db=db,
     )
-    
+
     logger.warning(f"MODULE_TOGGLE: Admin {user.user_id} {new_status} module {module_name}")
-    
+
     return {
         "module": module_name,
         "status": new_status,
@@ -877,7 +890,7 @@ async def toggle_tier(
 ) -> dict:
     """
     Enable or disable a product tier.
-    
+
     Disabling a tier prevents new users from accessing those features.
     """
     # Validate tier name
@@ -886,26 +899,23 @@ async def toggle_tier(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid tier: {tier_name}. Valid: {[t.value for t in ProductTier.all()]}"
+            detail=f"Invalid tier: {tier_name}. Valid: {[t.value for t in ProductTier.all()]}",
         )
-    
+
     # CORE tier cannot be disabled
     if tier == ProductTier.CORE:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="CORE tier cannot be disabled"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CORE tier cannot be disabled")
+
     # Toggle the tier
     currently_enabled = tier_name in _RUNTIME_CONFIG["enabled_tiers"]
-    
+
     if currently_enabled:
         _RUNTIME_CONFIG["enabled_tiers"].remove(tier_name)
         new_status = "disabled"
     else:
         _RUNTIME_CONFIG["enabled_tiers"].append(tier_name)
         new_status = "enabled"
-    
+
     # Log the action
     await _log_admin_action(
         admin_user=user,
@@ -914,12 +924,12 @@ async def toggle_tier(
         details={"new_status": new_status},
         db=db,
     )
-    
+
     logger.warning(f"TIER_TOGGLE: Admin {user.user_id} {new_status} tier {tier_name}")
-    
+
     # Get affected modules
     affected_modules = [m.manifest.name for m in module_registry.list_by_tier(tier)]
-    
+
     return {
         "tier": tier_name,
         "status": new_status,
@@ -932,6 +942,7 @@ async def toggle_tier(
 async def get_feature_flags(user: UserContext = Depends(require_admin)) -> dict:
     """Get all feature flags and their current values."""
     from app.core.features import features as _features
+
     return {
         "feature_flags": await _features.get_all_flags(),
         "status": await _features.get_status(),
@@ -948,6 +959,7 @@ async def set_feature_flag(
 ) -> dict:
     """Set a feature flag value — persists to PostgreSQL."""
     from app.core.features import features as _features
+
     all_flags = await _features.get_all_flags()
     old_value = all_flags.get(flag_name, {}).get("enabled")
     await _features.set_enabled(flag_name, value, updated_by=user.user_id)
@@ -984,7 +996,7 @@ async def set_system_setting(
     """Set a system setting."""
     old_value = _RUNTIME_CONFIG["system_settings"].get(setting_name)
     _RUNTIME_CONFIG["system_settings"][setting_name] = value
-    
+
     # Log the action
     await _log_admin_action(
         admin_user=user,
@@ -993,9 +1005,9 @@ async def set_system_setting(
         details={"old_value": old_value, "new_value": value},
         db=db,
     )
-    
+
     logger.warning(f"SYSTEM_SETTING: Admin {user.user_id} set {setting_name}={value}")
-    
+
     return {
         "setting": setting_name,
         "value": value,
@@ -1017,15 +1029,15 @@ _CONTENT_STORE = {
 
 @router.get("/api/content/help-articles")
 async def list_help_articles(
-    category: Optional[str] = None,
+    category: str | None = None,
     user: UserContext = Depends(require_admin),
 ) -> dict:
     """List all help articles."""
     articles = _CONTENT_STORE["help_articles"]
-    
+
     if category:
         articles = {k: v for k, v in articles.items() if v.get("category") == category}
-    
+
     return {
         "articles": [
             {
@@ -1049,10 +1061,7 @@ async def get_help_article(
     """Get a specific help article."""
     article = _CONTENT_STORE["help_articles"].get(article_id)
     if not article:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Article {article_id} not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Article {article_id} not found")
     return {"id": article_id, **article}
 
 
@@ -1066,16 +1075,18 @@ async def create_help_article(
 ) -> dict:
     """Create or update a help article."""
     is_new = article_id not in _CONTENT_STORE["help_articles"]
-    
+
     _CONTENT_STORE["help_articles"][article_id] = {
         "title": title,
         "content": content,
         "category": category,
         "author": user.user_id,
-        "created_at": utc_now().isoformat() if is_new else _CONTENT_STORE["help_articles"][article_id].get("created_at"),
+        "created_at": utc_now().isoformat()
+        if is_new
+        else _CONTENT_STORE["help_articles"][article_id].get("created_at"),
         "updated_at": utc_now().isoformat(),
     }
-    
+
     action = "create_help_article" if is_new else "update_help_article"
     await _log_admin_action(
         admin_user=user,
@@ -1083,7 +1094,7 @@ async def create_help_article(
         target_user=article_id,
         details={"title": title, "category": category},
     )
-    
+
     return {
         "id": article_id,
         "action": "created" if is_new else "updated",
@@ -1098,34 +1109,28 @@ async def delete_help_article(
 ) -> dict:
     """Delete a help article."""
     if article_id not in _CONTENT_STORE["help_articles"]:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Article {article_id} not found"
-        )
-    
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Article {article_id} not found")
+
     article = _CONTENT_STORE["help_articles"].pop(article_id)
-    
+
     await _log_admin_action(
-        admin_user=user,
-        action="delete_help_article",
-        target_user=article_id,
-        details={"title": article.get("title")}
+        admin_user=user, action="delete_help_article", target_user=article_id, details={"title": article.get("title")}
     )
-    
+
     return {"id": article_id, "action": "deleted", "deleted_article": article}
 
 
 @router.get("/api/content/law-library")
 async def list_law_library_entries(
-    jurisdiction: Optional[str] = None,
+    jurisdiction: str | None = None,
     user: UserContext = Depends(require_admin),
 ) -> dict:
     """List law library entries."""
     entries = _CONTENT_STORE["law_library"]
-    
+
     if jurisdiction:
         entries = {k: v for k, v in entries.items() if v.get("jurisdiction") == jurisdiction}
-    
+
     return {
         "entries": [
             {
@@ -1152,7 +1157,7 @@ async def create_law_library_entry(
 ) -> dict:
     """Create or update a law library entry."""
     is_new = entry_id not in _CONTENT_STORE["law_library"]
-    
+
     _CONTENT_STORE["law_library"][entry_id] = {
         "title": title,
         "content": content,
@@ -1162,7 +1167,7 @@ async def create_law_library_entry(
         "created_at": utc_now().isoformat() if is_new else _CONTENT_STORE["law_library"][entry_id].get("created_at"),
         "updated_at": utc_now().isoformat(),
     }
-    
+
     action = "create_law_entry" if is_new else "update_law_entry"
     await _log_admin_action(
         admin_user=user,
@@ -1170,7 +1175,7 @@ async def create_law_library_entry(
         target_user=entry_id,
         details={"title": title, "jurisdiction": jurisdiction},
     )
-    
+
     return {
         "id": entry_id,
         "action": "created" if is_new else "updated",
@@ -1180,15 +1185,15 @@ async def create_law_library_entry(
 
 @router.get("/api/content/letter-templates")
 async def list_letter_templates(
-    category: Optional[str] = None,
+    category: str | None = None,
     user: UserContext = Depends(require_admin),
 ) -> dict:
     """List letter templates."""
     templates = _CONTENT_STORE["letter_templates"]
-    
+
     if category:
         templates = {k: v for k, v in templates.items() if v.get("category") == category}
-    
+
     return {
         "templates": [
             {
@@ -1210,12 +1215,12 @@ async def create_letter_template(
     content: str,
     category: str = "general",
     description: str = "",
-    variables: Optional[List[str]] = None,
+    variables: list[str] | None = None,
     user: UserContext = Depends(require_admin),
 ) -> dict:
     """Create or update a letter template."""
     is_new = template_id not in _CONTENT_STORE["letter_templates"]
-    
+
     _CONTENT_STORE["letter_templates"][template_id] = {
         "name": name,
         "content": content,
@@ -1223,10 +1228,12 @@ async def create_letter_template(
         "description": description,
         "variables": variables or [],
         "author": user.user_id,
-        "created_at": utc_now().isoformat() if is_new else _CONTENT_STORE["letter_templates"][template_id].get("created_at"),
+        "created_at": utc_now().isoformat()
+        if is_new
+        else _CONTENT_STORE["letter_templates"][template_id].get("created_at"),
         "updated_at": utc_now().isoformat(),
     }
-    
+
     action = "create_template" if is_new else "update_template"
     await _log_admin_action(
         admin_user=user,
@@ -1234,7 +1241,7 @@ async def create_letter_template(
         target_user=template_id,
         details={"name": name, "category": category},
     )
-    
+
     return {
         "id": template_id,
         "action": "created" if is_new else "updated",
@@ -1247,11 +1254,11 @@ async def create_letter_template(
 # =============================================================================
 
 # In-memory analytics store (production: time-series DB like InfluxDB/TimescaleDB)
-_ANALYTICS_EVENTS: List[dict] = []
-_DAILY_METRICS: Dict[str, dict] = {}
+_ANALYTICS_EVENTS: list[dict] = []
+_DAILY_METRICS: dict[str, dict] = {}
 
 
-def _track_event(event_type: str, user_id: Optional[str] = None, metadata: Optional[dict] = None):
+def _track_event(event_type: str, user_id: str | None = None, metadata: dict | None = None):
     """Track an analytics event."""
     event = {
         "timestamp": utc_now().isoformat(),
@@ -1260,7 +1267,7 @@ def _track_event(event_type: str, user_id: Optional[str] = None, metadata: Optio
         "metadata": metadata or {},
     }
     _ANALYTICS_EVENTS.append(event)
-    
+
     # Keep memory bounded (last 50k events)
     if len(_ANALYTICS_EVENTS) > 50000:
         _ANALYTICS_EVENTS.pop(0)
@@ -1273,26 +1280,23 @@ async def get_analytics_overview(
 ) -> dict:
     """
     Get high-level analytics overview.
-    
+
     Returns signup funnel, active users, document stats.
     """
-    cutoff = utc_now() - datetime.timedelta(days=days)
-    
+    cutoff = utc_now() - timedelta(days=days)
+
     # Count events in period
     recent_events = [e for e in _ANALYTICS_EVENTS if datetime.fromisoformat(e["timestamp"]) > cutoff]
-    
+
     # User signup funnel (from session data)
-    active_sessions = [
-        s for s in ACTIVE_SESSIONS.values()
-        if s.created_at and s.created_at > cutoff
-    ]
-    
-    unique_users = set(s.user_id for s in active_sessions)
+    active_sessions = [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff]
+
+    unique_users = {s.user_id for s in active_sessions}
     by_role = {}
     for s in active_sessions:
         role = s.role
         by_role[role] = by_role.get(role, 0) + 1
-    
+
     return {
         "period_days": days,
         "generated_at": utc_now().isoformat(),
@@ -1321,26 +1325,24 @@ async def get_signup_funnel(
     """
     Detailed signup funnel analysis.
     """
-    cutoff = utc_now() - datetime.timedelta(days=days)
-    
+    cutoff = utc_now() - timedelta(days=days)
+
     # Analyze session creation over time
     daily_signups = {}
     for s in ACTIVE_SESSIONS.values():
         if s.created_at and s.created_at > cutoff:
             day = s.created_at.strftime("%Y-%m-%d")
             daily_signups[day] = daily_signups.get(day, 0) + 1
-    
+
     return {
         "period_days": days,
         "total_new_sessions": sum(daily_signups.values()),
         "daily_breakdown": daily_signups,
         "by_provider": _count_by_key(
-            [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff],
-            "provider"
+            [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff], "provider"
         ),
         "by_role": _count_by_key(
-            [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff],
-            "role"
+            [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff], "role"
         ),
     }
 
@@ -1353,15 +1355,12 @@ async def get_feature_usage(
     """
     Feature usage metrics from tracked events.
     """
-    cutoff = utc_now() - datetime.timedelta(days=days)
-    recent_events = [
-        e for e in _ANALYTICS_EVENTS
-        if datetime.fromisoformat(e["timestamp"]) > cutoff
-    ]
-    
+    cutoff = utc_now() - timedelta(days=days)
+    recent_events = [e for e in _ANALYTICS_EVENTS if datetime.fromisoformat(e["timestamp"]) > cutoff]
+
     # Count by event type (which maps to features)
     feature_counts = _count_by_key(recent_events, "event_type")
-    
+
     return {
         "period_days": days,
         "total_events": len(recent_events),
@@ -1378,7 +1377,7 @@ async def get_retention_metrics(
     User retention metrics.
     """
     now = utc_now()
-    
+
     # Group sessions by user and find last activity
     user_last_seen = {}
     for s in ACTIVE_SESSIONS.values():
@@ -1388,18 +1387,18 @@ async def get_retention_metrics(
                 user_last_seen[s.user_id] = last_seen
         else:
             user_last_seen[s.user_id] = last_seen
-    
+
     # Calculate retention buckets
-    day_1 = now - datetime.timedelta(days=1)
-    day_7 = now - datetime.timedelta(days=7)
-    day_30 = now - datetime.timedelta(days=30)
-    
+    day_1 = now - timedelta(days=1)
+    day_7 = now - timedelta(days=7)
+    day_30 = now - timedelta(days=30)
+
     active_1d = sum(1 for ts in user_last_seen.values() if ts and ts > day_1)
     active_7d = sum(1 for ts in user_last_seen.values() if ts and ts > day_7)
     active_30d = sum(1 for ts in user_last_seen.values() if ts and ts > day_30)
-    
+
     total_users = len(user_last_seen)
-    
+
     return {
         "total_users": total_users,
         "active_last_1d": active_1d,
@@ -1410,7 +1409,7 @@ async def get_retention_metrics(
     }
 
 
-def _count_by_key(items: List[dict], key: str) -> dict:
+def _count_by_key(items: list[dict], key: str) -> dict:
     """Helper: count items by a key value."""
     counts = {}
     for item in items:
@@ -1424,20 +1423,48 @@ def _count_by_key(items: List[dict], key: str) -> dict:
 # =============================================================================
 
 _MANAGED_KEYS = [
-    ("Storage OAuth",   ["GOOGLE_DRIVE_CLIENT_ID", "GOOGLE_DRIVE_CLIENT_SECRET",
-                         "DROPBOX_APP_KEY", "DROPBOX_APP_SECRET",
-                         "ONEDRIVE_CLIENT_ID", "ONEDRIVE_CLIENT_SECRET"]),
-    ("AI Providers",    ["ANTHROPIC_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY",
-                         "GEMINI_API_KEY", "GOOGLE_AI_API_KEY"]),
-    ("Azure AI",        ["AZURE_AI_ENDPOINT", "AZURE_AI_KEY1", "AZURE_AI_KEY2",
-                         "AZURE_AI_REGION", "AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY"]),
-    ("Cloudflare R2",   ["STORAGE_ENDPOINT", "STORAGE_ACCESS_KEY", "STORAGE_SECRET_KEY"]),
-    ("Email",           ["RESEND_API_KEY", "FROM_EMAIL", "SUPPORT_EMAIL"]),
-    ("Research APIs",   ["NEWS_API_KEY", "ASSESSOR_API_KEY", "RECORDER_API_KEY",
-                         "UCC_API_KEY", "BANKRUPTCY_API_KEY", "SOS_API_KEY",
-                         "DISPATCH_API_KEY", "INSURANCE_API_KEY"]),
-    ("Core System",     ["SECRET_KEY", "DATABASE_URL", "PUBLIC_BASE_URL",
-                         "SECURITY_MODE", "GITHUB_TOKEN", "INVITE_CODES", "TSA_URL"]),
+    (
+        "Storage OAuth",
+        [
+            "GOOGLE_DRIVE_CLIENT_ID",
+            "GOOGLE_DRIVE_CLIENT_SECRET",
+            "DROPBOX_APP_KEY",
+            "DROPBOX_APP_SECRET",
+            "ONEDRIVE_CLIENT_ID",
+            "ONEDRIVE_CLIENT_SECRET",
+        ],
+    ),
+    ("AI Providers", ["ANTHROPIC_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "GOOGLE_AI_API_KEY"]),
+    (
+        "Azure AI",
+        [
+            "AZURE_AI_ENDPOINT",
+            "AZURE_AI_KEY1",
+            "AZURE_AI_KEY2",
+            "AZURE_AI_REGION",
+            "AZURE_OPENAI_ENDPOINT",
+            "AZURE_OPENAI_API_KEY",
+        ],
+    ),
+    ("Cloudflare R2", ["STORAGE_ENDPOINT", "STORAGE_ACCESS_KEY", "STORAGE_SECRET_KEY"]),
+    ("Email", ["RESEND_API_KEY", "FROM_EMAIL", "SUPPORT_EMAIL"]),
+    (
+        "Research APIs",
+        [
+            "NEWS_API_KEY",
+            "ASSESSOR_API_KEY",
+            "RECORDER_API_KEY",
+            "UCC_API_KEY",
+            "BANKRUPTCY_API_KEY",
+            "SOS_API_KEY",
+            "DISPATCH_API_KEY",
+            "INSURANCE_API_KEY",
+        ],
+    ),
+    (
+        "Core System",
+        ["SECRET_KEY", "DATABASE_URL", "PUBLIC_BASE_URL", "SECURITY_MODE", "GITHUB_TOKEN", "INVITE_CODES", "TSA_URL"],
+    ),
 ]
 _ALL_MANAGED_KEYS = [k for _, keys in _MANAGED_KEYS for k in keys]
 
@@ -1449,15 +1476,15 @@ async def env_status(user: UserContext = Depends(_stealth_admin)) -> dict:
     Values are NEVER returned; only whether each key is currently set.
     """
     import os
+
     groups = []
     for group_name, keys in _MANAGED_KEYS:
-        groups.append({
-            "group": group_name,
-            "keys": [
-                {"key": k, "set": bool(os.environ.get(k, "").strip())}
-                for k in keys
-            ],
-        })
+        groups.append(
+            {
+                "group": group_name,
+                "keys": [{"key": k, "set": bool(os.environ.get(k, "").strip())} for k in keys],
+            }
+        )
     total = sum(len(keys) for _, keys in _MANAGED_KEYS)
     filled = sum(1 for k in _ALL_MANAGED_KEYS if os.environ.get(k, "").strip())
     return {"groups": groups, "total": total, "filled": filled}
@@ -1470,8 +1497,9 @@ async def system_env(user: UserContext = Depends(_stealth_admin)) -> dict:
     Returns env variable status (set/unset) only, not actual values for security.
     """
     import os
+
     env = {}
-    for group_name, keys in _MANAGED_KEYS:
+    for _group_name, keys in _MANAGED_KEYS:
         for k in keys:
             env[k] = bool(os.environ.get(k, "").strip())
     return {"env": env}
@@ -1479,7 +1507,7 @@ async def system_env(user: UserContext = Depends(_stealth_admin)) -> dict:
 
 @router.post("/api/env-update")
 async def env_update(
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     user: UserContext = Depends(_stealth_admin),
 ) -> dict:
     """
@@ -1492,16 +1520,13 @@ async def env_update(
     import os
     from pathlib import Path
 
-    updates: Dict[str, str] = payload.get("updates", {})
+    updates: dict[str, str] = payload.get("updates", {})
     if not updates:
         raise HTTPException(status_code=400, detail="No updates provided")
 
     rejected = [k for k in updates if k not in _ALL_MANAGED_KEYS]
     if rejected:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unrecognised or disallowed keys: {', '.join(rejected)}"
-        )
+        raise HTTPException(status_code=400, detail=f"Unrecognised or disallowed keys: {', '.join(rejected)}")
 
     # Apply to running process
     applied = []
@@ -1551,13 +1576,15 @@ async def env_update(
 # Module Registry / Overlay System Endpoints
 # =============================================================================
 
+
 @router.get("/api/system/modules/{module_name}")
-async def get_module_status(
+async def get_single_module_status(
     module_name: str,
     user: UserContext = Depends(require_admin),
 ) -> dict:
     """Get detailed status of a single module."""
     from app.core.module_overlay import module_overlay
+
     info = await module_overlay.get_module_status(module_name)
     if not info:
         raise HTTPException(status_code=404, detail=f"Module {module_name} not found")
@@ -1573,10 +1600,11 @@ async def set_module_dev_mode(
 ) -> dict:
     """Enable/disable dev mode strict logging for a module."""
     from app.core.module_overlay import module_overlay
+
     info = await module_overlay.get_module_status(module_name)
     if not info:
         raise HTTPException(status_code=404, detail=f"Module {module_name} not found")
-    success = await module_overlay.set_dev_mode(module_name, enabled, updated_by=user.user_id)
+    await module_overlay.set_dev_mode(module_name, enabled, updated_by=user.user_id)
     await _log_admin_action(
         admin_user=user,
         action="set_dev_mode",
@@ -1597,6 +1625,7 @@ async def set_module_status(
 ) -> dict:
     """Set module lifecycle status."""
     from app.core.module_overlay import module_overlay
+
     valid = {"unknown", "active", "beta", "deprecated", "broken"}
     if status not in valid:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid}")
@@ -1619,25 +1648,26 @@ async def set_module_status(
 # Error Queue - Admin Dashboard Error Reporting to Cascade
 # =============================================================================
 
+
 @router.post("/api/error-queue")
 async def add_to_error_queue(
     section: str,
     endpoint: str,
     error_message: str,
     priority: str = "medium",
-    details: Optional[Dict[str, Any]] = None,
+    details: dict[str, Any] | None = None,
     user: UserContext = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Add an error from the admin dashboard to the error queue for Cascade to fix.
-    
+
     This replaces the manual copy-paste workflow with automated tracking.
     """
     valid_priorities = {"low", "medium", "high"}
     if priority not in valid_priorities:
         raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of: {valid_priorities}")
-    
+
     error = AdminErrorQueue(
         section=section,
         endpoint=endpoint,
@@ -1646,7 +1676,7 @@ async def add_to_error_queue(
         priority=priority,
         details=details or {},
     )
-    
+
     db.add(error)
     await db.commit()
     await db.refresh(error)
@@ -1667,28 +1697,28 @@ async def add_to_error_queue(
 
 @router.get("/api/error-queue")
 async def get_error_queue(
-    status: Optional[str] = None,
+    status: str | None = None,
     limit: int = 50,
     user: UserContext = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Retrieve errors from the error queue.
-    
+
     Can filter by status (pending, in_progress, completed, skipped).
     """
     query = select(AdminErrorQueue)
-    
+
     if status:
         valid_statuses = {"pending", "in_progress", "completed", "skipped"}
         if status not in valid_statuses:
             raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
         query = query.where(AdminErrorQueue.status == status)
-    
+
     query = query.order_by(AdminErrorQueue.timestamp.desc()).limit(limit)
     result = await db.execute(query)
     errors = result.scalars().all()
-    
+
     return {
         "errors": [
             {
@@ -1717,25 +1747,25 @@ async def update_error_status(
 ) -> dict:
     """
     Update the status of an error in the queue.
-    
+
     Used by Cascade to mark errors as in_progress, completed, or skipped.
     """
     valid_statuses = {"pending", "in_progress", "completed", "skipped"}
     if status not in valid_statuses:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
-    
+
     query = select(AdminErrorQueue).where(AdminErrorQueue.id == error_id)
     result = await db.execute(query)
     error = result.scalar_one_or_none()
-    
+
     if not error:
         raise HTTPException(status_code=404, detail=f"Error {error_id} not found")
-    
+
     error.status = status
     error.updated_at = utc_now()
-    
+
     await db.commit()
-    
+
     logger.info(f"Error {error_id} status updated to {status}")
     return {"id": error_id, "status": status}
 
@@ -1747,70 +1777,80 @@ async def update_error_status(
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="admin_console",
-        group_name="user_list",
-        title="Admin User List (SSOT)",
-        description=(
-            "CANONICAL admin user listing via GET /api/users. "
-            "Stealth admin guard returns 404 (not 403) to hide endpoint existence. "
-            "Supports pagination (limit, offset) and search."
-        ),
-        inputs=("limit", "offset", "search", "admin_user_id"),
-        outputs=("users", "total", "limit", "offset"),
-        dependencies=("app.modules.admin_console.router", "app.core.security.require_admin"),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="admin_console",
+            group_name="user_list",
+            title="Admin User List (SSOT)",
+            description=(
+                "CANONICAL admin user listing via GET /api/users. "
+                "Stealth admin guard returns 404 (not 403) to hide endpoint existence. "
+                "Supports pagination (limit, offset) and search."
+            ),
+            inputs=("limit", "offset", "search", "admin_user_id"),
+            outputs=("users", "total", "limit", "offset"),
+            dependencies=("app.modules.admin_console.router", "app.core.security.require_admin"),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="admin_console",
-        group_name="user_detail",
-        title="Admin User Detail (SSOT)",
-        description="CANONICAL admin user detail via GET /api/users/{user_id}. Stealth guard enforced.",
-        inputs=("user_id", "admin_user_id"),
-        outputs=("user", "vault", "gates", "capabilities"),
-        dependencies=("app.modules.admin_console.router",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="admin_console",
+            group_name="user_detail",
+            title="Admin User Detail (SSOT)",
+            description="CANONICAL admin user detail via GET /api/users/{user_id}. Stealth guard enforced.",
+            inputs=("user_id", "admin_user_id"),
+            outputs=("user", "vault", "gates", "capabilities"),
+            dependencies=("app.modules.admin_console.router",),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="admin_console",
-        group_name="impersonate_start",
-        title="Admin Impersonate Start (SSOT)",
-        description=(
-            "CANONICAL admin impersonation via POST /api/users/{user_id}/impersonate. "
-            "Admin becomes user for testing. Audit logged."
-        ),
-        inputs=("user_id", "admin_user_id"),
-        outputs=("status", "impersonating"),
-        dependencies=("app.modules.admin_console.router", "app.core.security.require_admin"),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="admin_console",
+            group_name="impersonate_start",
+            title="Admin Impersonate Start (SSOT)",
+            description=(
+                "CANONICAL admin impersonation via POST /api/users/{user_id}/impersonate. "
+                "Admin becomes user for testing. Audit logged."
+            ),
+            inputs=("user_id", "admin_user_id"),
+            outputs=("status", "impersonating"),
+            dependencies=("app.modules.admin_console.router", "app.core.security.require_admin"),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="admin_console",
-        group_name="impersonate_stop",
-        title="Admin Impersonate Stop (SSOT)",
-        description="CANONICAL stop impersonation via POST /api/users/{user_id}/stop-impersonation. Audit logged.",
-        inputs=("user_id", "admin_user_id"),
-        outputs=("status",),
-        dependencies=("app.modules.admin_console.router",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="admin_console",
+            group_name="impersonate_stop",
+            title="Admin Impersonate Stop (SSOT)",
+            description="CANONICAL stop impersonation via POST /api/users/{user_id}/stop-impersonation. Audit logged.",
+            inputs=("user_id", "admin_user_id"),
+            outputs=("status",),
+            dependencies=("app.modules.admin_console.router",),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="admin_console",
-        group_name="system_status",
-        title="Admin System Status (SSOT)",
-        description=(
-            "CANONICAL system status via GET /api/system/status. "
-            "Returns active sessions, metrics, modules, tiers, navigation info."
-        ),
-        inputs=("admin_user_id",),
-        outputs=("status", "sessions", "modules", "tiers", "navigation"),
-        dependencies=("app.modules.admin_console.router",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="admin_console",
+            group_name="system_status",
+            title="Admin System Status (SSOT)",
+            description=(
+                "CANONICAL system status via GET /api/system/status. "
+                "Returns active sessions, metrics, modules, tiers, navigation info."
+            ),
+            inputs=("admin_user_id",),
+            outputs=("status", "sessions", "modules", "tiers", "navigation"),
+            dependencies=("app.modules.admin_console.router",),
+            deterministic=True,
+        )
+    )
 
-except Exception:
-    pass
+except Exception as _e:
+    logger.warning("Admin console router startup error: %s", _e)
