@@ -64,41 +64,73 @@ function uploadToVault() {
     return;
   }
 
-  const formData = new FormData();
-  Array.from(files).forEach(file => formData.append('file', file));
-  if (docType) formData.append('document_type', docType);
-  if (description) formData.append('description', description);
-  if (addTimestamp) formData.append('tags', 'timestamped');
+  const userIdMatch = document.cookie.match(/(?:^|; )semptify_uid=([^;]+)/);
+  const userId = userIdMatch ? decodeURIComponent(userIdMatch[1]) : null;
 
   const btn = document.querySelector('#vault-portal .btn--primary');
   const originalText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
 
-  fetch('/api/documents/upload', { method: 'POST', body: formData })
-    .then(async r => {
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        const msg = data.detail || data.message || `Upload failed (HTTP ${r.status})`;
-        throw new Error(msg);
+  const fetchFn = typeof window.fetchWithCSRF === 'function' ? window.fetchWithCSRF : fetch;
+  const returnTo = encodeURIComponent(window.location.pathname);
+
+  const runUpload = async () => {
+    let uploadedCount = 0;
+    const errors = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('user_id', userId || '');
+      formData.append('access_token', 'auto');
+      if (docType) formData.append('document_type', docType);
+      if (description) formData.append('description', description);
+      if (addTimestamp) formData.append('tags', 'timestamped');
+
+      try {
+        const resp = await fetchFn('/api/intake/upload/auto', { method: 'POST', body: formData });
+        const result = await resp.json().catch(() => ({}));
+
+        if (resp.ok && result.status !== 'error' && result.vault_id) {
+          uploadedCount++;
+        } else if (
+          resp.status === 401 ||
+          result.error === 'token_expired' ||
+          result.error === 'storage_required'
+        ) {
+          const redirect = result.redirect_url || `/storage/reconnect?return_to=${returnTo}`;
+          if (confirm('Your storage connection expired. Reconnect now?')) {
+            window.location.href = redirect;
+          }
+          return;
+        } else {
+          const msg = result.detail || result.message || result.error || `Upload failed (HTTP ${resp.status})`;
+          errors.push(`${file.name}: ${msg}`);
+        }
+      } catch (e) {
+        errors.push(`${file.name}: ${e.message}`);
       }
-      const uploaded = data.uploaded_files || data.files || [];
-      const errors = data.errors || [];
-      let msg = `${uploaded.length} file(s) uploaded successfully.`;
-      if (errors.length > 0) msg += ` ${errors.length} error(s).`;
-      showStatus(msg, 'success');
+    }
+
+    if (uploadedCount > 0) {
+      window.dispatchEvent(new CustomEvent('vault:uploaded', {
+        detail: { fileCount: uploadedCount, timestamp: new Date().toISOString() }
+      }));
+      showStatus(`${uploadedCount} file(s) uploaded successfully.`, 'success');
       setTimeout(() => {
         closeVaultPortal();
         if (typeof refreshVaultFileList === 'function') refreshVaultFileList();
         window.location.reload();
       }, 1500);
-    })
-    .catch(err => {
-      console.error('Vault upload failed:', err);
-      showStatus('Upload failed: ' + err.message, 'error');
-    })
-    .finally(() => {
-      if (btn) { btn.disabled = false; btn.textContent = originalText; }
-    });
+    }
+
+    if (errors.length > 0) {
+      showStatus('Upload failed: ' + errors.join('; '), 'error');
+    }
+  };
+
+  runUpload().finally(() => {
+    if (btn) { btn.disabled = false; btn.textContent = originalText; }
+  });
 }
 
 // ========================================
