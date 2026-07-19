@@ -61,21 +61,48 @@ from pathlib import Path
 
 SKIP_DIR_NAMES = {
     # Scaffolds
-    "_template", "templates_scaffold",
+    "_template",
+    "templates_scaffold",
     # Virtual envs (also caught by prefix check below, but listed for clarity)
-    "venv", "venv311", "venv311_clean", ".venv", "env",
+    "venv",
+    "venv311",
+    "venv311_clean",
+    ".venv",
+    "env",
     # Caches / build artifacts
-    "__pycache__", ".mypy_cache", ".ruff_cache", ".pytest_cache",
-    ".pre-commit", "dist", "build", "htmlcov", "test-results",
-    "node_modules", ".git",
+    "__pycache__",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    ".pre-commit",
+    "dist",
+    "build",
+    "htmlcov",
+    "test-results",
+    "node_modules",
+    ".git",
     # Non-app directories with third-party / generated / unrelated Python
-    "archive", "logs", "uploads", "REPOs", "bsimpotrrttd",
-    "installer", "mobile_ai_host", "semptify_dakota_eviction",
+    "archive",
+    "logs",
+    "uploads",
+    "REPOs",
+    "bsimpotrrttd",
+    "installer",
+    "mobile_ai_host",
+    "semptify_dakota_eviction",
     "legal_intel",
     # Agent / tooling work directories
-    ".agent", ".agent-mem", ".agents", ".semptify",
-    ".zenflow", ".zencoder", ".windsurf", ".cursor", ".devin",
-    ".github", ".vscode",
+    ".agent",
+    ".agent-mem",
+    ".agents",
+    ".semptify",
+    ".zenflow",
+    ".zencoder",
+    ".windsurf",
+    ".cursor",
+    ".devin",
+    ".github",
+    ".vscode",
 }
 
 SKIP_DIR_PREFIXES = ("venv", ".venv", "env")
@@ -135,7 +162,7 @@ def is_skipped_path(path: Path) -> bool:
         for prefix in SKIP_DIR_PREFIXES:
             if part.startswith(prefix) and part != prefix:
                 # Only skip if it's a venv-style name (avoid skipping e.g. "env_vars")
-                rest = part[len(prefix):]
+                rest = part[len(prefix) :]
                 if rest == "" or rest[0] in "_-." or rest.isdigit():
                     return True
     return False
@@ -151,9 +178,12 @@ def body_is_stub(body):
     """
     stmts = list(body)
     # Drop a leading docstring expression, if present.
-    if stmts and isinstance(stmts[0], ast.Expr) and isinstance(
-        getattr(stmts[0], "value", None), (ast.Constant,)
-    ) and isinstance(stmts[0].value.value, str):
+    if (
+        stmts
+        and isinstance(stmts[0], ast.Expr)
+        and isinstance(getattr(stmts[0], "value", None), ast.Constant)
+        and isinstance(stmts[0].value.value, str)
+    ):
         stmts = stmts[1:]
 
     if not stmts:
@@ -167,7 +197,7 @@ def body_is_stub(body):
         # literal, is still a stub in disguise.
         if isinstance(stmt, ast.Try):
             try_body = stmt.body
-            try_trivial = len(try_body) == 1 and isinstance(try_body[0], (ast.Pass,))
+            try_trivial = len(try_body) == 1 and isinstance(try_body[0], ast.Pass)
             if try_trivial and stmt.handlers:
                 all_handlers_empty = True
                 for handler in stmt.handlers:
@@ -179,8 +209,10 @@ def body_is_stub(body):
                     is_empty = (
                         val is None
                         or (isinstance(val, ast.Constant) and val.value is None)
-                        or (isinstance(val, (ast.List, ast.Dict, ast.Tuple, ast.Set))
-                            and not (val.elts if hasattr(val, "elts") else getattr(val, "keys", [])))
+                        or (
+                            isinstance(val, ast.List | ast.Dict | ast.Tuple | ast.Set)
+                            and not (val.elts if hasattr(val, "elts") else getattr(val, "keys", []))
+                        )
                     )
                     if not is_empty:
                         all_handlers_empty = False
@@ -192,8 +224,7 @@ def body_is_stub(body):
         if isinstance(stmt, ast.Pass):
             return STUB_REASONS["pass"]
 
-        if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) \
-                and stmt.value.value is Ellipsis:
+        if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) and stmt.value.value is Ellipsis:
             return STUB_REASONS["ellipsis"]
 
         if isinstance(stmt, ast.Raise):
@@ -212,7 +243,7 @@ def body_is_stub(body):
                 return None  # bare `return` alone isn't necessarily a stub
             if isinstance(val, ast.Constant) and val.value is None:
                 return STUB_REASONS["empty_return"]
-            if isinstance(val, (ast.List, ast.Dict, ast.Tuple, ast.Set)) and not (
+            if isinstance(val, ast.List | ast.Dict | ast.Tuple | ast.Set) and not (
                 val.elts if hasattr(val, "elts") else getattr(val, "keys", [])
             ):
                 return STUB_REASONS["empty_return"]
@@ -273,10 +304,7 @@ class StubVisitor(ast.NodeVisitor):
 
         # Alembic merge migrations have empty upgrade()/downgrade() bodies
         # by design — this is the correct pattern, not a stub.
-        if (
-            node.name in ALEMBIC_SKIP_FN_NAMES
-            and ("alembic" in self.filename and "versions" in self.filename)
-        ):
+        if node.name in ALEMBIC_SKIP_FN_NAMES and ("alembic" in self.filename and "versions" in self.filename):
             return
 
         # If the stub-triggering statement is itself inside an except block,
@@ -287,12 +315,14 @@ class StubVisitor(ast.NodeVisitor):
             if find_enclosing_except(last_stmt, node) and len(node.body) > 1:
                 return
 
-        self.findings.append({
-            "file": self.filename,
-            "line": node.lineno,
-            "function": node.name,
-            "reason": reason,
-        })
+        self.findings.append(
+            {
+                "file": self.filename,
+                "line": node.lineno,
+                "function": node.name,
+                "reason": reason,
+            }
+        )
 
     def visit_ExceptHandler(self, node):
         handler_names = _type_names(node.type)
@@ -331,11 +361,13 @@ def scan_file(path: Path, root: Path, list_todos=False):
         for i, line in enumerate(source.splitlines(), start=1):
             stripped = line.lstrip()
             if stripped.startswith("#") and ("TODO" in stripped or "FIXME" in stripped):
-                todos.append({
-                    "file": str(path.relative_to(root)),
-                    "line": i,
-                    "text": stripped.lstrip("#").strip(),
-                })
+                todos.append(
+                    {
+                        "file": str(path.relative_to(root)),
+                        "line": i,
+                        "text": stripped.lstrip("#").strip(),
+                    }
+                )
 
     return visitor.findings, todos
 
@@ -344,8 +376,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("root", nargs="?", default=".", help="Root directory to scan (default: current working directory)")
     ap.add_argument("--out", default="stub_tasks.json", help="Output JSON path")
-    ap.add_argument("--list-todos", action="store_true",
-                     help="Also write todo_comments.json listing documented TODO/FIXME comments (informational only, never turned into tasks)")
+    ap.add_argument(
+        "--list-todos",
+        action="store_true",
+        help="Also write todo_comments.json listing documented TODO/FIXME comments (informational only, never turned into tasks)",
+    )
     args = ap.parse_args()
 
     root = Path(args.root).resolve()
@@ -365,26 +400,30 @@ def main():
 
     tasks = []
     for i, f in enumerate(all_findings, start=1):
-        tasks.append({
-            "id": i,
-            "category": "stub_fix",
-            "file": f["file"],
-            "line": f["line"],
-            "function": f["function"],
-            "reason": f["reason"],
-            "status": "pending",
-        })
+        tasks.append(
+            {
+                "id": i,
+                "category": "stub_fix",
+                "file": f["file"],
+                "line": f["line"],
+                "function": f["function"],
+                "reason": f["reason"],
+                "status": "pending",
+            }
+        )
 
-    Path(args.out).write_text(json.dumps(tasks, indent=2), encoding="utf-8")
+    Path(args.out).write_text(json.dumps(tasks, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"Found {len(tasks)} real stub(s). Wrote {args.out}")
     for t in tasks:
         print(f"  {t['file']}:{t['line']}  {t['function']}()  -- {t['reason']}")
 
     if args.list_todos:
         todo_path = Path("todo_comments.json")
-        todo_path.write_text(json.dumps(all_todos, indent=2), encoding="utf-8")
-        print(f"\nAlso found {len(all_todos)} documented TODO/FIXME comment(s) "
-              f"(informational only -- see {todo_path}). These are NOT tasks.")
+        todo_path.write_text(json.dumps(all_todos, indent=2) + "\n", encoding="utf-8", newline="\n")
+        print(
+            f"\nAlso found {len(all_todos)} documented TODO/FIXME comment(s) "
+            f"(informational only -- see {todo_path}). These are NOT tasks."
+        )
 
     return len(tasks)
 

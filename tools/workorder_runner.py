@@ -12,7 +12,7 @@ Note: --agent is a global flag that must come BEFORE the subcommand.
 
 Lifecycle:
     pending --> in_progress --> done (terminal for agents)
-                              \-> rejected (invalid/duplicate/wrong-scope)
+                              \\-> rejected (invalid/duplicate/wrong-scope)
     Brad manually moves done --> resolved or rejected via the HTML UI.
     Agents do NOT self-promote to review — Brad reviews done work.
 
@@ -32,7 +32,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from app.core.utc import parse_iso, utc_now
+from app.core.utc import parse_iso, utc_now  # noqa: E402
 
 DEFAULT_TASKS_PATH = REPO_ROOT / "tools" / "agent_orchestrator_tasks.json"
 DEFAULT_TIMEOUT_MINUTES = 60
@@ -53,7 +53,7 @@ def _load_tasks(path: Path) -> list[dict]:
 
 
 def _save_tasks(path: Path, tasks: list[dict]) -> None:
-    path.write_text(json.dumps(tasks, indent=2, ensure_ascii=False), encoding="utf-8")
+    path.write_text(json.dumps(tasks, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def _now_iso() -> str:
@@ -80,9 +80,7 @@ def _is_stale_claim(task: dict, timeout_minutes: int) -> bool:
     return elapsed > timeout_minutes * 60
 
 
-def _find_next_claimable(
-    tasks: list[dict], timeout_minutes: int
-) -> dict | None:
+def _find_next_claimable(tasks: list[dict], timeout_minutes: int) -> dict | None:
     """Return the first task an agent is allowed to claim.
 
     Order of preference:
@@ -123,9 +121,7 @@ def claim_next_pending(
             _save_tasks(tasks_path, tasks)
             return task
     except Timeout as e:
-        raise RuntimeError(
-            "Could not acquire task lock; another agent is claiming."
-        ) from e
+        raise RuntimeError("Could not acquire task lock; another agent is claiming.") from e
 
 
 def mark_done(
@@ -191,8 +187,7 @@ def reject_task(
                 current_status = task.get("status", "pending")
                 if current_status in ("done", "rejected"):
                     raise ValueError(
-                        f"Task {task_id} is already '{current_status}'. "
-                        f"Cannot reject a finished task."
+                        f"Task {task_id} is already '{current_status}'. " f"Cannot reject a finished task."
                     )
                 task["status"] = "rejected"
                 task["rejected_by"] = {
@@ -274,9 +269,7 @@ def main() -> int:
 
     if args.command == "claim":
         try:
-            task = claim_next_pending(
-                args.tasks, args.agent, timeout_minutes=args.timeout
-            )
+            task = claim_next_pending(args.tasks, args.agent, timeout_minutes=args.timeout)
         except (FileNotFoundError, RuntimeError) as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1

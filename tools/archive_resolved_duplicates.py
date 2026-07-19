@@ -128,7 +128,7 @@ def main() -> int:
     # rather than waiting for the next sync, so the GUI reflects it right away.
     archived_ids = {stable_task_id(row_values[1]) for _, row_values, _ in to_archive}
     remaining_tasks = [t for t in tasks if t["id"] not in archived_ids]
-    TASKS_PATH.write_text(json.dumps(remaining_tasks, indent=2), encoding="utf-8")
+    TASKS_PATH.write_text(json.dumps(remaining_tasks, indent=2) + "\n", encoding="utf-8", newline="\n")
 
     print(f"\nArchived {len(to_archive)} row(s) to the 'Archive' sheet and removed them from the active queue.")
     print("Run sync_orchestrator.py next to refresh the embedded HTML views.")
