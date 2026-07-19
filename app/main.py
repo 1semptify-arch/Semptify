@@ -2037,7 +2037,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # If already elevated, go straight to dashboard
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         if verify_elevation_cookie(str(elev_cookie) if elev_cookie else None):
-            return RedirectResponse(url="/admin/dashboard")
+            return ssot_redirect("/admin/dashboard", context="admin_login already elevated")
         # Check if user has an OAuth session
         oauth_uid = extract_user_id(request)
         has_session = oauth_uid is not None
@@ -2251,7 +2251,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.admin_elevation import clear_elevation_cookie
 
         clear_elevation_cookie(response)
-        return RedirectResponse(url="/admin/login")
+        return ssot_redirect("/admin/login", context="admin_logout")
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
     @fastapi_app.get("/admin/home.html", response_class=HTMLResponse)
@@ -2261,7 +2261,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if home_path.exists():
             return FileResponse(str(home_path))
         # Fallback to login if home.html missing
-        return RedirectResponse(url="/admin/login")
+        return ssot_redirect("/admin/login", context="admin_home missing home.html")
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
     # Does NOT check OAuth role — elevation is separate from storage identity
@@ -2277,7 +2277,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
         if not payload:
             # Redirect to elevation prompt — stealth: looks like a normal login page
-            return RedirectResponse(url="/admin/login", status_code=302)
+            return ssot_redirect("/admin/login", context="_require_elevation missing/expired")
         return payload["uid"]
 
     require_admin = _require_elevation
@@ -2498,7 +2498,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         admin_uid: str = Depends(require_admin),
     ):
         """Redirect /admin to dashboard - ADMIN role required."""
-        return RedirectResponse(url="/admin/dashboard.html")
+        return ssot_redirect("/admin/dashboard.html", context="admin_root_redirect")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):
@@ -2679,7 +2679,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/dashboard")
     async def dashboard_page(request: Request):
         """Redirect /dashboard to role-specific dashboard."""
-        return RedirectResponse(url="/tenant/dashboard", status_code=302)
+        return ssot_redirect("/tenant/dashboard", context="dashboard_page role redirect")
 
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
@@ -3658,9 +3658,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/timeline.html")
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Timeline template error, falling back to tenant timeline: %s", e)
-        from starlette.responses import RedirectResponse
 
-        return RedirectResponse(url="/tenant/timeline", status_code=302)
+        return ssot_redirect("/tenant/timeline", context="timeline_page template fallback")
 
     @fastapi_app.get("/dc", response_class=HTMLResponse)
     async def document_center_page(request: Request):
@@ -3671,9 +3670,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/document_center.html")
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("DC template error, falling back to documents page: %s", e)
-        from starlette.responses import RedirectResponse
 
-        return RedirectResponse(url="/documents", status_code=302)
+        return ssot_redirect("/documents", context="document_center_page template fallback")
 
     async def _get_tenant_briefcase(user_id: str, user_name: str | None = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
