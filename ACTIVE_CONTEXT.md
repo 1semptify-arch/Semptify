@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-19 PM
+**Last Updated**: 2026-07-19 AM
 
 ---
 
@@ -25,6 +25,9 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 - **Document Center verified live**: 22 DC tests pass, 3-pane layout live at
   `/tenant/documents`, OAuth-gated as expected.
 - **Visual smoke test passed**: all 4 public GUI pages verified on live deploy.
+- **Attorney Intake Packet rendering + GUI trigger**: PDF/ZIP export endpoints added to
+  `app/modules/case_builder/router.py`, download UI added to `case_builder.html`,
+  `test_intake_packet.py` updated with 3 new helper tests, all 21 tests pass.
 
 ## 🅿️ NEXT TO BUILD (in priority order)
 
@@ -33,9 +36,9 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 | 1 | **UPL guardrail wiring** | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
 | 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
 | 3 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
-| 4 | **Attorney Intake Packet** — scaffold merged, rendering pending | `app/modules/case_builder/router.py:2477-2625` | 🟡 Scaffold merged (commit `596afe0` 2026-07-10) | Tests + PDF/ZIP rendering + GUI trigger |
+| 4 | **Attorney Intake Packet** — PDF/ZIP rendering + GUI trigger | `app/modules/case_builder/router.py:2477-2930` | ✅ Complete 2026-07-19 | — |
 
-> **Note:** Rows #1-#3 are complete. Row #4 scaffold is merged — the `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet (case_identification, timeline, evidence_index, pending_deadlines). Pending work: tests, PDF/ZIP rendering on top of the JSON shape, GUI trigger button.
+> **Note:** Rows #1-#4 are complete. The `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet; `/pdf` and `/zip` render it for attorney review. GUI download panel added to `case_builder.html`.
 
 ## 🎯 Candidate Next Priorities (awaiting user direction)
 

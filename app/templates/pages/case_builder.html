@@ -169,6 +169,30 @@
     color: var(--color-text-muted);
 }
 
+.export-panel {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.export-panel .export-select {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.export-error {
+    color: #991b1b;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
 @media (max-width: 768px) {
     .main-content {
         grid-template-columns: 1fr;
@@ -185,6 +209,21 @@
         <p>Select documents as evidence and add your notes to build your case summary.</p>
     </div>
 
+    <div class="export-panel">
+        <h2 class="panel-title">Attorney Intake Packet</h2>
+        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+            Download a facts-only packet to share with an attorney.
+        </p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+            <select id="case-select" class="export-select">
+                <option value="">Loading cases...</option>
+            </select>
+            <button class="btn btn-secondary" id="btn-pdf" onclick="downloadIntakePacket('pdf')" disabled>PDF</button>
+            <button class="btn btn-secondary" id="btn-zip" onclick="downloadIntakePacket('zip')" disabled>ZIP</button>
+        </div>
+        <div id="export-error" class="export-error" style="display: none;"></div>
+    </div>
+
     <div class="main-content">
         <div class="documents-panel">
             <h2 class="panel-title">📄 Your Documents</h2>
@@ -195,7 +234,7 @@
 
         <div class="evidence-panel">
             <h2 class="panel-title">📋 Evidence Summary</h2>
-            
+
             <div class="evidence-section">
                 <h3>Selected Documents</h3>
                 <div id="selected-docs">
@@ -254,7 +293,7 @@ function renderDocuments() {
         container.innerHTML = '<div class="empty-state">No documents uploaded yet. <a href="/documents">Upload documents →</a></div>';
         return;
     }
-    
+
     container.innerHTML = '<ul class="doc-list">' + documents.map(doc => `
         <li class="doc-item">
             <input type="checkbox" id="doc-${doc.vault_id}" onchange="toggleDoc('${doc.vault_id}', '${doc.filename}')">
@@ -281,7 +320,7 @@ function updateSelectedDocs() {
         container.innerHTML = '<p style="color: var(--color-text-muted); font-size: 0.875rem;">No documents selected yet</p>';
         return;
     }
-    
+
     const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
     container.innerHTML = '<ul style="list-style: none; padding: 0;">' + selectedNames.map(name => `
         <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem;">📄 ${name}</li>
@@ -300,24 +339,24 @@ function generateSummary() {
     const notes = document.getElementById('case-notes').value;
     const arguments = document.getElementById('case-arguments').value;
     const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
-    
+
     let summary = '<h3>Evidence Documents</h3>';
     if (selectedNames.length === 0) {
         summary += '<p>No documents selected as evidence.</p>';
     } else {
         summary += '<ul>' + selectedNames.map(name => `<li>${name}</li>`).join('') + '</ul>';
     }
-    
+
     if (notes) {
         summary += '<h3>Case Notes</h3><p>' + notes.replace(/\n/g, '<br>') + '</p>';
     }
-    
+
     if (arguments) {
         summary += '<h3>Main Arguments</h3><p>' + arguments.replace(/\n/g, '<br>') + '</p>';
     }
-    
+
     summary += '<p style="margin-top: 1.5rem; color: var(--color-accent);"><strong>Next Steps:</strong> Review this summary, add any missing information, and use it when filing complaints or speaking with legal aid.</p>';
-    
+
     document.getElementById('summary-content').innerHTML = summary;
     document.getElementById('summary-modal').style.display = 'flex';
 }
@@ -334,6 +373,73 @@ function printSummary() {
     printWindow.print();
 }
 
+async function loadCases() {
+    const select = document.getElementById('case-select');
+    const btnPdf = document.getElementById('btn-pdf');
+    const btnZip = document.getElementById('btn-zip');
+    const error = document.getElementById('export-error');
+    try {
+        const res = await fetch('/api/case-builder/cases');
+        const data = await res.json();
+        const cases = data.cases || [];
+        select.innerHTML = '';
+        if (cases.length === 0) {
+            select.innerHTML = '<option value="">No cases yet</option>';
+            select.disabled = true;
+            return;
+        }
+        cases.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.case_id;
+            option.textContent = `${c.case_number || 'Case'} — ${c.court || 'no court'}`;
+            select.appendChild(option);
+        });
+        select.disabled = false;
+        btnPdf.disabled = false;
+        btnZip.disabled = false;
+    } catch (e) {
+        error.textContent = 'Could not load cases. Try again later.';
+        error.style.display = 'block';
+        select.innerHTML = '<option value="">Failed to load cases</option>';
+    }
+}
+
+async function downloadIntakePacket(format) {
+    const select = document.getElementById('case-select');
+    const error = document.getElementById('export-error');
+    const caseId = select.value;
+    if (!caseId) {
+        error.textContent = 'Select a case first.';
+        error.style.display = 'block';
+        return;
+    }
+    error.style.display = 'none';
+    const url = `/api/case-builder/cases/${encodeURIComponent(caseId)}/intake-packet/${format}`;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.detail || `Download failed (HTTP ${res.status})`);
+        }
+        const blob = await res.blob();
+        const disposition = res.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : `intake-packet.${format}`;
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+        error.textContent = 'Download failed: ' + e.message;
+        error.style.display = 'block';
+    }
+}
+
 loadDocuments();
+loadCases();
 </script>
 {% endblock %}
