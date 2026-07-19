@@ -125,7 +125,9 @@ def merge_tasks() -> int:
             seen_ids.add(t.get("id"))
             added += 1
 
-    ORCHESTRATOR_TASKS.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+    ORCHESTRATOR_TASKS.write_text(
+        json.dumps(merged, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
+    )
     print(f"-> merged {added} doc-sourced task(s) into {ORCHESTRATOR_TASKS.name} (total: {len(merged)})")
     return len(merged)
 
@@ -189,7 +191,7 @@ def embed_tasks_into_html(tasks_json_text: str, target: Path) -> None:
         new_html = html.replace("<script>", block + "\n<script>", 1)
 
     if new_html != html:
-        target.write_text(new_html, encoding="utf-8")
+        target.write_text(new_html, encoding="utf-8", newline="\n")
         print(f"-> embedded tasks JSON into {target.name}")
     else:
         print(f"-> {target.name} already up to date")

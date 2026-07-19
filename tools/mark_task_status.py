@@ -90,7 +90,7 @@ def main() -> int:
             entry = f"[{stamp}{' - ' + args.agent if args.agent else ''}] {args.notes}"
             match["notes"] = f"{existing}\n{entry}".strip() if existing else entry
 
-        TASKS_PATH.write_text(json.dumps(tasks, indent=2), encoding="utf-8")
+        TASKS_PATH.write_text(json.dumps(tasks, indent=2) + "\n", encoding="utf-8", newline="\n")
         print(f"Task {args.task_id}: {old_status} -> {args.status}")
         if args.notes:
             print(f"  note added: {args.notes}")
