@@ -812,10 +812,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/services/unified_overlay_manager.py",
-    "status": "in_progress",
-    "notes": "Preflight: app/services/unified_overlay_manager.py (create_overlay signature) and app/modules/document_center/router.py (what it expects to read). Scope: on Pass 2 completion, call create_overlay() with structured results and update `deep_ocr_status` to `complete` (or `failed` on error). Do not touch: UnifiedOverlayManager itself. Acceptance: Document Center right panel returns real overlay data for a fully processed document.",
+    "status": "resolved",
+    "notes": "Preflight: app/services/unified_overlay_manager.py (create_overlay signature) and app/modules/document_center/router.py (what it expects to read). Scope: on Pass 2 completion, call create_overlay() with structured results and update `deep_ocr_status` to `complete` (or `failed` on error). Do not touch: UnifiedOverlayManager itself. Acceptance: Document Center right panel returns real overlay data for a fully processed document.\n[2026-07-20 04:12 UTC - devin] Deep OCR Pass 2 now writes a DOCUMENT_EXTRACTION overlay via UnifiedOverlayManager.create_overlay() with raw text, formatted dates, and full semantic_dates payload.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:09:32.437113+00:00",
+    "updated_at": "2026-07-20T04:12:45.966717+00:00",
     "assigned_agent": "devin"
   },
   {
@@ -826,10 +826,11 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/modules/document_center/router.py",
-    "status": "pending",
+    "status": "in_progress",
     "notes": "Preflight: app/modules/document_center/router.py right-panel logic. Scope: display pending/processing/complete/failed/needs_reprocess distinctly so the user can tell 'still processing' from 'something went wrong'. Acceptance: opening a document mid-processing shows a clear, non-alarming status message.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T04:17:41.894627+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-039",
