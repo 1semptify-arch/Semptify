@@ -15,15 +15,16 @@ Supports:
 
 import hashlib
 import json
+import logging
 import re
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone, timedelta
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Any
+
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,8 +32,10 @@ logger = logging.getLogger(__name__)
 # ENUMS & TYPES
 # =============================================================================
 
+
 class DocumentType(str, Enum):
     """Types of documents in tenant defense."""
+
     LEASE = "lease"
     LEASE_AMENDMENT = "lease_amendment"
     EVICTION_NOTICE = "eviction_notice"
@@ -66,27 +69,30 @@ class DocumentType(str, Enum):
 
 class IntakeStatus(str, Enum):
     """Document intake processing status."""
-    RECEIVED = "received"           # Just uploaded
-    VALIDATING = "validating"       # Checking file integrity
-    EXTRACTING = "extracting"       # OCR/text extraction
-    ANALYZING = "analyzing"         # AI analysis
-    ENRICHING = "enriching"         # Adding context
-    COMPLETE = "complete"           # Fully processed
-    FAILED = "failed"               # Processing failed
-    NEEDS_REVIEW = "needs_review"   # Human review needed
+
+    RECEIVED = "received"  # Just uploaded
+    VALIDATING = "validating"  # Checking file integrity
+    EXTRACTING = "extracting"  # OCR/text extraction
+    ANALYZING = "analyzing"  # AI analysis
+    ENRICHING = "enriching"  # Adding context
+    COMPLETE = "complete"  # Fully processed
+    FAILED = "failed"  # Processing failed
+    NEEDS_REVIEW = "needs_review"  # Human review needed
 
 
 class IssueSeverity(str, Enum):
     """Severity of detected issues."""
-    CRITICAL = "critical"   # Immediate action needed (eviction, court date)
-    HIGH = "high"           # Urgent (deadline approaching, violation)
-    MEDIUM = "medium"       # Important (potential issue, follow up)
-    LOW = "low"             # Informational (note for record)
-    INFO = "info"           # Just information
+
+    CRITICAL = "critical"  # Immediate action needed (eviction, court date)
+    HIGH = "high"  # Urgent (deadline approaching, violation)
+    MEDIUM = "medium"  # Important (potential issue, follow up)
+    LOW = "low"  # Informational (note for record)
+    INFO = "info"  # Just information
 
 
 class LanguageCode(str, Enum):
     """Supported languages."""
+
     ENGLISH = "en"
     SPANISH = "es"
     SOMALI = "so"
@@ -98,15 +104,17 @@ class LanguageCode(str, Enum):
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class ExtractedDate:
     """A date extracted from a document."""
+
     date: datetime
-    label: str              # What this date represents
-    confidence: float       # 0.0-1.0
-    source_text: str        # Original text it was extracted from
+    label: str  # What this date represents
+    confidence: float  # 0.0-1.0
+    source_text: str  # Original text it was extracted from
     is_deadline: bool = False
-    days_until: Optional[int] = None  # Days from today (negative if past)
+    days_until: int | None = None  # Days from today (negative if past)
 
     def to_dict(self) -> dict:
         return {
@@ -122,11 +130,12 @@ class ExtractedDate:
 @dataclass
 class ExtractedParty:
     """A party (person/entity) extracted from a document."""
+
     name: str
-    role: str               # landlord, tenant, agent, attorney, court
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
+    role: str  # landlord, tenant, agent, attorney, court
+    address: str | None = None
+    phone: str | None = None
+    email: str | None = None
     confidence: float = 0.0
 
     def to_dict(self) -> dict:
@@ -136,10 +145,11 @@ class ExtractedParty:
 @dataclass
 class ExtractedAmount:
     """A monetary amount extracted from a document."""
+
     amount: float
-    label: str              # rent, deposit, fee, damages, etc.
+    label: str  # rent, deposit, fee, damages, etc.
     currency: str = "USD"
-    period: Optional[str] = None  # monthly, one-time, etc.
+    period: str | None = None  # monthly, one-time, etc.
     confidence: float = 0.0
     source_text: str = ""
 
@@ -150,12 +160,13 @@ class ExtractedAmount:
 @dataclass
 class ExtractedClause:
     """A significant clause or term extracted from a document."""
-    clause_type: str        # late_fee, notice_period, pet_policy, etc.
-    text: str               # The actual clause text
-    summary: str            # Plain English summary
+
+    clause_type: str  # late_fee, notice_period, pet_policy, etc.
+    text: str  # The actual clause text
+    summary: str  # Plain English summary
     is_problematic: bool = False  # Potentially illegal/unfair
-    issue_description: Optional[str] = None
-    legal_reference: Optional[str] = None
+    issue_description: str | None = None
+    legal_reference: str | None = None
     confidence: float = 0.0
 
     def to_dict(self) -> dict:
@@ -165,14 +176,15 @@ class ExtractedClause:
 @dataclass
 class DetectedIssue:
     """An issue or concern detected in the document."""
+
     issue_id: str
     severity: IssueSeverity
     title: str
     description: str
-    affected_text: Optional[str] = None
-    legal_basis: Optional[str] = None
-    recommended_action: Optional[str] = None
-    deadline: Optional[datetime] = None
+    affected_text: str | None = None
+    legal_basis: str | None = None
+    recommended_action: str | None = None
+    deadline: datetime | None = None
     related_laws: list = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -186,30 +198,31 @@ class DetectedIssue:
 @dataclass
 class ExtractionResult:
     """Complete extraction result from a document."""
+
     doc_type: DocumentType
     doc_type_confidence: float
     language: LanguageCode
-    
+
     # Raw extraction
     full_text: str
     page_count: int
     word_count: int
-    
+
     # Structured extractions
     dates: list[ExtractedDate] = field(default_factory=list)
     parties: list[ExtractedParty] = field(default_factory=list)
     amounts: list[ExtractedAmount] = field(default_factory=list)
     clauses: list[ExtractedClause] = field(default_factory=list)
-    
+
     # Analysis
     issues: list[DetectedIssue] = field(default_factory=list)
     summary: str = ""
     key_points: list[str] = field(default_factory=list)
-    
+
     # Metadata
     extracted_at: datetime = field(default_factory=lambda: utc_now())
     extraction_method: str = ""  # ocr, text_parse, ai_extraction
-    raw_ai_response: Optional[dict] = None
+    raw_ai_response: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -234,34 +247,38 @@ class ExtractionResult:
 @dataclass
 class IntakeDocument:
     """A document in the intake pipeline."""
+
     id: str
     user_id: str
     filename: str
     file_hash: str
     file_size: int
     mime_type: str
-    
+
     # Processing state
     status: IntakeStatus
     status_message: str = ""
     progress_percent: int = 0
-    
+
     # Extraction results
-    extraction: Optional[ExtractionResult] = None
-    
+    extraction: ExtractionResult | None = None
+
     # Cross-references
     linked_timeline_events: list[str] = field(default_factory=list)
     linked_calendar_events: list[str] = field(default_factory=list)
     matched_laws: list[str] = field(default_factory=list)
-    
+
     # Timestamps
     uploaded_at: datetime = field(default_factory=lambda: utc_now())
-    processed_at: Optional[datetime] = None
-    
+    processed_at: datetime | None = None
+
     # Storage - documents are in vault
-    vault_id: Optional[str] = None  # Reference to document in vault
-    storage_path: Optional[str] = None
-    storage_provider: Optional[str] = None
+    vault_id: str | None = None  # Reference to document in vault
+    storage_path: str | None = None
+    storage_provider: str | None = None
+
+    # Queue priority
+    urgency: str = "normal"  # normal, high, urgent, low
 
     def to_dict(self) -> dict:
         return {
@@ -283,6 +300,7 @@ class IntakeDocument:
             "vault_id": self.vault_id,
             "storage_path": self.storage_path,
             "storage_provider": self.storage_provider,
+            "urgency": self.urgency,
         }
 
 
@@ -290,55 +308,96 @@ class IntakeDocument:
 # DOCUMENT CLASSIFIER
 # =============================================================================
 
+
 class DocumentClassifier:
     """Classify documents by type based on content analysis."""
 
     # Keywords and patterns for document classification
     CLASSIFICATION_PATTERNS = {
         DocumentType.EVICTION_NOTICE: {
-            "keywords": ["eviction", "evict", "unlawful detainer", "notice to quit", 
-                        "vacate", "terminate tenancy", "possession"],
+            "keywords": [
+                "eviction",
+                "evict",
+                "unlawful detainer",
+                "notice to quit",
+                "vacate",
+                "terminate tenancy",
+                "possession",
+            ],
             "weight": 10,
         },
         DocumentType.COURT_SUMMONS: {
-            "keywords": ["summons", "court date", "appear in court", "hearing",
-                        "district court", "housing court", "you are hereby summoned"],
+            "keywords": [
+                "summons",
+                "court date",
+                "appear in court",
+                "hearing",
+                "district court",
+                "housing court",
+                "you are hereby summoned",
+            ],
             "weight": 10,
         },
         DocumentType.LEASE: {
-            "keywords": ["lease agreement", "rental agreement", "tenancy agreement",
-                        "landlord and tenant", "term of lease", "security deposit",
-                        "monthly rent"],
+            "keywords": [
+                "lease agreement",
+                "rental agreement",
+                "tenancy agreement",
+                "landlord and tenant",
+                "term of lease",
+                "security deposit",
+                "monthly rent",
+            ],
             "weight": 8,
         },
         DocumentType.NOTICE_TO_QUIT: {
-            "keywords": ["notice to quit", "14 day notice", "30 day notice",
-                        "terminate your tenancy", "demand for possession"],
+            "keywords": [
+                "notice to quit",
+                "14 day notice",
+                "30 day notice",
+                "terminate your tenancy",
+                "demand for possession",
+            ],
             "weight": 9,
         },
         DocumentType.RENT_INCREASE_NOTICE: {
-            "keywords": ["rent increase", "new rent amount", "rent will increase",
-                        "effective date", "increased to"],
+            "keywords": ["rent increase", "new rent amount", "rent will increase", "effective date", "increased to"],
             "weight": 7,
         },
         DocumentType.REPAIR_REQUEST: {
-            "keywords": ["repair request", "maintenance request", "needs repair",
-                        "broken", "not working", "please fix"],
+            "keywords": [
+                "repair request",
+                "maintenance request",
+                "needs repair",
+                "broken",
+                "not working",
+                "please fix",
+            ],
             "weight": 6,
         },
         DocumentType.INSPECTION_REPORT: {
-            "keywords": ["inspection", "property condition", "move-in inspection",
-                        "move-out inspection", "condition report"],
+            "keywords": [
+                "inspection",
+                "property condition",
+                "move-in inspection",
+                "move-out inspection",
+                "condition report",
+            ],
             "weight": 6,
         },
         DocumentType.RECEIPT: {
-            "keywords": ["receipt", "payment received", "amount paid",
-                        "thank you for your payment"],
+            "keywords": ["receipt", "payment received", "amount paid", "thank you for your payment"],
             "weight": 5,
         },
         DocumentType.SECURITY_DEPOSIT_ITEMIZATION: {
-            "keywords": ["security deposit", "itemization", "deductions",
-                        "deposit return", "damage charges", "cleaning fee"],
+            "keywords": [
+                "security deposit",
+                "itemization",
+                "deductions",
+                "deposit return",
+                "damage charges",
+                "cleaning fee",
+            ],
             "weight": 7,
         },
     }
@@ -351,37 +410,37 @@ class DocumentClassifier:
         """
         text_lower = text.lower()
         filename_lower = filename.lower()
-        
+
         scores: dict[DocumentType, float] = {}
-        
+
         for doc_type, pattern in cls.CLASSIFICATION_PATTERNS.items():
             score = 0.0
             keyword_count = 0
-            
+
             for keyword in pattern["keywords"]:
                 if keyword in text_lower:
                     keyword_count += 1
                     score += pattern["weight"]
                 if keyword in filename_lower:
                     score += pattern["weight"] * 0.5
-            
+
             # Normalize by keyword count
             if keyword_count > 0:
                 score = score * (1 + keyword_count * 0.1)
-            
+
             scores[doc_type] = score
-        
+
         # Find best match
         if scores:
             best_type = max(scores, key=scores.get)
             best_score = scores[best_type]
-            
+
             # Normalize confidence to 0-1
             confidence = min(best_score / 50.0, 1.0)
-            
+
             if confidence > 0.2:
                 return best_type, confidence
-        
+
         # Fallback based on filename
         if "lease" in filename_lower:
             return DocumentType.LEASE, 0.5
@@ -391,7 +450,7 @@ class DocumentClassifier:
             return DocumentType.RECEIPT, 0.5
         if any(ext in filename_lower for ext in [".jpg", ".jpeg", ".png", ".gif"]):
             return DocumentType.PHOTO_EVIDENCE, 0.7
-        
+
         return DocumentType.OTHER, 0.1
 
 
@@ -399,42 +458,58 @@ class DocumentClassifier:
 # DATA EXTRACTOR
 # =============================================================================
 
+
 class DataExtractor:
     """Extract structured data from document text."""
 
     # Date patterns
     DATE_PATTERNS = [
         # MM/DD/YYYY or MM-DD-YYYY
-        (r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b', "%m/%d/%Y"),
+        (r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b", "%m/%d/%Y"),
         # Month DD, YYYY
-        (r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b', "Month DD, YYYY"),
+        (
+            r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b",
+            "Month DD, YYYY",
+        ),
         # DD Month YYYY
-        (r'\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b', "DD Month YYYY"),
+        (
+            r"\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b",
+            "DD Month YYYY",
+        ),
         # YYYY-MM-DD (ISO)
-        (r'\b(\d{4})-(\d{2})-(\d{2})\b', "%Y-%m-%d"),
+        (r"\b(\d{4})-(\d{2})-(\d{2})\b", "%Y-%m-%d"),
     ]
 
     # Money patterns
     MONEY_PATTERNS = [
-        r'\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)',  # $1,234.56
-        r'(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:dollars?|USD)',  # 1234.56 dollars
+        r"\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",  # $1,234.56
+        r"(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:dollars?|USD)",  # 1234.56 dollars
     ]
 
     # Phone patterns
     PHONE_PATTERNS = [
-        r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',  # (555) 123-4567
+        r"\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}",  # (555) 123-4567
     ]
 
     # Email patterns
-    EMAIL_PATTERN = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    EMAIL_PATTERN = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
 
     # Address patterns (simplified)
-    ADDRESS_PATTERN = r'\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd)\.?(?:\s*(?:Apt|Unit|Suite|#)\s*\w+)?'
+    ADDRESS_PATTERN = r"\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd)\.?(?:\s*(?:Apt|Unit|Suite|#)\s*\w+)?"
 
     MONTH_MAP = {
-        'january': 1, 'february': 2, 'march': 3, 'april': 4,
-        'may': 5, 'june': 6, 'july': 7, 'august': 8,
-        'september': 9, 'october': 10, 'november': 11, 'december': 12
+        "january": 1,
+        "february": 2,
+        "march": 3,
+        "april": 4,
+        "may": 5,
+        "june": 6,
+        "july": 7,
+        "august": 8,
+        "september": 9,
+        "october": 10,
+        "november": 11,
+        "december": 12,
     }
 
     @classmethod
@@ -442,57 +517,62 @@ class DataExtractor:
         """Extract all dates from text."""
         dates = []
         today = utc_now().date()
-        
+
         # Pattern 1: MM/DD/YYYY or MM-DD-YYYY
-        for match in re.finditer(r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b', text):
+        for match in re.finditer(r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b", text):
             try:
                 month, day, year = int(match.group(1)), int(match.group(2)), int(match.group(3))
-                dt = datetime(year, month, day, tzinfo=timezone.utc)
-                
+                dt = datetime(year, month, day, tzinfo=UTC)
+
                 # Determine label from context
-                context = text[max(0, match.start()-50):match.end()+50].lower()
+                context = text[max(0, match.start() - 50) : match.end() + 50].lower()
                 label = cls._determine_date_label(context)
                 is_deadline = cls._is_deadline(context)
-                
+
                 days_until = (dt.date() - today).days
-                
-                dates.append(ExtractedDate(
-                    date=dt,
-                    label=label,
-                    confidence=0.8,
-                    source_text=match.group(0),
-                    is_deadline=is_deadline,
-                    days_until=days_until,
-                ))
+
+                dates.append(
+                    ExtractedDate(
+                        date=dt,
+                        label=label,
+                        confidence=0.8,
+                        source_text=match.group(0),
+                        is_deadline=is_deadline,
+                        days_until=days_until,
+                    )
+                )
             except ValueError:
                 continue
-        
+
         # Pattern 2: Month DD, YYYY
         for match in re.finditer(
-            r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b',
-            text, re.IGNORECASE
+            r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b",
+            text,
+            re.IGNORECASE,
         ):
             try:
                 month = cls.MONTH_MAP[match.group(1).lower()]
                 day, year = int(match.group(2)), int(match.group(3))
-                dt = datetime(year, month, day, tzinfo=timezone.utc)
-                
-                context = text[max(0, match.start()-50):match.end()+50].lower()
+                dt = datetime(year, month, day, tzinfo=UTC)
+
+                context = text[max(0, match.start() - 50) : match.end() + 50].lower()
                 label = cls._determine_date_label(context)
                 is_deadline = cls._is_deadline(context)
                 days_until = (dt.date() - today).days
-                
-                dates.append(ExtractedDate(
-                    date=dt,
-                    label=label,
-                    confidence=0.9,
-                    source_text=match.group(0),
-                    is_deadline=is_deadline,
-                    days_until=days_until,
-                ))
+
+                dates.append(
+                    ExtractedDate(
+                        date=dt,
+                        label=label,
+                        confidence=0.9,
+                        source_text=match.group(0),
+                        is_deadline=is_deadline,
+                        days_until=days_until,
+                    )
+                )
             except (ValueError, KeyError):
                 continue
-        
+
         return dates
 
     @classmethod
@@ -508,50 +588,62 @@ class DataExtractor:
             "notice_date": ["dated", "notice date", "issued"],
             "service_date": ["served", "service date"],
         }
-        
+
         for label, keywords in labels.items():
             if any(kw in context for kw in keywords):
                 return label
-        
+
         return "date_mentioned"
 
     @classmethod
     def _is_deadline(cls, context: str) -> bool:
         """Determine if a date represents a deadline."""
-        deadline_words = ["must", "deadline", "by", "before", "no later than",
-                         "due", "hearing", "court", "appear", "vacate"]
+        deadline_words = [
+            "must",
+            "deadline",
+            "by",
+            "before",
+            "no later than",
+            "due",
+            "hearing",
+            "court",
+            "appear",
+            "vacate",
+        ]
         return any(word in context for word in deadline_words)
 
     @classmethod
     def extract_amounts(cls, text: str) -> list[ExtractedAmount]:
         """Extract monetary amounts from text."""
         amounts = []
-        
+
         for pattern in cls.MONEY_PATTERNS:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                amount_str = match.group(1).replace(',', '')
+                amount_str = match.group(1).replace(",", "")
                 try:
                     amount = float(amount_str)
-                    
+
                     # Get context to determine label
                     start = max(0, match.start() - 100)
                     end = min(len(text), match.end() + 50)
                     context = text[start:end].lower()
-                    
+
                     label = cls._determine_amount_label(context, amount)
                     period = cls._determine_period(context)
-                    
-                    amounts.append(ExtractedAmount(
-                        amount=amount,
-                        label=label,
-                        currency="USD",
-                        period=period,
-                        confidence=0.8,
-                        source_text=text[match.start():match.end()],
-                    ))
+
+                    amounts.append(
+                        ExtractedAmount(
+                            amount=amount,
+                            label=label,
+                            currency="USD",
+                            period=period,
+                            confidence=0.8,
+                            source_text=text[match.start() : match.end()],
+                        )
+                    )
                 except ValueError:
                     continue
-        
+
         return amounts
 
     @classmethod
@@ -568,21 +660,21 @@ class DataExtractor:
             "court_costs": ["court cost", "filing fee"],
             "attorney_fees": ["attorney fee", "legal fee"],
         }
-        
+
         for label, keywords in labels.items():
             if any(kw in context for kw in keywords):
                 return label
-        
+
         # Heuristic based on amount
         if 500 <= amount <= 3000:
             return "likely_rent"
         elif amount < 100:
             return "likely_fee"
-        
+
         return "amount_mentioned"
 
     @classmethod
-    def _determine_period(cls, context: str) -> Optional[str]:
+    def _determine_period(cls, context: str) -> str | None:
         """Determine payment period from context."""
         if "month" in context or "per month" in context:
             return "monthly"
@@ -598,7 +690,7 @@ class DataExtractor:
     def extract_parties(cls, text: str, doc_type: DocumentType) -> list[ExtractedParty]:
         """Extract parties (landlord, tenant, etc.) from text."""
         parties = []
-        
+
         # Look for labeled parties
         # Terminator: newline, comma, end-of-string, period, or ' and ' (for
         # 'Landlord John Smith and Tenant Jane Doe' format on a single line).
@@ -609,39 +701,45 @@ class DataExtractor:
             (r"(?:plaintiff)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "plaintiff"),
             (r"(?:defendant)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "defendant"),
         ]
-        
+
         for pattern, role in party_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
                 name = match.strip()
                 if len(name) > 2 and len(name) < 100:
-                    parties.append(ExtractedParty(
-                        name=name,
-                        role=role,
-                        confidence=0.7,
-                    ))
-        
+                    parties.append(
+                        ExtractedParty(
+                            name=name,
+                            role=role,
+                            confidence=0.7,
+                        )
+                    )
+
         # Extract emails
         emails = re.findall(cls.EMAIL_PATTERN, text)
         for email in emails:
             # Try to find associated name
-            parties.append(ExtractedParty(
-                name="",
-                role="contact",
-                email=email,
-                confidence=0.6,
-            ))
-        
+            parties.append(
+                ExtractedParty(
+                    name="",
+                    role="contact",
+                    email=email,
+                    confidence=0.6,
+                )
+            )
+
         # Extract phone numbers
         phones = re.findall(cls.PHONE_PATTERNS[0], text)
         for phone in phones:
-            parties.append(ExtractedParty(
-                name="",
-                role="contact",
-                phone=phone,
-                confidence=0.5,
-            ))
-        
+            parties.append(
+                ExtractedParty(
+                    name="",
+                    role="contact",
+                    phone=phone,
+                    confidence=0.5,
+                )
+            )
+
         return parties
 
     @classmethod
@@ -655,6 +753,7 @@ class DataExtractor:
 # ISSUE DETECTOR
 # =============================================================================
 
+
 class IssueDetector:
     """Detect potential issues and concerns in documents."""
 
@@ -665,7 +764,9 @@ class IssueDetector:
                 r"(\d+)\s*day\s*notice",
                 r"notice\s*(?:of|to)\s*(\d+)\s*days?",
             ],
-            "check": lambda match, text: int(match.group(1)) < 14 if "non-payment" in text.lower() or "rent" in text.lower() else int(match.group(1)) < 30,
+            "check": lambda match, text: int(match.group(1)) < 14
+            if "non-payment" in text.lower() or "rent" in text.lower()
+            else int(match.group(1)) < 30,
             "title": "Potentially Insufficient Notice Period",
             "description": "The notice period may be shorter than required by Minnesota law. Non-payment requires 14 days; other lease violations may require different periods.",
             "severity": IssueSeverity.HIGH,
@@ -738,7 +839,7 @@ class IssueDetector:
             "patterns": [
                 r"deposit[:\s]*\$?\s*(\d{1,3}(?:,\d{3})*)",
             ],
-            "check": lambda match, text: float(match.group(1).replace(',', '')) > 5000,  # Unusually high
+            "check": lambda match, text: float(match.group(1).replace(",", "")) > 5000,  # Unusually high
             "title": "Security Deposit Amount to Review",
             "description": "Verify security deposit amount is reasonable. While Minnesota has no statutory cap, excessive deposits may indicate other issues.",
             "severity": IssueSeverity.LOW,
@@ -746,7 +847,9 @@ class IssueDetector:
         },
         "deadline_imminent": {
             "patterns": [],  # Checked via date extraction
-            "check": lambda dates: any(d.is_deadline and d.days_until is not None and 0 <= d.days_until <= 7 for d in dates),
+            "check": lambda dates: any(
+                d.is_deadline and d.days_until is not None and 0 <= d.days_until <= 7 for d in dates
+            ),
             "title": "Deadline Within 7 Days",
             "description": "There is a deadline approaching within the next 7 days. Immediate action may be required.",
             "severity": IssueSeverity.CRITICAL,
@@ -770,58 +873,67 @@ class IssueDetector:
     ) -> list[DetectedIssue]:
         """Detect all issues in a document."""
         issues = []
-        
+
         for issue_key, issue_def in cls.ISSUE_PATTERNS.items():
             # Skip date-based checks here (handled separately)
             if issue_key in ["deadline_imminent", "deadline_missed"]:
                 continue
-            
+
             for pattern in issue_def["patterns"]:
                 for match in re.finditer(pattern, text, re.IGNORECASE):
                     if issue_def["check"](match, text):
-                        issues.append(DetectedIssue(
-                            issue_id=make_id("iss"),
-                            severity=issue_def["severity"],
-                            title=issue_def["title"],
-                            description=issue_def["description"],
-                            affected_text=text[max(0, match.start()-20):match.end()+20],
-                            legal_basis=issue_def.get("legal_basis"),
-                            related_laws=[issue_def.get("legal_basis")] if issue_def.get("legal_basis") else [],
-                        ))
+                        issues.append(
+                            DetectedIssue(
+                                issue_id=make_id("iss"),
+                                severity=issue_def["severity"],
+                                title=issue_def["title"],
+                                description=issue_def["description"],
+                                affected_text=text[max(0, match.start() - 20) : match.end() + 20],
+                                legal_basis=issue_def.get("legal_basis"),
+                                related_laws=[issue_def.get("legal_basis")] if issue_def.get("legal_basis") else [],
+                            )
+                        )
                         break  # One issue per pattern type
-        
+
         # Check date-based issues
         if dates:
             if cls.ISSUE_PATTERNS["deadline_imminent"]["check"](dates):
-                imminent_dates = [d for d in dates if d.is_deadline and d.days_until is not None and 0 <= d.days_until <= 7]
+                imminent_dates = [
+                    d for d in dates if d.is_deadline and d.days_until is not None and 0 <= d.days_until <= 7
+                ]
                 for d in imminent_dates:
-                    issues.append(DetectedIssue(
-                        issue_id=make_id("iss"),
-                        severity=IssueSeverity.CRITICAL,
-                        title=f"Deadline in {d.days_until} days: {d.label}",
-                        description=f"The {d.label} deadline on {d.date.strftime('%B %d, %Y')} is approaching. Take action immediately.",
-                        deadline=d.date,
-                        recommended_action="Review requirements and take necessary action before deadline.",
-                    ))
-            
+                    issues.append(
+                        DetectedIssue(
+                            issue_id=make_id("iss"),
+                            severity=IssueSeverity.CRITICAL,
+                            title=f"Deadline in {d.days_until} days: {d.label}",
+                            description=f"The {d.label} deadline on {d.date.strftime('%B %d, %Y')} is approaching. Take action immediately.",
+                            deadline=d.date,
+                            recommended_action="Review requirements and take necessary action before deadline.",
+                        )
+                    )
+
             if cls.ISSUE_PATTERNS["deadline_missed"]["check"](dates):
                 missed_dates = [d for d in dates if d.is_deadline and d.days_until is not None and d.days_until < 0]
                 for d in missed_dates:
-                    issues.append(DetectedIssue(
-                        issue_id=make_id("iss"),
-                        severity=IssueSeverity.HIGH,
-                        title=f"Deadline may have passed: {d.label}",
-                        description=f"The {d.label} deadline of {d.date.strftime('%B %d, %Y')} appears to have passed ({abs(d.days_until)} days ago). Check if this affects your case.",
-                        deadline=d.date,
-                        recommended_action="Consult with legal aid to understand your options.",
-                    ))
-        
+                    issues.append(
+                        DetectedIssue(
+                            issue_id=make_id("iss"),
+                            severity=IssueSeverity.HIGH,
+                            title=f"Deadline may have passed: {d.label}",
+                            description=f"The {d.label} deadline of {d.date.strftime('%B %d, %Y')} appears to have passed ({abs(d.days_until)} days ago). Check if this affects your case.",
+                            deadline=d.date,
+                            recommended_action="Consult with legal aid to understand your options.",
+                        )
+                    )
+
         return issues
 
 
 # =============================================================================
 # DOCUMENT ANALYZER
 # =============================================================================
+
 
 class DocumentAnalyzer:
     """High-level document analysis combining all extractors."""
@@ -839,14 +951,14 @@ class DocumentAnalyzer:
             DocumentType.RECEIPT: "This is a payment receipt.",
             DocumentType.SECURITY_DEPOSIT_ITEMIZATION: "This is a security deposit itemization showing deductions.",
         }
-        
+
         base_summary = summaries.get(doc_type, "This document has been analyzed.")
-        
+
         if issues:
             critical = [i for i in issues if i.severity == IssueSeverity.CRITICAL]
             if critical:
                 base_summary += f" ⚠️ {len(critical)} CRITICAL issue(s) detected requiring immediate attention."
-        
+
         return base_summary
 
     @classmethod
@@ -859,16 +971,20 @@ class DocumentAnalyzer:
     ) -> list[str]:
         """Generate key points from extracted data."""
         points = []
-        
+
         # Deadline points
         deadlines = [d for d in dates if d.is_deadline]
         for d in deadlines:
             if d.days_until is not None:
                 if d.days_until >= 0:
-                    points.append(f"📅 {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({d.days_until} days away)")
+                    points.append(
+                        f"📅 {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({d.days_until} days away)"
+                    )
                 else:
-                    points.append(f"⚠️ {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({abs(d.days_until)} days ago)")
-        
+                    points.append(
+                        f"⚠️ {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({abs(d.days_until)} days ago)"
+                    )
+
         # Amount points
         for a in amounts:
             if a.label in ["rent", "likely_rent"]:
@@ -877,12 +993,12 @@ class DocumentAnalyzer:
                 points.append(f"💰 Security deposit: ${a.amount:,.2f}")
             elif a.label in ["late_fee", "damages"]:
                 points.append(f"⚠️ {a.label.replace('_', ' ').title()}: ${a.amount:,.2f}")
-        
+
         # Issue points
         for issue in issues:
             if issue.severity in [IssueSeverity.CRITICAL, IssueSeverity.HIGH]:
                 points.append(f"🚨 {issue.title}")
-        
+
         return points[:10]  # Limit to top 10 points
 
 
@@ -890,10 +1006,11 @@ class DocumentAnalyzer:
 # INTAKE ENGINE (MAIN CLASS)
 # =============================================================================
 
+
 class DocumentIntakeEngine:
     """
     Main engine for document intake, extraction, and analysis.
-    
+
     Usage:
         engine = DocumentIntakeEngine()
         doc = await engine.intake_document(user_id, file_bytes, filename, mime_type)
@@ -903,7 +1020,7 @@ class DocumentIntakeEngine:
     def __init__(self, storage_dir: str = "data/intake"):
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self._documents: dict[str, IntakeDocument] = {}
         self._load_documents()
 
@@ -940,34 +1057,36 @@ class DocumentIntakeEngine:
         file_content: bytes,
         filename: str,
         mime_type: str,
-        vault_id: Optional[str] = None,
+        vault_id: str | None = None,
+        urgency: str | None = None,
     ) -> IntakeDocument:
         """
         Intake a new document.
-        
+
         Documents should already be in the vault - this creates a processing record.
-        
+
         Args:
             user_id: The user uploading the document
             file_content: Raw file bytes
             filename: Original filename
             mime_type: MIME type of the file
             vault_id: Reference to document in vault (if already stored there)
-        
+            urgency: Queue priority hint (low, normal, high, urgent)
+
         Returns:
             IntakeDocument with status RECEIVED
         """
         # Generate hash
         file_hash = hashlib.sha256(file_content).hexdigest()
-        
+
         # Check for duplicate
         for existing in self._documents.values():
             if existing.user_id == user_id and existing.file_hash == file_hash:
                 return existing
-        
+
         # Create document record
         doc_id = make_id("doc")
-        
+
         doc = IntakeDocument(
             id=doc_id,
             user_id=user_id,
@@ -979,8 +1098,9 @@ class DocumentIntakeEngine:
             status_message="Document received, awaiting processing",
             progress_percent=10,
             vault_id=vault_id,  # Link to vault
+            urgency=urgency or "normal",
         )
-        
+
         # Store raw file locally for processing (even if in vault)
         # This is a working copy - vault is the source of truth
         user_dir = self.storage_dir / user_id
@@ -988,75 +1108,74 @@ class DocumentIntakeEngine:
         file_path = user_dir / f"{doc_id}_{filename}"
         file_path.write_bytes(file_content)
         doc.storage_path = str(file_path)
-        
+
         self._documents[doc_id] = doc
         self._save_documents()
-        
-        return doc
 
+        return doc
 
     async def process_document(self, doc_id: str) -> IntakeDocument:
         """
         Process a document through the full pipeline.
-        
+
         Args:
             doc_id: Document ID to process
-        
+
         Returns:
             Updated IntakeDocument with extraction results
         """
         doc = self._documents.get(doc_id)
         if not doc:
             raise ValueError(f"Document {doc_id} not found")
-        
+
         try:
             # Stage 1: Validation
             doc.status = IntakeStatus.VALIDATING
             doc.status_message = "Validating document..."
             doc.progress_percent = 20
-            
+
             # Read file content
             if not doc.storage_path or not Path(doc.storage_path).exists():
                 raise ValueError("Document file not found")
-            
+
             file_content = Path(doc.storage_path).read_bytes()
-            
+
             # Stage 2: Extraction
             doc.status = IntakeStatus.EXTRACTING
             doc.status_message = "Extracting text..."
             doc.progress_percent = 40
-            
+
             # Extract text (simplified - real implementation would use OCR)
             text = await self._extract_text(file_content, doc.mime_type, doc.filename)
-            
+
             # Stage 3: Analysis
             doc.status = IntakeStatus.ANALYZING
             doc.status_message = "Analyzing content..."
             doc.progress_percent = 60
-            
+
             # Classify document
             doc_type, type_confidence = DocumentClassifier.classify(text, doc.filename)
-            
+
             # Detect language (simplified)
             language = self._detect_language(text)
-            
+
             # Extract structured data
             dates = DataExtractor.extract_dates(text)
             amounts = DataExtractor.extract_amounts(text)
             parties = DataExtractor.extract_parties(text, doc_type)
-            
+
             # Detect issues
             issues = IssueDetector.detect_issues(text, doc_type, dates, amounts)
-            
+
             # Generate summary and key points
             summary = DocumentAnalyzer.generate_summary(text, doc_type, issues)
             key_points = DocumentAnalyzer.generate_key_points(doc_type, dates, amounts, issues)
-            
+
             # Stage 4: Enrichment
             doc.status = IntakeStatus.ENRICHING
             doc.status_message = "Enriching with context..."
             doc.progress_percent = 80
-            
+
             # Build extraction result
             extraction = ExtractionResult(
                 doc_type=doc_type,
@@ -1074,24 +1193,24 @@ class DocumentIntakeEngine:
                 key_points=key_points,
                 extraction_method="text_parse",
             )
-            
+
             doc.extraction = extraction
-            
+
             # Complete
             doc.status = IntakeStatus.COMPLETE
             doc.status_message = "Processing complete"
             doc.progress_percent = 100
             doc.processed_at = utc_now()
-            
+
             self._save_documents()
-            
+
         except Exception as e:
             doc.status = IntakeStatus.FAILED
             doc.status_message = f"Processing failed: {str(e)}"
             doc.progress_percent = 0
             self._save_documents()
             raise
-        
+
         return doc
 
     async def _extract_text(self, content: bytes, mime_type: str, filename: str) -> str:
@@ -1106,32 +1225,32 @@ class DocumentIntakeEngine:
         # For PDFs - use the PDF extractor service
         if mime_type == "application/pdf" or filename.lower().endswith(".pdf"):
             try:
-                from app.services.pdf_extractor import get_pdf_extractor
                 from app.core.config import get_settings
-                
+                from app.services.pdf_extractor import get_pdf_extractor
+
                 extractor = get_pdf_extractor()
                 settings = get_settings()
-                
+
                 # Try extraction with OCR fallback if Azure is configured
                 if settings.azure_ai_key1:
                     result = extractor.extract_with_ocr(
-                        content,
-                        azure_endpoint=settings.azure_ai_endpoint,
-                        azure_key=settings.azure_ai_key1
+                        content, azure_endpoint=settings.azure_ai_endpoint, azure_key=settings.azure_ai_key1
                     )
                 else:
                     result = extractor.extract(content)
-                
+
                 if result.text.strip():
                     return result.text
                 else:
                     return f"[PDF: {filename} - {result.page_count} pages, extraction method: {result.method_used}]"
-                    
+
             except Exception as e:
                 # Fallback to basic extraction
                 try:
-                    import PyPDF2
                     import io
+
+                    import PyPDF2
+
                     reader = PyPDF2.PdfReader(io.BytesIO(content))
                     texts = [page.extract_text() or "" for page in reader.pages]
                     return "\n\n".join(texts)
@@ -1143,17 +1262,19 @@ class DocumentIntakeEngine:
         if mime_type.startswith("image/"):
             try:
                 from app.core.config import get_settings
+
                 settings = get_settings()
-                
+
                 if settings.azure_ai_key1:
                     # Use Azure Document Intelligence for image OCR
                     from app.services.azure_ai import get_azure_ai
+
                     azure = get_azure_ai()
                     result = await azure._extract_with_doc_intelligence(content, mime_type)
                     text = azure._get_text_from_result(result)
                     if text.strip():
                         return text
-            except Exception as e:
+            except Exception:
                 pass
             return f"[Image: {filename} - OCR not available or failed]"
 
@@ -1166,28 +1287,28 @@ class DocumentIntakeEngine:
     def _detect_language(self, text: str) -> LanguageCode:
         """Simple language detection based on common words."""
         text_lower = text.lower()
-        
+
         # Spanish indicators
         spanish_words = ["el", "la", "de", "que", "en", "los", "del", "por", "con", "para"]
         spanish_count = sum(1 for w in spanish_words if f" {w} " in f" {text_lower} ")
-        
+
         # Somali indicators
         somali_words = ["waa", "oo", "iyo", "ka", "ku", "ayaa", "ah", "uu", "la"]
         somali_count = sum(1 for w in somali_words if f" {w} " in f" {text_lower} ")
-        
+
         # Arabic check (presence of Arabic characters)
-        arabic_chars = sum(1 for c in text if '\u0600' <= c <= '\u06FF')
-        
+        arabic_chars = sum(1 for c in text if "\u0600" <= c <= "\u06ff")
+
         if arabic_chars > len(text) * 0.1:
             return LanguageCode.ARABIC
         if somali_count > 5:
             return LanguageCode.SOMALI
         if spanish_count > 5:
             return LanguageCode.SPANISH
-        
+
         return LanguageCode.ENGLISH
 
-    def get_document(self, doc_id: str) -> Optional[IntakeDocument]:
+    def get_document(self, doc_id: str) -> IntakeDocument | None:
         """Get a document by ID."""
         return self._documents.get(doc_id)
 
@@ -1200,7 +1321,7 @@ class DocumentIntakeEngine:
         doc = self._documents.get(doc_id)
         if not doc:
             return {"error": "Document not found"}
-        
+
         return {
             "id": doc.id,
             "status": doc.status.value,
@@ -1213,7 +1334,7 @@ class DocumentIntakeEngine:
 # SINGLETON INSTANCE
 # =============================================================================
 
-_intake_engine: Optional[DocumentIntakeEngine] = None
+_intake_engine: DocumentIntakeEngine | None = None
 
 
 def get_intake_engine() -> DocumentIntakeEngine:
