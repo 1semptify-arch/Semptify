@@ -670,10 +670,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/services/document_intake.py",
-    "status": "pending",
-    "notes": "Preflight: Ticket 2 queue plumbing and the tenancy domain schema/date-role categories. Scope: given raw OCR text, output structured `{raw_text, semantic_label, trigger_phrase, confidence, bounding_box}` objects; rule-based/regex for common patterns, single LLM call only for ambiguous cases. Do not touch: Pass 1 OCR or the queue plumbing. Acceptance: a test document produces correctly labeled, confidence-scored date objects with trigger phrases.",
+    "status": "in_progress",
+    "notes": "Preflight: Ticket 2 queue plumbing and the tenancy domain schema/date-role categories. Scope: given raw OCR text, output structured `{raw_text, semantic_label, trigger_phrase, confidence, bounding_box}` objects; rule-based/regex for common patterns, single LLM call only for ambiguous cases. Do not touch: Pass 1 OCR or the queue plumbing. Acceptance: a test document produces correctly labeled, confidence-scored date objects with trigger phrases.\n[2026-07-20 03:58 UTC - devin] Starting Semantic Context Engine (Pass 2) implementation.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T03:58:34.691450+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-037",
