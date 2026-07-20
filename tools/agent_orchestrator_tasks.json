@@ -77,10 +77,11 @@
     "target_model": "glm-5.2",
     "priority": "medium",
     "file_path": "docs/planning/DOCUMENT_CENTER_PLAN.md",
-    "status": "pending",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3",
+    "status": "resolved",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T04:47:41.567272+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-007",
