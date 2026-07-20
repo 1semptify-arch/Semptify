@@ -1,3 +1,48 @@
+## Session — 2026-07-20 — todo-006 Document Center planning reconciliation
+
+### Guardrail Engine Run — 2026-07-20T07:00:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-006` resolved: reconciled `docs/planning/DOCUMENT_CENTER_PLAN.md` and `docs/planning/DC_DESIGN_SONNET.md` with the implemented Document Center.
+- Closed the open pre-build checklist in `DC_DESIGN_SONNET.md` with verified findings (`app/core/navigation.py`, `app/sdk/vault/client.py`, `app/templates/pages/documents.html`, `app/core/utc.py`).
+- Updated `DC_DESIGN_SONNET.md` open questions (Q6, Q7) to reflect actual implementation: DC page served at `GET /documents` in `app/main.py`, links currently hardcoded as `/tenant/documents` pending SSOT refactor.
+- Resolved the four open questions in `DOCUMENT_CENTER_PLAN.md` (document types, viewer rendering, process timing, doc-type suggestion vs declaration).
+- Fixed stale `dc_overlays` `FunctionGroupContract` in `app/modules/document_center/register.py` and two stale assertions in `app/modules/document_center/tests/test_dc_smoke.py` left over from the todo-038 honest-status change.
+
+### Verification
+
+- Python 3.11.9 ✅
+- Compile `app/modules/document_center/register.py` and `app/modules/document_center/tests/test_dc_smoke.py` → exit 0 ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- `python -m pytest app/modules/document_center/tests/test_dc_smoke.py -v` → 22 passed (coverage threshold warning only, not a test failure) ✅
+
+### Known Working
+
+- Deep OCR queue with urgency priority ✅
+- Semantic Context Engine (Pass 2) ✅
+- Pass 2 results written to `DOCUMENT_EXTRACTION` overlay ✅
+- Document Center right panel shows honest `deep_ocr_status` messages ✅
+- On-demand Deep OCR reprocess endpoint ✅
+- Standard vault upload certificates include RFC 3161 TSA timestamps ✅
+- Document Center planning docs reconciled with implementation ✅
+
+### Known Broken / Pending
+
+- SDC `todo-041` → `todo-044` remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue with `todo-041` per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — SDC todo-040 Wire RFC 3161 TSA into standard vault certificate
 
 ### Guardrail Engine Run — 2026-07-20T06:00:00
