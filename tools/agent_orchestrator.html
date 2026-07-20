@@ -826,10 +826,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/modules/document_center/router.py",
-    "status": "in_progress",
-    "notes": "Preflight: app/modules/document_center/router.py right-panel logic. Scope: display pending/processing/complete/failed/needs_reprocess distinctly so the user can tell 'still processing' from 'something went wrong'. Acceptance: opening a document mid-processing shows a clear, non-alarming status message.",
+    "status": "resolved",
+    "notes": "Preflight: app/modules/document_center/router.py right-panel logic. Scope: display pending/processing/complete/failed/needs_reprocess distinctly so the user can tell 'still processing' from 'something went wrong'. Acceptance: opening a document mid-processing shows a clear, non-alarming status message.\n[2026-07-20 04:23 UTC - devin] Document Center GET /api/dc/document/{vault_id}/overlays now returns honest Deep OCR status messages (pending/processing/complete/failed/needs_reprocess) from DocumentPipelineIndex instead of generic processing_incomplete.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:17:41.894627+00:00",
+    "updated_at": "2026-07-20T04:23:43.925431+00:00",
     "assigned_agent": "devin"
   },
   {

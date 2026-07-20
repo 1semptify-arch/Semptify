@@ -90,16 +90,13 @@ async def _fetch_real_overlays(doc, user_id: str) -> list:
         return []
 
 
-async def _get_pipeline_status(user_id: str, vault_id: str) -> dict:
-    """Look up the Deep OCR pipeline status for a vault document.
+async def _get_pipeline_row(user_id: str, vault_id: str):
+    """Return the `DocumentPipelineIndex` row for a vault document, or None.
 
-    Scans the user's `DocumentPipelineIndex` rows (one per document) and matches
-    the `vault_id` stored in `payload_json`. Returns the `deep_ocr_status` and
-    any recorded error. This is a status-flag lookup only — no extracted content
-    is read from the database.
+    Scans the user's `DocumentPipelineIndex` rows and matches the `vault_id`
+    stored in `payload_json`. This is a status-flag lookup only — no extracted
+    content is read from the database.
     """
-    status = "pending"
-    error: str | None = None
     try:
         from sqlalchemy import select
 
@@ -117,13 +114,24 @@ async def _get_pipeline_status(user_id: str, vault_id: str) -> dict:
                 except Exception:
                     continue
                 if payload.get("vault_id") == vault_id:
-                    status = row.deep_ocr_status
-                    error = payload.get("pass2_error")
-                    break
+                    return row
     except Exception as e:
-        logger.debug("Pipeline status lookup failed for vault_id=%s: %s", vault_id, e)
+        logger.debug("Pipeline row lookup failed for vault_id=%s: %s", vault_id, e)
 
-    return {"status": status, "error": error}
+    return None
+
+
+async def _get_pipeline_status(user_id: str, vault_id: str) -> dict:
+    """Return the Deep OCR pipeline status and any recorded error for a vault doc."""
+    row = await _get_pipeline_row(user_id, vault_id)
+    if row is None:
+        return {"status": "pending", "error": None}
+
+    try:
+        payload = json.loads(row.payload_json or "{}")
+    except Exception:
+        payload = {}
+    return {"status": row.deep_ocr_status, "error": payload.get("pass2_error")}
 
 
 def _status_message(status: str, error: str | None = None) -> str:
@@ -526,6 +534,95 @@ async def dc_get_overlays(vault_id: str, request: Request) -> JSONResponse:
     except Exception as e:
         logger.error("DC overlays error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
         return JSONResponse(status_code=500, content={"error": "overlays_failed", "detail": str(e)})
+
+
+@router.post("/document/{vault_id}/reprocess")
+async def dc_reprocess_deep_ocr(vault_id: str, request: Request) -> JSONResponse:
+    """Re-queue a document for Deep OCR Pass 2 without touching Vault or Light Intake.
+
+    Resets `deep_ocr_status` to `pending` and submits a new `deep_ocr` job. The
+    vault record and Pass 1 extraction are left unchanged. Allowed from
+    `complete`, `failed`, or `needs_reprocess`; blocked when already `pending`
+    or `processing`.
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+
+        doc = await vault_service.get_document(vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+        if doc.user_id != user_id:
+            return JSONResponse(status_code=403, content={"error": "access_denied"})
+
+        row = await _get_pipeline_row(user_id, vault_id)
+        if row is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": "pipeline_record_not_found",
+                    "message": "This document has not been queued for Deep OCR.",
+                },
+            )
+
+        from app.models.models import DeepOCRStatus
+
+        if row.deep_ocr_status in (
+            DeepOCRStatus.PENDING.value,
+            DeepOCRStatus.PROCESSING.value,
+        ):
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "status": row.deep_ocr_status,
+                    "message": f"Deep OCR is already {row.deep_ocr_status}.",
+                },
+            )
+
+        from app.core.database import get_db_session
+
+        async with get_db_session() as db:
+            row = await db.merge(row)
+            row.deep_ocr_status = DeepOCRStatus.PENDING.value
+            try:
+                payload = json.loads(row.payload_json or "{}")
+            except Exception:
+                payload = {}
+            payload["reprocess_requested_at"] = utc_now().isoformat()
+            payload.pop("overlay_id", None)
+            payload.pop("pass2_results", None)
+            payload.pop("pass2_error", None)
+            row.payload_json = json.dumps(payload)
+            row.updated_at = utc_now()
+            await db.commit()
+
+        from app.core.job_processor import JobPriority, submit_deep_ocr_job
+
+        job_id = submit_deep_ocr_job(
+            doc_id=row.doc_id,
+            user_id=user_id,
+            vault_id=vault_id,
+            priority=JobPriority.HIGH,
+        )
+
+        return JSONResponse(
+            {
+                "status": "queued",
+                "deep_ocr_status": DeepOCRStatus.PENDING.value,
+                "job_id": job_id,
+                "vault_id": vault_id,
+                "requested_at": utc_now().isoformat(),
+            }
+        )
+
+    except Exception as e:
+        logger.error("DC reprocess error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "reprocess_failed", "detail": str(e)})
 
 
 @router.get("/document/{vault_id}/view")

@@ -1,3 +1,48 @@
+## Session — 2026-07-20 — SDC todo-039 On-demand Deep OCR reprocess endpoint
+
+### Guardrail Engine Run — 2026-07-20T05:30:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-039` resolved: added `POST /api/dc/document/{vault_id}/reprocess` to `app/modules/document_center/router.py`.
+- Endpoint authenticates, verifies vault document ownership, finds the matching `DocumentPipelineIndex` row by `vault_id` in `payload_json`, and resets `deep_ocr_status` to `pending`.
+- It strips prior `overlay_id`, `pass2_results`, and `pass2_error` from the pipeline payload and records `reprocess_requested_at`.
+- It then re-queues a `deep_ocr` job at `HIGH` priority via `submit_deep_ocr_job()` without touching the Vault record or Light Intake.
+- Reprocess is blocked with `409` when status is already `pending` or `processing`.
+
+### Verification
+
+- Python 3.11.9 ✅
+- Compile `app/modules/document_center/router.py` → exit 0 ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- Manual integration test with SQLite `DocumentPipelineIndex` and mocked `vault_service`/`submit_deep_ocr_job`:
+  - Failed document reprocess returned `200` with `status: "queued"`, `deep_ocr_status: "pending"`, and a `job_id` ✅
+  - DB row updated to `pending` and `reprocess_requested_at` added ✅
+
+### Known Working
+
+- Deep OCR queue with urgency priority ✅
+- Semantic Context Engine (Pass 2) ✅
+- Pass 2 results written to `DOCUMENT_EXTRACTION` overlay ✅
+- Document Center right panel shows honest `deep_ocr_status` messages ✅
+- On-demand Deep OCR reprocess endpoint ✅
+
+### Known Broken / Pending
+
+- SDC `todo-040` → `todo-044` remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue with `todo-040` per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — SDC todo-038 Document Center right panel: honest Deep OCR status
 
 ### Guardrail Engine Run — 2026-07-20T05:00:00
