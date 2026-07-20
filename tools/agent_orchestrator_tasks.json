@@ -549,10 +549,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/document_center/router.py",
-    "status": "pending",
-    "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.",
+    "status": "resolved",
+    "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.\n[2026-07-20 04:34 UTC - devin] Added POST /api/dc/document/{vault_id}/reprocess endpoint. It resets DocumentPipelineIndex.deep_ocr_status to pending and re-queues a deep_ocr job without touching Vault or Light Intake.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T04:34:03.271857+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-040",
