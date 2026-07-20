@@ -21,6 +21,16 @@ import traceback
 
 logger = logging.getLogger(__name__)
 
+try:
+    from sqlalchemy import select
+    from app.core.database import get_db_session
+    from app.models.models import DocumentPipelineIndex, DeepOCRStatus
+    HAS_DB_INDEX = True
+except Exception:
+    HAS_DB_INDEX = False
+    DocumentPipelineIndex = None  # type: ignore
+    DeepOCRStatus = None  # type: ignore
+
 class JobStatus(Enum):
     """Job status types."""
     PENDING = "pending"
@@ -540,10 +550,69 @@ def register_default_handlers(processor: JobProcessor):
             "indexed_at": utc_now().isoformat()
         }
     
+    async def deep_ocr_handler(payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle Deep OCR pass-2 job.
+
+        Picks up documents in `pending` status and flips `deep_ocr_status` to
+        `processing`. Pass 2 logic is a stub for ticket todo-034; todo-036 will
+        replace the no-op with the Semantic Context Engine.
+        """
+        doc_id = payload.get("doc_id")
+        user_id = payload.get("user_id")
+        vault_id = payload.get("vault_id")
+
+        if not doc_id or not user_id:
+            raise ValueError("deep_ocr payload must include doc_id and user_id")
+
+        if not HAS_DB_INDEX:
+            return {"status": "skipped", "reason": "db_index_unavailable"}
+
+        # Upsert pipeline index row and mark as processing.
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DocumentPipelineIndex).where(DocumentPipelineIndex.doc_id == doc_id)  # type: ignore[arg-type]
+            )
+            row = result.scalar_one_or_none()
+            if row is None:
+                row = DocumentPipelineIndex(
+                    doc_id=doc_id,
+                    user_id=user_id,
+                    payload_json=json.dumps({"vault_id": vault_id, "queued_at": utc_now().isoformat()}),
+                    deep_ocr_status=DeepOCRStatus.PENDING.value,  # type: ignore[union-attr]
+                )
+                db.add(row)
+                await db.commit()
+            row.deep_ocr_status = DeepOCRStatus.PROCESSING.value  # type: ignore[union-attr]
+            row.updated_at = utc_now()
+            await db.commit()
+
+        logger.info(f"Deep OCR processing started for doc {doc_id}")
+
+        # TODO(todo-036): replace with Semantic Context Engine pass-2 logic.
+        await asyncio.sleep(0.1)
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DocumentPipelineIndex).where(DocumentPipelineIndex.doc_id == doc_id)  # type: ignore[arg-type]
+            )
+            row = result.scalar_one_or_none()
+            if row is not None:
+                row.deep_ocr_status = DeepOCRStatus.COMPLETE.value  # type: ignore[union-attr]
+                row.updated_at = utc_now()
+                await db.commit()
+
+        return {
+            "doc_id": doc_id,
+            "vault_id": vault_id,
+            "status": DeepOCRStatus.COMPLETE.value,  # type: ignore[union-attr]
+            "pass2": "stub",
+        }
+
     # Register handlers
     processor.register_handler("document_analysis", document_analysis_handler)
     processor.register_handler("thumbnail_generation", thumbnail_generation_handler)
     processor.register_handler("document_indexing", document_indexing_handler)
+    processor.register_handler("deep_ocr", deep_ocr_handler)
 
 # Helper functions
 def submit_document_analysis_job(document_id: str, analysis_type: str = "basic", 
@@ -560,6 +629,21 @@ def submit_document_analysis_job(document_id: str, analysis_type: str = "basic",
         priority=JobPriority.NORMAL,
         user_id=user_id
     )
+
+def submit_deep_ocr_job(doc_id: str, user_id: str, vault_id: Optional[str] = None,
+                        priority: JobPriority = JobPriority.NORMAL,
+                        payload: Optional[Dict[str, Any]] = None) -> str:
+    """Submit a Deep OCR pass-2 job for the given intake document."""
+    processor = get_job_processor()
+    payload = payload or {}
+    payload.update({"doc_id": doc_id, "user_id": user_id, "vault_id": vault_id})
+    return processor.submit_job(
+        job_type="deep_ocr",
+        payload=payload,
+        priority=priority,
+        user_id=user_id,
+    )
+
 
 def submit_thumbnail_generation_job(document_id: str, page_numbers: List[int] = None,
                                    user_id: str = None) -> str:
