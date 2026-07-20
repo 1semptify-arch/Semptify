@@ -12,12 +12,13 @@ POST /api/dc/document/{vault_id}/type    — set/correct document type from view
 
 Overlay Integration (2026-06-29):
   The DC right panel reads REAL overlays from UnifiedOverlayManager.get_overlays()
-  in the user's cloud storage. No DB fallback. If no real overlays exist, the
-  endpoint returns status='processing_incomplete' and the frontend shows a
-  'try again' message. This enforces the mandate: no user data is served from
-  our PostgreSQL — only from the user's cloud.
+  in the user's cloud storage. No extracted content is read from PostgreSQL.
+  Pipeline status flags (pending/processing/complete/failed/needs_reprocess) are
+  read from the `DocumentPipelineIndex` so the frontend can show honest, calm
+  messages instead of a silent "processing_incomplete" dead end.
 """
 
+import json
 import logging
 
 from fastapi import APIRouter, Request
@@ -89,22 +90,90 @@ async def _fetch_real_overlays(doc, user_id: str) -> list:
         return []
 
 
-def _build_overlay_progress(doc, real_overlays: list | None = None) -> dict:
+async def _get_pipeline_status(user_id: str, vault_id: str) -> dict:
+    """Look up the Deep OCR pipeline status for a vault document.
+
+    Scans the user's `DocumentPipelineIndex` rows (one per document) and matches
+    the `vault_id` stored in `payload_json`. Returns the `deep_ocr_status` and
+    any recorded error. This is a status-flag lookup only — no extracted content
+    is read from the database.
+    """
+    status = "pending"
+    error: str | None = None
+    try:
+        from sqlalchemy import select
+
+        from app.core.database import get_db_session
+        from app.models.models import DocumentPipelineIndex
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DocumentPipelineIndex).where(DocumentPipelineIndex.user_id == user_id)  # type: ignore[arg-type]
+            )
+            rows = result.scalars().all()
+            for row in rows:
+                try:
+                    payload = json.loads(row.payload_json or "{}")
+                except Exception:
+                    continue
+                if payload.get("vault_id") == vault_id:
+                    status = row.deep_ocr_status
+                    error = payload.get("pass2_error")
+                    break
+    except Exception as e:
+        logger.debug("Pipeline status lookup failed for vault_id=%s: %s", vault_id, e)
+
+    return {"status": status, "error": error}
+
+
+def _status_message(status: str, error: str | None = None) -> str:
+    """Return a calm, human-readable message for each Deep OCR status."""
+    messages = {
+        "pending": "Document is queued for Deep OCR processing.",
+        "processing": "Deep OCR is still processing this document. Check back shortly.",
+        "complete": "Deep OCR processing is complete.",
+        "failed": (
+            "Deep OCR processing failed. The document is safe in your vault, "
+            "but extracted highlights and dates are not ready yet."
+        ),
+        "needs_reprocess": "This document needs to be reprocessed to finish Deep OCR.",
+    }
+    return messages.get(status, "Document processing status is unknown.")
+
+
+def _build_overlay_progress(
+    doc,
+    real_overlays: list | None = None,
+    pipeline_status: dict | None = None,
+) -> dict:
     """Build overlay progress items for the DC right panel.
 
-    Reads REAL overlays from the user's cloud only. No DB fallback.
-    If no real overlays exist, returns processing_incomplete status.
+    Reads REAL overlays from the user's cloud. When no real overlays exist yet,
+    returns an honest status message derived from the pipeline's
+    `deep_ocr_status` (pending/processing/complete/failed/needs_reprocess)
+    instead of a generic "processing_incomplete" dead end.
     """
+    status = (pipeline_status or {}).get("status", "pending")
+    error = (pipeline_status or {}).get("error")
+
     if real_overlays:
-        return _build_progress_from_real(doc, real_overlays)
+        result = _build_progress_from_real(doc, real_overlays)
+        result["status"] = "complete"
+        result["message"] = _status_message("complete", error)
+        return result
+
+    message = _status_message(status, error)
+    detail = error if status == "failed" and error else None
+
     return {
-        "status": "processing_incomplete",
-        "message": "Document is vaulted but not yet processed. Overlays pending.",
+        "status": status,
+        "message": message,
+        "detail": detail,
         "has_data": False,
         "overall_pct": 0,
         "overlays": [],
         "overlay_count": 0,
-        "overlay_source": "none",
+        "overlay_source": "pipeline",
     }
 
 
@@ -447,8 +516,9 @@ async def dc_get_overlays(vault_id: str, request: Request) -> JSONResponse:
         if doc.user_id != user_id:
             return JSONResponse(status_code=403, content={"error": "access_denied"})
 
+        pipeline_status = await _get_pipeline_status(user_id, vault_id)
         real_overlays = await _fetch_real_overlays(doc, user_id)
-        result = _build_overlay_progress(doc, real_overlays)
+        result = _build_overlay_progress(doc, real_overlays, pipeline_status)
         result["vault_id"] = vault_id
         result["generated_at"] = utc_now().isoformat()
         return JSONResponse(result)
