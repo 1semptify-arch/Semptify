@@ -1,3 +1,47 @@
+## Session — 2026-07-20 — todo-042 Rent Ledger expansion
+
+### Guardrail Engine Run — 2026-07-20T07:21:20
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-042` resolved: expanded `app/modules/rent/router.py` into a full account ledger.
+- Updated `RentPayment` model in `app/models/models.py` with `entry_type`, `period_covered`, `source`, `overlay_link`.
+- Added `app/modules/rent/register.py` `FunctionGroupContract` registrations for rent ledger CRUD.
+- Added `app/modules/rent/tests/test_ledger.py` with running-balance and contract tests.
+- Added Alembic migrations `51eaaeeea3a9_expand_rent_payment_into_ledger.py` and `af166c97288d_expand_rent_payments_to_account_ledger.py`.
+- Updated `app/core/product_manifest.py` rent registration `dev_notes` and added `app.modules.rent.router` to tenant/advocate capability defaults.
+
+### Verification
+
+- Python 3.11.9 ✅
+- `python -m py_compile app/models/models.py app/modules/rent/router.py app/modules/rent/register.py app/modules/rent/tests/test_ledger.py` → exit 0 ✅
+- `python -m ruff check --fix app/modules/rent/router.py app/modules/rent/register.py app/modules/rent/tests/test_ledger.py` → clean ✅
+- `python -m pytest app/modules/rent/tests/ -v -o addopts=''` → 6 passed ✅
+- `python tools/guardrail_engine.py` → all checks passed ✅
+
+### Known Working
+
+- Rent Ledger: DB-backed ledger entries with payments, fees, deposits, credits, charges ✅
+- Running balance computed per user after each entry ✅
+- Manual entry creation and overlay link support ✅
+
+### Known Broken / Pending
+
+- SDC `todo-043` → `todo-044` remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+- The `aaebf71fa17a` journal migration and new rent ledger migrations are written but not applied to the live Postgres instance; apply with a privileged user when ready.
+
+### Next Session Should Start With
+
+1. Continue with `todo-043` per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — todo-041 Journal module for free-form tenant records
 
 ### Guardrail Engine Run — 2026-07-20T07:00:00
