@@ -1,4 +1,60 @@
+## Session — 2026-07-20 — SDC todo-036 Semantic Context Engine (Deep OCR Pass 2)
+
+### Guardrail Engine Run — 2026-07-20T04:00:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-036` resolved: added `app/services/semantic_context_engine.py` with `SemanticContextEngine`.
+- Pass 2 classifies date mentions into the tenancy domain date roles:
+  `created`, `signed`, `issued`, `effective`, `claimed_service`, `deadline`, `period`.
+- Each result includes `raw_text`, `date` (ISO), `semantic_label`, `trigger_phrase`, `confidence`, and a reserved `bounding_box` field.
+- Classification is rule-based/regex with proximity-weighted trigger-phrase matching and document-type hints; an LLM fallback is reserved for ambiguous cases (not wired without a provider/key).
+- `app/core/job_processor.py` `deep_ocr` handler now runs the engine on Pass 1's raw OCR text and stores the results in `DocumentPipelineIndex.payload_json`, mirroring the final status onto `Document.deep_ocr_status` when a canonical row exists.
+
+### Verification
+
+- Python 3.11.9 ✅ (repo `venv311` used)
+- Compile: `app/services/semantic_context_engine.py`, `app/core/job_processor.py`, `app/modules/intake/router.py`, `app/services/document_intake.py`, `app/main.py` → exit 0 ✅
+- Manual `SemanticContextEngine.extract()` test on a sample notice → correctly labels `created`, `issued`, `deadline`, `effective`, `period`, `claimed_service` dates with trigger phrases ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- `alembic history` → `573f2a9e816f` remains head and linear ✅
+
+### Known Working
+
+- `/api/intake/upload/auto` queues Deep OCR jobs with `urgency`-based priority.
+- Deep OCR Pass 2 now runs inside the `deep_ocr` job and produces structured, confidence-scored, trigger-phrase-backed date results.
+
+### Known Broken / Pending
+
+- SDC tasks `todo-037` → `todo-044` are pending; `todo-044` needs a design decision before coding.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7) remain pending.
+
+### Next Session Should Start With
+
+1. Continue SDC Deep OCR chain (`todo-037` → `todo-038`) per aligned doc execution order.
+
+---
+
 ## Session — 2026-07-20 — SDC todo-035 Deep OCR queue priority by urgency
+
+### Guardrail Engine Run — 2026-07-19T23:06:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-07-19T23:04:40
+
+- **manifest_sync_check**: FAIL — Sync orchestrator reported issues — see details.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
 
 ### Guardrail Engine Run — 2026-07-20T03:40:00
 

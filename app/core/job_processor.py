@@ -554,8 +554,8 @@ def register_default_handlers(processor: JobProcessor):
         """Handle Deep OCR pass-2 job.
 
         Picks up documents in `pending` status and flips `deep_ocr_status` to
-        `processing`. Pass 2 logic is a stub for ticket todo-034; todo-036 will
-        replace the no-op with the Semantic Context Engine.
+        `processing`, runs the Semantic Context Engine on the raw OCR text produced
+        by Pass 1, then marks `deep_ocr_status` `complete` or `failed`.
         """
         doc_id = payload.get("doc_id")
         user_id = payload.get("user_id")
@@ -588,24 +588,76 @@ def register_default_handlers(processor: JobProcessor):
 
         logger.info(f"Deep OCR processing started for doc {doc_id}")
 
-        # TODO(todo-036): replace with Semantic Context Engine pass-2 logic.
-        await asyncio.sleep(0.1)
+        # Run the Semantic Context Engine on Pass 1 raw OCR text.
+        pass2_status = DeepOCRStatus.COMPLETE.value  # type: ignore[union-attr]
+        pass2_results: List[Dict[str, Any]] = []
+        pass2_error: Optional[str] = None
 
+        try:
+            from app.services.document_intake import get_intake_engine
+            from app.services.semantic_context_engine import SemanticContextEngine
+
+            engine = get_intake_engine()
+            doc = engine.get_document(doc_id)
+            if doc is None:
+                raise ValueError(f"IntakeDocument {doc_id} not found")
+
+            raw_text = None
+            if doc.extraction and doc.extraction.full_text:
+                raw_text = doc.extraction.full_text
+
+            if not raw_text:
+                # Pass 1 has not produced text; cannot run Pass 2.
+                pass2_status = DeepOCRStatus.NEEDS_REPROCESS.value  # type: ignore[union-attr]
+                pass2_error = "Pass 1 raw OCR text not available"
+            else:
+                doc_type = doc.doc_type.value if doc.doc_type else None
+                # Run CPU-bound regex work off the event loop thread.
+                results = await asyncio.to_thread(
+                    SemanticContextEngine().extract, raw_text, doc_type
+                )
+                pass2_results = [r.to_dict() for r in results]
+
+        except Exception as exc:
+            logger.exception("Deep OCR Pass 2 failed for doc %s", doc_id)
+            pass2_status = DeepOCRStatus.FAILED.value  # type: ignore[union-attr]
+            pass2_error = str(exc)
+
+        # Persist Pass 2 results and final status.
         async with get_db_session() as db:
             result = await db.execute(
                 select(DocumentPipelineIndex).where(DocumentPipelineIndex.doc_id == doc_id)  # type: ignore[arg-type]
             )
             row = result.scalar_one_or_none()
             if row is not None:
-                row.deep_ocr_status = DeepOCRStatus.COMPLETE.value  # type: ignore[union-attr]
+                payload = json.loads(row.payload_json or "{}")
+                payload["pass2_results"] = pass2_results
+                payload["completed_at"] = utc_now().isoformat()
+                if pass2_error:
+                    payload["pass2_error"] = pass2_error
+                row.payload_json = json.dumps(payload)
+                row.deep_ocr_status = pass2_status
                 row.updated_at = utc_now()
                 await db.commit()
+
+            # Also mirror status onto the canonical Document row if one exists.
+            try:
+                from app.models.models import Document
+
+                doc_result = await db.execute(select(Document).where(Document.id == doc_id))  # type: ignore[arg-type]
+                canonical = doc_result.scalar_one_or_none()
+                if canonical is not None:
+                    canonical.deep_ocr_status = pass2_status  # type: ignore[union-attr]
+                    await db.commit()
+            except Exception:
+                logger.debug("Could not mirror deep_ocr_status to Document %s", doc_id)
 
         return {
             "doc_id": doc_id,
             "vault_id": vault_id,
-            "status": DeepOCRStatus.COMPLETE.value,  # type: ignore[union-attr]
-            "pass2": "stub",
+            "status": pass2_status,
+            "pass2_results": pass2_results,
+            "error": pass2_error,
         }
 
     # Register handlers
