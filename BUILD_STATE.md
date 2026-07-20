@@ -1,3 +1,43 @@
+## Session — 2026-07-20 — /ship deploy to main
+
+### Guardrail Engine Run — 2026-07-20T09:13:40
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Deploy — 2026-07-20T09:11:18
+
+- **commit**: `11e8a1b`
+- **branch**: `main`
+- **pushed**: `origin/main` from `fix/stateless-oauth-refresh` via fast-forward merge
+- **Render**: https://dashboard.render.com (watch deploy log for `11e8a1b`)
+
+### What Was Shipped
+
+- SSOT redirect cleanup (`todo-001`): converted internal `RedirectResponse` calls to `ssot_redirect()` and tightened `tests/test_ssot_architecture.py`.
+- Full `fix/stateless-oauth-refresh` branch merged into `main` (20 commits): journal, rent ledger, packet builder, calendar auto-populate, local classifier, document center slices, low-priority orchestrator batch, and design-system fixes.
+
+### Known Working
+
+- Compile check: PASS (`app/main.py`, core routers, onboarding, etc.)
+- Playwright end-to-end: 6/6 passed
+- ruff + ruff-format: PASS
+- SSOT Architecture Verification: PASS
+- Pre-commit hooks (trim, ruff, bandit, detect-secrets, SSOT, guardrail, sync-orchestrator): PASS
+
+### Known Broken / Pending
+
+- Live upload end-to-end still pending real storage credentials.
+- `todo-015` stateless OAuth refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+- Pull next pending task from `tools/agent_orchestrator_tasks.json` (orchestrator preflight) and run `/preflight` before editing.
+
+---
+
 ## Session — 2026-07-20 — Low-priority orchestrator batch (todo-010 through todo-032)
 
 ### Guardrail Engine Run — 2026-07-20
