@@ -61,10 +61,10 @@ def test_journal_contracts_registered():
 
 
 def test_journal_create_request_validation():
-    """JournalEntryCreate requires title."""
+    """JournalEntryCreate requires a non-empty title."""
     from app.modules.journal.router import JournalEntryCreate
     with pytest.raises(ValueError):
-        JournalEntryCreate(title="")  # min_length=1
+        JournalEntryCreate(entry_type="note", title="")  # min_length=1
 
 
 def test_journal_to_response_handles_document_link():
