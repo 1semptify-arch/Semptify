@@ -648,11 +648,56 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
     )
 
 
+def _journal_icon(entry_type: str) -> str:
+    """Return a calm icon for a journal entry type."""
+    return {
+        "conversation": "💬",
+        "incident": "⚠",
+        "repair_request": "🔧",
+        "note": "📝",
+    }.get(entry_type, "❓")
+
+
 async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSummary:
-    """Load journal entries from vault documents."""
-    entries = []
+    """Load journal entries from the Journal module and from vault documents."""
+    entries: list[JournalEntry] = []
+
+    # Free-form journal entries (DB-backed)
+    try:
+        from sqlalchemy import select
+
+        from app.core.database import get_db_session
+        from app.models.models import JournalEntry as JournalEntryModel
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(JournalEntryModel)
+                .where(JournalEntryModel.user_id == user_id)
+                .order_by(JournalEntryModel.occurred_at.desc())
+            )
+            db_entries = list(result.scalars().all())
+            for entry in db_entries:
+                description = entry.title or "Journal entry"
+                if entry.content:
+                    description = f"{description}: {entry.content[:100]}{'…' if len(entry.content) > 100 else ''}"
+                has_attachments = bool(entry.document_link)
+                entries.append(JournalEntry(
+                    id=entry.id,
+                    entry_type=entry.entry_type,
+                    description=description,
+                    created_at=entry.occurred_at.isoformat() if entry.occurred_at else "",
+                    is_urgent=entry.is_urgent or False,
+                    has_attachments=has_attachments,
+                    attachment_count=1 if has_attachments else 0,
+                    icon=_journal_icon(entry.entry_type),
+                ))
+    except Exception as _e:
+        logger.warning("Journal DB load failed: %s", _e)
+
+    # Also include recent vault uploads as journal-style activity
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
         docs = await vault_service.get_user_documents(user_id)
         for doc in docs[:50]:
@@ -667,6 +712,7 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
                 is_urgent=is_urgent,
                 has_attachments=True,
                 attachment_count=1,
+                icon="📄",
             ))
     except Exception as _e:
         logger.warning("Journal vault load failed: %s", _e)
@@ -682,10 +728,11 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
                 is_urgent=is_urgent,
                 has_attachments=True,
                 attachment_count=1,
+                icon="📄",
             ))
-    
+
     urgent_count = len([e for e in entries if e.is_urgent])
-    
+
     return JournalSummary(
         total_entries=len(entries),
         entries_this_month=vault.recent_documents,
