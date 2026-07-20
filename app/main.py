@@ -377,9 +377,8 @@ async def lifespan(_app: FastAPI):
                 return
 
             def _sync_migrate():
-                from alembic.config import Config
-
                 from alembic import command
+                from alembic.config import Config
 
                 alembic_cfg = Config("alembic.ini")
                 command.upgrade(alembic_cfg, "head")
@@ -500,7 +499,10 @@ async def lifespan(_app: FastAPI):
             # discovered_plugins = plugin_manager.discover_plugins()
             # plugin_stats = plugin_manager.load_all()
 
-            logger.info("   âš¡ Core services only - mesh/brain/plugins DISABLED for memory optimization")
+            if enable_heavy:
+                logger.info("   Core + heavy services active (mesh/plugins disabled for memory optimization)")
+            else:
+                logger.info("   Core services only - heavy/mesh/plugins disabled for memory optimization")
 
             from app.core.event_subscribers import register_all_subscribers
 
@@ -1505,18 +1507,47 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     logger.info("Global error handling system registered")
 
     # =========================================================================
-    # Performance Monitoring Middleware - DISABLED
+    # Performance Monitoring Middleware
     # =========================================================================
-    # DISABLED: Causing 85%+ memory usage
-    # TODO: Re-enable after optimization
+    # Re-enabled in slim mode: only records request duration/status into the
+    # bounded request_metrics deque (maxlen=500). The original memory issue was
+    # caused by psutil.net_connections(), which has already been removed.
 
-    # @fastapi_app.middleware("http")
-    # async def performance_monitoring_middleware(request: Request, call_next):
-    #     """Monitor request performance."""
-    #     from app.core.performance_monitor import get_performance_monitor
-    #     ...
+    enable_perf_middleware = os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false"
+    if enable_perf_middleware:
 
-    logger.info("Performance monitoring middleware DISABLED (memory optimization)")
+        @fastapi_app.middleware("http")
+        async def performance_monitoring_middleware(request: Request, call_next):
+            """Record per-request duration and status code."""
+            start = time.perf_counter()
+            response = None
+            try:
+                response = await call_next(request)
+                return response
+            except Exception:
+                raise
+            finally:
+                try:
+                    from app.core.performance_monitor import get_performance_monitor
+
+                    duration_ms = (time.perf_counter() - start) * 1000
+                    status_code = response.status_code if response is not None else 500
+                    user_id = request.cookies.get("semptify_uid")
+                    ip_address = request.client.host if request.client else None
+                    get_performance_monitor().record_request(
+                        endpoint=request.url.path,
+                        method=request.method,
+                        status_code=status_code,
+                        duration_ms=duration_ms,
+                        user_id=user_id,
+                        ip_address=ip_address,
+                    )
+                except Exception as _middleware_err:
+                    logger.warning("Performance middleware recording failed: %s", _middleware_err)
+
+        logger.info("Performance monitoring middleware enabled (slim mode)")
+    else:
+        logger.info("Performance monitoring middleware skipped (ENABLE_HEAVY_SERVICES=false)")
 
     # =========================================================================
     # Middleware (order matters - first added = last to run)
@@ -1934,7 +1965,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     else:
                         target = f"/onboarding/callback/{provider}?{qs}"
                     logger.info("auth_callback_compat: redirecting to %s for provider=%s", target[:60], provider)
-                    return RedirectResponse(url=target, status_code=302)
+                    return ssot_redirect(target, context="auth_callback_compat")
                 break
         except Exception as exc:
             logger.error("auth_callback_compat: error looking up state: %s", exc)
@@ -2849,7 +2880,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Shows their connected storage and vault documents.
         """
         # Apply PageContract guard
-        guard_redirect = _guard_by_contract("vault", request)
+        guard_redirect = await _guard_by_contract("vault", request)
         if guard_redirect:
             return guard_redirect
 
@@ -3074,9 +3105,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_fix():
-                from alembic.config import Config
-
                 from alembic import command
+                from alembic.config import Config
 
                 cfg = Config("alembic.ini")
                 # Stamp to the revision before legal_sub_role was added
@@ -3084,8 +3114,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 # Now upgrade to head — this will run the legal_sub_role migration
                 command.upgrade(cfg, "head")
                 # Return current version
-                from alembic.runtime.migration import MigrationContext
                 from sqlalchemy import create_engine
+
+                from alembic.runtime.migration import MigrationContext
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
@@ -3184,14 +3215,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_stamp():
-                from alembic.config import Config
-
                 from alembic import command
+                from alembic.config import Config
 
                 cfg = Config("alembic.ini")
                 command.stamp(cfg, "head")
-                from alembic.runtime.migration import MigrationContext
                 from sqlalchemy import create_engine
+
+                from alembic.runtime.migration import MigrationContext
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
@@ -3373,7 +3404,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         try:
             # Apply PageContract guard
-            guard_redirect = _guard_by_contract("documents", request)
+            guard_redirect = await _guard_by_contract("documents", request)
             if guard_redirect:
                 return guard_redirect
 
@@ -3539,14 +3570,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         current_role = get_role_from_user_id(user_id) or ""
         if current_role not in allowed_roles:
-            return RedirectResponse(url=await _route_user(user_id), status_code=302)
+            return ssot_redirect(await _route_user(user_id), context="role_page role mismatch")
         return None
 
     # =========================================================================
     # Page Contract-Based Route Guards (High-Priority Pages)
     # =========================================================================
 
-    def _guard_by_contract(page_id: str, request: Request) -> RedirectResponse | None:
+    async def _guard_by_contract(page_id: str, request: Request) -> RedirectResponse | None:
         """
         Guard a page using its PageContract from route_guards.py.
         Returns RedirectResponse if access denied, None if allowed.
@@ -3581,7 +3612,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             allowed_roles = {r.value for r in contract.roles_supported}
 
             if current_role not in allowed_roles:
-                return RedirectResponse(url=_route_user(user_id), status_code=302)
+                return ssot_redirect(await _route_user(user_id), context="page_contract role mismatch")
 
             return None
         except ImportError:
@@ -3851,7 +3882,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
 
         user_id = extract_user_id(request) or ""
-        from datetime import datetime as _dt
 
         entries = []
         total_entries = 0
@@ -3862,6 +3892,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if user_id:
             try:
                 from sqlalchemy import select
+
                 from app.core.database import get_db_session
                 from app.models.models import JournalEntry
 
@@ -3880,21 +3911,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     for row in rows:
                         if row.is_urgent:
                             urgent_count += 1
-                        if row.occurred_at and row.occurred_at.month == this_month and row.occurred_at.year == this_year:
+                        if (
+                            row.occurred_at
+                            and row.occurred_at.month == this_month
+                            and row.occurred_at.year == this_year
+                        ):
                             entries_this_month += 1
                         if row.occurred_at and (first_entry_date is None or row.occurred_at < first_entry_date):
                             first_entry_date = row.occurred_at
-                        entries.append({
-                            "id": row.id,
-                            "entry_type": row.entry_type,
-                            "description": row.content or "",
-                            "created_at": row.occurred_at.isoformat() if row.occurred_at else "",
-                            "is_urgent": row.is_urgent,
-                            "has_attachments": bool(row.document_link),
-                            "attachment_count": 1 if row.document_link else 0,
-                            "who_involved": row.involved_party,
-                            "location": None,
-                        })
+                        entries.append(
+                            {
+                                "id": row.id,
+                                "entry_type": row.entry_type,
+                                "description": row.content or "",
+                                "created_at": row.occurred_at.isoformat() if row.occurred_at else "",
+                                "is_urgent": row.is_urgent,
+                                "has_attachments": bool(row.document_link),
+                                "attachment_count": 1 if row.document_link else 0,
+                                "who_involved": row.involved_party,
+                                "location": None,
+                            }
+                        )
                     if first_entry_date:
                         try:
                             delta = now - first_entry_date

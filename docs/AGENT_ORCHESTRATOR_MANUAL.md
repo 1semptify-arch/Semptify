@@ -2,13 +2,13 @@
 
 The Agent Orchestrator queues parallel AI-agent tasks for the Semptify codebase. It turns workbook rows (stubs and duplicates) AND doc-sourced TODOs into copy-paste prompts you can drop into separate Windsurf sessions.
 
-> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-16. Supersedes older instructions in `.devin/workflows/orchestrator_preflight.md` and `BUILD_STATE.md`.
+> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-20. Supersedes older instructions in `.devin/workflows/orchestrator_preflight.md` and `BUILD_STATE.md`.
 
 ## Two UIs, same queue data
 
 | UI | Location | Persistence | Best for |
 | --- | --- | --- | --- |
-| **Standalone** | `tools/agent_orchestrator.html` (open via `file://` or `http://localhost:8000/tools/agent_orchestrator.html`) | Browser `localStorage` + embedded JSON fallback | Day-to-day dispatch, survives server restarts |
+| **Standalone** | `tools/agent_orchestrator.html` (open via `file://` or `http://localhost:8000/tools/agent_orchestrator.html`) | Live `agent_orchestrator_tasks.json` > embedded JSON > `localStorage` cache | Day-to-day dispatch, reloads from file on startup |
 | **In-app Admin** | `http://localhost:8000/admin/agent_orchestrator.html` (stealth admin login required) | In-memory API store (`/api/agent-orchestrator/*`) | Quick create + API automation, wipes on server restart |
 
 Use the **standalone** version for day-to-day agent dispatch. Use the **admin** version when you want to create tasks via API or import a JSON queue without touching localStorage.
@@ -48,7 +48,7 @@ This produces:
 
 ### 3. Load the queue
 
-- **Standalone UI:** click **Start fresh ↺** to load `tools/agent_orchestrator_tasks.json` into localStorage. The embedded JSON block is the fallback when both localStorage and fetch fail.
+- **Standalone UI:** the page automatically loads the live `tools/agent_orchestrator_tasks.json` on startup (file > embedded JSON > localStorage). Click **Refresh from file ↻** to force a reload, or **Start fresh ↺** to clear `localStorage` first and then reload.
 - **Admin UI:** click **Import JSON**, select `tools/agent_orchestrator_tasks.json`. Tasks POST to `/api/agent-orchestrator/batch` and persist in-memory until server restart.
 
 ### 4. Dispatch work to agents
@@ -78,6 +78,7 @@ Doc-sourced TODOs (`_seed_orchestrator_tasks.py`) set `target_model` explicitly 
 ## Standalone UI controls
 
 - **Start fresh ↺** — clears localStorage and loads the newest `agent_orchestrator_tasks.json` (or embedded JSON fallback).
+- **Refresh from file ↻** — re-fetch the live `agent_orchestrator_tasks.json` and overwrite the current queue without clearing `localStorage` first.
 - **Create Task** — add a manual task (e.g., from a Fix-It report).
 - **Status dropdown** — move a task through `pending → in_progress → review → resolved/rejected`.
 - **View prompt** — read the full prompt without copying.

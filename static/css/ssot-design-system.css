@@ -213,6 +213,20 @@
    Body text switches from #1a1a1a to #f0f0f0.
    ============================================================================ */
 
+/* OS-level dark mode fallback when no explicit data-theme is set */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tpl-1-body: #0a1a2a;   /* blue 15% into #121212 */
+    --tpl-2-body: #0a1a16;   /* teal 15% into #121212 */
+    --tpl-3-body: #100e1a;   /* purple 15% into #121212 */
+    --tpl-4-body: #161614;   /* gray 15% into #121212 */
+    --tpl-5-body: #1a0e0a;   /* coral 15% into #121212 */
+    --text-primary: #f0f0f0;
+    --text-secondary: #c0c0c0;
+    --text-muted: #909090;
+  }
+}
+
 [data-theme="dark"] {
   --tpl-1-body: #0a1a2a;   /* blue 15% into #121212 */
   --tpl-2-body: #0a1a16;   /* teal 15% into #121212 */

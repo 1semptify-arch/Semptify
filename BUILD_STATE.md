@@ -1,3 +1,289 @@
+## Session — 2026-07-20 — Low-priority orchestrator batch (todo-010 through todo-032)
+
+### Guardrail Engine Run — 2026-07-20
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Was Done
+
+Processed the 11 remaining pending low-priority orchestrator tasks in order:
+
+- **todo-010** — `resolved`: After enabling Cloudflare Development Mode and purging cache, verified all 5 template color sets on `https://semptify.org` via Playwright: `/home` (template-1 #E6F1FB), `/law-library` (template-2 #E1F5EE), `/office` (template-4 #F1EFE8), `/library` (template-5 #FAECE7); template-3 (#EEEDFE) verified by applying the class to `/home`. Screenshots saved to `screenshots/todo-010/`.
+- **todo-011** — `resolved`: Added `@media (prefers-color-scheme: dark)` fallback to `static/css/ssot-design-system.css` so the existing `[data-theme="dark"]` color variables are applied automatically when the OS is in dark mode. Updated `FNG_TODO.md` checkbox.
+- **todo-021** — `review`: `MNDESRestClient` submit/status/exhibits methods are intentional `NotImplementedError` stubs guarded by `stub-detector: ignore`; they require the external MNDES/EAST API, which is not available.
+- **todo-023** — `resolved`: `app/modules/components/router.py` `get_component_config` now derives the effective role from the authenticated `user_id` via `get_role_from_user_id()`, falling back to the URL path parameter. Added `manager` and `judge` role configs and cleaned up ruff issues.
+- **todo-025** — `resolved`: `app/modules/research_module.py` no longer exists; the research package was refactored to `app/modules/research/` (service + router). ZIP generation works and cloud upload is caller-managed.
+- **todo-027** — `review`: Distributed mesh network (`app.services.mesh_handlers`) remains disabled by design (STUB_AUDIT Tier 3.2 DEFER) due to cross-instance memory concerns.
+- **todo-028** — `resolved`: Re-enabled the performance monitoring middleware in `app/main.py` in slim mode: records request duration/status into the bounded `request_metrics` deque, gated by `ENABLE_HEAVY_SERVICES`. The original memory issue (`psutil.net_connections()`) was already removed.
+- **todo-029** — `resolved`: OAuth state cleanup `_cleanup_expired_states()` is already implemented and called in both `/authorize` and `/callback` flows.
+- **todo-030** — `resolved`: State-law stubs for non-MN states are by design (MN is the reference implementation); the `/api/states/` endpoint correctly reports `status`/`has_complete_data`.
+- **todo-031** — `resolved`: `CourtDataSeeder.seed_all()` generates realistic MN/Dakota County historical cases from public baseline statistics. `RealCourtDataImporter` stubs for MNCIS/Eviction Lab remain due to required credentials/data-use agreements; CSV import is implemented.
+- **todo-032** — `resolved`: `app/modules/legal_filing_module.py` is a thin router wrapper; no mesh/network placeholder remains.
+
+### Files Changed
+
+- `app/main.py`
+- `static/css/ssot-design-system.css`
+- `FNG_TODO.md`
+- `app/modules/components/router.py`
+
+### Known Working
+
+- Component config endpoint uses authenticated role context.
+- Dark mode reachable via `prefers-color-scheme`.
+- Performance monitoring middleware records request metrics when `ENABLE_HEAVY_SERVICES=true`.
+- All guardrail checks pass.
+
+### Known Broken / Pending
+
+- `todo-021` MNDES API integration blocked pending external API.
+- `todo-027` distributed mesh network intentionally deferred.
+
+---
+
+## Session — 2026-07-20 — SSOT hardcoded redirect cleanup (todo-001)
+
+### Guardrail Engine Run — 2026-07-20T05:48:11
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-07-20
+
+- **ssot_architecture_check**: PASS — `scripts/verify_ssot.py` passed.
+- **compile_check**: PASS — all touched Python files compile.
+
+All checks passed.
+
+### What Was Done
+- Converted remaining internal `RedirectResponse(...)` calls to `ssot_redirect(...)` so all app navigation flows through the SSOT helper:
+  - `app/main.py` `auth_callback_compat` callback proxy.
+  - `app/main.py` `_guard_role_page` role-mismatch redirect.
+  - `app/main.py` `_guard_by_contract` role-mismatch redirect (also made `async` and fixed missing `await` on `route_user`; updated both callers to `await`).
+  - `app/core/error_handling.py` down-status redirect to `/help`.
+  - `app/core/route_guards.py` contract redirect and `require_roles` login redirect.
+  - `app/core/storage_middleware.py` onboarding entry and reconnect redirects.
+  - `app/modules/onboarding/router.py` bare `/onboarding/` root redirect.
+- Tightened `tests/test_ssot_architecture.py` to reject raw `RedirectResponse(` calls in scanned router files, exempting only external OAuth `auth_url`/`callback_url` redirects.
+- Marked `todo-001` as `in_progress` at start and resolved it at finish.
+
+### Files Changed
+- `app/main.py`
+- `app/core/error_handling.py`
+- `app/core/route_guards.py`
+- `app/core/storage_middleware.py`
+- `app/modules/onboarding/router.py`
+- `tests/test_ssot_architecture.py`
+- `BUILD_STATE.md` — this note
+
+### Verification
+- `python -m py_compile app/main.py app/core/error_handling.py app/core/route_guards.py app/core/storage_middleware.py app/modules/onboarding/router.py tests/test_ssot_architecture.py` — passed.
+- `python scripts/verify_ssot.py` — 8 passed, "SSOT Architecture clean - safe to commit".
+
+### Known Gaps / Pending
+- Not live-tested against a running dev server (no backend server was running). Redirect targets were verified by code review + SSOT test.
+- Some `ssot_redirect(...)` calls still contain hardcoded fallback strings (e.g., `"/onboarding/start"`, `"/admin/dashboard"`). These are now routed through the SSOT helper but remain string literals; a future session can move the corresponding routes into `navigation.py` as stages to eliminate the fallbacks entirely.
+
+---
+
+## Session — 2026-07-20 — Re-applied Agent Orchestrator localStorage fix
+
+### Guardrail Engine Run — 2026-07-20T05:08:27
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Was Done
+- **Fixed** `tools/agent_orchestrator.html` to match the precedence already recorded in BUILD_STATE.md (2026-07-15 AM session 4) because the file had reverted to the old localStorage-first behavior:
+  - `autoLoadProjectJson()` now always fetches the live `agent_orchestrator_tasks.json` on startup and overwrites both `tasks` and `localStorage` with the file contents.
+  - `loadTasks()` now reads embedded JSON first, then falls back to `localStorage` only if embedded is empty.
+  - `localStorage` is now a cache, not the primary source.
+- **Added** a visible **Refresh from file ↻** button next to **Start fresh ↺**.
+- **Added** `refreshFromFile()` and an explicit `lastLoadSource` tracker.
+- **Updated** `showHelpStatus()` to report whether the queue came from the project file, embedded JSON, or localStorage.
+- **Updated** the standalone UI instructions and Data-card hint to describe the file-first behavior.
+- **Updated** `docs/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
+
+### Files Changed
+- `tools/agent_orchestrator.html`
+- `docs/AGENT_ORCHESTRATOR_MANUAL.md`
+- `BUILD_STATE.md` — this note
+
+### Verification
+- Extracted the standalone UI `<script>` block and ran `node --check` on it — passed.
+
+---
+
+## Session — 2026-07-20 — todo-026 Positronic Brain re-enabled
+
+### Guardrail Engine Run — 2026-07-20
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Resolved `todo-026`: `app/main.py` already re-initializes the Positronic Brain under `ENABLE_HEAVY_SERVICES`.
+- Corrected a stale startup log line that still reported `mesh/brain/plugins DISABLED` so it now accurately reflects:
+  - `enable_heavy=true`: "Core + heavy services active (mesh/plugins disabled for memory optimization)"
+  - `enable_heavy=false`: "Core services only - heavy/mesh/plugins disabled for memory optimization"
+
+### Verification
+
+- `python -m py_compile app/main.py` → exit 0 ✅
+- `python tools/guardrail_engine.py` → all checks passed ✅
+
+### Known Working
+
+- Positronic Brain initialization path is active when `ENABLE_HEAVY_SERVICES` is true ✅
+- Startup log no longer claims the brain is disabled when it is not ✅
+
+### Known Broken / Pending
+
+- `todo-027` distributed mesh network still disabled.
+- `todo-011` dark mode toggle / `prefers-color-scheme` fallback still pending.
+
+### Next Session Should Start With
+
+1. Continue with the next pending orchestrator task, or run `/ship` to commit/push current changes.
+
+---
+
+## Session — 2026-07-20 — todo-008 Audit .card--interactive:hover box-shadow leaks
+
+### Guardrail Engine Run — 2026-07-20
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Resolved `todo-008`: audited `app/templates/base.html` and `static/css/ssot-design-system.css` for `.card:hover` and `.card--interactive:hover` box-shadow leaks.
+- `base.html` only defines `.card { padding: ... }` and `.card--interactive:hover { transform: translateY(-2px); }` — no `box-shadow` on cards.
+- `static/css/ssot-design-system.css` `.card` has no `box-shadow`; `.card--flat:hover` explicitly sets `box-shadow: none`.
+- Updated `FNG_TODO.md` to mark the card box-shadow audit as complete.
+
+### Verification
+
+- `python tools/guardrail_engine.py` → all checks passed ✅
+- Manual grep across `app/templates/base.html` and `static/css/ssot-design-system.css` for `.card:hover` and `box-shadow` confirms no card hover shadow leaks ✅
+
+### Known Working
+
+- Card hover states in base.html and ssot-design-system.css comply with the zero-shadow design spec ✅
+
+### Known Broken / Pending
+
+- `todo-026` and `todo-027` remain intentionally disabled/deferred.
+- `todo-011` dark mode toggle / `prefers-color-scheme` fallback still pending.
+- Static dashboards in `static/{admin,tenant,manager,legal}/dashboard.html` still use their own `.card:hover { box-shadow: ... }` rules, but `FNG_TODO.md` explicitly flags those as awaiting a project-owner decision on whether to migrate to the Jinja2 `base.html` + System 2 approach.
+
+### Next Session Should Start With
+
+1. Continue with the next pending orchestrator task, or run `/ship` to commit/push current changes.
+
+---
+
+## Session — 2026-07-20 — todo-024 filedored local document classifier
+
+### Guardrail Engine Run — 2026-07-20
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Resolved `todo-024`: replaced the `ai_classify_document()` stub in `app/services/filedored_service.py` with a call to a new local keyword/filename classifier.
+- Added `app/services/local_classifier.py` with a deterministic `predict(content, filename)` that returns one of the canonical `AI_CLASSIFICATION_MAP` labels: `lease`, `notice`, `evidence`, `photo`, `invoice`, `communication`, `unknown`.
+- Classifier extracts a small text sample from PDFs (PyPDF2), plain text files, and text-ish binary inputs, then scores filename and content keywords to choose the best label.
+- Wired `app/services/filedored_service.py` `ai_classify_document()` to call `local_classifier.predict()` with graceful fallback to `unknown` on any error.
+- Added `tests/test_local_classifier.py` covering empty inputs, filename-only classification, content keyword classification, and photo/image detection.
+
+### Verification
+
+- Python 3.11.9 ✅
+- `python -m py_compile app/services/local_classifier.py app/services/filedored_service.py tests/test_local_classifier.py` → exit 0 ✅
+- `python -m ruff check app/services/local_classifier.py app/services/filedored_service.py tests/test_local_classifier.py` → clean ✅
+- `python -m pytest tests/test_local_classifier.py -v -o addopts=''` → 5 passed ✅
+- `python tools/guardrail_engine.py` → all checks passed ✅
+
+### Known Working
+
+- Filedored AI classification now produces a real label instead of always returning `unknown` ✅
+- Keyword scoring prefers filename signals (weighted 2x) over content signals ✅
+- PDF text extraction falls back to plain-text decoding for text fixtures and malformed inputs ✅
+
+### Known Broken / Pending
+
+- `todo-008` and other design-system/low-priority stubs remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue with the next pending orchestrator task, or run `/ship` to commit/push current changes.
+
+---
+
+## Session — 2026-07-20 — todo-044 Unify Packet Builder across case_builder and Briefcase exports
+
+### Guardrail Engine Run — 2026-07-20
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Resolved `todo-044`: added a unified curated-export module (`app/modules/packet_builder/`) for case packets and evidence bundles.
+- Created `app/modules/packet_builder/router.py` with `POST /api/packet-builder/build`, `GET /api/packet-builder/packets/{packet_id}`, and `GET /api/packet-builder/packets/{packet_id}/download`.
+- Created `app/modules/packet_builder/service.py` to resolve source documents from `vault_ids`, `case_id`, or `folder_id`; fetch highlights, notes, footnotes, and tracked edits via `UnifiedOverlayManager`; and build overlay/clean ZIP or PDF exports with a reportlab summary and index.
+- Created `app/modules/packet_builder/register.py` with `FunctionGroupContract` registrations (`packet_builder_build`, `packet_builder_get`, `packet_builder_download`).
+- Added `app/modules/packet_builder/tests/test_packet_builder.py` with router, request validation, and contract smoke tests.
+- Wired `app.modules.packet_builder.router` into `app/core/product_manifest.py` and capability defaults for tenant and advocate roles.
+- Added `app.modules.packet_builder.register` to `app/core/contract_loader.py`.
+
+### Verification
+
+- Python 3.11.9 ✅
+- `python -m py_compile app/modules/packet_builder/router.py app/modules/packet_builder/service.py app/modules/packet_builder/register.py app/modules/packet_builder/__init__.py app/modules/packet_builder/tests/test_packet_builder.py app/core/product_manifest.py app/core/contract_loader.py` → exit 0 ✅
+- `python -m ruff check app/modules/packet_builder/router.py app/modules/packet_builder/service.py app/modules/packet_builder/register.py app/modules/packet_builder/tests/test_packet_builder.py` → clean ✅
+- `python -m pytest app/modules/packet_builder/tests/test_packet_builder.py -v -o addopts=''` → 8 passed ✅
+- `python tools/guardrail_engine.py` → all checks passed ✅
+
+### Known Working
+
+- Packet Builder endpoints are registered under `/api/packet-builder` with capability gating ✅
+- Build request accepts `vault_ids`, `case_id`, or `folder_id` and supports `overlay`/`clean` modes with include/exclude annotation flags ✅
+- Download supports `zip` and `pdf` output formats with optional mode override ✅
+- Packet definitions persist as `COURT_PACKET_QUERY` or `EVIDENCE_BUNDLE_QUERY` overlays (with in-memory fallback when cloud storage is unavailable) ✅
+- FunctionGroupContracts for build/get/download are registered ✅
+
+### Known Broken / Pending
+
+- Legacy `app/modules/court_packet/router.py` remains registered and skipped at import due to its broken `app.routers.briefcase` import; a future session can decide whether to retire it or redirect its routes to `packet_builder`.
+- UI integration for the four-pillar GUI (e.g., a "Build Packet" panel in `/act` or `/record`) is not yet built.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue GUI Phase 1 next priority, or add Packet Builder UI if directed by the user.
+
+---
+
 ## Session — 2026-07-20 — todo-043 Calendar auto-populate from documents, deadlines, and ledger
 
 ### Guardrail Engine Run — 2026-07-20T04:05:36

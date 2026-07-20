@@ -9,14 +9,14 @@ This middleware enforces storage connection for all protected pages.
 """
 
 import logging
-from fastapi import Request
-from fastapi.responses import RedirectResponse, JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-from typing import Set
 
-from app.core.user_id import parse_user_id, COOKIE_USER_ID
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+from app.core.user_id import COOKIE_USER_ID, parse_user_id
 
 logger = logging.getLogger("semptify.security")
 
@@ -26,26 +26,23 @@ MAX_REDIRECT_LOOPS = 3
 
 
 # Pages that don't require storage (public/auth pages)
-PUBLIC_PATHS: Set[str] = {
+PUBLIC_PATHS: set[str] = {
     # Root and static assets
     "/",
     "/favicon.ico",
-    
     # Health & monitoring
     "/health",
     "/metrics",
     "/api/version",
     "/api/core/status",
     "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
-    
     # Preamble — single entry point, must always be reachable (no storage required)
     "/preamble",
-
     # Onboarding & special pages — all sub-routes must be public
     # (user has no cookie yet during onboarding)
     "/onboarding",
     "/onboarding/",
-    "/onboarding/start",        # Smart entry point — new users have no cookie yet
+    "/onboarding/start",  # Smart entry point — new users have no cookie yet
     "/onboarding/max-redirects",
     "/onboarding/max-redirects/",
     "/onboarding/select-role.html",
@@ -57,7 +54,6 @@ PUBLIC_PATHS: Set[str] = {
     "/onboarding/verify-vault",
     "/onboarding/status",
     "/onboarding/ssot-navigation",  # SSOT API for static file navigation
-    
     # Storage/Auth flow (must be public to connect)
     "/storage",
     "/storage/",
@@ -67,17 +63,14 @@ PUBLIC_PATHS: Set[str] = {
     "/storage/logout",
     "/storage/logout-reset",
     "/storage/rehome",
-    
     # Public policy pages (privacy, terms, disclaimer, contact, feedback)
     "/public",
     "/public/",
-
     # Admin login (must be public to authenticate)
     "/admin/login",
     "/admin/logout",
     "/admin/api/login-step1",
     "/admin/api/login-step2",
-
     # Welcome/setup pages
     "/welcome.html",
     "/storage_setup.html",
@@ -85,19 +78,15 @@ PUBLIC_PATHS: Set[str] = {
     "/index.html",
     "/index-simple.html",
     "/activate-vault",
-    
     # API docs (development only)
     "/docs",
     "/redoc",
     "/openapi.json",
-    
     # GUI Navigation Hub
     "/gui",
-
     # Auto Mode Features
     "/auto-mode",
     "/auto-analysis",
-
     # Core navigation pages (public landing pages)
     "/home",
     "/library",
@@ -105,7 +94,6 @@ PUBLIC_PATHS: Set[str] = {
     "/office",
     "/tools",
     "/help",
-
     # Tenant portal hub pages — auth handled by _guard_role_page, not middleware
     # Middleware redirect here causes ERR_TOO_MANY_REDIRECTS loop
     "/tenant/home",
@@ -114,7 +102,6 @@ PUBLIC_PATHS: Set[str] = {
     "/tenant/timeline/",
     "/tenant/library",
     "/tenant/library/",
-
     # Public website sub-pages (semptify.org guest portal)
     "/about",
     "/services",
@@ -127,11 +114,9 @@ PUBLIC_PATHS: Set[str] = {
     "/contact",
     "/privacy",
     "/terms",
-
     # SEO files
     "/robots.txt",
     "/sitemap.xml",
-
     # Static assets
     "/static",
     "/css",
@@ -142,8 +127,8 @@ PUBLIC_PATHS: Set[str] = {
 # Path prefixes that are always public
 PUBLIC_PREFIXES = (
     "/storage/",
-    "/static/",   # All static files are public (HTML, CSS, JS)
-    "/public/",   # Policy pages: privacy, terms, disclaimer, contact, feedback
+    "/static/",  # All static files are public (HTML, CSS, JS)
+    "/public/",  # Policy pages: privacy, terms, disclaimer, contact, feedback
     "/gui/",  # GUI nav shell sub-paths (home, record, know, act) — public like /gui
     "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
     "/onboarding-assets/",  # Onboarding static files
@@ -160,22 +145,19 @@ def is_public_path(path: str) -> bool:
     # Exact match
     if path in PUBLIC_PATHS:
         return True
-    
+
     # Prefix match
     for prefix in PUBLIC_PREFIXES:
         if path.startswith(prefix):
             return True
-    
+
     # Static assets (by extension)
-    if path.endswith(('.css', '.js', '.png', '.jpg', '.ico', '.svg', '.woff', '.woff2')):
+    if path.endswith((".css", ".js", ".png", ".jpg", ".ico", ".svg", ".woff", ".woff2")):
         return True
 
     # Root-level static HTML pages — auth is enforced client-side via JS.
     # These pages redirect to onboarding themselves when no valid cookie exists.
-    if path.endswith('.html'):
-        return True
-
-    return False
+    return bool(path.endswith(".html"))
 
 
 def is_valid_storage_user(user_id: str) -> bool:
@@ -193,6 +175,7 @@ def is_valid_storage_user(user_id: str) -> bool:
 
     # Verify HMAC signature — strips it and returns raw user_id, or None if tampered
     from app.core.cookie_auth import verify_user_id
+
     raw = verify_user_id(user_id)
     if raw is None:
         return False
@@ -209,60 +192,57 @@ def is_valid_storage_user(user_id: str) -> bool:
         "su_",
         "SU_",
     ]
-    
+
     user_lower = user_id.lower()
     for pattern in invalid_patterns:
         if pattern.lower() in user_lower:
             return False
-    
+
     # Must be at least 10 chars
     if len(str(user_id)) < 10:
         return False
-    
+
     # Validate structure using parser
     provider, role, unique = parse_user_id(user_id)
-    
+
     # Must have valid provider and role
     if not provider or not role or not unique:
         return False
-    
+
     # Unique part must be at least 6 chars
-    if len(str(unique)) < 6:
-        return False
-    
-    return True
+    return not len(str(unique)) < 6
 
 
 class StorageRequirementMiddleware(BaseHTTPMiddleware):
     """
     Middleware that enforces storage connection requirement.
-    
+
     SECURITY POLICY:
     - All protected pages require a valid user with storage
     - System/demo users are blocked
     - Unauthenticated users are redirected to storage providers
-    
+
     This ensures nobody can use the app without their own cloud storage.
     """
-    
+
     def __init__(self, app, enforce: bool = True):
         """
         Initialize middleware.
-        
+
         Args:
             app: FastAPI application
             enforce: If False, only logs warnings (for debugging)
         """
         super().__init__(app)
         self.enforce = enforce
-    
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        
+
         # Public paths don't need storage
         if is_public_path(path):
             return await call_next(request)
-        
+
         # Get user ID from cookie — pass the signed cookie directly.
         # is_valid_storage_user() calls verify_user_id() internally.
         # NOTE: request.cookies may return Cookie objects, convert to string
@@ -276,15 +256,15 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                 logger.warning(
                     "🚫 Invalid/system user blocked: user_id=%s path=%s",
                     user_id[:4] + "***" if user_id else "None",
-                    path
+                    path,
                 )
             else:
                 logger.debug("No user cookie, redirecting to storage: path=%s", path)
-            
+
             if not self.enforce:
                 # Debug mode - just log and continue
                 return await call_next(request)
-            
+
             # For API calls, return JSON error
             if path.startswith("/api/"):
                 return JSONResponse(
@@ -293,22 +273,20 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         "error": "storage_required",
                         "message": "We're setting up your storage. You'll be ready to continue in just a moment.",
                         "action": "redirect",
-                        "redirect_url": navigation.get_onboarding_start()
-                    }
+                        "redirect_url": navigation.get_onboarding_start(),
+                    },
                 )
-            
+
             # For HTML pages, route through onboarding (role selection first) - SSOT
-            return RedirectResponse(
-                url=navigation.get_onboarding_start(),
-                status_code=302
-            )
-        
+            return ssot_redirect(navigation.get_onboarding_start(), context="storage_middleware no cookie")
+
         # Extract raw user_id for database operations
         from app.core.cookie_auth import verify_user_id
+
         raw_user_id = verify_user_id(user_id)
         if not raw_user_id:
             raw_user_id = user_id  # fallback
-        
+
         # ── Ice-cube token model (implemented) ───────────────────────────────
         # Flow (delegated to app.core.auto_refresh):
         #   1. Have token in memory (ice cube)? Use it — no DB, no provider call.
@@ -328,11 +306,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
 
         factory = get_session_factory()
         async with factory() as refresh_db:
-            token, reconnect_url = await get_valid_token_or_redirect(
-                raw_user_id,
-                return_to=path,
-                db=refresh_db
-            )
+            token, reconnect_url = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
 
             if reconnect_url:
                 if path.startswith("/api/"):
@@ -342,20 +316,19 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                             "error": "token_expired",
                             "message": "Your storage connection expired. Please reconnect.",
                             "action": "redirect",
-                            "redirect_url": reconnect_url
-                        }
+                            "redirect_url": reconnect_url,
+                        },
                     )
-                return RedirectResponse(url=reconnect_url, status_code=302)
+                return ssot_redirect(reconnect_url, context="storage_middleware reconnect")
 
             logger.debug("ICE-CUBE-TOKEN-001: token valid for user %s***", raw_user_id[:6])
         # ── END ice-cube token model ─────────────────────────────────────────
-        
+
         # Valid user — check onboarding gate state via the canonical single reader.
         # All gate decisions flow through get_onboarding_state(); nothing else reads
         # User.completed_groups directly for enforcement in this middleware.
         if self.enforce:
             try:
-                import logging as _logging
                 from app.core.database import get_session_factory
                 from app.core.onboarding_state import get_onboarding_state
 
@@ -371,12 +344,12 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                 if not ob_state.storage_connected and not ob_state.vault_initialized:
                     # Re-query just to detect "no row" vs "row exists, gates empty"
                     from sqlalchemy import select as _select
+
                     from app.models.models import User as _User
+
                     _stale_factory = get_session_factory()
                     async with _stale_factory() as _check_db:
-                        _exists = await _check_db.execute(
-                            _select(_User.id).where(_User.id == raw_user_id)
-                        )
+                        _exists = await _check_db.execute(_select(_User.id).where(_User.id == raw_user_id))
                         _row = _exists.scalar_one_or_none()
 
                     if _row is None:
@@ -419,7 +392,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                 },
                             )
                         max_redirects_stage = navigation.get_stage("max_redirects")
-                        max_redirects_path = max_redirects_stage.path if max_redirects_stage else "/onboarding/max-redirects"
+                        max_redirects_path = (
+                            max_redirects_stage.path if max_redirects_stage else "/onboarding/max-redirects"
+                        )
                         response = ssot_redirect(max_redirects_path, context="storage_middleware redirect loop max")
                         response.delete_cookie(REDIRECT_LOOP_COOKIE)
                         return response
@@ -455,6 +430,6 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
 
             except Exception:
                 # DB unavailable — degrade gracefully, format validation passed above.
-                pass
+                logger.warning("DB unavailable during redirect loop check", exc_info=True)
 
         return await call_next(request)

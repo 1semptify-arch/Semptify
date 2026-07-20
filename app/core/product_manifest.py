@@ -59,7 +59,7 @@ from __future__ import annotations
 import importlib
 import logging
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from app.core.upl_guardrails import UPLRiskTier
@@ -75,7 +75,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 
-class ProductTier(str, Enum):
+class ProductTier(StrEnum):
     """Semptify product tiers. Each tier is a bounded context."""
 
     CORE = "core"
@@ -190,12 +190,11 @@ class ModuleEntry:
         # Validate origin
         if self.origin not in ("internal", "external"):
             raise ValueError(
-                f"ModuleEntry {self.module_path}: origin '{self.origin}' "
-                f"is invalid. Must be 'internal' or 'external'"
+                f"ModuleEntry {self.module_path}: origin '{self.origin}' is invalid. Must be 'internal' or 'external'"
             )
         # External modules must have external_repo
         if self.origin == "external" and not self.external_repo:
-            raise ValueError(f"ModuleEntry {self.module_path}: origin='external' requires " f"external_repo to be set")
+            raise ValueError(f"ModuleEntry {self.module_path}: origin='external' requires external_repo to be set")
 
     def _default_tag(self) -> str:
         """Derive a tag from the module name if none provided."""
@@ -462,6 +461,12 @@ _register(
     tags=("Briefcase",),
     tier=ProductTier.CORE,
     dev_notes="Annotation + document-briefcase API. Timeline-event CRUD removed 2026-07-15 (was duplicate of app.modules.timeline.router). Annotations still store linked_event_id for cross-reference to canonical timeline events.",
+)
+_register(
+    "app.modules.packet_builder.router",
+    tags=("Packet Builder",),
+    tier=ProductTier.CORE,
+    dev_notes="Unified curated-export builder for case packets and evidence bundles. Supports overlay and clean modes with zip/pdf output.",
 )
 _register(
     "app.modules.workflow.router",
@@ -1139,6 +1144,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.law_library.router",
         "app.modules.contacts.router",
         "app.modules.search.router",
+        "app.modules.packet_builder.router",
     ],
     "advocate": [
         # Everything tenant gets
@@ -1153,6 +1159,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.search.router",
         # Plus extended legal tools
         "app.modules.case_builder.router",
+        "app.modules.packet_builder.router",
         "app.modules.eviction_defense.router",
         "app.modules.court_forms.router",
         "app.modules.legal_trails.router",
