@@ -1,3 +1,47 @@
+## Session — 2026-07-20 — SDC todo-038 Document Center right panel: honest Deep OCR status
+
+### Guardrail Engine Run — 2026-07-20T05:00:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-038` resolved: `app/modules/document_center/router.py` `GET /api/dc/document/{vault_id}/overlays` now surfaces honest Deep OCR status messages.
+- Added `_get_pipeline_status()` to read `deep_ocr_status` from `DocumentPipelineIndex` (status flags only — no extracted content from PostgreSQL).
+- Added `_status_message()` mapping `pending`, `processing`, `complete`, `failed`, `needs_reprocess` to calm, non-alarming user-facing messages.
+- `_build_overlay_progress()` now accepts pipeline status and returns a clear `status`/`message`/`detail` instead of the generic `processing_incomplete` dead end when real overlays are not yet available.
+- The endpoint still reads real overlays from the user's cloud storage when present; it only falls back to pipeline status messages when overlays are not ready.
+
+### Verification
+
+- Python 3.11.9 ✅
+- Compile `app/modules/document_center/router.py` → exit 0 ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- Manual integration test with SQLite `DocumentPipelineIndex`:
+  - `processing` status produced: `"Deep OCR is still processing this document. Check back shortly."` ✅
+  - Fake overlay present produced `status: "complete"`, `message: "Deep OCR processing is complete."` ✅
+
+### Known Working
+
+- Deep OCR queue with urgency priority ✅
+- Semantic Context Engine (Pass 2) ✅
+- Pass 2 results written to `DOCUMENT_EXTRACTION` overlay ✅
+- Document Center right panel shows honest `deep_ocr_status` messages ✅
+
+### Known Broken / Pending
+
+- SDC `todo-039` → `todo-044` remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue with `todo-039` (Document Center or next SDC item) per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — SDC todo-037 Wire Deep OCR output to UnifiedOverlayManager
 
 ### Guardrail Engine Run — 2026-07-20T04:30:00
