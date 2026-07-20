@@ -1,3 +1,53 @@
+## Session — 2026-07-20 — todo-041 Journal module for free-form tenant records
+
+### Guardrail Engine Run — 2026-07-20T07:00:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-041` resolved: built a real Journal module.
+- Added `JournalEntry` model to `app/models/models.py` and `alembic/versions/aaebf71fa17a_add_journal_entries_table.py` migration.
+- Created `app/modules/journal/router.py` with `/api/journal` CRUD + `/api/journal/summary` endpoints.
+- Created `app/modules/journal/__init__.py` and `app/modules/journal/register.py` with `FunctionGroupContract` registrations.
+- Registered the module in `app/core/product_manifest.py` as CORE tier `/api/journal` and added it to tenant/advocate `CAPABILITY_DEFAULTS`.
+- Updated `app/core/tenant_briefcase.py` `_load_journal_summary` to query DB journal entries (plus existing vault documents), map icons, and surface document links.
+- `app/core/contract_loader.py` now loads `app.modules.journal.register`.
+- `app/main.py` `/tenant/journal` page already renders `pages/tenant_journal.html` from `JournalEntry` rows; this now has a backing table and API.
+
+### Verification
+
+- Python 3.11.9 ✅
+- Compile `app/modules/journal/router.py`, `register.py`, `app/models/models.py`, `app/core/tenant_briefcase.py`, `app/core/product_manifest.py`, `app/core/contract_loader.py`, `app/main.py`, and the alembic migration → exit 0 ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- Local router test via `TestClient` with a mock `require_user` dependency: create, list, get, summary, update, delete all return 200 ✅
+- Local DB test: `JournalEntry` rows inserted and surfaced by `_load_journal_summary` ✅
+
+### Known Working
+
+- Deep OCR queue with urgency priority ✅
+- Semantic Context Engine (Pass 2) ✅
+- Pass 2 results written to `DOCUMENT_EXTRACTION` overlay ✅
+- Document Center right panel shows honest `deep_ocr_status` messages ✅
+- On-demand Deep OCR reprocess endpoint ✅
+- Standard vault upload certificates include RFC 3161 TSA timestamps ✅
+- Journal module: DB-backed free-form tenant entries with `/api/journal` CRUD and briefcase integration ✅
+
+### Known Broken / Pending
+
+- SDC `todo-042` → `todo-044` remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+- The `aaebf71fa17a` journal migration is written but not applied to the live Postgres instance; the DB user lacks `ALTER TABLE` privilege on `documents` (previous `573f2a9e816f` migration is also unapplied). Apply migrations with a privileged user when ready.
+
+### Next Session Should Start With
+
+1. Continue with `todo-042` per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — todo-006 Document Center planning reconciliation
 
 ### Guardrail Engine Run — 2026-07-20T07:00:00

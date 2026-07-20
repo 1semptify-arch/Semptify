@@ -29,6 +29,7 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.contacts.register",
     "app.modules.calendar.register",
     "app.modules.search.register",
+    "app.modules.journal.register",
     # KNOW pillar
     "app.modules.state_laws.register",
     "app.modules.location.register",

@@ -487,6 +487,15 @@ _register(
 
 # Core tools
 _register("app.modules.contacts.router", tags=("Contact Manager",), tier=ProductTier.CORE)
+_register(
+    "app.modules.journal.router",
+    prefix="/api/journal",
+    tags=("Journal",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Free-form tenant journal — contemporaneous notes, conversations, incidents, repair requests. DB-backed JournalEntry model. Surfaces in tenant briefcase.",
+    log_message="Journal router connected at /api/journal",
+)
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)
 _register(
     "app.modules.search.router",
@@ -1095,6 +1104,18 @@ _register(
     ),
     log_message="Document Center router connected at /api/dc (stable — admin only)",
 )
+_register(
+    "app.modules.journal.router",
+    prefix="/api/journal",
+    tags=("Journal",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes=(
+        "Free-form tenant journal. /api/journal CRUD backed by JournalEntry model. "
+        "/tenant/journal renders tenant_journal.html."
+    ),
+    log_message="Journal router connected at /api/journal",
+)
 
 
 # =============================================================================
@@ -1119,6 +1140,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.vault.router",
         "app.modules.timeline.router",
         "app.modules.documents.router",
+        "app.modules.journal.router",
         "app.modules.state_laws.router",
         "app.modules.law_library.router",
         "app.modules.contacts.router",
@@ -1129,6 +1151,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.vault.router",
         "app.modules.timeline.router",
         "app.modules.documents.router",
+        "app.modules.journal.router",
         "app.modules.state_laws.router",
         "app.modules.law_library.router",
         "app.modules.contacts.router",

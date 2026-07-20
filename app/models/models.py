@@ -169,6 +169,7 @@ class User(Base):
     documents: Mapped[list["Document"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     timeline_events: Mapped[list["TimelineEvent"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     rent_payments: Mapped[list["RentPayment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    journal_entries: Mapped[list["JournalEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     linked_providers: Mapped[list["LinkedProvider"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
@@ -427,6 +428,49 @@ class CalendarEvent(Base):
     
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+# =============================================================================
+# Journal — Free-form tenant records
+# =============================================================================
+
+class JournalEntry(Base):
+    """
+    A free-form tenant journal entry.
+
+    Tenants log contemporaneous records (verbal conversations with the landlord,
+    incidents, observations, repair requests) that may not have a document yet.
+    Entries are lightweight, timestamped, and optionally tagged.
+    """
+
+    __tablename__ = "journal_entries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
+
+    # Entry content
+    entry_type: Mapped[str] = mapped_column(String(50))  # note, conversation, incident, repair_request, other
+    title: Mapped[str] = mapped_column(String(255))
+    content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # When the recorded event occurred (defaults to creation time)
+    occurred_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+    # Urgency and context
+    is_urgent: Mapped[bool] = mapped_column(Boolean, default=False)
+    involved_party: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # e.g. landlord, manager
+    tags: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # comma-separated tags
+    source: Mapped[str] = mapped_column(String(50), default="manual")
+
+    # Optional link to a vault document (stored as vault_id, not a foreign key)
+    document_link: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="journal_entries")
 
 
 # =============================================================================
