@@ -11,48 +11,22 @@ on shared infrastructure (database, security, event bus, vault services).
 ALL UPLOADS GO TO VAULT FIRST - modules access from vault.
 """
 
-
-
-from typing import Optional
-
 import logging
+from pathlib import Path
 
-
-
-from fastapi import APIRouter, File, UploadFile, HTTPException, Query, Depends, Request, Form
-
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel
-
-
-
-from app.core.config import get_settings, Settings
-
-from app.core.security import require_user, StorageUser, yellow_access
-
-from app.core.capabilities import require_capability
-
-from app.core.event_bus import event_bus, EventType
-
-from app.core.database import get_db
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.document_pipeline import (
-
-    get_document_pipeline,
-
-    TenancyDocument,
-
-    ProcessingStatus,
-
-    DocumentType
-
-)
-
+from app.core.capabilities import require_capability
+from app.core.database import get_db
+from app.core.event_bus import EventType, event_bus
+from app.core.security import StorageUser, yellow_access
+from app.core.utc import utc_now
+from app.services.document_pipeline import DocumentType, ProcessingStatus, get_document_pipeline
 from app.services.law_engine import get_law_engine
 
 try:
-
     from app.core.oauth_token_manager import get_valid_token_for_user as _get_valid_token
 
 except ImportError:
@@ -61,81 +35,62 @@ except ImportError:
         return None
 
 
-
 # Import vault upload service - ALL uploads go through here first
 
 try:
-
-    from app.services.vault_upload_service import get_vault_service, VaultDocument
+    from app.services.vault_upload_service import get_vault_service
 
     HAS_VAULT_SERVICE = True
 
 except ImportError:
-
     HAS_VAULT_SERVICE = False
-
 
 
 # Import document registry for unified registration
 
 try:
-
     from app.services.document_registry import get_document_registry
 
     HAS_REGISTRY = True
 
 except ImportError:
-
     HAS_REGISTRY = False
-
 
 
 # Import document intake for unified processing
 
 try:
-
-    from app.services.document_intake import get_document_intake, IntakeStatus
+    from app.services.document_intake import get_document_intake
 
     HAS_INTAKE = True
 
 except ImportError:
-
     HAS_INTAKE = False
-
 
 
 # Import document intelligence for unified analysis
 
 try:
-
     from .service import get_document_intelligence
 
     HAS_INTELLIGENCE = True
 
 except ImportError:
-
     HAS_INTELLIGENCE = False
-
 
 
 # Import document distributor for module integration
 
 try:
-
     from app.services.document_distributor import get_document_distributor
 
     HAS_DISTRIBUTOR = True
 
 except ImportError:
-
     HAS_DISTRIBUTOR = False
 
 
-
 logger = logging.getLogger(__name__)
-
-
-
 
 
 router = APIRouter(
@@ -145,12 +100,8 @@ router = APIRouter(
 )
 
 
-
-
-
 # stub-detector: ignore
-def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
-
+def _get_overlay_record_ids(vault_id: str | None) -> list[str]:
     """Resolve overlay records associated with a vault document.
 
 
@@ -168,9 +119,6 @@ def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
     return []
 
 
-
-
-
 # =============================================================================
 
 # Response Models
@@ -178,61 +126,51 @@ def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
 # =============================================================================
 
 
-
 class DocumentResponse(BaseModel):
-
     """Response for a single document."""
 
     id: str
 
     filename: str
 
-    original_filename: Optional[str] = None   # alias used by UI
+    original_filename: str | None = None  # alias used by UI
 
     status: str
 
-    doc_type: Optional[str] = None
+    doc_type: str | None = None
 
-    document_type: Optional[str] = None       # alias used by UI
+    document_type: str | None = None  # alias used by UI
 
-    mime_type: Optional[str] = None
+    mime_type: str | None = None
 
-    confidence: Optional[float] = None
+    confidence: float | None = None
 
-    title: Optional[str] = None
+    title: str | None = None
 
-    summary: Optional[str] = None
+    summary: str | None = None
 
-    uploaded_at: Optional[str] = None
+    uploaded_at: str | None = None
 
-    analyzed_at: Optional[str] = None
+    analyzed_at: str | None = None
 
-    certificate_path: Optional[str] = None
-
-
-
+    certificate_path: str | None = None
 
 
 class DocumentDetailResponse(DocumentResponse):
-
     """Detailed document response with extracted data."""
 
-    key_dates: Optional[list] = None
+    key_dates: list | None = None
 
-    key_parties: Optional[list] = None
+    key_parties: list | None = None
 
-    key_amounts: Optional[list] = None
+    key_amounts: list | None = None
 
-    key_terms: Optional[list] = None
+    key_terms: list | None = None
 
-    law_references: Optional[list] = None
-
-
-
+    law_references: list | None = None
 
 
 class UploadResponse(BaseModel):
-
     """Response after document upload."""
 
     id: str
@@ -244,48 +182,38 @@ class UploadResponse(BaseModel):
     message: str
 
 
-
-
-
 class UnifiedUploadResponse(BaseModel):
-
     """Comprehensive response after unified document upload, registration, and processing."""
 
     # Document identifiers
 
     id: str
 
-    registry_id: Optional[str] = None  # Semptify Document ID (SEM-YYYY-NNNNNN-XXXX)
+    registry_id: str | None = None  # Semptify Document ID (SEM-YYYY-NNNNNN-XXXX)
 
-    vault_id: Optional[str] = None
+    vault_id: str | None = None
 
     overlay_record_ids: list[str] = []
 
     filename: str
 
-    
-
     # Processing status
 
     status: str
 
-    intake_status: Optional[str] = None
-
-    
+    intake_status: str | None = None
 
     # Classification
 
-    doc_type: Optional[str] = None
+    doc_type: str | None = None
 
-    confidence: Optional[float] = None
-
-    
+    confidence: float | None = None
 
     # Extracted data summary
 
-    title: Optional[str] = None
+    title: str | None = None
 
-    summary: Optional[str] = None
+    summary: str | None = None
 
     key_dates_count: int = 0
 
@@ -293,13 +221,11 @@ class UnifiedUploadResponse(BaseModel):
 
     key_amounts_count: int = 0
 
-    
-
     # Registry info
 
     is_duplicate: bool = False
 
-    content_hash: Optional[str] = None
+    content_hash: str | None = None
 
     integrity_verified: bool = False
 
@@ -307,39 +233,29 @@ class UnifiedUploadResponse(BaseModel):
 
     requires_review: bool = False
 
-    
-
     # Legal cross-references
 
     law_references_count: int = 0
 
     matched_statutes: list[str] = []
 
-    
-
     # Intelligence insights
 
-    urgency_level: Optional[str] = None
+    urgency_level: str | None = None
 
     action_items_count: int = 0
 
-    
-
     # Processing details
 
-    processed_at: Optional[str] = None
+    processed_at: str | None = None
 
     message: str
 
 
-
-
-
 class TimelineEvent(BaseModel):
-
     """A single timeline event."""
 
-    date: Optional[str]
+    date: str | None
 
     type: str
 
@@ -349,14 +265,10 @@ class TimelineEvent(BaseModel):
 
     title: str
 
-    summary: Optional[str]
-
-
-
+    summary: str | None
 
 
 class SummaryResponse(BaseModel):
-
     """User's document summary."""
 
     total_documents: int
@@ -370,11 +282,7 @@ class SummaryResponse(BaseModel):
     date_range: dict
 
 
-
-
-
 class RightsResponse(BaseModel):
-
     """Tenant rights summary based on documents."""
 
     categories_involved: list[str]
@@ -386,9 +294,6 @@ class RightsResponse(BaseModel):
     documents_analyzed: int
 
 
-
-
-
 # =============================================================================
 
 # Intelligence Response Models - World-Class Document Analysis
@@ -396,9 +301,7 @@ class RightsResponse(BaseModel):
 # =============================================================================
 
 
-
 class ActionItemResponse(BaseModel):
-
     """An action item the user should take."""
 
     id: str
@@ -409,20 +312,16 @@ class ActionItemResponse(BaseModel):
 
     description: str
 
-    deadline: Optional[str] = None
+    deadline: str | None = None
 
     deadline_type: str = "recommended"
 
-    legal_basis: Optional[str] = None
+    legal_basis: str | None = None
 
     completed: bool = False
 
 
-
-
-
 class LegalInsightResponse(BaseModel):
-
     """A legal insight related to the document."""
 
     statute: str
@@ -442,11 +341,7 @@ class LegalInsightResponse(BaseModel):
     deadlines_imposed: list[str] = []
 
 
-
-
-
 class IntelligenceEventResponse(BaseModel):
-
     """A timeline event generated from the document."""
 
     id: str
@@ -463,14 +358,10 @@ class IntelligenceEventResponse(BaseModel):
 
     is_critical: bool = False
 
-    days_until: Optional[int] = None
-
-
-
+    days_until: int | None = None
 
 
 class IntelligenceResponse(BaseModel):
-
     """Complete document intelligence analysis."""
 
     document_id: str
@@ -492,11 +383,7 @@ class IntelligenceResponse(BaseModel):
     metadata: dict  # analyzed_at, version
 
 
-
-
-
 class UrgentDocumentResponse(BaseModel):
-
     """An urgent document requiring attention."""
 
     id: str
@@ -505,16 +392,13 @@ class UrgentDocumentResponse(BaseModel):
 
     doc_type: str
 
-    title: Optional[str] = None
+    title: str | None = None
 
     urgency_level: str
 
     action_items: list[dict] = []
 
-    uploaded_at: Optional[str] = None
-
-
-
+    uploaded_at: str | None = None
 
 
 # =============================================================================
@@ -524,23 +408,14 @@ class UrgentDocumentResponse(BaseModel):
 # =============================================================================
 
 
-
 @router.post("/process", response_model=UnifiedUploadResponse)
-
 async def process_document(
-
     request: Request,
-
     vault_id: str = Form(..., description="Vault document ID (already uploaded to vault)"),
-
-    case_number: Optional[str] = Form(None, description="Associate with case number"),
-
+    case_number: str | None = Form(None, description="Associate with case number"),
     user: StorageUser = Depends(yellow_access),
-
     db: AsyncSession = Depends(get_db),
-
 ):
-
     """
     🚀 DOCUMENT PROCESSING - Process a vaulted document
 
@@ -559,8 +434,6 @@ async def process_document(
     Upload first: POST /api/vault/upload → returns vault_id
     Then process: POST /api/documents/process with vault_id
     """
-
-    from datetime import datetime, timezone
 
     user_id = user.user_id
 
@@ -593,8 +466,9 @@ async def process_document(
 
         # Download content from vault for processing
         from app.services.storage import get_storage_provider
-        storage = get_storage_provider(user.provider.value if hasattr(user.provider, 'value') else str(user.provider))
-        session_token = getattr(user, 'access_token', None) or _get_valid_token(user_id)
+
+        storage = get_storage_provider(user.provider.value if hasattr(user.provider, "value") else str(user.provider))
+        session_token = getattr(user, "access_token", None) or _get_valid_token(user_id)
 
         content = await storage.download_file(vault_doc.storage_path, session_token)
         mime_type = vault_doc.mime_type or "application/octet-stream"
@@ -631,40 +505,26 @@ async def process_document(
     # =========================================================================
 
     if HAS_REGISTRY and registry_id:
-
         try:
-
             registry = get_document_registry()
 
             # Enrich the auto-registered document with additional context
 
             registry.enrich_document(
-
                 document_id=registry_id,
-
                 case_number=case_number,
-
                 ip_address=client_ip,
-
                 vault_metadata={
-
                     "vault_id": vault_doc.vault_id if vault_doc else None,
-
                     "storage_provider": vault_doc.storage_provider if vault_doc else None,
-
                     "source_module": vault_doc.source_module if vault_doc else None,
-
-                }
-
+                },
             )
 
             logger.info(f"Document registry enriched: {registry_id}")
 
         except Exception as e:
-
             logger.warning(f"Registry enrichment failed: {e}")
-
-    
 
     # =========================================================================
 
@@ -675,18 +535,8 @@ async def process_document(
     pipeline = get_document_pipeline()
 
     doc = await pipeline.ingest_and_process(
-
-        user_id=user_id,
-
-        filename=file.filename,
-
-        content=content,
-
-        mime_type=mime_type
-
+        user_id=user_id, filename=filename or vault_doc.filename, content=content, mime_type=mime_type
     )
-
-    
 
     # =========================================================================
 
@@ -694,10 +544,8 @@ async def process_document(
 
     # =========================================================================
 
-    if HAS_INTAKE and hasattr(doc, 'id') and doc.id:
-
+    if HAS_INTAKE and hasattr(doc, "id") and doc.id:
         try:
-
             intake = get_document_intake()
 
             # Intake processes by document ID (the document is already stored)
@@ -707,10 +555,7 @@ async def process_document(
             intake_status = intake_doc.status.value if intake_doc else None
 
         except Exception as e:
-
             logger.warning("Intake processing failed: %s", e)
-
-    
 
     # =========================================================================
 
@@ -719,30 +564,19 @@ async def process_document(
     # =========================================================================
 
     if doc.status == ProcessingStatus.CLASSIFIED:
-
         try:
-
             law_engine = get_law_engine()
 
             doc.law_references = law_engine.get_applicable_laws(
-
                 doc_type=doc.doc_type.value if doc.doc_type else "unknown",
-
                 doc_text=doc.full_text or "",
-
-                doc_terms=doc.key_terms or []
-
+                doc_terms=doc.key_terms or [],
             )
 
-            matched_statutes = [ref.get("statute", ref.get("title", ""))[:50] 
-
-                               for ref in (doc.law_references or [])[:5]]
+            matched_statutes = [ref.get("statute", ref.get("title", ""))[:50] for ref in (doc.law_references or [])[:5]]
 
         except Exception as e:
-
             logger.warning("Law cross-reference failed: %s", e)
-
-    
 
     # =========================================================================
 
@@ -751,27 +585,19 @@ async def process_document(
     # =========================================================================
 
     if HAS_INTELLIGENCE and doc.full_text:
-
         try:
-
             intelligence = get_document_intelligence()
 
             intel_result = await intelligence.analyze(
-
                 text=doc.full_text,
-
                 filename=doc.filename,
-
                 document_id=doc.id,
-
             )
 
             if intel_result:
-
                 # IntelligenceResult is a dataclass, access via attributes or to_dict()
 
-                if hasattr(intel_result, 'to_dict'):
-
+                if hasattr(intel_result, "to_dict"):
                     intel_dict = intel_result.to_dict()
 
                     urgency_level = intel_dict.get("urgency", {}).get("level")
@@ -779,22 +605,18 @@ async def process_document(
                     action_items = intel_dict.get("insights", {}).get("action_items", [])
 
                 else:
+                    urgency_level = getattr(intel_result, "urgency_level", None)
 
-                    urgency_level = getattr(intel_result, 'urgency_level', None)
-
-                    action_items = getattr(intel_result, 'action_items', [])
+                    action_items = getattr(intel_result, "action_items", [])
 
                 action_items_count = len(action_items) if action_items else 0
 
-                doc.intelligence_result = intel_dict if hasattr(intel_result, 'to_dict') else intel_result
+                doc.intelligence_result = intel_dict if hasattr(intel_result, "to_dict") else intel_result
 
                 doc.urgency_level = urgency_level
 
         except Exception as e:
-
             logger.warning("Intelligence analysis failed: %s", e)
-
-    
 
     # =========================================================================
 
@@ -803,76 +625,47 @@ async def process_document(
     # =========================================================================
 
     if HAS_DISTRIBUTOR:
-
         try:
-
             distributor = get_document_distributor()
 
             distributor.distribute_document(
-
                 document_id=doc.id,
-
                 user_id=user_id,
-
                 registry_id=registry_id,
-
                 filename=doc.filename,
-
                 mime_type=mime_type,
-
                 file_size=len(content),
-
-                storage_path=doc.storage_path if hasattr(doc, 'storage_path') else None,
-
+                storage_path=doc.storage_path if hasattr(doc, "storage_path") else None,
                 content_hash=content_hash,
-
                 doc_type=doc.doc_type.value if doc.doc_type else None,
-
                 confidence=doc.confidence or 0.0,
-
                 title=doc.title,
-
                 summary=doc.summary,
-
                 full_text=doc.full_text,
-
                 key_dates=doc.key_dates,
-
                 key_parties=doc.key_parties,
-
                 key_amounts=doc.key_amounts,
-
                 key_terms=doc.key_terms,
-
                 case_numbers=[],  # Extract from intelligence if available
-
                 law_references=doc.law_references,
-
                 matched_statutes=matched_statutes,
-
                 urgency_level=urgency_level,
-
-                action_items=doc.intelligence_result.get("insights", {}).get("action_items", []) if doc.intelligence_result else [],
-
-                timeline_events=doc.intelligence_result.get("insights", {}).get("timeline_events", []) if doc.intelligence_result else [],
-
+                action_items=doc.intelligence_result.get("insights", {}).get("action_items", [])
+                if doc.intelligence_result
+                else [],
+                timeline_events=doc.intelligence_result.get("insights", {}).get("timeline_events", [])
+                if doc.intelligence_result
+                else [],
                 is_duplicate=is_duplicate,
-
                 integrity_verified=integrity_verified,
-
                 forgery_score=forgery_score,
-
                 requires_review=requires_review,
-
             )
 
             logger.info(f"Document {doc.id} distributed to Briefcase, Form Data, Court Packet")
 
         except Exception as e:
-
             logger.warning(f"Document distribution failed: {e}")
-
-    
 
     # =========================================================================
 
@@ -880,93 +673,61 @@ async def process_document(
 
     # =========================================================================
 
-    event_bus.publish_sync(EventType.DOCUMENT_ADDED, {
-
-        "user_id": user_id,
-
-        "document_id": doc.id,
-
-        "registry_id": registry_id,
-
-        "filename": doc.filename,
-
-        "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-
-        "status": doc.status.value,
-
-        "has_text": bool(doc.full_text),
-
-        "law_refs_count": len(doc.law_references) if doc.law_references else 0,
-
-        "is_duplicate": is_duplicate,
-
-        "urgency_level": urgency_level,
-
-    })
-
-    
+    event_bus.publish_sync(
+        EventType.DOCUMENT_ADDED,
+        {
+            "user_id": user_id,
+            "document_id": doc.id,
+            "registry_id": registry_id,
+            "filename": doc.filename,
+            "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+            "status": doc.status.value,
+            "has_text": bool(doc.full_text),
+            "law_refs_count": len(doc.law_references) if doc.law_references else 0,
+            "is_duplicate": is_duplicate,
+            "urgency_level": urgency_level,
+        },
+    )
 
     if doc.status == ProcessingStatus.CLASSIFIED and doc.full_text:
-
-        event_bus.publish_sync(EventType.DOCUMENT_CLASSIFIED, {
-
-            "user_id": user_id,
-
-            "document_id": doc.id,
-
-            "registry_id": registry_id,
-
-            "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-
-            "ready_for_extraction": True
-
-        })
-
-    
+        event_bus.publish_sync(
+            EventType.DOCUMENT_CLASSIFIED,
+            {
+                "user_id": user_id,
+                "document_id": doc.id,
+                "registry_id": registry_id,
+                "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+                "ready_for_extraction": True,
+            },
+        )
 
     # Brain event
 
     try:
-
-        from app.services.positronic_brain import get_brain, BrainEvent, EventType as BrainEventType, ModuleType
+        from app.services.positronic_brain import BrainEvent, EventType as BrainEventType, ModuleType, get_brain
 
         brain = get_brain()
 
-        await brain.emit(BrainEvent(
-
-            event_type=BrainEventType.DOCUMENT_UPLOADED,
-
-            source_module=ModuleType.DOCUMENTS,
-
-            data={
-
-                "document_id": doc.id,
-
-                "registry_id": registry_id,
-
-                "filename": doc.filename,
-
-                "status": doc.status.value,
-
-                "doc_type": doc.doc_type.value if doc.doc_type else None,
-
-                "user_id": user_id,
-
-                "is_duplicate": is_duplicate,
-
-                "urgency_level": urgency_level,
-
-            },
-
-            user_id=user_id
-
-        ))
+        await brain.emit(
+            BrainEvent(
+                event_type=BrainEventType.DOCUMENT_UPLOADED,
+                source_module=ModuleType.DOCUMENTS,
+                data={
+                    "document_id": doc.id,
+                    "registry_id": registry_id,
+                    "filename": doc.filename,
+                    "status": doc.status.value,
+                    "doc_type": doc.doc_type.value if doc.doc_type else None,
+                    "user_id": user_id,
+                    "is_duplicate": is_duplicate,
+                    "urgency_level": urgency_level,
+                },
+                user_id=user_id,
+            )
+        )
 
     except Exception as e:
-
         logger.debug("Brain event emission failed (non-critical): %s", e)
-
-
 
     # =========================================================================
 
@@ -975,72 +736,40 @@ async def process_document(
     # =========================================================================
 
     try:
-
-        from app.core.search_engine import get_search_engine, DocumentIndex
-
-        from datetime import datetime
-
-
+        from app.core.search_engine import DocumentIndex, get_search_engine
 
         search_engine = get_search_engine()
-
-
 
         # Build document index entry
 
         doc_index = DocumentIndex(
-
             document_id=doc.id,
-
             user_id=user_id,
-
             title=doc.title or doc.filename,
-
             content=doc.full_text or doc.extracted_text or doc.summary or "",
-
             metadata={
-
                 "filename": doc.filename,
-
                 "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-
                 "mime_type": mime_type,
-
                 "content_hash": content_hash,
-
                 "vault_id": vault_id,
-
                 "registry_id": registry_id,
-
                 "urgency_level": urgency_level,
-
-                "law_references": doc.law_references if hasattr(doc, 'law_references') else [],
-
+                "law_references": doc.law_references if hasattr(doc, "law_references") else [],
                 "is_duplicate": is_duplicate,
-
             },
-
-            created_at=getattr(doc, 'created_at', utc_now()),
-
-            updated_at=getattr(doc, 'updated_at', utc_now()),
-
-            file_type=doc.doc_type.value if doc.doc_type else mime_type.split('/')[-1] if mime_type else "unknown",
-
-            tags=doc.key_terms if hasattr(doc, 'key_terms') and doc.key_terms else []
-
+            created_at=getattr(doc, "created_at", utc_now()),
+            updated_at=getattr(doc, "updated_at", utc_now()),
+            file_type=doc.doc_type.value if doc.doc_type else mime_type.split("/")[-1] if mime_type else "unknown",
+            tags=doc.key_terms if hasattr(doc, "key_terms") and doc.key_terms else [],
         )
-
-
 
         search_engine.add_document(doc_index)
 
         logger.info(f"🔍 Document indexed for search: {doc.id}")
 
     except Exception as e:
-
-        logger.warning(f"Search indexing failed (non-critical): %s", e)
-
-
+        logger.warning("Search indexing failed (non-critical): %s", e)
 
     # =========================================================================
 
@@ -1049,13 +778,12 @@ async def process_document(
     # =========================================================================
 
     try:
-
         # Process through filedored system for virtual folder organization
-        from app.services.filedored_service import process_uploaded_document
-        from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.services.storage import get_provider as _get_provider
         from app.core.oauth_token_manager import get_valid_token_for_user
         from app.core.user_id import get_provider_from_user_id
+        from app.services.filedored_service import process_uploaded_document
+        from app.services.storage import get_provider as _get_provider
+        from app.services.unified_overlay_manager import get_unified_overlay_manager
 
         _token = get_valid_token_for_user(user_id)
         _provider_code = get_provider_from_user_id(user_id) or "google_drive"
@@ -1066,21 +794,13 @@ async def process_document(
             logger.warning("Filedored skipped for %s (no overlay manager)", vault_id)
         else:
             filedored_result = await process_uploaded_document(
-
                 vault_id=vault_id,
-
                 user_id=user_id,
-
                 filename=doc.filename,
-
                 content=content,
-
                 sha256_hash=content_hash,
-
                 enable_ai=False,  # AI classification disabled by default
-
                 overlay_manager=_overlay_manager,
-
             )
 
             logger.info(f"Filedored processing: {filedored_result.get('status', 'unknown')} for {vault_id}")
@@ -1089,26 +809,14 @@ async def process_document(
         from app.services.duplicate_detection_service import detect_duplicates
 
         duplicate_result = await detect_duplicates(
-
-            user_id=user_id,
-
-            vault_id=vault_id,
-
-            sha256_hash=content_hash,
-
-            filename=doc.filename
-
+            user_id=user_id, vault_id=vault_id, sha256_hash=content_hash, filename=doc.filename
         )
 
         if duplicate_result.get("is_duplicate"):
-
             logger.info(f"Duplicate detected: {vault_id} matches {duplicate_result.get('original_vault_id')}")
 
     except Exception as e:
-
-        logger.warning(f"Filedored processing failed (non-critical): %s", e)
-
-
+        logger.warning("Filedored processing failed (non-critical): %s", e)
 
     # =========================================================================
 
@@ -1118,214 +826,118 @@ async def process_document(
 
     overlay_record_ids = _get_overlay_record_ids(vault_id)
 
+    # Auto-sync calendar with deadlines and ledger dates derived from this document.
+    try:
+        from app.services.calendar_sync import sync_calendar_for_user
 
+        await sync_calendar_for_user(user_id)
+    except Exception as sync_exc:
+        logger.warning("Calendar sync failed after document processing: %s", sync_exc)
 
     return UnifiedUploadResponse(
-
         # Identifiers
-
         id=doc.id,
-
         registry_id=registry_id,
-
         vault_id=vault_id,
-
         overlay_record_ids=overlay_record_ids,
-
         filename=doc.filename,
-
-        
-
         # Status
-
         status=doc.status.value,
-
         intake_status=intake_status,
-
-        
-
         # Classification
-
         doc_type=doc.doc_type.value if doc.doc_type else None,
-
         confidence=doc.confidence,
-
-        
-
         # Extracted data
-
         title=doc.title,
-
         summary=doc.summary,
-
         key_dates_count=len(doc.key_dates) if doc.key_dates else 0,
-
         key_parties_count=len(doc.key_parties) if doc.key_parties else 0,
-
         key_amounts_count=len(doc.key_amounts) if doc.key_amounts else 0,
-
-        
-
         # Registry info
-
         is_duplicate=is_duplicate,
-
         content_hash=content_hash,
-
         integrity_verified=integrity_verified,
-
         forgery_score=forgery_score,
-
         requires_review=requires_review,
-
-        
-
         # Legal
-
         law_references_count=len(doc.law_references) if doc.law_references else 0,
-
         matched_statutes=matched_statutes,
-
-        
-
         # Intelligence
-
         urgency_level=urgency_level,
-
         action_items_count=action_items_count,
-
-        
-
         # Metadata
-
         processed_at=utc_now().isoformat(),
-
-        message="✅ Document fully processed: uploaded, registered, analyzed, classified, and cross-referenced"
-
+        message="✅ Document fully processed: uploaded, registered, analyzed, classified, and cross-referenced",
     )
 
 
-
-
-
 @router.post("/upload/simple", response_model=UploadResponse)
-
 async def upload_document_simple(
-
     file: UploadFile = File(...),
-
     process_now: bool = Query(True, description="Process immediately or queue"),
-
     user: StorageUser = Depends(yellow_access),
-
 ):
-
     """
 
     Simple document upload (legacy endpoint).
 
-    
+
 
     For full processing in one action, use POST /api/documents/upload instead.
 
     """
 
     if not file.filename:
-
         raise HTTPException(status_code=400, detail="Filename required")
 
-
-
     if not HAS_VAULT_SERVICE:
-
         raise HTTPException(
-
             status_code=503,
-
             detail={
-
                 "error": "vault_unavailable",
-
                 "message": "Use POST /api/documents/upload — all documents must go to vault first.",
-
             },
-
         )
-
-
 
     content = await file.read()
 
     if len(content) > 50 * 1024 * 1024:  # 50MB limit
-
         raise HTTPException(status_code=400, detail="File too large (max 50MB)")
-
-
 
     user_id = user.user_id
 
     pipeline = get_document_pipeline()
 
-
-
     if process_now:
-
         doc = await pipeline.ingest_and_process(
-
             user_id=user_id,
-
             filename=file.filename,
-
             content=content,
-
-            mime_type=file.content_type or "application/octet-stream"
-
+            mime_type=file.content_type or "application/octet-stream",
         )
 
     else:
-
         doc = await pipeline.ingest(
-
             user_id=user_id,
-
             filename=file.filename,
-
             content=content,
-
-            mime_type=file.content_type or "application/octet-stream"
-
+            mime_type=file.content_type or "application/octet-stream",
         )
 
-
-
     return UploadResponse(
-
         id=doc.id,
-
         filename=doc.filename,
-
         status=doc.status.value,
-
-        message=f"Document {'processed' if process_now else 'queued'} successfully"
-
+        message=f"Document {'processed' if process_now else 'queued'} successfully",
     )
 
 
-
-
-
 @router.get("/", response_model=list[DocumentResponse])
-
 async def list_documents(
-
-    doc_type: Optional[str] = Query(None, description="Filter by document type"),
-
-    status: Optional[str] = Query(None, description="Filter by status"),
-
+    doc_type: str | None = Query(None, description="Filter by document type"),
+    status: str | None = Query(None, description="Filter by status"),
     user: StorageUser = Depends(yellow_access),
-
 ):
-
     """List all documents for the authenticated user."""
 
     if not HAS_VAULT_SERVICE:
@@ -1361,119 +973,74 @@ async def list_documents(
     ]
 
 
-
-
-
 @router.get("/{doc_id}", response_model=DocumentDetailResponse)
-
 async def get_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
-
     """Get detailed information about a document."""
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-    
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
-
-    
 
     # Get law references if not already set
 
     if doc.status == ProcessingStatus.CLASSIFIED and not doc.law_references:
-
         law_engine = get_law_engine()
 
         doc.law_references = law_engine.get_applicable_laws(
-
             doc_type=doc.doc_type.value if doc.doc_type else "unknown",
-
             doc_text=doc.full_text or "",
-
-            doc_terms=doc.key_terms or []
-
+            doc_terms=doc.key_terms or [],
         )
 
-    
-
     return DocumentDetailResponse(
-
         id=doc.id,
-
         filename=doc.filename,
-
         status=doc.status.value,
-
         doc_type=doc.doc_type.value if doc.doc_type else None,
-
         confidence=doc.confidence,
-
         title=doc.title,
-
         summary=doc.summary,
-
         uploaded_at=doc.uploaded_at.isoformat() if doc.uploaded_at else None,
-
         analyzed_at=doc.analyzed_at.isoformat() if doc.analyzed_at else None,
-
         key_dates=doc.key_dates,
-
         key_parties=doc.key_parties,
-
         key_amounts=doc.key_amounts,
-
         key_terms=doc.key_terms,
-
-        law_references=doc.law_references
-
+        law_references=doc.law_references,
     )
 
 
-
-
-
 @router.post("/{doc_id}/reprocess")
-
 async def reprocess_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
-
     """Reprocess an existing document."""
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
-
-
 
     doc = await pipeline.process(doc_id)
 
+    # Auto-sync calendar with any newly-extracted deadlines.
+    try:
+        from app.services.calendar_sync import sync_calendar_for_user
 
+        await sync_calendar_for_user(user.user_id)
+    except Exception as sync_exc:
+        logger.warning("Calendar sync failed after document reprocess: %s", sync_exc)
 
     return {"status": doc.status.value, "message": "Document reprocessed"}
-
-
-
 
 
 # =============================================================================
@@ -1483,22 +1050,13 @@ async def reprocess_document(doc_id: str, user: StorageUser = Depends(yellow_acc
 # =============================================================================
 
 
-
 @router.get("/{doc_id}/intelligence", response_model=IntelligenceResponse)
-
-async def get_document_intelligence_analysis(
-
-    doc_id: str,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def get_document_intelligence_analysis(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """
 
     Get full document intelligence analysis.
 
-    
+
 
     This world-class analysis includes:
 
@@ -1516,7 +1074,7 @@ async def get_document_intelligence_analysis(
 
     - **Plain English explanation** of what the document means
 
-    
+
 
     This is the most comprehensive analysis available.
 
@@ -1526,69 +1084,34 @@ async def get_document_intelligence_analysis(
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-
-
     if doc.status != ProcessingStatus.CLASSIFIED:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Document must be processed first. Use /reprocess endpoint."
-
-        )
-
-
+        raise HTTPException(status_code=400, detail="Document must be processed first. Use /reprocess endpoint.")
 
     # Get intelligence analysis
 
     result = await pipeline.get_intelligence(doc_id)
 
-    
-
     if not result:
-
         raise HTTPException(
-
-            status_code=500,
-
-            detail="Intelligence analysis failed. Document may not have extractable text."
-
+            status_code=500, detail="Intelligence analysis failed. Document may not have extractable text."
         )
-
-
 
     return IntelligenceResponse(**result)
 
 
-
-
-
 @router.get("/urgent/", response_model=list[UrgentDocumentResponse])
-
-async def get_urgent_documents(
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def get_urgent_documents(user: StorageUser = Depends(yellow_access)):
     """
 
     Get all urgent documents requiring immediate attention.
 
-    
+
 
     Returns documents with urgency level 'critical' or 'high', sorted by urgency.
 
@@ -1600,29 +1123,16 @@ async def get_urgent_documents(
 
     urgent = await pipeline.get_urgent_documents(user.user_id)
 
-    
-
     return [UrgentDocumentResponse(**d) for d in urgent]
 
 
-
-
-
 @router.post("/{doc_id}/analyze-intelligence")
-
-async def analyze_document_intelligence(
-
-    doc_id: str,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def analyze_document_intelligence(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """
 
     Trigger fresh intelligence analysis for a document.
 
-    
+
 
     Use this to get updated analysis after document changes or
 
@@ -1634,31 +1144,14 @@ async def analyze_document_intelligence(
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-
-
     if doc.status != ProcessingStatus.CLASSIFIED:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Document must be processed first"
-
-        )
-
-
+        raise HTTPException(status_code=400, detail="Document must be processed first")
 
     # Force fresh analysis
 
@@ -1666,34 +1159,19 @@ async def analyze_document_intelligence(
 
     result = await pipeline.get_intelligence(doc_id)
 
-    
-
     if not result:
-
         raise HTTPException(status_code=500, detail="Analysis failed")
 
-
-
     return {
-
         "document_id": doc_id,
-
         "status": "analyzed",
-
         "urgency": result.get("urgency", {}),
-
         "action_count": len(result.get("insights", {}).get("action_items", [])),
-
-        "message": "Intelligence analysis complete"
-
+        "message": "Intelligence analysis complete",
     }
 
 
-
-
-
 class DocumentTextResponse(BaseModel):
-
     """Response for document text content."""
 
     doc_id: str
@@ -1702,353 +1180,170 @@ class DocumentTextResponse(BaseModel):
 
     text: str
 
-    doc_type: Optional[str] = None
-
-
-
+    doc_type: str | None = None
 
 
 class CategoryUpdateRequest(BaseModel):
-
     """Request to update document category."""
 
     doc_type: str
 
 
-
-
-
 @router.get("/{doc_id}/text", response_model=DocumentTextResponse)
-
-async def get_document_text(
-
-    doc_id: str,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def get_document_text(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """Get the full text content of a document."""
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-
-
     if not doc.full_text:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Document has no extracted text. Reprocess the document first."
-
-        )
-
-
+        raise HTTPException(status_code=400, detail="Document has no extracted text. Reprocess the document first.")
 
     return DocumentTextResponse(
-
-        doc_id=doc_id,
-
-        filename=doc.filename,
-
-        text=doc.full_text,
-
-        doc_type=doc.doc_type.value if doc.doc_type else None
-
+        doc_id=doc_id, filename=doc.filename, text=doc.full_text, doc_type=doc.doc_type.value if doc.doc_type else None
     )
 
 
-
-
-
 @router.put("/{doc_id}/category")
-
 async def update_document_category(
-
-    doc_id: str,
-
-    request: CategoryUpdateRequest,
-
-    user: StorageUser = Depends(yellow_access)
-
+    doc_id: str, request: CategoryUpdateRequest, user: StorageUser = Depends(yellow_access)
 ):
-
     """Update the category/type of a document."""
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
-
-
 
     # Validate document type
 
-    valid_types = ['court_filing', 'lease', 'notice', 'correspondence', 'financial', 'other']
+    valid_types = ["court_filing", "lease", "notice", "correspondence", "financial", "other"]
 
     if request.doc_type not in valid_types:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail=f"Invalid document type. Must be one of: {', '.join(valid_types)}"
-
-        )
-
-
+        raise HTTPException(status_code=400, detail=f"Invalid document type. Must be one of: {', '.join(valid_types)}")
 
     # Update the document type
 
     try:
-
         new_type = DocumentType(request.doc_type)
 
         doc.doc_type = new_type
 
         pipeline._save_index()
 
-        
-
-        return {
-
-            "doc_id": doc_id,
-
-            "doc_type": request.doc_type,
-
-            "message": "Category updated successfully"
-
-        }
+        return {"doc_id": doc_id, "doc_type": request.doc_type, "message": "Category updated successfully"}
 
     except ValueError:
-
         raise HTTPException(status_code=400, detail="Invalid document type")
 
 
-
-
-
 @router.get("/{doc_id}/view")
-
-async def view_document(
-
-    doc_id: str,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def view_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """Serve a document inline for in-browser viewing."""
 
-    import os
-
     from fastapi.responses import FileResponse
-
-
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-
-
-    if hasattr(doc, 'file_path') and doc.file_path and os.path.exists(doc.file_path):
-
-        mime = getattr(doc, 'mime_type', None) or "application/octet-stream"
+    if hasattr(doc, "file_path") and doc.file_path and Path(doc.file_path).exists():
+        mime = getattr(doc, "mime_type", None) or "application/octet-stream"
 
         return FileResponse(
-
             path=doc.file_path,
-
             filename=doc.filename,
-
             media_type=mime,
-
             headers={"Content-Disposition": f'inline; filename="{doc.filename}"'},
-
         )
 
-
-
     raise HTTPException(status_code=404, detail="Document file not found")
-
-
-
 
 
 @router.get("/{doc_id}/thumbnail")
-
-async def thumbnail_document(
-
-    doc_id: str,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def thumbnail_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """Return document thumbnail — for images serves the file inline; for non-images returns 404."""
 
-    import os
-
     from fastapi.responses import FileResponse
-
-
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-
-
-    mime = getattr(doc, 'mime_type', None) or ""
+    mime = getattr(doc, "mime_type", None) or ""
 
     if not mime.startswith("image/"):
-
         raise HTTPException(status_code=404, detail="No thumbnail for non-image documents")
 
-
-
-    if hasattr(doc, 'file_path') and doc.file_path and os.path.exists(doc.file_path):
-
+    if hasattr(doc, "file_path") and doc.file_path and Path(doc.file_path).exists():
         return FileResponse(
-
             path=doc.file_path,
-
             media_type=mime,
-
             headers={"Content-Disposition": f'inline; filename="{doc.filename}"'},
-
         )
-
-
 
     raise HTTPException(status_code=404, detail="Document file not found")
 
 
-
-
-
 @router.get("/{doc_id}/download")
-
-async def download_document(
-
-    doc_id: str,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def download_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """Download the original document file."""
 
     from fastapi.responses import FileResponse
 
-    import os
-
-
-
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
-
-
 
     # Find the file path
 
-    if hasattr(doc, 'file_path') and doc.file_path and os.path.exists(doc.file_path):
-
-        return FileResponse(
-
-            path=doc.file_path,
-
-            filename=doc.filename,
-
-            media_type="application/octet-stream"
-
-        )
-
-
+    if hasattr(doc, "file_path") and doc.file_path and Path(doc.file_path).exists():
+        return FileResponse(path=doc.file_path, filename=doc.filename, media_type="application/octet-stream")
 
     raise HTTPException(status_code=404, detail="Document file not found")
 
 
-
-
-
 @router.get("/export/download")
-
 async def export_documents(
-
-    doc_type: Optional[str] = Query(None, description="Filter by document type"),
-
-    format: str = Query("zip", description="Export format: zip, json, or csv"),
-
-    user: StorageUser = Depends(yellow_access)
-
+    doc_type: str | None = Query(None, description="Filter by document type"),
+    export_format: str = Query("zip", description="Export format: zip, json, or csv"),
+    user: StorageUser = Depends(yellow_access),
 ):
-
     """
 
     Export all user documents as a ZIP archive, JSON, or CSV.
 
-    
+
 
     - **zip**: Downloads all documents as a ZIP file with metadata
 
@@ -2058,232 +1353,155 @@ async def export_documents(
 
     """
 
-    import io
-
-    import json
-
     import csv
-
+    import io
+    import json
     import zipfile
 
-    import os
-
-    from datetime import datetime
-
     from fastapi.responses import StreamingResponse
-
-    
 
     pipeline = get_document_pipeline()
 
     docs = pipeline.get_user_documents(user.user_id)
 
-    
-
     # Filter by doc_type if specified
 
     if doc_type:
-
         docs = [d for d in docs if d.doc_type and d.doc_type.value == doc_type]
 
-    
-
     if not docs:
-
         raise HTTPException(status_code=404, detail="No documents found to export")
-
-    
 
     # Prepare document metadata
 
     doc_metadata = []
 
     for doc in docs:
-
         metadata = {
-
             "id": doc.id,
-
             "filename": doc.filename,
-
             "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-
             "status": doc.status.value if doc.status else "unknown",
-
             "title": doc.title or "",
-
             "summary": doc.summary or "",
-
             "uploaded_at": doc.uploaded_at.isoformat() if doc.uploaded_at else "",
-
             "analyzed_at": doc.analyzed_at.isoformat() if doc.analyzed_at else "",
-
             "confidence": doc.confidence or 0,
-
         }
-
-        
 
         # Add extracted data if available
 
-        if hasattr(doc, 'key_dates') and doc.key_dates:
-
+        if hasattr(doc, "key_dates") and doc.key_dates:
             metadata["key_dates"] = doc.key_dates
 
-        if hasattr(doc, 'key_parties') and doc.key_parties:
-
+        if hasattr(doc, "key_parties") and doc.key_parties:
             metadata["key_parties"] = doc.key_parties
 
-        if hasattr(doc, 'key_amounts') and doc.key_amounts:
-
+        if hasattr(doc, "key_amounts") and doc.key_amounts:
             metadata["key_amounts"] = doc.key_amounts
-
-            
 
         doc_metadata.append(metadata)
 
-    
-
     timestamp = utc_now().strftime("%Y%m%d_%H%M%S")
 
-    
-
-    if format == "json":
-
+    if export_format == "json":
         # Export as JSON
 
-        json_content = json.dumps({
-
-            "export_date": utc_now().isoformat(),
-
-            "user_id": user.user_id,
-
-            "document_count": len(doc_metadata),
-
-            "documents": doc_metadata
-
-        }, indent=2)
-
-        
-
-        return StreamingResponse(
-
-            io.BytesIO(json_content.encode('utf-8')),
-
-            media_type="application/json",
-
-            headers={"Content-Disposition": f"attachment; filename=semptify_documents_{timestamp}.json"}
-
+        json_content = json.dumps(
+            {
+                "export_date": utc_now().isoformat(),
+                "user_id": user.user_id,
+                "document_count": len(doc_metadata),
+                "documents": doc_metadata,
+            },
+            indent=2,
         )
 
-    
+        return StreamingResponse(
+            io.BytesIO(json_content.encode("utf-8")),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=semptify_documents_{timestamp}.json"},
+        )
 
-    elif format == "csv":
-
+    elif export_format == "csv":
         # Export as CSV
 
         output = io.StringIO()
 
-        fieldnames = ["id", "filename", "doc_type", "status", "title", "summary", "uploaded_at", "analyzed_at", "confidence"]
+        fieldnames = [
+            "id",
+            "filename",
+            "doc_type",
+            "status",
+            "title",
+            "summary",
+            "uploaded_at",
+            "analyzed_at",
+            "confidence",
+        ]
 
-        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
 
         writer.writeheader()
 
         writer.writerows(doc_metadata)
 
-        
-
         return StreamingResponse(
-
-            io.BytesIO(output.getvalue().encode('utf-8')),
-
+            io.BytesIO(output.getvalue().encode("utf-8")),
             media_type="text/csv",
-
-            headers={"Content-Disposition": f"attachment; filename=semptify_documents_{timestamp}.csv"}
-
+            headers={"Content-Disposition": f"attachment; filename=semptify_documents_{timestamp}.csv"},
         )
 
-    
-
     else:  # ZIP format (default)
-
         # Create ZIP in memory
 
         zip_buffer = io.BytesIO()
 
-        
-
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             # Add metadata file
 
-            metadata_json = json.dumps({
-
-                "export_date": utc_now().isoformat(),
-
-                "user_id": user.user_id,
-
-                "document_count": len(doc_metadata),
-
-                "documents": doc_metadata
-
-            }, indent=2)
+            metadata_json = json.dumps(
+                {
+                    "export_date": utc_now().isoformat(),
+                    "user_id": user.user_id,
+                    "document_count": len(doc_metadata),
+                    "documents": doc_metadata,
+                },
+                indent=2,
+            )
 
             zip_file.writestr("_metadata.json", metadata_json)
-
-            
 
             # Add each document file
 
             for doc in docs:
-
-                if hasattr(doc, 'file_path') and doc.file_path and os.path.exists(doc.file_path):
-
+                if hasattr(doc, "file_path") and doc.file_path and Path(doc.file_path).exists():
                     # Create folder structure by doc type
 
                     doc_type_folder = doc.doc_type.value if doc.doc_type else "other"
 
                     file_path_in_zip = f"{doc_type_folder}/{doc.filename}"
 
-                    
-
                     try:
-
-                        with open(doc.file_path, 'rb') as f:
-
+                        with Path(doc.file_path).open("rb") as f:
                             zip_file.writestr(file_path_in_zip, f.read())
 
                     except Exception as e:
-
                         # Log error but continue with other files
 
                         logger.error(f"Error adding {doc.filename} to ZIP: {e}")
 
-        
-
         zip_buffer.seek(0)
 
-        
-
         return StreamingResponse(
-
             zip_buffer,
-
             media_type="application/zip",
-
-            headers={"Content-Disposition": f"attachment; filename=semptify_documents_{timestamp}.zip"}
-
+            headers={"Content-Disposition": f"attachment; filename=semptify_documents_{timestamp}.zip"},
         )
 
 
-
-
-
 @router.get("/timeline/", response_model=list[TimelineEvent])
-
 async def get_timeline(user: StorageUser = Depends(yellow_access)):
-
     """Get chronological timeline of all documents and events."""
 
     user_id = user.user_id
@@ -2292,18 +1510,11 @@ async def get_timeline(user: StorageUser = Depends(yellow_access)):
 
     events = pipeline.get_timeline(user_id)
 
-    
-
     return [TimelineEvent(**e) for e in events]
 
 
-
-
-
 @router.get("/summary/", response_model=SummaryResponse)
-
 async def get_summary(user: StorageUser = Depends(yellow_access)):
-
     """Get summary statistics for the authenticated user's documents."""
 
     user_id = user.user_id
@@ -2312,18 +1523,11 @@ async def get_summary(user: StorageUser = Depends(yellow_access)):
 
     summary = pipeline.get_summary(user_id)
 
-    
-
     return SummaryResponse(**summary)
 
 
-
-
-
 @router.get("/rights/", response_model=RightsResponse)
-
 async def get_rights_summary(user: StorageUser = Depends(yellow_access)):
-
     """
 
     Get a summary of tenant rights based on uploaded documents.
@@ -2338,36 +1542,21 @@ async def get_rights_summary(user: StorageUser = Depends(yellow_access)):
 
     law_engine = get_law_engine()
 
-    
-
     docs = pipeline.get_user_documents(user_id)
 
     classified_docs = [d for d in docs if d.status == ProcessingStatus.CLASSIFIED]
 
-    
-
     if not classified_docs:
-
         return RightsResponse(
-
             categories_involved=[],
-
             your_rights=["Upload documents to see applicable rights"],
-
             important_deadlines=[],
-
-            documents_analyzed=0
-
+            documents_analyzed=0,
         )
-
-    
 
     rights = law_engine.get_rights_summary(user_id, classified_docs)
 
     return RightsResponse(**rights)
-
-
-
 
 
 # =============================================================================
@@ -2377,65 +1566,41 @@ async def get_rights_summary(user: StorageUser = Depends(yellow_access)):
 # =============================================================================
 
 
-
 @router.get("/laws/", response_model=list[dict])
-
-async def list_laws(category: Optional[str] = Query(None, description="Filter by category")):
-
+async def list_laws(category: str | None = Query(None, description="Filter by category")):
     """List all law references in the system."""
 
     law_engine = get_law_engine()
 
-    
-
     if category:
-
         from app.services.law_engine import LawCategory
 
         try:
-
             cat = LawCategory(category)
 
             laws = law_engine.get_laws_by_category(cat)
 
         except ValueError:
-
             laws = law_engine.get_all_laws()
 
     else:
-
         laws = law_engine.get_all_laws()
-
-    
 
     return [law.to_dict() for law in laws]
 
 
-
-
-
 @router.get("/laws/{law_id}")
-
 async def get_law(law_id: str):
-
     """Get details about a specific law reference."""
 
     law_engine = get_law_engine()
 
     law = law_engine.get_law(law_id)
 
-
-
     if not law:
-
         raise HTTPException(status_code=404, detail="Law reference not found")
 
-
-
     return law.to_dict()
-
-
-
 
 
 # =============================================================================
@@ -2445,9 +1610,7 @@ async def get_law(law_id: str):
 # =============================================================================
 
 
-
 class ExtractedEventResponse(BaseModel):
-
     """A single extracted event from a document."""
 
     date: str
@@ -2465,27 +1628,19 @@ class ExtractedEventResponse(BaseModel):
     source_text: str
 
 
-
-
-
 class ExtractEventsResponse(BaseModel):
-
     """Response with all extracted events from a document."""
 
     doc_id: str
 
-    doc_type: Optional[str]
+    doc_type: str | None
 
     events: list[ExtractedEventResponse]
 
     total_events: int
 
 
-
-
-
 class AutoTimelineRequest(BaseModel):
-
     """Request to auto-populate timeline from document."""
 
     min_confidence: float = 0.7
@@ -2493,11 +1648,7 @@ class AutoTimelineRequest(BaseModel):
     include_existing: bool = False
 
 
-
-
-
 class AutoTimelineResponse(BaseModel):
-
     """Response after auto-populating timeline."""
 
     doc_id: str
@@ -2509,26 +1660,17 @@ class AutoTimelineResponse(BaseModel):
     events: list[dict]
 
 
-
-
-
 @router.get("/{doc_id}/events", response_model=ExtractEventsResponse)
-
 async def extract_document_events(
-
     doc_id: str,
-
     min_confidence: float = Query(0.5, ge=0.0, le=1.0, description="Minimum confidence threshold"),
-
-    user: StorageUser = Depends(yellow_access)
-
+    user: StorageUser = Depends(yellow_access),
 ):
-
     """
 
     Extract dated events from a document.
 
-    
+
 
     Analyzes the document text and extracts all dates with their context,
 
@@ -2546,7 +1688,7 @@ async def extract_document_events(
 
     - other: Lease dates, move-in/out
 
-    
+
 
     Returns events sorted by date with confidence scores.
 
@@ -2554,117 +1696,61 @@ async def extract_document_events(
 
     from .service import get_event_extractor
 
-    
-
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-    
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-    
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-    
-
     if not doc.full_text:
-
-        raise HTTPException(
-
-            status_code=400, 
-
-            detail="Document has no extracted text. Reprocess the document first."
-
-        )
-
-    
+        raise HTTPException(status_code=400, detail="Document has no extracted text. Reprocess the document first.")
 
     extractor = get_event_extractor()
 
-    events = extractor.extract_events(
-
-        text=doc.full_text,
-
-        doc_type=doc.doc_type.value if doc.doc_type else "unknown"
-
-    )
-
-    
+    events = extractor.extract_events(text=doc.full_text, doc_type=doc.doc_type.value if doc.doc_type else "unknown")
 
     # Filter by confidence
 
     events = [e for e in events if e.confidence >= min_confidence]
 
-    
-
     return ExtractEventsResponse(
-
         doc_id=doc_id,
-
         doc_type=doc.doc_type.value if doc.doc_type else None,
-
         events=[
-
             ExtractedEventResponse(
-
                 date=e.date.isoformat(),
-
                 event_type=e.event_type,
-
                 title=e.title,
-
                 description=e.description,
-
                 confidence=e.confidence,
-
                 is_deadline=e.is_deadline,
-
-                source_text=e.source_text
-
+                source_text=e.source_text,
             )
-
             for e in events
-
         ],
-
-        total_events=len(events)
-
+        total_events=len(events),
     )
 
 
-
-
-
 @router.post("/{doc_id}/auto-timeline", response_model=AutoTimelineResponse)
-
 async def auto_populate_timeline(
-
-    doc_id: str,
-
-    request: AutoTimelineRequest = AutoTimelineRequest(),
-
-    user: StorageUser = Depends(yellow_access)
-
+    doc_id: str, request: AutoTimelineRequest = AutoTimelineRequest(), user: StorageUser = Depends(yellow_access)
 ):
-
     """
 
     Automatically create timeline events from a document.
 
-    
+
 
     Extracts all dated events from the document and adds them to the
 
     user's timeline. Links each event back to the source document.
 
-    
+
 
     Use this after uploading a document to automatically build your
 
@@ -2672,71 +1758,37 @@ async def auto_populate_timeline(
 
     """
 
-    from app.core.id_gen import make_id
-
-    from datetime import datetime
-
-    from app.core.utc import utc_now
-
-    from .service import get_event_extractor
+    from sqlalchemy import and_, select
 
     from app.core.database import get_db_session
-
+    from app.core.id_gen import make_id
+    from app.core.utc import utc_now
     from app.models.models import TimelineEvent as TimelineEventModel
 
-    from sqlalchemy import select, and_
-
-    
+    from .service import get_event_extractor
 
     pipeline = get_document_pipeline()
 
     doc = pipeline.get_document(doc_id)
 
-    
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
 
-    
-
     if doc.user_id != user.user_id:
-
         raise HTTPException(status_code=403, detail="Access denied")
 
-    
-
     if not doc.full_text:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Document has no extracted text. Reprocess the document first."
-
-        )
-
-    
+        raise HTTPException(status_code=400, detail="Document has no extracted text. Reprocess the document first.")
 
     # Extract events
 
     extractor = get_event_extractor()
 
-    events = extractor.extract_events(
-
-        text=doc.full_text,
-
-        doc_type=doc.doc_type.value if doc.doc_type else "unknown"
-
-    )
-
-    
+    events = extractor.extract_events(text=doc.full_text, doc_type=doc.doc_type.value if doc.doc_type else "unknown")
 
     # Filter by confidence
 
     events = [e for e in events if e.confidence >= request.min_confidence]
-
-    
 
     events_created = 0
 
@@ -2744,127 +1796,73 @@ async def auto_populate_timeline(
 
     created_events = []
 
-    
-
     async with get_db_session() as session:
-
         for event in events:
-
             # Check if similar event already exists (same date, type, doc)
 
             if not request.include_existing:
-
                 existing_query = select(TimelineEventModel).where(
-
                     and_(
-
                         TimelineEventModel.user_id == user.user_id,
-
                         TimelineEventModel.document_id == doc_id,
-
                         TimelineEventModel.event_date == event.date,
-
-                        TimelineEventModel.event_type == event.event_type
-
+                        TimelineEventModel.event_type == event.event_type,
                     )
-
                 )
 
                 existing = await session.execute(existing_query)
 
                 if existing.scalar_one_or_none():
-
                     events_skipped += 1
 
                     continue
 
-            
-
             # Create timeline event
 
             db_event = TimelineEventModel(
-
                 id=make_id("evt"),
-
                 user_id=user.user_id,
-
                 event_type=event.event_type,
-
                 title=f"{event.title} ({doc.filename})",
-
                 description=event.description,
-
                 event_date=event.date,
-
                 document_id=doc_id,
-
                 is_evidence=event.is_deadline,  # Mark deadlines as evidence
-
                 created_at=utc_now(),
-
             )
 
             session.add(db_event)
 
             events_created += 1
 
-            
-
-            created_events.append({
-
-                "id": db_event.id,
-
-                "date": event.date.isoformat(),
-
-                "event_type": event.event_type,
-
-                "title": db_event.title,
-
-                "description": event.description,
-
-                "is_deadline": event.is_deadline,
-
-                "confidence": event.confidence
-
-            })
-
-        
+            created_events.append(
+                {
+                    "id": db_event.id,
+                    "date": event.date.isoformat(),
+                    "event_type": event.event_type,
+                    "title": db_event.title,
+                    "description": event.description,
+                    "is_deadline": event.is_deadline,
+                    "confidence": event.confidence,
+                }
+            )
 
         await session.commit()
 
-    
-
     return AutoTimelineResponse(
-
-        doc_id=doc_id,
-
-        events_created=events_created,
-
-        events_skipped=events_skipped,
-
-        events=created_events
-
+        doc_id=doc_id, events_created=events_created, events_skipped=events_skipped, events=created_events
     )
 
 
-
-
-
 @router.post("/auto-timeline-all", response_model=dict)
-
 async def auto_timeline_all_documents(
-
-    min_confidence: float = Query(0.7, ge=0.0, le=1.0),
-
-    user: StorageUser = Depends(yellow_access)
-
+    min_confidence: float = Query(0.7, ge=0.0, le=1.0), user: StorageUser = Depends(yellow_access)
 ):
-
     """
 
     Extract events from ALL user documents and populate timeline.
 
-    
+
 
     Processes every analyzed document and creates timeline events.
 
@@ -2872,47 +1870,25 @@ async def auto_timeline_all_documents(
 
     """
 
-    from app.core.id_gen import make_id
-
-    from datetime import datetime
-
-    from app.core.utc import utc_now
-
-    from .service import get_event_extractor
+    from sqlalchemy import and_, select
 
     from app.core.database import get_db_session
-
+    from app.core.id_gen import make_id
+    from app.core.utc import utc_now
     from app.models.models import TimelineEvent as TimelineEventModel
 
-    from sqlalchemy import select, and_
-
-    
+    from .service import get_event_extractor
 
     pipeline = get_document_pipeline()
 
     docs = pipeline.get_user_documents(user.user_id)
 
-    
-
     # Only process analyzed documents
 
     docs = [d for d in docs if d.status == ProcessingStatus.CLASSIFIED and d.full_text]
 
-    
-
     if not docs:
-
-        return {
-
-            "message": "No analyzed documents found",
-
-            "documents_processed": 0,
-
-            "total_events_created": 0
-
-        }
-
-    
+        return {"message": "No analyzed documents found", "documents_processed": 0, "total_events_created": 0}
 
     extractor = get_event_extractor()
 
@@ -2922,104 +1898,59 @@ async def auto_timeline_all_documents(
 
     docs_processed = 0
 
-    
-
     async with get_db_session() as session:
-
         for doc in docs:
-
             events = extractor.extract_events(
-
-                text=doc.full_text,
-
-                doc_type=doc.doc_type.value if doc.doc_type else "unknown"
-
+                text=doc.full_text, doc_type=doc.doc_type.value if doc.doc_type else "unknown"
             )
 
             events = [e for e in events if e.confidence >= min_confidence]
 
-            
-
             for event in events:
-
                 # Check for existing
 
                 existing_query = select(TimelineEventModel).where(
-
                     and_(
-
                         TimelineEventModel.user_id == user.user_id,
-
                         TimelineEventModel.document_id == doc.id,
-
                         TimelineEventModel.event_date == event.date,
-
-                        TimelineEventModel.event_type == event.event_type
-
+                        TimelineEventModel.event_type == event.event_type,
                     )
-
                 )
 
                 existing = await session.execute(existing_query)
 
                 if existing.scalar_one_or_none():
-
                     total_skipped += 1
 
                     continue
 
-                
-
                 db_event = TimelineEventModel(
-
                     id=make_id("evt"),
-
                     user_id=user.user_id,
-
                     event_type=event.event_type,
-
                     title=f"{event.title} ({doc.filename})",
-
                     description=event.description,
-
                     event_date=event.date,
-
                     document_id=doc.id,
-
                     is_evidence=event.is_deadline,
-
                     created_at=utc_now(),
-
                 )
 
                 session.add(db_event)
 
                 total_created += 1
 
-            
-
             docs_processed += 1
-
-        
 
         await session.commit()
 
-    
-
     return {
-
         "message": "Timeline populated from all documents",
-
         "documents_processed": docs_processed,
-
         "total_events_created": total_created,
-
-        "events_skipped": total_skipped
-
+        "events_skipped": total_skipped,
     }
-
-
-
 
 
 # =============================================================================
@@ -3029,46 +1960,29 @@ async def auto_timeline_all_documents(
 # =============================================================================
 
 
-
 class CorrectionRequest(BaseModel):
-
     """Request to correct a document classification."""
 
     document_id: str
 
     correct_type: str
 
-    user_notes: Optional[str] = ""
-
-
-
+    user_notes: str | None = ""
 
 
 class ConfirmationRequest(BaseModel):
-
     """Request to confirm a correct classification."""
 
     document_id: str
 
 
-
-
-
 @router.post("/train/correct")
-
-async def correct_classification(
-
-    correction: CorrectionRequest,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def correct_classification(correction: CorrectionRequest, user: StorageUser = Depends(yellow_access)):
     """
 
     Submit a correction when the system misclassified a document.
 
-    
+
 
     This helps train the recognition engine to be more accurate.
 
@@ -3076,73 +1990,40 @@ async def correct_classification(
 
     from .service import get_training_service
 
-    
-
     pipeline = get_document_pipeline()
 
     doc = await pipeline.get_document(correction.document_id, user.user_id)
 
-    
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
-
-    
 
     training = get_training_service()
 
     example = training.record_correction(
-
         document_text=doc.content or "",
-
         document_filename=doc.filename,
-
         predicted_type=doc.doc_type.value if doc.doc_type else "unknown",
-
         predicted_confidence=doc.confidence or 0.0,
-
         correct_type=correction.correct_type,
-
         user_notes=correction.user_notes or "",
-
         user_id=user.user_id,
-
     )
 
-    
-
     return {
-
         "message": "Thank you! Your correction helps improve document recognition.",
-
         "training_id": example.id,
-
         "previous_type": doc.doc_type.value if doc.doc_type else "unknown",
-
         "corrected_type": correction.correct_type,
-
     }
 
 
-
-
-
 @router.post("/train/confirm")
-
-async def confirm_classification(
-
-    confirmation: ConfirmationRequest,
-
-    user: StorageUser = Depends(yellow_access)
-
-):
-
+async def confirm_classification(confirmation: ConfirmationRequest, user: StorageUser = Depends(yellow_access)):
     """
 
     Confirm that the system correctly classified a document.
 
-    
+
 
     This reinforces correct patterns in the recognition engine.
 
@@ -3150,59 +2031,36 @@ async def confirm_classification(
 
     from .service import get_training_service
 
-    
-
     pipeline = get_document_pipeline()
 
     doc = await pipeline.get_document(confirmation.document_id, user.user_id)
 
-    
-
     if not doc:
-
         raise HTTPException(status_code=404, detail="Document not found")
-
-    
 
     training = get_training_service()
 
     training.record_confirmation(
-
         document_text=doc.content or "",
-
         document_filename=doc.filename,
-
         predicted_type=doc.doc_type.value if doc.doc_type else "unknown",
-
         predicted_confidence=doc.confidence or 0.0,
-
         user_id=user.user_id,
-
     )
 
-    
-
     return {
-
         "message": "Classification confirmed! This helps reinforce accurate recognition.",
-
         "document_type": doc.doc_type.value if doc.doc_type else "unknown",
-
     }
 
 
-
-
-
 @router.get("/train/stats")
-
 async def get_training_stats():
-
     """
 
     Get statistics about document recognition training.
 
-    
+
 
     Shows accuracy rate, common mistakes, and learned patterns.
 
@@ -3210,25 +2068,18 @@ async def get_training_stats():
 
     from .service import get_training_service
 
-    
-
     training = get_training_service()
 
     return training.get_training_stats()
 
 
-
-
-
 @router.get("/train/patterns")
-
 async def get_learned_patterns():
-
     """
 
     Get the learned patterns from user corrections.
 
-    
+
 
     These patterns are used to adjust keyword weights and improve recognition.
 
@@ -3236,19 +2087,10 @@ async def get_learned_patterns():
 
     from .service import get_training_service
 
-    
-
     training = get_training_service()
 
     return {
-
         "adjustments": training.get_weight_adjustments(),
-
         "boosted_count": len(training.learned_patterns.get("boosted_keywords", {})),
-
         "suppressed_count": len(training.learned_patterns.get("suppressed_patterns", {})),
-
     }
-
-
-
