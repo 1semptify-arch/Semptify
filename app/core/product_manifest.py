@@ -1104,18 +1104,6 @@ _register(
     ),
     log_message="Document Center router connected at /api/dc (stable — admin only)",
 )
-_register(
-    "app.modules.journal.router",
-    prefix="/api/journal",
-    tags=("Journal",),
-    tier=ProductTier.CORE,
-    lifecycle="beta",
-    dev_notes=(
-        "Free-form tenant journal. /api/journal CRUD backed by JournalEntry model. "
-        "/tenant/journal renders tenant_journal.html."
-    ),
-    log_message="Journal router connected at /api/journal",
-)
 
 
 # =============================================================================
