@@ -412,7 +412,12 @@ _register(
     prefix="/api/rent",
     tags=("Rent Ledger",),
     tier=ProductTier.CORE,
-    log_message="Rent ledger router active — payment tracking endpoints enabled",
+    dev_notes=(
+        "Full rent account ledger: payments, fees, deposits, credits, charges. "
+        "Amounts stored in cents; running balance computed per user. Entries can be "
+        "user-entered or OCR-extracted and linked to overlay highlights."
+    ),
+    log_message="Rent ledger router active — full account ledger endpoints enabled",
 )
 _register(
     "app.modules.auth.router",
@@ -1129,6 +1134,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
+        "app.modules.rent.router",
         "app.modules.state_laws.router",
         "app.modules.law_library.router",
         "app.modules.contacts.router",
@@ -1140,6 +1146,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
+        "app.modules.rent.router",
         "app.modules.state_laws.router",
         "app.modules.law_library.router",
         "app.modules.contacts.router",
