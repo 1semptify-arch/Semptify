@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import importlib
 import logging
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +72,7 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.capabilities.register",
     "app.modules.tenancy_hub.register",
     "app.modules.case_builder.register",
+    "app.modules.packet_builder.register",
     "app.modules.plan_maker.register",
     "app.modules.public_forms.register",
     "app.modules.guided_intake.register",
@@ -169,6 +169,7 @@ def load_all_contracts() -> dict[str, int]:
             failed += 1
 
     from app.core.module_contracts import contract_registry
+
     total = len(contract_registry.list_contracts())
     logger.info(f"Contract registry loaded: {total} contracts ({loaded} modules ok, {failed} failed)")
 

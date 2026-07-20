@@ -18,25 +18,23 @@ Routes:
 """
 
 import logging
-from typing import Optional
+from pathlib import Path
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.cookie_auth import clear_auth_cookie, set_auth_cookie, verify_user_id
 from app.core.database import get_db
-from app.core.cookie_auth import clear_auth_cookie, verify_user_id, set_auth_cookie
-from app.core.security import require_user, StorageUser, green_access
-from app.core.workflow_engine import route_user
 from app.core.navigation import navigation
+from app.core.security import StorageUser, green_access, require_user
 from app.core.ssot_guard import ssot_redirect
-
+from app.core.workflow_engine import route_user
+from app.modules.onboarding import gates as gate_ops, oauth as oauth_ops
 from app.modules.onboarding.config import OnboardingConfig
-from app.modules.onboarding import gates as gate_ops
-from app.modules.onboarding import oauth as oauth_ops
-from app.modules.onboarding import vault as vault_ops
 
 logger = logging.getLogger(__name__)
+BASE_PATH = Path(__file__).resolve().parents[3]
 
 
 def create_router(config: OnboardingConfig) -> APIRouter:
@@ -52,7 +50,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     @router.get("/")
     async def onboarding_root():
         """Redirect bare /onboarding/ to the real entry point."""
-        return RedirectResponse(url=f"{config.route_prefix}/start", status_code=302)
+        return ssot_redirect(f"{config.route_prefix}/start", context="onboarding_root")
 
     # ------------------------------------------------------------------
     # Test Route - Debug
@@ -66,14 +64,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # Page: Role Selection (entry point)
     # ------------------------------------------------------------------
     @router.get("/role-select", response_class=HTMLResponse)
-    async def role_select_static(request: Request, fresh: Optional[str] = Query(None)):
+    async def role_select_static(request: Request, fresh: str | None = Query(None)):
         """Serve the role selection page (static)."""
         # If fresh=true, clear the auth cookie to force new registration
         if fresh == "true":
             response = FileResponse(str(BASE_PATH / "static" / "onboarding" / "role-select.html"))
             clear_auth_cookie(response)
             return response
-        
+
         role_select_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
         if not role_select_path.exists():
             raise HTTPException(status_code=404, detail="Role selection page not found")
@@ -86,7 +84,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
     @router.get("/start")
     async def onboarding_start(
-        semptify_uid: Optional[str] = Cookie(None),
+        semptify_uid: str | None = Cookie(None),
     ):
         """Smart entry: returning user → reconnect, new user → role select."""
         if semptify_uid:
@@ -101,8 +99,8 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.get("/providers", response_class=HTMLResponse)
     async def providers_page(
-        role: Optional[str] = Query("tenant"),
-        semptify_uid: Optional[str] = Cookie(None),
+        role: str | None = Query("tenant"),
+        semptify_uid: str | None = Cookie(None),
     ):
         """Show storage provider selection. Config-driven provider list.
 
@@ -127,16 +125,19 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         logger.info("onboarding_oauth_start: provider=%s role=%s force_fresh=%s", provider, role, force_fresh)
         logger.info("Request URL: %s", str(request.url) if request else "No request")
         logger.info("Request headers: %s", dict(request.headers) if request else "No headers")
-        
+
         if provider not in config.allowed_providers:
-            logger.error("onboarding_oauth_start: provider '%s' not in allowed_providers: %s", provider, config.allowed_providers)
+            logger.error(
+                "onboarding_oauth_start: provider '%s' not in allowed_providers: %s", provider, config.allowed_providers
+            )
             raise HTTPException(status_code=400, detail=f"Provider '{provider}' not supported")
-        allowed_roles = getattr(gate_ops, 'ALLOWED_ROLES', {"tenant"})
+        allowed_roles = getattr(gate_ops, "ALLOWED_ROLES", {"tenant"})
         if role not in allowed_roles:
             role = "tenant"
 
         # Build callback URL — resolve the real public URL (Render proxy-aware)
         from app.core.config import get_settings as _get_settings
+
         _settings = _get_settings()
         if _settings.public_base_url:
             base_url = _settings.public_base_url.rstrip("/")
@@ -144,10 +145,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # Render sets X-Forwarded-Host + X-Forwarded-Proto on every request
             fwd_host = request.headers.get("x-forwarded-host")
             fwd_proto = request.headers.get("x-forwarded-proto", "https")
-            if fwd_host:
-                base_url = f"{fwd_proto}://{fwd_host}"
-            else:
-                base_url = str(request.base_url).rstrip("/")
+            base_url = f"{fwd_proto}://{fwd_host}" if fwd_host else str(request.base_url).rstrip("/")
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
         try:
@@ -157,10 +155,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             logger.exception("OAuth initiation failed: provider=%s role=%s error=%s", provider, role, exc)
             raise HTTPException(status_code=500, detail="OAuth initiation failed") from exc
 
-        logger.info("Onboarding OAuth initiated: provider=%s role=%s callback=%s headers_host=%s headers_proto=%s",
-                    provider, role, callback_url,
-                    request.headers.get("x-forwarded-host", "NONE"),
-                    request.headers.get("x-forwarded-proto", "NONE"))
+        logger.info(
+            "Onboarding OAuth initiated: provider=%s role=%s callback=%s headers_host=%s headers_proto=%s",
+            provider,
+            role,
+            callback_url,
+            request.headers.get("x-forwarded-host", "NONE"),
+            request.headers.get("x-forwarded-proto", "NONE"),
+        )
         # OAuth is external - use direct redirect
         return RedirectResponse(url=auth_url, status_code=302)
 
@@ -185,20 +187,18 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """
         try:
             logger.info("OAuth callback started: provider=%s state=%s", provider, state[:8] + "***")
-            
+
             from app.core.config import get_settings as _get_settings
+
             _settings = _get_settings()
             if _settings.public_base_url:
                 base_url = _settings.public_base_url.rstrip("/")
             else:
                 fwd_host = request.headers.get("x-forwarded-host")
                 fwd_proto = request.headers.get("x-forwarded-proto", "https")
-                if fwd_host:
-                    base_url = f"{fwd_proto}://{fwd_host}"
-                else:
-                    base_url = str(request.base_url).rstrip("/")
+                base_url = f"{fwd_proto}://{fwd_host}" if fwd_host else str(request.base_url).rstrip("/")
             callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
-            
+
             logger.info("OAuth callback: built callback_url=%s", callback_url)
 
             result = await oauth_ops.handle_onboarding_callback(
@@ -209,12 +209,12 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 callback_url=callback_url,
                 config=config,
             )
-            
+
             logger.info("OAuth callback: handle_onboarding_callback completed")
 
             user_id = result["user_id"]
             vault_initialized = result["vault_initialized"]
-            
+
             logger.info("OAuth callback: user_id=%s vault_initialized=%s", user_id[:6] + "***", vault_initialized)
 
             # Determine landing — always route to selected role's home page
@@ -225,21 +225,29 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
             logger.info(
                 "Onboarding callback complete: user=%s vault=%s → %s",
-                user_id[:6] + "***", vault_initialized, landing,
+                user_id[:6] + "***",
+                vault_initialized,
+                landing,
             )
 
             # Use SSOT-compliant redirect
             from app.core.ssot_guard import ssot_redirect
+
             response = ssot_redirect(landing, context="onboarding_oauth_callback")
-            
-            logger.info("OAuth callback: about to set cookie for user=%s secure=%s", user_id[:6] + "***", request.url.scheme == "https")
+
+            logger.info(
+                "OAuth callback: about to set cookie for user=%s secure=%s",
+                user_id[:6] + "***",
+                request.url.scheme == "https",
+            )
             set_auth_cookie(response, user_id, secure=request.url.scheme == "https")
             logger.info("OAuth callback: cookie set successfully. Response headers: %s", dict(response.headers))
-            
+
             return response
-            
+
         except Exception as e:
             import traceback
+
             tb = traceback.format_exc()
             logger.error("OAuth callback failed: %s\n%s", str(e), tb)
             return HTMLResponse(
@@ -257,7 +265,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # Page: Vault Setup — Step 1: Build Folders
     # ------------------------------------------------------------------
     @router.get("/vault-setup", response_class=HTMLResponse)
-    async def vault_setup_page(semptify_uid: Optional[str] = Cookie(None)):
+    async def vault_setup_page(semptify_uid: str | None = Cookie(None)):
         """Step 1: Create vault folders."""
         if not semptify_uid:
             role_stage = navigation.get_stage("role_select")
@@ -268,7 +276,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # Page: Vault Setup — Step 2: Security Wiring
     # ------------------------------------------------------------------
     @router.get("/vault-setup/security", response_class=HTMLResponse)
-    async def vault_security_page(semptify_uid: Optional[str] = Cookie(None)):
+    async def vault_security_page(semptify_uid: str | None = Cookie(None)):
         """Step 2: Write token backup and security files."""
         if not semptify_uid:
             role_stage = navigation.get_stage("role_select")
@@ -279,7 +287,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # Page: Vault Setup — Step 3: Final Inspection
     # ------------------------------------------------------------------
     @router.get("/vault-setup/inspect", response_class=HTMLResponse)
-    async def vault_inspect_page(semptify_uid: Optional[str] = Cookie(None)):
+    async def vault_inspect_page(semptify_uid: str | None = Cookie(None)):
         """Step 3: Verify vault is fully operational."""
         if not semptify_uid:
             role_stage = navigation.get_stage("role_select")
@@ -330,11 +338,12 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         db: AsyncSession = Depends(get_db),
     ):
         """Step 1: Create vault folder structure and seed files only."""
-        from app.modules.vault_installer.installer import VaultInstaller
-        from app.modules.onboarding.gates import check_gate
         import asyncio
 
-        provider_name = user.provider.value if hasattr(user.provider, 'value') else str(user.provider)
+        from app.modules.onboarding.gates import check_gate
+        from app.modules.vault_installer.installer import VaultInstaller
+
+        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
 
         if await check_gate(db, user.user_id, "vault_initialized"):
             logger.info("Vault init skipped: already initialized for user %s", user.user_id[:6] + "***")
@@ -345,9 +354,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         results = {"success": False, "folders_created": [], "files_created": [], "errors": []}
         try:
             logger.info("Step 1: Creating vault folders for user %s", user.user_id[:6] + "***")
-            vault_result = await asyncio.wait_for(
-                installer.vault_client.create_folders(), timeout=25.0
-            )
+            vault_result = await asyncio.wait_for(installer.vault_client.create_folders(), timeout=25.0)
             if not vault_result.all_ok:
                 results["errors"] = [f"{f.path}: {f.detail}" for f in vault_result.failed]
                 return results
@@ -355,9 +362,15 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             results["success"] = True
             logger.info("Step 1 complete: %d folders", len(results["folders_created"]))
             return results
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Vault init timed out for user %s", user.user_id[:6] + "***")
-            return {"success": False, "error": "Timed out creating folders — please retry", "folders_created": [], "files_created": [], "errors": ["timeout"]}
+            return {
+                "success": False,
+                "error": "Timed out creating folders — please retry",
+                "folders_created": [],
+                "files_created": [],
+                "errors": ["timeout"],
+            }
         except Exception as e:
             logger.error("Vault init error for user %s: %s", user.user_id[:6] + "***", str(e))
             return {"success": False, "error": str(e), "folders_created": [], "files_created": [], "errors": [str(e)]}
@@ -371,10 +384,11 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         db: AsyncSession = Depends(get_db),
     ):
         """Step 2: Write encrypted token backup and device keys."""
-        from app.modules.vault_installer.installer import VaultInstaller
         import asyncio
 
-        provider_name = user.provider.value if hasattr(user.provider, 'value') else str(user.provider)
+        from app.modules.vault_installer.installer import VaultInstaller
+
+        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
         installer = VaultInstaller(provider_name, user.access_token, user.user_id)
 
         results = {"success": False, "files_created": [], "errors": []}
@@ -384,9 +398,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # the probe and subsequent steps can rely on it being present.
             try:
                 await asyncio.wait_for(installer._create_token_backup(results), timeout=20.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error("Token backup timed out for user %s", user.user_id[:6] + "***")
-                return {"success": False, "error": "Timed out writing token backup — please retry", "files_created": [], "errors": ["timeout"]}
+                return {
+                    "success": False,
+                    "error": "Timed out writing token backup — please retry",
+                    "files_created": [],
+                    "errors": ["timeout"],
+                }
 
             if results["errors"]:
                 raise Exception("Token backup failed: " + ", ".join(results["errors"]))
@@ -400,7 +419,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     await installer._create_system_files(res)
                     await installer._create_data_files(res)
                 except Exception as bg_err:
-                    logger.warning("Background vault files creation failed for user %s: %s", user.user_id[:6] + "***", bg_err)
+                    logger.warning(
+                        "Background vault files creation failed for user %s: %s", user.user_id[:6] + "***", bg_err
+                    )
 
             # Fire-and-forget background task
             _task = asyncio.create_task(_create_noncritical_files(results))
@@ -434,10 +455,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """
         import asyncio
         import secrets as _secrets
+
         from app.core.utc import utc_now
-        from app.sdk.vault import VaultClient, TENANT_VAULT
-        from app.core.vault_paths import VAULT_ROOT, VAULT_DOCUMENTS
-        from app.core.path_utils import normalize_cloud_path
+        from app.core.vault_paths import VAULT_DOCUMENTS, VAULT_ROOT
+        from app.sdk.vault import TENANT_VAULT, VaultClient
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
 
@@ -466,12 +487,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # SDK expects relative path to VAULT_ROOT. Strip prefix.
             subfolder = VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")
             probe_name = f"_vault_probe_{_secrets.token_hex(4)}.txt"
-            probe_bytes = (
-                f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}"
-            ).encode()
+            probe_bytes = (f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}").encode()
             await asyncio.wait_for(
-                client.upload(subfolder=subfolder, filename=probe_name,
-                              content=probe_bytes, mime_type="text/plain"),
+                client.upload(subfolder=subfolder, filename=probe_name, content=probe_bytes, mime_type="text/plain"),
                 timeout=25.0,
             )
             read_back = await asyncio.wait_for(
@@ -481,7 +499,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             if read_back != probe_bytes:
                 raise ValueError("Read-back mismatch — vault storage is unreliable")
             await client.delete(subfolder=subfolder, filename=probe_name)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Vault probe timed out for user %s", user.user_id[:6] + "***")
             return {"ok": False, "accessible": False, "error": "Vault probe timed out — please retry"}
         except Exception as e:
@@ -503,7 +521,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     filename=original_name,
                     content=file_bytes,
                     mime_type=mime_type,
-                    document_type=None,         # classifier will determine type
+                    document_type=None,  # classifier will determine type
                     description="First document — uploaded during vault setup",
                     tags=["onboarding", "first_document"],
                     source_module="onboarding",
@@ -526,8 +544,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
             if not vault_doc.registry_id or vault_doc.integrity_status != "verified":
                 raise ValueError(
-                    "Document was stored but did not receive a registry document ID."
-                    " Please retry or contact support."
+                    "Document was stored but did not receive a registry document ID. Please retry or contact support."
                 )
 
             user_documents = await vault_service.get_user_documents(user.user_id)
@@ -537,8 +554,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # (non-blocking — onboarding completes regardless)
             async def _run_pipeline(vault_id: str, uid: str) -> None:
                 try:
-                    from app.services.document_intake import DocumentIntakeEngine
                     from app.services.document_flow_orchestrator import DocumentFlowOrchestrator
+                    from app.services.document_intake import DocumentIntakeEngine
+
                     engine = DocumentIntakeEngine()
                     intake_doc = await engine.intake_document(
                         user_id=uid,
@@ -549,18 +567,15 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     )
                     await engine.process_document(intake_doc.id)
                     orchestrator = DocumentFlowOrchestrator()
-                    await orchestrator.process_document_complete(
-                        doc_id=intake_doc.id, user_id=uid, db_session=db
-                    )
+                    await orchestrator.process_document_complete(doc_id=intake_doc.id, user_id=uid, db_session=db)
                 except Exception as pipeline_err:
-                    logger.warning(
-                        "Background pipeline error for vault_doc %s: %s", vault_id, pipeline_err
-                    )
+                    logger.warning("Background pipeline error for vault_doc %s: %s", vault_id, pipeline_err)
 
             import asyncio as _asyncio
+
             _asyncio.create_task(_run_pipeline(vault_doc.vault_id, user.user_id))
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("VaultUploadService timed out for user %s", user.user_id[:6] + "***")
             return {"ok": False, "accessible": True, "error": "Upload timed out — please try again"}
         except Exception as e:
@@ -572,12 +587,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # backup, live write/read probe, and document pipeline all pass.
         # Marking it earlier (e.g. after step 1) would give a false green.
         from app.modules.onboarding.gates import mark_gate
+
         await mark_gate(db, user.user_id, "vault_initialized")
         await mark_gate(db, user.user_id, "document_uploaded")
 
         logger.info(
             "Final gate passed — '%s' seeded all systems for user %s",
-            original_name, user.user_id[:6] + "***",
+            original_name,
+            user.user_id[:6] + "***",
         )
         return {
             "ok": True,
@@ -590,8 +607,6 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             "document_count": document_count,
         }
 
-
-
     # ------------------------------------------------------------------
     # API: System Verification — Final health check before completion
     # ------------------------------------------------------------------
@@ -602,7 +617,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     ):
         """
         Comprehensive system verification before marking onboarding complete.
-        
+
         Checks all critical systems:
         1. Database connection and user record
         2. OAuth tokens valid and not expired
@@ -610,32 +625,30 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         4. User ID cookie signature valid
         5. All required modules loaded
         6. Pipeline services ready
-        
+
         Returns detailed status for each system.
         """
-        from app.core.cookie_auth import verify_user_id
-        from app.sdk.vault import VaultClient, TENANT_VAULT
-        from app.core.vault_paths import VAULT_DOCUMENTS
-        from app.core.path_utils import normalize_cloud_path
         import asyncio
 
+        from app.core.path_utils import normalize_cloud_path
+        from app.core.vault_paths import VAULT_DOCUMENTS
+        from app.sdk.vault import TENANT_VAULT, VaultClient
+
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
-        results = {
-            "all_systems_go": False,
-            "checks": {},
-            "errors": []
-        }
+        results = {"all_systems_go": False, "checks": {}, "errors": []}
 
         # Check 1: Database connection and user record
         try:
             from sqlalchemy import select
+
             from app.models.models import User
+
             stmt = select(User).where(User.id == user.user_id)
             result = await db.execute(stmt)
             db_user = result.scalar_one_or_none()
             results["checks"]["database"] = {
                 "status": "ok" if db_user else "failed",
-                "detail": "User record found" if db_user else "User record missing"
+                "detail": "User record found" if db_user else "User record missing",
             }
             if not db_user:
                 results["errors"].append("Database: User record not found")
@@ -647,25 +660,20 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         try:
             from app.core.oauth_token_manager import OAuthToken
             from app.modules.storage.router import get_valid_session
+
             session = await get_valid_session(db, user.user_id, auto_refresh=False)
             if session and session.get("access_token"):
                 token = OAuthToken.from_dict(session)
                 if not token.is_expired():
                     results["checks"]["oauth_tokens"] = {
                         "status": "ok",
-                        "detail": f"Token valid, expires in {token.expires_in_seconds()}s"
+                        "detail": f"Token valid, expires in {token.expires_in_seconds()}s",
                     }
                 else:
-                    results["checks"]["oauth_tokens"] = {
-                        "status": "expired",
-                        "detail": "OAuth token expired"
-                    }
+                    results["checks"]["oauth_tokens"] = {"status": "expired", "detail": "OAuth token expired"}
                     results["errors"].append("OAuth: Token expired")
             else:
-                results["checks"]["oauth_tokens"] = {
-                    "status": "failed",
-                    "detail": "No valid session found"
-                }
+                results["checks"]["oauth_tokens"] = {"status": "failed", "detail": "No valid session found"}
                 results["errors"].append("OAuth: No valid session")
         except Exception as e:
             results["checks"]["oauth_tokens"] = {"status": "error", "detail": str(e)}
@@ -674,22 +682,16 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # Check 3: Vault folders accessible
         try:
             client = VaultClient(
-                provider=provider_name,
-                access_token=user.access_token,
-                user_id=user.user_id,
-                folder_spec=TENANT_VAULT
+                provider=provider_name, access_token=user.access_token, user_id=user.user_id, folder_spec=TENANT_VAULT
             )
             # Try to list documents folder as a health check
             docs_path = normalize_cloud_path(VAULT_DOCUMENTS)
-            files = await asyncio.wait_for(
-                client.list_files(docs_path),
-                timeout=10.0
-            )
+            files = await asyncio.wait_for(client.list_files(docs_path), timeout=10.0)
             results["checks"]["vault_access"] = {
                 "status": "ok",
-                "detail": f"Vault accessible, {len(files)} files in documents folder"
+                "detail": f"Vault accessible, {len(files)} files in documents folder",
             }
-        except asyncio.TimeoutError:
+        except TimeoutError:
             results["checks"]["vault_access"] = {"status": "timeout", "detail": "Vault access timed out"}
             results["errors"].append("Vault: Access timeout")
         except Exception as e:
@@ -699,15 +701,18 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # Check 4: Vault gate consistency
         try:
             from app.modules.onboarding.gates import check_gate
+
             vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
             results["checks"]["vault_gate_consistency"] = {
                 "status": "ok" if vault_initialized else "pending",
-                "detail": "vault_initialized gate is set" if vault_initialized else "vault_initialized gate not yet set"
+                "detail": "vault_initialized gate is set"
+                if vault_initialized
+                else "vault_initialized gate not yet set",
             }
             if vault_initialized and results["checks"]["vault_access"]["status"] != "ok":
                 results["checks"]["vault_gate_consistency"] = {
                     "status": "warning",
-                    "detail": "vault_initialized gate set but vault storage access failed"
+                    "detail": "vault_initialized gate set but vault storage access failed",
                 }
                 results["errors"].append("Inconsistent state: vault_initialized gate set but storage access failed")
         except Exception as e:
@@ -717,11 +722,12 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         # Check 5: User ID format valid
         try:
             from app.core.user_id import parse_user_id
+
             provider_code, role_code, unique_part = parse_user_id(user.user_id)
             valid_uid = bool(provider_code and role_code and unique_part)
             results["checks"]["user_id"] = {
                 "status": "ok" if valid_uid else "failed",
-                "detail": "User ID format valid" if valid_uid else "Invalid user ID format"
+                "detail": "User ID format valid" if valid_uid else "Invalid user ID format",
             }
             if not valid_uid:
                 results["errors"].append("User ID: invalid format")
@@ -731,11 +737,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         # Check 5: Required modules loaded
         try:
-            from app.services.document_intake import DocumentIntakeEngine
-            from app.services.document_registry import DocumentRegistry
             results["checks"]["modules"] = {
                 "status": "ok",
-                "detail": "DocumentIntakeEngine and DocumentRegistry loaded"
+                "detail": "DocumentIntakeEngine and DocumentRegistry loaded",
             }
         except Exception as e:
             results["checks"]["modules"] = {"status": "error", "detail": str(e)}
@@ -743,23 +747,19 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         # Check 6: Pipeline services ready
         try:
-            from app.services.storage.vault_upload_service import VaultUploadService
-            results["checks"]["pipeline"] = {
-                "status": "ok",
-                "detail": "VaultUploadService loaded"
-            }
+            results["checks"]["pipeline"] = {"status": "ok", "detail": "VaultUploadService loaded"}
         except Exception as e:
             results["checks"]["pipeline"] = {"status": "error", "detail": str(e)}
             results["errors"].append(f"Pipeline error: {str(e)}")
 
         # Final determination
         results["all_systems_go"] = (
-            results["checks"].get("database", {}).get("status") == "ok" and
-            results["checks"].get("oauth_tokens", {}).get("status") == "ok" and
-            results["checks"].get("vault_access", {}).get("status") == "ok" and
-            results["checks"].get("user_id", {}).get("status") == "ok" and
-            results["checks"].get("modules", {}).get("status") == "ok" and
-            results["checks"].get("pipeline", {}).get("status") == "ok"
+            results["checks"].get("database", {}).get("status") == "ok"
+            and results["checks"].get("oauth_tokens", {}).get("status") == "ok"
+            and results["checks"].get("vault_access", {}).get("status") == "ok"
+            and results["checks"].get("user_id", {}).get("status") == "ok"
+            and results["checks"].get("modules", {}).get("status") == "ok"
+            and results["checks"].get("pipeline", {}).get("status") == "ok"
         )
 
         return results
@@ -768,26 +768,23 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # Page: Complete
     # ------------------------------------------------------------------
     @router.get("/complete")
-    async def onboarding_complete(
-        semptify_uid: Optional[str] = Cookie(None),
-        db: AsyncSession = Depends(get_db)
-    ):
+    async def onboarding_complete(semptify_uid: str | None = Cookie(None), db: AsyncSession = Depends(get_db)):
         """Validate onboarding completion and route to product home page."""
         from app.modules.onboarding.gates import check_gate
-        
+
         if not semptify_uid:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="onboarding_complete no cookie")
-        
+
         raw_uid = verify_user_id(semptify_uid)
         if not raw_uid:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="onboarding_complete bad cookie")
-        
+
         # All 3 gates must be passed in order
-        storage_connected  = await check_gate(db, raw_uid, "storage_connected")
-        vault_initialized  = await check_gate(db, raw_uid, "vault_initialized")
-        document_uploaded  = await check_gate(db, raw_uid, "document_uploaded")
+        storage_connected = await check_gate(db, raw_uid, "storage_connected")
+        vault_initialized = await check_gate(db, raw_uid, "vault_initialized")
+        document_uploaded = await check_gate(db, raw_uid, "document_uploaded")
 
         if not storage_connected:
             return ssot_redirect(f"{config.route_prefix}/providers", context="onboarding_complete storage_missing")
@@ -796,7 +793,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             return ssot_redirect(f"{config.route_prefix}/vault-setup", context="onboarding_complete vault_missing")
 
         if not document_uploaded:
-            return ssot_redirect(f"{config.route_prefix}/vault-setup/inspect", context="onboarding_complete document_missing")
+            return ssot_redirect(
+                f"{config.route_prefix}/vault-setup/inspect", context="onboarding_complete document_missing"
+            )
 
         # All gates passed - route to role-specific homepage
         destination = await route_user(raw_uid)
@@ -808,7 +807,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.get("/status", response_class=HTMLResponse)
     async def onboarding_status(
-        semptify_uid: Optional[str] = Cookie(None),
+        semptify_uid: str | None = Cookie(None),
         db: AsyncSession = Depends(get_db),
     ):
         """Check current gate status and show appropriate page."""
@@ -823,6 +822,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         if incomplete is None:
             # Role-based redirect after onboarding completion
             from app.core.user_id import parse_user_id
+
             _, role, _ = parse_user_id(raw_uid)
             if role == "admin":
                 return ssot_redirect("/admin/dashboard", context="status all gates done admin")
@@ -845,16 +845,17 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 # Page Renderers (minimal — these generate the HTML that JS drives)
 # ============================================================================
 
+
 def _render_role_selection_page(config: OnboardingConfig) -> str:
     """Render role selection page — all 5 roles, non-tenant marked Coming Soon."""
     providers_path = f"{config.route_prefix}/providers"
 
     roles = [
-        ("tenant",  "🏠", "Tenant",             "I'm renting a home and need to protect my rights", True),
-        ("manager", "�", "Worker / Manager",    "I work with multiple clients across housing cases", False),
-        ("advocate","⚖️", "Housing Advocate",    "I help tenants navigate housing law", False),
-        ("legal",   "📋", "Legal Professional",  "I'm an attorney or paralegal working housing cases", False),
-        ("admin",   "🛡️", "Administrator",       "Platform administration and oversight", False),
+        ("tenant", "🏠", "Tenant", "I'm renting a home and need to protect my rights", True),
+        ("manager", "�", "Worker / Manager", "I work with multiple clients across housing cases", False),
+        ("advocate", "⚖️", "Housing Advocate", "I help tenants navigate housing law", False),
+        ("legal", "📋", "Legal Professional", "I'm an attorney or paralegal working housing cases", False),
+        ("admin", "🛡️", "Administrator", "Platform administration and oversight", False),
     ]
 
     role_cards = ""
@@ -909,6 +910,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 </div>
 <script src="/js/unified-footer-loader.js"></script>
 </body></html>"""
+
 
 def _render_providers_page(config: OnboardingConfig) -> str:
     """Render storage provider selection page."""
@@ -981,9 +983,12 @@ _VAULT_FACTS = [
 ]
 
 
-def _vault_step_shell(product_name: str, step_num: int, icon: str, headline: str, subline: str, body_html: str, script: str) -> str:
+def _vault_step_shell(
+    product_name: str, step_num: int, icon: str, headline: str, subline: str, body_html: str, script: str
+) -> str:
     """Shared HTML shell for all 3 vault setup steps."""
     import json as _json
+
     facts_js = _json.dumps(_VAULT_FACTS)
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -1023,9 +1028,9 @@ h1 {{ font-size: 1.45rem; font-weight: 400; color: #1e3a5f; margin-bottom: 0.4re
     <h1>{headline}</h1>
     <div class="subline">{subline}</div>
     <div class="progress-track">
-        <div class="pip {'done' if step_num > 1 else 'active'}" id="pip1"></div>
-        <div class="pip {'done' if step_num > 2 else ('active' if step_num == 2 else '')}" id="pip2"></div>
-        <div class="pip {'active' if step_num == 3 else ''}" id="pip3"></div>
+        <div class="pip {"done" if step_num > 1 else "active"}" id="pip1"></div>
+        <div class="pip {"done" if step_num > 2 else ("active" if step_num == 2 else "")}" id="pip2"></div>
+        <div class="pip {"active" if step_num == 3 else ""}" id="pip3"></div>
     </div>
     <div class="body-area" id="body-area">
         {body_html}
@@ -1100,10 +1105,13 @@ async function run() {{
 run();
 """
     return _vault_step_shell(
-        config.product_name, 1, "🏗️",
+        config.product_name,
+        1,
+        "🏗️",
         "Semptify is Building Your Vault",
         "Constructing your secure folder structure in the cloud...",
-        body_html, script
+        body_html,
+        script,
     )
 
 
@@ -1142,10 +1150,13 @@ async function run() {{
 run();
 """
     return _vault_step_shell(
-        config.product_name, 2, "🔐",
+        config.product_name,
+        2,
+        "🔐",
         "Wiring Your Security System",
         "Installing encrypted keys and securing your access credentials...",
-        body_html, script
+        body_html,
+        script,
     )
 
 
@@ -1241,10 +1252,13 @@ async function doUpload(file) {{
 uploadBtn.addEventListener('click', () => {{ if (chosenFile) doUpload(chosenFile); }});
 """
     return _vault_step_shell(
-        config.product_name, 3, "📂",
+        config.product_name,
+        3,
+        "📂",
         "Upload Your First Document",
         "One document to finish setup. Your vault needs something to protect.",
-        body_html, script
+        body_html,
+        script,
     )
 
 

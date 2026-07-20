@@ -133,6 +133,21 @@ def test_no_hardcoded_urls_in_routers():
                     line_num = content[: match.start()].count("\n") + 1
                     violations.append(f"{relative_path}:{line_num} - Hardcoded redirect URL: '{url}'")
 
+        # Catch raw RedirectResponse calls that are not external OAuth (auth_url/callback_url)
+        # or the SSOT helper in app/core/ssot_guard.py (which is not scanned above).
+        if "RedirectResponse(" in content:
+            for match in re.finditer(r"RedirectResponse\s*\(", content):
+                line_start = content.rfind("\n", 0, match.start()) + 1
+                line_end = content.find("\n", match.start())
+                if line_end == -1:
+                    line_end = len(content)
+                line = content[line_start:line_end]
+                # External OAuth redirects are legitimate raw RedirectResponses.
+                if "auth_url" in line or "callback_url" in line:
+                    continue
+                line_num = content[: match.start()].count("\n") + 1
+                violations.append(f"{relative_path}:{line_num} - Raw RedirectResponse call (use ssot_redirect)")
+
     if violations:
         raise SSOTViolation("SSOT violations found in routers:\n" + "\n".join(violations))
 

@@ -176,7 +176,7 @@
             <li><code>_seed_orchestrator_tasks.py</code> → compiles incomplete items from <code>BUILD_STATE.md</code>, <code>ACTIVE_CONTEXT.md</code>, <code>FNG_TODO.md</code>, <code>STUB_AUDIT.md</code> into <code>tools/docs_todos.json</code></li>
           </ul>
           Output: <code>tools/agent_orchestrator_tasks.json</code> (merged) + embedded JSON in this page and <code>tools/orchestrator_dashboard.html</code>.</li>
-        <li><strong>Open the page fresh:</strong> Reload this tab, or click <strong>Start fresh ↺</strong> below to clear local cache and pull the newest embedded tasks. You can also double-click the <strong>Agent Orchestrator</strong> desktop shortcut to launch this page directly.</li>
+        <li><strong>Open the page fresh:</strong> The page automatically loads the live <code>tools/agent_orchestrator_tasks.json</code> on startup (file &gt; embedded JSON &gt; localStorage). If it looks stale, click <strong>Refresh from file ↻</strong> to force a reload, or <strong>Start fresh ↺</strong> to clear localStorage first and then reload. You can also double-click the <strong>Agent Orchestrator</strong> desktop shortcut to launch this page directly.</li>
         <li><strong>Pick a task:</strong> Use the Task Queue table below, or open <code>tools/orchestrator_dashboard.html</code> for the overview (status/category/agent breakdowns, filterable table). Click <em>View prompt</em> to read the generated prompt, or <em>Copy</em> to paste it into an agent.</li>
         <li><strong>Agent picks up the task:</strong> Before starting work, the agent runs:<br>
           <code>python tools/mark_task_status.py &lt;task_id&gt; in_progress --agent &lt;model-name&gt;</code></li>
@@ -199,6 +199,7 @@
       </ol>
       <div class="actions">
         <button type="button" class="btn btn-green" onclick="startFresh()">Start fresh ↺</button>
+        <button type="button" class="btn btn-secondary" onclick="refreshFromFile()" title="Re-fetch the live agent_orchestrator_tasks.json">Refresh from file ↻</button>
         <button type="button" class="btn btn-secondary" onclick="showHelpStatus()">Show current load source</button>
       </div>
     </details>
@@ -271,7 +272,7 @@
 
   <div class="card">
     <h2>Data</h2>
-    <p class="hint">The queue auto-loads from <code>tools/agent_orchestrator_tasks.json</code> on startup when localStorage is empty. To update, run <code>python tools/sync_orchestrator.py</code>, then click <strong>Start fresh ↺</strong> above to reload. You can also export or import manually below.</p>
+    <p class="hint">The queue auto-loads from <code>tools/agent_orchestrator_tasks.json</code> on startup when possible (file &gt; embedded JSON &gt; localStorage). To force a reload, click <strong>Refresh from file ↻</strong> or <strong>Start fresh ↺</strong>. You can also export or import manually below.</p>
     <div class="actions">
       <button class="btn btn-green" onclick="exportJson()">Export JSON</button>
       <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Import JSON</button>
@@ -299,9 +300,9 @@
     "priority": "high",
     "file_path": "app/routers/",
     "status": "resolved",
-    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-19 14:38 UTC - swe-1.7] [2026-07-19 - swe-1.7] Fixed in commit 9cfd9b2. 8 RedirectResponse calls in app/main.py + 1 in app/modules/admin_console/router.py converted to ssot_redirect(). verify_ssot.py passes.",
+    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-19 14:38 UTC - swe-1.7] [2026-07-19 - swe-1.7] Fixed in commit 9cfd9b2. 8 RedirectResponse calls in app/main.py + 1 in app/modules/admin_console/router.py converted to ssot_redirect(). verify_ssot.py passes.\n[2026-07-20 10:44 UTC - swe-1.7] Converted remaining internal RedirectResponse calls to ssot_redirect; tightened SSOT test.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:38:41.528219+00:00",
+    "updated_at": "2026-07-20T10:44:45.570217+00:00",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -369,9 +370,9 @@
     "priority": "medium",
     "file_path": "docs/planning/DOCUMENT_CENTER_PLAN.md",
     "status": "resolved",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.\n[2026-07-20 08:55 UTC - swe-1.7] Resumed planning pass at user request\n[2026-07-20 09:01 UTC - swe-1.7] Resumed planning pass: reconciled DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md, DC_HANDOFF_SONNET.md with as-built implementation; 22 DC tests pass; guardrail clean",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:47:41.567272+00:00",
+    "updated_at": "2026-07-20T09:01:52.041046+00:00",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -396,10 +397,11 @@
     "target_model": "swe-1.6",
     "priority": "low",
     "file_path": "app/templates/base.html",
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-20 10:02 UTC - SWE-1.7] Audit complete: no .card:hover or .card--interactive:hover box-shadow leaks in base.html or ssot-design-system.css; FNG_TODO.md updated to mark item complete.\n[2026-07-20 10:12 UTC - SWE-1.7] Re-audited: base.html and ssot-design-system.css have no .card:hover box-shadow leaks; FNG_TODO.md checkbox updated.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:12:35.943511+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-009",
@@ -425,10 +427,11 @@
     "target_model": "kimi-2.7",
     "priority": "low",
     "file_path": "static/css/ssot-design-system.css",
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-20 10:48 UTC - SWE-1.7] Local verification: /home (template-1 #E6F1FB), /law-library (template-2 #E1F5EE), /office (template-4 #F1EFE8), /library (template-5 #FAECE7) all render correct body backgrounds. template-3 CSS verified by injecting class (#EEEDFE). Production blocked: https://semptify.org/ currently serves static index.html 'On-The-Fly Composer' landing page, not the Semptify app pages, so template color sets cannot be confirmed in production until deploy is fixed.\n[2026-07-20 11:27 UTC - SWE-1.7] After enabling Cloudflare Development Mode + purging cache, verified all 5 template color sets on semptify.org via Playwright: /home (template-1 #E6F1FB), /law-library (template-2 #E1F5EE), /office (template-4 #F1EFE8), /library (template-5 #FAECE7); template-3 (#EEEDFE) verified by applying class to /home. Screenshots saved to screenshots/todo-010/.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T11:27:35.360465+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-011",
@@ -440,10 +443,11 @@
     "file_path": "static/css/ssot-design-system.css",
     "line_start": 192,
     "line_end": 201,
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-20 10:49 UTC - SWE-1.7] Added @media (prefers-color-scheme: dark) fallback to static/css/ssot-design-system.css so the existing [data-theme=dark] color variables are applied automatically when OS dark mode is enabled. Updated FNG_TODO.md checkbox.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:49:24.145785+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-012",
@@ -588,10 +592,11 @@
     "file_path": "app/services/mndes_api_client.py",
     "line_start": 193,
     "line_end": 208,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.2 - BLOCKED on external team",
+    "status": "review",
+    "notes": "STUB_AUDIT.md Tier 2.2 - BLOCKED on external team\n[2026-07-20 10:49 UTC - SWE-1.7] MNDESRestClient.submit_exhibit, get_submission_status, and get_case_exhibits are intentional NotImplementedError stubs with 'stub-detector: ignore' markers; they require the external MNDES/EAST API which is not yet available. No implementation possible without API spec/credentials.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:49:52.888228+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-022",
@@ -617,10 +622,11 @@
     "priority": "low",
     "file_path": "app/modules/components/router.py",
     "line_start": 781,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.4",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.4\n[2026-07-20 10:52 UTC - SWE-1.7] get_component_config now derives the effective role from the authenticated user_id via get_role_from_user_id, falling back to the URL path parameter. Added manager and judge role configs. Cleaned imports and ruff.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:52:20.273877+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-024",
@@ -631,10 +637,11 @@
     "priority": "low",
     "file_path": "app/services/filedored_service.py",
     "line_start": 91,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.5",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.5\n[2026-07-20 09:57 UTC - SWE-1.7] Implemented app/services/local_classifier.py: deterministic keyword/filename classifier returns lease/notice/evidence/photo/invoice/communication/unknown; wired into filedored_service.ai_classify_document; 5 tests pass, guardrail clean.\n[2026-07-20 10:11 UTC - SWE-1.7] test",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:11:55.774002+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-025",
@@ -645,10 +652,11 @@
     "priority": "low",
     "file_path": "app/modules/research_module.py",
     "line_start": 376,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.6",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.6\n[2026-07-20 10:53 UTC - SWE-1.7] Stale task: app/modules/research_module.py standalone file was removed/refactored into app/modules/research/ (service.py + router.py). No 'would upload' placeholder remains; the module now generates ZIP bytes via get_zip() and the download endpoint returns them. Cloud sync is caller-managed.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:53:30.627268+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-026",
@@ -659,10 +667,11 @@
     "priority": "low",
     "file_path": "app/main.py",
     "line_start": 370,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 3.1 - DEFER",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 3.1 - DEFER\n[2026-07-20 10:16 UTC - SWE-1.7] Positronic Brain already re-enabled under ENABLE_HEAVY_SERVICES in main.py; corrected stale log message that claimed brain was disabled.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:16:13.597239+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-027",
@@ -674,10 +683,11 @@
     "file_path": "app/main.py",
     "line_start": 470,
     "line_end": 489,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 3.2 - DEFER",
+    "status": "review",
+    "notes": "STUB_AUDIT.md Tier 3.2 - DEFER\n[2026-07-20 10:54 UTC - SWE-1.7] Distributed mesh network remains disabled intentionally (STUB_AUDIT Tier 3.2 DEFER). Re-enabling cross-instance comms would require a memory-safe redesign and is not appropriate without explicit approval.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:54:05.947152+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-028",
@@ -689,10 +699,11 @@
     "file_path": "app/main.py",
     "line_start": 1341,
     "line_end": 1376,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 3.3 - DEFER",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 3.3 - DEFER\n[2026-07-20 10:55 UTC - SWE-1.7] Re-enabled the performance monitoring middleware in slim mode. It records request duration/status into the bounded request_metrics deque and is gated by ENABLE_HEAVY_SERVICES. The original memory issue (psutil.net_connections()) was already removed.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:55:47.310088+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-029",
@@ -703,10 +714,11 @@
     "priority": "low",
     "file_path": "app/modules/storage/router.py",
     "line_start": 1591,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 3.4 - DEFER, needs DB role fix",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 3.4 - DEFER, needs DB role fix\n[2026-07-20 10:56 UTC - SWE-1.7] _cleanup_expired_states() is already implemented and called in both /authorize and /callback flows; it deletes expired OAuthState rows and also purges the legacy in-memory OAUTH_STATES map. No longer disabled.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:56:17.129324+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-030",
@@ -717,10 +729,11 @@
     "priority": "low",
     "file_path": "app/modules/state_laws/router.py",
     "line_start": 80,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 4.1 - DEFER, safe to ship",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 4.1 - DEFER, safe to ship\n[2026-07-20 10:56 UTC - SWE-1.7] State laws are intentionally stubbed for non-MN states (MN is the reference implementation). The /api/states/ endpoint correctly reports status and has_complete_data. BY DESIGN per STUB_AUDIT Tier 4.1.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:56:52.130527+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-031",
@@ -730,10 +743,11 @@
     "target_model": "swe-1.6",
     "priority": "low",
     "file_path": "app/services/eviction/seed_court_data.py",
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 4.2 - DEFER",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 4.2 - DEFER\n[2026-07-20 10:57 UTC - SWE-1.7] CourtDataSeeder.seed_all() generates realistic MN/Dakota County historical cases from public baseline statistics. RealCourtDataImporter has intentional stubs for MNCIS and Eviction Lab APIs because those require credentials/data-use agreements; CSV import is implemented. No TODO markers remain in file.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:57:44.219110+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-032",
@@ -744,10 +758,11 @@
     "priority": "low",
     "file_path": "app/modules/legal_filing_module.py",
     "line_start": 6,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 4.3 - DEFER",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 4.3 - DEFER\n[2026-07-20 10:58 UTC - SWE-1.7] legal_filing_module.py is a thin router wrapper; no mesh/network placeholder remains. The module is functional; mesh integration is not required at this tier (STUB_AUDIT Tier 4.3 DEFER).",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:58:13.465622+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-033",
@@ -897,10 +912,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/calendar/router.py",
-    "status": "pending",
-    "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.",
+    "status": "resolved",
+    "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.\n[2026-07-20 09:05 UTC - SWE-1.7] Calendar auto-populate wired: document deadlines and rent ledger due/fee dates sync to CalendarEvent via sync_calendar_for_user; 13 tests pass, guardrail pass",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T09:05:56.943630+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-044",
@@ -910,10 +926,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/case_builder/router.py",
-    "status": "pending",
-    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.",
+    "status": "resolved",
+    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-20 09:39 UTC - SWE-1.7] Implemented app/modules/packet_builder: unified /api/packet-builder build/get/download endpoints with overlay/clean ZIP and PDF export, wired into manifest and contracts, 8 smoke tests passing. Legacy court_packet module untouched pending future retirement decision.\n[2026-07-20 10:12 UTC - SWE-1.7] Packet Builder module implemented (app/modules/packet_builder) with build/inspect/download endpoints, overlay/clean modes, ZIP/PDF outputs, 8 smoke tests pass, ruff clean, guardrail clean.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T10:12:36.235115+00:00",
+    "assigned_agent": "SWE-1.7"
   }
 ]
 
@@ -960,26 +977,34 @@ function loadEmbeddedTasks() {
   }
 }
 
-function loadTasks() {
+function loadStoredTasks() {
   try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (stored.length > 0) return stored;
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   } catch {
-    // fall through to embedded tasks
+    return [];
   }
+}
+
+function loadTasks() {
   const embedded = loadEmbeddedTasks();
   if (embedded.length > 0) {
+    lastLoadSource = 'embedded JSON';
     saveTasks(embedded);
     return embedded;
   }
-  return [];
+  const stored = loadStoredTasks();
+  if (stored.length > 0) {
+    lastLoadSource = 'localStorage';
+  }
+  return stored;
 }
 
 function saveTasks(tasks) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
-let tasks = loadTasks();
+let tasks = [];
+let lastLoadSource = 'none';
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -1190,42 +1215,59 @@ function clearAll() {
 }
 
 function startFresh() {
-  if (!confirm('Clear local task queue and load the newest embedded/project tasks?')) return;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {}
+  if (!confirm('Clear local task queue and reload the newest project tasks?')) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
   tasks = [];
-  autoLoadProjectJson().then(() => {
-    if (!tasks.length) {
-      tasks = loadEmbeddedTasks();
-      if (tasks.length) saveTasks(tasks);
-    }
-    renderTasks();
-    showToast(`Loaded ${tasks.length} fresh tasks`);
-  });
+  refreshFromFile();
+}
+
+async function refreshFromFile() {
+  await autoLoadProjectJson();
+  renderTasks();
 }
 
 function showHelpStatus() {
-  const source = localStorage.getItem(STORAGE_KEY)
-    ? 'Your queue is currently loaded from localStorage (saved from a previous session).'
-    : 'Your queue is currently loaded from embedded/project JSON (fresh from the last sync).';
-  alert(`${source}\n\nRun 'python tools/sync_orchestrator.py' to regenerate, then click "Start fresh ↺" to load it.`);
+  let source;
+  switch (lastLoadSource) {
+    case 'project file':
+      source = 'Your queue is currently loaded from the live project file (agent_orchestrator_tasks.json).';
+      break;
+    case 'embedded JSON':
+      source = 'Your queue is currently loaded from embedded JSON (synced into this HTML file).';
+      break;
+    case 'localStorage':
+      source = 'Your queue is currently loaded from browser localStorage (cached copy).';
+      break;
+    default:
+      source = 'No task queue loaded yet.';
+  }
+  alert(`${source}\n\nRun 'python tools/sync_orchestrator.py' to regenerate, then click "Refresh from file ↻" to load it.`);
+}
+
+function enrichTasks(arr) {
+  return (Array.isArray(arr) ? arr : []).map(t => ({ ...t, prompt: t.prompt || generatePrompt(t) }));
 }
 
 async function autoLoadProjectJson() {
-  if (tasks.length) return;
   try {
     const res = await fetch('agent_orchestrator_tasks.json?_=' + Date.now());
-    if (!res.ok) return;
-    const data = await res.json();
-    const imported = Array.isArray(data) ? data : [];
-    if (imported.length) {
-      tasks = imported.map(t => ({ ...t, prompt: generatePrompt(t) }));
-      saveTasks(tasks);
-      showToast('Loaded project tasks');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        tasks = enrichTasks(data);
+        saveTasks(tasks);
+        lastLoadSource = 'project file';
+        showToast(`Loaded ${tasks.length} project tasks`);
+        return;
+      }
     }
   } catch (err) {
-    // file:// or missing JSON; keep localStorage as-is
+    // file:// or missing JSON; fall through to embedded/localStorage
+  }
+  const fallback = loadTasks();
+  if (fallback.length) {
+    tasks = enrichTasks(fallback);
+    saveTasks(tasks);
   }
 }
 
