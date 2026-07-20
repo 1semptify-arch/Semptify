@@ -590,8 +590,9 @@ def register_default_handlers(processor: JobProcessor):
 
         # Run the Semantic Context Engine on Pass 1 raw OCR text.
         pass2_status = DeepOCRStatus.COMPLETE.value  # type: ignore[union-attr]
-        pass2_results: List[Dict[str, Any]] = []
+        pass2_results: list[dict[str, Any]] = []
         pass2_error: Optional[str] = None
+        overlay_id: Optional[str] = None
 
         try:
             from app.services.document_intake import get_intake_engine
@@ -618,6 +619,93 @@ def register_default_handlers(processor: JobProcessor):
                 )
                 pass2_results = [r.to_dict() for r in results]
 
+                # Write structured Pass 2 results to the user's cloud overlays so the
+                # Document Center can read real data instead of processing_incomplete.
+                try:
+                    from app.core.oauth_token_manager import get_valid_token_for_user
+                    from app.core.user_id import get_provider_from_user_id
+                    from app.core.overlay_types import OverlayType
+                    from app.models.unified_overlay_models import CreateOverlayRequest
+                    from app.services.storage import get_provider
+                    from app.services.unified_overlay_manager import UnifiedOverlayManager
+
+                    provider_code = get_provider_from_user_id(user_id) or getattr(
+                        doc, "storage_provider", None
+                    )
+                    if not provider_code or provider_code == "local":
+                        logger.info(
+                            "Skipping overlay write for doc %s (provider=%s)",
+                            doc_id,
+                            provider_code or "unknown",
+                        )
+                    else:
+                        access_token = get_valid_token_for_user(user_id)
+                        if not access_token:
+                            raise RuntimeError("No valid access token for overlay creation")
+
+                        storage = get_provider(provider_code, access_token=access_token)
+                        manager = UnifiedOverlayManager(storage, user_id)
+
+                        # Document Center queries overlays by safe_filename (vault_id.ext).
+                        if vault_id and doc.filename:
+                            ext = (
+                                doc.filename.rsplit(".", 1)[-1].lower()
+                                if "." in doc.filename
+                                else "bin"
+                            )
+                            safe_filename = f"{vault_id}.{ext}"
+                        else:
+                            safe_filename = doc.id
+
+                        vault_path = getattr(doc, "storage_path", None) or vault_id or ""
+
+                        formatted_dates = [
+                            f"{r.get('raw_text', '')} — {r.get('semantic_label', 'date')}"
+                            + (f" ({r.get('trigger_phrase', '')})" if r.get("trigger_phrase") else "")
+                            for r in pass2_results
+                        ]
+
+                        payload = {
+                            "text": raw_text,
+                            "dates": formatted_dates,
+                            "semantic_dates": pass2_results,
+                            "parties": [],
+                            "amounts": [],
+                            "key_terms": [],
+                            "source": "deep_ocr_pass2",
+                        }
+
+                        overlay_resp = await manager.create_overlay(
+                            CreateOverlayRequest(
+                                overlay_type=OverlayType.DOCUMENT_EXTRACTION,
+                                document_id=safe_filename,
+                                vault_path=vault_path,
+                                payload=payload,
+                                metadata={
+                                    "doc_id": doc_id,
+                                    "vault_id": vault_id,
+                                    "processed_at": utc_now().isoformat(),
+                                    "engine": "SemanticContextEngine",
+                                },
+                                ephemeral=False,
+                            )
+                        )
+                        if overlay_resp.success:
+                            overlay_id = overlay_resp.overlay_id
+                            logger.info(
+                                "Deep OCR overlay created for doc %s: %s",
+                                doc_id,
+                                overlay_id,
+                            )
+                        else:
+                            raise RuntimeError(
+                                f"Overlay creation failed: {overlay_resp.message}"
+                            )
+                except Exception as exc:
+                    logger.exception("Deep OCR overlay creation failed for doc %s", doc_id)
+                    pass2_status = DeepOCRStatus.FAILED.value  # type: ignore[union-attr]
+                    pass2_error = str(exc)
+
         except Exception as exc:
             logger.exception("Deep OCR Pass 2 failed for doc %s", doc_id)
             pass2_status = DeepOCRStatus.FAILED.value  # type: ignore[union-attr]
@@ -633,6 +721,8 @@ def register_default_handlers(processor: JobProcessor):
                 payload = json.loads(row.payload_json or "{}")
                 payload["pass2_results"] = pass2_results
                 payload["completed_at"] = utc_now().isoformat()
+                if overlay_id:
+                    payload["overlay_id"] = overlay_id
                 if pass2_error:
                     payload["pass2_error"] = pass2_error
                 row.payload_json = json.dumps(payload)
@@ -657,6 +747,7 @@ def register_default_handlers(processor: JobProcessor):
             "vault_id": vault_id,
             "status": pass2_status,
             "pass2_results": pass2_results,
+            "overlay_id": overlay_id,
             "error": pass2_error,
         }
 

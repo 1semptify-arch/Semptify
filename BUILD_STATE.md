@@ -1,3 +1,43 @@
+## Session — 2026-07-20 — SDC todo-037 Wire Deep OCR output to UnifiedOverlayManager
+
+### Guardrail Engine Run — 2026-07-20T04:30:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-037` resolved: `app/core/job_processor.py` `deep_ocr` handler now writes a `DOCUMENT_EXTRACTION` overlay via `UnifiedOverlayManager.create_overlay()` on Pass 2 completion.
+- Overlay payload includes `text` (Pass 1 OCR), `dates` (human-readable formatted dates with semantic labels/trigger phrases), and `semantic_dates` (full structured Pass 2 results).
+- `document_id` is computed as the vault `safe_filename` (`vault_id.ext`) so `DocumentCenter` `GET /api/dc/document/{vault_id}/overlays` can find it.
+- `deep_ocr_status` is set to `complete` on success or `failed` if overlay creation fails.
+- `DocumentPipelineIndex.payload_json` now records the `overlay_id` when creation succeeds.
+
+### Verification
+
+- Python 3.11.9 ✅
+- Compile `app/core/job_processor.py` → exit 0 ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- Manual `UnifiedOverlayManager.create_overlay()` test with a fake storage provider produced a `DOCUMENT_EXTRACTION` overlay and returned it via `get_overlays()` ✅
+
+### Known Working
+
+- `/api/intake/upload/auto` queues Deep OCR with urgency-based priority.
+- Deep OCR Pass 2 extracts semantic date roles and persists them both as a cloud overlay and in the pipeline index.
+
+### Known Broken / Pending
+
+- SDC `todo-038` (Document Center right panel surface real `deep_ocr_status` / overlay data) is the next logical step.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue with `todo-038` (Document Center right panel) per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — SDC todo-036 Semantic Context Engine (Deep OCR Pass 2)
 
 ### Guardrail Engine Run — 2026-07-20T04:00:00
