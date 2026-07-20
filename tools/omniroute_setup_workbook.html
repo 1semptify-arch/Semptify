@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniRoute Automated Setup Workbook</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-2: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --radius: 12px;
+      --shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container { max-width: 980px; margin: 0 auto; padding: 24px; }
+    header { text-align: center; margin-bottom: 24px; }
+    header h1 { margin: 0 0 8px; font-size: 1.75rem; }
+    header p { margin: 0; color: var(--muted); }
+    .progress {
+      display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .progress .dot {
+      width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+      background: var(--panel-2); color: var(--muted); font-size: 0.85rem; font-weight: 700;
+      border: 2px solid transparent; cursor: pointer; transition: 0.2s;
+    }
+    .progress .dot.active { background: var(--accent); color: #000; }
+    .progress .dot.done { background: var(--ok); color: #000; }
+    .card {
+      background: var(--panel); border-radius: var(--radius); padding: 24px;
+      box-shadow: var(--shadow); margin-bottom: 24px;
+    }
+    .step-title { margin: 0 0 8px; font-size: 1.4rem; }
+    .step-desc { color: var(--muted); margin-bottom: 20px; }
+    .hidden { display: none !important; }
+
+    .command-box {
+      background: #020617; border: 1px solid var(--panel-2); border-radius: 8px;
+      padding: 14px; position: relative; margin: 12px 0; overflow: auto;
+    }
+    .command-box pre { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9rem; white-space: pre-wrap; word-break: break-word; }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px; background: var(--panel-2); color: var(--text);
+      border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer;
+    }
+    .copy-btn:hover { background: #475569; }
+    .copy-btn.copied { background: var(--ok); color: #000; border-color: var(--ok); }
+
+    label { display: block; margin: 14px 0 6px; color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+    input, select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--panel-2);
+      background: var(--bg); color: var(--text); font-size: 0.95rem;
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+    textarea { min-height: 120px; resize: vertical; font-family: ui-monospace, monospace; }
+    .hint { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+
+    .row { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .actions { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; flex-wrap: wrap; }
+    button.primary, button.secondary, button.danger {
+      border: none; border-radius: 8px; padding: 12px 18px; font-size: 0.95rem; cursor: pointer; font-weight: 600;
+    }
+    button.primary { background: var(--accent); color: #000; }
+    button.primary:hover { filter: brightness(1.1); }
+    button.secondary { background: var(--panel-2); color: var(--text); }
+    button.secondary:hover { background: #475569; }
+    button.danger { background: var(--err); color: #fff; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--panel-2); font-size: 0.9rem; }
+    th { color: var(--muted); font-weight: 600; }
+    td input, td select { padding: 8px; }
+    .small { width: 1%; white-space: nowrap; }
+    .status { font-size: 0.85rem; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+    .status.ok { background: rgba(34,197,94,0.15); color: var(--ok); }
+    .status.warn { background: rgba(245,158,11,0.15); color: var(--warn); }
+    .status.err { background: rgba(239,68,68,0.15); color: var(--err); }
+
+    .result-box {
+      background: #020617; border: 1px solid var(--panel-2); border-radius: 8px; padding: 14px; margin-top: 12px;
+      font-family: ui-monospace, monospace; font-size: 0.85rem; white-space: pre-wrap; max-height: 300px; overflow: auto;
+    }
+    .checkbox { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+    .checkbox input { width: auto; }
+
+    @media (max-width: 640px) {
+      .container { padding: 16px; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>OmniRoute Automated Setup Workbook</h1>
+      <p>Step-by-step, local-only interactive guide to install, configure, and test OmniRoute with a working group of AI providers.</p>
+    </header>
+
+    <div class="progress" id="progress" aria-label="Setup progress"></div>
+
+    <!-- Step 1: Install -->
+    <section class="card step" data-step="1">
+      <h2 class="step-title">1. Install OmniRoute</h2>
+      <p class="step-desc">Choose the install method that matches your machine. After each command, click <strong>Next</strong> to continue.</p>
+
+      <label>Option A — npm (recommended)</label>
+      <div class="command-box">
+        <pre id="cmd-install-npm">npm install -g omniroute</pre>
+        <button class="copy-btn" data-copy="cmd-install-npm" data-next>📋 Copy</button>
+      </div>
+
+      <label>Option B — pnpm</label>
+      <div class="command-box">
+        <pre id="cmd-install-pnpm">pnpm add -g omniroute@latest --allow-build=better-sqlite3 --allow-build=@swc/core</pre>
+        <button class="copy-btn" data-copy="cmd-install-pnpm" data-next>📋 Copy</button>
+      </div>
+
+      <label>Option C — from source (latest dev)</label>
+      <div class="command-box">
+        <pre id="cmd-install-source">git clone https://github.com/diegosouzapw/OmniRoute.git
+npm install
+PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev</pre>
+        <button class="copy-btn" data-copy="cmd-install-source" data-next>📋 Copy</button>
+      </div>
+
+      <label>Option D — Docker</label>
+      <div class="command-box">
+        <pre id="cmd-install-docker">docker pull diegosouzapw/omniroute:latest
+docker run -p 20128:20128 -e PORT=20128 diegosouzapw/omniroute</pre>
+        <button class="copy-btn" data-copy="cmd-install-docker" data-next>📋 Copy</button>
+      </div>
+
+      <div class="checkbox">
+        <input type="checkbox" id="done-install" />
+        <label for="done-install" style="margin:0">I ran the install command successfully.</label>
+      </div>
+    </section>
+
+    <!-- Step 2: Start -->
+    <section class="card step hidden" data-step="2">
+      <h2 class="step-title">2. Start the Server</h2>
+      <p class="step-desc">Start OmniRoute. The API and dashboard share port 20128 by default.</p>
+
+      <div class="command-box">
+        <pre id="cmd-start">omniroute</pre>
+        <button class="copy-btn" data-copy="cmd-start">📋 Copy</button>
+      </div>
+      <p class="hint">Dashboard: <a href="http://localhost:20128" target="_blank" rel="noopener" style="color:var(--accent)">http://localhost:20128</a> &nbsp;|&nbsp; API base: <code>http://localhost:20128/v1</code></p>
+
+      <label>Run a health check without starting the server (optional)</label>
+      <div class="command-box">
+        <pre id="cmd-doctor">omniroute doctor</pre>
+        <button class="copy-btn" data-copy="cmd-doctor">📋 Copy</button>
+      </div>
+
+      <label>Guided first-time setup</label>
+      <div class="command-box">
+        <pre id="cmd-setup">omniroute setup</pre>
+        <button class="copy-btn" data-copy="cmd-setup">📋 Copy</button>
+      </div>
+
+      <div class="checkbox">
+        <input type="checkbox" id="done-start" />
+        <label for="done-start" style="margin:0">OmniRoute is running and I can open the dashboard.</label>
+      </div>
+    </section>
+
+    <!-- Step 3: Providers Workbook -->
+    <section class="card step hidden" data-step="3">
+      <h2 class="step-title">3. Providers Workbook</h2>
+      <p class="step-desc">Add every AI provider/model you want in your working group. Data stays in your browser and local files — nothing is sent to a remote server.</p>
+
+      <div class="row">
+        <div>
+          <label for="workbook-name">Workbook name</label>
+          <input id="workbook-name" type="text" placeholder="my-omniroute-group" value="omniroute-working-group" />
+        </div>
+        <div>
+          <label for="omniroute-url">OmniRoute base URL</label>
+          <input id="omniroute-url" type="url" placeholder="http://localhost:20128/v1" value="http://localhost:20128/v1" />
+        </div>
+      </div>
+
+      <h3 style="margin-top:24px; margin-bottom:8px; font-size:1.1rem">Providers</h3>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Base URL</th>
+              <th>API Key</th>
+              <th>Models (comma-separated)</th>
+              <th>Enabled</th>
+              <th class="small"></th>
+            </tr>
+          </thead>
+          <tbody id="providers-body"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="secondary" id="add-provider">+ Add provider</button>
+        <button class="secondary" id="load-sample">Load sample providers</button>
+      </div>
+
+      <h3 style="margin-top:24px; margin-bottom:8px; font-size:1.1rem">Generated OmniRoute provider config snippet</h3>
+      <div class="command-box">
+        <pre id="providers-json">{}</pre>
+        <button class="copy-btn" data-copy="providers-json">📋 Copy JSON</button>
+      </div>
+      <p class="hint">Paste this into the OmniRoute dashboard <em>API Manager → Providers</em> or save it as <code>omniroute-providers.json</code>.</p>
+    </section>
+
+    <!-- Step 4: Combo / Working Group -->
+    <section class="card step hidden" data-step="4">
+      <h2 class="step-title">4. Configure the Working Group (Combo)</h2>
+      <p class="step-desc">Create the combo that routes across your enabled providers. The generated config can be imported into OmniRoute.</p>
+
+      <div class="row">
+        <div>
+          <label for="combo-name">Combo name</label>
+          <input id="combo-name" type="text" placeholder="working-group" value="working-group" />
+        </div>
+        <div>
+          <label for="combo-strategy">Routing strategy</label>
+          <select id="combo-strategy">
+            <option value="fusion">fusion — panel of models + judge</option>
+            <option value="round-robin">round-robin — cycle through targets</option>
+            <option value="auto" selected>auto — live 12-factor scoring</option>
+            <option value="priority">priority — first healthy target in list</option>
+            <option value="weighted">weighted — random by per-target weight</option>
+            <option value="least-used">least-used — lowest current load</option>
+            <option value="lkgp">lkgp — last-known-good path</option>
+            <option value="pipeline">pipeline — chain steps</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="combo-models">Model targets (one per line, derived from providers)</label>
+      <textarea id="combo-models" placeholder="openai/gpt-4o
+anthropic/claude-3-5-sonnet"></textarea>
+      <p class="hint">Format: <code>provider/model-id</code>. These are the candidates OmniRoute will choose from.</p>
+
+      <label for="combo-fallback">Fallback model</label>
+      <input id="combo-fallback" type="text" placeholder="openai/gpt-4o-mini" />
+
+      <h3 style="margin-top:24px; margin-bottom:8px; font-size:1.1rem">Generated combo JSON</h3>
+      <div class="command-box">
+        <pre id="combo-json">{}</pre>
+        <button class="copy-btn" data-copy="combo-json">📋 Copy JSON</button>
+      </div>
+      <p class="hint">Paste this into the OmniRoute dashboard <em>Combos</em> section or save it as <code>omniroute-combo.json</code>.</p>
+    </section>
+
+    <!-- Step 5: Test & Verify -->
+    <section class="card step hidden" data-step="5">
+      <h2 class="step-title">5. Test &amp; Verify</h2>
+      <p class="step-desc">Ping your local OmniRoute instance and validate the workbook before saving.</p>
+
+      <div class="row">
+        <button class="primary" id="btn-ping">Ping OmniRoute /v1/models</button>
+        <button class="secondary" id="btn-validate">Validate workbook fields</button>
+        <button class="secondary" id="btn-test-providers">Copy provider test command</button>
+      </div>
+
+      <div id="test-status" style="margin-top:12px;"></div>
+      <div id="test-output" class="result-box hidden"></div>
+
+      <label>CLI verification command</label>
+      <div class="command-box">
+        <pre id="cmd-verify">omniroute status
+omniroute providers test-batch</pre>
+        <button class="copy-btn" data-copy="cmd-verify">📋 Copy</button>
+      </div>
+
+      <div class="checkbox">
+        <input type="checkbox" id="done-test" />
+        <label for="done-test" style="margin:0">All checks passed and providers are responding.</label>
+      </div>
+    </section>
+
+    <!-- Step 6: Save & Export -->
+    <section class="card step hidden" data-step="6">
+      <h2 class="step-title">6. Save Workbook Locally</h2>
+      <p class="step-desc">Export your complete workbook and generated config files. Everything is saved on your machine.</p>
+
+      <div class="actions">
+        <button class="primary" id="btn-download-workbook">💾 Download workbook JSON</button>
+        <button class="secondary" id="btn-download-providers">Download providers.json</button>
+        <button class="secondary" id="btn-download-combo">Download combo.json</button>
+        <button class="secondary" id="btn-load-file">📂 Load workbook from file</button>
+      </div>
+      <input type="file" id="file-input" accept=".json" class="hidden" />
+
+      <div id="save-summary" class="result-box" style="margin-top:16px;">No workbook saved yet.</div>
+    </section>
+
+    <!-- Navigation -->
+    <div class="actions">
+      <button class="secondary" id="prev-step" disabled>← Back</button>
+      <button class="primary" id="next-step">Next →</button>
+    </div>
+
+    <footer style="text-align:center; color:var(--muted); font-size:0.85rem; margin-top:32px;">
+      Local-only. API keys are stored in your browser's localStorage and in the files you choose to download. Never commit these files.
+    </footer>
+  </div>
+
+  <script>
+  (() => {
+    const steps = document.querySelectorAll('.step');
+    const total = steps.length;
+    let current = 1;
+
+    // Build progress dots
+    const progressEl = document.getElementById('progress');
+    for (let i = 1; i <= total; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === current ? ' active' : '');
+      dot.textContent = i;
+      dot.type = 'button';
+      dot.setAttribute('aria-label', `Go to step ${i}`);
+      dot.addEventListener('click', () => goTo(i));
+      progressEl.appendChild(dot);
+    }
+
+    function updateProgress() {
+      document.querySelectorAll('.progress .dot').forEach((dot, idx) => {
+        const n = idx + 1;
+        dot.className = 'dot' + (n === current ? ' active' : n < current ? ' done' : '');
+      });
+      document.getElementById('prev-step').disabled = current === 1;
+      document.getElementById('next-step').textContent = current === total ? 'Finish' : 'Next →';
+    }
+
+    function goTo(n) {
+      if (n < 1 || n > total) return;
+      current = n;
+      steps.forEach(s => s.classList.add('hidden'));
+      const active = document.querySelector(`.step[data-step="${current}"]`);
+      if (active) { active.classList.remove('hidden'); active.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      updateProgress();
+      saveWorkbook();
+    }
+
+    document.getElementById('next-step').addEventListener('click', () => goTo(current + 1));
+    document.getElementById('prev-step').addEventListener('click', () => goTo(current - 1));
+
+    // Providers state
+    let providers = [];
+    const providersBody = document.getElementById('providers-body');
+
+    function newProvider() {
+      return { id: crypto.randomUUID(), name: '', baseUrl: '', apiKey: '', models: '', enabled: true };
+    }
+
+    function renderProviders() {
+      providersBody.innerHTML = '';
+      providers.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="text" class="p-name" placeholder="openai" value="${escapeHtml(p.name)}" /></td>
+          <td><input type="url" class="p-url" placeholder="https://api.openai.com/v1" value="${escapeHtml(p.baseUrl)}" /></td>
+          <td><input type="password" class="p-key" placeholder="sk-..." value="${escapeHtml(p.apiKey)}" /></td>
+          <td><input type="text" class="p-models" placeholder="gpt-4o, gpt-4o-mini" value="${escapeHtml(p.models)}" /></td>
+          <td class="small"><input type="checkbox" class="p-enabled" ${p.enabled ? 'checked' : ''} /></td>
+          <td class="small"><button class="secondary remove-row" data-idx="${i}">Remove</button></td>
+        `;
+        providersBody.appendChild(tr);
+      });
+      bindProviderListeners();
+      generateConfigs();
+    }
+
+    function bindProviderListeners() {
+      providersBody.querySelectorAll('input, select').forEach(el => el.addEventListener('input', readProvidersFromDom));
+      providersBody.querySelectorAll('.remove-row').forEach(btn => btn.addEventListener('click', (e) => {
+        const idx = +e.target.dataset.idx;
+        providers.splice(idx, 1);
+        renderProviders();
+      }));
+    }
+
+    function readProvidersFromDom() {
+      const rows = providersBody.querySelectorAll('tr');
+      rows.forEach((tr, i) => {
+        providers[i] = {
+          id: providers[i]?.id || crypto.randomUUID(),
+          name: tr.querySelector('.p-name').value.trim(),
+          baseUrl: tr.querySelector('.p-url').value.trim(),
+          apiKey: tr.querySelector('.p-key').value.trim(),
+          models: tr.querySelector('.p-models').value.trim(),
+          enabled: tr.querySelector('.p-enabled').checked,
+        };
+      });
+      generateConfigs();
+      saveWorkbook();
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.getElementById('add-provider').addEventListener('click', () => {
+      readProvidersFromDom();
+      providers.push(newProvider());
+      renderProviders();
+    });
+
+    document.getElementById('load-sample').addEventListener('click', () => {
+      providers = [
+        { id: crypto.randomUUID(), name: 'openai', baseUrl: 'https://api.openai.com/v1', apiKey: '', models: 'gpt-4o, gpt-4o-mini, gpt-3.5-turbo', enabled: true },
+        { id: crypto.randomUUID(), name: 'anthropic', baseUrl: 'https://api.anthropic.com/v1', apiKey: '', models: 'claude-3-5-sonnet-20241022, claude-3-haiku-20240307', enabled: true },
+        { id: crypto.randomUUID(), name: 'groq', baseUrl: 'https://api.groq.com/openai/v1', apiKey: '', models: 'llama-3.1-70b-versatile, mixtral-8x7b-32768', enabled: false },
+      ];
+      renderProviders();
+    });
+
+    function generateConfigs() {
+      const enabled = providers.filter(p => p.enabled);
+      const models = [];
+      enabled.forEach(p => {
+        p.models.split(',').map(m => m.trim()).filter(Boolean).forEach(m => models.push(`${p.name}/${m}`));
+      });
+
+      const providersJson = {
+        version: '1.0',
+        providers: enabled.map(p => ({
+          name: p.name,
+          baseUrl: p.baseUrl,
+          apiKey: p.apiKey ? '***' : '',
+          models: p.models.split(',').map(m => m.trim()).filter(Boolean),
+        }))
+      };
+      document.getElementById('providers-json').textContent = JSON.stringify(providersJson, null, 2);
+
+      const strategy = document.getElementById('combo-strategy').value;
+      const comboName = document.getElementById('combo-name').value.trim() || 'working-group';
+      const fallback = document.getElementById('combo-fallback').value.trim();
+      const combo = {
+        name: comboName,
+        strategy,
+        targets: models,
+        fallback: fallback || (models[0] || ''),
+      };
+      document.getElementById('combo-json').textContent = JSON.stringify(combo, null, 2);
+
+      // Populate combo-models textarea if empty or user hasn't edited it
+      const cm = document.getElementById('combo-models');
+      if (!cm.dataset.userEdited) cm.value = models.join('\n');
+    }
+
+    document.getElementById('combo-strategy').addEventListener('change', () => { generateConfigs(); saveWorkbook(); });
+    document.getElementById('combo-name').addEventListener('input', () => { generateConfigs(); saveWorkbook(); });
+    document.getElementById('combo-fallback').addEventListener('input', () => { generateConfigs(); saveWorkbook(); });
+    document.getElementById('combo-models').addEventListener('input', (e) => { e.target.dataset.userEdited = '1'; saveWorkbook(); });
+    document.getElementById('workbook-name').addEventListener('input', saveWorkbook);
+    document.getElementById('omniroute-url').addEventListener('input', saveWorkbook);
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.dataset.copy;
+        const el = document.getElementById(targetId);
+        const text = el ? el.textContent : '';
+        try {
+          await navigator.clipboard.writeText(text);
+          const original = btn.textContent;
+          btn.textContent = '✅ Copied';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+        } catch (err) {
+          alert('Copy failed. Please select and copy manually.');
+        }
+      });
+    });
+
+    // Ping /v1/models
+    document.getElementById('btn-ping').addEventListener('click', async () => {
+      const status = document.getElementById('test-status');
+      const out = document.getElementById('test-output');
+      status.innerHTML = '<span class="status warn">Pinging...</span>';
+      out.classList.remove('hidden');
+      out.textContent = 'Fetching ' + document.getElementById('omniroute-url').value + '/models ...';
+      try {
+        const base = document.getElementById('omniroute-url').value.replace(/\/$/, '');
+        const resp = await fetch(base + '/models', { method: 'GET', mode: 'cors' });
+        const data = await resp.json().catch(() => ({}));
+        if (resp.ok) {
+          status.innerHTML = '<span class="status ok">OmniRoute reachable</span>';
+          out.textContent = `HTTP ${resp.status}\n${JSON.stringify(data, null, 2)}`;
+        } else {
+          status.innerHTML = '<span class="status err">OmniRoute returned an error</span>';
+          out.textContent = `HTTP ${resp.status}\n${JSON.stringify(data, null, 2)}`;
+        }
+      } catch (err) {
+        status.innerHTML = '<span class="status err">Cannot reach OmniRoute</span>';
+        out.textContent = `Error: ${err.message}\n\nMake sure OmniRoute is running on the URL above. If CORS blocks the request, try the CLI command instead.`;
+      }
+    });
+
+    // Validate workbook
+    document.getElementById('btn-validate').addEventListener('click', () => {
+      readProvidersFromDom();
+      const out = document.getElementById('test-output');
+      const status = document.getElementById('test-status');
+      out.classList.remove('hidden');
+      const enabled = providers.filter(p => p.enabled);
+      const issues = [];
+      enabled.forEach((p, i) => {
+        if (!p.name) issues.push(`Provider ${i + 1}: name is empty`);
+        if (!p.baseUrl) issues.push(`Provider ${i + 1} (${p.name || '?'}): base URL is empty`);
+        if (!p.apiKey) issues.push(`Provider ${i + 1} (${p.name || '?'}): API key is empty`);
+        if (!p.models) issues.push(`Provider ${i + 1} (${p.name || '?'}): models list is empty`);
+      });
+      if (enabled.length === 0) issues.push('No providers are enabled.');
+      const cm = document.getElementById('combo-models').value.trim();
+      if (!cm) issues.push('Combo model targets are empty.');
+      if (issues.length) {
+        status.innerHTML = '<span class="status err">Validation failed</span>';
+        out.textContent = 'Issues:\n- ' + issues.join('\n- ');
+      } else {
+        status.innerHTML = '<span class="status ok">Validation passed</span>';
+        out.textContent = `Enabled providers: ${enabled.length}\nTotal model targets: ${cm.split(/\n/).filter(Boolean).length}\n\nAll required fields are populated.`;
+      }
+    });
+
+    document.getElementById('btn-test-providers').addEventListener('click', () => {
+      const cmd = `omniroute status\nomniroute providers test-batch`;
+      navigator.clipboard.writeText(cmd).then(() => {
+        document.getElementById('test-status').innerHTML = '<span class="status ok">CLI test command copied. Paste it in your terminal.</span>';
+      });
+    });
+
+    // Save / load
+    function buildWorkbook() {
+      readProvidersFromDom();
+      return {
+        name: document.getElementById('workbook-name').value.trim() || 'omniroute-working-group',
+        omnirouteUrl: document.getElementById('omniroute-url').value.trim(),
+        providers,
+        combo: {
+          name: document.getElementById('combo-name').value.trim(),
+          strategy: document.getElementById('combo-strategy').value,
+          fallback: document.getElementById('combo-fallback').value.trim(),
+          targets: document.getElementById('combo-models').value.split('\n').map(s => s.trim()).filter(Boolean),
+        },
+        step: current,
+        savedAt: new Date().toISOString(),
+      };
+    }
+
+    function saveWorkbook() {
+      const wb = buildWorkbook();
+      try {
+        localStorage.setItem('omniroute-workbook', JSON.stringify(wb));
+      } catch (e) {}
+      updateSummary(wb);
+    }
+
+    function updateSummary(wb) {
+      const s = document.getElementById('save-summary');
+      const enabled = wb.providers.filter(p => p.enabled).length;
+      s.textContent = `Workbook "${wb.name}"\nOmniRoute URL: ${wb.omnirouteUrl}\nProviders: ${wb.providers.length} (${enabled} enabled)\nCombo: ${wb.combo.name} (${wb.combo.strategy})\nTargets: ${wb.combo.targets.length}\nLast saved: ${wb.savedAt}`;
+    }
+
+    function loadWorkbook(wb) {
+      if (!wb) return;
+      document.getElementById('workbook-name').value = wb.name || '';
+      if (wb.omnirouteUrl) document.getElementById('omniroute-url').value = wb.omnirouteUrl;
+      if (wb.providers) {
+        providers = wb.providers.map(p => ({ ...newProvider(), ...p, id: p.id || crypto.randomUUID() }));
+        renderProviders();
+      }
+      if (wb.combo) {
+        document.getElementById('combo-name').value = wb.combo.name || '';
+        document.getElementById('combo-strategy').value = wb.combo.strategy || 'auto';
+        document.getElementById('combo-fallback').value = wb.combo.fallback || '';
+        const cm = document.getElementById('combo-models');
+        if (wb.combo.targets && wb.combo.targets.length) { cm.value = wb.combo.targets.join('\n'); cm.dataset.userEdited = '1'; }
+      }
+      if (wb.step) current = wb.step;
+      goTo(current);
+      updateSummary(buildWorkbook());
+    }
+
+    // Load from localStorage on start
+    try {
+      const saved = localStorage.getItem('omniroute-workbook');
+      if (saved) loadWorkbook(JSON.parse(saved));
+    } catch (e) {}
+
+    // Download buttons
+    function download(filename, obj) {
+      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.getElementById('btn-download-workbook').addEventListener('click', () => {
+      const wb = buildWorkbook();
+      download(`${wb.name}-workbook.json`, wb);
+    });
+
+    document.getElementById('btn-download-providers').addEventListener('click', () => {
+      readProvidersFromDom();
+      const enabled = providers.filter(p => p.enabled).map(p => ({
+        name: p.name, baseUrl: p.baseUrl, apiKey: p.apiKey,
+        models: p.models.split(',').map(m => m.trim()).filter(Boolean),
+      }));
+      download('omniroute-providers.json', { version: '1.0', providers: enabled });
+    });
+
+    document.getElementById('btn-download-combo').addEventListener('click', () => {
+      const wb = buildWorkbook();
+      download('omniroute-combo.json', wb.combo);
+    });
+
+    document.getElementById('btn-load-file').addEventListener('click', () => document.getElementById('file-input').click());
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const wb = JSON.parse(evt.target.result);
+          loadWorkbook(wb);
+          alert('Workbook loaded from file.');
+        } catch (err) {
+          alert('Could not parse workbook file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Initialize view
+    if (providers.length === 0) providers = [newProvider()];
+    renderProviders();
+    goTo(1);
+    generateConfigs();
+  })();
+  </script>
+</body>
+</html>
