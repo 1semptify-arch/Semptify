@@ -1,3 +1,48 @@
+## Session — 2026-07-19 — SDC planning docs and orchestrator queue update
+
+### Guardrail Engine Run — 2026-07-19T20:35:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Copied `semptify_document_center_aligned.md` and `semptify_document_center_tickets.md` to `docs/planning/`.
+- Added 12 SDC tickets (`todo-033` through `todo-044`) to `tools/_seed_orchestrator_tasks.py`.
+- Regenerated `tools/docs_todos.json`, `tools/agent_orchestrator_tasks.json`, and refreshed `tools/agent_orchestrator.html` + `tools/orchestrator_dashboard.html`.
+- SDC tasks now persist through the sync-orchestrator pipeline and are visible in the orchestrator dashboard.
+- `todo-033` resolved: added `DeepOCRStatus` enum and `deep_ocr_status` column to `Document` and `DocumentPipelineIndex` models, plus Alembic migration `573f2a9e816f`.
+- `todo-034` resolved: `app/core/job_processor.py` gained a `deep_ocr` handler and `submit_deep_ocr_job()` helper; `app/modules/intake/router.py` `/api/intake/upload/auto` now creates a `DocumentPipelineIndex` row with `deep_ocr_status='pending'` and submits the job, which flips status to `processing` (Pass 2 is a stub until `todo-036`).
+
+### Verification
+
+- Python 3.11.9 ✅ (archive venv311 used)
+- Compile: `tools/_seed_orchestrator_tasks.py`, `tools/sync_orchestrator.py`, `app/models/models.py`, `alembic/versions/573f2a9e816f_add_deep_ocr_status_to_documents_and_.py`, `app/core/job_processor.py`, `app/modules/intake/router.py` → exit 0 ✅
+- JSON: `tools/agent_orchestrator_tasks.json`, `tools/docs_todos.json` → valid ✅
+- `tools/sync_orchestrator.py` run → 44 doc-sourced tasks merged into queue ✅
+- `alembic history` → new migration `573f2a9e816f` is head and history is linear ✅
+
+### Known Working
+
+- Orchestrator queue includes `todo-033` → `todo-044` grouped by Deep OCR, TSA, Journal, Ledger, Calendar, and Packet Builder.
+- HTML dashboards embedded the updated task list.
+- `todo-033` is resolved; `Document` and `DocumentPipelineIndex` now carry a `deep_ocr_status` column defaulting to `pending`.
+- `todo-034` is resolved; `/api/intake/upload/auto` queues a `deep_ocr` job and the `DocumentPipelineIndex` status advances `pending → processing`.
+
+### Known Broken / Pending
+
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7).
+- SDC tasks `todo-035` → `todo-044` are pending; `todo-044` needs a design decision before coding.
+
+### Next Session Should Start With
+
+1. Continue SDC Deep OCR chain (`todo-035` → `todo-036` → `todo-037` → `todo-038`) per aligned doc execution order.
+2. Continue highest-priority swe-1.7 stub (`todo-015` / `todo-016`) if model available.
+
+---
+
 ## Session — 2026-07-19 — ruff cleanup + sync orchestrator status fix
 
 ### Guardrail Engine Run — 2026-07-19T16:55:00
