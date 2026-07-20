@@ -1,3 +1,42 @@
+## Session — 2026-07-20 — SDC todo-035 Deep OCR queue priority by urgency
+
+### Guardrail Engine Run — 2026-07-20T03:40:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-035` resolved: added `urgency` field to `IntakeDocument` and the `/api/intake/upload` + `/api/intake/upload/auto` form parameters.
+- `app/modules/intake/router.py` maps `urgency` to `JobPriority` and submits the `deep_ocr` job at the corresponding priority.
+- `DocumentPipelineIndex.payload_json` now records the document `urgency`.
+- `JobQueue` priority ordering verified: an `URGENT` job submitted after two `NORMAL` jobs is returned first.
+
+### Verification
+
+- Python 3.11.9 ✅ (archive venv311 used)
+- Compile: `app/services/document_intake.py`, `app/modules/intake/router.py`, `app/core/job_processor.py`, `app/main.py` → exit 0 ✅
+- Guardrail engine → all checks passed ✅
+- Manual `JobQueue` ordering test → urgent job returned first ✅
+- `alembic history` → `573f2a9e816f` remains head and linear ✅
+
+### Known Working
+
+- `/api/intake/upload/auto` supports `urgency` (low, normal, high, urgent) and queues Deep OCR jobs at the matching priority.
+
+### Known Broken / Pending
+
+- SDC tasks `todo-036` → `todo-044` are pending; `todo-044` needs a design decision before coding.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7) remain pending.
+
+### Next Session Should Start With
+
+1. Continue SDC Deep OCR chain (`todo-036` → `todo-037` → `todo-038`) per aligned doc execution order.
+
+---
+
 ## Session — 2026-07-19 — SDC planning docs and orchestrator queue update
 
 ### Guardrail Engine Run — 2026-07-19T20:35:00

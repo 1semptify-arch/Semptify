@@ -656,10 +656,11 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/modules/intake/router.py",
-    "status": "pending",
-    "notes": "Preflight: Ticket 2 queue implementation and the urgency field captured at Light Intake. Scope: add priority ordering to the queue consumer so urgent-flagged documents are processed first. Acceptance: two documents queued back-to-back, the urgent one flagged second, processes first.",
+    "status": "resolved",
+    "notes": "Preflight: Ticket 2 queue implementation and the urgency field captured at Light Intake. Scope: add priority ordering to the queue consumer so urgent-flagged documents are processed first. Acceptance: two documents queued back-to-back, the urgent one flagged second, processes first.\n[2026-07-20 03:29 UTC - devin] Starting urgency priority wiring for Deep OCR queue.\n[2026-07-20 03:31 UTC - devin] Added urgency field to IntakeDocument and /api/intake/upload endpoints; mapped urgency to JobPriority and submitted deep_ocr job with priority. Verified JobQueue returns urgent jobs first.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T03:31:14.973257+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-036",

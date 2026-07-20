@@ -31,33 +31,46 @@ directly — it does not create its own POST route.
 
 import json
 import logging
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
-from pydantic import BaseModel
-from typing import Any, Optional
+from typing import Any
 
-from app.core.security import get_user_id, require_user, StorageUser, yellow_access
-from app.core.config import get_settings, Settings
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.job_processor import submit_deep_ocr_job, JobPriority
-from app.models.models import DocumentPipelineIndex, DeepOCRStatus
+
+from app.core.config import Settings, get_settings
+from app.core.database import get_db
+from app.core.event_bus import EventType as BusEventType, event_bus
+from app.core.job_processor import JobPriority, submit_deep_ocr_job
+from app.core.security import StorageUser, get_user_id, yellow_access
+from app.core.utc import utc_now
+from app.models.models import DeepOCRStatus, DocumentPipelineIndex
 from app.services.document_intake import (
-    get_intake_engine,
     DocumentType,
     IntakeStatus,
     IssueSeverity,
     LanguageCode,
+    get_intake_engine,
 )
-from app.core.event_bus import event_bus, EventType as BusEventType
-from app.core.utc import utc_now
 from app.services.storage import get_provider
 from app.services.unified_overlay_manager import UnifiedOverlayManager
 
 logger = logging.getLogger(__name__)
 
+
+def _priority_for_urgency(urgency: str | None) -> JobPriority:
+    """Map an urgency string to a JobProcessor priority."""
+    return {
+        "urgent": JobPriority.URGENT,
+        "high": JobPriority.HIGH,
+        "normal": JobPriority.NORMAL,
+        "low": JobPriority.LOW,
+    }.get((urgency or "normal").strip().lower(), JobPriority.NORMAL)
+
+
 # Import vault upload service - ALL uploads go through here first
 try:
     from app.services.vault_upload_service import get_vault_service
+
     HAS_VAULT_SERVICE = True
 except ImportError:
     HAS_VAULT_SERVICE = False
@@ -65,6 +78,7 @@ except ImportError:
 # Import flow orchestrator for complete pipeline
 try:
     from .service import DocumentFlowOrchestrator
+
     FLOW_AVAILABLE = True
 except ImportError:
     FLOW_AVAILABLE = False
@@ -72,6 +86,7 @@ except ImportError:
 # Import notarization service for tamper-proof documentation
 try:
     from .service import get_notarization_service
+
     HAS_NOTARIZATION = True
 except ImportError:
     HAS_NOTARIZATION = False
@@ -82,11 +97,11 @@ router = APIRouter(prefix="/api/intake", tags=["Document Intake"])
 
 
 async def _get_overlay_record_ids(
-    vault_id: Optional[str],
-    user_id: Optional[str] = None,
-    storage: Optional[Any] = None,
-    storage_provider: Optional[str] = None,
-    access_token: Optional[str] = None,
+    vault_id: str | None,
+    user_id: str | None = None,
+    storage: Any | None = None,
+    storage_provider: str | None = None,
+    access_token: str | None = None,
 ) -> list[str]:
     """Resolve overlay record IDs linked to a vault artifact.
 
@@ -126,8 +141,10 @@ async def _get_overlay_record_ids(
 # PYDANTIC MODELS
 # =============================================================================
 
+
 class IntakeStatusResponse(BaseModel):
     """Processing status response."""
+
     id: str
     status: str
     status_message: str
@@ -136,49 +153,54 @@ class IntakeStatusResponse(BaseModel):
 
 class ExtractedDateResponse(BaseModel):
     """Extracted date response."""
+
     date: str
     label: str
     confidence: float
     source_text: str
     is_deadline: bool
-    days_until: Optional[int] = None
+    days_until: int | None = None
 
 
 class ExtractedPartyResponse(BaseModel):
     """Extracted party response."""
+
     name: str
     role: str
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
+    address: str | None = None
+    phone: str | None = None
+    email: str | None = None
     confidence: float
 
 
 class ExtractedAmountResponse(BaseModel):
     """Extracted amount response."""
+
     amount: float
     label: str
     currency: str
-    period: Optional[str] = None
+    period: str | None = None
     confidence: float
     source_text: str
 
 
 class DetectedIssueResponse(BaseModel):
     """Detected issue response."""
+
     issue_id: str
     severity: str
     title: str
     description: str
-    affected_text: Optional[str] = None
-    legal_basis: Optional[str] = None
-    recommended_action: Optional[str] = None
-    deadline: Optional[str] = None
+    affected_text: str | None = None
+    legal_basis: str | None = None
+    recommended_action: str | None = None
+    deadline: str | None = None
     related_laws: list[str] = []
 
 
 class ExtractionResultResponse(BaseModel):
     """Complete extraction result response."""
+
     doc_type: str
     doc_type_confidence: float
     language: str
@@ -195,6 +217,7 @@ class ExtractionResultResponse(BaseModel):
 
 class IntakeDocumentResponse(BaseModel):
     """Complete intake document response."""
+
     id: str
     user_id: str
     filename: str
@@ -204,23 +227,25 @@ class IntakeDocumentResponse(BaseModel):
     status: str
     status_message: str
     progress_percent: int
-    extraction: Optional[ExtractionResultResponse] = None
+    extraction: ExtractionResultResponse | None = None
     uploaded_at: str
-    processed_at: Optional[str] = None
+    processed_at: str | None = None
 
 
 class UploadResponse(BaseModel):
     """Upload response."""
+
     id: str
     filename: str
     status: str
     message: str
-    vault_id: Optional[str] = None
+    vault_id: str | None = None
     overlay_record_ids: list[str] = []
 
 
 class BatchUploadResponse(BaseModel):
     """Batch upload response."""
+
     uploaded: list[UploadResponse]
     failed: list[dict]
     total_uploaded: int
@@ -231,23 +256,26 @@ class BatchUploadResponse(BaseModel):
 # NOTARIZATION MODELS
 # =============================================================================
 
+
 class NotarizationResponse(BaseModel):
     """Notarization record response."""
+
     notarization_id: str
     document_id: str
     file_hash: str
     file_size: int
     original_filename: str
     notarized_at: str
-    certificate_hash: Optional[str]
+    certificate_hash: str | None
     status: str
     storage_path: str
     storage_provider: str
-    registry_id: Optional[str] = None
+    registry_id: str | None = None
 
 
 class NotarizationVerificationResponse(BaseModel):
     """Notarization verification result."""
+
     status: str
     verified: bool
     notarization_id: str
@@ -257,24 +285,26 @@ class NotarizationVerificationResponse(BaseModel):
     original_filename: str
     notarized_at: str
     storage_location: str
-    content_verified: Optional[bool] = None
-    content_status: Optional[str] = None
-    registry_status: Optional[str] = None
-    error: Optional[str] = None
+    content_verified: bool | None = None
+    content_status: str | None = None
+    registry_status: str | None = None
+    error: str | None = None
 
 
 class ChainOfCustodyEvent(BaseModel):
     """Single event in chain of custody."""
+
     event: str
     timestamp: str
     actor: str
     action: str
-    hash: Optional[str] = None
-    location: Optional[str] = None
+    hash: str | None = None
+    location: str | None = None
 
 
 class ChainOfCustodyResponse(BaseModel):
     """Complete chain of custody."""
+
     notarization_id: str
     events: list[ChainOfCustodyEvent]
 
@@ -283,36 +313,38 @@ class ChainOfCustodyResponse(BaseModel):
 # UPLOAD ENDPOINTS
 # =============================================================================
 
+
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
     file: UploadFile = File(...),
     user_id: str = Form(..., description="User ID for the document owner"),
     username: str = Form("unknown", description="Username for notarization"),
-    access_token: Optional[str] = Form(None, description="Storage provider access token"),
+    access_token: str | None = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider"),
-    description: Optional[str] = Form(None, description="Document description"),
-    tags: Optional[str] = Form(None, description="Comma-separated tags"),
+    description: str | None = Form(None, description="Document description"),
+    tags: str | None = Form(None, description="Comma-separated tags"),
+    urgency: str | None = Form("normal", description="Queue priority: low, normal, high, urgent"),
 ):
     """
     Upload a document for intake processing with notarization.
-    
+
     COMPLETE FLOW:
     1. Notarize receipt (tamper-proof record with hash)
     2. Store in user's vault (cloud or local)
     3. Register in system (Document Registry)
     4. Queue for processing
-    
+
     Returns status with notarization proof.
     """
     # Read file content
     content = await file.read()
-    
+
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
-    
+
     if len(content) > 25 * 1024 * 1024:  # 25MB limit
         raise HTTPException(status_code=400, detail="File too large (max 25MB)")
-    
+
     # STEP 0: Notarize the upload
     notarization = None
     notarization_id = None
@@ -320,7 +352,7 @@ async def upload_document(
         try:
             notarization_service = await get_notarization_service()
             tags_list = [t.strip() for t in tags.split(",")] if tags else []
-            
+
             notarization = await notarization_service.notarize_upload(
                 file_content=content,
                 filename=file.filename or "unknown",
@@ -341,7 +373,7 @@ async def upload_document(
             logger.info(f"✓ Document notarized: {notarization_id}")
         except Exception as e:
             logger.warning(f"Notarization failed (non-blocking): {e}")
-    
+
     # STEP 1: Upload to vault first
     vault_id = None
     if HAS_VAULT_SERVICE:
@@ -357,7 +389,7 @@ async def upload_document(
                 storage_provider=storage_provider,
             )
             vault_id = vault_doc.vault_id
-            
+
             # Update notarization with actual storage path
             if notarization and HAS_NOTARIZATION:
                 try:
@@ -367,12 +399,12 @@ async def upload_document(
                     logger.debug(f"Could not update notarization storage path: {e}")
         except Exception as e:
             logger.warning("Vault upload failed: %s", e)
-    
+
     # SSOT GATE: Do not proceed if vault document is not certified.
     # Uncertified = no registry_id or integrity_status != "verified".
     # The document is safely stored in the vault but frozen until certified.
     if HAS_VAULT_SERVICE and vault_id:
-        _vault_doc = vault_doc if 'vault_doc' in dir() else None
+        _vault_doc = vault_doc if "vault_doc" in dir() else None
         if _vault_doc is not None and not _vault_doc.is_certified:
             logger.warning(
                 "SSOT GATE: Document %s failed certification — downstream processing blocked.",
@@ -400,6 +432,7 @@ async def upload_document(
             filename=file.filename or "unknown",
             mime_type=file.content_type or "application/octet-stream",
             vault_id=vault_id,  # Pass vault reference
+            urgency=urgency,
         )
         logger.info(f"📋 Document registered: {doc.id}")
     except Exception as e:
@@ -412,7 +445,7 @@ async def upload_document(
         storage_provider=storage_provider,
         access_token=access_token,
     )
-    
+
     return UploadResponse(
         id=doc.id if doc else "",
         filename=file.filename or "unknown",
@@ -429,12 +462,13 @@ async def upload_document(
 
 class AutoProcessResponse(BaseModel):
     """Response for auto-processed upload."""
+
     id: str
     filename: str
     status: str
     doc_type: str
     message: str
-    vault_id: Optional[str] = None
+    vault_id: str | None = None
     overlay_record_ids: list[str] = []
     extracted_data: dict = {}
     timeline_events: int = 0
@@ -444,18 +478,19 @@ class AutoProcessResponse(BaseModel):
 @router.post("/upload/auto", response_model=AutoProcessResponse)
 async def upload_and_process(
     file: UploadFile = File(...),
-    user_id: Optional[str] = Form(None, description="User ID (ignored — authenticated session is authoritative)"),
+    user_id: str | None = Form(None, description="User ID (ignored — authenticated session is authoritative)"),
     username: str = Form("unknown", description="Username for notarization"),
-    access_token: Optional[str] = Form(None, description="Storage provider access token"),
+    access_token: str | None = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider"),
-    description: Optional[str] = Form(None, description="Document description"),
-    tags: Optional[str] = Form(None, description="Comma-separated tags"),
-    user: Optional[StorageUser] = Depends(yellow_access),
+    description: str | None = Form(None, description="Document description"),
+    tags: str | None = Form(None, description="Comma-separated tags"),
+    urgency: str | None = Form("normal", description="Queue priority: low, normal, high, urgent"),
+    user: StorageUser | None = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Upload and automatically process a document (complete pipeline).
-    
+
     COMPLETE FLOW:
     1. Notarize receipt (tamper-proof record with hash)
     2. Store in user's vault (cloud or local)
@@ -466,9 +501,9 @@ async def upload_and_process(
     7. FormData hub update
     8. Issue detection & chain of custody tracking
     9. UI refresh via WebSocket
-    
+
     Returns complete processing result in one call.
-    
+
     Token resolution fallback chain (matches vault/router.py pattern):
     1. Form field access_token (if provided and not "auto")
     2. user.access_token from session (if user available)
@@ -484,7 +519,9 @@ async def upload_and_process(
         if user_id and user_id != user.user_id:
             logger.warning(
                 "user_id mismatch: form=%s... (len=%d) vs session=%s... — using session identity",
-                user_id[:6], len(user_id), user.user_id[:6],
+                user_id[:6],
+                len(user_id),
+                user.user_id[:6],
             )
         user_id = user.user_id
 
@@ -495,6 +532,7 @@ async def upload_and_process(
     if not real_token or real_token in ("auto", "no-token"):
         try:
             from app.core.oauth_token_manager import get_valid_token_for_user
+
             real_token = await get_valid_token_for_user(user_id, db)
         except Exception as e:
             logger.warning("Token resolution failed for user %s: %s", user_id, e)
@@ -509,13 +547,13 @@ async def upload_and_process(
 
     # Read file content
     content = await file.read()
-    
+
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
-    
+
     if len(content) > 25 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large (max 25MB)")
-    
+
     # STEP 0a: Notarize the upload first
     notarization = None
     notarization_id = None
@@ -523,7 +561,7 @@ async def upload_and_process(
         try:
             notarization_service = await get_notarization_service()
             tags_list = [t.strip() for t in tags.split(",")] if tags else []
-            
+
             notarization = await notarization_service.notarize_upload(
                 file_content=content,
                 filename=file.filename or "unknown",
@@ -544,7 +582,7 @@ async def upload_and_process(
             logger.info(f"✓ Document notarized: {notarization_id}")
         except Exception as e:
             logger.warning(f"Notarization failed (non-blocking): {e}")
-    
+
     # STEP 0b: Upload to vault first
     vault_id = None
     if HAS_VAULT_SERVICE:
@@ -560,7 +598,7 @@ async def upload_and_process(
                 storage_provider=resolved_provider,
             )
             vault_id = vault_doc.vault_id
-            
+
             # Update notarization with storage path
             if notarization and HAS_NOTARIZATION:
                 try:
@@ -568,11 +606,11 @@ async def upload_and_process(
                 except Exception:
                     # Notarization update failed, non-critical
                     pass
-            
+
             logger.info(f"📁 Document stored in vault: {vault_id}")
         except Exception as e:
             logger.warning("Vault upload failed: %s", e)
-    
+
     # Step 1: Intake the document
     doc = await engine.intake_document(
         user_id=user_id,
@@ -580,9 +618,10 @@ async def upload_and_process(
         filename=file.filename or "unknown",
         mime_type=file.content_type or "application/octet-stream",
         vault_id=vault_id,
+        urgency=urgency,
     )
     logger.info(f"📋 Document intake complete: {doc.id}")
-    
+
     # Step 2: Process (extract text, classify, analyze) — Light Intake / Pass 1
     try:
         doc = await engine.process_document(doc.id)
@@ -605,22 +644,26 @@ async def upload_and_process(
         pipeline_index = DocumentPipelineIndex(
             doc_id=doc.id,
             user_id=user_id,
-            payload_json=json.dumps({
-                "vault_id": vault_id,
-                "filename": file.filename,
-                "mime_type": file.content_type,
-                "queued_at": utc_now().isoformat(),
-            }),
+            payload_json=json.dumps(
+                {
+                    "vault_id": vault_id,
+                    "filename": file.filename,
+                    "mime_type": file.content_type,
+                    "urgency": urgency or "normal",
+                    "queued_at": utc_now().isoformat(),
+                }
+            ),
             deep_ocr_status=DeepOCRStatus.PENDING.value,
         )
         db.add(pipeline_index)
         await db.commit()
 
+        job_priority = _priority_for_urgency(urgency)
         deep_ocr_job_id = submit_deep_ocr_job(
             doc_id=doc.id,
             user_id=user_id,
             vault_id=vault_id,
-            priority=JobPriority.NORMAL,
+            priority=job_priority,
         )
         logger.info("Deep OCR job %s queued for doc %s", deep_ocr_job_id, doc.id)
     except Exception as e:
@@ -639,7 +682,7 @@ async def upload_and_process(
             logger.info(f"✓ Flow orchestration complete: {len(flow_result.get('stages', {}))} stages")
         except Exception as flow_err:
             logger.warning("Flow orchestration partial: %s", flow_err)
-    
+
     # Write extraction results to user cloud overlays — no extracted content stored in our DB
     if HAS_VAULT_SERVICE and vault_id and doc.extraction:
         try:
@@ -649,7 +692,8 @@ async def upload_and_process(
             parties = [str(p) for p in doc.extraction.parties] if doc.extraction.parties else []
             t_events = (
                 flow_result.get("stages", {}).get("events", {}).get("items", [])
-                if FLOW_AVAILABLE and flow_result else []
+                if FLOW_AVAILABLE and flow_result
+                else []
             )
             await vault_service.mark_processed(
                 vault_id=vault_id,
@@ -657,7 +701,9 @@ async def upload_and_process(
                     "summary": doc.extraction.summary[:500] if doc.extraction.summary else None,
                     "dates": dates,
                     "amounts": amounts,
-                } if (doc.extraction.summary or dates or amounts) else None,
+                }
+                if (doc.extraction.summary or dates or amounts)
+                else None,
                 parties=parties or None,
                 timeline_events=t_events or None,
                 access_token=real_token,
@@ -665,7 +711,7 @@ async def upload_and_process(
             )
         except Exception as e:
             logger.warning("Vault overlay creation failed: %s", e)
-    
+
     # Publish completion event
     await event_bus.publish(
         BusEventType.DOCUMENT_PROCESSED,
@@ -679,7 +725,7 @@ async def upload_and_process(
         },
         user_id=user_id,
     )
-    
+
     # Build response
     extracted_data = {}
     if doc.extraction:
@@ -696,7 +742,7 @@ async def upload_and_process(
         storage_provider=resolved_provider,
         access_token=real_token,
     )
-    
+
     return AutoProcessResponse(
         id=doc.id,
         filename=doc.filename,
@@ -722,14 +768,14 @@ async def upload_documents_batch(
 ):
     """
     Upload multiple documents at once.
-    
+
     Returns status for each file.
     """
     engine = get_intake_engine()
-    
+
     uploaded = []
     failed = []
-    
+
     for file in files:
         try:
             content = await file.read()
@@ -758,10 +804,12 @@ async def upload_documents_batch(
 
             # SSOT GATE: Block uncertified documents from downstream processing.
             if vault_doc is not None and not vault_doc.is_certified:
-                failed.append({
-                    "filename": file.filename,
-                    "error": f"Document stored in vault ({vault_id}) but failed certification — processing blocked.",
-                })
+                failed.append(
+                    {
+                        "filename": file.filename,
+                        "error": f"Document stored in vault ({vault_id}) but failed certification — processing blocked.",
+                    }
+                )
                 continue
 
             doc = await engine.intake_document(
@@ -772,17 +820,19 @@ async def upload_documents_batch(
                 vault_id=vault_id,
             )
 
-            uploaded.append(UploadResponse(
-                id=doc.id,
-                filename=doc.filename,
-                status=doc.status.value,
-                message="Document received",
-                vault_id=vault_id,
-            ))
+            uploaded.append(
+                UploadResponse(
+                    id=doc.id,
+                    filename=doc.filename,
+                    status=doc.status.value,
+                    message="Document received",
+                    vault_id=vault_id,
+                )
+            )
 
         except Exception as e:
             failed.append({"filename": file.filename, "error": str(e)})
-    
+
     return BatchUploadResponse(
         uploaded=uploaded,
         failed=failed,
@@ -795,6 +845,7 @@ async def upload_documents_batch(
 # PROCESSING ENDPOINTS
 # =============================================================================
 
+
 @router.post("/process/vault/{doc_id}", response_model=AutoProcessResponse)
 async def process_document_from_vault(
     doc_id: str,
@@ -804,22 +855,22 @@ async def process_document_from_vault(
 ):
     """
     Process a document stored in vault.
-    
+
     This endpoint:
     1. Downloads document content from vault
     2. Runs the full processing pipeline
     3. Updates vault index with processed status
-    
+
     Use this for documents uploaded directly to vault.
     """
     import json
-    
-    from app.modules.cloud_sync.router import get_sync_service
+
     from app.core.vault_paths import VAULT_DOCUMENTS
-    
+    from app.modules.cloud_sync.router import get_sync_service
+
     sync = await get_sync_service(user, db, settings)
     vault_folder = VAULT_DOCUMENTS
-    
+
     # Get document info from vault index
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
@@ -836,16 +887,16 @@ async def process_document_from_vault(
             if doc.get("document_id") == doc_id:
                 doc_info = doc
                 break
-        
+
         if not doc_info:
             raise HTTPException(status_code=404, detail="Document not found in vault")
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.exception("Failed to read vault index")
         raise HTTPException(status_code=500, detail="Failed to read vault index") from e
-    
+
     # Download document content
     try:
         storage_path = doc_info.get("storage_path", f"{VAULT_DOCUMENTS}/{doc_id}")
@@ -853,10 +904,10 @@ async def process_document_from_vault(
     except Exception as e:
         logger.exception("Failed to download document")
         raise HTTPException(status_code=500, detail="Failed to download document") from e
-    
+
     # Process with intake engine
     engine = get_intake_engine()
-    
+
     try:
         # Intake the document with vault content
         intake_doc = await engine.intake_document(
@@ -865,10 +916,10 @@ async def process_document_from_vault(
             filename=doc_info.get("original_filename", "document"),
             mime_type=doc_info.get("mime_type", "application/octet-stream"),
         )
-        
+
         # Process
         intake_doc = await engine.process_document(intake_doc.id)
-        
+
         # Run flow orchestration if available
         if FLOW_AVAILABLE:
             try:
@@ -879,10 +930,9 @@ async def process_document_from_vault(
                 )
             except Exception as flow_err:
                 logger.warning(f"Flow orchestration warning: {flow_err}")
-        
+
         # Update vault index with processed status
         try:
-            from datetime import datetime, timezone
             for doc in vault_index.get("documents", []):
                 if doc.get("document_id") == doc_id:
                     doc["processed"] = True
@@ -891,15 +941,14 @@ async def process_document_from_vault(
                     # (IntakeDocument has no doc_type field)
                     pass
                     break
-            
+
             vault_index["last_updated"] = utc_now().isoformat()
             await sync.storage.upload_file(
-                f"{vault_folder}/index.json",
-                json.dumps(vault_index, indent=2).encode("utf-8")
+                f"{vault_folder}/index.json", json.dumps(vault_index, indent=2).encode("utf-8")
             )
         except Exception as idx_err:
             logger.warning("Failed to update vault index: %s", idx_err)
-        
+
         # Build response
         extracted_data = {}
         if intake_doc.extraction:
@@ -915,7 +964,7 @@ async def process_document_from_vault(
             user_id=user.user_id,
             storage=sync.storage,
         )
-        
+
         return AutoProcessResponse(
             id=doc_id,  # Return vault document ID
             filename=doc_info.get("original_filename", "document"),
@@ -926,9 +975,11 @@ async def process_document_from_vault(
             overlay_record_ids=overlay_record_ids,
             extracted_data=extracted_data,
             timeline_events=0,
-            issues_found=len(intake_doc.extraction.issues) if intake_doc.extraction and intake_doc.extraction.issues else 0,
+            issues_found=len(intake_doc.extraction.issues)
+            if intake_doc.extraction and intake_doc.extraction.issues
+            else 0,
         )
-        
+
     except Exception as e:
         logger.error(f"Vault document processing failed: {e}")
         logger.exception("Processing failed")
@@ -939,7 +990,7 @@ async def process_document_from_vault(
 async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
     """
     Process an uploaded document.
-    
+
     This runs the full pipeline:
     1. Validation
     2. Text extraction (OCR if needed)
@@ -948,23 +999,23 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
     5. Timeline event creation
     6. FormData hub update
     7. UI refresh via WebSocket
-    
+
     Returns the complete extraction result.
     """
     engine = get_intake_engine()
-    
+
     doc = engine.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     if doc.status == IntakeStatus.COMPLETE:
         # Already processed, return existing result
         return _doc_to_response(doc)
-    
+
     try:
         # Run basic processing first
         doc = await engine.process_document(doc_id)
-        
+
         # Run full flow orchestration if available
         if FLOW_AVAILABLE:
             try:
@@ -988,7 +1039,7 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
             except Exception as flow_err:
                 # Log but don't fail - basic processing succeeded
                 logger.warning("Flow orchestration warning: %s", flow_err)
-        
+
         return _doc_to_response(doc)
     except Exception as e:
         logger.exception("Processing failed")
@@ -999,15 +1050,15 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
 async def get_processing_status(doc_id: str):
     """
     Get the current processing status of a document.
-    
+
     Use this to poll for completion during async processing.
     """
     engine = get_intake_engine()
     status = engine.get_processing_status(doc_id)
-    
+
     if "error" in status:
         raise HTTPException(status_code=404, detail=status["error"])
-    
+
     return IntakeStatusResponse(**status)
 
 
@@ -1015,26 +1066,27 @@ async def get_processing_status(doc_id: str):
 # RETRIEVAL ENDPOINTS
 # =============================================================================
 
+
 @router.get("/documents", response_model=list[IntakeDocumentResponse])
 async def list_documents(
     user_id: str = Depends(get_user_id),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    status: str | None = Query(None, description="Filter by status"),
 ):
     """
     List all documents for a user.
-    
+
     Optionally filter by processing status.
     """
     engine = get_intake_engine()
     docs = engine.get_user_documents(user_id)
-    
+
     if status:
         try:
             status_filter = IntakeStatus(status)
             docs = [d for d in docs if d.status == status_filter]
         except ValueError:
             pass
-    
+
     return [_doc_to_response(d) for d in docs]
 
 
@@ -1045,10 +1097,10 @@ async def get_document(doc_id: str):
     """
     engine = get_intake_engine()
     doc = engine.get_document(doc_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     return _doc_to_response(doc)
 
 
@@ -1056,18 +1108,18 @@ async def get_document(doc_id: str):
 async def get_document_issues(doc_id: str):
     """
     Get only the detected issues for a document.
-    
+
     Useful for displaying alerts/warnings to the user.
     """
     engine = get_intake_engine()
     doc = engine.get_document(doc_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     if not doc.extraction:
         raise HTTPException(status_code=400, detail="Document not yet processed")
-    
+
     return [
         DetectedIssueResponse(
             issue_id=i.issue_id,
@@ -1088,18 +1140,18 @@ async def get_document_issues(doc_id: str):
 async def get_document_dates(doc_id: str):
     """
     Get only the extracted dates for a document.
-    
+
     Includes deadline detection and days-until calculation.
     """
     engine = get_intake_engine()
     doc = engine.get_document(doc_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     if not doc.extraction:
         raise HTTPException(status_code=400, detail="Document not yet processed")
-    
+
     return [
         ExtractedDateResponse(
             date=d.date.isoformat(),
@@ -1120,13 +1172,13 @@ async def get_document_amounts(doc_id: str):
     """
     engine = get_intake_engine()
     doc = engine.get_document(doc_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     if not doc.extraction:
         raise HTTPException(status_code=400, detail="Document not yet processed")
-    
+
     return [
         ExtractedAmountResponse(
             amount=a.amount,
@@ -1147,13 +1199,13 @@ async def get_document_parties(doc_id: str):
     """
     engine = get_intake_engine()
     doc = engine.get_document(doc_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     if not doc.extraction:
         raise HTTPException(status_code=400, detail="Document not yet processed")
-    
+
     return [
         ExtractedPartyResponse(
             name=p.name,
@@ -1174,13 +1226,13 @@ async def get_document_text(doc_id: str):
     """
     engine = get_intake_engine()
     doc = engine.get_document(doc_id)
-    
+
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     if not doc.extraction:
         raise HTTPException(status_code=400, detail="Document not yet processed")
-    
+
     return {
         "id": doc_id,
         "filename": doc.filename,
@@ -1194,37 +1246,40 @@ async def get_document_text(doc_id: str):
 # ANALYSIS ENDPOINTS
 # =============================================================================
 
+
 @router.get("/issues/critical")
 async def get_critical_issues(user_id: str = Depends(get_user_id)):
     """
     Get all CRITICAL issues across all user's documents.
-    
+
     These require immediate attention.
     """
     engine = get_intake_engine()
     docs = engine.get_user_documents(user_id)
-    
+
     critical_issues = []
     for doc in docs:
         if doc.extraction:
             for issue in doc.extraction.issues:
                 if issue.severity == IssueSeverity.CRITICAL:
-                    critical_issues.append({
-                        "document_id": doc.id,
-                        "document_name": doc.filename,
-                        "issue": DetectedIssueResponse(
-                            issue_id=issue.issue_id,
-                            severity=issue.severity.value,
-                            title=issue.title,
-                            description=issue.description,
-                            affected_text=issue.affected_text,
-                            legal_basis=issue.legal_basis,
-                            recommended_action=issue.recommended_action,
-                            deadline=issue.deadline.isoformat() if issue.deadline else None,
-                            related_laws=issue.related_laws,
-                        ),
-                    })
-    
+                    critical_issues.append(
+                        {
+                            "document_id": doc.id,
+                            "document_name": doc.filename,
+                            "issue": DetectedIssueResponse(
+                                issue_id=issue.issue_id,
+                                severity=issue.severity.value,
+                                title=issue.title,
+                                description=issue.description,
+                                affected_text=issue.affected_text,
+                                legal_basis=issue.legal_basis,
+                                recommended_action=issue.recommended_action,
+                                deadline=issue.deadline.isoformat() if issue.deadline else None,
+                                related_laws=issue.related_laws,
+                            ),
+                        }
+                    )
+
     return {
         "total_critical": len(critical_issues),
         "issues": critical_issues,
@@ -1241,25 +1296,27 @@ async def get_upcoming_deadlines(
     """
     engine = get_intake_engine()
     docs = engine.get_user_documents(user_id)
-    
+
     deadlines = []
     for doc in docs:
         if doc.extraction:
             for date in doc.extraction.dates:
                 if date.is_deadline and date.days_until is not None:
                     if 0 <= date.days_until <= days:
-                        deadlines.append({
-                            "document_id": doc.id,
-                            "document_name": doc.filename,
-                            "date": date.date.isoformat(),
-                            "label": date.label,
-                            "days_until": date.days_until,
-                            "source_text": date.source_text,
-                        })
-    
+                        deadlines.append(
+                            {
+                                "document_id": doc.id,
+                                "document_name": doc.filename,
+                                "date": date.date.isoformat(),
+                                "label": date.label,
+                                "days_until": date.days_until,
+                                "source_text": date.source_text,
+                            }
+                        )
+
     # Sort by days until deadline
     deadlines.sort(key=lambda x: x["days_until"])
-    
+
     return {
         "total_deadlines": len(deadlines),
         "deadlines": deadlines,
@@ -1273,28 +1330,25 @@ async def get_user_intake_summary(user_id: str = Depends(get_user_id)):
     """
     engine = get_intake_engine()
     docs = engine.get_user_documents(user_id)
-    
+
     by_status = {}
     by_type = {}
     total_issues = 0
     critical_issues = 0
-    
+
     for doc in docs:
         # Count by status
         status = doc.status.value
         by_status[status] = by_status.get(status, 0) + 1
-        
+
         # Count by type and issues
         if doc.extraction:
             doc_type = doc.extraction.doc_type.value
             by_type[doc_type] = by_type.get(doc_type, 0) + 1
-            
+
             total_issues += len(doc.extraction.issues)
-            critical_issues += sum(
-                1 for i in doc.extraction.issues 
-                if i.severity == IssueSeverity.CRITICAL
-            )
-    
+            critical_issues += sum(1 for i in doc.extraction.issues if i.severity == IssueSeverity.CRITICAL)
+
     return {
         "total_documents": len(docs),
         "by_status": by_status,
@@ -1308,34 +1362,32 @@ async def get_user_intake_summary(user_id: str = Depends(get_user_id)):
 # NOTARIZATION & VERIFICATION ENDPOINTS
 # =============================================================================
 
+
 @router.get("/notarization/{notarization_id}", response_model=NotarizationVerificationResponse)
 async def verify_notarization(
     notarization_id: str,
 ):
     """
     Verify a document notarization record.
-    
+
     Checks:
     - Notarization record integrity
     - Document hash validity
     - Storage location
     - Registry status (if registered)
-    
+
     Returns verification status and details.
     """
     if not HAS_NOTARIZATION:
-        raise HTTPException(
-            status_code=503,
-            detail="Notarization service not available"
-        )
-    
+        raise HTTPException(status_code=503, detail="Notarization service not available")
+
     try:
         notarization_service = await get_notarization_service()
         result = await notarization_service.verify_notarization(notarization_id)
-        
+
         if result.get("status") == "not_found":
             raise HTTPException(status_code=404, detail="Notarization not found")
-        
+
         return NotarizationVerificationResponse(
             status=result.get("status", "unknown"),
             verified=result.get("verified", False),
@@ -1355,10 +1407,7 @@ async def verify_notarization(
         raise
     except Exception as e:
         logger.error(f"Notarization verification failed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Verification failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
 
 
 @router.get("/notarization/{notarization_id}/chain-of-custody", response_model=ChainOfCustodyResponse)
@@ -1367,32 +1416,26 @@ async def get_notarization_chain_of_custody(
 ):
     """
     Get complete chain of custody for a notarized document.
-    
+
     Shows:
     - Document upload (with hash and timestamp)
     - Registry registrations
     - Processing events
     - Modifications/supersedes
     - Archive status
-    
+
     Useful for legal proceedings to prove document authenticity.
     """
     if not HAS_NOTARIZATION:
-        raise HTTPException(
-            status_code=503,
-            detail="Notarization service not available"
-        )
-    
+        raise HTTPException(status_code=503, detail="Notarization service not available")
+
     try:
         notarization_service = await get_notarization_service()
         chain = await notarization_service.create_chain_of_custody(notarization_id)
-        
+
         if not chain:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Notarization {notarization_id} not found"
-            )
-        
+            raise HTTPException(status_code=404, detail=f"Notarization {notarization_id} not found")
+
         # Convert to response format
         events = [
             ChainOfCustodyEvent(
@@ -1405,7 +1448,7 @@ async def get_notarization_chain_of_custody(
             )
             for evt in chain
         ]
-        
+
         return ChainOfCustodyResponse(
             notarization_id=notarization_id,
             events=events,
@@ -1414,15 +1457,13 @@ async def get_notarization_chain_of_custody(
         raise
     except Exception as e:
         logger.error(f"Chain of custody retrieval failed: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to retrieve chain of custody: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve chain of custody: {str(e)}")
 
 
 # =============================================================================
 # ENUM ENDPOINTS (for frontend)
 # =============================================================================
+
 
 @router.get("/enums/document-types")
 async def get_document_types():
@@ -1452,10 +1493,11 @@ async def get_languages():
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def _doc_to_response(doc) -> IntakeDocumentResponse:
     """Convert IntakeDocument to response model."""
     extraction_response = None
-    
+
     if doc.extraction:
         ext = doc.extraction
         extraction_response = ExtractionResultResponse(
@@ -1515,7 +1557,7 @@ def _doc_to_response(doc) -> IntakeDocumentResponse:
             ],
             extracted_at=ext.extracted_at.isoformat(),
         )
-    
+
     return IntakeDocumentResponse(
         id=doc.id,
         user_id=doc.user_id,
