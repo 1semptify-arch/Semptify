@@ -23,6 +23,7 @@ from app.core.security import can_access, require_user
 from app.core.user_context import UserContext
 from app.core.utc import utc_now
 from app.models.models import RentPayment
+from app.services.calendar_sync import sync_calendar_for_user
 
 VALID_ENTRY_TYPES = {"payment", "fee", "deposit", "credit", "charge"}
 VALID_SOURCES = {"user_entered", "ocr_extracted"}
@@ -243,6 +244,14 @@ async def create_payment(
         db.add(payment)
         await db.commit()
 
+    # Auto-sync calendar with rent due dates and late-fee triggers.
+    try:
+        await sync_calendar_for_user(user.get_effective_user_id())
+    except Exception as sync_exc:
+        import logging
+
+        logging.getLogger(__name__).warning("Calendar sync failed after rent payment create: %s", sync_exc)
+
     async with get_db_session() as db:
         all_entries = await _fetch_all_ledger_entries(db, user.get_effective_user_id())
         balances = _compute_running_balances(all_entries)
@@ -346,6 +355,14 @@ async def update_payment(
         payment.updated_at = utc_now()
         await db.commit()
 
+    # Auto-sync calendar with updated rent dates.
+    try:
+        await sync_calendar_for_user(user.get_effective_user_id())
+    except Exception as sync_exc:
+        import logging
+
+        logging.getLogger(__name__).warning("Calendar sync failed after rent payment update: %s", sync_exc)
+
     async with get_db_session() as db:
         all_entries = await _fetch_all_ledger_entries(db, user.get_effective_user_id())
         balances = _compute_running_balances(all_entries)
@@ -375,5 +392,13 @@ async def delete_payment(
 
         await db.delete(payment)
         await db.commit()
+
+    # Auto-sync calendar after ledger deletion to remove orphaned rent events.
+    try:
+        await sync_calendar_for_user(user.get_effective_user_id())
+    except Exception as sync_exc:
+        import logging
+
+        logging.getLogger(__name__).warning("Calendar sync failed after rent payment delete: %s", sync_exc)
 
     return {"success": True, "deleted": payment_id}

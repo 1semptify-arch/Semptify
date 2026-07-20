@@ -78,9 +78,9 @@
     "priority": "medium",
     "file_path": "docs/planning/DOCUMENT_CENTER_PLAN.md",
     "status": "resolved",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.\n[2026-07-20 08:55 UTC - swe-1.7] Resumed planning pass at user request\n[2026-07-20 09:01 UTC - swe-1.7] Resumed planning pass: reconciled DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md, DC_HANDOFF_SONNET.md with as-built implementation; 22 DC tests pass; guardrail clean",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:47:41.567272+00:00",
+    "updated_at": "2026-07-20T09:01:52.041046+00:00",
     "assigned_agent": "swe-1.7"
   },
   {
@@ -606,10 +606,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/calendar/router.py",
-    "status": "pending",
-    "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.",
+    "status": "resolved",
+    "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.\n[2026-07-20 09:05 UTC - SWE-1.7] Calendar auto-populate wired: document deadlines and rent ledger due/fee dates sync to CalendarEvent via sync_calendar_for_user; 13 tests pass, guardrail pass",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T09:05:56.943630+00:00",
+    "assigned_agent": "SWE-1.7"
   },
   {
     "id": "todo-044",
