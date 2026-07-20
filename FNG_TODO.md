@@ -43,7 +43,7 @@ This is why style changes don't always show up where expected. Do not add a
   static dashboards? Do not touch until decided.
 
 ### Remaining bounded design tasks (safe, one at a time)
-- [ ] Audit `.card--interactive:hover` and any other base.html rule for leftover
+- [x] Audit `.card--interactive:hover` and any other base.html rule for leftover
       `box-shadow` that still leaks through from `ssot-design-system.css`'s own
       `.card:hover { box-shadow: var(--shadow-md); }` — spec says zero shadows
 - [ ] Replace emoji nav icons in `base.html:490-494` header nav
@@ -53,12 +53,11 @@ This is why style changes don't always show up where expected. Do not add a
       each of the 5 template color sets actually renders correctly in production
       after a deploy — has not been visually confirmed yet, only verified by
       reading CSS source
-- [ ] Confirm nothing sets `document.documentElement.dataset.theme = 'dark'` or
+- [x] Confirm nothing sets `document.documentElement.dataset.theme = 'dark'` or
       similar anywhere — searched `app/templates` and `static`, found ZERO JS
-      that ever sets `data-theme="dark"`. The dark-mode CSS overrides in
-      `ssot-design-system.css:192-201` currently have no trigger — dark mode is
-      defined but unreachable. Needs either a toggle UI or an
-      `prefers-color-scheme: dark` media query fallback.
+      that ever sets `data-theme="dark"`. Added `@media (prefers-color-scheme: dark)`
+      fallback to `ssot-design-system.css` so dark mode is reachable without a
+      toggle UI.
 
 ---
 

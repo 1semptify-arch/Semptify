@@ -6,7 +6,7 @@ Integrates with existing backend services and workspace stage model.
 
 Component Events:
 - capture-*: File upload, text input, voice recording
-- understand-*: Timeline, rights analysis, risk detection  
+- understand-*: Timeline, rights analysis, risk detection
 - plan-*: Action lists, deadlines, next steps
 - tenant-*, advocate-*, legal-*, admin-*: Role-specific actions
 """
@@ -14,18 +14,18 @@ Component Events:
 # All imports remain absolute since components is a CORE module.
 
 import logging
-from typing import Dict, Any, Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
+from datetime import datetime
+from typing import Any
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from datetime import datetime
-from app.core.utc import utc_now
-from typing import List, Optional
-
-from app.core.security import get_optional_user_id, require_user, StorageUser, yellow_access
-from app.core.user_context import UserRole, get_user_context
-from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.security import StorageUser, get_optional_user_id, yellow_access
+from app.core.user_id import get_role_from_user_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -36,134 +36,152 @@ router = APIRouter(prefix="/api/components", tags=["Modular Components"])
 # Event Models
 # ============================================================================
 
+
 class ComponentEvent(BaseModel):
     """Base model for component events"""
+
     component_id: str
     role: str
     timestamp: datetime
     event_type: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
 
 
-class UploadFile(BaseModel):
+class FileUploadInfo(BaseModel):
     """File upload metadata"""
+
     name: str
     size: int
     type: str
-    last_modified: Optional[int] = None
+    last_modified: int | None = None
 
 
 class CaptureUploadEvent(BaseModel):
     """Capture upload event"""
+
     event_type: str = "capture-upload"
-    files: List[UploadFile] = []
+    files: list[FileUploadInfo] = []
     total_size: int = 0
 
 
 class CaptureInputEvent(ComponentEvent):
     """Capture text input event"""
+
     event_type: str = "capture-quick-input"
     input_type: str = "note"
     content: str = ""
-    tags: List[str] = []
+    tags: list[str] = []
 
 
 class CaptureVoiceEvent(ComponentEvent):
     """Capture voice recording event"""
+
     event_type: str = "capture-voice-input"
     duration: float = 0.0
     transcript: str = ""
-    audio_url: Optional[str] = None
+    audio_url: str | None = None
 
 
 class UnderstandTimelineEvent(ComponentEvent):
     """Understand timeline event"""
+
     event_type: str = "understand-timeline-select"
     event_id: str = ""
-    event_data: Dict[str, Any] = {}
+    event_data: dict[str, Any] = {}
 
 
 class UnderstandRightsEvent(ComponentEvent):
     """Understand rights analysis event"""
+
     event_type: str = "understand-rights-select"
     right_id: str = ""
-    right_data: Dict[str, Any] = {}
+    right_data: dict[str, Any] = {}
 
 
 class UnderstandRiskEvent(ComponentEvent):
     """Understand risk detection event"""
+
     event_type: str = "understand-risk-select"
     risk_id: str = ""
-    risk_data: Dict[str, Any] = {}
+    risk_data: dict[str, Any] = {}
 
 
 class PlanActionEvent(ComponentEvent):
     """Plan action event"""
+
     event_type: str = "plan-action-select"
     action_id: str = ""
-    action_data: Dict[str, Any] = {}
+    action_data: dict[str, Any] = {}
 
 
 class PlanDeadlineEvent(ComponentEvent):
     """Plan deadline event"""
+
     event_type: str = "plan-deadline-select"
     deadline_id: str = ""
-    deadline_data: Dict[str, Any] = {}
+    deadline_data: dict[str, Any] = {}
 
 
 # ============================================================================
 # Capture Function Group Endpoints
 # ============================================================================
 
+
 @router.post("/capture/upload")
 async def handle_capture_upload(
-    files: List[UploadFile] = File(...),
+    files: list[UploadFile] = File(...),
     metadata: str = Form(...),
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    user_id: str | None = Depends(get_optional_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle file upload from capture component"""
     try:
         # Parse metadata from form
         import json
+
         metadata_dict = json.loads(metadata)
-        component_id = metadata_dict.get('component_id', 'unknown')
-        role = metadata_dict.get('role', 'tenant')
-        file_metadata = metadata_dict.get('files', [])
-        
+        component_id = metadata_dict.get("component_id", "unknown")
+        role = metadata_dict.get("role", "tenant")
+        file_metadata = metadata_dict.get("files", [])
+
         logger.info(f"Capture upload event from {component_id}: {len(files)} files")
-        
+
         # Integrate with existing document storage system
-        from app.routers import storage
         from app.core.user_id import get_provider_from_user_id
-        
+
         # Get user's storage provider
         provider = get_provider_from_user_id(user_id) if user_id else None
-        
+
         if not provider:
-            return JSONResponse({
-                "success": False,
-                "message": "Storage not connected. Please connect your cloud storage first.",
-                "redirect_to": "/storage/providers",
-                "user_id": user_id,
-                "timestamp": utc_now().isoformat()
-            })
-        
+            return JSONResponse(
+                {
+                    "success": False,
+                    "message": "Storage not connected. Please connect your cloud storage first.",
+                    "redirect_to": "/storage/providers",
+                    "user_id": user_id,
+                    "timestamp": utc_now().isoformat(),
+                }
+            )
+
         # Process files through existing storage system
         processed_files = []
         upload_errors = []
-        
+
         for i, uploaded_file in enumerate(files):
             try:
                 # Get corresponding metadata for this file
-                file_info = file_metadata[i] if i < len(file_metadata) else {
-                    "name": uploaded_file.filename,
-                    "size": uploaded_file.size,
-                    "type": uploaded_file.content_type
-                }
-                
+                file_info = (
+                    file_metadata[i]
+                    if i < len(file_metadata)
+                    else {
+                        "name": uploaded_file.filename,
+                        "size": uploaded_file.size,
+                        "type": uploaded_file.content_type,
+                    }
+                )
+
                 # Create document record in storage system
-                document_data = {
+                {
                     "name": file_info["name"],
                     "size": file_info["size"],
                     "type": file_info["type"],
@@ -172,19 +190,19 @@ async def handle_capture_upload(
                     "user_id": user_id,
                     "component_id": component_id,
                     "role": role,
-                    "uploaded_at": utc_now().isoformat()
+                    "uploaded_at": utc_now().isoformat(),
                 }
-                
+
                 # Create document in storage system
                 # This would typically call storage.create_document()
                 # For now, we simulate the document creation with actual file data
-                
+
                 # Read file content for processing
-                file_content = await uploaded_file.read()
-                
+                await uploaded_file.read()
+
                 # Create document ID
                 document_id = f"doc_{utc_now().timestamp()}_{len(processed_files)}"
-                
+
                 # Here you would integrate with actual storage system
                 # For example:
                 # result = await storage.create_document(
@@ -194,29 +212,31 @@ async def handle_capture_upload(
                 #     user_id=user_id,
                 #     provider=provider
                 # )
-                
-                processed_files.append({
-                    "id": document_id,
-                    "name": file_info["name"],
-                    "size": file_info["size"],
-                    "type": file_info["type"],
-                    "status": "uploaded",
-                    "provider": provider
-                })
-                
+
+                processed_files.append(
+                    {
+                        "id": document_id,
+                        "name": file_info["name"],
+                        "size": file_info["size"],
+                        "type": file_info["type"],
+                        "status": "uploaded",
+                        "provider": provider,
+                    }
+                )
+
                 logger.info(f"Document created: {document_id} for user {user_id}")
-                
+
             except Exception as e:
                 error_msg = f"Failed to process {uploaded_file.filename}: {str(e)}"
                 upload_errors.append(error_msg)
                 logger.error(error_msg)
-        
+
         # Update workspace stage if documents were uploaded
         if processed_files:
             # This would trigger workspace stage update
             # For now, we just log it
             logger.info(f"Workspace stage updated: {len(processed_files)} documents uploaded for user {user_id}")
-        
+
         # Return response with processed files and any errors
         response_data = {
             "success": True,
@@ -225,15 +245,15 @@ async def handle_capture_upload(
             "processed_files": processed_files,
             "user_id": user_id,
             "provider": provider,
-            "timestamp": utc_now().isoformat()
+            "timestamp": utc_now().isoformat(),
         }
-        
+
         if upload_errors:
             response_data["errors"] = upload_errors
             response_data["message"] = f"Processed {len(processed_files)} files with {len(upload_errors)} errors"
-        
+
         return JSONResponse(response_data)
-        
+
     except Exception as e:
         logger.error(f"Error handling capture upload: {e}")
         raise HTTPException(status_code=500, detail="Failed to process upload")
@@ -241,43 +261,46 @@ async def handle_capture_upload(
 
 @router.post("/capture/input")
 async def handle_capture_input(
-    event: CaptureInputEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    event: CaptureInputEvent, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
 ):
     """Handle text input from capture component"""
     try:
         logger.info(f"Capture input event from {event.component_id}: {event.input_type}")
-        
+
         input_id = f"input_{utc_now().timestamp()}"
         if user_id and event.content:
             try:
-                from app.models.models import Document as DocumentModel
                 from app.core.database import get_db_session
                 from app.core.id_gen import make_id
+                from app.models.models import Document as DocumentModel
+
                 async with get_db_session() as _db:
-                    _db.add(DocumentModel(
-                        id=make_id("note"),
-                        user_id=user_id,
-                        filename=f"note_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
-                        original_filename=f"note_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
-                        document_type="note",
-                        extracted_text=event.content,
-                        description=event.input_type,
-                        uploaded_at=utc_now(),
-                    ))
+                    _db.add(
+                        DocumentModel(
+                            id=make_id("note"),
+                            user_id=user_id,
+                            filename=f"note_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
+                            original_filename=f"note_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
+                            document_type="note",
+                            extracted_text=event.content,
+                            description=event.input_type,
+                            uploaded_at=utc_now(),
+                        )
+                    )
                     await _db.commit()
             except Exception as e:
                 logger.warning(f"Optional DB save for capture input failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Input saved successfully",
-            "input_id": input_id,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Input saved successfully",
+                "input_id": input_id,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling capture input: {e}")
         raise HTTPException(status_code=500, detail="Failed to save input")
@@ -285,44 +308,47 @@ async def handle_capture_input(
 
 @router.post("/capture/voice")
 async def handle_capture_voice(
-    event: CaptureVoiceEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    event: CaptureVoiceEvent, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
 ):
     """Handle voice recording from capture component"""
     try:
         logger.info(f"Capture voice event from {event.component_id}: {event.duration}s")
-        
+
         recording_id = f"voice_{utc_now().timestamp()}"
         if user_id and event.transcript:
             try:
-                from app.models.models import Document as DocumentModel
                 from app.core.database import get_db_session
                 from app.core.id_gen import make_id
+                from app.models.models import Document as DocumentModel
+
                 async with get_db_session() as _db:
-                    _db.add(DocumentModel(
-                        id=make_id("note"),
-                        user_id=user_id,
-                        filename=f"voice_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
-                        original_filename=f"voice_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
-                        document_type="voice_transcript",
-                        extracted_text=event.transcript,
-                        description=f"Voice recording {event.duration}s",
-                        uploaded_at=utc_now(),
-                    ))
+                    _db.add(
+                        DocumentModel(
+                            id=make_id("note"),
+                            user_id=user_id,
+                            filename=f"voice_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
+                            original_filename=f"voice_{utc_now().strftime('%Y%m%d_%H%M%S')}.txt",
+                            document_type="voice_transcript",
+                            extracted_text=event.transcript,
+                            description=f"Voice recording {event.duration}s",
+                            uploaded_at=utc_now(),
+                        )
+                    )
                     await _db.commit()
             except Exception as e:
                 logger.warning(f"Optional DB save for voice recording failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Voice recording saved successfully",
-            "recording_id": recording_id,
-            "transcript": event.transcript,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Voice recording saved successfully",
+                "recording_id": recording_id,
+                "transcript": event.transcript,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling capture voice: {e}")
         raise HTTPException(status_code=500, detail="Failed to save voice recording")
@@ -332,20 +358,22 @@ async def handle_capture_voice(
 # Understand Function Group Endpoints
 # ============================================================================
 
+
 @router.post("/understand/timeline")
 async def handle_understand_timeline(
     event: UnderstandTimelineEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    user_id: str | None = Depends(get_optional_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle timeline selection from understand component"""
     try:
         logger.info(f"Understand timeline event from {event.component_id}: {event.event_id}")
-        
+
         detail: dict = {"event_id": event.event_id}
         if user_id:
             try:
                 from app.services.form_data import get_form_data_service
+
                 svc = get_form_data_service(user_id)
                 if svc:
                     await svc.load()
@@ -353,14 +381,16 @@ async def handle_understand_timeline(
             except Exception as e:
                 logger.warning(f"Optional form data service lookup for timeline failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Timeline event processed",
-            **detail,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Timeline event processed",
+                **detail,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling understand timeline: {e}")
         raise HTTPException(status_code=500, detail="Failed to process timeline event")
@@ -369,30 +399,33 @@ async def handle_understand_timeline(
 @router.post("/understand/rights")
 async def handle_understand_rights(
     event: UnderstandRightsEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    user_id: str | None = Depends(get_optional_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle rights selection from understand component"""
     try:
         logger.info(f"Understand rights event from {event.component_id}: {event.right_id}")
-        
+
         analysis: dict = {"right_id": event.right_id}
         try:
             from app.modules.eviction_defense.router import DEFENSE_LIBRARY
+
             matched = [d for d in DEFENSE_LIBRARY if event.right_id in (d.get("id", ""), d.get("code", ""))]
             if matched:
                 analysis["defense"] = matched[0]
         except Exception as e:
             logger.warning(f"Optional eviction defense library lookup for rights failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Rights analysis processed",
-            **analysis,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Rights analysis processed",
+                **analysis,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling understand rights: {e}")
         raise HTTPException(status_code=500, detail="Failed to process rights analysis")
@@ -400,18 +433,17 @@ async def handle_understand_rights(
 
 @router.post("/understand/risk")
 async def handle_understand_risk(
-    event: UnderstandRiskEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    event: UnderstandRiskEvent, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
 ):
     """Handle risk selection from understand component"""
     try:
         logger.info(f"Understand risk event from {event.component_id}: {event.risk_id}")
-        
+
         risk_detail: dict = {"risk_id": event.risk_id}
         if user_id:
             try:
                 from app.services.form_data import get_form_data_service
+
                 svc = get_form_data_service(user_id)
                 if svc:
                     await svc.load()
@@ -421,14 +453,16 @@ async def handle_understand_risk(
             except Exception as e:
                 logger.warning(f"Optional form data service lookup for risk failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Risk assessment processed",
-            **risk_detail,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Risk assessment processed",
+                **risk_detail,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling understand risk: {e}")
         raise HTTPException(status_code=500, detail="Failed to process risk assessment")
@@ -438,24 +472,25 @@ async def handle_understand_risk(
 # Plan Function Group Endpoints
 # ============================================================================
 
+
 @router.post("/plan/action")
 async def handle_plan_action(
-    event: PlanActionEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    event: PlanActionEvent, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
 ):
     """Handle action selection from plan component"""
     try:
         logger.info(f"Plan action event from {event.component_id}: {event.action_id}")
-        
-        return JSONResponse({
-            "success": True,
-            "message": "Action processed",
-            "action_id": event.action_id,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Action processed",
+                "action_id": event.action_id,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling plan action: {e}")
         raise HTTPException(status_code=500, detail="Failed to process action")
@@ -463,21 +498,22 @@ async def handle_plan_action(
 
 @router.post("/plan/deadline")
 async def handle_plan_deadline(
-    event: PlanDeadlineEvent,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    event: PlanDeadlineEvent, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
 ):
     """Handle deadline selection from plan component"""
     try:
         logger.info(f"Plan deadline event from {event.component_id}: {event.deadline_id}")
-        
+
         upcoming = []
         if user_id:
             try:
-                from app.models.models import CalendarEvent as CalendarEventModel
-                from app.core.database import get_db_session
-                from sqlalchemy import select as _select
                 from datetime import timedelta
+
+                from sqlalchemy import select as _select
+
+                from app.core.database import get_db_session
+                from app.models.models import CalendarEvent as CalendarEventModel
+
                 now = utc_now()
                 async with get_db_session() as _db:
                     q = await _db.execute(
@@ -488,19 +524,24 @@ async def handle_plan_deadline(
                         .order_by(CalendarEventModel.start_datetime.asc())
                         .limit(5)
                     )
-                    upcoming = [{"id": e.id, "title": e.title, "date": e.start_datetime.isoformat(), "critical": e.is_critical} for e in q.scalars().all()]
+                    upcoming = [
+                        {"id": e.id, "title": e.title, "date": e.start_datetime.isoformat(), "critical": e.is_critical}
+                        for e in q.scalars().all()
+                    ]
             except Exception as e:
                 logger.warning(f"Optional calendar query for deadlines failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Deadline processed",
-            "deadline_id": event.deadline_id,
-            "upcoming_deadlines": upcoming,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Deadline processed",
+                "deadline_id": event.deadline_id,
+                "upcoming_deadlines": upcoming,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling plan deadline: {e}")
         raise HTTPException(status_code=500, detail="Failed to process deadline")
@@ -510,36 +551,42 @@ async def handle_plan_deadline(
 # Role-Specific Endpoints
 # ============================================================================
 
+
 @router.post("/tenant/emergency-action")
 async def handle_tenant_emergency(
     component_id: str,
     emergency_id: str,
     action: str,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    user_id: str | None = Depends(get_optional_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle emergency action from tenant component"""
     try:
         logger.info(f"Tenant emergency action: {action} for {emergency_id}")
-        
+
         guidance = []
         try:
             from app.modules.eviction_defense.router import DEFENSE_LIBRARY
+
             if action in ("file_answer", "answer"):
-                guidance = [{"step": d.get("title", ""), "detail": d.get("description", "")} for d in DEFENSE_LIBRARY[:3]]
+                guidance = [
+                    {"step": d.get("title", ""), "detail": d.get("description", "")} for d in DEFENSE_LIBRARY[:3]
+                ]
         except Exception as e:
             logger.warning(f"Optional eviction defense library lookup for emergency failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Emergency action processed",
-            "emergency_id": emergency_id,
-            "action": action,
-            "guidance": guidance,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Emergency action processed",
+                "emergency_id": emergency_id,
+                "action": action,
+                "guidance": guidance,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling tenant emergency: {e}")
         raise HTTPException(status_code=500, detail="Failed to process emergency action")
@@ -550,24 +597,26 @@ async def handle_advocate_handoff(
     component_id: str,
     client_id: str,
     target_role: str,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    user_id: str | None = Depends(get_optional_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle client handoff from advocate component"""
     try:
         logger.info(f"Advocate handoff: {client_id} to {target_role}")
-        
+
         handoff_id = f"handoff_{utc_now().timestamp()}"
-        return JSONResponse({
-            "success": True,
-            "message": "Client handoff processed",
-            "client_id": client_id,
-            "target_role": target_role,
-            "handoff_id": handoff_id,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Client handoff processed",
+                "client_id": client_id,
+                "target_role": target_role,
+                "handoff_id": handoff_id,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling advocate handoff: {e}")
         raise HTTPException(status_code=500, detail="Failed to process handoff")
@@ -578,20 +627,22 @@ async def handle_legal_review(
     component_id: str,
     case_id: str,
     review_type: str,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    user_id: str | None = Depends(get_optional_user_id),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle case review from legal component"""
     try:
         logger.info(f"Legal review: {review_type} for {case_id}")
-        
+
         review_id = f"review_{utc_now().timestamp()}"
         docs_summary = []
         if user_id:
             try:
-                from app.models.models import Document as DocumentModel
-                from app.core.database import get_db_session
                 from sqlalchemy import select as _select
+
+                from app.core.database import get_db_session
+                from app.models.models import Document as DocumentModel
+
                 async with get_db_session() as _db:
                     q = await _db.execute(
                         _select(DocumentModel)
@@ -599,21 +650,26 @@ async def handle_legal_review(
                         .order_by(DocumentModel.uploaded_at.desc())
                         .limit(5)
                     )
-                    docs_summary = [{"id": d.id, "filename": d.original_filename or d.filename, "type": d.document_type} for d in q.scalars().all()]
+                    docs_summary = [
+                        {"id": d.id, "filename": d.original_filename or d.filename, "type": d.document_type}
+                        for d in q.scalars().all()
+                    ]
             except Exception as e:
                 logger.warning(f"Optional document query for legal review failed: {e}")
 
-        return JSONResponse({
-            "success": True,
-            "message": "Legal review started",
-            "case_id": case_id,
-            "review_type": review_type,
-            "review_id": review_id,
-            "recent_documents": docs_summary,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Legal review started",
+                "case_id": case_id,
+                "review_type": review_type,
+                "review_id": review_id,
+                "recent_documents": docs_summary,
+                "user_id": user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling legal review: {e}")
         raise HTTPException(status_code=500, detail="Failed to start legal review")
@@ -624,33 +680,37 @@ async def handle_admin_maintenance(
     component_id: str,
     maintenance_type: str,
     user: StorageUser = Depends(yellow_access),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle system maintenance from admin component. Requires authentication."""
     try:
         logger.info(f"Admin maintenance: {maintenance_type}")
-        
+
         task_id = f"maintenance_{utc_now().timestamp()}"
         health = {}
         try:
-            from app.core.database import get_db_session
             from sqlalchemy import text
+
+            from app.core.database import get_db_session
+
             async with get_db_session() as _db:
                 await _db.execute(text("SELECT 1"))
             health["db"] = "ok"
         except Exception:
             health["db"] = "error"
 
-        return JSONResponse({
-            "success": True,
-            "message": "Maintenance task processed",
-            "maintenance_type": maintenance_type,
-            "task_id": task_id,
-            "system_health": health,
-            "user_id": user.user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse(
+            {
+                "success": True,
+                "message": "Maintenance task processed",
+                "maintenance_type": maintenance_type,
+                "task_id": task_id,
+                "system_health": health,
+                "user_id": user.user_id,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
+
     except Exception as e:
         logger.error(f"Error handling admin maintenance: {e}")
         raise HTTPException(status_code=500, detail="Failed to process maintenance")
@@ -660,11 +720,9 @@ async def handle_admin_maintenance(
 # Workspace Stage Integration
 # ============================================================================
 
+
 @router.get("/workspace-stage")
-async def get_workspace_stage(
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
-):
+async def get_workspace_stage(user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)):
     """Get current workspace stage for component adaptation"""
     try:
         stage_data: dict = {
@@ -680,6 +738,7 @@ async def get_workspace_stage(
         if user_id:
             try:
                 from app.services.form_data import get_form_data_service
+
                 svc = get_form_data_service(user_id)
                 if svc:
                     await svc.load()
@@ -696,9 +755,11 @@ async def get_workspace_stage(
             except Exception as e:
                 logger.warning(f"Optional form data service lookup for admin status failed: {e}")
             try:
-                from app.models.models import User as UserModel
-                from app.core.database import get_db_session
                 from sqlalchemy import select as _select
+
+                from app.core.database import get_db_session
+                from app.models.models import User as UserModel
+
                 async with get_db_session() as _db:
                     r = await _db.execute(_select(UserModel).where(UserModel.id == user_id))
                     u = r.scalar_one_or_none()
@@ -707,22 +768,15 @@ async def get_workspace_stage(
             except Exception as e:
                 logger.warning(f"Optional user query for storage connection failed: {e}")
 
-        return JSONResponse({
-            **stage_data,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse({**stage_data, "user_id": user_id, "timestamp": utc_now().isoformat()})
+
     except Exception as e:
         logger.error(f"Error getting workspace stage: {e}")
         raise HTTPException(status_code=500, detail="Failed to get workspace stage")
 
 
 @router.get("/next-step")
-async def get_next_step(
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
-):
+async def get_next_step(user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)):
     """Get recommended next step based on workspace stage"""
     try:
         step: dict = {
@@ -735,6 +789,7 @@ async def get_next_step(
         if user_id:
             try:
                 from app.services.form_data import get_form_data_service
+
                 svc = get_form_data_service(user_id)
                 if svc:
                     await svc.load()
@@ -743,24 +798,50 @@ async def get_next_step(
                     case_stage = summary.get("stage", "")
                     days = summary.get("days_until_deadline")
                     if doc_count == 0:
-                        step = {"step": "capture", "title": "Upload Your Documents", "description": "Start by uploading your lease, notices, or any court documents.", "priority": "high", "component": "upload-zone"}
+                        step = {
+                            "step": "capture",
+                            "title": "Upload Your Documents",
+                            "description": "Start by uploading your lease, notices, or any court documents.",
+                            "priority": "high",
+                            "component": "upload-zone",
+                        }
                     elif not summary.get("timeline_count", 0):
-                        step = {"step": "understand", "title": "Review Your Timeline", "description": "Your documents were processed. Review extracted events.", "priority": "high", "component": "timeline-viewer"}
+                        step = {
+                            "step": "understand",
+                            "title": "Review Your Timeline",
+                            "description": "Your documents were processed. Review extracted events.",
+                            "priority": "high",
+                            "component": "timeline-viewer",
+                        }
                     elif case_stage in ("summons_served", "answer_due") or (days is not None and days <= 14):
-                        step = {"step": "plan", "title": "File Your Answer", "description": f"Your answer deadline is approaching{f' in {days} days' if days is not None else ''}. Generate your court form now.", "priority": "critical", "component": "court-forms"}
+                        step = {
+                            "step": "plan",
+                            "title": "File Your Answer",
+                            "description": f"Your answer deadline is approaching{f' in {days} days' if days is not None else ''}. Generate your court form now.",
+                            "priority": "critical",
+                            "component": "court-forms",
+                        }
                     elif case_stage == "hearing_scheduled":
-                        step = {"step": "plan", "title": "Prepare for Your Hearing", "description": "Review your defenses and gather your evidence packet.", "priority": "high", "component": "hearing-prep"}
+                        step = {
+                            "step": "plan",
+                            "title": "Prepare for Your Hearing",
+                            "description": "Review your defenses and gather your evidence packet.",
+                            "priority": "high",
+                            "component": "hearing-prep",
+                        }
                     else:
-                        step = {"step": "understand", "title": "Review Your Rights", "description": "Understand which defenses apply to your situation.", "priority": "medium", "component": "rights-viewer"}
+                        step = {
+                            "step": "understand",
+                            "title": "Review Your Rights",
+                            "description": "Understand which defenses apply to your situation.",
+                            "priority": "medium",
+                            "component": "rights-viewer",
+                        }
             except Exception as e:
                 logger.warning(f"Optional form data service lookup for next step failed: {e}")
 
-        return JSONResponse({
-            **step,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+        return JSONResponse({**step, "user_id": user_id, "timestamp": utc_now().isoformat()})
+
     except Exception as e:
         logger.error(f"Error getting next step: {e}")
         raise HTTPException(status_code=500, detail="Failed to get next step")
@@ -770,11 +851,10 @@ async def get_next_step(
 # Component Configuration
 # ============================================================================
 
+
 @router.get("/config/{role}")
 async def get_component_config(
-    role: str,
-    user_id: Optional[str] = Depends(get_optional_user_id),
-    db: AsyncSession = Depends(get_db)
+    role: str, user_id: str | None = Depends(get_optional_user_id), db: AsyncSession = Depends(get_db)
 ):
     """Get role-specific component configuration"""
     try:
@@ -783,37 +863,49 @@ async def get_component_config(
                 "theme": "blue",
                 "show_emergency": True,
                 "show_progress": True,
-                "default_components": ["upload-zone", "timeline-view", "next-step-card"]
+                "default_components": ["upload-zone", "timeline-view", "next-step-card"],
             },
             "advocate": {
                 "theme": "purple",
                 "show_client_list": True,
                 "show_collaboration": True,
-                "default_components": ["client-management", "timeline-view", "action-list"]
+                "default_components": ["client-management", "timeline-view", "action-list"],
             },
             "legal": {
                 "theme": "green",
                 "show_case_review": True,
                 "show_document_review": True,
-                "default_components": ["timeline-view", "rights-analysis", "deadline-tracker"]
+                "default_components": ["timeline-view", "rights-analysis", "deadline-tracker"],
             },
             "admin": {
                 "theme": "red",
                 "show_system_stats": True,
                 "show_user_management": True,
-                "default_components": ["system-overview", "user-list", "activity-log"]
-            }
+                "default_components": ["system-overview", "user-list", "activity-log"],
+            },
+            "manager": {
+                "theme": "orange",
+                "show_case_assignment": True,
+                "show_staff_overview": True,
+                "default_components": ["case-assignment", "staff-activity", "deadline-tracker"],
+            },
+            "judge": {
+                "theme": "slate",
+                "show_case_review": True,
+                "show_calendar": True,
+                "default_components": ["case-review", "calendar", "deadline-tracker"],
+            },
         }
-        
-        config = role_configs.get(role, role_configs["tenant"])
-        
-        return JSONResponse({
-            "role": role,
-            "config": config,
-            "user_id": user_id,
-            "timestamp": utc_now().isoformat()
-        })
-        
+
+        # Use the role from the authenticated user context when available,
+        # falling back to the URL path parameter for unauthenticated calls.
+        effective_role = get_role_from_user_id(user_id) if user_id else role
+        config = role_configs.get(effective_role, role_configs["tenant"])
+
+        return JSONResponse(
+            {"role": effective_role, "config": config, "user_id": user_id, "timestamp": utc_now().isoformat()}
+        )
+
     except Exception as e:
         logger.error(f"Error getting component config: {e}")
         raise HTTPException(status_code=500, detail="Failed to get component configuration")
