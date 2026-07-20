@@ -1,3 +1,119 @@
+## Session — 2026-07-20 — todo-043 Calendar auto-populate from documents, deadlines, and ledger
+
+### Guardrail Engine Run — 2026-07-20T04:05:36
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Resolved `todo-043`: wired calendar auto-population from document-extracted deadlines and rent ledger dates.
+- Added `app/services/calendar_sync.py` with `sync_calendar_for_user()` that creates idempotent `CalendarEvent` rows from `DocumentHub.get_calendar_events()` and `RentPayment` due/fee/charge dates.
+- Added `source` and `linked_record_id` tracking for document-extraction (`document_extraction`) and ledger (`rent_ledger`) events, and `updated_at` surfacing in responses.
+- Updated `app/modules/calendar/router.py` `_model_to_response` to include `source`, `linked_record_id`, and `updated_at`; updated `/sync-documents` to use the canonical sync service; set manual events to `source="manual"`.
+- Wired `sync_calendar_for_user()` into `app/modules/documents/router.py` `process` and `reprocess` endpoints so uploading or reprocessing a document auto-populates the calendar.
+- Wired `sync_calendar_for_user()` into `app/modules/rent/router.py` create/update/delete endpoints so ledger changes auto-populate rent due and late-fee/charge trigger dates.
+- Added `app/modules/calendar/tests/test_calendar.py` with router, contract, response mapping, sync parsing, link-key, and sync-service tests.
+
+### Verification
+
+- Python 3.11.9 ✅
+- `python -m py_compile app/services/calendar_sync.py app/modules/calendar/router.py app/modules/documents/router.py app/modules/rent/router.py app/modules/calendar/tests/test_calendar.py app/models/models.py app/main.py` → exit 0 ✅
+- `python -m ruff check app/services/calendar_sync.py app/modules/calendar/router.py app/modules/calendar/tests/test_calendar.py app/modules/rent/router.py alembic/versions/66d6454b5b5d_add_source_and_link_to_calendar_events.py` → clean ✅
+- `python -m pytest app/modules/calendar/tests/ app/modules/rent/tests/ -v -o addopts=''` → 13 passed ✅
+- `python tools/guardrail_engine.py` → all checks passed ✅
+
+### Known Working
+
+- Calendar events are auto-created from uploaded/reprocessed documents (`hearing`, `deadline`, `action_item`, `timeline`) ✅
+- Rent ledger entries with `due_date` auto-create `rent_due` calendar events; `fee`/`charge` entries create late-fee/charge trigger events ✅
+- `/api/calendar/sync-documents` now refreshes both document-derived and ledger-derived events ✅
+- Manual events retain `source="manual"` and are not overwritten by auto-sync ✅
+- Calendar response schema surfaces `source`, `linked_record_id`, and `updated_at` ✅
+
+### Known Broken / Pending
+
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+- The `aaebf71fa17a` journal migration and new rent/calendar migrations are written but not applied to the live Postgres instance; apply with a privileged user when ready.
+
+---
+
+## Session — 2026-07-20 — Orchestrator preflight prompt mirror alignment
+
+### Guardrail Engine Run — 2026-07-20T04:01:14
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Aligned `.github/prompts/orchestrator_preflight.prompt.md` with `.devin/workflows/orchestrator_preflight.md`.
+- Updated stale `http://127.0.0.1:8088` reference to `http://localhost:8000`, added the `file://` standalone option, and synced the two-UIs / import instructions.
+- Replaced "admin login" with "stealth admin login" to match Semptify terminology.
+
+### Verification
+
+- Diff between `.devin/workflows/orchestrator_preflight.md` and `.github/prompts/orchestrator_preflight.prompt.md` differs only in expected frontmatter (`mode: agent`) and mirror comment. ✅
+
+### Known Working
+
+- Orchestrator preflight workflow and VS Code prompt mirror are in sync. ✅
+
+### Known Broken / Pending
+
+- `todo-043` (Calendar auto-populate) is currently `in_progress`; this session did not change that work.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+---
+
+## Session — 2026-07-20 — todo-006 Document Center planning (resumed reconciliation)
+
+### Guardrail Engine Run — 2026-07-20T04:05:44
+
+- **manifest_sync_check**: PASS — sync orchestrator passed.
+- **stub_check**: PASS — no stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- Resumed `todo-006` at user request and reconciled DC planning docs with the as-built implementation.
+- Updated `docs/planning/DC_DESIGN_SONNET.md` with a new §13 "As-Built Reconciliation" covering actual code structure, endpoints, contracts, overlay mapping, unlock rules, viewer rendering, confirm/correct, annotations, and known gaps.
+- Updated `docs/planning/DOCUMENT_CENTER_PLAN.md` status line and added an "Implementation Status & Known Gaps" section.
+- Updated `docs/planning/DC_HANDOFF_SONNET.md` status note.
+- Resolved Q1, Q4, Q5, and updated Q6/Q7 in `DC_DESIGN_SONNET.md` "Open Questions — Resolved" table.
+- Replaced the `Open Questions for the User` table with remaining engineering gaps (field persistence, canonical URL, step/live mode, .docx/HTML rendering, SSOT links).
+
+### Verification
+
+- Python 3.11.9 ✅
+- `python -m py_compile app/modules/document_center/router.py app/modules/document_center/register.py app/core/document_types.py` → exit 0 ✅
+- `python -m pytest app/modules/document_center/tests/test_dc_smoke.py -v -o addopts=''` → 22 passed ✅
+- `python tools/guardrail_engine.py` → all checks passed ✅
+- `python -c "import json; json.load(open('tools/agent_orchestrator_tasks.json'))"` → JSON valid ✅
+
+### Known Working
+
+- Document Center list, overlays, view, set-type, unlocks, and document-types endpoints ✅
+- 22 DC smoke tests pass ✅
+- DC planning docs now reflect the as-built implementation ✅
+
+### Known Broken / Pending
+
+- SDC `todo-043` Calendar auto-populate remains in progress with uncommitted working-tree changes.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+- DC known gaps remain: field confirmation persistence, step/live review toggle, .docx conversion, SSOT hardcoded `/tenant/documents` links, `/documents` vs `/document-center` template consolidation, DC reprocess endpoint not wired to GUI.
+
+### Next Session Should Start With
+
+1. Continue `todo-043` per aligned execution order, or pick the next DC gap if user directs.
+
+---
+
 ## Session — 2026-07-20 — todo-042 Rent Ledger expansion
 
 ### Guardrail Engine Run — 2026-07-20T07:21:20

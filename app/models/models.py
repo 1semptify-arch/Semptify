@@ -69,7 +69,7 @@ except ImportError:
         return None
 
     class Base:
-        metadata = type("m", (), {"create_all": staticmethod(lambda *args, **kwargs: None)})
+        metadata = type("m", (), {"create_all": staticmethod(lambda *args, **kwargs: None)})  # noqa: ARG005
 
     SQLALCHEMY_AVAILABLE = False
 
@@ -467,8 +467,13 @@ class CalendarEvent(Base):
     # Reminders (days before)
     reminder_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    # Source and linkage for auto-synced events
+    source: Mapped[str | None] = mapped_column(String(50), nullable=True)  # document_extraction, rent_ledger, manual
+    linked_record_id: Mapped[str | None] = mapped_column(String(255), nullable=True)  # idempotency key for auto-sync
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True, onupdate=utc_now)
 
 
 # =============================================================================
@@ -1275,11 +1280,7 @@ class InviteCode(Base):
     @property
     def is_valid(self) -> bool:
         """Check if code can still be used."""
-        return (
-            self.is_active
-            and not self.is_expired
-            and self.uses_count < self.max_uses
-        )
+        return self.is_active and not self.is_expired and self.uses_count < self.max_uses
 
     @property
     def remaining_uses(self) -> int:
