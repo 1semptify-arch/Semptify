@@ -1,28 +1,28 @@
 """Filedored Vault Post-Processing Service — overlay-based sorting, dedup, AI classification."""
-import logging
-from typing import Optional
 
+import logging
+
+from app.core.overlay_types import OverlayType
 from app.core.utc import utc_now
 from app.core.vault_paths import (
     VAULT_FILEDORED,
-    VAULT_FILEDORED_PDF,
-    VAULT_FILEDORED_WORD,
-    VAULT_FILEDORED_TEXT,
-    VAULT_FILEDORED_SPREADS,
-    VAULT_FILEDORED_PRESENTS,
-    VAULT_FILEDORED_SCANS,
-    VAULT_FILEDORED_DUPLICATES,
-    VAULT_FILEDORED_OTHER,
     VAULT_FILEDORED_AI,
+    VAULT_FILEDORED_AI_COMM,
+    VAULT_FILEDORED_AI_EVIDENCE,
+    VAULT_FILEDORED_AI_INVOICE,
     VAULT_FILEDORED_AI_LEASE,
     VAULT_FILEDORED_AI_NOTICE,
-    VAULT_FILEDORED_AI_EVIDENCE,
     VAULT_FILEDORED_AI_PHOTO,
-    VAULT_FILEDORED_AI_INVOICE,
-    VAULT_FILEDORED_AI_COMM,
     VAULT_FILEDORED_AI_UNKNOWN,
+    VAULT_FILEDORED_DUPLICATES,
+    VAULT_FILEDORED_OTHER,
+    VAULT_FILEDORED_PDF,
+    VAULT_FILEDORED_PRESENTS,
+    VAULT_FILEDORED_SCANS,
+    VAULT_FILEDORED_SPREADS,
+    VAULT_FILEDORED_TEXT,
+    VAULT_FILEDORED_WORD,
 )
-from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import CreateOverlayRequest
 
 logger = logging.getLogger(__name__)
@@ -82,22 +82,20 @@ def ai_classify_document(vault_id: str, content: bytes, filename: str) -> str:
     """
     AI classification hook.
     Expected return values: lease, notice, evidence, photo, invoice, communication, unknown
-    
+
     Integration points:
     - SWE 1.6: Replace this function with SWE 1.6 API call
-    - Local model: Replace with local model inference
+    - Local model: Uses the deterministic keyword/filename classifier in
+      ``app.services.local_classifier`` (default).
     - External API: Replace with external classification service
     """
-    # TODO: Integrate with SWE 1.6 or local model
-    # Example SWE 1.6 integration:
-    # from app.services.swe16_client import classify_document
-    # return classify_document(content, filename)
-    
-    # Example local model integration:
-    # from app.services.local_classifier import predict
-    # return predict(content, filename)
-    
-    return "unknown"
+    try:
+        from app.services.local_classifier import predict
+
+        return predict(content, filename)
+    except Exception as exc:
+        logger.warning("AI classification failed for %s: %s", vault_id, exc)
+        return "unknown"
 
 
 async def process_uploaded_document(
@@ -111,10 +109,10 @@ async def process_uploaded_document(
 ) -> dict:
     """
     Post-process an uploaded document through filedored system using overlays.
-    
+
     Instead of moving files, creates overlay references that organize documents
     into the filedored folder structure virtually.
-    
+
     Returns dict with:
         - status: "sorted", "ai_classified", "skipped", "error"
         - overlay_path: virtual path in filedored structure
@@ -190,7 +188,7 @@ async def process_uploaded_document(
             "overlay_path": target_path,
             "extension": ext,
         }
-        
+
     except Exception as e:
         logger.error("Filedored processing failed for %s: %s", vault_id, e)
         return {
@@ -221,6 +219,7 @@ async def ensure_filedored_folders(vault_client) -> dict:
     if user_id:
         try:
             from app.core.redis_client import get_redis
+
             redis = await get_redis()
             if redis is not None:
                 flag = await redis.get(await _filedored_flag_key(user_id))
@@ -238,6 +237,7 @@ async def ensure_filedored_folders(vault_client) -> dict:
     if result.all_ok and user_id:
         try:
             from app.core.redis_client import get_redis
+
             redis = await get_redis()
             if redis is not None:
                 await redis.set(await _filedored_flag_key(user_id), "1", ex=_FILEDORED_FLAG_TTL)
@@ -279,45 +279,49 @@ async def ensure_filedored_folder(storage_provider, folder_path: str) -> bool:
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="filedored",
-        group_name="document_process",
-        title="Filedored Document Processing (SSOT)",
-        description=(
-            "CANONICAL document sorting/classification via process_uploaded_document(). "
-            "Creates FILEDORED overlay with filedored_path in payload. "
-            "Caller MUST pass a constructed UnifiedOverlayManager (no lazy init). "
-            "AI classification is optional (enable_ai flag). "
-            "FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest."
-        ),
-        inputs=("vault_id", "user_id", "filename", "content", "sha256_hash", "enable_ai", "overlay_manager"),
-        outputs=("status", "overlay_path", "ai_label?"),
-        dependencies=(
-            "app.services.filedored_service.process_uploaded_document",
-            "app.services.unified_overlay_manager.UnifiedOverlayManager",
-            "app.core.overlay_types.OverlayType.FILEDORED",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="filedored",
+            group_name="document_process",
+            title="Filedored Document Processing (SSOT)",
+            description=(
+                "CANONICAL document sorting/classification via process_uploaded_document(). "
+                "Creates FILEDORED overlay with filedored_path in payload. "
+                "Caller MUST pass a constructed UnifiedOverlayManager (no lazy init). "
+                "AI classification is optional (enable_ai flag). "
+                "FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest."
+            ),
+            inputs=("vault_id", "user_id", "filename", "content", "sha256_hash", "enable_ai", "overlay_manager"),
+            outputs=("status", "overlay_path", "ai_label?"),
+            dependencies=(
+                "app.services.filedored_service.process_uploaded_document",
+                "app.services.unified_overlay_manager.UnifiedOverlayManager",
+                "app.core.overlay_types.OverlayType.FILEDORED",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="filedored",
-        group_name="folders_ensure",
-        title="Filedored Folders Ensure (SSOT)",
-        description=(
-            "CANONICAL folder creation via ensure_filedored_folders() and ensure_filedored_folder(). "
-            "Base folders created upfront; AI subdirectories lazy-created on demand. "
-            "Redis flag (30-day TTL) prevents redundant API calls."
-        ),
-        inputs=("vault_client", "storage_provider", "folder_path?"),
-        outputs=("status", "folders_created", "folders_failed"),
-        dependencies=(
-            "app.services.filedored_service.ensure_filedored_folders",
-            "app.services.filedored_service.ensure_filedored_folder",
-            "app.core.vault_paths.VAULT_FILEDORED",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="filedored",
+            group_name="folders_ensure",
+            title="Filedored Folders Ensure (SSOT)",
+            description=(
+                "CANONICAL folder creation via ensure_filedored_folders() and ensure_filedored_folder(). "
+                "Base folders created upfront; AI subdirectories lazy-created on demand. "
+                "Redis flag (30-day TTL) prevents redundant API calls."
+            ),
+            inputs=("vault_client", "storage_provider", "folder_path?"),
+            outputs=("status", "folders_created", "folders_failed"),
+            dependencies=(
+                "app.services.filedored_service.ensure_filedored_folders",
+                "app.services.filedored_service.ensure_filedored_folder",
+                "app.core.vault_paths.VAULT_FILEDORED",
+            ),
+            deterministic=True,
+        )
+    )
 
-except Exception:
-    pass
+except Exception as _e:
+    logger.debug("Filedored contract registration skipped: %s", _e)
