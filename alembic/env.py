@@ -19,6 +19,7 @@ from app.models.models import (
     TimelineEvent,
     RentPayment,
     CalendarEvent,
+    JournalEntry,
     Complaint,
     WitnessStatement,
     CertifiedMail,
