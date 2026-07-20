@@ -29,6 +29,7 @@ directly — it does not create its own POST route.
 =============================================================================
 """
 
+import json
 import logging
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
 from pydantic import BaseModel
@@ -38,6 +39,8 @@ from app.core.security import get_user_id, require_user, StorageUser, yellow_acc
 from app.core.config import get_settings, Settings
 from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.job_processor import submit_deep_ocr_job, JobPriority
+from app.models.models import DocumentPipelineIndex, DeepOCRStatus
 from app.services.document_intake import (
     get_intake_engine,
     DocumentType,
@@ -580,10 +583,10 @@ async def upload_and_process(
     )
     logger.info(f"📋 Document intake complete: {doc.id}")
     
-    # Step 2: Process (extract text, classify, analyze)
+    # Step 2: Process (extract text, classify, analyze) — Light Intake / Pass 1
     try:
         doc = await engine.process_document(doc.id)
-        logger.info(f"✓ Document processing complete: {doc.id}")
+        logger.info(f"✓ Light Intake (Pass 1) complete: {doc.id}")
     except Exception as e:
         logger.error("Processing failed: %s", e)
         return AutoProcessResponse(
@@ -594,7 +597,35 @@ async def upload_and_process(
             message=f"Processing failed: {str(e)}",
             vault_id=vault_id,
         )
-    
+
+    # Step 2b: Create the master pipeline index record and queue Deep OCR Pass 2.
+    # Pass 1 (OCR + rough extraction) stays synchronous in Light Intake.
+    # Pass 2 (Semantic Context Engine) runs asynchronously in the job queue.
+    try:
+        pipeline_index = DocumentPipelineIndex(
+            doc_id=doc.id,
+            user_id=user_id,
+            payload_json=json.dumps({
+                "vault_id": vault_id,
+                "filename": file.filename,
+                "mime_type": file.content_type,
+                "queued_at": utc_now().isoformat(),
+            }),
+            deep_ocr_status=DeepOCRStatus.PENDING.value,
+        )
+        db.add(pipeline_index)
+        await db.commit()
+
+        deep_ocr_job_id = submit_deep_ocr_job(
+            doc_id=doc.id,
+            user_id=user_id,
+            vault_id=vault_id,
+            priority=JobPriority.NORMAL,
+        )
+        logger.info("Deep OCR job %s queued for doc %s", deep_ocr_job_id, doc.id)
+    except Exception as e:
+        logger.warning("Failed to queue Deep OCR job for doc %s: %s", doc.id, e)
+
     # Step 3: Run full flow orchestration for complete pipeline
     flow_result = {}
     if FLOW_AVAILABLE:
@@ -669,11 +700,12 @@ async def upload_and_process(
     return AutoProcessResponse(
         id=doc.id,
         filename=doc.filename,
-        status=doc.status.value if doc.status else "complete",
-        doc_type="unknown",
+        status="processing",
+        doc_type=doc.extraction.doc_type.value if doc.extraction and doc.extraction.doc_type else "unknown",
         message=(
             f"✓ Document stored, notarized ({notarization_id}), "
-            f"and processed successfully in vault ({vault_id or 'local'})"
+            f"and Light Intake complete in vault ({vault_id or 'local'}). "
+            f"Deep OCR Pass 2 is queued and processing."
         ),
         vault_id=vault_id,
         overlay_record_ids=overlay_record_ids,
