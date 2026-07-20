@@ -11,16 +11,15 @@ Endpoints:
 """
 
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from app.core.user_context import UserContext
-from app.core.security import require_user, can_access
 from app.core.database import get_db_session
 from app.core.id_gen import make_id
+from app.core.security import can_access, require_user
+from app.core.user_context import UserContext
 from app.core.utc import utc_now
 from app.models.models import JournalEntry as JournalEntryModel
 
@@ -44,7 +43,7 @@ router = APIRouter()
 VALID_ENTRY_TYPES = {"note", "conversation", "incident", "repair_request", "other"}
 
 
-def _parse_iso(dt_str: Optional[str]) -> Optional[datetime]:
+def _parse_iso(dt_str: str | None) -> datetime | None:
     """Parse an ISO datetime string to a timezone-aware datetime."""
     if not dt_str:
         return None
@@ -54,40 +53,40 @@ def _parse_iso(dt_str: Optional[str]) -> Optional[datetime]:
         raise HTTPException(status_code=400, detail=f"Invalid datetime format: {dt_str}")
 
 
-def _tags_to_str(tags: Optional[list[str]]) -> Optional[str]:
+def _tags_to_str(tags: list[str] | None) -> str | None:
     if not tags:
         return None
     return ",".join(t.strip() for t in tags if t.strip())
 
 
-def _tags_from_str(tags_str: Optional[str]) -> list[str]:
+def _tags_from_str(tags_str: str | None) -> list[str]:
     if not tags_str:
         return []
     return [t.strip() for t in tags_str.split(",") if t.strip()]
 
 
-class JournalEntryCreateRequest(BaseModel):
+class JournalEntryCreate(BaseModel):
     """Create a journal entry."""
     entry_type: str = Field(..., description="note, conversation, incident, repair_request, or other")
     title: str = Field(..., min_length=1, max_length=255)
-    content: Optional[str] = None
-    occurred_at: Optional[str] = Field(None, description="ISO datetime; defaults to now")
+    content: str | None = None
+    occurred_at: str | None = Field(None, description="ISO datetime; defaults to now")
     is_urgent: bool = False
-    involved_party: Optional[str] = Field(None, max_length=255, description="e.g. landlord, manager, neighbor")
-    tags: Optional[list[str]] = None
-    document_link: Optional[str] = Field(None, max_length=36, description="Optional vault document ID")
+    involved_party: str | None = Field(None, max_length=255, description="e.g. landlord, manager, neighbor")
+    tags: list[str] | None = None
+    document_link: str | None = Field(None, max_length=36, description="Optional vault document ID")
 
 
-class JournalEntryUpdateRequest(BaseModel):
+class JournalEntryUpdate(BaseModel):
     """Update a journal entry."""
-    entry_type: Optional[str] = None
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    content: Optional[str] = None
-    occurred_at: Optional[str] = None
-    is_urgent: Optional[bool] = None
-    involved_party: Optional[str] = Field(None, max_length=255)
-    tags: Optional[list[str]] = None
-    document_link: Optional[str] = Field(None, max_length=36)
+    entry_type: str | None = None
+    title: str | None = Field(None, min_length=1, max_length=255)
+    content: str | None = None
+    occurred_at: str | None = None
+    is_urgent: bool | None = None
+    involved_party: str | None = Field(None, max_length=255)
+    tags: list[str] | None = None
+    document_link: str | None = Field(None, max_length=36)
 
 
 class JournalEntryResponse(BaseModel):
@@ -95,12 +94,12 @@ class JournalEntryResponse(BaseModel):
     id: str
     entry_type: str
     title: str
-    content: Optional[str] = None
+    content: str | None = None
     occurred_at: str
     is_urgent: bool
-    involved_party: Optional[str] = None
+    involved_party: str | None = None
     tags: list[str] = Field(default_factory=list)
-    document_link: Optional[str] = None
+    document_link: str | None = None
     source: str
     created_at: str
     updated_at: str
@@ -122,27 +121,27 @@ class JournalSummaryResponse(BaseModel):
     recent_entries: list[JournalEntryResponse]
 
 
-def _row_to_response(entry: JournalEntryModel) -> dict:
-    """Convert a JournalEntry model row to a plain response dict."""
-    return {
-        "id": entry.id,
-        "entry_type": entry.entry_type,
-        "title": entry.title,
-        "content": entry.content,
-        "occurred_at": entry.occurred_at.isoformat() if entry.occurred_at else "",
-        "is_urgent": entry.is_urgent or False,
-        "involved_party": entry.involved_party,
-        "tags": _tags_from_str(entry.tags),
-        "document_link": entry.document_link,
-        "source": entry.source or "manual",
-        "created_at": entry.created_at.isoformat() if entry.created_at else "",
-        "updated_at": entry.updated_at.isoformat() if entry.updated_at else "",
-    }
+def _to_response(entry: JournalEntryModel) -> JournalEntryResponse:
+    """Convert a JournalEntry model row to a response model."""
+    return JournalEntryResponse(
+        id=entry.id,
+        entry_type=entry.entry_type,
+        title=entry.title,
+        content=entry.content,
+        occurred_at=entry.occurred_at.isoformat() if entry.occurred_at else "",
+        is_urgent=entry.is_urgent or False,
+        involved_party=entry.involved_party,
+        tags=_tags_from_str(entry.tags),
+        document_link=entry.document_link,
+        source=entry.source or "manual",
+        created_at=entry.created_at.isoformat() if entry.created_at else "",
+        updated_at=entry.updated_at.isoformat() if entry.updated_at else "",
+    )
 
 
 @router.post("/", response_model=JournalEntryResponse)
 async def create_entry(
-    body: JournalEntryCreateRequest,
+    body: JournalEntryCreate,
     user: UserContext = Depends(require_user),
 ):
     """Create a new journal entry."""
@@ -158,7 +157,7 @@ async def create_entry(
     occurred_at = _parse_iso(body.occurred_at) or utc_now()
 
     entry = JournalEntryModel(
-        id=make_id(),
+        id=make_id("jrn"),
         user_id=user.get_effective_user_id(),
         entry_type=entry_type,
         title=body.title.strip(),
@@ -177,13 +176,13 @@ async def create_entry(
         db.add(entry)
         await db.commit()
 
-    return JournalEntryResponse(**_row_to_response(entry))
+    return _to_response(entry)
 
 
 @router.get("/", response_model=JournalListResponse)
 async def list_entries(
-    entry_type: Optional[str] = None,
-    is_urgent: Optional[bool] = None,
+    entry_type: str | None = None,
+    is_urgent: bool | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     user: UserContext = Depends(require_user),
@@ -207,7 +206,7 @@ async def list_entries(
         )
         total = len(list(total_result.scalars().all()))
 
-    return JournalListResponse(entries=[JournalEntryResponse(**_row_to_response(e)) for e in entries], total=total)
+    return JournalListResponse(entries=[_to_response(e) for e in entries], total=total)
 
 
 @router.get("/summary", response_model=JournalSummaryResponse)
@@ -227,7 +226,7 @@ async def get_summary(
     return JournalSummaryResponse(
         total_entries=len(entries),
         urgent_entries=sum(1 for e in entries if e.is_urgent),
-        recent_entries=[JournalEntryResponse(**_row_to_response(e)) for e in entries[:5]],
+        recent_entries=[_to_response(e) for e in entries[:5]],
     )
 
 
@@ -250,13 +249,13 @@ async def get_entry(
     if not entry:
         raise HTTPException(status_code=404, detail="Journal entry not found")
 
-    return JournalEntryResponse(**_row_to_response(entry))
+    return _to_response(entry)
 
 
 @router.put("/{entry_id}", response_model=JournalEntryResponse)
 async def update_entry(
     entry_id: str,
-    body: JournalEntryUpdateRequest,
+    body: JournalEntryUpdate,
     user: UserContext = Depends(require_user),
 ):
     """Update a journal entry."""
@@ -299,7 +298,7 @@ async def update_entry(
 
         await db.commit()
 
-    return JournalEntryResponse(**_row_to_response(entry))
+    return _to_response(entry)
 
 
 @router.delete("/{entry_id}")
