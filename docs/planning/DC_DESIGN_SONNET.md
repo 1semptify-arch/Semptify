@@ -1,7 +1,7 @@
 # Document Center (DC) — Design & Build Plan
 
 > Produced: 2026-06-27 | Based on: DOCUMENT_CENTER_PLAN.md + DC_HANDOFF_SONNET.md
-> Status: Design + planning only. No production code.
+> Status: Design + planning complete. Implementation lives in `app/modules/document_center/`; tests pass and page is live.
 
 ---
 
@@ -301,7 +301,7 @@ An overlay reaches 100% when all required fields for the stated document type ar
 ### 4c. Overall Verified Score
 
 ```
-overall_score = (sum of all overlay completions) / (number of overlays) 
+overall_score = (sum of all overlay completions) / (number of overlays)
 ```
 
 This is the number that drives the unlock pattern.
@@ -670,16 +670,16 @@ The semptify.org public site and the tenant app are separate builds. The DC is t
 |---|----------|----------|--------|
 | Q2 | When does OCR run? | Auto, on upload, in background | Already built in `upload/auto`. No change needed. |
 | Q3 | How is doc type set? | Semptify suggests, tenant can override any time | Classifier already detects it. Pre-fill the dropdown. No modal confirmation step. |
-| Q6 | Replace or alongside `/documents`? | Replace | Existing `documents` template is a stub. DC becomes that page. One URL, one purpose. |
-| Q7 | DC URL? | `/tenant/documents` | Fits SSOT navigation pattern. Already registered. No new stage needed. |
+| Q6 | Replace or alongside `/documents`? | Replace | `app/templates/pages/documents.html` is the canonical 3-pane DC shell. One URL, one purpose. |
+| Q7 | DC URL? | `GET /documents` in `app/main.py` (with `GET /tenant` falling back to the same template) | Many UI links still hardcode `/tenant/documents`; should be reconciled with SSOT navigation in a separate refactor. |
 
 ---
 
 ## Pre-Build Checklist (before writing any code)
 
 - [x] `app/core/overlay_types.py` — read. Types confirmed. `DOCUMENT_EXTRACTION`, `DOCUMENT_CLASSIFICATION`, `PARTY_EXTRACTION`, `TIMELINE_EXTRACTION`, `HIGHLIGHT`, `NOTE` all exist.
-- [ ] Read `app/core/navigation.py` — confirm `tenant/documents` stage name and path
-- [ ] Read `app/sdk/vault/client.py` — exact method signatures for `list_files()` and `get_file()`
-- [ ] Read `app/templates/pages/documents.html` — understand current stub before replacing
-- [ ] Confirm `app/core/utc.py` exports `utc_now()`
-- [ ] Slice 1 is unblocked — shell layout + hardcoded data, no API calls
+- [x] Read `app/core/navigation.py` — `tenant/documents` is not a named `FlowStage`; the DC page is served by `app/main.py` at `GET /documents` (with `GET /tenant` falling back to the same template). Navigation links use `/tenant/documents` hardcoded today; should be reconciled with SSOT later (separate refactor).
+- [x] Read `app/sdk/vault/client.py` — no `get_file()` method; use `download(self, subfolder: str, filename: str) -> bytes` to fetch file bytes and `list_files(self, subfolder)` to list folder contents.
+- [x] Read `app/templates/pages/documents.html` — no longer a stub; it is the full 3-pane Slice 1 shell (left vault list, center viewer frame, right overlays panel).
+- [x] Confirmed `app/core/utc.py` exports `utc_now()` and `utc_now_iso()`.
+- [x] Slice 1 is unblocked and implemented — see `app/modules/document_center/router.py`, `register.py`, `tests/test_dc_smoke.py`, and `app/templates/pages/documents.html`. No further hardcoded-data scaffolding needed.

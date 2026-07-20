@@ -368,10 +368,11 @@
     "target_model": "glm-5.2",
     "priority": "medium",
     "file_path": "docs/planning/DOCUMENT_CENTER_PLAN.md",
-    "status": "pending",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3",
+    "status": "resolved",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T04:47:41.567272+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-007",
@@ -854,10 +855,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/services/vault_upload_service.py",
-    "status": "in_progress",
-    "notes": "Preflight: app/services/storage/tsa.py, app/services/vault_upload_service.py:_create_certificate, app/services/storage/legal_integrity.py. Scope: call the existing stamp_document_hash() from _create_certificate on normal vault uploads and store the TSA token with the certificate. Do not touch: DocumentRegistry ID generation or SHA-256 hashing logic. Acceptance: a normal vault upload's certificate includes a valid RFC 3161 timestamp token.",
+    "status": "resolved",
+    "notes": "Preflight: app/services/storage/tsa.py, app/services/vault_upload_service.py:_create_certificate, app/services/storage/legal_integrity.py. Scope: call the existing stamp_document_hash() from _create_certificate on normal vault uploads and store the TSA token with the certificate. Do not touch: DocumentRegistry ID generation or SHA-256 hashing logic. Acceptance: a normal vault upload's certificate includes a valid RFC 3161 timestamp token.\n[2026-07-20 04:40 UTC - devin] Vault upload _create_certificate now calls stamp_document_hash and embeds RFC 3161 TSA token (or HMAC fallback) in certificate JSON for every standard vault upload.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:38:25.656019+00:00",
+    "updated_at": "2026-07-20T04:40:16.480983+00:00",
     "assigned_agent": "devin"
   },
   {

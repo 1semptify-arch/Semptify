@@ -140,9 +140,9 @@ Unverified docs are still stored safely — they just don't feed into timeline/j
 - Not sharing without explicit tenant action
 - Not multiple competing viewers / fragmented UI
 
-## Open Questions (to resolve before build)
+## Open Questions (resolved during implementation)
 
-- [ ] Which document types get checklists first? (Suggest: Lease, Notice, Repair Request, Rent Receipt, Move-in Inspection)
-- [ ] Where does the viewer render — PDF.js inline, or image-based for non-PDFs?
-- [ ] Does "Process" run automatically on upload, or on first Review open?
-- [ ] Should Semptify suggest the document type, or does tenant declare it?
+- [x] **Which document types get checklists first?** — `lease`, `notice_to_vacate`, `repair_request`, `rent_receipt`, `move_in_inspection` (plus `court_summons`, `correspondence`, `other` for completeness). See `app/modules/document_center/router.py` `ALLOWED_DOCUMENT_TYPES`.
+- [x] **Where does the viewer render?** — PDF.js inline for `.pdf`; `<img>` for `.jpg`/`.png`/`.webp`; server-side conversion to PDF for `.docx`; sandboxed `<iframe>` for `.html`; `<pre>` for `.txt`. See `DC_DESIGN_SONNET.md` §3a.
+- [x] **Does "Process" run automatically on upload, or on first Review open?** — Automatically on upload, in the background, via `POST /api/intake/upload/auto`.
+- [x] **Should Semptify suggest the document type, or does tenant declare it?** — Semptify suggests via the intake classifier; tenant can override from the viewer dropdown at any time.
