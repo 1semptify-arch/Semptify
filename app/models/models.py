@@ -208,6 +208,16 @@ class LinkedProvider(Base):
 # Document Vault
 # =============================================================================
 
+class DeepOCRStatus(str, enum.Enum):
+    """Status values for the Deep OCR pipeline."""
+
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETE = "complete"
+    FAILED = "failed"
+    NEEDS_REPROCESS = "needs_reprocess"
+
+
 class Document(Base):
     """
     Document stored in the vault with certification.
@@ -255,6 +265,15 @@ class Document(Base):
     
     privilege_waived: Mapped[bool] = mapped_column(Boolean, default=False)
     """If True, client has explicitly waived privilege on this document."""
+
+    # Processing state
+    deep_ocr_status: Mapped[str] = mapped_column(
+        String(20),
+        default=DeepOCRStatus.PENDING.value,
+        nullable=False,
+    )
+    """Deep OCR pipeline status: pending, processing, complete, failed, needs_reprocess."""
+
     # Timestamps
     uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
 
@@ -276,6 +295,15 @@ class DocumentPipelineIndex(Base):
     doc_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
     user_id: Mapped[str] = mapped_column(String(24), index=True)
     payload_json: Mapped[str] = mapped_column(Text)
+
+    # Processing state
+    deep_ocr_status: Mapped[str] = mapped_column(
+        String(20),
+        default=DeepOCRStatus.PENDING.value,
+        nullable=False,
+    )
+    """Deep OCR pipeline status: pending, processing, complete, failed, needs_reprocess."""
+
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
 
 
