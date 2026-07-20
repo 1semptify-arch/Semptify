@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-19 AM
+**Last Updated**: 2026-07-20
 
 ---
 
@@ -37,15 +37,18 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 | 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
 | 3 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
 | 4 | **Attorney Intake Packet** — PDF/ZIP rendering + GUI trigger | `app/modules/case_builder/router.py:2477-2930` | ✅ Complete 2026-07-19 | — |
+| 5 | **Journal module** — free-form tenant journal CRUD + briefcase integration | `app/modules/journal/router.py` | ✅ Complete 2026-07-20 | — |
+| 6 | **Rent Ledger** — full account ledger (payments, fees, deposits, credits, charges) with running balance | `app/modules/rent/router.py` | ✅ Complete 2026-07-20 | — |
 
-> **Note:** Rows #1-#4 are complete. The `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet; `/pdf` and `/zip` render it for attorney review. GUI download panel added to `case_builder.html`.
+> **Note:** Rows #1-#6 are complete. The `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet; `/pdf` and `/zip` render it for attorney review. GUI download panel added to `case_builder.html`.
+> **Journal:** `/api/journal` CRUD, `/api/journal/summary`, and `/tenant/journal` are live; `app/modules/journal/tests/test_journal.py` passes 8/8.
+> **Rent Ledger:** `/api/rent/payments` endpoints support full ledger entry types and compute running balance; `app/modules/rent/tests/test_ledger.py` passes 6/6.
 
 ## 🎯 Candidate Next Priorities (awaiting user direction)
 
-- **Journal capture** — RECORD pillar input vessel (user vision 2026-06-28). Not yet built.
+- **Calendar auto-populate** — todo-043. Wire documents, deadlines, and ledger into Calendar events.
 - **Calendar total-recollection viewer** — RECORD pillar. Not yet built.
 - **Timeline interactive query viewer** — RECORD pillar. Not yet built.
-- **Rent Ledger** — RECORD pillar. Stub on `record.html`.
 - **Comms Log** — RECORD pillar. Not yet built.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
 - **DC Slice 2+** — viewer rendering, unlock pattern wiring (DC_DESIGN_SONNET.md open checkboxes)
