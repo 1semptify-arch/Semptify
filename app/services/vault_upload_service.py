@@ -783,9 +783,20 @@ class VaultUploadService:
         access_token: Optional[str],
         provider_file_id: Optional[str] = None,
     ) -> Optional[str]:
-        """Create certification record for document."""
+        """Create certification record for document.
+
+        Includes an independent RFC 3161 timestamp from a third-party TSA so the
+        certificate is court-admissible and independently verifiable. If the TSA is
+        unavailable, a clearly-marked HMAC fallback timestamp is stored instead.
+        """
         certificate_id = make_id("cert")
-        
+
+        timestamp_iso = utc_now().isoformat()
+
+        from app.services.storage.tsa import stamp_document_hash
+
+        tsa_result = await stamp_document_hash(sha256_hash, timestamp_iso)
+
         certificate = {
             "certificate_id": certificate_id,
             "vault_id": vault_id,
@@ -794,17 +805,25 @@ class VaultUploadService:
             "file_size": file_size,
             "mime_type": mime_type,
             "document_type": document_type,
-            "certified_at": utc_now().isoformat(),
+            "certified_at": timestamp_iso,
             "storage_path": storage_path,
             "storage_provider": storage_provider,
             "provider_file_id": provider_file_id,
             "user_id": user_id,
             "version": "5.0",
             "platform": "Semptify Vault Service",
+            "timestamp": {
+                "tsa_backed": tsa_result.tsa_backed,
+                "tsa_url": tsa_result.tsa_url,
+                "tsa_token_b64": tsa_result.token_b64,
+                "tsa_error": tsa_result.error,
+                "timestamp_iso": tsa_result.timestamp_iso,
+                "document_hash": tsa_result.document_hash,
+            },
         }
-        
+
         cert_content = json.dumps(certificate, indent=2).encode("utf-8")
-        
+
         if storage_provider == "local":
             await self._local_upload_file(
                 file_content=cert_content,

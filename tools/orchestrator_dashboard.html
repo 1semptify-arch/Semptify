@@ -712,10 +712,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/document_center/router.py",
-    "status": "pending",
-    "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.",
+    "status": "resolved",
+    "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.\n[2026-07-20 04:34 UTC - devin] Added POST /api/dc/document/{vault_id}/reprocess endpoint. It resets DocumentPipelineIndex.deep_ocr_status to pending and re-queues a deep_ocr job without touching Vault or Light Intake.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T04:34:03.271857+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-040",
@@ -725,10 +726,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/services/vault_upload_service.py",
-    "status": "pending",
+    "status": "in_progress",
     "notes": "Preflight: app/services/storage/tsa.py, app/services/vault_upload_service.py:_create_certificate, app/services/storage/legal_integrity.py. Scope: call the existing stamp_document_hash() from _create_certificate on normal vault uploads and store the TSA token with the certificate. Do not touch: DocumentRegistry ID generation or SHA-256 hashing logic. Acceptance: a normal vault upload's certificate includes a valid RFC 3161 timestamp token.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-20T04:38:25.656019+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-041",

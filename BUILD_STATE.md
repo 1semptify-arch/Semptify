@@ -1,3 +1,46 @@
+## Session — 2026-07-20 — SDC todo-040 Wire RFC 3161 TSA into standard vault certificate
+
+### Guardrail Engine Run — 2026-07-20T06:00:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Shipped
+
+- `todo-040` resolved: `app/services/vault_upload_service.py` `_create_certificate()` now calls `app.services.storage.tsa.stamp_document_hash()` for every standard vault upload.
+- The certificate JSON now includes a `timestamp` object with `tsa_token_b64`, `tsa_backed`, `tsa_url`, `tsa_error`, `timestamp_iso`, and `document_hash`.
+- If the TSA is unreachable, the existing HMAC fallback is stored with `tsa_backed: false` so the certificate remains honest and auditable.
+- Document registry and SHA-256 hashing logic were not touched.
+
+### Verification
+
+- Python 3.11.9 ✅
+- Compile `app/services/vault_upload_service.py` and `app/services/storage/tsa.py` → exit 0 ✅
+- `tools/guardrail_engine.py` → all checks passed ✅
+- Local integration test calling `VaultUploadService._create_certificate()` with `storage_provider="local"` produced a certificate file with `tsa_backed: true`, a base64 `tsa_token_b64`, and `tsa_error: null` ✅
+
+### Known Working
+
+- Deep OCR queue with urgency priority ✅
+- Semantic Context Engine (Pass 2) ✅
+- Pass 2 results written to `DOCUMENT_EXTRACTION` overlay ✅
+- Document Center right panel shows honest `deep_ocr_status` messages ✅
+- On-demand Deep OCR reprocess endpoint ✅
+- Standard vault upload certificates include RFC 3161 TSA timestamps ✅
+
+### Known Broken / Pending
+
+- SDC `todo-041` → `todo-044` remain pending.
+- `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
+
+### Next Session Should Start With
+
+1. Continue with `todo-041` per aligned execution order.
+
+---
+
 ## Session — 2026-07-20 — SDC todo-039 On-demand Deep OCR reprocess endpoint
 
 ### Guardrail Engine Run — 2026-07-20T05:30:00
