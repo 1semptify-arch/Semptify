@@ -1,3 +1,31 @@
+## Session — 2026-07-25 — Timeline interactive query viewer
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/modules/timeline/router.py` compiles.
+- **timeline_template**: PASS — `app/templates/pages/timeline.html` has no emoji icons and no `alert()` fallbacks.
+
+### What Was Shipped
+
+- Replaced emoji event icons in `app/templates/pages/timeline.html` with minimal unicode markers (`▸`, `◆`, `●`, `○`).
+- Added an interactive query panel with search, date-axis selector, item-type filters, urgency filters, evidence-only toggle, and date-range inputs.
+- Wired the panel to `POST /api/timeline/unified` with the full `TimelineViewRequest` filter payload.
+- Removed the remaining `alert()` fallback in the add-event modal, using `SemptifyFeedback` only.
+- Fixed `calendar.html` filter buttons to show active state via inline styles (the `frame-btn--active` class did not exist in the design system).
+
+### Known Working
+
+- `python -m py_compile app/modules/timeline/router.py` — PASS.
+- `python -m py_compile app/modules/calendar/router.py` — PASS (regression check).
+- `python -m pytest app/modules/calendar/tests/test_calendar.py -v --no-cov` — 7/7 PASS (regression check).
+
+### Known Broken / Pending
+
+- `ruff check app/modules/timeline/router.py` reports 165 pre-existing lint/style issues; not introduced by this session.
+- No live browser verification of the query panel (no running dev server with storage credentials).
+
+---
+
 ## Session — 2026-07-25 — Calendar total-recollection viewer
 
 ### Guardrail Engine Run — 2026-07-25
