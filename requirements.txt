@@ -21,6 +21,7 @@ asyncpg>=0.29.0             # PostgreSQL async driver (production)
 # HTTP Client (for AI APIs)
 # =============================================================================
 httpx>=0.26.0
+asgi-lifespan>=2.1.0         # ASGI lifespan support for tests
 
 # =============================================================================
 # RFC 3161 Trusted Timestamping (court-admissible third-party timestamps)
