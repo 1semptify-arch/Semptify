@@ -1,0 +1,262 @@
+{% extends "gui/base.html" %}
+
+{% block title %}Comms Log — Semptify{% endblock %}
+{% block nav_record %}active{% endblock %}
+
+{% block content %}
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Comms Log</span>
+    </div>
+    <div class="frame-panel--body">
+        <p style="color:#94a3b8; font-size:0.9375rem;">
+            Log every contact about your tenancy — calls, emails, texts, visits, and letters — in one place.
+        </p>
+    </div>
+</section>
+
+<section class="frame-panel" id="addCommPanel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Log a contact</span>
+    </div>
+    <div class="frame-panel--body">
+        <form id="commForm" style="display:grid; gap:0.75rem;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+                <label style="color:#cbd5e1; font-size:0.875rem;">
+                    Date
+                    <input type="date" id="commDate" required style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+                </label>
+                <label style="color:#cbd5e1; font-size:0.875rem;">
+                    Method
+                    <select id="commMethod" style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+                        <option value="phone">Phone call</option>
+                        <option value="email">Email</option>
+                        <option value="text">Text / SMS</option>
+                        <option value="in_person">In person</option>
+                        <option value="letter">Letter / Notice</option>
+                        <option value="other">Other</option>
+                    </select>
+                </label>
+            </div>
+            <label style="color:#cbd5e1; font-size:0.875rem;">
+                Who contacted who?
+                <select id="commParty" style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+                    <option value="landlord">Landlord</option>
+                    <option value="manager">Property manager</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="attorney">My attorney / advocate</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label style="color:#cbd5e1; font-size:0.875rem;">
+                Notes
+                <textarea id="commNotes" rows="3" placeholder="What was said? Any promises or threats?" style="width:100%; margin-top:0.25rem; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff; resize:vertical;"></textarea>
+            </label>
+            <label style="color:#cbd5e1; font-size:0.875rem; display:flex; align-items:center; gap:0.5rem;">
+                <input type="checkbox" id="commEvidence" style="accent-color:#3b82f6;">
+                This is evidence
+            </label>
+            <button type="submit" class="frame-btn frame-btn--primary" style="justify-self:start;">Log contact</button>
+            <div id="commStatus" style="font-size:0.8125rem; color:#94a3b8;"></div>
+        </form>
+    </div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Logged contacts</span>
+        <span id="commCount" style="font-size:0.8125rem; color:#64748b;"></span>
+    </div>
+    <div class="frame-panel--body" id="commList">
+        <div class="frame-empty" id="commEmpty">
+            <div class="frame-empty--icon">∅</div>
+            <p>No contacts logged yet.</p>
+            <p class="frame-empty--hint">Use the form above to record your first call, email, or visit.</p>
+        </div>
+    </div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--body">
+        <p style="font-size:0.8125rem; color:#64748b;">
+            Semptify does not give legal advice.
+            <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">Find legal help near you</a>.
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const commList = document.getElementById('commList');
+    const commEmpty = document.getElementById('commEmpty');
+    const commForm = document.getElementById('commForm');
+    const commStatus = document.getElementById('commStatus');
+    const commCount = document.getElementById('commCount');
+
+    function fmtDate(s) {
+        if (!s) return '—';
+        try {
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return s;
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) { return s; }
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function methodIcon(m) {
+        if (m === 'in_person') return '▸';
+        if (m === 'letter') return '◆';
+        if (m === 'text') return '◆';
+        if (m === 'email') return '○';
+        if (m === 'phone') return '●';
+        return '○';
+    }
+
+    function methodLabel(m) {
+        const labels = {
+            phone: 'Phone call',
+            email: 'Email',
+            text: 'Text / SMS',
+            in_person: 'In person',
+            letter: 'Letter / Notice',
+            other: 'Other'
+        };
+        return labels[m] || (m ? m.replace(/_/g, ' ') : 'Contact');
+    }
+
+    function partyLabel(p) {
+        const labels = {
+            landlord: 'Landlord',
+            manager: 'Property manager',
+            maintenance: 'Maintenance',
+            attorney: 'Attorney / advocate',
+            other: 'Other'
+        };
+        return labels[p] || (p ? p.replace(/_/g, ' ') : 'Other party');
+    }
+
+    async function loadComms() {
+        try {
+            const r = await fetch('/api/timeline/unified', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ item_types: ['timeline_event'], limit: 200 })
+            });
+            if (!r.ok) {
+                if (r.status === 401) {
+                    showEmpty('Connect your storage to see contacts.');
+                    return;
+                }
+                throw new Error('HTTP ' + r.status);
+            }
+            const data = await r.json();
+            const items = (data.items || []).filter(it => (it.item_subtype || it.event_type) === 'communication');
+            render(items);
+        } catch (e) {
+            showEmpty('Could not load contacts.', e.message);
+        }
+    }
+
+    function showEmpty(message, hint) {
+        commList.innerHTML = '';
+        const empty = commEmpty.cloneNode(true);
+        empty.querySelector('p').textContent = message || 'No contacts logged yet.';
+        const hintEl = empty.querySelector('.frame-empty--hint');
+        if (hintEl && hint) hintEl.textContent = hint;
+        commList.appendChild(empty);
+        commCount.textContent = '';
+    }
+
+    function render(items) {
+        commList.innerHTML = '';
+        commCount.textContent = items.length ? items.length + ' contact' + (items.length === 1 ? '' : 's') : '';
+        if (!items.length) {
+            showEmpty('No contacts logged yet.');
+            return;
+        }
+        items.forEach(it => {
+            const meta = it.description || '';
+            const methodMatch = meta.match(/^method:([a-z_]+)/);
+            const partyMatch = meta.match(/party:([a-z_]+)/);
+            const method = methodMatch ? methodMatch[1] : 'other';
+            const party = partyMatch ? partyMatch[1] : 'other';
+            const notes = meta.replace(/^method:[a-z_]+\nparty:[a-z_]+\n/, '').trim();
+
+            const item = document.createElement('div');
+            item.className = 'frame-item';
+            item.style.marginBottom = '0.5rem';
+            const icon = document.createElement('div');
+            icon.className = 'frame-item--icon';
+            icon.style.color = '#3b82f6';
+            icon.textContent = methodIcon(method);
+            const main = document.createElement('div');
+            main.className = 'frame-item--main';
+            const title = document.createElement('div');
+            title.className = 'frame-item--title';
+            title.textContent = methodLabel(method) + ' with ' + partyLabel(party);
+            const subtitle = document.createElement('div');
+            subtitle.className = 'frame-item--meta';
+            subtitle.textContent = fmtDate(it.date_display || it.event_date) + (it.is_evidence ? ' · Evidence' : '');
+            main.appendChild(title);
+            main.appendChild(subtitle);
+            if (notes) {
+                const desc = document.createElement('div');
+                desc.style.cssText = 'font-size:0.8125rem; color:#94a3b8; margin-top:0.25rem; white-space:pre-wrap;';
+                desc.textContent = notes;
+                main.appendChild(desc);
+            }
+            item.appendChild(icon);
+            item.appendChild(main);
+            commList.appendChild(item);
+        });
+    }
+
+    commForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const date = document.getElementById('commDate').value;
+        const method = document.getElementById('commMethod').value;
+        const party = document.getElementById('commParty').value;
+        const notes = document.getElementById('commNotes').value.trim();
+        const isEvidence = document.getElementById('commEvidence').checked;
+        if (!date) return;
+
+        const title = methodLabel(method) + ' with ' + partyLabel(party);
+        const description = 'method:' + method + '\nparty:' + party + '\n' + notes;
+
+        commStatus.textContent = 'Saving…';
+        try {
+            const r = await fetch('/api/timeline/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    event_type: 'communication',
+                    title: title,
+                    description: description,
+                    event_date: date,
+                    urgency: 'normal',
+                    is_deadline: false,
+                    is_evidence: isEvidence
+                })
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(data.detail || data.message || ('HTTP ' + r.status));
+            commStatus.textContent = 'Contact logged.';
+            commForm.reset();
+            await loadComms();
+            setTimeout(() => { commStatus.textContent = ''; }, 2000);
+        } catch (err) {
+            commStatus.textContent = 'Could not save: ' + (err.message || 'unknown error');
+        }
+    });
+
+    loadComms();
+})();
+</script>
+{% endblock %}

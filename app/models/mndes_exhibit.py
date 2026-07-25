@@ -17,14 +17,14 @@ Key rules encoded here:
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
-from enum import Enum
-from typing import Optional
+from enum import StrEnum
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.id_gen import make_id
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # Enums
 # ============================================================================
 
-class MNDESExhibitStatus(str, Enum):
+class MNDESExhibitStatus(StrEnum):
     """
     Lifecycle status of an exhibit in MNDES.
 
@@ -51,7 +51,7 @@ class MNDESExhibitStatus(str, Enum):
     PENDING_EXCEPTION  = "pending_exception"
 
 
-class MNDESExhibitCategory(str, Enum):
+class MNDESExhibitCategory(StrEnum):
     DOCUMENT = "document"
     IMAGE    = "image"
     AUDIO    = "audio"
@@ -59,7 +59,7 @@ class MNDESExhibitCategory(str, Enum):
     PHYSICAL = "physical"   # Cannot be digitized; tracked but not uploaded
 
 
-class MNDESCaseType(str, Enum):
+class MNDESCaseType(StrEnum):
     CIVIL    = "civil"
     CRIMINAL = "criminal"
     FAMILY   = "family"
@@ -90,14 +90,14 @@ class MNDESExhibit(BaseModel):
 
     # Exhibit identity
     exhibit_name: str = Field(..., description="Brief descriptive name (e.g. 'Photo of rear door')")
-    exhibit_number: Optional[str] = Field(
+    exhibit_number: str | None = Field(
         None,
         description="Number assigned by judge/scheduling order. Leave blank unless ordered."
     )
     original_filename: str
     file_extension: str
-    file_size_bytes: Optional[int] = None
-    category: Optional[MNDESExhibitCategory] = None
+    file_size_bytes: int | None = None
+    category: MNDESExhibitCategory | None = None
 
     # MNDES compliance flags
     is_mndes_compliant: bool = Field(default=False)
@@ -113,7 +113,7 @@ class MNDESExhibit(BaseModel):
         default=False,
         description="True if proprietary format; requires presiding judge approval per Order §6"
     )
-    judge_exception_granted: Optional[bool] = Field(
+    judge_exception_granted: bool | None = Field(
         default=None,
         description="None = pending; True = granted; False = denied"
     )
@@ -133,26 +133,26 @@ class MNDESExhibit(BaseModel):
     )
 
     # User attestations (required before submission)
-    user_attested_no_sexual_content: Optional[bool] = Field(
+    user_attested_no_sexual_content: bool | None = Field(
         default=None,
         description="User confirmed exhibit does not contain sexual content or nudity"
     )
-    user_attested_not_discovery: Optional[bool] = Field(
+    user_attested_not_discovery: bool | None = Field(
         default=None,
         description="User confirmed this is not discovery material (Alford Packets, etc.)"
     )
-    user_attested_not_motion_attachment: Optional[bool] = Field(
+    user_attested_not_motion_attachment: bool | None = Field(
         default=None,
         description="User confirmed this is not a motion/affidavit attachment (those go to eFS)"
     )
 
     # MNDES submission tracking
     status: MNDESExhibitStatus = Field(default=MNDESExhibitStatus.PRE_HEARING)
-    mndes_tracking_number: Optional[str] = Field(
+    mndes_tracking_number: str | None = Field(
         None,
         description="Tracking number assigned by MNDES after user uploads. User enters this."
     )
-    mndes_submitted_at: Optional[datetime] = None
+    mndes_submitted_at: datetime | None = None
     mndes_submitted_by_user: bool = Field(
         default=False,
         description="User confirmed they manually completed submission at MNDES portal"
@@ -214,6 +214,7 @@ class MNDESExhibitPackage(BaseModel):
     user_id: str
     mn_case_number: str
     case_type: MNDESCaseType = MNDESCaseType.CIVIL
+    case_caption: str | None = None
 
     exhibits: list[MNDESExhibit] = Field(default_factory=list)
 
@@ -223,6 +224,7 @@ class MNDESExhibitPackage(BaseModel):
     needs_judge_exception: bool = False
     has_jury_room_exhibits: bool = False
     has_no_contact_order: bool = False
+    is_sealed_case: bool = False
 
     # Submission state
     checklist_complete: bool = False
@@ -232,7 +234,7 @@ class MNDESExhibitPackage(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 # ============================================================================
@@ -253,7 +255,11 @@ class MNDESPackageCreateRequest(BaseModel):
     vault_ids: list[str] = Field(..., min_length=1)
     mn_case_number: str
     case_type: MNDESCaseType = MNDESCaseType.CIVIL
-    exhibit_names: Optional[dict[str, str]] = Field(
+    case_caption: str | None = Field(
+        None,
+        description="Optional case caption (e.g., 'Smith v. Jones')."
+    )
+    exhibit_names: dict[str, str] | None = Field(
         None,
         description="Optional map of vault_id -> exhibit name. Defaults auto-generated."
     )
@@ -281,11 +287,11 @@ class MNDESSubmissionConfirmRequest(BaseModel):
     """User confirms they completed manual submission at the MNDES portal."""
     package_id: str
     exhibit_id: str
-    mndes_tracking_number: Optional[str] = Field(
+    mndes_tracking_number: str | None = Field(
         None,
         description="Tracking number assigned by MNDES (from the portal)"
     )
-    submitted_at: Optional[datetime] = None
+    submitted_at: datetime | None = None
 
 
 class MNDESComplianceSummary(BaseModel):
