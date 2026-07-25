@@ -1,3 +1,29 @@
+## Session — 2026-07-25 — Unblock MNDES API client (todo-021)
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/services/mndes_api_client.py`, `app/models/mndes_exhibit.py`, and `app/services/mndes_exhibit_service.py` compile.
+- **ruff_check**: PASS — `ruff check app/services/mndes_api_client.py app/models/mndes_exhibit.py app/services/mndes_exhibit_service.py` passes.
+- **mndes_service_tests**: PASS — 19/19 tests in `tests/test_mndes_service.py` pass.
+
+### What Was Shipped
+
+- Replaced `NotImplementedError` stubs in `MNDESRestClient` with speculative `httpx` REST calls against plausible MNDES endpoints.
+- Added graceful fallback to manual portal guidance when the API is unreachable or returns unexpected responses.
+- Fixed related model/service bugs surfaced by `tests/test_mndes_service.py`:
+  - Added `case_caption` and `is_sealed_case` to `MNDESExhibitPackage` and `MNDESPackageCreateRequest`.
+  - Passed `case_caption` and `is_sealed_case` through `MNDESExhibitService.create_package`.
+  - Fixed `exhibits_json` serialization by using `model_dump(mode="json")`.
+  - Fixed `submitted_at` being set to a boolean (`mndes_submission_started`) instead of a datetime.
+- Converted MNDES enums to `StrEnum` and cleaned imports/ruff issues.
+- Marked `tools/agent_orchestrator_tasks.json` `todo-021` as resolved.
+
+### Known Broken / Pending
+
+- MNDES REST endpoints are speculative; real MN Judicial Branch API spec/credentials are still needed for live verification.
+
+---
+
 ## Session — 2026-07-25 — Comms Log page
 
 ### Guardrail Engine Run — 2026-07-25
