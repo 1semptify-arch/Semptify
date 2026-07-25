@@ -1,0 +1,235 @@
+{
+  "funders": [
+    {
+      "name": "Open Collective",
+      "type": "fiscal_sponsor",
+      "website": "https://opencollective.com",
+      "focus": "Fiscal sponsorship and transparent budgeting for open-source and social good collectives.",
+      "contacts": [{"name": "General Support", "email": "support@opencollective.com"}]
+    },
+    {
+      "name": "Social Good Fund",
+      "type": "fiscal_sponsor",
+      "website": "https://socialgoodfund.org",
+      "focus": "Fiscal sponsorship for housing, economic justice, and community projects.",
+      "contacts": [{"name": "Applications", "email": "info@socialgoodfund.org"}]
+    },
+    {
+      "name": "Allied Media Projects",
+      "type": "fiscal_sponsor",
+      "website": "https://alliedmedia.org",
+      "focus": "Community technology, media, and grassroots digital tools for social change.",
+      "contacts": [{"name": "Sponsorship Inquiries", "email": "amp@alliedmedia.org"}]
+    },
+    {
+      "name": "Code for America",
+      "type": "fiscal_sponsor",
+      "website": "https://codeforamerica.org",
+      "focus": "Civic technology and public interest technology fellowships.",
+      "contacts": [{"name": "Partnerships", "email": "info@codeforamerica.org"}]
+    },
+    {
+      "name": "Fractured Atlas",
+      "type": "fiscal_sponsor",
+      "website": "https://fracturedatlas.org",
+      "focus": "Fiscal sponsorship for arts and social impact projects.",
+      "contacts": [{"name": "Member Services", "email": "info@fracturedatlas.org"}]
+    },
+    {
+      "name": "GoFundMe",
+      "type": "crowdfunding",
+      "website": "https://gofundme.com",
+      "focus": "Personal and cause-based crowdfunding for emergency and nonprofit needs.",
+      "contacts": [{"name": "Support", "email": "support@gofundme.com"}]
+    },
+    {
+      "name": "Ko-fi",
+      "type": "crowdfunding",
+      "website": "https://ko-fi.com",
+      "focus": "Small recurring tips and one-time donations for creators and causes.",
+      "contacts": [{"name": "Support", "email": "support@ko-fi.com"}]
+    },
+    {
+      "name": "Buy Me a Coffee",
+      "type": "crowdfunding",
+      "website": "https://buymeacoffee.com",
+      "focus": "Casual one-time tips and supporter pages.",
+      "contacts": [{"name": "Support", "email": "support@buymeacoffee.com"}]
+    },
+    {
+      "name": "GitHub Sponsors",
+      "type": "crowdfunding",
+      "website": "https://github.com/sponsors",
+      "focus": "Recurring donations for open-source maintainers and projects.",
+      "contacts": [{"name": "GitHub Support", "email": "support@github.com"}]
+    },
+    {
+      "name": "Fast Forward",
+      "type": "grant",
+      "website": "https://fastforward.org",
+      "focus": "Tech nonprofit accelerator and grants for social impact technology.",
+      "contacts": [{"name": "Programs", "email": "info@fastforward.org"}]
+    },
+    {
+      "name": "Mozilla Open Source Support",
+      "type": "grant",
+      "website": "https://mozilla.org/moss",
+      "focus": "Funding for open-source projects that advance the open web.",
+      "contacts": [{"name": "MOSS Team", "email": "moss@mozilla.com"}]
+    },
+    {
+      "name": "Digital Impact Grants",
+      "type": "grant",
+      "website": "https://digitalimpact.io",
+      "focus": "Civic tech and housing innovation grants.",
+      "contacts": [{"name": "Grants", "email": "grants@digitalimpact.io"}]
+    },
+    {
+      "name": "Google for Nonprofits",
+      "type": "grant",
+      "website": "https://google.com/nonprofits",
+      "focus": "Free Google Workspace, Ad Grants, and YouTube resources for nonprofits.",
+      "contacts": [{"name": "Support", "email": "nonprofits@google.com"}]
+    },
+    {
+      "name": "AWS Credits for Nonprofits",
+      "type": "grant",
+      "website": "https://aws.amazon.com/nonprofits",
+      "focus": "Cloud credits and technical support for nonprofit organizations.",
+      "contacts": [{"name": "Nonprofit Programs", "email": "aws-nonprofits@amazon.com"}]
+    },
+    {
+      "name": "GitHub Sponsors Matching Fund",
+      "type": "grant",
+      "website": "https://github.com/sponsors",
+      "focus": "Matched donations for eligible open-source projects.",
+      "contacts": [{"name": "GitHub Support", "email": "support@github.com"}]
+    },
+    {
+      "name": "Ford Foundation",
+      "type": "foundation",
+      "website": "https://fordfoundation.org",
+      "focus": "Social justice, housing, and economic security grants.",
+      "contacts": [{"name": "Grants Office", "email": "general@fordfoundation.org"}]
+    },
+    {
+      "name": "MacArthur Foundation",
+      "type": "foundation",
+      "website": "https://macfound.org",
+      "focus": "Housing, community development, and justice funding.",
+      "contacts": [{"name": "Inquiries", "email": "inquiries@macfound.org"}]
+    },
+    {
+      "name": "Kresge Foundation",
+      "type": "foundation",
+      "website": "https://kresge.org",
+      "focus": "Housing and community development.",
+      "contacts": [{"name": "Inquiries", "email": "info@kresge.org"}]
+    },
+    {
+      "name": "Open Society Foundations",
+      "type": "foundation",
+      "website": "https://opensocietyfoundations.org",
+      "focus": "Human rights, justice, and equitable development.",
+      "contacts": [{"name": "General", "email": "info@opensocietyfoundations.org"}]
+    },
+    {
+      "name": "Rockefeller Foundation",
+      "type": "foundation",
+      "website": "https://rockefellerfoundation.org",
+      "focus": "Economic justice and resilient communities.",
+      "contacts": [{"name": "Inquiries", "email": "info@rockefellerfoundation.org"}]
+    },
+    {
+      "name": "Catchafire",
+      "type": "pro_bono_legal",
+      "website": "https://catchafire.org",
+      "focus": "Pro bono professional help including legal and grant writing for nonprofits.",
+      "contacts": [{"name": "Nonprofit Support", "email": "nonprofit@catchafire.org"}]
+    },
+    {
+      "name": "Taproot Foundation",
+      "type": "pro_bono_legal",
+      "website": "https://taprootfoundation.org",
+      "focus": "Pro bono legal, HR, marketing, and strategy for nonprofits.",
+      "contacts": [{"name": "Inquiries", "email": "info@taprootfoundation.org"}]
+    },
+    {
+      "name": "ABA Free Legal Answers",
+      "type": "pro_bono_legal",
+      "website": "https://abafreelegalanswers.org",
+      "focus": "Pro bono legal clinics and attorney referrals.",
+      "contacts": [{"name": "Program Staff", "email": "info@abafreelegalanswers.org"}]
+    },
+    {
+      "name": "Law School Clinics Network",
+      "type": "pro_bono_legal",
+      "website": "",
+      "focus": "Student-run legal clinics supervised by attorneys for nonprofit formation.",
+      "contacts": [{"name": "Local law school clinical programs", "role": "Clinic director"}]
+    },
+    {
+      "name": "State Bar Association Nonprofit Section",
+      "type": "pro_bono_legal",
+      "website": "",
+      "focus": "Referrals to pro bono nonprofit attorneys.",
+      "contacts": [{"name": "Pro Bono Coordinator", "role": "Coordinator"}]
+    },
+    {
+      "name": "Local Legal Aid Housing Unit",
+      "type": "partnership",
+      "website": "",
+      "focus": "Tenant rights legal aid organizations that may partner with or refer users.",
+      "contacts": [{"name": "Outreach Director", "role": "Outreach"}]
+    },
+    {
+      "name": "Local Housing Nonprofit Alliance",
+      "type": "partnership",
+      "website": "",
+      "focus": "Coalitions of housing nonprofits that can amplify Semptify's reach.",
+      "contacts": [{"name": "Alliance Coordinator", "role": "Coordinator"}]
+    },
+    {
+      "name": "University Service-Learning Partnership",
+      "type": "partnership",
+      "website": "",
+      "focus": "Law and computer-science student volunteers for research and coding.",
+      "contacts": [{"name": "Service Learning Director", "role": "Director"}]
+    },
+    {
+      "name": "Hacker News / Show HN",
+      "type": "media",
+      "website": "https://news.ycombinator.com",
+      "focus": "Community of technologists and funders for open-source projects.",
+      "contacts": [{"name": "Community", "role": "Online"}]
+    },
+    {
+      "name": "r/tenantrights and r/opensource",
+      "type": "media",
+      "website": "https://reddit.com",
+      "focus": "Reddit communities for tenants and open-source advocacy.",
+      "contacts": [{"name": "Community moderators", "role": "Moderator"}]
+    },
+    {
+      "name": "Local News / Housing Reporter",
+      "type": "media",
+      "website": "",
+      "focus": "Local reporters covering housing and tenant rights.",
+      "contacts": [{"name": "Housing Beat Reporter", "role": "Journalist"}]
+    },
+    {
+      "name": "Donorbox",
+      "type": "other",
+      "website": "https://donorbox.org",
+      "focus": "Recurring donation platform for nonprofits after 501(c)(3) status.",
+      "contacts": [{"name": "Support", "email": "support@donorbox.org"}]
+    },
+    {
+      "name": "Printful / Redbubble Merch",
+      "type": "other",
+      "website": "https://printful.com",
+      "focus": "Ethical on-demand merch for awareness and small-scale fundraising.",
+      "contacts": [{"name": "Merchant Support", "email": "support@printful.com"}]
+    }
+  ]
+}

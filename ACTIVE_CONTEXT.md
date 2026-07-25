@@ -1,18 +1,24 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-20
+**Last Updated**: 2026-07-25
 
 ---
 
-## 🎯 Current Priority: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`)
+## 🎯 Current Priority: Review/merge Funding Forge standalone add-on
 
-Focusing on the tenant-facing GUI. The `/gui/*` four-pillar navigation is in place.
-`know.html`, `act.html`, `record.html`, `home.html` all extend `gui/base.html` and
-link to real routes. Icon policy decided and applied 2026-07-19: minimal unicode
-markers (`▸`, `◆`, `●`, `○`) replace emoji across all 5 GUI templates + Document Center.
+A standalone FastAPI funding and contact manager (`funding_forge/`) is built and ready for review.
+It provides ACT!-style contact management, a full opportunity/application pipeline, interactions,
+tasks, documents, and a pre-seeded catalog of suggested funding entities. No tenant-facing pages.
+Funding Forge is admin-only and can persist documents to Cloudflare R2 system storage; it does not
+touch tenant privacy paths or store tenant PII.
 
-Sync-orchestrator pre-commit hook loop fixed 2026-07-19 (commits `05119a1`, `b53b780`):
-LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-verify`.
+Previous priority: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
+The `/gui/*` navigation, `know.html`, `act.html`, `record.html`, `home.html` all extend
+`gui/base.html` and link to real routes. Icon policy from 2026-07-19 applies.
+
+## ✅ Completed 2026-07-25 Session
+
+- **Funding Forge add-on** — standalone package `funding_forge/` with FastAPI backend, async SQLAlchemy models, full CRUD JSON API, SPA GUI, document uploads, admin-only auth, optional Cloudflare R2 document storage, and 33 pre-seeded suggested funding entities. Tests pass.
 
 ## ✅ Completed 2026-07-19 Session
 
@@ -33,15 +39,16 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
-| 1 | **UPL guardrail wiring** | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
-| 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
-| 3 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
-| 4 | **Attorney Intake Packet** — PDF/ZIP rendering + GUI trigger | `app/modules/case_builder/router.py:2477-2930` | ✅ Complete 2026-07-19 | — |
-| 5 | **Journal module** — free-form tenant journal CRUD + briefcase integration | `app/modules/journal/router.py` | ✅ Complete 2026-07-20 | — |
-| 6 | **Rent Ledger** — full account ledger (payments, fees, deposits, credits, charges) with running balance | `app/modules/rent/router.py` | ✅ Complete 2026-07-20 | — |
-| 7 | **Packet Builder** — unified curated export across case and briefcase | `app/modules/packet_builder/router.py` | ✅ Complete 2026-07-20 | — |
+| 1 | **Funding Forge** — standalone funding & contact manager | `docs/blueprints/funding_forge_blueprint.md` | ✅ Complete 2026-07-25 | — |
+| 2 | **UPL guardrail wiring** | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
+| 3 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` | ✅ Pages live + icons shipped 2026-07-19 | — |
+| 4 | **Document Center** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | ✅ Implemented (22 tests pass, live at `/tenant/documents`) | — |
+| 5 | **Attorney Intake Packet** — PDF/ZIP rendering + GUI trigger | `app/modules/case_builder/router.py:2477-2930` | ✅ Complete 2026-07-19 | — |
+| 6 | **Journal module** — free-form tenant journal CRUD + briefcase integration | `app/modules/journal/router.py` | ✅ Complete 2026-07-20 | — |
+| 7 | **Rent Ledger** — full account ledger (payments, fees, deposits, credits, charges) with running balance | `app/modules/rent/router.py` | ✅ Complete 2026-07-20 | — |
+| 8 | **Packet Builder** — unified curated export across case and briefcase | `app/modules/packet_builder/router.py` | ✅ Complete 2026-07-20 | — |
 
-> **Note:** Rows #1-#7 are complete. The `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet; `/pdf` and `/zip` render it for attorney review. GUI download panel added to `case_builder.html`.
+> **Note:** Rows #1-#8 are complete. The `feature/attorney-intake-packet` branch was merged and deleted on 2026-07-10. The endpoint `GET /cases/{case_id}/intake-packet` returns a canonical facts-only JSON packet; `/pdf` and `/zip` render it for attorney review. GUI download panel added to `case_builder.html`.
 > **Journal:** `/api/journal` CRUD, `/api/journal/summary`, and `/tenant/journal` are live; `app/modules/journal/tests/test_journal.py` passes 8/8.
 > **Rent Ledger:** `/api/rent/payments` endpoints support full ledger entry types and compute running balance; `app/modules/rent/tests/test_ledger.py` passes 6/6.
 > **Packet Builder:** `/api/packet-builder/build`, `/api/packet-builder/packets/{packet_id}`, and `/api/packet-builder/packets/{packet_id}/download` are live; `app/modules/packet_builder/tests/test_packet_builder.py` passes 8/8.

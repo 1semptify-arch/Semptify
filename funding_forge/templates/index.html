@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Funding Forge</title>
+  <link rel="stylesheet" href="/static/css/funding_forge.css">
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" aria-label="Main navigation">
+      <div class="brand">
+        <span class="brand-mark">FF</span>
+        <span class="brand-name">Funding Forge</span>
+      </div>
+      <ul class="nav-list">
+        <li><a href="#dashboard" class="nav-link" data-view="dashboard">Dashboard</a></li>
+        <li><a href="#funders" class="nav-link" data-view="funders">Funders</a></li>
+        <li><a href="#contacts" class="nav-link" data-view="contacts">Contacts</a></li>
+        <li><a href="#opportunities" class="nav-link" data-view="opportunities">Opportunities</a></li>
+        <li><a href="#interactions" class="nav-link" data-view="interactions">Interactions</a></li>
+        <li><a href="#tasks" class="nav-link" data-view="tasks">Tasks</a></li>
+        <li><a href="#documents" class="nav-link" data-view="documents">Documents</a></li>
+        <li><a href="#emails" class="nav-link" data-view="emails">Emails</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <button id="seed-button" class="button button-small">Seed suggested entities</button>
+        <a href="/logout" class="nav-link nav-link-small">Sign out</a>
+      </div>
+    </nav>
+    <main id="app" class="main" aria-live="polite">
+      <div class="loading">Loading...</div>
+    </main>
+  </div>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
