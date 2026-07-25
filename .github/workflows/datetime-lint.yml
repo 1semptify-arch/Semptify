@@ -9,17 +9,17 @@ on:
 jobs:
   datetime-lint:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
-
+    
     - name: Check for datetime.now(timezone.utc) usage
       run: |
         # Count violations (exclude app/core/utc.py which is the implementation)
         violations=$(grep -r "datetime\.now(timezone\.utc)" app/ --include="*.py" --exclude="utc.py" | wc -l)
-
+        
         if [ $violations -gt 0 ]; then
-          echo "Found $violations instances of datetime.now(timezone.utc)"
+          echo "❌ Found $violations instances of datetime.now(timezone.utc)"
           echo "Use utc_now() from app.core.utc instead"
           echo ""
           echo "Violations:"
