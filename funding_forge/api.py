@@ -11,6 +11,7 @@ from funding_forge.auth import admin_dependency
 from funding_forge.crud import (
     create_contact,
     create_document,
+    create_email,
     create_funder,
     create_interaction,
     create_opportunity,
@@ -18,6 +19,7 @@ from funding_forge.crud import (
     create_task,
     delete_contact,
     delete_document,
+    delete_email,
     delete_funder,
     delete_interaction,
     delete_opportunity,
@@ -26,6 +28,7 @@ from funding_forge.crud import (
     get_contact,
     get_dashboard_stats,
     get_document,
+    get_email,
     get_funder,
     get_interaction,
     get_opportunity,
@@ -33,12 +36,14 @@ from funding_forge.crud import (
     get_task,
     list_contacts,
     list_documents,
+    list_emails,
     list_funders,
     list_interactions,
     list_opportunities,
     list_tasks,
     seed_suggested_entities,
     update_contact,
+    update_email,
     update_funder,
     update_interaction,
     update_opportunity,
@@ -52,6 +57,9 @@ from funding_forge.schemas import (
     ContactUpdate,
     DashboardStats,
     DocumentResponse,
+    EmailMessageCreate,
+    EmailMessageResponse,
+    EmailMessageUpdate,
     FunderCreate,
     FunderDetail,
     FunderResponse,
@@ -487,6 +495,79 @@ async def delete_document_endpoint(document_id: int, db: AsyncSession = Depends(
         logger.error("Storage delete failed for document %s: %s", document_id, exc)
 
     await delete_document(db, document)
+    return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Email messages
+# ---------------------------------------------------------------------------
+
+
+@api_router.get("/emails", response_model=list[EmailMessageResponse])
+async def read_emails(
+    contact_id: int | None = None,
+    opportunity_id: int | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """List email messages, optionally filtered by contact or opportunity."""
+    emails = await list_emails(db, contact_id=contact_id, opportunity_id=opportunity_id)
+    return [EmailMessageResponse.model_validate(e) for e in emails]
+
+
+@api_router.post("/emails", response_model=EmailMessageResponse, status_code=status.HTTP_201_CREATED)
+async def send_email_endpoint(payload: EmailMessageCreate, db: AsyncSession = Depends(get_db)):
+    """Create an email record and send it via the configured provider."""
+    from funding_forge import email as email_module
+
+    to_address = payload.to_address
+    if payload.contact_id and not to_address:
+        contact = await get_contact(db, payload.contact_id)
+        if not contact or not contact.email:
+            raise HTTPException(status_code=400, detail="Contact has no email address")
+        to_address = contact.email
+
+    if not to_address:
+        raise HTTPException(status_code=400, detail="Recipient email address is required")
+
+    send_result = await email_module.send_email(
+        to=to_address,
+        subject=payload.subject,
+        body=payload.body,
+        html_body=payload.html_body,
+        from_address=payload.from_address,
+        reply_to=payload.reply_to,
+    )
+    email = await create_email(db, payload.model_copy(update={"to_address": to_address}), send_result)
+    email = await get_email(db, email.id)
+    return EmailMessageResponse.model_validate(email)
+
+
+@api_router.get("/emails/{email_id}", response_model=EmailMessageResponse)
+async def read_email(email_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a single email message."""
+    email = await get_email(db, email_id)
+    if not email:
+        raise HTTPException(status_code=404, detail="Email not found")
+    return EmailMessageResponse.model_validate(email)
+
+
+@api_router.put("/emails/{email_id}", response_model=EmailMessageResponse)
+async def update_email_endpoint(email_id: int, payload: EmailMessageUpdate, db: AsyncSession = Depends(get_db)):
+    """Update an email draft."""
+    email = await get_email(db, email_id)
+    if not email:
+        raise HTTPException(status_code=404, detail="Email not found")
+    email = await update_email(db, email, payload)
+    return EmailMessageResponse.model_validate(email)
+
+
+@api_router.delete("/emails/{email_id}")
+async def delete_email_endpoint(email_id: int, db: AsyncSession = Depends(get_db)):
+    """Delete an email record."""
+    email = await get_email(db, email_id)
+    if not email:
+        raise HTTPException(status_code=404, detail="Email not found")
+    await delete_email(db, email)
     return {"ok": True}
 
 

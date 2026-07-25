@@ -21,6 +21,7 @@ Semptify needs sustainable, mission-aligned funding, but the founder is solo and
 - Tracks interactions (calls, emails, meetings, tasks, notes) linked to contacts and opportunities.
 - Tracks tasks/reminders with due dates and completion status.
 - Stores uploaded documents (applications, bylaws, letters, pitch decks) linked to funders/opportunities/contacts.
+- Sends and records emails to contacts via Resend or SMTP, linked to contacts and opportunities.
 - Provides a simple dashboard and list views for funders, contacts, opportunities, tasks, and interactions.
 - Provides create/edit forms and detail pages for every entity.
 - Exposes a JSON API for future automation.
@@ -29,7 +30,7 @@ Semptify needs sustainable, mission-aligned funding, but the founder is solo and
 ### What it does NOT do
 - Does NOT collect tenant data or connect to Semptify tenant accounts.
 - Does NOT display ads, affiliate links, sponsored listings, or paid endorsements.
-- Does NOT send email/SMS (out of scope; only stores records).
+- Does NOT send SMS.
 - Does NOT replace legal, accounting, or nonprofit filing advice.
 - Does NOT integrate with tenant cloud storage auth.
 - Does NOT store tenant PII; Funding Forge data is admin/system data only.
@@ -51,6 +52,7 @@ Admin-only access. Authentication uses username/password (with optional TOTP) fr
 - `interactions` — calls, emails, meetings, notes, tasks
 - `tasks` — standalone or linked reminders
 - `documents` — uploaded files and their metadata (storage type + storage key)
+- `email_messages` — sent/drafted emails linked to contacts and opportunities
 - `settings` — workspace state such as seed timestamp
 
 ## Routes
@@ -78,6 +80,10 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 | GET | `/interactions` | List recent interactions |
 | GET | `/tasks` | Task/reminder list |
 | GET | `/documents` | Document list |
+| GET | `/emails` | Email list |
+| GET | `/emails/new` | Compose email form |
+| GET | `/emails/{id}` | Email detail |
+| GET | `/emails/{id}/edit` | Edit draft email |
 | POST | `/api/funders` | Create funder |
 | GET | `/api/funders` | List funders |
 | GET | `/api/funders/{id}` | Get funder |
@@ -108,6 +114,11 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 | GET | `/api/documents` | List documents |
 | GET | `/api/documents/{id}` | Download document |
 | DELETE | `/api/documents/{id}` | Delete document |
+| GET | `/api/emails` | List emails |
+| POST | `/api/emails` | Send/create email |
+| GET | `/api/emails/{id}` | Get email |
+| PUT | `/api/emails/{id}` | Update email draft |
+| DELETE | `/api/emails/{id}` | Delete email |
 | POST | `/api/seed` | Reset and seed suggested entities |
 | GET | `/api/admin/me` | Admin session check |
 | GET | `/api/health` | Health check |
@@ -123,6 +134,7 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 - Pydantic
 - pyotp (optional TOTP support)
 - aioboto3 (only when using R2 storage)
+- httpx (only when using Resend email)
 - Semptify design system CSS reused from `static/css/ssot-design-system.css` where possible, but no runtime dependency on `app` packages.
 
 ## Data flow
@@ -133,6 +145,7 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 - File uploads go to the configured storage backend (`local` or `r2`).
   - `local`: `funding_forge/uploads/`
   - `r2`: Cloudflare R2 bucket under `funding_forge/<uuid>` keys
+- Emails are sent via Resend API or SMTP when configured; otherwise saved as drafts.
 - Pre-seed catalog populates funders and contacts from a bundled JSON file.
 
 ## What it does NOT touch
@@ -156,7 +169,7 @@ ADMIN / internal tool. Not exposed to tenant or advocate roles.
 
 ## Implementation
 
-- Code: `funding_forge/__init__.py`, `auth.py`, `config.py`, `database.py`, `models.py`, `schemas.py`, `crud.py`, `api.py`, `storage.py`, `r2_client.py`, `main.py`, `seed_data.json`.
+- Code: `funding_forge/__init__.py`, `auth.py`, `config.py`, `database.py`, `models.py`, `schemas.py`, `crud.py`, `api.py`, `storage.py`, `r2_client.py`, `email.py`, `main.py`, `seed_data.json`.
 - GUI: `funding_forge/templates/index.html` and `login.html` plus `funding_forge/static/css/funding_forge.css` and `funding_forge/static/js/app.js`.
 - Startup: `start_funding_forge.ps1` and `start_funding_forge.bat`.
 - Tests: `funding_forge/tests/test_funding_forge.py`.
