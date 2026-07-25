@@ -23,3 +23,25 @@ register_function_group(FunctionGroupContract(
     ),
     deterministic=True,
 ))
+
+
+register_function_group(FunctionGroupContract(
+    module="page_composer",
+    group_name="page_assemble",
+    title="Page Assembly Formula",
+    description=(
+        "Deterministically assemble a PageConfig from user context, subject/intent, "
+        "and jurisdiction. Applies blend selection, block gathering, GOVERN floor "
+        "and override rules, and emits a legacy UI Composer component list."
+    ),
+    inputs=("subject", "jurisdiction?", "user_id?", "intent?", "user_context?"),
+    outputs=("page_config", "components", "govern_report", "metadata"),
+    dependencies=(
+        "app.modules.page_composer.assembly",
+        "app.modules.page_shell.blends",
+        "app.modules.page_shell.govern",
+        "app.modules.page_shell.models",
+        "app.services.ui_composer",
+    ),
+    deterministic=True,
+))
