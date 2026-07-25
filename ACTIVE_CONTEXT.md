@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-20
+**Last Updated**: 2026-07-25
 
 ---
 
@@ -18,12 +18,13 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 
 - **Icon replacement policy applied**: 5 GUI templates + `document_center.html` now use
   minimal unicode markers (`▸`, `◆`, `●`, `○`) instead of emoji. Functional status markers
-  (`✕`, `⚙`, `↗`, `✅`, `🔄`, `⚠️`, `⬜`, `∅`, `!`) preserved.
+  (`✕`, `↗`) preserved.
 - **Sync-orchestrator hook loop fixed**: root cause was CRLF writes + non-idempotent
   timestamps. All sync-chain Python scripts now use `newline="\n"` + trailing newline +
   only-write-if-changed.
 - **Document Center verified live**: 22 DC tests pass, 3-pane layout live at
   `/tenant/documents`, OAuth-gated as expected.
+- **DC Slice 2+ complete**: viewer rendering wired to real vault data (`/api/dc/document/{id}/view`), unlock pattern panel uses `/api/dc/unlocks`, all `alert()`/`prompt()` removed from `document_center.html` in favor of `SemptifyFeedback` + non-blocking `showValueModal()`.
 - **Visual smoke test passed**: all 4 public GUI pages verified on live deploy.
 - **Attorney Intake Packet rendering + GUI trigger**: PDF/ZIP export endpoints added to
   `app/modules/case_builder/router.py`, download UI added to `case_builder.html`,
@@ -52,7 +53,6 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 - **Timeline interactive query viewer** — RECORD pillar. Not yet built.
 - **Comms Log** — RECORD pillar. Not yet built.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
-- **DC Slice 2+** — viewer rendering, unlock pattern wiring (DC_DESIGN_SONNET.md open checkboxes)
 - **Packet Builder UI** — four-pillar GUI panel for building and downloading packets. Not yet built.
 
 ### Action Feedback Helper — COMPLETE
@@ -74,7 +74,8 @@ events, Timeline queries data), but now sits inside the four-pillar structure.
 ### Document Center — IMPLEMENTED
 Design docs in `docs/planning/`, implementation in `app/modules/document_center/`.
 3-pane layout (vault list / viewer / overlays), 5 actions (upload/store/process/review/share),
-per-document-type checklists, verification states, unlock pattern. 22 tests pass.
+per-document-type checklists, verification states, unlock pattern. Slice 2+ wired the viewer
+and unlock panel to live vault data. 22 tests pass.
 
 ---
 
