@@ -1,3 +1,29 @@
+## Session — 2026-07-25 — Calendar total-recollection viewer
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/modules/calendar/router.py` compiles.
+- **ruff_check**: PASS — `ruff check app/modules/calendar/router.py` passes.
+- **calendar_tests**: PASS — 7/7 tests in `app/modules/calendar/tests/test_calendar.py` pass.
+
+### What Was Shipped
+
+- Replaced emoji event icons in `app/templates/pages/calendar.html` with minimal unicode markers (`▸`, `◆`, `●`, `○`).
+- Wired the calendar page to `GET /api/calendar/` so it displays the full tenancy timeline, not just the next 90 days.
+- Grouped events by month/year and added All / Upcoming / Critical filter buttons.
+
+### Known Working
+
+- `python -m py_compile app/modules/calendar/router.py` — PASS.
+- `python -m pytest app/modules/calendar/tests/test_calendar.py -v --no-cov` — 7/7 PASS.
+- `ruff check app/modules/calendar/router.py` — PASS.
+
+### Known Broken / Pending
+
+- No live browser verification of the month-grouped calendar view (no running dev server with storage credentials).
+
+---
+
 ## Session — 2026-07-25 — DC Slice 2+ viewer rendering + unlock pattern wiring
 
 ### Guardrail Engine Run — 2026-07-25

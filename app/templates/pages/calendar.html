@@ -10,7 +10,7 @@
     </div>
     <div class="frame-panel--body">
         <p style="color:#94a3b8; font-size:0.9375rem;">
-            Deadlines, hearings, and reminders in one place. Adding a court date unlocks the Court Prep toolkit.
+            Everything in your tenancy — deadlines, hearings, rent due, and more — in one chronological view.
         </p>
     </div>
 </section>
@@ -50,14 +50,19 @@
 </section>
 
 <section class="frame-panel">
-    <div class="frame-panel--header">
-        <span class="frame-panel--title">Upcoming</span>
+    <div class="frame-panel--header" style="flex-wrap:wrap; gap:0.5rem;">
+        <span class="frame-panel--title">All events</span>
+        <div id="calendarFilters" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-left:auto;">
+            <button class="frame-btn frame-btn--active" data-filter="all" style="padding:0.25rem 0.5rem; font-size:0.75rem;">All</button>
+            <button class="frame-btn" data-filter="upcoming" style="padding:0.25rem 0.5rem; font-size:0.75rem;">Upcoming</button>
+            <button class="frame-btn" data-filter="critical" style="padding:0.25rem 0.5rem; font-size:0.75rem;">Critical</button>
+        </div>
     </div>
     <div class="frame-panel--body" id="eventList">
         <div class="frame-empty" id="eventEmpty">
             <div class="frame-empty--icon">∅</div>
             <p>No events yet.</p>
-            <p class="frame-empty--hint">Add your first deadline or hearing above.</p>
+            <p class="frame-empty--hint">Add your first deadline or hearing above, or sync documents and rent ledger to auto-populate dates.</p>
         </div>
     </div>
 </section>
@@ -79,6 +84,10 @@
     const eventEmpty = document.getElementById('eventEmpty');
     const eventForm = document.getElementById('eventForm');
     const eventStatus = document.getElementById('eventStatus');
+    const filterButtons = document.querySelectorAll('#calendarFilters button');
+
+    let allEvents = [];
+    let currentFilter = 'all';
 
     function fmtDate(s) {
         if (!s) return '—';
@@ -90,65 +99,155 @@
         } catch (e) { return s; }
     }
 
+    function fmtMonth(s) {
+        if (!s) return 'Unknown date';
+        try {
+            const d = new Date(s);
+            if (isNaN(d.getTime())) return 'Unknown date';
+            return d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+        } catch (e) { return 'Unknown date'; }
+    }
+
     function escapeHtml(s) {
         return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
     function typeColor(t) {
         if (t === 'hearing') return '#ef4444';
-        if (t === 'deadline') return '#f59e0b';
+        if (t === 'deadline' || t === 'late_fee' || t === 'action_item') return '#f59e0b';
         if (t === 'rent_due') return '#10b981';
+        if (t === 'timeline') return '#8b5cf6';
         return '#3b82f6';
+    }
+
+    function typeIcon(t) {
+        if (t === 'hearing') return '▸';
+        if (t === 'deadline' || t === 'late_fee' || t === 'action_item') return '◆';
+        if (t === 'rent_due' || t === 'timeline') return '●';
+        return '○';
+    }
+
+    function typeLabel(t) {
+        const labels = {
+            deadline: 'Deadline',
+            hearing: 'Hearing',
+            appointment: 'Appointment',
+            reminder: 'Reminder',
+            rent_due: 'Rent due',
+            late_fee: 'Late fee',
+            action_item: 'Action item',
+            timeline: 'Timeline'
+        };
+        return labels[t] || (t ? t.replace(/_/g, ' ') : 'Event');
+    }
+
+    function filteredEvents() {
+        const now = new Date();
+        return allEvents.filter(e => {
+            if (currentFilter === 'critical' && !e.is_critical) return false;
+            if (currentFilter === 'upcoming') {
+                const d = new Date(e.start_datetime);
+                if (isNaN(d.getTime())) return false;
+                if (d < now) return false;
+            }
+            return true;
+        });
+    }
+
+    function groupByMonth(events) {
+        const groups = {};
+        events.forEach(e => {
+            const key = fmtMonth(e.start_datetime);
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(e);
+        });
+        return groups;
     }
 
     async function loadEvents() {
         try {
-            const r = await fetch('/api/calendar/upcoming?days=90', { credentials: 'include' });
+            const r = await fetch('/api/calendar/', { credentials: 'include' });
             if (!r.ok) {
                 if (r.status === 401) {
-                    eventEmpty.querySelector('p').textContent = 'Connect your storage to see events.';
+                    showEmpty('Connect your storage to see events.');
                     return;
                 }
                 throw new Error('HTTP ' + r.status);
             }
             const data = await r.json();
-            const events = (data.critical || []).concat(data.upcoming || []);
-            render(events);
+            allEvents = (data.events || []).sort((a, b) => new Date(a.start_datetime) - new Date(b.start_datetime));
+            render();
         } catch (e) {
-            eventEmpty.querySelector('p').textContent = 'Could not load events.';
-            eventEmpty.querySelector('.frame-empty--hint').textContent = e.message;
+            showEmpty('Could not load events.', e.message);
         }
     }
 
-    function render(events) {
+    function showEmpty(message, hint) {
+        eventList.innerHTML = '';
+        const empty = eventEmpty.cloneNode(true);
+        empty.querySelector('p').textContent = message || 'No events yet.';
+        const hintEl = empty.querySelector('.frame-empty--hint');
+        if (hintEl && hint) hintEl.textContent = hint;
+        eventList.appendChild(empty);
+    }
+
+    function render() {
+        const events = filteredEvents();
         eventList.innerHTML = '';
         if (!events.length) {
-            eventList.appendChild(eventEmpty);
-            eventEmpty.style.display = '';
+            showEmpty('No events match this filter.');
             return;
         }
-        events.forEach(e => {
-            const item = document.createElement('div');
-            item.className = 'frame-item';
-            const icon = document.createElement('div');
-            icon.className = 'frame-item--icon';
-            icon.style.color = typeColor(e.event_type);
-            icon.textContent = e.event_type === 'hearing' ? '⚖️' : (e.event_type === 'deadline' ? '⏰' : '📅');
-            const main = document.createElement('div');
-            main.className = 'frame-item--main';
-            const title = document.createElement('div');
-            title.className = 'frame-item--title';
-            title.textContent = e.title || 'Untitled';
-            const meta = document.createElement('div');
-            meta.className = 'frame-item--meta';
-            meta.textContent = fmtDate(e.start_datetime) + (e.is_critical ? ' · Critical' : '');
-            main.appendChild(title);
-            main.appendChild(meta);
-            item.appendChild(icon);
-            item.appendChild(main);
-            eventList.appendChild(item);
+        const groups = groupByMonth(events);
+        Object.keys(groups).forEach(month => {
+            const group = groups[month];
+            const section = document.createElement('div');
+            section.style.marginBottom = '1.5rem';
+            const heading = document.createElement('div');
+            heading.style.color = '#e2e8f0';
+            heading.style.fontSize = '0.875rem';
+            heading.style.fontWeight = '600';
+            heading.style.marginBottom = '0.5rem';
+            heading.style.paddingBottom = '0.25rem';
+            heading.style.borderBottom = '1px solid #334155';
+            heading.textContent = month;
+            section.appendChild(heading);
+            group.forEach(e => {
+                const item = document.createElement('div');
+                item.className = 'frame-item';
+                item.style.marginBottom = '0.5rem';
+                const icon = document.createElement('div');
+                icon.className = 'frame-item--icon';
+                icon.style.color = typeColor(e.event_type);
+                icon.textContent = typeIcon(e.event_type);
+                const main = document.createElement('div');
+                main.className = 'frame-item--main';
+                const title = document.createElement('div');
+                title.className = 'frame-item--title';
+                title.textContent = e.title || 'Untitled';
+                const meta = document.createElement('div');
+                meta.className = 'frame-item--meta';
+                meta.textContent = fmtDate(e.start_datetime)
+                    + ' · ' + typeLabel(e.event_type)
+                    + (e.is_critical ? ' · Critical' : '');
+                main.appendChild(title);
+                main.appendChild(meta);
+                item.appendChild(icon);
+                item.appendChild(main);
+                section.appendChild(item);
+            });
+            eventList.appendChild(section);
         });
     }
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterButtons.forEach(b => b.classList.remove('frame-btn--active'));
+            btn.classList.add('frame-btn--active');
+            currentFilter = btn.dataset.filter;
+            render();
+        });
+    });
 
     eventForm.addEventListener('submit', async function (e) {
         e.preventDefault();
