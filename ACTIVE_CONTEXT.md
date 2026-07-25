@@ -26,6 +26,7 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
   `/tenant/documents`, OAuth-gated as expected.
 - **DC Slice 2+ complete**: viewer rendering wired to real vault data (`/api/dc/document/{id}/view`), unlock pattern panel uses `/api/dc/unlocks`, all `alert()`/`prompt()` removed from `document_center.html` in favor of `SemptifyFeedback` + non-blocking `showValueModal()`.
 - **Calendar total-recollection viewer complete**: `calendar.html` now pulls the full `GET /api/calendar/` timeline, groups events by month, and uses minimal unicode markers for event type icons.
+- **Timeline interactive query viewer complete**: `timeline.html` now wires search, date-axis, item-type, urgency, evidence-only, and date-range filters to `POST /api/timeline/unified`; all emoji icons and `alert()` fallbacks removed.
 - **Visual smoke test passed**: all 4 public GUI pages verified on live deploy.
 - **Attorney Intake Packet rendering + GUI trigger**: PDF/ZIP export endpoints added to
   `app/modules/case_builder/router.py`, download UI added to `case_builder.html`,
@@ -50,7 +51,6 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 
 ## 🎯 Candidate Next Priorities (awaiting user direction)
 
-- **Timeline interactive query viewer** — RECORD pillar. Not yet built.
 - **Comms Log** — RECORD pillar. Not yet built.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
 - **Packet Builder UI** — four-pillar GUI panel for building and downloading packets. Not yet built.

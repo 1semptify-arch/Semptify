@@ -11,14 +11,50 @@
     </div>
     <div class="frame-panel--body">
         <p style="color:#94a3b8; font-size:0.9375rem;">
-            Everything that happened in your tenancy, in one vertical list. Newest first.
+            Everything that happened in your tenancy. Use the filters below to find events, documents, deadlines, and evidence.
         </p>
     </div>
 </section>
 
 <section class="frame-panel">
     <div class="frame-panel--header">
-        <span class="frame-panel--title">Recent events</span>
+        <span class="frame-panel--title">Query</span>
+    </div>
+    <div class="frame-panel--body" id="queryPanel" style="display:grid; gap:0.75rem;">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <input type="text" id="searchInput" placeholder="Search titles and descriptions…" style="flex:1; min-width:200px; padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+            <select id="dateAxis" style="padding:0.5rem; border-radius:0.375rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;">
+                <option value="event_time">Event time</option>
+                <option value="record_time">Record time</option>
+                <option value="entry_time">Entry time</option>
+            </select>
+        </div>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; color:#cbd5e1; font-size:0.8125rem;">
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="type-filter" value="document" checked> Documents</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="type-filter" value="timeline_event" checked> Events</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="type-filter" value="calendar_event" checked> Calendar</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="type-filter" value="vault_item" checked> Vault</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="type-filter" value="rent_payment" checked> Rent</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="type-filter" value="cloud_event" checked> Cloud</label>
+        </div>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; color:#cbd5e1; font-size:0.8125rem;">
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="urgency-filter" value="critical"> Critical</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="urgency-filter" value="high"> High</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="urgency-filter" value="normal" checked> Normal</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" class="urgency-filter" value="low" checked> Low</label>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; color:#cbd5e1; font-size:0.8125rem;">
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="checkbox" id="evidenceOnly"> Evidence only</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="date" id="startDate" style="padding:0.25rem; border-radius:0.25rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;"> Start</label>
+            <label style="display:flex; align-items:center; gap:0.25rem;"><input type="date" id="endDate" style="padding:0.25rem; border-radius:0.25rem; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:#fff;"> End</label>
+        </div>
+        <button id="queryBtn" class="frame-btn frame-btn--primary" style="justify-self:start;">Run query</button>
+    </div>
+</section>
+
+<section class="frame-panel">
+    <div class="frame-panel--header">
+        <span class="frame-panel--title">Results</span>
         <span id="timelineCount" style="font-size:0.8125rem; color:#64748b;"></span>
     </div>
     <div class="frame-panel--body" id="timelineList">
@@ -47,6 +83,7 @@
     const timelineEmpty = document.getElementById('timelineEmpty');
     const timelineCount = document.getElementById('timelineCount');
     const addEventBtn = document.getElementById('addEventBtn');
+    const queryBtn = document.getElementById('queryBtn');
 
     function fmtDate(s) {
         if (!s) return '—';
@@ -64,19 +101,61 @@
     function urgencyColor(u) {
         if (u === 'critical') return '#ef4444';
         if (u === 'high') return '#f59e0b';
+        if (u === 'low') return '#64748b';
         return '#3b82f6';
     }
 
-    function typeIcon(t) {
-        if (t === 'court' || t === 'hearing') return '⚖️';
-        if (t === 'deadline') return '⏰';
-        if (t === 'payment' || t === 'rent_payment') return '💵';
-        if (t === 'notice') return '📜';
-        if (t === 'maintenance') return '🔧';
-        if (t === 'communication') return '✉️';
-        if (t === 'calendar_event') return '📅';
-        if (t === 'document') return '📄';
-        return '•';
+    function typeIcon(it) {
+        const type = it.item_type || '';
+        const subtype = it.item_subtype || '';
+        if (type === 'document') return '●';
+        if (type === 'rent_payment') return '●';
+        if (type === 'vault_item') return it.is_evidence ? '●' : '○';
+        if (type === 'calendar_event') {
+            if (subtype === 'hearing') return '▸';
+            if (subtype === 'deadline' || subtype === 'rent_due' || subtype === 'late_fee') return '◆';
+            return '◆';
+        }
+        if (type === 'cloud_event') return '○';
+        if (subtype === 'court' || subtype === 'hearing') return '▸';
+        if (subtype === 'deadline') return '◆';
+        if (subtype === 'notice') return '◆';
+        if (subtype === 'payment' || subtype === 'rent_payment') return '●';
+        if (subtype === 'maintenance') return '◆';
+        if (subtype === 'communication') return '○';
+        return '○';
+    }
+
+    function typeLabel(it) {
+        const type = it.item_type || '';
+        const subtype = it.item_subtype || '';
+        const labels = {
+            document: 'Document',
+            timeline_event: 'Event',
+            calendar_event: 'Calendar',
+            vault_item: 'Vault',
+            rent_payment: 'Rent',
+            cloud_event: 'Cloud'
+        };
+        const base = labels[type] || type.replace(/_/g, ' ');
+        return subtype ? (base + ' · ' + subtype.replace(/_/g, ' ')) : base;
+    }
+
+    function buildRequest() {
+        const itemTypes = Array.from(document.querySelectorAll('.type-filter:checked')).map(cb => cb.value);
+        const urgency = Array.from(document.querySelectorAll('.urgency-filter:checked')).map(cb => cb.value);
+        const body = {
+            date_axis: document.getElementById('dateAxis').value,
+            item_types: itemTypes,
+            search_query: document.getElementById('searchInput').value.trim() || null,
+            evidence_only: document.getElementById('evidenceOnly').checked,
+            urgency_filter: urgency.length ? urgency : null,
+            start_date: document.getElementById('startDate').value || null,
+            end_date: document.getElementById('endDate').value || null,
+            limit: 100,
+            offset: 0
+        };
+        return body;
     }
 
     async function loadTimeline() {
@@ -85,30 +164,37 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ limit: 50, date_axis: 'event_time' })
+                body: JSON.stringify(buildRequest())
             });
             if (!r.ok) {
                 if (r.status === 401) {
-                    timelineEmpty.querySelector('p').textContent = 'Connect your storage to see events.';
+                    showEmpty('Connect your storage to see events.');
                     return;
                 }
                 throw new Error('HTTP ' + r.status);
             }
             const data = await r.json();
-            const items = data.items || [];
-            render(items);
+            render(data.items || []);
         } catch (e) {
-            timelineEmpty.querySelector('p').textContent = 'Could not load timeline.';
-            timelineEmpty.querySelector('.frame-empty--hint').textContent = e.message;
+            showEmpty('Could not load timeline.', e.message);
         }
+    }
+
+    function showEmpty(message, hint) {
+        timelineList.innerHTML = '';
+        const empty = timelineEmpty.cloneNode(true);
+        empty.querySelector('p').textContent = message || 'No events yet.';
+        const hintEl = empty.querySelector('.frame-empty--hint');
+        if (hintEl && hint) hintEl.textContent = hint;
+        timelineList.appendChild(empty);
+        timelineCount.textContent = '';
     }
 
     function render(items) {
         timelineList.innerHTML = '';
         timelineCount.textContent = items.length ? items.length + ' event' + (items.length === 1 ? '' : 's') : '';
         if (!items.length) {
-            timelineList.appendChild(timelineEmpty);
-            timelineEmpty.style.display = '';
+            showEmpty('No events match your query.');
             return;
         }
         items.forEach(it => {
@@ -117,7 +203,7 @@
             const icon = document.createElement('div');
             icon.className = 'frame-item--icon';
             icon.style.color = urgencyColor(it.urgency);
-            icon.textContent = typeIcon(it.item_type || it.item_subtype);
+            icon.textContent = typeIcon(it);
             const main = document.createElement('div');
             main.className = 'frame-item--main';
             const title = document.createElement('div');
@@ -126,17 +212,14 @@
             const meta = document.createElement('div');
             meta.className = 'frame-item--meta';
             const dateStr = fmtDate(it.date_display || it.event_date || it.entry_date);
-            meta.textContent = dateStr + (it.is_evidence ? ' · Evidence' : '') + (it.is_deadline ? ' · Deadline' : '');
+            meta.textContent = dateStr + ' · ' + typeLabel(it) + (it.is_evidence ? ' · Evidence' : '') + (it.is_deadline ? ' · Deadline' : '');
+            main.appendChild(title);
+            main.appendChild(meta);
             if (it.description) {
                 const desc = document.createElement('div');
                 desc.style.cssText = 'font-size:0.8125rem; color:#94a3b8; margin-top:0.25rem;';
                 desc.textContent = it.description;
-                main.appendChild(title);
-                main.appendChild(meta);
                 main.appendChild(desc);
-            } else {
-                main.appendChild(title);
-                main.appendChild(meta);
             }
             item.appendChild(icon);
             item.appendChild(main);
@@ -218,7 +301,7 @@
             const is_evidence = document.getElementById('me-evidence').checked;
 
             if (!date || !title) {
-                if (window.SemptifyFeedback) { SemptifyFeedback.error('Date and title are required.'); } else { alert('Date and title are required'); }
+                if (window.SemptifyFeedback) { SemptifyFeedback.error('Date and title are required.'); }
                 return;
             }
 
@@ -236,7 +319,7 @@
                     body: JSON.stringify({ event_type, title, description, event_date: date, urgency, is_deadline, is_evidence }),
                 });
                 const data = await r.json().catch(() => ({}));
-                if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+                if (!r.ok) throw new Error(data.detail || ('HTTP ' + r.status));
 
                 close();
                 if (window.SemptifyFeedback) { SemptifyFeedback.success('Event added to your timeline.'); }
@@ -252,6 +335,8 @@
         setTimeout(() => document.getElementById('me-date').focus(), 50);
     }
 
+    queryBtn.addEventListener('click', loadTimeline);
+    document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadTimeline(); });
     addEventBtn.addEventListener('click', openAddModal);
 
     loadTimeline();
