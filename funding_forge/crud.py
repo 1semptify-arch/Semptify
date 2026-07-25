@@ -12,6 +12,7 @@ from funding_forge.config import settings
 from funding_forge.models import (
     Contact,
     Document,
+    EmailMessage,
     Funder,
     Interaction,
     Opportunity,
@@ -23,6 +24,8 @@ from funding_forge.models import (
 from funding_forge.schemas import (
     ContactCreate,
     ContactUpdate,
+    EmailMessageCreate,
+    EmailMessageUpdate,
     FunderCreate,
     FunderUpdate,
     InteractionCreate,
@@ -117,6 +120,7 @@ async def get_contact(db: AsyncSession, contact_id: int) -> Contact | None:
             selectinload(Contact.funder),
             selectinload(Contact.interactions).selectinload(Interaction.opportunity),
             selectinload(Contact.interactions).selectinload(Interaction.contact),
+            selectinload(Contact.emails).selectinload(EmailMessage.opportunity),
         )
     )
     return result.scalar_one_or_none()
@@ -163,6 +167,7 @@ async def get_opportunity(db: AsyncSession, opportunity_id: int) -> Opportunity 
             selectinload(Opportunity.interactions).selectinload(Interaction.contact),
             selectinload(Opportunity.interactions).selectinload(Interaction.opportunity),
             selectinload(Opportunity.documents),
+            selectinload(Opportunity.emails).selectinload(EmailMessage.contact),
         )
     )
     return result.scalar_one_or_none()
@@ -370,6 +375,77 @@ async def delete_document(db: AsyncSession, document: Document) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Email messages
+# ---------------------------------------------------------------------------
+
+
+async def create_email(db: AsyncSession, data: EmailMessageCreate, send_result: dict[str, Any]) -> EmailMessage:
+    email = EmailMessage(
+        contact_id=data.contact_id,
+        opportunity_id=data.opportunity_id,
+        to_address=data.to_address,
+        from_address=data.from_address or settings.from_email,
+        reply_to=data.reply_to or settings.reply_to_email,
+        subject=data.subject,
+        body=data.body,
+        html_body=data.html_body,
+        status=send_result.get("status", "draft"),
+        provider=send_result.get("provider", "none"),
+        external_id=send_result.get("external_id"),
+        error=send_result.get("error"),
+        sent_at=send_result.get("sent_at"),
+    )
+    db.add(email)
+    await db.commit()
+    await db.refresh(email)
+    return email
+
+
+async def get_email(db: AsyncSession, email_id: int) -> EmailMessage | None:
+    result = await db.execute(
+        select(EmailMessage)
+        .where(EmailMessage.id == email_id)
+        .options(
+            selectinload(EmailMessage.contact),
+            selectinload(EmailMessage.opportunity),
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def list_emails(
+    db: AsyncSession,
+    contact_id: int | None = None,
+    opportunity_id: int | None = None,
+) -> list[EmailMessage]:
+    stmt = select(EmailMessage)
+    if contact_id is not None:
+        stmt = stmt.where(EmailMessage.contact_id == contact_id)
+    if opportunity_id is not None:
+        stmt = stmt.where(EmailMessage.opportunity_id == opportunity_id)
+    result = await db.execute(
+        stmt.order_by(EmailMessage.created_at.desc()).options(
+            selectinload(EmailMessage.contact),
+            selectinload(EmailMessage.opportunity),
+        )
+    )
+    return list(result.scalars().unique())
+
+
+async def update_email(db: AsyncSession, email: EmailMessage, data: EmailMessageUpdate) -> EmailMessage:
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(email, key, value)
+    await db.commit()
+    await db.refresh(email)
+    return email
+
+
+async def delete_email(db: AsyncSession, email: EmailMessage) -> None:
+    await db.delete(email)
+    await db.commit()
+
+
+# ---------------------------------------------------------------------------
 # Dashboard / stats
 # ---------------------------------------------------------------------------
 
@@ -383,6 +459,7 @@ async def get_dashboard_stats(db: AsyncSession) -> dict[str, int]:
         await db.execute(select(func.count(Opportunity.id)).where(Opportunity.deadline.isnot(None)))
     ).scalar() or 0
     recent_interaction_count = (await db.execute(select(func.count(Interaction.id)))).scalar() or 0
+    email_count = (await db.execute(select(func.count(EmailMessage.id)))).scalar() or 0
     return {
         "funder_count": funder_count,
         "contact_count": contact_count,
@@ -390,6 +467,7 @@ async def get_dashboard_stats(db: AsyncSession) -> dict[str, int]:
         "open_task_count": open_task_count,
         "upcoming_deadline_count": upcoming_deadline_count,
         "recent_interaction_count": recent_interaction_count,
+        "email_count": email_count,
     }
 
 

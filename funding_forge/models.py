@@ -51,6 +51,7 @@ class Contact(Base):
 
     funder = relationship("Funder", back_populates="contacts")
     interactions = relationship("Interaction", back_populates="contact", cascade="all, delete-orphan")
+    emails = relationship("EmailMessage", back_populates="contact", cascade="all, delete-orphan")
 
 
 class Opportunity(Base):
@@ -77,6 +78,7 @@ class Opportunity(Base):
     steps = relationship("OpportunityStep", back_populates="opportunity", cascade="all, delete-orphan")
     interactions = relationship("Interaction", back_populates="opportunity", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="opportunity", cascade="all, delete-orphan")
+    emails = relationship("EmailMessage", back_populates="opportunity", cascade="all, delete-orphan")
 
 
 class OpportunityStep(Base):
@@ -152,6 +154,31 @@ class Document(Base):
     created_at = Column(DateTime, default=utc_now, nullable=False)
 
     opportunity = relationship("Opportunity", back_populates="documents")
+
+
+class EmailMessage(Base):
+    """An email sent or drafted for a contact or opportunity."""
+
+    __tablename__ = "email_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    contact_id = Column(Integer, ForeignKey("contacts.id"), nullable=True, index=True)
+    opportunity_id = Column(Integer, ForeignKey("opportunities.id"), nullable=True, index=True)
+    to_address = Column(String(255), nullable=False)
+    from_address = Column(String(255), nullable=False)
+    reply_to = Column(String(255), nullable=True)
+    subject = Column(String(500), nullable=False)
+    body = Column(Text, nullable=False)
+    html_body = Column(Text, nullable=True)
+    status = Column(String(50), default="draft", nullable=False)
+    provider = Column(String(50), default="none", nullable=False)
+    external_id = Column(String(255), nullable=True)
+    error = Column(Text, nullable=True)
+    sent_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+    contact = relationship("Contact", back_populates="emails")
+    opportunity = relationship("Opportunity", back_populates="emails")
 
 
 class Setting(Base):

@@ -13,11 +13,12 @@ Built to track funding entities, contacts, grant/application pipelines, interact
    ```
 3. Edit `.env` and set `FUNDING_FORGE_ADMIN_USERNAME` and `FUNDING_FORGE_ADMIN_PASSWORD`.
 4. (Optional) Add Cloudflare R2 credentials and set `FUNDING_FORGE_STORAGE_BACKEND=r2` to persist uploads in R2.
-5. Run:
+5. (Optional) Add Resend (`FUNDING_FORGE_RESEND_API_KEY`) or SMTP (`FUNDING_FORGE_SMTP_*`) credentials to send emails from Funding Forge.
+6. Run:
    ```powershell
    .\start_funding_forge.ps1
    ```
-6. Open http://127.0.0.1:8001 and sign in with the admin credentials.
+7. Open http://127.0.0.1:8001 and sign in with the admin credentials.
 
 ## Features
 
@@ -29,6 +30,7 @@ Built to track funding entities, contacts, grant/application pipelines, interact
 - **Interactions** — calls, emails, meetings, notes tied to contacts and opportunities.
 - **Tasks** — reminders linked to any record type.
 - **Documents** — file uploads linked to opportunities or other records.
+- **Emails** — compose and send messages to contacts, with Resend or SMTP delivery. Emails are linked to contacts and opportunities and saved in the system record.
 - **Persistent storage** — documents can be stored on Cloudflare R2 system storage instead of the local filesystem.
 - **Seed catalog** — one-click load of suggested funding entities.
 
@@ -42,5 +44,5 @@ Programmatic access uses the admin token cookie or the `x-admin-token` header.
 
 - This is an internal admin tool, not a tenant-facing feature.
 - No ads, no tracking, no endorsements — only neutral listings.
-- No email or payment processing is performed.
+- No payment processing is performed.
 - Funding Forge data is admin/system data and does not contain tenant PII.
