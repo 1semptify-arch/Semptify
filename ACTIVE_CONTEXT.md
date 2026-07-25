@@ -28,6 +28,7 @@ LF + trailing newline + idempotent writes. All hooks now pass clean, no `--no-ve
 - **Calendar total-recollection viewer complete**: `calendar.html` now pulls the full `GET /api/calendar/` timeline, groups events by month, and uses minimal unicode markers for event type icons.
 - **Timeline interactive query viewer complete**: `timeline.html` now wires search, date-axis, item-type, urgency, evidence-only, and date-range filters to `POST /api/timeline/unified`; all emoji icons and `alert()` fallbacks removed.
 - **Comms Log complete**: `comms_log.html` and `GET /comms-log` route added; logs are stored as `event_type='communication'` timeline events and displayed on `/comms-log`.
+- **MNDES todo-021 unblocked**: `MNDESRestClient` speculative REST implementation added; related `MNDESExhibitPackage`/`MNDESExhibitService` model and serialization bugs fixed; `tests/test_mndes_service.py` passes 19/19.
 - **Visual smoke test passed**: all 4 public GUI pages verified on live deploy.
 - **Attorney Intake Packet rendering + GUI trigger**: PDF/ZIP export endpoints added to
   `app/modules/case_builder/router.py`, download UI added to `case_builder.html`,
