@@ -1,3 +1,29 @@
+## Session — 2026-07-25 — Comms Log page
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/main.py` compiles.
+- **ssot_architecture_tests**: PASS — 8/8 tests in `tests/test_ssot_architecture.py` pass.
+
+### What Was Shipped
+
+- Added `app/templates/pages/comms_log.html` — a communication log page that lets tenants record calls, emails, texts, in-person visits, and letters.
+- Wired the page to `POST /api/timeline/events` with `event_type: 'communication'` and to `POST /api/timeline/unified` for listing, so no new DB table or migration was needed.
+- Added `GET /comms-log` route in `app/main.py` (with SSOT fallback to `/tenant/timeline`).
+- Added a Comms Log card to `app/templates/gui/record.html`.
+- Uses minimal unicode markers (`▸`, `◆`, `●`, `○`) for method icons; no emoji.
+
+### Known Working
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/test_ssot_architecture.py -v --no-cov` — 8/8 PASS.
+
+### Known Broken / Pending
+
+- No live browser verification of the Comms Log page (no running dev server with storage credentials).
+
+---
+
 ## Session — 2026-07-25 — Timeline interactive query viewer
 
 ### Guardrail Engine Run — 2026-07-25
