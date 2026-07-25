@@ -325,6 +325,8 @@ async def create_document(
     db: AsyncSession,
     original_filename: str,
     stored_filename: str,
+    storage_type: str,
+    storage_key: str,
     mime_type: str | None,
     file_size: int,
     description: str | None,
@@ -335,6 +337,8 @@ async def create_document(
     document = Document(
         filename=stored_filename,
         original_filename=original_filename,
+        storage_type=storage_type,
+        storage_key=storage_key,
         mime_type=mime_type,
         file_size=file_size,
         description=description,
@@ -361,9 +365,6 @@ async def list_documents(db: AsyncSession) -> list[Document]:
 
 
 async def delete_document(db: AsyncSession, document: Document) -> None:
-    file_path = UPLOADS_PATH / document.filename
-    if file_path.exists():
-        file_path.unlink()
     await db.delete(document)
     await db.commit()
 

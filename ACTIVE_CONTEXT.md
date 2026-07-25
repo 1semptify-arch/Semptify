@@ -8,8 +8,9 @@
 
 A standalone FastAPI funding and contact manager (`funding_forge/`) is built and ready for review.
 It provides ACT!-style contact management, a full opportunity/application pipeline, interactions,
-tasks, documents, and a pre-seeded catalog of suggested funding entities. No tenant-facing pages;
-internal admin workspace-key gate.
+tasks, documents, and a pre-seeded catalog of suggested funding entities. No tenant-facing pages.
+Funding Forge is admin-only and can persist documents to Cloudflare R2 system storage; it does not
+touch tenant privacy paths or store tenant PII.
 
 Previous priority: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
 The `/gui/*` navigation, `know.html`, `act.html`, `record.html`, `home.html` all extend
@@ -17,7 +18,7 @@ The `/gui/*` navigation, `know.html`, `act.html`, `record.html`, `home.html` all
 
 ## ✅ Completed 2026-07-25 Session
 
-- **Funding Forge add-on** — standalone package `funding_forge/` with FastAPI backend, async SQLAlchemy models, full CRUD JSON API, SPA GUI, document uploads, workspace-key gate, and 33 pre-seeded suggested funding entities. Tests pass.
+- **Funding Forge add-on** — standalone package `funding_forge/` with FastAPI backend, async SQLAlchemy models, full CRUD JSON API, SPA GUI, document uploads, admin-only auth, optional Cloudflare R2 document storage, and 33 pre-seeded suggested funding entities. Tests pass.
 
 ## ✅ Completed 2026-07-19 Session
 

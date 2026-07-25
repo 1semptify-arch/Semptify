@@ -31,7 +31,8 @@ Semptify needs sustainable, mission-aligned funding, but the founder is solo and
 - Does NOT display ads, affiliate links, sponsored listings, or paid endorsements.
 - Does NOT send email/SMS (out of scope; only stores records).
 - Does NOT replace legal, accounting, or nonprofit filing advice.
-- Does NOT integrate with cloud storage auth (kept intentionally simple and local).
+- Does NOT integrate with tenant cloud storage auth.
+- Does NOT store tenant PII; Funding Forge data is admin/system data only.
 
 ## User-facing or internal?
 
@@ -39,7 +40,7 @@ Internal tool for Semptify administrators/fundraisers only. No tenant-facing pag
 
 ## Roles
 
-Admin-only access for this first iteration. Authentication is a simple local secret (configurable) because this is an internal, single-operator workspace. No `login` / `sign up` language; the screen is "Enter workspace key."
+Admin-only access. Authentication uses username/password (with optional TOTP) from `FUNDING_FORGE_ADMIN_*` or the main Semptify `ADMIN_*` environment variables. After sign-in the browser receives a signed `funding_forge_admin` cookie and API clients may use the `x-admin-token` header.
 
 ## DB tables
 
@@ -49,8 +50,8 @@ Admin-only access for this first iteration. Authentication is a simple local sec
 - `opportunity_steps` — checklist/steps inside an application process
 - `interactions` — calls, emails, meetings, notes, tasks
 - `tasks` — standalone or linked reminders
-- `documents` — uploaded files and their metadata
-- `settings` — workspace key and basic configuration
+- `documents` — uploaded files and their metadata (storage type + storage key)
+- `settings` — workspace state such as seed timestamp
 
 ## Routes
 
@@ -58,7 +59,10 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/` | Dashboard |
+| GET | `/` | SPA shell (redirects to `/login` when not authenticated) |
+| GET | `/login` | Admin sign-in page |
+| POST | `/login` | Admin sign-in |
+| GET | `/logout` | Clear admin session |
 | GET | `/funders` | List funding entities |
 | GET | `/funders/new` | New funder form |
 | GET | `/funders/{id}` | Funder detail |
@@ -105,7 +109,8 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 | GET | `/api/documents/{id}` | Download document |
 | DELETE | `/api/documents/{id}` | Delete document |
 | POST | `/api/seed` | Reset and seed suggested entities |
-| GET | `/health` | Health check |
+| GET | `/api/admin/me` | Admin session check |
+| GET | `/api/health` | Health check |
 
 ## Dependencies
 
@@ -116,6 +121,8 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 - aiofiles (for file uploads)
 - python-multipart
 - Pydantic
+- pyotp (optional TOTP support)
+- aioboto3 (only when using R2 storage)
 - Semptify design system CSS reused from `static/css/ssot-design-system.css` where possible, but no runtime dependency on `app` packages.
 
 ## Data flow
@@ -123,7 +130,9 @@ All routes are under `/` (server-rendered) and `/api` (JSON).
 - Admin opens Funding Forge in browser.
 - Browser submits server-rendered forms or JSON to FastAPI endpoints.
 - SQLite database stores all records locally.
-- File uploads go to `funding_forge/uploads/`.
+- File uploads go to the configured storage backend (`local` or `r2`).
+  - `local`: `funding_forge/uploads/`
+  - `r2`: Cloudflare R2 bucket under `funding_forge/<uuid>` keys
 - Pre-seed catalog populates funders and contacts from a bundled JSON file.
 
 ## What it does NOT touch
@@ -141,14 +150,14 @@ ADMIN / internal tool. Not exposed to tenant or advocate roles.
 ## Risk
 
 - **Wrong scope creep:** could become a generic CRM. Mitigation: keep language and workflow focused on funding and nonprofit filing.
-- **Data loss:** single SQLite file. Mitigation: include export button and document local backup path.
-- **Security:** internal tool with a simple key. Mitigation: workspace key in environment, no external network calls, no PII beyond what the admin enters.
+- **Data loss:** single SQLite file. Mitigation: include export button, document local backup path, and optional R2 document persistence.
+- **Security:** internal tool with admin credentials. Mitigation: credentials from environment, signed admin token cookie/header, optional TOTP, no external network calls, no tenant PII.
 - **Dependency drift:** standalone package must not introduce Python 3.12+ requirements. Mitigation: target 3.11.9, use same versioned dependencies as Semptify.
 
 ## Implementation
 
-- Code: `funding_forge/__init__.py`, `config.py`, `database.py`, `models.py`, `schemas.py`, `crud.py`, `api.py`, `main.py`, `seed_data.json`.
-- GUI: `funding_forge/templates/index.html` and `unlock.html` plus `funding_forge/static/css/funding_forge.css` and `funding_forge/static/js/app.js`.
+- Code: `funding_forge/__init__.py`, `auth.py`, `config.py`, `database.py`, `models.py`, `schemas.py`, `crud.py`, `api.py`, `storage.py`, `r2_client.py`, `main.py`, `seed_data.json`.
+- GUI: `funding_forge/templates/index.html` and `login.html` plus `funding_forge/static/css/funding_forge.css` and `funding_forge/static/js/app.js`.
 - Startup: `start_funding_forge.ps1` and `start_funding_forge.bat`.
 - Tests: `funding_forge/tests/test_funding_forge.py`.
-- Verification: `py_compile`, `ruff check`, `pytest` (3/3 passing), and a local uvicorn health + seed smoke test.
+- Verification: `py_compile`, `ruff check`, `pytest` (5/5 passing), and a local uvicorn health + admin login + seed smoke test.
