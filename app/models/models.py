@@ -228,7 +228,7 @@ class LinkedProvider(Base):
 # =============================================================================
 
 
-class DeepOCRStatus(str, enum.Enum):
+class DeepOCRStatus(enum.StrEnum):
     """Status values for the Deep OCR pipeline."""
 
     PENDING = "pending"
@@ -1430,6 +1430,9 @@ class VaultIndexDB(Base):
     # Source tracking
     source_module: Mapped[str] = mapped_column(String(50), default="direct")
 
+    # Document Center review state (field confirmations/corrections and manual status)
+    review_state_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # Timestamps
     uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
@@ -1478,6 +1481,38 @@ class VaultHashIndexDB(Base):
     ref_count: Mapped[int] = mapped_column(Integer, default=1)
 
     # Timestamp
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+# =============================================================================
+# Document Shares — real Document Center sharing with recipient and scope
+# =============================================================================
+
+
+class DocumentShare(Base):
+    """
+    Tracks documents shared from the Document Center to a recipient.
+
+    The recipient can be another Semptify user_id, an advocate/legal ID,
+    or an email address. The scope controls what the recipient can do:
+    view, comment, or download. Access is gated by share_token.
+    """
+
+    __tablename__ = "document_shares"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
+    vault_id: Mapped[str] = mapped_column(String(36), ForeignKey("vault_index.vault_id"), index=True)
+
+    recipient_identifier: Mapped[str] = mapped_column(String(255), nullable=False)
+    scope: Mapped[str] = mapped_column(String(20), nullable=False)  # view, comment, download
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    share_token: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+    accessed_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+    access_count: Mapped[int] = mapped_column(Integer, default=0)
+
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
 
 

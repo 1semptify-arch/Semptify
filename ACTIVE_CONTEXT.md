@@ -19,6 +19,7 @@ The `/gui/*` navigation, `know.html`, `act.html`, `record.html`, `home.html` all
 ## ✅ Completed 2026-07-25 Session
 
 - **Funding Forge add-on** — standalone package `funding_forge/` with FastAPI backend, async SQLAlchemy models, full CRUD JSON API, SPA GUI, document uploads, admin-only auth, optional Cloudflare R2 document storage, and 33 pre-seeded suggested funding entities. Tests pass.
+- **Document Center gap fill** — persisted field confirm/correct state via `VaultReviewState`, user-controlled verification status, real document sharing via `DocumentShare`, old `documents.html` pages redirected to `/dc`, and frontend wiring in `document_center.html` to load/save state and create share links. Backend and integration tests pass; full live browser viewer verification pending storage-connected onboarding.
 
 ## ✅ Completed 2026-07-19 Session
 

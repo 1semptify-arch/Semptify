@@ -1,3 +1,57 @@
+## Session — 2026-07-25 — Document Center gap fill
+
+### Guardrail Engine Run — 2026-07-25T18:02:46
+
+- **manifest_sync_check**: FAIL — Sync orchestrator reported issues — see details.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/main.py`, `app/modules/document_center/router.py`, `app/services/vault_upload_service.py`, and `app/models/models.py` compile.
+- **ruff_check**: PASS — `app/modules/document_center/router.py` passes.
+- **dc_smoke_tests**: PASS — `app/modules/document_center/tests/test_dc_smoke.py` 22/22 pass.
+- **dc_integration_test**: PASS — `tests/test_dc_gaps_integration.py` 1/1 pass (review-state save/load, manual verification status, share create/list).
+- **ssot_architecture_tests**: PASS — `tests/test_ssot_architecture.py` 8/8 pass.
+- **live_server_check**: PARTIAL — `uvicorn` starts cleanly; `/dc` resolves (redirects to onboarding when unauthenticated); `/api/dc/document-types` returns 401 as expected.
+
+### What Was Shipped
+
+- Persistent Document Center review state:
+  - Added `VaultReviewState` model and `review_state_json` column on `vault_index`.
+  - Added `GET/POST /api/dc/document/{vault_id}/review-state` and `POST /api/dc/document/{vault_id}/review-status`.
+  - `dc_list_documents` now returns `review_state` and `review_status` for each document.
+- User-controlled verification status (`new`/`verified`/`review`/`mismatched`) replacing auto-derived state.
+- Real share functionality:
+  - Added `DocumentShare` model and Alembic migration.
+  - Added `POST /api/dc/document/{vault_id}/share`, `GET /api/dc/document/{vault_id}/shares`, `GET /api/dc/shared/{token}`, and `GET /api/dc/shared/{token}/content`.
+  - `document_center.html` share modal now creates a real share link and lists existing shares.
+- Reconciled old `documents.html` pages:
+  - `app/templates/pages/documents.html` and `static/tenant/documents.html` now redirect to `/dc`.
+- Frontend wiring:
+  - `document_center.html` loads/saves field confirmation/correction state and manual status to the backend.
+  - Filter buttons apply the persisted `review_status`.
+
+### Known Working
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest app/modules/document_center/tests/test_dc_smoke.py --no-cov` — 22/22 PASS.
+- `python -m pytest tests/test_dc_gaps_integration.py --no-cov` — 1/1 PASS.
+- `python -m pytest tests/test_ssot_architecture.py --no-cov` — 8/8 PASS.
+- `uvicorn app.main:app --host 127.0.0.1 --port 8000` starts without errors.
+
+### Known Broken / Pending
+
+- Full live browser verification of the Document Center viewer is blocked until a test user has completed onboarding and connected storage (dev server starts but `/dc` redirects to onboarding select-role page).
+- IronBee DevTools browser MCP (`ironbee-dt-browser`) was not available in the active MCP server list; only `mcp-playwright` was present, so a Playwright-based smoke navigation was used to confirm the running server resolves `/dc` and `/api/dc/document-types`.
+
+### Next Session Should Start With
+
+- Complete onboarding/storage setup in a local dev environment and run the full Document Center viewer flow end-to-end, or verify on a deployed environment with real storage credentials.
+
+---
+
 ## Session — 2026-07-25 — /ship deploy to main
 
 ### Guardrail Engine Run — 2026-07-25T22:25:00
