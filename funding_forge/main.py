@@ -64,8 +64,9 @@ async def workspace_key_gate(request: Request, call_next):
 async def index(request: Request):
     """Serve the single-page app shell."""
     return templates.TemplateResponse(
+        request,
         "index.html",
-        {"request": request, "key_required": settings.auth_enabled},
+        {"key_required": settings.auth_enabled},
     )
 
 
@@ -74,7 +75,7 @@ async def unlock_page(request: Request, error: str = ""):
     """Serve the workspace key entry page."""
     if settings.auth_enabled and request.cookies.get("funding_forge_key") == settings.funding_forge_key:
         return RedirectResponse(url="/", status_code=303)
-    return templates.TemplateResponse("unlock.html", {"request": request, "error": error})
+    return templates.TemplateResponse(request, "unlock.html", {"error": error})
 
 
 @app.post("/unlock")
@@ -91,7 +92,8 @@ async def unlock(request: Request, key: str = Form(...)):
         )
         return response
     return templates.TemplateResponse(
+        request,
         "unlock.html",
-        {"request": request, "error": "Invalid workspace key"},
+        {"error": "Invalid workspace key"},
         status_code=401,
     )
