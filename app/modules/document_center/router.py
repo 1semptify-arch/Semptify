@@ -111,7 +111,8 @@ async def _get_pipeline_row(user_id: str, vault_id: str):
             for row in rows:
                 try:
                     payload = json.loads(row.payload_json or "{}")
-                except Exception:
+                except (json.JSONDecodeError, TypeError) as e:
+                    logger.debug("Skipping malformed payload_json for pipeline row: %s", e)
                     continue
                 if payload.get("vault_id") == vault_id:
                     return row
@@ -210,7 +211,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         {
             "name": "Certified Upload",
             "overlay_type": "upload_notarization",
-            "icon": "✅" if certified else "⬜",
+            "icon": "●" if certified else "○",
             "pct": 100 if certified else 0,
             "goal": "Document stored with tamper-proof certificate",
             "detail": cert_detail,
@@ -233,7 +234,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         {
             "name": "Document Type",
             "overlay_type": "document_classification",
-            "icon": "✅" if typed else "⬜",
+            "icon": "●" if typed else "○",
             "pct": 100 if typed else 0,
             "goal": "Document type identified and confirmed",
             "detail": type_label,
@@ -257,7 +258,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         {
             "name": "Text Extraction",
             "overlay_type": "ocr_result",
-            "icon": "✅" if ocr_pct == 100 else ("🔄" if ocr_pct else "⬜"),
+            "icon": "●" if ocr_pct == 100 else ("◆" if ocr_pct else "○"),
             "pct": ocr_pct,
             "goal": "All text extracted from the document",
             "detail": f"{len(raw_text):,} chars" if has_text else None,
@@ -288,7 +289,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         {
             "name": "Dates",
             "overlay_type": "key_date_extraction",
-            "icon": "✅" if n_dates >= 2 else ("🔄" if n_dates else "⬜"),
+            "icon": "●" if n_dates >= 2 else ("◆" if n_dates else "○"),
             "pct": dates_pct,
             "goal": "Key dates identified (lease start, end, notice deadlines, etc.)",
             "detail": f"{n_dates} found" if n_dates else None,
@@ -314,7 +315,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         {
             "name": "Parties",
             "overlay_type": "party_extraction",
-            "icon": "✅" if n_parties >= 2 else ("🔄" if n_parties else "⬜"),
+            "icon": "●" if n_parties >= 2 else ("◆" if n_parties else "○"),
             "pct": parties_pct,
             "goal": "All parties identified (landlord, tenant, attorney)",
             "detail": f"{n_parties} found" if n_parties else None,
@@ -338,7 +339,7 @@ def _build_progress_from_real(doc, real_overlays: list) -> dict:
         {
             "name": "Amounts",
             "overlay_type": "amount_extraction",
-            "icon": "✅" if n_amounts else "⬜",
+            "icon": "●" if n_amounts else "○",
             "pct": 100 if n_amounts else 0,
             "goal": "Rent, deposit, and fee amounts confirmed",
             "detail": f"{n_amounts} found" if n_amounts else None,
@@ -443,28 +444,28 @@ def _compute_unlocks(docs: list) -> list[dict]:
     return [
         {
             "name": "Timeline",
-            "icon": "📅",
+            "icon": "●",
             "threshold": "1 processed doc with type identified",
             "unlocked": typed_docs >= 1,
             "progress": f"{typed_docs}/1 docs meet threshold",
         },
         {
             "name": "Journal",
-            "icon": "📓",
+            "icon": "●",
             "threshold": "2+ processed docs",
             "unlocked": processed_docs >= 2,
             "progress": f"{processed_docs}/2 docs meet threshold",
         },
         {
             "name": "Contact Manager",
-            "icon": "👤",
+            "icon": "●",
             "threshold": "1 processed doc with type identified",
             "unlocked": typed_docs >= 1,
             "progress": f"{typed_docs}/1 docs meet threshold",
         },
         {
             "name": "Case Builder",
-            "icon": "⚖️",
+            "icon": "●",
             "threshold": "3+ processed docs with certificate",
             "unlocked": certified_docs >= 3,
             "progress": f"{certified_docs}/3 docs meet threshold",

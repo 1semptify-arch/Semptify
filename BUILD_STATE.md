@@ -1,3 +1,138 @@
+## Session — 2026-07-25 — Unblock MNDES API client (todo-021)
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/services/mndes_api_client.py`, `app/models/mndes_exhibit.py`, and `app/services/mndes_exhibit_service.py` compile.
+- **ruff_check**: PASS — `ruff check app/services/mndes_api_client.py app/models/mndes_exhibit.py app/services/mndes_exhibit_service.py` passes.
+- **mndes_service_tests**: PASS — 19/19 tests in `tests/test_mndes_service.py` pass.
+
+### What Was Shipped
+
+- Replaced `NotImplementedError` stubs in `MNDESRestClient` with speculative `httpx` REST calls against plausible MNDES endpoints.
+- Added graceful fallback to manual portal guidance when the API is unreachable or returns unexpected responses.
+- Fixed related model/service bugs surfaced by `tests/test_mndes_service.py`:
+  - Added `case_caption` and `is_sealed_case` to `MNDESExhibitPackage` and `MNDESPackageCreateRequest`.
+  - Passed `case_caption` and `is_sealed_case` through `MNDESExhibitService.create_package`.
+  - Fixed `exhibits_json` serialization by using `model_dump(mode="json")`.
+  - Fixed `submitted_at` being set to a boolean (`mndes_submission_started`) instead of a datetime.
+- Converted MNDES enums to `StrEnum` and cleaned imports/ruff issues.
+- Marked `tools/agent_orchestrator_tasks.json` `todo-021` as resolved.
+
+### Known Broken / Pending
+
+- MNDES REST endpoints are speculative; real MN Judicial Branch API spec/credentials are still needed for live verification.
+
+---
+
+## Session — 2026-07-25 — Comms Log page
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/main.py` compiles.
+- **ssot_architecture_tests**: PASS — 8/8 tests in `tests/test_ssot_architecture.py` pass.
+
+### What Was Shipped
+
+- Added `app/templates/pages/comms_log.html` — a communication log page that lets tenants record calls, emails, texts, in-person visits, and letters.
+- Wired the page to `POST /api/timeline/events` with `event_type: 'communication'` and to `POST /api/timeline/unified` for listing, so no new DB table or migration was needed.
+- Added `GET /comms-log` route in `app/main.py` (with SSOT fallback to `/tenant/timeline`).
+- Added a Comms Log card to `app/templates/gui/record.html`.
+- Uses minimal unicode markers (`▸`, `◆`, `●`, `○`) for method icons; no emoji.
+
+### Known Working
+
+- `python -m py_compile app/main.py` — PASS.
+- `python -m pytest tests/test_ssot_architecture.py -v --no-cov` — 8/8 PASS.
+
+### Known Broken / Pending
+
+- No live browser verification of the Comms Log page (no running dev server with storage credentials).
+
+---
+
+## Session — 2026-07-25 — Timeline interactive query viewer
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/modules/timeline/router.py` compiles.
+- **timeline_template**: PASS — `app/templates/pages/timeline.html` has no emoji icons and no `alert()` fallbacks.
+
+### What Was Shipped
+
+- Replaced emoji event icons in `app/templates/pages/timeline.html` with minimal unicode markers (`▸`, `◆`, `●`, `○`).
+- Added an interactive query panel with search, date-axis selector, item-type filters, urgency filters, evidence-only toggle, and date-range inputs.
+- Wired the panel to `POST /api/timeline/unified` with the full `TimelineViewRequest` filter payload.
+- Removed the remaining `alert()` fallback in the add-event modal, using `SemptifyFeedback` only.
+- Fixed `calendar.html` filter buttons to show active state via inline styles (the `frame-btn--active` class did not exist in the design system).
+
+### Known Working
+
+- `python -m py_compile app/modules/timeline/router.py` — PASS.
+- `python -m py_compile app/modules/calendar/router.py` — PASS (regression check).
+- `python -m pytest app/modules/calendar/tests/test_calendar.py -v --no-cov` — 7/7 PASS (regression check).
+
+### Known Broken / Pending
+
+- `ruff check app/modules/timeline/router.py` reports 165 pre-existing lint/style issues; not introduced by this session.
+- No live browser verification of the query panel (no running dev server with storage credentials).
+
+---
+
+## Session — 2026-07-25 — Calendar total-recollection viewer
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/modules/calendar/router.py` compiles.
+- **ruff_check**: PASS — `ruff check app/modules/calendar/router.py` passes.
+- **calendar_tests**: PASS — 7/7 tests in `app/modules/calendar/tests/test_calendar.py` pass.
+
+### What Was Shipped
+
+- Replaced emoji event icons in `app/templates/pages/calendar.html` with minimal unicode markers (`▸`, `◆`, `●`, `○`).
+- Wired the calendar page to `GET /api/calendar/` so it displays the full tenancy timeline, not just the next 90 days.
+- Grouped events by month/year and added All / Upcoming / Critical filter buttons.
+
+### Known Working
+
+- `python -m py_compile app/modules/calendar/router.py` — PASS.
+- `python -m pytest app/modules/calendar/tests/test_calendar.py -v --no-cov` — 7/7 PASS.
+- `ruff check app/modules/calendar/router.py` — PASS.
+
+### Known Broken / Pending
+
+- No live browser verification of the month-grouped calendar view (no running dev server with storage credentials).
+
+---
+
+## Session — 2026-07-25 — DC Slice 2+ viewer rendering + unlock pattern wiring
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/modules/document_center/router.py` and `app/core/document_types.py` compile.
+- **ruff_check**: PASS — `ruff check app/modules/document_center/router.py app/core/document_types.py` passes.
+- **dc_smoke_tests**: PASS — 22/22 tests in `app/modules/document_center/tests/test_dc_smoke.py` pass.
+
+### What Was Shipped
+
+- Replaced emoji status/unlock icons in `app/modules/document_center/router.py` and `app/templates/pages/document_center.html` with minimal unicode markers (`●`, `◆`, `▸`, `○`) per icon policy.
+- Fixed `document_center.html` overlay empty-state logic to honor `has_data`, `status`, and `detail` returned by `/api/dc/document/{id}/overlays`.
+- Replaced all blocking `alert()` and `prompt()` calls in `document_center.html` with `SemptifyFeedback` toasts and a non-blocking `showValueModal()` helper.
+- Fixed a JavaScript bug in `loadDocs()` that assigned to a DOM node instead of its `textContent`.
+- Cleaned `try/except/continue` lint issue in `router.py` `_get_pipeline_row()`.
+
+### Known Working
+
+- `python -m py_compile app/main.py app/modules/document_center/router.py app/core/document_types.py` — PASS.
+- `python -m pytest app/modules/document_center/tests/test_dc_smoke.py -v --no-cov` — 22/22 PASS.
+- `ruff check app/modules/document_center/router.py app/core/document_types.py` — PASS.
+
+### Known Broken / Pending
+
+- No live browser verification of the `/dc` viewer or unlock panel (no running dev server with storage credentials).
+- Older `app/templates/pages/documents.html` and `static/tenant/documents.html` still use emoji icons and may need to be reconciled with the four-pillar `document_center.html` in a future session.
+
+---
+
 ## Session — 2026-07-25 — Funding Forge standalone add-on
 
 ### Guardrail Engine Run — 2026-07-25T08:15:12
@@ -2369,7 +2504,6 @@ All checks passed.
 ### Next Session Should Start With
 - User review of the intake packet scaffold. If approved: add tests, then PDF/ZIP rendering, then frontend caller.
 - Or: switch back to `feature/vault-audit-log`, `git stash pop`, and finish the vault audit work (Ruff lint cleanup, BUILD_STATE update, commit + push).
->>>>>>> feature/attorney-intake-packet
 
 ---
 

@@ -1578,7 +1578,6 @@ All checks passed.
 ### Next Session Should Start With
 - User review of the intake packet scaffold. If approved: add tests, then PDF/ZIP rendering, then frontend caller.
 - Or: switch back to `feature/vault-audit-log`, `git stash pop`, and finish the vault audit work (Ruff lint cleanup, BUILD_STATE update, commit + push).
->>>>>>> feature/attorney-intake-packet
 
 ---
 
