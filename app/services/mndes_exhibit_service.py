@@ -21,29 +21,26 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
-from typing import Optional
 
-from app.core.mndes_compliance import (
-    mndes_validator,
-    MNDES_USER_WARNINGS,
-    MNDES_PORTAL_URL,
-    MNDESIssueCode,
-)
 from app.core.database import get_db_session
+from app.core.mndes_compliance import (
+    MNDES_PORTAL_URL,
+    MNDES_USER_WARNINGS,
+    mndes_validator,
+)
 from app.core.utc import utc_now
 from app.models.mndes_exhibit import (
+    MNDESAttestationRequest,
+    MNDESCaseType,
+    MNDESComplianceSummary,
     MNDESExhibit,
     MNDESExhibitCategory,
     MNDESExhibitPackage,
     MNDESExhibitStatus,
-    MNDESCaseType,
-    MNDESComplianceSummary,
     MNDESPackageCreateRequest,
-    MNDESAttestationRequest,
     MNDESSubmissionConfirmRequest,
 )
-from app.models.models import MNDESExhibitPackageDB, MNDESExhibitItemDB
+from app.models.models import MNDESExhibitPackageDB
 
 logger = logging.getLogger(__name__)
 
@@ -80,14 +77,14 @@ class MNDESExhibitService:
             case_caption=package.case_caption,
             package_name=f"Package for {package.mn_case_number}",
             description=None,
-            exhibits_json=json.dumps([ex.dict() for ex in package.exhibits]),
+            exhibits_json=json.dumps([ex.model_dump(mode="json") for ex in package.exhibits]),
             requires_attestation=True,
             attestation_provided=package.checklist_complete,
             attestation_date=package.updated_at if package.checklist_complete else None,
             attested_by=None,
             status="draft" if not package.mndes_submission_started else ("submitted" if package.mndes_submission_complete else "ready"),
             is_sealed_case=package.is_sealed_case or False,
-            submitted_at=package.mndes_submission_started,
+            submitted_at=package.created_at if package.mndes_submission_started else None,
             confirmation_number=None,
             created_at=package.created_at or utc_now(),
             updated_at=package.updated_at or utc_now(),
@@ -128,7 +125,7 @@ class MNDESExhibitService:
             logger.error("Failed to save package %s to DB: %s", package.package_id, e)
             raise
 
-    async def _get_package_from_db(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def _get_package_from_db(self, package_id: str) -> MNDESExhibitPackage | None:
         """Get package from database."""
         try:
             from sqlalchemy import select
@@ -224,8 +221,10 @@ class MNDESExhibitService:
             user_id=user_id,
             mn_case_number=request.mn_case_number,
             case_type=request.case_type,
+            case_caption=request.case_caption,
             exhibits=exhibits,
             has_no_contact_order=request.no_contact_order,
+            is_sealed_case=request.is_sealed_case,
         )
         package = self._recalculate_package_summary(package)
 
@@ -242,7 +241,7 @@ class MNDESExhibitService:
         )
         return package
 
-    async def get_package(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def get_package(self, package_id: str) -> MNDESExhibitPackage | None:
         """Get package from database (falls back to in-memory for legacy)."""
         # Try database first
         db_package = await self._get_package_from_db(package_id)
