@@ -3693,6 +3693,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return ssot_redirect("/tenant/timeline", context="timeline_page template fallback")
 
+    @fastapi_app.get("/comms-log", response_class=HTMLResponse)
+    async def comms_log_page(request: Request):
+        """Serve the GUI communication log page (RECORD pillar)."""
+        comms_template_path = BASE_PATH / "app" / "templates" / "pages" / "comms_log.html"
+        if comms_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/comms_log.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Comms log template error, falling back to tenant timeline: %s", e)
+
+        return ssot_redirect("/tenant/timeline", context="comms_log_page fallback")
+
     @fastapi_app.get("/dc", response_class=HTMLResponse)
     async def document_center_page(request: Request):
         """Serve the Document Center GUI page (RECORD pillar — 3-pane viewer)."""
