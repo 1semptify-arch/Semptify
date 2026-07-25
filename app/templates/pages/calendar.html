@@ -53,7 +53,7 @@
     <div class="frame-panel--header" style="flex-wrap:wrap; gap:0.5rem;">
         <span class="frame-panel--title">All events</span>
         <div id="calendarFilters" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-left:auto;">
-            <button class="frame-btn frame-btn--active" data-filter="all" style="padding:0.25rem 0.5rem; font-size:0.75rem;">All</button>
+            <button class="frame-btn" data-filter="all" style="padding:0.25rem 0.5rem; font-size:0.75rem;">All</button>
             <button class="frame-btn" data-filter="upcoming" style="padding:0.25rem 0.5rem; font-size:0.75rem;">Upcoming</button>
             <button class="frame-btn" data-filter="critical" style="padding:0.25rem 0.5rem; font-size:0.75rem;">Critical</button>
         </div>
@@ -240,14 +240,20 @@
         });
     }
 
+    function updateFilterButtons() {
+        filterButtons.forEach(b => {
+            b.style.background = (b.dataset.filter === currentFilter) ? '#1e293b' : '';
+            b.style.color = (b.dataset.filter === currentFilter) ? '#fff' : '';
+        });
+    }
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('frame-btn--active'));
-            btn.classList.add('frame-btn--active');
             currentFilter = btn.dataset.filter;
+            updateFilterButtons();
             render();
         });
     });
+    updateFilterButtons();
 
     eventForm.addEventListener('submit', async function (e) {
         e.preventDefault();
