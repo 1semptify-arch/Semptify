@@ -1,3 +1,39 @@
+## Session — 2026-07-25 — Funding Forge standalone add-on
+
+### Guardrail Engine Run — 2026-07-25T08:15:12
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What Was Done
+
+Built `funding_forge/` — a standalone FastAPI funding and contact manager for Semptify with an ACT!-style workflow:
+
+- Funding entity catalog (funders, fiscal sponsors, crowdfunding, grants, pro bono legal, foundations, media, partners).
+- Contact manager with role/status and per-funder history.
+- Opportunity/application pipeline with per-opportunity steps.
+- Interactions, tasks, and document upload/download.
+- Pre-seeded catalog of suggested funding entities (`seed_data.json`).
+- Single-page GUI (`templates/` + `static/`) with dashboard, list/detail views, and forms.
+- Admin-only authentication using username/password (+ optional TOTP) and a signed `funding_forge_admin` cookie / `x-admin-token` header.
+- Configurable storage backend: local filesystem or Cloudflare R2 (`funding_forge/storage.py` + `r2_client.py`) for persistent admin/system documents.
+- Falls back to Semptify `ADMIN_*` credentials or `FUNDING_FORGE_ADMIN_*` variables.
+
+### Verification
+
+- `py_compile`: PASS
+- `ruff check`: PASS
+- `pytest funding_forge/tests`: 5/5 PASS
+- Local uvicorn smoke test: PASS (`/api/health`, admin login, `/api/seed`, `/api/funders`, document upload/download)
+
+### Branch
+
+- `devin/funding-forge`
+
+---
+
 ## Session — 2026-07-20 — /ship deploy to main
 
 ### Guardrail Engine Run — 2026-07-20T09:13:40

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin login — Funding Forge</title>
+  <link rel="stylesheet" href="/static/css/funding_forge.css">
+</head>
+<body class="unlock-body">
+  <div class="unlock-card">
+    <h1>Funding Forge</h1>
+    <p class="unlock-lead">Admin workspace. Sign in with your Semptify admin credentials.</p>
+    {% if error %}
+      <div class="flash flash-error" role="alert">{{ error }}</div>
+    {% endif %}
+    <form method="post" action="/login" class="unlock-form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required autofocus>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+      <label for="totp_code">TOTP code (if enabled)</label>
+      <input type="text" id="totp_code" name="totp_code" inputmode="numeric" autocomplete="one-time-code">
+      <button type="submit" class="button">Sign in</button>
+    </form>
+  </div>
+</body>
+</html>
