@@ -1,3 +1,32 @@
+## Session — 2026-07-25 — DC Slice 2+ viewer rendering + unlock pattern wiring
+
+### Guardrail Engine Run — 2026-07-25
+
+- **compile_check**: PASS — `app/modules/document_center/router.py` and `app/core/document_types.py` compile.
+- **ruff_check**: PASS — `ruff check app/modules/document_center/router.py app/core/document_types.py` passes.
+- **dc_smoke_tests**: PASS — 22/22 tests in `app/modules/document_center/tests/test_dc_smoke.py` pass.
+
+### What Was Shipped
+
+- Replaced emoji status/unlock icons in `app/modules/document_center/router.py` and `app/templates/pages/document_center.html` with minimal unicode markers (`●`, `◆`, `▸`, `○`) per icon policy.
+- Fixed `document_center.html` overlay empty-state logic to honor `has_data`, `status`, and `detail` returned by `/api/dc/document/{id}/overlays`.
+- Replaced all blocking `alert()` and `prompt()` calls in `document_center.html` with `SemptifyFeedback` toasts and a non-blocking `showValueModal()` helper.
+- Fixed a JavaScript bug in `loadDocs()` that assigned to a DOM node instead of its `textContent`.
+- Cleaned `try/except/continue` lint issue in `router.py` `_get_pipeline_row()`.
+
+### Known Working
+
+- `python -m py_compile app/main.py app/modules/document_center/router.py app/core/document_types.py` — PASS.
+- `python -m pytest app/modules/document_center/tests/test_dc_smoke.py -v --no-cov` — 22/22 PASS.
+- `ruff check app/modules/document_center/router.py app/core/document_types.py` — PASS.
+
+### Known Broken / Pending
+
+- No live browser verification of the `/dc` viewer or unlock panel (no running dev server with storage credentials).
+- Older `app/templates/pages/documents.html` and `static/tenant/documents.html` still use emoji icons and may need to be reconciled with the four-pillar `document_center.html` in a future session.
+
+---
+
 ## Session — 2026-07-20 — /ship deploy to main
 
 ### Guardrail Engine Run — 2026-07-20T09:13:40

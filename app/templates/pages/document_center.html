@@ -52,7 +52,7 @@
                     <button type="button" id="dcDismissSuggest" class="frame-btn" style="padding:0.0625rem 0.3125rem; font-size:0.6875rem;">✕</button>
                 </div>
                 <button id="dcDownloadBtn" class="frame-btn" type="button" style="display:none;">Download</button>
-                <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">⚙ Process now</button>
+                <button id="dcProcessBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">◆ Process now</button>
                 <button id="dcShareBtn" class="frame-btn" type="button" style="display:none; padding:0.25rem 0.5rem; font-size:0.75rem;">↗ Share</button>
                 <div id="dcAnnotTools" style="display:none; gap:0.25rem; margin-left:auto;">
                     <button type="button" class="frame-btn dc-annot-tool" data-tool="highlight" style="padding:0.25rem 0.5rem; font-size:0.75rem;">▸ Highlight</button>
@@ -180,6 +180,41 @@
     function escapeHtml(s) {
         return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
+    function showValueModal(title, initial) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;';
+            const box = document.createElement('div');
+            box.style.cssText = 'background:var(--zone-bg-secondary);padding:1rem;max-width:400px;width:90%;border-radius:0.375rem;';
+            const h = document.createElement('h4');
+            h.style.cssText = 'color:#e2e8f0;margin-bottom:0.5rem;font-size:0.875rem;';
+            h.textContent = title;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = initial || '';
+            input.style.cssText = 'width:100%;padding:0.5rem;margin-bottom:0.75rem;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:0.25rem;';
+            const btns = document.createElement('div');
+            btns.style.cssText = 'display:flex;gap:0.5rem;justify-content:flex-end;';
+            const ok = document.createElement('button');
+            ok.className = 'frame-btn';
+            ok.textContent = 'OK';
+            const cancel = document.createElement('button');
+            cancel.className = 'frame-btn';
+            cancel.textContent = 'Cancel';
+            function cleanup() { if (modal.parentNode) modal.remove(); }
+            ok.addEventListener('click', () => { cleanup(); resolve(input.value); });
+            cancel.addEventListener('click', () => { cleanup(); resolve(null); });
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { cleanup(); resolve(input.value); } if (e.key === 'Escape') { cleanup(); resolve(null); } });
+            btns.appendChild(cancel);
+            btns.appendChild(ok);
+            box.appendChild(h);
+            box.appendChild(input);
+            box.appendChild(btns);
+            modal.appendChild(box);
+            document.body.appendChild(modal);
+            input.focus();
+        });
+    }
     function fmtDate(s) {
         if (!s) return '';
         try {
@@ -189,10 +224,10 @@
         } catch (e) { return s; }
     }
     function statusIcon(s) {
-        if (s === 'verified') return '✅';
-        if (s === 'review') return '🔄';
-        if (s === 'mismatched') return '⚠️';
-        return '⬜';
+        if (s === 'verified') return '●';
+        if (s === 'review') return '◆';
+        if (s === 'mismatched') return '▸';
+        return '○';
     }
 
     function statusBadge(s) {
@@ -236,7 +271,8 @@
             renderDocs();
         } catch (e) {
             docEmpty.querySelector('p').textContent = 'Could not load documents.';
-            docEmpty.querySelector('.frame-empty--hint') = e.message;
+            const hint = docEmpty.querySelector('.frame-empty--hint');
+            if (hint) hint.textContent = e.message;
         }
     }
 
@@ -558,7 +594,7 @@
                     pin.title = payload.content;
                     pin.addEventListener('click', function (ev) {
                         ev.stopPropagation();
-                        alert(payload.content);
+                        if (window.SemptifyFeedback) SemptifyFeedback.info(payload.content, { timeout: 10000 });
                     });
                     if (range.x !== undefined && range.y !== undefined) {
                         pin.style.left = range.x + 'px';
@@ -584,7 +620,7 @@
                     pin.title = 'References: ' + payload.reference_target;
                     pin.addEventListener('click', function (ev) {
                         ev.stopPropagation();
-                        alert('References: ' + payload.reference_target);
+                        if (window.SemptifyFeedback) SemptifyFeedback.info('References: ' + payload.reference_target, { timeout: 10000 });
                     });
                     if (payload.x !== undefined && payload.y !== undefined) {
                         pin.style.left = payload.x + 'px';
@@ -632,7 +668,7 @@
         confirmBtn.style.flex = '1';
         confirmBtn.style.padding = '0.25rem 0.5rem';
         confirmBtn.style.fontSize = '0.75rem';
-        confirmBtn.textContent = '✓ Confirm';
+        confirmBtn.textContent = '● Confirm';
         confirmBtn.addEventListener('click', () => {
             span.style.background = 'rgba(34, 197, 94, 0.35)';
             span.dataset.confirmed = '1';
@@ -645,9 +681,9 @@
         correctBtn.style.flex = '1';
         correctBtn.style.padding = '0.25rem 0.5rem';
         correctBtn.style.fontSize = '0.75rem';
-        correctBtn.textContent = '✎ Correct';
-        correctBtn.addEventListener('click', () => {
-            const corrected = prompt('Correct value:', term.term);
+        correctBtn.textContent = '◆ Correct';
+        correctBtn.addEventListener('click', async () => {
+            const corrected = await showValueModal('Correct value:', term.term);
             if (corrected !== null && corrected !== term.term) {
                 span.style.background = 'rgba(59, 130, 246, 0.35)';
                 span.dataset.corrected = '1';
@@ -798,7 +834,7 @@
     }
 
     async function handleNoteClick(e) {
-        const text = prompt('Note:');
+        const text = await showValueModal('Note:', '');
         if (text === null || !text.trim()) return;
         const container = document.getElementById('dcPdfContainer');
         const containerRect = container.getBoundingClientRect();
@@ -824,7 +860,7 @@
         pin.title = text;
         pin.addEventListener('click', function (ev) {
             ev.stopPropagation();
-            alert(text);
+            if (window.SemptifyFeedback) SemptifyFeedback.info(text, { timeout: 10000 });
         });
         container.style.position = 'relative';
         container.appendChild(pin);
@@ -844,7 +880,7 @@
     }
 
     async function handleReferenceClick(e) {
-        const target = prompt('Reference target (document name or ID):');
+        const target = await showValueModal('Reference target (document name or ID):', '');
         if (target === null || !target.trim()) return;
         const container = document.getElementById('dcPdfContainer');
         const containerRect = container.getBoundingClientRect();
@@ -869,7 +905,7 @@
         pin.title = 'References: ' + target;
         pin.addEventListener('click', function (ev) {
             ev.stopPropagation();
-            alert('References: ' + target);
+            if (window.SemptifyFeedback) SemptifyFeedback.info('References: ' + target, { timeout: 10000 });
         });
         container.style.position = 'relative';
         container.appendChild(pin);
@@ -911,10 +947,12 @@
     function renderOverlays(data) {
         overlayList.innerHTML = '';
         overallSpan.textContent = '';
-        if (data.status === 'processing_incomplete' || !data.overlays || !data.overlays.length) {
+        if (!data.has_data || !data.overlays || !data.overlays.length) {
             const empty = document.createElement('div');
             empty.className = 'frame-empty';
-            empty.innerHTML = '<div class="frame-empty--icon">⬜</div><p>' + escapeHtml(data.message || 'No overlays yet.') + '</p><p class="frame-empty--hint">Process the document to see progress.</p>';
+            const statusIcon = (data.status === 'failed' || data.status === 'needs_reprocess') ? '▸' : (data.status === 'processing' ? '◆' : '○');
+            const hint = data.detail ? escapeHtml(data.detail) : 'Process the document to see progress.';
+            empty.innerHTML = '<div class="frame-empty--icon">' + statusIcon + '</div><p>' + escapeHtml(data.message || 'No overlays yet.') + '</p><p class="frame-empty--hint">' + hint + '</p>';
             overlayList.appendChild(empty);
             return;
         }
@@ -933,7 +971,7 @@
             header.style.gap = '0.5rem';
             header.style.marginBottom = '0.25rem';
             const icon = document.createElement('span');
-            icon.textContent = ov.icon || '⬜';
+            icon.textContent = ov.icon || '○';
             const name = document.createElement('strong');
             name.style.color = '#e2e8f0';
             name.style.fontSize = '0.8125rem';
@@ -1080,7 +1118,7 @@
             verified.style.borderRadius = '0.375rem';
             verified.style.color = '#22c55e';
             verified.style.fontSize = '0.8125rem';
-            verified.textContent = '✅ All required fields verified.';
+            verified.textContent = '● All required fields verified.';
             checklist.appendChild(verified);
         }
     }
@@ -1097,7 +1135,7 @@
         top.style.alignItems = 'center';
         top.style.gap = '0.5rem';
         const icon = document.createElement('span');
-        icon.textContent = status === 'confirmed' ? '✅' : status === 'corrected' ? '✎' : '⬜';
+        icon.textContent = status === 'confirmed' ? '●' : status === 'corrected' ? '◆' : '○';
         const label = document.createElement('span');
         label.style.color = '#e2e8f0';
         label.style.fontSize = '0.8125rem';
@@ -1126,14 +1164,14 @@
         confirmBtn.style.flex = '1';
         confirmBtn.style.padding = '0.25rem 0.5rem';
         confirmBtn.style.fontSize = '0.75rem';
-        confirmBtn.textContent = '✓ Confirm';
+        confirmBtn.textContent = '● Confirm';
         confirmBtn.addEventListener('click', () => setFieldState(doc, field.name, 'confirmed'));
         const correctBtn = document.createElement('button');
         correctBtn.className = 'frame-btn';
         correctBtn.style.flex = '1';
         correctBtn.style.padding = '0.25rem 0.5rem';
         correctBtn.style.fontSize = '0.75rem';
-        correctBtn.textContent = '✎ Correct';
+        correctBtn.textContent = '◆ Correct';
         correctBtn.addEventListener('click', () => promptCorrect(doc, field));
         actions.appendChild(confirmBtn);
         actions.appendChild(correctBtn);
@@ -1141,9 +1179,9 @@
         return row;
     }
 
-    function promptCorrect(doc, field) {
+    async function promptCorrect(doc, field) {
         const current = (fieldConfirmState[doc.id] && fieldConfirmState[doc.id][field.name + '_value']) || '';
-        const input = prompt('Correct value for ' + field.label + ':', current);
+        const input = await showValueModal('Correct value for ' + field.label + ':', current);
         if (input === null) return;
         if (!fieldConfirmState[doc.id]) fieldConfirmState[doc.id] = {};
         fieldConfirmState[doc.id][field.name] = 'corrected';
@@ -1268,7 +1306,7 @@
         if (!currentDoc) return;
         if (processBtn.disabled) return;
         processBtn.disabled = true;
-        processBtn.textContent = '⚙ Processing…';
+        processBtn.textContent = '◆ Processing…';
         if (window.SemptifyFeedback) SemptifyFeedback.info('Processing started. This may take a few moments.', { timeout: 5000 });
         try {
             const r = await fetch('/api/intake/process/vault/' + encodeURIComponent(currentDoc.id), {
@@ -1293,7 +1331,7 @@
             if (window.SemptifyFeedback) SemptifyFeedback.error('Processing failed: ' + err.message);
         } finally {
             processBtn.disabled = false;
-            processBtn.textContent = '⚙ Process now';
+            processBtn.textContent = '◆ Process now';
         }
     });
 
