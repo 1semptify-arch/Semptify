@@ -1,3 +1,42 @@
+## Session — 2026-07-25 — /ship deploy to main
+
+### Guardrail Engine Run — 2026-07-25T22:25:00
+
+- **compile_check**: PASS — `app/main.py` compiles.
+- **merge_check**: PASS — `feature/dc-slice-2` merged into `main` with resolved `BUILD_STATE.md` conflicts.
+- **push_check**: PASS — `main` pushed to origin as commit `2573441`.
+
+### What Was Shipped
+
+- Merged `feature/dc-slice-2` into `main`:
+  - DC Slice 2+ viewer rendering and unlock pattern wiring.
+  - Calendar total-recollection viewer with month grouping and filters.
+  - Timeline interactive query viewer with search, filters, and date range.
+  - Communication Log page reusing timeline events.
+  - MNDES speculative REST client (`MNDESRestClient`) plus `MNDESExhibitPackage`/`MNDESExhibitService` test fixes.
+- Cleaned leftover `>>>>>>> feature/attorney-intake-packet` markers from `BUILD_STATE.md` and `AI_HANDOFF_PACKET.md`.
+- Updated `ACTIVE_CONTEXT.md` and `tools/agent_orchestrator_tasks.json` (`todo-021` resolved).
+
+### Known Working
+
+- `python -m py_compile app/main.py` — PASS.
+- `tests/test_mndes_service.py` — 19/19 PASS.
+- `ruff check app/services/mndes_api_client.py app/models/mndes_exhibit.py app/services/mndes_exhibit_service.py` — PASS.
+- `git log --oneline -3` on `main` shows `2573441` at HEAD.
+
+### Known Broken / Pending
+
+- MNDES REST endpoints are speculative; real API spec/credentials still needed.
+- No live browser verification of Calendar, Timeline, Comms Log, or Document Center viewer (no running dev server with storage credentials).
+- `todo-027` (Distributed mesh network disabled) remains intentionally deferred.
+
+### Next Session Should Start With
+
+- Monitor Render deploy of commit `2573441` at https://dashboard.render.com.
+- Address `todo-027` or pick next orchestrator priority after deploy confirmation.
+
+---
+
 ## Session — 2026-07-25 — Unblock MNDES API client (todo-021)
 
 ### Guardrail Engine Run — 2026-07-25
