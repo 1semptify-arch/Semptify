@@ -142,6 +142,8 @@ class Document(Base):
     opportunity_id = Column(Integer, ForeignKey("opportunities.id"), nullable=True, index=True)
     filename = Column(String(500), nullable=False)
     original_filename = Column(String(500), nullable=False)
+    storage_type = Column(String(20), default="local", nullable=False)
+    storage_key = Column(String(500), nullable=False)
     mime_type = Column(String(100))
     file_size = Column(Integer)
     description = Column(Text)

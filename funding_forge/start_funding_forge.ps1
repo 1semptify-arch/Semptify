@@ -3,7 +3,9 @@
 .SYNOPSIS
     Start the Funding Forge standalone app.
 .DESCRIPTION
-    Uses the Semptify venv311 environment. Generates a workspace key if none is set.
+    Uses the Semptify venv311 environment. If admin credentials are not set,
+    generates a random admin password. This tool is admin-only and can use
+    Cloudflare R2 for persistent document storage.
 #>
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -14,11 +16,19 @@ if (-not (Test-Path "$RepoRoot\venv311")) {
     exit 1
 }
 
-if (-not $env:FUNDING_FORGE_KEY) {
-    $generated = [Guid]::NewGuid().ToString("N")
-    $env:FUNDING_FORGE_KEY = $generated
-    Write-Host "Generated workspace key: $generated" -ForegroundColor Cyan
-    Write-Host "Set FUNDING_FORGE_KEY in your environment to reuse this key."
+if (-not $env:FUNDING_FORGE_ADMIN_USERNAME) {
+    $env:FUNDING_FORGE_ADMIN_USERNAME = "admin"
+}
+if (-not $env:ADMIN_USERNAME) {
+    $env:ADMIN_USERNAME = $env:FUNDING_FORGE_ADMIN_USERNAME
+}
+
+if (-not $env:FUNDING_FORGE_ADMIN_PASSWORD -and -not $env:ADMIN_PASSWORD) {
+    $generated = -join ((1..24) | ForEach-Object { "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"[(Get-Random -Maximum 56)] })  # pragma: allowlist secret
+    $env:FUNDING_FORGE_ADMIN_PASSWORD = $generated
+    $env:ADMIN_PASSWORD = $generated
+    Write-Host "Generated admin password: $generated" -ForegroundColor Cyan
+    Write-Host "Set FUNDING_FORGE_ADMIN_PASSWORD in your environment to reuse this password."
 }
 
 if (-not $env:APP_HOST) { $env:APP_HOST = "127.0.0.1" }

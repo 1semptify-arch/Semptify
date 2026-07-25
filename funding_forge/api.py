@@ -1,16 +1,13 @@
 """Funding Forge JSON API router."""
 
-import mimetypes
+import logging
 import uuid
 from datetime import UTC
-from pathlib import Path
 
-import aiofiles
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from funding_forge.config import settings
+from funding_forge.auth import admin_dependency
 from funding_forge.crud import (
     create_contact,
     create_document,
@@ -26,7 +23,6 @@ from funding_forge.crud import (
     delete_opportunity,
     delete_opportunity_step,
     delete_task,
-    ensure_uploads_dir,
     get_contact,
     get_dashboard_stats,
     get_document,
@@ -75,8 +71,8 @@ from funding_forge.schemas import (
     TaskUpdate,
 )
 
-api_router = APIRouter(prefix="/api")
-UPLOADS_PATH = Path(settings.uploads_dir)
+api_router = APIRouter(prefix="/api", dependencies=[Depends(admin_dependency)])
+logger = logging.getLogger("funding_forge.api")
 
 
 def _utcnow() -> str:
@@ -95,17 +91,6 @@ def _to_funder_response(funder) -> FunderResponse:
             "opportunity_count": len(funder.opportunities),
         }
     )
-
-
-# ---------------------------------------------------------------------------
-# Health
-# ---------------------------------------------------------------------------
-
-
-@api_router.get("/health", response_model=dict)
-async def health():
-    """Return a simple health check."""
-    return {"status": "healthy", "module": "funding_forge", "version": "1.0.0"}
 
 
 # ---------------------------------------------------------------------------
@@ -421,32 +406,34 @@ async def upload_document(
     opportunity_id: int = Form(0),
     db: AsyncSession = Depends(get_db),
 ):
-    """Upload a document and link it to a record."""
-    ensure_uploads_dir()
+    """Upload a document to the configured storage backend and link it to a record."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
 
     original_filename = file.filename
-    extension = Path(original_filename).suffix
-    stored_filename = f"{uuid.uuid4().hex}{extension}"
-    file_path = UPLOADS_PATH / stored_filename
+    extension = original_filename.rsplit(".", 1)[-1].lower() if "." in original_filename else ""
+    stored_filename = f"{uuid.uuid4().hex}{f'.{extension}' if extension else ''}"
 
     contents = await file.read()
     if not contents:
         raise HTTPException(status_code=400, detail="Empty file")
 
-    async with aiofiles.open(file_path, "wb") as out:
-        await out.write(contents)
+    from funding_forge import storage
 
-    mime_type = file.content_type or mimetypes.guess_type(original_filename)[0]
-    file_size = len(contents)
+    meta = await storage.save_file(
+        content=contents,
+        filename=stored_filename,
+        mime_type=file.content_type,
+    )
 
     document = await create_document(
         db,
         original_filename=original_filename,
         stored_filename=stored_filename,
-        mime_type=mime_type,
-        file_size=file_size,
+        storage_type=meta["storage_type"],
+        storage_key=meta["key"],
+        mime_type=meta["mime_type"],
+        file_size=meta["size"],
         description=description or None,
         related_type=related_type or None,
         related_id=related_id if related_id else None,
@@ -462,22 +449,43 @@ async def download_document(document_id: int, db: AsyncSession = Depends(get_db)
     document = await get_document(db, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    file_path = UPLOADS_PATH / document.filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found on disk")
-    return FileResponse(
-        path=str(file_path),
-        filename=document.original_filename,
+
+    from funding_forge import storage
+
+    try:
+        content = await storage.read_file(document.storage_type, document.storage_key)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="File not found in storage") from exc
+    except RuntimeError as exc:
+        logger.error("Storage download failed for document %s: %s", document_id, exc)
+        raise HTTPException(status_code=503, detail="Storage unavailable") from exc
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{document.original_filename}"',
+    }
+    return Response(
+        content=content,
         media_type=document.mime_type or "application/octet-stream",
+        headers=headers,
     )
 
 
 @api_router.delete("/documents/{document_id}")
 async def delete_document_endpoint(document_id: int, db: AsyncSession = Depends(get_db)):
-    """Delete a document."""
+    """Delete a document and its stored file."""
     document = await get_document(db, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    from funding_forge import storage
+
+    try:
+        await storage.delete_file(document.storage_type, document.storage_key)
+    except FileNotFoundError:
+        pass
+    except RuntimeError as exc:
+        logger.error("Storage delete failed for document %s: %s", document_id, exc)
+
     await delete_document(db, document)
     return {"ok": True}
 

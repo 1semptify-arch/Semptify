@@ -249,6 +249,14 @@ class TaskResponse(TaskCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminLogin(BaseModel):
+    """Admin login payload."""
+
+    username: str
+    password: str
+    totp_code: str | None = None
+
+
 class DocumentResponse(BaseModel):
     """Uploaded document response."""
 
@@ -256,6 +264,8 @@ class DocumentResponse(BaseModel):
     opportunity_id: int | None = None
     filename: str
     original_filename: str
+    storage_type: str
+    storage_key: str
     mime_type: str | None = None
     file_size: int | None = None
     description: str | None = None

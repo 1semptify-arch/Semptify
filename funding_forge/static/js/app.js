@@ -91,7 +91,7 @@ async function api(path, options = {}) {
     ...options,
   });
   if (response.status === 401) {
-    window.location.href = '/unlock';
+    window.location.href = '/login';
     return null;
   }
   if (!response.ok) {
