@@ -400,6 +400,12 @@ async function contactDetail(id) {
   }));
   html += renderTable(['Type', 'Subject', 'Date', 'Opportunity'], rows);
 
+  html += sectionHeader('Emails', `<a href="#emails/new?contact_id=${id}" class="button button-small">Send email</a>`);
+  const emailRows = (contact.emails || []).map(e => ({
+    cells: [escapeHtml(e.to_address), escapeHtml(e.subject), badge(e.status), formatDateTime(e.created_at)],
+  }));
+  html += renderTable(['To', 'Subject', 'Status', 'Sent'], emailRows);
+
   app.innerHTML = html;
   $('#delete-contact').addEventListener('click', () => deleteEntity(`/contacts/${id}`, contact.name, 'contacts'));
 }
@@ -500,6 +506,12 @@ async function opportunityDetail(id) {
     cells: [escapeHtml(d.original_filename), escapeHtml(d.description || '—'), `<a href="/api/documents/${d.id}" target="_blank">Download</a>`],
   }));
   html += renderTable(['File', 'Description', ''], docRows);
+
+  html += sectionHeader('Emails', `<a href="#emails/new?opportunity_id=${id}" class="button button-small">Send email</a>`);
+  const emailRows = (opportunity.emails || []).map(e => ({
+    cells: [escapeHtml(e.to_address), escapeHtml(e.subject), badge(e.status), formatDateTime(e.created_at)],
+  }));
+  html += renderTable(['To', 'Subject', 'Status', 'Sent'], emailRows);
 
   app.innerHTML = html;
   $('#delete-opportunity').addEventListener('click', () => deleteEntity(`/opportunities/${id}`, opportunity.title, 'opportunities'));
@@ -673,6 +685,71 @@ async function documentForm(prefill = {}) {
   });
 }
 
+async function emailList() {
+  const emails = await api('/emails');
+  const app = $('#app');
+  const actions = `<a href="#emails/new" class="button">Compose</a>`;
+  let html = pageHeader('Emails', actions);
+  const rows = (emails || []).map(e => ({
+    cells: [escapeHtml(e.to_address), escapeHtml(e.subject), badge(e.status), e.contact ? navLink(`contacts/${e.contact.id}`, e.contact.name) : '—', e.opportunity ? navLink(`opportunities/${e.opportunity.id}`, e.opportunity.title) : '—', formatDateTime(e.created_at)],
+  }));
+  html += renderTable(['To', 'Subject', 'Status', 'Contact', 'Opportunity', 'Sent'], rows);
+  app.innerHTML = html;
+}
+
+async function emailForm(id = null, prefill = {}) {
+  await Promise.all([loadContacts(), loadOpportunities()]);
+  let email = prefill;
+  if (id) {
+    const existing = await api(`/emails/${id}`);
+    email = { ...existing, ...prefill };
+  }
+  const app = $('#app');
+  const title = id ? 'Edit email' : 'Compose email';
+  let html = pageHeader(title);
+  html += `<div class="card"><form id="email-form">
+    <div class="form-grid">
+      ${formGroup('Contact', contactSelect('contact_id', email.contact_id), false)}
+      ${formGroup('Opportunity', opportunitySelect('opportunity_id', email.opportunity_id), false)}
+      ${formGroup('To', inputText('to_address', email.to_address), false)}
+      ${formGroup('From', inputText('from_address', email.from_address), false)}
+      ${formGroup('Reply-to', inputText('reply_to', email.reply_to), false)}
+      ${formGroup('Subject', inputText('subject', email.subject, '', true), false)}
+      ${formGroup('Body', textarea('body', email.body), true)}
+    </div>
+    ${formActions(id ? 'Save changes' : 'Send email', 'emails')}
+  </form></div>`;
+  app.innerHTML = html;
+  bindForm('#email-form', async (data) => {
+    if (id) {
+      await api(`/emails/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      showSuccess('Email updated');
+    } else {
+      await api('/emails', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      showSuccess('Email sent');
+    }
+    setHash('emails');
+  });
+}
+
+async function emailDetail(id) {
+  const email = await api(`/emails/${id}`);
+  const app = $('#app');
+  let html = pageHeader(email.subject, `<a href="#emails/${id}/edit" class="button secondary">Edit</a> <button class="danger" id="delete-email">Delete</button>`);
+  html += `<div class="card"><div class="detail-grid">
+    <div><strong>To</strong><p>${escapeHtml(email.to_address)}</p></div>
+    <div><strong>From</strong><p>${escapeHtml(email.from_address || '—')}</p></div>
+    <div><strong>Status</strong><p>${badge(email.status)}</p></div>
+    <div><strong>Provider</strong><p>${escapeHtml(email.provider)}</p></div>
+    <div><strong>Sent at</strong><p>${formatDateTime(email.sent_at)}</p></div>
+    <div><strong>Contact</strong><p>${email.contact ? navLink(`contacts/${email.contact.id}`, email.contact.name) : '—'}</p></div>
+    <div><strong>Opportunity</strong><p>${email.opportunity ? navLink(`opportunities/${email.opportunity.id}`, email.opportunity.title) : '—'}</p></div>
+    <div class="full-width"><strong>Body</strong><pre style="white-space:pre-wrap">${escapeHtml(email.body)}</pre></div>
+  </div></div>`;
+  app.innerHTML = html;
+  $('#delete-email').addEventListener('click', () => deleteEntity(`/emails/${id}`, `email to ${email.to_address}`, 'emails'));
+}
+
 // =============================================================================
 // Routing
 // =============================================================================
@@ -719,6 +796,11 @@ async function loadView() {
     } else if (entity === 'documents') {
       if (id === 'new') await documentForm(Object.fromEntries(params));
       else await documentList();
+    } else if (entity === 'emails') {
+      if (id === 'new') await emailForm(Object.fromEntries(params));
+      else if (id && action === 'edit') await emailForm(Number(id), Object.fromEntries(params));
+      else if (id) await emailDetail(Number(id));
+      else await emailList();
     } else {
       await dashboard();
     }

@@ -150,3 +150,44 @@ async def test_document_upload_and_download(client):
     delete = await client.delete(f"/api/documents/{document['id']}", headers=headers)
     assert delete.status_code == 200
     assert delete.json()["ok"] is True
+
+
+async def test_email_create_and_send_without_provider(client):
+    """Emails are saved and returned; without a provider they remain drafts."""
+    headers = admin_headers()
+    contact = await client.post(
+        "/api/contacts",
+        headers=headers,
+        json={"name": "Email Contact", "email": "contact@example.org"},
+    )
+    assert contact.status_code == 201
+    contact_id = contact.json()["id"]
+
+    send = await client.post(
+        "/api/emails",
+        headers=headers,
+        json={
+            "contact_id": contact_id,
+            "to_address": "contact@example.org",
+            "subject": "Hello",
+            "body": "This is a test email.",
+        },
+    )
+    assert send.status_code == 201
+    email = send.json()
+    assert email["to_address"] == "contact@example.org"
+    assert email["subject"] == "Hello"
+    assert email["status"] == "draft"
+    assert email["provider"] == "none"
+
+    get = await client.get(f"/api/emails/{email['id']}", headers=headers)
+    assert get.status_code == 200
+    assert get.json()["id"] == email["id"]
+
+    list_response = await client.get("/api/emails", headers=headers)
+    assert list_response.status_code == 200
+    assert any(e["id"] == email["id"] for e in list_response.json())
+
+    delete = await client.delete(f"/api/emails/{email['id']}", headers=headers)
+    assert delete.status_code == 200
+    assert delete.json()["ok"] is True

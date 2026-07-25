@@ -277,12 +277,62 @@ class DocumentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class EmailMessageCreate(BaseModel):
+    """Payload to create and send an email."""
+
+    contact_id: int | None = None
+    opportunity_id: int | None = None
+    to_address: str | None = Field(default=None, min_length=1, max_length=255)
+    from_address: str | None = Field(default=None, max_length=255)
+    reply_to: str | None = Field(default=None, max_length=255)
+    subject: str = Field(..., min_length=1, max_length=500)
+    body: str = Field(..., min_length=1)
+    html_body: str | None = None
+
+
+class EmailMessageUpdate(BaseModel):
+    """Payload to update an email draft."""
+
+    to_address: str | None = Field(default=None, min_length=1, max_length=255)
+    from_address: str | None = Field(default=None, max_length=255)
+    reply_to: str | None = Field(default=None, max_length=255)
+    subject: str | None = Field(default=None, min_length=1, max_length=500)
+    body: str | None = Field(default=None, min_length=1)
+    html_body: str | None = None
+    status: str | None = Field(default=None, max_length=50)
+
+
+class EmailMessageResponse(BaseModel):
+    """Email message response."""
+
+    id: int
+    contact_id: int | None = None
+    opportunity_id: int | None = None
+    to_address: str
+    from_address: str
+    reply_to: str | None = None
+    subject: str
+    body: str
+    html_body: str | None = None
+    status: str
+    provider: str
+    external_id: str | None = None
+    error: str | None = None
+    sent_at: datetime | None = None
+    created_at: datetime
+    contact: ContactBrief | None = None
+    opportunity: OpportunityBrief | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class OpportunityDetail(OpportunityResponse):
     """Opportunity with full related records."""
 
     steps: list[OpportunityStepResponse] = []
     interactions: list[InteractionResponse] = []
     documents: list[DocumentResponse] = []
+    emails: list[EmailMessageResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -297,9 +347,10 @@ class FunderDetail(FunderResponse):
 
 
 class ContactDetail(ContactResponse):
-    """Contact with interactions."""
+    """Contact with interactions and emails."""
 
     interactions: list[InteractionResponse] = []
+    emails: list[EmailMessageResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -313,3 +364,4 @@ class DashboardStats(BaseModel):
     open_task_count: int
     upcoming_deadline_count: int
     recent_interaction_count: int
+    email_count: int
