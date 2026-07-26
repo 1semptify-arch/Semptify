@@ -1,3 +1,25 @@
+## Session — 2026-07-26 — Task 10: Communication import pipeline
+
+### Guardrail Engine Run — 2026-07-26
+
+- **compile_check**: PASS — `app/services/intake_service.py` compiles.
+- **smoke_test**: PASS — `.eml`, `.mbox`, SMS CSV, and call-logs CSV parsers produce structured output.
+
+### What Was Built
+
+- `app/services/intake_service.py`:
+  - Parsers for `.eml`, `.mbox`, SMS CSV/XML, and call-logs CSV.
+  - `extract_and_upsert_contacts()` scans communication metadata/body and writes third-party emails/phones to `ThirdPartyContact`.
+  - `import_communications()` entry point redacts using `redact_text_for_user()` and creates `TimelineEvent` rows.
+  - `transcribe_voicemail()` placeholder integrates with Task 5 voice-to-text when available.
+  - `FunctionGroupContract` registration for `intake::communication_import`.
+
+### Branch
+
+- `feature/todo-054-communication-import`
+
+---
+
 ## Session — 2026-07-26 — Merge Task 9 redaction service to main
 
 ### What Was Merged
