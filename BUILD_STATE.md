@@ -1,3 +1,16 @@
+## Session — 2026-07-26 — Merge ThirdPartyContact model to main
+
+### What Was Merged
+
+- `feature/todo-052-third-party-contact` merged into `main` at `df7b70e`.
+- `app/models/models.py`: `ThirdPartyContact` table and `ThirdPartyEntityType` enum now on `main`.
+
+### Why
+
+- Unblocks `todo-053` (Asymmetric redaction pass, Task 9) and downstream `todo-054` (Communication import pipeline, Task 10).
+
+---
+
 ## Session — 2026-07-26 — Agent Orchestrator prompt + category expansion
 
 ### Guardrail Engine Run — 2026-07-26
