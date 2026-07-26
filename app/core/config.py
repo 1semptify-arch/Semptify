@@ -78,10 +78,15 @@ class Settings:
     # open = no auth (dev/testing); enforced = storage OAuth required (production)
     security_mode: Literal["open", "enforced"] = os.getenv("SECURITY_MODE", "open")
     secret_key: str = _resolve_secret_key()
-    database_url: str = _resolve_database_url()
     upload_dir: str = "uploads"
     vault_dir: str = "uploads/vault"
     max_upload_size_mb: int = 50
+
+    def __init__(self):
+        # Re-resolve DATABASE_URL at instantiation so tests can override it via
+        # os.environ without re-importing the settings module.
+        self.database_url = _resolve_database_url()
+
     allowed_extensions: str = "pdf,png,jpg,jpeg,gif,doc,docx,txt,mp3,mp4,wav"
     ai_provider: Literal["openai", "azure", "ollama", "groq", "anthropic", "gemini", "none"] = "anthropic"
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
