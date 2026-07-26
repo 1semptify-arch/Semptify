@@ -86,6 +86,21 @@ class Settings:
     ai_provider: Literal["openai", "azure", "ollama", "groq", "anthropic", "gemini", "none"] = "anthropic"
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_json_format: bool = os.getenv("LOG_JSON_FORMAT", "False").lower() in ("1", "true", "yes", "on")
+    # Buffered logging + R2/local archive (Master Handoff Task 4)
+    log_retention_days: int = int(os.getenv("LOG_RETENTION_DAYS", "90"))
+    log_flush_interval_seconds: int = int(os.getenv("LOG_FLUSH_INTERVAL_SECONDS", "60"))
+    # Admin network gating — Tailscale CGNAT + RFC1918 + localhost by default.
+    # Override with ADMIN_IP_RANGES="100.64.0.0/10,10.0.0.0/8,127.0.0.0/8"
+    admin_ip_ranges: str = os.getenv(
+        "ADMIN_IP_RANGES",
+        "100.64.0.0/10,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128",
+    )
+    # Cloudflare R2 for log archive (optional — falls back to local logs/archive/)
+    r2_account_id: str = os.getenv("R2_ACCOUNT_ID", "")
+    r2_access_key_id: str = os.getenv("R2_ACCESS_KEY_ID", "")
+    r2_secret_access_key: str = os.getenv("R2_SECRET_ACCESS_KEY", "")
+    r2_bucket_name: str = os.getenv("R2_BUCKET_NAME", "")
+    r2_logs_prefix: str = os.getenv("R2_LOGS_PREFIX", "semptify-logs")
     cors_origins: str = os.getenv("CORS_ORIGINS", "https://semptify.org,http://localhost:8000")
 
     # Explicit public URL for OAuth callbacks (bypasses request.base_url detection)
