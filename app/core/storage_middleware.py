@@ -302,27 +302,28 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         # See: app.core.auto_refresh.ensure_valid_token()
         # Tracking: ICE-CUBE-TOKEN-001 (resolved)
         # ─────────────────────────────────────────────────────────────────────
-        from app.core.auto_refresh import get_valid_token_or_redirect
-        from app.core.database import get_session_factory
+        if self.enforce:
+            from app.core.auto_refresh import get_valid_token_or_redirect
+            from app.core.database import get_session_factory
 
-        factory = get_session_factory()
-        async with factory() as refresh_db:
-            token, reconnect_url = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
+            factory = get_session_factory()
+            async with factory() as refresh_db:
+                token, reconnect_url = await get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)
 
-            if reconnect_url:
-                if path.startswith("/api/"):
-                    return JSONResponse(
-                        status_code=401,
-                        content={
-                            "error": "token_expired",
-                            "message": "Your storage connection expired. Please reconnect.",
-                            "action": "redirect",
-                            "redirect_url": reconnect_url,
-                        },
-                    )
-                return ssot_redirect(reconnect_url, context="storage_middleware reconnect")
+                if reconnect_url:
+                    if path.startswith("/api/"):
+                        return JSONResponse(
+                            status_code=401,
+                            content={
+                                "error": "token_expired",
+                                "message": "Your storage connection expired. Please reconnect.",
+                                "action": "redirect",
+                                "redirect_url": reconnect_url,
+                            },
+                        )
+                    return ssot_redirect(reconnect_url, context="storage_middleware reconnect")
 
-            logger.debug("ICE-CUBE-TOKEN-001: token valid for user %s***", raw_user_id[:6])
+                logger.debug("ICE-CUBE-TOKEN-001: token valid for user %s***", raw_user_id[:6])
         # ── END ice-cube token model ─────────────────────────────────────────
 
         # Valid user — check onboarding gate state via the canonical single reader.

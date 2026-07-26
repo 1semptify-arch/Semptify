@@ -1,3 +1,32 @@
+## Session -- 2026-07-26 -- Fix security-isolation gate test failures
+
+### Problem
+
+- CI job failing on `tests/test_security_isolation_gates.py`: authenticated requests to `GET /api/documents/{doc_id}` and `POST /api/documents/{doc_id}/reprocess` returned 401 instead of expected 200/403/404.
+- Overall coverage remained below the 40 % `pytest.ini` threshold (pre-existing, repo-wide).
+
+### Root Cause
+
+`StorageRequirementMiddleware.dispatch()` skipped user-format rejection when `enforce=False` (open/test mode), but still ran the ice-cube token refresh block unconditionally. Test-signed cookies with no DB session were therefore rejected with 401 before the document endpoints could verify document ownership. Separately, `GET /{doc_id}` and `POST /{doc_id}/reprocess` used `yellow_access`, which also requires a live provider access token.
+
+### Fix
+
+- `app/core/storage_middleware.py`: wrapped the `get_valid_token_or_redirect` token refresh block in `if self.enforce:`, so open/test mode only validates the signed-cookie user format and lets endpoint dependencies handle auth/ownership.
+- `app/modules/documents/router.py`: switched `GET /{doc_id}` and `POST /{doc_id}/reprocess` from `yellow_access` to `green_access`, which validates the signed cookie and user-id format without requiring a live provider token. Ownership checks (`doc.user_id != user.user_id`) already return 403 for cross-tenant access.
+
+### Verification
+
+- `python -m py_compile app/core/storage_middleware.py app/modules/documents/router.py`: PASS.
+- `pytest tests/test_security_isolation_gates.py -v --no-cov`: 7/7 passed.
+- `pytest tests/test_security_isolation_gates.py -v --cov-fail-under=0`: tests pass; total repo coverage still ~23 %, below 40 % threshold.
+
+### Known Working / Pending
+
+- Security isolation gate tests now pass.
+- Repo-wide 40 % coverage threshold remains pending; needs a dedicated test-writing pass for core services, feature flags, compliance, and error-handling paths.
+
+---
+
 ## Session — 2026-07-26 — Task 3 content pass on main
 
 ### Deploy
