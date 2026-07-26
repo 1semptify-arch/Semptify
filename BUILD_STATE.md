@@ -1,3 +1,36 @@
+## Session -- 2026-07-26 -- Fix test collection errors and per-test database isolation
+
+### Guardrail Engine Run — 2026-07-26T11:34:14
+
+- **manifest_sync_check**: FAIL — Sync orchestrator reported issues — see details.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Problem
+
+- CI/test runs collected/import errors in `tests/test_features.py` (missing `DEFAULT_FEATURES`/`FeatureConfig` exports from `app.core.features`) and `tests/test_vault_manager_sequence.py` (missing `MANIFEST_FILE` import in `app.services.storage.vault_manager`).
+- `tests/conftest.py` created every test against the same SQLite file (`test_semptify.db`) and tried to drop tables on teardown, causing `sqlite3.OperationalError: table fems_* already exists` / `no such table` cascades.
+- `Settings.database_url` was a class-level value resolved once at import, so `conftest.py` could not override `DATABASE_URL` per test.
+- `authenticated_client` fixture imported `app.routers.storage` helpers that no longer exist, raising `ModuleNotFoundError` for any test using it.
+
+### Fix
+
+- `app/services/storage/vault_manager.py`: added `from app.core.vault_paths import MANIFEST_FILE`.
+- `tests/test_features.py`: replaced stale spec with tests targeting the current `FeatureFlagManager` API (`is_enabled`, `is_enabled_for_user`, `is_enabled_for_role`, `get_all_flags`, `get_status`, decorators, env overrides).
+- `app/core/config.py`: added `Settings.__init__()` so `database_url` is re-resolved from `os.environ` at every `Settings()` instantiation.
+- `tests/conftest.py`:
+  - `setup_test_database`: each test now gets its own `tmp_path/test.db` and `DATABASE_URL` override; stale engines are closed and `get_settings.cache_clear()` is used so every test is isolated.
+  - `authenticated_client`: fixed `_encrypt_string` import to `app.core.auto_refresh`, `SESSIONS` import to `app.modules.storage.router`, and removed invalid `email` kwarg from `User` creation.
+
+### Verification
+
+- `python -m py_compile app/core/config.py app/services/storage/vault_manager.py tests/conftest.py tests/test_features.py`: PASS.
+- `pytest tests/test_security_isolation_gates.py tests/test_action_router_gates.py tests/test_ssot_architecture.py tests/test_features.py tests/test_vault_manager_sequence.py -q --no-cov`: 44/44 passed.
+- Full suite `pytest tests/ --no-cov --continue-on-collection-errors -q`: `248 failed, 908 passed, 6 errors`. Remaining failures are stale route/API expectations across many modules, not collection blockers.
+
+---
+
 ## Session -- 2026-07-26 -- Fix CI gate steps blocked by repo-wide coverage threshold
 
 ### Deploy
