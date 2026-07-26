@@ -26,13 +26,21 @@ class ModelId(str, Enum):
 
 
 class TaskCategory(str, Enum):
-    """Broad work category used to tailor generated prompts."""
+    """Broad work category used to tailor generated prompts.
+
+    Values must match the string categories used in
+    ``tools/agent_orchestrator_tasks.json`` so seed tasks load cleanly.
+    """
 
     STUB_FIX = "stub_fix"
     DUPLICATE_RESOLVE = "duplicate_resolve"
     TEST_ADD = "test_add"
     DOC_UPDATE = "doc_update"
     REFACTOR = "refactor"
+    BUILD = "build"
+    FEATURE = "feature"
+    BUG_FIX = "bug_fix"
+    SECURITY = "security"
     OTHER = "other"
 
 
