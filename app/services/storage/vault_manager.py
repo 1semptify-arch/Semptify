@@ -26,6 +26,7 @@ from app.core.path_utils import normalize_cloud_path
 from app.core.vault_paths import (
     AUTH_FOLDER,
     DEVICE_KEYS_FILE,
+    PROVISIONING_FILE,
     README_FILE,
     REHOME_FILE,
     SEMPTIFY_ROOT,
