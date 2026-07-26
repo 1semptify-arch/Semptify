@@ -707,5 +707,19 @@
     "created_at": "2026-07-26T05:35:38+0000",
     "updated_at": "2026-07-26T12:35:36.543908+00:00",
     "assigned_agent": "glm-5.2"
+  },
+  {
+    "id": "todo-047",
+    "title": "Content pass - welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters",
+    "description": "Implement per Semptify_MASTER_HANDOFF.md Task 3. Action-first welcome/about copy, words of wisdom/tenant-rights facts off the direct help path, concrete subject starters on AI-assist surfaces.",
+    "category": "feature",
+    "target_model": "swe-1.7",
+    "priority": "medium",
+    "file_path": "app/templates/gui/",
+    "status": "resolved",
+    "notes": "Moved back to active queue 2026-07-26. Task 2 merged to main; Task 3 implementation (subject_starters.py, welcome/about rewrite, starter chips) was not actually on main. Re-scope and implement before Tasks 5-7.\n[2026-07-26 14:19 UTC - swe-1.7] Implemented action-first welcome/about rewrite, removed words-of-wisdom from welcome, added concrete tenant-rights fact to about, created app/core/subject_starters.py + Jinja global + starter chips on gui/home.html, removed 'free' self-description across public pages.",
+    "created_at": "2026-07-26T05:35:38+0000",
+    "updated_at": "2026-07-26T14:19:59.957867+00:00",
+    "assigned_agent": "swe-1.7"
   }
 ]

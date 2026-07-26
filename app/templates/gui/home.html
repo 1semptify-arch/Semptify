@@ -1,4 +1,5 @@
 {% extends "gui/base.html" %}
+{% from "components/subject_starters.html" import render_starters %}
 
 {% block title %}Home — Semptify{% endblock %}
 {% block nav_home %}active{% endblock %}
@@ -58,6 +59,8 @@
                 </div>
             </div>
         </section>
+
+        {{ render_starters(subject_starters) }}
     </div>
 
     <div class="gui-screen--secondary">

@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-26 (Task 2 merged to main; Tasks 1, 2, 4, 8, 9, 10 complete; Task 3 is next)
+**Last Updated**: 2026-07-26 (Task 3 content pass on main; Tasks 1–4, 8–10 complete; Tasks 5–7, 11 are next)
 
 ---
 
@@ -52,7 +52,7 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 |---|---------|------------|--------|------------|
 | 1 | **Shared UX foundation** — viewport-locked desktop template, function-budget convention, persistent "Get help now" component, calm/alarm CSS tokens | `Semptify_MASTER_HANDOFF.md` section A–B | ✅ Complete | — |
 | 2 | **Footer + Help page redo** — trust-signaling footer, "What's happening to you right now?" Help page | `Semptify_MASTER_HANDOFF.md` Task 2 | ✅ Complete | — |
-| 3 | **Content pass** — welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters | `Semptify_MASTER_HANDOFF.md` Task 3 | 🅿️ Pending | Task 1 |
+| 3 | **Content pass** — welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters | `Semptify_MASTER_HANDOFF.md` Task 3 | ✅ Complete | — |
 | 4 | **Admin/dev access + logging** — Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page | `Semptify_MASTER_HANDOFF.md` Task 4 | ✅ Complete | — |
 | 5 | **Voice-to-text** — Web Speech API client-side default, Whisper fallback with raw-audio discard | `Semptify_MASTER_HANDOFF.md` Task 5 | 🅿️ Pending | Task 6 only for language fallback planning |
 | 6 | **Multi-language i18n** — JSON/.po catalogs, human-reviewed legal/plain-language translation | `Semptify_MASTER_HANDOFF.md` Task 6 | 🅿️ Pending | Decision: confirmed language priority list (Somali/Hmong/Spanish suggested) |
