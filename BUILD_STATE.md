@@ -1,3 +1,24 @@
+## Session — 2026-07-26 — Ship Task 4 + Task 10 to main
+
+### Deploy
+
+- **Commit**: 386ed27 (eat(admin): wire Task 4 admin gating, structured logging, and feature flags into app)
+- **Branch**: main`n- **Pushed**: 2026-07-26T12:36 UTC
+- **Render deploy**: https://dashboard.render.com
+
+### What is on main
+
+- Task 4 admin/logging modules (pp/core/admin_gating.py, eature_flags.py, logging_service.py, static/status.html) merged and wired into pp/main.py.
+- Task 10 communication import pipeline (pp/services/intake_service.py).
+- 	odo-048, 	odo-053, 	odo-054 archived in orchestrator.
+
+### Verification
+
+- python -m py_compile app/main.py: PASS.
+- rom app.main import app: PASS (1311 routes).
+
+---
+
 ## Session — 2026-07-26 — Task 10: Communication import pipeline
 
 ### Guardrail Engine Run — 2026-07-26
