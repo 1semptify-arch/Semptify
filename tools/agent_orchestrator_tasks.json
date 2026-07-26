@@ -58,6 +58,20 @@
     "assigned_agent": "glm-5.2"
   },
   {
+    "id": "todo-047",
+    "title": "Content pass - welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters",
+    "description": "Implement per Semptify_MASTER_HANDOFF.md Task 3. Action-first welcome/about copy, words of wisdom/tenant-rights facts off the direct help path, concrete subject starters on AI-assist surfaces.",
+    "category": "feature",
+    "target_model": "swe-1.7",
+    "priority": "medium",
+    "file_path": "app/templates/gui/",
+    "status": "pending",
+    "notes": "Moved back to active queue 2026-07-26. Task 2 merged to main; Task 3 implementation (subject_starters.py, welcome/about rewrite, starter chips) was not actually on main. Re-scope and implement before Tasks 5-7.",
+    "created_at": "2026-07-26T05:35:38+0000",
+    "updated_at": "2026-07-26T13:43:22.809578+00:00",
+    "assigned_agent": "swe-1.7"
+  },
+  {
     "id": "todo-055",
     "title": "Resource directory - Resource table, bulk CSV import, staleness tracking",
     "description": "Implement per Semptify_MASTER_HANDOFF.md Task 11. Resource table with name, category, service_area, languages, contact info, source, last_verified. Bulk CSV import via Tailscale-gated admin. last_verified staleness tracking is a hard requirement.",
