@@ -23,13 +23,19 @@ from app.services.document_pipeline import (
 )
 
 
+def _auth_cookie(user_id: str) -> str:
+    """Sign a user id so it passes the semptify_uid cookie verifier."""
+    from app.core.cookie_auth import sign_user_id
+    return sign_user_id(user_id)
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def _make_pipeline_doc(user_id: str, doc_id: str = "doc-pipeline-001") -> TenancyDocument:
     """Return a minimal TenancyDocument owned by *user_id*."""
-    from datetime import datetime, timezone
+    from app.core.utc import utc_now
 
     return TenancyDocument(
         id=doc_id,
@@ -40,7 +46,7 @@ def _make_pipeline_doc(user_id: str, doc_id: str = "doc-pipeline-001") -> Tenanc
         file_size=1024,
         storage_path=f"data/documents/{user_id}/{doc_id}.pdf",
         status=ProcessingStatus.PENDING,
-        uploaded_at=datetime.now(timezone.utc),
+        uploaded_at=utc_now(),
     )
 
 
@@ -88,7 +94,7 @@ async def test_gate_documents_get_rejects_wrong_owner(client):
         # Authenticate as a *different* user
         response = await client.get(
             f"/api/documents/{doc_id}",
-            cookies={"semptify_uid": attacker_id},
+            cookies={"semptify_uid": _auth_cookie(attacker_id)},
         )
         assert response.status_code == 403, (
             f"Cross-tenant GET /api/documents/{{doc_id}} returned {response.status_code}; "
@@ -116,7 +122,7 @@ async def test_gate_documents_get_allows_owner(client):
 
         response = await client.get(
             f"/api/documents/{doc_id}",
-            cookies={"semptify_uid": owner_id},
+            cookies={"semptify_uid": _auth_cookie(owner_id)},
         )
         # 200 is expected; 404 is acceptable if the pipeline isn't fully wired in test
         assert response.status_code in (200, 404), (
@@ -171,7 +177,7 @@ async def test_gate_reprocess_rejects_wrong_owner(client):
 
         response = await client.post(
             f"/api/documents/{doc_id}/reprocess",
-            cookies={"semptify_uid": attacker_id},
+            cookies={"semptify_uid": _auth_cookie(attacker_id)},
         )
         assert response.status_code == 403, (
             f"Cross-tenant reprocess returned {response.status_code}; expected 403"
