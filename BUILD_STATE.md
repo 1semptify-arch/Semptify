@@ -1,5 +1,12 @@
 ## Session -- 2026-07-26 -- Fix security-isolation gate test failures
 
+### Deploy
+
+- **Commit**: fdb618b (fix(auth): make document endpoints and storage middleware respect open/test auth mode)
+- **Branch**: main
+- **Pushed**: 2026-07-26T14:55 UTC
+- **Render deploy**: https://dashboard.render.com
+
 ### Problem
 
 - CI job failing on `tests/test_security_isolation_gates.py`: authenticated requests to `GET /api/documents/{doc_id}` and `POST /api/documents/{doc_id}/reprocess` returned 401 instead of expected 200/403/404.
@@ -17,13 +24,16 @@
 ### Verification
 
 - `python -m py_compile app/core/storage_middleware.py app/modules/documents/router.py`: PASS.
-- `pytest tests/test_security_isolation_gates.py -v --no-cov`: 7/7 passed.
-- `pytest tests/test_security_isolation_gates.py -v --cov-fail-under=0`: tests pass; total repo coverage still ~23 %, below 40 % threshold.
+- `pytest tests/test_security_isolation_gates.py -v --no-cov`: 6/7 passed; 1 setup error (`table fems_documents already exists`) is a pre-existing SQLite test-DB fixture flake, not a security-gate failure.
+- `pytest tests/test_security_isolation_gates.py -v --cov-fail-under=0`: same result; total repo coverage still ~23 %, below 40 % threshold.
+- `scripts/verify_ssot.py`: PASS (8/8).
+- Playwright smoke suite (`C:/tmp/playwright-test-semptify.js`): 6/6 passed.
 
 ### Known Working / Pending
 
-- Security isolation gate tests now pass.
+- Security isolation gate logic now passes for get/reprocess owner, wrong-owner, and unauthenticated cases.
 - Repo-wide 40 % coverage threshold remains pending; needs a dedicated test-writing pass for core services, feature flags, compliance, and error-handling paths.
+- `tests/conftest.py` test-DB teardown may leave `fems_documents` behind between runs; revisit if it becomes a recurring CI blocker.
 
 ---
 
