@@ -1,42 +1,91 @@
-{% extends "base.html" %}
-{% block body_class %}template-5{% endblock %}
-{% from "components/ui_macros.html" import hero, section_title, service_card, card_grid, emergency_box, info_box, nav_bar, ui_styles %}
+{% extends "gui/base.html" %}
 
-{% block title %}Help – Semptify{% endblock %}
-{% block description %}Get help with Semptify, find resources, and learn how to protect your housing rights.{% endblock %}
-
-{% block nav %}{{ nav_bar("help") }}{% endblock %}
-
-{% block styles %}{{ ui_styles() }}
-<style>.help-page { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem; }</style>
-{% endblock %}
+{% block title %}Help — Semptify{% endblock %}
+{% block description %}What's happening to you right now? Semptify routes you to the right tool.{% endblock %}
+{% block container_class %}gui-viewport-locked{% endblock %}
 
 {% block content %}
-<div class="help-page">
+<div class="gui-screen">
 
-    {{ hero("🆘", "Help & Support", "Get help with Semptify, find resources, and learn how to protect your housing rights.", "red") }}
+    <div class="gui-screen--primary">
+        <section class="frame-panel">
+            <div class="frame-panel--body">
+                <h1 style="font-size:1.5rem; font-weight:600; margin-bottom:0.5rem;">What's happening to you right now?</h1>
+                <p style="color:#94a3b8; font-size:0.9375rem;">
+                    Pick the one that fits. Each one takes you to the right tool — no guessing.
+                </p>
+            </div>
+        </section>
 
-    {{ emergency_box("🚨 Emergency Housing Help", "If you're facing an immediate eviction or unsafe living conditions, get help now.") }}
+        <section class="frame-panel">
+            <div class="frame-panel--header">
+                <span class="frame-panel--title">Choose your situation</span>
+            </div>
+            <div class="frame-panel--body">
+                <a href="/gui/record" class="frame-item" style="text-decoration:none;">
+                    <div class="frame-item--icon">◆</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">I need to document something</div>
+                        <div class="frame-item--meta">Upload a lease, notice, photo, or receipt. Build your record.</div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <span class="frame-btn frame-btn--primary">Record →</span>
+                    </div>
+                </a>
 
-    {% call info_box("info") %}
-        <strong>Semptify is not a law firm.</strong> We help you organize documents, understand your rights,
-        and prepare materials — but we cannot provide legal advice. For legal representation,
-        contact a housing attorney or legal aid organization.
-    {% endcall %}
+                <a href="/gui/know" class="frame-item" style="text-decoration:none;">
+                    <div class="frame-item--icon">◆</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">I have a question about my rights</div>
+                        <div class="frame-item--meta">Plain-language facts about eviction, repairs, deposits, and more.</div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <span class="frame-btn frame-btn--primary">Know →</span>
+                    </div>
+                </a>
 
-    {{ section_title("📖", "Getting Started") }}
-    {% call card_grid() %}
-        {{ service_card("/tenant/help", "🏠", "Tenant Rights Overview", "Learn about your fundamental rights as a tenant — leases, deposits, repairs, and privacy.") }}
-        {{ service_card("/office", "📁", "Using the Office", "How to upload documents, manage your vault, and organize your case.") }}
-        {{ service_card("/library", "📚", "Library & Resources", "Find legal resources, letter templates, and educational materials.") }}
-    {% endcall %}
+                <a href="/gui/act" class="frame-item" style="text-decoration:none;">
+                    <div class="frame-item--icon">◆</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">I need to take action</div>
+                        <div class="frame-item--meta">Write a letter, file a complaint, build a case, or make a plan.</div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <span class="frame-btn frame-btn--primary">Act →</span>
+                    </div>
+                </a>
 
-    {{ section_title("📞", "Contact & Support") }}
-    {% call card_grid() %}
-        {{ service_card("/contact.html", "✉️", "Contact Us", "Send us a message. We typically respond within 24 hours.") }}
-        {{ service_card("/about.html", "ℹ️", "About Semptify", "Learn about our mission, values, and how we protect tenant rights.") }}
-        {{ service_card("/privacy.html", "🔒", "Privacy Policy", "How we handle your data — your documents stay in your control.") }}
-    {% endcall %}
+                <a href="/gui/home" class="frame-item" style="text-decoration:none;">
+                    <div class="frame-item--icon">◆</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">I'm not sure where to start</div>
+                        <div class="frame-item--meta">Go to your home dashboard. See your deadlines and recent activity.</div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <span class="frame-btn">Home →</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <div class="gui-screen--secondary">
+        <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" class="frame-btn frame-btn--primary" target="_blank" rel="noopener">Find legal help near you</a>
+        <a href="/public/feedback.html" class="frame-btn">Report a problem</a>
+        <a href="/about.html" class="frame-btn">About Semptify</a>
+    </div>
+
+    <div class="gui-screen--support">
+        <section class="frame-panel">
+            <div class="frame-panel--body">
+                <p style="color:#94a3b8; font-size:0.8125rem;">
+                    <strong>Semptify is an organizational tool, not a law firm.</strong>
+                    We can't give legal advice. For legal advice, contact a licensed attorney
+                    or your local legal aid society.
+                </p>
+            </div>
+        </section>
+    </div>
 
 </div>
 {% endblock %}
