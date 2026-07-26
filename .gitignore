@@ -99,6 +99,7 @@ data/documents/
 data/intake/
 data/vault_storage/
 data/legal_filings/cases/
+data/inventory/
 data/.setup_complete
 
 # Local config
