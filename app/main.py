@@ -83,6 +83,9 @@ BASE_PATH = get_base_path()
 
 # Jinja2 templates for frontend UI pages
 templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
+# Expose SSOT navigation to all Jinja2 templates so templates use navigation.get_stage(...).path
+# instead of hardcoded URL strings (Known Failure #9).
+templates.env.globals["navigation"] = navigation
 
 from datetime import datetime as _dt
 

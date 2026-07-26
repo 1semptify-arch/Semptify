@@ -2,78 +2,82 @@
 
 {% block title %}Home — Semptify{% endblock %}
 {% block nav_home %}active{% endblock %}
+{% block container_class %}gui-viewport-locked{% endblock %}
 
 {% block content %}
-<section class="frame-panel">
-    <div class="frame-panel--body">
-        <h1 style="font-size:1.5rem; font-weight:600; margin-bottom:0.5rem;">You're not alone in this.</h1>
-        <p style="color:#94a3b8; font-size:0.9375rem;">
-            Semptify helps you keep a clear record of everything between you and your landlord —
-            documents, dates, and what to do next. Plain language. No legal jargon.
-        </p>
+<div class="gui-screen">
+
+    <div class="gui-screen--primary">
+        <section class="frame-panel">
+            <div class="frame-panel--body">
+                <h1 style="font-size:1.5rem; font-weight:600; margin-bottom:0.5rem;">You're not alone in this.</h1>
+                <p style="color:#94a3b8; font-size:0.9375rem;">
+                    Semptify helps you keep a clear record of everything between you and your landlord —
+                    documents, dates, and what to do next. Plain language. No legal jargon.
+                </p>
+            </div>
+        </section>
+
+        <section class="frame-panel">
+            <div class="frame-panel--header">
+                <span class="frame-panel--title">Your dashboard</span>
+            </div>
+            <div class="frame-panel--body" id="dashboardBody">
+                <div class="frame-item" id="nextDeadlineCard">
+                    <div class="frame-item--icon">!</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">Next deadline</div>
+                        <div class="frame-item--meta" id="nextDeadlineMeta">Loading deadlines…</div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <a href="/calendar" class="frame-btn" id="nextDeadlineBtn">Calendar</a>
+                    </div>
+                </div>
+
+                <div class="frame-item">
+                    <div class="frame-item--icon">◆</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">Case timeline</div>
+                        <div class="frame-item--meta" id="timelineMeta">Loading recent events…</div>
+                        <div id="timelinePreview" style="margin-top:0.5rem;"></div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <a href="/timeline" class="frame-btn">View timeline</a>
+                    </div>
+                </div>
+
+                <div class="frame-item" id="courtPrepCard">
+                    <div class="frame-item--icon">◆</div>
+                    <div class="frame-item--main">
+                        <div class="frame-item--title">Prepare for court</div>
+                        <div class="frame-item--meta" id="courtPrepMeta">Add a court date to your calendar to unlock this.</div>
+                    </div>
+                    <div class="frame-item--actions">
+                        <a href="/gui/act" class="frame-btn" id="courtPrepBtn" disabled>Act</a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-</section>
 
-<section class="frame-panel">
-    <div class="frame-panel--header">
-        <span class="frame-panel--title">Your dashboard</span>
+    <div class="gui-screen--secondary">
+        <a href="/gui/record" class="frame-btn frame-btn--primary">Record something</a>
+        <a href="/gui/know" class="frame-btn">Ask the Library</a>
+        <a href="/calendar" class="frame-btn">View calendar</a>
     </div>
-    <div class="frame-panel--body" id="dashboardBody">
-        <div class="frame-item" id="nextDeadlineCard">
-            <div class="frame-item--icon">!</div>
-            <div class="frame-item--main">
-                <div class="frame-item--title">Next deadline</div>
-                <div class="frame-item--meta" id="nextDeadlineMeta">Loading deadlines…</div>
-            </div>
-            <div class="frame-item--actions">
-                <a href="/calendar" class="frame-btn" id="nextDeadlineBtn">Calendar</a>
-            </div>
-        </div>
 
-        <div class="frame-item">
-            <div class="frame-item--icon">◆</div>
-            <div class="frame-item--main">
-                <div class="frame-item--title">Case timeline</div>
-                <div class="frame-item--meta" id="timelineMeta">Loading recent events…</div>
-                <div id="timelinePreview" style="margin-top:0.5rem;"></div>
+    <div class="gui-screen--support">
+        <section class="frame-panel">
+            <div class="frame-panel--body">
+                <p style="font-size:0.8125rem; color:#64748b;">
+                    Semptify does not give legal advice. If you're facing eviction tonight,
+                    <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">find legal help near you</a>.
+                </p>
             </div>
-            <div class="frame-item--actions">
-                <a href="/timeline" class="frame-btn">View timeline</a>
-            </div>
-        </div>
-
-        <div class="frame-item">
-            <div class="frame-item--icon">◆</div>
-            <div class="frame-item--main">
-                <div class="frame-item--title">Ask the Library</div>
-                <div class="frame-item--meta">Get plain-language facts about your rights and next steps.</div>
-            </div>
-            <div class="frame-item--actions">
-                <a href="/gui/know" class="frame-btn">Ask →</a>
-            </div>
-        </div>
-
-        <div class="frame-item" id="courtPrepCard">
-            <div class="frame-item--icon">◆</div>
-            <div class="frame-item--main">
-                <div class="frame-item--title">Prepare for court</div>
-                <div class="frame-item--meta" id="courtPrepMeta">Add a court date to your calendar to unlock this.</div>
-            </div>
-            <div class="frame-item--actions">
-                <a href="/gui/act" class="frame-btn" id="courtPrepBtn" disabled>Act</a>
-            </div>
-        </div>
+        </section>
     </div>
-</section>
 
-<section class="frame-panel">
-    <div class="frame-panel--body">
-        <p style="font-size:0.8125rem; color:#64748b;">
-            Semptify does not give legal advice. If you're facing eviction tonight,
-            <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">find legal help near you</a>.
-        </p>
-    </div>
-</section>
+</div>
 {% endblock %}
 
 {% block scripts %}
