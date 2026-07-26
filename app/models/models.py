@@ -956,6 +956,79 @@ class Contact(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
 
 
+class ThirdPartyEntityType(enum.Enum):
+    """
+    Allowed third-party entity types for the ThirdPartyContact table.
+    Stored as a string value in the database to keep the fallback-stub path
+    simple and to match the existing enum-as-string convention in this file.
+    """
+
+    landlord = "landlord"
+    property_manager = "property_manager"
+    agency = "agency"
+    attorney = "attorney"
+    other = "other"
+
+
+class ThirdPartyContact(Base):
+    """
+    Third-party contacts linked to a tenant's case record.
+
+    Stores landlord, property manager, agency, attorney, and other party
+    contact data extracted from imports or entered manually. This is
+    landlord/entity data permitted in the DB under the SSOT database boundary
+    rule; it is distinct from the authenticating tenant's own PII, which must
+    never be stored here.
+
+    Fields:
+    - user_id: ownership (who imported/entered this contact)
+    - case_record_id: optional case linkage; stored as a string because the
+      canonical case_records table is not yet implemented. A future migration
+      can promote this to a real ForeignKey.
+    - entity_type: landlord | property_manager | agency | attorney | other
+    - name / email / phone / address: third-party contact points
+    - source: how the contact was captured (manual_entry, email_import,
+      call_log_import, sms_import, voicemail_import, agency_lookup)
+    - source_document_id: trace back to the originating imported file/document
+    - created_at / updated_at: audit timestamps
+    """
+
+    __tablename__ = "third_party_contacts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
+
+    # Case linkage. Nullable because the canonical case_records table does not
+    # exist yet; index it for fast lookup once the table is added.
+    case_record_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+
+    # Entity classification
+    entity_type: Mapped[str] = mapped_column(String(50), index=True)
+    # ThirdPartyEntityType enum value: landlord, property_manager, agency,
+    # attorney, other
+
+    # Contact details
+    name: Mapped[str] = mapped_column(String(255), index=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # Audit/source trail
+    source: Mapped[str] = mapped_column(String(100), index=True)
+    # Sources: manual_entry, email_import, call_log_import, sms_import,
+    #          voicemail_import, agency_lookup
+
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    # Originating file/document identifier, when source is an import.
+
+    # Status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
 class ContactInteraction(Base):
     """
     Log of interactions with contacts (calls, emails, meetings).
