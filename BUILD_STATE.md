@@ -1,3 +1,16 @@
+## Session — 2026-07-26 — Merge Task 9 redaction service to main
+
+### What Was Merged
+
+- `feature/todo-053-asymmetric-redaction` merged into `main` at `eca694a`.
+- `app/services/redaction_service.py` and BUILD_STATE/Task 9 notes now on `main`.
+
+### Why
+
+- Unblocks `todo-054` (Communication import pipeline, Task 10).
+
+---
+
 ## Session — 2026-07-26 — Task 9: Asymmetric redaction service
 
 ### Guardrail Engine Run — 2026-07-26
