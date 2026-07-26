@@ -2947,10 +2947,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         This is the universal help page for everyone (tenants, landlords, guests).
         Also serves as the fatal-error fallback page.
         """
-        help_path = BASE_PATH / "static" / "tenant" / "help.html"
-        if help_path.exists():
-            return FileResponse(str(help_path), media_type="text/html")
-        return templates.TemplateResponse(request, "pages/help.html")
+        try:
+            return templates.TemplateResponse(request, "pages/help.html")
+        except Exception:
+            help_path = BASE_PATH / "static" / "tenant" / "help.html"
+            if help_path.exists():
+                return FileResponse(str(help_path), media_type="text/html")
+            raise
 
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):
