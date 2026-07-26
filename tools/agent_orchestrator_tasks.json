@@ -135,11 +135,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/services/redaction_service.py",
-    "status": "pending",
-    "notes": "Blocked on Task 8. User decision: user-known contact info plus heuristic PII detection with a ThirdPartyContact allowlist. Design allowlist before detector to avoid stripping other-party data.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no redaction code yet. Blocked on todo-052 (ThirdPartyContact allowlist). Decision resolved: user-known contact info + heuristic PII detection.",
+    "status": "resolved",
+    "notes": "Blocked on Task 8. User decision: user-known contact info plus heuristic PII detection with a ThirdPartyContact allowlist. Design allowlist before detector to avoid stripping other-party data.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no redaction code yet. Blocked on todo-052 (ThirdPartyContact allowlist). Decision resolved: user-known contact info + heuristic PII detection.\n[2026-07-26 10:46 UTC - swe-1.7] Starting after todo-052 merged to main. Building asymmetric redaction service.\n[2026-07-26 10:49 UTC - swe-1.7] Built RedactionService with Layer 1 (user-known email/phone/name) and Layer 2 (heuristic email/phone/SSN patterns) plus ThirdPartyContact allowlist. Feature branch pushed.",
     "created_at": "2026-07-26T05:35:38+0000",
-    "updated_at": "2026-07-26T05:59:12.864296+00:00",
-    "assigned_agent": "glm-5.2"
+    "updated_at": "2026-07-26T10:49:26.064408+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-054",

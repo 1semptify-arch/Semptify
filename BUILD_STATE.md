@@ -1,3 +1,29 @@
+## Session — 2026-07-26 — Task 9: Asymmetric redaction service
+
+### Guardrail Engine Run — 2026-07-26
+
+- **compile_check**: PASS — `app/services/redaction_service.py` compiles.
+- **smoke_test**: PASS — user email/phone/name redacted; allowlisted landlord email/phone preserved; SSN-like number redacted.
+
+### What Was Built
+
+- `app/services/redaction_service.py`: `RedactionService` with:
+  - Layer 1: user-known email/phone/name exact-match redaction.
+  - Layer 2: heuristic PII detection for email addresses, US phone numbers, and SSN-like patterns.
+  - `ThirdPartyContact` allowlist loading via `build_allowlist_for_user()` so third-party contact info survives redaction.
+  - Convenience helper `redact_text_for_user()`.
+  - `FunctionGroupContract` registration for `redaction::redaction`.
+
+### Why
+
+- Unblocks `todo-054` (Communication import pipeline, Task 10).
+
+### Branch
+
+- `feature/todo-053-asymmetric-redaction`
+
+---
+
 ## Session — 2026-07-26 — Merge ThirdPartyContact model to main
 
 ### What Was Merged
