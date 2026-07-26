@@ -51,7 +51,11 @@ One or more checks failed — these are pre-existing issues in nested copies, no
 
 ### Next Task
 
-Task 2 — Footer + Help page redo (or resolve the 3 open decisions blocking Tasks 4/6/9–10).
+Task 2 — Footer + Help page redo (or continue resolving remaining open decisions: language priority list, redaction matching strategy).
+
+### Open Decision Resolved This Session
+
+- **Log retention window**: 90 days rolling. Task 4 admin/logging can now scope R2 lifecycle policy and async flush around this fixed window.
 
 ---
 

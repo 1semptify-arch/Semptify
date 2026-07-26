@@ -53,7 +53,7 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 | 1 | **Shared UX foundation** — viewport-locked desktop template, function-budget convention, persistent "Get help now" component, calm/alarm CSS tokens | `Semptify_MASTER_HANDOFF.md` section A–B | ✅ Complete | — |
 | 2 | **Footer + Help page redo** — trust-signaling footer, "What's happening to you right now?" Help page | `Semptify_MASTER_HANDOFF.md` Task 2 | 🅿️ Pending | Task 1 (UX tokens) |
 | 3 | **Content pass** — welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters | `Semptify_MASTER_HANDOFF.md` Task 3 | 🅿️ Pending | Task 1 |
-| 4 | **Admin/dev access + logging** — Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page | `Semptify_MASTER_HANDOFF.md` Task 4 | 🅿️ Pending | Decision: log retention window; reconcile with existing `admin_elevation.py` TOTP model |
+| 4 | **Admin/dev access + logging** — Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page | `Semptify_MASTER_HANDOFF.md` Task 4 | 🅿️ Pending | Log retention: **90 days rolling** (resolved). Reconcile with existing `admin_elevation.py` TOTP model |
 | 5 | **Voice-to-text** — Web Speech API client-side default, Whisper fallback with raw-audio discard | `Semptify_MASTER_HANDOFF.md` Task 5 | 🅿️ Pending | Task 6 only for language fallback planning |
 | 6 | **Multi-language i18n** — JSON/.po catalogs, human-reviewed legal/plain-language translation | `Semptify_MASTER_HANDOFF.md` Task 6 | 🅿️ Pending | Decision: confirmed language priority list (Somali/Hmong/Spanish suggested) |
 | 7 | **Mobile media capture** — `getUserMedia` photo/audio evidence capture with recording-consent note | `Semptify_MASTER_HANDOFF.md` Task 7 | 🅿️ Pending | None |
@@ -63,7 +63,7 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 | 11 | **Resource directory** — `Resource` table, bulk CSV import, staleness tracking | `Semptify_MASTER_HANDOFF.md` Task 11 | 🅿️ Pending | None |
 
 > **Open decisions before Tasks 4/6/9–10 can be fully scoped:**
-> 1. Log retention window (suggested 90 days).
+> 1. ✅ Log retention window — **90 days rolling** (resolved 2026-07-26).
 > 2. Confirmed language priority list.
 > 3. Redaction matching strategy (user-known-only vs +heuristic PII).
 
@@ -121,6 +121,7 @@ to active priority, overriding the "no new features" rule for this scope only.
 
 | Date | Decision | Reason |
 |------|----------|--------|
+| 2026-07-26 | ✅ Log retention window set to 90 days rolling | Default recommended in `Semptify_TraumaInformed_UX_Admin_Spec.md`; balances operational troubleshooting needs against unbounded R2 storage growth. Task 4 admin/logging can now scope R2 lifecycle policy and async flush with a fixed window. |
 | 2026-07-25 | ✅ Master Handoff promoted to active priority (11 tasks: UX foundation, admin/logging, voice, i18n, media capture, contacts, redaction, import pipeline, resource directory) | User explicitly promoted `temp/Semptify_MASTER_HANDOFF.md` to active priority; recorded in this file. Anti-priority "no new features" temporarily lifted for this scope only. Three open decisions (retention, language list, redaction strategy) still need resolution before full scoping. |
 | 2026-07-10 | ✅ Superseded 2026-06-28 GUI vision (Journal/Calendar/Timeline) with four-pillar model (RECORD/KNOW/ACT/GOVERN) | Framework formalized across a full planning session; GUI Screens 1-3 (nav shell, home, record) already shipped under new model. See `Semptify_Site_GUI_Framework.md` for the canonical pillar definitions. |
 | 2026-06-30 AM | ✅ Action Feedback helper retrofit complete | 13 pages retrofitted. All `alert()` fallbacks removed. `SemptifyFeedback` is globally loaded, so `if (window.SemptifyFeedback)` guards and `else { alert() }` branches were dead code. Also added success toast to journal save (was silently succeeding). |
