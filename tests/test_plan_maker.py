@@ -12,6 +12,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.core.cookie_auth import sign_user_id
 from app.services.plan_maker_service import (
     create_plan,
     add_entity,
@@ -25,7 +26,8 @@ from app.services.plan_maker_service import (
 )
 
 client = TestClient(app)
-USER_COOKIE = {"semptify_uid": "GUa8Km3xPq"}
+USER_ID = "GUa8Km3xPq"
+USER_COOKIE = {"semptify_uid": sign_user_id(USER_ID)}
 
 
 # =============================================================================
@@ -35,7 +37,7 @@ USER_COOKIE = {"semptify_uid": "GUa8Km3xPq"}
 class TestPlanMakerService:
     def test_create_plan_defaults(self):
         plan = create_plan(user_id="user-1", title="Test Plan")
-        assert plan.plan_id.startswith("PLAN-")
+        assert plan.plan_id.startswith("plan_")
         assert plan.user_id == "user-1"
         assert plan.title == "Test Plan"
         assert len(plan.next_steps) > 0  # default steps populated

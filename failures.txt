@@ -1,0 +1,361 @@
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 401: {'error': 'auth_required', 'level': 'yellow'}
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 400: Empty file
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 405: Method Not Allowed
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Case not found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.production_init:production_init.py:105 \u274c Production validation failed: error parsing value for field "ALLOWED_ORIGINS" from source "EnvSettingsSource"
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 401: {'error': 'auth_required', 'gate': 'auth_gate'}
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 401: {'error': 'auth_required', 'gate': 'auth_gate'}
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: No contract registered for page_id='functionx_workspace'. Available: ['about', 'admin', 'admin_control', 'advocate', 'auto_analysis_summary', 'auto_mode_panel', 'brain', 'briefcase', 'calendar', 'campaign', 'case_builder', 'command_center', 'complaints', 'complete_journey', 'component_converter', 'contacts', 'correspondence', 'counterclaim', 'court_learning', 'court_packet', 'crawler', 'crisis_intake', 'dakota_defense', 'document_calendar', 'document_converter', 'document_delivery_inbox', 'document_delivery_send', 'document_intake', 'document_rejection', 'document_signature', 'document_viewer', 'documents', 'enterprise_dashboard', 'error', 'evaluation_report', 'eviction_answer', 'focus', 'fraud_exposure', 'funding_search', 'hearing_prep', 'help', 'home', 'hud_funding', 'index', 'intake', 'interactive_timeline', 'journey', 'law_library', 'layout_builder', 'legal', 'legal_trails', 'legal_workspace', 'letter_builder', 'manager', 'mesh_network', 'module_converter', 'motions', 'page_editor', 'page_index', 'pdf_tools', 'privacy', 'professional_workspace', 'public_exposure', 'recognition', 'register', 'register_success', 'research', 'research_module', 'role_selection', 'roles', 'sample_certificate', 'settings', 'setup_wizard', 'sidebar_with_auto_mode', 'storage_connecting', 'storage_info', 'storage_reconnect_prompt', 'storage_setup', 'style_editor', 'tenant', 'tenant_dashboard', 'tenant_help', 'timeline', 'timeline_auto_build', 'timeline_builder', 'vault', 'welcome', 'zoom_court']
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+ERROR    app.core.error_handling:error_handling.py:146 Unhandled exception: 404: Not Found
+FAILED tests/test_api_endpoints.py::TestDocumentVault::test_vault_upload_no_file
+FAILED tests/test_brain_router.py::TestBrainStatus::test_get_status - assert ...
+FAILED tests/test_brain_router.py::TestBrainStatus::test_list_modules - asser...
+FAILED tests/test_brain_router.py::TestBrainState::test_get_full_state - asse...
+FAILED tests/test_brain_router.py::TestBrainState::test_get_state_specific_key_missing
+FAILED tests/test_brain_router.py::TestBrainState::test_update_and_read_state
+FAILED tests/test_brain_router.py::TestBrainEvents::test_get_recent_events_default
+FAILED tests/test_brain_router.py::TestBrainEvents::test_get_recent_events_limit
+FAILED tests/test_brain_router.py::TestBrainEvents::test_emit_event_invalid_type
+FAILED tests/test_brain_router.py::TestBrainEvents::test_emit_event_invalid_module
+FAILED tests/test_brain_router.py::TestBrainEvents::test_emit_valid_event - a...
+FAILED tests/test_brain_router.py::TestBrainWorkflows::test_list_workflows - ...
+FAILED tests/test_brain_router.py::TestBrainWorkflows::test_trigger_and_get_workflow
+FAILED tests/test_brain_router.py::TestBrainWorkflows::test_trigger_document_intake_workflow
+FAILED tests/test_brain_router.py::TestBrainThinkSync::test_think_empty_context
+FAILED tests/test_brain_router.py::TestBrainThinkSync::test_think_with_context
+FAILED tests/test_brain_router.py::TestBrainThinkSync::test_sync_all - assert...
+FAILED tests/test_case_builder.py::test_court_info_public - assert 404 == 200
+FAILED tests/test_case_builder.py::test_case_overview_unauthenticated - asser...
+FAILED tests/test_case_builder.py::test_case_build_unauthenticated - assert 4...
+FAILED tests/test_case_builder.py::test_case_compliance_unauthenticated - ass...
+FAILED tests/test_case_builder.py::test_case_defenses_unauthenticated - asser...
+FAILED tests/test_case_builder.py::test_case_evidence_unauthenticated - asser...
+FAILED tests/test_case_builder.py::test_case_timeline_unauthenticated - asser...
+FAILED tests/test_case_builder.py::test_case_rent_ledger_unauthenticated - as...
+FAILED tests/test_case_builder.py::test_case_form_data_unauthenticated - asse...
+FAILED tests/test_core_4step_flow.py::TestStep1Welcome::test_welcome_page_loads
+FAILED tests/test_core_4step_flow.py::TestStep1Welcome::test_welcome_no_bypass_to_home
+FAILED tests/test_core_4step_flow.py::TestStep2RoleSelect::test_role_select_page_loads
+FAILED tests/test_core_4step_flow.py::TestStep2RoleSelect::test_tenant_role_available
+FAILED tests/test_core_4step_flow.py::TestStep2RoleSelect::test_role_selection_flow
+FAILED tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_storage_select_page_loads
+FAILED tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_no_skip_button_exists
+FAILED tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_storage_connect_buttons_present
+FAILED tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_cannot_access_home_without_storage
+FAILED tests/test_core_4step_flow.py::TestStep4TenantHome::test_tenant_home_requires_auth
+FAILED tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_flow_redirection_chain
+FAILED tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_api_health
+FAILED tests/test_court_learning.py::TestLearningEndpoints::test_defense_rates_public
+FAILED tests/test_court_learning.py::TestLearningEndpoints::test_judge_patterns_public
+FAILED tests/test_court_learning.py::TestLearningEndpoints::test_landlord_patterns_public
+FAILED tests/test_court_learning.py::TestLearningEndpoints::test_learning_stats_public
+FAILED tests/test_court_learning.py::TestLearningEndpoints::test_strategy_recommendation
+FAILED tests/test_court_procedures.py::TestRulesEndpoints::test_get_all_rules
+FAILED tests/test_court_procedures.py::TestRulesEndpoints::test_get_specific_rule
+FAILED tests/test_court_procedures.py::TestRulesEndpoints::test_get_rules_by_phase
+FAILED tests/test_court_procedures.py::TestMotionsEndpoints::test_get_all_motions
+FAILED tests/test_court_procedures.py::TestMotionsEndpoints::test_get_specific_motion
+FAILED tests/test_court_procedures.py::TestMotionsEndpoints::test_generate_motion
+FAILED tests/test_court_procedures.py::TestObjectionsEndpoints::test_get_all_objections
+FAILED tests/test_court_procedures.py::TestObjectionsEndpoints::test_get_specific_objection
+FAILED tests/test_court_procedures.py::TestObjectionsEndpoints::test_hearsay_response_complete
+FAILED tests/test_court_procedures.py::TestProceduresEndpoints::test_get_all_steps
+FAILED tests/test_court_procedures.py::TestProceduresEndpoints::test_get_steps_by_phase
+FAILED tests/test_court_procedures.py::TestCounterclaimsEndpoints::test_get_all_counterclaims
+FAILED tests/test_court_procedures.py::TestCounterclaimsEndpoints::test_get_specific_counterclaim
+FAILED tests/test_court_procedures.py::TestCounterclaimsEndpoints::test_counterclaim_has_elements
+FAILED tests/test_court_procedures.py::TestDefensesEndpoints::test_get_all_defenses
+FAILED tests/test_court_procedures.py::TestDefensesEndpoints::test_get_defense_category
+FAILED tests/test_court_procedures.py::TestHearingChecklist::test_get_hearing_checklist
+FAILED tests/test_court_procedures.py::TestQuickReference::test_get_quick_reference
+FAILED tests/test_court_procedures.py::TestEnumsEndpoints::test_get_motion_types
+FAILED tests/test_court_procedures.py::TestEnumsEndpoints::test_get_objection_types
+FAILED tests/test_court_procedures.py::TestEnumsEndpoints::test_get_procedure_phases
+FAILED tests/test_court_procedures.py::TestEnumsEndpoints::test_get_defense_categories
+FAILED tests/test_court_procedures.py::TestProceduresIntegration::test_full_defense_preparation_flow
+FAILED tests/test_court_procedures.py::TestProceduresIntegration::test_objection_handling_knowledge
+FAILED tests/test_document_intake.py::TestIntakeUploadAPI::test_upload_empty_file_rejected
+FAILED tests/test_document_registry.py::TestDocumentIDGenerator::test_parse_invalid_formats
+FAILED tests/test_document_registry.py::TestDocumentIDGenerator::test_is_valid_edge_cases
+FAILED tests/test_document_registry.py::TestDocumentIDGenerator::test_year_reset_behavior
+FAILED tests/test_documents.py::test_document_upload_happy_path - assert 405 ...
+FAILED tests/test_documents.py::test_document_upload_large_file_rejection - a...
+FAILED tests/test_documents.py::test_document_upload_invalid_file_type - asse...
+FAILED tests/test_documents.py::test_document_upload_missing_filename - asser...
+FAILED tests/test_documents.py::test_document_upload_queue_mode - assert 405 ...
+FAILED tests/test_documents.py::test_document_upload_no_file - assert 405 in ...
+FAILED tests/test_documents.py::test_document_upload_missing_user_id - assert...
+FAILED tests/test_documents.py::test_document_get_nonexistent - assert 401 ==...
+FAILED tests/test_documents.py::test_document_reprocess_nonexistent - assert ...
+FAILED tests/test_eviction.py::test_eviction_home - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_answer_step1 - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_answer_step2 - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_answer_step3 - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_motions_menu - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_motion_forms[dismiss] - assert 4...
+FAILED tests/test_eviction.py::test_eviction_motion_forms[continuance] - asse...
+FAILED tests/test_eviction.py::test_eviction_motion_forms[stay] - assert 404 ...
+FAILED tests/test_eviction.py::test_eviction_motion_forms[fee_waiver] - asser...
+FAILED tests/test_eviction.py::test_eviction_hearing_prep - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_zoom_tips - assert 404 == 200
+FAILED tests/test_eviction.py::test_eviction_i18n_strings[en] - assert 404 ==...
+FAILED tests/test_eviction.py::test_eviction_i18n_strings[es] - assert 404 ==...
+FAILED tests/test_eviction.py::test_eviction_i18n_strings[so] - assert 404 ==...
+FAILED tests/test_eviction.py::test_eviction_i18n_strings[ar] - assert 404 ==...
+FAILED tests/test_eviction.py::test_eviction_answer_with_language - assert 40...
+FAILED tests/test_eviction.py::test_eviction_invalid_language_fallback - asse...
+FAILED tests/test_eviction.py::test_eviction_deadline_calculation - assert 40...
+FAILED tests/test_eviction.py::test_forms_library_page - assert 404 == 200
+FAILED tests/test_eviction.py::test_forms_api_list - assert 404 == 200
+FAILED tests/test_eviction.py::test_forms_api_resources - assert 404 == 200
+FAILED tests/test_eviction.py::test_answer_generate_pdf - assert 404 in [200,...
+FAILED tests/test_eviction.py::test_motion_generate_pdf - assert 404 in [200,...
+FAILED tests/test_eviction.py::test_hearing_generate_pdf - assert 404 in [200...
+FAILED tests/test_eviction.py::test_counterclaim_page - assert 404 == 200
+FAILED tests/test_eviction.py::test_counterclaim_generate_pdf - assert 404 in...
+FAILED tests/test_eviction.py::test_answer_generate_missing_required_fields
+FAILED tests/test_legal_filing.py::test_get_seed_cases - assert False
+FAILED tests/test_legal_filing.py::test_get_case_by_id - assert 404 == 200
+FAILED tests/test_legal_filing.py::test_evidence_api_roles_and_data - assert ...
+FAILED tests/test_overlay_types.py::TestOverlayTypeEnum::test_all_members_present
+FAILED tests/test_overlay_types.py::TestCategorySets::test_processing_overlays
+FAILED tests/test_plan_maker.py::TestPlanMakerService::test_create_plan_defaults
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_create_plan - asse...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_view_plan - KeyErr...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_view_plan_id_mismatch
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_export_markdown - ...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_export_json - KeyE...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_add_entity - KeyEr...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_add_evidence - Key...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_add_step - KeyErro...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_complete_step - Ke...
+FAILED tests/test_plan_maker.py::TestPlanMakerRouter::test_complete_step_out_of_range
+FAILED tests/test_positronic_mesh.py::TestMeshStatus::test_get_status_ok - as...
+FAILED tests/test_positronic_mesh.py::TestMeshStatus::test_get_available_workflows
+FAILED tests/test_positronic_mesh.py::TestMeshStatus::test_get_connected_modules
+FAILED tests/test_positronic_mesh.py::TestWorkflowLifecycle::test_start_invalid_workflow_type
+FAILED tests/test_positronic_mesh.py::TestWorkflowLifecycle::test_start_eviction_workflow
+FAILED tests/test_positronic_mesh.py::TestWorkflowLifecycle::test_get_user_workflows_empty_then_populated
+FAILED tests/test_positronic_mesh.py::TestQuickStartEndpoints::test_quick_eviction
+FAILED tests/test_positronic_mesh.py::TestQuickStartEndpoints::test_quick_lease_analysis
+FAILED tests/test_positronic_mesh.py::TestQuickStartEndpoints::test_quick_court_prep
+FAILED tests/test_positronic_mesh.py::TestQuickStartEndpoints::test_quick_sync
+FAILED tests/test_production_init.py::test_validate_production_mode_passes_with_r2
+FAILED tests/test_role_gui_routes.py::test_role_gui_routes_exist[/admin/mission-control]
+FAILED tests/test_role_gui_routes.py::test_role_gui_routes_exist[/admin/gui]
+FAILED tests/test_role_gui_routes.py::test_role_gui_routes_exist[/admin/mode-selector]
+FAILED tests/test_role_gui_routes.py::test_role_gui_routes_exist[/admin/easy-mode]
+FAILED tests/test_role_gui_routes.py::test_role_gui_routes_exist[/admin/docs]
+FAILED tests/test_role_gui_routes.py::test_role_gui_alias_routes_do_not_dead_end[/admin/system]
+FAILED tests/test_role_gui_routes.py::test_role_gui_alias_routes_do_not_dead_end[/admin/users]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/advocate/calendar.html-/timeline]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/legal/work-product.html-/legal/privileged]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/legal/discovery.html-/legal/filings]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/legal/calendar.html-/timeline]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/legal/research.html-/law-library]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/legal/notes.html-/legal/privileged]
+FAILED tests/test_role_gui_routes.py::test_legacy_static_gui_links_redirect_via_shims[/static/tenant/calendar.html-/timeline]
+FAILED tests/test_role_gui_routes.py::test_unknown_role_subpages_redirect_home[/tenant/missing-/tenant-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_unknown_role_subpages_redirect_home[/advocate/missing-/advocate-GVabc12345]
+FAILED tests/test_role_gui_routes.py::test_unknown_role_subpages_redirect_home[/legal/missing-/legal-GLabc12345]
+FAILED tests/test_role_gui_routes.py::test_unknown_role_subpages_redirect_home[/admin/missing-/admin-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_home_redirects_to_storage_for_invalid_cookie
+FAILED tests/test_role_gui_routes.py::test_role_home_redirects_to_canonical_home_on_role_mismatch
+FAILED tests/test_role_gui_routes.py::test_root_redirects_connected_user_to_role_ui
+FAILED tests/test_role_gui_routes.py::test_role_home_templates_expose_normalized_stage_model[/tenant-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_home_templates_expose_normalized_stage_model[/advocate-GVabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_home_templates_expose_normalized_stage_model[/legal-GLabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_home_templates_expose_normalized_stage_model[/admin-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/tenant/documents-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/tenant/timeline-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/tenant/help-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/advocate/clients-GVabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/advocate/queue-GVabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/advocate/intake-GVabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/legal/cases-GLabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/legal/filings-GLabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/legal/privileged-GLabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/legal/conflicts-GLabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/admin/mission-control-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/admin/gui-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/admin/mode-selector-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/admin/easy-mode-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_role_subpages_expose_normalized_stage_model[/admin/docs-GAabc12345]
+FAILED tests/test_role_gui_routes.py::test_shared_workspace_pages_expose_normalized_stage_model[/dashboard-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_shared_workspace_pages_expose_normalized_stage_model[/documents-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_shared_workspace_pages_expose_normalized_stage_model[/timeline-GUabc12345]
+FAILED tests/test_role_gui_routes.py::test_shared_workspace_pages_expose_normalized_stage_model[/law-library-GLabc12345]
+FAILED tests/test_vault_engine.py::TestResourceTypes::test_list_resource_types
+FAILED tests/test_vault_engine.py::TestResourceTypes::test_list_access_levels
+FAILED tests/test_vault_engine.py::TestAccessCheck::test_check_access_unauthorized
+FAILED tests/test_vault_engine.py::TestAccessCheck::test_check_access_user_read
+FAILED tests/test_vault_engine.py::TestAccessCheck::test_check_access_invalid_resource_type
+FAILED tests/test_vault_engine.py::TestAccessCheck::test_check_access_invalid_action
+FAILED tests/test_vault_engine.py::TestReadOperations::test_read_invalid_type
+FAILED tests/test_vault_engine.py::TestWriteOperations::test_write_document_user
+FAILED tests/test_vault_engine.py::TestWriteOperations::test_write_document_manager
+FAILED tests/test_vault_engine.py::TestWriteOperations::test_write_invalid_type
+FAILED tests/test_vault_engine.py::TestRoleBasedAccessControl::test_user_access_matrix
+FAILED tests/test_vault_engine.py::TestRoleBasedAccessControl::test_advocate_access_matrix
+FAILED tests/test_vault_engine.py::TestRoleBasedAccessControl::test_legal_access_matrix
+FAILED tests/test_vault_engine.py::TestRoleBasedAccessControl::test_manager_access_matrix
+FAILED tests/test_vault_engine.py::TestRoleBasedAccessControl::test_admin_access_matrix
+FAILED tests/test_vault_engine.py::TestShareOperations::test_share_resource
+FAILED tests/test_vault_engine.py::TestShareOperations::test_unshare_resource
+FAILED tests/test_vault_engine.py::TestListOperations::test_list_resources - ...
+FAILED tests/test_vault_engine.py::TestListOperations::test_list_by_type - as...
+FAILED tests/test_vault_engine.py::TestListOperations::test_list_include_deleted
+FAILED tests/test_vault_engine.py::TestListOperations::test_list_invalid_type
+FAILED tests/test_vault_engine.py::TestAuditLog::test_get_audit_log - assert ...
+FAILED tests/test_vault_engine.py::TestAuditLog::test_audit_log_filter_by_resource
+FAILED tests/test_vault_engine.py::TestAuditLog::test_audit_log_limit - asser...
+FAILED tests/test_vault_engine.py::TestStats::test_get_stats - assert 404 == 200
+FAILED tests/test_vault_engine.py::TestRoleBasedAccess::test_user_role_permissions
+FAILED tests/test_vault_engine.py::TestRoleBasedAccess::test_legal_role_permissions
+FAILED tests/test_vault_engine.py::TestRoleBasedAccess::test_admin_role_permissions
+FAILED tests/test_vault_engine.py::TestVaultEngineIntegration::test_access_audit_trail
+FAILED tests/test_vault_installer.py::test_vault_installer_additional_folders_are_canonical
+FAILED tests/test_vault_upload_overlay.py::test_upload_creates_overlay_manifest
+FAILED tests/test_vault_upload_overlay.py::test_mark_processed_and_update_type_emit_overlay_records
+FAILED tests/test_vault_upload_overlay.py::test_vault_index_rejects_immutable_field_mutation
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_status_endpoint
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_events_connection
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_ping_pong
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_subscribe
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_get_history
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_invalid_json
+FAILED tests/test_websocket.py::TestWebSocketEvents::test_websocket_user_id_from_cookies
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_status_endpoint
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_modules_endpoint
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_websocket_connection
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_websocket_ping
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_websocket_get_state
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_websocket_trigger_workflow
+FAILED tests/test_websocket.py::TestBrainWebSocket::test_brain_websocket_client_tracking
+FAILED tests/test_websocket.py::TestWebSocketProtocol::test_message_format_has_type
+FAILED tests/test_websocket.py::TestWebSocketProtocol::test_error_message_format
+FAILED tests/test_websocket.py::TestWebSocketSecurity::test_user_id_not_from_query_params
+FAILED tests/test_websocket.py::TestWebSocketSecurity::test_websocket_graceful_disconnect
+FAILED tests/test_websocket.py::TestWebSocketHTTPFallback::test_events_via_http
+FAILED tests/test_websocket.py::TestWebSocketHTTPFallback::test_brain_state_via_http
+FAILED tests/test_websocket.py::TestWebSocketPerformance::test_rapid_ping_pong
+FAILED tests/test_websocket.py::TestWebSocketPerformance::test_message_order_preserved
+FAILED tests/test_workflow_contracts.py::test_workflow_route_returns_tenant_b2_when_documents_present
+FAILED tests/test_workflow_contracts.py::test_workflow_route_infers_documents_present_from_overlay_ids
+FAILED tests/test_workflow_contracts.py::test_workflow_route_returns_role_specific_professional_route
+FAILED tests/test_workflow_contracts.py::test_workflow_contract_endpoint_returns_functionx_contract
+FAILED tests/test_workflow_contracts.py::test_root_renders_template_welcome_contract_link
+FAILED tests/test_workflow_contracts.py::test_tenant_help_route_renders_with_valid_tenant_cookie
+FAILED tests/test_workflow_contracts.py::test_help_telemetry_summary_aggregates_help_clicks
+FAILED tests/test_workflow_contracts.py::test_help_telemetry_summary_filters_by_page
+FAILED tests/test_workflow_contracts.py::test_workflow_advance_routes_when_welcome_requirements_complete
+FAILED tests/test_workflow_contracts.py::test_workflow_advance_infers_documents_present_from_overlay_ids
+FAILED tests/test_workflow_contracts.py::test_workflow_next_step_routes_tenant_to_timeline_when_docs_exist
+FAILED tests/test_workflow_contracts.py::test_workflow_case_state_connected_tenant_defaults_to_b1_without_docs
+FAILED tests/test_workflow_contracts.py::test_workflow_case_state_professional_role_maps_to_b4
+FAILED tests/test_workflow_contracts.py::test_workflow_case_state_normalizes_partial_stage_cards_and_alerts

@@ -115,7 +115,15 @@ class TestProceduresEngine:
 # =============================================================================
 # API ENDPOINT TESTS
 # =============================================================================
+# The /dakota/procedures/* endpoints are part of the Dakota County module
+# which is intentionally disabled (DAKOTA_AVAILABLE = False in app/main.py).
+# Skip all endpoint tests until the module is re-enabled.
+_DAKOTA_SKIP = pytest.mark.skip(
+    reason="Dakota County module is intentionally disabled (DAKOTA_AVAILABLE = False)"
+)
 
+
+@_DAKOTA_SKIP
 class TestRulesEndpoints:
     """Test rules API endpoints."""
 

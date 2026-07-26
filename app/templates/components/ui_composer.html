@@ -246,12 +246,14 @@
         <label class="uic-add-record-modal__field">
             <span class="uic-add-record-modal__label">What happened?</span>
             <textarea
+                id="uic-description"
                 name="description"
                 class="uic-add-record-modal__textarea"
                 placeholder="e.g., 'Landlord called about late rent'"
                 rows="3"
                 required
             ></textarea>
+            {% with target='uic-description' %}{% include 'components/voice_input.html' %}{% endwith %}
         </label>
 
         <label class="uic-add-record-modal__field">

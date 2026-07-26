@@ -1,0 +1,161 @@
+Python 3.11.9 - OK
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.compliance[0m - Production security validation passed.
+[2m20:34:28[0m [32mINFO    [0m [2mapp.modules.onboarding.register[0m - OnboardingGateMiddleware SKIPPED (enable_gate_middleware=False) ΓÇö gate enforcement delegated to StorageRequirementMiddleware
+[2m20:34:28[0m [32mINFO    [0m [2mapp.modules.onboarding.register[0m - Onboarding module registered: product=Semptify Tenant Rights prefix=/onboarding providers=['google_drive', 'dropbox', 'onedrive'] gates=['storage_connected', 'vault_initialized', 'document_uploaded']
+[2m20:34:28[0m [32mINFO    [0m [2mapp.sdk.plugin_manager[0m - ≡ƒöî Plugin Manager initialized
+[2m20:34:28[0m [32mINFO    [0m [2mapp.modules.vault_installer.register[0m - ≡ƒôª Vault installer module registered
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.oauth_token_manager[0m - OAuth token manager initialized
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.event_bus[0m - ≡ƒÜî EventBus initialized
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕ΓÇ£┬ó Event Bus initialized with 43 event types
+[2m20:34:28[0m [32mINFO    [0m [2mapp.modules.context_loop.service[0m - ≡ƒöä ContextDataLoop subscribed to EventBus
+[2m20:34:28[0m [32mINFO    [0m [2mapp.modules.context_loop.service[0m - Context Loop subscribed to 6 event types
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕┬º Context Loop event subscribers wired
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ≡ƒôé Filedored event subscriber wired
+[2m20:34:28[0m [33mWARNING [0m [2mapp.main[0m - Performance monitoring init failed (non-fatal): No module named 'psutil'
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - Semptify 5.0 FastAPI application created successfully
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - Global error handling system registered
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - Performance monitoring middleware enabled (slim mode)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - Offline detection middleware registered
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕┼íΓé¼ Request logging middleware enabled (production mode)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕┼í┬¬ Smart checkpoint gate enabled (welcome page checkpoint)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕ΓÇ¥ΓÇÖ Storage requirement middleware enabled (enforce=True)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_gate[0m - Registered module gate: eviction_defense
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_gate[0m - Registered module gate: counterclaim
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_gate[0m - Registered module gate: complaints
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_gate[0m - Registered module gate: case_builder
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_gate[0m - Registered module gate: law_library
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_gate[0m - Registered module gate: hearing_prep
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕┼í┬¬ Module gate middleware enabled (role + jurisdiction activation)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ≡ƒôì Jurisdiction middleware enabled (auto-detect state from IP)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕ΓÇ¥ΓÇÖ CORS middleware configured (production=True)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - Feature flag middleware registered
+[2m20:34:28[0m [32mINFO    [0m [2mapp.main[0m - Admin network gating middleware registered (Tailscale/private-network only)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m - ============================================================
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m - Loading product tiers: core, extended, advocate, admin, research, dev
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m - ============================================================
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.auto_refresh[0m - All provider refresh callbacks registered
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    User router active ΓÇö act-as impersonation endpoints enabled
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Rent ledger router active ΓÇö full account ledger endpoints enabled
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Auth status router active at /api/auth/me
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Reconnect router active at /storage/reconnect (owned by onboarding module)
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_legal_content
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_court_data
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_forms
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_state_laws
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_deadlines
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_cache
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.data_freshness_manager[0m - Registered refresh function: refresh_search_index
+[2m20:34:28[0m [32mINFO    [0m [2mapp.services.context_loop[0m - ≡ƒöä ContextDataLoop subscribed to EventBus
+[2m20:34:28[0m [32mINFO    [0m [2mapp.core.module_hub[0m - ≡ƒöä Module Hub initialized
+[2m20:34:30[0m [32mINFO    [0m [2mapp.services.positronic_brain[0m - ≡ƒºá Positronic Brain initialized
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Law Library page route active at /law-library
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Journal router connected at /api/journal
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Voice router connected at /api/voice
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Document Preview router connected - Multi-format preview generation active
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Context Engine router connected ΓÇö verified facts + tenant stories active
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Page Composer router connected ΓÇö unified page view (facts + stories + case)
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Portal router connected ΓÇö guest portal + services catalog active at /api/portal
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Portal SEO router connected ΓÇö sitemap.xml + robots.txt active
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    UI Composer router connected ΓÇö /api/ui/page, /api/ui/fragment, /api/ui/process active
+[2m20:34:30[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Tenant Feed router connected ΓÇö /api/tenant/feed active (aggregated timeline)
+[2m20:34:31[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Advanced Security router connected - 2FA and session management active
+[2m20:34:31[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    MNDES router loaded ΓÇö Court Exhibit System active
+[2m20:34:31[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    FEMS router loaded ΓÇö Forensic Evidence Management active at /api/fems
+[2m20:34:31[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Legal workspace router connected ΓÇö matters, filings, discovery, exhibits active
+[2m20:34:32[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Complaint Filing Wizard loaded - Regulatory accountability tools active
+[2m20:34:32[0m [32mINFO    [0m [2mapp.core.trusted_config[0m - Loaded 14 advocate domains and 22 legal domains from environment
+[2m20:34:32[0m [32mINFO    [0m [2mapp.core.trusted_config[0m - Loaded 2 invite codes from environment
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Admin Console router connected - System maintenance and diagnostics active
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Module Flag Overlay admin router active ΓÇö /admin/api/module-flags
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Analytics router connected - Usage and performance tracking active
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Batch Operations router connected - Bulk document management active
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Capabilities router active ΓÇö user capability and overlay management enabled
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Manager router connected ΓÇö case assignment, reporting, bulk ops active
+[2m20:34:33[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Unified Overlays router connected - Non-destructive annotation system active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Cloud Sync router connected - User-controlled data persistence active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.modules.hud_funding.service[0m - ≡ƒôè HUD Funding Guide Service initialized
+[2m20:34:34[0m [32mINFO    [0m [2mapp.modules.location.service[0m - ≡ƒôì Location Service initialized - Minnesota-focused tenant rights
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.positronic_mesh[0m - ≡ƒôï Loaded 5 workflow templates
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.positronic_mesh[0m - ≡ƒºá Positronic Mesh initialized - Neural pathways active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.modules.location.service[0m - ≡ƒôì Location service registered with Positronic Mesh
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Litigation Intelligence System router connected - Justice-grade legal intelligence active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Page Editor router connected - Interactive editor for static & Jinja2 templates
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Dev Lab router active ΓÇö /dev/lab (admin-only)
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Agent Orchestrator router active ΓÇö /api/agent-orchestrator (admin-only)
+[2m20:34:34[0m [33mWARNING [0m [2mapp.core.product_manifest[0m - Router import skipped (app.modules.dev_lab.ideas:router): cannot import name 'get_default_upl_tier' from 'app.core.upl_guardrails' (C:\Semptify\Semptify-FastAPI\app\core\upl_guardrails.py)
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Filedored router connected - Virtual document organization active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Data Freshness router connected - Automated data staleness prevention active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Inventory Management router connected - File rotation and dating system active
+[2m20:34:34[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Judge module registered as deprecated (merged into Legal sub-role)
+[2m20:34:35[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Page Shell router active ΓÇö /api/page-shell (admin-only)
+[2m20:34:35[0m [32mINFO    [0m [2mapp.sdk.module_sdk[0m - ≡ƒôª ModuleSDK created for: payment_tracking
+[2m20:34:35[0m [33mWARNING [0m [2mapp.core.product_manifest[0m - Router import skipped (app.modules.vault_sync:router): No module named 'app.modules.vault_sync'
+[2m20:34:35[0m [33mWARNING [0m [2mapp.core.product_manifest[0m - Router import skipped (app.modules.eviction_notice_explainer:router): No module named 'app.modules.eviction_notice_explainer'
+[2m20:34:35[0m [33mWARNING [0m [2mapp.core.product_manifest[0m - Router import skipped (app.modules.response_letter_generator:router): No module named 'app.modules.response_letter_generator'
+[2m20:34:35[0m [33mWARNING [0m [2mapp.core.product_manifest[0m - Router import skipped (app.modules.eviction_defense_content:router): No module named 'app.modules.eviction_defense_content'
+[2m20:34:35[0m [33mWARNING [0m [2mapp.core.product_manifest[0m - Router import skipped (app.modules.ai_copilot:router): No module named 'app.modules.ai_copilot'
+[2m20:34:35[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Data Export/Import router connected - GDPR-compliant data management active
+[2m20:34:35[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Automated Testing router connected - Comprehensive testing framework active
+[2m20:34:35[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    API Documentation router connected - Developer portal active
+[2m20:34:35[0m [32mINFO    [0m [2mapp.core.product_manifest[0m -    Document Center router connected at /api/dc (stable ΓÇö admin only)
+[2m20:34:35[0m [32mINFO    [0m [2mapp.core.product_manifest[0m - Modules: 114 registered, 6 skipped, 0 errors
+[2m20:34:35[0m [32mINFO    [0m [2mapp.main[0m - ├óΓÇ₧┬╣├»┬╕┬Å  Dakota County module not available (optional)
+[2m20:34:35[0m [32mINFO    [0m [2mapp.main[0m - ├░┼╕┼íΓé¼ Product Manifest router registration complete
+[2m20:34:35[0m [32mINFO    [0m [2msemptify.requests[0m - Request started: GET /tenant/help
+[2m20:34:35[0m [32mINFO    [0m [2mapp.services.location_service[0m - ≡ƒôì Location Service initialized - Minnesota-focused tenant rights
+[2m20:34:35[0m [32mINFO    [0m [2mapp.services.location_service[0m - ≡ƒôì Location service registered with Positronic Mesh
+[2m20:34:36[0m [32mINFO    [0m [2mapp.services.location_service[0m - ≡ƒôì Location set for user GUabc123...: MN, no county
+[2m20:34:37[0m [33mWARNING [0m [2mapp.core.features[0m - Feature flags DB read failed, falling back to cache/defaults: (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedTableError'>: relation "feature_flags" does not exist
+[SQL: SELECT flag_name, enabled, rollout_percent, allowed_roles, description FROM feature_flags]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2m20:34:37[0m [33mWARNING [0m [2mapp.core.auto_refresh[0m - Session GUabc1*** not found in DB
+[2m20:34:37[0m [32mINFO    [0m [2mapp.core.auto_refresh[0m - Reauth required for user GUabc1*** (status=user_not_found) ΓåÆ /storage/reconnect
+[2m20:34:37[0m [33mWARNING [0m [2mapp.core.ssot_guard[0m - SSOT Advisory: Non-canonical path '/storage/reconnect?return_to=/tenant/help&provider=google_drive' used in storage_middleware reconnect. Consider adding to registry via register_stage().
+[2m20:34:38[0m [32mINFO    [0m [2msemptify.requests[0m - Request completed: GET /tenant/help -> 302 (2259.56ms)
+[2m20:34:38[0m [32mINFO    [0m [2msemptify.requests[0m - Request started: GET /storage/reconnect
+[2m20:34:38[0m [31mERROR   [0m [2msqlalchemy.pool.impl.AsyncAdaptedQueuePool[0m - Exception terminating connection <AdaptedConnection <asyncpg.connection.Connection object at 0x0000021928B80E50>>
+Traceback (most recent call last):
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\sqlalchemy\pool\base.py", line 373, in _close_connection
+    self._dialect.do_terminate(connection)
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 1127, in do_terminate
+    dbapi_connection.terminate()
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\sqlalchemy\connectors\asyncio.py", line 402, in terminate
+    self.await_(asyncio.shield(self._terminate_graceful_close()))  # type: ignore[attr-defined] # noqa: E501
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 912, in _terminate_graceful_close
+    await self._connection.close(timeout=2)
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\asyncpg\connection.py", line 1513, in close
+    await self._protocol.close(timeout)
+  File "asyncpg/protocol/protocol.pyx", line 617, in close
+  File "asyncpg/protocol/protocol.pyx", line 650, in asyncpg.protocol.protocol.BaseProtocol._request_cancel
+  File "C:\Semptify\Semptify-FastAPI\venv311\Lib\site-packages\asyncpg\connection.py", line 1682, in _cancel_current_command
+    self._cancellations.add(self._loop.create_task(self._cancel(waiter)))
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 435, in create_task
+    self._check_closed()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 520, in _check_closed
+    raise RuntimeError('Event loop is closed')
+RuntimeError: Event loop is closed
+[2m20:34:38[0m [33mWARNING [0m [2mapp.core.features[0m - Feature flags DB read failed, falling back to cache/defaults: Event loop is closed
+[2m20:34:38[0m [32mINFO    [0m [2msemptify.requests[0m - Request started: GET /storage/reconnect
+[2m20:34:38[0m [33mWARNING [0m [2mapp.main[0m - Performance middleware recording failed: No module named 'psutil'
+[2m20:34:38[0m [32mINFO    [0m [2msemptify.requests[0m - Request completed: GET /storage/reconnect -> 200 (578.95ms)
+[2m20:34:38[0m [32mINFO    [0m [2msemptify.requests[0m - Request completed: GET /storage/reconnect -> 200 (596.33ms)
+STATUS: 200
+has Get Help: False
+has Reconnect: True
+has Help: False
+title: ['<title>Reconnect - Semptify</title>']
+[2m20:34:38[0m [32mINFO    [0m [2mapp.core.websocket_manager[0m - WebSocket manager shutdown complete
+[2m20:34:38[0m [32mINFO    [0m [2mapp.core.job_processor[0m - Started job processor with 4 workers
+[2m20:34:38[0m [32mINFO    [0m [2mapp.core.job_processor[0m - Registered job handler for type: document_analysis
+[2m20:34:38[0m [32mINFO    [0m [2mapp.core.job_processor[0m - Registered job handler for type: thumbnail_generation
+[2m20:34:38[0m [32mINFO    [0m [2mapp.core.job_processor[0m - Registered job handler for type: document_indexing
+[2m20:34:38[0m [32mINFO    [0m [2mapp.core.job_processor[0m - Registered job handler for type: deep_ocr
+[2m20:34:39[0m [32mINFO    [0m [2mapp.core.job_processor[0m - Stopped job processor

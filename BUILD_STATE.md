@@ -1,3 +1,28 @@
+## Session -- 2026-07-26 -- Task 5 voice-to-text implementation
+
+### Problem
+
+Task 5 required a voice-to-text path: browser-first Web Speech API capture with a server-side Whisper fallback, raw-audio discard by default, and an opt-in to keep audio as evidence.
+
+### Fix
+
+- `app/templates/components/voice_input.html`: reusable Web Speech API widget (`🎤 Speak` / `⏹ Stop`) that appends interim/final transcripts to a target `<textarea>`, falls back to `getUserMedia` recording + `POST /api/voice/transcribe` when Web Speech is unavailable, and offers a `Keep audio recording as evidence` checkbox.
+- `app/services/voice_service.py`: Whisper transcription service. Sends raw bytes to OpenAI Whisper, does not retain the bytes, and returns a graceful typed message when `OPENAI_API_KEY` is missing.
+- `app/modules/voice/router.py`: `POST /api/voice/transcribe` endpoint wired via `app.core.product_manifest.py` (`/api/voice` prefix). Accepts `UploadFile`, discards raw audio after transcription, and only persists the recording to the user's vault when `keep_audio=true` and a storage token is available.
+- `app/core/product_manifest.py`: registered the `voice` router and added `voice` capability to tenant, advocate, and legal default capability sets.
+- `app/templates/pages/tenant_capture.html` and `app/templates/components/ui_composer.html`: included `voice_input.html` next to the `description` textarea with the correct `target` variable so the widget is wired to the right field.
+
+### Verification
+
+- `python -m py_compile app/core/product_manifest.py app/modules/voice/__init__.py app/modules/voice/router.py app/services/voice_service.py`: PASS.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8/8 passed.
+- Local dev server (`SECURITY_MODE=open`):
+  - `GET /tenant/capture` returns 200 and contains `#voiceBtn-whatHappened` / `.voice-input` markup.
+  - `POST /api/voice/transcribe` (signed tenant cookie, dummy `.wav`) returns 200 `{"success":false,"source":"none","message":"Whisper fallback is not configured on this server. Please type your note."}`.
+- Playwright smoke suite not re-run; prior run showed welcome page 200 and health 401 in enforced mode (expected without a real storage session).
+
+---
+
 ## Session -- 2026-07-26 -- Dev server smoke test and capabilities 500 fix
 
 ### Problem
