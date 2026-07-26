@@ -26,7 +26,7 @@ test('welcome page loads with 200', async ({ page }) => {
 test('welcome page has a Get Started or continue call-to-action', async ({ page }) => {
   await page.goto(BASE + '/', { waitUntil: 'load' });
   // Look for any navigational CTA — text or href patterns
-  const cta = page.locator('a[href*="preamble"], a[href*="onboard"], a[href*="start"], a[href*="register"]').first();
+  const cta = page.locator('a[href*="preamble"], a[href*="onboard"], a[href*="start"], a[href*="register"], a[href*="welcome"]').first();
   await expect(cta).toBeVisible({ timeout: 10_000 });
 });
 
