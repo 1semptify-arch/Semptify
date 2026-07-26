@@ -146,15 +146,31 @@ from app.core.utc import utc_now
 
 
 def setup_logging():
-    """Configure logging based on settings using enhanced logging config."""
-    from app.core.logging_config import setup_logging as configure_logging
+    """Configure logging based on settings using enhanced logging config.
 
+    Uses setup_application_logging from app.core.logging_service so the
+    buffering handler + R2/local flusher are wired in (Master Handoff Task 4).
+    Falls back to the base logging_config if the buffering service is unavailable.
+    """
     logging_settings = get_settings()
-    configure_logging(
-        level=logging_settings.log_level.upper(),
-        json_format=logging_settings.log_json_format,
-        log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
-    )
+    try:
+        from app.core.logging_service import setup_application_logging
+
+        setup_application_logging(
+            level=logging_settings.log_level.upper(),
+            json_format=logging_settings.log_json_format,
+            log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
+            flush_interval=logging_settings.log_flush_interval_seconds,
+            retention_days=logging_settings.log_retention_days,
+        )
+    except (ImportError, RuntimeError, ValueError):
+        from app.core.logging_config import setup_logging as configure_logging
+
+        configure_logging(
+            level=logging_settings.log_level.upper(),
+            json_format=logging_settings.log_json_format,
+            log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
+        )
 
 
 # =============================================================================
@@ -573,6 +589,21 @@ async def lifespan(_app: FastAPI):
 
     register_shutdown_handler()
 
+    # Start buffered-log flusher (Master Handoff Task 4)
+    try:
+        from app.core.logging_service import get_log_flusher
+
+        _log_flusher = get_log_flusher()
+        if _log_flusher is not None:
+            _log_flusher.start()
+            lifespan_logger.info(
+                "   Log flusher started (interval=%ss, retention=%sd)",
+                _log_flusher.interval,
+                _log_flusher.retention_days,
+            )
+    except (ImportError, RuntimeError, ValueError) as e:
+        lifespan_logger.warning("   Log flusher start skipped: %s", e)
+
     # DISABLED: Distributed mesh network (memory hog)
     # try:
     #     await start_mesh_network()
@@ -591,6 +622,17 @@ async def lifespan(_app: FastAPI):
     # Wait for background tasks to complete
     await task_manager.wait_for_completion(timeout=10.0)
     lifespan_logger.info("   Background tasks completed")
+
+    # Stop buffered-log flusher (Master Handoff Task 4)
+    try:
+        from app.core.logging_service import get_log_flusher
+
+        _log_flusher = get_log_flusher()
+        if _log_flusher is not None:
+            await _log_flusher.stop()
+            lifespan_logger.info("   Log flusher stopped (final flush complete)")
+    except (ImportError, RuntimeError, ValueError) as e:
+        lifespan_logger.warning("   Log flusher stop skipped: %s", e)
 
     # DISABLED: Distributed mesh network
     # try:
@@ -1659,6 +1701,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.add_middleware(CORSMiddleware, **cors_config)
     logger.info("ðŸ”’ CORS middleware configured (production=%s)", is_production)
 
+    # =========================================================================
+    # Feature Flag Middleware — returns 503 for routes whose flag is disabled
+    # (Master Handoff Task 4)
+    # =========================================================================
+    from app.core.feature_flags import FeatureFlagMiddleware
+
+    fastapi_app.add_middleware(FeatureFlagMiddleware)
+    logger.info("Feature flag middleware registered")
+
+    # =========================================================================
+    # Admin Network Middleware — outermost guard for /admin paths.
+    # Returns 404 for any /admin request from a non-admin (Tailscale/private)
+    # network, hiding the existence of admin endpoints from the public internet.
+    # Registered last so it wraps the entire stack (runs first on requests).
+    # (Master Handoff Task 4)
+    # =========================================================================
+    from app.core.admin_gating import AdminNetworkMiddleware
+
+    fastapi_app.add_middleware(AdminNetworkMiddleware)
+    logger.info("Admin network gating middleware registered (Tailscale/private-network only)")
+
     # Request ID middleware
     @fastapi_app.middleware("http")
     async def add_request_id(request: Request, call_next):
@@ -2486,6 +2549,76 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     ):
         """Serve Dev Lab admin page (alias for /admin/forge.html)."""
         return await admin_forge_page(request, admin_uid)
+
+    # =========================================================================
+    # Admin Logging + Feature Flag API (Master Handoff Task 4)
+    # All endpoints require admin elevation (TOTP-verified). The
+    # AdminNetworkMiddleware (registered above) additionally gates these to
+    # Tailscale/private-network clients only.
+    # =========================================================================
+    @fastapi_app.get("/admin/api/logs", tags=["admin"])
+    async def admin_get_logs(
+        n: int = 100,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Return the last n buffered log entries (live tail)."""
+        from app.core.logging_service import get_log_tail
+
+        return {"entries": get_log_tail(n=min(max(n, 1), 1000))}
+
+    @fastapi_app.put("/admin/api/logs/level", tags=["admin"])
+    async def admin_set_log_level(
+        level: str,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Set the runtime root log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)."""
+        from app.core.logging_service import set_log_level
+
+        return {"level": set_log_level(level)}
+
+    @fastapi_app.get("/admin/api/flags", tags=["admin"])
+    async def admin_get_flags(admin_uid: str = Depends(require_admin)):
+        """Return the current state of all feature flags."""
+        from app.core.feature_flags import FeatureFlags
+
+        return {"flags": FeatureFlags.all_flags()}
+
+    @fastapi_app.put("/admin/api/flags/{name}", tags=["admin"])
+    async def admin_set_flag(
+        name: str,
+        enabled: bool,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Set a feature flag to a specific value."""
+        from app.core.feature_flags import FeatureFlags
+
+        return {"name": name, "enabled": FeatureFlags.set_flag(name, enabled)}
+
+    @fastapi_app.post("/admin/api/flags/{name}/toggle", tags=["admin"])
+    async def admin_toggle_flag(
+        name: str,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Toggle a feature flag."""
+        from app.core.feature_flags import FeatureFlags
+
+        return {"name": name, "enabled": FeatureFlags.toggle_flag(name)}
+
+    @fastapi_app.get("/admin/health", tags=["admin"])
+    async def admin_health(admin_uid: str = Depends(require_admin)):
+        """Admin-only health/status snapshot (separate from public /status)."""
+        from app.core.logging_service import get_log_buffer, get_log_flusher
+
+        buffer = get_log_buffer()
+        flusher = get_log_flusher()
+        return {
+            "status": "ok",
+            "log_buffer_size": len(buffer.tail(0)) if buffer else 0,
+            "log_flusher_running": bool(flusher and flusher._running),
+            "log_flush_interval_seconds": flusher.interval if flusher else None,
+            "log_retention_days": flusher.retention_days if flusher else None,
+            "ts": utc_now().isoformat(),
+        }
 
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(

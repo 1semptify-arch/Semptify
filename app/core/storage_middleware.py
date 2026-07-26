@@ -35,6 +35,7 @@ PUBLIC_PATHS: set[str] = {
     "/metrics",
     "/api/version",
     "/api/core/status",
+    "/status",  # Independent status page (Master Handoff Task 4)
     "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
     # Preamble — single entry point, must always be reachable (no storage required)
     "/preamble",

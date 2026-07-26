@@ -665,5 +665,61 @@
     "created_at": "2026-07-26T05:35:38+0000",
     "updated_at": "2026-07-26T05:35:38+0000",
     "assigned_agent": "swe-1.7"
+  },
+  {
+    "id": "todo-048",
+    "title": "Admin/dev access + logging - Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page",
+    "description": "Implement per Semptify_MASTER_HANDOFF.md Task 4. Tailscale-only admin route, structured JSON logging, local buffer with async flush to R2, live tail endpoint, runtime log-level toggle, feature flags, independent health/status page.",
+    "category": "feature",
+    "target_model": "swe-1.7",
+    "priority": "high",
+    "file_path": "app/modules/admin_console/router.py",
+    "status": "resolved",
+    "notes": "User decision: 90 days rolling log retention. Reconcile with existing admin_elevation.py TOTP model. Admin access must be Tailscale-only; no public-internet login path.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: app/core/admin_elevation.py exists (TOTP model to reconcile with). 90-day retention decision resolved. Still pending, unblocked.\n[2026-07-26 06:05 UTC - swe-1.7] Tailscale-gated admin network middleware, structured JSON logging with buffered R2/local flush, 90-day retention, live tail endpoint, runtime log-level toggle, feature-flag middleware, and /status page. See BUILD_STATE.md Session 2026-07-26 - Master Handoff Tasks 2-4.\n[2026-07-26 12:34 UTC - glm-5.2] Re-wired by Devin 2026-07-26 (modules had been reverted between sessions): recreated admin_gating.py, logging_service.py, feature_flags.py, added settings to config.py, wired AdminNetworkMiddleware + FeatureFlagMiddleware into app/main.py middleware stack, wired setup_application_logging + LogFlusher start/stop into lifespan, added 6 admin endpoints (/admin/api/logs, /admin/api/logs/level, /admin/api/flags, /admin/api/flags/{name}, /admin/api/flags/{name}/toggle, /admin/health), added /status route + static/status.html, added /status to PUBLIC_PATHS. Verified: py_compile PASS, import app PASS (1311 routes), all endpoints registered.",
+    "created_at": "2026-07-26T05:35:38+0000",
+    "updated_at": "2026-07-26T12:34:38.673407+00:00",
+    "assigned_agent": "glm-5.2"
+  },
+  {
+    "id": "todo-053",
+    "title": "Asymmetric redaction pass - strip user's own PII while preserving third-party info from imports",
+    "description": "Implement per Semptify_MASTER_HANDOFF.md Task 9. Asymmetric PII detection: strip the authenticating user's identifying info, preserve landlord/agency/other contact info. First layer matches user's known email/phone/name; second layer adds heuristic PII detection with a ThirdPartyContact allowlist.",
+    "category": "feature",
+    "target_model": "swe-1.7",
+    "priority": "high",
+    "file_path": "app/services/redaction_service.py",
+    "status": "resolved",
+    "notes": "Blocked on Task 8. User decision: user-known contact info plus heuristic PII detection with a ThirdPartyContact allowlist. Design allowlist before detector to avoid stripping other-party data.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no redaction code yet. Blocked on todo-052 (ThirdPartyContact allowlist). Decision resolved: user-known contact info + heuristic PII detection.\n[2026-07-26 10:46 UTC - swe-1.7] Starting after todo-052 merged to main. Building asymmetric redaction service.\n[2026-07-26 10:49 UTC - swe-1.7] Built RedactionService with Layer 1 (user-known email/phone/name) and Layer 2 (heuristic email/phone/SSN patterns) plus ThirdPartyContact allowlist. Feature branch pushed.",
+    "created_at": "2026-07-26T05:35:38+0000",
+    "updated_at": "2026-07-26T10:49:26.064408+00:00",
+    "assigned_agent": "swe-1.7"
+  },
+  {
+    "id": "todo-054",
+    "title": "Communication import pipeline - .eml/.mbox, SMS CSV/XML, voicemail audio->transcription->discard, call logs CSV",
+    "description": "Implement per Semptify_MASTER_HANDOFF.md Task 10. Extend intake_service extract->chunk->embed pipeline (skip OCR). Email .eml/.mbox, SMS CSV/XML, voicemail audio through Task 5 transcription then discard raw audio, call logs CSV with phone matching against ThirdPartyContact.",
+    "category": "feature",
+    "target_model": "swe-1.7",
+    "priority": "medium",
+    "file_path": "app/services/intake_service.py",
+    "status": "resolved",
+    "notes": "Blocked on Task 8 and Task 9. File-based import into user's connected storage only. No live OAuth into email/phone accounts. Discard raw voicemail audio unless user explicitly opts to keep it as evidence.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no comms import pipeline yet. Blocked on todo-052 + todo-053.\n[2026-07-26 11:53 UTC - swe-1.7] Starting after todo-052 and todo-053 merged to main. Building communication import pipeline.\n[2026-07-26 11:57 UTC - swe-1.7] Built communication import pipeline in app/services/intake_service.py: .eml/.mbox, SMS CSV/XML, call logs CSV, ThirdPartyContact upsert, redaction, TimelineEvent creation. Voicemail transcription placeholder for Task 5. Feature branch pushed.",
+    "created_at": "2026-07-26T05:35:38+0000",
+    "updated_at": "2026-07-26T11:57:14.342815+00:00",
+    "assigned_agent": "swe-1.7"
+  },
+  {
+    "id": "todo-052",
+    "title": "Third-party contact model - ThirdPartyContact table, case-linked, entity types, audit source",
+    "description": "Implement per Semptify_MASTER_HANDOFF.md Task 8. ThirdPartyContact table with case linkage, entity_type, name/email/phone/address, source, and audit trail.",
+    "category": "feature",
+    "target_model": "swe-1.7",
+    "priority": "high",
+    "file_path": "app/models/models.py",
+    "status": "resolved",
+    "notes": "Hard prerequisite for Task 9 (redaction allowlist) and Task 10 (call-log matching). Must be built before redaction or import pipeline work starts.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no ThirdPartyContact model in app/models. Still pending, unblocked. Prerequisite for todo-053 and todo-054.\n[2026-07-26 12:35 UTC - glm-5.2] Verified by Devin 2026-07-26: ThirdPartyContact model exists in app/models/models.py:973 (merged via df7b70e). Prerequisite for todo-053 (resolved) and todo-054 (resolved). Marking resolved to match actual state.",
+    "created_at": "2026-07-26T05:35:38+0000",
+    "updated_at": "2026-07-26T12:35:36.543908+00:00",
+    "assigned_agent": "glm-5.2"
   }
 ]
