@@ -70,7 +70,7 @@ jobs:
 
       - name: Run Sprint 2 security isolation gates (mandatory)
         run: |
-          pytest tests/test_security_isolation_gates.py -q
+          pytest tests/test_security_isolation_gates.py -q --no-cov
         env:
           SECURITY_MODE: enforced
           DATABASE_URL: sqlite+aiosqlite:///./test.db
@@ -78,7 +78,7 @@ jobs:
 
       - name: Run Sprint 3 action router gates (mandatory)
         run: |
-          pytest tests/test_action_router_gates.py -q
+          pytest tests/test_action_router_gates.py -q --no-cov
         env:
           SECURITY_MODE: enforced
           DATABASE_URL: sqlite+aiosqlite:///./test.db
@@ -86,7 +86,7 @@ jobs:
 
       - name: Run SSOT Architecture Compliance Gate (mandatory)
         run: |
-          pytest tests/test_ssot_architecture.py -v --tb=short
+          pytest tests/test_ssot_architecture.py -v --tb=short --no-cov
         env:
           SECURITY_MODE: enforced
           DATABASE_URL: sqlite+aiosqlite:///./test.db
