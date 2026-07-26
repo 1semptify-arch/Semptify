@@ -2,7 +2,7 @@
 
 ### Deploy
 
-- **Commit**: TBD (Task 3 content pass: welcome/about rewrite, subject_starters.py, starter chips)
+- **Commit**: 8e58602 (Task 3 content pass: welcome/about rewrite, subject_starters.py, starter chips)
 - **Branch**: main
 - **Pushed**: 2026-07-26T14:20 UTC
 - **Render deploy**: https://dashboard.render.com
