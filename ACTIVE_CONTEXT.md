@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-25 (Master Handoff promoted to active priority; Task 1 complete)
+**Last Updated**: 2026-07-26 (Task 2 merged to main; Tasks 1, 2, 4, 8, 9, 10 complete; Task 3 is next)
 
 ---
 
@@ -51,21 +51,21 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
 | 1 | **Shared UX foundation** — viewport-locked desktop template, function-budget convention, persistent "Get help now" component, calm/alarm CSS tokens | `Semptify_MASTER_HANDOFF.md` section A–B | ✅ Complete | — |
-| 2 | **Footer + Help page redo** — trust-signaling footer, "What's happening to you right now?" Help page | `Semptify_MASTER_HANDOFF.md` Task 2 | 🅿️ Pending | Task 1 (UX tokens) |
+| 2 | **Footer + Help page redo** — trust-signaling footer, "What's happening to you right now?" Help page | `Semptify_MASTER_HANDOFF.md` Task 2 | ✅ Complete | — |
 | 3 | **Content pass** — welcome/about plain-language rewrite, words of wisdom moved to About only, subject starters | `Semptify_MASTER_HANDOFF.md` Task 3 | 🅿️ Pending | Task 1 |
-| 4 | **Admin/dev access + logging** — Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page | `Semptify_MASTER_HANDOFF.md` Task 4 | 🅿️ Pending | Log retention: **90 days rolling** (resolved). Reconcile with existing `admin_elevation.py` TOTP model |
+| 4 | **Admin/dev access + logging** — Tailscale-gated admin, JSON logging, R2 async flush, live tail, feature flags, health/status page | `Semptify_MASTER_HANDOFF.md` Task 4 | ✅ Complete | — |
 | 5 | **Voice-to-text** — Web Speech API client-side default, Whisper fallback with raw-audio discard | `Semptify_MASTER_HANDOFF.md` Task 5 | 🅿️ Pending | Task 6 only for language fallback planning |
 | 6 | **Multi-language i18n** — JSON/.po catalogs, human-reviewed legal/plain-language translation | `Semptify_MASTER_HANDOFF.md` Task 6 | 🅿️ Pending | Decision: confirmed language priority list (Somali/Hmong/Spanish suggested) |
 | 7 | **Mobile media capture** — `getUserMedia` photo/audio evidence capture with recording-consent note | `Semptify_MASTER_HANDOFF.md` Task 7 | 🅿️ Pending | None |
-| 8 | **Third-party contact model** — `ThirdPartyContact` table, case-linked, entity types, audit source | `Semptify_MASTER_HANDOFF.md` Task 8 | 🅿️ Pending | None; prerequisite for Task 9 |
-| 9 | **Asymmetric redaction pass** — strip user's own PII while preserving third-party info from imports | `Semptify_MASTER_HANDOFF.md` Task 9 | 🅿️ Pending | Task 8; decision: matching strategy (user-known vs +heuristic) |
-| 10 | **Communication import pipeline** — `.eml`/`.mbox`, SMS CSV/XML, voicemail audio→transcription→discard, call logs CSV | `Semptify_MASTER_HANDOFF.md` Task 10 | 🅿️ Pending | Task 8 + Task 9 |
+| 8 | **Third-party contact model** — `ThirdPartyContact` table, case-linked, entity types, audit source | `Semptify_MASTER_HANDOFF.md` Task 8 | ✅ Complete | — |
+| 9 | **Asymmetric redaction pass** — strip user's own PII while preserving third-party info from imports | `Semptify_MASTER_HANDOFF.md` Task 9 | ✅ Complete | — |
+| 10 | **Communication import pipeline** — `.eml`/`.mbox`, SMS CSV/XML, voicemail audio→transcription→discard, call logs CSV | `Semptify_MASTER_HANDOFF.md` Task 10 | ✅ Complete | — |
 | 11 | **Resource directory** — `Resource` table, bulk CSV import, staleness tracking | `Semptify_MASTER_HANDOFF.md` Task 11 | 🅿️ Pending | None |
 
 > **Open decisions before Tasks 4/6/9–10 can be fully scoped:**
 > 1. ✅ Log retention window — **90 days rolling** (resolved 2026-07-26).
-> 2. Confirmed language priority list.
-> 3. Redaction matching strategy (user-known-only vs +heuristic PII).
+> 2. ✅ Confirmed language priority list — English, Spanish, Somali, Hmong, Arabic, Amharic, Tigrinya, Mandarin, French, German, Korean, Japanese, Portuguese, Italian.
+> 3. ✅ Redaction matching strategy — user-known contact info plus heuristic PII detection with a `ThirdPartyContact` allowlist.
 
 ### ✅ Completed (reference, not to-do)
 - Funding Forge — complete 2026-07-25.

@@ -50,7 +50,7 @@ class AgentOrchestratorService:
             "4. No bare `except:` blocks. Catch specific exception types.\n"
             "5. No mutable default arguments (def f(items=[]) is a bug).\n"
             "6. SSOT redirects only: use navigation.get_stage() + ssot_redirect(). "
-            'No hardcoded RedirectResponse(url="/...") strings.\n'
+            "No hardcoded redirect URL strings in responses.\n"
             "7. Fix the ROOT CAUSE. Never add downstream compensating checks to "
             "mask upstream failures. Band-aids compound.\n"
             "8. Before calling another service's API, check the FunctionGroupContract "

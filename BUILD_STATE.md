@@ -1,3 +1,34 @@
+## Session — 2026-07-26 — Merge Task 2 footer + help page redo to main
+
+### Guardrail Engine Run — 2026-07-26T08:47:21
+
+- **manifest_sync_check**: FAIL — Sync orchestrator reported issues — see details.
+- **stub_check**: FAIL — stub_detector.py reported genuine stubs — see details.
+
+One or more checks failed — see console output.
+
+### Deploy
+
+- **Commit**: f0b5715 (Merge feature/todo-046-footer-help: Task 2 footer + help page redo)
+- **Branch**: main
+- **Pushed**: 2026-07-26T13:43 UTC
+- **Render deploy**: https://dashboard.render.com
+
+### What is on main
+
+- Task 2 footer + help page redo (`app/templates/gui/base.html` footer, `app/templates/pages/help.html`, `static/components/footer.html`, `/help` route in `app/main.py`) merged.
+- Pre-existing SSOT false positive in `app/modules/agent_orchestrator/service.py:53` fixed: reworded prompt example that matched the hardcoded-redirect regex.
+- `todo-046` updated in orchestrator archive; `todo-047` moved back to active queue because Task 3 was not implemented.
+- `ACTIVE_CONTEXT.md` updated to reflect Tasks 1, 2, 4, 8, 9, 10 complete; Task 3 next.
+
+### Verification
+
+- `python -m py_compile app/main.py app/modules/agent_orchestrator/service.py`: PASS.
+- `from app.main import app`: PASS (1311 routes).
+- `scripts/verify_ssot.py`: PASS (8/8).
+
+---
+
 ## Session — 2026-07-26 — Ship Task 4 + Task 10 to main
 
 ### Deploy
