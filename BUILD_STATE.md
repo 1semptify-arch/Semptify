@@ -1,5 +1,13 @@
 ## Session -- 2026-07-26 -- Fix CI gate steps blocked by repo-wide coverage threshold
 
+### Deploy
+
+- **Commit**: 513a860 (ci(gates): run mandatory gate steps with --no-cov)
+- **Branch**: main
+- **Pushed**: 2026-07-26T14:55 UTC
+- **Render deploy**: https://dashboard.render.com
+- **Playwright smoke suite**: skipped — no dev server running on port 8000
+
 ### Problem
 
 - The three mandatory gate steps in `.github/workflows/ci.yml` ran `pytest` without `--no-cov`.
