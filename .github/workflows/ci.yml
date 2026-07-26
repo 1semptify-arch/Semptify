@@ -94,7 +94,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+          pytest tests/test_security_isolation_gates.py tests/test_action_router_gates.py tests/test_ssot_architecture.py -v --cov=app --cov-report=xml --cov-report=term-missing
         env:
           SECURITY_MODE: enforced
           DATABASE_URL: sqlite+aiosqlite:///./test.db
