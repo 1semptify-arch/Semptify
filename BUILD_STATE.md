@@ -1,3 +1,23 @@
+## Session -- 2026-07-26 -- Dev server smoke test and capabilities 500 fix
+
+### Problem
+
+- `npx playwright test tests/e2e/*smoke*.spec.js` against `http://localhost:8000` failed:
+  - `capabilities_smoke.spec.js`: `GET /api/capabilities/{user_id}` and `GET /api/capabilities/{user_id}/overlay` returned 500 for unauthenticated requests.
+  - `onboarding_smoke.spec.js`: welcome page CTA selector did not match the actual `/welcome.html` CTA href.
+
+### Fix
+
+- `app/modules/capabilities/router.py`: `_require_admin_or_self()` now raises `401 Unauthorized` when `current_user` is `None` instead of crashing with `AttributeError`.
+- `tests/e2e/onboarding_smoke.spec.js`: added `a[href*="welcome"]` to the CTA locator.
+
+### Verification
+
+- `python -m py_compile app/modules/capabilities/router.py`: PASS.
+- `pytest tests/test_features.py -q --no-cov`: 19 passed.
+- `npx playwright test "smoke" --config=tests/e2e/playwright.config.js` with `SEMPTIFY_URL=http://localhost:8000`: 28/28 passed.
+
+---
 ## Session -- 2026-07-26 -- Fix test collection errors and per-test database isolation
 
 ### Guardrail Engine Run — 2026-07-26T11:34:14
