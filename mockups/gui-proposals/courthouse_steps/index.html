@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Semptify is a public-service tool to protect the rights of tenants facing housing problems.">
+  <title>Semptify · Public-Service Housing-Rights Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F6F1E7;
+      --ink: #1A1A1A;
+      --oxblood: #7A1F1F;
+      --slate: #3A4A5A;
+      --slate-muted: rgba(58, 74, 90, 0.25);
+      --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+      --sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", "Courier New", Courier, monospace;
+      --max-width: 72rem;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      border-radius: 0 !important;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--paper);
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: 1.0625rem;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Subtle paper grain — generated entirely in CSS */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.25;
+      background-image: radial-gradient(circle at 1px 1px, rgba(26, 26, 26, 0.08) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    img,
+    svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--serif);
+      font-weight: 700;
+      line-height: 1.05;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2.75rem, 8.5vw, 5.5rem);
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.4rem, 3.5vw, 2rem);
+      font-weight: 600;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin: 0 0 1rem;
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 0.12em;
+    }
+
+    a:hover {
+      text-decoration-thickness: 2px;
+    }
+
+    *:focus {
+      outline: none;
+    }
+
+    *:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    /* Skip link */
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--sans);
+      font-weight: 700;
+      text-decoration: none;
+      z-index: 200;
+    }
+
+    .skip-link:focus,
+    .skip-link:focus-visible {
+      position: fixed;
+      left: 0.75rem;
+      top: 0.75rem;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      padding: 0.75rem 1rem;
+      outline: 2px solid var(--paper);
+    }
+
+    .container {
+      width: min(92%, var(--max-width));
+      margin-inline: auto;
+      padding-inline: 1rem;
+    }
+
+    /* Docket header strip */
+    .docket-strip {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--paper);
+      border-bottom: 2px solid var(--ink);
+      padding: 0.75rem 0;
+      font-family: var(--sans);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .docket-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: 1rem;
+    }
+
+    .docket-left strong {
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .docket-right {
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--slate);
+    }
+
+    .stage-current {
+      color: var(--oxblood);
+      font-weight: 700;
+    }
+
+    @media (min-width: 45rem) {
+      .docket-strip {
+        font-size: 0.8rem;
+        padding: 0.85rem 0;
+      }
+
+      .docket-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+    }
+
+    /* Horizontal rule lines */
+    .rule {
+      border: 0;
+      border-top: 1px solid var(--slate);
+      margin: 0;
+    }
+
+    /* Reading grid */
+    .doc-grid {
+      display: grid;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .doc-aside {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: var(--slate);
+      border-top: 1px solid var(--slate);
+      padding-top: 1rem;
+    }
+
+    @media (min-width: 60rem) {
+      .doc-grid {
+        grid-template-columns: minmax(0, 1fr) 16rem;
+        gap: 3rem;
+      }
+
+      .doc-aside {
+        border-top: 0;
+        border-left: 1px solid var(--slate);
+        padding-top: 0;
+        padding-left: 1.5rem;
+      }
+    }
+
+    .mono-label {
+      display: block;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+      letter-spacing: 0.06em;
+    }
+
+    .marginalia {
+      margin: 0 0 1.25rem;
+    }
+
+    .marginalia:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Sections */
+    section {
+      padding-block: 2rem;
+    }
+
+    @media (min-width: 60rem) {
+      section {
+        padding-block: 2.75rem;
+      }
+    }
+
+    /* Hero */
+    .hero {
+      padding-block: 2.5rem 2rem;
+    }
+
+    @media (min-width: 60rem) {
+      .hero {
+        padding-block: 3.5rem 2.5rem;
+      }
+    }
+
+    .hero h1 {
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-sub {
+      font-family: var(--sans);
+      font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+      line-height: 1.35;
+      max-width: 46ch;
+      margin-bottom: 1.75rem;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0.85rem 1.6rem;
+      background: var(--ink);
+      color: var(--paper);
+      border: 2px solid var(--ink);
+      font-family: var(--sans);
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .cta:hover,
+    .cta:focus-visible {
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .cta:active {
+      background: var(--oxblood);
+      border-color: var(--oxblood);
+      color: var(--paper);
+    }
+
+    .hero-note {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--slate);
+      margin-top: 1rem;
+      margin-bottom: 0;
+      max-width: 50ch;
+    }
+
+    /* Truth statement */
+    .truth p {
+      font-size: 1.15rem;
+      line-height: 1.45;
+      max-width: 58ch;
+    }
+
+    /* Four pillars */
+    .pillar-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .pillar-list li {
+      padding: 1.15rem 0;
+      border-bottom: 1px solid var(--slate-muted);
+    }
+
+    .pillar-list li:first-child {
+      padding-top: 0;
+    }
+
+    .pillar-list li:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .numeral {
+      font-family: var(--mono);
+      font-weight: 500;
+      color: var(--oxblood);
+      margin-right: 0.4rem;
+    }
+
+    .pillar-name {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .gloss {
+      display: block;
+      font-family: var(--sans);
+      margin-top: 0.35rem;
+      color: var(--slate);
+    }
+
+    @media (min-width: 45rem) {
+      .gloss {
+        display: inline;
+        margin-left: 0.6rem;
+        margin-top: 0;
+        color: var(--ink);
+      }
+    }
+
+    /* Who this is for */
+    .persona-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .persona-list li {
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--slate-muted);
+      font-family: var(--sans);
+      font-size: 0.98rem;
+    }
+
+    .persona-list li:first-child {
+      padding-top: 0;
+    }
+
+    .persona-list li:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .persona-name {
+      font-family: var(--serif);
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* Privacy promise */
+    .privacy p {
+      font-size: 1.15rem;
+      line-height: 1.45;
+      max-width: 60ch;
+    }
+
+    /* Emergency callout */
+    .callout {
+      border: 2px solid var(--oxblood);
+      padding: 1.5rem;
+      max-width: 55ch;
+    }
+
+    .callout h2 {
+      color: var(--oxblood);
+      margin-bottom: 0.5rem;
+    }
+
+    .callout p {
+      margin-bottom: 0;
+    }
+
+    .callout a {
+      font-weight: 700;
+      color: var(--oxblood);
+      text-decoration: underline;
+    }
+
+    .callout a:hover,
+    .callout a:focus-visible {
+      background: var(--oxblood);
+      color: var(--paper);
+      outline-color: var(--oxblood);
+    }
+
+    /* Footer */
+    .site-footer {
+      padding-block: 1.5rem 2rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--slate);
+      border-top: 1px solid var(--slate);
+    }
+
+    .footer-links {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-links a {
+      color: var(--ink);
+      text-decoration: none;
+      margin: 0 0.2rem;
+    }
+
+    .footer-links a:first-child {
+      margin-left: 0;
+    }
+
+    .footer-links a:hover,
+    .footer-links a:focus-visible {
+      text-decoration: underline;
+    }
+
+    .footer-identity {
+      margin: 0;
+      max-width: 55ch;
+    }
+
+    /* Reveal animations */
+    @keyframes rise {
+      from {
+        transform: translateY(0.75rem);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .reveal {
+      animation: rise 0.5s ease-out both;
+      opacity: 1;
+    }
+
+    main > section.reveal:nth-of-type(1) { animation-delay: 0.05s; }
+    main > section.reveal:nth-of-type(2) { animation-delay: 0.15s; }
+    main > section.reveal:nth-of-type(3) { animation-delay: 0.25s; }
+    main > section.reveal:nth-of-type(4) { animation-delay: 0.35s; }
+    main > section.reveal:nth-of-type(5) { animation-delay: 0.45s; }
+    main > section.reveal:nth-of-type(6) { animation-delay: 0.55s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      html {
+        scroll-behavior: auto;
+      }
+
+      .reveal {
+        animation: none !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="docket-strip" role="banner">
+    <div class="docket-inner">
+      <p class="docket-left"><strong>SEMTIFY</strong> · PUBLIC SERVICE · HOUSING RIGHTS</p>
+      <p class="docket-right" aria-label="Stage: Welcome, then Record, Know, Act, Govern">
+        Stage: <span class="stage-current">WELCOME</span>
+        <span aria-hidden="true">→</span> RECORD
+        <span aria-hidden="true">→</span> KNOW
+        <span aria-hidden="true">→</span> ACT
+        <span aria-hidden="true">→</span> GOVERN
+      </p>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero reveal" aria-labelledby="hero-heading">
+      <div class="container">
+        <div class="doc-grid">
+          <div class="doc-main">
+            <h1 id="hero-heading">Semptify</h1>
+            <p class="hero-sub">A public-service tool to protect the rights of tenants facing housing problems.</p>
+            <a class="cta" href="#" id="begin">Begin</a>
+            <p class="hero-note">No account needed. Your documents stay in your own cloud storage.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section class="truth reveal" aria-labelledby="truth-heading">
+      <div class="container">
+        <div class="doc-grid">
+          <div class="doc-main">
+            <h2 id="truth-heading">The law is on your side.</h2>
+            <p>Semptify stands with tenants, lawfully and factually. When the law protects a tenant, we say so clearly. Plain language, no hedging.</p>
+          </div>
+          <aside class="doc-aside" aria-label="Citation note">
+            <p class="marginalia"><span class="mono-label">CITATION</span> — Tenant protections are statutory, not optional.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section class="pillars reveal" aria-labelledby="pillars-heading">
+      <div class="container">
+        <div class="doc-grid">
+          <div class="doc-main">
+            <h2 id="pillars-heading">Four pillars</h2>
+            <ol class="pillar-list">
+              <li>
+                <span class="numeral">I.</span> <span class="pillar-name">RECORD</span>
+                <span class="gloss">Capture and organize evidence. Vault, timeline, calendar.</span>
+              </li>
+              <li>
+                <span class="numeral">II.</span> <span class="pillar-name">KNOW</span>
+                <span class="gloss">Facts only. Library, state laws, context engine.</span>
+              </li>
+              <li>
+                <span class="numeral">III.</span> <span class="pillar-name">ACT</span>
+                <span class="gloss">Lawful, guided action. Case builder, court forms, complaints.</span>
+              </li>
+              <li>
+                <span class="numeral">IV.</span> <span class="pillar-name">GOVERN</span>
+                <span class="gloss">Platform integrity. Audit trail, transparency.</span>
+              </li>
+            </ol>
+          </div>
+          <aside class="doc-aside" aria-label="What this means">
+            <p class="marginalia"><span class="mono-label">I.</span> Build your record before you need it.</p>
+            <p class="marginalia"><span class="mono-label">II.</span> Know the law that applies to you.</p>
+            <p class="marginalia"><span class="mono-label">III.</span> Take lawful steps with the right forms.</p>
+            <p class="marginalia"><span class="mono-label">IV.</span> Hold the process accountable.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section class="personas reveal" aria-labelledby="personas-heading">
+      <div class="container">
+        <div class="doc-grid">
+          <div class="doc-main">
+            <h2 id="personas-heading">Who this is for</h2>
+            <ul class="persona-list">
+              <li><span class="persona-name">The Blindsided Tenant</span> — just got a notice.</li>
+              <li><span class="persona-name">The Builder</span> — logging evidence over time.</li>
+              <li><span class="persona-name">The Court-Bound</span> — has a hearing date.</li>
+              <li><span class="persona-name">The Preventer</span> — wants to be protected before trouble.</li>
+              <li><span class="persona-name">The Advocate / Helper</span> — assisting a tenant.</li>
+            </ul>
+          </div>
+          <aside class="doc-aside" aria-label="Eligibility note">
+            <p class="marginalia"><span class="mono-label">NOTE</span> — If one of these fits your situation, begin.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section class="privacy reveal" aria-labelledby="privacy-heading">
+      <div class="container">
+        <div class="doc-grid">
+          <div class="doc-main">
+            <h2 id="privacy-heading">Privacy promise</h2>
+            <p>Your documents live in your own cloud storage (Google Drive / Dropbox), not on Semptify servers. Semptify is a lens, not a vault-keeper.</p>
+          </div>
+          <aside class="doc-aside" aria-label="Storage control note">
+            <p class="marginalia"><span class="mono-label">KEY</span> — You keep the keys.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section class="emergency reveal" aria-labelledby="emergency-heading">
+      <div class="container">
+        <div class="doc-grid">
+          <div class="doc-main">
+            <div class="callout" role="note">
+              <h2 id="emergency-heading">If you have an emergency</h2>
+              <p>Facing an eviction notice or a hearing date? <a href="#begin">Begin</a>. Deadlines matter.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <hr class="rule">
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <nav aria-label="Footer">
+        <p class="footer-links">
+          <a href="#">About</a> ·
+          <a href="#">Privacy</a> ·
+          <a href="#">Contact</a>
+        </p>
+      </nav>
+      <p class="footer-identity">Semptify is a public-service housing-rights tool. No ads, no tracking pixels, no affiliate links.</p>
+    </div>
+  </footer>
+</body>
+</html>
