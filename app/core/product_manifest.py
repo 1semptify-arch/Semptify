@@ -517,6 +517,14 @@ _register(
     log_message="Voice router connected at /api/voice",
 )
 _register(
+    "app.modules.resource_directory.router",
+    tags=("Resource Directory",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Community resource directory for tenant housing-rights support. Public list/read endpoints plus Tailscale-gated admin CRUD and CSV import. last_verified staleness tracking is a safety requirement.",
+    log_message="Resource Directory router connected at /api/resources and /admin/resources",
+)
+_register(
     "app.modules.search.router",
     prefix="/api/search",
     tags=("Global Search",),

@@ -65,11 +65,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/resource_directory/router.py",
-    "status": "pending",
-    "notes": "last_verified staleness tracking is required, not optional. Bulk CSV import is admin-only behind Tailscale. Listings must be neutral, factual, non-promotional, and directly relevant to tenant housing rights.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no Resource model in app/models. Still pending, unblocked.",
+    "status": "resolved",
+    "notes": "last_verified staleness tracking is required, not optional. Bulk CSV import is admin-only behind Tailscale. Listings must be neutral, factual, non-promotional, and directly relevant to tenant housing rights.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: no Resource model in app/models. Still pending, unblocked.\n[2026-07-27 19:29 UTC - swe-1.7] Resource directory model, public/admin API, CSV import, and staleness endpoint shipped",
     "created_at": "2026-07-26T05:35:38+0000",
-    "updated_at": "2026-07-26T05:59:14.887300+00:00",
-    "assigned_agent": "glm-5.2"
+    "updated_at": "2026-07-27T19:29:43.455016+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-056",

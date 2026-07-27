@@ -60,7 +60,7 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 | 8 | **Third-party contact model** — `ThirdPartyContact` table, case-linked, entity types, audit source | `Semptify_MASTER_HANDOFF.md` Task 8 | ✅ Complete | — |
 | 9 | **Asymmetric redaction pass** — strip user's own PII while preserving third-party info from imports | `Semptify_MASTER_HANDOFF.md` Task 9 | ✅ Complete | — |
 | 10 | **Communication import pipeline** — `.eml`/`.mbox`, SMS CSV/XML, voicemail audio→transcription→discard, call logs CSV | `Semptify_MASTER_HANDOFF.md` Task 10 | ✅ Complete | — |
-| 11 | **Resource directory** — `Resource` table, bulk CSV import, staleness tracking | `Semptify_MASTER_HANDOFF.md` Task 11 | 🅿️ Pending | None |
+| 11 | **Resource directory** — `Resource` table, bulk CSV import, staleness tracking | `Semptify_MASTER_HANDOFF.md` Task 11 | ✅ Complete | Admin UI not yet built; endpoints are API-only |
 
 > **Open decisions before Tasks 4/6/9–10 can be fully scoped:**
 > 1. ✅ Log retention window — **90 days rolling** (resolved 2026-07-26).
