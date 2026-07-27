@@ -94,6 +94,13 @@ class Settings:
     # Buffered logging + R2/local archive (Master Handoff Task 4)
     log_retention_days: int = int(os.getenv("LOG_RETENTION_DAYS", "90"))
     log_flush_interval_seconds: int = int(os.getenv("LOG_FLUSH_INTERVAL_SECONDS", "60"))
+
+    # i18n (Master Handoff Task 6)
+    default_locale: str = os.getenv("DEFAULT_LOCALE", "en")
+    supported_locales: str = os.getenv(
+        "SUPPORTED_LOCALES",
+        "en,es,so,hmn,ar,am,ti,zh,fr,de,ko,ja,pt,it",
+    )
     # Admin network gating — Tailscale CGNAT + RFC1918 + localhost by default.
     # Override with ADMIN_IP_RANGES="100.64.0.0/10,10.0.0.0/8,127.0.0.0/8"
     admin_ip_ranges: str = os.getenv(
@@ -112,6 +119,10 @@ class Settings:
     # Local: http://localhost:8000
     # Production: https://semptify.org
     # NOTE: Read directly from env at instantiation — do not rely on module-level cache
+    @property
+    def supported_locales_list(self) -> list[str]:
+        return [loc.strip() for loc in self.supported_locales.split(",") if loc.strip()]
+
     @property
     def public_base_url(self) -> str:
         return os.getenv("PUBLIC_BASE_URL", "")

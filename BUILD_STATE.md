@@ -1,3 +1,85 @@
+## Session -- 2026-07-26 -- Implement i18n catalog loader and Jinja2 integration (Task 6)
+
+### Problem
+
+- `todo-050` (Multi-language i18n) was pending: no catalog structure, no gettext helpers, no Jinja2 integration.
+- `ACTIVE_CONTEXT.md` confirmed language priority list; design spec in `temp/Semptify_MASTER_HANDOFF.md` Task 6.
+
+### Fix
+
+- `app/core/i18n.py`: JSON catalog loader, `gettext`/`ngettext` helpers, locale resolution from cookie (`semptify_locale`) and `Accept-Language` header, fallback to English.
+- `app/core/config.py`: added `default_locale` and `supported_locales` settings.
+- `app/main.py`: exposed `_()` and `supported_locales` to all Jinja2 templates.
+- `app/translations/en.json`: English source-of-truth catalog with common UI strings.
+- `app/translations/{es,so,hmn,ar,am,ti,zh,fr,de,ko,ja,pt,it}.json`: stub catalogs for human review.
+- `tests/test_i18n.py`: 11 tests covering catalog loading, fallback, locale detection, pluralization, and Jinja2 global.
+
+### Verification
+
+- `python -m py_compile app/core/i18n.py app/core/config.py app/main.py tests/test_i18n.py`: PASS.
+- `pytest tests/test_i18n.py -q --no-cov`: 11 passed.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+
+### Known Working / Pending
+
+- i18n scaffold, catalog loader, settings, Jinja2 globals, and unit tests are working.
+- Translations for the 13 non-English languages are stubbed and fall back to English; human review required for legal/plain-language content.
+- Locale selector UI and `/api/i18n/set-locale` endpoint are not yet built; can be added next if needed.
+
+---
+## Session -- 2026-07-26 -- Tenant reconnect loop fix (RECONNECT-LOOP-001)
+
+### Problem
+
+Tenants experience a reconnect loop: after the Render free-tier service spins down and back up, visiting `/tenant/home` (and other public tenant hub pages) triggers a redirect to `/storage/reconnect` even though the user has a valid cookie and a refresh_token in the database.
+
+### Root cause
+
+`get_current_user()` in `app/core/security.py` had a two-step token lookup:
+1. Check `token_manager` in-memory cache → if empty (after server restart), returns None.
+2. **DB fallback**: `get_session_from_db()` returns the stored `access_token` **without checking expiry and without refreshing**.
+
+After a server restart (Render spin-down), the in-memory cache is empty and the DB holds an expired access_token. The DB fallback returned the expired token, `yellow_access` saw a non-empty token and passed, the storage provider rejected it with 401, and the error handler redirected to `/storage/reconnect`.
+
+The `storage_middleware` has the correct refresh logic (`auto_refresh.ensure_valid_token`), but it skips public paths like `/tenant/home`, `/tenant/timeline`, `/tenant/library`. API calls from those pages hit `get_current_user` which lacked the refresh.
+
+### Fix
+
+`app/core/security.py` — replaced the `get_session_from_db()` DB fallback in `get_current_user()` with `auto_refresh.ensure_valid_token()`. This is the same ice-cube token model used by `storage_middleware`: load refresh_token from DB → knock on provider's door for a new access_token → cache it. If the provider rejects the refresh, return `"no-token"` so `yellow_access`/`red_access` redirect to reconnect (the correct behavior when the refresh_token itself is invalid).
+
+### Verification
+
+- `python -m py_compile app/core/security.py`: PASS.
+- `python -c "from app.core.security import get_current_user, yellow_access, red_access"`: PASS.
+- Pending live test on Render after deploy.
+
+---
+
+## Session -- 2026-07-26 -- Task 5 voice-to-text implementation
+
+### Problem
+
+Task 5 required a voice-to-text path: browser-first Web Speech API capture with a server-side Whisper fallback, raw-audio discard by default, and an opt-in to keep audio as evidence.
+
+### Fix
+
+- `app/templates/components/voice_input.html`: reusable Web Speech API widget (`🎤 Speak` / `⏹ Stop`) that appends interim/final transcripts to a target `<textarea>`, falls back to `getUserMedia` recording + `POST /api/voice/transcribe` when Web Speech is unavailable, and offers a `Keep audio recording as evidence` checkbox.
+- `app/services/voice_service.py`: Whisper transcription service. Sends raw bytes to OpenAI Whisper, does not retain the bytes, and returns a graceful typed message when `OPENAI_API_KEY` is missing.
+- `app/modules/voice/router.py`: `POST /api/voice/transcribe` endpoint wired via `app.core.product_manifest.py` (`/api/voice` prefix). Accepts `UploadFile`, discards raw audio after transcription, and only persists the recording to the user's vault when `keep_audio=true` and a storage token is available.
+- `app/core/product_manifest.py`: registered the `voice` router and added `voice` capability to tenant, advocate, and legal default capability sets.
+- `app/templates/pages/tenant_capture.html` and `app/templates/components/ui_composer.html`: included `voice_input.html` next to the `description` textarea with the correct `target` variable so the widget is wired to the right field.
+
+### Verification
+
+- `python -m py_compile app/core/product_manifest.py app/modules/voice/__init__.py app/modules/voice/router.py app/services/voice_service.py`: PASS.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8/8 passed.
+- Local dev server (`SECURITY_MODE=open`):
+  - `GET /tenant/capture` returns 200 and contains `#voiceBtn-whatHappened` / `.voice-input` markup.
+  - `POST /api/voice/transcribe` (signed tenant cookie, dummy `.wav`) returns 200 `{"success":false,"source":"none","message":"Whisper fallback is not configured on this server. Please type your note."}`.
+- Playwright smoke suite not re-run; prior run showed welcome page 200 and health 401 in enforced mode (expected without a real storage session).
+
+---
+
 ## Session -- 2026-07-26 -- Dev server smoke test and capabilities 500 fix
 
 ### Problem

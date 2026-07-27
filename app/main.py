@@ -91,6 +91,11 @@ templates.env.globals["navigation"] = navigation
 from app.core.subject_starters import get_subject_starters as _get_subject_starters
 templates.env.globals["subject_starters"] = _get_subject_starters()
 
+# Expose i18n `_()` helper and locale list to all Jinja2 templates (Task 6 i18n).
+from app.core.i18n import _jinja2_gettext, SUPPORTED_LOCALES
+templates.env.globals["_"] = _jinja2_gettext
+templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+
 from datetime import datetime as _dt
 
 # Minimal, privacy-first stateless landing route for the On-The-Fly Composer demo

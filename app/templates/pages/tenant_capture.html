@@ -208,12 +208,12 @@
 
 {% block content %}
 <div class="capture-container">
-    
+
     <div class="capture-header">
         <h1>What happened?</h1>
         <p>Record it now while it's fresh. You can add more details later.</p>
     </div>
-    
+
     <!-- Success Message -->
     <div class="success-message" id="successMsg">
         <div class="success-icon">✅</div>
@@ -224,10 +224,10 @@
             <a href="/tenant/home" class="btn btn--primary">Go to Home</a>
         </div>
     </div>
-    
+
     <form id="captureForm" action="/api/tenant/capture" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        
+
         <!-- Type Selection -->
         <div class="type-grid">
             <div class="type-card {% if capture_type == 'notice' %}active{% endif %}" data-type="notice">
@@ -255,22 +255,23 @@
                 <div class="type-label">Something Else</div>
             </div>
         </div>
-        
+
         <input type="hidden" name="capture_type" id="captureType" value="{{ capture_type or 'other' }}">
-        
+
         <div class="form-section">
             <!-- Urgency -->
             <div class="urgency-banner">
                 <input type="checkbox" id="isUrgent" name="is_urgent" value="true">
                 <label for="isUrgent">This needs immediate attention</label>
             </div>
-            
+
             <!-- What Happened -->
             <div class="form-group">
                 <label for="whatHappened">What happened? *</label>
                 <textarea id="whatHappened" name="description" required placeholder="Describe what happened...">{{ prefill_description or '' }}</textarea>
+                {% with target='whatHappened' %}{% include 'components/voice_input.html' %}{% endwith %}
             </div>
-            
+
             <!-- When -->
             <div class="form-group datetime-row">
                 <div>
@@ -282,19 +283,19 @@
                     <input type="time" id="eventTime" name="event_time">
                 </div>
             </div>
-            
+
             <!-- Who -->
             <div class="form-group">
                 <label for="whoInvolved">Who was involved?</label>
                 <input type="text" id="whoInvolved" name="who_involved" placeholder="e.g., Property manager John, Maintenance worker">
             </div>
-            
+
             <!-- Where -->
             <div class="form-group">
                 <label for="whereLocation">Where did this happen?</label>
                 <input type="text" id="whereLocation" name="location" placeholder="e.g., My apartment, Leasing office, Parking lot">
             </div>
-            
+
             <!-- Upload -->
             <div class="form-group">
                 <label>Have any photos, documents, or recordings?</label>
@@ -308,12 +309,12 @@
                 <input type="file" id="fileInput" name="files" multiple hidden>
                 <div id="fileList" style="margin-top: 0.75rem;"></div>
             </div>
-            
+
             <!-- Submit -->
             <button type="submit" class="submit-btn">Save This Record</button>
         </div>
     </form>
-    
+
 </div>
 {% endblock %}
 
@@ -353,15 +354,15 @@ document.getElementById('eventDate').valueAsDate = new Date();
 // Form submission
 document.getElementById('captureForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData(e.target);
-    
+
     try {
         const response = await fetchWithCSRF('/api/tenant/capture', {
             method: 'POST',
             body: formData
         });
-        
+
         if (response.ok) {
             document.getElementById('successMsg').classList.add('show');
             document.getElementById('captureForm').style.display = 'none';
