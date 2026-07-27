@@ -1,3 +1,28 @@
+## Session -- 2026-07-27 -- Implement litigation_intelligence graph_engine (todo-056)
+
+### Problem
+
+- `todo-056` was pending: `app/modules/litigation_intelligence/graph_engine` was not implemented, causing `/api/litigation-intelligence/graph/build`, `/graph/visualize`, and `/graph/path/{src}/{tgt}` to return 501, and LIS statistics to report `{"status":"not_implemented"}` for graph data.
+
+### Fix
+
+- `app/modules/litigation_intelligence/graph_engine.py`: new `GraphEngine` class with entity/relationship graph construction, shortest-path search (BFS), graph statistics (`node_count`, `edge_count`, `density`, `connected_components`, `top_degree_nodes`), and PNG/SVG visualization generation (Pillow when available, SVG fallback).
+- `app/modules/litigation_intelligence/router.py`: wired `graph_engine` into `/graph/build`, `/graph/visualize`, and `/graph/path/{src}/{tgt}`; `/graph/path` accepts an optional request body to supply entities/relationships for a self-contained search. Updated `GET /statistics` to use `graph_engine.analyze_graph()`.
+- `app/modules/litigation_intelligence/__init__.py`: exported `GraphEngine`.
+- `tests/test_litigation_intelligence_graph.py`: 4 tests covering graph build, shortest path, visualization, and statistics.
+
+### Verification
+
+- `python -m py_compile app/modules/litigation_intelligence/graph_engine.py app/modules/litigation_intelligence/router.py app/modules/litigation_intelligence/__init__.py tests/test_litigation_intelligence_graph.py`: PASS.
+- `pytest tests/test_litigation_intelligence_graph.py -q --no-cov`: 4 passed.
+- `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py -q --no-cov`: 23 passed.
+
+### Known Working / Pending
+
+- Graph build, shortest path, visualization, and statistics endpoints return real data.
+- Visualization uses a simple deterministic circular layout; advanced force-directed/layout upgrades are not yet implemented.
+
+---
 ## Session -- 2026-07-27 -- Implement resource directory (Task 11)
 
 ### Problem
