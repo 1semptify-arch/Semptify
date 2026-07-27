@@ -85,13 +85,6 @@ class DocumentDeliveryService:
                     message=f"Role '{sender_role}' cannot send documents. Only: {SENDER_ROLES}"
                 )
             
-            # Validate delivery type
-            if request.delivery_type == DeliveryType.PROCESS_SERVER:
-                return SendDocumentResponse(
-                    success=False,
-                    message="Process server delivery not yet implemented"
-                )
-            
             # Create delivery record
             delivery = DocumentDelivery(
                 sender_id=self.user_id,
@@ -124,9 +117,10 @@ class DocumentDeliveryService:
                     "sender_id": self.user_id,
                     "recipient_id": request.recipient_id,
                     "status": DeliveryStatus.PENDING.value,
+                    "process_server_requested": request.delivery_type == DeliveryType.PROCESS_SERVER,
                 },
             )
-            
+
             result = await manager.create_overlay(overlay_request)
             
             if not result.success:
@@ -140,7 +134,14 @@ class DocumentDeliveryService:
                 f"Document sent: {delivery.delivery_id} from {self.user_id} "
                 f"to {request.recipient_id} ({request.delivery_type.value})"
             )
-            
+
+            if request.delivery_type == DeliveryType.PROCESS_SERVER:
+                return SendDocumentResponse(
+                    success=True,
+                    delivery_id=delivery.delivery_id,
+                    message="Document queued for process server delivery"
+                )
+
             return SendDocumentResponse(
                 success=True,
                 delivery_id=delivery.delivery_id,
