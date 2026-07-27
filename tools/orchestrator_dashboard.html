@@ -170,11 +170,10 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/routers/",
-    "status": "resolved",
-    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-19 14:38 UTC - swe-1.7] [2026-07-19 - swe-1.7] Fixed in commit 9cfd9b2. 8 RedirectResponse calls in app/main.py + 1 in app/modules/admin_console/router.py converted to ssot_redirect(). verify_ssot.py passes.\n[2026-07-20 10:44 UTC - swe-1.7] Converted remaining internal RedirectResponse calls to ssot_redirect; tightened SSOT test.",
+    "status": "pending",
+    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:44:45.570217+00:00",
-    "assigned_agent": "swe-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-002",
@@ -184,11 +183,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".pre-commit-config.yaml",
-    "status": "resolved",
-    "notes": "BUILD_STATE.md Known Broken/Pending\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 12:25 UTC - swe-1.6] .pre-commit-config.yaml already uses venv311/Scripts/python.exe tools/sync_orchestrator.py --git-add.",
+    "status": "pending",
+    "notes": "BUILD_STATE.md Known Broken/Pending",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:38:42.323669+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-003",
@@ -198,11 +196,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".env.example",
-    "status": "resolved",
-    "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 - swe-1.6] Drift cleaned: app/main.py import ordering committed; 7 surfaced test/script files committed with ruff fixes in bc9dc09.",
+    "status": "pending",
+    "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:38:43.023083+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-004",
@@ -212,11 +209,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "static/page_shell/page_shell.css",
-    "status": "resolved",
-    "notes": "BUILD_STATE.md Known Broken/Pending. Prior session work.\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 - swe-1.6] Page Shell module files tracked and registered in app/core/product_manifest.py; /api/page-shell endpoints present.",
+    "status": "pending",
+    "notes": "BUILD_STATE.md Known Broken/Pending. Prior session work.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:38:43.960700+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-005",
@@ -226,11 +222,10 @@
     "target_model": "glm-5.2",
     "priority": "high",
     "file_path": "app/templates/gui/",
-    "status": "resolved",
-    "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.\n[2026-07-19 14:49 UTC - swe-1.6] [2026-07-19 - swe-1.6] /gui/home.html already calls /api/calendar/upcoming and /api/timeline/unified for dashboard cards; /gui/record.html loads /api/vault/all, uploads via /api/intake/upload/auto, and exports via /api/vault/export; /gui/know.html and /gui/act.html are real hubs. Four-pillar GUI wired.",
+    "status": "in_progress",
+    "notes": "ACTIVE_CONTEXT.md priority #2. UPL guardrail (#1) complete.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:49:03.166504+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-006",
@@ -240,11 +235,10 @@
     "target_model": "glm-5.2",
     "priority": "medium",
     "file_path": "docs/planning/DOCUMENT_CENTER_PLAN.md",
-    "status": "resolved",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3\n[2026-07-20 04:47 UTC - swe-1.7] Reconciled DC planning docs (DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md) and fixed stale DC smoke test assertions / contract from todo-038. 22 DC smoke tests pass.\n[2026-07-20 08:55 UTC - swe-1.7] Resumed planning pass at user request\n[2026-07-20 09:01 UTC - swe-1.7] Resumed planning pass: reconciled DC_DESIGN_SONNET.md, DOCUMENT_CENTER_PLAN.md, DC_HANDOFF_SONNET.md with as-built implementation; 22 DC tests pass; guardrail clean",
+    "status": "pending",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #3",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T09:01:52.041046+00:00",
-    "assigned_agent": "swe-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-007",
@@ -254,11 +248,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/attorney_intake_packet/",
-    "status": "resolved",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet\n[2026-07-19 14:38 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Attorney Intake Packet PDF/ZIP rendering + GUI trigger shipped in commit 20b5b0e.",
+    "status": "in_progress",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:38:44.828663+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-008",
@@ -268,11 +261,10 @@
     "target_model": "swe-1.6",
     "priority": "low",
     "file_path": "app/templates/base.html",
-    "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-20 10:02 UTC - SWE-1.7] Audit complete: no .card:hover or .card--interactive:hover box-shadow leaks in base.html or ssot-design-system.css; FNG_TODO.md updated to mark item complete.\n[2026-07-20 10:12 UTC - SWE-1.7] Re-audited: base.html and ssot-design-system.css have no .card:hover box-shadow leaks; FNG_TODO.md checkbox updated.",
+    "status": "pending",
+    "notes": "FNG_TODO.md design system task",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:12:35.943511+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-009",
@@ -284,11 +276,10 @@
     "file_path": "app/templates/base.html",
     "line_start": 490,
     "line_end": 494,
-    "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-19 15:00 UTC - swe-1.6] [2026-07-19 - swe-1.6] Replaced emoji nav icons in base.html with single-color line-style unicode markers.",
+    "status": "pending",
+    "notes": "FNG_TODO.md design system task",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T15:00:50.445371+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-010",
@@ -298,11 +289,10 @@
     "target_model": "kimi-2.7",
     "priority": "low",
     "file_path": "static/css/ssot-design-system.css",
-    "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-20 10:48 UTC - SWE-1.7] Local verification: /home (template-1 #E6F1FB), /law-library (template-2 #E1F5EE), /office (template-4 #F1EFE8), /library (template-5 #FAECE7) all render correct body backgrounds. template-3 CSS verified by injecting class (#EEEDFE). Production blocked: https://semptify.org/ currently serves static index.html 'On-The-Fly Composer' landing page, not the Semptify app pages, so template color sets cannot be confirmed in production until deploy is fixed.\n[2026-07-20 11:27 UTC - SWE-1.7] After enabling Cloudflare Development Mode + purging cache, verified all 5 template color sets on semptify.org via Playwright: /home (template-1 #E6F1FB), /law-library (template-2 #E1F5EE), /office (template-4 #F1EFE8), /library (template-5 #FAECE7); template-3 (#EEEDFE) verified by applying class to /home. Screenshots saved to screenshots/todo-010/.",
+    "status": "pending",
+    "notes": "FNG_TODO.md design system task",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T11:27:35.360465+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-011",
@@ -314,11 +304,10 @@
     "file_path": "static/css/ssot-design-system.css",
     "line_start": 192,
     "line_end": 201,
-    "status": "resolved",
-    "notes": "FNG_TODO.md design system task\n[2026-07-20 10:49 UTC - SWE-1.7] Added @media (prefers-color-scheme: dark) fallback to static/css/ssot-design-system.css so the existing [data-theme=dark] color variables are applied automatically when OS dark mode is enabled. Updated FNG_TODO.md checkbox.",
+    "status": "pending",
+    "notes": "FNG_TODO.md design system task",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:49:24.145785+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-012",
@@ -328,11 +317,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/templates/pages/tenant_home.html",
-    "status": "resolved",
-    "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-19 14:39 UTC - swe-1.6] [2026-07-19 12:03 UTC - swe-1.6] Replaced corrupted nav-icon placeholders with minimal unicode markers.",
+    "status": "pending",
+    "notes": "FNG_TODO.md tenant home rebuild",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:39:52.697921+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-013",
@@ -342,11 +330,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/templates/pages/tenant_home.html",
-    "status": "resolved",
-    "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-19 14:39 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Link now points to /tenant/timeline.",
+    "status": "pending",
+    "notes": "FNG_TODO.md tenant home rebuild",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:39:54.920034+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-014",
@@ -356,11 +343,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/templates/pages/tenant_home.html",
-    "status": "resolved",
-    "notes": "FNG_TODO.md tenant home rebuild\n[2026-07-19 14:39 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Link now points to /tenant/documents.",
+    "status": "pending",
+    "notes": "FNG_TODO.md tenant home rebuild",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:39:56.258889+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-015",
@@ -371,11 +357,10 @@
     "priority": "high",
     "file_path": "app/core/stateless_oauth.py",
     "line_start": 239,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 1.1\n[2026-07-19 14:39 UTC - swe-1.7] [2026-07-19 - swe-1.7] Verified already implemented. refresh_token_if_needed() at line 244 and _refresh_with_provider() at line 329 are fully implemented for google_drive, dropbox, onedrive with per-(user,provider) refresh locks and cloud-storage persistence.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 1.1",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:39:57.217583+00:00",
-    "assigned_agent": "swe-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-016",
@@ -386,11 +371,10 @@
     "priority": "high",
     "file_path": "app/core/storage_middleware.py",
     "line_start": 284,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 1.2\n[2026-07-19 14:39 UTC - swe-1.7] [2026-07-19 - swe-1.7] Verified already implemented. storage_middleware.py:312-325 documents ice-cube token model. Uses app.core.auto_refresh.ensure_valid_token() \u2014 in-memory token with DB refresh_token fallback, no per-request DB hit.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 1.2",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:39:57.862219+00:00",
-    "assigned_agent": "swe-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-017",
@@ -402,11 +386,10 @@
     "file_path": "static/js/core/app.js",
     "line_start": 40,
     "line_end": 61,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 1.3. May overlap with vault-portal.js reactive pattern.\n[2026-07-19 14:40 UTC - swe-1.6] [2026-07-19 12:08 UTC - swe-1.6] Wired uploadToVault to /api/intake/upload/auto with reactive 401/token_expired/storage_required handling.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 1.3. May overlap with vault-portal.js reactive pattern.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:40:25.894973+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-018",
@@ -417,11 +400,10 @@
     "priority": "medium",
     "file_path": "app/templates/pages/timeline.html",
     "line_start": 232,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 1.4\n[2026-07-19 14:40 UTC - swe-1.6] [2026-07-19 12:23 UTC - swe-1.6] timeline.html already posts to /api/timeline/events with JSON and reloads via loadTimeline().",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 1.4",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:40:26.703215+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-019",
@@ -431,11 +413,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "static/js/workspace-stage-model.js",
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 1.5\n[2026-07-19 14:40 UTC - swe-1.6] [2026-07-19 12:31 UTC - swe-1.6] workspace-stage-model.js already calls /api/workflow/case-state and /api/workflow/next-step with fallbacks; test_workspace_stage_model_js.py passes.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 1.5",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:40:27.356723+00:00",
-    "assigned_agent": "swe-1.6"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-020",
@@ -447,11 +428,10 @@
     "file_path": "app/modules/litigation_intelligence/router.py",
     "line_start": 218,
     "line_end": 275,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 2.1\n[2026-07-19 14:40 UTC - swe-1.7] [2026-07-19 - swe-1.7] Litigation intelligence graph endpoints return honest HTTP 501 instead of NameError; fixed in commit 7aaa851.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 2.1",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T14:40:27.972132+00:00",
-    "assigned_agent": "swe-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-021",
@@ -463,11 +443,10 @@
     "file_path": "app/services/mndes_api_client.py",
     "line_start": 193,
     "line_end": 208,
-    "status": "review",
-    "notes": "STUB_AUDIT.md Tier 2.2 - BLOCKED on external team\n[2026-07-20 10:49 UTC - SWE-1.7] MNDESRestClient.submit_exhibit, get_submission_status, and get_case_exhibits are intentional NotImplementedError stubs with 'stub-detector: ignore' markers; they require the external MNDES/EAST API which is not yet available. No implementation possible without API spec/credentials.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 2.2 - BLOCKED on external team",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:49:52.888228+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-022",
@@ -478,11 +457,10 @@
     "priority": "medium",
     "file_path": "app/modules/housing_accountability/router.py",
     "line_start": 83,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 2.3\n[2026-07-19 16:24 UTC - SWE-1.7] detect_repeated_fees now extracts fee_history from evidence_data; string amounts and UTC-aware dates handled; regression tests added",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 2.3",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T16:24:46.376017+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-023",
@@ -493,11 +471,10 @@
     "priority": "low",
     "file_path": "app/modules/components/router.py",
     "line_start": 781,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 2.4\n[2026-07-20 10:52 UTC - SWE-1.7] get_component_config now derives the effective role from the authenticated user_id via get_role_from_user_id, falling back to the URL path parameter. Added manager and judge role configs. Cleaned imports and ruff.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 2.4",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:52:20.273877+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-024",
@@ -508,11 +485,10 @@
     "priority": "low",
     "file_path": "app/services/filedored_service.py",
     "line_start": 91,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 2.5\n[2026-07-20 09:57 UTC - SWE-1.7] Implemented app/services/local_classifier.py: deterministic keyword/filename classifier returns lease/notice/evidence/photo/invoice/communication/unknown; wired into filedored_service.ai_classify_document; 5 tests pass, guardrail clean.\n[2026-07-20 10:11 UTC - SWE-1.7] test",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 2.5",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:11:55.774002+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-025",
@@ -523,11 +499,10 @@
     "priority": "low",
     "file_path": "app/modules/research_module.py",
     "line_start": 376,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 2.6\n[2026-07-20 10:53 UTC - SWE-1.7] Stale task: app/modules/research_module.py standalone file was removed/refactored into app/modules/research/ (service.py + router.py). No 'would upload' placeholder remains; the module now generates ZIP bytes via get_zip() and the download endpoint returns them. Cloud sync is caller-managed.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 2.6",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:53:30.627268+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-026",
@@ -538,11 +513,10 @@
     "priority": "low",
     "file_path": "app/main.py",
     "line_start": 370,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 3.1 - DEFER\n[2026-07-20 10:16 UTC - SWE-1.7] Positronic Brain already re-enabled under ENABLE_HEAVY_SERVICES in main.py; corrected stale log message that claimed brain was disabled.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 3.1 - DEFER",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:16:13.597239+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-027",
@@ -555,10 +529,10 @@
     "line_start": 470,
     "line_end": 489,
     "status": "review",
-    "notes": "STUB_AUDIT.md Tier 3.2 - DEFER\n[2026-07-20 10:54 UTC - SWE-1.7] Distributed mesh network remains disabled intentionally (STUB_AUDIT Tier 3.2 DEFER). Re-enabling cross-instance comms would require a memory-safe redesign and is not appropriate without explicit approval.",
+    "notes": "STUB_AUDIT.md Tier 3.2 - DEFER\n[2026-07-20 10:54 UTC - SWE-1.7] Distributed mesh network remains disabled intentionally (STUB_AUDIT Tier 3.2 DEFER). Re-enabling cross-instance comms would require a memory-safe redesign and is not appropriate without explicit approval.\n[2026-07-26 05:59 UTC - glm-5.2] Re-verified: mesh network still DISABLED in app/main.py:579-600 (memory optimization). Status remains review pending owner decision.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:54:05.947152+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-26T05:59:07.202305+00:00",
+    "assigned_agent": "glm-5.2"
   },
   {
     "id": "todo-028",
@@ -570,11 +544,10 @@
     "file_path": "app/main.py",
     "line_start": 1341,
     "line_end": 1376,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 3.3 - DEFER\n[2026-07-20 10:55 UTC - SWE-1.7] Re-enabled the performance monitoring middleware in slim mode. It records request duration/status into the bounded request_metrics deque and is gated by ENABLE_HEAVY_SERVICES. The original memory issue (psutil.net_connections()) was already removed.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 3.3 - DEFER",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:55:47.310088+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-029",
@@ -585,11 +558,10 @@
     "priority": "low",
     "file_path": "app/modules/storage/router.py",
     "line_start": 1591,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 3.4 - DEFER, needs DB role fix\n[2026-07-20 10:56 UTC - SWE-1.7] _cleanup_expired_states() is already implemented and called in both /authorize and /callback flows; it deletes expired OAuthState rows and also purges the legacy in-memory OAUTH_STATES map. No longer disabled.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 3.4 - DEFER, needs DB role fix",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:56:17.129324+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-030",
@@ -600,11 +572,10 @@
     "priority": "low",
     "file_path": "app/modules/state_laws/router.py",
     "line_start": 80,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 4.1 - DEFER, safe to ship\n[2026-07-20 10:56 UTC - SWE-1.7] State laws are intentionally stubbed for non-MN states (MN is the reference implementation). The /api/states/ endpoint correctly reports status and has_complete_data. BY DESIGN per STUB_AUDIT Tier 4.1.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 4.1 - DEFER, safe to ship",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:56:52.130527+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-031",
@@ -614,11 +585,10 @@
     "target_model": "swe-1.6",
     "priority": "low",
     "file_path": "app/services/eviction/seed_court_data.py",
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 4.2 - DEFER\n[2026-07-20 10:57 UTC - SWE-1.7] CourtDataSeeder.seed_all() generates realistic MN/Dakota County historical cases from public baseline statistics. RealCourtDataImporter has intentional stubs for MNCIS and Eviction Lab APIs because those require credentials/data-use agreements; CSV import is implemented. No TODO markers remain in file.",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 4.2 - DEFER",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:57:44.219110+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-032",
@@ -629,11 +599,10 @@
     "priority": "low",
     "file_path": "app/modules/legal_filing_module.py",
     "line_start": 6,
-    "status": "resolved",
-    "notes": "STUB_AUDIT.md Tier 4.3 - DEFER\n[2026-07-20 10:58 UTC - SWE-1.7] legal_filing_module.py is a thin router wrapper; no mesh/network placeholder remains. The module is functional; mesh integration is not required at this tier (STUB_AUDIT Tier 4.3 DEFER).",
+    "status": "pending",
+    "notes": "STUB_AUDIT.md Tier 4.3 - DEFER",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:58:13.465622+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-033",
@@ -643,11 +612,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/models/models.py",
-    "status": "resolved",
-    "notes": "Preflight: app/models/models.py (Document/DocumentPipelineIndex), app/services/document_registry.py. Scope: add `deep_ocr_status` enum with values pending/processing/complete/failed/needs_reprocess; default pending. Do not touch: vault upload logic, certificate generation, or Intake's existing OCR call. Acceptance: field exists on the model, migrates cleanly, and defaults to pending on new document creation.\n[2026-07-20 02:03 UTC - devin] Starting field addition to Document and DocumentPipelineIndex models.\n[2026-07-20 02:06 UTC - devin] Added DeepOCRStatus enum and deep_ocr_status column to Document and DocumentPipelineIndex models; created alembic migration 573f2a9e816f; compiled cleanly.",
+    "status": "pending",
+    "notes": "Preflight: app/models/models.py (Document/DocumentPipelineIndex), app/services/document_registry.py. Scope: add `deep_ocr_status` enum with values pending/processing/complete/failed/needs_reprocess; default pending. Do not touch: vault upload logic, certificate generation, or Intake's existing OCR call. Acceptance: field exists on the model, migrates cleanly, and defaults to pending on new document creation.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T02:06:32.614002+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-034",
@@ -657,11 +625,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/modules/intake/router.py",
-    "status": "resolved",
-    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call \u2014 reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.\n[2026-07-20 03:13 UTC - devin] Starting deep OCR queue plumbing for upload/auto flow.\n[2026-07-20 03:15 UTC - devin] Wired /api/intake/upload/auto to create DocumentPipelineIndex pending and submit a deep_ocr job via JobProcessor; handler flips deep_ocr_status to processing (stub complete). Pass 1 stays synchronous via process_document; Pass 2 queued.",
+    "status": "pending",
+    "notes": "Preflight: app/modules/intake/router.py and the existing OCR call; check existing job/queue infrastructure. Scope: keep Pass 1 (raw OCR + bounding boxes) inside Light Intake unchanged; create a separate queued job that picks up documents in `deep_ocr_status=pending`, sets status to `processing`, and runs Pass 2 (logic in Ticket 4; can be a stub for this ticket). Do not touch: Intake's existing rough OCR call \u2014 reuse its output, don't duplicate it. Acceptance: upload flow sets `deep_ocr_status` to `processing` and the queue picks up the job; Pass 2 can be a no-op.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T03:15:05.892508+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-035",
@@ -671,11 +638,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/modules/intake/router.py",
-    "status": "resolved",
-    "notes": "Preflight: Ticket 2 queue implementation and the urgency field captured at Light Intake. Scope: add priority ordering to the queue consumer so urgent-flagged documents are processed first. Acceptance: two documents queued back-to-back, the urgent one flagged second, processes first.\n[2026-07-20 03:29 UTC - devin] Starting urgency priority wiring for Deep OCR queue.\n[2026-07-20 03:31 UTC - devin] Added urgency field to IntakeDocument and /api/intake/upload endpoints; mapped urgency to JobPriority and submitted deep_ocr job with priority. Verified JobQueue returns urgent jobs first.",
+    "status": "pending",
+    "notes": "Preflight: Ticket 2 queue implementation and the urgency field captured at Light Intake. Scope: add priority ordering to the queue consumer so urgent-flagged documents are processed first. Acceptance: two documents queued back-to-back, the urgent one flagged second, processes first.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T03:31:14.973257+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-036",
@@ -685,11 +651,10 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/services/document_intake.py",
-    "status": "resolved",
-    "notes": "Preflight: Ticket 2 queue plumbing and the tenancy domain schema/date-role categories. Scope: given raw OCR text, output structured `{raw_text, semantic_label, trigger_phrase, confidence, bounding_box}` objects; rule-based/regex for common patterns, single LLM call only for ambiguous cases. Do not touch: Pass 1 OCR or the queue plumbing. Acceptance: a test document produces correctly labeled, confidence-scored date objects with trigger phrases.\n[2026-07-20 03:58 UTC - devin] Starting Semantic Context Engine (Pass 2) implementation.\n[2026-07-20 04:06 UTC - devin] Implemented SemanticContextEngine for Deep OCR Pass 2; wired into deep_ocr job handler; produces labeled, confidence-scored date objects with trigger phrases.",
+    "status": "pending",
+    "notes": "Preflight: Ticket 2 queue plumbing and the tenancy domain schema/date-role categories. Scope: given raw OCR text, output structured `{raw_text, semantic_label, trigger_phrase, confidence, bounding_box}` objects; rule-based/regex for common patterns, single LLM call only for ambiguous cases. Do not touch: Pass 1 OCR or the queue plumbing. Acceptance: a test document produces correctly labeled, confidence-scored date objects with trigger phrases.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:06:27.911375+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-037",
@@ -699,11 +664,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/services/unified_overlay_manager.py",
-    "status": "resolved",
-    "notes": "Preflight: app/services/unified_overlay_manager.py (create_overlay signature) and app/modules/document_center/router.py (what it expects to read). Scope: on Pass 2 completion, call create_overlay() with structured results and update `deep_ocr_status` to `complete` (or `failed` on error). Do not touch: UnifiedOverlayManager itself. Acceptance: Document Center right panel returns real overlay data for a fully processed document.\n[2026-07-20 04:12 UTC - devin] Deep OCR Pass 2 now writes a DOCUMENT_EXTRACTION overlay via UnifiedOverlayManager.create_overlay() with raw text, formatted dates, and full semantic_dates payload.",
+    "status": "pending",
+    "notes": "Preflight: app/services/unified_overlay_manager.py (create_overlay signature) and app/modules/document_center/router.py (what it expects to read). Scope: on Pass 2 completion, call create_overlay() with structured results and update `deep_ocr_status` to `complete` (or `failed` on error). Do not touch: UnifiedOverlayManager itself. Acceptance: Document Center right panel returns real overlay data for a fully processed document.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:12:45.966717+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-038",
@@ -713,11 +677,10 @@
     "target_model": "swe-1.6",
     "priority": "high",
     "file_path": "app/modules/document_center/router.py",
-    "status": "resolved",
-    "notes": "Preflight: app/modules/document_center/router.py right-panel logic. Scope: display pending/processing/complete/failed/needs_reprocess distinctly so the user can tell 'still processing' from 'something went wrong'. Acceptance: opening a document mid-processing shows a clear, non-alarming status message.\n[2026-07-20 04:23 UTC - devin] Document Center GET /api/dc/document/{vault_id}/overlays now returns honest Deep OCR status messages (pending/processing/complete/failed/needs_reprocess) from DocumentPipelineIndex instead of generic processing_incomplete.",
+    "status": "pending",
+    "notes": "Preflight: app/modules/document_center/router.py right-panel logic. Scope: display pending/processing/complete/failed/needs_reprocess distinctly so the user can tell 'still processing' from 'something went wrong'. Acceptance: opening a document mid-processing shows a clear, non-alarming status message.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:23:43.925431+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-039",
@@ -727,11 +690,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/document_center/router.py",
-    "status": "resolved",
-    "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.\n[2026-07-20 04:34 UTC - devin] Added POST /api/dc/document/{vault_id}/reprocess endpoint. It resets DocumentPipelineIndex.deep_ocr_status to pending and re-queues a deep_ocr job without touching Vault or Light Intake.",
+    "status": "pending",
+    "notes": "Preflight: Tickets 2, 4, and 5. Scope: new endpoint that re-queues a document for Pass 2 and resets `deep_ocr_status` to `pending`. Acceptance: calling it on a `complete` or `failed` document re-triggers Pass 2 and updates status accordingly.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:34:03.271857+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-040",
@@ -741,11 +703,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/services/vault_upload_service.py",
-    "status": "resolved",
-    "notes": "Preflight: app/services/storage/tsa.py, app/services/vault_upload_service.py:_create_certificate, app/services/storage/legal_integrity.py. Scope: call the existing stamp_document_hash() from _create_certificate on normal vault uploads and store the TSA token with the certificate. Do not touch: DocumentRegistry ID generation or SHA-256 hashing logic. Acceptance: a normal vault upload's certificate includes a valid RFC 3161 timestamp token.\n[2026-07-20 04:40 UTC - devin] Vault upload _create_certificate now calls stamp_document_hash and embeds RFC 3161 TSA token (or HMAC fallback) in certificate JSON for every standard vault upload.",
+    "status": "pending",
+    "notes": "Preflight: app/services/storage/tsa.py, app/services/vault_upload_service.py:_create_certificate, app/services/storage/legal_integrity.py. Scope: call the existing stamp_document_hash() from _create_certificate on normal vault uploads and store the TSA token with the certificate. Do not touch: DocumentRegistry ID generation or SHA-256 hashing logic. Acceptance: a normal vault upload's certificate includes a valid RFC 3161 timestamp token.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T04:40:16.480983+00:00",
-    "assigned_agent": "devin"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-041",
@@ -755,11 +716,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/journal/router.py",
-    "status": "resolved",
-    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic \u2014 this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.\n[2026-07-20 06:47 UTC - devin] Created app/modules/journal router, JournalEntry model, alembic migration, product manifest registration, and briefcase integration for free-form tenant journal entries.\n[2026-07-20 06:53 UTC - swe-1.7] Implemented Journal module with /api/journal CRUD, /tenant/journal page, model, migration, contracts, and tests.\n[2026-07-20 06:54 UTC - SWE-1.7] Journal router/register aligned with test contract; /api/journal CRUD + summary pass; duplicate product_manifest registration removed; ruff clean",
+    "status": "pending",
+    "notes": "Preflight: ACTIVE_CONTEXT.md (Journal listed as not-yet-built) and current JournalEntry/JournalSummary in app/core/tenant_briefcase.py (auto-generated, do not conflate). Scope: new app/modules/journal/ with model, create/read endpoints, and basic UI; each entry has free text, timestamp, optional document link, and integrity treatment via the TSA path when available. Do not touch: existing auto-generated journal summary logic \u2014 this is additive. Acceptance: a tenant can create a free-text journal entry unrelated to any document upload and retrieve it later.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T06:54:57.463783+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-042",
@@ -769,11 +729,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/rent/router.py",
-    "status": "resolved",
-    "notes": "Preflight: app/modules/rent/router.py and app/models/models.py (RentPayment). Scope: add entry types beyond payment status (fees, deposits, credits), period_covered, source (ocr_extracted/user_entered), running balance calculation, and a link field to the relevant overlay highlight when an entry originates from a document. Acceptance: a ledger entry can be created manually (no document) or linked to a highlighted amount; running balance calculates correctly across multiple entries.\n[2026-07-20 07:11 UTC - swe-1.7] Expanded Rent module into full Account Ledger with entry types, period_covered, source, overlay_link, and running balance.\n[2026-07-20 07:15 UTC - devin] Expanded app/modules/rent/router into a full account ledger with entry types (payment, fee, deposit, credit, charge), period_covered, source, overlay_link, and per-user running balance calculation.\n[2026-07-20 07:21 UTC - SWE-1.7] Rent Ledger expanded: model, /api/rent/payments CRUD, running balance, register contracts, tests, migrations; 6/6 tests pass, guardrail pass",
+    "status": "pending",
+    "notes": "Preflight: app/modules/rent/router.py and app/models/models.py (RentPayment). Scope: add entry types beyond payment status (fees, deposits, credits), period_covered, source (ocr_extracted/user_entered), running balance calculation, and a link field to the relevant overlay highlight when an entry originates from a document. Acceptance: a ledger entry can be created manually (no document) or linked to a highlighted amount; running balance calculates correctly across multiple entries.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T07:21:04.114961+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-043",
@@ -783,11 +742,10 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/calendar/router.py",
-    "status": "resolved",
-    "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.\n[2026-07-20 09:05 UTC - SWE-1.7] Calendar auto-populate wired: document deadlines and rent ledger due/fee dates sync to CalendarEvent via sync_calendar_for_user; 13 tests pass, guardrail pass",
+    "status": "pending",
+    "notes": "Preflight: app/modules/calendar/router.py and the calendar_from_documents contract. Scope: wire the existing contract so confirmed deadlines and vault items appear on Calendar by default; also feed rent due dates and late-fee trigger dates from the ledger. Acceptance: uploading and confirming a document with a deadline creates a Calendar event automatically, with no manual entry required.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T09:05:56.943630+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   },
   {
     "id": "todo-044",
@@ -797,11 +755,10 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/case_builder/router.py",
-    "status": "resolved",
-    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-20 09:39 UTC - SWE-1.7] Implemented app/modules/packet_builder: unified /api/packet-builder build/get/download endpoints with overlay/clean ZIP and PDF export, wired into manifest and contracts, 8 smoke tests passing. Legacy court_packet module untouched pending future retirement decision.\n[2026-07-20 10:12 UTC - SWE-1.7] Packet Builder module implemented (app/modules/packet_builder) with build/inspect/download endpoints, overlay/clean modes, ZIP/PDF outputs, 8 smoke tests pass, ruff clean, guardrail clean.",
+    "status": "pending",
+    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-20T10:12:36.235115+00:00",
-    "assigned_agent": "SWE-1.7"
+    "updated_at": "2026-07-19T00:00:00Z"
   }
 ]
 
