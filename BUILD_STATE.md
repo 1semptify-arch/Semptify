@@ -1,3 +1,30 @@
+## Session -- 2026-07-27 -- Implement process server delivery in document_delivery_service (todo-058)
+
+### Problem
+
+- `todo-058` was pending: `app/services/document_delivery_service.py` returned `success=False` with the message "Process server delivery not yet implemented" whenever `delivery_type == DeliveryType.PROCESS_SERVER`.
+
+### Fix
+
+- `app/services/document_delivery_service.py`:
+  - Removed the PROCESS_SERVER rejection stub.
+  - Process-server requests now flow through the same overlay creation path as `review_required` and `signature_required`, so the delivery is recorded and visible in the recipient's inbox.
+  - Added `process_server_requested: True` to the overlay metadata for downstream handling.
+  - Returns the message "Document queued for process server delivery" for this delivery type.
+- `tests/test_document_delivery_service.py`: 5 new unit tests covering review_required, signature_required, process_server, overlay failure, and unauthorized roles. The overlay manager is mocked so the tests run without cloud storage.
+
+### Verification
+
+- `python -m py_compile app/services/document_delivery_service.py tests/test_document_delivery_service.py`: PASS.
+- `pytest tests/test_document_delivery_service.py -q --no-cov`: 5 passed.
+- `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py tests/test_document_delivery_service.py -q --no-cov`: 32 passed.
+
+### Known Working / Pending
+
+- `/api/delivery/send` with `delivery_type=process_server` now succeeds and stores a pending delivery overlay.
+- Actual process-server dispatch to a third-party service is not wired (no external process-server API configured). The delivery is queued as a record pending service.
+
+---
 ## Session -- 2026-07-27 -- Implement LIS reporting layer PDF export and real case metrics (todo-057)
 
 ### Problem
