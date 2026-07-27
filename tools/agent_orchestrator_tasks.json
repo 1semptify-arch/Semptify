@@ -121,10 +121,10 @@
     "target_model": "swe-1.7",
     "priority": "low",
     "file_path": "app/core/manager_dashboard.py",
-    "status": "pending",
-    "notes": "Discovered 2026-07-26 stub re-scan.",
+    "status": "resolved",
+    "notes": "Discovered 2026-07-26 stub re-scan.\n[2026-07-27 20:35 UTC - swe-1.7] Manager dashboard staff presence based on last_login/updated_at within 15-minute threshold",
     "created_at": "2026-07-26T06:00:55.676867+00:00",
-    "updated_at": "2026-07-26T06:00:55.676867+00:00",
-    "assigned_agent": null
+    "updated_at": "2026-07-27T20:35:21.184469+00:00",
+    "assigned_agent": "swe-1.7"
   }
 ]

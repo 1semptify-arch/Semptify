@@ -1,3 +1,30 @@
+## Session -- 2026-07-27 -- Implement manager dashboard staff presence tracking (todo-059)
+
+### Problem
+
+- `todo-059` was pending: `app/core/manager_dashboard.py` hardcoded every staff member's status to `"offline"` with a TODO.
+
+### Fix
+
+- `app/core/manager_dashboard.py`:
+  - Added `ONLINE_THRESHOLD_MINUTES = 15`.
+  - Added `_last_seen_for_user(user)` returning the most recent of `last_login` and `updated_at`.
+  - Added `_presence_status(last_seen)` treating naive datetimes as UTC and comparing against the threshold.
+  - Updated `get_staff_list()` to populate `status` and `last_seen` using the new helpers.
+- `tests/test_manager_dashboard.py`: 5 unit tests covering recent login, stale login, missing login with recent updated_at, more-recent updated_at than login, and naive datetime handling.
+
+### Verification
+
+- `python -m py_compile app/core/manager_dashboard.py tests/test_manager_dashboard.py`: PASS.
+- `pytest tests/test_manager_dashboard.py -q --no-cov`: 5 passed.
+- `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py tests/test_document_delivery_service.py tests/test_manager_dashboard.py -q --no-cov`: 37 passed.
+
+### Known Working / Pending
+
+- `/api/manager-dashboard` staff list now reflects real last-activity timestamps.
+- True real-time presence (WebSocket/heartbeat) is not yet implemented; this is a timestamp-based heuristic.
+
+---
 ## Session -- 2026-07-27 -- Implement process server delivery in document_delivery_service (todo-058)
 
 ### Problem
