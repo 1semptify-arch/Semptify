@@ -1807,6 +1807,47 @@ class ModuleRegistry(Base):
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
     updated_by: Mapped[str | None] = mapped_column(String(256), nullable=True)
+
+
+class Resource(Base):
+    """
+    Community resource directory listings for tenant housing-rights support.
+
+    These are neutral, factual, non-promotional listings of agencies and
+    services directly relevant to tenant housing rights. Listings are
+    admin-curated and bulk-imported; stale `last_verified` entries are
+    surfaced for review because an outdated phone number can actively harm
+    someone in crisis.
+    """
+
+    __tablename__ = "resources"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+
+    # Display and classification
+    name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    category: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    # Category examples: legal_aid, housing_counseling, tenant_union,
+    # emergency_shelter, rental_assistance, dispute_resolution
+
+    # Service area: free-form geographic scope (e.g., "Hennepin County, MN",
+    # "Minnesota", "National"). Indexed for filtering.
+    service_area: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+
+    # Languages offered, stored as a JSON array of ISO-639-1 codes.
+    # Examples: ["en", "es", "so", "hmn"]
+    languages: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+
+    # Contact points: JSON object {phone, email, website, address}
+    contact_info: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # Provenance and freshness
+    source: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_verified: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True, index=True)
+
+    # Status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+
+    # Audit
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
-    updated_by: Mapped[str | None] = mapped_column(String(256), nullable=True)

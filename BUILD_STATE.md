@@ -1,3 +1,30 @@
+## Session -- 2026-07-27 -- Implement resource directory (Task 11)
+
+### Problem
+
+- `todo-055` (Resource directory) was pending: no `Resource` model, no admin CSV import, no staleness tracking, no public listing endpoint.
+
+### Fix
+
+- `app/models/models.py`: added `Resource` table with `name`, `category`, `service_area`, `languages` (JSON array), `contact_info` (JSON object), `source`, `last_verified`, and `is_active`.
+- `app/modules/resource_directory/schemas.py`: added Pydantic request/response schemas including `ResourceContactInfo`, `ResourceRead`, `ResourceCreate`, `ResourceUpdate`, `ResourceListResponse`, and `ResourceImportResponse`.
+- `app/modules/resource_directory/router.py`: added public `GET /api/resources` and `GET /api/resources/{id}`; admin `POST /admin/resources`, `PUT /admin/resources/{id}`, `DELETE /admin/resources/{id}`, `POST /admin/resources/import` (CSV), and `GET /admin/resources/stale`. Admin endpoints are protected by `require_admin_network` (Tailscale/RFC1918/localhost gating).
+- `app/core/product_manifest.py`: registered the new router under the CORE tier.
+- `tests/test_resource_directory.py`: 7 tests covering list, create/read round-trip, category filter, CSV import, non-CSV rejection, staleness tracking, and admin-network gating.
+
+### Verification
+
+- `python -m py_compile app/models/models.py app/modules/resource_directory/router.py app/modules/resource_directory/schemas.py app/core/product_manifest.py tests/test_resource_directory.py`: PASS.
+- `pytest tests/test_resource_directory.py -q --no-cov`: 7 passed.
+- `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py -q --no-cov`: 19 passed.
+
+### Known Working / Pending
+
+- Public resource listing and admin CRUD endpoints are wired and tested.
+- CSV import supports `name`, `category`, `service_area`, `languages`, `phone`, `email`, `website`, `address`, `source`, `last_verified`.
+- A browser-based admin import UI is not yet built; endpoints are API-only.
+
+---
 ## Session -- 2026-07-27 -- Implement mobile media capture (Task 7)
 
 ### Problem
@@ -24,6 +51,35 @@
 - Live browser/device test with real camera/microphone permissions is pending.
 
 ---
+## Session -- 2026-07-27 -- Fix OAuth token refresh blocking async event loop + git commit-graph corruption
+
+### Problem
+
+- `app.core.auto_refresh.ensure_valid_token()` was using the synchronous `token_manager.refresh_token_if_needed()`, which calls Google/Dropbox/OneDrive with `httpx.Client` (blocking). Under `uvicorn` async workers this blocks the event loop, causes timeouts/504s, and produces the same reconnect-loop symptom on OAuth sign-in.
+- `.git/objects/info/commit-graphs/` was corrupt, referencing 8 missing commits and causing `git status` to misreport a dirty tree.
+
+### Fix
+
+- `app/core/auto_refresh.py` (`_refresh_from_db`):
+  - Uses the existing async `app.modules.storage.router.refresh_access_token()` instead of the sync `token_manager` refresh path.
+  - Normalizes naive `expires_at` datetimes to UTC before `token.is_expired()` to avoid aware/naive comparison crashes.
+- `.git/objects/info/commit-graphs/`: backed up, regenerated with `git commit-graph write --reachable`, verified with `git commit-graph verify` and `git fsck --full`.
+
+### Verification
+
+- `python -m py_compile app/core/auto_refresh.py`: PASS.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `pytest tests/test_security_isolation_gates.py -q --no-cov`: 7 passed.
+- `git commit-graph verify`: PASS.
+- `git fsck --full`: no errors/fatal (only dangling objects).
+
+### Known Working / Pending
+
+- OAuth async refresh path is fixed in code; pending live OAuth sign-in test on Render to confirm the reconnect loop is resolved.
+- Commit-graph corruption is repaired.
+
+---
+
 ## Session -- 2026-07-26 -- Implement i18n catalog loader and Jinja2 integration (Task 6)
 
 ### Problem
