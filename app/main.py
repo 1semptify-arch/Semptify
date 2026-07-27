@@ -48,13 +48,14 @@ else:
 
 import asyncio
 import datetime
+import json
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -66,6 +67,7 @@ from app.core.config import get_settings
 from app.core.cookie_auth import extract_user_id
 from app.core.database import close_db, init_db
 from app.core.navigation import navigation
+from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 
@@ -3982,6 +3984,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         who_involved = form_data.get("who_involved", "")
         location = form_data.get("location", "")
 
+        # Collect vault IDs uploaded via media capture (photo/audio) so they are
+        # attached to the timeline event as evidence.
+        attached_ids: list[str] = []
+        for raw in form_data.getlist("attached_document_ids"):
+            if raw:
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, list):
+                        attached_ids.extend(str(v) for v in parsed if v)
+                    else:
+                        attached_ids.append(str(parsed))
+                except (json.JSONDecodeError, TypeError):
+                    attached_ids.append(str(raw))
+
         if not description:
             raise HTTPException(status_code=400, detail="Description is required")
 
@@ -4026,12 +4042,75 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 who_involved=who_involved,
                 location=location,
                 is_evidence=False,
+                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
                 created_at=utc_now(),
             )
             db.add(event)
             await db.commit()
 
         return {"success": True, "event_id": event.id}
+
+    @fastapi_app.post("/api/media/capture")
+    async def media_capture_post(
+        request: Request,
+        file: UploadFile = File(...),  # noqa: A001
+        media_type: str = Form("photo"),
+        user: UserContext = Depends(green_access),
+    ):
+        """Upload a photo or audio clip captured via getUserMedia to the user's vault."""
+        try:
+            content = await file.read()
+        finally:
+            await file.close()
+
+        if not content:
+            raise HTTPException(status_code=400, detail="Empty media file")
+
+        allowed_types = {"photo", "audio"}
+        if media_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid media_type. Must be one of {allowed_types}.",
+            )
+
+        # Resolve a real access token if the cookie-only token is stale/missing.
+        real_token = user.access_token
+        if not real_token or real_token in ("auto", "no-token"):
+            try:
+                from app.core.oauth_token_manager import get_valid_token_for_user
+
+                real_token = get_valid_token_for_user(user.user_id)
+            except Exception as exc:
+                logger.warning("Could not load token for media capture: %s", exc)
+                real_token = None
+
+        filename = file.filename or f"{media_type}_{utc_now().timestamp()}.webm"
+        mime_type = file.content_type or (
+            "image/jpeg" if media_type == "photo" else "audio/webm"
+        )
+        document_type = "photo" if media_type == "photo" else "audio_recording"
+
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.upload(
+            user_id=user.user_id,
+            filename=filename,
+            content=content,
+            mime_type=mime_type,
+            document_type=document_type,
+            description=f"{media_type.title()} captured on tenant capture page",
+            tags=["media_capture", media_type, "evidence"],
+            source_module="media_capture",
+            access_token=real_token,
+            storage_provider=user.provider.value if user.provider else "local",
+        )
+
+        return {
+            "success": True,
+            "vault_id": doc.vault_id,
+            "media_type": media_type,
+        }
 
     @fastapi_app.get("/tenant/journal", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/journal/", response_class=HTMLResponse)
