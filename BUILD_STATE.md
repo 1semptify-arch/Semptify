@@ -1,3 +1,46 @@
+## Session -- 2026-07-27 -- Script catalog and interactive admin GUI
+
+### Guardrail Engine Run — 2026-07-27T18:50:26
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- The repository contains dozens of audit, inventory, cleanup, migration, report, test, and utility scripts across `tools/`, `scripts/`, and the root, but there was no single categorized catalog or interactive way for admins to discover them.
+
+### Fix
+
+- Inventoried all scripts and produced `static/data/script_catalog.json` grouped by category with descriptions, effects, and commands.
+- Generated `static/admin/script_catalog.html`, an interactive card-based GUI with search, category filters, expandable details, and command copying.
+- Added admin-protected FastAPI routes in `app/main.py`:
+  - `GET /admin/script-catalog.html` serves the GUI.
+  - `GET /admin/api/script-catalog` serves the JSON catalog.
+- Added `Script Catalog` link to `static/js/admin-nav.js` so it appears in the shared admin navigation.
+- Fixed a root-cause admin elevation bug where `_require_elevation` returned a `Response` from a dependency (FastAPI ignores it), leaving all `/admin/*.html` pages publicly accessible. It now raises `AdminElevationRequired`, and an exception handler returns `307` to `/admin/login` for HTML and `401` JSON for API calls.
+- Added `/admin/api/` to `PUBLIC_PREFIXES` in `app/core/storage_middleware.py` so admin API routes are no longer intercepted by the storage-user middleware and can be gated by their own elevation/capability checks.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `python -m py_compile app/core/admin_elevation.py app/core/storage_middleware.py`: PASS.
+- Script catalog JSON parses and contains 71 entries across 11 categories.
+- `TestClient` verification (with private-network `X-Forwarded-For`):
+  - `GET /admin/script-catalog.html` without elevation cookie → `302` to `/admin/login`.
+  - `GET /admin/script-catalog.html` with valid elevation cookie → `200` with the catalog HTML.
+  - `GET /admin/api/script-catalog` without elevation cookie → `401` JSON.
+  - `GET /admin/api/script-catalog` with valid elevation cookie → `200` with the catalog JSON.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+
+### Known Working / Pending
+
+- Admin can browse and copy commands for all cataloged scripts.
+- Script execution is not enabled in the GUI for safety; run scripts from a terminal.
+- Admin elevation now enforces correctly for `/admin/*.html` and `/admin/api/*` routes; other admin endpoints (e.g. `/admin/api/module-flags`) continue to use their own `_stealth_admin` capability guard.
+
+---
 ## Session -- 2026-07-27 -- Implement manager dashboard staff presence tracking (todo-059)
 
 ### Problem

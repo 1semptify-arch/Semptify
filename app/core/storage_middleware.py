@@ -136,6 +136,7 @@ PUBLIC_PREFIXES = (
     "/api/vault-installer/",  # Vault installer — auth checked by route
     "/api/law-library/",  # Law library — public education content (page is already public)
     "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
+    "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
     "/debug/",  # TEMPORARY: diagnostic endpoints
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
 )

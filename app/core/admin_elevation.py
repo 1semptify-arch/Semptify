@@ -26,7 +26,6 @@ import hashlib
 import hmac
 import json
 import logging
-from typing import Optional
 
 from app.core.config import get_settings
 from app.core.utc import utc_now
@@ -36,6 +35,10 @@ logger = logging.getLogger(__name__)
 ELEVATION_COOKIE_NAME = "semptify_admin_elev"
 ELEVATION_TTL_SECONDS = 2 * 60 * 60  # 2 hours
 _SEPARATOR = "."
+
+
+class AdminElevationRequired(Exception):
+    """Raised when a protected admin route is accessed without valid elevation."""
 
 
 def _get_secret() -> bytes:
@@ -64,7 +67,7 @@ def issue_elevation_cookie(user_id: str) -> str:
     return f"{payload_b64}{_SEPARATOR}{sig}"
 
 
-def verify_elevation_cookie(cookie_value: Optional[str]) -> Optional[dict]:
+def verify_elevation_cookie(cookie_value: str | None) -> dict | None:
     """
     Verify a signed elevation cookie and return the payload if valid and not expired.
 
@@ -83,9 +86,7 @@ def verify_elevation_cookie(cookie_value: Optional[str]) -> Optional[dict]:
 
     payload_b64, provided_sig = parts[0], parts[1]
 
-    expected_sig = hmac.new(
-        _get_secret(), payload_b64.encode(), hashlib.sha256
-    ).hexdigest()
+    expected_sig = hmac.new(_get_secret(), payload_b64.encode(), hashlib.sha256).hexdigest()
 
     if not hmac.compare_digest(expected_sig, provided_sig):
         logger.warning("admin_elevation: signature mismatch — possible tampering")
