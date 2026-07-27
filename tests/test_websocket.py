@@ -85,7 +85,7 @@ class TestWebSocketEvents:
     @pytest.mark.anyio
     async def test_websocket_events_connection(self):
         """Test WebSocket connection sends welcome message."""
-        from app.routers.websocket import websocket_events, get_user_id_from_websocket
+        from app.modules.websocket.router import websocket_events, get_user_id_from_websocket
         from app.core.event_bus import event_bus
         
         ws = MockWebSocket()
@@ -110,7 +110,7 @@ class TestWebSocketEvents:
     @pytest.mark.anyio
     async def test_websocket_ping_pong(self):
         """Test WebSocket ping/pong mechanism."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {"semptify_uid": "test_user"}
@@ -126,7 +126,7 @@ class TestWebSocketEvents:
     @pytest.mark.anyio
     async def test_websocket_subscribe(self):
         """Test WebSocket event subscription."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}
@@ -143,7 +143,7 @@ class TestWebSocketEvents:
     @pytest.mark.anyio
     async def test_websocket_get_history(self):
         """Test WebSocket event history request."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}
@@ -160,7 +160,7 @@ class TestWebSocketEvents:
     @pytest.mark.anyio
     async def test_websocket_invalid_json(self):
         """Test WebSocket handles invalid JSON gracefully."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}
@@ -187,7 +187,7 @@ class TestWebSocketEvents:
     @pytest.mark.anyio
     async def test_websocket_user_id_from_cookies(self):
         """Test user ID extraction from cookies."""
-        from app.routers.websocket import get_user_id_from_websocket
+        from app.modules.websocket.router import get_user_id_from_websocket
         
         ws = MockWebSocket()
         
@@ -228,7 +228,7 @@ class TestBrainWebSocket:
     @pytest.mark.anyio
     async def test_brain_websocket_connection(self):
         """Test Brain WebSocket connection sends initial state."""
-        from app.routers.brain import brain_websocket
+        from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
         
         ws = MockWebSocket()
@@ -248,7 +248,7 @@ class TestBrainWebSocket:
     @pytest.mark.anyio
     async def test_brain_websocket_ping(self):
         """Test Brain WebSocket ping/pong."""
-        from app.routers.brain import brain_websocket
+        from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
         
         ws = MockWebSocket()
@@ -263,7 +263,7 @@ class TestBrainWebSocket:
     @pytest.mark.anyio
     async def test_brain_websocket_get_state(self):
         """Test Brain WebSocket state request."""
-        from app.routers.brain import brain_websocket
+        from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
         
         ws = MockWebSocket()
@@ -279,7 +279,7 @@ class TestBrainWebSocket:
     @pytest.mark.anyio
     async def test_brain_websocket_trigger_workflow(self):
         """Test Brain WebSocket workflow trigger."""
-        from app.routers.brain import brain_websocket
+        from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
         
         ws = MockWebSocket()
@@ -299,7 +299,7 @@ class TestBrainWebSocket:
     @pytest.mark.anyio
     async def test_brain_websocket_client_tracking(self):
         """Test Brain WebSocket client registration/unregistration."""
-        from app.routers.brain import brain_websocket
+        from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
         
         ws = MockWebSocket()
@@ -390,7 +390,7 @@ class TestWebSocketProtocol:
     @pytest.mark.anyio
     async def test_message_format_has_type(self):
         """All server messages should have 'type' field."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}
@@ -404,7 +404,7 @@ class TestWebSocketProtocol:
     @pytest.mark.anyio
     async def test_error_message_format(self):
         """Error messages should have standard format."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}
@@ -435,7 +435,7 @@ class TestConnectionManager:
     def test_connection_manager_exists(self):
         """Test ConnectionManager class exists in dashboard."""
         try:
-            from app.routers.enterprise_dashboard import ConnectionManager
+            from app.modules.enterprise_dashboard.router import ConnectionManager
             assert ConnectionManager is not None
         except ImportError:
             # May not exist, which is fine
@@ -466,7 +466,7 @@ class TestWebSocketSecurity:
     
     def test_user_id_not_from_query_params(self):
         """Verify user_id comes from cookies, not query params."""
-        from app.routers.websocket import get_user_id_from_websocket
+        from app.modules.websocket.router import get_user_id_from_websocket
         
         # The function should only look at cookies
         ws = MockWebSocket()
@@ -479,7 +479,7 @@ class TestWebSocketSecurity:
     @pytest.mark.anyio
     async def test_websocket_graceful_disconnect(self):
         """Test WebSocket handles disconnection gracefully."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         from app.core.event_bus import event_bus
         
         ws = MockWebSocket()
@@ -523,7 +523,7 @@ class TestWebSocketPerformance:
     @pytest.mark.anyio
     async def test_rapid_ping_pong(self):
         """Test rapid ping/pong doesn't cause issues."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}
@@ -540,7 +540,7 @@ class TestWebSocketPerformance:
     @pytest.mark.anyio
     async def test_message_order_preserved(self):
         """Test message order is preserved."""
-        from app.routers.websocket import websocket_events
+        from app.modules.websocket.router import websocket_events
         
         ws = MockWebSocket()
         ws.cookies = {}

@@ -15,6 +15,15 @@ from bs4 import BeautifulSoup
 
 BASE_URL = "http://localhost:8000"
 
+# These are integration tests that require a live dev server running on
+# localhost:8000. They also target deprecated static-HTML routes
+# (/static/welcome.html, /onboarding/select-role.html, /onboarding/storage-select.html)
+# that are either blocked by the static-HTML middleware or no longer exist.
+# Skip them in the unit-test suite; run them manually against a live server.
+pytestmark = pytest.mark.skip(
+    reason="Integration tests require a live dev server on localhost:8000 and target deprecated static routes"
+)
+
 
 class TestStep1Welcome:
     """Step 1: Welcome Page - Single CTA to Get Started"""
