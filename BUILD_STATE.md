@@ -1,3 +1,36 @@
+## Session -- 2026-07-27 -- Implement LIS reporting layer PDF export and real case metrics (todo-057)
+
+### Problem
+
+- `todo-057` was pending: `app/modules/litigation_intelligence/reporting_layer.py:_export_to_pdf` returned the literal string "PDF export not yet implemented".
+- `CaseMetricsCalculator.calculate` returned hardcoded placeholder metrics.
+- `LitigationReport.__dict__` was not JSON serializable (datetime + ReportType enum), causing 500 errors in `/api/litigation-intelligence/report/generate` and `/report/{id}/export`.
+
+### Fix
+
+- `app/modules/litigation_intelligence/reporting_layer.py`:
+  - Added `LitigationReport.to_dict()` for JSON-safe serialization.
+  - Implemented `_export_to_pdf` using `reportlab`, returning a `data:application/pdf;base64,...` data URL.
+  - Made `CaseMetricsCalculator` accept a storage layer and `async calculate` query `LitigationStorageLayer.get_case_metrics()`.
+  - `create_reporting_layer()` now accepts an optional storage layer.
+- `app/modules/litigation_intelligence/storage_layer.py`:
+  - Added `async get_case_metrics(time_period)` that computes total/active/resolved/success-rate/average-duration from `litigation_cases`.
+  - Hardened `get_statistics` and `get_case_metrics` against uninitialized pools.
+- `app/modules/litigation_intelligence/router.py`: passed `storage_layer` to `create_reporting_layer()` and used `report.to_dict()` in responses.
+- `tests/test_litigation_intelligence_reporting.py`: 4 tests covering report generation, PDF export, zero-metric fallback, and factory wiring.
+
+### Verification
+
+- `python -m py_compile app/modules/litigation_intelligence/storage_layer.py app/modules/litigation_intelligence/reporting_layer.py app/modules/litigation_intelligence/router.py tests/test_litigation_intelligence_reporting.py`: PASS.
+- `pytest tests/test_litigation_intelligence_reporting.py -q --no-cov`: 4 passed.
+- `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py -q --no-cov`: 27 passed.
+
+### Known Working / Pending
+
+- `/api/litigation-intelligence/report/generate` now returns serializable reports and `/report/{id}/export?format=pdf` returns a real base64 PDF.
+- When LIS PostgreSQL storage is not initialized, metrics gracefully fall back to zero instead of crashing.
+
+---
 ## Session -- 2026-07-27 -- Implement litigation_intelligence graph_engine (todo-056)
 
 ### Problem
