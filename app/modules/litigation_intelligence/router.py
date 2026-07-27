@@ -96,7 +96,7 @@ entity_normalizer = create_entity_normalizer()
 intelligence_engine = create_intelligence_engine()
 graph_engine = create_graph_engine()
 storage_layer = create_storage_layer("postgresql://user:password@localhost/semptify_lis")
-reporting_layer = create_reporting_layer()
+reporting_layer = create_reporting_layer(storage_layer)
 gui_butler = create_gui_butler()
 scheduler = create_litigation_scheduler()
 
@@ -321,7 +321,7 @@ async def generate_report(request: ReportGenerationRequest, current_user=Depends
         else:
             raise HTTPException(status_code=400, detail="Unsupported report type")
 
-        return JSONResponse(content={"success": True, "report": report.__dict__, "generated_at": utc_now().isoformat()})
+        return JSONResponse(content={"success": True, "report": report.to_dict(), "generated_at": utc_now().isoformat()})
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
@@ -338,7 +338,7 @@ async def get_report(report_id: str, current_user=Depends(get_current_user)):
         if not report:
             return JSONResponse(content={"success": False, "message": "Report not found"}, status_code=404)
 
-        return JSONResponse(content={"success": True, "report": report.__dict__})
+        return JSONResponse(content={"success": True, "report": report.to_dict()})
 
     except Exception as e:
         logger.error(f"Report retrieval failed: {e}")
