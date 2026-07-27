@@ -91,10 +91,12 @@ templates.env.globals["navigation"] = navigation
 
 # Expose concrete subject starters for AI-assist surfaces (Task 3 content pass).
 from app.core.subject_starters import get_subject_starters as _get_subject_starters
+
 templates.env.globals["subject_starters"] = _get_subject_starters()
 
 # Expose i18n `_()` helper and locale list to all Jinja2 templates (Task 6 i18n).
-from app.core.i18n import _jinja2_gettext, SUPPORTED_LOCALES
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext
+
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
 
@@ -1560,6 +1562,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.add_exception_handler(RequestValidationError, semptify_exception_handler)
     fastapi_app.add_exception_handler(StarletteHTTPException, semptify_exception_handler)
 
+    async def admin_elevation_handler(request: Request, exc: Exception):
+        """Redirect HTML requests to admin login; return JSON 401 for API calls."""
+        if request.url.path.endswith(".html"):
+            return ssot_redirect("/admin/login", context="admin elevation required")
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Admin authentication required"},
+        )
+
+    from app.core.admin_elevation import AdminElevationRequired
+
+    fastapi_app.add_exception_handler(AdminElevationRequired, admin_elevation_handler)
+
     logger.info("Global error handling system registered")
 
     # =========================================================================
@@ -2380,13 +2395,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Requires a valid admin elevation cookie issued by /admin/api/login-step2.
         Elevation is valid for 2 hours and requires TOTP re-verification.
         """
-        from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        from app.core.admin_elevation import (
+            ELEVATION_COOKIE_NAME,
+            AdminElevationRequired,
+            verify_elevation_cookie,
+        )
 
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
         if not payload:
-            # Redirect to elevation prompt — stealth: looks like a normal login page
-            return ssot_redirect("/admin/login", context="_require_elevation missing/expired")
+            # Abort to admin elevation prompt — stealth: looks like a normal login page
+            raise AdminElevationRequired("Admin elevation required")
         return payload["uid"]
 
     require_admin = _require_elevation
@@ -2545,6 +2564,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Agent Orchestrator not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/script-catalog.html", response_class=HTMLResponse)
+    async def admin_script_catalog_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Script Catalog admin page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "script_catalog.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Script Catalog not found</h1>", status_code=404)
+
     @fastapi_app.get("/ai-helper", response_class=HTMLResponse)
     async def ai_helper_page(request: Request):
         """Serve the AI Helper page - one-click prompt + bundle for external AI consultation."""
@@ -2614,6 +2644,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.feature_flags import FeatureFlags
 
         return {"name": name, "enabled": FeatureFlags.toggle_flag(name)}
+
+    @fastapi_app.get("/admin/api/script-catalog", tags=["admin"])
+    async def admin_script_catalog_api(admin_uid: str = Depends(require_admin)):
+        """Return the script catalog JSON (admin-only)."""
+        catalog_path = BASE_PATH / "static" / "data" / "script_catalog.json"
+        if catalog_path.exists():
+            return json.loads(catalog_path.read_text(encoding="utf-8"))
+        return {"error": "Script catalog not found"}
 
     @fastapi_app.get("/admin/health", tags=["admin"])
     async def admin_health(admin_uid: str = Depends(require_admin)):
@@ -4085,9 +4123,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 real_token = None
 
         filename = file.filename or f"{media_type}_{utc_now().timestamp()}.webm"
-        mime_type = file.content_type or (
-            "image/jpeg" if media_type == "photo" else "audio/webm"
-        )
+        mime_type = file.content_type or ("image/jpeg" if media_type == "photo" else "audio/webm")
         document_type = "photo" if media_type == "photo" else "audio_recording"
 
         from app.services.vault_upload_service import get_vault_service
