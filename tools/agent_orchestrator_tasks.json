@@ -79,11 +79,11 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/litigation_intelligence/",
-    "status": "pending",
-    "notes": "Discovered 2026-07-26 stub re-scan. See STUB_AUDIT.md Tier 2.1 referenced in router docstrings. Distinct from todo-020 (which only made the 501s intentional).",
+    "status": "resolved",
+    "notes": "Discovered 2026-07-26 stub re-scan. See STUB_AUDIT.md Tier 2.1 referenced in router docstrings. Distinct from todo-020 (which only made the 501s intentional).\n[2026-07-27 19:38 UTC - swe-1.7] Entity-relationship graph engine with build, shortest path, visualization, analysis, and LIS statistics wired",
     "created_at": "2026-07-26T06:00:55.676867+00:00",
-    "updated_at": "2026-07-26T06:00:55.676867+00:00",
-    "assigned_agent": null
+    "updated_at": "2026-07-27T19:38:40.103063+00:00",
+    "assigned_agent": "swe-1.7"
   },
   {
     "id": "todo-057",
