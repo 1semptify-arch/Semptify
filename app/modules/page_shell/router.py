@@ -27,7 +27,7 @@ from app.modules.page_shell.skeletons import all_skeletons, skeleton_for
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/page-shell", tags=["Page Shell"])
+router = APIRouter(tags=["Page Shell"])
 
 # Sample configs ship with the module — two different major_pillars to
 # visibly exercise both a wide (record_focus) and a structurally

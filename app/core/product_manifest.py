@@ -508,6 +508,15 @@ _register(
 )
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)
 _register(
+    "app.modules.voice.router",
+    prefix="/api/voice",
+    tags=("Voice",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Voice-to-text fallback. Web Speech API is the default; this router is the server fallback.",
+    log_message="Voice router connected at /api/voice",
+)
+_register(
     "app.modules.search.router",
     prefix="/api/search",
     tags=("Global Search",),
@@ -1139,6 +1148,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
+        "app.modules.voice.router",
         "app.modules.rent.router",
         "app.modules.state_laws.router",
         "app.modules.law_library.router",

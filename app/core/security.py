@@ -1108,27 +1108,31 @@ async def get_current_user(
 
         # Only create context if we have valid provider and role codes
         if provider and role:
-            # Get real access token: in-memory cache first, then DB (survives server restarts)
-            # Use raw_uid (unsigned) — token manager and session DB key on raw user_id
+            # Get a valid access token, refreshing silently if expired.
+            # Use raw_uid (unsigned) — token manager and session DB key on raw user_id.
+            #
+            # ICE-CUBE TOKEN MODEL (same as storage_middleware):
+            #   1. Check in-memory cache (ice cube) — fastest, no DB/provider call.
+            #   2. Cache empty or melted (expired) → load refresh_token from DB (freezer)
+            #      and knock on provider's door to get a new access_token.
+            #   3. Provider says no → return "no-token" so yellow/red access redirects
+            #      to /storage/reconnect.
+            #
+            # CRITICAL: This must use auto_refresh.ensure_valid_token(), NOT
+            # get_session_from_db() alone. The latter returns the stored access_token
+            # without checking expiry or refreshing — which causes a reconnect loop
+            # after server restarts (Render free-tier spin-down) because the stored
+            # token is expired and the provider rejects it with 401.
+            # See: app.core.auto_refresh.ensure_valid_token()
+            # Tracking: RECONNECT-LOOP-001
             real_token = None
             try:
-                from app.core.oauth_token_manager import get_valid_token_for_user
-                real_token = get_valid_token_for_user(raw_uid)
+                from app.core.auto_refresh import ensure_valid_token
+                _is_valid, _token_obj, _status = await ensure_valid_token(raw_uid)
+                if _is_valid and _token_obj:
+                    real_token = _token_obj.access_token
             except Exception as _e:
-                logger.debug("Failed to load cached token for %s: %s", raw_uid[:6], _e)
-
-            if not real_token:
-                # In-memory cache empty (e.g. after server restart) — load from DB
-                try:
-                    from app.core.database import get_session_factory
-                    from app.modules.storage.router import get_session_from_db
-                    _factory = get_session_factory()
-                    async with _factory() as _db:
-                        _session = await get_session_from_db(_db, raw_uid)
-                        if _session:
-                            real_token = _session.get("access_token")
-                except Exception as _e:
-                    logger.debug("Failed to load session from DB for %s: %s", raw_uid[:6], _e)
+                logger.warning("Token refresh failed for %s***: %s", raw_uid[:6], _e)
 
             return UserContext(
                 user_id=raw_uid,

@@ -1,0 +1,276 @@
+{# Reusable voice input widget for any <textarea>.
+   Usage: {% with target='whatHappened' %}{% include 'components/voice_input.html' %}{% endwith %}
+   Uses Web Speech API as the default path and Whisper server fallback when needed.
+   Raw audio is discarded immediately after transcription unless the user checks
+   "Keep audio as evidence".
+#}
+{% if target %}
+<style>
+.voice-input {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+.voice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.voice-btn:hover {
+    border-color: var(--color-accent);
+    background: var(--color-bg-hover);
+}
+.voice-btn.listening {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: white;
+}
+.voice-status {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    min-width: 8rem;
+}
+.voice-keep {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    width: 100%;
+}
+.voice-keep input {
+    accent-color: var(--color-accent);
+}
+</style>
+
+<div class="voice-input" data-target="{{ target }}">
+    <button type="button" class="voice-btn" id="voiceBtn-{{ target }}" aria-label="Start voice input">🎤 Speak</button>
+    <button type="button" class="voice-btn" id="voiceStopBtn-{{ target }}" style="display:none;" aria-label="Stop voice input">⏹ Stop</button>
+    <span class="voice-status" id="voiceStatus-{{ target }}"></span>
+    <label class="voice-keep" title="Keep a copy of the audio recording in your vault as evidence">
+        <input type="checkbox" id="voiceKeep-{{ target }}">
+        Keep audio recording as evidence
+    </label>
+</div>
+
+<script>
+(function() {
+    const targetId = '{{ target }}';
+    const textarea = document.getElementById(targetId);
+    const speakBtn = document.getElementById('voiceBtn-' + targetId);
+    const stopBtn = document.getElementById('voiceStopBtn-' + targetId);
+    const statusEl = document.getElementById('voiceStatus-' + targetId);
+    const keepBox = document.getElementById('voiceKeep-' + targetId);
+
+    if (!textarea || !speakBtn || !stopBtn || !statusEl) return;
+
+    let recognition = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordingMimeType = '';
+    let recordedBlob = null;
+    let recordingStream = null;
+
+    function setStatus(msg) {
+        statusEl.textContent = msg;
+    }
+
+    function stopAll() {
+        if (recognition) {
+            try { recognition.stop(); } catch (e) {}
+            recognition = null;
+        }
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch (e) {}
+        }
+        if (recordingStream) {
+            recordingStream.getTracks().forEach(t => t.stop());
+            recordingStream = null;
+        }
+        speakBtn.style.display = 'inline-flex';
+        speakBtn.classList.remove('listening');
+        stopBtn.style.display = 'none';
+    }
+
+    function appendText(text) {
+        if (!text) return;
+        const current = textarea.value.trimEnd();
+        textarea.value = current ? current + ' ' + text : text;
+        textarea.focus();
+    }
+
+    function useWebSpeech() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return false;
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = navigator.language || 'en-US';
+
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        recognition.onresult = function(event) {
+            interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            textarea.value = (finalTranscript + interimTranscript).trim();
+        };
+
+        recognition.onerror = function(event) {
+            if (event.error === 'not-allowed') {
+                setStatus('Microphone permission denied.');
+            } else if (event.error === 'no-speech') {
+                setStatus('No speech detected.');
+            } else {
+                setStatus('Speech error: ' + event.error);
+            }
+            stopAll();
+        };
+
+        recognition.onend = function() {
+            appendText(finalTranscript.trim());
+            setStatus('Done listening');
+            stopAll();
+        };
+
+        recognition.start();
+        return true;
+    }
+
+    async function startRecording() {
+        try {
+            recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+            setStatus('Microphone access denied or unavailable.');
+            stopAll();
+            return;
+        }
+
+        recordedChunks = [];
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+            recordingMimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+            recordingMimeType = 'audio/webm';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+            recordingMimeType = 'audio/mp4';
+        } else {
+            recordingMimeType = '';
+        }
+
+        try {
+            mediaRecorder = new MediaRecorder(recordingStream, recordingMimeType ? { mimeType: recordingMimeType } : undefined);
+        } catch (e) {
+            // Fallback if the chosen mimeType is rejected
+            mediaRecorder = new MediaRecorder(recordingStream);
+            recordingMimeType = mediaRecorder.mimeType || 'audio/webm';
+        }
+
+        mediaRecorder.ondataavailable = function(event) {
+            if (event.data && event.data.size > 0) recordedChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async function() {
+            recordingStream.getTracks().forEach(t => t.stop());
+            recordingStream = null;
+            if (recordedChunks.length === 0) {
+                setStatus('No audio recorded.');
+                stopAll();
+                return;
+            }
+            const blobType = recordingMimeType || 'audio/webm';
+            recordedBlob = new Blob(recordedChunks, { type: blobType });
+            await transcribeBlob(recordedBlob, keepBox.checked);
+            recordedBlob = null;
+            stopAll();
+        };
+
+        mediaRecorder.onerror = function() {
+            setStatus('Recording failed.');
+            stopAll();
+        };
+
+        mediaRecorder.start();
+        setStatus('Recording...');
+    }
+
+    async function transcribeBlob(blob, keepAudio) {
+        setStatus('Transcribing...');
+        const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+        const filename = 'voice_' + Date.now() + '.' + ext;
+        const formData = new FormData();
+        formData.append('audio', blob, filename);
+        formData.append('keep_audio', keepAudio ? 'true' : 'false');
+
+        try {
+            const response = await window.fetchWithCSRF('/api/voice/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                appendText(result.transcript);
+                if (keepAudio && result.audio_vault_id) {
+                    setStatus('Transcribed and saved as evidence.');
+                } else if (result.audio_keep_error) {
+                    setStatus('Transcribed. ' + result.audio_keep_error);
+                } else {
+                    setStatus('Transcribed.');
+                }
+            } else {
+                setStatus(result.message || 'Transcription failed.');
+            }
+        } catch (err) {
+            setStatus('Network error during transcription.');
+        }
+    }
+
+    speakBtn.addEventListener('click', async function() {
+        recordedBlob = null;
+        recordedChunks = [];
+        speakBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-flex';
+
+        const keepAudio = keepBox.checked;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition && !keepAudio) {
+            if (useWebSpeech()) {
+                setStatus('Listening...');
+                speakBtn.classList.add('listening');
+            } else {
+                setStatus('Speech recognition unavailable.');
+                stopAll();
+            }
+        } else {
+            await startRecording();
+        }
+    });
+
+    stopBtn.addEventListener('click', function() {
+        if (recognition) {
+            recognition.stop();
+        }
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    });
+})();
+</script>
+{% endif %}
