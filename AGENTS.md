@@ -136,6 +136,17 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Fix:** Restored all files from the orphan copy back to `static/css/` (the correctly mounted location). Deleted the orphan `static/data/css/` directory.
 - **Rule: NEVER delete a static asset file (CSS, JS, image) that is referenced by a template until the replacement is verified live in the running app. If a migration is started and cannot be completed in the same session, revert the deletions before committing. A half-finished migration committed or left on disk overnight is worse than no migration at all.**
 
+### 18. Corrupt Git Commit-Graph Causing `git status` Misreport
+- **What happened:** `.git/objects/info/commit-graphs/` became corrupt, referencing 8 commits that no longer existed in the object database (`failed to parse commit ... from object database for commit-graph`). This caused `git status` to report committed files as modified/added and to show a dirty tree that was actually clean. The corruption likely came from automatic `git gc`/prune or worktree/cascade snapshot maintenance, not from the Devin safety rules.
+- **Fix:** Remove/rename the old split graph, regenerate with `git commit-graph write --reachable`, then verify with `git commit-graph verify` and `git fsck --full`.
+- **Rule:** If `git status` reports large numbers of staged/unstaged changes that don't match what you expect — especially after worktree operations, cascade snapshots, or `git gc`/`git prune` — run `git fsck --full` and `git commit-graph verify` before assuming the working tree is dirty. Do NOT run `git reset --hard` or `git clean -fd` blindly to "fix" the apparent dirtiness.
+
+### 19. OAuth Token Refresh Blocking the Async Event Loop
+- **What happened:** `app.core.auto_refresh.ensure_valid_token()` was calling `token_manager.refresh_token_if_needed()`, which is a synchronous method that uses `httpx.Client` (blocking) to call Google/Dropbox/OneDrive token refresh endpoints. Under `uvicorn`/async workers this blocks the event loop, causes timeouts / 504s, and produces the same reconnect-loop symptom the user sees when signing in with OAuth.
+- **Fix:** Rewrite `app/core/auto_refresh.py::_refresh_from_db()` to use the existing async `app.modules.storage.router.refresh_access_token()` (which uses `httpx.AsyncClient`) instead of the synchronous `token_manager` refresh path. Normalize naive `expires_at` datetimes to UTC before calling `token.is_expired()` to prevent aware/naive datetime comparison crashes.
+- **Rule:** Never call a synchronous HTTP client (`httpx.Client`, `requests`, etc.) from inside an `async def` code path in this repo. Token refresh, provider validation, and storage I/O must all be async. If you see `token_manager.refresh_token_if_needed()` or `get_valid_token_for_user()` being called from an async route/service, replace it with `auto_refresh.ensure_valid_token()` or make the caller `await` an async equivalent.
+- **Files:** `app/core/auto_refresh.py`, `app/core/oauth_token_manager.py`, `app/core/security.py` (`get_current_user`), `app/core/storage_middleware.py`.
+
 ---
 
 ## 📋 Module Contract Mandate
