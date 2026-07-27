@@ -203,6 +203,81 @@
     font-weight: 500;
     color: var(--color-text-primary);
 }
+
+/* Media Capture */
+.media-capture {
+    margin-top: 0.75rem;
+}
+
+.media-capture__controls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.media-capture__consent {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.media-capture__stage {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.media-capture__preview-wrap {
+    margin-bottom: 0.75rem;
+}
+
+.media-capture__preview,
+.media-capture__photo-result,
+.media-capture__canvas {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+    display: block;
+}
+
+.media-capture__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.media-capture__gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.media-capture__gallery-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+}
+
+.media-capture__remove {
+    background: transparent;
+    border: none;
+    color: var(--color-warning);
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-decoration: underline;
+}
+
+.media-capture__notice {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+}
 </style>
 {% endblock %}
 
@@ -308,6 +383,12 @@
                 </div>
                 <input type="file" id="fileInput" name="files" multiple hidden>
                 <div id="fileList" style="margin-top: 0.75rem;"></div>
+
+                <!-- Media Capture -->
+                <div class="form-group">
+                    <label>Capture photo or audio now</label>
+                    <div id="mediaCapture"></div>
+                </div>
             </div>
 
             <!-- Submit -->
@@ -319,6 +400,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/media_capture.js"></script>
 <script>
 // Type selection
 const typeCards = document.querySelectorAll('.type-card');
@@ -373,5 +455,10 @@ document.getElementById('captureForm').addEventListener('submit', async (e) => {
         showFlash('Network error. Please check connection.', 'error');
     }
 });
+
+// Initialize camera / microphone capture widget
+if (typeof initMediaCapture === 'function') {
+    initMediaCapture('#mediaCapture', '#captureForm');
+}
 </script>
 {% endblock %}

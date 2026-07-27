@@ -1,3 +1,29 @@
+## Session -- 2026-07-27 -- Implement mobile media capture (Task 7)
+
+### Problem
+
+- `todo-051` (Mobile media capture) was pending: no `getUserMedia` photo/audio capture, no upload endpoint for captured media, no consent note.
+
+### Fix
+
+- `app/main.py`: added `POST /api/media/capture` endpoint that accepts `file` + `media_type` (`photo`/`audio`) and uploads to the user's vault via `get_vault_service()`.
+- `app/main.py`: extended `POST /api/tenant/capture` to read `attached_document_ids` hidden inputs and persist them on the `TimelineEvent`.
+- `static/js/media_capture.js`: new client-side module for camera photo and microphone audio capture using `getUserMedia` and `MediaRecorder`, with preview, retake, and upload flows.
+- `app/templates/pages/tenant_capture.html`: integrated media capture UI, styles, and `initMediaCapture` call; includes factual recording-consent note.
+- `tests/test_media_capture.py`: 4 tests covering authentication, successful upload, empty file rejection, and invalid media type rejection.
+
+### Verification
+
+- `python -m py_compile app/main.py tests/test_media_capture.py`: PASS.
+- `pytest tests/test_media_capture.py -q --no-cov`: 4 passed.
+- `pytest tests/test_features.py tests/test_ssot_architecture.py -q --no-cov`: 27 passed.
+
+### Known Working / Pending
+
+- Photo/audio capture UI, upload endpoint, and tenant capture integration are wired.
+- Live browser/device test with real camera/microphone permissions is pending.
+
+---
 ## Session -- 2026-07-26 -- Implement i18n catalog loader and Jinja2 integration (Task 6)
 
 ### Problem
