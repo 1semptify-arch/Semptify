@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-26 (Task 3 content pass on main; Tasks 1–4, 8–10 complete; Tasks 5–7, 11 are next)
+**Last Updated**: 2026-07-28 (Packet Builder UI shipped; todo-015/016 resolved; awaiting next candidate priority)
 
 ---
 
@@ -77,7 +77,8 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 
 ## 🎯 Candidate Next Priorities (awaiting user direction)
 
-- **Packet Builder UI** — four-pillar GUI panel for building and downloading packets. Not yet built.
+- **Packet Builder UI** — four-pillar GUI panel shipped 2026-07-28 (`/gui/packet-builder`); awaiting live storage-connected test.
+- **Semantic Context Engine (Deep OCR Pass 2)** — `todo-036` high-priority build; turns raw OCR into labeled, confidence-scored facts.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
 
 ### Action Feedback Helper — COMPLETE
