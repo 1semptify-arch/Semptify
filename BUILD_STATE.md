@@ -1,3 +1,40 @@
+## Session -- 2026-07-28 -- Packet Builder four-pillar UI
+
+### Guardrail Engine Run — 2026-07-28T05:18:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- `ACTIVE_CONTEXT.md` lists Packet Builder UI as the next candidate priority. The backend module (`app/modules/packet_builder/`) was already shipped and tested, but there was no tenant-facing GUI for building and downloading curated document packets.
+
+### Fix
+
+- Added `app/templates/gui/packet_builder.html` — a four-pillar GUI page extending `gui/base.html` with Act navigation active.
+- The page provides a form to choose a source (vault document IDs, a case ID, or a briefcase folder ID), select overlay/clean export mode, toggle highlights/notes/footnotes inclusion, and name the packet.
+- Added JavaScript to `POST /api/packet-builder/build`, display the resulting packet metadata, and generate ZIP/PDF download links from `/api/packet-builder/packets/{packet_id}/download?format=...`.
+- Added `GET /gui/packet-builder` route in `app/main.py`.
+- Added a "Build Packet" card and secondary action button to `app/templates/gui/act.html`.
+- `app/main.py` import blocks were reordered by `ruff --fix`.
+
+### Verification
+
+- `python -m py_compile app/main.py`: PASS.
+- `python -m ruff check --fix app/main.py`: PASS (import sorting fixes applied).
+- `python -m pytest app/modules/packet_builder/tests/test_packet_builder.py -q --no-cov`: 8 passed.
+- `python -m pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `TestClient` smoke test: `GET /gui/act` and `GET /gui/packet-builder` both return 200 with the expected "Build Packet" content.
+
+### Known Working / Pending
+
+- Packet Builder endpoints (`/api/packet-builder/*`) are functional and covered by tests.
+- The new `/gui/packet-builder` page is public under the `/gui/` prefix and wired to the backend.
+- A live browser test with authenticated storage may require an existing vault document or case; the UI handles empty inputs with inline validation.
+
+---
 ## Session -- 2026-07-28 -- Fix remaining pytest failure clusters
 
 ### Guardrail Engine Run — 2026-07-28T03:25:00

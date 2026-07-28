@@ -3159,6 +3159,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """GUI Act — placeholder."""
         return templates.TemplateResponse(request, "gui/act.html")
 
+    @fastapi_app.get("/gui/packet-builder", response_class=HTMLResponse)
+    async def gui_packet_builder_page(request: Request):
+        """GUI Packet Builder — build and download curated document packets."""
+        return templates.TemplateResponse(request, "gui/packet_builder.html")
+
     # =========================================================================
     # Calendar Page
     # =========================================================================
