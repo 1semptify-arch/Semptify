@@ -35,10 +35,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".env.example",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending. git status shows M on all listed files. Multi-file task: see description for full list.\n[2026-07-28 04:55 UTC - SWE-1.7-Max] Working tree clean; listed files already committed in recent history",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T04:55:44.799275+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-004",
