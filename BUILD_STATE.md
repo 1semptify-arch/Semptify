@@ -1,3 +1,25 @@
+## Session -- 2026-07-28 -- Visual verification of 5 template color sets
+
+### Playwright Verification
+
+- Started local dev server (`SECURITY_MODE=open`, temp SQLite DB) on `http://127.0.0.1:8000`.
+- Generated HMAC-signed `semptify_uid` cookies for tenant, legal, and advocate roles.
+- Captured full-page Playwright screenshots for each template color set:
+  - **template-1** (tenant blue) — `/home` → `template-1.png`
+  - **template-2** (legal green) — `/legal` → `template-2.png`
+  - **template-3** (advocate purple) — `/advocate` → `template-3.png`
+  - **template-4** (tools/office slate) — `/tools` → `template-4.png`
+  - **template-5** (library rust) — `/library` → `template-5.png`
+- All five routes rendered successfully with distinct color schemes; console showed only expected 403 API errors on `/advocate` endpoints (role-guarded APIs in open mode).
+- `todo-010` marked `resolved` in `tools/agent_orchestrator_tasks.json`.
+
+### Verification
+
+- Playwright navigation and screenshots produced without error.
+- `python tools/mark_task_status.py todo-010 resolved ...`: success.
+
+---
+
 ## Session -- 2026-07-28 -- Broken tenant document links and stale orchestrator cleanup
 
 ### Guardrail Engine Run — 2026-07-28T18:11:42
