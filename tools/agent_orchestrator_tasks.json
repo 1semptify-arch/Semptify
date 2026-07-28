@@ -271,10 +271,11 @@
     "file_path": "app/modules/litigation_intelligence/router.py",
     "line_start": 218,
     "line_end": 275,
-    "status": "pending",
-    "notes": "STUB_AUDIT.md Tier 2.1",
+    "status": "resolved",
+    "notes": "STUB_AUDIT.md Tier 2.1\n[2026-07-28 16:48 UTC - SWE-1.7-Max] Graph engine is implemented and the three endpoints (graph/build, graph/visualize, graph/path) are live in app/modules/litigation_intelligence/router.py; tests pass; updated stale register.py docstring.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T16:48:04.703404+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-021",

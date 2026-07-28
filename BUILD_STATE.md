@@ -1,3 +1,37 @@
+## Session -- 2026-07-28 -- Resolve todo-020 (litigation_intelligence graph endpoints)
+
+### Guardrail Engine Run — 2026-07-28T05:18:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- `agent_orchestrator_tasks.json` listed `todo-020` as a high-priority stub fix: `app/modules/litigation_intelligence/router.py` endpoints at lines 218, 250, and 275 were reported to return `501` "Graph engine not implemented".
+
+### Fix
+
+- Inspected `app/modules/litigation_intelligence/router.py`:
+  - `POST /api/litigation-intelligence/graph/build` already builds a graph from entities/relationships and returns `graph` data via `GraphEngine.export_graph_data()`.
+  - `POST /api/litigation-intelligence/graph/visualize` already returns `png`/`svg` visualizations via `GraphEngine.generate_visualization()`.
+  - `POST /api/litigation-intelligence/graph/path/{source}/{target}` already runs BFS shortest-path search via `GraphEngine.find_shortest_path()`.
+- Inspected `app/modules/litigation_intelligence/graph_engine.py` and confirmed the in-memory `GraphEngine` is fully implemented with nodes, edges, statistics, and PNG/SVG rendering.
+- Updated the stale docstring in `app/modules/litigation_intelligence/register.py` that incorrectly claimed the module was inactive due to an unimplemented graph engine.
+- Marked `todo-020` resolved in `tools/agent_orchestrator_tasks.json`.
+
+### Verification
+
+- `python -m py_compile app/modules/litigation_intelligence/register.py`: PASS.
+- `python -m pytest tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py tests/test_module_contracts.py tests/test_product_manifest.py -q --no-cov`: 38 passed.
+
+### Known Working / Pending
+
+- The three graph endpoints are live and covered by tests.
+- Graph visualizations gracefully degrade from PNG to SVG when Pillow is unavailable.
+
+---
 ## Session -- 2026-07-28 -- Resolve todo-036 (Semantic Context Engine / Deep OCR Pass 2)
 
 ### Guardrail Engine Run — 2026-07-28T05:18:00
