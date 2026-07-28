@@ -1,3 +1,42 @@
+## Session -- 2026-07-28 -- Resolve todo-015 and todo-016 (OAuth token refresh + ice-cube token model)
+
+### Guardrail Engine Run — 2026-07-28T05:18:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- `agent_orchestrator_tasks.json` listed `todo-015` and `todo-016` as high-priority pending items:
+  - `todo-015`: `app/core/stateless_oauth.py:239` — token refresh reported as not implemented, causing users to be logged out on token expiry.
+  - `todo-016`: `app/core/storage_middleware.py:284` — DB-based token pre-check marked as temporary, needing an in-memory "ice-cube" token model.
+
+### Fix
+
+- Verified `app/core/stateless_oauth.py`:
+  - `refresh_token_if_needed()` already implements full async token refresh with `RefreshResult` (distinguishable error codes: `no_tokens_stored`, `no_refresh_token`, `refresh_failed:*`, `missing_client_credentials:*`).
+  - `_refresh_with_provider()` posts `refresh_token` to Google/Dropbox/OneDrive token endpoints using `httpx.AsyncClient`, with provider-specific client credentials from settings.
+  - Refreshed tokens are persisted back to the user's cloud storage via `store_oauth_tokens()`.
+  - Per-user+provider `asyncio.Lock` serialization prevents concurrent refresh races.
+- Verified `app/core/auto_refresh.py` and `app/core/storage_middleware.py`:
+  - `ensure_valid_token()` checks the in-memory `token_manager` cache first (ice cube), loads `refresh_token` from the DB only on cache miss, and performs async provider refresh via `app/modules/storage/router.py:refresh_access_token()`.
+  - `storage_middleware` delegates token validity to `get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)`, so the provider is the bouncer and DB is only the freezer/refresh-token store.
+- Marked `todo-015` and `todo-016` resolved in `tools/agent_orchestrator_tasks.json`.
+
+### Verification
+
+- `python -m py_compile app/core/stateless_oauth.py app/core/auto_refresh.py app/core/storage_middleware.py app/modules/storage/router.py app/core/oauth_token_manager.py`: PASS.
+- `python -m pytest tests/test_sessions.py -q --no-cov`: 19 passed.
+- `python -m pytest tests/test_ssot_architecture.py tests/test_websocket.py tests/test_production_init.py -q --no-cov`: 36 passed, 3 skipped.
+
+### Known Working / Pending
+
+- OAuth token refresh paths are async and non-blocking; no synchronous `httpx.Client` calls remain in the refresh flow used by `storage_middleware`.
+- In-memory token cache reduces per-request DB load; multi-instance deployments still need a shared cache for full ice-cube benefit.
+
+---
 ## Session -- 2026-07-28 -- Packet Builder four-pillar UI
 
 ### Guardrail Engine Run — 2026-07-28T05:18:00
