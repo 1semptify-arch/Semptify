@@ -418,3 +418,29 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="case_builder",
+        group_name="case_builder_curated_packet_export",
+        title="Case Builder Curated Packet Export (SSOT)",
+        description=(
+            "CANONICAL export a curated packet ZIP from case evidence. "
+            "Produces clean/ original copies, marked/ copies with highlight/note/footnote "
+            "annotations appended, and a summary/ report. "
+            "Overlay types are configurable; document_ids can be supplied or inferred from case evidence."
+        ),
+        inputs=(
+            "case_id",
+            "user_id",
+            "document_ids?",
+            "include_clean?",
+            "include_marked?",
+            "include_summary?",
+            "overlay_types?",
+        ),
+        outputs=("zip_bytes", "filename"),
+        dependencies=("app.modules.case_builder.router", "app.modules.case_builder.packet_export"),
+        deterministic=True,
+    )
+)

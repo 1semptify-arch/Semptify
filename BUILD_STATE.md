@@ -1,4 +1,81 @@
+## Session -- 2026-07-28 -- Live end-to-end test of todo-044
+
+### Guardrail Engine Run — 2026-07-28T15:22:29
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Verification
+
+- Connected Google Drive OAuth for user `GUyQ2ld1CC` via Playwright.
+- Added missing `review_state_json` column to `vault_index` (schema was behind model; `alembic` failed because `document_shares` already existed).
+- Uploaded a test PDF to Google Drive through `VaultUploadService`.
+- Created a `NOTE` overlay through `UnifiedOverlayManager`.
+- Called `build_curated_packet_zip` with a synthetic case.
+- Produced `packet-TEST-2026-001.zip` containing:
+  - `clean/packet_export_test.pdf`
+  - `marked/packet_export_test.pdf`
+  - `summary/packet-summary.pdf`
+  - `summary/packet-summary.txt`
+  - `manifest.json`
+- `todo-044` live cloud-storage verification is complete.
+
+---
+
+## Session -- 2026-07-28 -- Unified Curated Packet Export (todo-044)
+
+### Guardrail Engine Run — 2026-07-28T20:00:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- Packet Builder export had two separate paths (case_builder attorney intake packet and briefcase folder export).
+- Product owner asked for option 3: a single curated export with both marked-up and clean copies of documents, plus a summary.
+
+### Fix
+
+- Added `app/modules/case_builder/packet_export.py`: a reusable helper that builds a single ZIP with:
+  - `clean/` — original, unmodified documents.
+  - `marked/` — PDFs and images merged with appended annotation pages; other formats keep the original plus a sidecar `_annotations.pdf`.
+  - `summary/` — `packet-summary.pdf` and `packet-summary.txt` of all highlights, notes, and footnotes.
+  - `manifest.json` — case, document, and overlay metadata.
+- Added `POST /api/case-builder/cases/{case_id}/packet-export` in `app/modules/case_builder/router.py`.
+- Registered a `FunctionGroupContract` for the new endpoint in `app/modules/case_builder/register.py`.
+- Wired a new "Curated Packet Export" panel in `app/templates/pages/case_builder.html` with checkboxes for Clean/Marked/Summary.
+
+### Verification
+
+- `python -m py_compile app/modules/case_builder/packet_export.py app/modules/case_builder/router.py app/modules/case_builder/register.py`: PASS.
+- `python -m ruff check app/modules/case_builder/packet_export.py`: PASS.
+- `python -m pytest tests/test_case_builder.py tests/test_fees_policy_guardrail.py -q --no-cov`: 11 passed, 9 skipped.
+- `python -m pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- Endpoint and helper import cleanly; UI panel renders in `case_builder.html`.
+
+### Known Working / Pending
+
+- `todo-044` marked `resolved` in `tools/agent_orchestrator_tasks.json`.
+- The feature is code-complete. It needs a live end-to-end test with real cloud storage and overlaid documents to confirm PDF/Image merging and overlay fetching.
+
+---
+
 ## Session -- 2026-07-28 -- Visual verification of 5 template color sets
+
+### Guardrail Engine Run — 2026-07-28T13:29:20
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### Playwright Verification
 
