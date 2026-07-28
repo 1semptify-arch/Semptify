@@ -21,10 +21,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": ".pre-commit-config.yaml",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending\n[2026-07-28 04:35 UTC - SWE-1.7-Max] Sync-orchestrator hook already points to venv311/Scripts/python.exe in .pre-commit-config.yaml",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T04:35:47.115743+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-003",
