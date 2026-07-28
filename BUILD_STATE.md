@@ -1,3 +1,44 @@
+## Session -- 2026-07-28 -- Resolve todo-036 (Semantic Context Engine / Deep OCR Pass 2)
+
+### Guardrail Engine Run — 2026-07-28T05:18:00
+
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- `agent_orchestrator_tasks.json` listed `todo-036` as a high-priority build: implement the reasoning layer that turns raw OCR text into labeled, confidence-scored facts using the tenancy domain schema and trigger-phrase context.
+
+### Fix
+
+- Verified `app/services/semantic_context_engine.py` already implements the Semantic Context Engine:
+  - `SemanticContextEngine.extract()` takes raw OCR text and an optional document type hint and returns `SemanticDateResult` objects.
+  - Each result contains `raw_text`, `date` (ISO), `semantic_label`, `trigger_phrase`, `confidence`, and `bounding_box` (reserved for future OCR bbox passthrough).
+  - Rule-based/regex classification uses `DATE_ROLE_TRIGGERS` (created, signed, issued, effective, claimed_service, deadline, period) and document-type hints.
+  - Ambiguous cases are resolved with domain heuristics; an LLM fallback is reserved but not required.
+- Added acceptance tests in `tests/test_semantic_context_engine.py`:
+  - A multi-date eviction notice text is classified into `signed`, `effective`, `deadline`, and `issued` roles with the correct `trigger_phrase` and non-trivial confidence.
+  - Empty/whitespace input returns an empty list.
+  - Unlabeled dates fall back to the `mentioned` role.
+- Wired/verified the Deep OCR pass-2 job in `app/core/job_processor.py`:
+  - `deep_ocr_handler` already runs `SemanticContextEngine().extract()` on Pass 1 raw OCR text and persists structured `pass2_results` to the `DocumentPipelineIndex` payload.
+  - It writes the results to cloud storage via `UnifiedOverlayManager.create_overlay()` so the Document Center can read real data.
+  - Fixed the token refresh call in the overlay path to use the async `app.core.auto_refresh.ensure_valid_token()` instead of the synchronous `get_valid_token_for_user()`, avoiding event-loop blocking per Known Failure Registry #19.
+- Marked `todo-036` resolved in `tools/agent_orchestrator_tasks.json`.
+
+### Verification
+
+- `python -m py_compile app/core/job_processor.py app/services/semantic_context_engine.py tests/test_semantic_context_engine.py`: PASS.
+- `python -m pytest tests/test_semantic_context_engine.py tests/test_document_intake.py tests/test_sessions.py -q --no-cov`: 65 passed.
+
+### Known Working / Pending
+
+- Deep OCR Pass 2 now produces structured, labeled, confidence-scored date objects and writes them to the user's cloud overlays.
+- The rule-based engine handles common tenancy date roles; the LLM fallback is still reserved for a future optimization.
+
+---
 ## Session -- 2026-07-28 -- Resolve todo-015 and todo-016 (OAuth token refresh + ice-cube token model)
 
 ### Guardrail Engine Run — 2026-07-28T05:18:00
