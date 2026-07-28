@@ -48,12 +48,13 @@ def test(name: str, request_func: Callable, expected_codes: list = None):
 # =============================================================================
 # RUN TESTS
 # =============================================================================
-print("=" * 60)
-print("SEMPTIFY-FASTAPI ENDPOINT TEST SUITE")
-print("=" * 60)
 
 
 if __name__ == "__main__":
+    print("=" * 60)
+    print("SEMPTIFY-FASTAPI ENDPOINT TEST SUITE")
+    print("=" * 60)
+
     # =============================================================================
     # HEALTH & CORE
     # =============================================================================

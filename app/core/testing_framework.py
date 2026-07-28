@@ -33,13 +33,13 @@ logger = logging.getLogger(__name__)
 # are intentionally excluded.
 _SAFE_BUILTIN_NAMES = frozenset([
     'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'bytearray', 'bytes',
-    'callable', 'chr', 'classmethod', 'complex', 'delattr', 'dict', 'dir',
+    'callable', 'chr', 'classmethod', 'complex', 'dict',
     'divmod', 'enumerate', 'filter', 'float', 'format', 'frozenset',
-    'getattr', 'hasattr', 'hash', 'hex', 'id', 'int', 'isinstance', 'issubclass',
-    'iter', 'len', 'list', 'map', 'max', 'memoryview', 'min', 'next', 'object',
+    'hash', 'hex', 'id', 'int', 'isinstance', 'issubclass',
+    'iter', 'len', 'list', 'map', 'max', 'memoryview', 'min', 'next',
     'oct', 'ord', 'pow', 'property', 'range', 'repr', 'reversed', 'round',
     'set', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super', 'tuple',
-    'type', 'vars', 'zip', 'AssertionError', 'AttributeError', 'Exception',
+    'zip', 'AssertionError', 'AttributeError', 'Exception',
     'ImportError', 'IndexError', 'KeyError', 'LookupError', 'NameError',
     'RuntimeError', 'StopIteration', 'TypeError', 'ValueError', 'ZeroDivisionError',
     'True', 'False', 'None',
