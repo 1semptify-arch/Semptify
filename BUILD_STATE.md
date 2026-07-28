@@ -1,3 +1,39 @@
+## Session -- 2026-07-28 -- Broken tenant document links and stale orchestrator cleanup
+
+### Guardrail Engine Run — 2026-07-28T18:11:42
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- `agent_orchestrator_tasks.json` still listed many tasks that were already implemented
+  (Deep OCR pipeline, Journal, Rent ledger, RFC 3161 TSA wiring, etc.).
+- `tenant_home.html` and `tenant_help.html` linked to `/tenant/documents`, which has no
+  registered route.
+
+### Fix
+
+- Marked resolved the stale tasks from the queue after verifying the code exists and works.
+- Replaced `/tenant/documents` with `/gui/record` (canonical four-pillar record page) in
+  `tenant_home.html` and `tenant_help.html`.
+
+### Verification
+
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working / Pending
+
+- `todo-044` (Packet Builder unify) still pending a design decision.
+- `todo-007` (Attorney Intake Packet) still in progress on feature branch awaiting user review.
+- Remaining low-priority items are design system tweaks, deferred disabled modules, and seed data.
+
+---
+
 ## Session -- 2026-07-28 -- Fees-Policy Module Exemption + Marking
 
 ### Guardrail Engine Run — 2026-07-28T12:37:26
