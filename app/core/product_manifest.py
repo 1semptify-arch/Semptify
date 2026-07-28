@@ -101,6 +101,22 @@ class ProductTier(StrEnum):
         return [cls.CORE, cls.EXTENDED, cls.ADVOCATE, cls.ADMIN, cls.RESEARCH, cls.DEV]
 
 
+class FeesPolicy(StrEnum):
+    """Semantic classification for how the word "fee" may be used in a module.
+
+    - tenant_no_fees: the module is tenant-facing or public-facing and must not
+      imply Semptify charges fees. Landlord-charged "fee" language is only
+      allowed when it clearly refers to third-party charges, not Semptify.
+    - exempt_advanced: the module is advanced/admin/research-only and uses
+      "fee" as a domain term describing landlord conduct found in tenant
+      evidence (e.g. `detect_repeated_fees`). The exemption is conditional on
+      the module remaining unreachable by the tenant role.
+    """
+
+    TENANT_NO_FEES = "tenant_no_fees"
+    EXEMPT_ADVANCED = "exempt_advanced"
+
+
 # =============================================================================
 # Module Entry
 # =============================================================================
@@ -141,6 +157,14 @@ class ModuleEntry:
             rules. Modules at MEDIUM_HIGH+ must display the canonical disclaimer
             and referral block on output surfaces.
 
+        --- Fees Terminology Policy ---
+        fees_policy: Whether this module is allowed to use "fee" as a domain term
+            describing landlord conduct (exempt_advanced) or must avoid any
+            implication that Semptify charges fees (tenant_no_fees). The
+            exemption is conditional on the module remaining unreachable by the
+            tenant role. Defaults to tenant_no_fees. Advanced/admin/research
+            tiers default to exempt_advanced when no explicit value is supplied.
+
         --- External Module Fields (ignored for internal modules) ---
         external_repo: Git URL for external module source
         external_version: Pinned version string
@@ -169,6 +193,10 @@ class ModuleEntry:
     # Defaults to LOW (safest). Legal-adjacent modules MUST override.
     # See app/core/upl_guardrails.py for tier definitions and enforcement rules.
     upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW
+
+    # Fees terminology policy — tenant_no_fees by default. Advanced/admin/research
+    # modules default to exempt_advanced in _register() when no value is supplied.
+    fees_policy: FeesPolicy = FeesPolicy.TENANT_NO_FEES
 
     # External module fields (ignored for internal)
     external_repo: str = ""
@@ -348,6 +376,7 @@ def _register(
     feature_flag: str = "",
     dev_notes: str = "",
     upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW,
+    fees_policy: FeesPolicy | None = None,
     # External module fields
     external_repo: str = "",
     external_version: str = "",
@@ -359,7 +388,18 @@ def _register(
     Accepts all Module Flag Overlay fields (Phase 2.1) in addition to the
     original registration fields. Existing callers do not need to change —
     new fields default to safe values (lifecycle='stable', origin='internal').
+
+    If fees_policy is not supplied, CORE and DEV modules default to
+    tenant_no_fees; EXTENDED/ADVOCATE/ADMIN/RESEARCH modules default to
+    exempt_advanced. This convention is enforced by the fees_policy guardrail,
+    which fails the build if an exempt_advanced module becomes tenant-reachable.
     """
+    if fees_policy is None:
+        if tier in (ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN, ProductTier.RESEARCH):
+            fees_policy = FeesPolicy.EXEMPT_ADVANCED
+        else:
+            fees_policy = FeesPolicy.TENANT_NO_FEES
+
     entry = ModuleEntry(
         module_path=module_path,
         router_attr=router_attr,
@@ -376,6 +416,7 @@ def _register(
         feature_flag=feature_flag,
         dev_notes=dev_notes,
         upl_risk_tier=upl_risk_tier,
+        fees_policy=fees_policy,
         external_repo=external_repo,
         external_version=external_version,
         external_signature=external_signature,
@@ -705,6 +746,7 @@ _register(
     tags=("Housing Accountability",),
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
+    fees_policy=FeesPolicy.EXEMPT_ADVANCED,
     dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.",
 )
 _register(
@@ -713,6 +755,7 @@ _register(
     tags=("Pattern History",),
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
+    fees_policy=FeesPolicy.EXEMPT_ADVANCED,
     dev_notes="Depends on housing_accountability pattern matching.",
 )
 
