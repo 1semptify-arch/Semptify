@@ -7,10 +7,11 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/routers/",
-    "status": "pending",
-    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.",
+    "status": "resolved",
+    "notes": "BUILD_STATE.md Known Broken/Pending. auth.py, storage.py, onboarding.py, document_delivery.py, role_ui.py already fixed 2026-05-02. Remaining violations elsewhere.\n[2026-07-28 04:04 UTC - SWE-1.7-Max] SSOT verification passes; no hardcoded redirect URLs remain in routers",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T04:04:37.453413+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-002",
