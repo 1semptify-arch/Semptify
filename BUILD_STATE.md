@@ -1,3 +1,48 @@
+## Session -- 2026-07-28 -- Fees-Policy Module Exemption + Marking
+
+### Guardrail Engine Run — 2026-07-28T12:37:26
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Problem
+
+- Semptify's "no fees to tenants" commitment was only implicit; advanced/admin/research modules
+  (e.g. `housing_accountability`) use "fee" as a domain term for landlord conduct, but there
+  was no machine-checkable boundary preventing a future agent from "fixing" that language.
+
+### Fix
+
+- Added `FeesPolicy` enum and `fees_policy` field to `app/core/product_manifest.py` `ModuleEntry`.
+- `_register()` defaults CORE/DEV modules to `tenant_no_fees` and
+  EXTENDED/ADVOCATE/ADMIN/RESEARCH modules to `exempt_advanced`; explicit override supported.
+- Explicitly marked `app.modules.housing_accountability.router` and
+  `app.modules.housing_accountability.pattern_history` as `exempt_advanced`.
+- Added `tools/checks/fees_policy_check.py` guardrail plugin: fails the build if any
+  `exempt_advanced` module appears in `CAPABILITY_DEFAULTS["tenant"]` or has `requires_role`
+  containing "tenant".
+- Documented the distinction in `AGENTS.md` under "Fees Terminology Policy".
+- Did **not** modify `housing_accountability/router.py`, `detect_repeated_fees`, or any fee-detection logic.
+
+### Verification
+
+- `python -m py_compile app/core/product_manifest.py tools/checks/fees_policy_check.py tests/test_fees_policy_guardrail.py`: PASS.
+- `python -m ruff check app/core/product_manifest.py tools/checks/fees_policy_check.py tests/test_fees_policy_guardrail.py`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python -m pytest tests/test_fees_policy_guardrail.py -q --no-cov`: 5 passed.
+- Repo-wide `fee` references in module code unchanged except for the new manifest field name.
+
+### Known Working / Pending
+
+- `fees_policy` guardrail is live and will fail any build that makes an `exempt_advanced` module tenant-reachable.
+- The exemption is conditional; if a module's role/tier changes to include tenant reachability,
+  the guardrail forces explicit human reclassification before merge.
+
+---
+
 ## Session -- 2026-07-28 -- Resolve todo-020 (litigation_intelligence graph endpoints)
 
 ### Guardrail Engine Run — 2026-07-28T05:18:00

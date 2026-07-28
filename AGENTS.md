@@ -221,6 +221,34 @@ It is for people who may not be able to afford a legal team, may be overwhelmed,
 - Evidence preservation over feature novelty.
 - Calm, clear, trustworthy UX.
 
+## Fees Terminology Policy
+
+Semptify's public commitment is **no fees, ever, to tenants** — that is a
+policy about what Semptify charges users, not a ban on the word "fee" in
+housing-rights analysis.
+
+- In **tenant-facing modules** (`fees_policy = "tenant_no_fees"`), do not use
+  language that implies Semptify charges fees, subscriptions, or paid plans.
+  The word "fee" may appear when it clearly refers to a landlord charge
+  recorded by the tenant (e.g. a rent-ledger line item), but never in a way
+  that suggests Semptify is the one charging.
+
+- In **advanced/admin/research modules** (`fees_policy = "exempt_advanced"`),
+  "fee" is a domain term describing landlord conduct found in tenant evidence
+  (for example, `detect_repeated_fees()` in `housing_accountability`). These
+  modules are exempt from the "no fees" wording rule because they are analyzing
+  what a landlord charged, not what Semptify charges.
+
+- The exemption is **conditional on the module remaining unreachable by the
+  tenant role**. The manifest declares `fees_policy` on every module entry;
+  `tools/guardrail_engine.py` fails the build if an `exempt_advanced` module
+  becomes tenant-reachable.
+
+- **Do not "fix," remove, or reword fee-detection language in exempt modules**
+  on the assumption that it conflicts with the no-fees policy. If a module's
+  tenant-reachability status is changing, flag it for `fees_policy` review
+  rather than editing fee logic directly.
+
 ## Truth Standard
 
 - **Semptify is on the side of tenants — always.**
