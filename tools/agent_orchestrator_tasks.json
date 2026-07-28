@@ -91,10 +91,11 @@
     "target_model": "swe-1.6",
     "priority": "medium",
     "file_path": "app/modules/attorney_intake_packet/",
-    "status": "in_progress",
-    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet",
+    "status": "resolved",
+    "notes": "ACTIVE_CONTEXT.md NEXT TO BUILD #4. Blocked on user review. Branch: feature/attorney-intake-packet\n[2026-07-28 19:40 UTC - devin] Attorney Intake Packet already merged from feature/attorney-intake-packet into main; endpoints live in case_builder router and UI in case_builder.html",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T19:40:15.721960+00:00",
+    "assigned_agent": "devin"
   },
   {
     "id": "todo-008",
@@ -625,9 +626,10 @@
     "target_model": "swe-1.7",
     "priority": "medium",
     "file_path": "app/modules/case_builder/router.py",
-    "status": "pending",
-    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.",
+    "status": "resolved",
+    "notes": "Preflight: app/modules/case_builder/router.py (intake-packet/pdf/zip), app/modules/briefcase/router.py (court_packets folder, export), app/core/overlay_types.py (COURT_PACKET_QUERY). Scope: design decision required before coding \u2014 merge into one endpoint/UI that curates documents + highlights + notes + footnotes into a virtual folder and exports PDF/ZIP; flag for Brad whether to preserve overlay markings, produce clean copy + summary, or both. Do not touch: existing exports until the design is confirmed. Acceptance: TBD pending Brad's decision; do not start coding until export format is confirmed.\n[2026-07-28 18:44 UTC - SWE-1.7-Max] User chose option 3 (both marked-up and clean copies + summary in same ZIP). Starting implementation.\n[2026-07-28 19:09 UTC - devin] Implemented curated packet export endpoint and UI",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T19:09:27.790379+00:00",
+    "assigned_agent": "devin"
   }
 ]
