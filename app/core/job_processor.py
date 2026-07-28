@@ -820,4 +820,12 @@ def get_job_queue_stats() -> Dict[str, Any]:
 
 # Cleanup on shutdown
 import atexit
-atexit.register(lambda: get_job_processor().stop())
+
+
+def _shutdown_job_processor():
+    global _job_processor
+    if _job_processor is not None:
+        _job_processor.stop()
+
+
+atexit.register(_shutdown_job_processor)
