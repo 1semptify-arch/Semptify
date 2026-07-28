@@ -7,12 +7,11 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 from app.services.eviction.court_procedures import (
-    CourtProceduresEngine,
-    get_procedures_engine,
+    DefenseCategory,
     MotionType,
     ObjectionType,
     ProcedurePhase,
-    DefenseCategory,
+    get_procedures_engine,
 )
 
 
@@ -32,6 +31,7 @@ def engine():
 # =============================================================================
 # ENGINE TESTS
 # =============================================================================
+
 
 class TestProceduresEngine:
     """Test the CourtProceduresEngine directly."""
@@ -92,7 +92,7 @@ class TestProceduresEngine:
             motion_type=MotionType.DISMISS_IMPROPER_SERVICE,
             tenant_name="John Doe",
             case_number="27-CV-24-12345",
-            facts={"landlord_name": "ABC Properties"}
+            facts={"landlord_name": "ABC Properties"},
         )
         assert "John Doe" in motion
         assert "27-CV-24-12345" in motion
@@ -118,9 +118,7 @@ class TestProceduresEngine:
 # The /dakota/procedures/* endpoints are part of the Dakota County module
 # which is intentionally disabled (DAKOTA_AVAILABLE = False in app/main.py).
 # Skip all endpoint tests until the module is re-enabled.
-_DAKOTA_SKIP = pytest.mark.skip(
-    reason="Dakota County module is intentionally disabled (DAKOTA_AVAILABLE = False)"
-)
+_DAKOTA_SKIP = pytest.mark.skip(reason="Dakota County module is intentionally disabled (DAKOTA_AVAILABLE = False)")
 
 
 @_DAKOTA_SKIP
@@ -156,6 +154,7 @@ class TestRulesEndpoints:
         assert all("pre_filing" in r["applies_to"] for r in rules)
 
 
+@_DAKOTA_SKIP
 class TestMotionsEndpoints:
     """Test motions API endpoints."""
 
@@ -183,8 +182,8 @@ class TestMotionsEndpoints:
                 "motion_type": "dismiss_improper_service",
                 "tenant_name": "Jane Smith",
                 "case_number": "27-CV-24-99999",
-                "landlord_name": "Bad Landlord LLC"
-            }
+                "landlord_name": "Bad Landlord LLC",
+            },
         )
         assert response.status_code == 200
         result = response.json()
@@ -192,6 +191,7 @@ class TestMotionsEndpoints:
         assert "27-CV-24-99999" in result["generated_motion"]
 
 
+@_DAKOTA_SKIP
 class TestObjectionsEndpoints:
     """Test objections API endpoints."""
 
@@ -221,6 +221,7 @@ class TestObjectionsEndpoints:
         assert "801" in obj["supporting_rule"]  # Evidence Rule 801
 
 
+@_DAKOTA_SKIP
 class TestProceduresEndpoints:
     """Test procedures/steps API endpoints."""
 
@@ -240,6 +241,7 @@ class TestProceduresEndpoints:
         assert all(s["phase"] == "hearing" for s in steps)
 
 
+@_DAKOTA_SKIP
 class TestCounterclaimsEndpoints:
     """Test counterclaims API endpoints."""
 
@@ -269,6 +271,7 @@ class TestCounterclaimsEndpoints:
         assert len(claim["evidence_needed"]) > 0
 
 
+@_DAKOTA_SKIP
 class TestDefensesEndpoints:
     """Test defenses API endpoints."""
 
@@ -289,6 +292,7 @@ class TestDefensesEndpoints:
         assert len(defense["defenses"]) > 0
 
 
+@_DAKOTA_SKIP
 class TestHearingChecklist:
     """Test hearing checklist endpoint."""
 
@@ -304,6 +308,7 @@ class TestHearingChecklist:
         assert "after_hearing" in checklist
 
 
+@_DAKOTA_SKIP
 class TestQuickReference:
     """Test quick reference endpoint."""
 
@@ -318,6 +323,7 @@ class TestQuickReference:
         assert "emergency_contacts" in ref
 
 
+@_DAKOTA_SKIP
 class TestEnumsEndpoints:
     """Test enum value endpoints (for frontend)."""
 
@@ -358,6 +364,8 @@ class TestEnumsEndpoints:
 # INTEGRATION TESTS
 # =============================================================================
 
+
+@_DAKOTA_SKIP
 class TestProceduresIntegration:
     """Integration tests for procedures system."""
 
@@ -367,33 +375,33 @@ class TestProceduresIntegration:
         rules_resp = client.get("/dakota/procedures/rules")
         assert rules_resp.status_code == 200
         rules = rules_resp.json()
-        
+
         # 2. Get available defenses
         defenses_resp = client.get("/dakota/procedures/defenses/procedural")
         assert defenses_resp.status_code == 200
         defenses = defenses_resp.json()
-        
+
         # 3. Identify applicable counterclaim
         counterclaim_resp = client.get("/dakota/procedures/counterclaims/breach_habitability")
         assert counterclaim_resp.status_code == 200
         counterclaim = counterclaim_resp.json()
-        
+
         # 4. Generate motion
         motion_resp = client.post(
             "/dakota/procedures/motions/generate",
             json={
                 "motion_type": "dismiss_defective_notice",
                 "tenant_name": "Test Tenant",
-                "case_number": "27-CV-24-00001"
-            }
+                "case_number": "27-CV-24-00001",
+            },
         )
         assert motion_resp.status_code == 200
         motion = motion_resp.json()
-        
+
         # 5. Get hearing checklist
         checklist_resp = client.get("/dakota/procedures/hearing-checklist")
         assert checklist_resp.status_code == 200
-        
+
         # All steps completed successfully
         assert len(rules) > 0
         assert len(defenses["defenses"]) > 0
@@ -405,7 +413,7 @@ class TestProceduresIntegration:
         response = client.get("/dakota/procedures/objections")
         assert response.status_code == 200
         objections = response.json()
-        
+
         for obj in objections:
             # Each objection should have complete guidance
             assert obj["definition"], f"{obj['objection_type']} missing definition"
