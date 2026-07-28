@@ -104,10 +104,11 @@
     "target_model": "swe-1.6",
     "priority": "low",
     "file_path": "app/templates/base.html",
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:12 UTC - SWE-1.7-Max] No .card--interactive:hover box-shadow remains; base.html uses transform only and ssot-design-system.css card hover has box-shadow: none.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T18:12:51.712246+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-009",
@@ -119,10 +120,11 @@
     "file_path": "app/templates/base.html",
     "line_start": 490,
     "line_end": 494,
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] base.html nav uses line-icon characters (\u2302, \u2261, \u229e, \u270e, ?), not emoji.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T18:13:04.550542+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-010",
@@ -147,10 +149,11 @@
     "file_path": "static/css/ssot-design-system.css",
     "line_start": 192,
     "line_end": 201,
-    "status": "pending",
-    "notes": "FNG_TODO.md design system task",
+    "status": "resolved",
+    "notes": "FNG_TODO.md design system task\n[2026-07-28 18:13 UTC - SWE-1.7-Max] ssot-design-system.css already has both @media (prefers-color-scheme: dark) and [data-theme='dark'] variable overrides.",
     "created_at": "2026-07-19T00:00:00Z",
-    "updated_at": "2026-07-19T00:00:00Z"
+    "updated_at": "2026-07-28T18:13:24.759252+00:00",
+    "assigned_agent": "SWE-1.7-Max"
   },
   {
     "id": "todo-012",
