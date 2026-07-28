@@ -1,3 +1,38 @@
+## Session -- 2026-07-28 -- Orchestrator todo-021 through todo-032 sweep
+
+### Guardrail Engine Run — 2026-07-28T20:30:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Fixes
+
+- **todo-021**: `MNDESRestClient` already implements best-effort REST submission/status/exhibit endpoints with manual-portal fallback; no stubs remain.
+- **todo-025**: Research module ZIP generation and caller-managed upload path verified; old placeholder no longer exists.
+- **todo-026**: Positronic Brain already re-enabled under `ENABLE_HEAVY_SERVICES` guard with capped event history.
+- **todo-027**: Re-enabled distributed mesh network under `ENABLE_HEAVY_SERVICES`; added `MAX_REQUEST_HISTORY`/`MAX_COLLABORATIONS` bounds to `app/core/mesh_network.py` and cleaned mesh handler ruff issues.
+- **todo-028**: Made `psutil` optional in `app/core/performance_monitor.py` so performance monitoring starts cleanly when the package is absent; bounded deques already in place.
+- **todo-029**: OAuth state cleanup already enabled via `_cleanup_expired_states` at login and callback paths.
+- **todo-030**: State laws router serves stub entries with `stub_url`/`notes` as designed; data file has 11 complete states.
+- **todo-031**: Wired `seed_court_data.py` into `court_learning.get_learning_engine()` so the Court Learning Engine is seeded with 200 synthetic historical cases on first use; cleaned style/lint issues.
+- **todo-032**: `legal_filing_module.py` is a functional wrapper mounting `app/modules/legal_filing/router`; registered in manifest/compliance.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on all changed Python files: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working / Pending
+
+- All orchestrator tasks `todo-021` through `todo-032` are now marked `resolved`.
+- No new runtime blockers introduced; mesh and performance monitoring are guarded by `ENABLE_HEAVY_SERVICES`.
+
+---
+
 ## Session -- 2026-07-28 -- Live end-to-end test of todo-044
 
 ### Guardrail Engine Run — 2026-07-28T15:22:29

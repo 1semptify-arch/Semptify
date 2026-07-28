@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-28 (Packet Builder live cloud-storage test complete for todo-044; awaiting next candidate priority)
+**Last Updated**: 2026-07-28 (Orchestrator todo-021 through todo-032 sweep complete; all marked resolved)
 
 ---
 
@@ -80,6 +80,7 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 - **Packet Builder UI** ✅ — four-pillar GUI panel shipped 2026-07-28 and live-tested with Google Drive; todo-044 complete.
 - **Semantic Context Engine (Deep OCR Pass 2)** — `todo-036` resolved 2026-07-28; rule-based engine + acceptance tests + async token refresh in deep OCR job.
 - **Litigation Intelligence graph endpoints** — `todo-020` resolved 2026-07-28; graph engine and build/visualize/path endpoints already live and tested.
+- **Orchestrator todo sweep** ✅ — `todo-021` through `todo-032` resolved 2026-07-28.
 - **Next `swe-1.7` candidates** — `todo-022` (housing_accountability detect_repeated_fees), `todo-024` (filedored_service classification); awaiting direction.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
 

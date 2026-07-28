@@ -409,8 +409,9 @@ async def lifespan(_app: FastAPI):
                 return
 
             def _sync_migrate():
-                from alembic import command
                 from alembic.config import Config
+
+                from alembic import command
 
                 alembic_cfg = Config("alembic.ini")
                 command.upgrade(alembic_cfg, "head")
@@ -521,10 +522,15 @@ async def lifespan(_app: FastAPI):
             # Complaint Wizard legacy standalone (app.modules.complaint_wizard_module) removed.
             # Canonical complaint wizard lives at app.modules.complaints.router (EXTENDED tier).
 
-            # Mesh Network - DISABLED (major memory consumer)
-            # from app.services.mesh_handlers import register_all_mesh_handlers
-            # mesh_stats = register_all_mesh_handlers()
-            # logger.info("   ðŸ•¸ï¸ Mesh Network initialized")
+            # Mesh Network - re-enabled with bounded request/collaboration history
+            if enable_heavy:
+                try:
+                    from app.services.mesh_handlers import register_all_mesh_handlers
+
+                    mesh_stats = register_all_mesh_handlers()
+                    logger.info("   Mesh Network initialized (%s modules)", mesh_stats.get("modules_registered", "?"))
+                except Exception as e:
+                    logger.warning(f"   Mesh Network init failed (non-fatal): {e}")
 
             # Plugin System - DISABLED
             # from app.sdk.plugin_manager import plugin_manager
@@ -532,7 +538,7 @@ async def lifespan(_app: FastAPI):
             # plugin_stats = plugin_manager.load_all()
 
             if enable_heavy:
-                logger.info("   Core + heavy services active (mesh/plugins disabled for memory optimization)")
+                logger.info("   Core + heavy services active (plugins disabled for memory optimization)")
             else:
                 logger.info("   Core services only - heavy/mesh/plugins disabled for memory optimization")
 
@@ -3298,8 +3304,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_fix():
-                from alembic import command
                 from alembic.config import Config
+
+                from alembic import command
 
                 cfg = Config("alembic.ini")
                 # Stamp to the revision before legal_sub_role was added
@@ -3307,9 +3314,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 # Now upgrade to head — this will run the legal_sub_role migration
                 command.upgrade(cfg, "head")
                 # Return current version
-                from sqlalchemy import create_engine
-
                 from alembic.runtime.migration import MigrationContext
+                from sqlalchemy import create_engine
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
@@ -3408,14 +3414,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_stamp():
-                from alembic import command
                 from alembic.config import Config
+
+                from alembic import command
 
                 cfg = Config("alembic.ini")
                 command.stamp(cfg, "head")
-                from sqlalchemy import create_engine
-
                 from alembic.runtime.migration import MigrationContext
+                from sqlalchemy import create_engine
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
