@@ -12,14 +12,18 @@
 - Fixed `app/modules/document_delivery/router.py` duplicate `GET /api/delivery/inbox` route by moving the HTML page endpoint to `/inbox/page`.
 - Verification: `pytest tests/module_health -q --no-cov` (115 passed), `tools/verify_modules.py --sync` (114 ok), `sync_orchestrator`, `guardrail_engine` all pass.
 
-## 🎯 Current Priority: Master Handoff — Wire the 5 Admin Hub Stub Tiles (B1)
+## 🎯 Current Priority: Master Handoff — B1 Admin Hub Stub Tiles COMPLETE
 
 - `system_health` (Tier 0) — ✅ complete.
 - `run_modules` (Tier 1) — ✅ complete.
 - `correspondence` (Tier 2 wiring pass, PII-free) — ✅ complete.
 - `user_concerns` (Tier 2 wiring pass, PII-free) — ✅ complete.
-- `advanced` (Tier 1/T0; `detect_repeated_fees` cost-guard only per user decision) — in progress.
-- `dispute_tracker` packaging (B2) and `eviction_timeline` scoping (B3) — pending.
+- `advanced` (Tier 1/T0; `detect_repeated_fees` cost-guard only) — ✅ complete.
+
+B1 is done. Next candidate priorities:
+- Write canonical data-sensitivity tier section to `AGENTS.md` for user final confirmation.
+- B2 package `dispute_tracker`.
+- B3 scope `eviction_timeline`.
 
 ---
 

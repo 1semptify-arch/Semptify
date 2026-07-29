@@ -96,14 +96,16 @@
   tier: B
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-07-29T06:16:05.048435+00:00'
-  status: unverified
+  health_check: tools.module_health.check_advanced
+  test_suite: tests/module_health/test_advanced.py
+  module_path: app.modules.advanced.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-07-29T08:50:04.882547+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: hub tile / no module_path
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 1.28s
 - id: health
   display_name: Health
   category: core

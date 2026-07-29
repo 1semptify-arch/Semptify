@@ -1,3 +1,39 @@
+## Session -- 2026-07-29 -- B1 wire advanced admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:52:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/advanced/` — new admin-only module for the Advanced / Dev Tools hub tile.
+  - Non-cost-guard endpoints come first: `GET /health`, `/tools`, `/build`; `POST /guardrail`, `/sync-orchestrator`, `/verify`.
+  - `POST /cost-guard/detect-repeated-fees` is a PII-free fee-metadata wrapper around `housing_accountability.PatternDetectionService.detect_repeated_fees`. It accepts only fee type, amount, and date (no tenant names/addresses/case IDs), per the user's "do not detect" / cost-guard-only decision.
+- `app/core/product_manifest.py` — registered `app.modules.advanced.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/advanced`.
+- `tools/module_registry.yaml` — `advanced` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_advanced.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/advanced/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/advanced app/core/product_manifest.py tests/module_health/test_advanced.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 120 passed.
+- `python tools/verify_modules.py --id advanced`: ok (7 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- B1 complete: all 5 admin hub stub tiles are now wired.
+- B2 `dispute_tracker` packaging and B3 `eviction_timeline` scoping remain pending.
+
+---
+
 ## Session -- 2026-07-29 -- B1 wire user_concerns admin hub tile
 
 ### Guardrail Engine Run — 2026-07-29T06:45:00
