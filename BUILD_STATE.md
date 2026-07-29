@@ -1,3 +1,56 @@
+## Session -- 2026-07-28 -- Hardened detect_repeated_fees + filedored classification
+
+### Guardrail Engine Run — 2026-07-28T23:16:44
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/housing_accountability/router.py`
+  - Replaced pair-wise fee comparison with canonical-type clustering.
+  - Added `_FEE_TYPE_ALIASES` and `_canonicalize_fee_type()` to collapse aliases like `late charge`, `late penalty`, `late fees` into `late fee`.
+  - Added `_amounts_similar()` with a 5% relative tolerance (with a $5 floor) for larger fees.
+  - Added `_build_recurring_clusters()` to group fees within 35-day windows.
+  - Each `repeated_fees` pattern now reports `fee_type`, `instance_count`, `total_amount`, `first_date`, `last_date`, `median_days_between`, and a per-pattern severity.
+
+- `app/services/local_classifier.py`
+  - Added `_score_document()` helper.
+  - Added `predict_with_confidence()` returning `(label, confidence)`.
+  - Confidence is derived from the gap between the best and runner-up scores.
+
+- `app/services/filedored_service.py`
+  - `process_uploaded_document()` now calls `local_classifier.predict_with_confidence()` when `enable_ai=True`.
+  - AI-classified overlays now store `ai_confidence` in the payload.
+  - The response dict now includes `ai_confidence`.
+
+- `app/modules/housing_accountability/tests/test_detect_repeated_fees.py`
+  - Added tests for fee-type alias collapsing and large-amount relative tolerance.
+
+- `tests/test_local_classifier.py`
+  - Added confidence tests for empty, clear, and unclassifiable inputs.
+
+- `tests/test_filedored_service.py` (new)
+  - Added tests for `ai_classify_document` and `process_uploaded_document` with a fake overlay manager.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on all changed Python files: PASS.
+- `python -m pytest app/modules/housing_accountability/tests/test_detect_repeated_fees.py tests/test_local_classifier.py tests/test_filedored_service.py -q --no-cov`: 22 passed.
+- `python tools/sync_orchestrator.py --check`: PASS (0 stubs, 44 tasks).
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working
+
+- `detect_repeated_fees()` now deduplicates recurring instances and handles fee aliases.
+- `ai_classify_document()` and `process_uploaded_document()` produce and persist a confidence score.
+
+---
+
 ## Session -- 2026-07-29 -- Admin Hub + Module Registry + Verification System
 
 ### Guardrail Engine Run — 2026-07-28T21:13:17
