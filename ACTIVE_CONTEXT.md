@@ -1,6 +1,16 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-28 (tenant/library viewport split shipped)
+**Last Updated**: 2026-07-29 (module health check / test suite framework shipped)
+
+## ✅ Completed 2026-07-29 Session
+
+- Implemented a generic, registry-driven module health-check framework (`tools/module_health.py`).
+- Generated 115 `tests/module_health/test_<id>.py` regression tests covering module import, router presence, duplicate routes, and admin public-route exposure.
+- Updated `tools/module_registry.yaml` so 114 modules have real `health_check` / `test_suite` entries.
+- Flagged 7 modules with `flag_reason` (`vault_sync` on hold, `filedored` and `housing_accountability` pending Brad's swe-1.7 decision, 4 optional missing routers).
+- Fixed `tools/verify_modules.py` to run per-module tests with `--no-cov` so the repo-wide `cov-fail-under=40` does not mask health results.
+- Fixed `app/modules/document_delivery/router.py` duplicate `GET /api/delivery/inbox` route by moving the HTML page endpoint to `/inbox/page`.
+- Verification: `pytest tests/module_health -q --no-cov` (115 passed), `tools/verify_modules.py --sync` (114 ok), `sync_orchestrator`, `guardrail_engine` all pass.
 
 ## 🎯 Current Priority: Queue empty — waiting for next directive
 
