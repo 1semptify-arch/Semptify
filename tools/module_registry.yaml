@@ -1,0 +1,1773 @@
+- id: run_modules
+  display_name: Run Modules
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T01:56:26.141691+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: testing
+  display_name: Testing
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  module_path: app.modules.testing.router
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: invite_codes
+  display_name: Invite Codes & Authorizations
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  module_path: app.modules.invite_codes.router
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: correspondence
+  display_name: Correspondence
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: user_concerns
+  display_name: User Concerns
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: system_health
+  display_name: System Health & Updates
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: advanced
+  display_name: Advanced / Dev Tools
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  health_check: ''
+  test_suite: ''
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: health
+  display_name: Health
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.health.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: versioning
+  display_name: System
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.core.versioning
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: preamble
+  display_name: Preamble
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.preamble.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: risc
+  display_name: Risc
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.risc.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: role_ui
+  display_name: Role Ui
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.role_ui.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: storage
+  display_name: Storage Auth
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.storage.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: user
+  display_name: User
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.user.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: rent
+  display_name: Rent Ledger
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.rent.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: auth
+  display_name: Authentication
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.auth.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: reconnect
+  display_name: Onboarding / Reconnect
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.onboarding.reconnect
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: documents
+  display_name: Documents
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.documents.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: vault
+  display_name: Document Vault
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: vault_engine
+  display_name: Vault Engine / Access Control
+  category: core
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault_engine.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: timeline
+  display_name: Unified Timeline
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.timeline.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: briefcase
+  display_name: Briefcase
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.briefcase.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: packet_builder
+  display_name: Packet Builder
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.packet_builder.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: workflow
+  display_name: Workflow
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.workflow.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: workflow_validator
+  display_name: Admin
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.workflow_validator.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: state_laws
+  display_name: State Laws
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.state_laws.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: law_library
+  display_name: Law Library
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_library.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: router
+  display_name: Law Library
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_library.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:38.797531+00:00'
+  status: orphaned
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: contacts
+  display_name: Contact Manager
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.contacts.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: journal
+  display_name: Journal
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.journal.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: public_forms
+  display_name: Public Forms
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.public_forms.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: voice
+  display_name: Voice
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.voice.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: resource_directory
+  display_name: Resource Directory
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.resource_directory.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: search
+  display_name: Global Search
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.search.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: pdf_tools
+  display_name: Pdf Tools
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.pdf_tools.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: preview
+  display_name: Document Preview
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.preview.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: document_converter
+  display_name: Document Converter
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_converter.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: legal_analysis
+  display_name: Legal Analysis
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_analysis.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: context_engine
+  display_name: Context Engine / Facts / Stories
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.context_engine.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: page_composer
+  display_name: Page Composer / Facts / Stories / Case
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_composer.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: portal
+  display_name: Portal / Public / Services
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.portal.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: ui_composer
+  display_name: Ui Composer / Gui
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.ui_composer.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: tenant_feed
+  display_name: Tenant Feed / Record
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tenant_feed.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: websocket
+  display_name: Websocket Events
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.websocket.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: free_api
+  display_name: Free Apis
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.free_api.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: security
+  display_name: Advanced Security
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.security.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: mndes
+  display_name: Mndes
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.mndes.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: fems
+  display_name: Fems
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.fems.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: eviction_defense
+  display_name: Eviction Defense Toolkit
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_defense.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: zoom_court
+  display_name: Zoom Courtroom
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.zoom_court.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: zoom_court_prep
+  display_name: Zoom Court Prep
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.zoom_court_prep.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: court_forms
+  display_name: Court Forms
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.court_forms.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: court_packet
+  display_name: Court Packet
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.court_packet.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: legal_trails
+  display_name: Legal Trails
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_trails.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: legal
+  display_name: Legal / Court Filing / Discovery / Exhibits / Workspace
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: intake
+  display_name: Document Intake
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.intake.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: guided_intake
+  display_name: Guided Intake
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.guided_intake.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: case_builder
+  display_name: Case Builder
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.case_builder.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: progress
+  display_name: Progress Tracker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.progress.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: actions
+  display_name: Smart Actions
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.actions.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: plan_maker
+  display_name: Plan Maker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.plan_maker.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: tools_api
+  display_name: Tools
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tools_api.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: complaints
+  display_name: Complaint Wizard
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.complaints.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: pattern_history
+  display_name: Pattern History
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.housing_accountability.pattern_history
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: role_upgrade
+  display_name: Role Management
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.role_upgrade.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: document_delivery
+  display_name: Document Delivery
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_delivery.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: communication
+  display_name: Communications
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.communication.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: advocate
+  display_name: Advocate / Clients / Case Management
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.advocate.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: admin_console
+  display_name: Admin Console
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.admin_console.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: module_flags
+  display_name: Module Flags
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.admin_console.module_flags
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: analytics
+  display_name: Analytics
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.analytics.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: dashboard
+  display_name: Unified Dashboard
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dashboard.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: enterprise_dashboard
+  display_name: Enterprise Dashboard
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.enterprise_dashboard.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: batch
+  display_name: Batch Operations
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.batch.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: registry
+  display_name: Document Registry
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.registry.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: tenancy_hub
+  display_name: Tenancy Hub
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tenancy_hub.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: capabilities
+  display_name: Capabilities
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.capabilities.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: manager
+  display_name: Manager / Case Assignment / Reporting / Bulk Ops
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.manager.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: funding_mgmt
+  display_name: Funding Management
+  category: admin
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.funding_mgmt.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: recognition
+  display_name: Document Recognition
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.recognition.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: extraction
+  display_name: Form Field Extraction
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.extraction.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: crawler
+  display_name: Crawler
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.crawler.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: research
+  display_name: Research Module
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.research.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: form_data
+  display_name: Form Data Hub
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.form_data.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: unified_overlays
+  display_name: Unified Overlays
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.unified_overlays.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: cloud_sync
+  display_name: Cloud Sync
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.cloud_sync.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: emotion
+  display_name: Emotion Engine
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.emotion.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: module_hub
+  display_name: Module Hub
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.module_hub.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: functionx
+  display_name: Functionx
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.functionx.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: funding_search
+  display_name: Funding & Tax Credit Search
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.funding_search.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: hud_funding
+  display_name: Hud Funding Guide
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.hud_funding.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: location
+  display_name: Location
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.location.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: campaign
+  display_name: Campaign Orchestration
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.campaign.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: public_exposure
+  display_name: Public Exposure
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.public_exposure.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: fraud_exposure
+  display_name: Fraud Exposure
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.fraud_exposure.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: setup
+  display_name: Setup Wizard
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.setup.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: page_index
+  display_name: Page Index
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_index.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: page_editor
+  display_name: Page Editor
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_editor.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: development
+  display_name: Development Tools
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.development.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: dev_lab
+  display_name: Dev Lab
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dev_lab.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: agent_orchestrator
+  display_name: Agent Orchestrator
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.agent_orchestrator.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: ideas
+  display_name: Dev Ideas
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dev_lab.ideas
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: filedored
+  display_name: Filedored
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.filedored.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: data_freshness
+  display_name: Data Freshness
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.data_freshness.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: inventory
+  display_name: Inventory Management
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.inventory.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: judge
+  display_name: Judge / Deprecated / Merged Into Legal
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.judge.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: calendar
+  display_name: Calendar
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.calendar.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: tactics
+  display_name: Tactics
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.tactics.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: page_shell
+  display_name: Page Shell / Pillar Mixer
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_shell.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: example_payment_tracking
+  display_name: Payment Tracking
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.example_payment_tracking
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: legal_filing_module
+  display_name: Legal Filing
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.legal_filing_module
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: vault_sync
+  display_name: Vault Sync
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault_sync
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: eviction_notice_explainer
+  display_name: Eviction Notice Explainer
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_notice_explainer
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: response_letter_generator
+  display_name: Response Letter Generator
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.response_letter_generator
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: eviction_defense_content
+  display_name: Eviction Defense Content
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_defense_content
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: ai_copilot
+  display_name: Ai Copilot
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.ai_copilot
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: context_loop
+  display_name: Context Loop
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.context_loop.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: routes
+  display_name: Vault Installer
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.vault_installer.routes
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: export_import
+  display_name: Data Export/Import
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.export_import.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: documentation
+  display_name: Api Documentation
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.documentation.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: document_center
+  display_name: Document Center
+  category: advanced
+  tier: A
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_center.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: law_library_page_router
+  display_name: Law Library
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.law_library.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: portal_seo_router
+  display_name: Portal / Seo
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.portal.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: core_system_core_router
+  display_name: Core System
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.core_system.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: housing_accountability_accountability_router
+  display_name: Housing Accountability
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.housing_accountability.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: external_mappings_mappings_router
+  display_name: External Mappings / Court Cases / Properties / Agencies
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.external_mappings.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured
+- id: litigation_intelligence_lis_router
+  display_name: Litigation Intelligence
+  category: research
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.litigation_intelligence.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  status: unverified
+  last_result:
+    health_check: health_check not configured
+    test_suite: no test suite configured

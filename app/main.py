@@ -409,9 +409,8 @@ async def lifespan(_app: FastAPI):
                 return
 
             def _sync_migrate():
-                from alembic.config import Config
-
                 from alembic import command
+                from alembic.config import Config
 
                 alembic_cfg = Config("alembic.ini")
                 command.upgrade(alembic_cfg, "head")
@@ -2659,6 +2658,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return json.loads(catalog_path.read_text(encoding="utf-8"))
         return {"error": "Script catalog not found"}
 
+    @fastapi_app.get("/admin/api/registry", tags=["admin"])
+    async def admin_registry_api(admin_uid: str = Depends(require_admin)):
+        """Return the module registry as JSON (admin-only)."""
+        from app.core.module_registry_loader import load_registry
+
+        return load_registry()
+
+    @fastapi_app.post("/admin/api/verify", tags=["admin"])
+    async def admin_verify_api(admin_uid: str = Depends(require_admin)):
+        """Run sync_registry + verify_modules and return the updated registry."""
+        from app.core.module_registry_loader import run_sync_and_verify
+
+        return await run_sync_and_verify()
+
     @fastapi_app.get("/admin/health", tags=["admin"])
     async def admin_health(admin_uid: str = Depends(require_admin)):
         """Admin-only health/status snapshot (separate from public /status)."""
@@ -2716,12 +2729,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return HTMLResponse(content="<h1>Overlay Viewer not found</h1>", status_code=404)
 
     @fastapi_app.get("/admin", response_class=HTMLResponse)
-    async def admin_root_redirect(
+    async def admin_hub_page(
         request: Request,
         admin_uid: str = Depends(require_admin),
     ):
-        """Redirect /admin to dashboard - ADMIN role required."""
-        return ssot_redirect("/admin/dashboard.html", context="admin_root_redirect")
+        """Serve the Admin Hub - the single landing page for all administration."""
+        hub_path = BASE_PATH / "static" / "admin" / "hub.html"
+        if hub_path.exists():
+            content = hub_path.read_text(encoding="utf-8")
+            return HTMLResponse(content=content)
+        return ssot_redirect("/admin/dashboard.html", context="admin_hub missing hub.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):
@@ -3304,9 +3321,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_fix():
-                from alembic.config import Config
-
                 from alembic import command
+                from alembic.config import Config
 
                 cfg = Config("alembic.ini")
                 # Stamp to the revision before legal_sub_role was added
@@ -3314,8 +3330,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 # Now upgrade to head — this will run the legal_sub_role migration
                 command.upgrade(cfg, "head")
                 # Return current version
-                from alembic.runtime.migration import MigrationContext
                 from sqlalchemy import create_engine
+
+                from alembic.runtime.migration import MigrationContext
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
@@ -3414,14 +3431,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_stamp():
-                from alembic.config import Config
-
                 from alembic import command
+                from alembic.config import Config
 
                 cfg = Config("alembic.ini")
                 command.stamp(cfg, "head")
-                from alembic.runtime.migration import MigrationContext
                 from sqlalchemy import create_engine
+
+                from alembic.runtime.migration import MigrationContext
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
