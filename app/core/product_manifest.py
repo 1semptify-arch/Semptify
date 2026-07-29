@@ -804,6 +804,15 @@ _register(
     log_message="Run Modules router connected — admin-only execution surface",
 )
 _register(
+    "app.modules.correspondence.router",
+    prefix="/api/admin/correspondence",
+    tags=("Correspondence",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Wiring-only pass. Templates/log endpoints return no PII; /send returns 501 until data model and T2 handling are designed.",
+    log_message="Correspondence router connected — admin-only (PII-free wiring pass)",
+)
+_register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
     tags=("Admin Console",),

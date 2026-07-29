@@ -1,3 +1,41 @@
+## Session -- 2026-07-29 -- B1 wire correspondence admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:40:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/correspondence/` — new admin-only module for the Correspondence hub tile.
+  - `router.py` provides `GET /api/admin/correspondence/health`, `/templates`, `/logs`, and `POST /send`.
+  - `/templates` returns email template metadata only (no PII).
+  - `/logs` returns an empty list placeholder; the real T2 log will be added once the data model and retention policy are designed.
+  - `/send` returns 501 until the sending surface and PII handling are implemented.
+- `app/core/product_manifest.py` — registered `app.modules.correspondence.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/correspondence`.
+- `tools/module_registry.yaml` — `correspondence` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_correspondence.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/correspondence/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/correspondence app/core/product_manifest.py tests/module_health/test_correspondence.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 118 passed.
+- `python tools/verify_modules.py --id correspondence`: ok (4 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Data-sensitivity tier confirmation for `user_concerns` and `advanced` before wiring the remaining B1 tiles.
+- Decision on `advanced`/`detect_repeated_fees` scope (cost-guard only vs. full fee audit).
+
+---
+
 ## Session -- 2026-07-29 -- B1 wire run_modules admin hub tile
 
 ### Guardrail Engine Run — 2026-07-29T06:32:00
