@@ -2455,6 +2455,51 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(dashboard_path))
         return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/system-health", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/system-health.html", response_class=HTMLResponse)
+    async def admin_system_health_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve the System Health & Updates page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "system-health.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>System Health page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/run-modules", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/run-modules.html", response_class=HTMLResponse)
+    async def admin_run_modules_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve the Run Modules page (migrated orchestrator dashboard)."""
+        # Serve the generated orchestrator dashboard from tools/
+        page_path = BASE_PATH / "tools" / "orchestrator_dashboard.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Run Modules page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/testing", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/testing.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/invite-codes", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/invite-codes.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/correspondence", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/correspondence.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/user-concerns", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/user-concerns.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/advanced", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/advanced.html", response_class=HTMLResponse)
+    async def admin_tile_stub_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve stub tile pages from the Admin Hub."""
+        page_path = BASE_PATH / "static" / "admin" / "tile_stub.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Tile page not found</h1>", status_code=404)
+
     @fastapi_app.get("/admin/contract-browser.html", response_class=HTMLResponse)
     async def admin_contract_browser(
         request: Request,
