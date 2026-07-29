@@ -822,6 +822,15 @@ _register(
     log_message="User Concerns router connected — admin-only (PII-free wiring pass)",
 )
 _register(
+    "app.modules.advanced.router",
+    prefix="/api/admin/advanced",
+    tags=("Advanced / Dev Tools",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Admin-only dev tools. Non-cost-guard endpoints (guardrail, sync, build status) come first. Cost-guard detect_repeated_fees is a PII-free fee-metadata wrapper.",
+    log_message="Advanced router connected — admin-only build/guardrail/sync/cost-guard tools",
+)
+_register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
     tags=("Admin Console",),
