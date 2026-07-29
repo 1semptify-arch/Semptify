@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Dispute Tracker - Semptify{% endblock %}
+{% block body_class %}dispute-tracker-page{% endblock %}
+
+{% block styles %}
+<style>
+.dt-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-4);
+}
+
+.dt-header {
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-6);
+}
+
+.dt-header h1 {
+    font-size: var(--type-h1);
+    font-weight: var(--type-h1-weight);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.dt-header p {
+    font-size: var(--type-body);
+    color: var(--text-secondary);
+    margin: 0;
+    max-width: 640px;
+}
+
+.dt-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+}
+
+.dt-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: var(--space-6);
+}
+
+.dt-panel h2 {
+    font-size: var(--type-h2);
+    font-weight: var(--type-h2-weight);
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+}
+
+.dt-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+}
+
+.dt-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+}
+
+.dt-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+}
+
+.dt-list li {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: var(--space-4);
+}
+
+.dt-list h3 {
+    font-size: var(--type-h3);
+    font-weight: var(--type-h3-weight);
+    margin: 0 0 var(--space-2) 0;
+    color: var(--text-primary);
+}
+
+.dt-meta {
+    font-size: var(--type-body);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.dt-meta span {
+    display: inline-block;
+    margin-right: var(--space-4);
+}
+
+.dt-empty {
+    font-size: var(--type-body);
+    color: var(--text-muted);
+    padding: var(--space-4) 0;
+}
+
+/* Desktop poster layout: forms left, lists right */
+@media (min-width: 900px) {
+    .dt-grid {
+        grid-template-columns: 360px 1fr;
+        grid-template-areas:
+            "add-dispute dispute-list"
+            "add-compare compare-list";
+    }
+
+    .dt-add-dispute { grid-area: add-dispute; }
+    .dt-dispute-list { grid-area: dispute-list; }
+    .dt-add-compare { grid-area: add-compare; }
+    .dt-compare-list { grid-area: compare-list; }
+}
+
+/* Mobile: chronological stacked scroll */
+@media (max-width: 899px) {
+    .dt-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dt-add-dispute { order: 1; }
+    .dt-dispute-list { order: 2; }
+    .dt-add-compare { order: 3; }
+    .dt-compare-list { order: 4; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dt-page">
+    <div class="dt-header">
+        <h1>Dispute Tracker</h1>
+        <p>Track property-management disputes and compare fees or terms. Your descriptions and evidence live in your secure vault — only structural data is kept here.</p>
+    </div>
+
+    <div class="dt-grid">
+        <section class="dt-panel dt-add-dispute" aria-labelledby="add-dispute-heading">
+            <h2 id="add-dispute-heading">Add a dispute</h2>
+            <form method="post" action="/api/dispute-tracker/disputes" class="dt-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="dt-form-row">
+                    <div class="form-group">
+                        <label class="form-label form-label--required" for="dispute_type">Dispute type</label>
+                        <select class="form-select" id="dispute_type" name="dispute_type" required>
+                            <option value="fees">Fees</option>
+                            <option value="lease_violation">Lease violation</option>
+                            <option value="retaliation">Retaliation</option>
+                            <option value="habitability">Habitability</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="jurisdiction">Jurisdiction</label>
+                        <input class="form-input" id="jurisdiction" name="jurisdiction" value="MN" maxlength="10">
+                    </div>
+                </div>
+                <div class="dt-form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="landlord_entity">Landlord / property manager</label>
+                        <input class="form-input" id="landlord_entity" name="landlord_entity" maxlength="255" placeholder="Entity name only — no tenant PII here">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="property_name">Property name</label>
+                        <input class="form-input" id="property_name" name="property_name" maxlength="255">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="status">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="active" selected>Active</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="dismissed">Dismissed</option>
+                        <option value="on_hold">On hold</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn--primary">Add dispute</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="dt-panel dt-dispute-list" aria-labelledby="disputes-heading">
+            <h2 id="disputes-heading">Disputes</h2>
+            {% if disputes %}
+            <ul class="dt-list">
+                {% for d in disputes %}
+                <li>
+                    <h3>{{ d.dispute_type | replace('_', ' ') | title }} <span style="color: var(--text-muted); font-weight: 400;">— {{ d.status }}</span></h3>
+                    <p class="dt-meta">
+                        {% if d.landlord_entity %}<span>{{ d.landlord_entity }}</span>{% endif %}
+                        {% if d.property_name %}<span>{{ d.property_name }}</span>{% endif %}
+                        <span>{{ d.jurisdiction }}</span>
+                    </p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="dt-empty">No disputes yet. Add one on the left (or above on mobile).</p>
+            {% endif %}
+        </section>
+
+        <section class="dt-panel dt-add-compare" aria-labelledby="add-compare-heading">
+            <h2 id="add-compare-heading">Add a comparison</h2>
+            <form method="post" action="/api/dispute-tracker/comparisons" class="dt-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group">
+                    <label class="form-label form-label--required" for="dispute_record_id">Related dispute</label>
+                    <select class="form-select" id="dispute_record_id" name="dispute_record_id" required>
+                        <option value="" disabled selected>Choose a dispute…</option>
+                        {% for d in disputes %}
+                        <option value="{{ d.id }}">{{ d.dispute_type | replace('_', ' ') | title }} — {{ d.landlord_entity or d.property_name or d.id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="dt-form-row">
+                    <div class="form-group">
+                        <label class="form-label form-label--required" for="comparison_type">Comparison type</label>
+                        <select class="form-select" id="comparison_type" name="comparison_type" required>
+                            <option value="fee">Fee</option>
+                            <option value="term">Term</option>
+                            <option value="notice">Notice</option>
+                            <option value="deposit">Deposit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="fee_type">Fee type</label>
+                        <input class="form-input" id="fee_type" name="fee_type" maxlength="50" placeholder="e.g., late fee">
+                    </div>
+                </div>
+                <div class="dt-form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Amount ($)</label>
+                        <input class="form-input" id="amount" name="amount" type="number" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="period">Period</label>
+                        <select class="form-select" id="period" name="period">
+                            <option value="">—</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="one_time">One-time</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="effective_date">Effective date</label>
+                        <input class="form-input" id="effective_date" name="effective_date" type="date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn--primary">Add comparison</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="dt-panel dt-compare-list" aria-labelledby="comparisons-heading">
+            <h2 id="comparisons-heading">Comparisons</h2>
+            {% if comparisons %}
+            <ul class="dt-list">
+                {% for c in comparisons %}
+                <li>
+                    <h3>{{ c.comparison_type | title }}{% if c.fee_type %}: {{ c.fee_type }}{% endif %}</h3>
+                    <p class="dt-meta">
+                        {% if c.amount_cents is not none %}<span>${{ "%0.2f" | format(c.amount_cents / 100) }}</span>{% endif %}
+                        {% if c.period %}<span>{{ c.period | replace('_', '-') }}</span>{% endif %}
+                        {% if c.effective_date %}<span>{{ c.effective_date.strftime('%Y-%m-%d') }}</span>{% endif %}
+                    </p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="dt-empty">No comparisons yet. Add one after you create a dispute.</p>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}
