@@ -1,4 +1,73 @@
+## Session -- 2026-07-29 -- module health check / test suite framework
+
+### Guardrail Engine Run — 2026-07-29T01:48:36
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run -- 2026-07-29T05:50:49
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `tools/module_health.py`
+  - Generic per-module health check generator loaded from `tools/module_registry.yaml`.
+  - Each module gets a `check_<id>()` callable that verifies the module imports, its declared router has routes, no duplicate path+method exists, and admin-only modules do not expose unguarded public routes.
+  - Admin-only classification is driven by `requires_role` containing `admin` and no public-facing roles.
+  - Manifest `prefix` is combined with route paths before checking `storage_middleware.is_public_path`.
+
+- `tools/generate_module_health.py`
+  - Bulk generator for `tests/module_health/test_<id>.py` files.
+  - Updates `tools/module_registry.yaml` `health_check` / `test_suite` fields.
+  - Flags ON HOLD (`vault_sync`), pending swe-1.7 decisions (`filedored`, `housing_accountability`), and optional missing modules with `flag_reason`.
+
+- `tests/module_health/`
+  - 115 generated pytest regression tests, one per module.
+
+- `tools/verify_modules.py`
+  - Added `--no-cov` to the `pytest` invocation so the repo-wide `cov-fail-under=40` does not fail per-module health tests.
+
+- `app/modules/document_delivery/router.py`
+  - Fixed duplicate `GET /api/delivery/inbox` route by moving the HTML page route to `/inbox/page` (the JSON API remains at `/api/delivery/inbox`).
+
+### Verification
+
+- `python -m compileall tools/module_health.py tools/generate_module_health.py tools/verify_modules.py app/modules/document_delivery/router.py tests/module_health`: PASS.
+- `python -m ruff check tools/module_health.py tools/generate_module_health.py tools/verify_modules.py tests/module_health`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 115 passed.
+- `python tools/verify_modules.py --sync`: 114 `ok`, 12 `unverified` (5 hub tiles with no `module_path`, 7 flagged with `flag_reason`).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working
+
+- 115 product-manifest modules now have real `health_check` + `test_suite` entries.
+- `verify_modules` runs each health check and its test in ~1.2s without coverage failures.
+
+### Still Pending
+
+- 7 modules remain flagged (`health_check: TODO`) pending Brad's decisions or optional router availability.
+- 5 hub tile entries (`run_modules`, `correspondence`, `user_concerns`, `system_health`, `advanced`) have no `module_path` and are intentionally unverified.
+
+---
+
 ## Session -- 2026-07-28 -- tenant/library mobile viewport split
+
+### Guardrail Engine Run — 2026-07-29T00:39:39
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
 
 ### What was built
 
