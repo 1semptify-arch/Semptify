@@ -1911,3 +1911,38 @@ class ComparisonEntry(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+# =============================================================================
+# Eviction Timeline
+# =============================================================================
+
+
+class EvictionTimelineEvent(Base):
+    """Eviction-specific timeline event — structure and pointers only.
+
+    Tenant-facing, T2. `subject_id` is a placeholder with no FK while the
+    accountability_ledger boundary is deferred. The event narrative and any
+    PII content are stored in the user''s cloud overlay.
+    """
+
+    __tablename__ = "eviction_timeline_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    # Placeholder subject — no FK until accountability_ledger model is decided
+    subject_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+
+    event_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # notice, payment, maintenance, communication, court, filing
+    event_date: Mapped[datetime] = mapped_column(DateTimeTZ, index=True, nullable=False)
+    source: Mapped[str] = mapped_column(String(50), default="manual", nullable=False)  # manual, document, court, email
+
+    # Pointers only — content in overlays
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    content_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    jurisdiction: Mapped[str] = mapped_column(String(10), default="MN", nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
