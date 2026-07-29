@@ -1,5 +1,13 @@
 ## Session -- 2026-07-29 -- Admin Hub + Module Registry + Verification System
 
+### Guardrail Engine Run — 2026-07-28T21:13:17
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### What was built
 
 - Added `tools/module_registry.yaml` as the module health registry (127 entries, synced from `product_manifest.py`).
@@ -11,6 +19,8 @@
 - Added `/admin/system-health`, `/admin/run-modules`, and stub tile routes (`/admin/testing`, `/admin/invite-codes`, `/admin/correspondence`, `/admin/user-concerns`, `/admin/advanced`).
 - Migrated `tools/orchestrator_dashboard.html` into `/admin/run-modules`.
 - Hooked `sync_registry.py` into `tools/sync_orchestrator.py` so manifest changes auto-update the registry.
+- Added `pyyaml>=6.0.0` to `requirements.txt` to make the runtime YAML dependency explicit.
+- Added `.github/workflows/verify-modules-scheduled.yml` to run sync + verify daily and commit the registry if it changes.
 
 ### Verification
 
@@ -25,7 +35,7 @@
 - Admin Hub is live at `/admin`; tile routes and registry API are wired.
 - All 7 Hub tiles render; admin-category tiles are stub pages pending module implementation.
 - Health checks and test suites are `TODO` for all modules — registry is honest about unverified state.
-- Optional: scheduled `verify_modules.py` run (cron/GitHub Action) not yet enabled.
+- Scheduled `verify_modules.py` GitHub Action is created and enabled; review the cron schedule in `.github/workflows/verify-modules-scheduled.yml`.
 
 ---
 
