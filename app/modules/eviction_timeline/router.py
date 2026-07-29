@@ -9,13 +9,14 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
 from app.core.database import get_db
 from app.core.id_gen import make_id
 from app.core.security import UserContext, require_user
+from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.models.models import EvictionTimelineEvent
 
@@ -95,4 +96,4 @@ async def create_eviction_event(
     )
     db.add(event)
     await db.commit()
-    return RedirectResponse(url="/api/eviction-timeline/", status_code=303)
+    return ssot_redirect("/api/eviction-timeline/", context="create eviction timeline event")
