@@ -35,7 +35,11 @@ def _build_canonical_set():
     # Main nav paths
     for item in navigation.MAIN_NAV:
         paths.add(item.path)
-    
+
+    # Admin flow paths
+    for stage in navigation.ADMIN_FLOW.values():
+        paths.add(stage.path)
+
     # Entry points
     paths.add("/")
     paths.add(navigation.get_onboarding_start())
