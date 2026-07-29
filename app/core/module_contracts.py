@@ -8,9 +8,10 @@ Purpose:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,6 +28,12 @@ class FunctionGroupContract:
     dependencies: tuple[str, ...]
     deterministic: bool = True
 
+    # Data-sensitivity and route conformance metadata (added 2026-07-29 for
+    # Build Orchestrator hard-gate contract validation).
+    tier: str = ""  # T0 / T1 / T2 / T3 — see AGENTS.md
+    allowed_routes: tuple[str, ...] = ()  # canonical route paths, e.g. "/api/disputes"
+    allowed_prefixes: tuple[str, ...] = ()  # URL prefixes this group may register
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "module": self.module,
@@ -37,6 +44,9 @@ class FunctionGroupContract:
             "outputs": list(self.outputs),
             "dependencies": list(self.dependencies),
             "deterministic": self.deterministic,
+            "tier": self.tier,
+            "allowed_routes": list(self.allowed_routes),
+            "allowed_prefixes": list(self.allowed_prefixes),
         }
 
 
