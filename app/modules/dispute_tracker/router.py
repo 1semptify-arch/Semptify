@@ -21,7 +21,6 @@ from app.core.utc import utc_now
 from app.models.models import ComparisonEntry, DisputeRecord
 
 router = APIRouter(
-    prefix="/api/dispute-tracker",
     tags=["Dispute Tracker"],
 )
 

@@ -20,7 +20,6 @@ from app.core.utc import utc_now
 from app.models.models import EvictionTimelineEvent
 
 router = APIRouter(
-    prefix="/api/eviction-timeline",
     tags=["Eviction Timeline"],
 )
 

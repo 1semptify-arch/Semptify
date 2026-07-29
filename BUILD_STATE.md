@@ -1,5 +1,32 @@
 ## Session -- 2026-07-29 -- B2/B3 scaffold + data model
 
+### Guardrail Engine Run — 2026-07-29T05:54:19
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-07-29T05:53:20
+
+- **contract_route_check**: FAIL — 7 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-07-29T05:52:35
+
+- **contract_route_check**: FAIL — 941 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
 ### Guardrail Engine Run — 2026-07-29T07:18:00
 
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
