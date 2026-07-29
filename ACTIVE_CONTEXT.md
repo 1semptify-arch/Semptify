@@ -12,9 +12,11 @@
 - Fixed `app/modules/document_delivery/router.py` duplicate `GET /api/delivery/inbox` route by moving the HTML page endpoint to `/inbox/page`.
 - Verification: `pytest tests/module_health -q --no-cov` (115 passed), `tools/verify_modules.py --sync` (114 ok), `sync_orchestrator`, `guardrail_engine` all pass.
 
-## 🎯 Current Priority: Queue empty — waiting for next directive
+## 🎯 Current Priority: Master Handoff — Wire the 5 Admin Hub Stub Tiles (B1)
 
-All orchestrator tasks (`todo-001` through `todo-044`) are resolved. `tools/docs_todos.json`, `tools/agent_orchestrator_tasks.json`, and `tools/_seed_orchestrator_tasks.py` are in sync. The next directive should come from the user or a new Master Handoff.
+- `system_health` (Tier 0) — IN PROGRESS.
+- `run_modules`, `correspondence`, `user_concerns`, `advanced` — pending sensitivity confirmation.
+- `dispute_tracker` packaging (B2) and `eviction_timeline` scoping (B3) — pending.
 
 ---
 

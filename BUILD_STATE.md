@@ -1,3 +1,38 @@
+## Session -- 2026-07-29 -- B1 wire system_health admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:27:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/system_health/` — new admin-only module for the System Health & Updates hub tile.
+  - `router.py` provides `GET /api/admin/system/health`, `GET /api/admin/system/registry`, and `POST /api/admin/system/verify`.
+  - All routes use `require_admin` and are admin-only (no PII, Tier 0).
+- `app/core/product_manifest.py` — registered `app.modules.system_health.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/system`.
+- `tools/module_registry.yaml` — `system_health` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_system_health.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/system_health/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/system_health app/core/product_manifest.py tests/module_health/test_system_health.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 116 passed.
+- `python tools/verify_modules.py --id system_health`: ok (3 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Data-sensitivity tier confirmation for `run_modules`, `correspondence`, `user_concerns`, and `advanced` before wiring the remaining B1 tiles.
+
+---
+
 ## Session -- 2026-07-29 -- module health check / test suite framework
 
 ### Guardrail Engine Run — 2026-07-29T01:48:36

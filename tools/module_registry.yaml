@@ -74,14 +74,16 @@
   tier: B
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-07-29T06:16:05.048435+00:00'
-  status: unverified
+  health_check: tools.module_health.check_system_health
+  test_suite: tests/module_health/test_system_health.py
+  module_path: app.modules.system_health.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-07-29T08:02:26.938131+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
-  flag_reason: hub tile / no module_path
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 1.63s
 - id: advanced
   display_name: Advanced / Dev Tools
   category: advanced
@@ -1438,8 +1440,8 @@
   last_verified: '2026-07-29T06:35:53.007519+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: pending Brad's decision on filedored_service classification
+    test_suite: flagged
   flag_reason: pending Brad's decision on filedored_service classification
 - id: data_freshness
   display_name: Data Freshness
@@ -1565,8 +1567,8 @@
   last_verified: '2026-07-29T06:38:29.558789+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: ON HOLD per Brad's standing direction
+    test_suite: flagged
   flag_reason: ON HOLD per Brad's standing direction
 - id: eviction_notice_explainer
   display_name: Eviction Notice Explainer
@@ -1580,8 +1582,8 @@
   last_verified: '2026-07-29T06:38:29.560301+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: module not available (optional router skipped)
+    test_suite: flagged
   flag_reason: module not available (optional router skipped)
 - id: response_letter_generator
   display_name: Response Letter Generator
@@ -1595,8 +1597,8 @@
   last_verified: '2026-07-29T06:38:29.560941+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: module not available (optional router skipped)
+    test_suite: flagged
   flag_reason: module not available (optional router skipped)
 - id: eviction_defense_content
   display_name: Eviction Defense Content
@@ -1610,8 +1612,8 @@
   last_verified: '2026-07-29T06:38:29.560941+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: module not available (optional router skipped)
+    test_suite: flagged
   flag_reason: module not available (optional router skipped)
 - id: ai_copilot
   display_name: Ai Copilot
@@ -1625,8 +1627,8 @@
   last_verified: '2026-07-29T06:38:29.560941+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: module not available (optional router skipped)
+    test_suite: flagged
   flag_reason: module not available (optional router skipped)
 - id: context_loop
   display_name: Context Loop
@@ -1752,8 +1754,8 @@
   last_verified: '2026-07-29T06:40:42.950520+00:00'
   status: unverified
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: pending Brad's decision on accountability_ledger / detect_repeated_fees
+    test_suite: flagged
   flag_reason: pending Brad's decision on accountability_ledger / detect_repeated_fees
 - id: external_mappings_mappings_router
   display_name: External Mappings / Court Cases / Properties / Agencies
