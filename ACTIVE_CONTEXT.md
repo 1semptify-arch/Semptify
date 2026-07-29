@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-29 (module health check / test suite framework shipped)
+**Last Updated**: 2026-07-29 (B2/B3 dispute_tracker and eviction_timeline greenfield build complete)
 
 ## ✅ Completed 2026-07-29 Session
 
@@ -31,15 +31,18 @@ B1 is done.
 - PII is stored in overlay pointers, not PostgreSQL, per the DB boundary rule.
 - `subject_id` is a placeholder (no FK) pending the accountability_ledger boundary decision (Option 3).
 
-### Still to do
-- B2 Commit 4 — minimal GUI (list + add/compare).
-- B2 Commit 5 — conformance gate wiring.
-- B3 Commit 4 — minimal GUI (list + add event).
-- B3 Commit 5 — conformance gate wiring.
+### Done in this session (continued)
+- B2 Commit 4 — minimal GUI: `GET /api/dispute-tracker/` page, `POST /api/dispute-tracker/disputes`, `POST /api/dispute-tracker/comparisons`.
+- B2 Commit 5 — `FunctionGroupContract` allowed_routes aligned with actual routes.
+- B3 Commit 4 — minimal GUI: `GET /api/eviction-timeline/` page, `POST /api/eviction-timeline/events`.
+- B3 Commit 5 — `FunctionGroupContract` allowed_routes aligned; `tools/checks/contract_route_check.py` guardrail added (Build Orchestrator hard-gate) and passes.
+- Post-GUI SSOT fix: all POST redirects use `ssot_redirect()` instead of raw `RedirectResponse`.
+- `tools/checks/contract_route_check.py` enforces tier validity, manifest-prefix coverage, actual route-to-contract matching, and `PUBLIC_PREFIXES` exposure (only T0 routes may be public).
 
-### Open for Brad's confirmation
-- T2 tier for `dispute_tracker` (flagged in commit message).
-- T2 tier for `eviction_timeline`, with note that filing-linked fields may need T3 later.
+### Still pending / open
+- T2 tier for `dispute_tracker` and `eviction_timeline` is flagged in commit messages for Brad's review.
+- `EvictionTimelineEvent.subject_id` remains a placeholder (no FK) pending accountability_ledger boundary.
+- Live manual test of the HTML pages has not been run (only `verify_modules`, `guardrail_engine`, and `pytest` passed).
 
 ---
 
