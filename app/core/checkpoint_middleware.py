@@ -45,6 +45,7 @@ EXEMPT_PATHS = {
     "/health",
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
     # Public website sub-pages (semptify.org guest portal)
+    "/portal",
     "/about",
     "/services",
     "/renters-guide",
