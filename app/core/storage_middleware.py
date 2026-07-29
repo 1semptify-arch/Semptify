@@ -104,6 +104,7 @@ PUBLIC_PATHS: set[str] = {
     "/tenant/library",
     "/tenant/library/",
     # Public website sub-pages (semptify.org guest portal)
+    "/portal",
     "/about",
     "/services",
     "/renters-guide",

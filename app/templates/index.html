@@ -1,69 +1,3 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Semptify — On-The-Fly Composer</title>
-    <link rel="stylesheet" href="/static/css/style.css" />
-  </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to main content</a>
-
-    <header class="site-header" role="banner">
-      <div class="container">
-        <h1 class="brand">Semptify</h1>
-        <p class="tag">Tenant rights tools — privacy-first, stateless, zero-log</p>
-        <a href="/welcome.html" class="cta-link">Get Started</a>
-        <nav class="primary-nav" role="navigation" aria-label="Primary">
-          <a href="#triage" class="nav-link">Triage</a>
-          <a href="#vault" class="nav-link">Vault</a>
-          <a href="#timeline" class="nav-link">Timeline</a>
-          <a href="#" class="nav-link">Show All</a>
-        </nav>
-      </div>
-    </header>
-
-    <main id="main" class="site-main container" role="main">
-      <p class="lead">No accounts. No logs. All UI routing happens in your browser.</p>
-
-      <section class="canvas" aria-live="polite">
-        <article id="triage" class="panel" tabindex="0" role="region" aria-labelledby="triage-heading">
-          <h2 id="triage-heading">Triage</h2>
-          <p class="panel-intro">Organize urgent tasks, next steps, and contact checklist.</p>
-          <ul>
-            <li>Report issue details</li>
-            <li>Capture images & notes</li>
-            <li>Prepare a short timeline</li>
-          </ul>
-        </article>
-
-        <article id="vault" class="panel" tabindex="0" role="region" aria-labelledby="vault-heading">
-          <h2 id="vault-heading">Vault</h2>
-          <p class="panel-intro">Store documents in your browser or connect cloud storage locally.</p>
-          <ul>
-            <li>Preserve receipts & letters</li>
-            <li>Create evidence bundles</li>
-            <li>Export or hand off to an advocate</li>
-          </ul>
-        </article>
-
-        <article id="timeline" class="panel" tabindex="0" role="region" aria-labelledby="timeline-heading">
-          <h2 id="timeline-heading">Timeline</h2>
-          <p class="panel-intro">Build a clear sequence of events to make your case stronger.</p>
-          <ol>
-            <li>Event: Date — Short note</li>
-            <li>Event: Date — Short note</li>
-            <li>Event: Date — Short note</li>
-          </ol>
-        </article>
-      </section>
-
-      <footer class="site-footer" role="contentinfo">
-        <p>© {{ year }} Semptify — Privacy-first tenant support</p>
-      </footer>
-    </main>
-  </body>
-</html>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -80,12 +14,14 @@
       <header class="hero">
         <div>
           <p class="eyebrow">Privacy-first tenant protection</p>
-          <h1>Semptify Composer</h1>
+          <h1>Semptify</h1>
           <p class="hero-copy">
             A calm, stateless workspace for organizing facts, protecting evidence, and keeping next steps clear.
           </p>
         </div>
         <nav class="hero-nav" aria-label="Primary">
+          <a href="/preamble" class="chip chip--primary">Get Started</a>
+          <a href="/portal" class="chip">Browse Tools & Services</a>
           <a href="#triage" class="chip">Triage</a>
           <a href="#vault" class="chip">Vault</a>
           <a href="#timeline" class="chip">Timeline</a>
@@ -147,6 +83,12 @@
     </main>
 
     <footer class="footer">
+      <p>
+        <a href="/portal">Services</a> ·
+        <a href="/about">About</a> ·
+        <a href="/help">Help</a> ·
+        <a href="/preamble">Get Started</a>
+      </p>
       <p>Semptify.org · Built for privacy, clarity, and evidence preservation · © {{ year }}</p>
     </footer>
   </body>
