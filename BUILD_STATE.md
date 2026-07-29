@@ -1,3 +1,34 @@
+## Session -- 2026-07-29 -- Admin Hub + Module Registry + Verification System
+
+### What was built
+
+- Added `tools/module_registry.yaml` as the module health registry (127 entries, synced from `product_manifest.py`).
+- Added `tools/sync_registry.py` to reconcile the registry against the product manifest (add new modules, flag orphaned).
+- Added `tools/verify_modules.py` to run health checks/test suites and update `last_verified` + `status`.
+- Added `app/core/module_registry_loader.py` for FastAPI-safe registry access and async sync/verify trigger.
+- Added `static/admin/hub.html` as the new `/admin` landing page with 7 tiles and live status badges.
+- Wired `/admin`, `/admin/api/registry`, and `/admin/api/verify` into `app/main.py` behind admin elevation.
+- Added `/admin/system-health`, `/admin/run-modules`, and stub tile routes (`/admin/testing`, `/admin/invite-codes`, `/admin/correspondence`, `/admin/user-concerns`, `/admin/advanced`).
+- Migrated `tools/orchestrator_dashboard.html` into `/admin/run-modules`.
+- Hooked `sync_registry.py` into `tools/sync_orchestrator.py` so manifest changes auto-update the registry.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on all changed Python files: PASS.
+- `python tools/sync_orchestrator.py --check`: PASS (0 stubs, 44 tasks).
+- `python tools/sync_registry.py --write`: PASS (127 registry entries, 1 orphan flagged).
+- `python tools/verify_modules.py --id run_modules`: PASS.
+
+### Known Working / Pending
+
+- Admin Hub is live at `/admin`; tile routes and registry API are wired.
+- All 7 Hub tiles render; admin-category tiles are stub pages pending module implementation.
+- Health checks and test suites are `TODO` for all modules — registry is honest about unverified state.
+- Optional: scheduled `verify_modules.py` run (cron/GitHub Action) not yet enabled.
+
+---
+
 ## Session -- 2026-07-28 -- Orchestrator queue reconciliation
 
 ### Reconciliation
