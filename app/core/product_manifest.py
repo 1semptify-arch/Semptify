@@ -796,6 +796,14 @@ _register(
     log_message="System Health router connected — admin status and registry summary",
 )
 _register(
+    "app.modules.run_modules.router",
+    prefix="/api/admin/run",
+    tags=("Run Modules",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    log_message="Run Modules router connected — admin-only execution surface",
+)
+_register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
     tags=("Admin Console",),

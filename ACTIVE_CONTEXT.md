@@ -14,8 +14,9 @@
 
 ## 🎯 Current Priority: Master Handoff — Wire the 5 Admin Hub Stub Tiles (B1)
 
-- `system_health` (Tier 0) — IN PROGRESS.
-- `run_modules`, `correspondence`, `user_concerns`, `advanced` — pending sensitivity confirmation.
+- `system_health` (Tier 0) — ✅ complete.
+- `run_modules` (Tier 1) — ✅ complete.
+- `correspondence`, `user_concerns`, `advanced` — pending sensitivity confirmation.
 - `dispute_tracker` packaging (B2) and `eviction_timeline` scoping (B3) — pending.
 
 ---
