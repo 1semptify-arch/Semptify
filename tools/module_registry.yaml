@@ -1793,3 +1793,17 @@
   last_result:
     health_check: 17 route(s), no exposure issues
     test_suite: 1 passed in 1.75s
+- id: dispute_tracker
+  display_name: Dispute Tracker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dispute_tracker.router
+  health_check: tools.module_health.check_dispute_tracker
+  test_suite: tests/module_health/test_dispute_tracker.py
+  status: ok
+  last_verified: '2026-07-29T10:18:05.949715+00:00'
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 1.42s
