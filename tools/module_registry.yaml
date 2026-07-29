@@ -6,7 +6,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T01:56:26.141691+00:00'
+  last_verified: '2026-07-29T08:52:08.428848+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -19,7 +19,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428874+00:00'
   status: unverified
   module_path: app.modules.testing.router
   last_result:
@@ -33,7 +33,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428880+00:00'
   status: unverified
   module_path: app.modules.invite_codes.router
   last_result:
@@ -47,7 +47,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428885+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -60,7 +60,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428890+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -73,7 +73,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428894+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -86,7 +86,7 @@
   version: 1.0.0
   health_check: ''
   test_suite: ''
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428899+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -100,7 +100,7 @@
   module_path: app.modules.health.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428915+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -114,7 +114,7 @@
   module_path: app.core.versioning
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428922+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -128,7 +128,7 @@
   module_path: app.modules.preamble.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428927+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -142,7 +142,7 @@
   module_path: app.modules.risc.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428931+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -156,7 +156,7 @@
   module_path: app.modules.role_ui.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428935+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -170,7 +170,7 @@
   module_path: app.modules.storage.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428939+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -184,7 +184,7 @@
   module_path: app.modules.user.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428943+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -198,7 +198,7 @@
   module_path: app.modules.rent.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428948+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -212,7 +212,7 @@
   module_path: app.modules.auth.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428952+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -226,7 +226,7 @@
   module_path: app.modules.onboarding.reconnect
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428956+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -240,7 +240,7 @@
   module_path: app.modules.documents.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428961+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -254,7 +254,7 @@
   module_path: app.modules.vault.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428965+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -268,7 +268,7 @@
   module_path: app.modules.vault_engine.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428970+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -282,7 +282,7 @@
   module_path: app.modules.timeline.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428974+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -296,7 +296,7 @@
   module_path: app.modules.briefcase.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428978+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -310,7 +310,7 @@
   module_path: app.modules.packet_builder.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428982+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -324,7 +324,7 @@
   module_path: app.modules.workflow.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428987+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -338,7 +338,7 @@
   module_path: app.modules.workflow_validator.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428991+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -352,7 +352,7 @@
   module_path: app.modules.state_laws.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.428996+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -366,7 +366,7 @@
   module_path: app.modules.law_library.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.220049+00:00'
+  last_verified: '2026-07-29T08:52:08.429000+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -394,7 +394,7 @@
   module_path: app.modules.contacts.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429005+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -408,7 +408,7 @@
   module_path: app.modules.journal.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429010+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -422,7 +422,7 @@
   module_path: app.modules.public_forms.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429014+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -436,7 +436,7 @@
   module_path: app.modules.voice.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429018+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -450,7 +450,7 @@
   module_path: app.modules.resource_directory.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429023+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -464,7 +464,7 @@
   module_path: app.modules.search.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429027+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -478,7 +478,7 @@
   module_path: app.modules.pdf_tools.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429032+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -492,7 +492,7 @@
   module_path: app.modules.preview.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429036+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -506,7 +506,7 @@
   module_path: app.modules.document_converter.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429041+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -520,7 +520,7 @@
   module_path: app.modules.legal_analysis.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429045+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -534,7 +534,7 @@
   module_path: app.modules.context_engine.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429049+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -548,7 +548,7 @@
   module_path: app.modules.page_composer.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429054+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -562,7 +562,7 @@
   module_path: app.modules.portal.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429058+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -576,7 +576,7 @@
   module_path: app.modules.ui_composer.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429063+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -590,7 +590,7 @@
   module_path: app.modules.tenant_feed.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429067+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -604,7 +604,7 @@
   module_path: app.modules.websocket.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429071+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -618,7 +618,7 @@
   module_path: app.modules.free_api.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429076+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -632,7 +632,7 @@
   module_path: app.modules.security.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429080+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -646,7 +646,7 @@
   module_path: app.modules.mndes.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429084+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -660,7 +660,7 @@
   module_path: app.modules.fems.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429089+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -674,7 +674,7 @@
   module_path: app.modules.eviction_defense.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429094+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -688,7 +688,7 @@
   module_path: app.modules.zoom_court.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429098+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -702,7 +702,7 @@
   module_path: app.modules.zoom_court_prep.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429102+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -716,7 +716,7 @@
   module_path: app.modules.court_forms.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429107+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -730,7 +730,7 @@
   module_path: app.modules.court_packet.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429111+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -744,7 +744,7 @@
   module_path: app.modules.legal_trails.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429116+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -758,7 +758,7 @@
   module_path: app.modules.legal.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429120+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -772,7 +772,7 @@
   module_path: app.modules.intake.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429125+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -786,7 +786,7 @@
   module_path: app.modules.guided_intake.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429130+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -800,7 +800,7 @@
   module_path: app.modules.case_builder.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429134+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -814,7 +814,7 @@
   module_path: app.modules.progress.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429138+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -828,7 +828,7 @@
   module_path: app.modules.actions.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429143+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -842,7 +842,7 @@
   module_path: app.modules.plan_maker.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429147+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -856,7 +856,7 @@
   module_path: app.modules.tools_api.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429151+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -870,7 +870,7 @@
   module_path: app.modules.complaints.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429156+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -884,7 +884,7 @@
   module_path: app.modules.housing_accountability.pattern_history
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429160+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -898,7 +898,7 @@
   module_path: app.modules.role_upgrade.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429164+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -912,7 +912,7 @@
   module_path: app.modules.document_delivery.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429169+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -926,7 +926,7 @@
   module_path: app.modules.communication.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429173+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -940,7 +940,7 @@
   module_path: app.modules.advocate.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429178+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -954,7 +954,7 @@
   module_path: app.modules.admin_console.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429183+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -968,7 +968,7 @@
   module_path: app.modules.admin_console.module_flags
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429187+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -982,7 +982,7 @@
   module_path: app.modules.analytics.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429191+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -996,7 +996,7 @@
   module_path: app.modules.dashboard.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429195+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1010,7 +1010,7 @@
   module_path: app.modules.enterprise_dashboard.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429199+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1024,7 +1024,7 @@
   module_path: app.modules.batch.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429203+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1038,7 +1038,7 @@
   module_path: app.modules.registry.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429207+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1052,7 +1052,7 @@
   module_path: app.modules.tenancy_hub.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429212+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1066,7 +1066,7 @@
   module_path: app.modules.capabilities.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429216+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1080,7 +1080,7 @@
   module_path: app.modules.manager.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429221+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1094,7 +1094,7 @@
   module_path: app.modules.funding_mgmt.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429225+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1108,7 +1108,7 @@
   module_path: app.modules.recognition.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429230+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1122,7 +1122,7 @@
   module_path: app.modules.extraction.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429235+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1136,7 +1136,7 @@
   module_path: app.modules.crawler.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429239+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1150,7 +1150,7 @@
   module_path: app.modules.research.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429243+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1164,7 +1164,7 @@
   module_path: app.modules.form_data.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429247+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1178,7 +1178,7 @@
   module_path: app.modules.unified_overlays.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429270+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1192,7 +1192,7 @@
   module_path: app.modules.cloud_sync.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429298+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1206,7 +1206,7 @@
   module_path: app.modules.emotion.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429305+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1220,7 +1220,7 @@
   module_path: app.modules.module_hub.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429310+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1234,7 +1234,7 @@
   module_path: app.modules.functionx.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429315+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1248,7 +1248,7 @@
   module_path: app.modules.funding_search.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429319+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1262,7 +1262,7 @@
   module_path: app.modules.hud_funding.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429324+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1276,7 +1276,7 @@
   module_path: app.modules.location.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429328+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1290,7 +1290,7 @@
   module_path: app.modules.campaign.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429332+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1304,7 +1304,7 @@
   module_path: app.modules.public_exposure.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429336+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1318,7 +1318,7 @@
   module_path: app.modules.fraud_exposure.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429340+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1332,7 +1332,7 @@
   module_path: app.modules.setup.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429345+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1346,7 +1346,7 @@
   module_path: app.modules.page_index.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429349+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1360,7 +1360,7 @@
   module_path: app.modules.page_editor.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429354+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1374,7 +1374,7 @@
   module_path: app.modules.development.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429358+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1388,7 +1388,7 @@
   module_path: app.modules.dev_lab.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429363+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1402,7 +1402,7 @@
   module_path: app.modules.agent_orchestrator.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429367+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1416,7 +1416,7 @@
   module_path: app.modules.dev_lab.ideas
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429372+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1430,7 +1430,7 @@
   module_path: app.modules.filedored.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429377+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1444,7 +1444,7 @@
   module_path: app.modules.data_freshness.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429381+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1458,7 +1458,7 @@
   module_path: app.modules.inventory.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429386+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1472,7 +1472,7 @@
   module_path: app.modules.judge.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429390+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1486,7 +1486,7 @@
   module_path: app.modules.calendar.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429395+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1500,7 +1500,7 @@
   module_path: app.modules.tactics.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429399+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1514,7 +1514,7 @@
   module_path: app.modules.page_shell.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429404+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1528,7 +1528,7 @@
   module_path: app.modules.example_payment_tracking
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429409+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1542,7 +1542,7 @@
   module_path: app.modules.legal_filing_module
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429413+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1556,7 +1556,7 @@
   module_path: app.modules.vault_sync
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429417+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1570,7 +1570,7 @@
   module_path: app.modules.eviction_notice_explainer
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429422+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1584,7 +1584,7 @@
   module_path: app.modules.response_letter_generator
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429426+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1598,7 +1598,7 @@
   module_path: app.modules.eviction_defense_content
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429430+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1612,7 +1612,7 @@
   module_path: app.modules.ai_copilot
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429435+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1626,7 +1626,7 @@
   module_path: app.modules.context_loop.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429438+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1640,7 +1640,7 @@
   module_path: app.modules.vault_installer.routes
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429443+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1654,7 +1654,7 @@
   module_path: app.modules.export_import.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429447+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1668,7 +1668,7 @@
   module_path: app.modules.documentation.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429451+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1682,7 +1682,7 @@
   module_path: app.modules.document_center.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429455+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1696,7 +1696,7 @@
   module_path: app.modules.law_library.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429460+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1710,7 +1710,7 @@
   module_path: app.modules.portal.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429464+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1724,7 +1724,7 @@
   module_path: app.modules.core_system.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429468+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1738,7 +1738,7 @@
   module_path: app.modules.housing_accountability.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429473+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1752,7 +1752,7 @@
   module_path: app.modules.external_mappings.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429477+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1766,7 +1766,7 @@
   module_path: app.modules.litigation_intelligence.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-07-29T00:36:43.221054+00:00'
+  last_verified: '2026-07-29T08:52:08.429482+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
