@@ -1,5 +1,14 @@
 ## Session -- 2026-07-29 — Master Handoff Tasks 4-11 reconciliation
 
+### Guardrail Engine Run — 2026-07-29T07:31:05
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Guardrail Engine Run — 2026-07-29T11:28
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
@@ -27,11 +36,28 @@
 - `python scripts/verify_ssot.py`: 8 passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 
-### Notes / still open
+### Live verification — 2026-07-29T12:26
 
-- `tools/verify_modules.py --sync` was started but terminated because it hung; the targeted `pytest module_health` subset and the FastAPI startup check together confirm routing/conformance for the 8 Master Handoff modules.
+- Browser (Playwright/IronBee):
+  - `/` — loads `app/templates/index.html` ("Semptify — On-The-Fly Composer") but console error: `/static/css/style.css` 404 (served as `application/json`).
+  - `/about` — loads `app/templates/public/about.html`, no console errors.
+  - `/services` — loads `app/templates/public/services.html`, no console errors.
+  - `/api/portal/pages` — returns 200.
+- TestClient (after `storage_middleware` fix): `GET /api/resources` returns 200; `GET /api/resources/{id}` returns 404 (expected for missing ID).
+- `python -m pytest tests/module_health/test_resource_directory.py -q --no-cov`: 1 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: 8 passed.
+
+### Blockers found
+
+1. **Root landing is not the intended public page.** `/` serves `app/templates/index.html` ("On-The-Fly Composer"), which has a broken CSS reference and is not listed in `PortalPageRegistry`. `app/templates/public/portal.html` (the action-first public landing from Task 3) is not registered in `app/modules/portal/pages.py` and has no route. `static/public/welcome.html` is served at `/welcome.html` and is the intended public welcome per `navigation.py` (`welcome` stage path is `/`).
+2. **Task 11 Resource Directory public API was unreachable.** `GET /api/resources` returned 401 from `StorageRequirementMiddleware` because `/api/resources` was not in `PUBLIC_PATHS`/`PUBLIC_PREFIXES`. Fixed in this session by adding the path/prefix; now returns 200.
+3. **Database `feature_flags` table missing.** Does not block the reconciled modules but causes fallback warnings on every request.
+
+### Notes
+
+- `tools/verify_modules.py --sync` was started but terminated because it hung; targeted `pytest module_health` and FastAPI startup checks confirm routing/conformance.
 - Five optional routers are skipped at startup (`vault_sync`, `eviction_notice_explainer`, `response_letter_generator`, `eviction_defense_content`, `ai_copilot`). These are not part of Master Handoff Tasks 4-11.
-- Live browser verification (open pages, exercise forms) has not yet been run on these modules.
 
 ---
 
