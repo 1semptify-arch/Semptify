@@ -1807,3 +1807,17 @@
   last_result:
     health_check: 1 route(s), no exposure issues
     test_suite: 1 passed in 1.49s
+- id: eviction_timeline
+  display_name: Eviction Timeline
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_timeline.router
+  health_check: tools.module_health.check_eviction_timeline
+  test_suite: tests/module_health/test_eviction_timeline.py
+  status: ok
+  last_verified: '2026-07-29T10:20:36.835250+00:00'
+  last_result:
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 1.40s
