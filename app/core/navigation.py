@@ -62,7 +62,11 @@ class NavigationRegistry:
         # Main nav paths
         for item in cls.MAIN_NAV:
             paths.add(item.path)
-        
+
+        # Admin flow paths
+        for stage in cls.ADMIN_FLOW.values():
+            paths.add(stage.path)
+
         # Entry points
         paths.add("/")
         paths.add(cls.get_onboarding_start())
@@ -222,6 +226,95 @@ class NavigationRegistry:
         ),
     }
 
+    # --- Admin Flow (SSOT) ---
+    # Elevation-required admin routes. Kept separate from public navigation.
+    ADMIN_FLOW: ClassVar[Dict[str, FlowStage]] = {
+        "admin_hub": FlowStage(
+            id="admin_hub",
+            name="Admin Hub",
+            path="/admin",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_login": FlowStage(
+            id="admin_login",
+            name="Admin Login",
+            path="/admin/login",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_dashboard": FlowStage(
+            id="admin_dashboard",
+            name="Admin Dashboard",
+            path="/admin/dashboard",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_dashboard_html": FlowStage(
+            id="admin_dashboard_html",
+            name="Admin Dashboard (Legacy .html)",
+            path="/admin/dashboard.html",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_forge": FlowStage(
+            id="admin_forge",
+            name="Semptify Forge",
+            path="/admin/forge.html",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_run_modules": FlowStage(
+            id="admin_run_modules",
+            name="Run Modules",
+            path="/admin/run-modules",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_system_health": FlowStage(
+            id="admin_system_health",
+            name="System Health & Updates",
+            path="/admin/system-health",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_testing": FlowStage(
+            id="admin_testing",
+            name="Testing",
+            path="/admin/testing",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_invite_codes": FlowStage(
+            id="admin_invite_codes",
+            name="Invite Codes & Authorizations",
+            path="/admin/invite-codes",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_correspondence": FlowStage(
+            id="admin_correspondence",
+            name="Correspondence",
+            path="/admin/correspondence",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_user_concerns": FlowStage(
+            id="admin_user_concerns",
+            name="User Concerns",
+            path="/admin/user-concerns",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_advanced": FlowStage(
+            id="admin_advanced",
+            name="Advanced / Dev Tools",
+            path="/admin/advanced",
+            next_stage="admin_forge",
+            requires_checkpoint=False
+        ),
+    }
+
     # --- Main Navigation (SSOT) ---
     # The 5 base navigation links present on EVERY page:
     # Home, Library, Office, Tools, Help
@@ -247,8 +340,12 @@ class NavigationRegistry:
     
     @classmethod
     def get_stage(cls, stage_id: str) -> Optional[FlowStage]:
-        """Get flow stage by ID — searches all registries (onboarding + court)."""
-        return cls.ONBOARDING_FLOW.get(stage_id) or cls.COURT_FLOW.get(stage_id)
+        """Get flow stage by ID — searches all registries (onboarding + court + admin)."""
+        return (
+            cls.ONBOARDING_FLOW.get(stage_id)
+            or cls.COURT_FLOW.get(stage_id)
+            or cls.ADMIN_FLOW.get(stage_id)
+        )
     
     @classmethod
     def get_next_path(cls, current_stage_id: str) -> str:
@@ -347,6 +444,16 @@ class NavigationRegistry:
                 }
                 for item in sorted(cls.MAIN_NAV, key=lambda x: x.order)
             ],
+            "admin_flow": {
+                k: {
+                    "id": v.id,
+                    "name": v.name,
+                    "path": v.path,
+                    "next": v.next_stage,
+                    "requires_checkpoint": v.requires_checkpoint
+                }
+                for k, v in cls.ADMIN_FLOW.items()
+            },
             "entry_points": {
                 "welcome": "/",
                 "onboarding_start": cls.get_onboarding_start(),
@@ -356,7 +463,7 @@ class NavigationRegistry:
             "evolution": {
                 "deprecated_paths": cls._DEPRECATED_PATHS,
                 "escape_hatches": list(cls._ESCAPE_HATCHES),
-                "total_stages": len(cls.ONBOARDING_FLOW)
+                "total_stages": len(cls.ONBOARDING_FLOW) + len(cls.COURT_FLOW) + len(cls.ADMIN_FLOW)
             }
         }
 
