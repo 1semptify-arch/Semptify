@@ -498,6 +498,13 @@ _register(
     dev_notes="Canonical timeline API (DB-backed TimelineEvent model). Briefcase router's in-memory timeline-event CRUD removed 2026-07-15 as duplicate. Workflow router is NOT a duplicate — it only reads timeline counts for routing decisions.",
 )
 _register(
+    "app.modules.eviction_timeline.router",
+    prefix="/api/eviction-timeline",
+    tags=("Eviction Timeline",),
+    tier=ProductTier.CORE,
+    dev_notes="Tenant-facing eviction case timeline. T2 data. subject_id is a placeholder with no FK — accountability_ledger boundary is deferred.",
+)
+_register(
     "app.modules.briefcase.router",
     tags=("Briefcase",),
     tier=ProductTier.CORE,
@@ -1252,6 +1259,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     "tenant": [
         "app.modules.vault.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
         "app.modules.voice.router",
@@ -1267,6 +1275,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         # Everything tenant gets
         "app.modules.vault.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
         "app.modules.rent.router",
@@ -1294,6 +1303,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     "manager": [
         "app.modules.documents.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.contacts.router",
         "app.modules.state_laws.router",
         "app.modules.search.router",
