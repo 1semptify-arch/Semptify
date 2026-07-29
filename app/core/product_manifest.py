@@ -788,6 +788,14 @@ _register("app.modules.advocate.router", tags=("Advocate", "Clients", "Case Mana
 # =============================================================================
 
 _register(
+    "app.modules.system_health.router",
+    prefix="/api/admin/system",
+    tags=("System Health",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    log_message="System Health router connected — admin status and registry summary",
+)
+_register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
     tags=("Admin Console",),
