@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-29 (B2/B3 dispute_tracker and eviction_timeline greenfield build complete)
+**Last Updated**: 2026-07-29 (Master Handoff Task 2 — footer + help page redo complete)
 
 ## ✅ Completed 2026-07-29 Session
 
@@ -59,6 +59,11 @@ public-service, and follow the four-pillar model (RECORD/KNOW/ACT/GOVERN).
 
 Task 1 — Shared UX foundation — is complete (viewport-locked CSS, function-budget classes,
 persistent "Get help now" in `gui/base.html`, calm/alarm color tokens, convention documented).
+
+Task 2 — Footer + Help page redo — is complete. Shared Jinja/public/static footers and the
+unified footer loader now show a one-line UPL boundary, "Get help", and "Report a problem" only.
+`/help` is a no-scroll, action-first page routed by "What's happening to you right now?" into
+RECORD / KNOW / ACT / GOVERN.
 
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).

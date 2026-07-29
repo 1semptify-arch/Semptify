@@ -1,3 +1,34 @@
+## Session -- 2026-07-29 — Master Handoff Task 2 — footer + help page
+
+### Guardrail Engine Run — 2026-07-29T11:28
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/templates/public_base.html` — replaced dense footer with minimal version: one-line UPL boundary, "Get help", "Report a problem", copyright.
+- `static/components/footer.html` — updated SSOT copy/paste footer snippet to the same minimal markup.
+- `static/js/unified-footer-loader.js` — updated generated footer to minimal one-line UPL + get help + report problem, removed link sprawl and large disclaimer.
+- `static/templates/base.html` — replaced dense inline footer with minimal version and added matching page-footer CSS.
+- `app/templates/pages/help.html` — clarified the fourth help route as "I need to check my status or deadlines" (GOVERN / home dashboard), keeping the page no-scroll, action-first, and RECORD/KNOW/ACT/GOVERN routing.
+
+### Verification
+
+- `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Still pending / open
+
+- Static standalone pages (`static/tenant/index.html`, etc.) may still have old dense footers. These use their own inline markup and were not converted in this pass.
+- `static/tenant/help.html` fallback page is the old long help page; the primary `/help` path now uses the Jinja template.
+
+---
+
 ## Session -- 2026-07-29 -- B2/B3 GUI + conformance + SSOT redirects
 
 ### Guardrail Engine Run — 2026-07-29T10:47
