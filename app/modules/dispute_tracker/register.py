@@ -35,7 +35,7 @@ register_function_group(
         dependencies=("app.modules.dispute_tracker.router",),
         deterministic=True,
         tier="T2",
-        allowed_routes=("/api/dispute-tracker/disputes",),
+        allowed_routes=("/api/dispute-tracker/", "/api/dispute-tracker/disputes"),
         allowed_prefixes=("/api/dispute-tracker",),
     )
 )
@@ -67,7 +67,7 @@ register_function_group(
         dependencies=("app.modules.dispute_tracker.router",),
         deterministic=False,
         tier="T2",
-        allowed_routes=("/api/dispute-tracker/compare",),
+        allowed_routes=("/api/dispute-tracker/comparisons",),
         allowed_prefixes=("/api/dispute-tracker",),
     )
 )
