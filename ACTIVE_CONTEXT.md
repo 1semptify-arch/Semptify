@@ -83,13 +83,20 @@ Master Handoff Tasks 4-11 are reconciled with the working tree:
 ### Live verification blockers fixed
 
 - `app/core/storage_middleware.py`: added `/api/resources` to `PUBLIC_PATHS` and `/api/resources/` to `PUBLIC_PREFIXES`. `GET /api/resources` now returns 200 instead of 401.
+- `app/core/checkpoint_middleware.py`: added `/portal` to `EXEMPT_PATHS`.
 
-### Remaining blockers before assembly
+### Root landing / portal wiring
 
-1. **Root landing mismatch.** `/` serves `app/templates/index.html` ("On-The-Fly Composer") with a broken `/static/css/style.css` 404. The action-first `app/templates/public/portal.html` from Task 3 is not registered in `app/modules/portal/pages.py` and has no route. `static/public/welcome.html` is available at `/welcome.html` and `navigation.py` marks the `welcome` stage path as `/`.
-2. **Missing `feature_flags` DB table.** Causes fallback warnings but does not block public reads.
+Implemented the hotel analogy:
+- `/` (lobby) — `app/templates/index.html`, stateless composer, fixed CSS and CTAs to `/preamble` (app entry) and `/portal` (concierge).
+- `/portal` (concierge) — `app/templates/public/portal.html` with the services catalog; now a registered `PortalPage` and public in both `storage_middleware` and `checkpoint_middleware`.
+- Floors — existing `/gui/*`, `/tenant/*`, standalone modules, etc.
 
-Next: decide/fix root landing wiring, then GUI/site assembly.
+### Remaining blocker before assembly
+
+- Missing `feature_flags` DB table — causes fallback warnings but does not block public pages or the reconciled modules.
+
+Next: GUI/site assembly.
 
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).

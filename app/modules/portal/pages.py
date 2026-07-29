@@ -46,6 +46,18 @@ class PortalPageRegistry:
 
     PAGES: ClassVar[List[PortalPage]] = [
         PortalPage(
+            id="portal",
+            title="Semptify — Tenant Rights, Documented",
+            path="/portal",
+            template="public/portal.html",
+            description="Upload your documents. Track your deadlines. Build your case. All in one place, no cost, and your documents stay in your own cloud storage.",
+            keywords="tenant rights, tenant organizer, housing, renter rights, landlord tenant, eviction defense, habitability, security deposit, housing advocacy",
+            og_title="Semptify — Tenant Rights, Documented",
+            og_description="Upload your documents. Track your deadlines. Build your case. All in one place.",
+            footer_label="Get started",
+            order=5,
+        ),
+        PortalPage(
             id="about",
             title="About Semptify — Tenant Rights Organization",
             path="/about",

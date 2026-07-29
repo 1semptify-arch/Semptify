@@ -1870,7 +1870,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     "page": _p,
                     "footer_pages": _portal_pages.get_footer_pages(),
                 }
-                if _p.id == "services":
+                if _p.id in ("services", "portal"):
                     catalog = _get_catalog()
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
