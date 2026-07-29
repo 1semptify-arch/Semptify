@@ -86,7 +86,9 @@ def ai_classify_document(vault_id: str, content: bytes, filename: str) -> str:
     Integration points:
     - SWE 1.6: Replace this function with SWE 1.6 API call
     - Local model: Uses the deterministic keyword/filename classifier in
-      ``app.services.local_classifier`` (default).
+      ``app.services.local_classifier`` (default). The classifier now also
+      returns a confidence score via ``predict_with_confidence()``, which
+      ``process_uploaded_document()`` stores in the overlay payload.
     - External API: Replace with external classification service
     """
     try:
@@ -127,7 +129,15 @@ async def process_uploaded_document(
     try:
         # AI classification (optional)
         if enable_ai:
-            label = ai_classify_document(vault_id, content, filename)
+            try:
+                from app.services.local_classifier import predict_with_confidence
+
+                label, confidence = predict_with_confidence(content, filename)
+            except Exception as exc:
+                logger.warning("AI classification failed for %s: %s", vault_id, exc)
+                label = "unknown"
+                confidence = 0.0
+
             if label != "unknown":
                 target_path = AI_CLASSIFICATION_MAP.get(label, VAULT_FILEDORED_AI_UNKNOWN)
 
@@ -141,6 +151,7 @@ async def process_uploaded_document(
                     "filedored_category": label,
                     "filedored_path": target_path,
                     "classification_method": "ai",
+                    "ai_confidence": confidence,
                     "classified_at": utc_now().isoformat(),
                 }
 
@@ -158,6 +169,7 @@ async def process_uploaded_document(
                     "status": "ai_classified",
                     "overlay_path": target_path,
                     "ai_label": label,
+                    "ai_confidence": confidence,
                 }
 
         # Extension-based routing

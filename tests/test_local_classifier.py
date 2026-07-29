@@ -1,6 +1,6 @@
 """Smoke tests for the local document classifier."""
 
-from app.services.local_classifier import predict
+from app.services.local_classifier import predict, predict_with_confidence
 
 
 def test_empty_unknown():
@@ -38,3 +38,24 @@ def test_photo_label_from_filename():
     """Image extensions and photo keywords map to photo."""
     assert predict(b"\x89PNG\r\n\x1a\n", "kitchen_mold.png") == "photo"
     assert predict(b"", "screenshot_damage.jpg") == "photo"
+
+
+def test_predict_with_confidence_returns_unknown_for_empty():
+    """Confidence for an unclassifiable document is zero."""
+    label, confidence = predict_with_confidence(b"", "")
+    assert label == "unknown"
+    assert confidence == 0.0
+
+
+def test_predict_with_confidence_is_high_for_clear_filename():
+    """A filename with a strong keyword should yield a high-confidence label."""
+    label, confidence = predict_with_confidence(b"", "notice_to_quit.pdf")
+    assert label == "notice"
+    assert 0.0 < confidence <= 0.99
+
+
+def test_predict_with_confidence_is_lower_for_tied_scores():
+    """A generic filename with no content should not claim high confidence."""
+    label, confidence = predict_with_confidence(b"", "document.pdf")
+    assert label == "unknown"
+    assert confidence == 0.0

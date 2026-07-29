@@ -85,7 +85,7 @@ Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `R
 - **Semantic Context Engine (Deep OCR Pass 2)** — `todo-036` resolved 2026-07-28; rule-based engine + acceptance tests + async token refresh in deep OCR job.
 - **Litigation Intelligence graph endpoints** — `todo-020` resolved 2026-07-28; graph engine and build/visualize/path endpoints already live and tested.
 - **Orchestrator todo sweep** ✅ — `todo-021` through `todo-032` resolved 2026-07-28.
-- **Next `swe-1.7` candidates** — `todo-022` (housing_accountability detect_repeated_fees), `todo-024` (filedored_service classification); awaiting direction.
+- **Next `swe-1.7` candidates** — `todo-022` (housing_accountability detect_repeated_fees) and `todo-024` (filedored_service classification) are now hardened and resolved.
 - **vault_sync** — ON HOLD per user 2026-07-01. Plan captured in memory.
 
 ### Action Feedback Helper — COMPLETE
