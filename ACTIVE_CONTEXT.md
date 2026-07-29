@@ -16,7 +16,9 @@
 
 - `system_health` (Tier 0) — ✅ complete.
 - `run_modules` (Tier 1) — ✅ complete.
-- `correspondence`, `user_concerns`, `advanced` — pending sensitivity confirmation.
+- `correspondence` (Tier 2 wiring pass, PII-free) — ✅ complete.
+- `user_concerns` (Tier 2) — pending wiring.
+- `advanced` (Tier 1/T0; decision needed on `detect_repeated_fees`) — pending.
 - `dispute_tracker` packaging (B2) and `eviction_timeline` scoping (B3) — pending.
 
 ---
