@@ -1,3 +1,30 @@
+## Session -- 2026-07-29 — Master Handoff Task 3 — content pass follow-up
+
+### Guardrail Engine Run — 2026-07-29T11:28
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/templates/public/portal.html` — tightened the public landing page to action-first copy ("Upload your documents. Track your deadlines. Build your case.") and replaced the inspirational quote with a concrete tenant-rights fact ("Document problems as they happen...").
+
+### Verification
+
+- `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Note
+
+- The deeper Task 3 work (subject_starters.py, starter chips, `free` wording audit, about.html rewrite) was already shipped in commit `8e58602b` on 2026-07-26. This session was a follow-up pass on `portal.html`.
+- Master Handoff Tasks 4-11 also appear to have implementation commits in `main` (admin logging, voice, i18n, media capture, contacts, redaction, intake, resource directory). A live verification pass has not been run end-to-end.
+
+---
+
 ## Session -- 2026-07-29 — Master Handoff Task 2 — footer + help page
 
 ### Guardrail Engine Run — 2026-07-29T11:28
