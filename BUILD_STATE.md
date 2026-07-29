@@ -1,3 +1,26 @@
+## Session -- 2026-07-28 -- Orchestrator queue reconciliation
+
+### Reconciliation
+
+- The working tree reset during an interruption; `tools/_seed_orchestrator_tasks.py` and `tools/docs_todos.json` had reverted to `pending` while `tools/agent_orchestrator_tasks.json` already showed all 44 tasks resolved.
+- Regenerated `tools/_seed_orchestrator_tasks.py` from `tools/agent_orchestrator_tasks.json` and ran `tools/sync_orchestrator.py`.
+- `tools/docs_todos.json` and `tools/agent_orchestrator_tasks.json` are now in sync and all 44 tasks are marked `resolved`.
+- Updated `STUB_AUDIT.md` to reflect that Tier 1 and Tier 2 stubs are resolved; only Tier 3/4/5 (by-design) remain.
+
+### Verification
+
+- `python -m py_compile tools/_seed_orchestrator_tasks.py`: PASS.
+- `python tools/sync_orchestrator.py`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python tmp_list_todos.py`: no pending todos.
+
+### Known Working / Pending
+
+- All orchestrator tasks (`todo-001` through `todo-044`) are resolved.
+- Queue is empty pending new work.
+
+---
+
 ## Session -- 2026-07-28 -- Orchestrator todo-021 through todo-032 sweep
 
 ### Guardrail Engine Run — 2026-07-28T20:30:00
