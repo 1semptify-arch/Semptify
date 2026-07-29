@@ -1,0 +1,55 @@
+# =============================================================================
+# Scheduled Module Registry Verification
+# =============================================================================
+# Runs verify_modules.py on a cron schedule and on demand.
+# If the registry changed, it commits the updated module_registry.yaml.
+# Review/enable: the cron schedule is active. Disable by removing `schedule:`.
+# =============================================================================
+
+name: Module Registry Verification
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every day at 06:00 UTC (low-traffic time).
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  verify:
+    name: Verify and sync module registry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Sync and verify all modules
+        run: |
+          python tools/verify_modules.py --sync
+
+      - name: Commit updated registry if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          if [ -n "$(git status --porcelain tools/module_registry.yaml)" ]; then
+            git add tools/module_registry.yaml
+            git commit -m "chore: scheduled module registry verification [skip ci]"
+            git push
+          else
+            echo "No registry changes."
+          fi
