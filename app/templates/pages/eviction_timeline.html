@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Eviction Timeline - Semptify{% endblock %}
+{% block body_class %}eviction-timeline-page{% endblock %}
+
+{% block styles %}
+<style>
+.et-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-4);
+}
+
+.et-header {
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-6);
+}
+
+.et-header h1 {
+    font-size: var(--type-h1);
+    font-weight: var(--type-h1-weight);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.et-header p {
+    font-size: var(--type-body);
+    color: var(--text-secondary);
+    margin: 0;
+    max-width: 640px;
+}
+
+.et-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+}
+
+.et-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: var(--space-6);
+}
+
+.et-panel h2 {
+    font-size: var(--type-h2);
+    font-weight: var(--type-h2-weight);
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+}
+
+.et-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+}
+
+.et-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+}
+
+.et-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+}
+
+.et-list li {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: var(--space-4);
+}
+
+.et-list h3 {
+    font-size: var(--type-h3);
+    font-weight: var(--type-h3-weight);
+    margin: 0 0 var(--space-2) 0;
+    color: var(--text-primary);
+}
+
+.et-meta {
+    font-size: var(--type-body);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.et-meta span {
+    display: inline-block;
+    margin-right: var(--space-4);
+}
+
+.et-empty {
+    font-size: var(--type-body);
+    color: var(--text-muted);
+    padding: var(--space-4) 0;
+}
+
+/* Desktop poster layout: form left, list right */
+@media (min-width: 900px) {
+    .et-grid {
+        grid-template-columns: 360px 1fr;
+        grid-template-areas:
+            "add-event event-list";
+    }
+
+    .et-add-event { grid-area: add-event; }
+    .et-event-list { grid-area: event-list; }
+}
+
+/* Mobile: chronological stacked scroll */
+@media (max-width: 899px) {
+    .et-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .et-add-event { order: 1; }
+    .et-event-list { order: 2; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="et-page">
+    <div class="et-header">
+        <h1>Eviction Timeline</h1>
+        <p>Keep a chronological record of notices, payments, communications, and court events. Event details and documents live in your secure vault — only dates and pointers are kept here.</p>
+    </div>
+
+    <div class="et-grid">
+        <section class="et-panel et-add-event" aria-labelledby="add-event-heading">
+            <h2 id="add-event-heading">Add an event</h2>
+            <form method="post" action="/api/eviction-timeline/events" class="et-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="et-form-row">
+                    <div class="form-group">
+                        <label class="form-label form-label--required" for="event_type">Event type</label>
+                        <select class="form-select" id="event_type" name="event_type" required>
+                            <option value="notice">Notice</option>
+                            <option value="payment">Payment</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="communication">Communication</option>
+                            <option value="court">Court</option>
+                            <option value="filing">Filing</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label form-label--required" for="event_date">Event date</label>
+                        <input class="form-input" id="event_date" name="event_date" type="datetime-local" required>
+                    </div>
+                </div>
+                <div class="et-form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="source">Source</label>
+                        <select class="form-select" id="source" name="source">
+                            <option value="manual" selected>Manual</option>
+                            <option value="document">Document</option>
+                            <option value="court">Court</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="jurisdiction">Jurisdiction</label>
+                        <input class="form-input" id="jurisdiction" name="jurisdiction" value="MN" maxlength="10">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="subject_id">Subject ID (placeholder)</label>
+                    <input class="form-input" id="subject_id" name="subject_id" maxlength="36" placeholder="Optional — accountability_ledger boundary is deferred">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn--primary">Add event</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="et-panel et-event-list" aria-labelledby="events-heading">
+            <h2 id="events-heading">Events</h2>
+            {% if events %}
+            <ul class="et-list">
+                {% for e in events %}
+                <li>
+                    <h3>{{ e.event_type | title }} <span style="color: var(--text-muted); font-weight: 400;">— {{ e.source }}</span></h3>
+                    <p class="et-meta">
+                        <span>{{ e.event_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                        <span>{{ e.jurisdiction }}</span>
+                        {% if e.subject_id %}<span>Subject: {{ e.subject_id }}</span>{% endif %}
+                    </p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="et-empty">No events yet. Add one on the left (or above on mobile).</p>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}
