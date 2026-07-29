@@ -10,13 +10,14 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
 from app.core.database import get_db
 from app.core.id_gen import make_id
 from app.core.security import UserContext, require_user
+from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.models.models import ComparisonEntry, DisputeRecord
 
@@ -94,7 +95,7 @@ async def create_dispute(
     )
     db.add(record)
     await db.commit()
-    return RedirectResponse(url="/api/dispute-tracker/", status_code=303)
+    return ssot_redirect("/api/dispute-tracker/", context="create dispute")
 
 
 @router.post("/comparisons")
@@ -139,4 +140,4 @@ async def create_comparison(
     )
     db.add(entry)
     await db.commit()
-    return RedirectResponse(url="/api/dispute-tracker/", status_code=303)
+    return ssot_redirect("/api/dispute-tracker/", context="create comparison")
