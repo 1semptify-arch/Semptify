@@ -1,3 +1,44 @@
+## Session -- 2026-07-29 -- B2/B3 scaffold + data model
+
+### Guardrail Engine Run — 2026-07-29T07:18:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/core/module_contracts.py` — `FunctionGroupContract` extended with `tier`, `allowed_routes`, and `allowed_prefixes` for Build Orchestrator hard-gate contract validation.
+- `app/modules/dispute_tracker/` — greenfield scaffold + manifest + module registry entry + `register.py` with T2 contracts.
+- `app/modules/eviction_timeline/` — greenfield scaffold + manifest + module registry entry + `register.py` with T2 contracts.
+- `app/models/models.py` — added `DisputeRecord`, `ComparisonEntry`, and `EvictionTimelineEvent` tables.
+  - DB boundary rule respected: PII content (descriptions, narrative, tenant contact info) is stored in overlay pointers, not in PostgreSQL.
+  - `subject_id` on `EvictionTimelineEvent` is a placeholder with no FK — accountability_ledger boundary is deferred per your Option 3.
+- `app/modules/dispute_tracker/schemas.py` and `app/modules/eviction_timeline/schemas.py` — Pydantic schemas for the new models.
+
+### Verification
+
+- `python -m py_compile`: all changed Python files PASS.
+- `python -m ruff check`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 122 passed.
+- `python tools/verify_modules.py --id dispute_tracker`: ok (1 route, no exposure issues).
+- `python tools/verify_modules.py --id eviction_timeline`: ok (1 route, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- B2 Commit 4 — dispute_tracker minimal GUI (list + add/compare).
+- B2 Commit 5 — dispute_tracker conformance gate wiring.
+- B3 Commit 4 — eviction_timeline minimal GUI (list + add event).
+- B3 Commit 5 — eviction_timeline conformance gate wiring.
+- T2 tier confirmation for both modules (flagged in commit messages for Brad's review).
+
+---
+
 ## Session -- 2026-07-29 -- B1 wire advanced admin hub tile
 
 ### Guardrail Engine Run — 2026-07-29T06:52:00
