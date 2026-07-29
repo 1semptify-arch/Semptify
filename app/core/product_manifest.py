@@ -769,6 +769,18 @@ _register(
     dev_notes="Bridge between Semptify and external systems. CRUD for cross-system ID mappings.",
 )
 
+# Dispute Tracker — property management dispute resolution + comparison tracking
+_register(
+    "app.modules.dispute_tracker.router",
+    prefix="/api/dispute-tracker",
+    tags=("Dispute Tracker",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="beta",
+    fees_policy=FeesPolicy.TENANT_NO_FEES,
+    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates).",
+    log_message="Dispute Tracker router connected at /api/dispute-tracker",
+)
+
 # Role management
 _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=ProductTier.EXTENDED)
 
@@ -1249,6 +1261,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.contacts.router",
         "app.modules.search.router",
         "app.modules.packet_builder.router",
+        "app.modules.dispute_tracker.router",
     ],
     "advocate": [
         # Everything tenant gets
@@ -1271,6 +1284,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.intake.router",
         "app.modules.guided_intake.router",
         "app.modules.plan_maker.router",
+        "app.modules.dispute_tracker.router",
         # Plus collaboration
         "app.modules.document_delivery.router",
         "app.modules.communication.router",
