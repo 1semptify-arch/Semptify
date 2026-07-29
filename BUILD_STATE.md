@@ -48,11 +48,19 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: 8 passed.
 
-### Blockers found
+### Live verification blockers fixed
 
-1. **Root landing is not the intended public page.** `/` serves `app/templates/index.html` ("On-The-Fly Composer"), which has a broken CSS reference and is not listed in `PortalPageRegistry`. `app/templates/public/portal.html` (the action-first public landing from Task 3) is not registered in `app/modules/portal/pages.py` and has no route. `static/public/welcome.html` is served at `/welcome.html` and is the intended public welcome per `navigation.py` (`welcome` stage path is `/`).
-2. **Task 11 Resource Directory public API was unreachable.** `GET /api/resources` returned 401 from `StorageRequirementMiddleware` because `/api/resources` was not in `PUBLIC_PATHS`/`PUBLIC_PREFIXES`. Fixed in this session by adding the path/prefix; now returns 200.
-3. **Database `feature_flags` table missing.** Does not block the reconciled modules but causes fallback warnings on every request.
+1. **Task 11 Resource Directory public API was unreachable.** `GET /api/resources` returned 401 from `StorageRequirementMiddleware` because `/api/resources` was not in `PUBLIC_PATHS`/`PUBLIC_PREFIXES`. Fixed by adding the exact path and prefix; now returns 200.
+2. **Root landing was the "On-The-Fly Composer" with broken CSS.** `app/templates/index.html` had two concatenated `<!DOCTYPE html>` blocks and a `/static/css/style.css` link that 404'd. Consolidated to a single `index.html` with correct `/assets/css/style.css` and CTAs to `/preamble` (app entry) and `/portal` (concierge).
+3. **`app/templates/public/portal.html` had no route.** Added a `PortalPage` with `id="portal"`, `path="/portal"` in `app/modules/portal/pages.py`; updated `app/main.py` to pass the services catalog to both the `portal` and `services` pages. Added `/portal` to `PUBLIC_PATHS` (storage middleware) and `EXEMPT_PATHS` (checkpoint middleware).
+
+### Live verification — 2026-07-29T18:07
+
+- Browser (Playwright): `/` (lobby), `/portal` (concierge), `/about`, `/services` all 200 with no console errors.
+- `curl` checks: `/` → 200 text/html, `/portal` → 200 text/html, `/assets/css/style.css` → 200 text/css, `/api/resources` → 200.
+- `python tools/guardrail_engine.py` — ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py` — 8 passed.
+- Remaining non-blocking issue: `feature_flags` DB table missing (fallback warnings).
 
 ### Notes
 
