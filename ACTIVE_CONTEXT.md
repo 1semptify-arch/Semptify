@@ -80,8 +80,16 @@ Master Handoff Tasks 4-11 are reconciled with the working tree:
 - 10 Communication import: `.eml`/`.mbox`/SMS/call-log/voicemail flows; module health pass.
 - 11 Resource directory: public/admin routes, CSV import, staleness tracking; module health pass.
 
-Next: live browser verification of the public portal, resource directory, tenant capture, and
-voice/media surfaces, then GUI/site assembly.
+### Live verification blockers fixed
+
+- `app/core/storage_middleware.py`: added `/api/resources` to `PUBLIC_PATHS` and `/api/resources/` to `PUBLIC_PREFIXES`. `GET /api/resources` now returns 200 instead of 401.
+
+### Remaining blockers before assembly
+
+1. **Root landing mismatch.** `/` serves `app/templates/index.html` ("On-The-Fly Composer") with a broken `/static/css/style.css` 404. The action-first `app/templates/public/portal.html` from Task 3 is not registered in `app/modules/portal/pages.py` and has no route. `static/public/welcome.html` is available at `/welcome.html` and `navigation.py` marks the `welcome` stage path as `/`.
+2. **Missing `feature_flags` DB table.** Causes fallback warnings but does not block public reads.
+
+Next: decide/fix root landing wiring, then GUI/site assembly.
 
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
