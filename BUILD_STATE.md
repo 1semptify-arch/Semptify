@@ -1,3 +1,39 @@
+## Session -- 2026-07-28 -- tenant/library mobile viewport split
+
+### What was built
+
+- `app/templates/generic_page.html`
+  - Detects the `subject_grid` component and wraps picker + results in a shared `uic-library-layout`.
+  - Desktop (>1024px): picker is a sticky 280px sidebar; results render in `main.uic-library-main#library-content`.
+  - Mobile (≤1024px): layout collapses to a single column with the picker on top and results inline below — no route change or full-page transition.
+  - Added `uic-fragment-title` styling for HTMX-swap subject headings.
+  - Non-library pages that use `generic_page.html` keep the existing `.uic-components` vertical stack (no `subject_grid` path).
+
+- `app/templates/components/ui_composer.html`
+  - `_subject_grid` macro no longer emits its own `#library-content` container.
+  - `generic_page.html` now owns the HTMX swap target, preventing duplicate IDs and keeping the component reusable for fragments.
+
+### Verification
+
+- `python -m py_compile app/main.py app/services/ui_composer.py`: PASS.
+- `python -m ruff check app/main.py app/services/ui_composer.py`: PASS (no new lint; pre-existing unrelated ruff items untouched).
+- Jinja render smoke test (root library + selected subject + non-library fallback): PASS.
+- Live smoke test: app starts; `GET /tenant/library` returns 302 redirect (guard active, no template error); `GET /` returns 200.
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working
+
+- `/tenant/library` renders through `generic_page.html` with the picker and results in the same component tree.
+- HTMX subject selection still targets `#library-content` and swaps `fact_card` components inline.
+
+### Still Pending
+
+- Live authenticated render of `/tenant/library` with real subject data to confirm visual layout at desktop and mobile widths.
+- Live HTMX swap end-to-end with a real subject and data.
+
+---
+
 ## Session -- 2026-07-28 -- Hardened detect_repeated_fees + filedored classification
 
 ### Guardrail Engine Run — 2026-07-28T23:16:44

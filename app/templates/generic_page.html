@@ -129,7 +129,28 @@
     .uic-subject-card:hover { background: var(--color-bg-hover); border-color: var(--color-accent); transform: translateY(-1px); }
     .uic-subject-card__icon { font-size: 1.75rem; }
     .uic-subject-card__label { font-size: 0.875rem; font-weight: 500; }
-    .uic-library-content { margin-top: 1.5rem; }
+    /* Library layout — desktop picker + main, mobile stacked */
+    .uic-library-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    .uic-library-picker {
+        position: sticky;
+        top: 1rem;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+    .uic-library-main {
+        min-height: 200px;
+    }
+    .uic-fragment-title {
+        margin: 0 0 1rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--color-text-primary);
+    }
 
     /* Add Record button */
     .uic-add-record-button {
@@ -223,6 +244,13 @@
         .uic-add-record-button { bottom: 1rem; right: 1rem; padding: 0.75rem 1rem; }
         .uic-add-record-button__label { display: none; } /* Icon-only on mobile */
     }
+
+    /* Desktop-poster / mobile-stacked split — matches ssot .page-layout and page_shell (1024px) */
+    @media (max-width: 1024px) {
+        .uic-library-layout { grid-template-columns: 1fr; }
+        .uic-library-picker { position: static; max-height: none; overflow-y: visible; }
+        .uic-subject-grid { grid-template-columns: 1fr; }
+    }
 </style>
 {% endblock %}
 
@@ -231,11 +259,27 @@
     {% if pillar %}
     <span class="uic-page__pillar">{{ pillar }}</span>
     {% endif %}
+    {% set picker = components | selectattr('type', 'equalto', 'subject_grid') | list | first %}
+    {% if picker %}
+    <div class="uic-library-layout">
+        <aside class="uic-library-picker">
+            {{ render_component(picker) }}
+        </aside>
+        <main class="uic-library-main" id="library-content">
+            {% for component in components %}
+                {% if component.type != 'subject_grid' %}
+                {{ render_component(component) }}
+                {% endif %}
+            {% endfor %}
+        </main>
+    </div>
+    {% else %}
     <div class="uic-components">
         {% for component in components %}
         {{ render_component(component) }}
         {% endfor %}
     </div>
+    {% endif %}
 </div>
 
 {# Always include the Add Record modal so it's available even if the
