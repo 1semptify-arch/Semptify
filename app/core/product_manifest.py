@@ -813,6 +813,15 @@ _register(
     log_message="Correspondence router connected — admin-only (PII-free wiring pass)",
 )
 _register(
+    "app.modules.user_concerns.router",
+    prefix="/api/admin/user-concerns",
+    tags=("User Concerns",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Wiring-only pass. List/summary endpoints return no PII; write endpoints return 501 until T2 data model and retention policy are designed.",
+    log_message="User Concerns router connected — admin-only (PII-free wiring pass)",
+)
+_register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
     tags=("Admin Console",),
