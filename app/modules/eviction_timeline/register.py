@@ -36,7 +36,7 @@ register_function_group(
         dependencies=("app.modules.eviction_timeline.router",),
         deterministic=True,
         tier="T2",
-        allowed_routes=("/api/eviction-timeline/events",),
+        allowed_routes=("/api/eviction-timeline/",),
         allowed_prefixes=("/api/eviction-timeline",),
     )
 )
