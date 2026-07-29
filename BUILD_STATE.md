@@ -1,3 +1,40 @@
+## Session -- 2026-07-29 -- B1 wire user_concerns admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:45:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/user_concerns/` — new admin-only module for the User Concerns hub tile.
+  - `router.py` provides `GET /api/admin/user-concerns/health`, `/concerns`, `/summary`, and `POST /flag`, `/resolve`.
+  - `/concerns` and `/summary` return empty placeholder data (no PII).
+  - Write endpoints return `501` until the T2 data model and retention policy are designed.
+- `app/core/product_manifest.py` — registered `app.modules.user_concerns.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/user-concerns`.
+- `tools/module_registry.yaml` — `user_concerns` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_user_concerns.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/user_concerns/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/user_concerns app/core/product_manifest.py tests/module_health/test_user_concerns.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 119 passed.
+- `python tools/verify_modules.py --id user_concerns`: ok (5 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Wire the `advanced` tile with `detect_repeated_fees` as a cost-guard-only (T0) function (per user decision: "do not detect").
+- B2 `dispute_tracker` packaging and B3 `eviction_timeline` scoping remain pending.
+
+---
+
 ## Session -- 2026-07-29 -- B1 wire correspondence admin hub tile
 
 ### Guardrail Engine Run — 2026-07-29T06:40:00
