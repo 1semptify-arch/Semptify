@@ -65,6 +65,15 @@ unified footer loader now show a one-line UPL boundary, "Get help", and "Report 
 `/help` is a no-scroll, action-first page routed by "What's happening to you right now?" into
 RECORD / KNOW / ACT / GOVERN.
 
+Task 3 — Content pass — is functionally complete. `app/core/subject_starters.py`, the reusable
+starter-chips component, and the previous `free`-wording audit are in `main` (commit `8e58602b`).
+This session added an action-first rewrite of `app/templates/public/portal.html` with a concrete
+tenant-rights fact in place of an inspirational quote.
+
+Master Handoff Tasks 4-11 have implementation commits in `main` (admin/logging, voice, i18n,
+media capture, contacts, redaction, intake pipeline, resource directory). They have not been
+re-verified live as a complete set.
+
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
 
