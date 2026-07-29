@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-28 (Orchestrator queue reconciled; todo-001 through todo-044 all resolved)
+**Last Updated**: 2026-07-28 (tenant/library viewport split shipped)
 
 ## 🎯 Current Priority: Queue empty — waiting for next directive
 
