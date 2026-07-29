@@ -65,6 +65,19 @@ It is built for tenants, advocates, legal helpers, and people under stress who n
 - Prefer guided sequences over large menus when stakes are high.
 - Assume users may be tired, distracted, scared, or under time pressure.
 
+### GUI Layout: Chronological & Spatial Task Ordering
+
+Applies to all tenant-facing and admin GUI work, in addition to the existing design-system rules.
+
+- Layout must follow the strict chronological order of the user's task. First required action sits top/left; each subsequent step follows directly below or to the right; final/completion step sits at the bottom or end of the path.
+- Never place an early step below a later one, and never place a final action near the top.
+- High-priority, immediate-use controls: top of viewport.
+- Secondary/configuration controls: grouped logically in the middle.
+- Low-frequency or destructive actions (Reset, Delete, etc.): bottom, visually separated.
+- Group related controls into clear visual containers using zone-based background separation, not card borders.
+- Before marking any GUI task done, trace the eye path top-left → down/right. If a control needed for an earlier step sits below a control for a later step, the layout is wrong.
+- Governed by `.cursor/rules/01-gui-chronological-spatial.mdc`.
+
 ## Information Architecture Principles
 
 - Prefer modular architecture built from objects, qualifiers, functions, sequences, processes, and output objects.
