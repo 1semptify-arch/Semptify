@@ -1,3 +1,43 @@
+## Session -- 2026-07-29 -- B2/B3 GUI + conformance + SSOT redirects
+
+### Guardrail Engine Run — 2026-07-29T10:47
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/dispute_tracker/router.py` — minimal GUI page (`GET /api/dispute-tracker/`), `POST /api/dispute-tracker/disputes`, `POST /api/dispute-tracker/comparisons`. Removed `APIRouter` prefix (product manifest owns it) and switched redirects to `ssot_redirect()`.
+- `app/templates/pages/dispute_tracker.html` — desktop-poster / mobile-stacked layout with add-dispute form, disputes list, add-comparison form, comparisons list. PII kept in overlays.
+- `app/modules/eviction_timeline/router.py` — minimal GUI page (`GET /api/eviction-timeline/`) and `POST /api/eviction-timeline/events`. Same prefix/redirect cleanup.
+- `app/templates/pages/eviction_timeline.html` — desktop-poster / mobile-stacked layout with add-event form and events list.
+- `app/modules/dispute_tracker/register.py` and `app/modules/eviction_timeline/register.py` — `FunctionGroupContract` allowed_routes aligned with actual routes.
+- `tools/checks/contract_route_check.py` — new guardrail check. Validates tier (T0–T3), manifest prefix coverage, every actual route is in contract allowed_routes, and `PUBLIC_PREFIXES` exposure (only T0 routes allowed under public paths).
+- `app/core/navigation.py`, `app/core/ssot_guard.py`, `app/main.py` — committed remaining B1 admin hub SSOT navigation/wiring changes from working tree.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on changed files: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 122 passed.
+- `python tools/verify_modules.py --id dispute_tracker`: ok (4 routes, no exposure).
+- `python tools/verify_modules.py --id eviction_timeline`: ok (3 routes, no exposure).
+- `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python tools/sync_orchestrator.py --check`: PASS.
+
+### Still Pending
+
+- T2 tier final confirmation for both modules (flagged in commit messages).
+- Live manual browser test of the two GUI pages.
+- `EvictionTimelineEvent.subject_id` FK decision deferred.
+
+---
+
 ## Session -- 2026-07-29 -- B2/B3 scaffold + data model
 
 ### Guardrail Engine Run — 2026-07-29T05:54:19
