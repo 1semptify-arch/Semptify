@@ -20,10 +20,26 @@
 - `user_concerns` (Tier 2 wiring pass, PII-free) — ✅ complete.
 - `advanced` (Tier 1/T0; `detect_repeated_fees` cost-guard only) — ✅ complete.
 
-B1 is done. Next candidate priorities:
-- Write canonical data-sensitivity tier section to `AGENTS.md` for user final confirmation.
-- B2 package `dispute_tracker`.
-- B3 scope `eviction_timeline`.
+B1 is done.
+
+## 🎯 Current Priority: B2 `dispute_tracker` + B3 `eviction_timeline` greenfield build
+
+### Done in this session
+- Core `FunctionGroupContract` extended with `tier`, `allowed_routes`, `allowed_prefixes`.
+- B2 Commits 1–3: `dispute_tracker` scaffold, product manifest + registry, T2 contracts, `DisputeRecord` and `ComparisonEntry` data models + schemas.
+- B3 Commits 1–3: `eviction_timeline` scaffold, product manifest + registry, T2 contracts, `EvictionTimelineEvent` data model + schemas.
+- PII is stored in overlay pointers, not PostgreSQL, per the DB boundary rule.
+- `subject_id` is a placeholder (no FK) pending the accountability_ledger boundary decision (Option 3).
+
+### Still to do
+- B2 Commit 4 — minimal GUI (list + add/compare).
+- B2 Commit 5 — conformance gate wiring.
+- B3 Commit 4 — minimal GUI (list + add event).
+- B3 Commit 5 — conformance gate wiring.
+
+### Open for Brad's confirmation
+- T2 tier for `dispute_tracker` (flagged in commit message).
+- T2 tier for `eviction_timeline`, with note that filing-linked fields may need T3 later.
 
 ---
 
