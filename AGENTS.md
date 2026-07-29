@@ -178,6 +178,19 @@ register_function_group(FunctionGroupContract(
 
 ---
 
+## 🎨 GUI Design — Chronological & Spatial Task Ordering
+
+Applies to all tenant-facing and admin GUI work, in addition to the existing design-system rules (no card borders, zone-based background separation, `ssot-design-system.css` only).
+
+- Layout must follow the strict chronological order of the user's task: first required action top/left, each subsequent step below or to the right, final/completion step at the bottom or end of the path.
+- Never place an early step below a later one. Never place a final action near the top.
+- High-priority, immediate-use controls: top of viewport.
+- Secondary/configuration controls: middle, grouped logically.
+- Low-frequency or destructive actions (Reset, Delete, etc.): bottom, visually separated.
+- Group related controls with zone-based background separation, not card borders.
+- Before marking any GUI task done, trace the eye path top-left → down/right. If an earlier step's control sits below a later step's control, rearrange.
+- For full wording see `.cursor/rules/01-gui-chronological-spatial.mdc`.
+
 ## 📋 Agent Session Checklist
 
 Before ending any session, you MUST:
