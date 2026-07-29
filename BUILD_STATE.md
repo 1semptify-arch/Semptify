@@ -1,3 +1,40 @@
+## Session -- 2026-07-29 — Master Handoff Tasks 4-11 reconciliation
+
+### Guardrail Engine Run — 2026-07-29T11:28
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+### Reconciliation findings
+
+| Task | Component | Status | Evidence |
+|---|---|---|---|
+| 4 Admin / logging | `app.core.logging_service.py`, `app.core.logging_middleware.py` | wired | `/admin/api/logs` (live tail), `/admin/api/logs/level` (runtime level), `/admin/api/flags`, `/admin/api/flags/{name}`, `/admin/api/flags/{name}/toggle`, `AdminErrorQueue` audit, feature flags, admin console |
+| 5 Voice | `app.modules.voice.router` | registered + conformant | `/api/voice/transcribe` route; `pytest tests/module_health/test_voice.py` passed |
+| 6 Multi-language | `app.core.i18n.py`, `app/translations/*.json` | wired | `_()` Jinja global in `app.main.py`, 14 translation catalogs |
+| 7 Mobile media capture | `static/js/media_capture.js`, `app/main.py` | wired | `/tenant/capture` page, `/api/tenant/capture`, `/api/media/capture` endpoints |
+| 8 Third-party contacts | `ThirdPartyContact` model, `app.modules.contacts.router` | registered + conformant | `pytest tests/module_health/test_contacts.py` passed |
+| 9 Redaction | `app.services.redaction_service.py` | wired into intake | `redact_text_for_user()` called in `intake_service.py` before storage |
+| 10 Communication import | `app.services.intake_service.py`, `app.modules.intake.router` | registered + conformant | `.eml`/`.mbox`, CSV/XML SMS, call logs, voicemail audio flows; `pytest tests/module_health/test_intake.py` passed |
+| 11 Resource directory | `app.modules.resource_directory.router` | registered + conformant | public `/api/resources`, admin `/admin/resources`, CSV import, `last_verified` staleness; `pytest tests/module_health/test_resource_directory.py` passed |
+
+### Verification run
+
+- `python -m pytest tests/module_health/test_voice.py tests/module_health/test_resource_directory.py tests/module_health/test_contacts.py tests/module_health/test_intake.py tests/module_health/test_guided_intake.py tests/module_health/test_admin_console.py tests/module_health/test_module_flags.py tests/module_health/test_core_system_core_router.py -q --no-cov`: **8 passed in 12.22s**.
+- `from app.main import app` startup: **123 registered, 5 skipped, 0 errors**. Targeted admin routes present: `/admin/api/logs`, `/admin/api/logs/level`, `/admin/api/flags`, `/admin/api/flags/{name}`, `/admin/api/flags/{name}/toggle`.
+- `python scripts/verify_ssot.py`: 8 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Notes / still open
+
+- `tools/verify_modules.py --sync` was started but terminated because it hung; the targeted `pytest module_health` subset and the FastAPI startup check together confirm routing/conformance for the 8 Master Handoff modules.
+- Five optional routers are skipped at startup (`vault_sync`, `eviction_notice_explainer`, `response_letter_generator`, `eviction_defense_content`, `ai_copilot`). These are not part of Master Handoff Tasks 4-11.
+- Live browser verification (open pages, exercise forms) has not yet been run on these modules.
+
+---
+
 ## Session -- 2026-07-29 — Master Handoff Task 3 — content pass follow-up
 
 ### Guardrail Engine Run — 2026-07-29T11:28

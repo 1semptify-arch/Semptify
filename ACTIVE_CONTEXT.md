@@ -70,9 +70,18 @@ starter-chips component, and the previous `free`-wording audit are in `main` (co
 This session added an action-first rewrite of `app/templates/public/portal.html` with a concrete
 tenant-rights fact in place of an inspirational quote.
 
-Master Handoff Tasks 4-11 have implementation commits in `main` (admin/logging, voice, i18n,
-media capture, contacts, redaction, intake pipeline, resource directory). They have not been
-re-verified live as a complete set.
+Master Handoff Tasks 4-11 are reconciled with the working tree:
+- 4 Admin/logging: middleware + buffered flusher + live tail and level endpoints wired.
+- 5 Voice: `/api/voice/transcribe` route and module health pass.
+- 6 i18n: catalog files and Jinja `_()` global wired.
+- 7 Media capture: `/tenant/capture` page, `/api/tenant/capture`, `/api/media/capture` wired.
+- 8 Third-party contacts: `ThirdPartyContact` model + `contacts` router; module health pass.
+- 9 Redaction: `redaction_service` wired into `intake_service` before storage.
+- 10 Communication import: `.eml`/`.mbox`/SMS/call-log/voicemail flows; module health pass.
+- 11 Resource directory: public/admin routes, CSV import, staleness tracking; module health pass.
+
+Next: live browser verification of the public portal, resource directory, tenant capture, and
+voice/media surfaces, then GUI/site assembly.
 
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).
