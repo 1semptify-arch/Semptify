@@ -486,3 +486,27 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
    - Kill it (remove the code)
    - Formalize it (register as proper FlowStage)
    - Deprecate it (old path → new canonical)
+
+---
+
+## Data Sensitivity Tiers
+
+- **T0 — System / operational.** No PII. Version, uptime, module counts,
+  config flags, cost counters. Safe to log and display to admin.
+- **T1 — Account / capability metadata.** No direct PII. Hashed user IDs,
+  role, jurisdiction, module usage, invite codes. Admin-only, audit logged.
+- **T2 — Tenant PII / sensitive personal data.** Names, addresses, contact
+  info, documents, communications, concerns. Admin-only, audit logged,
+  minimal retention.
+- **T3 — Legal / court evidence.** Filings, exhibits, case materials.
+  Same handling as T2 plus evidence-preservation / chain-of-custody rules.
+
+### Tile-to-tier mapping (B1)
+
+| Tile | Tier | Notes |
+|---|---|---|
+| `system_health` | T0 | No PII. |
+| `run_modules` | T1 | Hashed IDs, role, jurisdiction only. |
+| `correspondence` | T2 | Tenant/landlord correspondence, metadata + content. |
+| `user_concerns` | T2 | Tenant-submitted content, PII-bearing. |
+| `advanced` | T1 (tools) / T0 (`detect_repeated_fees` cost-guard) | Cost-guard is counting only, no identity data. |
