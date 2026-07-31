@@ -9,7 +9,7 @@ import shutil
 import sys
 
 SEMPtIFY_PATH = r"E:\master-repo\sources\app-semptify-fastapi"
-BACKEND_PATH = r"C:\Semptify\backend"
+BACKEND_PATH = r"E:\master-repo\sources\REPOs\backend"
 
 def confirm(prompt):
     """Ask for confirmation"""
