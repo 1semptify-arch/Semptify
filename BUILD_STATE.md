@@ -8134,7 +8134,7 @@ Returning tenants with documents were incorrectly routed to the upload wizard.
    - All 8 repos now under `1semptify-arch/` — single org, single owner
    - `SemptifyResearch` set to Private (intentional)
 
-2. **Orchestrator port conflict fixed** — `C:\Semptify\Orchestrator\start.bat`
+2. **Orchestrator port conflict fixed** — `E:\master-repo\sources\REPOs\Orchestrator\start.bat`
    - Was: port 8000 (same as Semptify core — hard conflict)
    - Fixed: port 8001
    - Architecture: Orchestrator is a sidecar — calls Semptify API at `localhost:8000`
