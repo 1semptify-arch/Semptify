@@ -78,7 +78,7 @@ feel like a calm hand on the shoulder.
 - No external image services. Generate any assets locally into `assets/`.
 
 ## Output path
-`C:\Semptify\Semptify-FastAPI\mockups\gui-proposals\calm_room\index.html`
+`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\calm_room\index.html`
 
 ## Image needs
 None expected. Soft CSS gradients only. If you add any image, generate it locally

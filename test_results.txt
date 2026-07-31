@@ -1,7 +1,7 @@
 ============================= test session starts =============================
 platform win32 -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\bradc\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe
 cachedir: .pytest_cache
-rootdir: C:\Semptify\Semptify-FastAPI
+rootdir: E:\master-repo\sources\app-semptify-fastapi
 configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
 plugins: anyio-4.13.0, asyncio-1.3.0, cov-7.1.0
 asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
@@ -19,16 +19,16 @@ tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_cannot_access_hom
 tests/test_core_4step_flow.py::TestStep4TenantHome::test_tenant_home_requires_auth ERROR [ 83%]
 tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_flow_redirection_chain ERROR [ 91%]
 <unknown>:809: SyntaxWarning: invalid escape sequence '\`'
-C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+E:\master-repo\sources\app-semptify-fastapi\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
   'Authorization': \`Bearer \${token}\`,
 <unknown>:809: SyntaxWarning: invalid escape sequence '\`'
-C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+E:\master-repo\sources\app-semptify-fastapi\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
   'Authorization': \`Bearer \${token}\`,
 <unknown>:809: SyntaxWarning: invalid escape sequence '\`'
-C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+E:\master-repo\sources\app-semptify-fastapi\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
   'Authorization': \`Bearer \${token}\`,
 <unknown>:809: SyntaxWarning: invalid escape sequence '\`'
-C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+E:\master-repo\sources\app-semptify-fastapi\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
   'Authorization': \`Bearer \${token}\`,
 <unknown>:809: SyntaxWarning: invalid escape sequence '\`'
 <unknown>:809: SyntaxWarning: invalid escape sequence '\`'
@@ -1594,7 +1594,7 @@ Traceback (most recent call last):
     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 ValueError: I/O operation on closed file.
 Call stack:
-  File "C:\Semptify\Semptify-FastAPI\app\core\websocket_manager.py", line 491, in <lambda>
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\websocket_manager.py", line 491, in <lambda>
     atexit.register(lambda: asyncio.run(get_websocket_manager().shutdown()))
   File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
     return runner.run(main)
@@ -1608,7 +1608,7 @@ Call stack:
     handle._run()
   File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\events.py", line 89, in _run
     self._context.run(self._callback, *self._args)
-  File "C:\Semptify\Semptify-FastAPI\app\core\websocket_manager.py", line 449, in shutdown
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\websocket_manager.py", line 449, in shutdown
     logger.info("WebSocket manager shutdown complete")
 Message: 'WebSocket manager shutdown complete'
 Arguments: ()
@@ -1619,11 +1619,11 @@ Traceback (most recent call last):
     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 ValueError: I/O operation on closed file.
 Call stack:
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 595, in <lambda>
     atexit.register(lambda: get_job_processor().stop())
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 460, in get_job_processor
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 460, in get_job_processor
     _job_processor.start()
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 189, in start
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 189, in start
     logger.info(f"Started job processor with {self.max_workers} workers")
 Message: 'Started job processor with 4 workers'
 Arguments: ()
@@ -1634,13 +1634,13 @@ Traceback (most recent call last):
     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 ValueError: I/O operation on closed file.
 Call stack:
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 595, in <lambda>
     atexit.register(lambda: get_job_processor().stop())
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 463, in get_job_processor
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 463, in get_job_processor
     register_default_handlers(_job_processor)
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 543, in register_default_handlers
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 543, in register_default_handlers
     processor.register_handler("document_analysis", document_analysis_handler)
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 155, in register_handler
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 155, in register_handler
     logger.info(f"Registered job handler for type: {job_type}")
 Message: 'Registered job handler for type: document_analysis'
 Arguments: ()
@@ -1651,13 +1651,13 @@ Traceback (most recent call last):
     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 ValueError: I/O operation on closed file.
 Call stack:
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 595, in <lambda>
     atexit.register(lambda: get_job_processor().stop())
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 463, in get_job_processor
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 463, in get_job_processor
     register_default_handlers(_job_processor)
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 544, in register_default_handlers
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 544, in register_default_handlers
     processor.register_handler("thumbnail_generation", thumbnail_generation_handler)
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 155, in register_handler
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 155, in register_handler
     logger.info(f"Registered job handler for type: {job_type}")
 Message: 'Registered job handler for type: thumbnail_generation'
 Arguments: ()
@@ -1668,13 +1668,13 @@ Traceback (most recent call last):
     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 ValueError: I/O operation on closed file.
 Call stack:
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 595, in <lambda>
     atexit.register(lambda: get_job_processor().stop())
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 463, in get_job_processor
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 463, in get_job_processor
     register_default_handlers(_job_processor)
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 545, in register_default_handlers
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 545, in register_default_handlers
     processor.register_handler("document_indexing", document_indexing_handler)
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 155, in register_handler
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 155, in register_handler
     logger.info(f"Registered job handler for type: {job_type}")
 Message: 'Registered job handler for type: document_indexing'
 Arguments: ()
@@ -1685,9 +1685,9 @@ Traceback (most recent call last):
     ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 ValueError: I/O operation on closed file.
 Call stack:
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 595, in <lambda>
     atexit.register(lambda: get_job_processor().stop())
-  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 200, in stop
+  File "E:\master-repo\sources\app-semptify-fastapi\app\core\job_processor.py", line 200, in stop
     logger.info("Stopped job processor")
 Message: 'Stopped job processor'
 Arguments: ()

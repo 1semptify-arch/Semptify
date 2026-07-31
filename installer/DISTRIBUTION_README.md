@@ -64,13 +64,13 @@ The installer will automatically install:
 
 **Command Line:**
 ```cmd
-cd C:\Semptify\Semptify-FastAPI
+cd E:\master-repo\sources\app-semptify-fastapi
 START.ps1
 ```
 
 **Manual:**
 ```cmd
-cd C:\Semptify\Semptify-FastAPI
+cd E:\master-repo\sources\app-semptify-fastapi
 .venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 

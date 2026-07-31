@@ -80,7 +80,7 @@ rotated ~-8deg, mono uppercase, with a thin double border. They should feel ink-
 - No external image services. Generate any assets locally into `assets/`.
 
 ## Output path
-`C:\Semptify\Semptify-FastAPI\mockups\gui-proposals\field_notebook\index.html`
+`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\field_notebook\index.html`
 
 ## Image needs
 None expected. Subtle kraft/paper texture via CSS only. If you add any image,

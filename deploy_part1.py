@@ -5,7 +5,7 @@ Semptify Legal Filing Module - Deploy Part 1 of 2
 Project Owner | Semptify Platform | April 2026
 
 INSTRUCTIONS:
-  1. Save this file as:  C:/Semptify/Semptify-FastAPI/deploy_part1.py
+  1. Save this file as:  E:/master-repo/sources/app-semptify-fastapi/deploy_part1.py
   2. Run:  python deploy_part1.py
   3. Then run deploy_part2.py
 """

@@ -551,11 +551,11 @@ psql -U postgres -c "CREATE DATABASE semptify;"</code></pre>
             
             <h3 style="margin-top: 15px;">Option 2: START Script</h3>
             <p>Double-click <code>START.ps1</code> or run:</p>
-            <pre><code>cd C:\Semptify\Semptify-FastAPI
+            <pre><code>cd E:\master-repo\sources\app-semptify-fastapi
 .\START.ps1</code></pre>
 
             <h3 style="margin-top: 15px;">Option 3: Manual Command</h3>
-            <pre><code>cd C:\Semptify\Semptify-FastAPI
+            <pre><code>cd E:\master-repo\sources\app-semptify-fastapi
 .venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000</code></pre>
 
             <div class="success-box">
@@ -574,9 +574,9 @@ psql -U postgres -c "CREATE DATABASE semptify;"</code></pre>
 .\install_semptify.ps1 -InstallService
 
 # Or manually with NSSM:
-nssm install Semptify "C:\Semptify\Semptify-FastAPI\.venv\Scripts\python.exe"
+nssm install Semptify "E:\master-repo\sources\app-semptify-fastapi\.venv\Scripts\python.exe"
 nssm set Semptify AppParameters "-m uvicorn app.main:app --host 0.0.0.0 --port 8000"
-nssm set Semptify AppDirectory "C:\Semptify\Semptify-FastAPI"
+nssm set Semptify AppDirectory "E:\master-repo\sources\app-semptify-fastapi"
 nssm start Semptify</code></pre>
 
             <p style="margin-top: 15px;">Service commands:</p>
@@ -642,7 +642,7 @@ psql -U postgres -c "ALTER USER postgres PASSWORD 'Semptify2024!';"</code></pre>
                     <div class="step-number"></div>
                     <div class="step-content">
                         <h3>Create Virtual Environment</h3>
-                        <pre><code>cd C:\Semptify\Semptify-FastAPI
+                        <pre><code>cd E:\master-repo\sources\app-semptify-fastapi
 python -m venv .venv
 .venv\Scripts\activate</code></pre>
                     </div>
@@ -673,7 +673,7 @@ psql -U postgres -c "CREATE DATABASE semptify;"</code></pre>
                     <div class="step-number"></div>
                     <div class="step-content">
                         <h3>Initialize Tables</h3>
-                        <pre><code>cd C:\Semptify\Semptify-FastAPI
+                        <pre><code>cd E:\master-repo\sources\app-semptify-fastapi
 .venv\Scripts\python.exe scripts\init_postgres.py</code></pre>
                     </div>
                 </div>

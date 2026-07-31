@@ -100,7 +100,7 @@ ONEDRIVE_CLIENT_SECRET=your-client-secret-value
 
 1. Start the server:
    ```powershell
-   cd C:\Semptify\Semptify-FastAPI
+   cd E:\master-repo\sources\app-semptify-fastapi
    .\.venv\Scripts\Activate.ps1
    python -m uvicorn app.main:app --reload --port 8000
    ```

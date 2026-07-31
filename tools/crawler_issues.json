@@ -8015,7 +8015,7 @@
       "file": "static\\document_intake.html",
       "line": null,
       "message": "Referenced resource not found: /static/eviction_answer.html",
-      "suggestion": "Check if C:\\Semptify\\Semptify-FastAPI\\static\\eviction_answer.html exists or fix the reference",
+      "suggestion": "Check if E:\\master-repo\\sources\\app-semptify-fastapi\\static\\eviction_answer.html exists or fix the reference",
       "auto_fixable": false
     },
     {

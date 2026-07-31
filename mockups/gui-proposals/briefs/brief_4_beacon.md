@@ -87,7 +87,7 @@ the single most important UI element on the site.
 - No external image services. Icons as inline SVG only. No photos.
 
 ## Output path
-`C:\Semptify\Semptify-FastAPI\mockups\gui-proposals\beacon\index.html`
+`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\beacon\index.html`
 
 ## Image needs
 None. Solid high-contrast icons as inline SVG only. No photos, no external hosts.

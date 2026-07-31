@@ -21,7 +21,7 @@ Read these files before selecting a task:
 - The app compiles:
 
 ```powershell
-cd c:\Semptify\Semptify-FastAPI
+cd E:\master-repo\sources\app-semptify-fastapi
 python -m py_compile app/main.py
 ```
 
@@ -30,7 +30,7 @@ python -m py_compile app/main.py
 Two UIs, same queue data:
 
 - **Standalone UI** (works offline or served by FastAPI):
-  - `file:///C:/Semptify/Semptify-FastAPI/tools/agent_orchestrator.html` (open directly in browser)
+  - `file:///E:/master-repo/sources/app-semptify-fastapi/tools/agent_orchestrator.html` (open directly in browser)
   - `http://localhost:8000/tools/agent_orchestrator.html` (when dev server is running on port 8000)
   - Click **Start fresh ↺** to load `tools/agent_orchestrator_tasks.json` into localStorage.
 - **In-app Admin UI**: `http://localhost:8000/admin/agent_orchestrator.html` (requires stealth admin login)

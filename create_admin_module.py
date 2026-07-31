@@ -7,7 +7,7 @@ Creates /modules/admin_console/ with router, UI panel, and SDK registration
 import os
 import sys
 
-SEMPtIFY_PATH = r"C:\Semptify\Semptify-FastAPI"
+SEMPtIFY_PATH = r"E:\master-repo\sources\app-semptify-fastapi"
 MODULES_PATH = os.path.join(SEMPtIFY_PATH, "modules")
 ADMIN_PATH = os.path.join(MODULES_PATH, "admin_console")
 

@@ -8,7 +8,7 @@ import os
 import subprocess
 import sys
 
-SEMPtIFY_PATH = r"C:\Semptify\Semptify-FastAPI"
+SEMPtIFY_PATH = r"E:\master-repo\sources\app-semptify-fastapi"
 BACKEND_PATH = r"C:\Semptify\backend"
 
 def run_command(cmd, cwd=None):

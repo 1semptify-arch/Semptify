@@ -29,7 +29,7 @@
 #>
 
 param(
-    [string]$InstallPath = "C:\Semptify\Semptify-FastAPI",
+    [string]$InstallPath = "E:\master-repo\sources\app-semptify-fastapi",
     [switch]$UsePostgreSQL = $true,
     [switch]$CreateShortcut = $true,
     [switch]$InstallService = $false,

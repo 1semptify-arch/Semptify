@@ -104,7 +104,7 @@ column flow.
 - No external image services. Generate any assets locally into `assets/`.
 
 ## Output path
-`C:\Semptify\Semptify-FastAPI\mockups\gui-proposals\quiet_library\index.html`
+`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\quiet_library\index.html`
 
 ## Image needs
 None expected. Typography, rules, parchment tint. If you add any image, generate

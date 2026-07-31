@@ -81,7 +81,7 @@ user's place in the journey. Reads like the header of a court filing.
   locally into `assets/` if needed — but this design should need none.
 
 ## Output path
-`C:\Semptify\Semptify-FastAPI\mockups\gui-proposals\courthouse_steps\index.html`
+`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\courthouse_steps\index.html`
 (and `assets/` subfolder if needed)
 
 ## Image needs

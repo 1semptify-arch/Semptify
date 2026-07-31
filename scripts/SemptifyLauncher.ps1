@@ -7,7 +7,7 @@ param(
     [string]$Profile = ""
 )
 
-$ProjectPath = "C:\Semptify\Semptify-FastAPI"
+$ProjectPath = "E:\master-repo\sources\app-semptify-fastapi"
 $VenvPython = "$ProjectPath\.venv\Scripts\python.exe"
 $Port = 8000
 $BaseUrl = "http://localhost:$Port"

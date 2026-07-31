@@ -108,10 +108,10 @@ Text Light:      #666
 ================================================================================
 
 --- [PATH] Project paths ---
-C:\Semptify\Semptify-FastAPI\
-C:\Semptify\Semptify-FastAPI\static\
-C:\Semptify\Semptify-FastAPI\app\
-C:\Semptify\Semptify-FastAPI\static\logo.png
+E:\master-repo\sources\app-semptify-fastapi\
+E:\master-repo\sources\app-semptify-fastapi\static\
+E:\master-repo\sources\app-semptify-fastapi\app\
+E:\master-repo\sources\app-semptify-fastapi\static\logo.png
 
 --- [PATH] Add more below ---
 
@@ -123,7 +123,7 @@ C:\Semptify\Semptify-FastAPI\static\logo.png
 ================================================================================
 
 --- [CMD] Common commands ---
-cd C:\Semptify\Semptify-FastAPI
+cd E:\master-repo\sources\app-semptify-fastapi
 .venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 git add . ; git commit -m "message" ; git push
 

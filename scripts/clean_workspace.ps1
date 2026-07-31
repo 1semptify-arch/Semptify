@@ -1,2 +1,2 @@
 Write-Host 'Cleaning workspace...'
-Remove-Item 'C:\Semptify\Semptify-FastAPI\SemptifyBundle.zip' -ErrorAction SilentlyContinue
+Remove-Item 'E:\master-repo\sources\app-semptify-fastapi\SemptifyBundle.zip' -ErrorAction SilentlyContinue

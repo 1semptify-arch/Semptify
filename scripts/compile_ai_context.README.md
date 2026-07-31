@@ -6,7 +6,7 @@ Bundles Semptify's canonical project docs into one paste-ready `AI_HANDOFF_PACKE
 
 - Script: `scripts/compile_ai_context.py`
 - Output: `AI_HANDOFF_PACKET.md` (written to the **project root**, not `scripts/`)
-- Run from: **repo root** (`C:\Semptify\Semptify-FastAPI`)
+- Run from: **repo root** (`E:\master-repo\sources\app-semptify-fastapi`)
 
 Paths inside the script are relative to the repo root. Running it from anywhere else will silently skip every file.
 
@@ -22,7 +22,7 @@ Paths inside the script are relative to the repo root. Running it from anywhere 
 
 ```powershell
 # From the repo root — NOT from inside scripts/
-cd C:\Semptify\Semptify-FastAPI
+cd E:\master-repo\sources\app-semptify-fastapi
 python scripts/compile_ai_context.py
 ```
 

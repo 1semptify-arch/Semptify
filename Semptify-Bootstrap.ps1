@@ -2,7 +2,7 @@
 # SEMPTIFY ALL-IN-ONE BOOTSTRAP
 # ================================
 
-$root = "C:\Semptify\Semptify-FastAPI"
+$root = "E:\master-repo\sources\app-semptify-fastapi"
 $vscode = "$root\.vscode"
 $scripts = "$root\scripts"
 

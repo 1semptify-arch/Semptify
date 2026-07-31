@@ -1,7 +1,7 @@
 # start_semptify.ps1 — Auto-restarting Semptify server
 # Run this once; it will keep the app alive indefinitely.
 
-$AppDir = "C:\Semptify\Semptify-FastAPI"
+$AppDir = "E:\master-repo\sources\app-semptify-fastapi"
 $Uvicorn = "$AppDir\venv311\Scripts\uvicorn.exe"
 Set-Location $AppDir
 

@@ -36,7 +36,7 @@ if ($pythonHome -and $pythonHome -match 'Python314') {
 
 # Create new virtual environment with Python 3.11
 Write-Host "`n=== Creating Fresh Virtual Environment with Python 3.11 ===" -ForegroundColor Green
-$venvPath = "C:\Semptify\Semptify-FastAPI\venv311_clean"
+$venvPath = "E:\master-repo\sources\app-semptify-fastapi\venv311_clean"
 
 # Remove old venv if exists
 if (Test-Path $venvPath) {

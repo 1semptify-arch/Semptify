@@ -1,5 +1,5 @@
 # SEMPTIFY SYSTEM MANIFEST
-**Version:** 5.0.0 | **Last Updated:** 2026-06-14 | **Location:** `C:\Semptify\Semptify-FastAPI\`
+**Version:** 5.0.0 | **Last Updated:** 2026-06-14 | **Location:** `E:\master-repo\sources\app-semptify-fastapi\`
 
 This is the FIRST file any AI or developer must read before touching Semptify. It defines what is active, what is disabled, the rules for adding modules, and the complete session context.
 
@@ -12,7 +12,7 @@ This is the FIRST file any AI or developer must read before touching Semptify. I
 | App Name | Semptify |
 | Version | 5.0.0 |
 | Mission | Tenant rights protection platform (non-profit) |
-| Root Path | `C:\Semptify\Semptify-FastAPI\` |
+| Root Path | `E:\master-repo\sources\app-semptify-fastapi\` |
 | Entry Point | `app/main.py` (DO NOT add routers here directly) |
 | Manifest | `app/core/product_manifest.py` (SINGLE SOURCE OF TRUTH) |
 | Python | **3.11.9 ONLY — hard enforced, kills server if wrong** |
@@ -200,7 +200,7 @@ FEMS (Forensic Evidence Management System) is the next module to be integrated.
 | Item | Value |
 |---|---|
 | FEMS Source | `c:\REPOs\PPPP\` |
-| Target Path | `C:\Semptify\Semptify-FastAPI\app\modules\fems\` |
+| Target Path | `E:\master-repo\sources\app-semptify-fastapi\app\modules\fems\` |
 | Tier | `EXTENDED` |
 | Endpoints | `/api/fems/health`, `/api/fems/upload`, `/api/fems/search`, `/api/fems/documents`, `/api/fems/quarantine`, `/api/fems/stats` |
 | DB Adapter | Must use SQLAlchemy async (not psycopg2) |
@@ -229,7 +229,7 @@ FEMS provides: file deduplication, OCR text extraction, phone number extraction,
 
 ```powershell
 # Activate environment
-cd "C:\Semptify\Semptify-FastAPI"
+cd "E:\master-repo\sources\app-semptify-fastapi"
 .\venv311\Scripts\Activate.ps1
 
 # Start server (dev)

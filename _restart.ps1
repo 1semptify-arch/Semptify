@@ -3,9 +3,9 @@ foreach ($c in $conns) {
     try { Stop-Process -Id $c.OwningProcess -Force -ErrorAction Stop } catch {}
 }
 Start-Sleep -Seconds 2
-Start-Process -FilePath 'C:\Semptify\Semptify-FastAPI\venv311\Scripts\pythonw.exe' `
+Start-Process -FilePath 'E:\master-repo\sources\app-semptify-fastapi\venv311\Scripts\pythonw.exe' `
     -ArgumentList '-m','uvicorn','app.main:app','--port','8000' `
-    -WorkingDirectory 'C:\Semptify\Semptify-FastAPI' `
+    -WorkingDirectory 'E:\master-repo\sources\app-semptify-fastapi' `
     -WindowStyle Hidden
 Start-Sleep -Seconds 12
 try {

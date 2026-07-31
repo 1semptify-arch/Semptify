@@ -42,7 +42,7 @@ This produces:
 
 ### 2. Open the standalone orchestrator
 
-- **Option A (no server):** open `file:///C:/Semptify/Semptify-FastAPI/tools/agent_orchestrator.html` in any browser.
+- **Option A (no server):** open `file:///E:/master-repo/sources/app-semptify-fastapi/tools/agent_orchestrator.html` in any browser.
 - **Option B (dev server running):** open `http://localhost:8000/tools/agent_orchestrator.html`.
 - **Option C (in-app admin):** open `http://localhost:8000/admin/agent_orchestrator.html` (requires stealth admin login).
 
