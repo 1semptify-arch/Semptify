@@ -1,4 +1,5 @@
 ---
+name: help-page-review
 description: Weekly review of help page resources to keep crisis hotlines, legal aid, and county contacts up to date
 ---
 
