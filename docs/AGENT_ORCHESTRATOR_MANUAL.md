@@ -2,7 +2,7 @@
 
 The Agent Orchestrator queues parallel AI-agent tasks for the Semptify codebase. It turns workbook rows (stubs and duplicates) AND doc-sourced TODOs into copy-paste prompts you can drop into separate Windsurf sessions.
 
-> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-20. Supersedes older instructions in `.devin/workflows/orchestrator_preflight.md` and `BUILD_STATE.md`.
+> **Canonical source of truth for orchestrator operation.** Last updated 2026-07-20. Supersedes older instructions in `.devin/skills/orchestrator_preflight/SKILL.md` and `BUILD_STATE.md`.
 
 ## Two UIs, same queue data
 
@@ -140,7 +140,7 @@ The bridge guesses paths as `app/modules/<filename>`. Some files actually live i
 - Fixed 2026-07-16: `.pre-commit-config.yaml` now uses `venv311/Scripts/python.exe` for all local hooks (ssot-architecture-check, guardrail-engine, sync-orchestrator). Previously used bare `python`, which resolved to Python 3.13 on Windows.
 
 ### Workflow doc says port 8088
-- Fixed 2026-07-16: `.devin/workflows/orchestrator_preflight.md` now points to port 8000 (uvicorn default) and `file://` for the standalone UI. No server ever ran on 8088.
+- Fixed 2026-07-16: `.devin/skills/orchestrator_preflight/SKILL.md` now points to port 8000 (uvicorn default) and `file://` for the standalone UI. No server ever ran on 8088.
 
 ## Regenerating from the workbook or docs
 
@@ -174,7 +174,7 @@ These rules are baked into the prompt text so each agent sees them even when wor
 - `tools/_seed_orchestrator_tasks.py` — now writes to `tools/docs_todos.json` instead of `tools/agent_orchestrator_tasks.json` (avoid sync wiping doc-sourced tasks).
 - `tools/sync_orchestrator.py` — added `step_docs_todos()` and `merge_tasks()` steps. Runs all three sources (stub_detector + workbook_bridge + _seed_orchestrator_tasks) and merges by task `id` into the final `agent_orchestrator_tasks.json`. Workbook wins on id conflict.
 - `.pre-commit-config.yaml` — all local hooks now use `venv311/Scripts/python.exe` instead of bare `python`. Fixes Python 3.13 vs 3.11.9 mismatch that caused hook failures.
-- `.devin/workflows/orchestrator_preflight.md` — Step 3 rewritten. Port 8088 → 8000. Added `file://` option. Documented both UIs and the Import JSON button on admin.
+- `.devin/skills/orchestrator_preflight/SKILL.md` — Step 3 rewritten. Port 8088 → 8000. Added `file://` option. Documented both UIs and the Import JSON button on admin.
 - `static/admin/agent_orchestrator.html` — added Data card with Import JSON, Export JSON, Clear all buttons. Added `importJson()`, `exportJson()`, `clearAll()` JS functions. Admin UI can now load `agent_orchestrator_tasks.json` via `/api/agent-orchestrator/batch`.
 - `docs/AGENT_ORCHESTRATOR_MANUAL.md` — this file. Full rewrite with 3-source pipeline, both UIs, troubleshooting, changelog.
 
