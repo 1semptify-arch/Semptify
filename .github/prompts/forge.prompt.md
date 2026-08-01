@@ -3,7 +3,7 @@ mode: agent
 description: Semptify Forge — canonical module development system. Use when building, testing, or promoting modules through the lifecycle pipeline.
 ---
 
-<!-- Mirrors .devin/workflows/forge.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/forge/SKILL.md — keep both in sync when editing. -->
 
 # Semptify Forge — Canonical Dev System
 

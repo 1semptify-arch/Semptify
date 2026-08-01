@@ -1,4 +1,5 @@
 ---
+name: ssot-analysis
 description: SSOT Architecture Analysis - Trace data flow through Semptify systems
 ---
 

@@ -3,7 +3,7 @@ mode: agent
 description: SSOT Architecture Analysis - Trace data flow through Semptify systems
 ---
 
-<!-- Mirrors .devin/workflows/ssot-analysis.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/ssot-analysis/SKILL.md — keep both in sync when editing. -->
 
 # SSOT Analysis Workflow
 
