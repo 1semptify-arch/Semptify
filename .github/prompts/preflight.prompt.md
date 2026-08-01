@@ -3,7 +3,7 @@ mode: agent
 description: Mandatory pre-flight check - run this before starting any work session
 ---
 
-<!-- Mirrors .devin/workflows/preflight.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/preflight/SKILL.md — keep both in sync when editing. -->
 
 ## Semptify Pre-Flight Check
 

@@ -3,7 +3,7 @@ mode: agent
 description: Verify, compile, test, commit, and push all work to main so Render deploys it
 ---
 
-<!-- Mirrors .devin/workflows/ship.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/ship/SKILL.md — keep both in sync when editing. -->
 
 ## /ship — End of Session Deploy Checklist
 

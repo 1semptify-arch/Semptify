@@ -31,7 +31,7 @@ You should see one line per target doc:
 ```
   merged: Semptify_AI_Orchestration_Blueprint.md
   SKIPPED (not found): <path>
-  merged: .devin/workflows/preflight.md
+  merged: .devin/skills/preflight/SKILL.md
   ...
 Done. Packet written to: AI_HANDOFF_PACKET.md
 ```
@@ -55,7 +55,7 @@ Defined in `TARGET_DOCS` near the top of the script. Current list:
 |------|--------|
 | `Semptify_AI_Orchestration_Blueprint.md` | merged |
 | `Semptify_Site_GUI_Framework.md` | **needs path fix** — actually lives at `DOCUMENTS/Semptify_Site_GUI_Framework.md` |
-| `.devin/workflows/preflight.md` | merged |
+| `.devin/skills/preflight/SKILL.md` | merged |
 | `ACTIVE_CONTEXT.md` | merged |
 | `BUILD_STATE.md` | merged |
 
@@ -78,7 +78,7 @@ Edit `TARGET_DOCS` in `scripts/compile_ai_context.py`:
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
     "DOCUMENTS/Semptify_Site_GUI_Framework.md",   # fixed path
-    ".devin/workflows/preflight.md",
+    ".devin/skills/preflight/SKILL.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
     "PROJECT_BIBLE.md",                            # new entry

@@ -1,4 +1,5 @@
 ---
+name: open-workbook
 description: Open the Semptify Master Inventory workbook in Excel
 ---
 

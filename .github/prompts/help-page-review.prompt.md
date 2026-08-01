@@ -3,7 +3,7 @@ mode: agent
 description: Weekly review of help page resources to keep crisis hotlines, legal aid, and county contacts up to date
 ---
 
-<!-- Mirrors .devin/workflows/help-page-review.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/help-page-review/SKILL.md — keep both in sync when editing. -->
 
 # Weekly Help Page Resource Review
 

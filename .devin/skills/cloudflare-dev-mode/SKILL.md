@@ -1,4 +1,5 @@
 ---
+name: cloudflare-dev-mode
 description: Enable Cloudflare Development Mode and purge cache to bypass CDN caching
 ---
 

@@ -1,4 +1,5 @@
 ---
+name: forge
 description: Semptify Forge — canonical module development system. Use when building, testing, or promoting modules through the lifecycle pipeline.
 ---
 

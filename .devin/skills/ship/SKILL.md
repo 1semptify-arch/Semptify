@@ -1,4 +1,5 @@
 ---
+name: ship
 description: Verify, compile, test, commit, and push all work to main so Render deploys it
 ---
 

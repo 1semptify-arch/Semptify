@@ -1,4 +1,5 @@
 ---
+name: preflight
 description: Mandatory pre-flight check - run this before starting any work session
 ---
 

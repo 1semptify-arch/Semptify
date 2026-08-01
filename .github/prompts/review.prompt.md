@@ -3,7 +3,7 @@ mode: agent
 description: Review code changes for bugs, security issues, and improvements
 ---
 
-<!-- Mirrors .devin/workflows/review.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/review/SKILL.md — keep both in sync when editing. -->
 
 You are a senior software engineer performing a thorough code review to identify potential bugs.
 

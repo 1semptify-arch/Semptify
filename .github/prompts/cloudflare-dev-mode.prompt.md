@@ -3,7 +3,7 @@ mode: agent
 description: Enable Cloudflare Development Mode and purge cache to bypass CDN caching
 ---
 
-<!-- Mirrors .devin/workflows/cloudflare-dev-mode.md — keep both in sync when editing. -->
+<!-- Mirrors .devin/skills/cloudflare-dev-mode/SKILL.md — keep both in sync when editing. -->
 
 ## /cloudflare-dev-mode — Cloudflare Cache Bypass
 
