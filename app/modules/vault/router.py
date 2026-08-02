@@ -28,6 +28,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime
+from importlib.util import find_spec
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import JSONResponse
@@ -35,6 +36,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.capabilities import require_capability
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.id_gen import make_id
@@ -56,26 +58,18 @@ from app.services.storage import get_provider
 
 # Import vault upload service - central document storage
 try:
-    from app.services.vault_upload_service import (
-        get_vault_service,  # noqa: F401  # VaultDocument imported for type checking
-    )
+    from app.services.vault_upload_service import get_vault_service
 
     HAS_VAULT_SERVICE = True
 except ImportError:
     HAS_VAULT_SERVICE = False
 
 # Import preview generation
-try:
-    from app.core.job_processor import submit_document_analysis_job, submit_thumbnail_generation_job  # noqa: F401
-    from app.core.preview_generator import generate_document_preview, generate_document_thumbnail  # noqa: F401
-
-    HAS_PREVIEW_GENERATOR = True
-except ImportError:
-    HAS_PREVIEW_GENERATOR = False
+HAS_PREVIEW_GENERATOR = (
+    find_spec("app.core.job_processor") is not None and find_spec("app.core.preview_generator") is not None
+)
 
 logger = logging.getLogger(__name__)
-
-from app.core.capabilities import require_capability
 
 router = APIRouter(dependencies=[Depends(require_capability("app.modules.vault.router"))])
 
@@ -611,7 +605,8 @@ async def list_documents(
                     storage_path=cert.get("storage_path", ""),
                 )
             )
-        except Exception:
+        except Exception as exc:
+            logger.debug("Skipping invalid vault certificate: %s", exc)
             continue
 
     # Sort by upload date, newest first
