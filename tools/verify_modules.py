@@ -72,7 +72,7 @@ def run_test_suite(test_path: str) -> tuple[bool, str]:
         target = Path(__file__).resolve().parent.parent / test_path
     if not target.exists():
         return False, f"test suite not found: {test_path}"
-    pytest_cmd = [sys.executable, "-m", "pytest", str(target), "-q"]
+    pytest_cmd = [sys.executable, "-m", "pytest", str(target), "-q", "--no-cov"]
     result = subprocess.run(pytest_cmd, capture_output=True, text=True, timeout=120)  # noqa: S603 # nosec B603
     passed = result.returncode == 0
     summary = result.stdout.strip().splitlines()[-1] if result.stdout else result.stderr

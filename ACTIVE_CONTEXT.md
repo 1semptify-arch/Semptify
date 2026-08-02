@@ -1,10 +1,59 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-28 (Orchestrator queue reconciled; todo-001 through todo-044 all resolved)
+**Last Updated**: 2026-08-01 (Task 6 i18n — locale selector UI + `/api/i18n/set-locale` endpoint)
 
-## 🎯 Current Priority: Queue empty — waiting for next directive
+## ✅ Completed 2026-08-01 Session
 
-All orchestrator tasks (`todo-001` through `todo-044`) are resolved. `tools/docs_todos.json`, `tools/agent_orchestrator_tasks.json`, and `tools/_seed_orchestrator_tasks.py` are in sync. The next directive should come from the user or a new Master Handoff.
+- **Task 6 i18n completion pass**: added public `GET /api/i18n/locale` and `POST /api/i18n/set-locale` endpoints, wired a reusable `locale_selector.html` component into `public_base.html`, `gui/base.html`, `base.html`, and `index.html`, and set the `<html lang>` attribute from the resolved locale.
+- Added `get_locale` to the Jinja2 global context so templates can resolve the active locale.
+- Added `/api/i18n/` to `PUBLIC_PREFIXES` (storage middleware) and `EXEMPT_PATHS` (checkpoint middleware) so the language switcher works without a storage session.
+- Added Spanish UI strings for the language selector (`es.json`).
+- Updated `tests/test_i18n.py` with endpoint tests for locale read, set-cookie/redirect, and invalid-locale rejection.
+- Verification: `python -m py_compile` on changed files PASS; `pytest tests/test_i18n.py -q --no-cov` 14/14 passed; `pytest tests/test_ssot_architecture.py -q --no-cov` 8/8 passed; `pytest tests/module_health -q --no-cov` 122/122 passed.
+
+## ✅ Completed 2026-07-29 Session
+
+## ✅ Completed 2026-07-29 Session
+
+- Implemented a generic, registry-driven module health-check framework (`tools/module_health.py`).
+- Generated 115 `tests/module_health/test_<id>.py` regression tests covering module import, router presence, duplicate routes, and admin public-route exposure.
+- Updated `tools/module_registry.yaml` so 114 modules have real `health_check` / `test_suite` entries.
+- Flagged 7 modules with `flag_reason` (`vault_sync` on hold, `filedored` and `housing_accountability` pending Brad's swe-1.7 decision, 4 optional missing routers).
+- Fixed `tools/verify_modules.py` to run per-module tests with `--no-cov` so the repo-wide `cov-fail-under=40` does not mask health results.
+- Fixed `app/modules/document_delivery/router.py` duplicate `GET /api/delivery/inbox` route by moving the HTML page endpoint to `/inbox/page`.
+- Verification: `pytest tests/module_health -q --no-cov` (115 passed), `tools/verify_modules.py --sync` (114 ok), `sync_orchestrator`, `guardrail_engine` all pass.
+
+## 🎯 Current Priority: Master Handoff — B1 Admin Hub Stub Tiles COMPLETE
+
+- `system_health` (Tier 0) — ✅ complete.
+- `run_modules` (Tier 1) — ✅ complete.
+- `correspondence` (Tier 2 wiring pass, PII-free) — ✅ complete.
+- `user_concerns` (Tier 2 wiring pass, PII-free) — ✅ complete.
+- `advanced` (Tier 1/T0; `detect_repeated_fees` cost-guard only) — ✅ complete.
+
+B1 is done.
+
+## 🎯 Current Priority: B2 `dispute_tracker` + B3 `eviction_timeline` greenfield build
+
+### Done in this session
+- Core `FunctionGroupContract` extended with `tier`, `allowed_routes`, `allowed_prefixes`.
+- B2 Commits 1–3: `dispute_tracker` scaffold, product manifest + registry, T2 contracts, `DisputeRecord` and `ComparisonEntry` data models + schemas.
+- B3 Commits 1–3: `eviction_timeline` scaffold, product manifest + registry, T2 contracts, `EvictionTimelineEvent` data model + schemas.
+- PII is stored in overlay pointers, not PostgreSQL, per the DB boundary rule.
+- `subject_id` is a placeholder (no FK) pending the accountability_ledger boundary decision (Option 3).
+
+### Done in this session (continued)
+- B2 Commit 4 — minimal GUI: `GET /api/dispute-tracker/` page, `POST /api/dispute-tracker/disputes`, `POST /api/dispute-tracker/comparisons`.
+- B2 Commit 5 — `FunctionGroupContract` allowed_routes aligned with actual routes.
+- B3 Commit 4 — minimal GUI: `GET /api/eviction-timeline/` page, `POST /api/eviction-timeline/events`.
+- B3 Commit 5 — `FunctionGroupContract` allowed_routes aligned; `tools/checks/contract_route_check.py` guardrail added (Build Orchestrator hard-gate) and passes.
+- Post-GUI SSOT fix: all POST redirects use `ssot_redirect()` instead of raw `RedirectResponse`.
+- `tools/checks/contract_route_check.py` enforces tier validity, manifest-prefix coverage, actual route-to-contract matching, and `PUBLIC_PREFIXES` exposure (only T0 routes may be public).
+
+### Still pending / open
+- T2 tier for `dispute_tracker` and `eviction_timeline` is flagged in commit messages for Brad's review.
+- `EvictionTimelineEvent.subject_id` remains a placeholder (no FK) pending accountability_ledger boundary.
+- Live manual test of the HTML pages has not been run (only `verify_modules`, `guardrail_engine`, and `pytest` passed).
 
 ---
 
@@ -21,6 +70,44 @@ public-service, and follow the four-pillar model (RECORD/KNOW/ACT/GOVERN).
 
 Task 1 — Shared UX foundation — is complete (viewport-locked CSS, function-budget classes,
 persistent "Get help now" in `gui/base.html`, calm/alarm color tokens, convention documented).
+
+Task 2 — Footer + Help page redo — is complete. Shared Jinja/public/static footers and the
+unified footer loader now show a one-line UPL boundary, "Get help", and "Report a problem" only.
+`/help` is a no-scroll, action-first page routed by "What's happening to you right now?" into
+RECORD / KNOW / ACT / GOVERN.
+
+Task 3 — Content pass — is functionally complete. `app/core/subject_starters.py`, the reusable
+starter-chips component, and the previous `free`-wording audit are in `main` (commit `8e58602b`).
+This session added an action-first rewrite of `app/templates/public/portal.html` with a concrete
+tenant-rights fact in place of an inspirational quote.
+
+Master Handoff Tasks 4-11 are reconciled with the working tree:
+- 4 Admin/logging: middleware + buffered flusher + live tail and level endpoints wired.
+- 5 Voice: `/api/voice/transcribe` route and module health pass.
+- 6 i18n: catalog files and Jinja `_()` global wired.
+- 7 Media capture: `/tenant/capture` page, `/api/tenant/capture`, `/api/media/capture` wired.
+- 8 Third-party contacts: `ThirdPartyContact` model + `contacts` router; module health pass.
+- 9 Redaction: `redaction_service` wired into `intake_service` before storage.
+- 10 Communication import: `.eml`/`.mbox`/SMS/call-log/voicemail flows; module health pass.
+- 11 Resource directory: public/admin routes, CSV import, staleness tracking; module health pass.
+
+### Live verification blockers fixed
+
+- `app/core/storage_middleware.py`: added `/api/resources` to `PUBLIC_PATHS` and `/api/resources/` to `PUBLIC_PREFIXES`. `GET /api/resources` now returns 200 instead of 401.
+- `app/core/checkpoint_middleware.py`: added `/portal` to `EXEMPT_PATHS`.
+
+### Root landing / portal wiring
+
+Implemented the hotel analogy:
+- `/` (lobby) — `app/templates/index.html`, stateless composer, fixed CSS and CTAs to `/preamble` (app entry) and `/portal` (concierge).
+- `/portal` (concierge) — `app/templates/public/portal.html` with the services catalog; now a registered `PortalPage` and public in both `storage_middleware` and `checkpoint_middleware`.
+- Floors — existing `/gui/*`, `/tenant/*`, standalone modules, etc.
+
+### Remaining blocker before assembly
+
+- Missing `feature_flags` DB table — causes fallback warnings but does not block public pages or the reconciled modules.
+
+Next: GUI/site assembly.
 
 Previous priority: Review/merge Funding Forge standalone add-on — completed 2026-07-25.
 Previous priority before that: GUI Phase 1 — four-pillar interface (`Home`, `Record`, `Know`, `Act`).

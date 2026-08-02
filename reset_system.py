@@ -8,8 +8,8 @@ import os
 import shutil
 import sys
 
-SEMPtIFY_PATH = r"C:\Semptify\Semptify-FastAPI"
-BACKEND_PATH = r"C:\Semptify\backend"
+SEMPtIFY_PATH = r"E:\master-repo\sources\app-semptify-fastapi"
+BACKEND_PATH = r"E:\master-repo\sources\REPOs\backend"
 
 def confirm(prompt):
     """Ask for confirmation"""
