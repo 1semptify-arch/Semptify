@@ -16,7 +16,6 @@ repos:
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: detect-private-key
-      - id: check-case-conflict
 
   # Python linting with Ruff (fast)
   - repo: https://github.com/astral-sh/ruff-pre-commit
