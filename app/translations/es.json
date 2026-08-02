@@ -3,5 +3,8 @@
     "locale": "es",
     "status": "stub",
     "note": "Spanish catalog — translations fall back to English until human review."
-  }
+  },
+  "language.label": "Idioma",
+  "language.selector.aria": "Elige tu idioma preferido",
+  "action.save": "Guardar"
 }

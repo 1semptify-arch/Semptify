@@ -54,6 +54,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -94,11 +95,13 @@ from app.core.subject_starters import get_subject_starters as _get_subject_start
 
 templates.env.globals["subject_starters"] = _get_subject_starters()
 
-# Expose i18n `_()` helper and locale list to all Jinja2 templates (Task 6 i18n).
-from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext
+# Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
+# templates (Task 6 i18n).
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale, i18n
 
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+templates.env.globals["get_locale"] = get_locale
 
 from datetime import datetime as _dt
 
@@ -129,6 +132,39 @@ def register_stateless_routes(app: FastAPI):
     async def root(request: Request):
         ctx = {"request": request, "year": _dt.utcnow().year}
         return templates.TemplateResponse("index.html", ctx)
+
+    @app.get("/api/i18n/locale", include_in_schema=False)
+    async def get_current_locale(request: Request):
+        """Return the resolved locale and supported locale list for JS."""
+        return JSONResponse(
+            {
+                "locale": i18n.get_locale(request),
+                "supported_locales": SUPPORTED_LOCALES,
+            }
+        )
+
+    @app.post("/api/i18n/set-locale", include_in_schema=False)
+    async def set_locale(request: Request, locale: str = Form(...)):
+        """Set the `semptify_locale` cookie and return the user to their prior page."""
+        if locale not in SUPPORTED_LOCALES:
+            raise HTTPException(status_code=400, detail="Unsupported locale")
+
+        referer = request.headers.get("referer", "/")
+        target_path = urlparse(referer).path or "/"
+        response = ssot_redirect(target_path, context="i18n.set-locale", strict=False)
+
+        # Mirrors cookie settings used by cookie_auth for consistency.
+        secure = request.url.scheme == "https"
+        response.set_cookie(
+            key="semptify_locale",
+            value=locale,
+            max_age=365 * 24 * 60 * 60,
+            path="/",
+            samesite="lax",
+            secure=secure,
+            httponly=False,
+        )
+        return response
 
 
 # Add custom Jinja2 filters

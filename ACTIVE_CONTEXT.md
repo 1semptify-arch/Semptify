@@ -1,6 +1,17 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-07-29 (Master Handoff Task 2 — footer + help page redo complete)
+**Last Updated**: 2026-08-01 (Task 6 i18n — locale selector UI + `/api/i18n/set-locale` endpoint)
+
+## ✅ Completed 2026-08-01 Session
+
+- **Task 6 i18n completion pass**: added public `GET /api/i18n/locale` and `POST /api/i18n/set-locale` endpoints, wired a reusable `locale_selector.html` component into `public_base.html`, `gui/base.html`, `base.html`, and `index.html`, and set the `<html lang>` attribute from the resolved locale.
+- Added `get_locale` to the Jinja2 global context so templates can resolve the active locale.
+- Added `/api/i18n/` to `PUBLIC_PREFIXES` (storage middleware) and `EXEMPT_PATHS` (checkpoint middleware) so the language switcher works without a storage session.
+- Added Spanish UI strings for the language selector (`es.json`).
+- Updated `tests/test_i18n.py` with endpoint tests for locale read, set-cookie/redirect, and invalid-locale rejection.
+- Verification: `python -m py_compile` on changed files PASS; `pytest tests/test_i18n.py -q --no-cov` 14/14 passed; `pytest tests/test_ssot_architecture.py -q --no-cov` 8/8 passed; `pytest tests/module_health -q --no-cov` 122/122 passed.
+
+## ✅ Completed 2026-07-29 Session
 
 ## ✅ Completed 2026-07-29 Session
 

@@ -1,3 +1,33 @@
+## Session -- 2026-08-01 — Task 6 i18n locale selector + set-locale endpoint
+
+### Problem
+
+Task 6 i18n had working JSON catalogs and a Jinja2 `_()` global, but no user-facing language selector and no public endpoint to set the `semptify_locale` cookie. Users could not actually switch languages.
+
+### Fix
+
+- `app/main.py`: registered public `GET /api/i18n/locale` and `POST /api/i18n/set-locale` endpoints in `register_stateless_routes`. Added `get_locale` and the existing `i18n` singleton to the Jinja2 global context so templates can resolve the active locale and render `{{ get_locale(request) | default('en') }}`.
+- `app/core/storage_middleware.py`: added `/api/i18n/` to `PUBLIC_PREFIXES`.
+- `app/core/checkpoint_middleware.py`: added `/api/i18n/` to `EXEMPT_PATHS`.
+- `app/templates/components/locale_selector.html`: new reusable form using `_()` keys `language.label`, `language.selector.aria`, and `action.save`.
+- `app/templates/public_base.html`, `app/templates/gui/base.html`, `app/templates/base.html`, `app/templates/index.html`: included the locale selector and set `<html lang="{{ get_locale(request) | default('en') }}">`.
+- `app/translations/es.json`: added `language.label`, `language.selector.aria`, and `action.save`.
+- `tests/test_i18n.py`: added endpoint tests for `GET /api/i18n/locale`, `POST /api/i18n/set-locale` cookie/redirect, and 400 on unsupported locale.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/storage_middleware.py app/core/checkpoint_middleware.py app/core/i18n.py tests/test_i18n.py`: PASS.
+- `pytest tests/test_i18n.py -q --no-cov`: 14/14 passed.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8/8 passed.
+- `pytest tests/module_health -q --no-cov`: 122/122 passed.
+
+### Known Working / Pending
+
+- Language switching is now reachable from public and GUI pages for all supported locales.
+- Remaining non-English catalogs are still stub/fallback; human-reviewed legal/plain-language translations are still needed.
+
+---
+
 ## Session -- 2026-07-29 — Master Handoff Tasks 4-11 reconciliation
 
 ### Guardrail Engine Run — 2026-07-29T07:31:05
