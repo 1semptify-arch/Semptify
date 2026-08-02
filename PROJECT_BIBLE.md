@@ -5,9 +5,9 @@ It defines the authoritative build reference, governance rules, onboarding flow,
 
 ## Our Identity
 
-**Semptify is a tenant rights advocate organization.**
+### Semptify is a tenant rights advocate organization
 
-**Tenant advocacy, not neutrality.**
+### Tenant advocacy, not neutrality
 
 We exist to advance the rights of tenants facing housing insecurity,
 documentation challenges, and legal uncertainty. We are on the side
@@ -45,6 +45,7 @@ All build and startup instructions must be maintained in `README.md`.
 This is the authoritative developer build guide.
 
 Use `README.md` for:
+
 - local environment setup
 - dependency installation
 - running the development server
@@ -57,6 +58,7 @@ Do not treat `QUICKSTART.md`, `ENTERPRISE_README.md`, or other ad hoc docs as th
 ## 3. Integrity and Governance Compass
 
 The project must be aligned with these core values:
+
 - protect tenant rights and evidence integrity
 - preserve user control and privacy
 - avoid ads, manipulation, and hidden data collection
@@ -84,7 +86,7 @@ The aspirational 9-step Extended journey has been archived to `concepts/EXTENDED
 
 Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
 
-```
+```text
 [nothing] → storage_connected → vault_initialized → [onboarding complete]
 ```
 
@@ -95,7 +97,7 @@ Post-onboarding, the `client_activated` gate is set by `documents.py` on first d
 **Primary:** `app/modules/onboarding/` — self-contained, config-driven onboarding module.
 
 | File | Responsibility |
-|------|---------------|
+| ------ | --------------- |
 | `config.py` | Product-specific settings (roles, providers, folders, gates) |
 | `gates.py` | Gate check/mark/query — reads `User.completed_groups` |
 | `oauth.py` | Token exchange, identity verification, user creation |

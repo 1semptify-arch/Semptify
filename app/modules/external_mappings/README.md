@@ -7,12 +7,14 @@ This module provides a comprehensive system for mapping Semptify internal IDs to
 ## Features
 
 ### General Mappings
+
 - **Universal mapping table** for any external system
 - **Audit trail** with creation/update timestamps
 - **Verification status** tracking
 - **User-scoped** mappings for privacy
 
 ### Specialized Mappings
+
 - **Court Cases**: Detailed legal case information with dates, parties, judges
 - **Properties**: Parcel IDs, addresses, county assessor links
 - **Agencies**: Complaint numbers, submission tracking, resolution status
@@ -20,24 +22,29 @@ This module provides a comprehensive system for mapping Semptify internal IDs to
 ## API Endpoints
 
 ### General Mappings
+
 - `POST /api/external-mappings/mapping` - Create mapping
 - `GET /api/external-mappings/mappings` - List user mappings
 - `GET /api/external-mappings/mapping/{id}` - Get mapping details
 - `PUT /api/external-mappings/mapping/{id}/status` - Update status
 
 ### Court Cases
+
 - `POST /api/external-mappings/court-case` - Create court case mapping
 - `GET /api/external-mappings/court-cases` - List court cases
 
 ### Properties
+
 - `POST /api/external-mappings/property` - Create property mapping
 - `GET /api/external-mappings/properties` - List properties
 
 ### Agencies
+
 - `POST /api/external-mappings/agency` - Create agency mapping
 - `GET /api/external-mappings/agencies` - List agency mappings
 
 ### Search
+
 - `GET /api/external-mappings/search` - Search across all mappings
 
 ## Usage Examples
@@ -45,7 +52,7 @@ This module provides a comprehensive system for mapping Semptify internal IDs to
 ### Creating a Court Case Mapping
 
 ```python
-# Map a Minnesota Housing Court case
+## Map a Minnesota Housing Court case
 case_data = {
     "court_system": "mn_state",
     "case_number": "27-HC-21-12345",
@@ -60,12 +67,12 @@ case_data = {
 }
 
 response = await client.post("/api/external-mappings/court-case", json=case_data)
-```
+```text
 
 ### Creating a Property Mapping
 
 ```python
-# Map a Hennepin County property
+## Map a Hennepin County property
 property_data = {
     "parcel_id": "12-345-678-9012",
     "county": "hennepin",
@@ -84,7 +91,7 @@ response = await client.post("/api/external-mappings/property", json=property_da
 ### Creating an Agency Mapping
 
 ```python
-# Map a consumer protection complaint
+## Map a consumer protection complaint
 agency_data = {
     "agency_code": "mn_ag_consumer",
     "agency_name": "Minnesota Attorney General's Office",
@@ -130,16 +137,19 @@ response = await client.post("/api/external-mappings/agency", json=agency_data)
 ## External System Examples
 
 ### Minnesota Courts
+
 - **State Courts**: Format `27-CV-21-1234` (County-Type-Year-Sequence)
 - **Housing Courts**: Format `27-HC-21-1234` (County-Housing Court-Year-Sequence)
 - **Federal Courts**: Format `1:23-cv-00456-JMS` (Court-CaseType-Year-Sequence-Judge)
 
 ### Property Records
+
 - **Hennepin County**: `12-345-678-9012` (PLSID format)
 - **Ramsey County**: `R12.345.678.9012` (County prefix format)
 - **Tax IDs**: Vary by county, often same as parcel ID
 
 ### Agency Complaints
+
 - **Attorney General**: `AG-2024-001234` (Agency-Year-Sequence)
 - **HUD**: `FHA-2024-5678` (Program-Year-Sequence)
 - **Department of Human Rights**: `DHR-2024-9012` (Agency-Year-Sequence)

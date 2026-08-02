@@ -19,9 +19,11 @@ The Auto Mode system provides **fully automated analysis** of every document upl
 ### Core Components
 
 #### 1. **AutoModeOrchestrator** (`app/services/auto_mode_orchestrator.py`)
+
 Central orchestrator that coordinates all automated analyses.
 
 **Method:** `run_full_auto_analysis()`
+
 - Triggers all analysis engines sequentially
 - Collects results into unified structure
 - Generates comprehensive summary
@@ -34,12 +36,14 @@ results = await orchestrator.run_full_auto_analysis(
     document_content="...eviction notice text...",
     filename="Eviction_Notice.pdf"
 )
-```
+```text
 
 #### 2. **AutoModeSummaryService** (`app/services/auto_mode_summary_service.py`)
+
 Generates comprehensive summaries and actionable recommendations.
 
 **Key Outputs:**
+
 - Timeline summary with event counts
 - Calendar event summary with upcoming dates
 - Complaint filing opportunities
@@ -52,6 +56,7 @@ Generates comprehensive summaries and actionable recommendations.
 - **Progress & Confidence** - Metrics about analysis quality
 
 #### 3. **Analysis Engines** (Already Exist)
+
 - **TimelineBuilder** - Extracts dates and events
 - **CalendarService** - Creates calendar events
 - **LegalAnalysisEngine** - Assesses rights and missteps
@@ -59,7 +64,9 @@ Generates comprehensive summaries and actionable recommendations.
 - **ProactiveTacticsEngine** - Recommends defense strategies
 
 #### 4. **Auto Mode Router** (`app/routers/auto_mode.py`)
+
 REST API endpoints for:
+
 - Enable/disable auto mode
 - Configure analysis settings
 - Trigger manual analysis
@@ -72,6 +79,7 @@ REST API endpoints for:
 ### User Uploads Document
 
 ```
+
 User uploads eviction notice
     ↓
 Intake Router receives file
@@ -101,7 +109,8 @@ UI Updates in Real-Time
     ├─ Urgent warnings displayed
     ├─ Action cards shown
     └─ Next steps outlined
-```
+
+```text
 
 ---
 
@@ -205,7 +214,8 @@ UI Updates in Real-Time
 
 ### Auto Analysis Summary Dashboard (`static/auto_analysis_summary.html`)
 
-**Features:**
+#### Features:
+
 - Progress bar (0-100%)
 - Confidence score display
 - Urgent actions alerts (with color coding)
@@ -214,7 +224,8 @@ UI Updates in Real-Time
 - Next steps (ordered workflow)
 - Responsive design (mobile-friendly)
 
-**Color Coding:**
+#### Color Coding:
+
 - 🔴 **Critical Priority** - Red (missteps, violations)
 - 🟠 **High Priority** - Orange (complaints, deadlines)
 - 🔵 **Medium Priority** - Blue (review actions)
@@ -225,13 +236,16 @@ UI Updates in Real-Time
 ## API Endpoints
 
 ### 1. **Get Auto Mode Status**
-```
+
+```text
 GET /api/auto-mode/status
 ```
+
 Returns current auto mode configuration and status.
 
 ### 2. **Toggle Auto Mode**
-```
+
+```text
 POST /api/auto-mode/toggle
 {
   "enabled": true
@@ -239,7 +253,8 @@ POST /api/auto-mode/toggle
 ```
 
 ### 3. **Update Configuration**
-```
+
+```text
 POST /api/auto-mode/config
 {
   "auto_generate_timeline": true,
@@ -252,12 +267,14 @@ POST /api/auto-mode/config
 ```
 
 ### 4. **Get Analysis Results**
-```
+
+```text
 GET /api/auto-mode/analysis/{doc_id}
 ```
 
 ### 5. **Run Manual Analysis**
-```
+
+```text
 POST /api/auto-mode/run-analysis/{doc_id}
 {
   "document_content": "...",
@@ -266,7 +283,8 @@ POST /api/auto-mode/run-analysis/{doc_id}
 ```
 
 ### 6. **Get Available Features**
-```
+
+```text
 GET /api/auto-mode/features
 ```
 
@@ -275,30 +293,35 @@ GET /api/auto-mode/features
 ## Recommended Actions Explained
 
 ### 1. **Review Extracted Timeline** (HIGH)
+
 - **What:** Verify dates and events extracted from documents
 - **Why:** Accuracy is critical for your legal case
 - **Time:** 5-10 minutes
 - **Link:** `/timeline?doc_id={doc_id}`
 
 ### 2. **File Complaints** (HIGH)
+
 - **What:** File regulatory complaints with identified agencies
 - **Why:** Multiple complaint channels strengthen your position
 - **Time:** 20-30 minutes per complaint
 - **Link:** `/complaints?doc_id={doc_id}`
 
 ### 3. **Review Legal Rights** (HIGH)
+
 - **What:** Understand your tenant rights and protections
 - **Why:** Know your legal position and defenses available
 - **Time:** 10-15 minutes
 - **Link:** `/legal-analysis?doc_id={doc_id}`
 
 ### 4. **Address Legal Missteps** (CRITICAL)
+
 - **What:** Review procedural violations by landlord/court
 - **Why:** Could result in case dismissal or favorable ruling
 - **Time:** 15-30 minutes
 - **Link:** `/legal-missteps?doc_id={doc_id}`
 
 ### 5. **Implement Defense Tactics** (MEDIUM)
+
 - **What:** Review and plan proactive defense strategies
 - **Why:** Strengthen your case before trial
 - **Time:** 15-20 minutes
@@ -309,6 +332,7 @@ GET /api/auto-mode/features
 ## Progress Calculation
 
 Progress is calculated based on completed analyses:
+
 - Timeline extraction: **15%**
 - Calendar generation: **10%**
 - Complaint identification: **15%**
@@ -317,26 +341,28 @@ Progress is calculated based on completed analyses:
 - Tactics recommendation: **15%**
 - Document processed: **5%**
 
-**Total: 85% = document fully analyzed**
+### Total: 85% = document fully analyzed
 
 ---
 
 ## Confidence Scoring
 
 Confidence (0.0-1.0) is calculated based on:
+
 - **Baseline:** 0.5
 - **Timeline quality:** +0.0-0.2 (based on events found)
 - **Legal analysis:** +0.15 (if missteps detected)
 - **Analysis diversity:** +0.15 (multiple engines used)
 
-**Example:** 0.5 + 0.15 + 0.15 + 0.15 = **0.95 confidence**
+### Example:**0.5 + 0.15 + 0.15 + 0.15 =**0.95 confidence
 
 ---
 
 ## Integration Points
 
 ### Document Upload Flow
-```
+
+```text
 1. User uploads document
    ↓
 2. Intake Router processes
@@ -354,8 +380,9 @@ Confidence (0.0-1.0) is calculated based on:
 ```
 
 ### Event Bus Integration
+
 ```python
-# Published event
+## Published event
 BusEventType.AUTO_ANALYSIS_COMPLETE
 {
     'doc_id': 'doc_123',
@@ -363,7 +390,7 @@ BusEventType.AUTO_ANALYSIS_COMPLETE
     'results': {...},
     'summary': {...}
 }
-```
+```text
 
 ---
 
@@ -372,7 +399,7 @@ BusEventType.AUTO_ANALYSIS_COMPLETE
 Users can enable/disable auto mode in settings:
 
 ```python
-# Settings page provides toggle
+## Settings page provides toggle
 Auto Mode: [ON/OFF]
 
 Individual features can be toggled:
@@ -402,6 +429,7 @@ Individual features can be toggled:
 ## Error Handling
 
 If analysis fails:
+
 ```json
 {
   "status": "error",
@@ -418,6 +446,7 @@ All analysis stages have try-catch to ensure partial results are returned.
 ## Configuration Files
 
 Key files:
+
 - `app/services/auto_mode_orchestrator.py` - Main orchestrator
 - `app/services/auto_mode_summary_service.py` - Summary generation
 - `app/routers/auto_mode.py` - API endpoints

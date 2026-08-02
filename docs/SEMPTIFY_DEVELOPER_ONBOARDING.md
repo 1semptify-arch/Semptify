@@ -1,6 +1,8 @@
 # Semptify Developer Onboarding Manual
-**Version 1.0 — June 2026**
-**For external contributors and module developers**
+
+## Version 1.0 — June 2026
+
+## For external contributors and module developers
 
 ---
 
@@ -14,14 +16,14 @@
 Semptify exists to protect the rights of tenants facing housing insecurity.
 We give tenants the same tools that well-funded landlords take for granted — for free, forever.
 
-**We are on the side of tenants. Always.**
+### We are on the side of tenants. Always
 
 ### The Non-Negotiables
 
 These are not preferences. Every module, plugin, and add-on must honor them without exception.
 
 | Mandate | Rule |
-|---|---|
+| --- | --- |
 | **Free Forever** | No paywalls, no subscriptions, no freemium gates. Every feature is free. |
 | **No Advertising. Ever.** | No ad networks, no sponsored content, no affiliate links. Not now, not later. |
 | **No Tracking** | No analytics pixels, no third-party tracking scripts, no behavioral profiling. |
@@ -49,7 +51,7 @@ These are not preferences. Every module, plugin, and add-on must honor them with
 
 ## 2. Before You Write a Single Line of Code — The Blueprint Rule
 
-**No module, plugin, or add-on may be built without a written blueprint approved by the project owner first.**
+### No module, plugin, or add-on may be built without a written blueprint approved by the project owner first
 
 This is a hard gate. Code written before approval will be removed.
 
@@ -58,7 +60,7 @@ This is a hard gate. Code written before approval will be removed.
 Write a plain Markdown document covering these sections:
 
 | Section | What to answer |
-|---|---|
+| --- | --- |
 | **Module name** | What is it called? What is the dotted path? (e.g. `app.modules.rent_tracker.router`) |
 | **Type** | Pipeline Module or Feature Module? (explained in Section 4) |
 | **Problem it solves** | Which tenant right or workflow gap does this address? |
@@ -76,12 +78,14 @@ Write a plain Markdown document covering these sections:
 ### Where to Put It
 
 Save your blueprint as:
-```
+
+```text
 docs/blueprints/your_module_name_blueprint.md
 ```
 
 Add a status line at the top:
-```
+
+```text
 Status: DRAFT — pending approval
 ```
 
@@ -93,7 +97,7 @@ Status: DRAFT — pending approval
 4. Only then open any source files and write code
 5. When shipped, update status to `BUILT — shipped in commit <hash>`
 
-**A 10-minute blueprint prevents a 3-session cleanup. Do not skip this step.**
+#### A 10-minute blueprint prevents a 3-session cleanup. Do not skip this step
 
 ---
 
@@ -101,7 +105,7 @@ Status: DRAFT — pending approval
 
 ### Python Version
 
-**Semptify requires Python 3.11.9. This is a hard mandate.**
+#### Semptify requires Python 3.11.9. This is a hard mandate
 
 - All code must target Python 3.11.9
 - Do NOT introduce any dependency that requires Python 3.12, 3.13, or later
@@ -111,15 +115,15 @@ Status: DRAFT — pending approval
 ### Environment Setup (Local Development)
 
 ```powershell
-# Activate the correct virtual environment
+## Activate the correct virtual environment
 .\\venv311\\Scripts\\Activate.ps1
 
-# Verify Python version — must show 3.11.x
+## Verify Python version — must show 3.11.x
 python --version
 
-# Run the server
+## Run the server
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
+```text
 
 ### The Golden Rules
 
@@ -141,7 +145,7 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 Before you write anything, decide which type you are building. This decision changes everything.
 
 | | Pipeline Module | Feature Module |
-|---|---|---|
+| --- | --- | --- |
 | **What it is** | Internal processor. No UI. Passes output to other modules or the database. | User-facing capability. Has UI, routes, and backend logic. |
 | **Always running?** | YES — always on for all users | NO — loaded per user based on their capability set |
 | **Needs a capability gate?** | NO | YES |
@@ -149,16 +153,19 @@ Before you write anything, decide which type you are building. This decision cha
 | **Examples** | `context_loop`, `positronic_brain`, vault upload service | `case_builder`, `eviction_defense`, `timeline`, vault UI |
 
 **Decision test:** Does a user choose to turn it on or off? Does it have a page or API the user hits directly?
+
 - Yes → Feature Module
 - No → Pipeline Module
 
 ### The One Rule That Protects Everything
 
 ```
+
 Feature modules  →  call DOWN to  →  Pipeline modules / core services
 Pipeline modules →  NEVER call UP  →  Feature modules
 Feature modules  →  NEVER call     →  Other feature modules directly
-```
+
+```text
 
 Why this matters: Feature modules can be disabled per user. If a pipeline module calls a feature module,
 it will silently fail for users who don't have that feature. The entire system breaks.
@@ -172,13 +179,15 @@ it will silently fail for users who don't have that feature. The entire system b
 ### Step 2 — Create the module folder
 
 ```
+
 app/modules/your_module/
-    __init__.py        ← one-liner: module description + exports
+    **init**.py        ← one-liner: module description + exports
     router.py          ← FastAPI APIRouter with capability gate
     models.py          ← SQLAlchemy models (only if you have DB tables)
     service.py         ← business logic (recommended but optional)
     schemas.py         ← Pydantic request/response models (optional)
-```
+
+```text
 
 Minimum required files: `__init__.py` and `router.py`.
 If you have DB tables, also required: `models.py`.
@@ -192,8 +201,8 @@ which users can access your module. One line does it all:
 from fastapi import APIRouter, Depends
 from app.core.capabilities import require_capability
 
-# This string is your capability key. Pick it now. Never change it.
-# Convention: app.modules.<folder_name>.router
+## This string is your capability key. Pick it now. Never change it.
+## Convention: app.modules.<folder_name>.router
 _MODULE_PATH = "app.modules.your_module.router"
 
 router = APIRouter(
@@ -208,6 +217,7 @@ async def health():
 ```
 
 The gate automatically handles:
+
 - Admin users always pass through (no gate for admins)
 - Users not yet seeded pass through gracefully (no lockouts)
 - Users whose capability is inactive get a clean 403 response
@@ -230,7 +240,7 @@ class YourRecord(Base):
     title = Column(String(500), nullable=False)
     content = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now)
-```
+```text
 
 ### Step 5 — Register models in `app/core/database.py`
 
@@ -259,7 +269,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     ],
     # DO NOT touch "admin": ["__all__"] — admins get everything automatically
 }
-```
+```text
 
 **Change B:** Add a `_register()` call in the correct tier block:
 
@@ -275,6 +285,7 @@ _register(
 ```
 
 **Critical:** The string `"app.modules.your_module.router"` must be identical in:
+
 1. `require_capability(...)` in your `router.py`
 2. `CAPABILITY_DEFAULTS` in `product_manifest.py`
 3. `_register(...)` in `product_manifest.py`
@@ -284,14 +295,15 @@ A mismatch means the gate fires but users are never seeded, or users are seeded 
 ### Step 7 — Create the Alembic migration (required if you have DB tables)
 
 ```powershell
-# Generate the migration
+## Generate the migration
 python -m alembic revision --autogenerate -m "add_your_module_tables"
-```
+```python
 
 Then open the generated file in `alembic/versions/` and **remove all changes that are not your new table**.
 Autogenerate picks up schema drift from other tables — keep only your `create_table` call.
 
 Run it:
+
 ```powershell
 python -m alembic upgrade head
 ```
@@ -300,7 +312,7 @@ python -m alembic upgrade head
 
 ```powershell
 .\\venv311\\Scripts\\python.exe -m py_compile app/modules/your_module/router.py app/core/product_manifest.py
-```
+```text
 
 Both must return with no output (exit code 0 = clean).
 
@@ -330,7 +342,7 @@ Pipeline modules are simpler — no capability gate, no defaults.
 ## 7. Which Product Tier to Register In
 
 | Tier | Use When |
-|---|---|
+| --- | --- |
 | `CORE` | Essential — the app is broken without it |
 | `EXTENDED` | Legal tools — case management, eviction defense, court forms |
 | `ADVOCATE` | Advocate network — document delivery, collaboration |
@@ -344,14 +356,17 @@ Pipeline modules are simpler — no capability gate, no defaults.
 
 If you need to rewrite a file that already exists:
 
-**NEVER do this:**
-```
+### NEVER do this:
+
+```text
 vault_upload_service.py       ← broken original, left in place
 vault_upload_service_v2.py    ← your rewrite
 ```
+
 This breaks every import across the codebase. You will spend hours chasing cascading failures.
 
-**Always do this:**
+### Always do this:
+
 1. Ask the project owner to rename the original to `your_file_old.py` (one filesystem rename)
 2. Write your clean version into the original filename `your_file.py`
 3. Every import everywhere still works — nothing else changes
@@ -364,7 +379,7 @@ This breaks every import across the codebase. You will spend hours chasing casca
 Before rolling a module out to all users, you can test it with a specific user
 without touching the database:
 
-```
+```text
 POST /api/capabilities/{user_id}/overlay
 Content-Type: application/json
 { "module_names": ["app.modules.your_module.router"] }
@@ -374,12 +389,14 @@ This temporarily grants the user access to your module for 1 hour.
 It lives in Redis only — expires automatically, no DB change, no effect on anyone else.
 
 To remove it:
-```
+
+```text
 DELETE /api/capabilities/{user_id}/overlay
 ```
 
 To permanently grant a module to a specific user:
-```
+
+```text
 POST /api/capabilities/{user_id}/grant
 { "module_name": "app.modules.your_module.router", "source": "admin_grant" }
 ```
@@ -413,7 +430,7 @@ Before opening a pull request or pushing to main, verify every item:
 ## 11. Key Files — Where Everything Lives
 
 | File | What it is |
-|---|---|
+| --- | --- |
 | `MODULE_BLUEPRINT.md` | Full module spec, golden rules, and implementation guide |
 | `MODULE_BUILDING_GUIDE.md` | Capability system rules for new modules |
 | `AGENTS.md` | Rules for AI coding assistants working in this repo |
@@ -433,7 +450,7 @@ Before opening a pull request or pushing to main, verify every item:
 ## 12. Common Mistakes — Do Not Repeat These
 
 | Mistake | Consequence | Fix |
-|---|---|---|
+| --- | --- | --- |
 | Building without a blueprint | Scope creep, undefined dependencies, capability gate never wired | Write the blueprint. Get approval. Then build. |
 | Adding `include_router()` to `main.py` | Breaks the manifest system | Use `_register()` in `product_manifest.py` |
 | Creating own `Base = declarative_base()` | Tables invisible to Alembic | Always import `Base` from `app.core.database` |

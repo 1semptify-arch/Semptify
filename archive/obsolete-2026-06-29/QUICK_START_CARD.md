@@ -1,6 +1,6 @@
 # 🚀 QUICK START CARD - Production Security
 
-**Print this card or bookmark this page**
+## Print this card or bookmark this page
 
 ---
 
@@ -14,7 +14,7 @@ Your request: **"we need to be running enforced security and production"**
 
 ## 📁 Key Files Created
 
-```
+```text
 Security Code:
   app/core/security_config.py        ← Configuration
   app/core/security_middleware.py    ← Middleware (rate limit, headers, logging)
@@ -34,14 +34,16 @@ Documentation:
 ## 🎯 You Have 3 Paths Forward
 
 ### Path 1: Learn First (Recommended)
-```
+
+```text
 1. Read: PRODUCTION_MASTER_INDEX.md (5 min)
 2. Read: PRODUCTION_SECURITY_QUICK_REFERENCE.md (10 min)
 3. Read: PRODUCTION_DEPLOYMENT_GUIDE.md (20 min)
 ```
 
 ### Path 2: Deploy Now
-```
+
+```text
 1. cp .env.production.example .env.production
 2. nano .env.production              (edit values)
 3. Generate SSL certificates
@@ -49,7 +51,8 @@ Documentation:
 ```
 
 ### Path 3: Understand the Code
-```
+
+```text
 1. Read: app/core/security_middleware.py (middleware)
 2. Read: app/core/security_config.py (settings)
 3. Read: app/core/production_init.py (validation)
@@ -59,7 +62,7 @@ Documentation:
 
 ## 📋 Security Features Enabled
 
-```
+```text
 ✅ Rate Limiting                100 requests per 60 seconds per IP
 ✅ Security Headers             9 OWASP-recommended headers
 ✅ CORS Protection              Whitelist-based in production
@@ -77,39 +80,42 @@ Documentation:
 ## 🔧 Configuration Essentials
 
 ```env
-# CRITICAL - Change these before deploying
+## CRITICAL - Change these before deploying
 ENVIRONMENT=production
 DEBUG=false
 SECRET_KEY=generate-new-secure-key
 API_KEY=generate-new-api-key
 
-# IMPORTANT - Set for your domain
+## IMPORTANT - Set for your domain
 ALLOWED_ORIGINS=["https://yourdomain.com"]
 
-# DATABASE - Update connection
+## DATABASE - Update connection
 DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/db?ssl=require
 
-# HTTPS - Set your certificate paths
+## HTTPS - Set your certificate paths
 SSL_CERT_PATH=/etc/ssl/certs/cert.crt
 SSL_KEY_PATH=/etc/ssl/private/key.key
-```
+```text
 
 ---
 
 ## ⚡ Quick Commands
 
 ### Create Config File
+
 ```bash
 cp .env.production.example .env.production
 ```
 
 ### Generate SSL Cert
+
 ```bash
 openssl req -x509 -newkey rsa:4096 -nodes \
   -out cert.crt -keyout key.key -days 365
-```
+```text
 
 ### Start Server (Production)
+
 ```bash
 export $(cat .env.production | xargs)
 python -m uvicorn app.main:app \
@@ -118,26 +124,30 @@ python -m uvicorn app.main:app \
 ```
 
 ### Test Health
+
 ```bash
 curl http://localhost:8000/health
-```
+```text
 
 ### Test Security Headers
+
 ```bash
 curl -I http://localhost:8000/health
 ```
 
 ### Test Rate Limiting
+
 ```bash
 for i in {1..150}; do curl localhost:8000/health & done
-# After 100 requests, should get 429
-```
+## After 100 requests, should get 429
+```text
 
 ---
 
 ## 📊 Before vs After
 
 ```
+
 BEFORE                          AFTER
 ────────────────────────────────────────────────────────
 DEBUG=true (or unset)    →    DEBUG=false (enforced)
@@ -148,7 +158,8 @@ Basic headers            →    9 security headers
 No validation            →    Startup security checks
 ────────────────────────────────────────────────────────
 Risk: 🟡 MODERATE       →    Risk: 🟢 MINIMAL
-```
+
+```text
 
 ---
 
@@ -193,7 +204,7 @@ Before you go live:
 ## 📚 Documentation Quick Links
 
 | Document | Purpose |
-|----------|---------|
+| ---------- | --------- |
 | PRODUCTION_MASTER_INDEX.md | Navigation hub |
 | PRODUCTION_DEPLOYMENT_GUIDE.md | How to deploy |
 | PRODUCTION_SECURITY_QUICK_REFERENCE.md | Quick help |
@@ -206,16 +217,19 @@ Before you go live:
 ## 🎯 Next Actions
 
 ### Immediate (Now)
+
 - [ ] Bookmark PRODUCTION_MASTER_INDEX.md
 - [ ] Save this Quick Start Card
 - [ ] Skim PRODUCTION_DEPLOYMENT_GUIDE.md
 
 ### This Week
+
 - [ ] Copy and configure .env.production
 - [ ] Prepare SSL certificates
 - [ ] Plan deployment
 
 ### When Ready
+
 - [ ] Start production server
 - [ ] Verify all security features
 - [ ] Monitor logs
@@ -225,6 +239,7 @@ Before you go live:
 ## 📞 Support Resources
 
 ```
+
 🔗 Master Index
    File: PRODUCTION_MASTER_INDEX.md
    Use: Navigation and quick links
@@ -240,13 +255,15 @@ Before you go live:
 💻 Code Reference
    Files: app/core/security_*.py
    Use: Understanding implementation
-```
+
+```text
 
 ---
 
-## ✨ You're All Set!
+## ✨ You're All Set
 
 ```
+
 ✅ Security infrastructure:  COMPLETE
 ✅ Documentation:           COMPLETE  
 ✅ Testing:                 VERIFIED
@@ -255,11 +272,12 @@ Before you go live:
 🟢 STATUS: PRODUCTION READY
 
 Next: Read PRODUCTION_MASTER_INDEX.md
+
 ```
 
 ---
 
-**Print this card and keep it handy!**
+### Print this card and keep it handy!
 
 Semptify 5.0 - Production Secure Edition  
 March 23, 2026

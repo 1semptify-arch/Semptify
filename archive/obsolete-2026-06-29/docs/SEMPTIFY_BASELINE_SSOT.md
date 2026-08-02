@@ -9,14 +9,15 @@
 ## 🎯 PROJECT BASELINE - CURRENT STATE
 
 ### Core Principle
-**One source of truth, one place to check, one place to update.**
+
+#### One source of truth, one place to check, one place to update
 
 ---
 
 ## 📊 SYSTEM STATUS OVERVIEW
 
 | Domain | Status | SSOT Location |
-|--------|--------|---------------|
+| -------- | -------- | --------------- |
 | **Backend Architecture** | ✅ Stable | `app/` - Modular, SSOT hardened |
 | **Database Schema** | ✅ Stable | Alembic migrations + SSOT contracts |
 | **ID Generation** | ✅ Complete | `app/core/id_gen.py` - 37 prefixes |
@@ -35,7 +36,7 @@
 
 ### Active Development (`static/` - Work Here)
 
-```
+```text
 static/
 ├── public/                      # Public pages (no auth required)
 │   ├── welcome.html            # ⭐ ENTRY POINT - Two buttons: New/Returning
@@ -72,7 +73,7 @@ static/
 
 ### Reference Only (`staticbac/` - DO NOT EDIT)
 
-```
+```text
 staticbac/
 └── onboarding/                  # Old reference files
     ├── welcome.html            # Backup reference
@@ -84,7 +85,7 @@ staticbac/
 ## 🛣️ ROUTE MAP (SSOT)
 
 | URL | File/Handler | Auth | Status | Notes |
-|-----|--------------|------|--------|-------|
+| ----- | -------------- | ------ | -------- | ------- |
 | `/` | `static/public/welcome.html` | No | ✅ Active | ⭐ SINGLE ENTRY POINT - Smart Gate checkpoint |
 | `/storage/reconnect` | `static/reconnect/index.html` | No | ✅ Active | ⭐ SEPARATE: Returning user reconnect |
 | `/onboarding/select-role.html` | `static/onboarding/select-role.html` | No | ✅ Active | ⭐ SEPARATE: New user onboarding Step 1 |
@@ -107,6 +108,7 @@ staticbac/
 **CRITICAL ARCHITECTURE RULE**: Semptify has NO user accounts of any kind.
 
 **What This Means**:
+
 - ❌ No email registration
 - ❌ No passwords  
 - ❌ No "accounts" to create or manage
@@ -116,6 +118,7 @@ staticbac/
 - ✅ Your control = You own and manage everything
 
 **How It Works**:
+
 1. User connects their existing cloud storage
 2. Semptify generates a temporary identifier: `GU7x9kM2pQ` (provider + role + random)
 3. Identifier stored in cookie only - no server-side account
@@ -123,6 +126,7 @@ staticbac/
 5. Semptify never sees or stores personal information
 
 **Reconnect Flow**:
+
 - Returning users click their storage provider
 - OAuth verifies their provider identity
 - System restores their session
@@ -140,8 +144,9 @@ staticbac/
 **Status**: ✅ Active  
 **Purpose**: Mandatory welcome page checkpoint for new users
 
-**Logic:**
-```
+### Logic:
+
+```text
 User Request → Check:
   ├─ Has session (semptify_uid)? → ✅ ALLOW (returning)
   ├─ Has checkpoint cookie? → ✅ ALLOW (saw welcome)
@@ -149,15 +154,18 @@ User Request → Check:
   └─ Public path → ✅ ALLOW
 ```
 
-**Cookies:**
+### Cookies:
+
 - `semptify_checkpoint=acknowledged` - Set when user clicks button on welcome page
 - `semptify_uid` - User session (bypasses checkpoint)
 
 **Protected Paths** (require checkpoint if no session):
+
 - `/tenant/*`, `/advocate/*`, `/legal/*`, `/manager/*`, `/admin/*`
 - `/vault/*`, `/documents/*`, `/timeline/*`, `/case/*`, `/home`
 
 **Exempt Paths** (always allow):
+
 - `/`, `/static/*`, `/public/*`, `/onboarding/*` (during setup)
 - `/storage/reconnect`, `/storage/providers`, `/storage/callback`
 - `/api/user/lookup`, `/api/session/restore`
@@ -169,41 +177,49 @@ User Request → Check:
 ## ✅ COMPLETED SYSTEMS (Do Not Touch Unless Bug Fix)
 
 ### 1. ID Generation System
+
 - **SSOT**: `app/core/id_gen.py`
 - **Status**: ✅ Complete
 - **Format**: `{prefix}_{16-char alphanumeric}`
 - **Prefixes**: 37 defined (doc, evt, cal, con, inv, job, anl, aud, req, msg, sigreq, sig, att, del, ext, hlt, ann, ovl, plan, camp, wiz, conv, frd, prs, chk, fx, not, pack, batch, item, collab, ask, node, upd, trn, evid, act, cout, def, mot, cmp)
 
 ### 2. Unified Overlay System
+
 - **SSOT**: `app/services/unified_overlay_manager.py`
 - **Status**: ✅ Complete
 - **Purpose**: Cloud-only overlay storage, stateless
 
 ### 3. Vault Storage System
+
 - **SSOT**: `app/services/storage/vault_manager.py`
 - **Status**: ✅ Complete
 - **Structure**: `Semptify5.0/Vault/documents/`, `.overlay/`, `timeline/`
 - **Includes**: Rehome.html generation in user cloud
 
 ### 4. Timeline System
+
 - **SSOT**: `app/routers/timeline_unified.py`, `app/services/timeline_chronology.py`
 - **Status**: ✅ Complete
 - **Features**: Interactive timeline, date axis switching, search, facets
 
 ### 5. Performance Monitoring
+
 - **SSOT**: `app/core/performance_monitor.py`
 - **Status**: ✅ Complete
 
 ### 6. Database Layer
+
 - **SSOT**: `app/core/database_pool.py`, Alembic migrations
 - **Status**: ✅ Complete
 - **Features**: Connection pooling, query optimization, caching
 
 ### 7. Rate Limiting
+
 - **SSOT**: `app/core/advanced_rate_limiter.py`
 - **Status**: ✅ Complete
 
 ### 8. OAuth/Storage Backend
+
 - **SSOT**: `app/routers/storage.py`, `app/services/storage/`
 - **Status**: ✅ Complete
 - **Providers**: Google Drive, Dropbox, OneDrive
@@ -213,7 +229,9 @@ User Request → Check:
 ## 🔄 IN PROGRESS / NEEDS WORK
 
 ### 1. Onboarding Flow - MECHANICS DONE, DESIGN PENDING
+
 **Current State**:
+
 - ✅ Welcome page with two buttons (New/Returning)
 - ✅ Role selection page (3 roles)
 - ⏳ Validation pages (Advocate invite, Legal bar verification)
@@ -221,13 +239,16 @@ User Request → Check:
 - ⏳ Returning user reconnect flow
 
 **Next Actions**:
+
 - Create validation pages
 - Create storage provider selection page
 - Implement returning user reconnect flow
 
 ### 2. Frontend Page Consolidation
+
 **Current State**: 105 HTML files, many duplicates
 **From PAGE_INVENTORY.md**:
+
 - 6 entry points (needs 1)
 - 4 dashboard versions (needs 1)
 - 6 document management versions (needs 1)
@@ -235,13 +256,16 @@ User Request → Check:
 - 2 calendar versions (needs 1)
 
 **Next Actions**:
+
 - Audit legacy role folders (tenant/, advocate/, legal/, manager/, admin/)
 - Consolidate to single dashboard
 - Archive duplicates
 
 ### 3. WebSocket/Real-time Notifications
+
 **Status**: 50% complete
 **Next Actions**:
+
 - Create WebSocket router
 - Implement notification system
 
@@ -250,6 +274,7 @@ User Request → Check:
 ## ⏳ PENDING TASKS (Priority Order)
 
 ### High Priority
+
 1. **Returning User Reconnect Flow**
    - Contract for returning user process
    - UI page for reconnect
@@ -265,36 +290,40 @@ User Request → Check:
    - Triggered after role selection
 
 ### Medium Priority
-4. **Dashboard Consolidation**
+
+1. **Dashboard Consolidation**
    - Audit all dashboard versions
    - Pick one (recommend dashboard-v2.html)
    - Archive others
 
-5. **Document Pages Consolidation**
+2. **Document Pages Consolidation**
    - Merge 6 versions into 1
 
-6. **Timeline Pages Consolidation**
+3. **Timeline Pages Consolidation**
    - Keep timeline.html + timeline-builder.html
    - Archive others
 
 ### Low Priority
-7. **WebSocket Notifications**
-8. **Advanced Search**
-9. **Document Preview/Thumbnails**
-10. **Batch Operations**
-11. **Data Export/Import**
+
+1. **WebSocket Notifications**
+2. **Advanced Search**
+3. **Document Preview/Thumbnails**
+4. **Batch Operations**
+5. **Data Export/Import**
 
 ---
 
 ## 📝 WORKING LOG (Update This!)
 
 ### 2026-04-23 - Removed Email-Dependent Router
+
 - ✅ Deleted `app/routers/advocate_invite.py` (required email-validator, violated NO ACCOUNTS architecture)
 - ✅ Removed import from `app/main.py`
 - ✅ Removed router registration from `app/main.py`
 - ✅ Fixes startup error: "email-validator is not installed"
 
 ### 2026-04-23 - Footer Alignment Standard
+
 - ✅ Center-aligned footer columns on all pages
 - ✅ Updated `welcome.html` footer CSS
 - ✅ Updated `reconnect/index.html` footer CSS
@@ -302,6 +331,7 @@ User Request → Check:
 - ✅ Documented required footer sections (Legal, Connect, Disclaimer, Bottom)
 
 ### 2026-04-23 - Baseline SSOT Created
+
 - ✅ Created master baseline document
 - ✅ Consolidated all status from various docs
 - ✅ Verified current onboarding structure
@@ -309,6 +339,7 @@ User Request → Check:
 - ✅ Established priority order for pending tasks
 
 ### 2026-04-22 - Frontend Onboarding Setup
+
 - ✅ `welcome.html` in `static/public/welcome.html` (entry point)
 - ✅ `select-role.html` in `static/onboarding/select-role.html`
 - ✅ Root route serves from `static/public/`
@@ -318,6 +349,7 @@ User Request → Check:
 - ✅ Created `docs/FRONTEND_SSOT_GUIDE.md`
 
 ### 2026-04-22 - ID Generation & Timeline Complete
+
 - ✅ ID generation refactor complete (34 files)
 - ✅ Interactive timeline complete
 - ✅ Data storage assessment complete
@@ -328,7 +360,8 @@ User Request → Check:
 
 ### Color Systems
 
-**Onboarding/Public Pages (Light Blue Theme):**
+#### Onboarding/Public Pages (Light Blue Theme):
+
 ```css
 :root {
     --primary: #1e3a5f;           /* Deep blue - headers */
@@ -343,10 +376,12 @@ User Request → Check:
     --border: #e2e8f0;            /* Light borders */
     --success: #10b981;           /* Green checkmarks */
 }
-```
+```text
+
 Used by: `welcome.html`, `select-role.html`, `storage-select.html`, `reconnect/`
 
 **Authenticated App UI (Dark Navy Theme):**
+
 ```css
 :root {
     --color-bg-primary: #1a1a2e;      /* Dark navy background */
@@ -357,10 +392,12 @@ Used by: `welcome.html`, `select-role.html`, `storage-select.html`, `reconnect/`
     --color-border: rgba(255, 255, 255, 0.1);
 }
 ```
+
 Used by: Jinja2 templates (`base.html`), dashboards, logged-in pages
 
 ### Onboarding Template Structure
-**Header and footer are IDENTICAL across all onboarding pages. Only `<article>` content changes.**
+
+#### Header and footer are IDENTICAL across all onboarding pages. Only `<article>` content changes
 
 ```html
 <!DOCTYPE html>
@@ -396,17 +433,19 @@ Used by: Jinja2 templates (`base.html`), dashboards, logged-in pages
     <footer class="footer">...</footer>
 </body>
 </html>
-```
+```text
 
 ### Backend Role Names (MUST match exactly)
+
 | Display Name | data-role value | Backend Code |
-|--------------|-----------------|--------------|
+| -------------- | ----------------- | -------------- |
 | Tenant | `user` | U |
 | Advocate | `advocate` | V |
 | Legal | `legal` | L |
 | Manager / Agency | `manager` | M |
 
 ### Typography
+
 ```css
 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 --text-sm: 0.875rem;
@@ -417,11 +456,13 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 ```
 
 ### Components
+
 - Cards: `border-radius: 16px`, semi-transparent white background
 - Buttons: `border-radius: 12px`, gradient or solid
 
 ### Site-Wide Footer Standard
-**All Semptify pages MUST use center-aligned footer columns:**
+
+#### All Semptify pages MUST use center-aligned footer columns:
 
 ```css
 .footer-grid {
@@ -441,9 +482,10 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     text-align: center;        /* CENTER alignment */
     list-style: none;
 }
-```
+```text
 
 **Required Footer Sections:**
+
 - **Legal**: Privacy, Terms, Disclaimer
 - **Connect**: Contact, Feedback
 - **Disclaimer**: "Important: Semptify is an organizational tool, not legal advice..."
@@ -454,18 +496,21 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 ## 🔧 DEVELOPMENT PROTOCOL
 
 ### Before Starting Work
+
 1. Read this baseline document
 2. Check if task is listed in Pending Tasks
 3. Update Working Log with your intended changes
 4. Verify SSOT files mentioned are current
 
 ### During Work
+
 1. Update Working Log with progress
 2. Update route map if adding/changing routes
 3. Update folder structure if moving files
 4. Mark tasks complete as you finish
 
 ### After Work
+
 1. Verify all routes work
 2. Test user flow end-to-end
 3. Update this document with final status
@@ -476,20 +521,23 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 ## 🚀 QUICK START
 
 ### Run Server
+
 ```powershell
 .\start-semptify.ps1
 ```
 
 ### Test Current Flow
+
 1. `http://localhost:8000/` - Welcome with New/Returning buttons
 2. Click "New User" → Role selection
 3. Pick role → (next: storage selection - pending)
 
 ### Check SSOT
+
 - Master baseline: `docs/SEMPTIFY_BASELINE_SSOT.md`
 - Frontend specifics: `docs/FRONTEND_SSOT_GUIDE.md`
 - Page inventory: `docs/PAGE_INVENTORY.md`
 
 ---
 
-**END OF MASTER BASELINE - Keep Updated!**
+#### END OF MASTER BASELINE - Keep Updated

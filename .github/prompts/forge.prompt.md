@@ -19,7 +19,7 @@ lifecycle pipeline before reaching production users.
 
 ## Lifecycle Pipeline
 
-```
+```text
 dev_only → preview → experimental → beta → stable
 ```
 
@@ -34,20 +34,23 @@ dev_only → preview → experimental → beta → stable
 ## Building a New Module
 
 1. **Register the module** in `app/core/product_manifest.py`:
+
    ```python
    _register("app.modules.<name>.router", tags=("<Name>",), tier=ProductTier.DEV,
              lifecycle="dev_only", requires_role=("admin",),
              dev_notes="What this module does.",
              log_message="<Name> router connected")
-   ```
+   ```text
 
 2. **Create the module** at `app/modules/<name>/`:
+
    - `__init__.py` — exports `router`
    - `router.py` — FastAPI APIRouter with endpoints
    - `register.py` — ModuleEntry declaration
    - `tests/` — pytest test suite (required for promotion)
 
 3. **Register contracts** in `register.py` for SSOT compliance:
+
    ```python
    from app.core.module_contracts import FunctionGroupContract, register_function_group
    register_function_group(FunctionGroupContract(...))
@@ -65,7 +68,7 @@ dev_only → preview → experimental → beta → stable
 ## Forge Components
 
 | Component | File | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | Manifest | `app/core/product_manifest.py` | Module declarations |
 | Resolver | `app/core/module_resolver.py` | Resolves which modules each user sees |
 | Overrides | `app/core/module_overrides.py` | Admin runtime overrides (PostgreSQL) |

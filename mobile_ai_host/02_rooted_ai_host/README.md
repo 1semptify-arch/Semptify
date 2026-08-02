@@ -22,14 +22,15 @@
 The Stylo 4 (LM-Q710) has known root paths. **Read carefully before starting.**
 
 ### Check your firmware version
+
 ```bash
 Settings → About phone → Software info → Build number
-```
+```text
 
 ### Rooting options (pick one based on firmware)
 
 | Firmware | Method | Tool |
-|----------|--------|------|
+| ---------- | -------- | ------ |
 | Android 7.x (Nougat, older) | KingRoot one-click | kingroot.net |
 | Android 8.x (Oreo) | Magisk via dirty santa | XDA thread: "Stylo 4 root" |
 | Android 9 (Pie, latest) | Magisk via patched boot.img | See XDA: `LM-Q710` root thread |
@@ -57,11 +58,11 @@ The exploit differs per variant. **Do not skip reading the thread.**
 ### Verify root
 
 ```bash
-# In Termux:
+## In Termux:
 su
-# Magisk will prompt "Grant root access?" — tap Grant
+## Magisk will prompt "Grant root access?" — tap Grant
 id
-# Should show: uid=0(root)...
+## Should show: uid=0(root)...
 exit
 ```
 
@@ -73,17 +74,18 @@ The build is identical; root is not required for the build itself.
 ## Step 3 — Install the Magisk AI Host Module
 
 ```bash
-# On the phone, copy the magisk_module/ folder to /sdcard/
+## On the phone, copy the magisk_module/ folder to /sdcard/
 adb push 02_rooted_ai_host/magisk_module /sdcard/ai_host_module
 
-# Open Magisk Manager
-# → Modules (icon at bottom)
-# → "Install from storage"
-# → Select /sdcard/ai_host_module/ai_host_module.zip
-# → Reboot when prompted
-```
+## Open Magisk Manager
+## → Modules (icon at bottom)
+## → "Install from storage"
+## → Select /sdcard/ai_host_module/ai_host_module.zip
+## → Reboot when prompted
+```text
 
 To create the zip first:
+
 ```bash
 cd 02_rooted_ai_host/magisk_module
 zip -r ../ai_host_module.zip .
@@ -94,6 +96,7 @@ zip -r ../ai_host_module.zip .
 1. Install Termux:Boot from F-Droid (`com.termux.boot`).
 2. Open it once (just to launch — this registers it with Android).
 3. In Termux:
+
    ```bash
    mkdir -p ~/.termux/boot
    cp 02_rooted_ai_host/kiosk_launcher/ai_kiosk.sh ~/.termux/boot/ai-kiosk.sh
@@ -108,11 +111,12 @@ Reboot the phone. After ~60 seconds:
 - The AI server should be running on port 8080.
 
 Test from a laptop on the same Wi-Fi:
+
 ```bash
 curl http://<phone-ip>:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"qwen2-0.5b","messages":[{"role":"user","content":"Hello"}]}'
-```
+```text
 
 ## How to Recover if Something Breaks
 
@@ -124,33 +128,34 @@ curl http://<phone-ip>:8080/v1/chat/completions \
 4. Reboot normally.
 
 If the phone doesn't boot at all:
+
 - You flashed a bad patched boot.img. Re-flash stock boot.img via fastboot.
 - This is why we keep the original boot.img on the PC.
 
 ## What the Module Kills (and Why)
 
 | Service | RAM freed | Why |
-|---------|-----------|-----|
-| Google Play Services (GMS)   | ~400 MB | Telemetry, location, push — not needed for AI |
-| Google Play Store            | ~80 MB  | No app installs needed post-setup |
-| SystemUI (status bar, nav)   | ~150 MB | Phone runs headless |
-| Launcher3 / default launcher | ~60 MB  | No UI needed |
-| Telephony (optional)         | ~120 MB | Only if you don't need cell service |
-| Various carrier bloat        | ~100 MB | Varies by carrier |
-| **Total**                    | **~900 MB** | |
+| --------- | ----------- | ----- |
+| Google Play Services (GMS) | ~400 MB | Telemetry, location, push — not needed for AI |
+| Google Play Store | ~80 MB | No app installs needed post-setup |
+| SystemUI (status bar, nav) | ~150 MB | Phone runs headless |
+| Launcher3 / default launcher | ~60 MB | No UI needed |
+| Telephony (optional) | ~120 MB | Only if you don't need cell service |
+| Various carrier bloat | ~100 MB | Varies by carrier |
+| **Total** | **~900 MB** | |
 
 ## Optional: Disable Cell Radio (Saves More Battery)
 
 If the phone is Wi-Fi-only (recommended for an AI host):
 
 ```bash
-# In a root shell:
+## In a root shell:
 svc data disable
 svc wifi enable
-# Or fully disable cell radio:
+## Or fully disable cell radio:
 settings put global airplane_mode_on 1
 am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true
-# Then re-enable Wi-Fi:
+## Then re-enable Wi-Fi:
 svc wifi enable
 ```
 
@@ -164,6 +169,7 @@ The Magisk module's `service.sh` does this if you set `AI_HOST_WIFI_ONLY=1` in
 - **Remove the battery and run on USB power** if you're deploying long-term
   (the Stylo 4's battery is removable — pop the back cover and pull it).
 - Or set the Magisk module to charge only to 80% (prolongs battery life):
+
   ```bash
   echo 80 > /sys/class/power_supply/battery/battery_charging_enabled 2>/dev/null
   ```

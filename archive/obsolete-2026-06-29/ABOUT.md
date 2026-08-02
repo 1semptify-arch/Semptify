@@ -1,8 +1,8 @@
 # About Semptify
 
-**Semptify is a tenant rights advocate organization.**
+## Semptify is a tenant rights advocate organization
 
-**Tenant advocacy, not neutrality.**
+## Tenant advocacy, not neutrality
 
 We build free, privacy-respecting technology for tenants exercising
 their lawful rights. We do not endorse or support illegal behavior by

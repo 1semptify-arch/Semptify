@@ -1,6 +1,6 @@
 # ALL-IN-ONE Vault — Code Map & Architecture Integration
 
-**Visual guide to how the metadata layer fits on top of Semptify's cloud vault.**
+## Visual guide to how the metadata layer fits on top of Semptify's cloud vault
 
 > **Terminology**: The **Vault** = Cloud storage (`Semptify5.0/Vault/`).  
 > The `vault_items` table is a **metadata index** that describes vault contents.
@@ -9,7 +9,7 @@
 
 ## High-Level Architecture Map
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         SEMPTIFY 5.0 ARCHITECTURE                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -77,7 +77,7 @@
 
 ### 1. Vault Ingestion → Existing Document Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    DOCUMENT UPLOAD FLOW                         │
 ├─────────────────────────────────────────────────────────────────┤
@@ -125,7 +125,7 @@
 
 ### 2. Metadata Index → Vault (Cloud Storage)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    VAULT + METADATA INDEX LAYERS                 │
 ├─────────────────────────────────────────────────────────────────┤
@@ -171,7 +171,7 @@
 
 ### 3. Timeline: Vault vs Metadata Index
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │              TIMELINE DATA: Two Complementary Layers             │
 ├─────────────────────────────────────────────────────────────────┤
@@ -212,7 +212,7 @@
 
 ### Vault Item Ingestion Flow
 
-```
+```text
 ┌─────────────┐     ┌────────────────────────┐     ┌─────────────────┐
 │   Client    │────▶│  POST /vault/items     │────▶│   Validation    │
 │  Request    │     │  (vault_all_in_one.py) │     │  (Pydantic)     │
@@ -255,7 +255,7 @@
 
 ### Search Query Flow
 
-```
+```text
 ┌─────────────┐     ┌────────────────────────┐
 │   Client    │────▶│  GET /vault/items      │
 │   Query     │     │  ?timeline_mode=       │
@@ -316,7 +316,7 @@
 
 ## File Dependency Map
 
-```
+```text
 app/
 ├── core/
 │   ├── module_contracts.py ◄─────────────────┐
@@ -371,7 +371,7 @@ alembic/
 ## Module Contract Integration
 
 ```python
-# How the vault registers with Semptify's contract system
+## How the vault registers with Semptify's contract system
 
 ┌─────────────────────────────────────────────────────────┐
 │           app/core/module_contracts.py                  │
@@ -418,16 +418,16 @@ alembic/
 │                                                       │
 └───────────────────────────────────────────────────────┘
 
-# Deterministic = Same inputs always produce same outputs
-# Critical for legal/evidence systems
-```
+## Deterministic = Same inputs always produce same outputs
+## Critical for legal/evidence systems
+```text
 
 ---
 
 ## Route to Service Mapping
 
 | Route | Handler | Service | Database |
-|-------|---------|---------|----------|
+| ------- | --------- | --------- | ---------- |
 | `POST /vault/items` | `ingest_vault_item()` | `VaultIngestionService.ingest()` | INSERT vault_items, vault_audit_logs |
 | `GET /vault/items` | `search_vault_items()` | `VaultSearchService.search()` | SELECT with GIN indexes |
 | `GET /vault/items/{id}` | `get_vault_item()` | Direct SQLAlchemy query | SELECT by PK |
@@ -444,6 +444,7 @@ alembic/
 ## SSOT Compliance Check
 
 ```
+
 ┌─────────────────────────────────────────────────────────┐
 │         SINGLE SOURCE OF TRUTH CHECKLIST                │
 ├─────────────────────────────────────────────────────────┤
@@ -475,7 +476,8 @@ alembic/
 │    No in-memory caching of results                    │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
-```
+
+```text
 
 ---
 
@@ -484,7 +486,7 @@ alembic/
 ### Link Document Upload to Vault
 
 ```python
-# In your existing document upload handler:
+## In your existing document upload handler:
 
 from app.services.vault_ingestion import ingest_vault_item
 
@@ -531,7 +533,7 @@ Document overlays are stored in the vault at `Semptify5.0/Vault/.overlay/`. The 
 ### Query Vault from Timeline
 
 ```python
-# In your existing timeline endpoint:
+## In your existing timeline endpoint:
 
 from app.services.vault_search import search_vault
 

@@ -15,9 +15,9 @@ Goal: maximize available RAM/CPU for local AI inference (llama.cpp + quantized s
 Three staged packages, in priority order:
 
 | # | Package | Root needed | Brick risk | RAM for AI | Time to deploy |
-|---|---------|-------------|------------|------------|----------------|
-| 1 | `01_no_root_prototype/`   | No  | None      | ~500 MB | ~30 min (test today) |
-| 2 | `02_rooted_ai_host/`      | Yes | Low       | ~1.5 GB | ~2 hours  |
+| --- | --------- | ------------- | ------------ | ------------ | ---------------- |
+| 1 | `01_no_root_prototype/` | No | None | ~500 MB | ~30 min (test today) |
+| 2 | `02_rooted_ai_host/` | Yes | Low | ~1.5 GB | ~2 hours |
 | 3 | `03_unlockable_hardware_plan/` | No (on supported phone) | Medium (flashing) | ~4–7 GB | Days (buy phone first) |
 
 ## Recommended Path
@@ -40,27 +40,28 @@ Three staged packages, in priority order:
 ## Models That Fit
 
 | Model | Size (Q4_K_M) | RAM used | Fits package |
-|-------|---------------|----------|--------------|
-| Qwen2-0.5B-Instruct   | ~400 MB  | ~600 MB  | 1, 2, 3 |
-| TinyLlama-1.1B        | ~670 MB  | ~900 MB  | 2, 3 (tight on 1) |
-| Phi-1.5-1.3B          | ~790 MB  | ~1.0 GB  | 2, 3 |
-| Llama-3.2-1B-Instruct | ~660 MB  | ~900 MB  | 2, 3 |
-| Qwen2-1.5B-Instruct   | ~990 MB  | ~1.3 GB  | 3 only |
+| ------- | --------------- | ---------- | -------------- |
+| Qwen2-0.5B-Instruct | ~400 MB | ~600 MB | 1, 2, 3 |
+| TinyLlama-1.1B | ~670 MB | ~900 MB | 2, 3 (tight on 1) |
+| Phi-1.5-1.3B | ~790 MB | ~1.0 GB | 2, 3 |
+| Llama-3.2-1B-Instruct | ~660 MB | ~900 MB | 2, 3 |
+| Qwen2-1.5B-Instruct | ~990 MB | ~1.3 GB | 3 only |
 
 Bigger models (3B+) will not run on the Stylo 4's 2GB RAM. They work on package 3 hardware.
 
 ## Quick Start
 
 ```bash
-# On the phone, install Termux from F-Droid (NOT Play Store — that version is deprecated)
-# Then:
+## On the phone, install Termux from F-Droid (NOT Play Store — that version is deprecated)
+## Then:
 cd mobile_ai_host/01_no_root_prototype
-# Read README.md and run install_termux.sh from inside Termux
-```
+## Read README.md and run install_termux.sh from inside Termux
+```text
 
 ## Repository Layout
 
 ```
+
 mobile_ai_host/
 ├── README.md                              (this file)
 ├── 01_no_root_prototype/                  Test today, no root
@@ -87,6 +88,7 @@ mobile_ai_host/
     ├── hardware_comparison.md
     ├── postmarketos_flash_guide.md
     └── cluster_architecture.md
+
 ```
 
 ## License

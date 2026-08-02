@@ -3,11 +3,14 @@ name: preflight
 description: Mandatory pre-flight check - run this before starting any work session
 ---
 
+# Skill
+
 ## Semptify Pre-Flight Check
 
 Run this at the start of EVERY session. No exceptions.
 
 ### Step 0: Semptify is NOT a business model — Read this first
+
 Semptify is a **public utility, not a product.** Read `CORE_CONTEXT.md` in the repo root before writing or approving any copy, UI text, or feature. Enforce these rules:
 
 - **North star metric: Time to Real Help.** Not sessions. Not return visits. Not engagement. Not signups. Every feature either reduces Time to Real Help or it doesn't belong.
@@ -36,12 +39,14 @@ do not touch it
 **Before you touch a single file, you must demonstrate working knowledge of this system.** If you cannot answer these from the docs, you are not ready to write code. Go back and read until you can.
 
 Read ALL of the following — not skim, READ:
+
 1. `AGENTS.md` — Full document including Known Failure Registry (all 16 items)
 2. `PROJECT_BIBLE.md` — Governance, gate chain, onboarding flow, doc hierarchy
 3. `BUILD_GUIDE_SSOT.md` — Build philosophy, active features, SSOT rules
 4. `CORE_CONTEXT.md` — What Semptify IS, who it's for, what we never build
 
 Then **state the following out loud** before proceeding (this is your proof of comprehension):
+
 - What Semptify is (one sentence — if you say "product" or "SaaS" you failed)
 - The Four Pillars (RECORD, KNOW, ACT, GOVERN) and what each one does
 - The gate chain for onboarding (what gates exist, what order)
@@ -50,20 +55,24 @@ Then **state the following out loud** before proceeding (this is your proof of c
 - What SSOT means in this codebase and why hardcoded URLs are banned
 - What the Forge is and how module lifecycle works
 
-**If you cannot state these clearly, STOP. Do not proceed. Do not guess. Do not wing it.**
+#### If you cannot state these clearly, STOP. Do not proceed. Do not guess. Do not wing it
 
 We do it right or we don't do it at all. There is no "figure it out as I go" here. Every lazy shortcut costs hours to fix. The history in AGENTS.md proves this. Read it. Learn it. Then work.
 
 ### Step 2: Read current state
+
 Read these files before touching any code:
+
 1. Read `ACTIVE_CONTEXT.md` — what is being worked on right now
 2. Read `BUILD_STATE.md` — last 2 entries only (what shipped, what is broken, what is pending)
 3. Read the Known Failure Registry in `AGENTS.md` — do not repeat past mistakes
 
 ### Step 3: Check pending Fix-It reports from admin dashboard
+
 The admin dashboard has "Fix It" buttons that queue errors to the `admin_error_queue` Postgres table AND log a distinctive `FIXIT_REPORT|id=N|section=...|endpoint=...|priority=...|error=...` line to Render logs.
 
 To check for pending errors the user clicked since the last session:
+
 1. Call `mcp3_list_workspaces` (select the workspace if not already selected)
 2. Call `mcp3_list_services` to get the Semptify service ID
 3. Call `mcp3_list_logs` with:
@@ -79,21 +88,27 @@ To check for pending errors the user clicked since the last session:
 If no FIXIT_REPORT lines found: "No pending Fix-It reports. Admin dashboard is clean."
 
 ### Step 4: Check the app
+
 // turbo
 Run this to verify the app compiles:
+
 ```powershell
 cd c:\Semptify\Semptify-FastAPI; python -m py_compile app/main.py
-```
+```text
 
 ### Step 5: State your plan
+
 Before editing any file, tell the user:
+
 - What you are going to change
 - What file(s) you will touch
 - Why this will not repeat a known failure
 
 ### Step 6: After making changes
+
 // turbo
 Verify changed files compile:
+
 ```powershell
 cd c:\Semptify\Semptify-FastAPI; python -m py_compile app/main.py app/core/navigation.py
 ```

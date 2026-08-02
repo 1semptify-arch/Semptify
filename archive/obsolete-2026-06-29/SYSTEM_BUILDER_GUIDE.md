@@ -1,9 +1,11 @@
 # Semptify System Builder's Guide
+
 ## Single Source of Truth for Development
 
 This guide provides the authoritative reference for building, extending, and integrating with the Semptify system.
 
 > **Mandate Compliance**: This guide follows the mandates defined in:
+>
 > - `AGENTS.md` — Core mission, non-negotiables, truth standard, architecture preferences
 > - `SECURITY_AND_PRIVACY_ARCHITECTURE.md` — Privacy by design, no tracking, user-controlled storage
 > - `PROJECT_BIBLE.md` — Documentation hierarchy and governance
@@ -45,7 +47,7 @@ Semptify uses a **workflow-driven architecture** where all user journeys are def
 
 ### 1.3 Layer Hierarchy
 
-```
+```python
 PRESENTATION LAYER      - Jinja2 Templates (app/templates/)
                         - Static HTML (static/)
                         - API Response Models
@@ -95,6 +97,7 @@ Per `SECURITY_AND_PRIVACY_ARCHITECTURE.md`:
 **ABSOLUTE RULE**: Under no circumstances does user data exist in Semptify infrastructure.
 
 ```
+
 USER DATA FLOW:
 ═══════════════
 User Documents → User's Cloud Storage ONLY (Google Drive, Dropbox, OneDrive)
@@ -109,7 +112,8 @@ R2 Storage → System configuration, code, templates
            → NEVER user documents
            → NEVER user metadata
            → NEVER case information
-```
+
+```text
 
 ### 2.3 Stateless Design
 
@@ -123,12 +127,14 @@ Semptify is **stateless**:
 ### 2.4 Data Flow Rules
 
 ```
+
 User Documents → User's Cloud Storage ONLY
                     ↓
             (via OAuth 2.0)
                     ↓
 Semptify → Temporary processing only → No storage
-```
+
+```text
 
 **Never:**
 - Store documents locally on server
@@ -160,16 +166,16 @@ This is the **only** function that determines where a user should be redirected.
 ```python
 from app.core.workflow_engine import route_user
 
-# Correct way to redirect:
+## Correct way to redirect:
 user_id = "usr_abc123"
 redirect_url = route_user(user_id)  # Returns: "/tenant/documents"
 return RedirectResponse(url=redirect_url, status_code=302)
-```
+```text
 
 ### 3.3 URLs by Role
 
 | Role Prefix | URL Path | Purpose |
-|-------------|----------|---------|
+| ------------- | ---------- | --------- |
 | `usr_` | `/tenant/documents` | Tenant document management |
 | `adv_` | `/advocate` | Advocate dashboard |
 | `leg_` | `/legal` | Legal professional dashboard |
@@ -210,7 +216,7 @@ module_sdk = sdk
 
 ### 4.2 Module File Structure
 
-```
+```text
 app/modules/
 ├── __init__.py
 └── my_module/
@@ -236,18 +242,20 @@ All templates must extend `base.html`:
     <h1>Content</h1>
 </div>
 {% endblock %}
-```
+```text
 
 ### 5.2 Template Organization
 
 ```
+
 app/templates/
 ├── base.html                    # Base template
 ├── components/                  # Reusable components
 ├── pages/                       # Page templates
 ├── partials/                    # Partial templates
 └── legal/                       # Legal-specific
-```
+
+```text
 
 ---
 
@@ -256,25 +264,30 @@ app/templates/
 ### 6.1 Feature Development Checklist
 
 **Step 1: Define the workflow**
+
 - Add workflow step in `workflow_engine.py` if needed
 - Add route mapping in `PROCESS_ROUTES`
 - Test routing with `route_user()`
 
 **Step 2: Create the router**
+
 - Create file in `app/routers/`
 - Use `route_user()` for all redirects
 - Add guard using `_guard_role_page` pattern
 
 **Step 3: Create templates**
+
 - Extend `base.html`
 - Use CSS variables from design system
 - Follow responsive patterns
 
 **Step 4: Register module (if needed)**
+
 - Create module in `app/modules/`
 - Register with Module Hub
 
 **Step 5: Test**
+
 - Verify routing through `route_user()`
 - Test role-based access
 - Test mobile responsiveness
@@ -286,7 +299,7 @@ app/templates/
 ### 7.1 Adding a New Router
 
 ```python
-# app/routers/my_feature.py
+## app/routers/my_feature.py
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from app.core.workflow_engine import route_user
@@ -322,12 +335,12 @@ async def my_feature_page(request: Request):
     </div>
 </div>
 {% endblock %}
-```
+```text
 
 ### 7.3 Connecting Router to Main App
 
 ```python
-# In app/main.py
+## In app/main.py
 from app.routers import my_feature
 fastapi_app.include_router(my_feature.router, tags=["My Feature"])
 ```
@@ -374,7 +387,8 @@ Until the dataset and traffic justify deeper orchestration, run the Positronic M
 - Keep page contracts, workflow routing, and module contracts as the control plane.
 - Avoid speculative fan-out action execution on normal requests.
 
-**Implementation:**
+#### Implementation:
+
 - Configuration: `app/core/mesh_config.py` — `LEAN_MESH_CONFIG` vs `FULL_MESH_CONFIG`
 - Mode switching: `set_mesh_mode("lean")` or `set_mesh_mode("full")`
 - Deferred modules in lean mode: `fraud_exposure`, `public_exposure`, `research`, `legal_trails`, `adaptive_ui`, `context_engine`
@@ -410,7 +424,7 @@ Increase mesh depth only when at least two of these are true:
 
 ### 9.5 Operating Principle
 
-**Move fast, but never bypass truth, evidence integrity, privacy boundaries, or deterministic routing/contracts.**
+#### Move fast, but never bypass truth, evidence integrity, privacy boundaries, or deterministic routing/contracts
 
 ### 9.6 Action Deferral System
 
@@ -425,7 +439,7 @@ When an action is skipped in lean mode, it is recorded for potential retry:
 Monitor and control mesh intensity via module hub endpoints:
 
 | Endpoint | Method | Purpose |
-|----------|--------|---------|
+| ---------- | -------- | --------- |
 | `/hub/mesh/status` | GET | Get current mode, deferred modules, queue status |
 | `/hub/mesh/mode` | POST | Switch mode (`lean` or `full`) |
 | `/hub/mesh/deferrals` | GET | View pending deferred actions |
@@ -439,7 +453,8 @@ Monitor and control mesh intensity via module hub endpoints:
 
 The mesh now automatically triggers workflows from user actions:
 
-**Document Upload Flow:**
+#### Document Upload Flow:
+
 1. User uploads document to `/vault/upload`
 2. System creates overlay and extracts timeline (standalone)
 3. **Mesh triggers workflow** based on document type:
@@ -475,27 +490,27 @@ Use this for automatic stage progression without hardcoded redirects.
 ### Essential Imports
 
 ```python
-# Routing
+## Routing
 from app.core.workflow_engine import route_user
 
-# Database
+## Database
 from app.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Models
+## Models
 from app.models import User
 
-# Security
+## Security
 from app.core.security import require_user
 
-# Templates
+## Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 ```
 
 ### Essential File Locations
 
 | Component | Location |
-|-----------|----------|
+| ----------- | ---------- |
 | Routing Logic | `app/core/workflow_engine.py` |
 | Main App | `app/main.py` |
 | Routers | `app/routers/` |

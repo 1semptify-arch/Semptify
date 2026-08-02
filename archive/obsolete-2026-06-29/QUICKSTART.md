@@ -5,24 +5,29 @@
 ## IMMEDIATE ACTION STEPS
 
 ### Step 1: Launch the Server (30 seconds)
+
 ```powershell
-# Open PowerShell in project directory
+## Open PowerShell in project directory
 cd C:\Semptify\Semptify-FastAPI.worktrees\worktree-2025-12-11T16-45-55
 
-# Activate virtual environment
+## Activate virtual environment
 .\.venv\Scripts\Activate.ps1
 
-# Start server
+## Start server
 python -m uvicorn app.main:app --reload --port 8000
-```
+```text
 
 ### Step 2: Access Your Enterprise Dashboard
+
 Open your browser and go to:
+
 ```
-http://localhost:8000
-```
+<http://localhost:8000>
+
+```text
 
 **You should see the beautiful Enterprise Dashboard with:**
+
 - 4 animated stat cards
 - Real-time activity timeline
 - Case progress tracker
@@ -34,6 +39,7 @@ http://localhost:8000
 ## 🎯 WHAT YOU GET OUT OF THE BOX
 
 ### 1. **PREMIUM USER INTERFACE**
+
 ✅ Dark professional theme optimized for legal work  
 ✅ Responsive design (works on desktop, tablet, mobile)  
 ✅ Smooth animations and transitions  
@@ -41,6 +47,7 @@ http://localhost:8000
 ✅ Global search across all data  
 
 ### 2. **POWERFUL FEATURES**
+
 ✅ Document vault with cloud storage  
 ✅ Timeline tracking for evidence  
 ✅ Calendar for court deadlines  
@@ -52,6 +59,7 @@ http://localhost:8000
 ✅ Complaint filing wizard  
 
 ### 3. **AI-POWERED INTELLIGENCE**
+
 ✅ Case strength scoring (0-100%)  
 ✅ Evidence gap detection  
 ✅ Legal opportunity identification  
@@ -66,6 +74,7 @@ http://localhost:8000
 ### **Sidebar Menu**
 
 **MAIN MENU**
+
 - 🏠 Dashboard → Main command center
 - 📁 Document Vault → Secure file storage
 - 📊 Timeline → Event tracking
@@ -73,6 +82,7 @@ http://localhost:8000
 - 📇 Contacts → People & organizations
 
 **LEGAL TOOLS**
+
 - 📚 Law Library → Legal research
 - 🛡️ Eviction Defense → Court forms & motions
 - 📝 Court Forms → Auto-generated documents
@@ -80,6 +90,7 @@ http://localhost:8000
 - ⚖️ Legal Analysis → Case strength evaluation
 
 **ADVANCED**
+
 - 🔍 Research → Landlord/property investigation
 - 📄 Complaints → Regulatory filing wizard
 - 📢 Campaigns → Public pressure tactics
@@ -90,30 +101,35 @@ http://localhost:8000
 ## 🔥 KEY FEATURES TO TRY
 
 ### 1. Upload a Document
+
 1. Click **Document Vault** in sidebar
 2. Drag & drop a PDF or image
 3. Watch it get automatically analyzed
 4. See it appear in your dashboard
 
 ### 2. Create a Timeline Event
+
 1. Click **Timeline** in sidebar
 2. Add an event (e.g., "Received eviction notice")
 3. Set date and add notes
 4. Watch it sync to dashboard
 
 ### 3. Set a Deadline
+
 1. Click **Calendar** in sidebar
 2. Add a court deadline
 3. See it counted in "Upcoming Deadlines" stat
 4. Get AI warnings when it's approaching
 
 ### 4. Run Legal Research
+
 1. Click **Law Library** in sidebar
 2. Search for Minnesota tenant rights
 3. Chat with AI legal librarian
 4. Get case law and statutes
 
 ### 5. Check AI Insights
+
 1. Return to **Dashboard**
 2. Look for AI Insights banner
 3. Review recommendations
@@ -123,27 +139,32 @@ http://localhost:8000
 
 ## 🛠️ TROUBLESHOOTING
 
-### Server Won't Start?
+### Server Won't Start
+
 ```powershell
-# Check if port 8000 is already in use
+## Check if port 8000 is already in use
 netstat -ano | findstr :8000
 
-# If something's using it, use different port:
+## If something's using it, use different port:
 python -m uvicorn app.main:app --reload --port 8001
 ```
 
-### Page Not Loading?
+### Page Not Loading
+
 1. Make sure server is running (check PowerShell)
 2. Try refreshing browser (Ctrl+Shift+R)
 3. Clear browser cache
 4. Check browser console for errors (F12)
 
-### WebSocket Not Connecting?
+### WebSocket Not Connecting
+
 This is normal in development. Real-time features work best in production.
 Live updates refresh every 60 seconds automatically.
 
-### No Data Showing?
+### No Data Showing
+
 The demo data loads automatically. If you see "No documents yet":
+
 1. Upload a document via Document Vault
 2. Create a timeline event
 3. Add a calendar deadline
@@ -154,12 +175,14 @@ The demo data loads automatically. If you see "No documents yet":
 ## 📊 UNDERSTANDING THE DASHBOARD
 
 ### **Stat Cards (Top Row)**
+
 1. **Documents Uploaded** - Total count with weekly trend
 2. **Tasks Completed** - Actions finished with percentage change
 3. **Upcoming Deadlines** - Count with days until nearest
 4. **Case Strength** - AI-calculated score (0-100%)
 
 ### **Activity Timeline (Left Card)**
+
 - Shows recent actions chronologically
 - Color-coded by type:
   - 🔵 Blue = Documents
@@ -168,12 +191,14 @@ The demo data loads automatically. If you see "No documents yet":
   - 🟣 Purple = AI analysis
 
 ### **Case Progress (Right Card)**
+
 - Evidence Collection (documents, photos, etc.)
 - Legal Research (statutes, case law found)
 - Document Preparation (forms completed)
 - Court Filing Ready (overall case readiness)
 
 ### **Recent Documents Table (Bottom)**
+
 - Latest uploaded files
 - Status badges (Verified, Processing, Pending)
 - Quick actions (Download, View)
@@ -183,18 +208,21 @@ The demo data loads automatically. If you see "No documents yet":
 ## 🎨 CUSTOMIZATION
 
 ### Change Theme
+
 1. Click user avatar (top right)
 2. Select "Settings"
 3. Choose theme preference
 4. Save changes
 
 ### Adjust Dashboard Widgets
+
 1. Go to Settings → Dashboard Preferences
 2. Select which widgets to show
 3. Reorder by drag & drop
 4. Save layout
 
 ### Notification Settings
+
 1. Click bell icon (top right)
 2. Open notification preferences
 3. Toggle alert types
@@ -205,6 +233,7 @@ The demo data loads automatically. If you see "No documents yet":
 ## 📱 MOBILE ACCESS
 
 The dashboard is fully responsive. Access from:
+
 - 📱 Phone browser
 - 💻 Tablet
 - 🖥️ Desktop
@@ -217,6 +246,7 @@ Everything adapts automatically!
 ## 🎓 ADVANCED TIPS
 
 ### Keyboard Shortcuts (Ready to implement)
+
 - `Ctrl+K` - Open global search
 - `Ctrl+D` - Go to dashboard
 - `Ctrl+U` - Upload document
@@ -224,6 +254,7 @@ Everything adapts automatically!
 - `Ctrl+/` - Help menu
 
 ### Power User Features
+
 1. **Bulk Upload** - Drag multiple files at once
 2. **Quick Actions** - Right-click context menus
 3. **Smart Filters** - Filter by date, type, status
@@ -235,19 +266,21 @@ Everything adapts automatically!
 ## 🔗 USEFUL URLs
 
 ### Frontend Pages
-- Dashboard: http://localhost:8000/
-- Documents: http://localhost:8000/documents
-- Timeline: http://localhost:8000/timeline
-- Calendar: http://localhost:8000/calendar
-- Law Library: http://localhost:8000/law-library
-- Eviction Defense: http://localhost:8000/eviction-defense
-- Zoom Court: http://localhost:8000/zoom-court
+
+- Dashboard: <http://localhost:8000/>
+- Documents: <http://localhost:8000/documents>
+- Timeline: <http://localhost:8000/timeline>
+- Calendar: <http://localhost:8000/calendar>
+- Law Library: <http://localhost:8000/law-library>
+- Eviction Defense: <http://localhost:8000/eviction-defense>
+- Zoom Court: <http://localhost:8000/zoom-court>
 
 ### API Endpoints
-- Health Check: http://localhost:8000/healthz
-- API Docs: http://localhost:8000/api/docs
-- Dashboard Stats: http://localhost:8000/api/dashboard/stats
-- Activity: http://localhost:8000/api/dashboard/activity
+
+- Health Check: <http://localhost:8000/healthz>
+- API Docs: <http://localhost:8000/api/docs>
+- Dashboard Stats: <http://localhost:8000/api/dashboard/stats>
+- Activity: <http://localhost:8000/api/dashboard/activity>
 
 ---
 
@@ -261,21 +294,25 @@ Everything adapts automatically!
 
 ---
 
-## 🆘 NEED HELP?
+## 🆘 NEED HELP
 
 ### Documentation
+
 - 📖 Full README: `ENTERPRISE_README.md`
 - 🏗️ Architecture: `BLUEPRINT.md`
 - ✅ Implementation: `ACTION_CHECKLIST.md`
 - 📊 Assessment: `ASSESSMENT_REPORT.md`
 
 ### API Documentation
+
 - Swagger UI with interactive testing
 - ReDoc for detailed endpoint docs
 - OpenAPI spec for integrations
 
 ### Browser Console
+
 Press `F12` to see:
+
 - Real-time dashboard logs
 - WebSocket connection status
 - Data loading progress
@@ -283,13 +320,14 @@ Press `F12` to see:
 
 ---
 
-## ✨ YOU'RE READY!
+## ✨ YOU'RE READY
 
 The enterprise-grade legal platform is at your fingertips.
 
-**Next Steps:**
+### Next Steps:
+
 1. ✅ Start the server
-2. ✅ Open http://localhost:8000
+2. ✅ Open <http://localhost:8000>
 3. ✅ Explore the dashboard
 4. ✅ Upload your first document
 5. ✅ Build your case!
@@ -298,6 +336,6 @@ The enterprise-grade legal platform is at your fingertips.
 
 ---
 
-**🎯 "Second best will not work" - You now have THE BEST.**
+### 🎯 "Second best will not work" - You now have THE BEST
 
 *Happy case-building! ⚖️*

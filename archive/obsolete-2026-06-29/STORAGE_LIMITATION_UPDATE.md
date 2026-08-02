@@ -9,28 +9,31 @@ All locations now clearly state: **Semptify requires cloud storage - local stora
 ## 📋 Documentation & Configuration Updated
 
 ### 1. **New File: [docs/STORAGE_CONFIG.md](docs/STORAGE_CONFIG.md)**
-   - ⚠️ **PROMINENT WARNING** at top: "LOCAL STORAGE NOT AVAILABLE"
-   - Clear explanation of why (app design, scalability)
-   - Lists all 4 available cloud providers
-   - Shows configuration steps
-   - Production deployment warnings about temp `/uploads/` folder
+
+- ⚠️ **PROMINENT WARNING** at top: "LOCAL STORAGE NOT AVAILABLE"
+- Clear explanation of why (app design, scalability)
+- Lists all 4 available cloud providers
+- Shows configuration steps
+- Production deployment warnings about temp `/uploads/` folder
 
 ### 2. **Updated: [app/routers/storage.py](app/routers/storage.py) - Storage Providers Page**
-   - **New Alert Box** displayed at top of `/storage/providers` page
-   - Text: "⚠️ IMPORTANT: Semptify requires a cloud storage provider. Local storage is NOT supported."
-   - Red alert styling makes it impossible to miss
-   - Added CSS class `.alert-box` for warning display
+
+- **New Alert Box** displayed at top of `/storage/providers` page
+- Text: "⚠️ IMPORTANT: Semptify requires a cloud storage provider. Local storage is NOT supported."
+- Red alert styling makes it impossible to miss
+- Added CSS class `.alert-box` for warning display
 
 ### 3. **Updated: [static/admin/gui_registry.json](static/admin/gui_registry.json)**
-   - Already documented 4 cloud providers
-   - No local storage option listed
+
+- Already documented 4 cloud providers
+- No local storage option listed
 
 ---
 
 ## 🔍 Where Users Will See This
 
 | Location | What They See |
-|----------|---------------|
+| ---------- | --------------- |
 | `/storage/providers` | 🔴 RED ALERT BOX at top saying "Local storage is NOT supported" |
 | `docs/STORAGE_CONFIG.md` | ⚠️ **IMPORTANT NOTES** section with full explanation |
 | Docs/Settings | Clear statement: "All documents must be stored with one of these cloud providers" |
@@ -66,15 +69,17 @@ Users now see these **FOUR** options (and ONLY these):
 
 ## 🚨 Critical Information for Users
 
-### What Happens with `/uploads/` Folder?
+### What Happens with `/uploads/` Folder
 
-**❌ NOT PERSISTENT:**
+#### ❌ NOT PERSISTENT:
+
 - Cleared on server restart
 - Different instances see different files
 - No backup guarantee
 - For temporary processing only
 
-**✅ USE CLOUD STORAGE:**
+#### ✅ USE CLOUD STORAGE:
+
 - Persistent across restarts
 - Accessible from all instances
 - Automatic backups
@@ -94,11 +99,13 @@ Users now see these **FOUR** options (and ONLY these):
 ## 📊 Implementation Details
 
 ### Storage Router Changes
+
 - **File**: `app/routers/storage.py`
 - **Line**: ~815 (new alert box in HTML)
 - **Effect**: Red warning box appears at top of provider selection page
 
 ### CSS Addition
+
 ```css
 .alert-box {
     display: block;
@@ -112,9 +119,10 @@ Users now see these **FOUR** options (and ONLY these):
     font-weight: 500;
     line-height: 1.6;
 }
-```
+```text
 
 ### Documentation Location
+
 - **Main Config Doc**: `docs/STORAGE_CONFIG.md` (NEW)
 - **OAuth Setup**: `docs/OAUTH_SETUP.md` (existing - only cloud options)
 - **JSON Registry**: `static/admin/gui_registry.json` (only cloud providers listed)
@@ -124,11 +132,13 @@ Users now see these **FOUR** options (and ONLY these):
 ## ✨ User Experience Improvements
 
 ### Before
+
 - Users might try to use local `/uploads/` folder
 - No clear indication local storage unavailable
 - Confusing when files disappear after restart
 
 ### After
+
 - 🔴 **Red alert** on storage provider page
 - ⚠️ **Clear documentation** in STORAGE_CONFIG.md
 - 📍 **No local option** available to select
@@ -147,16 +157,19 @@ Go to `/storage/providers` and verify:
 4. ✅ No local storage option available
 
 **Expected Alert:**
+
 ```
+
 ⚠️ IMPORTANT: Semptify requires a cloud storage provider.
 Local storage is NOT supported. Please select one of the providers below.
+
 ```
 
 ---
 
 ## 🎯 Summary
 
-**The limitation is now clearly stated in THREE places:**
+### The limitation is now clearly stated in THREE places:
 
 1. ✅ **On the UI** - Red alert box at `/storage/providers`
 2. ✅ **In Documentation** - New `docs/STORAGE_CONFIG.md`  

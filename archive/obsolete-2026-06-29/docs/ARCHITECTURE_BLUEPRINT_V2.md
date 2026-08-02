@@ -1,6 +1,7 @@
 # Semptify 5.0 Architecture Blueprint v2.0
 
 ## Overview
+
 Updated architecture blueprint reflecting Phase 2 implementation with performance optimization, scalability improvements, and advanced features.
 
 ## System Architecture
@@ -8,7 +9,8 @@ Updated architecture blueprint reflecting Phase 2 implementation with performanc
 ### Core Layers
 
 #### 1. Performance Layer
-```
+
+```text
 Performance Monitoring System
 - Real-time request tracking
 - System resource monitoring
@@ -18,7 +20,8 @@ Performance Monitoring System
 ```
 
 #### 2. Security Layer
-```
+
+```text
 Advanced Security System
 - Multi-tier rate limiting (Free/Basic/Premium/Enterprise)
 - Adaptive throttling
@@ -28,7 +31,8 @@ Advanced Security System
 ```
 
 #### 3. Data Layer
-```
+
+```text
 Optimized Data Access
 - Connection pooling (20 base + 30 overflow)
 - Query optimization and monitoring
@@ -38,7 +42,8 @@ Optimized Data Access
 ```
 
 #### 4. Processing Layer
-```
+
+```text
 Background Job Processing
 - Priority-based job queues
 - Asynchronous document analysis
@@ -48,7 +53,8 @@ Background Job Processing
 ```
 
 #### 5. Application Layer
-```
+
+```python
 FastAPI Application
 - Middleware stack (Performance, Security, Offline)
 - Router organization
@@ -61,6 +67,7 @@ FastAPI Application
 ### Performance Components
 
 #### Performance Monitor (`app/core/performance_monitor.py`)
+
 ```python
 class PerformanceMonitor:
     - Request metrics collection
@@ -68,9 +75,10 @@ class PerformanceMonitor:
     - Slow query tracking
     - Performance alerting
     - Background monitoring thread
-```
+```text
 
 #### Database Pool (`app/core/database_pool.py`)
+
 ```python
 class DatabaseConnectionPool:
     - Connection pooling with QueuePool
@@ -81,6 +89,7 @@ class DatabaseConnectionPool:
 ```
 
 #### Cache Manager (`app/core/cache_manager.py`)
+
 ```python
 class CacheManager:
     - Multi-backend caching
@@ -88,11 +97,12 @@ class CacheManager:
     - TTL management
     - Cache invalidation
     - Performance statistics
-```
+```text
 
 ### Security Components
 
 #### Advanced Rate Limiter (`app/core/advanced_rate_limiter.py`)
+
 ```python
 class AdvancedRateLimiter:
     - Tier-based rate limiting
@@ -103,17 +113,19 @@ class AdvancedRateLimiter:
 ```
 
 #### OAuth Token Manager (`app/core/oauth_token_manager.py`)
+
 ```python
 class OAuthTokenManager:
     - Token refresh automation
     - Provider-specific callbacks
     - Token expiration handling
     - Secure token storage
-```
+```text
 
 ### Processing Components
 
 #### Job Processor (`app/core/job_processor.py`)
+
 ```python
 class JobProcessor:
     - Priority job queues
@@ -126,7 +138,8 @@ class JobProcessor:
 ## Data Flow Architecture
 
 ### Request Flow
-```
+
+```text
 1. Client Request
 2. Rate Limiting Check
 3. Performance Monitoring Start
@@ -141,7 +154,8 @@ class JobProcessor:
 ```
 
 ### Background Job Flow
-```
+
+```text
 1. Job Submission
 2. Priority Queue Assignment
 3. Worker Thread Processing
@@ -154,8 +168,9 @@ class JobProcessor:
 ## Integration Points
 
 ### Main Application Integration (`app/main.py`)
+
 ```python
-# Middleware Stack (order matters)
+## Middleware Stack (order matters)
 1. Request ID Middleware
 2. CORS Middleware
 3. Security Headers Middleware
@@ -164,16 +179,17 @@ class JobProcessor:
 6. Offline Detection Middleware
 7. Error Handling Middleware
 
-# Background Services
+## Background Services
 - Performance Monitor (auto-start)
 - OAuth Token Manager (auto-init)
 - Job Processor (auto-start)
 - Cache Manager (singleton)
-```
+```text
 
 ### Database Integration
+
 ```python
-# Connection Pool Configuration
+## Connection Pool Configuration
 - Pool Size: 20 connections
 - Max Overflow: 30 connections
 - Pool Pre-ping: Enabled
@@ -182,21 +198,23 @@ class JobProcessor:
 ```
 
 ### Cache Integration
+
 ```python
-# Cache Hierarchy
+## Cache Hierarchy
 1. Memory Cache (100MB default)
 2. Redis Cache (if configured)
 3. File Cache (fallback)
 
-# Cache Decorators
+## Cache Decorators
 @cache_user_data(ttl_seconds=3600)
 @cache_document_data(ttl_seconds=1800)
 @cache_system_data(ttl_seconds=7200)
-```
+```text
 
 ## Performance Optimizations
 
 ### Database Optimizations
+
 - **Connection Pooling**: Reduces connection overhead
 - **Query Monitoring**: Identifies slow queries
 - **Batch Operations**: Efficient bulk processing
@@ -204,18 +222,21 @@ class JobProcessor:
 - **Optimization Routines**: Regular maintenance
 
 ### Caching Optimizations
+
 - **Multi-tier Caching**: Reduces database load
 - **Intelligent Invalidation**: Keeps data fresh
 - **LRU Eviction**: Memory efficiency
 - **Background Cleanup**: Prevents memory leaks
 
 ### Rate Limiting Optimizations
+
 - **Tier-based Limits**: Fair resource allocation
 - **Adaptive Throttling**: System load awareness
 - **Sliding Windows**: Accurate rate limiting
 - **Token Buckets**: Burst handling
 
 ### Job Processing Optimizations
+
 - **Priority Queues**: Important jobs first
 - **Background Workers**: Non-blocking processing
 - **Retry Logic**: Resilient processing
@@ -224,8 +245,11 @@ class JobProcessor:
 ## Security Architecture
 
 ### Rate Limiting by Tier
+
 ```
+
 Free Tier:
+
 - Read: 100 requests/minute
 - Write: 50 requests/minute
 - Upload: 10 requests/minute
@@ -233,6 +257,7 @@ Free Tier:
 - AI: 20 requests/minute
 
 Basic Tier:
+
 - Read: 500 requests/minute
 - Write: 200 requests/minute
 - Upload: 50 requests/minute
@@ -240,6 +265,7 @@ Basic Tier:
 - AI: 100 requests/minute
 
 Premium Tier:
+
 - Read: 2,000 requests/minute
 - Write: 1,000 requests/minute
 - Upload: 200 requests/minute
@@ -247,14 +273,17 @@ Premium Tier:
 - AI: 500 requests/minute
 
 Enterprise Tier:
+
 - Read: 10,000 requests/minute
 - Write: 5,000 requests/minute
 - Upload: 1,000 requests/minute
 - Auth: 100 requests/minute
 - AI: 2,000 requests/minute
+
 ```
 
 ### File Security
+
 - **Type Validation**: Comprehensive file type checking
 - **Size Limits**: Tier-based upload limits
 - **Security Scanning**: Malware detection
@@ -263,6 +292,7 @@ Enterprise Tier:
 ## Monitoring and Observability
 
 ### Performance Metrics
+
 - Request latency (P50, P95, P99)
 - System resource usage
 - Database query performance
@@ -270,12 +300,14 @@ Enterprise Tier:
 - Error rates and patterns
 
 ### Security Metrics
+
 - Rate limit violations
 - Failed authentication attempts
 - File validation failures
 - Security event counts
 
 ### Business Metrics
+
 - Job processing rates
 - User activity patterns
 - Document processing statistics
@@ -284,12 +316,14 @@ Enterprise Tier:
 ## Scalability Architecture
 
 ### Horizontal Scaling
+
 - **Stateless Design**: Easy horizontal scaling
 - **Load Balancing**: Multiple instance support
 - **Database Pooling**: Connection distribution
 - **Cache Distribution**: Redis clustering support
 
 ### Vertical Scaling
+
 - **Resource Monitoring**: Automatic resource tracking
 - **Adaptive Throttling**: Load-based adjustments
 - **Connection Scaling**: Dynamic pool sizing
@@ -298,12 +332,14 @@ Enterprise Tier:
 ## Reliability Architecture
 
 ### Error Handling
+
 - **Global Exception Handlers**: Consistent error responses
 - **Retry Mechanisms**: Resilient operations
 - **Circuit Breakers**: Failure isolation
 - **Graceful Degradation**: Partial functionality
 
 ### Data Integrity
+
 - **Audit Logging**: Complete audit trail
 - **Transaction Management**: ACID compliance
 - **Backup Systems**: Data protection
@@ -312,12 +348,14 @@ Enterprise Tier:
 ## Deployment Architecture
 
 ### Container Support
+
 - **Docker Ready**: Containerized deployment
 - **Environment Configuration**: Flexible settings
 - **Health Checks**: Readiness probes
 - **Graceful Shutdown**: Clean termination
 
 ### Production Considerations
+
 - **Security Headers**: Production security
 - **HTTPS Enforcement**: Secure communication
 - **Rate Limiting**: Production protection
@@ -326,6 +364,7 @@ Enterprise Tier:
 ## Future Architecture Plans
 
 ### Phase 3 (Advanced Features)
+
 - WebSocket support for real-time updates
 - Advanced search with full-text indexing
 - Document preview generation
@@ -333,6 +372,7 @@ Enterprise Tier:
 - Advanced security (2FA, session management)
 
 ### Phase 4 (Enterprise Features)
+
 - Multi-tenancy support
 - Advanced analytics
 - API versioning
@@ -342,21 +382,25 @@ Enterprise Tier:
 ## Architecture Decisions
 
 ### Performance First
+
 - All major components include performance monitoring
 - Caching and pooling are standard
 - Background processing for heavy operations
 
 ### Security by Design
+
 - Rate limiting is tier-based and adaptive
 - File validation is comprehensive
 - Audit logging is mandatory
 
 ### Scalability Built-in
+
 - Connection pooling for database
 - Multi-backend caching
 - Horizontal scaling support
 
 ### Reliability Focused
+
 - Comprehensive error handling
 - Retry mechanisms everywhere
 - Graceful degradation patterns
