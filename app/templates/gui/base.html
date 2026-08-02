@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale(request) | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -130,6 +130,7 @@
 
         <footer class="gui-footer">
             <p>Semptify is an organizational tool, not a law firm. We can't give legal advice. <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help">Find legal help</a> · <a href="/public/feedback.html">Report a problem</a></p>
+            {% include "components/locale_selector.html" %}
         </footer>
     </div>
     {% block scripts %}{% endblock %}

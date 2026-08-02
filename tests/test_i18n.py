@@ -118,3 +118,35 @@ def test_module_level_helpers_use_singleton(tmp_path):
     assert gettext("welcome.cta") == "Get Started"
     assert get_locale() == "en"
     assert ngettext("one", "many", 2) == "many"
+
+
+@pytest.mark.anyio
+async def test_get_current_locale_endpoint(client):
+    response = await client.get("/api/i18n/locale")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["locale"] == "en"
+    assert "en" in data["supported_locales"]
+    assert "es" in data["supported_locales"]
+
+
+@pytest.mark.anyio
+async def test_set_locale_endpoint_sets_cookie_and_redirects(client):
+    response = await client.post(
+        "/api/i18n/set-locale",
+        data={"locale": "es"},
+        headers={"referer": "http://test/portal"},
+    )
+    assert response.status_code == 302
+    assert "semptify_locale=es" in response.headers.get("set-cookie", "")
+    assert response.headers["location"] == "/portal"
+
+
+@pytest.mark.anyio
+async def test_set_locale_endpoint_rejects_unsupported_locale(client):
+    response = await client.post(
+        "/api/i18n/set-locale",
+        data={"locale": "xx"},
+        headers={"referer": "http://test/portal"},
+    )
+    assert response.status_code == 400

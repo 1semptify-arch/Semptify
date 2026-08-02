@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale(request) | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -371,6 +371,7 @@
             <p class="footer-bottom">
                 &copy; 2026 Semptify · No cost to tenants · No advertising, ever.
             </p>
+            {% include "components/locale_selector.html" %}
         </div>
     </footer>
 
