@@ -14,19 +14,17 @@ Endpoints:
 - GET /hub/log - Get communication log
 """
 
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, Query, Cookie
+from typing import Any
+
+from fastapi import APIRouter, Cookie, HTTPException, Query
 from pydantic import BaseModel
 
-from app.core.user_id import COOKIE_USER_ID
+from app.core.module_contracts import contract_registry
 from app.core.module_hub import (
-    module_hub,
     ModuleType,
     RequestType,
-    PackType,
-    InfoPack,
+    module_hub,
 )
-from app.core.module_contracts import contract_registry
 
 # Ensure known function groups are imported and contract-registered.
 from app.services import timeline_chronology as _timeline_chronology  # noqa: F401
@@ -38,7 +36,8 @@ router = APIRouter(prefix="/hub", tags=["Module Hub"])
 # HELPER FUNCTION
 # =============================================================================
 
-def get_user_id_from_request(semptify_uid: Optional[str] = None) -> str:
+
+def get_user_id_from_request(semptify_uid: str | None = None) -> str:
     """Extract user ID from cookie or generate anonymous one"""
     if semptify_uid:
         return semptify_uid
@@ -50,31 +49,36 @@ def get_user_id_from_request(semptify_uid: Optional[str] = None) -> str:
 # PYDANTIC MODELS
 # =============================================================================
 
+
 class DataRequestBody(BaseModel):
     """Request body for data requests"""
+
     request_type: str
     requesting_module: str
-    params: Optional[Dict[str, Any]] = None
+    params: dict[str, Any] | None = None
 
 
 class CompletePackBody(BaseModel):
     """Request body for completing an info pack"""
-    user_provided_data: Dict[str, Any]
+
+    user_provided_data: dict[str, Any]
 
 
 class ModuleInfo(BaseModel):
     """Module information response"""
+
     type: str
     name: str
     active: bool
-    handles_documents: List[str]
-    accepts_packs: List[str]
+    handles_documents: list[str]
+    accepts_packs: list[str]
 
 
 class HubStatus(BaseModel):
     """Hub status response"""
+
     modules_registered: int
-    modules: List[ModuleInfo]
+    modules: list[ModuleInfo]
     users_tracked: int
     info_packs_total: int
     info_packs_pending: int
@@ -85,6 +89,7 @@ class HubStatus(BaseModel):
 # =============================================================================
 # ENDPOINTS
 # =============================================================================
+
 
 @router.get("/status")
 async def get_hub_status():
@@ -119,8 +124,8 @@ async def function_group_contract_health():
 
 @router.get("/packs")
 async def get_user_packs(
-    semptify_uid: Optional[str] = Cookie(None),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    semptify_uid: str | None = Cookie(None),
+    status: str | None = Query(None, description="Filter by status"),
 ):
     """Get all info packs for the current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -137,7 +142,7 @@ async def get_user_packs(
 
 @router.get("/packs/pending")
 async def get_pending_packs(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get pending info packs that require user input"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -153,7 +158,7 @@ async def get_pending_packs(
 @router.get("/packs/{pack_id}")
 async def get_pack(
     pack_id: str,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get a specific info pack"""
     pack = module_hub.get_info_pack(pack_id)
@@ -171,7 +176,7 @@ async def get_pack(
 async def complete_pack(
     pack_id: str,
     body: CompletePackBody,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Complete an info pack with user-provided data"""
     pack = module_hub.get_info_pack(pack_id)
@@ -195,7 +200,7 @@ async def complete_pack(
 
 @router.get("/data")
 async def get_user_data(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get centralized data for the current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -211,7 +216,7 @@ async def get_user_data(
 @router.post("/request")
 async def make_data_request(
     body: DataRequestBody,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Make a data request from a module"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -220,16 +225,14 @@ async def make_data_request(
         request_type = RequestType(body.request_type)
     except ValueError:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid request type. Valid types: {[r.value for r in RequestType]}"
+            status_code=400, detail=f"Invalid request type. Valid types: {[r.value for r in RequestType]}"
         )
 
     try:
         module_type = ModuleType(body.requesting_module)
     except ValueError:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid module type. Valid types: {[m.value for m in ModuleType]}"
+            status_code=400, detail=f"Invalid module type. Valid types: {[m.value for m in ModuleType]}"
         )
 
     request = await module_hub.request_data(
@@ -249,8 +252,8 @@ async def make_data_request(
 
 @router.get("/log")
 async def get_comm_log(
-    semptify_uid: Optional[str] = Cookie(None),
-    module: Optional[str] = Query(None, description="Filter by module"),
+    semptify_uid: str | None = Cookie(None),
+    module: str | None = Query(None, description="Filter by module"),
     limit: int = Query(100, ge=1, le=500, description="Max entries to return"),
 ):
     """Get communication log for debugging"""
@@ -272,9 +275,10 @@ async def get_comm_log(
 # CONVENIENCE ENDPOINTS FOR SPECIFIC DATA TYPES
 # =============================================================================
 
+
 @router.get("/case-info")
 async def get_case_info(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get eviction case information for current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -290,7 +294,7 @@ async def get_case_info(
 
 @router.get("/lease-data")
 async def get_lease_data(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get lease information for current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -306,7 +310,7 @@ async def get_lease_data(
 
 @router.get("/landlord-info")
 async def get_landlord_info(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get landlord information for current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -322,7 +326,7 @@ async def get_landlord_info(
 
 @router.get("/property-info")
 async def get_property_info(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get property information for current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -338,7 +342,7 @@ async def get_property_info(
 
 @router.get("/deadlines")
 async def get_deadlines(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get calendar deadlines for current user"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -354,7 +358,7 @@ async def get_deadlines(
 
 @router.get("/context")
 async def get_user_context(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Get full user context from context loop"""
     user_id = get_user_id_from_request(semptify_uid)
@@ -372,28 +376,27 @@ async def get_user_context(
 # MESH RESOURCE MODE CONTROLS
 # =============================================================================
 
+
 @router.get("/mesh/status")
 async def get_mesh_status():
     """Get current Positronic Mesh status including mode and deferrals."""
     from app.core.positronic_mesh import positronic_mesh
+
     return positronic_mesh.get_mesh_status()
 
 
 @router.post("/mesh/mode")
 async def set_mesh_mode(mode: str):
     """Switch mesh operating mode ('lean' or 'full').
-    
+
     - lean: Critical actions only, non-critical deferred
     - full: All registered actions enabled
     """
     from app.core.mesh_config import set_mesh_mode
-    
+
     if mode not in ("lean", "full"):
-        raise HTTPException(
-            status_code=400,
-            detail="Mode must be 'lean' or 'full'"
-        )
-    
+        raise HTTPException(status_code=400, detail="Mode must be 'lean' or 'full'")
+
     config = set_mesh_mode(mode)
     return {
         "mode": config.mode,
@@ -406,14 +409,15 @@ async def set_mesh_mode(mode: str):
 async def get_deferral_status():
     """Get status of deferred actions queue."""
     from app.core.mesh_deferral import deferral_queue
+
     return deferral_queue.get_status()
 
 
 @router.post("/mesh/retry-deferred")
 async def retry_deferred_actions():
     """Retry all deferred actions (only works in full mode)."""
-    from app.core.positronic_mesh import positronic_mesh
     from app.core.mesh_deferral import deferral_queue
-    
+    from app.core.positronic_mesh import positronic_mesh
+
     results = await deferral_queue.retry_all(positronic_mesh)
     return results

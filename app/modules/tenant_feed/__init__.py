@@ -11,6 +11,6 @@ storage. Items are returned sorted chronologically (newest first).
 """
 
 from .router import router
-from .service import aggregate_feed, FeedItem
+from .service import FeedItem, aggregate_feed
 
 __all__ = ["router", "aggregate_feed", "FeedItem"]

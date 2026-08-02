@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 """Quick system validation using stdlib only."""
 
-import json
-import sys
-from pathlib import Path
-from urllib.request import urlopen
 from urllib.error import HTTPError
+from urllib.request import urlopen
 
 BASE = "http://localhost:8000"
 results = []
+
 
 def check(name, path):
     try:
@@ -25,6 +23,7 @@ def check(name, path):
     except Exception as e:
         print(f"❌ {path} - {name} ({e})")
         results.append(False)
+
 
 print("=" * 60)
 print("SEMPTIFY QUICK VALIDATION")

@@ -5,31 +5,41 @@ API Documentation Generator - Developer Portal
 Generates comprehensive API documentation and developer portal.
 """
 
-import logging
-from app.core.utc import utc_now
 import json
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
-from dataclasses import dataclass, asdict
+import logging
+from dataclasses import asdict, dataclass
 from enum import Enum
-import inspect
-import asyncio
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class DocumentationType(Enum):
     """Documentation types."""
+
     OPENAPI = "openapi"
     POSTMAN = "postman"
     SWAGGER = "swagger"
     REDOC = "redoc"
 
+
 class APIEndpoint:
     """API endpoint documentation."""
-    def __init__(self, path: str, method: str, summary: str, 
-                 description: str, parameters: List[Dict[str, Any]] = None,
-                 request_body: Dict[str, Any] = None, responses: Dict[str, Any] = None,
-                 tags: List[str] = None, security: List[str] = None):
+
+    def __init__(
+        self,
+        path: str,
+        method: str,
+        summary: str,
+        description: str,
+        parameters: list[dict[str, Any]] = None,
+        request_body: dict[str, Any] = None,
+        responses: dict[str, Any] = None,
+        tags: list[str] = None,
+        security: list[str] = None,
+    ):
         self.path = path
         self.method = method.upper()
         self.summary = summary
@@ -39,8 +49,8 @@ class APIEndpoint:
         self.responses = responses or {}
         self.tags = tags or []
         self.security = security or []
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "path": self.path,
             "method": self.method,
@@ -50,63 +60,65 @@ class APIEndpoint:
             "request_body": self.request_body,
             "responses": self.responses,
             "tags": self.tags,
-            "security": self.security
+            "security": self.security,
         }
+
 
 @dataclass
 class APIModule:
     """API module documentation."""
+
     module_id: str
     name: str
     description: str
-    endpoints: List[APIEndpoint]
+    endpoints: list[APIEndpoint]
     version: str
     base_path: str
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
 
 @dataclass
 class CodeExample:
     """Code example for API usage."""
+
     language: str
     code: str
     description: str
-    filename: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    filename: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
 
 class APIDocumentationGenerator:
     """Generates comprehensive API documentation."""
-    
+
     def __init__(self):
-        self.modules: Dict[str, APIModule] = {}
-        self.code_examples: List[CodeExample] = []
-        
+        self.modules: dict[str, APIModule] = {}
+        self.code_examples: list[CodeExample] = []
+
         # Documentation settings
         self.api_version = "v1"
         self.base_url = "https://api.semptify.org"
         self.contact_info = {
             "name": "Semptify API Team",
             "email": "api@semptify.org",
-            "url": "https://semptify.org/support"
+            "url": "https://semptify.org/support",
         }
-        self.license_info = {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        }
-    
+        self.license_info = {"name": "MIT", "url": "https://opensource.org/licenses/MIT"}
+
     def register_module(self, module: APIModule):
         """Register an API module for documentation."""
         self.modules[module.module_id] = module
         logger.info(f"Registered API module {module.module_id}")
-    
+
     def add_code_example(self, example: CodeExample):
         """Add a code example."""
         self.code_examples.append(example)
-    
-    def generate_openapi_spec(self) -> Dict[str, Any]:
+
+    def generate_openapi_spec(self) -> dict[str, Any]:
         """Generate OpenAPI 3.0 specification."""
         spec = {
             "openapi": "3.0.0",
@@ -115,31 +127,22 @@ class APIDocumentationGenerator:
                 "description": "Housing Rights Platform API",
                 "version": self.api_version,
                 "contact": self.contact_info,
-                "license": self.license_info
+                "license": self.license_info,
             },
             "servers": [
-                {
-                    "url": self.base_url,
-                    "description": "Production server"
-                },
-                {
-                    "url": "https://api-staging.semptify.org",
-                    "description": "Staging server"
-                }
+                {"url": self.base_url, "description": "Production server"},
+                {"url": "https://api-staging.semptify.org", "description": "Staging server"},
             ],
             "paths": {},
-            "components": {
-                "schemas": {},
-                "securitySchemes": {}
-            }
+            "components": {"schemas": {}, "securitySchemes": {}},
         }
-        
+
         # Add all endpoints to paths
         for module in self.modules.values():
             for endpoint in module.endpoints:
                 if endpoint.path not in spec["paths"]:
                     spec["paths"][endpoint.path] = {}
-                
+
                 spec["paths"][endpoint.path][endpoint.method.lower()] = {
                     "summary": endpoint.summary,
                     "description": endpoint.description,
@@ -147,9 +150,9 @@ class APIDocumentationGenerator:
                     "parameters": endpoint.parameters,
                     "requestBody": endpoint.request_body,
                     "responses": endpoint.responses,
-                    "security": endpoint.security
+                    "security": endpoint.security,
                 }
-        
+
         # Add common schemas
         spec["components"]["schemas"] = {
             "User": {
@@ -158,8 +161,8 @@ class APIDocumentationGenerator:
                     "id": {"type": "string", "format": "uuid"},
                     "email": {"type": "string", "format": "email"},
                     "created_at": {"type": "string", "format": "date-time"},
-                    "subscription_tier": {"type": "string", "enum": ["free", "basic", "premium", "enterprise"]}
-                }
+                    "subscription_tier": {"type": "string", "enum": ["free", "basic", "premium", "enterprise"]},
+                },
             },
             "Document": {
                 "type": "object",
@@ -169,97 +172,72 @@ class APIDocumentationGenerator:
                     "document_type": {"type": "string"},
                     "file_size": {"type": "integer"},
                     "created_at": {"type": "string", "format": "date-time"},
-                    "updated_at": {"type": "string", "format": "date-time"}
-                }
+                    "updated_at": {"type": "string", "format": "date-time"},
+                },
             },
             "Error": {
                 "type": "object",
                 "properties": {
                     "error": {"type": "string"},
                     "message": {"type": "string"},
-                    "status_code": {"type": "integer"}
-                }
-            }
+                    "status_code": {"type": "integer"},
+                },
+            },
         }
-        
+
         # Add security schemes
         spec["components"]["securitySchemes"] = {
-            "BearerAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
-            },
+            "BearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
             "OAuth2": {
                 "type": "oauth2",
                 "flows": {
                     "authorizationCode": {
                         "authorizationUrl": "/oauth/authorize",
                         "tokenUrl": "/oauth/token",
-                        "scopes": {
-                            "read": "Read access",
-                            "write": "Write access",
-                            "admin": "Admin access"
-                        }
+                        "scopes": {"read": "Read access", "write": "Write access", "admin": "Admin access"},
                     }
-                }
-            }
+                },
+            },
         }
-        
+
         return spec
-    
-    def generate_postman_collection(self) -> Dict[str, Any]:
+
+    def generate_postman_collection(self) -> dict[str, Any]:
         """Generate Postman collection."""
         collection = {
             "info": {
                 "name": "Semptify API",
                 "description": "Complete API collection for Semptify",
-                "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+                "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
             },
-            "item": []
+            "item": [],
         }
-        
+
         # Group endpoints by module
         for module in self.modules.values():
-            module_item = {
-                "name": module.name,
-                "description": module.description,
-                "item": []
-            }
-            
+            module_item = {"name": module.name, "description": module.description, "item": []}
+
             for endpoint in module.endpoints:
                 endpoint_item = {
                     "name": endpoint.summary,
                     "request": {
                         "method": endpoint.method,
                         "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{token}}"
-                            }
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"},
                         ],
-                        "url": {
-                            "raw": f"{{base_url}}{module.base_path}{endpoint.path}",
-                            "host": ["{{base_url}}"]
-                        }
-                    }
+                        "url": {"raw": f"{{base_url}}{module.base_path}{endpoint.path}", "host": ["{{base_url}}"]},
+                    },
                 }
-                
+
                 # Add request body if present
                 if endpoint.request_body:
                     endpoint_item["request"]["body"] = {
                         "mode": "raw",
                         "raw": json.dumps(endpoint.request_body.get("example", {}), indent=2),
-                        "options": {
-                            "raw": {
-                                "language": "json"
-                            }
-                        }
+                        "options": {"raw": {"language": "json"}},
                     }
-                
+
                 # Add response examples
                 if endpoint.responses:
                     endpoint_item["response"] = []
@@ -268,41 +246,39 @@ class APIDocumentationGenerator:
                             "name": f"{status_code} {response.get('description', '')}",
                             "originalRequest": {
                                 "method": endpoint.method,
-                                "url": {
-                                    "raw": f"{{base_url}}{module.base_path}{endpoint.path}"
-                                }
+                                "url": {"raw": f"{{base_url}}{module.base_path}{endpoint.path}"},
                             },
                             "code": int(status_code),
-                            "status": "OK" if 200 <= int(status_code) < 300 else "Error"
+                            "status": "OK" if 200 <= int(status_code) < 300 else "Error",
                         }
-                        
+
                         if "example" in response:
                             response_item["body"] = json.dumps(response["example"], indent=2)
-                        
+
                         endpoint_item["response"].append(response_item)
-                
+
                 module_item["item"].append(endpoint_item)
-            
+
             collection["item"].append(module_item)
-        
+
         return collection
-    
+
     def generate_swagger_ui(self) -> str:
         """Generate Swagger UI HTML."""
-        openapi_spec = self.generate_openapi_spec()
-        
-        swagger_html = f"""
+        self.generate_openapi_spec()
+
+        swagger_html = """
         <!DOCTYPE html>
         <html>
         <head>
             <title>Semptify API Documentation</title>
             <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui.css" />
             <style>
-                html {{ box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }}
-                *, *:before, *:after {{ box-sizing: inherit; }}
-                body {{ margin: 0; background: #fafafa; }}
-                .swagger-ui .topbar {{ background-color: #1b1b1b; }}
-                .swagger-ui .topbar .download-url-wrapper {{ display: none; }}
+                html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+                *, *:before, *:after { box-sizing: inherit; }
+                body { margin: 0; background: #fafafa; }
+                .swagger-ui .topbar { background-color: #1b1b1b; }
+                .swagger-ui .topbar .download-url-wrapper { display: none; }
             </style>
         </head>
         <body>
@@ -310,8 +286,8 @@ class APIDocumentationGenerator:
             <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-bundle.js"></script>
             <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-standalone-preset.js"></script>
             <script>
-                window.onload = function() {{
-                    const ui = SwaggerUIBundle({{
+                window.onload = function() {
+                    const ui = SwaggerUIBundle({
                         url: '/docs/openapi.json',
                         dom_id: '#swagger-ui',
                         deepLinking: true,
@@ -323,19 +299,19 @@ class APIDocumentationGenerator:
                             SwaggerUIBundle.plugins.DownloadUrl
                         ],
                         layout: "StandaloneLayout"
-                    }});
-                }};
+                    });
+                };
             </script>
         </body>
         </html>
         """
-        
+
         return swagger_html
-    
+
     def generate_redoc_html(self) -> str:
         """Generate ReDoc HTML."""
-        openapi_spec = self.generate_openapi_spec()
-        
+        self.generate_openapi_spec()
+
         redoc_html = f"""
         <!DOCTYPE html>
         <html>
@@ -367,26 +343,28 @@ class APIDocumentationGenerator:
         </body>
         </html>
         """
-        
+
         return redoc_html
-    
+
     def generate_developer_portal(self) -> str:
         """Generate extensive interactive developer portal HTML with admin guide."""
         modules_list = []
         for module in self.modules.values():
-            modules_list.append({
-                "id": module.module_id,
-                "name": module.name,
-                "description": module.description,
-                "base_path": module.base_path,
-                "endpoint_count": len(module.endpoints),
-                "version": module.version
-            })
-        
+            modules_list.append(
+                {
+                    "id": module.module_id,
+                    "name": module.name,
+                    "description": module.description,
+                    "base_path": module.base_path,
+                    "endpoint_count": len(module.endpoints),
+                    "version": module.version,
+                }
+            )
+
         code_examples_list = []
         for example in self.code_examples:
             code_examples_list.append(example.to_dict())
-        
+
         portal_html = f"""
         <!DOCTYPE html>
         <html>
@@ -488,10 +466,10 @@ class APIDocumentationGenerator:
                     <div class="meta">
                         <span>📅 Version: {self.api_version}</span>
                         <span>🌐 Base URL: {self.base_url}</span>
-                        <span>📧 Support: {self.contact_info['email']}</span>
+                        <span>📧 Support: {self.contact_info["email"]}</span>
                     </div>
                 </div>
-                
+
                 <div class="nav">
                     <a href="#overview" class="nav-item active" data-section="overview">📖 Overview</a>
                     <a href="#authentication" class="nav-item" data-section="authentication">🔑 Authentication</a>
@@ -501,12 +479,12 @@ class APIDocumentationGenerator:
                     <a href="/docs/swagger" class="nav-item" target="_blank">🔍 Swagger UI</a>
                     <a href="/docs/redoc" class="nav-item" target="_blank">📄 ReDoc</a>
                 </div>
-                
+
                 <div id="overview" class="content-section active">
                     <div class="card">
                         <h2>Getting Started</h2>
                         <p>The Semptify API provides programmatic access to all platform features including document management, user authentication, case tracking, timeline events, and more. Our API is designed to be RESTful, intuitive, and well-documented.</p>
-                        
+
                         <div class="step">
                             <div class="step-number">1</div>
                             <div class="step-content">
@@ -514,7 +492,7 @@ class APIDocumentationGenerator:
                                 <p>Contact api@semptify.org to request API access. Include your use case and expected request volume.</p>
                             </div>
                         </div>
-                        
+
                         <div class="step">
                             <div class="step-number">2</div>
                             <div class="step-content">
@@ -522,7 +500,7 @@ class APIDocumentationGenerator:
                                 <p>All API requests require authentication. We support JWT tokens and OAuth 2.0 for secure access.</p>
                             </div>
                         </div>
-                        
+
                         <div class="step">
                             <div class="step-number">3</div>
                             <div class="step-content">
@@ -530,10 +508,10 @@ class APIDocumentationGenerator:
                                 <p>Start with a simple endpoint like <code>GET /api/v1/health</code> to verify your connection.</p>
                             </div>
                         </div>
-                        
+
                         <h3>Base URL</h3>
                         <p><code>{self.base_url}</code></p>
-                        
+
                         <h3>Rate Limiting</h3>
                         <p>API requests are rate-limited based on your subscription tier:</p>
                         <ul>
@@ -541,21 +519,21 @@ class APIDocumentationGenerator:
                             <li><strong>Basic tier:</strong> 1,000 requests/hour</li>
                             <li><strong>Premium tier:</strong> 10,000 requests/hour</li>
                         </ul>
-                        
+
                         <div class="warning">
                             Exceeding rate limits will result in HTTP 429 responses. Implement exponential backoff in your client.
                         </div>
-                        
+
                         <div class="btn-group">
                             <a href="/docs/openapi.json" class="btn">📥 Download OpenAPI Spec</a>
                             <a href="/docs/postman" class="btn btn-secondary">📥 Download Postman Collection</a>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <h2>Quick Start Guide</h2>
                         <p>Follow this quick start to make your first API call in under 5 minutes.</p>
-                        
+
                         <div class="accordion">
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
@@ -593,16 +571,16 @@ class APIDocumentationGenerator:
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="authentication" class="content-section">
                     <div class="card">
                         <h2>Authentication Methods</h2>
                         <p>Semptify API supports multiple authentication methods for different use cases.</p>
-                        
+
                         <h3>JWT Token Authentication</h3>
                         <p>Most API endpoints require a JWT token in the Authorization header:</p>
                         <pre><code>Authorization: Bearer YOUR_JWT_TOKEN</code></pre>
-                        
+
                         <h3>OAuth 2.0</h3>
                         <p>For third-party integrations, use OAuth 2.0 with the following flow:</p>
                         <ul>
@@ -611,15 +589,15 @@ class APIDocumentationGenerator:
                             <li>Receive authorization code</li>
                             <li>Exchange code for access token at <code>/oauth/token</code></li>
                         </ul>
-                        
+
                         <h3>Session Cookies</h3>
                         <p>For web applications, session-based authentication is available. The <code>semptify_session</code> cookie is set after login.</p>
-                        
+
                         <div class="info">
                             JWT tokens expire after 24 hours. Refresh tokens are available for long-lived sessions.
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <h2>Security Best Practices</h2>
                         <ul>
@@ -630,49 +608,49 @@ class APIDocumentationGenerator:
                             <li>Use rate limiting to prevent abuse</li>
                             <li>Log all API requests for audit trails</li>
                         </ul>
-                        
+
                         <div class="warning">
                             Never commit API keys or tokens to version control. Use environment variables or secret management systems.
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="modules" class="content-section">
                     <div class="card">
                         <h2>API Modules</h2>
                         <p>Browse all available API modules and their endpoints.</p>
                         <div class="module-list">
         """
-        
+
         for module in modules_list:
             portal_html += f"""
                             <div class="module-item">
-                                <div class="module-name">{module['name']}</div>
-                                <div class="module-path">{module['base_path']}</div>
+                                <div class="module-name">{module["name"]}</div>
+                                <div class="module-path">{module["base_path"]}</div>
                                 <div class="module-stats">
                                     <div class="stat">
                                         <span>📚</span>
-                                        <span>{module['endpoint_count']} endpoints</span>
+                                        <span>{module["endpoint_count"]} endpoints</span>
                                     </div>
                                     <div class="stat">
                                         <span>🏷️</span>
-                                        <span>v{module['version']}</span>
+                                        <span>v{module["version"]}</span>
                                     </div>
                                 </div>
-                                <div style="margin-top: 12px; color: #64748b; line-height: 1.6;">{module['description']}</div>
+                                <div style="margin-top: 12px; color: #64748b; line-height: 1.6;">{module["description"]}</div>
                             </div>
             """
-        
-        portal_html += f"""
+
+        portal_html += """
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="admin" class="content-section">
                     <div class="card admin-section">
                         <h2>Admin Guide</h2>
                         <p>Comprehensive guide for administrators managing the Semptify API and platform.</p>
-                        
+
                         <h3>Admin Dashboard Access</h3>
                         <p>Administrators can access the admin dashboard at <code>/admin</code>. Admin credentials are required:</p>
                         <ul>
@@ -680,7 +658,7 @@ class APIDocumentationGenerator:
                             <li><strong>Password:</strong> Set in <code>ADMIN_PASSWORD</code> environment variable</li>
                             <li><strong>2FA:</strong> TOTP secret in <code>ADMIN_TOTP_SECRET</code></li>
                         </ul>
-                        
+
                         <h3>User Management</h3>
                         <div class="accordion">
                             <div class="accordion-item">
@@ -700,13 +678,13 @@ Authorization: Bearer ADMIN_TOKEN</code></pre>
                                     <span>▼</span>
                                 </div>
                                 <div class="accordion-content">
-                                    <pre><code>PUT /api/admin/users/{{user_id}}/role
+                                    <pre><code>PUT /api/admin/users/{user_id}/role
 Authorization: Bearer ADMIN_TOKEN
 Content-Type: application/json
 
-{{
+{
   "role": "advocate"
-}}</code></pre>
+}</code></pre>
                                     <p>Valid roles: <code>tenant</code>, <code>advocate</code>, <code>legal</code>, <code>admin</code>.</p>
                                 </div>
                             </div>
@@ -716,13 +694,13 @@ Content-Type: application/json
                                     <span>▼</span>
                                 </div>
                                 <div class="accordion-content">
-                                    <pre><code>POST /api/admin/users/{{user_id}}/disable
+                                    <pre><code>POST /api/admin/users/{user_id}/disable
 Authorization: Bearer ADMIN_TOKEN</code></pre>
                                     <p>Disables a user account. User cannot login or access API.</p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <h3>System Monitoring</h3>
                         <p>Monitor system health and performance through dedicated endpoints:</p>
                         <ul>
@@ -731,13 +709,13 @@ Authorization: Bearer ADMIN_TOKEN</code></pre>
                             <li><code>GET /api/health/storage</code> - Storage provider status</li>
                             <li><code>GET /api/metrics</code> - Performance metrics and usage stats</li>
                         </ul>
-                        
+
                         <h3>Audit Logs</h3>
                         <p>All admin actions are logged to the <code>admin_audit_logs</code> table for compliance and security:</p>
                         <pre><code>GET /api/admin/audit-logs
 Authorization: Bearer ADMIN_TOKEN
 Query params: user_id, action, start_date, end_date</code></pre>
-                        
+
                         <h3>Environment Variables</h3>
                         <p>Key environment variables for admin configuration:</p>
                         <ul>
@@ -748,11 +726,11 @@ Query params: user_id, action, start_date, end_date</code></pre>
                             <li><code>SECRET_KEY</code> - JWT signing secret</li>
                             <li><code>SECURITY_MODE</code> - "open" or "enforced"</li>
                         </ul>
-                        
+
                         <div class="warning">
                             Never use default admin credentials in production. Change all secrets immediately after deployment.
                         </div>
-                        
+
                         <h3>Render Deployment</h3>
                         <p>For Render deployment, set environment variables in the Render dashboard:</p>
                         <ol>
@@ -762,7 +740,7 @@ Query params: user_id, action, start_date, end_date</code></pre>
                             <li>Click "Save Changes"</li>
                             <li>Trigger manual deploy</li>
                         </ol>
-                        
+
                         <h3>Database Management</h3>
                         <p>Access PostgreSQL database directly for advanced operations:</p>
                         <ul>
@@ -770,34 +748,34 @@ Query params: user_id, action, start_date, end_date</code></pre>
                             <li>Or use psql with connection string from DATABASE_URL</li>
                             <li>Always use SSL mode: <code>sslmode=require</code></li>
                         </ul>
-                        
+
                         <div class="success">
                             Regular database backups are automated by Render. Additional backups can be created manually.
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="examples" class="content-section">
                     <div class="card">
                         <h2>Code Examples</h2>
                         <p>Production-ready code examples in multiple languages.</p>
                         <div class="code-examples">
         """
-        
+
         for example in code_examples_list:
             portal_html += f"""
                             <div class="code-example">
-                                <h3>{example['description']}</h3>
+                                <h3>{example["description"]}</h3>
                                 <div class="code-block">
-                                    <pre><code>{example['code']}</code></pre>
+                                    <pre><code>{example["code"]}</code></pre>
                                 </div>
                             </div>
             """
-        
+
         portal_html += f"""
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <h2>Additional Examples</h2>
                         <div class="accordion">
@@ -870,49 +848,49 @@ if (response.ok) {{
                     </div>
                 </div>
             </div>
-            
+
             <script>
                 // Navigation handling
                 document.querySelectorAll('.nav-item[data-section]').forEach(item => {{
                     item.addEventListener('click', (e) => {{
                         e.preventDefault();
-                        
+
                         const section = item.getAttribute('data-section');
-                        
+
                         // Hide all sections
                         document.querySelectorAll('.content-section').forEach(s => {{
                             s.classList.remove('active');
                         }});
-                        
+
                         // Remove active from all nav items
                         document.querySelectorAll('.nav-item').forEach(nav => {{
                             nav.classList.remove('active');
                         }});
-                        
+
                         // Show selected section
                         document.getElementById(section).classList.add('active');
-                        
+
                         // Add active to clicked nav item
                         item.classList.add('active');
                     }});
                 }});
-                
+
                 // Accordion toggle
                 function toggleAccordion(header) {{
                     const content = header.nextElementSibling;
                     const isOpen = content.classList.contains('open');
-                    
+
                     // Close all
                     document.querySelectorAll('.accordion-content').forEach(c => {{
                         c.classList.remove('open');
                     }});
-                    
+
                     // Open clicked if it was closed
                     if (!isOpen) {{
                         content.classList.add('open');
                     }}
                 }}
-                
+
                 // Smooth scroll for anchor links
                 document.querySelectorAll('a[href^="#"]').forEach(anchor => {{
                     anchor.addEventListener('click', function (e) {{
@@ -928,15 +906,15 @@ if (response.ok) {{
         </body>
         </html>
         """
-        
+
         return portal_html
-    
-    def get_documentation_summary(self) -> Dict[str, Any]:
+
+    def get_documentation_summary(self) -> dict[str, Any]:
         """Get documentation summary statistics."""
         total_modules = len(self.modules)
         total_endpoints = sum(len(module.endpoints) for module in self.modules.values())
         total_examples = len(self.code_examples)
-        
+
         return {
             "api_version": self.api_version,
             "base_url": self.base_url,
@@ -944,35 +922,34 @@ if (response.ok) {{
             "total_endpoints": total_endpoints,
             "total_examples": total_examples,
             "modules": [
-                {
-                    "id": module.module_id,
-                    "name": module.name,
-                    "endpoint_count": len(module.endpoints)
-                }
+                {"id": module.module_id, "name": module.name, "endpoint_count": len(module.endpoints)}
                 for module in self.modules.values()
             ],
-            "last_updated": utc_now().isoformat()
+            "last_updated": utc_now().isoformat(),
         }
 
+
 # Global documentation generator instance
-_documentation_generator: Optional[APIDocumentationGenerator] = None
+_documentation_generator: APIDocumentationGenerator | None = None
+
 
 def get_documentation_generator() -> APIDocumentationGenerator:
     """Get the global documentation generator instance."""
     global _documentation_generator
-    
+
     if _documentation_generator is None:
         _documentation_generator = APIDocumentationGenerator()
-        
+
         # Register default modules
         _register_default_modules()
-    
+
     return _documentation_generator
+
 
 def _register_default_modules():
     """Register default API modules."""
     generator = get_documentation_generator()
-    
+
     # Authentication module
     auth_endpoints = [
         APIEndpoint(
@@ -981,27 +958,12 @@ def _register_default_modules():
             summary="User Login",
             description="Authenticate user with email and password",
             parameters=[
-                {
-                    "name": "email",
-                    "in": "body",
-                    "required": True,
-                    "schema": {"type": "string", "format": "email"}
-                },
-                {
-                    "name": "password",
-                    "in": "body",
-                    "required": True,
-                    "schema": {"type": "string", "minLength": 8}
-                }
+                {"name": "email", "in": "body", "required": True, "schema": {"type": "string", "format": "email"}},
+                {"name": "password", "in": "body", "required": True, "schema": {"type": "string", "minLength": 8}},
             ],
             request_body={
                 "content": {
-                    "application/json": {
-                        "example": {
-                            "email": "user@example.com",
-                            "password": "securepassword123"
-                        }
-                    }
+                    "application/json": {"example": {"email": "user@example.com", "password": "securepassword123"}}
                 }
             },
             responses={
@@ -1012,37 +974,34 @@ def _register_default_modules():
                             "example": {
                                 "success": True,
                                 "token": "jwt_token_here",
-                                "user": {"id": "user_id", "email": "user@example.com"}
+                                "user": {"id": "user_id", "email": "user@example.com"},
                             }
                         }
-                    }
+                    },
                 },
                 "401": {
                     "description": "Invalid credentials",
                     "content": {
-                        "application/json": {
-                            "example": {
-                                "success": False,
-                                "error": "Invalid email or password"
-                            }
-                        }
-                    }
-                }
+                        "application/json": {"example": {"success": False, "error": "Invalid email or password"}}
+                    },
+                },
             },
             tags=["authentication"],
-            security=[]
+            security=[],
         )
     ]
-    
-    generator.register_module(APIModule(
-        module_id="auth",
-        name="Authentication",
-        description="User authentication and authorization endpoints",
-        endpoints=auth_endpoints,
-        version="v1",
-        base_path="/api/v1/auth"
-    ))
-    
+
+    generator.register_module(
+        APIModule(
+            module_id="auth",
+            name="Authentication",
+            description="User authentication and authorization endpoints",
+            endpoints=auth_endpoints,
+            version="v1",
+            base_path="/api/v1/auth",
+        )
+    )
+
     # Documents module
     docs_endpoints = [
         APIEndpoint(
@@ -1051,36 +1010,22 @@ def _register_default_modules():
             summary="List Documents",
             description="Get list of user's documents with pagination",
             parameters=[
-                {
-                    "name": "page",
-                    "in": "query",
-                    "required": False,
-                    "schema": {"type": "integer", "default": 1}
-                },
+                {"name": "page", "in": "query", "required": False, "schema": {"type": "integer", "default": 1}},
                 {
                     "name": "limit",
                     "in": "query",
                     "required": False,
-                    "schema": {"type": "integer", "default": 20, "maximum": 100}
-                }
+                    "schema": {"type": "integer", "default": 20, "maximum": 100},
+                },
             ],
             responses={
                 "200": {
                     "description": "Documents retrieved successfully",
-                    "content": {
-                        "application/json": {
-                            "example": {
-                                "documents": [],
-                                "total": 0,
-                                "page": 1,
-                                "limit": 20
-                            }
-                        }
-                    }
+                    "content": {"application/json": {"example": {"documents": [], "total": 0, "page": 1, "limit": 20}}},
                 }
             },
             tags=["documents"],
-            security=["BearerAuth"]
+            security=["BearerAuth"],
         ),
         APIEndpoint(
             path="/documents/{document_id}",
@@ -1088,12 +1033,7 @@ def _register_default_modules():
             summary="Get Document",
             description="Get specific document by ID",
             parameters=[
-                {
-                    "name": "document_id",
-                    "in": "path",
-                    "required": True,
-                    "schema": {"type": "string", "format": "uuid"}
-                }
+                {"name": "document_id", "in": "path", "required": True, "schema": {"type": "string", "format": "uuid"}}
             ],
             responses={
                 "200": {
@@ -1104,33 +1044,34 @@ def _register_default_modules():
                                 "id": "doc_id",
                                 "filename": "lease_agreement.pdf",
                                 "document_type": "lease",
-                                "file_size": 1024000
+                                "file_size": 1024000,
                             }
                         }
-                    }
+                    },
                 },
-                "404": {
-                    "description": "Document not found"
-                }
+                "404": {"description": "Document not found"},
             },
             tags=["documents"],
-            security=["BearerAuth"]
-        )
+            security=["BearerAuth"],
+        ),
     ]
-    
-    generator.register_module(APIModule(
-        module_id="documents",
-        name="Documents",
-        description="Document management endpoints",
-        endpoints=docs_endpoints,
-        version="v1",
-        base_path="/api/v1/documents"
-    ))
-    
+
+    generator.register_module(
+        APIModule(
+            module_id="documents",
+            name="Documents",
+            description="Document management endpoints",
+            endpoints=docs_endpoints,
+            version="v1",
+            base_path="/api/v1/documents",
+        )
+    )
+
     # Add code examples
-    generator.add_code_example(CodeExample(
-        language="python",
-        code="""
+    generator.add_code_example(
+        CodeExample(
+            language="python",
+            code="""
 import requests
 
 # Login to get token
@@ -1141,27 +1082,29 @@ login_response = requests.post('https://api.semptify.org/api/v1/auth/login', jso
 
 if login_response.status_code == 200:
     token = login_response.json()['token']
-    
+
     # Use token for authenticated requests
     headers = {'Authorization': f'Bearer {token}'}
-    
+
     # Get documents
     docs_response = requests.get(
         'https://api.semptify.org/api/v1/documents',
         headers=headers
     )
-    
+
     if docs_response.status_code == 200:
         documents = docs_response.json()['documents']
         logger.info(f"Found {len(documents)} documents")
         """,
-        description="Python - Basic API Usage",
-        filename="basic_usage.py"
-    ))
-    
-    generator.add_code_example(CodeExample(
-        language="javascript",
-        code="""
+            description="Python - Basic API Usage",
+            filename="basic_usage.py",
+        )
+    )
+
+    generator.add_code_example(
+        CodeExample(
+            language="javascript",
+            code="""
 // Using fetch API
 async function loginAndGetDocuments() {{
     try {{
@@ -1176,14 +1119,14 @@ async function loginAndGetDocuments() {{
                 password: 'your-password'
             }})
         }});
-        
+
         if (!loginResponse.ok) {{
             throw new Error('Login failed');
         }}
-        
+
         const loginData = await loginResponse.json();
         const token = loginData.token;
-        
+
         // Get documents
         const docsResponse = await fetch('https://api.semptify.org/api/v1/documents', {{
             headers: {{
@@ -1191,7 +1134,7 @@ async function loginAndGetDocuments() {{
                 'Content-Type': 'application/json'
             }}
         }});
-        
+
         if (docsResponse.ok) {{
             const documentsData = await docsResponse.json();
             console.log('Documents:', documentsData.documents);
@@ -1204,37 +1147,44 @@ async function loginAndGetDocuments() {{
 // Call the function
 loginAndGetDocuments();
         """,
-        description="JavaScript - Fetch API Usage",
-        filename="api_usage.js"
-    ))
+            description="JavaScript - Fetch API Usage",
+            filename="api_usage.js",
+        )
+    )
+
 
 # Helper functions
-def generate_openapi_spec() -> Dict[str, Any]:
+def generate_openapi_spec() -> dict[str, Any]:
     """Generate OpenAPI specification."""
     generator = get_documentation_generator()
     return generator.generate_openapi_spec()
 
-def generate_postman_collection() -> Dict[str, Any]:
+
+def generate_postman_collection() -> dict[str, Any]:
     """Generate Postman collection."""
     generator = get_documentation_generator()
     return generator.generate_postman_collection()
+
 
 def generate_swagger_ui() -> str:
     """Generate Swagger UI HTML."""
     generator = get_documentation_generator()
     return generator.generate_swagger_ui()
 
+
 def generate_redoc_html() -> str:
     """Generate ReDoc HTML."""
     generator = get_documentation_generator()
     return generator.generate_redoc_html()
+
 
 def generate_developer_portal() -> str:
     """Generate developer portal HTML."""
     generator = get_documentation_generator()
     return generator.generate_developer_portal()
 
-def get_documentation_summary() -> Dict[str, Any]:
+
+def get_documentation_summary() -> dict[str, Any]:
     """Get documentation summary."""
     generator = get_documentation_generator()
     return generator.get_documentation_summary()

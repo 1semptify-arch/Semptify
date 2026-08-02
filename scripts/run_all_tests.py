@@ -12,12 +12,13 @@ Usage:
     .\\venv311\\Scripts\\Activate.ps1
     python scripts\\run_all_tests.py
 """
+
 import asyncio
 import importlib
 import sys
 import traceback
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -43,6 +44,7 @@ def record(category, name, status, detail=""):
 # =============================================================================
 # CATEGORY 1: STATIC ANALYSIS TESTS (no DB, no server)
 # =============================================================================
+
 
 def run_static_tests():
     print("\n" + "=" * 70)
@@ -82,11 +84,26 @@ def run_static_tests():
     try:
         m = importlib.import_module("tests.test_workspace_stage_model_js")
         test_fns = [
-            ("test_workspace_stage_model_calls_required_workflow_endpoints", m.test_workspace_stage_model_calls_required_workflow_endpoints),
-            ("test_workspace_stage_model_has_failure_fallback_path", m.test_workspace_stage_model_has_failure_fallback_path),
-            ("test_workspace_stage_model_handles_malformed_stage_cards_payload", m.test_workspace_stage_model_handles_malformed_stage_cards_payload),
-            ("test_workspace_stage_model_handles_malformed_alert_payload", m.test_workspace_stage_model_handles_malformed_alert_payload),
-            ("test_workspace_stage_model_builds_safe_next_step_request_defaults", m.test_workspace_stage_model_builds_safe_next_step_request_defaults),
+            (
+                "test_workspace_stage_model_calls_required_workflow_endpoints",
+                m.test_workspace_stage_model_calls_required_workflow_endpoints,
+            ),
+            (
+                "test_workspace_stage_model_has_failure_fallback_path",
+                m.test_workspace_stage_model_has_failure_fallback_path,
+            ),
+            (
+                "test_workspace_stage_model_handles_malformed_stage_cards_payload",
+                m.test_workspace_stage_model_handles_malformed_stage_cards_payload,
+            ),
+            (
+                "test_workspace_stage_model_handles_malformed_alert_payload",
+                m.test_workspace_stage_model_handles_malformed_alert_payload,
+            ),
+            (
+                "test_workspace_stage_model_builds_safe_next_step_request_defaults",
+                m.test_workspace_stage_model_builds_safe_next_step_request_defaults,
+            ),
         ]
         for name, fn in test_fns:
             try:
@@ -103,6 +120,7 @@ def run_static_tests():
 # =============================================================================
 # CATEGORY 2: E2E DOCUMENT PIPELINE (local vault + Neon DB)
 # =============================================================================
+
 
 async def run_e2e_tests():
     print("\n" + "=" * 70)
@@ -125,23 +143,27 @@ async def run_e2e_tests():
     try:
         # test_vault_local.py uses user_id="testuser" which fails FK constraint.
         # Create that user first so the test can run.
-        from app.core.database import init_db, get_db_session
+        from sqlalchemy import select
+
+        from app.core.database import get_db_session, init_db
         from app.core.utc import utc_now
         from app.models.models import User
-        from sqlalchemy import select
+
         await init_db()
         async with get_db_session() as session:
             existing = await session.execute(select(User).where(User.id == "testuser"))
             if existing.scalar_one_or_none() is None:
-                session.add(User(
-                    id="testuser",
-                    primary_provider="local",
-                    storage_user_id="local_test_user",
-                    default_role="user",
-                    intensity_level="low",
-                    created_at=utc_now(),
-                    updated_at=utc_now(),
-                ))
+                session.add(
+                    User(
+                        id="testuser",
+                        primary_provider="local",
+                        storage_user_id="local_test_user",
+                        default_role="user",
+                        intensity_level="low",
+                        created_at=utc_now(),
+                        updated_at=utc_now(),
+                    )
+                )
                 await session.commit()
         m = importlib.import_module("tests.integration.test_vault_local")
         await m.run()
@@ -153,6 +175,7 @@ async def run_e2e_tests():
 # =============================================================================
 # CATEGORY 3: PYTEST WITH FIXTURES (needs ASGI client + SQLite — broken by ARRAY)
 # =============================================================================
+
 
 def report_pytest_skipped():
     print("\n" + "=" * 70)
@@ -202,27 +225,28 @@ def report_pytest_skipped():
     ]
 
     print(f"  {'File':<40} {'Count':<15} {'Description'}")
-    print(f"  {'-'*40} {'-'*15} {'-'*40}")
+    print(f"  {'-' * 40} {'-' * 15} {'-' * 40}")
     for fname, count, desc in pytest_tests:
         print(f"  {fname:<40} {count:<15} {desc}")
     print(f"\n  Total: {len(pytest_tests)} test files need a running server (Render or local uvicorn)")
-    print(f"  These are skipped locally due to conftest.py SQLite ARRAY incompatibility.")
-    print(f"  Run on Render with: pytest tests/ -v --tb=short")
+    print("  These are skipped locally due to conftest.py SQLite ARRAY incompatibility.")
+    print("  Run on Render with: pytest tests/ -v --tb=short")
 
 
 # =============================================================================
 # FINAL REPORT
 # =============================================================================
 
+
 def final_report():
     print("\n" + "=" * 70)
     print("  FINAL REPORT")
     print("=" * 70)
-    print(f"\n  Date: {datetime.now(timezone.utc).isoformat()}")
+    print(f"\n  Date: {datetime.now(UTC).isoformat()}")
     print(f"  Python: {sys.version.split()[0]}")
     print(f"\n  Static analysis:  {PASS} pass, {FAIL} fail, {SKIP} skip")
-    print(f"  E2E document:     30 pass, 0 fail (30-step pipeline)")
-    print(f"  Pytest (server):  38 files need running server (run on Render)")
+    print("  E2E document:     30 pass, 0 fail (30-step pipeline)")
+    print("  Pytest (server):  38 files need running server (run on Render)")
     print(f"\n  TOTAL PASS: {PASS + 30}")
     print(f"  TOTAL FAIL: {FAIL}")
 

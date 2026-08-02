@@ -80,10 +80,7 @@ async def build_status() -> dict[str, Any]:
     return {
         "total": len(tasks),
         "counts": counts,
-        "recent": [
-            {"id": t.get("id"), "title": t.get("title"), "status": t.get("status")}
-            for t in tasks[:10]
-        ],
+        "recent": [{"id": t.get("id"), "title": t.get("title"), "status": t.get("status")} for t in tasks[:10]],
     }
 
 
@@ -174,10 +171,7 @@ async def detect_repeated_fees_cost_guard(request: DetectRequest) -> dict[str, A
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"Pattern detection service unavailable: {exc}") from exc
 
-    fee_history = [
-        {"fee_type": f.fee_type, "amount": f.amount, "date": str(f.date)}
-        for f in request.fee_history
-    ]
+    fee_history = [{"fee_type": f.fee_type, "amount": f.amount, "date": str(f.date)} for f in request.fee_history]
     data = {
         "fee_history": fee_history,
         "jurisdiction": request.jurisdiction,

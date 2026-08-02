@@ -1,4 +1,5 @@
 """List all admin console routes for verification."""
+
 from app.main import app
 
 admin_routes = []

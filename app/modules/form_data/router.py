@@ -4,13 +4,14 @@ API endpoints for the central form data hub.
 Connects document processing, defense modules, and form generation.
 """
 
-from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser, yellow_access
-from app.services.form_data import get_form_data_service, FormDataService
-import logging
+from app.core.security import StorageUser, yellow_access
+from app.services.form_data import get_form_data_service
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,38 +22,39 @@ router = APIRouter()
 # Request/Response Models
 # =============================================================================
 
+
 class PartyInfoUpdate(BaseModel):
-    name: Optional[str] = None
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    zip_code: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
+    name: str | None = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zip_code: str | None = None
+    phone: str | None = None
+    email: str | None = None
 
 
 class CaseInfoUpdate(BaseModel):
-    case_number: Optional[str] = None
-    property_address: Optional[str] = None
-    property_city: Optional[str] = None
-    property_state: Optional[str] = None
-    property_zip: Optional[str] = None
-    unit_number: Optional[str] = None
-    lease_start_date: Optional[str] = None
-    lease_end_date: Optional[str] = None
-    monthly_rent: Optional[float] = None
-    security_deposit: Optional[float] = None
-    notice_date: Optional[str] = None
-    notice_type: Optional[str] = None
-    summons_date: Optional[str] = None
-    hearing_date: Optional[str] = None
-    hearing_time: Optional[str] = None
-    rent_claimed: Optional[float] = None
-    late_fees_claimed: Optional[float] = None
-    total_claimed: Optional[float] = None
-    tenant: Optional[PartyInfoUpdate] = None
-    landlord: Optional[PartyInfoUpdate] = None
-    notes: Optional[str] = None
+    case_number: str | None = None
+    property_address: str | None = None
+    property_city: str | None = None
+    property_state: str | None = None
+    property_zip: str | None = None
+    unit_number: str | None = None
+    lease_start_date: str | None = None
+    lease_end_date: str | None = None
+    monthly_rent: float | None = None
+    security_deposit: float | None = None
+    notice_date: str | None = None
+    notice_type: str | None = None
+    summons_date: str | None = None
+    hearing_date: str | None = None
+    hearing_time: str | None = None
+    rent_claimed: float | None = None
+    late_fees_claimed: float | None = None
+    total_claimed: float | None = None
+    tenant: PartyInfoUpdate | None = None
+    landlord: PartyInfoUpdate | None = None
+    notes: str | None = None
 
 
 class DefenseAction(BaseModel):
@@ -67,13 +69,14 @@ class CounterclaimAction(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/")
 async def get_form_data(
     user: StorageUser = Depends(yellow_access),
 ):
     """
     Get all form data for the current user.
-    
+
     This is the central data hub - returns:
     - Case information (parties, property, dates)
     - All documents and their extracted data (including unified upload)
@@ -82,28 +85,28 @@ async def get_form_data(
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     result = service.to_dict()
-    
+
     # Enhance with processed documents from unified upload
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
         processed_docs = distributor.get_form_data_documents(user.user_id)
         extracted_info = distributor.get_extracted_case_info(user.user_id)
-        
+
         # Merge processed documents
         result["processed_documents"] = processed_docs
         result["extracted_case_info"] = extracted_info
-        
+
         # Enhance with unified upload data
-        if extracted_info.get("case_numbers"):
-            if not result.get("case", {}).get("case_number"):
-                result["case"]["case_number"] = extracted_info["case_numbers"][0]
-        
+        if extracted_info.get("case_numbers") and not result.get("case", {}).get("case_number"):
+            result["case"]["case_number"] = extracted_info["case_numbers"][0]
+
     except Exception:
         pass  # Distributor not available
-    
+
     return result
 
 
@@ -113,7 +116,7 @@ async def get_extracted_data(
 ):
     """
     Get all extracted data from processed documents.
-    
+
     Aggregates extracted information from unified upload pipeline:
     - Dates (deadlines, hearing dates, notice dates)
     - Parties (landlord, tenant, attorneys)
@@ -124,8 +127,9 @@ async def get_extracted_data(
     """
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
-        
+
         return {
             "success": True,
             "extracted_info": distributor.get_extracted_case_info(user.user_id),
@@ -146,7 +150,7 @@ async def get_case_summary(
 ):
     """
     Get a summary of the current case status.
-    
+
     Quick overview including:
     - Case number and stage
     - Days until hearing
@@ -156,26 +160,27 @@ async def get_case_summary(
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     summary = service.get_case_summary()
-    
+
     # Enhance with processed documents info
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
-        
+
         extracted_info = distributor.get_extracted_case_info(user.user_id)
         urgent_docs = distributor.get_urgent_documents(user.user_id)
-        action_docs = distributor.get_documents_with_action_items(user.user_id)
-        
+        distributor.get_documents_with_action_items(user.user_id)
+
         summary["processed_documents_count"] = extracted_info.get("documents_count", 0)
         summary["urgent_documents_count"] = len(urgent_docs)
         summary["pending_action_items"] = len(extracted_info.get("action_items", []))
         summary["timeline_events_count"] = len(extracted_info.get("timeline_events", []))
-        
+
     except Exception as e:
         logger.warning(f"Document query failed: {e}")
-    
+
     return summary
 
 
@@ -186,21 +191,21 @@ async def update_case_info(
 ):
     """
     Update case information.
-    
+
     All fields are optional - only provided fields will be updated.
     This data flows to all form generation endpoints.
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     update_dict = updates.model_dump(exclude_unset=True)
-    
+
     # Convert nested models
     if updates.tenant:
         update_dict["tenant"] = updates.tenant.model_dump(exclude_unset=True)
     if updates.landlord:
         update_dict["landlord"] = updates.landlord.model_dump(exclude_unset=True)
-    
+
     service.update_case_info(update_dict)
     return {"status": "updated", "case": service.get_case_summary()}
 
@@ -211,7 +216,7 @@ async def get_answer_form_data(
 ):
     """
     Get pre-filled data for the Answer to Eviction Complaint form.
-    
+
     Returns all fields needed for HOU301 form, populated from:
     - Case information entered by user
     - Data extracted from uploaded documents (unified upload)
@@ -219,28 +224,29 @@ async def get_answer_form_data(
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     form_data = service.get_answer_form_data()
-    
+
     # Enhance with processed document data
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
         extracted_info = distributor.get_extracted_case_info(user.user_id)
-        
+
         # Auto-fill case number if available
         if not form_data.get("case_number") and extracted_info.get("case_numbers"):
             form_data["case_number"] = extracted_info["case_numbers"][0]
-        
+
         # Add extracted parties
         form_data["extracted_parties"] = extracted_info.get("parties", [])
         form_data["extracted_dates"] = extracted_info.get("dates", [])
         form_data["extracted_amounts"] = extracted_info.get("amounts", [])
         form_data["action_items"] = extracted_info.get("action_items", [])
-        
+
     except Exception as e:
         logger.warning(f"Form data lookup failed: {e}")
-    
+
     return {
         "form_id": "HOU301",
         "form_name": "Answer to Eviction Complaint",
@@ -251,7 +257,7 @@ async def get_answer_form_data(
             "Add any counterclaims if applicable",
             "Sign and date the form",
             "File with the court before your deadline",
-        ]
+        ],
     }
 
 
@@ -262,20 +268,17 @@ async def get_motion_form_data(
 ):
     """
     Get pre-filled data for motion forms.
-    
+
     Supported motion types:
     - dismiss: Motion to Dismiss
-    - continuance: Motion for Continuance  
+    - continuance: Motion for Continuance
     - stay: Motion to Stay Eviction
     - fee_waiver: Fee Waiver Application
     """
     valid_types = ["dismiss", "continuance", "stay", "fee_waiver"]
     if motion_type not in valid_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid motion type. Must be one of: {valid_types}"
-        )
-    
+        raise HTTPException(status_code=400, detail=f"Invalid motion type. Must be one of: {valid_types}")
+
     service = get_form_data_service(user.user_id)
     await service.load()
     return {
@@ -290,7 +293,7 @@ async def get_counterclaim_form_data(
 ):
     """
     Get pre-filled data for counterclaim form.
-    
+
     Returns data for filing counterclaims against the landlord.
     """
     service = get_form_data_service(user.user_id)
@@ -308,7 +311,7 @@ async def add_defense(
 ):
     """
     Add a defense to the case.
-    
+
     Defense codes come from /dakota/procedures/defenses endpoint.
     Selected defenses will be included in generated forms.
     """
@@ -350,7 +353,7 @@ async def add_counterclaim(
 ):
     """
     Add a counterclaim to the case.
-    
+
     Counterclaim codes come from /dakota/procedures/counterclaims endpoint.
     """
     service = get_form_data_service(user.user_id)
@@ -378,7 +381,7 @@ async def get_case_documents(
 ):
     """
     Get all documents associated with this case.
-    
+
     Returns documents from the vault with extracted data.
     """
     service = get_form_data_service(user.user_id)
@@ -397,7 +400,7 @@ async def get_case_timeline(
 ):
     """
     Get timeline events for this case.
-    
+
     Events are derived from uploaded documents and manual entries.
     """
     service = get_form_data_service(user.user_id)
@@ -414,14 +417,15 @@ async def refresh_form_data(
 ):
     """
     Refresh form data by re-processing all documents.
-    
+
     Call this after uploading new documents to update extracted data.
     """
     # Clear cached service to force reload
     from app.services.form_data import _form_data_services
+
     if user.user_id in _form_data_services:
         del _form_data_services[user.user_id]
-    
+
     service = get_form_data_service(user.user_id)
     await service.load()
     return {

@@ -19,7 +19,6 @@ from __future__ import annotations
 import argparse
 from datetime import datetime
 from pathlib import Path
-import sys
 
 REQUIRED_DOCS = ["PROJECT_BIBLE.md", "README.md", "AGENTS.md"]
 ACK_FILE = Path(".semptify_read_ack")
@@ -66,17 +65,14 @@ def show_doc_summaries(lines: int = 20) -> None:
 
 def write_acknowledgement() -> None:
     ACK_FILE.write_text(
-        f"ACKNOWLEDGED {datetime.utcnow().isoformat()}Z\n"
-        f"Canonical files read: {', '.join(REQUIRED_DOCS)}\n",
+        f"ACKNOWLEDGED {datetime.utcnow().isoformat()}Z\nCanonical files read: {', '.join(REQUIRED_DOCS)}\n",
         encoding="utf-8",
     )
     print(f"\nAcknowledgement recorded in {ACK_FILE.absolute()}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Require Semptify canonical docs to be read before work begins."
-    )
+    parser = argparse.ArgumentParser(description="Require Semptify canonical docs to be read before work begins.")
     parser.add_argument(
         "--show-only",
         action="store_true",

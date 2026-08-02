@@ -12,7 +12,6 @@ Gates (in order):
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class OnboardingState:
     """Immutable snapshot of a user's gate completion state."""
+
     user_id: str
     storage_connected: bool
     vault_initialized: bool
@@ -33,7 +33,7 @@ class OnboardingState:
         return self.storage_connected and self.vault_initialized
 
     @property
-    def next_required_gate(self) -> Optional[str]:
+    def next_required_gate(self) -> str | None:
         """
         Returns the name of the first incomplete gate, or None if all done.
         This is the single routing decision point for all middleware.
@@ -45,7 +45,7 @@ class OnboardingState:
         return None
 
     @property
-    def next_required_path(self) -> Optional[str]:
+    def next_required_path(self) -> str | None:
         """
         Returns the SSOT path for the next required onboarding step.
         Uses navigation registry — no hardcoded paths.
@@ -57,9 +57,10 @@ class OnboardingState:
 
         try:
             from app.core.navigation import navigation
+
             gate_to_stage = {
                 "storage_connected": "storage_select",  # /onboarding/providers (new users)
-                "vault_initialized": "vault_setup",     # /onboarding/vault-setup
+                "vault_initialized": "vault_setup",  # /onboarding/vault-setup
             }
             stage_id = gate_to_stage.get(gate)
             if stage_id:
@@ -97,9 +98,8 @@ async def get_onboarding_state(
     """
     try:
         from app.models.models import User
-        result = await db.execute(
-            select(User.completed_groups).where(User.id == user_id)
-        )
+
+        result = await db.execute(select(User.completed_groups).where(User.id == user_id))
         row = result.scalar_one_or_none()
     except Exception as exc:
         logger.warning("get_onboarding_state DB error for user %s: %s", user_id[:6] + "***", exc)
@@ -112,7 +112,7 @@ async def get_onboarding_state(
             vault_initialized=False,
         )
 
-    completed = set(g.strip() for g in row.split(",") if g.strip())
+    completed = {g.strip() for g in row.split(",") if g.strip()}
 
     return OnboardingState(
         user_id=user_id,
@@ -121,7 +121,7 @@ async def get_onboarding_state(
     )
 
 
-async def get_onboarding_state_no_db(completed_groups_str: Optional[str], user_id: str) -> OnboardingState:
+async def get_onboarding_state_no_db(completed_groups_str: str | None, user_id: str) -> OnboardingState:
     """
     Build OnboardingState from an already-fetched completed_groups string.
     Use this when the DB row has already been loaded to avoid a second query.
@@ -130,7 +130,7 @@ async def get_onboarding_state_no_db(completed_groups_str: Optional[str], user_i
         completed_groups_str: The User.completed_groups value (may be None).
         user_id: Raw user ID string.
     """
-    completed = set(g.strip() for g in (completed_groups_str or "").split(",") if g.strip())
+    completed = {g.strip() for g in (completed_groups_str or "").split(",") if g.strip()}
     return OnboardingState(
         user_id=user_id,
         storage_connected="storage_connected" in completed,

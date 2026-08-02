@@ -8,13 +8,13 @@ Use this as a template for creating your own plugins!
 
 import logging
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 # Import the SDK
 from app.sdk import (
-    ModuleSDK,
-    ModuleDefinition,
     ModuleCategory,
+    ModuleDefinition,
+    ModuleSDK,
     PackType,
 )
 
@@ -31,12 +31,10 @@ module_definition = ModuleDefinition(
     description="Example plugin demonstrating the plugin system",
     version="1.0.0",
     category=ModuleCategory.UTILITY,
-    
     handles_documents=[],
     accepts_packs=[PackType.USER_DATA],
     produces_packs=[PackType.CUSTOM],
     depends_on=[],
-    
     has_ui=False,
     has_background_tasks=False,
     requires_auth=False,
@@ -54,6 +52,7 @@ sdk = ModuleSDK(module_definition)
 # ACTIONS
 # =============================================================================
 
+
 @sdk.action(
     "greet",
     description="Send a friendly greeting",
@@ -62,16 +61,16 @@ sdk = ModuleSDK(module_definition)
 )
 async def greet(
     user_id: str,
-    params: Dict[str, Any],
-    context: Dict[str, Any],
-) -> Dict[str, Any]:
+    params: dict[str, Any],
+    context: dict[str, Any],
+) -> dict[str, Any]:
     """Generate a personalized greeting"""
     name = params.get("name", "Friend")
-    
+
     greeting = f"Hello, {name}! Welcome to Semptify! 👋"
-    
+
     logger.info(f"hello_world: Greeted {name}")
-    
+
     return {
         "greeting": greeting,
         "timestamp": datetime.utcnow().isoformat(),
@@ -86,12 +85,12 @@ async def greet(
 )
 async def echo(
     user_id: str,
-    params: Dict[str, Any],
-    context: Dict[str, Any],
-) -> Dict[str, Any]:
+    params: dict[str, Any],
+    context: dict[str, Any],
+) -> dict[str, Any]:
     """Echo a message back"""
     message = params.get("message", "")
-    
+
     return {
         "echo": message,
         "original_length": len(message),
@@ -106,9 +105,9 @@ async def echo(
 )
 async def get_info(
     user_id: str,
-    params: Dict[str, Any],
-    context: Dict[str, Any],
-) -> Dict[str, Any]:
+    params: dict[str, Any],
+    context: dict[str, Any],
+) -> dict[str, Any]:
     """Return information about this plugin"""
     return {
         "info": {
@@ -129,9 +128,9 @@ async def get_info(
 )
 async def get_state(
     user_id: str,
-    params: Dict[str, Any],
-    context: Dict[str, Any],
-) -> Dict[str, Any]:
+    params: dict[str, Any],
+    context: dict[str, Any],
+) -> dict[str, Any]:
     """Return plugin state for sync operations"""
     return {
         "hello_world_state": {
@@ -146,8 +145,9 @@ async def get_state(
 # EVENT HANDLERS
 # =============================================================================
 
+
 @sdk.on_event("workflow_started")
-async def on_workflow_started(event_type: str, data: Dict[str, Any]):
+async def on_workflow_started(event_type: str, data: dict[str, Any]):
     """React to workflow start events"""
     logger.debug(f"hello_world: Noticed workflow started - {data.get('workflow_id')}")
 
@@ -155,6 +155,7 @@ async def on_workflow_started(event_type: str, data: Dict[str, Any]):
 # =============================================================================
 # INITIALIZATION
 # =============================================================================
+
 
 def initialize():
     """Initialize the plugin - called when plugin is loaded"""

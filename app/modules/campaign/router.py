@@ -2,15 +2,16 @@
 Campaign Orchestration Router
 Combines Complaints, Fraud Exposure, and Public Exposure into unified campaigns
 """
-from fastapi import APIRouter, Depends, HTTPException, Body
-from typing import Dict, Any, Optional, List
-from datetime import datetime
-from app.core.utc import utc_now
-from pydantic import BaseModel
+
 import logging
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 from app.core.id_gen import make_id
-from app.core.security import require_user, StorageUser, yellow_access
+from app.core.security import StorageUser, yellow_access
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -20,54 +21,62 @@ router = APIRouter(prefix="/api/campaign", tags=["Campaign Orchestration"])
 # MODELS
 # =============================================================================
 
+
 class ComplaintInput(BaseModel):
     target_agency: str
     violation_type: str
     facts: str
     language: str = "en"
-    property_address: Optional[str] = None
-    landlord_name: Optional[str] = None
+    property_address: str | None = None
+    landlord_name: str | None = None
+
 
 class FraudInput(BaseModel):
     landlord_id: str
-    case_docs: List[Dict[str, Any]] = []
-    subsidies: List[str] = []
-    lenders: List[str] = []
-    property_address: Optional[str] = None
+    case_docs: list[dict[str, Any]] = []
+    subsidies: list[str] = []
+    lenders: list[str] = []
+    property_address: str | None = None
+
 
 class PressInput(BaseModel):
     property: str
     violations: str
     contact: str
-    bundle_link: Optional[str] = None
+    bundle_link: str | None = None
     language: str = "en"
+
 
 class CampaignLaunchRequest(BaseModel):
     """Full campaign launch combining all three modules"""
+
     name: str
-    complaint: Optional[ComplaintInput] = None
-    fraud: Optional[FraudInput] = None
-    press: Optional[PressInput] = None
+    complaint: ComplaintInput | None = None
+    fraud: FraudInput | None = None
+    press: PressInput | None = None
     auto_generate_bundle: bool = True
+
 
 class CampaignStatus(BaseModel):
     id: str
     name: str
     status: str
     created_at: str
-    complaint_id: Optional[str] = None
-    fraud_report_id: Optional[str] = None
-    press_release_id: Optional[str] = None
-    zip_bundle_path: Optional[str] = None
+    complaint_id: str | None = None
+    fraud_report_id: str | None = None
+    press_release_id: str | None = None
+    zip_bundle_path: str | None = None
+
 
 # In-memory storage for campaigns (would use DB in production)
-_campaigns: Dict[str, Dict[str, Any]] = {}
+_campaigns: dict[str, dict[str, Any]] = {}
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
-async def file_complaint_internal(user_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
+
+async def file_complaint_internal(user_id: str, params: dict[str, Any]) -> dict[str, Any]:
     """Internal complaint filing"""
     record = {
         "id": make_id("cmp"),
@@ -79,69 +88,77 @@ async def file_complaint_internal(user_id: str, params: Dict[str, Any]) -> Dict[
         "property_address": params.get("property_address"),
         "landlord_name": params.get("landlord_name"),
         "status": "submitted",
-        "created_at": utc_now().isoformat()
+        "created_at": utc_now().isoformat(),
     }
     return {"complaint_record": record}
 
-async def analyze_fraud_internal(user_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
+
+async def analyze_fraud_internal(user_id: str, params: dict[str, Any]) -> dict[str, Any]:
     """Internal fraud analysis"""
     findings = []
     case_docs = params.get("case_docs", [])
     subsidies = params.get("subsidies", [])
     lenders = params.get("lenders", [])
-    
+
     # Check for unsigned documents
     if any(d.get("signature_status") == "missing" for d in case_docs):
-        findings.append({
-            "rule": "unsigned_documents",
-            "severity": "high",
-            "description": "Documents found without required signatures"
-        })
-    
+        findings.append(
+            {
+                "rule": "unsigned_documents",
+                "severity": "high",
+                "description": "Documents found without required signatures",
+            }
+        )
+
     # Check for HUD subsidy issues
     if "HUD" in subsidies or "Section 8" in subsidies:
-        findings.append({
-            "rule": "hud_subsidy_review",
-            "severity": "medium",
-            "description": "Property receives federal housing subsidies - enhanced scrutiny applies"
-        })
-    
+        findings.append(
+            {
+                "rule": "hud_subsidy_review",
+                "severity": "medium",
+                "description": "Property receives federal housing subsidies - enhanced scrutiny applies",
+            }
+        )
+
     # Check for multiple lenders (potential fraud indicator)
     if len(lenders) > 2:
-        findings.append({
-            "rule": "multiple_lenders",
-            "severity": "medium",
-            "description": f"Property has {len(lenders)} lenders - potential mortgage fraud indicator"
-        })
-    
+        findings.append(
+            {
+                "rule": "multiple_lenders",
+                "severity": "medium",
+                "description": f"Property has {len(lenders)} lenders - potential mortgage fraud indicator",
+            }
+        )
+
     risk_score = len(findings) * 25
     risk_level = "low" if risk_score < 25 else "medium" if risk_score < 75 else "high"
-    
+
     report = {
         "id": make_id("frd"),
         "landlord_id": params.get("landlord_id"),
         "findings": findings,
         "risk_score": min(risk_score, 100),
         "risk_level": risk_level,
-        "created_at": utc_now().isoformat()
+        "created_at": utc_now().isoformat(),
     }
     return {"fraud_report": report}
 
-async def generate_press_internal(user_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
+
+async def generate_press_internal(user_id: str, params: dict[str, Any]) -> dict[str, Any]:
     """Internal press release generation"""
     property_name = params.get("property", "Unknown Property")
     violations = params.get("violations", "housing violations")
     contact = params.get("contact", "tenant advocate")
     bundle_link = params.get("bundle_link", "")
     language = params.get("language", "en")
-    
+
     headlines = {
         "en": f"Tenants Expose Housing Violations at {property_name}",
         "es": f"Inquilinos Denuncian Violaciones de Vivienda en {property_name}",
         "hmn": f"Cov Neeg Xauj Tsev Qhia Txog Kev Ua Txhaum Tsev nyob {property_name}",
-        "so": f"Kireystayaashu Waxay Daaha Ka Qaadeen Xadgudubyada Guryaha {property_name}"
+        "so": f"Kireystayaashu Waxay Daaha Ka Qaadeen Xadgudubyada Guryaha {property_name}",
     }
-    
+
     release = {
         "id": make_id("prs"),
         "headline": headlines.get(language, headlines["en"]),
@@ -162,36 +179,36 @@ CONTACT:
 {contact}
 
 SUPPORTING DOCUMENTATION:
-{bundle_link if bundle_link else 'Available upon request'}
+{bundle_link if bundle_link else "Available upon request"}
 
 ###
         """.strip(),
         "cta": f"Contact: {contact}",
         "bundle": bundle_link,
         "language": language,
-        "created_at": utc_now().isoformat()
+        "created_at": utc_now().isoformat(),
     }
     return {"press_release": release}
 
-async def export_zip_internal(complaint_id: str) -> Dict[str, Any]:
+
+async def export_zip_internal(complaint_id: str) -> dict[str, Any]:
     """Generate export bundle"""
     return {
         "zip_bundle": {
             "complaint_id": complaint_id,
             "zip_path": f"/exports/{complaint_id}.zip",
-            "created_at": utc_now().isoformat()
+            "created_at": utc_now().isoformat(),
         }
     }
+
 
 # =============================================================================
 # ENDPOINTS
 # =============================================================================
 
-@router.post("/launch", response_model=Dict[str, Any])
-async def launch_campaign(
-    payload: CampaignLaunchRequest,
-    user: StorageUser = Depends(yellow_access)
-):
+
+@router.post("/launch", response_model=dict[str, Any])
+async def launch_campaign(payload: CampaignLaunchRequest, user: StorageUser = Depends(yellow_access)):
     """
     Launch a full accountability campaign combining:
     - Complaint filing with regulatory agencies
@@ -199,29 +216,29 @@ async def launch_campaign(
     - Press release generation
     - Evidence bundle export
     """
-    user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
+    user_id = user.user_id if hasattr(user, "user_id") else "anonymous"
     campaign_id = make_id("camp")
-    
+
     results = {
         "campaign_id": campaign_id,
         "name": payload.name,
         "status": "launched",
         "created_at": utc_now().isoformat(),
-        "components": {}
+        "components": {},
     }
-    
+
     # File complaint if provided
     complaint_id = None
     if payload.complaint:
         complaint_result = await file_complaint_internal(user_id, payload.complaint.dict())
         results["components"]["complaint"] = complaint_result
         complaint_id = complaint_result["complaint_record"]["id"]
-    
+
     # Analyze fraud if provided
     if payload.fraud:
         fraud_result = await analyze_fraud_internal(user_id, payload.fraud.dict())
         results["components"]["fraud"] = fraud_result
-    
+
     # Generate press release if provided
     if payload.press:
         press_data = payload.press.dict()
@@ -229,70 +246,55 @@ async def launch_campaign(
             press_data["bundle_link"] = f"/api/campaign/download/{campaign_id}"
         press_result = await generate_press_internal(user_id, press_data)
         results["components"]["press"] = press_result
-    
+
     # Generate export bundle if complaint was filed
     if complaint_id and payload.auto_generate_bundle:
         export_result = await export_zip_internal(complaint_id)
         results["components"]["export"] = export_result
-    
+
     # Store campaign
     _campaigns[campaign_id] = results
-    
+
     logger.info(f"🚀 Campaign launched: {campaign_id} by user {user_id}")
     return results
 
+
 @router.get("/status/{campaign_id}")
-async def get_campaign_status(
-    campaign_id: str,
-    user: StorageUser = Depends(yellow_access)
-):
+async def get_campaign_status(campaign_id: str, user: StorageUser = Depends(yellow_access)):
     """Get status of a launched campaign"""
     if campaign_id not in _campaigns:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return _campaigns[campaign_id]
 
+
 @router.get("/list")
-async def list_campaigns(
-    user: StorageUser = Depends(yellow_access)
-):
+async def list_campaigns(user: StorageUser = Depends(yellow_access)):
     """List all campaigns for the current user"""
-    return {
-        "campaigns": list(_campaigns.values()),
-        "total": len(_campaigns)
-    }
+    return {"campaigns": list(_campaigns.values()), "total": len(_campaigns)}
+
 
 @router.post("/quick-file")
-async def quick_file_complaint(
-    payload: ComplaintInput,
-    user: StorageUser = Depends(yellow_access)
-):
+async def quick_file_complaint(payload: ComplaintInput, user: StorageUser = Depends(yellow_access)):
     """Quick complaint filing without full campaign"""
-    user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
+    user_id = user.user_id if hasattr(user, "user_id") else "anonymous"
     return await file_complaint_internal(user_id, payload.dict())
 
+
 @router.post("/quick-analyze")
-async def quick_analyze_fraud(
-    payload: FraudInput,
-    user: StorageUser = Depends(yellow_access)
-):
+async def quick_analyze_fraud(payload: FraudInput, user: StorageUser = Depends(yellow_access)):
     """Quick fraud analysis without full campaign"""
-    user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
+    user_id = user.user_id if hasattr(user, "user_id") else "anonymous"
     return await analyze_fraud_internal(user_id, payload.dict())
 
+
 @router.post("/quick-press")
-async def quick_generate_press(
-    payload: PressInput,
-    user: StorageUser = Depends(yellow_access)
-):
+async def quick_generate_press(payload: PressInput, user: StorageUser = Depends(yellow_access)):
     """Quick press release generation without full campaign"""
-    user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
+    user_id = user.user_id if hasattr(user, "user_id") else "anonymous"
     return await generate_press_internal(user_id, payload.dict())
+
 
 @router.get("/health")
 async def campaign_health():
     """Health check for campaign service"""
-    return {
-        "status": "ok",
-        "service": "campaign_orchestration",
-        "active_campaigns": len(_campaigns)
-    }
+    return {"status": "ok", "service": "campaign_orchestration", "active_campaigns": len(_campaigns)}

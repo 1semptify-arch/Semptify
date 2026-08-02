@@ -43,15 +43,18 @@ router = APIRouter(tags=["Agent Orchestrator"])
 # Auth — reuse stealth admin from admin_console
 # =============================================================================
 
+
 async def _stealth_admin(request: Request):
     """Stealth admin guard — returns 404 to non-admins."""
     from app.modules.admin_console.router import _stealth_admin as _admin
+
     return await _admin(request)
 
 
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("/tasks", response_model=list[AgentTaskResponse])
 async def list_tasks(

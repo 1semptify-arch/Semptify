@@ -1,5 +1,4 @@
 """FEMS SQLAlchemy models — extends Semptify's database."""
-from datetime import datetime, timezone
 
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
@@ -61,6 +60,7 @@ class FemsPhoneNumber(Base):
 
 class FemsDocumentPhone(Base):
     """Many-to-many link between documents and phone numbers."""
+
     __tablename__ = "fems_document_phones"
 
     id = Column(Integer, primary_key=True, index=True)

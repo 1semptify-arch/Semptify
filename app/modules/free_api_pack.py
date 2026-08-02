@@ -56,7 +56,7 @@ def _data_gov_key() -> str | None:
 # Shared HTTP helpers
 # =============================================================================
 
-_USER_AGENT = "Mozilla/5.0 (compatible; Semptify/5.0; +https://semptify.org) " "Free-API-Pack/2.0"
+_USER_AGENT = "Mozilla/5.0 (compatible; Semptify/5.0; +https://semptify.org) Free-API-Pack/2.0"
 _DEFAULT_TIMEOUT = 10.0
 _HEADERS = {
     "User-Agent": _USER_AGENT,

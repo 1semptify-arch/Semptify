@@ -4,33 +4,30 @@ Controls Positronic Mesh intensity to conserve resources while
 maintaining core mechanics integrity.
 """
 
-from dataclasses import dataclass
-from typing import Set
 import logging
+from dataclasses import dataclass
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class MeshModeConfig:
     """Configuration for mesh operating mode."""
-    
+
     mode: str  # "lean" or "full"
     max_concurrent_workflows: int
     enable_speculative_execution: bool
     enable_action_chaining: bool
-    deferred_action_modules: Set[str]
+    deferred_action_modules: set[str]
     critical_only: bool
-    
+
     def is_action_allowed(self, module: str, action: str) -> bool:
         """Check if action should execute in current mode."""
         if self.mode == "full":
             return True
-        
+
         # Lean mode: skip deferred modules
-        if module in self.deferred_action_modules:
-            return False
-        
-        return True
+        return module not in self.deferred_action_modules
 
 
 # Default Lean Mode: Core mechanics only
@@ -42,7 +39,7 @@ LEAN_MESH_CONFIG = MeshModeConfig(
     deferred_action_modules={
         # Deferred until scale-up triggers met
         "fraud_exposure",
-        "public_exposure", 
+        "public_exposure",
         "research",
         "legal_trails",
         "adaptive_ui",
@@ -68,10 +65,7 @@ current_mesh_config = LEAN_MESH_CONFIG
 def set_mesh_mode(mode: str) -> MeshModeConfig:
     """Switch mesh operating mode."""
     global current_mesh_config
-    if mode == "full":
-        current_mesh_config = FULL_MESH_CONFIG
-    else:
-        current_mesh_config = LEAN_MESH_CONFIG
+    current_mesh_config = FULL_MESH_CONFIG if mode == "full" else LEAN_MESH_CONFIG
     return current_mesh_config
 
 

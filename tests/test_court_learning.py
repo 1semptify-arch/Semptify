@@ -213,7 +213,7 @@ class TestBidirectionalFlow:
         for i in range(10):
             await engine.record_case_outcome(
                 user_id=f"tenant_{i}",
-                case_number=f"19-CV-25-{1000+i}",
+                case_number=f"19-CV-25-{1000 + i}",
                 outcome=CaseOutcome.WON if i < 7 else CaseOutcome.LOST,
                 defenses_used=["habitability"],
                 primary_defense="habitability",
@@ -222,8 +222,8 @@ class TestBidirectionalFlow:
 
         for i in range(10):
             await engine.record_case_outcome(
-                user_id=f"tenant_{10+i}",
-                case_number=f"19-CV-25-{2000+i}",
+                user_id=f"tenant_{10 + i}",
+                case_number=f"19-CV-25-{2000 + i}",
                 outcome=CaseOutcome.WON if i < 2 else CaseOutcome.LOST,
                 defenses_used=["payment"],
                 primary_defense="payment",

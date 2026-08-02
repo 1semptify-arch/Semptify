@@ -26,27 +26,28 @@ logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 
 try:
-    from app.core.user_context import UserRole
     from app.core.process_registry import (
         ALL_GROUP_NAMES,
-        VALID_COVERAGE_VALUES,
         COVERAGE_ACTIVE,
-        COVERAGE_LINKED,
         COVERAGE_GUARDED,
+        COVERAGE_LINKED,
         COVERAGE_NA,
+        VALID_COVERAGE_VALUES,
     )
+    from app.core.user_context import UserRole
 except ImportError:
     import sys
+
     sys.path.insert(0, r"c:\Semptify\Semptify-FastAPI")
-    from app.core.user_context import UserRole
     from app.core.process_registry import (
         ALL_GROUP_NAMES,
-        VALID_COVERAGE_VALUES,
         COVERAGE_ACTIVE,
-        COVERAGE_LINKED,
         COVERAGE_GUARDED,
+        COVERAGE_LINKED,
         COVERAGE_NA,
+        VALID_COVERAGE_VALUES,
     )
+    from app.core.user_context import UserRole
 
 
 # =============================================================================
@@ -67,20 +68,21 @@ class PageContract:
     Declares a page's relationship to the 8 process groups and routing rules.
     All 8 group names must be present in group_coverage.
     """
-    page_id: str                              # e.g. "welcome", "tenant_vault"
-    title: str                                # human-readable page name
-    route: str                                # URL path, e.g. "/"
-    roles_supported: list[UserRole]           # roles that may access this page
-    primary_groups: list[str]                 # group names this page leads with
-    secondary_groups: list[str]               # group names touched but not primary
-    group_coverage: dict[str, str]            # all 8 group names → coverage state
-    qualification: str                        # plain-English access requirement
-    expectations: str                         # what the user accomplishes here
-    scope_of_use: str                         # intended use boundaries
-    entry_criteria: list[str]                 # what must be true before page loads
-    exit_criteria: list[str]                  # what must be true for a "clean exit"
-    telemetry_events: list[str]               # event names emitted by this page
-    status: str = STATUS_ACTIVE               # "active", "coming_soon", "beta", "deprecated"
+
+    page_id: str  # e.g. "welcome", "tenant_vault"
+    title: str  # human-readable page name
+    route: str  # URL path, e.g. "/"
+    roles_supported: list[UserRole]  # roles that may access this page
+    primary_groups: list[str]  # group names this page leads with
+    secondary_groups: list[str]  # group names touched but not primary
+    group_coverage: dict[str, str]  # all 8 group names → coverage state
+    qualification: str  # plain-English access requirement
+    expectations: str  # what the user accomplishes here
+    scope_of_use: str  # intended use boundaries
+    entry_criteria: list[str]  # what must be true before page loads
+    exit_criteria: list[str]  # what must be true for a "clean exit"
+    telemetry_events: list[str]  # event names emitted by this page
+    status: str = STATUS_ACTIVE  # "active", "coming_soon", "beta", "deprecated"
 
     def validate(self) -> list[str]:
         """
@@ -119,10 +121,7 @@ class PageContract:
 
         # Status must be valid
         if self.status not in VALID_STATUSES:
-            errors.append(
-                f"[{self.page_id}] Invalid status '{self.status}'. "
-                f"Must be one of {sorted(VALID_STATUSES)}"
-            )
+            errors.append(f"[{self.page_id}] Invalid status '{self.status}'. Must be one of {sorted(VALID_STATUSES)}")
 
         return errors
 
@@ -144,7 +143,7 @@ def _full_coverage(**overrides: str) -> dict[str, str]:
     Build a complete 8-group coverage dict starting from all n-a,
     then applying the given overrides.
     """
-    base = {name: COVERAGE_NA for name in ALL_GROUP_NAMES}
+    base = dict.fromkeys(ALL_GROUP_NAMES, COVERAGE_NA)
     base.update(overrides)
     return base
 
@@ -163,12 +162,12 @@ CONTRACT_WELCOME = PageContract(
     secondary_groups=["security_validation", "help_contacts"],
     group_coverage=_full_coverage(
         welcome=COVERAGE_ACTIVE,
-        security_validation=COVERAGE_GUARDED,    # storage connect is surfaced but optional
-        documentation=COVERAGE_GUARDED,          # shown as "coming next" but not active
+        security_validation=COVERAGE_GUARDED,  # storage connect is surfaced but optional
+        documentation=COVERAGE_GUARDED,  # shown as "coming next" but not active
         research_knowledge=COVERAGE_NA,
         functions_actions=COVERAGE_NA,
         output_delivery=COVERAGE_NA,
-        help_contacts=COVERAGE_LINKED,           # link to help is always visible
+        help_contacts=COVERAGE_LINKED,  # link to help is always visible
         system_admin_monitoring=COVERAGE_NA,
     ),
     qualification="No authentication required. Public entry point.",
@@ -202,7 +201,7 @@ CONTRACT_TENANT = PageContract(
     secondary_groups=["research_knowledge", "output_delivery", "help_contacts"],
     group_coverage=_full_coverage(
         welcome=COVERAGE_LINKED,
-        security_validation=COVERAGE_ACTIVE,     # token check happens here
+        security_validation=COVERAGE_ACTIVE,  # token check happens here
         documentation=COVERAGE_ACTIVE,
         research_knowledge=COVERAGE_LINKED,
         functions_actions=COVERAGE_ACTIVE,
@@ -301,7 +300,7 @@ CONTRACT_PROFESSIONAL = PageContract(
         functions_actions=COVERAGE_ACTIVE,
         output_delivery=COVERAGE_ACTIVE,
         help_contacts=COVERAGE_LINKED,
-        system_admin_monitoring=COVERAGE_GUARDED,   # admin link visible but guarded for non-admins
+        system_admin_monitoring=COVERAGE_GUARDED,  # admin link visible but guarded for non-admins
     ),
     qualification="Advocate, Case Manager, Legal, or Admin role required. Storage must be connected.",
     expectations=(
@@ -450,7 +449,6 @@ CONTRACT_LEGAL = PageContract(
         "signature_request_uploaded",
     ],
 )
-
 
 
 # =============================================================================
@@ -1326,7 +1324,12 @@ CONTRACT_COUNTERCLAIM = PageContract(
     scope_of_use="Counterclaim drafting for eviction defense proceedings.",
     entry_criteria=["User authenticated", "Eviction case active"],
     exit_criteria=["Counterclaim drafted or added to packet"],
-    telemetry_events=["counterclaim_load", "counterclaim_type_selected", "counterclaim_drafted", "counterclaim_added_to_packet"],
+    telemetry_events=[
+        "counterclaim_load",
+        "counterclaim_type_selected",
+        "counterclaim_drafted",
+        "counterclaim_added_to_packet",
+    ],
 )
 
 CONTRACT_CASE_BUILDER = PageContract(
@@ -2166,80 +2169,152 @@ CONTRACT_HUD_FUNDING = PageContract(
 
 # Low-priority / admin / dev tool contracts — minimal telemetry
 CONTRACT_FOCUS = PageContract(
-    page_id="focus", title="Focus Mode", route="/focus",
+    page_id="focus",
+    title="Focus Mode",
+    route="/focus",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["functions_actions"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
-    qualification="Authenticated user.", expectations="User enters distraction-free work mode.",
+    primary_groups=["functions_actions"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Authenticated user.",
+    expectations="User enters distraction-free work mode.",
     scope_of_use="Focus mode workspace.",
-    entry_criteria=["User authenticated"], exit_criteria=["Focus session ended"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Focus session ended"],
     telemetry_events=["focus_load", "focus_session_started", "focus_session_ended"],
 )
 
 CONTRACT_CAMPAIGN = PageContract(
-    page_id="campaign", title="Campaign", route="/campaign",
+    page_id="campaign",
+    title="Campaign",
+    route="/campaign",
     roles_supported=[UserRole.ADVOCATE, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["output_delivery"], secondary_groups=["help_contacts"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_LINKED,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
-    qualification="Role in (advocate, manager, admin).", expectations="User manages tenant rights campaigns.",
+    primary_groups=["output_delivery"],
+    secondary_groups=["help_contacts"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_LINKED,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Role in (advocate, manager, admin).",
+    expectations="User manages tenant rights campaigns.",
     scope_of_use="Advocacy campaign management.",
-    entry_criteria=["Advocate authenticated"], exit_criteria=["Campaign created or updated"],
+    entry_criteria=["Advocate authenticated"],
+    exit_criteria=["Campaign created or updated"],
     telemetry_events=["campaign_load", "campaign_created", "campaign_updated"],
 )
 
 CONTRACT_AUTO_ANALYSIS = PageContract(
-    page_id="auto_analysis_summary", title="Auto Analysis Summary", route="/auto-analysis",
+    page_id="auto_analysis_summary",
+    title="Auto Analysis Summary",
+    route="/auto-analysis",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["functions_actions", "output_delivery"], secondary_groups=["documentation"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_LINKED, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
-    qualification="Authenticated user.", expectations="User reviews automated document analysis results.",
+    primary_groups=["functions_actions", "output_delivery"],
+    secondary_groups=["documentation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_LINKED,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Authenticated user.",
+    expectations="User reviews automated document analysis results.",
     scope_of_use="Auto-analysis summary display.",
-    entry_criteria=["User authenticated", "Analysis completed"], exit_criteria=["Analysis reviewed"],
+    entry_criteria=["User authenticated", "Analysis completed"],
+    exit_criteria=["Analysis reviewed"],
     telemetry_events=["auto_analysis_load", "analysis_reviewed", "analysis_exported"],
 )
 
 CONTRACT_EVALUATION_REPORT = PageContract(
-    page_id="evaluation_report", title="Evaluation Report", route="/evaluation-report",
+    page_id="evaluation_report",
+    title="Evaluation Report",
+    route="/evaluation-report",
     roles_supported=[UserRole.ADMIN, UserRole.MANAGER, UserRole.LEGAL],
-    primary_groups=["system_admin_monitoring", "output_delivery"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Role in (admin, manager, legal).", expectations="Admin reviews system evaluation metrics.",
+    primary_groups=["system_admin_monitoring", "output_delivery"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Role in (admin, manager, legal).",
+    expectations="Admin reviews system evaluation metrics.",
     scope_of_use="Evaluation and quality reporting.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Report reviewed"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Report reviewed"],
     telemetry_events=["evaluation_report_load", "metric_reviewed", "report_exported"],
 )
 
 CONTRACT_RECOGNITION = PageContract(
-    page_id="recognition", title="Recognition", route="/recognition",
+    page_id="recognition",
+    title="Recognition",
+    route="/recognition",
     roles_supported=list(UserRole),
-    primary_groups=["help_contacts"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_ACTIVE, system_admin_monitoring=COVERAGE_NA),
-    qualification="Public access.", expectations="User views partner and contributor recognition.",
+    primary_groups=["help_contacts"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_ACTIVE,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Public access.",
+    expectations="User views partner and contributor recognition.",
     scope_of_use="Recognition and attribution page.",
-    entry_criteria=["No auth required"], exit_criteria=["Page read"],
+    entry_criteria=["No auth required"],
+    exit_criteria=["Page read"],
     telemetry_events=["recognition_load", "recognition_viewed"],
 )
 
 CONTRACT_REGISTER_SUCCESS = PageContract(
-    page_id="register_success", title="Registration Success", route="/register/success",
+    page_id="register_success",
+    title="Registration Success",
+    route="/register/success",
     roles_supported=list(UserRole),
-    primary_groups=["welcome"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_ACTIVE, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
-    qualification="Reached post-registration.", expectations="User sees confirmation and is guided to next step.",
+    primary_groups=["welcome"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_ACTIVE,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Reached post-registration.",
+    expectations="User sees confirmation and is guided to next step.",
     scope_of_use="Post-registration confirmation.",
-    entry_criteria=["Registration just completed"], exit_criteria=["User proceeds to onboarding"],
+    entry_criteria=["Registration just completed"],
+    exit_criteria=["User proceeds to onboarding"],
     telemetry_events=["register_success_load", "onboarding_started"],
 )
 
@@ -2247,125 +2322,252 @@ CONTRACT_REGISTER_SUCCESS = PageContract(
 _ADMIN_ROLES = [UserRole.ADMIN, UserRole.MANAGER]
 
 CONTRACT_AUTO_MODE_PANEL = PageContract(
-    page_id="auto_mode_panel", title="Auto Mode Panel", route="/auto-mode-panel",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin controls auto-mode configuration.",
+    page_id="auto_mode_panel",
+    title="Auto Mode Panel",
+    route="/auto-mode-panel",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin controls auto-mode configuration.",
     scope_of_use="Auto-mode control panel.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Mode configured"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Mode configured"],
     telemetry_events=["auto_mode_panel_load", "mode_changed"],
 )
 
 CONTRACT_PAGE_EDITOR = PageContract(
-    page_id="page_editor", title="Page Editor", route="/page-editor",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin edits page content.",
+    page_id="page_editor",
+    title="Page Editor",
+    route="/page-editor",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin edits page content.",
     scope_of_use="Page content editor.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Page saved"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Page saved"],
     telemetry_events=["page_editor_load", "page_edited", "page_saved"],
 )
 
 CONTRACT_LAYOUT_BUILDER = PageContract(
-    page_id="layout_builder", title="Layout Builder", route="/layout-builder",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin builds page layouts.",
+    page_id="layout_builder",
+    title="Layout Builder",
+    route="/layout-builder",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin builds page layouts.",
     scope_of_use="Layout design tool.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Layout saved"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Layout saved"],
     telemetry_events=["layout_builder_load", "layout_changed", "layout_saved"],
 )
 
 CONTRACT_STYLE_EDITOR = PageContract(
-    page_id="style_editor", title="Style Editor", route="/style-editor",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin edits visual styles.",
+    page_id="style_editor",
+    title="Style Editor",
+    route="/style-editor",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin edits visual styles.",
     scope_of_use="Visual style customization.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Styles saved"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Styles saved"],
     telemetry_events=["style_editor_load", "style_changed", "style_saved"],
 )
 
 CONTRACT_MODULE_CONVERTER = PageContract(
-    page_id="module_converter", title="Module Converter", route="/module-converter",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin converts modules between formats.",
+    page_id="module_converter",
+    title="Module Converter",
+    route="/module-converter",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin converts modules between formats.",
     scope_of_use="Module format conversion tool.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Module converted"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Module converted"],
     telemetry_events=["module_converter_load", "module_converted"],
 )
 
 CONTRACT_COMPONENT_CONVERTER = PageContract(
-    page_id="component_converter", title="Component Converter", route="/component-converter",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin converts UI components.",
+    page_id="component_converter",
+    title="Component Converter",
+    route="/component-converter",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin converts UI components.",
     scope_of_use="Component conversion tool.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Component converted"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Component converted"],
     telemetry_events=["component_converter_load", "component_converted"],
 )
 
 CONTRACT_PAGE_INDEX = PageContract(
-    page_id="page_index", title="Page Index", route="/page-index",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin browses the full page catalog.",
+    page_id="page_index",
+    title="Page Index",
+    route="/page-index",
+    roles_supported=_ADMIN_ROLES,
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
+    qualification="Admin only.",
+    expectations="Admin browses the full page catalog.",
     scope_of_use="Internal page index/catalog.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Page navigated"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Page navigated"],
     telemetry_events=["page_index_load", "page_index_navigated"],
 )
 
 CONTRACT_CRAWLER = PageContract(
-    page_id="crawler", title="Court Record Crawler", route="/crawler",
+    page_id="crawler",
+    title="Court Record Crawler",
+    route="/crawler",
     roles_supported=[UserRole.ADMIN, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADVOCATE],
-    primary_groups=["research_knowledge", "functions_actions"], secondary_groups=["documentation"],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_ACTIVE, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
-    qualification="Authorized user.", expectations="User initiates court record crawl for case data.",
+    primary_groups=["research_knowledge", "functions_actions"],
+    secondary_groups=["documentation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_ACTIVE,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Authorized user.",
+    expectations="User initiates court record crawl for case data.",
     scope_of_use="Court record research via web crawler.",
-    entry_criteria=["User authenticated"], exit_criteria=["Crawl completed or results reviewed"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Crawl completed or results reviewed"],
     telemetry_events=["crawler_load", "crawl_started", "crawl_completed", "crawl_result_viewed"],
 )
 
 CONTRACT_ERROR = PageContract(
-    page_id="error", title="Error", route="/error",
+    page_id="error",
+    title="Error",
+    route="/error",
     roles_supported=list(UserRole),
-    primary_groups=["help_contacts"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_ACTIVE, system_admin_monitoring=COVERAGE_NA),
-    qualification="Public access — error handler.", expectations="User sees error details and recovery path.",
+    primary_groups=["help_contacts"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_ACTIVE,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Public access — error handler.",
+    expectations="User sees error details and recovery path.",
     scope_of_use="Error display page.",
-    entry_criteria=["Error condition triggered"], exit_criteria=["User navigates away"],
+    entry_criteria=["Error condition triggered"],
+    exit_criteria=["User navigates away"],
     telemetry_events=["error_page_load", "error_recovery_clicked"],
 )
 
 CONTRACT_INDEX = PageContract(
-    page_id="index", title="Index", route="/index",
+    page_id="index",
+    title="Index",
+    route="/index",
     roles_supported=list(UserRole),
-    primary_groups=["welcome"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_ACTIVE, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
-    qualification="Public access.", expectations="User navigates from index to their area.",
+    primary_groups=["welcome"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_ACTIVE,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Public access.",
+    expectations="User navigates from index to their area.",
     scope_of_use="Static navigation index.",
-    entry_criteria=["No auth required"], exit_criteria=["User navigates"],
+    entry_criteria=["No auth required"],
+    exit_criteria=["User navigates"],
     telemetry_events=["index_load", "index_nav_clicked"],
 )
 
@@ -2375,198 +2577,352 @@ CONTRACT_INDEX = PageContract(
 # =============================================================================
 
 CONTRACT_TENANT_DASHBOARD = PageContract(
-    page_id="tenant_dashboard", title="Tenant Dashboard", route="/tenant-dashboard",
+    page_id="tenant_dashboard",
+    title="Tenant Dashboard",
+    route="/tenant-dashboard",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL],
-    primary_groups=["documentation", "functions_actions"], secondary_groups=["output_delivery", "help_contacts"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE, research_knowledge=COVERAGE_LINKED, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["documentation", "functions_actions"],
+    secondary_groups=["output_delivery", "help_contacts"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_LINKED,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated tenant user.",
     expectations="Tenant reviews case status, deadlines, and next steps.",
     scope_of_use="Tenant-specific case dashboard.",
-    entry_criteria=["User authenticated", "Tenant role"], exit_criteria=["Action taken or status reviewed"],
+    entry_criteria=["User authenticated", "Tenant role"],
+    exit_criteria=["Action taken or status reviewed"],
     telemetry_events=["tenant_dashboard_load", "case_status_viewed", "deadline_checked", "next_step_selected"],
 )
 
 CONTRACT_COURT_LEARNING = PageContract(
-    page_id="court_learning", title="Court Learning", route="/court-learning",
+    page_id="court_learning",
+    title="Court Learning",
+    route="/court-learning",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER],
-    primary_groups=["research_knowledge", "help_contacts"], secondary_groups=["documentation"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_ACTIVE, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_ACTIVE, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["research_knowledge", "help_contacts"],
+    secondary_groups=["documentation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_ACTIVE,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_ACTIVE,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User learns about court procedures, rights, and what to expect.",
     scope_of_use="Educational content about court processes.",
-    entry_criteria=["User authenticated"], exit_criteria=["Module completed or saved"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Module completed or saved"],
     telemetry_events=["court_learning_load", "lesson_opened", "lesson_completed", "module_bookmarked"],
 )
 
 CONTRACT_COMPLETE_JOURNEY = PageContract(
-    page_id="complete_journey", title="Complete Journey", route="/complete-journey",
+    page_id="complete_journey",
+    title="Complete Journey",
+    route="/complete-journey",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER],
-    primary_groups=["welcome", "output_delivery"], secondary_groups=["documentation", "functions_actions"],
-    group_coverage=_full_coverage(welcome=COVERAGE_ACTIVE, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_LINKED, functions_actions=COVERAGE_LINKED,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["welcome", "output_delivery"],
+    secondary_groups=["documentation", "functions_actions"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_ACTIVE,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_LINKED,
+        functions_actions=COVERAGE_LINKED,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User reviews completed journey summary and outcomes.",
     scope_of_use="End-of-journey summary and next steps.",
-    entry_criteria=["User authenticated", "Journey completed"], exit_criteria=["Summary reviewed"],
+    entry_criteria=["User authenticated", "Journey completed"],
+    exit_criteria=["Summary reviewed"],
     telemetry_events=["complete_journey_load", "journey_summary_viewed", "outcome_exported"],
 )
 
 CONTRACT_INTERACTIVE_TIMELINE = PageContract(
-    page_id="interactive_timeline", title="Interactive Timeline", route="/interactive-timeline",
+    page_id="interactive_timeline",
+    title="Interactive Timeline",
+    route="/interactive-timeline",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["documentation", "functions_actions"], secondary_groups=["output_delivery"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["documentation", "functions_actions"],
+    secondary_groups=["output_delivery"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User interacts with a visual case timeline.",
     scope_of_use="Interactive visual timeline for case events.",
-    entry_criteria=["User authenticated"], exit_criteria=["Timeline reviewed or event added"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Timeline reviewed or event added"],
     telemetry_events=["interactive_timeline_load", "event_added", "event_edited", "timeline_exported"],
 )
 
 CONTRACT_TIMELINE_BUILDER = PageContract(
-    page_id="timeline_builder", title="Timeline Builder", route="/timeline-builder",
+    page_id="timeline_builder",
+    title="Timeline Builder",
+    route="/timeline-builder",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["documentation", "functions_actions"], secondary_groups=["output_delivery"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["documentation", "functions_actions"],
+    secondary_groups=["output_delivery"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User builds a structured timeline from case events.",
     scope_of_use="Manual timeline construction for case facts.",
-    entry_criteria=["User authenticated"], exit_criteria=["Timeline built and saved"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Timeline built and saved"],
     telemetry_events=["timeline_builder_load", "event_added", "timeline_saved", "timeline_exported"],
 )
 
 CONTRACT_TIMELINE_AUTO_BUILD = PageContract(
-    page_id="timeline_auto_build", title="Timeline Auto-Build", route="/timeline-auto-build",
+    page_id="timeline_auto_build",
+    title="Timeline Auto-Build",
+    route="/timeline-auto-build",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["functions_actions", "output_delivery"], secondary_groups=["documentation"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["functions_actions", "output_delivery"],
+    secondary_groups=["documentation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="System auto-generates timeline from uploaded documents.",
     scope_of_use="Automated timeline extraction from case documents.",
-    entry_criteria=["User authenticated", "Documents available"], exit_criteria=["Timeline generated"],
+    entry_criteria=["User authenticated", "Documents available"],
+    exit_criteria=["Timeline generated"],
     telemetry_events=["timeline_auto_build_load", "auto_build_started", "timeline_generated", "timeline_reviewed"],
 )
 
 CONTRACT_DOCUMENT_CALENDAR = PageContract(
-    page_id="document_calendar", title="Document Calendar", route="/document-calendar",
+    page_id="document_calendar",
+    title="Document Calendar",
+    route="/document-calendar",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["documentation", "functions_actions"], secondary_groups=["output_delivery"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["documentation", "functions_actions"],
+    secondary_groups=["output_delivery"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User views documents and deadlines on a calendar view.",
     scope_of_use="Calendar-based document and deadline visualization.",
-    entry_criteria=["User authenticated"], exit_criteria=["Deadline or document reviewed"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Deadline or document reviewed"],
     telemetry_events=["document_calendar_load", "deadline_viewed", "document_opened_from_calendar"],
 )
 
 CONTRACT_SAMPLE_CERTIFICATE = PageContract(
-    page_id="sample_certificate", title="Sample Certificate", route="/sample-certificate",
+    page_id="sample_certificate",
+    title="Sample Certificate",
+    route="/sample-certificate",
     roles_supported=list(UserRole),
-    primary_groups=["output_delivery"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["output_delivery"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_NA,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Public or authenticated user.",
     expectations="User views a sample certificate output.",
     scope_of_use="Sample/demo output display.",
-    entry_criteria=["No auth required"], exit_criteria=["Sample viewed"],
+    entry_criteria=["No auth required"],
+    exit_criteria=["Sample viewed"],
     telemetry_events=["sample_certificate_load", "sample_viewed"],
 )
 
 CONTRACT_SIDEBAR_AUTO_MODE = PageContract(
-    page_id="sidebar_with_auto_mode", title="Sidebar with Auto Mode", route="/sidebar-auto-mode",
+    page_id="sidebar_with_auto_mode",
+    title="Sidebar with Auto Mode",
+    route="/sidebar-auto-mode",
     roles_supported=_ADMIN_ROLES,
-    primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
+    primary_groups=["system_admin_monitoring"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
     qualification="Admin only.",
     expectations="Admin configures sidebar with auto-mode options.",
     scope_of_use="Sidebar/auto-mode configuration interface.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Sidebar configured"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Sidebar configured"],
     telemetry_events=["sidebar_auto_mode_load", "sidebar_configured"],
 )
 
 CONTRACT_ROLES = PageContract(
-    page_id="roles", title="Roles", route="/roles",
+    page_id="roles",
+    title="Roles",
+    route="/roles",
     roles_supported=[UserRole.ADMIN, UserRole.MANAGER],
-    primary_groups=["system_admin_monitoring", "security_validation"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
+    primary_groups=["system_admin_monitoring", "security_validation"],
+    secondary_groups=[],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_NA,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_NA,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
     qualification="Admin or manager.",
     expectations="Admin manages role assignments and permissions.",
     scope_of_use="Role management administration.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Role changes saved"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Role changes saved"],
     telemetry_events=["roles_load", "role_assigned", "role_revoked", "roles_saved"],
 )
 
 CONTRACT_ENTERPRISE_DASHBOARD = PageContract(
-    page_id="enterprise_dashboard", title="Enterprise Dashboard", route="/enterprise-dashboard",
+    page_id="enterprise_dashboard",
+    title="Enterprise Dashboard",
+    route="/enterprise-dashboard",
     roles_supported=[UserRole.ADMIN, UserRole.MANAGER, UserRole.LEGAL],
-    primary_groups=["system_admin_monitoring", "output_delivery"], secondary_groups=["functions_actions"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
+    primary_groups=["system_admin_monitoring", "output_delivery"],
+    secondary_groups=["functions_actions"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_ACTIVE,
+    ),
     qualification="Role in (admin, manager, legal).",
     expectations="Admin reviews enterprise-level metrics, org-wide case summary, resource allocation.",
     scope_of_use="Org-level operations dashboard.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Metrics reviewed"],
+    entry_criteria=["Admin authenticated"],
+    exit_criteria=["Metrics reviewed"],
     telemetry_events=["enterprise_dashboard_load", "metric_viewed", "org_report_exported"],
 )
 
 CONTRACT_INTAKE = PageContract(
-    page_id="intake", title="Intake", route="/intake",
+    page_id="intake",
+    title="Intake",
+    route="/intake",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["documentation", "functions_actions"], secondary_groups=["help_contacts"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["documentation", "functions_actions"],
+    secondary_groups=["help_contacts"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User completes intake interview to establish their situation.",
     scope_of_use="Initial intake form and case context capture.",
-    entry_criteria=["User authenticated"], exit_criteria=["Intake completed"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Intake completed"],
     telemetry_events=["intake_load", "intake_step_completed", "intake_submitted", "intake_saved"],
 )
 
 CONTRACT_RESEARCH_MODULE = PageContract(
-    page_id="research_module", title="Research Module", route="/research-module",
+    page_id="research_module",
+    title="Research Module",
+    route="/research-module",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["research_knowledge"], secondary_groups=["output_delivery", "documentation"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_ACTIVE, functions_actions=COVERAGE_LINKED,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["research_knowledge"],
+    secondary_groups=["output_delivery", "documentation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_NA,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_ACTIVE,
+        functions_actions=COVERAGE_LINKED,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User accesses a focused research module for specific legal topics.",
     scope_of_use="Modular legal research context.",
-    entry_criteria=["User authenticated"], exit_criteria=["Research module completed or saved"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Research module completed or saved"],
     telemetry_events=["research_module_load", "module_topic_selected", "research_completed", "research_saved"],
 )
 
 CONTRACT_JOURNEY = PageContract(
-    page_id="journey", title="Journey", route="/journey",
+    page_id="journey",
+    title="Journey",
+    route="/journey",
     roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER],
-    primary_groups=["welcome", "functions_actions"], secondary_groups=["documentation", "output_delivery"],
-    group_coverage=_full_coverage(welcome=COVERAGE_ACTIVE, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_LINKED, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
+    primary_groups=["welcome", "functions_actions"],
+    secondary_groups=["documentation", "output_delivery"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_ACTIVE,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_LINKED,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
     qualification="Authenticated user.",
     expectations="User navigates their guided case journey from start to resolution.",
     scope_of_use="Guided step-by-step case journey.",
-    entry_criteria=["User authenticated"], exit_criteria=["Journey step completed or journey finished"],
+    entry_criteria=["User authenticated"],
+    exit_criteria=["Journey step completed or journey finished"],
     telemetry_events=["journey_load", "journey_step_started", "journey_step_completed", "journey_finished"],
 )
 
@@ -2927,17 +3283,19 @@ def validate_all_contracts() -> dict[str, list[str]]:
 # COMING SOON REGISTRY - Planned Features & Todo Tracking
 # =============================================================================
 
+
 @dataclass
 class ComingSoonFeature:
     """A planned feature with tracking for completion."""
+
     feature_id: str
     description: str
-    page_id: str | None = None          # Links to PageContract if applicable
-    depends_on: list[str] = None        # List of feature_ids that must complete first
-    eta: str | None = None              # Expected completion (e.g., "Q2 2026")
-    todo_items: list[str] = None        # Checklist of items to complete
-    completed_items: list[str] = None   # Items already done
-    notes: str = ""                     # Additional context
+    page_id: str | None = None  # Links to PageContract if applicable
+    depends_on: list[str] = None  # List of feature_ids that must complete first
+    eta: str | None = None  # Expected completion (e.g., "Q2 2026")
+    todo_items: list[str] = None  # Checklist of items to complete
+    completed_items: list[str] = None  # Items already done
+    notes: str = ""  # Additional context
 
     def __post_init__(self):
         if self.depends_on is None:

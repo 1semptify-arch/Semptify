@@ -5,11 +5,12 @@ Least-privilege permission system for external modules. Each permission
 must be declared in the module's semptify.module.json manifest and approved
 by an admin before the module can use it.
 """
-from enum import Enum
-from typing import FrozenSet, Iterable, Set
+
+from collections.abc import Iterable
+from enum import StrEnum
 
 
-class Permission(str, Enum):
+class Permission(StrEnum):
     """All permissions available to external modules.
 
     Forbidden for external modules (never granted):
@@ -20,6 +21,7 @@ class Permission(str, Enum):
       - Network calls to non-declared domains
       - File system access outside sandbox
     """
+
     # Vault
     VAULT_READ = "vault.read"
     VAULT_WRITE = "vault.write"
@@ -45,7 +47,7 @@ class Permission(str, Enum):
 
 
 # All valid permission strings
-ALL_PERMISSIONS: FrozenSet[str] = frozenset(p.value for p in Permission)
+ALL_PERMISSIONS: frozenset[str] = frozenset(p.value for p in Permission)
 
 
 class PermissionDeniedError(Exception):
@@ -55,8 +57,7 @@ class PermissionDeniedError(Exception):
         self.permission = permission
         self.action = action
         super().__init__(
-            f"Permission denied: external module lacks '{permission}'"
-            + (f" for action '{action}'" if action else "")
+            f"Permission denied: external module lacks '{permission}'" + (f" for action '{action}'" if action else "")
         )
 
 
@@ -68,15 +69,15 @@ class PermissionSet:
     """
 
     def __init__(self, permissions: Iterable[str]):
-        validated: Set[str] = set()
+        validated: set[str] = set()
         for p in permissions:
             if p not in ALL_PERMISSIONS:
                 raise ValueError(f"Unknown permission: {p!r}. Valid: {sorted(ALL_PERMISSIONS)}")
             validated.add(p)
-        self._permissions: FrozenSet[str] = frozenset(validated)
+        self._permissions: frozenset[str] = frozenset(validated)
 
     @property
-    def permissions(self) -> FrozenSet[str]:
+    def permissions(self) -> frozenset[str]:
         return self._permissions
 
     def has(self, permission: str) -> bool:

@@ -71,16 +71,14 @@ async def list_resources(
         query = select(ResourceModel)
 
         if not include_inactive:
-            query = query.where(ResourceModel.is_active == True)
+            query = query.where(ResourceModel.is_active)
         if category:
             query = query.where(func.lower(ResourceModel.category) == category.lower())
         if service_area:
             query = query.where(func.lower(ResourceModel.service_area) == service_area.lower())
         if stale_only:
             cutoff = utc_now() - timedelta(days=_STALE_DAYS)
-            query = query.where(
-                (ResourceModel.last_verified == None) | (ResourceModel.last_verified < cutoff)
-            )
+            query = query.where((ResourceModel.last_verified is None) | (ResourceModel.last_verified < cutoff))
 
         result = await session.execute(query)
         resources = result.scalars().all()
@@ -103,7 +101,7 @@ async def get_resource(resource_id: str):
     """Get a single resource listing by ID."""
     async with get_db_session() as session:
         result = await session.execute(
-            select(ResourceModel).where(ResourceModel.id == resource_id, ResourceModel.is_active == True)
+            select(ResourceModel).where(ResourceModel.id == resource_id, ResourceModel.is_active)
         )
         resource = result.scalar_one_or_none()
         if not resource:
@@ -139,7 +137,9 @@ async def create_resource(data: ResourceCreate):
     return _model_to_response(resource)
 
 
-@router.put("/admin/resources/{resource_id}", response_model=ResourceRead, dependencies=[Depends(require_admin_network)])
+@router.put(
+    "/admin/resources/{resource_id}", response_model=ResourceRead, dependencies=[Depends(require_admin_network)]
+)
 async def update_resource(resource_id: str, data: ResourceUpdate):
     """Update a resource listing (admin network only)."""
     async with get_db_session() as session:
@@ -159,7 +159,11 @@ async def update_resource(resource_id: str, data: ResourceUpdate):
         return _model_to_response(resource)
 
 
-@router.delete("/admin/resources/{resource_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin_network)])
+@router.delete(
+    "/admin/resources/{resource_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin_network)],
+)
 async def delete_resource(resource_id: str):
     """Soft-delete a resource listing (admin network only)."""
     async with get_db_session() as session:
@@ -220,7 +224,7 @@ async def _find_existing(session, name: str, category: str, service_area: str | 
     if service_area:
         query = query.where(func.lower(ResourceModel.service_area) == service_area.lower())
     else:
-        query = query.where(ResourceModel.service_area == None)
+        query = query.where(ResourceModel.service_area is None)
     result = await session.execute(query)
     return result.scalar_one_or_none()
 
@@ -306,15 +310,17 @@ async def import_resources_csv(file: UploadFile = File(...)):
     return ResourceImportResponse(imported=imported, updated=updated, skipped=skipped, errors=errors)
 
 
-@router.get("/admin/resources/stale", response_model=ResourceListResponse, dependencies=[Depends(require_admin_network)])
+@router.get(
+    "/admin/resources/stale", response_model=ResourceListResponse, dependencies=[Depends(require_admin_network)]
+)
 async def list_stale_resources(days: int = Query(_STALE_DAYS, ge=1, description="Staleness threshold in days")):
     """List resources whose last_verified date is older than `days` (admin network only)."""
     cutoff = utc_now() - timedelta(days=days)
     async with get_db_session() as session:
         result = await session.execute(
             select(ResourceModel).where(
-                ResourceModel.is_active == True,
-                (ResourceModel.last_verified == None) | (ResourceModel.last_verified < cutoff),
+                ResourceModel.is_active,
+                (ResourceModel.last_verified is None) | (ResourceModel.last_verified < cutoff),
             )
         )
         resources = result.scalars().all()

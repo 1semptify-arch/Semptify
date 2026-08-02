@@ -52,8 +52,7 @@ def clamp_govern_to_floor(config: PageConfig, risk_tier: RiskTier) -> tuple[int,
     """
     if risk_tier == "very_high_do_not_build":
         raise ValueError(
-            "risk_tier='very_high_do_not_build' — this page must not be built "
-            "(UPLRiskTier policy). Rejecting config."
+            "risk_tier='very_high_do_not_build' — this page must not be built (UPLRiskTier policy). Rejecting config."
         )
     floor = govern_floor_for(risk_tier)
     current = config.channels.govern

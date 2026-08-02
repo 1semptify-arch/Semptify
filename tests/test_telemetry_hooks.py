@@ -67,6 +67,7 @@ class TestTelemetryEvent:
     def test_frozen(self):
         ev = TelemetryEvent(event_type="e", page_id="p", session_id="s")
         import pytest as _pytest
+
         with _pytest.raises(AttributeError):
             ev.event_type = "other"  # type: ignore[misc]
 
@@ -236,12 +237,15 @@ class TestBuiltinHandlers:
         # json_handler passes flush=True to logger.info which is invalid;
         # verify the TypeError is raised (known app-level bug).
         import pytest
+
         with pytest.raises(TypeError):
             json_handler(ev)
 
     def test_mesh_handler_low_priority_skipped(self):
         ev = TelemetryEvent(
-            event_type="e", page_id="p", session_id="s",
+            event_type="e",
+            page_id="p",
+            session_id="s",
             priority=EventPriority.LOW,
         )
         mesh_handler(ev)

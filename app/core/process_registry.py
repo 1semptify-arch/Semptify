@@ -12,10 +12,11 @@ Coverage states used by PageContract:
   n-a      — group not relevant to this page
 """
 
-from dataclasses import dataclass
-from typing import FrozenSet
-from app.core.user_context import UserRole
 import logging
+from dataclasses import dataclass
+
+from app.core.user_context import UserRole
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,33 +36,35 @@ VALID_COVERAGE_VALUES = {COVERAGE_ACTIVE, COVERAGE_LINKED, COVERAGE_GUARDED, COV
 # ProcessGroup Definition
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class ProcessGroup:
     """
     Defines one of the 8 canonical process groups.
     All pages must declare their coverage of every group.
     """
+
     group_id: int
-    name: str                              # machine key, e.g. "welcome"
-    title: str                             # display title
-    purpose: str                           # one-sentence function description
-    roles_with_access: FrozenSet[UserRole] # roles that can reach this group's pages
-    scope_includes: tuple[str, ...]        # what belongs here
-    scope_excludes: tuple[str, ...]        # explicitly out of scope
-    entry_criteria: tuple[str, ...]        # preconditions before a page in this group loads
-    exit_criteria: tuple[str, ...]         # conditions that mark group work as complete
-    success_metrics: tuple[str, ...]       # measurable outcomes
+    name: str  # machine key, e.g. "welcome"
+    title: str  # display title
+    purpose: str  # one-sentence function description
+    roles_with_access: frozenset[UserRole]  # roles that can reach this group's pages
+    scope_includes: tuple[str, ...]  # what belongs here
+    scope_excludes: tuple[str, ...]  # explicitly out of scope
+    entry_criteria: tuple[str, ...]  # preconditions before a page in this group loads
+    exit_criteria: tuple[str, ...]  # conditions that mark group work as complete
+    success_metrics: tuple[str, ...]  # measurable outcomes
 
 
 # =============================================================================
 # The 8 Process Groups
 # =============================================================================
 
-ALL_ROLES: FrozenSet[UserRole] = frozenset(UserRole)
-PROFESSIONAL_ROLES: FrozenSet[UserRole] = frozenset({
-    UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADMIN
-})
-ADMIN_ONLY: FrozenSet[UserRole] = frozenset({UserRole.ADMIN})
+ALL_ROLES: frozenset[UserRole] = frozenset(UserRole)
+PROFESSIONAL_ROLES: frozenset[UserRole] = frozenset(
+    {UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADMIN}
+)
+ADMIN_ONLY: frozenset[UserRole] = frozenset({UserRole.ADMIN})
 
 
 GROUP_WELCOME = ProcessGroup(
@@ -259,9 +262,7 @@ GROUP_OUTPUT = ProcessGroup(
         "new action generation",
         "system configuration",
     ),
-    entry_criteria=(
-        "at least one completed action or document ready for export",
-    ),
+    entry_criteria=("at least one completed action or document ready for export",),
     exit_criteria=(
         "package delivered to target (user / advocate / court)",
         "delivery confirmed and logged",
@@ -293,12 +294,8 @@ GROUP_HELP = ProcessGroup(
         "document processing",
         "system administration",
     ),
-    entry_criteria=(
-        "user is authenticated OR on welcome screen",
-    ),
-    exit_criteria=(
-        "help request submitted OR contact delivered to user",
-    ),
+    entry_criteria=("user is authenticated OR on welcome screen",),
+    exit_criteria=("help request submitted OR contact delivered to user",),
     success_metrics=(
         "help_requests_submitted",
         "advocate_match_rate",

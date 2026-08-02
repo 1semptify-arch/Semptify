@@ -4,11 +4,10 @@ Semptify Auth SDK — Role & Permission Definitions
 Zero framework dependencies. Pure Python.
 """
 
-from enum import Enum
-from typing import FrozenSet, Dict
+from enum import StrEnum
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     TENANT = "tenant"
     ADVOCATE = "advocate"
     MANAGER = "manager"
@@ -17,72 +16,84 @@ class UserRole(str, Enum):
     ANONYMOUS = "anonymous"
 
 
-ROLE_PERMISSIONS: Dict[UserRole, FrozenSet[str]] = {
-    UserRole.TENANT: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-    }),
-    UserRole.ADVOCATE: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-        "read:client_cases",
-        "write:client_messages",
-        "deliver:documents",
-    }),
-    UserRole.MANAGER: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-        "read:client_cases",
-        "write:client_messages",
-        "manage:cases",
-    }),
-    UserRole.LEGAL: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-        "read:client_cases",
-        "write:legal_filings",
-        "read:court_forms",
-        "write:court_forms",
-        "access:privilege_docs",
-    }),
-    UserRole.ADMIN: frozenset({
-        "read:all",
-        "write:all",
-        "admin:users",
-        "admin:system",
-        "admin:analytics",
-    }),
-    UserRole.ANONYMOUS: frozenset({
-        "read:public",
-    }),
+ROLE_PERMISSIONS: dict[UserRole, frozenset[str]] = {
+    UserRole.TENANT: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+        }
+    ),
+    UserRole.ADVOCATE: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+            "read:client_cases",
+            "write:client_messages",
+            "deliver:documents",
+        }
+    ),
+    UserRole.MANAGER: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+            "read:client_cases",
+            "write:client_messages",
+            "manage:cases",
+        }
+    ),
+    UserRole.LEGAL: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+            "read:client_cases",
+            "write:legal_filings",
+            "read:court_forms",
+            "write:court_forms",
+            "access:privilege_docs",
+        }
+    ),
+    UserRole.ADMIN: frozenset(
+        {
+            "read:all",
+            "write:all",
+            "admin:users",
+            "admin:system",
+            "admin:analytics",
+        }
+    ),
+    UserRole.ANONYMOUS: frozenset(
+        {
+            "read:public",
+        }
+    ),
 }
 
 
-def get_permissions(role: UserRole) -> FrozenSet[str]:
+def get_permissions(role: UserRole) -> frozenset[str]:
     """Return the permission set for a role."""
     return ROLE_PERMISSIONS.get(role, frozenset())
 

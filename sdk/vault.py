@@ -4,16 +4,17 @@ Semptify SDK - Vault Client
 Handles secure vault access, permissions, and sensitive document management.
 """
 
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import Any
 
 from .base import BaseClient
 
 
-class VaultPermission(str, Enum):
+class VaultPermission(StrEnum):
     """Vault permission levels."""
+
     NONE = "none"
     VIEW = "view"
     DOWNLOAD = "download"
@@ -21,8 +22,9 @@ class VaultPermission(str, Enum):
     ADMIN = "admin"
 
 
-class AccessType(str, Enum):
+class AccessType(StrEnum):
     """Access type for vault items."""
+
     PRIVATE = "private"
     SHARED = "shared"
     PUBLIC = "public"
@@ -31,17 +33,18 @@ class AccessType(str, Enum):
 @dataclass
 class VaultItem:
     """Vault item (secure document or resource)."""
+
     id: str
     name: str
     item_type: str
     access_type: str = "private"
-    description: Optional[str] = None
-    document_id: Optional[str] = None
+    description: str | None = None
+    document_id: str | None = None
     encrypted: bool = True
-    tags: List[str] = None
-    created_at: Optional[datetime] = None
-    accessed_at: Optional[datetime] = None
-    
+    tags: list[str] = None
+    created_at: datetime | None = None
+    accessed_at: datetime | None = None
+
     def __post_init__(self):
         if self.tags is None:
             self.tags = []
@@ -50,29 +53,32 @@ class VaultItem:
 @dataclass
 class VaultAccess:
     """Vault access record."""
+
     id: str
     user_email: str
     permission: str
-    granted_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
-    granted_by: Optional[str] = None
+    granted_at: datetime | None = None
+    expires_at: datetime | None = None
+    granted_by: str | None = None
 
 
 @dataclass
 class VaultAuditEntry:
     """Vault audit log entry."""
+
     id: str
     action: str
     item_id: str
     user_id: str
     timestamp: datetime
-    details: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
+    details: dict[str, Any] | None = None
+    ip_address: str | None = None
 
 
 @dataclass
 class VaultStats:
     """Vault statistics."""
+
     total_items: int
     total_size_bytes: int
     encrypted_items: int
@@ -82,20 +88,20 @@ class VaultStats:
 
 class VaultClient(BaseClient):
     """Client for vault operations."""
-    
+
     def add_item(
         self,
         name: str,
-        document_id: Optional[str] = None,
+        document_id: str | None = None,
         item_type: str = "document",
-        description: Optional[str] = None,
+        description: str | None = None,
         access_type: str = "private",
-        tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
         encrypt: bool = True,
     ) -> VaultItem:
         """
         Add an item to the vault.
-        
+
         Args:
             name: Item name
             document_id: Associated document ID
@@ -104,7 +110,7 @@ class VaultClient(BaseClient):
             access_type: Access level (private, shared, public)
             tags: Tags for organization
             encrypt: Whether to encrypt the item
-            
+
         Returns:
             Created vault item
         """
@@ -114,16 +120,16 @@ class VaultClient(BaseClient):
             "access_type": access_type,
             "encrypt": encrypt,
         }
-        
+
         if document_id:
             data["document_id"] = document_id
         if description:
             data["description"] = description
         if tags:
             data["tags"] = tags
-        
+
         response = self.post("/api/vault/items", json=data)
-        
+
         return VaultItem(
             id=response.get("id", ""),
             name=response.get("name", name),
@@ -134,19 +140,19 @@ class VaultClient(BaseClient):
             encrypted=response.get("encrypted", encrypt),
             tags=response.get("tags", tags or []),
         )
-    
+
     def get_item(self, item_id: str) -> VaultItem:
         """
         Get a vault item by ID.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             Vault item details
         """
         response = self.get(f"/api/vault/items/{item_id}")
-        
+
         return VaultItem(
             id=response.get("id", item_id),
             name=response.get("name", ""),
@@ -157,23 +163,23 @@ class VaultClient(BaseClient):
             encrypted=response.get("encrypted", True),
             tags=response.get("tags", []),
         )
-    
+
     def list_items(
         self,
-        access_type: Optional[str] = None,
-        item_type: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        access_type: str | None = None,
+        item_type: str | None = None,
+        tags: list[str] | None = None,
         limit: int = 50,
-    ) -> List[VaultItem]:
+    ) -> list[VaultItem]:
         """
         List vault items.
-        
+
         Args:
             access_type: Filter by access type
             item_type: Filter by item type
             tags: Filter by tags
             limit: Maximum number to return
-            
+
         Returns:
             List of vault items
         """
@@ -184,10 +190,10 @@ class VaultClient(BaseClient):
             params["item_type"] = item_type
         if tags:
             params["tags"] = ",".join(tags)
-        
+
         response = self.get("/api/vault/items", params=params)
         items = response if isinstance(response, list) else response.get("items", [])
-        
+
         return [
             VaultItem(
                 id=item.get("id", ""),
@@ -201,36 +207,36 @@ class VaultClient(BaseClient):
             )
             for item in items
         ]
-    
+
     def delete_item(self, item_id: str) -> bool:
         """
         Delete a vault item.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             True if deleted successfully
         """
         self.delete(f"/api/vault/items/{item_id}")
         return True
-    
+
     def grant_access(
         self,
         item_id: str,
         email: str,
         permission: VaultPermission = VaultPermission.VIEW,
-        expires_in_days: Optional[int] = None,
+        expires_in_days: int | None = None,
     ) -> VaultAccess:
         """
         Grant access to a vault item.
-        
+
         Args:
             item_id: The item ID
             email: Email of user to grant access
             permission: Permission level
             expires_in_days: Number of days until access expires
-            
+
         Returns:
             Access record
         """
@@ -240,43 +246,43 @@ class VaultClient(BaseClient):
         }
         if expires_in_days:
             data["expires_in_days"] = expires_in_days
-        
+
         response = self.post(f"/api/vault/items/{item_id}/access", json=data)
-        
+
         return VaultAccess(
             id=response.get("id", ""),
             user_email=response.get("user_email", email),
             permission=response.get("permission", data["permission"]),
             granted_by=response.get("granted_by"),
         )
-    
+
     def revoke_access(self, item_id: str, email: str) -> bool:
         """
         Revoke access to a vault item.
-        
+
         Args:
             item_id: The item ID
             email: Email of user to revoke access
-            
+
         Returns:
             True if revoked successfully
         """
         self.delete(f"/api/vault/items/{item_id}/access/{email}")
         return True
-    
-    def list_access(self, item_id: str) -> List[VaultAccess]:
+
+    def list_access(self, item_id: str) -> list[VaultAccess]:
         """
         List access records for a vault item.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             List of access records
         """
         response = self.get(f"/api/vault/items/{item_id}/access")
         records = response if isinstance(response, list) else response.get("access", [])
-        
+
         return [
             VaultAccess(
                 id=r.get("id", ""),
@@ -286,21 +292,21 @@ class VaultClient(BaseClient):
             )
             for r in records
         ]
-    
+
     def get_audit_log(
         self,
-        item_id: Optional[str] = None,
-        action: Optional[str] = None,
+        item_id: str | None = None,
+        action: str | None = None,
         limit: int = 100,
-    ) -> List[VaultAuditEntry]:
+    ) -> list[VaultAuditEntry]:
         """
         Get vault audit log.
-        
+
         Args:
             item_id: Filter by specific item
             action: Filter by action type
             limit: Maximum entries to return
-            
+
         Returns:
             List of audit entries
         """
@@ -309,10 +315,10 @@ class VaultClient(BaseClient):
             params["item_id"] = item_id
         if action:
             params["action"] = action
-        
+
         response = self.get("/api/vault/audit", params=params)
         entries = response if isinstance(response, list) else response.get("entries", [])
-        
+
         return [
             VaultAuditEntry(
                 id=e.get("id", ""),
@@ -325,16 +331,16 @@ class VaultClient(BaseClient):
             )
             for e in entries
         ]
-    
+
     def get_stats(self) -> VaultStats:
         """
         Get vault statistics.
-        
+
         Returns:
             Vault statistics
         """
         response = self.get("/api/vault/stats")
-        
+
         return VaultStats(
             total_items=response.get("total_items", 0),
             total_size_bytes=response.get("total_size_bytes", 0),
@@ -342,41 +348,41 @@ class VaultClient(BaseClient):
             shared_items=response.get("shared_items", 0),
             recent_access_count=response.get("recent_access_count", 0),
         )
-    
+
     def lock(self) -> bool:
         """
         Lock the vault (require re-authentication for access).
-        
+
         Returns:
             True if locked successfully
         """
         self.post("/api/vault/lock")
         return True
-    
-    def unlock(self, password: Optional[str] = None) -> bool:
+
+    def unlock(self, password: str | None = None) -> bool:
         """
         Unlock the vault.
-        
+
         Args:
             password: Vault password if additional auth required
-            
+
         Returns:
             True if unlocked successfully
         """
         data = {}
         if password:
             data["password"] = password
-        
+
         self.post("/api/vault/unlock", json=data)
         return True
-    
+
     def download_item(self, item_id: str) -> bytes:
         """
         Download a vault item's content.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             Decrypted content as bytes
         """

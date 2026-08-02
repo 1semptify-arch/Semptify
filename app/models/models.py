@@ -1874,8 +1874,12 @@ class DisputeRecord(Base):
     # Allowed structural data
     landlord_entity: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     property_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    dispute_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # fees, lease_violation, retaliation, habitability
-    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)  # active, resolved, dismissed, on_hold
+    dispute_type: Mapped[str] = mapped_column(
+        String(50), index=True, nullable=False
+    )  # fees, lease_violation, retaliation, habitability
+    status: Mapped[str] = mapped_column(
+        String(20), default="active", nullable=False
+    )  # active, resolved, dismissed, on_hold
     jurisdiction: Mapped[str] = mapped_column(String(10), default="MN", nullable=False)
 
     # PII/content pointers (actual text lives in the user's cloud overlay)
@@ -1896,7 +1900,9 @@ class ComparisonEntry(Base):
     __tablename__ = "comparison_entries"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    dispute_record_id: Mapped[str] = mapped_column(String(36), ForeignKey("dispute_records.id"), index=True, nullable=False)
+    dispute_record_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("dispute_records.id"), index=True, nullable=False
+    )
     user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
 
     comparison_type: Mapped[str] = mapped_column(String(50), nullable=False)  # fee, term, notice, deposit
@@ -1934,7 +1940,9 @@ class EvictionTimelineEvent(Base):
     # Placeholder subject — no FK until accountability_ledger model is decided
     subject_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
 
-    event_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # notice, payment, maintenance, communication, court, filing
+    event_type: Mapped[str] = mapped_column(
+        String(50), index=True, nullable=False
+    )  # notice, payment, maintenance, communication, court, filing
     event_date: Mapped[datetime] = mapped_column(DateTimeTZ, index=True, nullable=False)
     source: Mapped[str] = mapped_column(String(50), default="manual", nullable=False)  # manual, document, court, email
 

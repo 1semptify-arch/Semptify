@@ -36,20 +36,17 @@ ARCHITECTURE:
 └─────────────────────────────────────────────────────────────────┘
 """
 
-import re
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Optional
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
-
 from app.services.document_recognition import (
     DocumentCategory,
     DocumentType,
     RecognitionResult,
-    ExtractedEntity,
     recognize_document,
 )
 
@@ -60,31 +57,35 @@ logger = logging.getLogger(__name__)
 # URGENCY LEVELS WITH CLEAR CRITERIA
 # =============================================================================
 
-class UrgencyLevel(str, Enum):
+
+class UrgencyLevel(StrEnum):
     """Document urgency classification with clear criteria."""
+
     CRITICAL = "critical"  # Must act within 24-48 hours
-    HIGH = "high"          # Must act within 3-7 days
-    MEDIUM = "medium"      # Should act within 7-14 days
-    NORMAL = "normal"      # Standard document, no rush
-    LOW = "low"            # Informational, no action required
+    HIGH = "high"  # Must act within 3-7 days
+    MEDIUM = "medium"  # Should act within 7-14 days
+    NORMAL = "normal"  # Standard document, no rush
+    LOW = "low"  # Informational, no action required
 
 
 # =============================================================================
 # ACTION ITEMS - What the user should do
 # =============================================================================
 
+
 @dataclass
 class ActionItem:
     """A specific action the user should take."""
+
     id: str
     priority: int  # 1 = highest
     title: str
     description: str
-    deadline: Optional[datetime] = None
+    deadline: datetime | None = None
     deadline_type: str = "recommended"  # "legal", "recommended", "optional"
-    legal_basis: Optional[str] = None
+    legal_basis: str | None = None
     completed: bool = False
-    
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -102,9 +103,11 @@ class ActionItem:
 # LEGAL INSIGHT - Law cross-references with explanations
 # =============================================================================
 
+
 @dataclass
 class LegalInsight:
     """A legal insight related to the document."""
+
     statute: str  # e.g., "Minn. Stat. § 504B.291"
     title: str
     relevance: str  # Why this applies
@@ -113,7 +116,7 @@ class LegalInsight:
     tenant_rights: list[str] = field(default_factory=list)
     landlord_obligations: list[str] = field(default_factory=list)
     deadlines_imposed: list[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict:
         return {
             "statute": self.statute,
@@ -131,9 +134,11 @@ class LegalInsight:
 # TIMELINE EVENT - Auto-generated from document
 # =============================================================================
 
+
 @dataclass
 class TimelineEvent:
     """A timeline event extracted from the document."""
+
     id: str
     event_type: str  # "deadline", "hearing", "notice", "payment", "filing"
     title: str
@@ -141,8 +146,8 @@ class TimelineEvent:
     date: datetime
     source: str  # What text this came from
     is_critical: bool = False
-    days_until: Optional[int] = None
-    
+    days_until: int | None = None
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -160,27 +165,29 @@ class TimelineEvent:
 # INTELLIGENCE RESULT - The complete analysis
 # =============================================================================
 
+
 @dataclass
 class IntelligenceResult:
     """Complete document intelligence result."""
+
     # Core identification
     document_id: str
     filename: str
-    
+
     # Classification with confidence
     category: DocumentCategory
     document_type: DocumentType
     confidence: float
-    
+
     # Human-readable understanding
     title: str
     summary: str
     plain_english_explanation: str
-    
+
     # Urgency assessment
     urgency: UrgencyLevel
     urgency_reason: str
-    
+
     # Extracted intelligence
     key_dates: list[dict] = field(default_factory=list)
     key_parties: list[dict] = field(default_factory=list)
@@ -188,19 +195,19 @@ class IntelligenceResult:
     key_terms: list[str] = field(default_factory=list)
     case_numbers: list[str] = field(default_factory=list)
     addresses: list[str] = field(default_factory=list)
-    
+
     # Actionable insights
     action_items: list[ActionItem] = field(default_factory=list)
     legal_insights: list[LegalInsight] = field(default_factory=list)
     timeline_events: list[TimelineEvent] = field(default_factory=list)
-    
+
     # Reasoning chain (for transparency)
     reasoning_chain: list[str] = field(default_factory=list)
-    
+
     # Metadata
     analyzed_at: datetime = field(default_factory=lambda: utc_now())
     analysis_version: str = "5.0"
-    
+
     def to_dict(self) -> dict:
         return {
             "document_id": self.document_id,
@@ -229,14 +236,14 @@ class IntelligenceResult:
             },
             "insights": {
                 "action_items": [a.to_dict() for a in self.action_items],
-                "legal_insights": [l.to_dict() for l in self.legal_insights],
+                "legal_insights": [li.to_dict() for li in self.legal_insights],
                 "timeline_events": [t.to_dict() for t in self.timeline_events],
             },
             "reasoning": self.reasoning_chain,
             "metadata": {
                 "analyzed_at": self.analyzed_at.isoformat(),
                 "version": self.analysis_version,
-            }
+            },
         }
 
 
@@ -350,27 +357,28 @@ MN_TENANT_LAWS = {
 # DOCUMENT INTELLIGENCE SERVICE
 # =============================================================================
 
+
 class DocumentIntelligenceService:
     """
     World-class document intelligence service.
-    
+
     Orchestrates all document analysis components to provide
     comprehensive, actionable insights for tenants.
     """
-    
+
     def __init__(self):
         self.analysis_count = 0
         self.law_database = MN_TENANT_LAWS
-        
+
     async def analyze(
         self,
         text: str,
         filename: str = "",
-        document_id: Optional[str] = None,
+        document_id: str | None = None,
     ) -> IntelligenceResult:
         """
         Perform complete document intelligence analysis.
-        
+
         This is the main entry point - it orchestrates:
         1. Document recognition with 5-layer analysis
         2. Entity extraction with contextual understanding
@@ -378,43 +386,43 @@ class DocumentIntelligenceService:
         4. Timeline event generation
         5. Action item creation
         6. Urgency assessment
-        
+
         Args:
             text: The document text
             filename: Original filename (helps with classification)
             document_id: Optional ID (generates one if not provided)
-            
+
         Returns:
             IntelligenceResult with comprehensive analysis
         """
         self.analysis_count += 1
         doc_id = document_id or make_id("doc")
-        
+
         # Step 1: Run recognition engine
         recognition = recognize_document(text, filename)
-        
+
         # Step 2: Enhanced entity extraction with better labels
         key_dates = self._enhance_dates(recognition)
         key_parties = self._enhance_parties(recognition)
         key_amounts = self._enhance_amounts(recognition)
         case_numbers = [e.value for e in recognition.case_numbers]
         addresses = [e.value for e in recognition.addresses]
-        
+
         # Step 3: Generate timeline events from dates
         timeline_events = self._generate_timeline_events(recognition)
-        
+
         # Step 4: Get applicable laws
         legal_insights = self._get_legal_insights(recognition)
-        
+
         # Step 5: Generate action items
         action_items = self._generate_action_items(recognition, legal_insights)
-        
+
         # Step 6: Assess urgency
         urgency, urgency_reason = self._assess_urgency(recognition, action_items)
-        
+
         # Step 7: Generate plain English explanation
         plain_english = self._generate_explanation(recognition, urgency, action_items)
-        
+
         return IntelligenceResult(
             document_id=doc_id,
             filename=filename,
@@ -437,44 +445,48 @@ class DocumentIntelligenceService:
             timeline_events=timeline_events,
             reasoning_chain=recognition.reasoning_chain,
         )
-    
+
     def _enhance_dates(self, recognition: RecognitionResult) -> list[dict]:
         """Enhance extracted dates with better labels and days-until."""
         now = utc_now()
         enhanced = []
-        
+
         for entity in recognition.dates:
             try:
                 # Parse the date
                 date_str = entity.normalized or entity.value
-                if 'T' in date_str:
-                    date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                if "T" in date_str:
+                    date_obj = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
                 else:
-                    date_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                
+                    date_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=UTC)
+
                 days_until = (date_obj.date() - now.date()).days
-                
-                enhanced.append({
-                    "date": date_str,
-                    "description": entity.context_label or "Date mentioned",
-                    "days_until": days_until,
-                    "is_past": days_until < 0,
-                    "is_urgent": 0 <= days_until <= 7,
-                    "confidence": entity.confidence,
-                })
+
+                enhanced.append(
+                    {
+                        "date": date_str,
+                        "description": entity.context_label or "Date mentioned",
+                        "days_until": days_until,
+                        "is_past": days_until < 0,
+                        "is_urgent": 0 <= days_until <= 7,
+                        "confidence": entity.confidence,
+                    }
+                )
             except (ValueError, TypeError):
-                enhanced.append({
-                    "date": entity.value,
-                    "description": entity.context_label or "Date mentioned",
-                    "confidence": entity.confidence,
-                })
-        
+                enhanced.append(
+                    {
+                        "date": entity.value,
+                        "description": entity.context_label or "Date mentioned",
+                        "confidence": entity.confidence,
+                    }
+                )
+
         return enhanced
-    
+
     def _enhance_parties(self, recognition: RecognitionResult) -> list[dict]:
         """Enhance extracted parties with role descriptions."""
         enhanced = []
-        
+
         role_descriptions = {
             "plaintiff": "The party who filed the lawsuit",
             "defendant": "The party being sued",
@@ -486,47 +498,51 @@ class DocumentIntelligenceService:
             "judge": "Court official presiding",
             "clerk": "Court administrative staff",
         }
-        
+
         for entity in recognition.parties:
             role = entity.context_label.lower()
-            enhanced.append({
-                "name": entity.value,
-                "role": entity.context_label,
-                "role_description": role_descriptions.get(role, "Party involved in matter"),
-                "confidence": entity.confidence,
-            })
-        
+            enhanced.append(
+                {
+                    "name": entity.value,
+                    "role": entity.context_label,
+                    "role_description": role_descriptions.get(role, "Party involved in matter"),
+                    "confidence": entity.confidence,
+                }
+            )
+
         return enhanced
-    
+
     def _enhance_amounts(self, recognition: RecognitionResult) -> list[dict]:
         """Enhance extracted amounts with context."""
         enhanced = []
-        
+
         for entity in recognition.amounts:
-            enhanced.append({
-                "amount": entity.value,
-                "description": entity.context_label or "Amount",
-                "confidence": entity.confidence,
-            })
-        
+            enhanced.append(
+                {
+                    "amount": entity.value,
+                    "description": entity.context_label or "Amount",
+                    "confidence": entity.confidence,
+                }
+            )
+
         return enhanced
-    
+
     def _generate_timeline_events(self, recognition: RecognitionResult) -> list[TimelineEvent]:
         """Generate timeline events from extracted dates."""
         events = []
         now = utc_now()
-        
+
         for entity in recognition.dates:
             try:
                 # Parse date
                 date_str = entity.normalized or entity.value
-                if 'T' in date_str:
-                    date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                if "T" in date_str:
+                    date_obj = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
                 else:
-                    date_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                
+                    date_obj = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=UTC)
+
                 days_until = (date_obj.date() - now.date()).days
-                
+
                 # Determine event type from label
                 label_lower = entity.context_label.lower()
                 if any(w in label_lower for w in ["deadline", "respond", "due", "must"]):
@@ -541,161 +557,177 @@ class DocumentIntelligenceService:
                     event_type = "filing"
                 else:
                     event_type = "date"
-                
+
                 is_critical = event_type in ["deadline", "hearing"] and 0 <= days_until <= 7
-                
-                events.append(TimelineEvent(
-                    id=make_id("evt"),
-                    event_type=event_type,
-                    title=entity.context_label or "Date",
-                    description=f"From document: {entity.source_text[:100]}..." if len(entity.source_text) > 100 else f"From document: {entity.source_text}",
-                    date=date_obj,
-                    source=entity.source_text,
-                    is_critical=is_critical,
-                    days_until=days_until,
-                ))
+
+                events.append(
+                    TimelineEvent(
+                        id=make_id("evt"),
+                        event_type=event_type,
+                        title=entity.context_label or "Date",
+                        description=f"From document: {entity.source_text[:100]}..."
+                        if len(entity.source_text) > 100
+                        else f"From document: {entity.source_text}",
+                        date=date_obj,
+                        source=entity.source_text,
+                        is_critical=is_critical,
+                        days_until=days_until,
+                    )
+                )
             except (ValueError, TypeError):
                 continue
-        
+
         # Sort by date
         events.sort(key=lambda e: e.date)
         return events
-    
+
     def _get_legal_insights(self, recognition: RecognitionResult) -> list[LegalInsight]:
         """Get applicable Minnesota tenant laws."""
         insights = []
-        
+
         for statute, law_info in self.law_database.items():
             # Check if this law applies to this document type
             if recognition.doc_type in law_info.get("applies_to", []):
-                insights.append(LegalInsight(
-                    statute=f"Minn. Stat. § {statute}",
-                    title=law_info["title"],
-                    relevance=f"This law applies to {recognition.doc_type.value} documents",
-                    protection_level="strong" if recognition.category == DocumentCategory.COURT else "moderate",
-                    key_points=[law_info["summary"]],
-                    tenant_rights=law_info.get("tenant_rights", []),
-                    landlord_obligations=law_info.get("landlord_obligations", []),
-                    deadlines_imposed=law_info.get("deadlines", []),
-                ))
-        
+                insights.append(
+                    LegalInsight(
+                        statute=f"Minn. Stat. § {statute}",
+                        title=law_info["title"],
+                        relevance=f"This law applies to {recognition.doc_type.value} documents",
+                        protection_level="strong" if recognition.category == DocumentCategory.COURT else "moderate",
+                        key_points=[law_info["summary"]],
+                        tenant_rights=law_info.get("tenant_rights", []),
+                        landlord_obligations=law_info.get("landlord_obligations", []),
+                        deadlines_imposed=law_info.get("deadlines", []),
+                    )
+                )
+
         # Add general insights based on document category
         if recognition.category == DocumentCategory.COURT and not insights:
-            insights.append(LegalInsight(
-                statute="Minn. Stat. § 504B.291",
-                title="Eviction Actions - General",
-                relevance="Court documents require timely response",
-                protection_level="strong",
-                key_points=["You have a right to respond to any court filing"],
-                tenant_rights=[
-                    "Right to appear and be heard",
-                    "Right to present defenses",
-                    "Right to legal representation",
-                ],
-                landlord_obligations=["Must follow proper court procedures"],
-                deadlines_imposed=["Typically 7-14 days to respond"],
-            ))
-        
+            insights.append(
+                LegalInsight(
+                    statute="Minn. Stat. § 504B.291",
+                    title="Eviction Actions - General",
+                    relevance="Court documents require timely response",
+                    protection_level="strong",
+                    key_points=["You have a right to respond to any court filing"],
+                    tenant_rights=[
+                        "Right to appear and be heard",
+                        "Right to present defenses",
+                        "Right to legal representation",
+                    ],
+                    landlord_obligations=["Must follow proper court procedures"],
+                    deadlines_imposed=["Typically 7-14 days to respond"],
+                )
+            )
+
         return insights
-    
+
     def _generate_action_items(
-        self,
-        recognition: RecognitionResult,
-        legal_insights: list[LegalInsight]
+        self, recognition: RecognitionResult, legal_insights: list[LegalInsight]
     ) -> list[ActionItem]:
         """Generate specific action items based on document type."""
         actions = []
         now = utc_now()
         priority = 1
-        
+
         # Critical court documents
         if recognition.category == DocumentCategory.COURT:
             if recognition.doc_type == DocumentType.SUMMONS:
-                actions.append(ActionItem(
-                    id=make_id("act"),
-                    priority=priority,
-                    title="Respond to Summons",
-                    description="You must file a written Answer with the court within the time specified (usually 7-14 days).",
-                    deadline=now + timedelta(days=7),
-                    deadline_type="legal",
-                    legal_basis="Failure to respond may result in default judgment against you.",
-                ))
+                actions.append(
+                    ActionItem(
+                        id=make_id("act"),
+                        priority=priority,
+                        title="Respond to Summons",
+                        description="You must file a written Answer with the court within the time specified (usually 7-14 days).",
+                        deadline=now + timedelta(days=7),
+                        deadline_type="legal",
+                        legal_basis="Failure to respond may result in default judgment against you.",
+                    )
+                )
                 priority += 1
-                
+
             if recognition.doc_type == DocumentType.WRIT:
-                actions.append(ActionItem(
-                    id=make_id("act"),
-                    priority=1,  # Always highest for writ
-                    title="CRITICAL: Writ of Restitution",
-                    description="The sheriff may remove you from the property. Gather belongings immediately and contact legal aid.",
-                    deadline=now + timedelta(days=1),
-                    deadline_type="legal",
-                    legal_basis="Minn. Stat. § 504B.321",
-                ))
-                
+                actions.append(
+                    ActionItem(
+                        id=make_id("act"),
+                        priority=1,  # Always highest for writ
+                        title="CRITICAL: Writ of Restitution",
+                        description="The sheriff may remove you from the property. Gather belongings immediately and contact legal aid.",
+                        deadline=now + timedelta(days=1),
+                        deadline_type="legal",
+                        legal_basis="Minn. Stat. § 504B.321",
+                    )
+                )
+
             if recognition.doc_type in [DocumentType.COMPLAINT, DocumentType.EVICTION_FILING]:
-                actions.append(ActionItem(
-                    id=make_id("act"),
-                    priority=priority,
-                    title="Review Complaint Allegations",
-                    description="Read each allegation carefully. You will need to admit, deny, or state you lack information for each one.",
-                    deadline=now + timedelta(days=3),
-                    deadline_type="recommended",
-                ))
+                actions.append(
+                    ActionItem(
+                        id=make_id("act"),
+                        priority=priority,
+                        title="Review Complaint Allegations",
+                        description="Read each allegation carefully. You will need to admit, deny, or state you lack information for each one.",
+                        deadline=now + timedelta(days=3),
+                        deadline_type="recommended",
+                    )
+                )
                 priority += 1
-        
+
         # Notices from landlord
         if recognition.category == DocumentCategory.LANDLORD:
             if recognition.doc_type == DocumentType.EVICTION_NOTICE:
-                actions.append(ActionItem(
-                    id=make_id("act"),
-                    priority=priority,
-                    title="Review Eviction Notice",
-                    description="Check if the notice is proper: correct days, proper service, valid reason.",
-                    deadline=now + timedelta(days=3),
-                    deadline_type="recommended",
-                    legal_basis="Minn. Stat. § 504B.285",
-                ))
+                actions.append(
+                    ActionItem(
+                        id=make_id("act"),
+                        priority=priority,
+                        title="Review Eviction Notice",
+                        description="Check if the notice is proper: correct days, proper service, valid reason.",
+                        deadline=now + timedelta(days=3),
+                        deadline_type="recommended",
+                        legal_basis="Minn. Stat. § 504B.285",
+                    )
+                )
                 priority += 1
-                
+
             if recognition.doc_type == DocumentType.RENT_INCREASE:
-                actions.append(ActionItem(
-                    id=make_id("act"),
-                    priority=priority,
-                    title="Review Rent Increase",
-                    description="Verify proper notice period given. Month-to-month requires 30 days. Fixed-term requires notice before renewal.",
-                    deadline=now + timedelta(days=7),
-                    deadline_type="recommended",
-                ))
+                actions.append(
+                    ActionItem(
+                        id=make_id("act"),
+                        priority=priority,
+                        title="Review Rent Increase",
+                        description="Verify proper notice period given. Month-to-month requires 30 days. Fixed-term requires notice before renewal.",
+                        deadline=now + timedelta(days=7),
+                        deadline_type="recommended",
+                    )
+                )
                 priority += 1
-        
+
         # Add legal consultation recommendation for serious documents
         if recognition.category == DocumentCategory.COURT or recognition.urgency_level in ["critical", "high"]:
-            actions.append(ActionItem(
-                id=make_id("act"),
-                priority=priority,
-                title="Seek Legal Help",
-                description="Contact Legal Aid, Volunteer Lawyers Network, or a tenant rights organization for assistance.",
-                deadline=now + timedelta(days=2),
-                deadline_type="recommended",
-            ))
-        
+            actions.append(
+                ActionItem(
+                    id=make_id("act"),
+                    priority=priority,
+                    title="Seek Legal Help",
+                    description="Contact Legal Aid, Volunteer Lawyers Network, or a tenant rights organization for assistance.",
+                    deadline=now + timedelta(days=2),
+                    deadline_type="recommended",
+                )
+            )
+
         return actions
-    
+
     def _assess_urgency(
-        self,
-        recognition: RecognitionResult,
-        action_items: list[ActionItem]
+        self, recognition: RecognitionResult, action_items: list[ActionItem]
     ) -> tuple[UrgencyLevel, str]:
         """Assess document urgency."""
         # Writs are always critical
         if recognition.doc_type == DocumentType.WRIT:
             return UrgencyLevel.CRITICAL, "Writ of Restitution - Sheriff may execute within 24 hours"
-        
+
         # Court summons are critical
         if recognition.doc_type == DocumentType.SUMMONS:
             return UrgencyLevel.CRITICAL, "Court Summons - Must respond within legal deadline"
-        
+
         # Check for imminent deadlines
         if recognition.has_deadline and recognition.days_to_respond is not None:
             if recognition.days_to_respond < 0:
@@ -706,26 +738,23 @@ class DocumentIntelligenceService:
                 return UrgencyLevel.HIGH, f"{recognition.days_to_respond} days until deadline"
             elif recognition.days_to_respond <= 14:
                 return UrgencyLevel.MEDIUM, f"{recognition.days_to_respond} days until deadline"
-        
+
         # Court documents are generally high urgency
         if recognition.category == DocumentCategory.COURT:
             return UrgencyLevel.HIGH, "Court document - requires timely response"
-        
+
         # Eviction notices
         if recognition.doc_type in [DocumentType.EVICTION_NOTICE, DocumentType.NOTICE_TO_QUIT]:
             return UrgencyLevel.HIGH, "Eviction notice - time-sensitive"
-        
+
         # Financial documents
         if recognition.category == DocumentCategory.FINANCIAL:
             return UrgencyLevel.MEDIUM, "Financial document - review for accuracy"
-        
+
         return UrgencyLevel.NORMAL, "Standard document"
-    
+
     def _generate_explanation(
-        self,
-        recognition: RecognitionResult,
-        urgency: UrgencyLevel,
-        action_items: list[ActionItem]
+        self, recognition: RecognitionResult, urgency: UrgencyLevel, action_items: list[ActionItem]
     ) -> str:
         """Generate a plain English explanation of what this document means."""
         explanations = {
@@ -764,23 +793,22 @@ class DocumentIntelligenceService:
                 "Review each deduction carefully - you can challenge unfair charges."
             ),
         }
-        
+
         base = explanations.get(
-            recognition.doc_type,
-            f"This appears to be a {recognition.doc_type.value.replace('_', ' ')} document."
+            recognition.doc_type, f"This appears to be a {recognition.doc_type.value.replace('_', ' ')} document."
         )
-        
+
         # Add urgency context
         if urgency == UrgencyLevel.CRITICAL:
             base = f"⚠️ URGENT ACTION REQUIRED ⚠️\n\n{base}"
         elif urgency == UrgencyLevel.HIGH:
             base = f"⏰ TIME-SENSITIVE\n\n{base}"
-        
+
         # Add action summary
         if action_items:
             top_action = min(action_items, key=lambda a: a.priority)
             base += f"\n\n👉 Most Important Action: {top_action.title}"
-        
+
         return base
 
 
@@ -788,7 +816,7 @@ class DocumentIntelligenceService:
 # SINGLETON AND CONVENIENCE FUNCTIONS
 # =============================================================================
 
-_service: Optional[DocumentIntelligenceService] = None
+_service: DocumentIntelligenceService | None = None
 
 
 def get_document_intelligence() -> DocumentIntelligenceService:
@@ -802,16 +830,16 @@ def get_document_intelligence() -> DocumentIntelligenceService:
 async def analyze_document(
     text: str,
     filename: str = "",
-    document_id: Optional[str] = None,
+    document_id: str | None = None,
 ) -> IntelligenceResult:
     """
     Convenience function for document analysis.
-    
+
     Args:
         text: Document text
         filename: Original filename
         document_id: Optional ID
-        
+
     Returns:
         IntelligenceResult with full analysis
     """

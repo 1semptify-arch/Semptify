@@ -19,6 +19,7 @@ def validator():
 
 # ── FileValidationResult ─────────────────────────────────────────────────────
 
+
 class TestFileValidationResult:
     def test_defaults(self):
         r = FileValidationResult(is_valid=True)
@@ -32,6 +33,7 @@ class TestFileValidationResult:
 
 
 # ── validate_file — extension checks ─────────────────────────────────────────
+
 
 class TestValidateFileExtension:
     def test_blocked_extension(self, validator):
@@ -60,6 +62,7 @@ class TestValidateFileExtension:
 
 # ── validate_file — empty file ───────────────────────────────────────────────
 
+
 class TestValidateFileEmpty:
     def test_empty_content(self, validator):
         result = validator.validate_file(b"", "doc.pdf", 0)
@@ -68,6 +71,7 @@ class TestValidateFileEmpty:
 
 
 # ── validate_file — size check ───────────────────────────────────────────────
+
 
 class TestValidateFileSize:
     def test_oversized_txt(self, validator):
@@ -84,6 +88,7 @@ class TestValidateFileSize:
 
 # ── validate_file — valid file ───────────────────────────────────────────────
 
+
 class TestValidateFileValid:
     def test_valid_txt(self, validator):
         content = b"plain text"
@@ -99,6 +104,7 @@ class TestValidateFileValid:
 
 
 # ── security checks ─────────────────────────────────────────────────────────
+
 
 class TestSecurityChecks:
     def test_executable_signature_mz(self, validator):
@@ -135,6 +141,7 @@ class TestSecurityChecks:
 
 
 # ── helper methods ───────────────────────────────────────────────────────────
+
 
 class TestHelperMethods:
     def test_get_allowed_extensions(self, validator):
@@ -173,6 +180,7 @@ class TestHelperMethods:
 
 # ── sanitize_filename ────────────────────────────────────────────────────────
 
+
 class TestSanitizeFilenameValidator:
     def test_removes_path_separators(self, validator):
         result = validator.sanitize_filename("../etc/passwd")
@@ -197,6 +205,7 @@ class TestSanitizeFilenameValidator:
 
 
 # ── module-level functions ───────────────────────────────────────────────────
+
 
 class TestModuleFunctions:
     def test_get_file_validator_returns_instance(self):

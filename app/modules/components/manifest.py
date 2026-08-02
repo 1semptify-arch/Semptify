@@ -4,8 +4,10 @@ Modular Components Module Manifest
 Self-contained SDK module for Modular component system integration.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

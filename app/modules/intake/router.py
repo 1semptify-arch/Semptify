@@ -1301,18 +1301,17 @@ async def get_upcoming_deadlines(
     for doc in docs:
         if doc.extraction:
             for date in doc.extraction.dates:
-                if date.is_deadline and date.days_until is not None:
-                    if 0 <= date.days_until <= days:
-                        deadlines.append(
-                            {
-                                "document_id": doc.id,
-                                "document_name": doc.filename,
-                                "date": date.date.isoformat(),
-                                "label": date.label,
-                                "days_until": date.days_until,
-                                "source_text": date.source_text,
-                            }
-                        )
+                if date.is_deadline and date.days_until is not None and 0 <= date.days_until <= days:
+                    deadlines.append(
+                        {
+                            "document_id": doc.id,
+                            "document_name": doc.filename,
+                            "date": date.date.isoformat(),
+                            "label": date.label,
+                            "days_until": date.days_until,
+                            "source_text": date.source_text,
+                        }
+                    )
 
     # Sort by days until deadline
     deadlines.sort(key=lambda x: x["days_until"])
@@ -1486,7 +1485,7 @@ async def get_issue_severities():
 @router.get("/enums/languages")
 async def get_languages():
     """Get supported languages."""
-    return [{"value": l.value, "name": l.name} for l in LanguageCode]
+    return [{"value": lang.value, "name": lang.name} for lang in LanguageCode]
 
 
 # =============================================================================
