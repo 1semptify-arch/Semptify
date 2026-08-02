@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale(request) | default('en') }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,6 +89,7 @@
         <a href="/help">Help</a> ·
         <a href="/preamble">Get Started</a>
       </p>
+      {% include "components/locale_selector.html" %}
       <p>Semptify.org · Built for privacy, clarity, and evidence preservation · © {{ year }}</p>
     </footer>
   </body>
