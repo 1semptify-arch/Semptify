@@ -318,7 +318,7 @@ cache = CacheManager()
 def _make_cache_key(prefix: str, args: tuple, kwargs: dict) -> str:
     """Generate cache key from function arguments."""
     key_data = json.dumps({"args": args, "kwargs": kwargs}, sort_keys=True, default=str)
-    key_hash = hashlib.md5(key_data.encode()).hexdigest()[:12]  # noqa: S324 - non-security cache key
+    key_hash = hashlib.md5(key_data.encode(), usedforsecurity=False).hexdigest()[:12]
     return f"{prefix}:{key_hash}"
 
 
