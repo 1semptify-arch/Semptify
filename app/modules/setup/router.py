@@ -6,6 +6,7 @@ Ensures all data is properly collected and integrated before use.
 
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
@@ -169,13 +170,11 @@ async def check_setup_needed():
     Returns simple boolean for first-run detection.
     """
     # Check if any user has completed setup (simple file-based check)
-    import os
-
-    setup_marker = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
+    setup_marker = Path(__file__).resolve().parents[2] / "data" / ".setup_complete"
 
     return {
-        "setup_complete": os.path.exists(setup_marker),
-        "redirect": "/static/command_center.html" if os.path.exists(setup_marker) else "/static/setup_wizard.html",
+        "setup_complete": setup_marker.exists(),
+        "redirect": "/static/command_center.html" if setup_marker.exists() else "/static/setup_wizard.html",
     }
 
 
@@ -185,12 +184,10 @@ async def skip_setup():
     Skip setup wizard (for development/demo mode).
     Creates the setup_complete marker without going through the wizard.
     """
-    import os
+    marker_path = Path(__file__).resolve().parents[2] / "data" / ".setup_complete"
+    marker_path.parent.mkdir(parents=True, exist_ok=True)
 
-    marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
-    os.makedirs(os.path.dirname(marker_path), exist_ok=True)
-
-    with open(marker_path, "w") as f:
+    with marker_path.open("w") as f:
         f.write(f"Setup skipped at {utc_now().isoformat()}")
 
     return {
@@ -209,12 +206,10 @@ async def reset_setup(
     Removes the setup_complete marker to re-trigger the wizard.
     Requires authentication.
     """
-    import os
+    marker_path = Path(__file__).resolve().parents[2] / "data" / ".setup_complete"
 
-    marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
-
-    if os.path.exists(marker_path):
-        os.remove(marker_path)
+    if marker_path.exists():
+        marker_path.unlink()
         return {
             "status": "reset",
             "message": "Setup wizard will show again on next visit.",
@@ -462,7 +457,6 @@ async def upload_document(
     - Party names
     """
     import hashlib
-    from pathlib import Path
 
     setup = get_user_setup(user.user_id)
 
@@ -470,16 +464,20 @@ async def upload_document(
     content = await file.read()
     file_hash = hashlib.sha256(content).hexdigest()
 
-    # Create vault directory
-    vault_dir = Path(f"uploads/vault/{user.user_id}")
-    vault_dir.mkdir(parents=True, exist_ok=True)
-
-    # Save file
     safe_filename = f"{file_hash[:8]}_{file.filename}"
-    file_path = vault_dir / safe_filename
+    from app.services.vault_upload_service import VaultUploadService
 
-    with open(file_path, "wb") as f:
-        f.write(content)
+    vault_doc = await VaultUploadService().upload(
+        user_id=user.user_id,
+        filename=safe_filename,
+        content=content,
+        mime_type=file.content_type or "application/octet-stream",
+        document_type=document_type,
+        description=description,
+        source_module="setup",
+        access_token=user.access_token,
+        storage_provider=user.provider.value if user.provider else None,
+    )
 
     # Save to database
     async with get_db_session() as session:
@@ -487,7 +485,7 @@ async def upload_document(
             user_id=user.user_id,
             filename=safe_filename,
             original_filename=file.filename,
-            file_path=str(file_path),
+            file_path=vault_doc.storage_path,
             file_size=len(content),
             mime_type=file.content_type or "application/octet-stream",
             sha256_hash=file_hash,
@@ -564,7 +562,7 @@ async def process_all_documents(
     for doc in docs:
         # Read file and process
         try:
-            with open(doc.file_path, "rb") as f:
+            with Path(doc.file_path).open("rb") as f:
                 content = f.read()
             extracted = await _process_document(user.user_id, doc.id, doc.document_type, content, doc.original_filename)
             processed.append(
@@ -625,11 +623,9 @@ async def complete_setup(
     summary = service.get_case_summary()
 
     # Create setup complete marker file
-    import os
-
-    marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
-    os.makedirs(os.path.dirname(marker_path), exist_ok=True)
-    with open(marker_path, "w") as f:
+    marker_path = Path(__file__).resolve().parents[2] / "data" / ".setup_complete"
+    marker_path.parent.mkdir(parents=True, exist_ok=True)
+    with marker_path.open("w") as f:
         f.write(f"Setup completed by user {user.user_id} at {utc_now().isoformat()}")
 
     return {
