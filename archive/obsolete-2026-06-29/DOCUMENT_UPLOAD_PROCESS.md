@@ -1,6 +1,7 @@
 # Document Upload Process - Semptify 5.0
 
 ## Overview
+
 Document upload is a **comprehensive, multi-stage workflow** that processes documents through vault storage, extraction, classification, analysis, and intelligent enrichment. The system ensures every document is cryptographically verified and tracked.
 
 ---
@@ -8,12 +9,14 @@ Document upload is a **comprehensive, multi-stage workflow** that processes docu
 ## System Status
 
 ### ✅ What's Working
+
 - **Legal Filing Module**: Fully tested and operational (7/7 tests passing)
 - **Case Manager Integration**: For managing tenant defense cases
 - **Role-Based Access**: Users, advocates, managers, legal professionals, admins
 - **Evidence Tracking**: Complete chain of custody
 
 ### ⚠️ What Needs Activation
+
 - **Document Upload Endpoint**: Router not currently included in `app/main.py`
   - `documents.py` exists but needs to be dynamically loaded
   - `intake.py` exists for comprehensive document intake
@@ -23,7 +26,7 @@ Document upload is a **comprehensive, multi-stage workflow** that processes docu
 
 ## Document Upload Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                     USER UPLOADS DOCUMENT                        │
 └────────────────────────┬────────────────────────────────────────┘
@@ -101,20 +104,23 @@ Document upload is a **comprehensive, multi-stage workflow** that processes docu
 ## Endpoint Specifications
 
 ### Main Upload Endpoint
-**POST /api/documents/upload**
+
+#### POST /api/documents/upload
 
 #### Request
+
 ```bash
 curl -X POST http://localhost:8000/api/documents/upload \
   -F "file=@lease_agreement.pdf" \
   -F "document_type=lease" \
   -F "storage_provider=local" \
   -F "case_number=EV-2025-001234"
-```
+```text
 
 #### Form Parameters
+
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
+| ----------- | ------ | ---------- | ------------- |
 | `file` | File | ✅ | PDF, image, or document file (max 50MB) |
 | `document_type` | String | ❌ | lease, notice, complaint, court_filing, etc. |
 | `storage_provider` | String | ❌ | local, google_drive, dropbox, onedrive |
@@ -122,6 +128,7 @@ curl -X POST http://localhost:8000/api/documents/upload \
 | `case_number` | String | ❌ | Link to existing case |
 
 #### Response
+
 ```json
 {
   "id": "doc-abc123xyz",
@@ -153,20 +160,24 @@ curl -X POST http://localhost:8000/api/documents/upload \
 ```
 
 ### Alternative: Intake Upload Endpoint
-**POST /api/intake/upload**
+
+#### POST /api/intake/upload
 
 Simpler upload-only (deferred processing):
+
 ```bash
 curl -X POST http://localhost:8000/api/intake/upload \
   -F "file=@notice.pdf" \
   -F "user_id=GUtest1234" \
   -F "storage_provider=local"
-```
+```text
 
 ### Auto-Process Upload Endpoint
+
 **POST /api/intake/upload/auto**
 
 Complete pipeline in one request (wait for result):
+
 ```bash
 curl -X POST http://localhost:8000/api/intake/upload/auto \
   -F "file=@summons.pdf" \
@@ -178,8 +189,9 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 ## Data Flow Details
 
 ### Step 1: Notarization (OPTIONAL but RECOMMENDED)
+
 - **Purpose**: Create tamper-proof receipt
-- **Process**: 
+- **Process**:
   - Compute SHA-256 hash of file
   - Record upload timestamp, username, IP address
   - Generate notarization certificate
@@ -187,6 +199,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/document_notarization.py`
 
 ### Step 2: Vault Upload
+
 - **Purpose**: Store document in user's cloud storage or local filesystem
 - **Providers**:
   - ✅ **Local Storage** (default): `uploads/vault/` directory
@@ -197,6 +210,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/vault_upload_service.py`
 
 ### Step 3: Registration
+
 - **Purpose**: Create unique Semptify Document ID (SEM-YYYY-NNNNNN-XXXX)
 - **Process**:
   - Check for duplicates by content hash
@@ -207,6 +221,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/document_registry.py`
 
 ### Step 4: Intake Processing
+
 - **Purpose**: Parse and structure document content
 - **Sub-steps**:
   - OCR if image/scan
@@ -217,6 +232,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/document_intake.py`
 
 ### Step 5: Classification & Extraction
+
 - **Purpose**: Identify document type and extract key data
 - **Extracted Data**:
   - **Dates**: Lease start/end, notice deadlines, court dates
@@ -228,6 +244,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/document_pipeline.py`, `app/services/document_intelligence.py`
 
 ### Step 6: Legal Cross-Reference
+
 - **Purpose**: Match document with applicable Minnesota tenant laws
 - **Process**:
   - Identify legal issues (improper notice, lack of cause, etc.)
@@ -238,6 +255,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/law_engine.py`
 
 ### Step 7: Verification
+
 - **Purpose**: Detect duplicates, forgeries, and integrity issues
 - **Checks**:
   - Duplicate by content hash
@@ -248,6 +266,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 - **Files**: `app/services/document_registry.py`
 
 ### Step 8: Enrichment
+
 - **Purpose**: Add actionable insights
 - **Enrichments**:
   - **Timeline Events**: Automatically create calendar entries
@@ -262,28 +281,31 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 ## Testing & Verification
 
 ### Run Legal Filing Tests (Working)
+
 ```bash
 cd C:\Semptify\Semptify-FastAPI
 .venv\Scripts\python.exe -m pytest tests/test_legal_filing.py -v
-# Result: ✅ 7/7 PASSED
-```
+## Result: ✅ 7/7 PASSED
+```text
 
 ### Run Document Tests (Needs Router Registration)
+
 ```bash
 cd C:\Semptify\Semptify-FastAPI
 .venv\Scripts\python.exe -m pytest tests/test_documents.py::test_document_upload -v
-# Current Result: ⚠️ 404 Not Found (router not registered in main.py)
+## Current Result: ⚠️ 404 Not Found (router not registered in main.py)
 ```
 
 ### Manual Test (Once Router is Enabled)
+
 ```bash
-# Start server
+## Start server
 .venv\Scripts\python.exe -m uvicorn app.main:app --reload
 
-# Test upload
+## Test upload
 curl -X POST http://127.0.0.1:8000/api/documents/upload \
   -F "file=@test.pdf"
-```
+```text
 
 ---
 
@@ -313,21 +335,24 @@ The document upload endpoint **exists and is fully implemented** but returns 404
 ## To Enable Document Upload
 
 ### Option 1: Quick Enable (Testing)
+
 Edit `app/main.py` line ~1603 and add:
+
 ```python
 include_if(documents_router, tags=["Documents"])
 ```
 
 ### Option 2: Full Flow (Production)
+
 ```python
-# At top of app/main.py
+## At top of app/main.py
 try:
     from app.routers import documents
     documents_router = documents.router
 except ImportError:
     documents_router = None
 
-# In register routers section
+## In register routers section
 include_if(documents_router, tags=["Documents"])  # Document upload, analysis
 ```
 
@@ -336,6 +361,7 @@ include_if(documents_router, tags=["Documents"])  # Document upload, analysis
 ## Related Modules
 
 ### Legal Filing Module (✅ WORKING)
+
 - **Status**: Fully implemented, 7/7 tests passing
 - **Endpoints**:
   - `POST /api/legal-filing/cases` (advocate+ roles)
@@ -344,12 +370,14 @@ include_if(documents_router, tags=["Documents"])  # Document upload, analysis
   - `GET /api/legal-filing/cases/{id}/evidence` (all authenticated)
 
 ### Document Intake Module (⏳ READY)
+
 - **Status**: Fully coded, needs router registration
 - **Endpoints**:
   - `POST /api/intake/upload` - Basic upload
   - `POST /api/intake/upload/auto` - Auto-process
 
 ### Supporting Services (✅ ALL AVAILABLE)
+
 - `vault_upload_service.py` - Cloud/local storage
 - `document_registry.py` - Unique IDs, deduplication
 - `document_intake.py` - Text extraction
@@ -364,7 +392,7 @@ include_if(documents_router, tags=["Documents"])  # Document upload, analysis
 ## Summary
 
 | Component | Status | Tests | Notes |
-|-----------|--------|-------|-------|
+| ----------- | -------- | ------- | ------- |
 | **Legal Filing APIs** | ✅ Active | 7/7 pass | Case + evidence tracking |
 | **Document Upload Routers** | ⏳ Code ready | 6/6 written | Not registered in main.py |
 | **Upload Processing Engine** | ✅ Complete | Multiple | All services available |

@@ -12,6 +12,7 @@ Semptify is a **free, privacy-first housing-rights platform** for tenants facing
 It is not a SaaS product. It is not an advertising platform. It has no freemium tier.
 
 Its core job is to help people who cannot afford a legal team to:
+
 - Organise documents and evidence
 - Understand their rights under the law
 - Build and preserve a legal record of housing violations
@@ -30,7 +31,7 @@ the integration is rejected, full stop.
 ### 2.1 Mission Hard Lines
 
 | Rule | What it means in practice |
-|---|---|
+| --- | --- |
 | **Free forever** | No paywalls, no paid tiers, no "premium" features that gatekeep rights information |
 | **No advertising** | No ad SDKs, no tracking pixels, no affiliate links, no sponsored content |
 | **Privacy by design** | No user profiling, no behavioural analytics sold or shared, no third-party data brokers |
@@ -41,7 +42,7 @@ the integration is rejected, full stop.
 ### 2.2 Technical Hard Lines
 
 | Rule | Enforcement |
-|---|---|
+| --- | --- |
 | **Python 3.11.9 only** | `main.py` hard-exits on wrong version. No 3.12+ dependencies. |
 | **No secrets in code** | Runtime injection only. Never hardcode API keys, tokens, or passwords. |
 | **No bare `except:`** | Always catch specific exceptions. `except ValueError`, `except RuntimeError`, etc. |
@@ -56,7 +57,7 @@ the integration is rejected, full stop.
 
 Semptify is a **FastAPI monorepo** with three extension layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │  Semptify Core (this repo)                          │
 │  ┌───────────┐  ┌───────────┐  ┌───────────────┐   │
@@ -86,7 +87,7 @@ Semptify is a **FastAPI monorepo** with three extension layers:
 ### Product Tiers
 
 | Tier | Purpose | Always on? |
-|---|---|---|
+| --- | --- | --- |
 | `CORE` | Tenant-rights essentials, vault, documents, law library | ✅ Yes |
 | `EXTENDED` | Eviction defense, court forms, case builder | ✅ Yes (live) |
 | `ADVOCATE` | Advocate network, collaboration, invite codes | ✅ Yes (live) |
@@ -99,7 +100,7 @@ Semptify is a **FastAPI monorepo** with three extension layers:
 A module declares what it does. Each capability has a contract:
 
 | Capability | What it means | Required |
-|---|---|---|
+| --- | --- | --- |
 | `ROUTER` | Provides FastAPI routes | Must set `router_module` |
 | `CONTRACT` | Declares function-group contracts for the Positronic Mesh | Must set `contracts` |
 | `MESH` | Integrates with the Positronic Mesh action bus | Must set `mesh_actions` |
@@ -109,14 +110,15 @@ A module declares what it does. Each capability has a contract:
 
 ---
 
-## 4. Integration Types — Which One Are You?
+## 4. Integration Types — Which One Are You
 
 ### Type A: Internal Module (built into this repo)
 
 You are contributing directly to the Semptify codebase. Your module lives in `app/modules/your_module/`.
 
-**Required files:**
-```
+#### Required files:
+
+```text
 app/modules/your_module/
     __init__.py
     router.py          ← FastAPI APIRouter named `router`
@@ -124,6 +126,7 @@ app/modules/your_module/
 ```
 
 **Required registration** — one line in `app/core/product_manifest.py`:
+
 ```python
 _register(
     "app.modules.your_module.router",
@@ -131,9 +134,10 @@ _register(
     tier=ProductTier.EXTENDED,   # pick the right tier
     optional=True,
 )
-```
+```text
 
 **Required manifest declaration** (if using the full module SDK):
+
 ```python
 from app.core.module_sdk import ModuleManifest, ModuleCapability, register_module
 from app.core.product_manifest import ProductTier
@@ -156,8 +160,9 @@ manifest = ModuleManifest(
 
 You are building something that drops into a running Semptify instance without modifying this repo.
 
-**Required structure:**
-```
+#### Required structure:
+
+```text
 plugins/your_plugin/
     plugin.json        ← metadata descriptor
     main.py            ← entry point with initialize() and cleanup()
@@ -165,7 +170,8 @@ plugins/your_plugin/
     README.md
 ```
 
-**Required `plugin.json`:**
+#### Required `plugin.json`:
+
 ```json
 {
   "name": "your_plugin",
@@ -182,9 +188,10 @@ plugins/your_plugin/
   "main_module": "main",
   "init_function": "initialize"
 }
-```
+```text
 
 **Required `main.py` structure:**
+
 ```python
 from app.sdk import ModuleSDK, ModuleDefinition, ModuleCategory
 
@@ -212,6 +219,7 @@ __all__ = ["sdk", "module_definition", "initialize", "cleanup"]
 ```
 
 **Plugin discovery directories** (checked in order):
+
 1. `app/plugins/` — built-in plugins
 2. `plugins/` — repo-level user plugins  
 3. `~/.semptify/plugins/` — user home plugins
@@ -224,7 +232,8 @@ You describe what you want to build in a structured JSON blueprint. Semptify's t
 generates the correct module skeleton from the blueprint. This is the **fastest and safest path**
 for external integrations because it guarantees compliance from the start.
 
-**Blueprint format:**
+#### Blueprint format:
+
 ```json
 {
   "name": "rent_strike_tracker",
@@ -272,7 +281,7 @@ for external integrations because it guarantees compliance from the start.
   "author": "Partner Org Name",
   "contact": "dev@partnerorg.example"
 }
-```
+```text
 
 Submit the blueprint to Semptify. Do not submit partial code — a clean blueprint generates
 better code than partially-written code that doesn't follow the conventions.
@@ -295,7 +304,7 @@ better code than partially-written code that doesn't follow the conventions.
 ### FastAPI Routes
 
 ```python
-# Required pattern — all authenticated routes
+## Required pattern — all authenticated routes
 from app.core.security import require_user  # or yellow_access, require_role
 
 @router.get("/api/your-module/{id}", tags=["Your Module"])
@@ -314,28 +323,33 @@ async def get_thing(
 
 ### Navigation (SSOT — Critical)
 
-**Never do this:**
+#### Never do this:
+
 ```python
 return RedirectResponse(url="/onboarding/step2")   # ❌ hardcoded
-```
+```text
+
 ```javascript
 window.location.href = "/onboarding/step2";        // ❌ hardcoded
 ```
+
 ```html
 <a href="/onboarding/step2">Next</a>               // ❌ hardcoded
-```
+```text
 
 **Always do this:**
+
 ```python
 from app.core.navigation import navigation
 stage = navigation.get_stage("vault_setup")
 return RedirectResponse(url=stage.path)            # ✅ SSOT
 ```
+
 ```javascript
 // In static files — fetch the navigation API first
 const nav = await fetch("/onboarding/ssot-navigation").then(r => r.json());
 window.location.href = nav.stages.vault_setup.path; // ✅ SSOT
-```
+```text
 
 ### Security
 
@@ -367,6 +381,7 @@ CMD ["uvicorn", "app.main:app"]
 Any integration exhibiting the following will not be accepted:
 
 ### Mission violations
+
 - Monetisation of tenant data or document access
 - Advertising, affiliate, or sponsored content of any kind
 - Content that softens or hedges clear legal protections
@@ -375,6 +390,7 @@ Any integration exhibiting the following will not be accepted:
 - Any feature that primarily serves landlord interests over tenant interests
 
 ### Technical violations
+
 - Python version other than 3.11.9
 - Bare `except:` blocks
 - Hardcoded URL strings in redirects or navigation
@@ -386,6 +402,7 @@ Any integration exhibiting the following will not be accepted:
 - Adding imports inside function bodies instead of at the top of the file
 
 ### Architectural violations
+
 - Defining redirect targets outside the navigation registry
 - Bypassing the product manifest for router registration
 - Writing directly to the database without going through the vault SDK for user documents
@@ -429,7 +446,7 @@ regardless of technical quality.
 ## 9. Quick Reference Card
 
 | I want to... | Use this |
-|---|---|
+| --- | --- |
 | Add routes to Semptify | Internal Module (Type A) |
 | Build something outside the repo | External Plugin (Type B) |
 | Propose a new feature | Blueprint Submission (Type C) |

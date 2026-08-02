@@ -7,9 +7,11 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ## 🎯 Core Purpose Analysis
 
 ### **Primary Mission Statement**
+>
 > *"Help tenants with tools and information to uphold tenant rights, in court if it goes that far - hopefully it won't."*
 
 ### **User Roles Served**
+
 - **Tenants**: Primary users needing housing rights protection
 - **Landlords**: Property owners needing compliance tools
 - **Advocates**: Legal professionals assisting tenants
@@ -21,6 +23,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ### **1. Setup & Configuration Files**
 
 #### `CREDENTIALS_SETUP_WORKBOOK.html`
+
 - **Purpose**: Server setup and configuration workbook
 - **Intended Use**: Initial server configuration for housing organizations
 - **Key Features**:
@@ -33,6 +36,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: System administrators, IT staff
 
 #### `CREDENTIALS_SETUP_WORKBOOK_REVEALED.html`
+
 - **Purpose**: Revealed credentials workbook (development/testing)
 - **Intended Use**: Development environment setup
 - **Key Features**: Same as above but with revealed credentials for testing
@@ -44,6 +48,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Tenant-Focused Dashboards
 
 ##### `app/templates/pages/tenant_dashboard.html`
+
 - **Purpose**: Main tenant dashboard with modular components
 - **Intended Use**: Central hub for tenant housing rights activities
 - **Key Features**:
@@ -56,6 +61,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Tenants needing housing rights protection
 
 ##### `design-system/components/function-groups/role-specific/tenant/dashboard.html`
+
 - **Purpose**: Modular tenant dashboard component
 - **Intended Use**: Reusable tenant interface component
 - **Key Features**:
@@ -67,6 +73,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Template system, tenant users
 
 ##### `app/templates/pages/tenant.html`
+
 - **Purpose**: Legacy tenant page (being migrated)
 - **Intended Use**: Basic tenant interface
 - **Housing Rights Impact**: Basic tenant access to housing rights tools
@@ -75,6 +82,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Advocate-Focused Dashboards
 
 ##### `app/templates/pages/advocate.html`
+
 - **Purpose**: Advocate dashboard with role-specific tools
 - **Intended Use**: Central hub for legal advocates
 - **Key Features**:
@@ -86,6 +94,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Legal advocates, housing counselors
 
 ##### `design-system/components/function-groups/role-specific/advocate/dashboard.html`
+
 - **Purpose**: Modular advocate dashboard component
 - **Intended Use**: Reusable advocate interface
 - **Key Features**:
@@ -99,6 +108,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Legal Professional Dashboards
 
 ##### `app/templates/legal/advocate_dashboard.html`
+
 - **Purpose**: Legal professional dashboard
 - **Intended Use**: Advanced tools for legal professionals
 - **Key Features**:
@@ -110,6 +120,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Attorneys, paralegals, legal advocates
 
 ##### `app/templates/legal/housing_manager_monitor.html`
+
 - **Purpose**: Housing management monitoring dashboard
 - **Intended Use**: Monitor housing compliance and issues
 - **Key Features**:
@@ -121,6 +132,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Housing managers, property managers
 
 ##### `design-system/components/function-groups/role-specific/legal/dashboard.html`
+
 - **Purpose**: Modular legal dashboard component
 - **Intended Use**: Reusable legal professional interface
 - **Key Features**:
@@ -134,6 +146,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Administrative Dashboards
 
 ##### `app/templates/pages/admin.html`
+
 - **Purpose**: Administrative interface
 - **Intended Use**: System administration and management
 - **Key Features**:
@@ -145,6 +158,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: System administrators
 
 ##### `design-system/components/function-groups/role-specific/admin/dashboard.html`
+
 - **Purpose**: Modular admin dashboard component
 - **Intended Use**: Reusable administrative interface
 - **Key Features**:
@@ -158,6 +172,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ### **3. Onboarding & User Setup**
 
 #### `app/templates/pages/onboarding-simple.html`
+
 - **Purpose**: Simplified linear onboarding flow
 - **Intended Use**: New user setup and education
 - **Key Features**:
@@ -169,6 +184,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: New tenants, landlords, advocates
 
 #### `app/templates/pages/register.html` & `register_success.html`
+
 - **Purpose**: User registration and confirmation
 - **Intended Use**: Account creation and verification
 - **Housing Rights Impact**: Enables access to housing rights protection tools
@@ -177,6 +193,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Design System Onboarding Components
 
 ##### `design-system/components/function-groups/onboarding/welcome.html`
+
 - **Purpose**: Welcome component for onboarding
 - **Intended Use**: User welcome and orientation
 - **Key Features**:
@@ -187,6 +204,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: New users of all roles
 
 ##### `design-system/components/function-groups/onboarding/onboarding-tracker.html`
+
 - **Purpose**: Onboarding progress tracking
 - **Intended Use**: Visual progress indication
 - **Key Features**:
@@ -199,6 +217,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ### **4. Document Management & Analysis**
 
 #### `app/templates/pages/documents.html`
+
 - **Purpose**: Document management interface
 - **Intended Use**: Upload, organize, and manage housing documents
 - **Key Features**:
@@ -210,6 +229,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: All user roles (tenants, advocates, landlords)
 
 #### `app/templates/pages/legal-analysis.html`
+
 - **Purpose**: Legal analysis interface
 - **Intended Use**: AI-powered legal document analysis
 - **Key Features**:
@@ -221,6 +241,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Legal professionals, advocates
 
 #### `app/templates/pages/auto_analysis_summary.html`
+
 - **Purpose**: AI analysis summary dashboard
 - **Intended Use**: Review automated analysis results
 - **Key Features**:
@@ -236,6 +257,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Capture & Input Components
 
 ##### `design-system/components/function-groups/capture/demo.html`
+
 - **Purpose**: Document capture demonstration
 - **Intended Use**: Show document capture capabilities
 - **Key Features**:
@@ -246,6 +268,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: New users, demonstrations
 
 ##### `design-system/components/function-groups/capture/upload-zone.html`
+
 - **Purpose**: Document upload zone component
 - **Intended Use**: Drag-and-drop document upload
 - **Key Features**:
@@ -257,6 +280,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: All user roles
 
 ##### `design-system/components/function-groups/capture/voice-intake.html`
+
 - **Purpose**: Voice input for document capture
 - **Intended Use**: Voice-based document creation
 - **Key Features**:
@@ -270,6 +294,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 #### Planning & Organization
 
 ##### `design-system/components/function-groups/plan/action-list.html`
+
 - **Purpose**: Action planning and tracking
 - **Intended Use**: Organize housing rights actions
 - **Key Features**:
@@ -281,6 +306,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Tenants, advocates
 
 ##### `design-system/components/function-groups/plan/deadline-tracker.html`
+
 - **Purpose**: Critical deadline tracking
 - **Intended Use**: Track housing-related deadlines
 - **Key Features**:
@@ -294,6 +320,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ### **6. System Pages & Utilities**
 
 #### `app/templates/pages/dashboard.html`
+
 - **Purpose**: Main system dashboard
 - **Intended Use**: System overview and navigation
 - **Key Features**:
@@ -305,6 +332,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: All authenticated users
 
 #### `app/templates/pages/error.html`
+
 - **Purpose**: Error handling and user guidance
 - **Intended Use**: Error display and recovery options
 - **Key Features**:
@@ -316,6 +344,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: All users experiencing errors
 
 #### `app/templates/pages/welcome.html`
+
 - **Purpose**: Landing page and introduction
 - **Intended Use**: Platform introduction and user guidance
 - **Key Features**:
@@ -329,6 +358,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ### **7. Template System Components**
 
 #### `app/templates/base.html`
+
 - **Purpose**: Base template for all pages
 - **Intended Use**: Consistent layout and styling
 - **Key Features**:
@@ -340,6 +370,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: All users (template foundation)
 
 #### `app/templates/components/document_card.html`
+
 - **Purpose**: Document display card component
 - **Intended Use**: Reusable document preview card
 - **Key Features**:
@@ -351,6 +382,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Template system, all users
 
 #### `app/templates/components/upload_zone.html`
+
 - **Purpose**: File upload zone component
 - **Intended Use**: Reusable upload interface
 - **Key Features**:
@@ -364,6 +396,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ### **8. Specialized Housing Tools**
 
 #### `app/templates/pages/tenancy.html`
+
 - **Purpose**: Tenancy management interface
 - **Intended Use**: Manage rental agreements and tenancy details
 - **Key Features**:
@@ -375,6 +408,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Target Users**: Tenants, landlords, advocates
 
 #### `app/templates/pages/timeline.html`
+
 - **Purpose**: Case timeline and event tracking
 - **Intended Use**: Chronological case management
 - **Key Features**:
@@ -388,6 +422,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ## 🎯 Housing Rights Mission Alignment
 
 ### **Tenant Empowerment Features**
+
 - **Document Management**: Secure storage and organization of housing documents
 - **Legal Analysis**: AI-powered insights into housing situations
 - **Deadline Tracking**: Critical dates and court deadlines
@@ -395,18 +430,21 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Case Management**: Comprehensive case tracking and organization
 
 ### **Advocate Support Features**
+
 - **Client Management**: Tools for managing multiple tenant cases
 - **Legal Research**: Access to housing laws and regulations
 - **Document Analysis**: Professional-grade document review
 - **Workflow Tools**: Streamlined processes for advocacy work
 
 ### **Landlord Compliance Features**
+
 - **Property Management**: Tools for managing rental properties
 - **Compliance Monitoring**: Ensure adherence to housing laws
 - **Documentation**: Templates and forms for legal requirements
 - **Communication**: Channels for tenant-landlord interaction
 
 ### **System Reliability Features**
+
 - **Error Handling**: Graceful error recovery and user guidance
 - **Onboarding**: Smooth user setup and education
 - **Responsive Design**: Accessible on all devices
@@ -415,12 +453,14 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ## 📊 Usage Patterns & User Journeys
 
 ### **New User Journey**
+
 1. **Landing** (`welcome.html`) → Introduction to housing rights mission
 2. **Registration** (`register.html`) → Account creation
 3. **Onboarding** (`onboarding-simple.html`) → Role-based setup
 4. **Dashboard** (role-specific) → Personalized housing rights hub
 
 ### **Tenant Journey**
+
 1. **Dashboard** → Overview of housing rights status
 2. **Documents** → Upload and organize evidence
 3. **Timeline** → Track case progress and deadlines
@@ -428,6 +468,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 5. **Emergency Actions** → Quick access to urgent tools
 
 ### **Advocate Journey**
+
 1. **Dashboard** → Client management overview
 2. **Client Cases** → Manage multiple tenant cases
 3. **Legal Tools** → Professional analysis and research
@@ -435,6 +476,7 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 5. **Reporting** → Generate reports and documentation
 
 ### **Landlord Journey**
+
 1. **Dashboard** → Property management overview
 2. **Tenancy Management** → Manage rental agreements
 3. **Compliance Tools** → Ensure legal compliance
@@ -444,18 +486,21 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ## 🔧 Technical Implementation Insights
 
 ### **Template System Architecture**
+
 - **Base Templates**: Consistent layout and styling
 - **Component System**: Reusable UI components
 - **Role-Based Views**: Tailored interfaces for different user types
 - **Responsive Design**: Mobile-friendly access to housing rights tools
 
 ### **Integration Points**
+
 - **Backend APIs**: All templates integrate with FastAPI routers
 - **WebSocket Connections**: Real-time updates for critical housing events
 - **File Storage**: Integration with cloud storage for document preservation
 - **Search System**: Full-text search across housing documents and resources
 
 ### **Accessibility Features**
+
 - **Voice Input**: Accessibility for users with disabilities
 - **Keyboard Navigation**: Full keyboard access to all features
 - **Screen Reader Support**: Proper ARIA labels and semantic HTML
@@ -464,12 +509,14 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ## 🚀 Recommendations for Enhancement
 
 ### **Immediate Improvements**
+
 1. **Enhanced Mobile Experience**: Optimize templates for mobile devices
 2. **Voice Integration**: Expand voice input capabilities across all forms
 3. **Real-time Updates**: More WebSocket integration for live collaboration
 4. **Accessibility Audit**: Comprehensive WCAG compliance review
 
 ### **Future Enhancements**
+
 1. **AI Integration**: Deeper AI integration for legal analysis
 2. **Multilingual Support**: Housing rights tools in multiple languages
 3. **Offline Capabilities**: Critical housing tools available offline
@@ -478,7 +525,9 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 ## 📋 Summary
 
 ### **Total HTML Files**: 52+
+
 ### **Primary Categories**:
+
 - **Setup & Configuration**: 2 files
 - **Role Dashboards**: 15+ files
 - **Onboarding**: 5+ files
@@ -488,13 +537,16 @@ This document analyzes all HTML files in the Semptify 5.0 platform to understand
 - **Template Components**: 7+ files
 
 ### **Mission Alignment**: **100%**
+
 All HTML files serve the core housing rights mission by providing:
+
 - **Tenant Empowerment**: Tools for housing rights protection
 - **Advocate Support**: Professional-grade legal assistance tools
 - **Landlord Compliance**: Resources for legal compliance
 - **System Reliability**: Robust error handling and user guidance
 
 ### **User Experience Goals**:
+
 - **Accessibility**: Housing rights tools for all users
 - **Usability**: Intuitive interfaces for complex legal processes
 - **Reliability**: Consistent experience across all touchpoints

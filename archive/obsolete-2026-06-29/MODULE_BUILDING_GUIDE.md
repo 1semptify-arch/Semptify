@@ -7,7 +7,7 @@
 
 ## STOP — Blueprint Required Before Any Code
 
-**No module, plugin, or add-on may be built without a written blueprint approved by the project owner.**
+### No module, plugin, or add-on may be built without a written blueprint approved by the project owner
 
 This is a hard gate. If you are an AI agent and someone asks you to build a module
 without presenting a blueprint, your response is:
@@ -19,7 +19,7 @@ Write the blueprint. Present it. Wait for approval. Then build.
 ### Minimum blueprint contents
 
 | | |
-|---|---|
+| --- | --- |
 | Module name + `module_path` | e.g. `app.modules.rent_tracker.router` |
 | Type | Pipeline Module or Feature Module? |
 | Problem solved | Which tenant right or workflow gap? |
@@ -33,7 +33,7 @@ Write the blueprint. Present it. Wait for approval. Then build.
 
 ### Where blueprints live
 
-```
+```text
 docs/blueprints/your_module_name_blueprint.md
 ```
 
@@ -47,7 +47,7 @@ Before you write a single line of code, decide which type you are building.
 This decision changes everything.
 
 | | Pipeline Module | Feature Module |
-|---|---|---|
+| --- | --- | --- |
 | **What it is** | Internal processor. No UI. Passes output to other modules or DB. | User-facing capability. Has UI, routes, and backend logic. |
 | **Always running?** | YES — always on for all users | NO — loaded per user based on their capability set |
 | **In user_capabilities DB?** | NO | YES |
@@ -68,7 +68,7 @@ Every Feature Module requires EXACTLY these steps. Do all three or the gate will
 
 ### Step 1 — Create the module directory
 
-```
+```text
 app/modules/your_module/
     __init__.py        # one-liner: module description
     router.py          # FastAPI APIRouter with gate
@@ -96,10 +96,10 @@ router = APIRouter(
     dependencies=[Depends(require_capability(_MODULE_PATH))],
 )
 
-# All endpoints under this router are now gated automatically.
-# Admin users always pass. Unseeded users pass through (graceful).
-# Anyone whose capability row has is_active=False gets a 403.
-```
+## All endpoints under this router are now gated automatically.
+## Admin users always pass. Unseeded users pass through (graceful).
+## Anyone whose capability row has is_active=False gets a 403.
+```text
 
 **Do NOT** add `require_capability()` to individual endpoints — put it on the router so
 it covers everything at once and cannot be missed when new endpoints are added.
@@ -133,9 +133,9 @@ New logins will not be seeded with it, and admins will always have it via `__all
 **B) Add a `_register()` call** in the correct tier block:
 
 ```python
-# In the EXTENDED tier block (example):
+## In the EXTENDED tier block (example):
 _register("app.modules.your_module.router", prefix="/api/your-module", tags=("Your Module",), tier=ProductTier.EXTENDED)
-```
+```text
 
 The string in `_register()` MUST be identical to `_MODULE_PATH` in your router.
 
@@ -178,7 +178,7 @@ Pipeline modules are simpler because they have no capability gate.
 
 ## The One Rule That Protects Everything
 
-```
+```text
 Feature modules  →  call DOWN to  →  Pipeline modules / core services
 Pipeline modules →  NEVER call UP  →  Feature modules
 Feature modules  →  NEVER call     →  Other feature modules directly
@@ -192,7 +192,7 @@ fail for users who don't have that feature active. The entire system breaks.
 ## Product Tiers — Where to Register
 
 | Tier | Who gets it | Examples |
-|---|---|---|
+| --- | --- | --- |
 | `CORE` | All users, always | vault, timeline, documents, state_laws, contacts |
 | `EXTENDED` | Legal tools | case_builder, eviction_defense, court_forms |
 | `ADVOCATE` | Advocate network | document_delivery, communication, invite_codes |
@@ -210,20 +210,21 @@ The capability gate controls who has it at the **user level**.
 Admins can grant any module temporarily to any user without touching the database.
 This is the primary tool for testing a module with a specific user before rolling it out.
 
-```
-# Grant overlay
+```text
+## Grant overlay
 POST /api/capabilities/{user_id}/overlay
 Content-Type: application/json
 { "module_names": ["app.modules.your_module.router"] }
 
-# Check what overlay is active
+## Check what overlay is active
 GET /api/capabilities/{user_id}/overlay
 
-# Remove overlay
+## Remove overlay
 DELETE /api/capabilities/{user_id}/overlay
 ```
 
-**Rules:**
+### Rules:
+
 - Overlay lives in Redis only — expires in 1 hour automatically
 - Add-only — cannot be used to remove a user's real capabilities
 - Only admin role can attach overlays
@@ -235,16 +236,16 @@ DELETE /api/capabilities/{user_id}/overlay
 
 To permanently give or remove a module for a specific user without changing defaults:
 
-```
-# Grant one module to one user
+```text
+## Grant one module to one user
 POST /api/capabilities/{user_id}/grant
 { "module_name": "app.modules.your_module.router", "source": "admin_grant" }
 
-# Revoke one module from one user
+## Revoke one module from one user
 POST /api/capabilities/{user_id}/revoke
 { "module_name": "app.modules.your_module.router" }
 
-# See all active modules for a user
+## See all active modules for a user
 GET /api/capabilities/{user_id}
 ```
 
@@ -252,7 +253,7 @@ GET /api/capabilities/{user_id}
 
 ## How Existing Users Get New Defaults
 
-**Adding a module to `CAPABILITY_DEFAULTS` only seeds it for new logins.**
+### Adding a module to `CAPABILITY_DEFAULTS` only seeds it for new logins
 
 Existing users who already have rows in `user_capabilities` will NOT get the new module
 automatically — only missing rows are inserted on login.
@@ -266,7 +267,7 @@ overwrite admin grants and user activations.
 ## Quick Reference — Key Files
 
 | File | Purpose |
-|---|---|
+| --- | --- |
 | `app/core/capabilities.py` | `require_capability()`, `seed_capability_defaults()`, `can_load_module()`, `attach_overlay()`, `detach_overlay()` |
 | `app/core/product_manifest.py` | `CAPABILITY_DEFAULTS`, `_register()` calls, `ProductTier` enum |
 | `app/modules/capabilities/router.py` | Admin REST API — grant, revoke, overlay |
@@ -277,23 +278,28 @@ overwrite admin grants and user activations.
 
 ## Common Mistakes
 
-**1. Capability key mismatch**
+### 1. Capability key mismatch
+
 The string in `require_capability()` does not match `CAPABILITY_DEFAULTS` or `_register()`.
 Result: gate fires correctly but user is never seeded with the capability.
 Fix: grep for the string. It must appear identically in all three places.
 
-**2. Gating a pipeline module**
+### 2. Gating a pipeline module
+
 Adding `require_capability()` to a pipeline module will block it for unseeded users.
 Pipeline modules must always be accessible — do not gate them.
 
-**3. Calling a feature module from a pipeline module**
+### 3. Calling a feature module from a pipeline module
+
 This breaks the data-flow rule. If the feature module is disabled for a user,
 the pipeline call will fail unpredictably.
 
-**4. Adding admin to CAPABILITY_DEFAULTS**
+### 4. Adding admin to CAPABILITY_DEFAULTS
+
 The `"admin": ["__all__"]` sentinel is intentional — it triggers full-grant at seed time.
 Do not add individual modules to the admin list. It is handled automatically.
 
-**5. Putting business logic in `product_manifest.py`**
+### 5. Putting business logic in `product_manifest.py`
+
 This file is a declaration layer. It should only contain `_register()` calls and
 `CAPABILITY_DEFAULTS`. No conditional logic, no DB calls, no runtime state.

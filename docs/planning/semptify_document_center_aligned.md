@@ -6,7 +6,7 @@ This replaces the naming used in the earlier rough-draft doc. That draft was dir
 
 ## Pipeline as actually built
 
-```
+```text
 Upload → VAULT (SHA-256 + certificate + SEM ID)
             ↓
          LIGHT INTAKE (fast, synchronous: rough OCR, doc-type guess, user-supplied fields)
@@ -32,7 +32,7 @@ Upload → VAULT (SHA-256 + certificate + SEM ID)
 
 ### Deep OCR pipeline — design
 
-**Precise mechanism — this matters for how agents build it:** Deep OCR is not a second character-recognition pass. It's **one OCR read, then one Semantic Context Engine pass on top of it.**
+#### Precise mechanism — this matters for how agents build it:**Deep OCR is not a second character-recognition pass. It's**one OCR read, then one Semantic Context Engine pass on top of it
 
 - **Pass 1 (Light Intake)**: raw OCR — text + bounding boxes + a rough, low-confidence guess at structure. This is mechanical: reading pixels, nothing more.
 - **Pass 2 (Semantic Context Engine — this *is* what "Deep OCR" means here)**: takes pass 1's raw text as input, no re-scanning of the image. It matches against the tenancy domain schema (tenant/landlord/lease/notice/payment concepts), extracts the trigger phrase surrounding each date/entity candidate ("must respond by," "signed this ___ day of," "effective as of"), and uses that context to both classify the semantic role and raise the confidence score from pass 1's rough guess to a properly evidence-backed percentage. Cheaper than double-OCR, and meaningfully more accurate, since pass 2 has real context instead of guessing blind.
@@ -57,7 +57,7 @@ Upload → VAULT (SHA-256 + certificate + SEM ID)
 ## Terminology correction — old draft name → real module
 
 | Old draft term | Real module | Status |
-|---|---|---|
+| --- | --- | --- |
 | Vault | `vault_upload_service.py`, upload via `POST /api/intake/upload/auto` (UI-facing) — vault's own `POST /upload` is internal | Core / stable |
 | "Notarized" / integrity seal | SHA-256 + self-signed JSON certificate + DocumentRegistry SEM ID. **Not blockchain.** RFC 3161 TSA exists but only used by `legal_integrity.py` | Partial |
 | Docket (master record) | **Doesn't exist and shouldn't be built** — use `Document` + `DocumentPipelineIndex` + `DocumentRegistry`, which already do this job | Do not build |
@@ -87,7 +87,7 @@ Upload → VAULT (SHA-256 + certificate + SEM ID)
 Three real options, ranked by what they actually prove:
 
 | Approach | What it proves | Cost/complexity | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Self-signed cert (current default) | File unaltered since cert creation. Does **not** independently prove Semptify itself didn't fabricate the timestamp | Free, already built | Live |
 | RFC 3161 TSA (already in codebase, not wired to every upload) | Independent third party attests to the timestamp — Semptify can't have faked it. Legally recognized standard (eIDAS, various US contexts) | Free/near-free (e.g. FreeTSA), client already exists | **Recommended near-term fix** — just needs wiring into every vault upload |
 | Blockchain anchoring | Publicly, permanently verifiable, independent of Semptify's existence — strongest possible tamper-proof claim | Real infra to build/maintain: wallet/key management, chain choice, confirmation delays; cheap only via batch-anchoring (e.g. OpenTimestamps-style Merkle batching to Bitcoin) rather than per-document transactions | Not built — would be new work |
