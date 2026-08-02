@@ -1,0 +1,1 @@
+file://C:/Users/Administrator/repos/Semptify/.agents/skills/testing-semptify-local/SKILL.md

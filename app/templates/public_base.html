@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale(request) | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -302,30 +302,29 @@
             text-align: center;
         }
 
-        .site-footer .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .site-footer .footer-links a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        .site-footer .footer-links a:hover {
-            text-decoration: underline;
-        }
-
         .site-footer .footer-disclaimer {
             max-width: 600px;
             margin: 0 auto 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
             font-size: 0.8rem;
             color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .site-footer .footer-actions {
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .site-footer .footer-actions a {
+            color: var(--accent);
+            text-decoration: none;
+            margin: 0 0.4rem;
+        }
+
+        .site-footer .footer-actions a:hover {
+            text-decoration: underline;
         }
 
         .site-footer .footer-bottom {
@@ -360,30 +359,19 @@
 
     <footer class="site-footer">
         <div class="footer-content">
-            <div class="footer-links">
-                {% if footer_pages %}
-                    {% for fp in footer_pages %}
-                        <a href="{{ fp.path }}">{{ fp.footer_label }}</a>
-                    {% endfor %}
-                {% else %}
-                    <a href="/">Home</a>
-                    <a href="/about">About</a>
-                    <a href="/services">Services</a>
-                    <a href="/renters-guide">Renter's Guide</a>
-                    <a href="/privacy">Privacy</a>
-                    <a href="/terms">Terms</a>
-                    <a href="/contact">Contact</a>
-                    <a href="/help">Help</a>
-                {% endif %}
-            </div>
-            <div class="footer-disclaimer">
-                Semptify is an organizational tool and educational resource — not a law firm.
+            <p class="footer-disclaimer">
+                <strong>Semptify is an organizational tool, not a law firm.</strong>
                 We can't give legal advice. For legal advice, contact a licensed attorney
                 or your local legal aid society.
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 Semptify. No cost to tenants. No advertising, ever.</p>
-            </div>
+            </p>
+            <p class="footer-actions">
+                <a href="/help">Get help</a> ·
+                <a href="/public/feedback.html">Report a problem</a>
+            </p>
+            <p class="footer-bottom">
+                &copy; 2026 Semptify · No cost to tenants · No advertising, ever.
+            </p>
+            {% include "components/locale_selector.html" %}
         </div>
     </footer>
 

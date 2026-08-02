@@ -54,6 +54,7 @@ import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -94,11 +95,13 @@ from app.core.subject_starters import get_subject_starters as _get_subject_start
 
 templates.env.globals["subject_starters"] = _get_subject_starters()
 
-# Expose i18n `_()` helper and locale list to all Jinja2 templates (Task 6 i18n).
-from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext
+# Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
+# templates (Task 6 i18n).
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale, i18n
 
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+templates.env.globals["get_locale"] = get_locale
 
 from datetime import datetime as _dt
 
@@ -129,6 +132,39 @@ def register_stateless_routes(app: FastAPI):
     async def root(request: Request):
         ctx = {"request": request, "year": _dt.utcnow().year}
         return templates.TemplateResponse("index.html", ctx)
+
+    @app.get("/api/i18n/locale", include_in_schema=False)
+    async def get_current_locale(request: Request):
+        """Return the resolved locale and supported locale list for JS."""
+        return JSONResponse(
+            {
+                "locale": i18n.get_locale(request),
+                "supported_locales": SUPPORTED_LOCALES,
+            }
+        )
+
+    @app.post("/api/i18n/set-locale", include_in_schema=False)
+    async def set_locale(request: Request, locale: str = Form(...)):
+        """Set the `semptify_locale` cookie and return the user to their prior page."""
+        if locale not in SUPPORTED_LOCALES:
+            raise HTTPException(status_code=400, detail="Unsupported locale")
+
+        referer = request.headers.get("referer", "/")
+        target_path = urlparse(referer).path or "/"
+        response = ssot_redirect(target_path, context="i18n.set-locale", strict=False)
+
+        # Mirrors cookie settings used by cookie_auth for consistency.
+        secure = request.url.scheme == "https"
+        response.set_cookie(
+            key="semptify_locale",
+            value=locale,
+            max_age=365 * 24 * 60 * 60,
+            path="/",
+            samesite="lax",
+            secure=secure,
+            httponly=False,
+        )
+        return response
 
 
 # Add custom Jinja2 filters
@@ -1570,7 +1606,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def admin_elevation_handler(request: Request, exc: Exception):
         """Redirect HTML requests to admin login; return JSON 401 for API calls."""
         if request.url.path.endswith(".html"):
-            return ssot_redirect("/admin/login", context="admin elevation required")
+            admin_login_stage = navigation.get_stage("admin_login")
+            admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
+            return ssot_redirect(admin_login_path, context="admin elevation required")
         return JSONResponse(
             status_code=401,
             content={"detail": "Admin authentication required"},
@@ -1868,7 +1906,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     "page": _p,
                     "footer_pages": _portal_pages.get_footer_pages(),
                 }
-                if _p.id == "services":
+                if _p.id in ("services", "portal"):
                     catalog = _get_catalog()
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
@@ -2163,10 +2201,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.cookie_auth import extract_user_id
 
         logger.info("=== ADMIN ELEVATION PAGE REQUESTED ===")
+
+        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
+        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
+
         # If already elevated, go straight to dashboard
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         if verify_elevation_cookie(str(elev_cookie) if elev_cookie else None):
-            return ssot_redirect("/admin/dashboard", context="admin_login already elevated")
+            return ssot_redirect(admin_dashboard_path, context="admin_login already elevated")
         # Check if user has an OAuth session
         oauth_uid = extract_user_id(request)
         has_session = oauth_uid is not None
@@ -2275,7 +2317,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }});
             var data = await res.json();
             if (data.success) {{
-                window.location.href = data.redirect || "/admin/dashboard";
+                window.location.href = data.redirect || "{admin_dashboard_path}";
             }} else {{
                 document.getElementById("error").textContent = data.detail || data.error || "Invalid code";
                 document.getElementById("btn2").disabled = false;
@@ -2335,6 +2377,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.admin_elevation import set_elevation_cookie
         from app.core.cookie_auth import extract_user_id
 
+        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
+        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
+        storage_select_stage = navigation.get_stage("storage_select")
+        storage_select_path = storage_select_stage.path if storage_select_stage else "/onboarding/providers"
+
         try:
             data = await request.json()
             username = data.get("username", "").strip()
@@ -2368,11 +2415,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not has_oauth:
             return {
                 "success": True,
-                "redirect": "/onboarding/providers?role=admin",
+                "redirect": f"{storage_select_path}?role=admin",
                 "message": "Please connect your storage to continue",
             }
 
-        return {"success": True, "redirect": "/admin/dashboard"}
+        return {"success": True, "redirect": admin_dashboard_path}
 
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
@@ -2380,7 +2427,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.admin_elevation import clear_elevation_cookie
 
         clear_elevation_cookie(response)
-        return ssot_redirect("/admin/login", context="admin_logout")
+        admin_login_stage = navigation.get_stage("admin_login")
+        admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
+        return ssot_redirect(admin_login_path, context="admin_logout")
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
     @fastapi_app.get("/admin/home.html", response_class=HTMLResponse)
@@ -2390,7 +2439,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if home_path.exists():
             return FileResponse(str(home_path))
         # Fallback to login if home.html missing
-        return ssot_redirect("/admin/login", context="admin_home missing home.html")
+        admin_login_stage = navigation.get_stage("admin_login")
+        admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
+        return ssot_redirect(admin_login_path, context="admin_home missing home.html")
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
     # Does NOT check OAuth role — elevation is separate from storage identity
@@ -2783,7 +2834,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if hub_path.exists():
             content = hub_path.read_text(encoding="utf-8")
             return HTMLResponse(content=content)
-        return ssot_redirect("/admin/dashboard.html", context="admin_hub missing hub.html")
+        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
+        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
+        return ssot_redirect(admin_dashboard_path, context="admin_hub missing hub.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):

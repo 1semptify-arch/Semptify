@@ -1,3 +1,573 @@
+## Session -- 2026-08-01 — Task 6 i18n locale selector + set-locale endpoint
+
+### Guardrail Engine Run — 2026-08-02T06:44:24
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Deploy
+
+- **Commit**: 6dac643c (Add i18n locale selector and public set-locale endpoint)
+- **Branch**: main
+- **Pushed**: 2026-08-02
+- **Render deploy**: https://dashboard.render.com
+
+### Problem
+
+Task 6 i18n had working JSON catalogs and a Jinja2 `_()` global, but no user-facing language selector and no public endpoint to set the `semptify_locale` cookie. Users could not actually switch languages.
+
+### Fix
+
+- `app/main.py`: registered public `GET /api/i18n/locale` and `POST /api/i18n/set-locale` endpoints in `register_stateless_routes`. Added `get_locale` and the existing `i18n` singleton to the Jinja2 global context so templates can resolve the active locale and render `{{ get_locale(request) | default('en') }}`.
+- `app/core/storage_middleware.py`: added `/api/i18n/` to `PUBLIC_PREFIXES`.
+- `app/core/checkpoint_middleware.py`: added `/api/i18n/` to `EXEMPT_PATHS`.
+- `app/templates/components/locale_selector.html`: new reusable form using `_()` keys `language.label`, `language.selector.aria`, and `action.save`.
+- `app/templates/public_base.html`, `app/templates/gui/base.html`, `app/templates/base.html`, `app/templates/index.html`: included the locale selector and set `<html lang="{{ get_locale(request) | default('en') }}">`.
+- `app/translations/es.json`: added `language.label`, `language.selector.aria`, and `action.save`.
+- `tests/test_i18n.py`: added endpoint tests for `GET /api/i18n/locale`, `POST /api/i18n/set-locale` cookie/redirect, and 400 on unsupported locale.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/storage_middleware.py app/core/checkpoint_middleware.py app/core/i18n.py tests/test_i18n.py`: PASS.
+- `pytest tests/test_i18n.py -q --no-cov`: 14/14 passed.
+- `pytest tests/test_ssot_architecture.py -q --no-cov`: 8/8 passed.
+- `pytest tests/module_health -q --no-cov`: 122/122 passed.
+
+### Known Working / Pending
+
+- Language switching is now reachable from public and GUI pages for all supported locales.
+- Remaining non-English catalogs are still stub/fallback; human-reviewed legal/plain-language translations are still needed.
+
+---
+
+## Session -- 2026-07-29 — Master Handoff Tasks 4-11 reconciliation
+
+### Guardrail Engine Run — 2026-07-29T07:31:05
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-07-29T11:28
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+### Reconciliation findings
+
+| Task | Component | Status | Evidence |
+|---|---|---|---|
+| 4 Admin / logging | `app.core.logging_service.py`, `app.core.logging_middleware.py` | wired | `/admin/api/logs` (live tail), `/admin/api/logs/level` (runtime level), `/admin/api/flags`, `/admin/api/flags/{name}`, `/admin/api/flags/{name}/toggle`, `AdminErrorQueue` audit, feature flags, admin console |
+| 5 Voice | `app.modules.voice.router` | registered + conformant | `/api/voice/transcribe` route; `pytest tests/module_health/test_voice.py` passed |
+| 6 Multi-language | `app.core.i18n.py`, `app/translations/*.json` | wired | `_()` Jinja global in `app.main.py`, 14 translation catalogs |
+| 7 Mobile media capture | `static/js/media_capture.js`, `app/main.py` | wired | `/tenant/capture` page, `/api/tenant/capture`, `/api/media/capture` endpoints |
+| 8 Third-party contacts | `ThirdPartyContact` model, `app.modules.contacts.router` | registered + conformant | `pytest tests/module_health/test_contacts.py` passed |
+| 9 Redaction | `app.services.redaction_service.py` | wired into intake | `redact_text_for_user()` called in `intake_service.py` before storage |
+| 10 Communication import | `app.services.intake_service.py`, `app.modules.intake.router` | registered + conformant | `.eml`/`.mbox`, CSV/XML SMS, call logs, voicemail audio flows; `pytest tests/module_health/test_intake.py` passed |
+| 11 Resource directory | `app.modules.resource_directory.router` | registered + conformant | public `/api/resources`, admin `/admin/resources`, CSV import, `last_verified` staleness; `pytest tests/module_health/test_resource_directory.py` passed |
+
+### Verification run
+
+- `python -m pytest tests/module_health/test_voice.py tests/module_health/test_resource_directory.py tests/module_health/test_contacts.py tests/module_health/test_intake.py tests/module_health/test_guided_intake.py tests/module_health/test_admin_console.py tests/module_health/test_module_flags.py tests/module_health/test_core_system_core_router.py -q --no-cov`: **8 passed in 12.22s**.
+- `from app.main import app` startup: **123 registered, 5 skipped, 0 errors**. Targeted admin routes present: `/admin/api/logs`, `/admin/api/logs/level`, `/admin/api/flags`, `/admin/api/flags/{name}`, `/admin/api/flags/{name}/toggle`.
+- `python scripts/verify_ssot.py`: 8 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Live verification — 2026-07-29T12:26
+
+- Browser (Playwright/IronBee):
+  - `/` — loads `app/templates/index.html` ("Semptify — On-The-Fly Composer") but console error: `/static/css/style.css` 404 (served as `application/json`).
+  - `/about` — loads `app/templates/public/about.html`, no console errors.
+  - `/services` — loads `app/templates/public/services.html`, no console errors.
+  - `/api/portal/pages` — returns 200.
+- TestClient (after `storage_middleware` fix): `GET /api/resources` returns 200; `GET /api/resources/{id}` returns 404 (expected for missing ID).
+- `python -m pytest tests/module_health/test_resource_directory.py -q --no-cov`: 1 passed.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: 8 passed.
+
+### Live verification blockers fixed
+
+1. **Task 11 Resource Directory public API was unreachable.** `GET /api/resources` returned 401 from `StorageRequirementMiddleware` because `/api/resources` was not in `PUBLIC_PATHS`/`PUBLIC_PREFIXES`. Fixed by adding the exact path and prefix; now returns 200.
+2. **Root landing was the "On-The-Fly Composer" with broken CSS.** `app/templates/index.html` had two concatenated `<!DOCTYPE html>` blocks and a `/static/css/style.css` link that 404'd. Consolidated to a single `index.html` with correct `/assets/css/style.css` and CTAs to `/preamble` (app entry) and `/portal` (concierge).
+3. **`app/templates/public/portal.html` had no route.** Added a `PortalPage` with `id="portal"`, `path="/portal"` in `app/modules/portal/pages.py`; updated `app/main.py` to pass the services catalog to both the `portal` and `services` pages. Added `/portal` to `PUBLIC_PATHS` (storage middleware) and `EXEMPT_PATHS` (checkpoint middleware).
+
+### Live verification — 2026-07-29T18:07
+
+- Browser (Playwright): `/` (lobby), `/portal` (concierge), `/about`, `/services` all 200 with no console errors.
+- `curl` checks: `/` → 200 text/html, `/portal` → 200 text/html, `/assets/css/style.css` → 200 text/css, `/api/resources` → 200.
+- `python tools/guardrail_engine.py` — ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py` — 8 passed.
+- Remaining non-blocking issue: `feature_flags` DB table missing (fallback warnings).
+
+### Notes
+
+- `tools/verify_modules.py --sync` was started but terminated because it hung; targeted `pytest module_health` and FastAPI startup checks confirm routing/conformance.
+- Five optional routers are skipped at startup (`vault_sync`, `eviction_notice_explainer`, `response_letter_generator`, `eviction_defense_content`, `ai_copilot`). These are not part of Master Handoff Tasks 4-11.
+
+---
+
+## Session -- 2026-07-29 — Master Handoff Task 3 — content pass follow-up
+
+### Guardrail Engine Run — 2026-07-29T11:28
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/templates/public/portal.html` — tightened the public landing page to action-first copy ("Upload your documents. Track your deadlines. Build your case.") and replaced the inspirational quote with a concrete tenant-rights fact ("Document problems as they happen...").
+
+### Verification
+
+- `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Note
+
+- The deeper Task 3 work (subject_starters.py, starter chips, `free` wording audit, about.html rewrite) was already shipped in commit `8e58602b` on 2026-07-26. This session was a follow-up pass on `portal.html`.
+- Master Handoff Tasks 4-11 also appear to have implementation commits in `main` (admin logging, voice, i18n, media capture, contacts, redaction, intake, resource directory). A live verification pass has not been run end-to-end.
+
+---
+
+## Session -- 2026-07-29 — Master Handoff Task 2 — footer + help page
+
+### Guardrail Engine Run — 2026-07-29T11:28
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/templates/public_base.html` — replaced dense footer with minimal version: one-line UPL boundary, "Get help", "Report a problem", copyright.
+- `static/components/footer.html` — updated SSOT copy/paste footer snippet to the same minimal markup.
+- `static/js/unified-footer-loader.js` — updated generated footer to minimal one-line UPL + get help + report problem, removed link sprawl and large disclaimer.
+- `static/templates/base.html` — replaced dense inline footer with minimal version and added matching page-footer CSS.
+- `app/templates/pages/help.html` — clarified the fourth help route as "I need to check my status or deadlines" (GOVERN / home dashboard), keeping the page no-scroll, action-first, and RECORD/KNOW/ACT/GOVERN routing.
+
+### Verification
+
+- `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Still pending / open
+
+- Static standalone pages (`static/tenant/index.html`, etc.) may still have old dense footers. These use their own inline markup and were not converted in this pass.
+- `static/tenant/help.html` fallback page is the old long help page; the primary `/help` path now uses the Jinja template.
+
+---
+
+## Session -- 2026-07-29 -- B2/B3 GUI + conformance + SSOT redirects
+
+### Guardrail Engine Run — 2026-07-29T10:47
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/dispute_tracker/router.py` — minimal GUI page (`GET /api/dispute-tracker/`), `POST /api/dispute-tracker/disputes`, `POST /api/dispute-tracker/comparisons`. Removed `APIRouter` prefix (product manifest owns it) and switched redirects to `ssot_redirect()`.
+- `app/templates/pages/dispute_tracker.html` — desktop-poster / mobile-stacked layout with add-dispute form, disputes list, add-comparison form, comparisons list. PII kept in overlays.
+- `app/modules/eviction_timeline/router.py` — minimal GUI page (`GET /api/eviction-timeline/`) and `POST /api/eviction-timeline/events`. Same prefix/redirect cleanup.
+- `app/templates/pages/eviction_timeline.html` — desktop-poster / mobile-stacked layout with add-event form and events list.
+- `app/modules/dispute_tracker/register.py` and `app/modules/eviction_timeline/register.py` — `FunctionGroupContract` allowed_routes aligned with actual routes.
+- `tools/checks/contract_route_check.py` — new guardrail check. Validates tier (T0–T3), manifest prefix coverage, every actual route is in contract allowed_routes, and `PUBLIC_PREFIXES` exposure (only T0 routes allowed under public paths).
+- `app/core/navigation.py`, `app/core/ssot_guard.py`, `app/main.py` — committed remaining B1 admin hub SSOT navigation/wiring changes from working tree.
+
+### Verification
+
+- `python -m py_compile` on all changed Python files: PASS.
+- `python -m ruff check` on changed files: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 122 passed.
+- `python tools/verify_modules.py --id dispute_tracker`: ok (4 routes, no exposure).
+- `python tools/verify_modules.py --id eviction_timeline`: ok (3 routes, no exposure).
+- `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python tools/sync_orchestrator.py --check`: PASS.
+
+### Still Pending
+
+- T2 tier final confirmation for both modules (flagged in commit messages).
+- Live manual browser test of the two GUI pages.
+- `EvictionTimelineEvent.subject_id` FK decision deferred.
+
+---
+
+## Session -- 2026-07-29 -- B2/B3 scaffold + data model
+
+### Guardrail Engine Run — 2026-07-29T05:54:19
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-07-29T05:53:20
+
+- **contract_route_check**: FAIL — 7 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-07-29T05:52:35
+
+- **contract_route_check**: FAIL — 941 contract/route conformance failure(s).
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+One or more checks failed — see console output.
+
+### Guardrail Engine Run — 2026-07-29T07:18:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/core/module_contracts.py` — `FunctionGroupContract` extended with `tier`, `allowed_routes`, and `allowed_prefixes` for Build Orchestrator hard-gate contract validation.
+- `app/modules/dispute_tracker/` — greenfield scaffold + manifest + module registry entry + `register.py` with T2 contracts.
+- `app/modules/eviction_timeline/` — greenfield scaffold + manifest + module registry entry + `register.py` with T2 contracts.
+- `app/models/models.py` — added `DisputeRecord`, `ComparisonEntry`, and `EvictionTimelineEvent` tables.
+  - DB boundary rule respected: PII content (descriptions, narrative, tenant contact info) is stored in overlay pointers, not in PostgreSQL.
+  - `subject_id` on `EvictionTimelineEvent` is a placeholder with no FK — accountability_ledger boundary is deferred per your Option 3.
+- `app/modules/dispute_tracker/schemas.py` and `app/modules/eviction_timeline/schemas.py` — Pydantic schemas for the new models.
+
+### Verification
+
+- `python -m py_compile`: all changed Python files PASS.
+- `python -m ruff check`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 122 passed.
+- `python tools/verify_modules.py --id dispute_tracker`: ok (1 route, no exposure issues).
+- `python tools/verify_modules.py --id eviction_timeline`: ok (1 route, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- B2 Commit 4 — dispute_tracker minimal GUI (list + add/compare).
+- B2 Commit 5 — dispute_tracker conformance gate wiring.
+- B3 Commit 4 — eviction_timeline minimal GUI (list + add event).
+- B3 Commit 5 — eviction_timeline conformance gate wiring.
+- T2 tier confirmation for both modules (flagged in commit messages for Brad's review).
+
+---
+
+## Session -- 2026-07-29 -- B1 wire advanced admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:52:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/advanced/` — new admin-only module for the Advanced / Dev Tools hub tile.
+  - Non-cost-guard endpoints come first: `GET /health`, `/tools`, `/build`; `POST /guardrail`, `/sync-orchestrator`, `/verify`.
+  - `POST /cost-guard/detect-repeated-fees` is a PII-free fee-metadata wrapper around `housing_accountability.PatternDetectionService.detect_repeated_fees`. It accepts only fee type, amount, and date (no tenant names/addresses/case IDs), per the user's "do not detect" / cost-guard-only decision.
+- `app/core/product_manifest.py` — registered `app.modules.advanced.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/advanced`.
+- `tools/module_registry.yaml` — `advanced` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_advanced.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/advanced/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/advanced app/core/product_manifest.py tests/module_health/test_advanced.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 120 passed.
+- `python tools/verify_modules.py --id advanced`: ok (7 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- B1 complete: all 5 admin hub stub tiles are now wired.
+- B2 `dispute_tracker` packaging and B3 `eviction_timeline` scoping remain pending.
+
+---
+
+## Session -- 2026-07-29 -- B1 wire user_concerns admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:45:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/user_concerns/` — new admin-only module for the User Concerns hub tile.
+  - `router.py` provides `GET /api/admin/user-concerns/health`, `/concerns`, `/summary`, and `POST /flag`, `/resolve`.
+  - `/concerns` and `/summary` return empty placeholder data (no PII).
+  - Write endpoints return `501` until the T2 data model and retention policy are designed.
+- `app/core/product_manifest.py` — registered `app.modules.user_concerns.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/user-concerns`.
+- `tools/module_registry.yaml` — `user_concerns` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_user_concerns.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/user_concerns/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/user_concerns app/core/product_manifest.py tests/module_health/test_user_concerns.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 119 passed.
+- `python tools/verify_modules.py --id user_concerns`: ok (5 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Wire the `advanced` tile with `detect_repeated_fees` as a cost-guard-only (T0) function (per user decision: "do not detect").
+- B2 `dispute_tracker` packaging and B3 `eviction_timeline` scoping remain pending.
+
+---
+
+## Session -- 2026-07-29 -- B1 wire correspondence admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:40:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/correspondence/` — new admin-only module for the Correspondence hub tile.
+  - `router.py` provides `GET /api/admin/correspondence/health`, `/templates`, `/logs`, and `POST /send`.
+  - `/templates` returns email template metadata only (no PII).
+  - `/logs` returns an empty list placeholder; the real T2 log will be added once the data model and retention policy are designed.
+  - `/send` returns 501 until the sending surface and PII handling are implemented.
+- `app/core/product_manifest.py` — registered `app.modules.correspondence.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/correspondence`.
+- `tools/module_registry.yaml` — `correspondence` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_correspondence.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/correspondence/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/correspondence app/core/product_manifest.py tests/module_health/test_correspondence.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 118 passed.
+- `python tools/verify_modules.py --id correspondence`: ok (4 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Data-sensitivity tier confirmation for `user_concerns` and `advanced` before wiring the remaining B1 tiles.
+- Decision on `advanced`/`detect_repeated_fees` scope (cost-guard only vs. full fee audit).
+
+---
+
+## Session -- 2026-07-29 -- B1 wire run_modules admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:32:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/run_modules/` — new admin-only execution surface for the Run Modules hub tile.
+  - `router.py` provides `GET /api/admin/run/modules` and `POST /api/admin/run/modules/{module_id}`.
+  - The POST endpoint validates the module ID against the registry, then runs the trusted `tools/verify_modules.py --id <id>` subprocess in an async thread.
+  - All routes use `require_admin` and are under `/api/admin/run` (not a public prefix).
+- `app/core/product_manifest.py` — registered `app.modules.run_modules.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/run`.
+- `tools/module_registry.yaml` — `run_modules` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_run_modules.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/run_modules/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/run_modules app/core/product_manifest.py tests/module_health/test_run_modules.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 117 passed.
+- `python tools/verify_modules.py --id run_modules`: ok (2 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Data-sensitivity tier confirmation for `correspondence`, `user_concerns`, and `advanced` before wiring the remaining B1 tiles.
+
+---
+
+## Session -- 2026-07-29 -- B1 wire system_health admin hub tile
+
+### Guardrail Engine Run — 2026-07-29T06:27:00
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/modules/system_health/` — new admin-only module for the System Health & Updates hub tile.
+  - `router.py` provides `GET /api/admin/system/health`, `GET /api/admin/system/registry`, and `POST /api/admin/system/verify`.
+  - All routes use `require_admin` and are admin-only (no PII, Tier 0).
+- `app/core/product_manifest.py` — registered `app.modules.system_health.router` under `ProductTier.ADMIN` with `requires_role=("admin",)` and prefix `/api/admin/system`.
+- `tools/module_registry.yaml` — `system_health` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
+- `tests/module_health/test_system_health.py` — generated per-module health test.
+
+### Verification
+
+- `python -m py_compile app/modules/system_health/router.py app/core/product_manifest.py`: PASS.
+- `python -m ruff check app/modules/system_health app/core/product_manifest.py tests/module_health/test_system_health.py`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 116 passed.
+- `python tools/verify_modules.py --id system_health`: ok (3 routes, no exposure issues).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+- `python scripts/verify_ssot.py`: PASS.
+
+### Still Pending
+
+- Data-sensitivity tier confirmation for `run_modules`, `correspondence`, `user_concerns`, and `advanced` before wiring the remaining B1 tiles.
+
+---
+
+## Session -- 2026-07-29 -- module health check / test suite framework
+
+### Guardrail Engine Run — 2026-07-29T01:48:36
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### Guardrail Engine Run -- 2026-07-29T05:50:49
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `tools/module_health.py`
+  - Generic per-module health check generator loaded from `tools/module_registry.yaml`.
+  - Each module gets a `check_<id>()` callable that verifies the module imports, its declared router has routes, no duplicate path+method exists, and admin-only modules do not expose unguarded public routes.
+  - Admin-only classification is driven by `requires_role` containing `admin` and no public-facing roles.
+  - Manifest `prefix` is combined with route paths before checking `storage_middleware.is_public_path`.
+
+- `tools/generate_module_health.py`
+  - Bulk generator for `tests/module_health/test_<id>.py` files.
+  - Updates `tools/module_registry.yaml` `health_check` / `test_suite` fields.
+  - Flags ON HOLD (`vault_sync`), pending swe-1.7 decisions (`filedored`, `housing_accountability`), and optional missing modules with `flag_reason`.
+
+- `tests/module_health/`
+  - 115 generated pytest regression tests, one per module.
+
+- `tools/verify_modules.py`
+  - Added `--no-cov` to the `pytest` invocation so the repo-wide `cov-fail-under=40` does not fail per-module health tests.
+
+- `app/modules/document_delivery/router.py`
+  - Fixed duplicate `GET /api/delivery/inbox` route by moving the HTML page route to `/inbox/page` (the JSON API remains at `/api/delivery/inbox`).
+
+### Verification
+
+- `python -m compileall tools/module_health.py tools/generate_module_health.py tools/verify_modules.py app/modules/document_delivery/router.py tests/module_health`: PASS.
+- `python -m ruff check tools/module_health.py tools/generate_module_health.py tools/verify_modules.py tests/module_health`: PASS.
+- `python -m pytest tests/module_health -q --no-cov`: 115 passed.
+- `python tools/verify_modules.py --sync`: 114 `ok`, 12 `unverified` (5 hub tiles with no `module_path`, 7 flagged with `flag_reason`).
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working
+
+- 115 product-manifest modules now have real `health_check` + `test_suite` entries.
+- `verify_modules` runs each health check and its test in ~1.2s without coverage failures.
+
+### Still Pending
+
+- 7 modules remain flagged (`health_check: TODO`) pending Brad's decisions or optional router availability.
+- 5 hub tile entries (`run_modules`, `correspondence`, `user_concerns`, `system_health`, `advanced`) have no `module_path` and are intentionally unverified.
+
+---
+
+## Session -- 2026-07-28 -- tenant/library mobile viewport split
+
+### Guardrail Engine Run — 2026-07-29T00:39:39
+
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
+### What was built
+
+- `app/templates/generic_page.html`
+  - Detects the `subject_grid` component and wraps picker + results in a shared `uic-library-layout`.
+  - Desktop (>1024px): picker is a sticky 280px sidebar; results render in `main.uic-library-main#library-content`.
+  - Mobile (≤1024px): layout collapses to a single column with the picker on top and results inline below — no route change or full-page transition.
+  - Added `uic-fragment-title` styling for HTMX-swap subject headings.
+  - Non-library pages that use `generic_page.html` keep the existing `.uic-components` vertical stack (no `subject_grid` path).
+
+- `app/templates/components/ui_composer.html`
+  - `_subject_grid` macro no longer emits its own `#library-content` container.
+  - `generic_page.html` now owns the HTMX swap target, preventing duplicate IDs and keeping the component reusable for fragments.
+
+### Verification
+
+- `python -m py_compile app/main.py app/services/ui_composer.py`: PASS.
+- `python -m ruff check app/main.py app/services/ui_composer.py`: PASS (no new lint; pre-existing unrelated ruff items untouched).
+- Jinja render smoke test (root library + selected subject + non-library fallback): PASS.
+- Live smoke test: app starts; `GET /tenant/library` returns 302 redirect (guard active, no template error); `GET /` returns 200.
+- `python tools/sync_orchestrator.py --check`: PASS.
+- `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
+
+### Known Working
+
+- `/tenant/library` renders through `generic_page.html` with the picker and results in the same component tree.
+- HTMX subject selection still targets `#library-content` and swaps `fact_card` components inline.
+
+### Still Pending
+
+- Live authenticated render of `/tenant/library` with real subject data to confirm visual layout at desktop and mobile widths.
+- Live HTMX swap end-to-end with a real subject and data.
+
+---
+
 ## Session -- 2026-07-28 -- Hardened detect_repeated_fees + filedored classification
 
 ### Guardrail Engine Run — 2026-07-28T23:16:44
@@ -7610,7 +8180,7 @@ Returning tenants with documents were incorrectly routed to the upload wizard.
    - All 8 repos now under `1semptify-arch/` — single org, single owner
    - `SemptifyResearch` set to Private (intentional)
 
-2. **Orchestrator port conflict fixed** — `C:\Semptify\Orchestrator\start.bat`
+2. **Orchestrator port conflict fixed** — `E:\master-repo\sources\REPOs\Orchestrator\start.bat`
    - Was: port 8000 (same as Semptify core — hard conflict)
    - Fixed: port 8001
    - Architecture: Orchestrator is a sidecar — calls Semptify API at `localhost:8000`

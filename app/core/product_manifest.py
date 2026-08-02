@@ -498,6 +498,13 @@ _register(
     dev_notes="Canonical timeline API (DB-backed TimelineEvent model). Briefcase router's in-memory timeline-event CRUD removed 2026-07-15 as duplicate. Workflow router is NOT a duplicate — it only reads timeline counts for routing decisions.",
 )
 _register(
+    "app.modules.eviction_timeline.router",
+    prefix="/api/eviction-timeline",
+    tags=("Eviction Timeline",),
+    tier=ProductTier.CORE,
+    dev_notes="Tenant-facing eviction case timeline. T2 data. subject_id is a placeholder with no FK — accountability_ledger boundary is deferred.",
+)
+_register(
     "app.modules.briefcase.router",
     tags=("Briefcase",),
     tier=ProductTier.CORE,
@@ -769,6 +776,18 @@ _register(
     dev_notes="Bridge between Semptify and external systems. CRUD for cross-system ID mappings.",
 )
 
+# Dispute Tracker — property management dispute resolution + comparison tracking
+_register(
+    "app.modules.dispute_tracker.router",
+    prefix="/api/dispute-tracker",
+    tags=("Dispute Tracker",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="beta",
+    fees_policy=FeesPolicy.TENANT_NO_FEES,
+    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates).",
+    log_message="Dispute Tracker router connected at /api/dispute-tracker",
+)
+
 # Role management
 _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=ProductTier.EXTENDED)
 
@@ -787,6 +806,49 @@ _register("app.modules.advocate.router", tags=("Advocate", "Clients", "Case Mana
 # ADMIN TIER — Dashboards, Analytics, Batch Ops (Disabled by Default)
 # =============================================================================
 
+_register(
+    "app.modules.system_health.router",
+    prefix="/api/admin/system",
+    tags=("System Health",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    log_message="System Health router connected — admin status and registry summary",
+)
+_register(
+    "app.modules.run_modules.router",
+    prefix="/api/admin/run",
+    tags=("Run Modules",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    log_message="Run Modules router connected — admin-only execution surface",
+)
+_register(
+    "app.modules.correspondence.router",
+    prefix="/api/admin/correspondence",
+    tags=("Correspondence",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Wiring-only pass. Templates/log endpoints return no PII; /send returns 501 until data model and T2 handling are designed.",
+    log_message="Correspondence router connected — admin-only (PII-free wiring pass)",
+)
+_register(
+    "app.modules.user_concerns.router",
+    prefix="/api/admin/user-concerns",
+    tags=("User Concerns",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Wiring-only pass. List/summary endpoints return no PII; write endpoints return 501 until T2 data model and retention policy are designed.",
+    log_message="User Concerns router connected — admin-only (PII-free wiring pass)",
+)
+_register(
+    "app.modules.advanced.router",
+    prefix="/api/admin/advanced",
+    tags=("Advanced / Dev Tools",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Admin-only dev tools. Non-cost-guard endpoints (guardrail, sync, build status) come first. Cost-guard detect_repeated_fees is a PII-free fee-metadata wrapper.",
+    log_message="Advanced router connected — admin-only build/guardrail/sync/cost-guard tools",
+)
 _register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
@@ -1197,6 +1259,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     "tenant": [
         "app.modules.vault.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
         "app.modules.voice.router",
@@ -1206,11 +1269,13 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.contacts.router",
         "app.modules.search.router",
         "app.modules.packet_builder.router",
+        "app.modules.dispute_tracker.router",
     ],
     "advocate": [
         # Everything tenant gets
         "app.modules.vault.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
         "app.modules.rent.router",
@@ -1228,6 +1293,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.intake.router",
         "app.modules.guided_intake.router",
         "app.modules.plan_maker.router",
+        "app.modules.dispute_tracker.router",
         # Plus collaboration
         "app.modules.document_delivery.router",
         "app.modules.communication.router",
@@ -1237,6 +1303,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     "manager": [
         "app.modules.documents.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.contacts.router",
         "app.modules.state_laws.router",
         "app.modules.search.router",

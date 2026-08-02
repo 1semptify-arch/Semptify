@@ -104,6 +104,7 @@ PUBLIC_PATHS: set[str] = {
     "/tenant/library",
     "/tenant/library/",
     # Public website sub-pages (semptify.org guest portal)
+    "/portal",
     "/about",
     "/services",
     "/renters-guide",
@@ -115,6 +116,8 @@ PUBLIC_PATHS: set[str] = {
     "/contact",
     "/privacy",
     "/terms",
+    # Resource directory — public list endpoint (detail routes covered by prefix)
+    "/api/resources",
     # SEO files
     "/robots.txt",
     "/sitemap.xml",
@@ -136,6 +139,8 @@ PUBLIC_PREFIXES = (
     "/api/vault-installer/",  # Vault installer — auth checked by route
     "/api/law-library/",  # Law library — public education content (page is already public)
     "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
+    "/api/resources/",  # Resource directory — public read endpoints
+    "/api/i18n/",  # i18n — public locale read/set endpoints
     "/admin/api/",  # Admin API endpoints — auth checked by route (elevation/capability)
     "/debug/",  # TEMPORARY: diagnostic endpoints
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)

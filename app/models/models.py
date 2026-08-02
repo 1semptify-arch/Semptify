@@ -1851,3 +1851,98 @@ class Resource(Base):
     # Audit
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
+# =============================================================================
+# Dispute Tracker
+# =============================================================================
+
+
+class DisputeRecord(Base):
+    """Tenant dispute record — structure and pointers only, PII content in overlays.
+
+    Tenant-facing, T2. Landlord/entity data is allowed per the DB boundary rule.
+    Descriptions, witness statements, and tenant contact details are stored as
+    overlay references, not in this table.
+    """
+
+    __tablename__ = "dispute_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    # Allowed structural data
+    landlord_entity: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    property_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    dispute_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # fees, lease_violation, retaliation, habitability
+    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)  # active, resolved, dismissed, on_hold
+    jurisdiction: Mapped[str] = mapped_column(String(10), default="MN", nullable=False)
+
+    # PII/content pointers (actual text lives in the user's cloud overlay)
+    content_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    evidence_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class ComparisonEntry(Base):
+    """Fee or term comparison entry attached to a dispute record.
+
+    Amounts are stored in cents. The comparison rationale and any PII live in
+    the source overlay.
+    """
+
+    __tablename__ = "comparison_entries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dispute_record_id: Mapped[str] = mapped_column(String(36), ForeignKey("dispute_records.id"), index=True, nullable=False)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    comparison_type: Mapped[str] = mapped_column(String(50), nullable=False)  # fee, term, notice, deposit
+    fee_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    period: Mapped[str | None] = mapped_column(String(50), nullable=True)  # monthly, yearly, one_time
+    effective_date: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+
+    # Pointers to source content and evidence
+    source_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+# =============================================================================
+# Eviction Timeline
+# =============================================================================
+
+
+class EvictionTimelineEvent(Base):
+    """Eviction-specific timeline event — structure and pointers only.
+
+    Tenant-facing, T2. `subject_id` is a placeholder with no FK while the
+    accountability_ledger boundary is deferred. The event narrative and any
+    PII content are stored in the user''s cloud overlay.
+    """
+
+    __tablename__ = "eviction_timeline_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    # Placeholder subject — no FK until accountability_ledger model is decided
+    subject_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+
+    event_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # notice, payment, maintenance, communication, court, filing
+    event_date: Mapped[datetime] = mapped_column(DateTimeTZ, index=True, nullable=False)
+    source: Mapped[str] = mapped_column(String(50), default="manual", nullable=False)  # manual, document, court, email
+
+    # Pointers only — content in overlays
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    content_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    jurisdiction: Mapped[str] = mapped_column(String(10), default="MN", nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)

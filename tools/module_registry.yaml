@@ -4,93 +4,108 @@
   tier: B
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286356+00:00'
-  status: unverified
+  health_check: tools.module_health.check_run_modules
+  test_suite: tests/module_health/test_run_modules.py
+  module_path: app.modules.run_modules.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-02T08:34:04.434202+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 1.07s
 - id: testing
   display_name: Testing
   category: advanced
   tier: B
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286381+00:00'
-  status: unverified
+  health_check: tools.module_health.check_testing
+  test_suite: tests/module_health/test_testing.py
+  last_verified: '2026-08-02T08:34:09.185848+00:00'
+  status: ok
   module_path: app.modules.testing.router
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 1.31s
 - id: invite_codes
   display_name: Invite Codes & Authorizations
   category: admin
   tier: A
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286386+00:00'
-  status: unverified
+  health_check: tools.module_health.check_invite_codes
+  test_suite: tests/module_health/test_invite_codes.py
+  last_verified: '2026-08-02T08:34:15.448320+00:00'
+  status: ok
   module_path: app.modules.invite_codes.router
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 2.86s
 - id: correspondence
   display_name: Correspondence
   category: admin
   tier: A
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286391+00:00'
-  status: unverified
+  health_check: tools.module_health.check_correspondence
+  test_suite: tests/module_health/test_correspondence.py
+  module_path: app.modules.correspondence.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-02T08:34:19.786877+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.89s
 - id: user_concerns
   display_name: User Concerns
   category: admin
   tier: A
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286394+00:00'
-  status: unverified
+  health_check: tools.module_health.check_user_concerns
+  test_suite: tests/module_health/test_user_concerns.py
+  module_path: app.modules.user_concerns.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-02T08:34:24.112414+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.94s
 - id: system_health
   display_name: System Health & Updates
   category: advanced
   tier: B
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286397+00:00'
-  status: unverified
+  health_check: tools.module_health.check_system_health
+  test_suite: tests/module_health/test_system_health.py
+  module_path: app.modules.system_health.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-02T08:34:29.674114+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 2.14s
 - id: advanced
   display_name: Advanced / Dev Tools
   category: advanced
   tier: B
   owner: brad
   version: 1.0.0
-  health_check: ''
-  test_suite: ''
-  last_verified: '2026-08-01T08:30:56.286401+00:00'
-  status: unverified
+  health_check: tools.module_health.check_advanced
+  test_suite: tests/module_health/test_advanced.py
+  module_path: app.modules.advanced.router
+  requires_role:
+  - admin
+  status: ok
+  last_verified: '2026-08-02T08:34:33.775816+00:00'
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.68s
 - id: health
   display_name: Health
   category: core
@@ -98,13 +113,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.health.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286412+00:00'
-  status: unverified
+  health_check: tools.module_health.check_health
+  test_suite: tests/module_health/test_health.py
+  last_verified: '2026-08-02T08:34:39.437251+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 2.21s
 - id: versioning
   display_name: System
   category: core
@@ -112,13 +127,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.core.versioning
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286418+00:00'
-  status: unverified
+  health_check: tools.module_health.check_versioning
+  test_suite: tests/module_health/test_versioning.py
+  last_verified: '2026-08-02T08:34:45.056359+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 2.25s
 - id: preamble
   display_name: Preamble
   category: core
@@ -126,13 +141,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.preamble.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286421+00:00'
-  status: unverified
+  health_check: tools.module_health.check_preamble
+  test_suite: tests/module_health/test_preamble.py
+  last_verified: '2026-08-02T08:34:49.100275+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.62s
 - id: risc
   display_name: Risc
   category: core
@@ -140,13 +155,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.risc.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286425+00:00'
-  status: unverified
+  health_check: tools.module_health.check_risc
+  test_suite: tests/module_health/test_risc.py
+  last_verified: '2026-08-02T08:34:56.711790+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 4.24s
 - id: role_ui
   display_name: Role Ui
   category: core
@@ -154,13 +169,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.role_ui.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286428+00:00'
-  status: unverified
+  health_check: tools.module_health.check_role_ui
+  test_suite: tests/module_health/test_role_ui.py
+  last_verified: '2026-08-02T08:35:01.431598+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 1.32s
 - id: storage
   display_name: Storage Auth
   category: core
@@ -168,13 +183,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.storage.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286432+00:00'
-  status: unverified
+  health_check: tools.module_health.check_storage
+  test_suite: tests/module_health/test_storage.py
+  last_verified: '2026-08-02T08:35:06.155699+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 29 route(s), no exposure issues
+    test_suite: 1 passed in 1.31s
 - id: user
   display_name: User
   category: core
@@ -182,13 +197,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.user.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286435+00:00'
-  status: unverified
+  health_check: tools.module_health.check_user
+  test_suite: tests/module_health/test_user.py
+  last_verified: '2026-08-02T08:35:10.301750+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.84s
 - id: rent
   display_name: Rent Ledger
   category: core
@@ -196,13 +211,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.rent.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286439+00:00'
-  status: unverified
+  health_check: tools.module_health.check_rent
+  test_suite: tests/module_health/test_rent.py
+  last_verified: '2026-08-02T08:35:16.023304+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 2.30s
 - id: auth
   display_name: Authentication
   category: core
@@ -210,13 +225,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.auth.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286442+00:00'
-  status: unverified
+  health_check: tools.module_health.check_auth
+  test_suite: tests/module_health/test_auth.py
+  last_verified: '2026-08-02T08:35:21.380209+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 2.00s
 - id: reconnect
   display_name: Onboarding / Reconnect
   category: core
@@ -224,13 +239,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.onboarding.reconnect
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286445+00:00'
-  status: unverified
+  health_check: tools.module_health.check_reconnect
+  test_suite: tests/module_health/test_reconnect.py
+  last_verified: '2026-08-02T08:35:25.779348+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.83s
 - id: documents
   display_name: Documents
   category: core
@@ -238,13 +253,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.documents.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286448+00:00'
-  status: unverified
+  health_check: tools.module_health.check_documents
+  test_suite: tests/module_health/test_documents.py
+  last_verified: '2026-08-02T08:35:30.742082+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 26 route(s), no exposure issues
+    test_suite: 1 passed in 1.32s
 - id: vault
   display_name: Document Vault
   category: core
@@ -252,13 +267,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.vault.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286452+00:00'
-  status: unverified
+  health_check: tools.module_health.check_vault
+  test_suite: tests/module_health/test_vault.py
+  last_verified: '2026-08-02T08:35:35.188534+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 19 route(s), no exposure issues
+    test_suite: 1 passed in 0.88s
 - id: vault_engine
   display_name: Vault Engine / Access Control
   category: core
@@ -266,13 +281,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.vault_engine.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286455+00:00'
-  status: unverified
+  health_check: tools.module_health.check_vault_engine
+  test_suite: tests/module_health/test_vault_engine.py
+  last_verified: '2026-08-02T08:35:39.376903+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.83s
 - id: timeline
   display_name: Unified Timeline
   category: core
@@ -280,13 +295,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.timeline.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286459+00:00'
-  status: unverified
+  health_check: tools.module_health.check_timeline
+  test_suite: tests/module_health/test_timeline.py
+  last_verified: '2026-08-02T08:35:43.367295+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.65s
 - id: briefcase
   display_name: Briefcase
   category: core
@@ -294,13 +309,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.briefcase.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286462+00:00'
-  status: unverified
+  health_check: tools.module_health.check_briefcase
+  test_suite: tests/module_health/test_briefcase.py
+  last_verified: '2026-08-02T08:35:47.530785+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 42 route(s), no exposure issues
+    test_suite: 1 passed in 0.80s
 - id: packet_builder
   display_name: Packet Builder
   category: core
@@ -308,13 +323,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.packet_builder.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286465+00:00'
-  status: unverified
+  health_check: tools.module_health.check_packet_builder
+  test_suite: tests/module_health/test_packet_builder.py
+  last_verified: '2026-08-02T08:35:52.300086+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 1.36s
 - id: workflow
   display_name: Workflow
   category: core
@@ -322,13 +337,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.workflow.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286468+00:00'
-  status: unverified
+  health_check: tools.module_health.check_workflow
+  test_suite: tests/module_health/test_workflow.py
+  last_verified: '2026-08-02T08:35:56.204520+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.54s
 - id: workflow_validator
   display_name: Admin
   category: core
@@ -336,13 +351,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.workflow_validator.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286472+00:00'
-  status: unverified
+  health_check: tools.module_health.check_workflow_validator
+  test_suite: tests/module_health/test_workflow_validator.py
+  last_verified: '2026-08-02T08:36:00.665467+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 1.10s
 - id: state_laws
   display_name: State Laws
   category: core
@@ -350,13 +365,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.state_laws.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286475+00:00'
-  status: unverified
+  health_check: tools.module_health.check_state_laws
+  test_suite: tests/module_health/test_state_laws.py
+  last_verified: '2026-08-02T08:36:04.685956+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.71s
 - id: law_library
   display_name: Law Library
   category: core
@@ -364,13 +379,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.law_library.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286478+00:00'
-  status: unverified
+  health_check: tools.module_health.check_law_library
+  test_suite: tests/module_health/test_law_library.py
+  last_verified: '2026-08-02T08:36:08.602013+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.67s
 - id: router
   display_name: Law Library
   category: core
@@ -378,8 +393,8 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.law_library.router
-  health_check: TODO
-  test_suite: TODO
+  health_check: tools.module_health.check_router
+  test_suite: tests/module_health/test_router.py
   last_verified: '2026-07-29T00:36:38.797531+00:00'
   status: orphaned
   last_result:
@@ -392,13 +407,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.contacts.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286482+00:00'
-  status: unverified
+  health_check: tools.module_health.check_contacts
+  test_suite: tests/module_health/test_contacts.py
+  last_verified: '2026-08-02T08:36:12.828601+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 0.86s
 - id: journal
   display_name: Journal
   category: core
@@ -406,13 +421,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.journal.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286485+00:00'
-  status: unverified
+  health_check: tools.module_health.check_journal
+  test_suite: tests/module_health/test_journal.py
+  last_verified: '2026-08-02T08:36:17.604346+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 1.48s
 - id: public_forms
   display_name: Public Forms
   category: core
@@ -420,13 +435,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.public_forms.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286489+00:00'
-  status: unverified
+  health_check: tools.module_health.check_public_forms
+  test_suite: tests/module_health/test_public_forms.py
+  last_verified: '2026-08-02T08:36:21.911826+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.88s
 - id: voice
   display_name: Voice
   category: core
@@ -434,13 +449,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.voice.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286492+00:00'
-  status: unverified
+  health_check: tools.module_health.check_voice
+  test_suite: tests/module_health/test_voice.py
+  last_verified: '2026-08-02T08:36:26.330646+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.85s
 - id: resource_directory
   display_name: Resource Directory
   category: core
@@ -448,13 +463,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.resource_directory.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286495+00:00'
-  status: unverified
+  health_check: tools.module_health.check_resource_directory
+  test_suite: tests/module_health/test_resource_directory.py
+  last_verified: '2026-08-02T08:36:30.923452+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 1.22s
 - id: search
   display_name: Global Search
   category: core
@@ -462,13 +477,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.search.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286498+00:00'
-  status: unverified
+  health_check: tools.module_health.check_search
+  test_suite: tests/module_health/test_search.py
+  last_verified: '2026-08-02T08:36:34.945565+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.62s
 - id: pdf_tools
   display_name: Pdf Tools
   category: core
@@ -476,13 +491,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.pdf_tools.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286501+00:00'
-  status: unverified
+  health_check: tools.module_health.check_pdf_tools
+  test_suite: tests/module_health/test_pdf_tools.py
+  last_verified: '2026-08-02T08:36:40.178375+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 14 route(s), no exposure issues
+    test_suite: 1 passed in 1.90s
 - id: preview
   display_name: Document Preview
   category: core
@@ -490,13 +505,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.preview.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286505+00:00'
-  status: unverified
+  health_check: tools.module_health.check_preview
+  test_suite: tests/module_health/test_preview.py
+  last_verified: '2026-08-02T08:36:45.227221+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 1.69s
 - id: document_converter
   display_name: Document Converter
   category: core
@@ -504,13 +519,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.document_converter.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286508+00:00'
-  status: unverified
+  health_check: tools.module_health.check_document_converter
+  test_suite: tests/module_health/test_document_converter.py
+  last_verified: '2026-08-02T08:36:49.606473+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 1.07s
 - id: legal_analysis
   display_name: Legal Analysis
   category: core
@@ -518,13 +533,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.legal_analysis.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286511+00:00'
-  status: unverified
+  health_check: tools.module_health.check_legal_analysis
+  test_suite: tests/module_health/test_legal_analysis.py
+  last_verified: '2026-08-02T08:36:55.057312+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 14 route(s), no exposure issues
+    test_suite: 1 passed in 2.15s
 - id: context_engine
   display_name: Context Engine / Facts / Stories
   category: core
@@ -532,13 +547,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.context_engine.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286514+00:00'
-  status: unverified
+  health_check: tools.module_health.check_context_engine
+  test_suite: tests/module_health/test_context_engine.py
+  last_verified: '2026-08-02T08:36:59.865021+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 1.42s
 - id: page_composer
   display_name: Page Composer / Facts / Stories / Case
   category: core
@@ -546,13 +561,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.page_composer.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286517+00:00'
-  status: unverified
+  health_check: tools.module_health.check_page_composer
+  test_suite: tests/module_health/test_page_composer.py
+  last_verified: '2026-08-02T08:37:04.270487+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 1.06s
 - id: portal
   display_name: Portal / Public / Services
   category: core
@@ -560,13 +575,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.portal.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286520+00:00'
-  status: unverified
+  health_check: tools.module_health.check_portal
+  test_suite: tests/module_health/test_portal.py
+  last_verified: '2026-08-02T08:37:08.135905+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.59s
 - id: ui_composer
   display_name: Ui Composer / Gui
   category: core
@@ -574,13 +589,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.ui_composer.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286523+00:00'
-  status: unverified
+  health_check: tools.module_health.check_ui_composer
+  test_suite: tests/module_health/test_ui_composer.py
+  last_verified: '2026-08-02T08:37:13.699785+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 2.26s
 - id: tenant_feed
   display_name: Tenant Feed / Record
   category: core
@@ -588,13 +603,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.tenant_feed.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286526+00:00'
-  status: unverified
+  health_check: tools.module_health.check_tenant_feed
+  test_suite: tests/module_health/test_tenant_feed.py
+  last_verified: '2026-08-02T08:37:19.147840+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 2.16s
 - id: websocket
   display_name: Websocket Events
   category: core
@@ -602,13 +617,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.websocket.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286530+00:00'
-  status: unverified
+  health_check: tools.module_health.check_websocket
+  test_suite: tests/module_health/test_websocket.py
+  last_verified: '2026-08-02T08:37:23.092486+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.60s
 - id: free_api
   display_name: Free Apis
   category: core
@@ -616,13 +631,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.free_api.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286533+00:00'
-  status: unverified
+  health_check: tools.module_health.check_free_api
+  test_suite: tests/module_health/test_free_api.py
+  last_verified: '2026-08-02T08:37:27.618748+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 1.04s
 - id: security
   display_name: Advanced Security
   category: core
@@ -630,13 +645,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.security.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286536+00:00'
-  status: unverified
+  health_check: tools.module_health.check_security
+  test_suite: tests/module_health/test_security.py
+  last_verified: '2026-08-02T08:37:31.525584+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 0.58s
 - id: mndes
   display_name: Mndes
   category: core
@@ -644,13 +659,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.mndes.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286539+00:00'
-  status: unverified
+  health_check: tools.module_health.check_mndes
+  test_suite: tests/module_health/test_mndes.py
+  last_verified: '2026-08-02T08:37:35.446887+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.56s
 - id: fems
   display_name: Fems
   category: tenant_tool
@@ -658,13 +673,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.fems.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286542+00:00'
-  status: unverified
+  health_check: tools.module_health.check_fems
+  test_suite: tests/module_health/test_fems.py
+  last_verified: '2026-08-02T08:37:39.646566+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.88s
 - id: eviction_defense
   display_name: Eviction Defense Toolkit
   category: tenant_tool
@@ -672,13 +687,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.eviction_defense.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286545+00:00'
-  status: unverified
+  health_check: tools.module_health.check_eviction_defense
+  test_suite: tests/module_health/test_eviction_defense.py
+  last_verified: '2026-08-02T08:37:44.588253+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 18 route(s), no exposure issues
+    test_suite: 1 passed in 1.42s
 - id: zoom_court
   display_name: Zoom Courtroom
   category: tenant_tool
@@ -686,13 +701,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.zoom_court.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286548+00:00'
-  status: unverified
+  health_check: tools.module_health.check_zoom_court
+  test_suite: tests/module_health/test_zoom_court.py
+  last_verified: '2026-08-02T08:37:52.012009+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 4.05s
 - id: zoom_court_prep
   display_name: Zoom Court Prep
   category: tenant_tool
@@ -700,13 +715,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.zoom_court_prep.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286551+00:00'
-  status: unverified
+  health_check: tools.module_health.check_zoom_court_prep
+  test_suite: tests/module_health/test_zoom_court_prep.py
+  last_verified: '2026-08-02T08:37:57.779278+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 2.32s
 - id: court_forms
   display_name: Court Forms
   category: tenant_tool
@@ -714,13 +729,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.court_forms.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286554+00:00'
-  status: unverified
+  health_check: tools.module_health.check_court_forms
+  test_suite: tests/module_health/test_court_forms.py
+  last_verified: '2026-08-02T08:38:04.381356+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 3.07s
 - id: court_packet
   display_name: Court Packet
   category: tenant_tool
@@ -728,13 +743,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.court_packet.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286557+00:00'
-  status: unverified
+  health_check: tools.module_health.check_court_packet
+  test_suite: tests/module_health/test_court_packet.py
+  last_verified: '2026-08-02T08:38:08.954433+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.98s
 - id: legal_trails
   display_name: Legal Trails
   category: tenant_tool
@@ -742,13 +757,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.legal_trails.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286560+00:00'
-  status: unverified
+  health_check: tools.module_health.check_legal_trails
+  test_suite: tests/module_health/test_legal_trails.py
+  last_verified: '2026-08-02T08:38:12.895703+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 22 route(s), no exposure issues
+    test_suite: 1 passed in 0.42s
 - id: legal
   display_name: Legal / Court Filing / Discovery / Exhibits / Workspace
   category: tenant_tool
@@ -756,13 +771,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.legal.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286563+00:00'
-  status: unverified
+  health_check: tools.module_health.check_legal
+  test_suite: tests/module_health/test_legal.py
+  last_verified: '2026-08-02T08:38:17.553054+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 1.04s
 - id: intake
   display_name: Document Intake
   category: tenant_tool
@@ -770,13 +785,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.intake.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286567+00:00'
-  status: unverified
+  health_check: tools.module_health.check_intake
+  test_suite: tests/module_health/test_intake.py
+  last_verified: '2026-08-02T08:38:21.697499+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 22 route(s), no exposure issues
+    test_suite: 1 passed in 0.64s
 - id: guided_intake
   display_name: Guided Intake
   category: tenant_tool
@@ -784,13 +799,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.guided_intake.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286570+00:00'
-  status: unverified
+  health_check: tools.module_health.check_guided_intake
+  test_suite: tests/module_health/test_guided_intake.py
+  last_verified: '2026-08-02T08:38:26.115089+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.68s
 - id: case_builder
   display_name: Case Builder
   category: tenant_tool
@@ -798,13 +813,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.case_builder.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286573+00:00'
-  status: unverified
+  health_check: tools.module_health.check_case_builder
+  test_suite: tests/module_health/test_case_builder.py
+  last_verified: '2026-08-02T08:38:30.484937+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 41 route(s), no exposure issues
+    test_suite: 1 passed in 0.71s
 - id: progress
   display_name: Progress Tracker
   category: tenant_tool
@@ -812,13 +827,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.progress.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286576+00:00'
-  status: unverified
+  health_check: tools.module_health.check_progress
+  test_suite: tests/module_health/test_progress.py
+  last_verified: '2026-08-02T08:38:34.652520+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.60s
 - id: actions
   display_name: Smart Actions
   category: tenant_tool
@@ -826,13 +841,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.actions.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286579+00:00'
-  status: unverified
+  health_check: tools.module_health.check_actions
+  test_suite: tests/module_health/test_actions.py
+  last_verified: '2026-08-02T08:38:39.205761+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.95s
 - id: plan_maker
   display_name: Plan Maker
   category: tenant_tool
@@ -840,13 +855,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.plan_maker.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286582+00:00'
-  status: unverified
+  health_check: tools.module_health.check_plan_maker
+  test_suite: tests/module_health/test_plan_maker.py
+  last_verified: '2026-08-02T08:38:43.278986+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.49s
 - id: tools_api
   display_name: Tools
   category: tenant_tool
@@ -854,13 +869,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.tools_api.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286585+00:00'
-  status: unverified
+  health_check: tools.module_health.check_tools_api
+  test_suite: tests/module_health/test_tools_api.py
+  last_verified: '2026-08-02T08:38:47.149227+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.48s
 - id: complaints
   display_name: Complaint Wizard
   category: tenant_tool
@@ -868,13 +883,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.complaints.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286588+00:00'
-  status: unverified
+  health_check: tools.module_health.check_complaints
+  test_suite: tests/module_health/test_complaints.py
+  last_verified: '2026-08-02T08:38:52.086380+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 18 route(s), no exposure issues
+    test_suite: 1 passed in 1.50s
 - id: pattern_history
   display_name: Pattern History
   category: tenant_tool
@@ -882,13 +897,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.housing_accountability.pattern_history
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286591+00:00'
-  status: unverified
+  health_check: tools.module_health.check_pattern_history
+  test_suite: tests/module_health/test_pattern_history.py
+  last_verified: '2026-08-02T08:38:56.799591+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 1.32s
 - id: role_upgrade
   display_name: Role Management
   category: tenant_tool
@@ -896,13 +911,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.role_upgrade.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286594+00:00'
-  status: unverified
+  health_check: tools.module_health.check_role_upgrade
+  test_suite: tests/module_health/test_role_upgrade.py
+  last_verified: '2026-08-02T08:39:00.873079+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.63s
 - id: document_delivery
   display_name: Document Delivery
   category: tenant_tool
@@ -910,13 +925,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.document_delivery.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286598+00:00'
-  status: unverified
+  health_check: tools.module_health.check_document_delivery
+  test_suite: tests/module_health/test_document_delivery.py
+  last_verified: '2026-08-02T08:39:04.907222+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.59s
 - id: communication
   display_name: Communications
   category: tenant_tool
@@ -924,13 +939,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.communication.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286601+00:00'
-  status: unverified
+  health_check: tools.module_health.check_communication
+  test_suite: tests/module_health/test_communication.py
+  last_verified: '2026-08-02T08:39:08.963979+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.67s
 - id: advocate
   display_name: Advocate / Clients / Case Management
   category: tenant_tool
@@ -938,13 +953,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.advocate.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286604+00:00'
-  status: unverified
+  health_check: tools.module_health.check_advocate
+  test_suite: tests/module_health/test_advocate.py
+  last_verified: '2026-08-02T08:39:12.786981+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 0.41s
 - id: admin_console
   display_name: Admin Console
   category: admin
@@ -952,13 +967,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.admin_console.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286607+00:00'
-  status: unverified
+  health_check: tools.module_health.check_admin_console
+  test_suite: tests/module_health/test_admin_console.py
+  last_verified: '2026-08-02T08:39:16.659805+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 41 route(s), no exposure issues
+    test_suite: 1 passed in 0.50s
 - id: module_flags
   display_name: Module Flags
   category: admin
@@ -966,13 +981,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.admin_console.module_flags
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286610+00:00'
-  status: unverified
+  health_check: tools.module_health.check_module_flags
+  test_suite: tests/module_health/test_module_flags.py
+  last_verified: '2026-08-02T08:39:21.192612+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 1.17s
 - id: analytics
   display_name: Analytics
   category: admin
@@ -980,13 +995,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.analytics.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286613+00:00'
-  status: unverified
+  health_check: tools.module_health.check_analytics
+  test_suite: tests/module_health/test_analytics.py
+  last_verified: '2026-08-02T08:39:26.847094+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 2.08s
 - id: dashboard
   display_name: Unified Dashboard
   category: admin
@@ -994,13 +1009,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.dashboard.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286616+00:00'
-  status: unverified
+  health_check: tools.module_health.check_dashboard
+  test_suite: tests/module_health/test_dashboard.py
+  last_verified: '2026-08-02T08:39:31.048930+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.80s
 - id: enterprise_dashboard
   display_name: Enterprise Dashboard
   category: admin
@@ -1008,13 +1023,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.enterprise_dashboard.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286619+00:00'
-  status: unverified
+  health_check: tools.module_health.check_enterprise_dashboard
+  test_suite: tests/module_health/test_enterprise_dashboard.py
+  last_verified: '2026-08-02T08:39:34.979588+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 14 route(s), no exposure issues
+    test_suite: 1 passed in 0.47s
 - id: batch
   display_name: Batch Operations
   category: admin
@@ -1022,13 +1037,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.batch.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286622+00:00'
-  status: unverified
+  health_check: tools.module_health.check_batch
+  test_suite: tests/module_health/test_batch.py
+  last_verified: '2026-08-02T08:39:40.701555+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 2.27s
 - id: registry
   display_name: Document Registry
   category: admin
@@ -1036,13 +1051,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.registry.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286625+00:00'
-  status: unverified
+  health_check: tools.module_health.check_registry
+  test_suite: tests/module_health/test_registry.py
+  last_verified: '2026-08-02T08:39:44.569669+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 21 route(s), no exposure issues
+    test_suite: 1 passed in 0.43s
 - id: tenancy_hub
   display_name: Tenancy Hub
   category: admin
@@ -1050,13 +1065,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.tenancy_hub.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286628+00:00'
-  status: unverified
+  health_check: tools.module_health.check_tenancy_hub
+  test_suite: tests/module_health/test_tenancy_hub.py
+  last_verified: '2026-08-02T08:39:48.675617+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 26 route(s), no exposure issues
+    test_suite: 1 passed in 0.72s
 - id: capabilities
   display_name: Capabilities
   category: admin
@@ -1064,13 +1079,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.capabilities.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286631+00:00'
-  status: unverified
+  health_check: tools.module_health.check_capabilities
+  test_suite: tests/module_health/test_capabilities.py
+  last_verified: '2026-08-02T08:39:54.447511+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 2.38s
 - id: manager
   display_name: Manager / Case Assignment / Reporting / Bulk Ops
   category: admin
@@ -1078,13 +1093,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.manager.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286634+00:00'
-  status: unverified
+  health_check: tools.module_health.check_manager
+  test_suite: tests/module_health/test_manager.py
+  last_verified: '2026-08-02T08:39:59.307711+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 1.41s
 - id: funding_mgmt
   display_name: Funding Management
   category: admin
@@ -1092,13 +1107,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.funding_mgmt.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286637+00:00'
-  status: unverified
+  health_check: tools.module_health.check_funding_mgmt
+  test_suite: tests/module_health/test_funding_mgmt.py
+  last_verified: '2026-08-02T08:40:03.296943+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.52s
 - id: recognition
   display_name: Document Recognition
   category: research
@@ -1106,13 +1121,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.recognition.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286640+00:00'
-  status: unverified
+  health_check: tools.module_health.check_recognition
+  test_suite: tests/module_health/test_recognition.py
+  last_verified: '2026-08-02T08:40:07.792449+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 1.07s
 - id: extraction
   display_name: Form Field Extraction
   category: research
@@ -1120,13 +1135,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.extraction.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286643+00:00'
-  status: unverified
+  health_check: tools.module_health.check_extraction
+  test_suite: tests/module_health/test_extraction.py
+  last_verified: '2026-08-02T08:40:11.795600+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 0.54s
 - id: crawler
   display_name: Crawler
   category: research
@@ -1134,13 +1149,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.crawler.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286646+00:00'
-  status: unverified
+  health_check: tools.module_health.check_crawler
+  test_suite: tests/module_health/test_crawler.py
+  last_verified: '2026-08-02T08:40:15.869034+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.58s
 - id: research
   display_name: Research Module
   category: research
@@ -1148,13 +1163,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.research.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286649+00:00'
-  status: unverified
+  health_check: tools.module_health.check_research
+  test_suite: tests/module_health/test_research.py
+  last_verified: '2026-08-02T08:40:20.070546+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 18 route(s), no exposure issues
+    test_suite: 1 passed in 0.72s
 - id: form_data
   display_name: Form Data Hub
   category: research
@@ -1162,13 +1177,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.form_data.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286652+00:00'
-  status: unverified
+  health_check: tools.module_health.check_form_data
+  test_suite: tests/module_health/test_form_data.py
+  last_verified: '2026-08-02T08:40:24.696018+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 1.20s
 - id: unified_overlays
   display_name: Unified Overlays
   category: research
@@ -1176,13 +1191,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.unified_overlays.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286655+00:00'
-  status: unverified
+  health_check: tools.module_health.check_unified_overlays
+  test_suite: tests/module_health/test_unified_overlays.py
+  last_verified: '2026-08-02T08:40:29.018458+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.86s
 - id: cloud_sync
   display_name: Cloud Sync
   category: research
@@ -1190,13 +1205,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.cloud_sync.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286683+00:00'
-  status: unverified
+  health_check: tools.module_health.check_cloud_sync
+  test_suite: tests/module_health/test_cloud_sync.py
+  last_verified: '2026-08-02T08:40:33.080713+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 19 route(s), no exposure issues
+    test_suite: 1 passed in 0.48s
 - id: emotion
   display_name: Emotion Engine
   category: research
@@ -1204,13 +1219,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.emotion.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286693+00:00'
-  status: unverified
+  health_check: tools.module_health.check_emotion
+  test_suite: tests/module_health/test_emotion.py
+  last_verified: '2026-08-02T08:40:38.096502+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 1.61s
 - id: module_hub
   display_name: Module Hub
   category: research
@@ -1218,13 +1233,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.module_hub.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286700+00:00'
-  status: unverified
+  health_check: tools.module_health.check_module_hub
+  test_suite: tests/module_health/test_module_hub.py
+  last_verified: '2026-08-02T08:40:42.580198+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 21 route(s), no exposure issues
+    test_suite: 1 passed in 1.13s
 - id: functionx
   display_name: Functionx
   category: research
@@ -1232,13 +1247,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.functionx.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286706+00:00'
-  status: unverified
+  health_check: tools.module_health.check_functionx
+  test_suite: tests/module_health/test_functionx.py
+  last_verified: '2026-08-02T08:40:47.122908+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 1.25s
 - id: funding_search
   display_name: Funding & Tax Credit Search
   category: research
@@ -1246,13 +1261,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.funding_search.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286712+00:00'
-  status: unverified
+  health_check: tools.module_health.check_funding_search
+  test_suite: tests/module_health/test_funding_search.py
+  last_verified: '2026-08-02T08:40:51.859347+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 1.39s
 - id: hud_funding
   display_name: Hud Funding Guide
   category: research
@@ -1260,13 +1275,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.hud_funding.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286719+00:00'
-  status: unverified
+  health_check: tools.module_health.check_hud_funding
+  test_suite: tests/module_health/test_hud_funding.py
+  last_verified: '2026-08-02T08:40:57.807485+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 17 route(s), no exposure issues
+    test_suite: 1 passed in 2.60s
 - id: location
   display_name: Location
   category: research
@@ -1274,13 +1289,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.location.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286725+00:00'
-  status: unverified
+  health_check: tools.module_health.check_location
+  test_suite: tests/module_health/test_location.py
+  last_verified: '2026-08-02T08:41:01.770653+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.60s
 - id: campaign
   display_name: Campaign Orchestration
   category: research
@@ -1288,13 +1303,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.campaign.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286731+00:00'
-  status: unverified
+  health_check: tools.module_health.check_campaign
+  test_suite: tests/module_health/test_campaign.py
+  last_verified: '2026-08-02T08:41:06.640695+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 1.41s
 - id: public_exposure
   display_name: Public Exposure
   category: research
@@ -1302,13 +1317,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.public_exposure.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286737+00:00'
-  status: unverified
+  health_check: tools.module_health.check_public_exposure
+  test_suite: tests/module_health/test_public_exposure.py
+  last_verified: '2026-08-02T08:41:10.417515+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.43s
 - id: fraud_exposure
   display_name: Fraud Exposure
   category: research
@@ -1316,13 +1331,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.fraud_exposure.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286742+00:00'
-  status: unverified
+  health_check: tools.module_health.check_fraud_exposure
+  test_suite: tests/module_health/test_fraud_exposure.py
+  last_verified: '2026-08-02T08:41:14.949932+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 1.23s
 - id: setup
   display_name: Setup Wizard
   category: advanced
@@ -1330,13 +1345,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.setup.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286748+00:00'
-  status: unverified
+  health_check: tools.module_health.check_setup
+  test_suite: tests/module_health/test_setup.py
+  last_verified: '2026-08-02T08:41:20.841748+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 15 route(s), no exposure issues
+    test_suite: 1 passed in 2.58s
 - id: page_index
   display_name: Page Index
   category: advanced
@@ -1344,13 +1359,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.page_index.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286755+00:00'
-  status: unverified
+  health_check: tools.module_health.check_page_index
+  test_suite: tests/module_health/test_page_index.py
+  last_verified: '2026-08-02T08:41:24.798486+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.59s
 - id: page_editor
   display_name: Page Editor
   category: advanced
@@ -1358,13 +1373,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.page_editor.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286761+00:00'
-  status: unverified
+  health_check: tools.module_health.check_page_editor
+  test_suite: tests/module_health/test_page_editor.py
+  last_verified: '2026-08-02T08:41:29.341372+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 6 route(s), no exposure issues
+    test_suite: 1 passed in 1.24s
 - id: development
   display_name: Development Tools
   category: advanced
@@ -1372,13 +1387,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.development.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286768+00:00'
-  status: unverified
+  health_check: tools.module_health.check_development
+  test_suite: tests/module_health/test_development.py
+  last_verified: '2026-08-02T08:41:34.147034+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 1.44s
 - id: dev_lab
   display_name: Dev Lab
   category: advanced
@@ -1386,13 +1401,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.dev_lab.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286775+00:00'
-  status: unverified
+  health_check: tools.module_health.check_dev_lab
+  test_suite: tests/module_health/test_dev_lab.py
+  last_verified: '2026-08-02T08:41:38.614036+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 1.15s
 - id: agent_orchestrator
   display_name: Agent Orchestrator
   category: advanced
@@ -1400,13 +1415,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.agent_orchestrator.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286781+00:00'
-  status: unverified
+  health_check: tools.module_health.check_agent_orchestrator
+  test_suite: tests/module_health/test_agent_orchestrator.py
+  last_verified: '2026-08-02T08:41:42.780218+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 9 route(s), no exposure issues
+    test_suite: 1 passed in 0.90s
 - id: ideas
   display_name: Dev Ideas
   category: advanced
@@ -1414,13 +1429,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.dev_lab.ideas
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286787+00:00'
-  status: unverified
+  health_check: tools.module_health.check_ideas
+  test_suite: tests/module_health/test_ideas.py
+  last_verified: '2026-08-02T08:41:47.184427+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 1.08s
 - id: filedored
   display_name: Filedored
   category: advanced
@@ -1430,11 +1445,12 @@
   module_path: app.modules.filedored.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286793+00:00'
+  last_verified: '2026-08-02T08:41:47.184450+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: pending Brad's decision on filedored_service classification
 - id: data_freshness
   display_name: Data Freshness
   category: advanced
@@ -1442,13 +1458,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.data_freshness.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286799+00:00'
-  status: unverified
+  health_check: tools.module_health.check_data_freshness
+  test_suite: tests/module_health/test_data_freshness.py
+  last_verified: '2026-08-02T08:41:53.053970+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 2.55s
 - id: inventory
   display_name: Inventory Management
   category: advanced
@@ -1456,13 +1472,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.inventory.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286805+00:00'
-  status: unverified
+  health_check: tools.module_health.check_inventory
+  test_suite: tests/module_health/test_inventory.py
+  last_verified: '2026-08-02T08:41:57.053970+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 8 route(s), no exposure issues
+    test_suite: 1 passed in 0.62s
 - id: judge
   display_name: Judge / Deprecated / Merged Into Legal
   category: advanced
@@ -1470,13 +1486,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.judge.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286812+00:00'
-  status: unverified
+  health_check: tools.module_health.check_judge
+  test_suite: tests/module_health/test_judge.py
+  last_verified: '2026-08-02T08:42:01.090426+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 1 route(s), no exposure issues
+    test_suite: 1 passed in 0.64s
 - id: calendar
   display_name: Calendar
   category: advanced
@@ -1484,13 +1500,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.calendar.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286818+00:00'
-  status: unverified
+  health_check: tools.module_health.check_calendar
+  test_suite: tests/module_health/test_calendar.py
+  last_verified: '2026-08-02T08:42:05.503225+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.98s
 - id: tactics
   display_name: Tactics
   category: advanced
@@ -1498,13 +1514,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.tactics.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286824+00:00'
-  status: unverified
+  health_check: tools.module_health.check_tactics
+  test_suite: tests/module_health/test_tactics.py
+  last_verified: '2026-08-02T08:42:10.174171+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 1.32s
 - id: page_shell
   display_name: Page Shell / Pillar Mixer
   category: advanced
@@ -1512,13 +1528,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.page_shell.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286831+00:00'
-  status: unverified
+  health_check: tools.module_health.check_page_shell
+  test_suite: tests/module_health/test_page_shell.py
+  last_verified: '2026-08-02T08:42:14.164806+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.62s
 - id: example_payment_tracking
   display_name: Payment Tracking
   category: advanced
@@ -1526,13 +1542,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.example_payment_tracking
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286837+00:00'
-  status: unverified
+  health_check: tools.module_health.check_example_payment_tracking
+  test_suite: tests/module_health/test_example_payment_tracking.py
+  last_verified: '2026-08-02T08:42:18.105807+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 2 route(s), no exposure issues
+    test_suite: 1 passed in 0.64s
 - id: legal_filing_module
   display_name: Legal Filing
   category: advanced
@@ -1540,13 +1556,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.legal_filing_module
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286843+00:00'
-  status: unverified
+  health_check: tools.module_health.check_legal_filing_module
+  test_suite: tests/module_health/test_legal_filing_module.py
+  last_verified: '2026-08-02T08:42:22.257625+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 5 route(s), no exposure issues
+    test_suite: 1 passed in 0.86s
 - id: vault_sync
   display_name: Vault Sync
   category: advanced
@@ -1556,11 +1572,12 @@
   module_path: app.modules.vault_sync
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286849+00:00'
+  last_verified: '2026-08-02T08:42:22.257653+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: ON HOLD per Brad's standing direction
 - id: eviction_notice_explainer
   display_name: Eviction Notice Explainer
   category: advanced
@@ -1570,11 +1587,12 @@
   module_path: app.modules.eviction_notice_explainer
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286855+00:00'
+  last_verified: '2026-08-02T08:42:22.257658+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
 - id: response_letter_generator
   display_name: Response Letter Generator
   category: advanced
@@ -1584,11 +1602,12 @@
   module_path: app.modules.response_letter_generator
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286861+00:00'
+  last_verified: '2026-08-02T08:42:22.257663+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
 - id: eviction_defense_content
   display_name: Eviction Defense Content
   category: advanced
@@ -1598,11 +1617,12 @@
   module_path: app.modules.eviction_defense_content
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286867+00:00'
+  last_verified: '2026-08-02T08:42:22.257667+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
 - id: ai_copilot
   display_name: Ai Copilot
   category: advanced
@@ -1612,11 +1632,12 @@
   module_path: app.modules.ai_copilot
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286873+00:00'
+  last_verified: '2026-08-02T08:42:22.257671+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: module not available (optional router skipped)
 - id: context_loop
   display_name: Context Loop
   category: advanced
@@ -1624,13 +1645,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.context_loop.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286879+00:00'
-  status: unverified
+  health_check: tools.module_health.check_context_loop
+  test_suite: tests/module_health/test_context_loop.py
+  last_verified: '2026-08-02T08:42:27.137961+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 1.39s
 - id: routes
   display_name: Vault Installer
   category: advanced
@@ -1638,13 +1659,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.vault_installer.routes
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286885+00:00'
-  status: unverified
+  health_check: tools.module_health.check_routes
+  test_suite: tests/module_health/test_routes.py
+  last_verified: '2026-08-02T08:42:32.718867+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 2.27s
 - id: export_import
   display_name: Data Export/Import
   category: advanced
@@ -1652,13 +1673,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.export_import.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286891+00:00'
-  status: unverified
+  health_check: tools.module_health.check_export_import
+  test_suite: tests/module_health/test_export_import.py
+  last_verified: '2026-08-02T08:42:36.471189+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 12 route(s), no exposure issues
+    test_suite: 1 passed in 0.46s
 - id: documentation
   display_name: Api Documentation
   category: advanced
@@ -1666,13 +1687,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.documentation.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286896+00:00'
-  status: unverified
+  health_check: tools.module_health.check_documentation
+  test_suite: tests/module_health/test_documentation.py
+  last_verified: '2026-08-02T08:42:40.377122+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 0.56s
 - id: document_center
   display_name: Document Center
   category: advanced
@@ -1680,13 +1701,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.document_center.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286901+00:00'
-  status: unverified
+  health_check: tools.module_health.check_document_center
+  test_suite: tests/module_health/test_document_center.py
+  last_verified: '2026-08-02T08:42:44.776500+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 13 route(s), no exposure issues
+    test_suite: 1 passed in 1.07s
 - id: law_library_page_router
   display_name: Law Library
   category: core
@@ -1694,13 +1715,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.law_library.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286907+00:00'
-  status: unverified
+  health_check: tools.module_health.check_law_library_page_router
+  test_suite: tests/module_health/test_law_library_page_router.py
+  last_verified: '2026-08-02T08:42:49.057011+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 0.97s
 - id: portal_seo_router
   display_name: Portal / Seo
   category: core
@@ -1708,13 +1729,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.portal.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286914+00:00'
-  status: unverified
+  health_check: tools.module_health.check_portal_seo_router
+  test_suite: tests/module_health/test_portal_seo_router.py
+  last_verified: '2026-08-02T08:42:53.006476+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.68s
 - id: core_system_core_router
   display_name: Core System
   category: core
@@ -1722,13 +1743,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.core_system.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286920+00:00'
-  status: unverified
+  health_check: tools.module_health.check_core_system_core_router
+  test_suite: tests/module_health/test_core_system_core_router.py
+  last_verified: '2026-08-02T08:42:57.857723+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 10 route(s), no exposure issues
+    test_suite: 1 passed in 1.55s
 - id: housing_accountability_accountability_router
   display_name: Housing Accountability
   category: tenant_tool
@@ -1738,11 +1759,12 @@
   module_path: app.modules.housing_accountability.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286926+00:00'
+  last_verified: '2026-08-02T08:42:57.857751+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
     test_suite: no test suite configured
+  flag_reason: pending Brad's decision on accountability_ledger / detect_repeated_fees
 - id: external_mappings_mappings_router
   display_name: External Mappings / Court Cases / Properties / Agencies
   category: tenant_tool
@@ -1750,13 +1772,13 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.external_mappings.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286932+00:00'
-  status: unverified
+  health_check: tools.module_health.check_external_mappings_mappings_router
+  test_suite: tests/module_health/test_external_mappings_mappings_router.py
+  last_verified: '2026-08-02T08:43:02.005322+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 11 route(s), no exposure issues
+    test_suite: 1 passed in 0.75s
 - id: litigation_intelligence_lis_router
   display_name: Litigation Intelligence
   category: research
@@ -1764,10 +1786,38 @@
   owner: brad
   version: 1.0.0
   module_path: app.modules.litigation_intelligence.router
-  health_check: TODO
-  test_suite: TODO
-  last_verified: '2026-08-01T08:30:56.286938+00:00'
-  status: unverified
+  health_check: tools.module_health.check_litigation_intelligence_lis_router
+  test_suite: tests/module_health/test_litigation_intelligence_lis_router.py
+  last_verified: '2026-08-02T08:43:06.251646+00:00'
+  status: ok
   last_result:
-    health_check: health_check not configured
-    test_suite: no test suite configured
+    health_check: 17 route(s), no exposure issues
+    test_suite: 1 passed in 0.76s
+- id: dispute_tracker
+  display_name: Dispute Tracker
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.dispute_tracker.router
+  health_check: tools.module_health.check_dispute_tracker
+  test_suite: tests/module_health/test_dispute_tracker.py
+  status: ok
+  last_verified: '2026-08-02T08:43:10.285015+00:00'
+  last_result:
+    health_check: 4 route(s), no exposure issues
+    test_suite: 1 passed in 0.63s
+- id: eviction_timeline
+  display_name: Eviction Timeline
+  category: tenant_tool
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.eviction_timeline.router
+  health_check: tools.module_health.check_eviction_timeline
+  test_suite: tests/module_health/test_eviction_timeline.py
+  status: ok
+  last_verified: '2026-08-02T08:43:14.219466+00:00'
+  last_result:
+    health_check: 3 route(s), no exposure issues
+    test_suite: 1 passed in 0.56s
