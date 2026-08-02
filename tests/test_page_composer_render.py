@@ -7,6 +7,7 @@ import pytest
 
 from app.modules.page_composer.models import PageAssemblyMetadata, PageAssemblyResult
 from app.modules.page_shell.loader import load_page_config_from_file
+from app.modules.page_shell.renderer import render_page_shell
 
 
 def _assembly_result() -> PageAssemblyResult:
@@ -26,6 +27,15 @@ def _assembly_result() -> PageAssemblyResult:
             risk_tier="medium",
         ),
     )
+
+
+def test_page_shell_style_uses_html_safe_grid_area_quotes():
+    html = render_page_shell(_assembly_result().page_config)
+
+    style = html.split('style="', 1)[1].split('"', 1)[0]
+    assert '"' not in style
+    assert "grid-template-areas: 'record record know'" in style
+    assert "grid-template-rows:" in style
 
 
 @pytest.mark.anyio
