@@ -321,7 +321,9 @@ async def generate_report(request: ReportGenerationRequest, current_user=Depends
         else:
             raise HTTPException(status_code=400, detail="Unsupported report type")
 
-        return JSONResponse(content={"success": True, "report": report.to_dict(), "generated_at": utc_now().isoformat()})
+        return JSONResponse(
+            content={"success": True, "report": report.to_dict(), "generated_at": utc_now().isoformat()}
+        )
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")

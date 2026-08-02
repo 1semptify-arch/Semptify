@@ -1,14 +1,15 @@
-
 from fastapi import APIRouter, HTTPException, Request
+
 from app.core.request_utils import get_request_user_id
 from app.core.user_id import get_role_from_user_id
-from app.models.legal_filing_models import LegalCase, EvidenceItem
+from app.models.legal_filing_models import EvidenceItem, LegalCase
+
 from .service import (
-    save_case,
-    load_case,
     list_cases,
-    save_evidence,
     list_evidence,
+    load_case,
+    save_case,
+    save_evidence,
 )
 
 router = APIRouter(prefix="/api/legal-filing", tags=["Legal Filing"])
@@ -44,6 +45,7 @@ def _require_roles(request: Request, allowed_roles):
 def get_cases(request: Request):
     _require_roles(request, ["user", "manager", "advocate", "legal", "admin"])
     return list_cases()
+
 
 @router.get("/cases/{case_id}")
 def get_case(case_id: str, request: Request):

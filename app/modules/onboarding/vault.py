@@ -13,9 +13,8 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.vault_paths import CANONICAL_VAULT_FOLDERS
 from app.modules.onboarding.config import OnboardingConfig
-from app.modules.onboarding.gates import mark_gate, check_gate
+from app.modules.onboarding.gates import check_gate
 from app.modules.vault_installer import install_vault_for_user
 
 logger = logging.getLogger(__name__)
@@ -24,6 +23,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Main entry points
 # ---------------------------------------------------------------------------
+
 
 async def init_vault(
     db: AsyncSession,
@@ -64,7 +64,7 @@ async def init_vault(
             provider_name=provider_name,
             access_token=access_token,
         )
-        
+
         if result.get("success"):
             logger.info("Vault initialized successfully for user %s via installer", user_id[:6] + "***")
             return {
@@ -95,8 +95,8 @@ async def verify_vault(
     Called by the vault-setup page after init.
     Returns: {"ok": True/False, "accessible": bool, "details": list}
     """
-    from app.sdk.vault import VaultClient, TENANT_VAULT
-    
+    from app.sdk.vault import TENANT_VAULT, VaultClient
+
     try:
         # Use Vault SDK health check.
         # Only verify TENANT_VAULT folders — those are the only ones created at
@@ -108,9 +108,9 @@ async def verify_vault(
             user_id=user_id,
             folder_spec=TENANT_VAULT,
         )
-        
+
         health = await vault_client.health_check()
-        
+
         return {
             "ok": health.healthy,
             "accessible": health.healthy,

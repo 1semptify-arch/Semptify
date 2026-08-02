@@ -1,6 +1,6 @@
 from app.core.semptify_internal_sdk import (
-    ModuleManifest,
     ModuleCapability,
+    ModuleManifest,
     ProductTier,
     register_module,
 )

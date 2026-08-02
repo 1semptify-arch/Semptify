@@ -18,21 +18,21 @@ Integrates with:
 - Timeline (log interactions)
 """
 
+import logging
 from datetime import datetime
-from app.core.utc import utc_now
-from app.core.id_gen import make_id
-from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from pydantic import BaseModel, EmailStr, ConfigDict
-from sqlalchemy import select, or_, func
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
-from app.core.security import require_user, StorageUser, yellow_access
 from app.core.capabilities import require_capability
+from app.core.database import get_db
+from app.core.id_gen import make_id
+from app.core.security import StorageUser, yellow_access
+from app.core.utc import utc_now
 from app.models.models import Contact, ContactInteraction
-from app.core.event_bus import event_bus, EventType as BusEventType
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,74 +47,80 @@ router = APIRouter(
 # Request/Response Models
 # =============================================================================
 
+
 class ContactCreate(BaseModel):
     """Create a new contact."""
-    contact_type: str  # landlord, property_manager, attorney, witness, inspector, agency, court, legal_aid, tenant_org, other
-    role: Optional[str] = None
+
+    contact_type: (
+        str  # landlord, property_manager, attorney, witness, inspector, agency, court, legal_aid, tenant_org, other
+    )
+    role: str | None = None
     name: str
-    organization: Optional[str] = None
-    title: Optional[str] = None
-    phone: Optional[str] = None
-    phone_alt: Optional[str] = None
-    email: Optional[str] = None
-    fax: Optional[str] = None
-    address_line1: Optional[str] = None
-    address_line2: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    zip_code: Optional[str] = None
-    website: Optional[str] = None
-    notes: Optional[str] = None
-    tags: Optional[str] = None
-    source: Optional[str] = "manual"
-    source_document_id: Optional[str] = None
+    organization: str | None = None
+    title: str | None = None
+    phone: str | None = None
+    phone_alt: str | None = None
+    email: str | None = None
+    fax: str | None = None
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zip_code: str | None = None
+    website: str | None = None
+    notes: str | None = None
+    tags: str | None = None
+    source: str | None = "manual"
+    source_document_id: str | None = None
 
 
 class ContactUpdate(BaseModel):
     """Update an existing contact."""
-    contact_type: Optional[str] = None
-    role: Optional[str] = None
-    name: Optional[str] = None
-    organization: Optional[str] = None
-    title: Optional[str] = None
-    phone: Optional[str] = None
-    phone_alt: Optional[str] = None
-    email: Optional[str] = None
-    fax: Optional[str] = None
-    address_line1: Optional[str] = None
-    address_line2: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    zip_code: Optional[str] = None
-    website: Optional[str] = None
-    notes: Optional[str] = None
-    tags: Optional[str] = None
-    is_active: Optional[bool] = None
-    is_starred: Optional[bool] = None
+
+    contact_type: str | None = None
+    role: str | None = None
+    name: str | None = None
+    organization: str | None = None
+    title: str | None = None
+    phone: str | None = None
+    phone_alt: str | None = None
+    email: str | None = None
+    fax: str | None = None
+    address_line1: str | None = None
+    address_line2: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zip_code: str | None = None
+    website: str | None = None
+    notes: str | None = None
+    tags: str | None = None
+    is_active: bool | None = None
+    is_starred: bool | None = None
 
 
 class ContactResponse(BaseModel):
     """Contact response."""
+
     id: str
     contact_type: str
-    role: Optional[str]
+    role: str | None
     name: str
-    organization: Optional[str]
-    title: Optional[str]
-    phone: Optional[str]
-    phone_alt: Optional[str]
-    email: Optional[str]
-    fax: Optional[str]
-    address_line1: Optional[str]
-    address_line2: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    zip_code: Optional[str]
-    website: Optional[str]
-    notes: Optional[str]
-    tags: Optional[str]
-    source: Optional[str]
-    last_contact_date: Optional[datetime]
+    organization: str | None
+    title: str | None
+    phone: str | None
+    phone_alt: str | None
+    email: str | None
+    fax: str | None
+    address_line1: str | None
+    address_line2: str | None
+    city: str | None
+    state: str | None
+    zip_code: str | None
+    website: str | None
+    notes: str | None
+    tags: str | None
+    source: str | None
+    last_contact_date: datetime | None
     interaction_count: int
     is_active: bool
     is_starred: bool
@@ -122,63 +128,72 @@ class ContactResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class InteractionCreate(BaseModel):
     """Log an interaction with a contact."""
+
     interaction_type: str  # phone_call, email, letter, in_person, court_appearance, voicemail
     direction: str  # incoming, outgoing
-    subject: Optional[str] = None
-    summary: Optional[str] = None
+    subject: str | None = None
+    summary: str | None = None
     interaction_date: datetime
-    duration_minutes: Optional[int] = None
-    related_document_ids: Optional[List[str]] = None
+    duration_minutes: int | None = None
+    related_document_ids: list[str] | None = None
     follow_up_needed: bool = False
-    follow_up_date: Optional[datetime] = None
-    follow_up_notes: Optional[str] = None
+    follow_up_date: datetime | None = None
+    follow_up_notes: str | None = None
 
 
 class InteractionResponse(BaseModel):
     """Interaction response."""
+
     id: str
     contact_id: str
     interaction_type: str
     direction: str
-    subject: Optional[str]
-    summary: Optional[str]
+    subject: str | None
+    summary: str | None
     interaction_date: datetime
-    duration_minutes: Optional[int]
+    duration_minutes: int | None
     follow_up_needed: bool
-    follow_up_date: Optional[datetime]
-    follow_up_notes: Optional[str]
+    follow_up_date: datetime | None
+    follow_up_notes: str | None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class ContactsListResponse(BaseModel):
     """List of contacts."""
-    contacts: List[ContactResponse]
+
+    contacts: list[ContactResponse]
     total: int
     by_type: dict
 
 
 class ExtractedContactsRequest(BaseModel):
     """Request to import contacts from extracted form data."""
-    tenant_name: Optional[str] = None
-    tenant_address: Optional[str] = None
-    tenant_phone: Optional[str] = None
-    tenant_email: Optional[str] = None
-    landlord_name: Optional[str] = None
-    landlord_address: Optional[str] = None
-    landlord_phone: Optional[str] = None
-    landlord_email: Optional[str] = None
-    attorney_name: Optional[str] = None
-    attorney_firm: Optional[str] = None
-    attorney_address: Optional[str] = None
-    attorney_phone: Optional[str] = None
-    source_document_id: Optional[str] = None
+
+    tenant_name: str | None = None
+    tenant_address: str | None = None
+    tenant_phone: str | None = None
+    tenant_email: str | None = None
+    landlord_name: str | None = None
+    landlord_address: str | None = None
+    landlord_phone: str | None = None
+    landlord_email: str | None = None
+    attorney_name: str | None = None
+    attorney_firm: str | None = None
+    attorney_address: str | None = None
+    attorney_phone: str | None = None
+    source_document_id: str | None = None
 
 
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def contact_to_response(contact: Contact) -> ContactResponse:
     """Convert Contact model to response."""
@@ -221,7 +236,7 @@ def parse_address(address: str) -> dict:
         "state": None,
         "zip_code": None,
     }
-    
+
     if len(parts) >= 1:
         result["address_line1"] = parts[0].strip()
     if len(parts) >= 2:
@@ -233,7 +248,7 @@ def parse_address(address: str) -> dict:
             result["state"] = state_zip[0]
         if len(state_zip) >= 2:
             result["zip_code"] = state_zip[1]
-    
+
     return result
 
 
@@ -241,11 +256,12 @@ def parse_address(address: str) -> dict:
 # CRUD Endpoints
 # =============================================================================
 
+
 @router.get("/", response_model=ContactsListResponse)
 async def list_contacts(
-    contact_type: Optional[str] = Query(None, description="Filter by contact type"),
-    role: Optional[str] = Query(None, description="Filter by role"),
-    search: Optional[str] = Query(None, description="Search name/organization"),
+    contact_type: str | None = Query(None, description="Filter by contact type"),
+    role: str | None = Query(None, description="Filter by role"),
+    search: str | None = Query(None, description="Search name/organization"),
     starred_only: bool = Query(False, description="Show only starred contacts"),
     active_only: bool = Query(True, description="Show only active contacts"),
     user: StorageUser = Depends(yellow_access),
@@ -253,19 +269,19 @@ async def list_contacts(
 ):
     """
     List all contacts for the current user.
-    
+
     Filter by type, role, or search by name/organization.
     """
     query = select(Contact).where(Contact.user_id == user.user_id)
-    
+
     if contact_type:
         query = query.where(Contact.contact_type == contact_type)
     if role:
         query = query.where(Contact.role == role)
     if starred_only:
-        query = query.where(Contact.is_starred == True)
+        query = query.where(Contact.is_starred)
     if active_only:
-        query = query.where(Contact.is_active == True)
+        query = query.where(Contact.is_active)
     if search:
         search_pattern = f"%{search}%"
         query = query.where(
@@ -275,17 +291,17 @@ async def list_contacts(
                 Contact.email.ilike(search_pattern),
             )
         )
-    
+
     query = query.order_by(Contact.is_starred.desc(), Contact.name)
-    
+
     result = await db.execute(query)
     contacts = result.scalars().all()
-    
+
     # Count by type
     type_counts = {}
     for c in contacts:
         type_counts[c.contact_type] = type_counts.get(c.contact_type, 0) + 1
-    
+
     return ContactsListResponse(
         contacts=[contact_to_response(c) for c in contacts],
         total=len(contacts),
@@ -323,11 +339,11 @@ async def create_contact(
         source=data.source or "manual",
         source_document_id=data.source_document_id,
     )
-    
+
     db.add(contact)
     await db.commit()
     await db.refresh(contact)
-    
+
     return contact_to_response(contact)
 
 
@@ -345,10 +361,10 @@ async def get_contact(
         )
     )
     contact = result.scalar_one_or_none()
-    
+
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
-    
+
     return contact_to_response(contact)
 
 
@@ -367,19 +383,19 @@ async def update_contact(
         )
     )
     contact = result.scalar_one_or_none()
-    
+
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
-    
+
     # Update fields
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(contact, field, value)
-    
+
     contact.updated_at = utc_now()
     await db.commit()
     await db.refresh(contact)
-    
+
     return contact_to_response(contact)
 
 
@@ -397,13 +413,13 @@ async def delete_contact(
         )
     )
     contact = result.scalar_one_or_none()
-    
+
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
-    
+
     await db.delete(contact)
     await db.commit()
-    
+
     return {"status": "deleted", "id": contact_id}
 
 
@@ -421,13 +437,13 @@ async def toggle_star(
         )
     )
     contact = result.scalar_one_or_none()
-    
+
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
-    
+
     contact.is_starred = not contact.is_starred
     await db.commit()
-    
+
     return {"status": "success", "is_starred": contact.is_starred}
 
 
@@ -435,7 +451,8 @@ async def toggle_star(
 # Interaction Logging
 # =============================================================================
 
-@router.get("/{contact_id}/interactions", response_model=List[InteractionResponse])
+
+@router.get("/{contact_id}/interactions", response_model=list[InteractionResponse])
 async def list_interactions(
     contact_id: str,
     user: StorageUser = Depends(yellow_access),
@@ -451,14 +468,14 @@ async def list_interactions(
     )
     if not contact_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Contact not found")
-    
+
     result = await db.execute(
         select(ContactInteraction)
         .where(ContactInteraction.contact_id == contact_id)
         .order_by(ContactInteraction.interaction_date.desc())
     )
     interactions = result.scalars().all()
-    
+
     return [
         InteractionResponse(
             id=i.id,
@@ -496,9 +513,9 @@ async def log_interaction(
     contact = contact_result.scalar_one_or_none()
     if not contact:
         raise HTTPException(status_code=404, detail="Contact not found")
-    
+
     import json
-    
+
     interaction = ContactInteraction(
         id=make_id("con"),
         user_id=user.user_id,
@@ -514,16 +531,16 @@ async def log_interaction(
         follow_up_date=data.follow_up_date,
         follow_up_notes=data.follow_up_notes,
     )
-    
+
     db.add(interaction)
-    
+
     # Update contact's last interaction date and count
     contact.last_contact_date = data.interaction_date
     contact.interaction_count += 1
-    
+
     await db.commit()
     await db.refresh(interaction)
-    
+
     return InteractionResponse(
         id=interaction.id,
         contact_id=interaction.contact_id,
@@ -544,6 +561,7 @@ async def log_interaction(
 # Import from Extracted Data
 # =============================================================================
 
+
 @router.post("/import-from-extraction")
 async def import_from_extraction(
     data: ExtractedContactsRequest,
@@ -552,16 +570,16 @@ async def import_from_extraction(
 ):
     """
     Import contacts from extracted form data.
-    
+
     This is called by the extraction pipeline when contacts are
     found in uploaded documents (leases, summons, etc.).
     """
     created = []
-    
+
     # Import landlord if provided
     if data.landlord_name:
         addr = parse_address(data.landlord_address) if data.landlord_address else {}
-        
+
         landlord = Contact(
             id=make_id("con"),
             user_id=user.user_id,
@@ -579,11 +597,11 @@ async def import_from_extraction(
         )
         db.add(landlord)
         created.append({"type": "landlord", "name": data.landlord_name})
-    
+
     # Import attorney if provided
     if data.attorney_name:
         addr = parse_address(data.attorney_address) if data.attorney_address else {}
-        
+
         attorney = Contact(
             id=make_id("con"),
             user_id=user.user_id,
@@ -601,9 +619,9 @@ async def import_from_extraction(
         )
         db.add(attorney)
         created.append({"type": "attorney", "name": data.attorney_name})
-    
+
     await db.commit()
-    
+
     return {
         "status": "success",
         "message": f"Imported {len(created)} contacts from document",
@@ -615,18 +633,19 @@ async def import_from_extraction(
 # Quick Add (Common Types)
 # =============================================================================
 
+
 @router.post("/quick-add/landlord", response_model=ContactResponse)
 async def quick_add_landlord(
     name: str,
-    phone: Optional[str] = None,
-    email: Optional[str] = None,
-    address: Optional[str] = None,
+    phone: str | None = None,
+    email: str | None = None,
+    address: str | None = None,
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Quick add a landlord contact."""
     addr = parse_address(address) if address else {}
-    
+
     contact = Contact(
         id=make_id("con"),
         user_id=user.user_id,
@@ -641,11 +660,11 @@ async def quick_add_landlord(
         zip_code=addr.get("zip_code"),
         source="manual",
     )
-    
+
     db.add(contact)
     await db.commit()
     await db.refresh(contact)
-    
+
     return contact_to_response(contact)
 
 
@@ -653,9 +672,9 @@ async def quick_add_landlord(
 async def quick_add_witness(
     name: str,
     relationship: str,  # neighbor, family, friend, professional
-    phone: Optional[str] = None,
-    email: Optional[str] = None,
-    notes: Optional[str] = None,
+    phone: str | None = None,
+    email: str | None = None,
+    notes: str | None = None,
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
@@ -672,17 +691,18 @@ async def quick_add_witness(
         notes=notes,
         source="manual",
     )
-    
+
     db.add(contact)
     await db.commit()
     await db.refresh(contact)
-    
+
     return contact_to_response(contact)
 
 
 # =============================================================================
 # Form Data Integration
 # =============================================================================
+
 
 @router.get("/for-forms")
 async def get_contacts_for_forms(
@@ -691,21 +711,21 @@ async def get_contacts_for_forms(
 ):
     """
     Get contacts formatted for form filling.
-    
+
     Returns contacts in a structure that matches court form fields.
     """
     result = await db.execute(
         select(Contact).where(
             Contact.user_id == user.user_id,
-            Contact.is_active == True,
+            Contact.is_active,
         )
     )
     contacts = result.scalars().all()
-    
+
     # Organize by role for form filling
     landlord = next((c for c in contacts if c.contact_type == "landlord"), None)
     attorney = next((c for c in contacts if c.contact_type == "attorney" and c.role == "opposing_counsel"), None)
-    
+
     def format_contact(c):
         if not c:
             return None
@@ -716,7 +736,7 @@ async def get_contacts_for_forms(
             "phone": c.phone,
             "email": c.email,
         }
-    
+
     return {
         "landlord": format_contact(landlord),
         "opposing_counsel": format_contact(attorney),
@@ -736,6 +756,7 @@ async def get_contacts_for_forms(
 # =============================================================================
 # Contact Types Reference
 # =============================================================================
+
 
 @router.get("/types")
 async def get_contact_types():

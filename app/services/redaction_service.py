@@ -18,17 +18,17 @@ third-party allowlist entries are read from the ThirdPartyContact table.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
-from app.core.utc import utc_now
 from app.models.models import ThirdPartyContact
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -83,10 +83,10 @@ class RedactionService:
 
     def __init__(
         self,
-        user_email: Optional[str] = None,
-        user_phone: Optional[str] = None,
-        user_name: Optional[str] = None,
-        allowlist: Optional[list[str]] = None,
+        user_email: str | None = None,
+        user_phone: str | None = None,
+        user_name: str | None = None,
+        allowlist: list[str] | None = None,
     ) -> None:
         self.user_email = user_email
         self.user_phone = user_phone
@@ -210,10 +210,11 @@ class RedactionService:
 # Allowlist loading from ThirdPartyContact table
 # =============================================================================
 
+
 async def build_allowlist_for_user(
     user_id: str,
-    db: Optional[AsyncSession] = None,
-    case_record_id: Optional[str] = None,
+    db: AsyncSession | None = None,
+    case_record_id: str | None = None,
 ) -> list[str]:
     """
     Load active ThirdPartyContact entries for a user as an allowlist.
@@ -237,8 +238,7 @@ async def build_allowlist_for_user(
         )
         if case_record_id:
             stmt = stmt.where(
-                (ThirdPartyContact.case_record_id == case_record_id)
-                | (ThirdPartyContact.case_record_id.is_(None))
+                (ThirdPartyContact.case_record_id == case_record_id) | (ThirdPartyContact.case_record_id.is_(None))
             )
         result = await session.execute(stmt)
         contacts = result.scalars().all()
@@ -257,11 +257,11 @@ async def build_allowlist_for_user(
 async def redact_text_for_user(
     user_id: str,
     text: str,
-    user_email: Optional[str] = None,
-    user_phone: Optional[str] = None,
-    user_name: Optional[str] = None,
-    case_record_id: Optional[str] = None,
-    db: Optional[AsyncSession] = None,
+    user_email: str | None = None,
+    user_phone: str | None = None,
+    user_name: str | None = None,
+    case_record_id: str | None = None,
+    db: AsyncSession | None = None,
 ) -> str:
     """
     Convenience helper: build the allowlist from ``ThirdPartyContact`` and
@@ -284,6 +284,7 @@ async def redact_text_for_user(
 # =============================================================================
 # Utility helpers
 # =============================================================================
+
 
 def _digits_only(value: str) -> str:
     """Strip non-digit characters from a phone number."""
@@ -319,11 +320,13 @@ def _name_variants(name: str) -> list[str]:
     variants = [name]
     if len(parts) == 2:
         first, last = parts
-        variants.extend([
-            f"{last}, {first}",
-            f"{first} {last}",
-            f"{last} {first}",
-        ])
+        variants.extend(
+            [
+                f"{last}, {first}",
+                f"{first} {last}",
+                f"{last} {first}",
+            ]
+        )
     return list(dict.fromkeys(variants))
 
 

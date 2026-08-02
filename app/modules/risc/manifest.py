@@ -4,8 +4,10 @@ RISC Module Manifest
 Self-contained SDK module for RISC assessment routing.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

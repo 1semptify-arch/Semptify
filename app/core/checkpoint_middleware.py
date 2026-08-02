@@ -11,9 +11,10 @@ Logic:
 - Public paths → Always ALLOW
 """
 
+import logging
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ USER_COOKIE = "semptify_uid"
 
 # Always exempt - never check checkpoint
 EXEMPT_PATHS = {
-    "/",          # Welcome page
+    "/",  # Welcome page
     "/preamble",  # Routing decision point — must always be reachable
     "/favicon.ico",
     "/robots.txt",
@@ -80,47 +81,41 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
     """
     Smart gate: New users through welcome, returning users bypass.
     """
-    
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        
+
         # Always exempt paths
         if self._is_exempt(path):
             return await call_next(request)
-        
+
         # Has valid session? → Allow (returning user)
         user_id = request.cookies.get(USER_COOKIE)
         if user_id and len(str(user_id)) >= 10:
             return await call_next(request)
-        
+
         # Has checkpoint? → Allow (saw welcome)
         checkpoint = request.cookies.get(CHECKPOINT_COOKIE)
         if checkpoint == CHECKPOINT_VALUE:
             return await call_next(request)
-        
+
         # Protected path with no credentials? → Allow all (checkpoint disabled)
         # Public path → Allow
         return await call_next(request)
-    
+
     def _is_exempt(self, path: str) -> bool:
         """Check if path is always exempt."""
-        for exempt in EXEMPT_PATHS:
-            if path == exempt or path.startswith(exempt):
-                return True
-        return False
-    
+        return any(path == exempt or path.startswith(exempt) for exempt in EXEMPT_PATHS)
+
     def _is_protected(self, path: str) -> bool:
         """Check if path requires checkpoint."""
-        for prefix in PROTECTED_PREFIXES:
-            if path.startswith(prefix):
-                return True
-        return False
+        return any(path.startswith(prefix) for prefix in PROTECTED_PREFIXES)
 
 
 def set_checkpoint_cookie(response, max_age: int = CHECKPOINT_MAX_AGE):
     """
     Set checkpoint cookie - call this when user clicks button on welcome page.
-    
+
     Usage:
         from app.core.checkpoint_middleware import set_checkpoint_cookie
         set_checkpoint_cookie(response)
@@ -145,6 +140,7 @@ def clear_checkpoint_cookie(response):
 # FastAPI Dependencies for Route-Level Enforcement
 # =============================================================================
 
+
 async def require_checkpoint(request: Request):
     """
     Dependency for routes that absolutely require checkpoint.
@@ -152,12 +148,9 @@ async def require_checkpoint(request: Request):
     """
     user_id = request.cookies.get(USER_COOKIE)
     checkpoint = request.cookies.get(CHECKPOINT_COOKIE)
-    
+
     if not user_id and checkpoint != CHECKPOINT_VALUE:
-        raise HTTPException(
-            status_code=403,
-            detail="Checkpoint required. Please visit welcome page first."
-        )
+        raise HTTPException(status_code=403, detail="Checkpoint required. Please visit welcome page first.")
 
 
 from fastapi import HTTPException

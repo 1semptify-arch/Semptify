@@ -9,20 +9,21 @@ Covers:
 """
 
 import json
-import pytest
+
 from fastapi.testclient import TestClient
-from app.main import app
+
 from app.core.cookie_auth import sign_user_id
+from app.main import app
 from app.services.plan_maker_service import (
-    create_plan,
-    add_entity,
-    add_evidence,
-    add_next_step,
-    mark_step_complete,
-    plan_from_dict,
     EntityRecord,
     EvidenceItem,
     NextStep,
+    add_entity,
+    add_evidence,
+    add_next_step,
+    create_plan,
+    mark_step_complete,
+    plan_from_dict,
 )
 
 client = TestClient(app)
@@ -33,6 +34,7 @@ USER_COOKIE = {"semptify_uid": sign_user_id(USER_ID)}
 # =============================================================================
 # Service Layer Tests
 # =============================================================================
+
 
 class TestPlanMakerService:
     def test_create_plan_defaults(self):
@@ -122,8 +124,8 @@ class TestPlanMakerService:
 # Router Tests
 # =============================================================================
 
-class TestPlanMakerRouter:
 
+class TestPlanMakerRouter:
     # --- Auth enforcement ---
 
     def test_create_plan_requires_auth(self):
@@ -142,13 +144,17 @@ class TestPlanMakerRouter:
     # --- Create plan ---
 
     def test_create_plan(self):
-        resp = client.post("/api/plan-maker/plans", json={
-            "title": "Eviction Defense",
-            "landlord_name": "Example Property Management",
-            "property_name": "Example Flats",
-            "issues": ["Retaliation", "No heat"],
-            "desired_outcomes": "Keep housing",
-        }, cookies=USER_COOKIE)
+        resp = client.post(
+            "/api/plan-maker/plans",
+            json={
+                "title": "Eviction Defense",
+                "landlord_name": "Example Property Management",
+                "property_name": "Example Flats",
+                "issues": ["Retaliation", "No heat"],
+                "desired_outcomes": "Keep housing",
+            },
+            cookies=USER_COOKIE,
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "plan_id" in data
@@ -156,10 +162,14 @@ class TestPlanMakerRouter:
         assert "Retaliation" in data["plan"]["issues"]
 
     def _fresh_plan(self) -> dict:
-        resp = client.post("/api/plan-maker/plans", json={
-            "title": "Test Plan",
-            "landlord_name": "Test Landlord",
-        }, cookies=USER_COOKIE)
+        resp = client.post(
+            "/api/plan-maker/plans",
+            json={
+                "title": "Test Plan",
+                "landlord_name": "Test Landlord",
+            },
+            cookies=USER_COOKIE,
+        )
         return resp.json()["plan"]
 
     # --- View plan ---

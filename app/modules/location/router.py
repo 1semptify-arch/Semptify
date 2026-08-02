@@ -5,12 +5,13 @@ REST API for location detection and state-specific resources.
 Integrated with Positronic Brain for cross-module awareness.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
-from typing import Optional
 import logging
 
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
+
 from app.core.request_utils import get_request_user_id
+
 from .service import (
     LocationService,
     get_location_service,
@@ -25,50 +26,58 @@ router = APIRouter(prefix="/api/location", tags=["Location"])
 # SCHEMAS
 # =============================================================================
 
+
 class LocationUpdate(BaseModel):
     """Request to update user's location"""
+
     state_code: str = Field(..., min_length=2, max_length=2, description="Two-letter state code")
-    county: Optional[str] = Field(None, description="County name")
-    city: Optional[str] = Field(None, description="City name")
-    zip_code: Optional[str] = Field(None, pattern=r"^\d{5}(-\d{4})?$", description="ZIP code")
+    county: str | None = Field(None, description="County name")
+    city: str | None = Field(None, description="City name")
+    zip_code: str | None = Field(None, pattern=r"^\d{5}(-\d{4})?$", description="ZIP code")
     detection_method: str = Field("user_input", description="How location was determined")
-    latitude: Optional[float] = Field(None, description="Latitude for geolocation")
-    longitude: Optional[float] = Field(None, description="Longitude for geolocation")
+    latitude: float | None = Field(None, description="Latitude for geolocation")
+    longitude: float | None = Field(None, description="Longitude for geolocation")
 
 
 class LocationResponse(BaseModel):
     """Location information response"""
+
     state_code: str
     state_name: str
-    county: Optional[str]
-    city: Optional[str]
-    zip_code: Optional[str]
+    county: str | None
+    city: str | None
+    zip_code: str | None
     support_level: str
     detection_method: str
 
 
 class StateInfoResponse(BaseModel):
     """State information response"""
+
     code: str
     name: str
     support_level: str
-    tenant_rights_url: Optional[str]
-    legal_aid_phone: Optional[str]
+    tenant_rights_url: str | None
+    legal_aid_phone: str | None
     eviction_timeline_days: int
-    late_fee_limit: Optional[str]
-    security_deposit_limit: Optional[str]
+    late_fee_limit: str | None
+    security_deposit_limit: str | None
 
 
 # =============================================================================
 # HELPER: Get User ID
 # =============================================================================
 
+
 def get_user_id(request: Request) -> str:
     """Get user ID from the canonical cookie, falling back to \"anonymous\"."""
     return get_request_user_id(request)
+
+
 # =============================================================================
 # ENDPOINTS
 # =============================================================================
+
 
 @router.get("/current", response_model=LocationResponse)
 async def get_current_location(
@@ -77,12 +86,12 @@ async def get_current_location(
 ):
     """
     📍 Get current user location.
-    
+
     Returns the user's stored location or default (Minnesota).
     """
     user_id = get_user_id(request)
     location = service.get_user_location(user_id)
-    
+
     return LocationResponse(
         state_code=location.state_code,
         state_name=location.state_name,
@@ -102,12 +111,12 @@ async def update_location(
 ):
     """
     📍 Update user's location.
-    
+
     This is called by the frontend location detection script
     or when user manually selects their state.
     """
     user_id = get_user_id(request)
-    
+
     location = service.set_user_location(
         user_id=user_id,
         state_code=location_data.state_code.upper(),
@@ -118,25 +127,28 @@ async def update_location(
         latitude=location_data.latitude,
         longitude=location_data.longitude,
     )
-    
+
     logger.info("📍 Location updated for %s...: %s", user_id[:8], location.state_code)
 
     # Emit brain event for location change
     try:
-        from app.services.positronic_brain import get_brain, BrainEvent, EventType, ModuleType
+        from app.services.positronic_brain import BrainEvent, EventType, ModuleType, get_brain
+
         brain = get_brain()
-        await brain.emit(BrainEvent(
-            event_type=EventType.LOCATION_CHANGED,
-            source_module=ModuleType.LOCATION,
-            data={
-                "state_code": location.state_code,
-                "state_name": location.state_name,
-                "county": location.county,
-                "city": location.city,
-                "support_level": location.support_level.value,
-            },
-            user_id=user_id,
-        ))
+        await brain.emit(
+            BrainEvent(
+                event_type=EventType.LOCATION_CHANGED,
+                source_module=ModuleType.LOCATION,
+                data={
+                    "state_code": location.state_code,
+                    "state_name": location.state_name,
+                    "county": location.county,
+                    "city": location.city,
+                    "support_level": location.support_level.value,
+                },
+                user_id=user_id,
+            )
+        )
     except (ImportError, AttributeError, RuntimeError) as e:
         logger.debug("Could not emit brain event: %s", e)
 
@@ -161,7 +173,7 @@ async def clear_location(
     """
     user_id = get_user_id(request)
     service.clear_user_location(user_id)
-    
+
     return {"success": True, "message": "Location cleared, defaulting to Minnesota"}
 
 
@@ -171,7 +183,7 @@ async def get_supported_states(
 ):
     """
     📋 Get list of supported states.
-    
+
     Returns all states with their support levels:
     - full: Complete tenant rights database
     - partial: Some resources available
@@ -193,10 +205,10 @@ async def get_state_info(
     📊 Get detailed information about a specific state.
     """
     state_info = service.get_state_info(state_code.upper())
-    
+
     if not state_info:
         raise HTTPException(status_code=404, detail=f"State '{state_code}' not found")
-    
+
     return StateInfoResponse(
         code=state_info.code,
         name=state_info.name,
@@ -216,7 +228,7 @@ async def get_legal_resources(
 ):
     """
     ⚖️ Get legal resources based on user's location.
-    
+
     Returns:
     - State-specific tenant rights links
     - Legal aid hotlines
@@ -234,7 +246,7 @@ async def get_eviction_timeline(
 ):
     """
     ⏱️ Get eviction timeline rules for user's state.
-    
+
     Returns:
     - Answer period (days to respond to eviction)
     - Late fee limits
@@ -265,17 +277,14 @@ async def get_county_info(
 ):
     """
     🏛️ Get county-specific information (housing court, etc).
-    
+
     Currently only supports Minnesota counties.
     """
     county_info = service.get_county_info(county, state_code.upper())
-    
+
     if not county_info:
-        raise HTTPException(
-            status_code=404,
-            detail=f"County '{county}' not found for state '{state_code}'"
-        )
-    
+        raise HTTPException(status_code=404, detail=f"County '{county}' not found for state '{state_code}'")
+
     return {
         "county": county,
         "state": state_code.upper(),
@@ -290,7 +299,7 @@ async def get_location_context(
 ):
     """
     🧠 Get full location context for brain/mesh integration.
-    
+
     This endpoint provides complete location data for
     cross-module workflows and the Positronic Brain.
     """

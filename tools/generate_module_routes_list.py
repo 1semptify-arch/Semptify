@@ -4,6 +4,7 @@ Regenerate module_routes_list.txt from app/modules/*/router.py files.
 Counts HTTP route decorators on any APIRouter variable (not just `router`).
 This prevents false duplicate tasks caused by stale route counts.
 """
+
 import ast
 import re
 from pathlib import Path
@@ -22,11 +23,12 @@ def find_router_vars(tree: ast.Module) -> set[str]:
             value = node.value
             if isinstance(value, ast.Call):
                 func = value.func
-                if isinstance(func, ast.Name) and func.id == "APIRouter":
-                    for target in node.targets:
-                        if isinstance(target, ast.Name):
-                            router_vars.add(target.id)
-                elif isinstance(func, ast.Attribute) and func.attr == "APIRouter":
+                if (
+                    isinstance(func, ast.Name)
+                    and func.id == "APIRouter"
+                    or isinstance(func, ast.Attribute)
+                    and func.attr == "APIRouter"
+                ):
                     for target in node.targets:
                         if isinstance(target, ast.Name):
                             router_vars.add(target.id)
@@ -55,7 +57,9 @@ def generate() -> None:
             continue
 
         # Find decorator source lines that belong to one of the routers.
-        pattern = re.compile(r"^\s*@(" + "|".join(re.escape(v) for v in router_vars) + r")\.(" + "|".join(HTTP_METHODS) + r")\(")
+        pattern = re.compile(
+            r"^\s*@(" + "|".join(re.escape(v) for v in router_vars) + r")\.(" + "|".join(HTTP_METHODS) + r")\("
+        )
         route_lines: list[str] = []
         for raw_line in source.splitlines():
             if pattern.search(raw_line):

@@ -1,12 +1,12 @@
 """Pydantic schemas for the Agent Orchestrator module."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Kanban-style status for an agent task."""
 
     PENDING = "pending"
@@ -16,7 +16,7 @@ class TaskStatus(str, Enum):
     REJECTED = "rejected"
 
 
-class ModelId(str, Enum):
+class ModelId(StrEnum):
     """Unlimited model identifiers available in Windsurf / Devin Desktop."""
 
     GLM_5_2 = "glm-5.2"
@@ -25,7 +25,7 @@ class ModelId(str, Enum):
     KIMI_2_7 = "kimi-2.7"
 
 
-class TaskCategory(str, Enum):
+class TaskCategory(StrEnum):
     """Broad work category used to tailor generated prompts.
 
     Values must match the string categories used in
@@ -44,7 +44,7 @@ class TaskCategory(str, Enum):
     OTHER = "other"
 
 
-class TaskPriority(str, Enum):
+class TaskPriority(StrEnum):
     """Severity mapped from the workbook HIGH/MEDIUM/LOW ratings."""
 
     HIGH = "high"
