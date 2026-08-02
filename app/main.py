@@ -3232,6 +3232,33 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """GUI Packet Builder — build and download curated document packets."""
         return templates.TemplateResponse(request, "gui/packet_builder.html")
 
+    @fastapi_app.get("/gui/page/{subject}", response_class=HTMLResponse)
+    async def gui_assembled_page(request: Request, subject: str):
+        """Render a subject page assembled by Page Composer and Page Shell."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        from app.core.cookie_auth import verify_user_id
+        from app.modules.context_engine.taxonomy import ALL_SUBJECTS
+        from app.modules.page_composer.assembly import assemble_page
+        from app.modules.page_shell.renderer import render_page_shell
+
+        if subject not in ALL_SUBJECTS:
+            raise HTTPException(status_code=404, detail=f"Unknown subject: {subject}")
+
+        user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
+        result = await assemble_page(subject=subject, user_id=user_id)
+        return templates.TemplateResponse(
+            request,
+            "gui/assembled_page.html",
+            {
+                "subject": subject,
+                "shell_html": render_page_shell(result.page_config),
+                "assembly_metadata": result.metadata,
+            },
+        )
+
     # =========================================================================
     # Calendar Page
     # =========================================================================
