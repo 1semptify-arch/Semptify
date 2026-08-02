@@ -1,0 +1,17 @@
+{% extends "gui/base.html" %}
+
+{% block title %}{{ subject|replace("_", " ")|title }} - Semptify{% endblock %}
+{% block nav_know %}active{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/page_shell/page_shell.css">
+{% endblock %}
+
+{% block content %}
+<section class="assembled-page" aria-labelledby="assembled-page-title">
+    <h1 id="assembled-page-title">{{ subject|replace("_", " ")|title }}</h1>
+    <div class="assembled-page__shell">
+        {{ shell_html|safe }}
+    </div>
+</section>
+{% endblock %}

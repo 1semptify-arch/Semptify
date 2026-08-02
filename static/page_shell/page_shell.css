@@ -21,7 +21,8 @@
  * ------------------------------------------------------------------------- */
 .page-shell {
   height: 100vh;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   display: grid;
   gap: clamp(0.5rem, 1vh, 1.5rem);
   padding: clamp(0.5rem, 2vh, 2rem);
@@ -66,10 +67,10 @@
 
 /* Per-zone base hues — very subtle, just enough to separate neighbors.
  * These are the LOW visual-weight backgrounds (level 0–30). */
-.zone[data-zone="record"] { background: #faf9f5; }   /* warm neutral */
-.zone[data-zone="know"]   { background: #f5f7fa; }   /* cool neutral */
-.zone[data-zone="act"]    { background: #f9f5fa; }   /* faint violet */
-.zone[data-zone="govern"] { background: #faf7f0; }   /* warm amber */
+.zone[data-zone="record"] { background: #faf9f5; grid-area: record; }   /* warm neutral */
+.zone[data-zone="know"]   { background: #f5f7fa; grid-area: know; }   /* cool neutral */
+.zone[data-zone="act"]    { background: #f9f5fa; grid-area: act; }   /* faint violet */
+.zone[data-zone="govern"] { background: #faf7f0; grid-area: govern; }   /* warm amber */
 
 /* Visual weight — §11 level-driven shade depth.
  * Moderate: clear shift from the base. Deep: deepest shade on the page.
