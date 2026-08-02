@@ -6,19 +6,22 @@ T2 tenant-facing module. `subject_id` is a placeholder with no FK.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
 from app.core.database import get_db
 from app.core.id_gen import make_id
-from app.core.security import UserContext, require_user
+from app.core.security import UserContext, require_tier
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.models.models import EvictionTimelineEvent
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter(
     tags=["Eviction Timeline"],
@@ -29,7 +32,7 @@ def _user_id(user: UserContext | None) -> str | None:
     return user.user_id if user else None
 
 
-@router.get("/health")
+@router.get("/health", dependencies=[Depends(require_tier("T2"))])
 async def eviction_timeline_health() -> dict[str, Any]:
     """Module health check."""
     return {"status": "ok", "module": "eviction_timeline"}
@@ -38,7 +41,7 @@ async def eviction_timeline_health() -> dict[str, Any]:
 @router.get("/", response_class=HTMLResponse)
 async def eviction_timeline_page(
     request: Request,
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(require_tier("T2")),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """Render the eviction timeline page (add event + list)."""
@@ -64,7 +67,7 @@ async def eviction_timeline_page(
 @router.post("/events")
 async def create_eviction_event(
     request: Request,
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(require_tier("T2")),
     db: AsyncSession = Depends(get_db),
     subject_id: str = Form(""),
     event_type: str = Form(...),
