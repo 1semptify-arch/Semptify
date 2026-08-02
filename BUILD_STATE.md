@@ -1,5 +1,12 @@
 ## Session -- 2026-08-01 — Task 6 i18n locale selector + set-locale endpoint
 
+### Deploy
+
+- **Commit**: 6dac643c (Add i18n locale selector and public set-locale endpoint)
+- **Branch**: main
+- **Pushed**: 2026-08-02
+- **Render deploy**: https://dashboard.render.com
+
 ### Problem
 
 Task 6 i18n had working JSON catalogs and a Jinja2 `_()` global, but no user-facing language selector and no public endpoint to set the `semptify_locale` cookie. Users could not actually switch languages.
