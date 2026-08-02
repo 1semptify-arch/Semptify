@@ -7,19 +7,22 @@ only handles structure/pointers.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession  # noqa: TC002
 
 from app.core.database import get_db
 from app.core.id_gen import make_id
-from app.core.security import UserContext, require_user
+from app.core.security import UserContext, require_tier
 from app.core.ssot_guard import ssot_redirect
 from app.core.utc import utc_now
 from app.models.models import ComparisonEntry, DisputeRecord
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter(
     tags=["Dispute Tracker"],
@@ -30,7 +33,7 @@ def _user_id(user: UserContext | None) -> str | None:
     return user.user_id if user else None
 
 
-@router.get("/health")
+@router.get("/health", dependencies=[Depends(require_tier("T2"))])
 async def dispute_tracker_health() -> dict[str, Any]:
     """Module health check."""
     return {"status": "ok", "module": "dispute_tracker"}
@@ -39,16 +42,14 @@ async def dispute_tracker_health() -> dict[str, Any]:
 @router.get("/", response_class=HTMLResponse)
 async def dispute_tracker_page(
     request: Request,
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(require_tier("T2")),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """Render the dispute tracker page (add dispute, list, add comparison)."""
     from app.main import templates
 
     result = await db.execute(
-        select(DisputeRecord)
-        .where(DisputeRecord.user_id == _user_id(user))
-        .order_by(DisputeRecord.created_at.desc())
+        select(DisputeRecord).where(DisputeRecord.user_id == _user_id(user)).order_by(DisputeRecord.created_at.desc())
     )
     disputes = result.scalars().all()
 
@@ -73,7 +74,7 @@ async def dispute_tracker_page(
 @router.post("/disputes")
 async def create_dispute(
     request: Request,
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(require_tier("T2")),
     db: AsyncSession = Depends(get_db),
     dispute_type: str = Form(...),
     landlord_entity: str = Form(""),
@@ -101,7 +102,7 @@ async def create_dispute(
 @router.post("/comparisons")
 async def create_comparison(
     request: Request,
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(require_tier("T2")),
     db: AsyncSession = Depends(get_db),
     dispute_record_id: str = Form(...),
     comparison_type: str = Form(...),
