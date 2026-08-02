@@ -9,16 +9,17 @@
 
 ### 1.1 PostgreSQL (Primary Metadata Store)
 
-**Strengths:**
+#### Strengths:
+
 - ✅ Proper timezone handling (`DateTime(timezone=True)` with UTC)
 - ✅ Indexed foreign keys (`user_id` on all tables)
 - ✅ JSONB support for flexible metadata
 - ✅ Relationship cascading (`delete-orphan`)
 
-**Tables with Timeline-Relevant Data:**
+#### Tables with Timeline-Relevant Data:
 
 | Table | Purpose | Key Date Columns | Indexed |
-|-------|---------|------------------|---------|
+| ------- | --------- | ------------------ | --------- |
 | `users` | User accounts | `created_at`, `updated_at`, `last_login` | ✅ |
 | `documents` | Document metadata | `uploaded_at` | ✅ (user_id) |
 | `timeline_events` | Manual events | `event_date`, `created_at` | ✅ (user_id, event_date) |
@@ -31,7 +32,8 @@
 ### 1.2 User Cloud Storage (Primary Document Store)
 
 **SSOT Paths:** (`app/core/vault_paths.py`)
-```
+
+```text
 Semptify5.0/Vault/
 ├── documents/              # Raw uploaded files
 ├── certificates/           # Document certifications
@@ -45,8 +47,9 @@ Semptify5.0/Vault/
 ```
 
 **Three-Timestamp Model** (vault_items table):
+
 | Timestamp | Meaning | Source |
-|-----------|---------|--------|
+| ----------- | --------- | -------- |
 | `event_time` | When the event actually occurred | Document content/EXIF/extraction |
 | `record_time` | When the document was created | File system/EXIF DateTimeOriginal |
 | `semptify_entry_time` | When uploaded to Semptify | System generated |
@@ -58,7 +61,7 @@ Semptify5.0/Vault/
 ### 2.1 What's Working Well
 
 | Aspect | Status | Notes |
-|--------|--------|-------|
+| -------- | -------- | ------- |
 | Timezone handling | ✅ | All `DateTime(timezone=True)` with UTC |
 | Foreign key integrity | ✅ | Proper FK constraints with indexes |
 | Cloud-first documents | ✅ | Documents live in user cloud, metadata in PG |
@@ -69,7 +72,7 @@ Semptify5.0/Vault/
 ### 2.2 Areas for Improvement
 
 | Issue | Impact | Solution |
-|-------|--------|----------|
+| ------- | -------- | ---------- |
 | **Document ID mismatch** | Medium | `documents` table uses `String(36)` but `vault_items` uses integer `item_id`. Hard to correlate. |
 | **Timeline events in two places** | High | DB `timeline_events` and cloud `events.json` can diverge. Need merge strategy. |
 | **No unified date index** | High | Can't query across documents/calendar/events by date range efficiently. |
@@ -80,6 +83,7 @@ Semptify5.0/Vault/
 ### 2.3 Recommendations (Priority Order)
 
 #### Priority 1: Unified Timeline View Query
+
 Create a materialized view or service that aggregates all time-based data:
 
 ```sql
@@ -134,9 +138,10 @@ SELECT
     vi.title,
     vi.summary as description
 FROM vault_items vi;
-```
+```text
 
 #### Priority 2: Add GIN Index on JSONB
+
 ```sql
 -- For deep metadata search
 CREATE INDEX idx_vault_items_metadata ON vault_items USING GIN (item_metadata);
@@ -144,9 +149,11 @@ CREATE INDEX idx_vault_items_tags ON vault_items USING GIN (tags);
 ```
 
 #### Priority 3: Link Document IDs
+
 Add `document_registry_id` to `vault_items` table to link cloud documents with vault items.
 
 #### Priority 4: Calendar → Timeline Sync
+
 Auto-create timeline events when calendar events are added (especially court dates).
 
 ---
@@ -158,7 +165,8 @@ Auto-create timeline events when calendar events are added (especially court dat
 From your request:
 > "I want an interactive timeline view of all things in the vault. On-the-fly ability to change the displayed data in different ranges. Display documents according to date-recorded and then maybe the event time."
 
-**Key Features:**
+#### Key Features:
+
 1. **Multi-source aggregation** — Documents, timeline events, calendar, vault items
 2. **Dynamic date axis** — Switch between: `event_time`, `record_time`, `semptify_entry_time`, `uploaded_at`
 3. **Range filtering** — Date range slider/wheel (day/week/month/year views)
@@ -168,7 +176,7 @@ From your request:
 ### 3.2 Proposed API Design
 
 ```python
-# GET /api/timeline/unified
+## GET /api/timeline/unified
 class TimelineViewRequest(BaseModel):
     date_axis: str = "event_time"  # event_time | record_time | entry_time | uploaded_at
     start_date: Optional[str] = None  # ISO date or "-30d", "-6m", "-1y"
@@ -199,7 +207,7 @@ class TimelineViewResponse(BaseModel):
     date_range: Dict[str, str]  # {start, end}
     group_by: str  # day | week | month | year
     facets: Dict[str, int]  # {document: 42, timeline_event: 15, ...}
-```
+```text
 
 ### 3.3 Frontend Component Structure
 
@@ -258,6 +266,7 @@ class TimelineViewResponse(BaseModel):
 ### 3.4 Implementation Plan
 
 #### Phase 1: Backend API (2-3 hours)
+
 1. Create `GET /api/timeline/unified` endpoint
 2. Implement `TimelineAggregationService`:
    - Query cloud `events.json` (primary)
@@ -269,6 +278,7 @@ class TimelineViewResponse(BaseModel):
 4. Add range filtering
 
 #### Phase 2: Frontend Component (3-4 hours)
+
 1. Create `InteractiveTimeline` web component
 2. Date axis selector dropdown
 3. Range slider with zoom (day/week/month/year)
@@ -276,13 +286,14 @@ class TimelineViewResponse(BaseModel):
 5. Item cards with icons/colors by type
 
 #### Phase 3: Integration (1 hour)
+
 1. Add to `/vault` page as main view
 2. Real-time updates via WebSocket or polling
 3. Mobile responsive layout
 
 ### 3.5 Data Flow
 
-```
+```text
 User opens Vault Timeline
     ↓
 Frontend: GET /api/timeline/unified?date_axis=event_time&range=-1y
@@ -387,12 +398,15 @@ CREATE INDEX idx_timeline_events_user_date ON timeline_events(user_id, event_dat
 ## 4. Quick Wins (Can Implement Now)
 
 ### 4.1 Add Date Axis to Existing Timeline Endpoint
+
 Modify `GET /api/timeline/` to accept `?sort_by=event_time|record_time|uploaded_at`
 
 ### 4.2 Add Range Filter to Existing Endpoint
+
 Add `?start_date=2025-01-01&end_date=2025-03-31` to existing timeline endpoint.
 
 ### 4.3 Create Simple Unified View
+
 Create the SQL view above (no code changes needed, just SQL).
 
 ---
@@ -400,7 +414,7 @@ Create the SQL view above (no code changes needed, just SQL).
 ## 5. Summary
 
 | Question | Answer |
-|----------|--------|
+| ---------- | -------- |
 | **Is data stored properly?** | Yes. Three-timestamp model is correct. JSONB for metadata is good. |
 | **Is data stored efficiently?** | Mostly. Missing GIN indexes on JSONB. Missing unified date index. |
 | **Is data stored consistently?** | Yes. All datetime columns are timezone-aware UTC. |

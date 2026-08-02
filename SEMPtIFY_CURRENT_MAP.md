@@ -1,4 +1,5 @@
 # Semptify Current State Map
+
 **Generated:** May 3, 2026  
 **Focus:** Tenant Role Only | Jinja2 + Static Hybrid  
 **Status:** Onboarding/Reconnect Broken - In Repair
@@ -7,7 +8,7 @@
 
 ## The Original Plan (What You Wanted)
 
-```
+```python
 User visits / → Jinja2 welcome.html (with static fallback)
          ↓
     Click "Get Started"
@@ -38,7 +39,7 @@ User visits / → Jinja2 welcome.html (with static fallback)
 ### System A: Static HTML (Currently Serving)
 
 | File | URL | Status | Problem |
-|------|-----|--------|---------|
+| ------ | ----- | -------- | --------- |
 | `static/public/welcome.html` | `/static/public/welcome.html` | ✅ Works | But calls `/onboarding/start` |
 | `static/onboarding/index.html` | `/onboarding/` | ❌ BROKEN | Meta-refresh to `select-role.html` (bypasses router) |
 | `static/onboarding/select-role.html` | `/onboarding/select-role.html` | ⚠️ CONFLICT | Static file exists, router also serves it |
@@ -49,7 +50,7 @@ User visits / → Jinja2 welcome.html (with static fallback)
 ### System B: Jinja2 Templates (Exists But Unwired)
 
 | File | Intended URL | Status | Blocked By |
-|------|--------------|--------|------------|
+| ------ | -------------- | -------- | ------------ |
 | `app/templates/pages/welcome.html` | `/` | ❌ Unused | main.py serves static |
 | `app/templates/pages/onboarding-simple.html` | `/onboarding` | ❌ Unused | No route returns TemplateResponse |
 | `app/templates/pages/tenant_home.html` | `/tenant/home` | ❌ Unused | Static file takes precedence |
@@ -65,7 +66,7 @@ User visits / → Jinja2 welcome.html (with static fallback)
 ### Core Routers (Actually Loaded in main.py)
 
 | Router | Import Method | Status | Notes |
-|--------|---------------|--------|-------|
+| -------- | --------------- | -------- | ------- |
 | `health` | Direct import | ✅ Working | `/api/health` |
 | `storage` | Direct import | ✅ Working | OAuth, reconnect, providers |
 | `onboarding` | Direct import | ✅ Working | `/onboarding/start`, role selection |
@@ -80,7 +81,7 @@ User visits / → Jinja2 welcome.html (with static fallback)
 ### Routers With Import Errors (Broken)
 
 | Router | Error | Fix Required |
-|--------|-------|--------------|
+| -------- | ------- | -------------- |
 | `vault_all_in_one` | `cannot import name 'get_current_user_id' from 'app.core.security'` | Add `get_current_user_id` to security.py OR change import |
 | `advocate_invite` | `email-validator is not installed` | Run `pip install 'pydantic[email]'` |
 
@@ -110,7 +111,7 @@ These are loaded via `_safe_router_import` but return `None` if they fail:
 
 ### Current Flow (Broken)
 
-```
+```text
 User at: /static/public/welcome.html
          ↓
     Clicks: "Get Started" → calls enterApp('/onboarding/start')
@@ -132,7 +133,7 @@ User at: /static/public/welcome.html
 
 ### What Should Happen (Fixed)
 
-```
+```text
 User at: / (router serves TemplateResponse with welcome.html)
          ↓
     Clicks: "Get Started" → fetch('/onboarding/start')
@@ -170,7 +171,8 @@ User at: / (router serves TemplateResponse with welcome.html)
 
 **Claimed:** "Reconnect Flow VERIFIED ✅"
 
-**Tested:**
+#### Tested:
+
 - ✅ Valid session → home (no OAuth)
 - ✅ Invalid session → silent OAuth → home
 - ✅ Return to task with `?return_to=`
@@ -180,6 +182,7 @@ User at: / (router serves TemplateResponse with welcome.html)
 ### Actual Problem
 
 The welcome page has TWO CTAs:
+
 1. "Get Started" → `/onboarding/start` (for new users)
 2. **Missing:** "Returning User?" → `/storage/reconnect` (for existing users)
 
@@ -195,14 +198,14 @@ Don't delete these - just bypass them:
 ### Routes to Detour Around (Keep Files, Disable in main.py)
 
 ```python
-# In main.py, comment these out or set to None:
+## In main.py, comment these out or set to None:
 
-# NON-CORE (Other Divisions)
+## NON-CORE (Other Divisions)
 campaign_router = None  # Marketing/public exposure
 fraud_exposure_router = None  # Investigation
 public_exposure_router = None  # Bad actor reporting
 
-# NON-CORE (Advocate/Legal Roles - Future)
+## NON-CORE (Advocate/Legal Roles - Future)
 advocate_router = None
 legal_router = None  
 manager_router = None
@@ -210,39 +213,39 @@ communication_router = None
 document_delivery_router = None
 invite_codes_router = None
 
-# NON-CORE (AI/Brain - Heavy)
+## NON-CORE (AI/Brain - Heavy)
 brain_router = None
 copilot_router = None
 auto_mode_router = None
 emotion_router = None
 
-# NON-CORE (Court - Legal Role)
+## NON-CORE (Court - Legal Role)
 court_forms_router = None
 court_packet_router = None
 eviction_defense_router = None
 case_builder_router = None
 
-# NON-CORE (Analytics/Research)
+## NON-CORE (Analytics/Research)
 analytics_router = None
 research_router = None
 crawler_router = None
 
-# BROKEN (Fix Later)
+## BROKEN (Fix Later)
 vault_all_in_one_router = None  # Import error
 advocate_invite_router = None  # Missing dependency
-```
+```text
 
 ### Routes to Keep (Tenant Core)
 
 ```python
-# KEEP THESE - Tenant Minimum Viable
+## KEEP THESE - Tenant Minimum Viable
 health_router ✅           # System status
 storage_router ✅          # OAuth, reconnect, providers
 onboarding_router ✅        # Welcome, role select, storage
 plugins_router ✅          # Extensions
 development_router ✅      # Dev tools (you)
 
-# VERIFY THESE LOAD
+## VERIFY THESE LOAD
 documents_router ⚠️         # Document upload/view
 timeline_unified_router ⚠️ # Timeline display
 briefcase_router ⚠️        # Document viewer (vault view)
@@ -257,7 +260,8 @@ vault_router ❌           # Currently disabled - needs fix
 
 **File:** `app/main.py` or `app/routers/onboarding.py`
 
-**Add:**
+#### Add:
+
 ```python
 @router.get("/")
 async def welcome_page(request: Request):
@@ -270,7 +274,7 @@ async def welcome_page(request: Request):
             "entry_point": "/onboarding/start"
         }
     )
-```
+```text
 
 **Remove:** Static file serving for `/` (or deprioritize)
 
@@ -281,6 +285,7 @@ async def welcome_page(request: Request):
 **Check if exists:** `get_user_id` (line 30 in vault_all_in_one imports this)
 
 **If missing, add:**
+
 ```python
 def get_current_user_id(request: Request) -> Optional[str]:
     """Extract user ID from request cookies."""
@@ -292,14 +297,15 @@ def get_current_user_id(request: Request) -> Optional[str]:
     return user_id
 ```
 
-**Then in vault_all_in_one.py line 30:**
+#### Then in vault_all_in_one.py line 30:
+
 ```python
-# Change FROM:
+## Change FROM:
 from app.core.security import get_user_id
 
-# Change TO:
+## Change TO:
 from app.core.security import get_current_user_id as get_user_id
-```
+```text
 
 ### Fix 3: Template Wiring (1 hour)
 
@@ -347,7 +353,7 @@ async def tenant_vault(request: Request, user_id: str = Depends(get_current_user
 Location: `app/templates/pages/`
 
 | File | Purpose | Status |
-|------|---------|--------|
+| ------ | --------- | -------- |
 | `welcome.html` | Landing page | Needs route to serve it |
 | `onboarding-simple.html` | Role + storage selection | Needs route |
 | `tenant_home.html` | Post-login dashboard | Needs route |
@@ -361,7 +367,7 @@ Location: `app/templates/pages/`
 Location: `static/`
 
 | Folder | Contents | Action |
-|--------|----------|--------|
+| -------- | ---------- | -------- |
 | `static/public/` | welcome, about, privacy | Keep as fallback |
 | `static/onboarding/` | select-role, storage-select | **Deprecate** - move to Jinja2 |
 | `static/tenant/` | dashboard, vault | **Deprecate** - use Jinja2 |
@@ -374,7 +380,7 @@ Location: `static/`
 
 ## SUCCESS CRITERIA (Working Tenant Flow)
 
-**Test these in order:**
+### Test these in order:
 
 1. ✅ Visit `/` → See Jinja2 welcome page (not static)
 2. ✅ Click "Get Started" → Go to `/onboarding/start`
@@ -389,7 +395,7 @@ Location: `static/`
 11. ✅ Visit `/` again → Click "Get Started"
 12. ✅ Returning user → Seamless reconnect (no OAuth popup if session valid)
 
-**When all 12 pass → Tenant core is working.**
+### When all 12 pass → Tenant core is working
 
 ---
 
@@ -402,4 +408,4 @@ Pick ONE:
 3. **Create Detour List** (30 min) - Comment out non-core in main.py
 4. **Test Current State** (1 hour) - Document what's actually broken
 
-**Which do you want to do first?**
+### Which do you want to do first

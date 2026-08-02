@@ -15,7 +15,7 @@ See `ROADMAP_TO_PUBLIC_RELEASE.md` §3.3 for full details.
 ## Files
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `router.py` | FastAPI endpoints (keep thin) |
 | `service.py` | Business logic (async by default) |
 | `models.py` | Pydantic request/response models |

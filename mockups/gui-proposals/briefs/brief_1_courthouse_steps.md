@@ -1,6 +1,7 @@
 # Brief — Proposal 1: "Courthouse Steps"
 
 ## Objective
+
 Design a **public welcome / public website** page for Semptify — a public-service
 housing-rights and tenant-support tool. This page is the GUI entry point that gives
 the public access to the Semptify webapp (it leads into onboarding: role select →
@@ -8,11 +9,13 @@ storage connect → vault setup). It is NOT a marketing landing page and NOT a
 commercial product page.
 
 ## Target audience
+
 Tenants facing housing problems — often stressed, often on a phone, often low
 bandwidth. Primary persona for this aesthetic: **The Court-Bound** (has a hearing
 date, needs to feel the law is real and on their side).
 
 ## Aesthetic direction — "Courthouse Steps"
+
 Civic legal authority. Feels like walking into a legal aid clinic or reading a
 well-set legal brief. Serious, lawful, accountable — never a startup.
 
@@ -31,12 +34,14 @@ well-set legal brief. Serious, lawful, accountable — never a startup.
   very subtle paper grain via CSS only.
 
 ## Memorable element
+
 A **docket-style header strip** at the top of the page (and persistent on scroll):
 `SEMTIFY · PUBLIC SERVICE · HOUSING RIGHTS` on the left, and on the right a
 mono-set line like `Stage: WELCOME → RECORD → KNOW → ACT → GOVERN` showing the
 user's place in the journey. Reads like the header of a court filing.
 
 ## Content structure (sections, top to bottom)
+
 1. **Docket header strip** (persistent) — see memorable element.
 2. **Hero** — Serif H1: "Semptify" with a one-line subhead in Inter:
    "A public-service tool to protect the rights of tenants facing housing problems."
@@ -67,10 +72,12 @@ user's place in the journey. Reads like the header of a court filing.
    no affiliate links. A line: "Semptify is a public-service housing-rights tool."
 
 ## Forbidden words (HARD RULE — never use on the page)
+
 "free" (about Semptify itself), "accounts", "log in", "sign up", "subscription",
 "upgrade", "premium", "paid plan", "trial", "pricing". The CTA is "Begin" — nothing else.
 
 ## Technical requirements
+
 - Single self-contained `index.html` + an `assets/` folder if needed.
 - Vanilla CSS (no Tailwind, no Bootstrap). Inline `<style>` is fine for a mockup.
 - Google Fonts via `<link>`.
@@ -81,9 +88,11 @@ user's place in the journey. Reads like the header of a court filing.
   locally into `assets/` if needed — but this design should need none.
 
 ## Output path
+
 `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\courthouse_steps\index.html`
 (and `assets/` subfolder if needed)
 
 ## Image needs
+
 None expected. If you add any, they must be generated locally into `assets/` —
 never reference external image hosts.

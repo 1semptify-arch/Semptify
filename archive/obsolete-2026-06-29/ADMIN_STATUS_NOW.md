@@ -7,30 +7,35 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 ## ✅ WORKING (No Code Changes Needed)
 
 ### Contract Browser
+
 - **URL**: `http://localhost:8000/admin/contract-browser.html`
 - **What it does**: Shows all module contracts from `/api/workflow/module-contracts`
 - **Test**: Load the page, see contracts with violations flagged
 - **Status**: Full-featured, dark theme, filters, search
 
 ### Function Browser
+
 - **URL**: `http://localhost:8000/admin/function-browser.html`
 - **What it does**: Browse system functions
 - **Test**: Load and verify functions list appears
 - **Status**: Likely functional (needs verification)
 
 ### Page Editor
+
 - **URL**: `http://localhost:8000/admin/page-editor.html`
 - **What it does**: Edit page content
 - **Test**: Load and verify it shows pages
 - **Status**: Needs verification
 
 ### Review Checklist
+
 - **URL**: `http://localhost:8000/admin/review-checklist.html`
 - **What it does**: Code review checklist
 - **Test**: Load and verify checklist renders
 - **Status**: Needs verification
 
 ### Funding Management
+
 - **URL**: `http://localhost:8000/admin/funding/`
 - **What it does**: CRUD for grants, applications, tasks
 - **Test**: Load, add a funding source, create application
@@ -42,19 +47,21 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 ## ✅ WORKING (Phase 1 Complete)
 
 ### Admin Dashboard (`/admin/dashboard.html`)
+
 - **URL**: `http://localhost:8000/admin/dashboard.html`
-- **What works**: 
+- **What works**:
   - UI loads, navigation works
   - 🔍 **User Search widget** — Calls `/admin-console/api/users`
   - 👤 **User Details view** — Click user to view details
   - 🔄 **Impersonate button** — Starts impersonation session
   - 📊 **System metrics** — Auto-loads on page open
-- **What's missing**: 
+- **What's missing**:
   - Real database query (currently placeholder)
   - Real impersonation tokens (currently placeholder)
   - Activity feed (Phase 2)
 
 ### Admin Console Module (`/admin-console/panel`)
+
 - **URL**: `http://localhost:8000/admin-console/panel`
 - **What works**: Redirects to `/admin/dashboard.html` (as intended)
 - **Status**: Phase 1 complete — unified entry point
@@ -64,8 +71,9 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 ## ✅ WORKING (All Phases Complete)
 
 ### Admin API Endpoints - User Management
+
 | Endpoint | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `GET /admin-console/api/users` | ✅ **Real data** | Queries ACTIVE_SESSIONS, search + pagination |
 | `GET /admin-console/api/users/{id}` | ✅ **Real data** | Shows all sessions for user |
 | `POST /admin-console/api/users/{id}/impersonate` | ✅ **Working** | Generates token, logs action |
@@ -74,8 +82,9 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 | `GET /admin-console/api/system/status` | ✅ **Real data** | Active sessions, metrics, nav info |
 
 ### Admin API Endpoints - System Configuration (Phase 3)
+
 | Endpoint | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `GET /admin-console/api/system/config` | ✅ **Working** | Full runtime config |
 | `GET /admin-console/api/system/modules` | ✅ **Working** | All modules with runtime status |
 | `POST /admin-console/api/system/modules/{name}/toggle` | ✅ **Working** | Enable/disable modules |
@@ -87,8 +96,9 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 | `POST /admin-console/api/system/settings/{name}` | ✅ **Working** | Update setting |
 
 ### Admin API Endpoints - Content Management (Phase 3)
+
 | Endpoint | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `GET /admin-console/api/content/help-articles` | ✅ **Working** | List articles |
 | `POST /admin-console/api/content/help-articles` | ✅ **Working** | Create/update article |
 | `DELETE /admin-console/api/content/help-articles/{id}` | ✅ **Working** | Delete article |
@@ -98,22 +108,25 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 | `POST /admin-console/api/content/letter-templates` | ✅ **Working** | Create/update template |
 
 ### Admin API Endpoints - Audit
+
 | Endpoint | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `GET /admin-console/api/audit` | ✅ **Working** | Filterable audit log (in-memory) |
 | `GET /admin-console/api/audit/actions` | ✅ **Working** | Lists available action types |
 
 ### Admin API Endpoints - Analytics (Phase 4)
+
 | Endpoint | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `GET /admin-console/api/analytics/overview` | ✅ **Working** | High-level system metrics |
 | `GET /admin-console/api/analytics/signup-funnel` | ✅ **Working** | Daily signups by role/provider |
 | `GET /admin-console/api/analytics/feature-usage` | ✅ **Working** | Feature usage metrics |
 | `GET /admin-console/api/analytics/retention` | ✅ **Working** | Retention rates (1d, 7d, 30d) |
 
 ### Admin Dashboard UI (`/admin/dashboard.html`)
+
 | Feature | Status | Notes |
-|---------|--------|-------|
+| --------- | -------- | ------- |
 | User Search | ✅ **Working** | Real-time search, shows results |
 | User Details | ✅ **Enhanced** | Shows all sessions, role, provider |
 | Impersonate Button | ✅ **Working** | Confirmation dialog, redirects |
@@ -127,8 +140,9 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 | **Analytics Dashboard** | ✅ **Phase 4** | Full modal with overview, funnel, retention |
 
 ### Role Protection
+
 | Route | Status | Notes |
-|-------|--------|-------|
+| ------- | -------- | ------- |
 | `/admin/*` | ✅ Protected | `require_role(UserRole.ADMIN)` guard |
 | `/admin-console/*` | ✅ Protected | `require_role(UserRole.ADMIN)` guard |
 
@@ -141,7 +155,7 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 ## 🔄 PARTIALLY WORKING (Need Service Integration)
 
 | Feature | Status | Blocked By |
-|---------|--------|------------|
+| --------- | -------- | ------------ |
 | Reset gates | 🔄 Logs only | Gate service integration |
 | Vault summary | 🔄 Logs only | Vault service integration |
 | Suspend user | ❌ Not built | Account status table needed |
@@ -152,19 +166,23 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 ## 🔧 Quick Fixes (High Impact, Low Effort)
 
 ### 1. Add Admin Route Guard (30 min)
+
 Add to `app/core/route_guards.py`:
+
 ```python
 async def require_admin(request: Request):
     user = await get_current_user(request)
     if user.role != UserRole.ADMIN:
         raise HTTPException(403, "Admin access required")
     return user
-```
+```text
 
 Apply to `/admin/*` static files via middleware or route wrapper.
 
 ### 2. Redirect Stub to Real Dashboard (10 min)
+
 In `app/modules/admin_console/router.py`, change:
+
 ```python
 @router.get("/panel")
 def admin_panel():
@@ -172,7 +190,9 @@ def admin_panel():
 ```
 
 ### 3. Add Users API (1 hour)
+
 Add to `app/modules/admin_console/router.py`:
+
 ```python
 @router.get("/admin/api/users")
 async def list_users(db: Session = Depends(get_db), admin = Depends(require_admin)):
@@ -185,6 +205,7 @@ async def list_users(db: Session = Depends(get_db), admin = Depends(require_admi
 ## Testing Checklist
 
 Verify these work right now:
+
 - [ ] `http://localhost:8000/admin/contract-browser.html` loads
 - [ ] Contract browser shows modules with status badges
 - [ ] `http://localhost:8000/admin/dashboard.html` loads

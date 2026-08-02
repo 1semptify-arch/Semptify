@@ -98,7 +98,7 @@ json
   "layer": "Regulation",
   "title": "24 CFR Part 982 — Housing Choice Voucher Program",
   "citation": "24 CFR Part 982",
-  "url": "https://www.ecfr.gov/current/title-24/part-982",
+  "url": "<https://www.ecfr.gov/current/title-24/part-982>",
   "scope": ["Leases", "Voucher Program", "Inspections", "Termination"],
   "summary": "Governs tenant selection, lease-up, HAP contracts, HQS inspections, terminations and portability under HCV.",
   "last_updated": "2025-11-19",
@@ -117,124 +117,125 @@ Title: U.S. Code (official)
 
 Citation: Multiple titles (e.g., 42, 15, 18, 26)
 
-URL: https://uscode.house.gov
+URL: <https://uscode.house.gov>
 
 Scope: Statutes; use with the eCFR for current regulations.
 
 HUD regulations (eCFR):
 
-24 CFR Part 5 — General HUD Program Requirements: https://www.ecfr.gov/current/title-24/part-5
+24 CFR Part 5 — General HUD Program Requirements: <https://www.ecfr.gov/current/title-24/part-5>
 
-24 CFR Part 247 — Evictions from certain subsidized housing: https://www.ecfr.gov/current/title-24/part-247
+24 CFR Part 247 — Evictions from certain subsidized housing: <https://www.ecfr.gov/current/title-24/part-247>
 
-24 CFR Part 966 — Public Housing Lease and Grievance: https://www.ecfr.gov/current/title-24/part-966
+24 CFR Part 966 — Public Housing Lease and Grievance: <https://www.ecfr.gov/current/title-24/part-966>
 
-24 CFR Part 982 — Housing Choice Voucher Program: https://www.ecfr.gov/current/title-24/part-982
+24 CFR Part 982 — Housing Choice Voucher Program: <https://www.ecfr.gov/current/title-24/part-982>
 
-24 CFR Part 880/881/883/886 — Project-based rental assistance (PRA): https://www.ecfr.gov/current/title-24
+24 CFR Part 880/881/883/886 — Project-based rental assistance (PRA): <https://www.ecfr.gov/current/title-24>
 
 HUD guidance and portals:
 
-Fair Housing and Equal Opportunity: https://www.hud.gov/program_offices/fair_housing_equal_opp
+Fair Housing and Equal Opportunity: <https://www.hud.gov/program_offices/fair_housing_equal_opp>
 
-Housing Choice Voucher guidebook: https://www.hud.gov/program_offices/public_indian_housing/programs/hcv
+Housing Choice Voucher guidebook: <https://www.hud.gov/program_offices/public_indian_housing/programs/hcv>
 
-Public housing: https://www.hud.gov/program_offices/public_indian_housing
+Public housing: <https://www.hud.gov/program_offices/public_indian_housing>
 
 DOJ Civil Rights (fair housing enforcement):
 
-https://www.justice.gov/crt/housing-and-civil-enforcement-section
+<https://www.justice.gov/crt/housing-and-civil-enforcement-section>
 
 EPA lead-based paint—rental disclosures:
 
-https://www.epa.gov/lead/real-estate-professionals
+<https://www.epa.gov/lead/real-estate-professionals>
 
 CFPB renter resources (consumer protections):
 
-https://www.consumerfinance.gov/renters/
+<https://www.consumerfinance.gov/renters/>
 
 Minnesota state law and court resources
 Minnesota Statutes Chapter 504B — Landlord and Tenant:
 
-https://www.revisor.mn.gov/statutes/cite/504B
+<https://www.revisor.mn.gov/statutes/cite/504B>
 
 Minnesota statutes—security deposits, habitability, eviction procedure (within 504B):
 
-Use chapter navigation at: https://www.revisor.mn.gov/statutes/cite/504B
+Use chapter navigation at: <https://www.revisor.mn.gov/statutes/cite/504B>
 
 Minnesota Judicial Branch—Housing/eviction resources:
 
-https://www.mncourts.gov/Help-Topics/Housing.aspx
+<https://www.mncourts.gov/Help-Topics/Housing.aspx>
 
 Minnesota Department of Health—housing/environmental health (e.g., mold, lead):
 
-https://www.health.state.mn.us/communities/environment/healthyhomes/index.html
+<https://www.health.state.mn.us/communities/environment/healthyhomes/index.html>
 
 Minnesota Housing (state programs and compliance):
 
-https://www.mnhousing.gov
+<https://www.mnhousing.gov>
 
 Minnesota Rules (administrative; where applicable to housing):
 
-https://www.revisor.mn.gov/rules/
+<https://www.revisor.mn.gov/rules/>
 
 Note on local Eagan ordinances: If city code is not on a .gov, document relevant state authority in 504B and state programs. For licensing standards, cite state enabling provisions or county-level resources hosted on .gov domains.
 
 IRS tax law for residential rental property
 IRS Publication 527 — Residential Rental Property:
 
-https://www.irs.gov/forms-pubs/about-publication-527
+<https://www.irs.gov/forms-pubs/about-publication-527>
 
 IRS Topic No. 414 — Rental Income and Expenses:
 
-https://www.irs.gov/taxtopics/tc414
+<https://www.irs.gov/taxtopics/tc414>
 
 IRS Topic No. 415 — Renting Residential and Vacation Property:
 
-https://www.irs.gov/taxtopics/tc415
+<https://www.irs.gov/taxtopics/tc415>
 
 IRS Publication 946 — How to Depreciate Property (MACRS rules):
 
-https://www.irs.gov/forms-pubs/about-publication-946
+<https://www.irs.gov/forms-pubs/about-publication-946>
 
 IRS Section 42 (LIHTC) resources:
 
-https://www.irs.gov/businesses/small-businesses-self-employed/low-income-housing-credit
+<https://www.irs.gov/businesses/small-businesses-self-employed/low-income-housing-credit>
 
 Government funding programs and qualifications
 HUD Housing Choice Voucher (HCV) program—eligibility, admissions:
 
-https://www.hud.gov/program_offices/public_indian_housing/programs/hcv
+<https://www.hud.gov/program_offices/public_indian_housing/programs/hcv>
 
 HUD Project-Based Rental Assistance (PBRA)—handbooks and notices:
 
-https://www.hud.gov/program_offices/housing/mfh/pbcr
+<https://www.hud.gov/program_offices/housing/mfh/pbcr>
 
 HUD Section 202 — Supportive Housing for the Elderly:
 
-https://www.hud.gov/program_offices/housing/mfh/progdesc/eld202
+<https://www.hud.gov/program_offices/housing/mfh/progdesc/eld202>
 
 HUD Section 811 — Supportive Housing for Persons with Disabilities:
 
-https://www.hud.gov/program_offices/housing/mfh/progdesc/disab811
+<https://www.hud.gov/program_offices/housing/mfh/progdesc/disab811>
 
 USDA Rural Development — Multi-Family Housing Programs:
 
-https://www.rd.usda.gov/programs-services/multi-family-housing-programs
+<https://www.rd.usda.gov/programs-services/multi-family-housing-programs>
 
 Minnesota Housing — program directory (e.g., rental assistance, development finance):
 
-https://www.mnhousing.gov/sites/Satellite?c=Page&childpagename=MNHousing%2FMNHSubLayout&cid=1358904990303&pagename=MNHousing%2FWrapper
+<https://www.mnhousing.gov/sites/Satellite?c=Page&childpagename=MNHousing%2FMNHSubLayout&cid=1358904990303&pagename=MNHousing%2FWrapper>
 
 Treasury/IRS — LIHTC compliance and resources:
 
-https://home.treasury.gov/policy-issues/financing-the-economy/low-income-housing-tax-credit
+<https://home.treasury.gov/policy-issues/financing-the-economy/low-income-housing-tax-credit>
 
-https://www.irs.gov/businesses/small-businesses-self-employed/low-income-housing-credit
+<https://www.irs.gov/businesses/small-businesses-self-employed/low-income-housing-credit>
 
 Update workflow and scripts
 Update checklist (drop-in)
 md
+
 # Update checklist
 
 - **Scope:** What changed? (laws, guidance, programs)
@@ -246,7 +247,9 @@ md
 - **Versioning:** Add a CHANGELOG entry with bullet-point diffs.
 Validation script (PowerShell)
 powershell
-# workflows/validate_references.ps1
+
+## workflows/validate_references.ps1
+
 Param(
   [string]$Path = "../references"
 )
@@ -277,7 +280,9 @@ if ($errors.Count -gt 0) {
 }
 Update script (PowerShell, append-safe)
 powershell
-# workflows/update_library.ps1
+
+## workflows/update_library.ps1
+
 Param(
   [string]$NewEntriesFile,   # path to new_entries.json
   [string]$TargetFile = "../references/references.json",
@@ -291,7 +296,8 @@ if (Test-Path $TargetFile) {
   $existing = Get-Content $TargetFile -Raw | ConvertFrom-Json
 }
 
-# merge by id, overwrite duplicates
+## merge by id, overwrite duplicates
+
 $map = @{}
 foreach ($e in $existing) { $map[$e.id] = $e }
 foreach ($n in $new) { $map[$n.id] = $n }
@@ -299,7 +305,8 @@ foreach ($n in $new) { $map[$n.id] = $n }
 $merged = $map.GetEnumerator() | ForEach-Object { $_.Value }
 $merged | ConvertTo-Json -Depth 5 | Set-Content $TargetFile
 
-# changelog entry
+## changelog entry
+
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm 'CST'"
 $addedIds = ($new | Select-Object -ExpandProperty id) -join ", "
 $entry = "## $timestamp`n**Update:** Merged new entries`n**IDs:** $addedIds`n"
@@ -590,41 +597,49 @@ json
 README and index
 README.md
 md
-# Tenant–Landlord Legal Library (gov-only)
+
+## Tenant–Landlord Legal Library (gov-only)
 
 **Scope:** Residential rental property, lease contracts, tax law, and government funding programs.  
 **Constraint:** Only official `.gov` sources (federal, state, local).
 
 ## Structure
+
 - **references/** JSON files for federal, state, tax, funding.
 - **index.md** Human-readable index linking key categories.
 - **workflows/** Update and validation scripts.
 - **glossaries/** Plain-language terms.
 
 ## Use
+
 - Add new entries to a temp `new_entries.json`.
 - Run `workflows/validate_references.ps1`, then `workflows/update_library.ps1 -NewEntriesFile new_entries.json`.
 - Commit with a CHANGELOG entry.
 
 ## Accessibility
+
 - Summaries are plain language (2–3 sentences), links are official, and each entry has tags for quick filtering.
 index.md
 md
-# Library index
+
+## Library index
 
 ## Federal
+
 - 24 CFR Parts 5, 247, 966, 982 — eCFR (HUD)
 - DOJ Civil Rights — Housing enforcement
 - EPA Lead disclosure — Rental requirements
 - HUD FHEO — Fair housing portal
 
 ## Minnesota
+
 - Minn. Stat. ch. 504B — Landlord and Tenant
 - Minnesota Courts — Housing help topics
 - MDH Healthy Homes — Habitability guidance
 - Minnesota Housing — Program directory
 
 ## Tax (IRS)
+
 - Publication 527 — Residential Rental Property
 - Topic 414 — Rental Income and Expenses
 - Topic 415 — Renting Residential and Vacation Property
@@ -632,6 +647,7 @@ md
 - LIHTC — IRS Section 42 resources
 
 ## Funding
+
 - HUD HCV — Eligibility and admissions
 - HUD PBRA — Compliance resources
 - HUD Section 202 and 811 — Supportive housing
@@ -648,6 +664,7 @@ what ids the best way to tranfer every thing to vs code to impliment this
 Got it—let’s make this frictionless so you can drop the scaffold straight into VS Code and start iterating. Here’s a step‑by‑step transfer workflow tailored for your Semptify library:
 
 🚀 Transfer Workflow into VS Code
+
 1. Create the project folder
 Open VS Code.
 
@@ -655,7 +672,7 @@ Use File → Open Folder and create/select a folder, e.g. Semptify_LegalLibrary.
 
 This will be your root workspace.
 
-2. Scaffold the structure
+1. Scaffold the structure
 Inside VS Code’s Explorer, create the directories exactly as outlined:
 
 Code
@@ -682,21 +699,21 @@ Semptify_LegalLibrary/
          └─ badges.md
 👉 Tip: In VS Code, you can right‑click → New Folder and New File to mirror this structure quickly.
 
-3. Paste in the seed content
+1. Paste in the seed content
 Copy the JSON blocks I scaffolded (federal.json, state_mn.json, tax_irs.json, funding_programs.json) into their respective files.
 
 Copy the README.md, index.md, and PowerShell scripts into their files.
 
 This gives you a working baseline library.
 
-4. Enable JSON validation
+1. Enable JSON validation
 Install the JSON Tools or JSON Schema Validator extension in VS Code.
 
 This will highlight any schema errors in your references files.
 
 You can also run the validate_references.ps1 script directly from VS Code’s integrated terminal (PowerShell).
 
-5. Version control (GitHub ready)
+1. Version control (GitHub ready)
 Open the terminal in VS Code and run:
 
 bash
@@ -706,11 +723,11 @@ git commit -m "Initial scaffold of tenant-landlord legal library"
 Add your GitHub remote:
 
 bash
-git remote add origin https://github.com/1semptify-arch/Semptify_LegalLibrary.git
+git remote add origin <https://github.com/1semptify-arch/Semptify_LegalLibrary.git>
 git push -u origin main
 Now every update you make in VS Code can be checkpointed and pushed.
 
-6. Updating the library
+1. Updating the library
 Add new .gov references into a new_entries.json.
 
 Run update_library.ps1 from VS Code’s terminal:
@@ -719,7 +736,7 @@ powershell
 ./modules/legal_library/workflows/update_library.ps1 -NewEntriesFile new_entries.json
 This merges entries, validates .gov URLs, and appends a CHANGELOG entry automatically.
 
-7. Daily workflow
+1. Daily workflow
 Edit JSON → Run validation script → Commit changes → Push to GitHub.
 
 VS Code’s Git integration makes this one‑click.

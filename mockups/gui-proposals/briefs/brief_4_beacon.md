@@ -1,17 +1,20 @@
 # Brief — Proposal 4: "The Beacon"
 
 ## Objective
+
 Design a **public welcome / public website** page for Semptify — a public-service
 housing-rights and tenant-support tool. This page is the GUI entry point that gives
 the public access to the Semptify webapp (it leads into onboarding). It is NOT a
 marketing landing page and NOT a commercial product page.
 
 ## Target audience
+
 Tenants facing housing problems — often stressed, often on a phone in a parking
 lot, often low bandwidth. Primary personas: **The Blindsided Tenant** + **The
 Court-Bound**. This is the most mobile-honest, most accessible of the 5 proposals.
 
 ## Aesthetic direction — "The Beacon"
+
 High-contrast emergency-services portal. Maximum legibility on a phone in a parking
 lot. Calm language inside a high-contrast frame — the contrast conveys clarity, not
 panic. Best WCAG compliance of all 5 proposals.
@@ -31,6 +34,7 @@ panic. Best WCAG compliance of all 5 proposals.
   Icons are solid, high-contrast, monochrome (inline SVG).
 
 ## Memorable element
+
 A **deadline beacon** — a persistent high-contrast banner at the very top:
 "YOUR NEXT DEADLINE: — · YOU HAVE TIME. HERE'S WHAT TO DO." It counts down and
 turns amber → red as a hearing approaches. On the welcome page (no deadline yet),
@@ -38,6 +42,7 @@ it reads: "NO DEADLINE YET · BEGIN WHEN YOU'RE READY" in high contrast. This is
 the single most important UI element on the site.
 
 ## Content structure (sections, top to bottom)
+
 1. **Deadline beacon banner** (persistent, top) — black background, white text,
    amber accent. "NO DEADLINE YET · BEGIN WHEN YOU'RE READY" on the welcome page.
    Mono. High contrast.
@@ -72,10 +77,12 @@ the single most important UI element on the site.
    "Semptify is a public-service housing-rights tool. No ads, ever."
 
 ## Forbidden words (HARD RULE — never use on the page)
+
 "free" (about Semptify itself), "accounts", "log in", "sign up", "subscription",
 "upgrade", "premium", "paid plan", "trial", "pricing". The CTA is "Begin".
 
 ## Technical requirements
+
 - Single self-contained `index.html` + `assets/` if needed.
 - Vanilla CSS (no Tailwind, no Bootstrap). Inline `<style>` fine for mockup.
 - Google Fonts via `<link>` (Inter, IBM Plex Sans, IBM Plex Mono).
@@ -87,7 +94,9 @@ the single most important UI element on the site.
 - No external image services. Icons as inline SVG only. No photos.
 
 ## Output path
+
 `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\beacon\index.html`
 
 ## Image needs
+
 None. Solid high-contrast icons as inline SVG only. No photos, no external hosts.

@@ -3,29 +3,32 @@
 ## 🔑 Required APIs with OAuth Callbacks
 
 ### 1. Google Drive (Storage Provider)
+
 **Purpose:** User data storage & authentication
 
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | Client ID | `GOOGLE_DRIVE_CLIENT_ID` | From Google Cloud Console |
 | Client Secret | `GOOGLE_DRIVE_CLIENT_SECRET` | From Google Cloud Console |
 
-**OAuth Callback URLs:**
-```
-# Local Development (Cloudflared Tunnel)
+#### OAuth Callback URLs:
+
+```text
+## Local Development (Cloudflared Tunnel)
 https://dev.semptify.org/storage/callback/google_drive
 
-# Local Development (Direct localhost)
+## Local Development (Direct localhost)
 http://localhost:8000/storage/callback/google_drive
 
-# Render.com Production
+## Render.com Production
 https://semptify-api.onrender.com/storage/callback/google_drive
 
-# Custom Domain
+## Custom Domain
 https://yourdomain.com/storage/callback/google_drive
 ```
 
-**Setup:**
+### Setup:
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create project → APIs & Services → Credentials
 3. Create OAuth 2.0 Client ID (Web Application)
@@ -35,29 +38,32 @@ https://yourdomain.com/storage/callback/google_drive
 ---
 
 ### 2. Dropbox (Storage Provider)
+
 **Purpose:** Alternative user data storage
 
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | App Key | `DROPBOX_APP_KEY` | From Dropbox App Console |
 | App Secret | `DROPBOX_APP_SECRET` | From Dropbox App Console |
 
-**OAuth Callback URLs:**
-```
-# Local Development (Cloudflared Tunnel)
+#### OAuth Callback URLs:
+
+```text
+## Local Development (Cloudflared Tunnel)
 https://dev.semptify.org/storage/callback/dropbox
 
-# Local Development (Direct localhost)
+## Local Development (Direct localhost)
 http://localhost:8000/storage/callback/dropbox
 
-# Render.com Production
+## Render.com Production
 https://semptify-api.onrender.com/storage/callback/dropbox
 
-# Custom Domain
+## Custom Domain
 https://yourdomain.com/storage/callback/dropbox
 ```
 
-**Setup:**
+### Setup:
+
 1. Go to [Dropbox App Console](https://www.dropbox.com/developers/apps)
 2. Create App → Scoped access → Full Dropbox or App folder
 3. Add redirect URIs in Settings tab
@@ -66,29 +72,32 @@ https://yourdomain.com/storage/callback/dropbox
 ---
 
 ### 3. OneDrive / Microsoft (Storage Provider)
+
 **Purpose:** Alternative user data storage
 
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | Client ID | `ONEDRIVE_CLIENT_ID` | From Azure Portal |
 | Client Secret | `ONEDRIVE_CLIENT_SECRET` | From Azure Portal |
 
-**OAuth Callback URLs:**
-```
-# Local Development (Cloudflared Tunnel)
+#### OAuth Callback URLs:
+
+```text
+## Local Development (Cloudflared Tunnel)
 https://dev.semptify.org/storage/callback/onedrive
 
-# Local Development (Direct localhost)
+## Local Development (Direct localhost)
 http://localhost:8000/storage/callback/onedrive
 
-# Render.com Production
+## Render.com Production
 https://semptify-api.onrender.com/storage/callback/onedrive
 
-# Custom Domain
+## Custom Domain
 https://yourdomain.com/storage/callback/onedrive
 ```
 
-**Setup:**
+### Setup:
+
 1. Go to [Azure Portal](https://portal.azure.com/) → App registrations
 2. New registration → Web application
 3. Add redirect URIs under Authentication
@@ -100,8 +109,9 @@ https://yourdomain.com/storage/callback/onedrive
 ## 🤖 AI Provider APIs (Choose ONE)
 
 ### Option A: Anthropic Claude (Recommended - Best Accuracy)
+
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | API Key | `ANTHROPIC_API_KEY` | From Anthropic Console |
 | Model | `ANTHROPIC_MODEL` | `claude-sonnet-4-20250514` |
 | Provider | `AI_PROVIDER` | `anthropic` |
@@ -111,8 +121,9 @@ https://yourdomain.com/storage/callback/onedrive
 ---
 
 ### Option B: OpenAI GPT-4
+
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | API Key | `OPENAI_API_KEY` | From OpenAI Platform |
 | Model | `OPENAI_MODEL` | `gpt-4o-mini` |
 | Provider | `AI_PROVIDER` | `openai` |
@@ -122,8 +133,9 @@ https://yourdomain.com/storage/callback/onedrive
 ---
 
 ### Option C: Groq (FREE Tier Available)
+
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | API Key | `GROQ_API_KEY` | From Groq Console |
 | Model | `GROQ_MODEL` | `llama-3.3-70b-versatile` |
 | Provider | `AI_PROVIDER` | `groq` |
@@ -133,8 +145,9 @@ https://yourdomain.com/storage/callback/onedrive
 ---
 
 ### Option D: Google Gemini (FREE Tier Available)
+
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | API Key | `GEMINI_API_KEY` | From Google AI Studio |
 | Model | `GEMINI_MODEL` | `gemini-1.5-flash` |
 | Provider | `AI_PROVIDER` | `gemini` |
@@ -144,8 +157,9 @@ https://yourdomain.com/storage/callback/onedrive
 ---
 
 ### Option E: Azure OpenAI
+
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | API Key | `AZURE_OPENAI_API_KEY` | From Azure Portal |
 | Endpoint | `AZURE_OPENAI_ENDPOINT` | Your deployment endpoint |
 | Deployment | `AZURE_OPENAI_DEPLOYMENT` | Deployment name |
@@ -155,11 +169,12 @@ https://yourdomain.com/storage/callback/onedrive
 ---
 
 ## ☁️ Cloudflare R2 (System Storage - Optional)
+
 **Purpose:** System-level storage for admin operations, shared assets, backups
 **Note:** Users store their data in their OWN cloud storage (Google Drive/Dropbox/OneDrive). R2 is for system use only.
 
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | Account ID | `R2_ACCOUNT_ID` | From Cloudflare Dashboard |
 | Access Key ID | `R2_ACCESS_KEY_ID` | R2 API Token |
 | Secret Access Key | `R2_SECRET_ACCESS_KEY` | R2 API Token Secret |
@@ -167,14 +182,16 @@ https://yourdomain.com/storage/callback/onedrive
 | Endpoint | `R2_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` |
 | API Token | `R2_API_TOKEN` | For R2 management operations |
 
-**Setup:**
+### Setup:
+
 1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → R2
 2. Create a bucket (e.g., `semptify-system`)
 3. Go to R2 → Manage R2 API Tokens
 4. Create API token with Object Read & Write permissions
 5. Copy Account ID, Access Key ID, and Secret Access Key
 
-**Use Cases:**
+### Use Cases:
+
 - System configuration storage
 - Shared template documents
 - Law library caching
@@ -184,16 +201,18 @@ https://yourdomain.com/storage/callback/onedrive
 ---
 
 ## 📄 Azure AI Document Intelligence (Optional)
+
 **Purpose:** Advanced document OCR & extraction
 
 | Setting | Environment Variable | Value |
-|---------|---------------------|-------|
+| --------- | --------------------- | ------- |
 | Endpoint | `AZURE_AI_ENDPOINT` | From Azure Portal |
 | Key | `AZURE_AI_KEY1` | Primary key |
 | Backup Key | `AZURE_AI_KEY2` | Secondary key |
 | Region | `AZURE_AI_REGION` | `eastus` |
 
-**Setup:**
+### Setup:
+
 1. Go to [Azure Portal](https://portal.azure.com/)
 2. Create "Document Intelligence" resource
 3. Copy endpoint and keys
@@ -203,63 +222,63 @@ https://yourdomain.com/storage/callback/onedrive
 ## ⚙️ Core Environment Variables
 
 ```bash
-# ===========================================
-# REQUIRED - Core Settings
-# ===========================================
+## ===========================================
+## REQUIRED - Core Settings
+## ===========================================
 SECRET_KEY=<generate-secure-random-string>
 SECURITY_MODE=enforced
 DEBUG=false
 LOG_LEVEL=INFO
 
-# ===========================================
-# DATABASE (Render provides this automatically)
-# ===========================================
+## ===========================================
+## DATABASE (Render provides this automatically)
+## ===========================================
 DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/dbname
 
-# ===========================================
-# STORAGE PROVIDERS (At least ONE required)
-# ===========================================
-# Google Drive
+## ===========================================
+## STORAGE PROVIDERS (At least ONE required)
+## ===========================================
+## Google Drive
 GOOGLE_DRIVE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_DRIVE_CLIENT_SECRET=your-client-secret
 
-# Dropbox (optional)
+## Dropbox (optional)
 DROPBOX_APP_KEY=your-app-key
 DROPBOX_APP_SECRET=your-app-secret
 
-# OneDrive (optional)
+## OneDrive (optional)
 ONEDRIVE_CLIENT_ID=your-client-id
 ONEDRIVE_CLIENT_SECRET=your-client-secret
 
-# ===========================================
-# AI PROVIDER (Choose ONE)
-# ===========================================
+## ===========================================
+## AI PROVIDER (Choose ONE)
+## ===========================================
 AI_PROVIDER=anthropic
 
-# Anthropic (recommended)
+## Anthropic (recommended)
 ANTHROPIC_API_KEY=sk-ant-...
 
-# OR OpenAI
-# OPENAI_API_KEY=sk-...
+## OR OpenAI
+## OPENAI_API_KEY=sk-...
 
-# OR Groq (FREE)
-# GROQ_API_KEY=gsk_...
+## OR Groq (FREE)
+## GROQ_API_KEY=gsk_...
 
-# OR Gemini (FREE)
-# GEMINI_API_KEY=...
+## OR Gemini (FREE)
+## GEMINI_API_KEY=...
 
-# ===========================================
-# CLOUDFLARE R2 (Optional - System Storage)
-# ===========================================
+## ===========================================
+## CLOUDFLARE R2 (Optional - System Storage)
+## ===========================================
 R2_ACCOUNT_ID=your-account-id
 R2_ACCESS_KEY_ID=your-access-key
 R2_SECRET_ACCESS_KEY=your-secret-key
 R2_BUCKET_NAME=semptify-system
 R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
 
-# ===========================================
-# AZURE AI (Optional - Document Intelligence)
-# ===========================================
+## ===========================================
+## AZURE AI (Optional - Document Intelligence)
+## ===========================================
 AZURE_AI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
 AZURE_AI_KEY1=your-key
 AZURE_AI_REGION=eastus
@@ -272,22 +291,25 @@ AZURE_AI_REGION=eastus
 In your Render dashboard, add these environment variables:
 
 ### Required
+
 | Variable | Value | Notes |
-|----------|-------|-------|
+| ---------- | ------- | ------- |
 | `SECRET_KEY` | Auto-generate | Use "Generate" button |
 | `SECURITY_MODE` | `enforced` | Production security |
 | `DEBUG` | `false` | Disable debug mode |
 | `DATABASE_URL` | Auto from DB | Link PostgreSQL DB |
 
 ### Storage (At least one)
+
 | Variable | Value |
-|----------|-------|
+| ---------- | ------- |
 | `GOOGLE_DRIVE_CLIENT_ID` | Your Google OAuth Client ID |
 | `GOOGLE_DRIVE_CLIENT_SECRET` | Your Google OAuth Secret |
 
 ### AI Provider
+
 | Variable | Value |
-|----------|-------|
+| ---------- | ------- |
 | `AI_PROVIDER` | `anthropic` or `groq` or `gemini` |
 | `ANTHROPIC_API_KEY` | Your API key (if using Anthropic) |
 
@@ -296,7 +318,7 @@ In your Render dashboard, add these environment variables:
 ## 🔗 Callback URL Summary
 
 | Provider | Local | Production (Render) |
-|----------|-------|---------------------|
+| ---------- | ------- | --------------------- |
 | Google Drive | `http://localhost:8000/storage/callback/google_drive` | `https://semptify-api.onrender.com/storage/callback/google_drive` |
 | Dropbox | `http://localhost:8000/storage/callback/dropbox` | `https://semptify-api.onrender.com/storage/callback/dropbox` |
 | OneDrive | `http://localhost:8000/storage/callback/onedrive` | `https://semptify-api.onrender.com/storage/callback/onedrive` |

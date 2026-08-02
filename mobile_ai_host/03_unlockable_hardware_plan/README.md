@@ -6,11 +6,13 @@
 ## Why This Package Exists
 
 Packages 1 and 2 work with your existing LG Stylo 4, but:
+
 - 2GB RAM caps you at 1B-parameter models.
 - Locked bootloader means you're fighting Android for every MB of RAM.
 - No custom kernel = no real control over thermal/power/scheduler behavior.
 
 For a serious "reuse phones as AI hosts" project, you want phones where you can:
+
 - Unlock the bootloader **with the manufacturer's blessing** (no exploit needed).
 - Flash a real Linux distribution (postmarketOS or Alpine).
 - Run a custom kernel tuned for sustained inference workloads.
@@ -27,11 +29,11 @@ For a serious "reuse phones as AI hosts" project, you want phones where you can:
 ## Cost Estimate
 
 | Setup | Phones | Cost | Total RAM | Max model size |
-|-------|--------|------|-----------|----------------|
+| ------- | -------- | ------ | ----------- | ---------------- |
 | Single-node starter | 1× Pixel 4a | ~$80 | 6 GB | 3B params |
-| 2-node cluster       | 2× Pixel 4a | ~$160 | 12 GB | 3B (parallel) |
-| 4-node cluster       | 4× Pixel 4a | ~$320 | 24 GB | 7B (sharded) |
-| Premium single-node  | 1× OnePlus 7 | ~$120 | 8 GB | 7B params |
+| 2-node cluster | 2× Pixel 4a | ~$160 | 12 GB | 3B (parallel) |
+| 4-node cluster | 4× Pixel 4a | ~$320 | 24 GB | 7B (sharded) |
+| Premium single-node | 1× OnePlus 7 | ~$120 | 8 GB | 7B params |
 
 Used prices on eBay/Swappa as of 2026. Look for "clean ESN, cracked screen OK"
 — you don't care about cosmetics for an AI host.
@@ -46,13 +48,13 @@ Given you're starting from a Stylo 4 and want to prove the concept:
    This is your "real" AI host — 6GB RAM runs Llama-3.2-3B comfortably.
 4. **Later:** Add more Pixel 4a nodes as budget allows. Wire them into a cluster.
 
-## Why Not Just Buy a Raspberry Pi?
+## Why Not Just Buy a Raspberry Pi
 
 A fair question. For pure AI inference, a Raspberry Pi 5 (8GB) is comparable to
 a used Pixel 4a, and easier to work with. But:
 
 | Factor | Used Pixel 4a | Raspberry Pi 5 8GB |
-|--------|---------------|---------------------|
+| -------- | --------------- | --------------------- |
 | Cost used | ~$80 | ~$80 (Pi 5 + case + PSU + SSD) |
 | RAM | 6 GB | 8 GB |
 | Storage | 128 GB built-in | Buy SD/SSD separately |

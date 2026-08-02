@@ -6,7 +6,7 @@ in sync. Read this before touching any of the files below.
 ## The files, what each one is
 
 | File | What it does | Who runs it | When |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `tools/stub_detector.py` | Scans the codebase, finds real stubs (AST-based, not grep) | `sync_orchestrator.py` calls it | Every sync |
 | `tools/workbook_bridge.py` | Reads stubs + the workbook's `Duplicates` sheet, merges against the previous run, writes `agent_orchestrator_tasks.json` | `sync_orchestrator.py` calls it | Every sync |
 | `tools/sync_orchestrator.py` | Runs the two above in order, verifies the output, embeds it into both HTML views | **A human or the pre-commit hook** | Every commit (automatic) + any time you want a manual refresh |
@@ -38,7 +38,7 @@ Run these from the repo root, in this order, any time you want everything
 fully current (e.g., after a batch of agents have been working, or before a
 status meeting with yourself):
 
-```
+```text
 1. python tools/sync_orchestrator.py
    -> rebuilds stubs, rebuilds tasks from the workbook, merges statuses
       forward, embeds fresh data into both HTML files.
@@ -77,7 +77,8 @@ to archive yet. Steps 1, 4, and 5 are the ones worth doing every time.
 
 ## Common situations
 
-**"A task is marked resolved but keeps showing up."**
+### "A task is marked resolved but keeps showing up."
+
 Expected until you run `archive_resolved_duplicates.py` — resolved tasks
 stay visible (correctly marked) until someone deliberately clears them,
 because the underlying workbook row is still there. Run the archive step.
@@ -88,7 +89,8 @@ It won't, as long as the task's `file_path` + `title` didn't change —
 that's what the stable ID is derived from. `status`, `notes`, and
 `assigned_agent` are explicitly preserved across every re-sync.
 
-**"The workbook is open in Excel and a script failed."**
+### "The workbook is open in Excel and a script failed."
+
 Only `--update-workbook` and `archive_resolved_duplicates.py` touch the
 `.xlsx` file. Close Excel and re-run. The default `sync_orchestrator.py`
 path never opens the workbook for writing, so this shouldn't come up

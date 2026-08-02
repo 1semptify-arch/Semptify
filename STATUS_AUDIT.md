@@ -8,7 +8,7 @@
 ## 1. Headline Counts
 
 | Metric | Count |
-|---|---|
+| --- | --- |
 | Active module registrations in `product_manifest.py` | **95** |
 | INACTIVE modules (commented out) | **6** |
 | Total Python modules under `app/modules/` | ~75 directories/files |
@@ -26,8 +26,9 @@
 ## 2. Module Registrations by Tier
 
 ### CORE TIER — 32 registrations
+
 | Module | Lifecycle | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `health.router` | stable | |
 | `core.versioning` | stable | |
 | `preamble.router` | stable | |
@@ -61,8 +62,9 @@
 | `mndes.router` | **beta** | **3 NotImplementedError — REST client awaits MN Supreme Court API** |
 
 ### EXTENDED TIER — 19 registrations
+
 | Module | Lifecycle | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `fems.router` | stable | |
 | `eviction_defense.router` | stable | |
 | `zoom_court.router` | stable | |
@@ -84,15 +86,17 @@
 | `role_upgrade.router` | stable | |
 
 ### ADVOCATE TIER — 3 registrations
+
 | Module | Lifecycle | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `document_delivery.router` | stable | 4 contracts (send/inbox/sign/reject) |
 | `communication.router` | stable | 4 contracts (conversation/message/list/fill_sign) |
 | `invite_codes.router` | stable | |
 
 ### ADMIN TIER — 9 registrations
+
 | Module | Lifecycle | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `admin_console.router` | stable | 5 contracts (user_list/detail/impersonate x2/system_status) |
 | `admin_console.module_flags` | **internal** | 4 contracts (list/set/delete/preview) |
 | `analytics.router` | stable | |
@@ -104,8 +108,9 @@
 | `capabilities.router` | stable | |
 
 ### RESEARCH TIER — 20 registrations
+
 | Module | Lifecycle | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `recognition.router` | stable | |
 | `extraction.router` | stable | |
 | `crawler.router` | stable | |
@@ -128,8 +133,9 @@
 | `fraud_exposure.router` | stable | |
 
 ### DEV TIER — 12 registrations
+
 | Module | Lifecycle | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `setup.router` | stable | |
 | `page_index.router` | stable | |
 | `page_editor.router` | stable | |
@@ -144,8 +150,9 @@
 | `documentation.router` | stable | |
 
 ### INACTIVE (commented out in manifest) — 6
+
 | Module | Reason |
-|---|---|
+| --- | --- |
 | `plugins.router` | Marketplace not built |
 | `components.router` | Dev scaffolding |
 | `legal_filing.router` | Not integrated with mesh/network |
@@ -158,8 +165,9 @@
 ## 3. Contract Coverage
 
 ### Modules WITH `FunctionGroupContract` registrations (12)
+
 | Module | Contracts | Count |
-|---|---|---|
+| --- | --- | --- |
 | `vault` | vault_upload, vault_folders, vault_init, vault_search, vault_ingestion | 6 |
 | `overlays` | overlay_create, overlay_query, overlay_update, overlay_delete, overlay_compose_view | 5 |
 | `admin_console` | user_list, user_detail, impersonate_start, impersonate_stop, system_status | 5 |
@@ -176,9 +184,11 @@
 | `timeline` | timeline_chronology | 1 |
 
 ### Modules WITHOUT contracts (~70+ registered)
+
 Every other registered module has **zero** `FunctionGroupContract` registrations. This is the largest "hole" in the system — most modules expose no SSOT contract, meaning callers cannot reliably integrate against them.
 
-**High-priority modules missing contracts:**
+#### High-priority modules missing contracts:
+
 - `documents.router` — core document management, no contract
 - `storage.router` — OAuth + storage connection, no contract
 - `auth.router` — authentication, no contract
@@ -205,8 +215,9 @@ Every other registered module has **zero** `FunctionGroupContract` registrations
 ## 4. Stub / Placeholder Inventory
 
 ### Hard stubs (NotImplementedError — will crash if called)
+
 | File | Function | Reason |
-|---|---|---|
+| --- | --- | --- |
 | `app/services/mndes_api_client.py:193` | `MNDESRestClient.submit_exhibit` | Awaiting MN Supreme Court API |
 | `app/services/mndes_api_client.py:202` | `MNDESRestClient.get_submission_status` | Awaiting MN Supreme Court API |
 | `app/services/mndes_api_client.py:208` | `MNDESRestClient.get_case_exhibits` | Awaiting MN Supreme Court API |
@@ -214,7 +225,9 @@ Every other registered module has **zero** `FunctionGroupContract` registrations
 | `app/core/product_manifest.py` (1 site) | — | Investigate |
 
 ### Soft stubs (returns `{"status": "not_implemented"}`)
+
 All 11 in `app/modules/free_api_pack.py`:
+
 - `PropertyLookup.lookup_parcel`, `PropertyLookup.lookup_address`
 - `LandlordLookup.lookup_business`, `LandlordLookup.lookup_owner`
 - `CourtScraper.search_evictions`, `CourtScraper.fetch_federal_cases`
@@ -223,13 +236,16 @@ All 11 in `app/modules/free_api_pack.py`:
 - `Statutes.get_statute`
 
 ### Known stubs (per `dev_notes` in manifest)
+
 - `state_laws.router` — only MN complete, need NY/CA/TX/FL/IL
 - `mndes.router` — 3 NotImplementedError pending external API
 - `housing_accountability.router` — `detect_repeated_fees()` at router.py:83 is a stub
 - `functionx.router` — "FunctionX concept — not yet defined"
 
 ### TODO markers (53 across 26 files)
+
 Top offenders:
+
 - `app/core/page_contracts.py` — 16 TODOs
 - `app/modules/_template/service.py` — 4 TODOs (expected, it's a template)
 - `app/modules/litigation_intelligence/router.py` — 4 TODOs (graph_engine)
@@ -240,7 +256,9 @@ Top offenders:
 - 19 more files with 1 TODO each
 
 ### `pass`-only function bodies (60 across 33 files)
+
 Top offenders:
+
 - `app/modules/components/router.py` — 11 pass bodies (INACTIVE module, but code exists)
 - `app/modules/court_forms/router.py` — 5
 - `app/modules/case_builder/router.py` — 3
@@ -249,7 +267,9 @@ Top offenders:
 - 29 more files with 1-2 pass bodies
 
 ### HTML pages with "Coming soon/placeholder/stub/TODO" (148 across 36 files)
+
 Top offenders:
+
 - `static/tenant/tools/letters.html` — 28
 - `static/tools/generators.html` — 15
 - `static/components/preview-modal.html` — 10
@@ -267,7 +287,7 @@ Top offenders:
 ## 5. Classification Summary
 
 | Class | Count | Examples |
-|---|---|---|
+| --- | --- | --- |
 | **WORKING** | ~50 | vault, timeline, overlays, delivery, communication, admin_console, dev_lab, rent, user, court_forms, filedored, duplicates |
 | **PARTIAL** | ~15 | state_laws (MN only), mndes (3 stubs), housing_accountability (1 stub), security (2FA fallback), free_api (all stubs) |
 | **STUB** | ~5 | free_api_pack (11 stubs), functionx (concept), components (11 pass bodies, INACTIVE) |
@@ -279,6 +299,7 @@ Top offenders:
 ## 6. Holes to Fill (Priority Order)
 
 ### Tier 1 — Contracts for core modules
+
 - [ ] `documents.router` — needs contract
 - [ ] `storage.router` — needs contract
 - [ ] `auth.router` — needs contract
@@ -291,6 +312,7 @@ Top offenders:
 - [ ] `invite_codes.router` — needs contract
 
 ### Tier 2 — Implement stubs
+
 - [ ] `free_api_pack.py` — implement all 11 API methods (real HTTP calls to free APIs)
 - [ ] `housing_accountability.detect_repeated_fees()` — implement pattern detection
 - [ ] `state_laws` — add NY, CA, TX, FL, IL statute data
@@ -298,6 +320,7 @@ Top offenders:
 - [ ] `litigation_intelligence.graph_engine` — implement or remove module
 
 ### Tier 3 — HTML page content (148 markers)
+
 - [ ] `static/tenant/tools/letters.html` — 28 placeholders
 - [ ] `static/tools/generators.html` — 15 placeholders
 - [ ] `static/components/preview-modal.html` — 10 placeholders
@@ -307,6 +330,7 @@ Top offenders:
 - [ ] 30 more HTML files with placeholders
 
 ### Tier 4 — TODOs in code
+
 - [ ] `app/core/page_contracts.py` — 16 TODOs
 - [ ] `app/services/document_registry.py` — 4 TODOs
 - [ ] `app/modules/document_converter.py` — 2 TODOs

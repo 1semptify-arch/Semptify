@@ -1,18 +1,21 @@
 # Brief — Proposal 5: "The Quiet Library"
 
 ## Objective
+
 Design a **public welcome / public website** page for Semptify — a public-service
 housing-rights and tenant-support tool. This page is the GUI entry point that gives
 the public access to the Semptify webapp (it leads into onboarding). It is NOT a
 marketing landing page and NOT a commercial product page.
 
 ## Target audience
+
 Tenants facing housing problems. Primary personas for this aesthetic: **The
 Preventer** (no active dispute, educating themselves) + **The Court-Bound**
 (studying before a hearing). Wants the entry page to feel like entering a law
 library reading room — a place to understand before acting.
 
 ## Aesthetic direction — "The Quiet Library"
+
 Editorial research room. Feels like a law library reading room — quiet, deep,
 orderly. Reading-first. Citations are first-class UI, not afterthoughts.
 
@@ -35,6 +38,7 @@ orderly. Reading-first. Citations are first-class UI, not afterthoughts.
   Optional small brass section numerals. No external images.
 
 ## Memorable element
+
 **Visible citations as first-class UI** — statute-style references (e.g.
 `Minn. Stat. § 504B.221`) are styled like library catalog cards: mono, brass-
 ruled, clickable-looking, with a small "catalog card" frame. On the welcome page,
@@ -43,6 +47,7 @@ metadata strips. This signals "this is a place where the law is real and
 looked-up, not invented."
 
 ## Content structure (sections, top to bottom in the center reading column)
+
 1. **Masthead** — slim, forest green band. Left: "SEMTIFY" in Source Serif.
    Right: mono "PUBLIC SERVICE · HOUSING RIGHTS · EST. 2026". A horizontal brass
    rule beneath.
@@ -73,7 +78,9 @@ looked-up, not invented."
    "Semptify is a public-service housing-rights tool. No ads, ever."
 
 ## Left index pane (desktop only)
+
 A slim forest-tinted index titled "INDEX" in mono, listing:
+
 - I. RECORD
 - II. KNOW
 - III. ACT
@@ -84,16 +91,19 @@ Each is a quiet text link (no buttons in the index). On mobile this becomes a
 disclosure drawer toggled by an "INDEX" button.
 
 ## Right rail (desktop only)
+
 Holds the primary **"Begin"** button (forest bg, parchment text — NOT "Sign
 up"/"Log in"), a mono note "No account needed. Your documents stay in your own
 cloud storage.", and the emergency callout. On mobile these move into the center
 column flow.
 
 ## Forbidden words (HARD RULE — never use on the page)
+
 "free" (about Semptify itself), "accounts", "log in", "sign up", "subscription",
 "upgrade", "premium", "paid plan", "trial", "pricing". The CTA is "Begin".
 
 ## Technical requirements
+
 - Single self-contained `index.html` + `assets/` if needed.
 - Vanilla CSS (no Tailwind, no Bootstrap). Inline `<style>` fine for mockup.
 - Google Fonts via `<link>` (Source Serif 4, Inter, IBM Plex Mono).
@@ -104,8 +114,10 @@ column flow.
 - No external image services. Generate any assets locally into `assets/`.
 
 ## Output path
+
 `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\quiet_library\index.html`
 
 ## Image needs
+
 None expected. Typography, rules, parchment tint. If you add any image, generate
 it locally into `assets/` — never reference external hosts.

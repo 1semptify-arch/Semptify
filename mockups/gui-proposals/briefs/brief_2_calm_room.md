@@ -1,17 +1,20 @@
 # Brief — Proposal 2: "The Calm Room"
 
 ## Objective
+
 Design a **public welcome / public website** page for Semptify — a public-service
 housing-rights and tenant-support tool. This page is the GUI entry point that gives
 the public access to the Semptify webapp (it leads into onboarding). It is NOT a
 marketing landing page and NOT a commercial product page.
 
 ## Target audience
+
 Tenants facing housing problems — often stressed, often on a phone, often low
 bandwidth. Primary persona for this aesthetic: **The Blindsided Tenant** (just got
 a notice, panicking, needs panic reduced to clarity).
 
 ## Aesthetic direction — "The Calm Room"
+
 Therapeutic breathing room. Feels like sitting with a steady, kind social worker
 who has done this a thousand times. Whitespace is the design. One step at a time.
 
@@ -28,11 +31,13 @@ who has done this a thousand times. Whitespace is the design. One step at a time
 - **No photographs of people.** Soft CSS gradients only (sage→sand). No external images.
 
 ## Memorable element
+
 A **"Breathe. Here's your next step."** persistent card near the top that shows
 exactly ONE action — the "Begin" button — never a dashboard of tiles. It should
 feel like a calm hand on the shoulder.
 
 ## Content structure (sections, top to bottom)
+
 1. **Top bar** — slim, sage. Left: "Semptify" in Inter. Right: small mono
    "Public service · Housing rights". Nothing else. No nav menu.
 2. **Hero** — Fraunces H1 (large, soft): "You don't have to figure this out alone."
@@ -65,10 +70,12 @@ feel like a calm hand on the shoulder.
    "Semptify is a public-service housing-rights tool. No ads, ever."
 
 ## Forbidden words (HARD RULE — never use on the page)
+
 "free" (about Semptify itself), "accounts", "log in", "sign up", "subscription",
 "upgrade", "premium", "paid plan", "trial", "pricing". The CTA is "Begin".
 
 ## Technical requirements
+
 - Single self-contained `index.html` + `assets/` if needed.
 - Vanilla CSS (no Tailwind, no Bootstrap). Inline `<style>` fine for mockup.
 - Google Fonts via `<link>` (Inter, IBM Plex Mono, Fraunces).
@@ -78,8 +85,10 @@ feel like a calm hand on the shoulder.
 - No external image services. Generate any assets locally into `assets/`.
 
 ## Output path
+
 `E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\calm_room\index.html`
 
 ## Image needs
+
 None expected. Soft CSS gradients only. If you add any image, generate it locally
 into `assets/` — never reference external hosts.

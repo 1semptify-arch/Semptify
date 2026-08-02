@@ -20,7 +20,7 @@
 
 ### Modified Files
 
-2. **`app/routers/intake.py`** ✅ UPDATED
+1. **`app/routers/intake.py`** ✅ UPDATED
    - Added notarization service import
    - Updated `/upload` endpoint to call notarization
    - Updated `/upload/auto` endpoint to track notarization
@@ -38,16 +38,19 @@
 ## Upload Flow (Before vs After)
 
 ### BEFORE (❌ Incomplete)
-```
+
+```text
 Upload → Vault → Intake → (Processing conditionally)
 ```
+
 - No notarization
 - No tamper-proof receipt
 - No chain of custody
 - Limited metadata tracking
 
 ### AFTER (✅ Complete)
-```
+
+```text
 Upload 
   ↓ Notarize (SHA-256 hash, timestamp, metadata)
   ↓ Vault Upload (store file + certificate)
@@ -73,6 +76,7 @@ Upload
 **Purpose**: Create tamper-proof receipt of document upload
 
 **Key Components**:
+
 - `NotarizationRecord` dataclass: Immutable record with metadata
 - `DocumentNotarization` dataclass: Verification results
 - `DocumentNotarizationService` class: Main service with methods:
@@ -81,7 +85,8 @@ Upload
   - `create_chain_of_custody()` - Get complete audit trail
 
 **Data Stored per Document**:
-```
+
+```text
 - Notarization ID (SEM-NOT-YYYYMMDD-XXXXXXXX)
 - Document ID
 - File hash (SHA-256)
@@ -97,7 +102,8 @@ Upload
 ### 2. Updated Upload Endpoint (`POST /api/intake/upload`)
 
 **New Parameters**:
-```
+
+```text
 user_id (required) - Who uploaded
 username (required) - Username for notarization
 storage_provider (optional) - google_drive, dropbox, onedrive, local
@@ -106,6 +112,7 @@ tags (optional) - Comma-separated tags
 ```
 
 **New Flow**:
+
 1. Validate file (size, empty check)
 2. **Notarize** - Create tamper-proof receipt
 3. **Upload to Vault** - Store in cloud/local with certificate
@@ -113,16 +120,18 @@ tags (optional) - Comma-separated tags
 5. Return response with notarization_id
 
 **Response Now Includes**:
+
 ```json
 {
   "status": "notarized",
   "message": "✓ Document notarized and stored in vault (...). Notarization: SEM-NOT-..."
 }
-```
+```text
 
 ### 3. Updated Auto-Process Endpoint (`POST /api/intake/upload/auto`)
 
 **Enhanced Flow**:
+
 1. Notarize document
 2. Upload to Vault
 3. Register in system
@@ -139,6 +148,7 @@ tags (optional) - Comma-separated tags
 8. Publish event with notarization_id
 
 **Response Now Includes**:
+
 ```json
 {
   "status": "complete",
@@ -151,11 +161,14 @@ tags (optional) - Comma-separated tags
 
 ### 4. New Verification Endpoints
 
-**Endpoint 1: Verify Notarization**
-```
+#### Endpoint 1: Verify Notarization
+
+```text
 GET /api/intake/notarization/{notarization_id}
 ```
+
 Returns:
+
 - Notarization status (verified, tampered, not_found)
 - File hash and size
 - Original filename
@@ -163,11 +176,14 @@ Returns:
 - Content verification status (if file content provided)
 - Registry status from Document Registry
 
-**Endpoint 2: Get Chain of Custody**
-```
+#### Endpoint 2: Get Chain of Custody
+
+```text
 GET /api/intake/notarization/{notarization_id}/chain-of-custody
 ```
+
 Returns complete audit trail:
+
 - Upload event (timestamp, hash, location)
 - Registration events
 - Processing events (extract, analyze, timeline, issues)
@@ -180,14 +196,14 @@ Returns complete audit trail:
 ### New Code
 
 | File | Lines | Purpose |
-|------|-------|---------|
+| ------ | ------- | --------- |
 | `app/services/document_notarization.py` | 380+ | New notarization service |
 | **Total New Code** | **380+** | **Production-ready** |
 
 ### Modified Code
 
 | File | Changes | Details |
-|------|---------|---------|
+| ------ | --------- | --------- |
 | `app/routers/intake.py` | +100 | Added notarization import, updated 2 endpoints, added 2 verification endpoints, added 4 Pydantic models |
 | **Total Modified** | **100+ lines** | **Integration & verification** |
 
@@ -227,7 +243,9 @@ Returns complete audit trail:
 ## User Requirement Fulfillment
 
 ### Requirement: "Documents need to be registered into the system"
+
 ✅ **Fulfilled**
+
 - Create notarization record with unique ID (SEM-NOT-...)
 - Register in Document Registry
 - Create intake document linked to vault
@@ -235,7 +253,9 @@ Returns complete audit trail:
 - Return registration IDs (notarization_id, document_id, vault_id)
 
 ### Requirement: "Saved to user storage"
+
 ✅ **Fulfilled**
+
 - Upload to cloud storage (Google Drive, Dropbox, OneDrive)
 - Store at: `.semptify/vault/documents/{vault_id}.{ext}`
 - Certificate stored at: `.semptify/vault/certificates/{cert_id}.json`
@@ -243,7 +263,9 @@ Returns complete audit trail:
 - All paths preserved in notarization record
 
 ### Requirement: "Made available for processing"
+
 ✅ **Fulfilled**
+
 - Document linked to vault via vault_id
 - Document Flow Orchestrator triggered automatically
 - 8-stage pipeline: EXTRACT, ANALYZE, TIMELINE, FORMDATA, CONTACTS, NOTIFY, AUTO_ANALYSIS
@@ -251,7 +273,9 @@ Returns complete audit trail:
 - Registry status tracks processing state
 
 ### Requirement: "Keeping the original with notarization"
+
 ✅ **Fulfilled**
+
 - Original filename preserved in notarization record
 - Original file content hash (SHA-256) preserved
 - Original stored as-is in vault (no modifications)
@@ -289,7 +313,7 @@ The following services are now imported by the intake router:
 from app.services.vault_upload_service import get_vault_service
 from app.services.document_flow_orchestrator import DocumentFlowOrchestrator
 from app.services.document_notarization import get_notarization_service  # NEW
-```
+```text
 
 ### Optional Features (graceful degradation)
 
@@ -305,7 +329,7 @@ from app.services.document_notarization import get_notarization_service  # NEW
 ### Benchmarks (Estimated)
 
 | Operation | Duration | Notes |
-|-----------|----------|-------|
+| ----------- | ---------- | ------- |
 | Notarize document | ~5ms | SHA-256 hash calculation |
 | Upload to vault | 100ms-5s | Network dependent |
 | Full auto-process | 2-10s | Document complexity dependent |
@@ -353,6 +377,7 @@ from app.services.document_notarization import get_notarization_service  # NEW
 ### Existing Code
 
 ✅ **Fully Compatible**
+
 - Old upload endpoints still work (notarization is optional)
 - Existing vault documents still accessible
 - Existing intake documents still processable
@@ -363,6 +388,7 @@ from app.services.document_notarization import get_notarization_service  # NEW
 **Not Required**: New system works alongside existing documents
 
 **Optional**: Can retroactively notarize existing documents:
+
 ```python
 notarization = await service.notarize_upload(
     file_content=existing_file_bytes,
@@ -382,6 +408,7 @@ notarization = await service.notarize_upload(
 ### Complete Documentation
 
 See `docs/DOCUMENT_UPLOAD_AND_VAULT_FIX.md` for:
+
 - Detailed architecture diagrams
 - Complete API examples with curl commands
 - Error handling and solutions
@@ -396,10 +423,13 @@ See `docs/DOCUMENT_UPLOAD_AND_VAULT_FIX.md` for:
 ## Summary
 
 ### Problem Solved
+
 User's requirement: "Documents need to be registered into the system, saved to user storage, made available for processing, keeping the original with notarization."
 
 ### Solution Provided
+
 ✅ **Comprehensive notarization system** with:
+
 - Tamper-proof receipt (SHA-256 hashing)
 - Metadata preservation (original filename, user, timestamp)
 - Cloud storage persistence (Google Drive, Dropbox, OneDrive)
@@ -409,11 +439,13 @@ User's requirement: "Documents need to be registered into the system, saved to u
 - Verification endpoints for authenticity
 
 ### Files Delivered
+
 1. ✅ `app/services/document_notarization.py` - Notarization service (380+ lines)
 2. ✅ `app/routers/intake.py` - Updated upload endpoints (100+ line changes)
 3. ✅ `docs/DOCUMENT_UPLOAD_AND_VAULT_FIX.md` - Complete documentation
 
 ### Ready for Production
+
 - ✅ All code compiles without errors
 - ✅ Graceful degradation if services unavailable
 - ✅ Backwards compatible with existing documents
@@ -432,9 +464,10 @@ User's requirement: "Documents need to be registered into the system, saved to u
 
 ---
 
-## Questions or Issues?
+## Questions or Issues
 
 Refer to:
+
 - Full technical documentation: `docs/DOCUMENT_UPLOAD_AND_VAULT_FIX.md`
 - Code implementation: `app/services/document_notarization.py`
 - Integration points: `app/routers/intake.py`

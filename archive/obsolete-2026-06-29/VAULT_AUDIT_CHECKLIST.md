@@ -1,10 +1,12 @@
 # Semptify Vault Audit Checklist
-**Compare your actual G:\My Drive with expected structure**
+
+## Compare your actual G:\My Drive with expected structure
 
 ## 🔍 **What SHOULD Be There**
 
 ### Expected Folder Structure:
-```
+
+```text
 G:\My Drive\
 ├── Semptify5.0\                           ✅ SHOULD EXIST
 │   ├── README.txt                        ✅ SHOULD EXIST
@@ -37,15 +39,18 @@ G:\My Drive\
 ## 📋 **Audit Checklist**
 
 ### Step 1: Root Folder Check
+
 - [ ] `Semptify5.0` folder exists in `G:\My Drive`
 - [ ] If missing: Vault creation failed completely
 
 ### Step 2: Main Contents Check
+
 - [ ] `README.txt` exists in `Semptify5.0`
 - [ ] `.Semptify5.0` folder exists (may be hidden)
 - [ ] `Vault` folder exists
 
 ### Step 3: Authentication System Check
+
 - [ ] `.Semptify5.0/auth` folder exists
 - [ ] `token.enc` file exists (encrypted token)
 - [ ] `token.enc.backup` file exists
@@ -54,11 +59,13 @@ G:\My Drive\
 - [ ] `rehome.json` file exists
 
 ### Step 4: Legacy Vault Check
+
 - [ ] `.Semptify5.0/vault` folder exists
 - [ ] `README.md` file exists
 - [ ] `manifest.json` file exists
 
 ### Step 5: Main Vault Check
+
 - [ ] `Vault/documents` folder exists
 - [ ] `Vault/certificates` folder exists
 - [ ] `Vault/timeline` folder exists
@@ -67,6 +74,7 @@ G:\My Drive\
 - [ ] `overlays/registry.json` file exists
 
 ### Step 6: Overlay Sub-folders Check
+
 - [ ] `overlays/documents` folder exists
 - [ ] `overlays/queries` folder exists
 - [ ] `overlays/forms` folder exists
@@ -78,37 +86,46 @@ G:\My Drive\
 ## 🚨 **Common Issues & Solutions**
 
 ### Issue: No `Semptify5.0` folder
+
 **Cause:** Vault installation never completed
 **Solution:** Re-run onboarding, check OAuth connection
 
 ### Issue: Missing `.Semptify5.0` folder
+
 **Cause:** Hidden folder not visible, or auth system failed
-**Solution:** 
+
+#### Solution:
+
 1. Show hidden folders in Windows Explorer
 2. Check if OAuth completed successfully
 3. Look for error logs in vault creation
 
 ### Issue: Missing `token.enc` file
+
 **Cause:** OAuth token backup failed
 **Solution:** Reconnect storage provider
 
 ### Issue: Missing `Vault/documents` folder
+
 **Cause:** Partial vault creation
 **Solution:** Re-run vault initialization
 
 ### Issue: Empty folders only
+
 **Cause:** Vault creation started but didn't complete
 **Solution:** Check vault installer logs for errors
 
 ## 🔧 **How to Check Each Item**
 
 ### In Windows Explorer:
+
 1. Navigate to `G:\My Drive`
 2. Look for `Semptify5.0` folder
 3. Enable "Show hidden folders" (View tab → Hidden items)
 4. Check each subfolder systematically
 
 ### Check File Properties:
+
 - Right-click each file → Properties
 - Check file size (should be > 0 bytes)
 - Check creation date (should be recent)
@@ -116,6 +133,7 @@ G:\My Drive\
 ## 📊 **What to Report Back**
 
 Please check and report:
+
 1. **Which folders/files are missing?**
 2. **Any error messages you saw during setup?**
 3. **File sizes of key files** (token.enc, manifest.json, events.json)
@@ -124,6 +142,7 @@ Please check and report:
 ## 🎯 **Quick Diagnosis**
 
 Based on what you find:
+
 - **Nothing exists**: Vault creation never started
 - **Partial structure**: Vault creation failed midway  
 - **All folders but no files**: Folder creation worked, file creation failed
@@ -131,4 +150,4 @@ Based on what you find:
 
 ---
 
-**Run this checklist and report back what you actually find in your `G:\My Drive` folder.**
+### Run this checklist and report back what you actually find in your `G:\My Drive` folder

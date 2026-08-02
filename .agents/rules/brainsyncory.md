@@ -1,6 +1,6 @@
 
-
 # Project Memory — Semptify5.0
+>
 > 479 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
@@ -21,20 +21,27 @@
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
 - **⚠️ GOTCHA: Added session cookies authentication** — - - what-changed in shared-context.json — confirmed 3x
-+ - Added sessi
+- - Added sessi
+
 - **⚠️ GOTCHA: Added session cookies authentication** — - - ⚠️ GOTCHA: Patched security issue Patched
-+ - gotcha in shared-con
+- - gotcha in shared-con
+
 - **gotcha in shared-context.json** — -     }
-+     },
--   ]
-+     {
+-     },
+
+- ]
+-     {
+
 - }
-+       "id": "fbaa2c3cb5a3c0ae",
-+
+-       "id": "fbaa2c3cb5a3c0ae",
+-
+
 - **⚠️ GOTCHA: Patched security issue Patched** — - - problem-fix in agent-rules.md
-+ - Patched security issue Check — p
+- - Patched security issue Check — p
+
 - **⚠️ GOTCHA: Added session cookies authentication — evolves the database schema to support...** — - > 294 notes | Score threshold: >40
-+ > 295 notes | Score threshold: 
+>
+- > 295 notes | Score threshold:
 
 ## Project Standards
 
@@ -71,7 +78,8 @@
 - Agent installs packages without checking if already installed
 
 ### 📚 Core Framework Rules: [tinybirdco/tinybird-python-sdk-guidelines]
-# Tinybird Python SDK Guidelines
+
+## Tinybird Python SDK Guidelines
 
 Guidance for using the `tinybird-sdk` package to define Tinybird resources in Python.
 
@@ -111,9 +119,9 @@ Guidance for using the `tinybird-sdk` package to define Tinybird resources in Py
 - Migrate: `tinybird migrate` (convert .datasource/.pipe files to Python)
 - Server-side only; never expose tokens in browsers
 
-
 ### 📚 Core Framework Rules: [czlonkowski/n8n-code-python]
-# Python Code Node (Beta)
+
+## Python Code Node (Beta)
 
 Expert guidance for writing Python code in n8n Code nodes.
 
@@ -122,11 +130,13 @@ Expert guidance for writing Python code in n8n Code nodes.
 ## ⚠️ Important: JavaScript First
 
 **Recommendation**: Use **JavaScript for 95% of use cases**. Only use Python when:
+
 - You need specific Python standard library functions
 - You're significantly more comfortable with Python syntax
 - You're doing data transformations better suited to Python
 
-**Why JavaScript is preferred:**
+### Why JavaScript is preferred:
+
 - Full n8n helper functions ($helpers.httpRequest, etc.)
 - Luxon DateTime library for advanced date/time operations
 - No external library limitations
@@ -135,8 +145,6 @@ Expert guidance for writing Python code in n8n Code nodes.
 ---
 
 ## Quick Start
-
-
 
 ### Essential Rules
 
@@ -162,8 +170,6 @@ Same as JavaScript - choose based on your use case:
 - **Best for**: Aggregation, filtering, batch processing, transformations
 - **Performance**: Faster for multiple items (single execution)
 
-
-
 ### Run Once for Each Item
 
 **Use this mode for:** Specialized cases only
@@ -173,8 +179,6 @@ Same as JavaScript - choose based on your use case:
 - **Best for**: Item-specific logic, independent operations, per-item validation
 - **Performance**: Slower for large datasets (multiple executions)
 
-
-
 ---
 
 ## Python Modes: Beta vs Native
@@ -182,20 +186,18 @@ Same as JavaScript - choose based on your use case:
 n8n offers two Python execution modes:
 
 ### Python (Beta) - Recommended
+
 - **Use**: `_input`, `_json`, `_node` helper syntax
 - **Best for**: Most Python use cases
 - **Helpers available**: `_now`, `_today`, `_jmespath()`
 - **Import**: `from datetime import datetime`
 
-
-
 ### Python (Native) (Beta)
+
 - **Use**: `_items`, `_item` variables only
 - **No helpers**: No `_input`, `_now`, etc.
 - **More limited**: Standard Python only
 - **Use when**: Need pure Python without n8n helpers
-
-
 
 **Recommendation**: Use **Python (Beta)** for better n8...
 (truncated)
@@ -204,6 +206,8 @@ n8n offers two Python execution modes:
 - [Python] Don't use mutable default arguments (def f(items=[]) is a bug)
 
 ## Available Tools (ON-DEMAND only)
+
 - `sys_core_01(q)` — Deep search when stuck
 - `sys_core_05(query)` — Full-text lookup
+
 > Context above IS your context. Do NOT call sys_core_14() at startup.

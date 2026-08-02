@@ -7,6 +7,7 @@ This document defines the current Semptify document lifecycle, the responsible s
 Semptify treats document handling as a series of deterministic stages. Each stage has a clear source of truth and a defined scope of responsibility.
 
 The high-level flow is:
+
 1. Storage authentication and session identity
 2. Vault upload
 3. Document registration
@@ -140,7 +141,7 @@ The high-level flow is:
 ## 3. Key artifacts and their authoritative truth
 
 | Artifact | Source of Truth | Stored Where | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `vault_id` | `VaultUploadService` | local vault index + certificate file | Unique vault artifact ID for stored file |
 | document registry ID | `DocumentRegistry` | `registry.json` | Canonical system document identity |
 | file hash | `DocumentRegistry` / vault upload service | registry and certificate | SHA-256 content fingerprint |
