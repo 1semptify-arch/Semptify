@@ -46,7 +46,7 @@ repos:
     hooks:
       - id: detect-secrets
         name: Detect secrets
-        entry: python -m detect_secrets.pre_commit_hook --baseline .secrets.baseline
+        entry: python scripts/detect_secrets_hook.py --baseline .secrets.baseline
         language: system
         pass_filenames: true
         exclude: >
