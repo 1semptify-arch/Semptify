@@ -222,7 +222,7 @@ class FileValidator:
             'risk_level': 'medium'
         },
         'csv': {
-            'mime_types': ['text/csv', 'application/csv'],
+            'mime_types': ['text/csv', 'application/csv', 'text/plain'],
             'max_size_mb': 10,
             'description': 'CSV spreadsheet',
             'risk_level': 'low'
