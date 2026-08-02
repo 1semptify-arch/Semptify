@@ -3,14 +3,14 @@
 ## Quick Deploy (Blueprint)
 
 1. **Push to GitHub** - Ensure your repo is on GitHub
-2. **Go to Render Dashboard** - https://dashboard.render.com
+2. **Go to Render Dashboard** - <https://dashboard.render.com>
 3. **New > Blueprint** - Click "New" → "Blueprint"
 4. **Connect Repository** - Select your Semptify-FastAPI repo
 5. **Deploy** - Render reads `render.yaml` and creates all services
 
 ## Manual Deploy (Web Service Only)
 
-1. Go to https://dashboard.render.com
+1. Go to <https://dashboard.render.com>
 2. Click **New** → **Web Service**
 3. Connect your GitHub repo
 4. Configure:
@@ -26,22 +26,25 @@
 Add these in Render Dashboard → Your Service → Environment:
 
 ### Required
+
 | Variable | Value | Notes |
-|----------|-------|-------|
+| ---------- | ------- | ------- |
 | `SECRET_KEY` | (auto-generate) | Click "Generate" in Render |
 | `SECURITY_MODE` | `enforced` | Production security |
 | `DATABASE_URL` | (from Render PostgreSQL) | Auto-linked if using Blueprint |
 
 ### Optional - AI Features
+
 | Variable | Value |
-|----------|-------|
+| ---------- | ------- |
 | `AI_PROVIDER` | `groq` or `openai` or `none` |
 | `GROQ_API_KEY` | Your Groq API key |
 | `OPENAI_API_KEY` | Your OpenAI API key |
 
 ### Optional - Cloud Storage
+
 | Variable | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `GOOGLE_DRIVE_CLIENT_ID` | Google OAuth |
 | `GOOGLE_DRIVE_CLIENT_SECRET` | Google OAuth |
 | `DROPBOX_APP_KEY` | Dropbox OAuth |
@@ -52,20 +55,25 @@ Add these in Render Dashboard → Your Service → Environment:
 ## Database Options
 
 ### Option 1: Render PostgreSQL (Recommended)
+
 - Blueprint auto-creates PostgreSQL
 - Free tier: 1GB storage, 97-day retention
 - `DATABASE_URL` auto-linked
 
 ### Option 2: External PostgreSQL
+
 Set `DATABASE_URL` manually:
-```
+
+```text
 postgresql://user:password@host:5432/database
 ```
 
 ### Option 3: SQLite (Not Recommended for Production)
-```
+
+```text
 DATABASE_URL=sqlite+aiosqlite:///./semptify.db
 ```
+
 ⚠️ SQLite data is lost on redeploys (ephemeral filesystem)
 
 ## Health Check
@@ -83,27 +91,32 @@ The app exposes `/health` endpoint for Render health checks.
 ## Scaling (Paid Plans)
 
 In `render.yaml`, change:
+
 ```yaml
 plan: starter  # $7/mo - always on
-# or
+## or
 plan: standard  # $25/mo - more resources
 ```
 
 ## Troubleshooting
 
 ### Build Fails
+
 - Check `requirements.txt` for version conflicts
 - View build logs in Render dashboard
 
 ### App Crashes on Start
+
 - Verify `DATABASE_URL` is set correctly
 - Check logs: Dashboard → Logs
 
 ### 502 Bad Gateway
+
 - App might be starting up (initial deploy takes ~2 min)
 - Check health endpoint: `https://your-app.onrender.com/health`
 
 ### Database Connection Error
+
 - Ensure PostgreSQL service is running
 - Check `DATABASE_URL` format
 

@@ -22,7 +22,7 @@ All Tier 2 module completeness stubs are resolved. The litigation intelligence g
 These were intentionally disabled for memory/performance reasons. Re-enable after optimization.
 
 | # | File | Line | Stub | Impact | Effort |
-|---|------|------|------|--------|--------|
+| --- | ------ | ------ | ------ | -------- | -------- |
 | 3.1 | `app/main.py` | 370 | Positronic Brain DISABLED (memory hog) | Event tracking offline | High |
 | 3.2 | `app/main.py` | 470, 489 | Distributed mesh network DISABLED | Cross-instance comms offline | High |
 | 3.3 | `app/main.py` | 1341, 1376 | Performance monitoring DISABLED (85% memory) | No perf telemetry | Medium |
@@ -35,7 +35,7 @@ These were intentionally disabled for memory/performance reasons. Re-enable afte
 Placeholders in data, not code. Safe to ship.
 
 | # | File | Line | Stub | Impact | Effort |
-|---|------|------|------|--------|--------|
+| --- | ------ | ------ | ------ | -------- | -------- |
 | 4.1 | `app/modules/state_laws/router.py` | 80 | Most states return `status: "stub"` — only MN is complete | **BY DESIGN**: other states show "limited data" banner with link to lawhelp.org | Low per state |
 | 4.2 | `app/services/eviction/seed_court_data.py` | 4 matches | Seed data TODOs | Court data incomplete | Low |
 | 4.3 | `app/modules/legal_filing_module.py` | 6 | `# Placeholder for actual module integration with mesh/network` | Module works, mesh hook is no-op | Low |
@@ -47,7 +47,7 @@ Placeholders in data, not code. Safe to ship.
 Explicitly deferred per AGENTS.md and user direction.
 
 | # | File | Line | Stub | Impact |
-|---|------|------|------|--------|
+| --- | ------ | ------ | ------ | -------- |
 | 5.1 | `static/js/law-linker.js` | 20 | `TODO (post-funding): Build a live-feed verification engine` | Law URLs verified manually, no auto-refresh |
 | 5.2 | `app/core/law_source_registry.py` | 1 match | Same — live-feed verification | Same |
 
@@ -56,13 +56,17 @@ Explicitly deferred per AGENTS.md and user direction.
 ## Recommended Next Session Plan
 
 ### Sprint 1: Core User Flow (Tier 1) — resolved
+
 All Tier 1 items are implemented and tested.
 
 ### Sprint 2: Module Completeness (Tier 2) — resolved
+
 All Tier 2 items are implemented and tested.
 
 ### Sprint 3: Disabled Infrastructure (Tier 3) — defer until memory optimized
+
 ### Sprint 4: Data Stubs (Tier 4) — fill in as states are needed
+
 ### Sprint 5: Post-Funding (Tier 5) — not now
 
 ---

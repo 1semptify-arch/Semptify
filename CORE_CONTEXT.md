@@ -6,7 +6,7 @@ This is not optional background — it is the foundation every single decision i
 
 ## What this is — say it out loud before you write a line of code
 
-**This is a public utility. Not a product.**
+### This is a public utility. Not a product
 
 It works like a library or a 911 service.
 It is open to anyone. No account needed. No trace left behind. No promotion. No sign-up. No return visit goal.
@@ -42,7 +42,8 @@ Our users are in crisis. They may be:
 - English may not be their first language
 - Dealing with this alone, with no one to call
 
-**This changes everything about how we build.**
+### This changes everything about how we build
+
 Every decision — layout, wording, color, flow — is made for this person in this moment.
 
 ---

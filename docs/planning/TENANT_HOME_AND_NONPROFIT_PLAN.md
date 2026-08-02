@@ -9,7 +9,8 @@
 ## Part 1: Current State Audit (verified live 2026-06-28)
 
 ### Document Center (DC) — ✅ WORKING
-- URL: https://semptify.org/documents
+
+- URL: <https://semptify.org/documents>
 - 15 documents loaded in vault list
 - Viewer iframe present
 - Upload button functional
@@ -17,10 +18,12 @@
 - **Status: DONE. No further work needed.**
 
 ### Tenant Journal — ✅ WORKING (fixed this session)
+
 - 5 entries render with correct stats (5 total, 5 this month, 0 urgent, 18 days)
 - Root cause was `doc.uploaded_at.isoformat()` on a string — fixed in `tenant_briefcase.py:666`
 
 ### Tenant Home Page — ⚠️ INCOMPLETE
+
 - Template: `app/templates/pages/tenant_home.html` (463 lines)
 - Route: `/tenant/home` in `main.py:3453`
 - **Missing from home page:**
@@ -33,6 +36,7 @@
   - 🧩 Add-ons / Advanced Features — no section
 
 ### Jurisdiction / Location — ⚠️ EXISTS BUT NOT WIRED TO USER SETUP
+
 - `app/modules/location/router.py` — accepts `zip_code`, `state_code`, `county`, `city`
 - `POST /api/location/update` endpoint exists
 - `app/modules/setup/router.py` — `UserProfile` model has `zip_code` field (line 37)
@@ -40,12 +44,14 @@
 - **Gap:** No zip-code entry on tenant home or in onboarding
 
 ### Form Fill — ✅ EXISTS
+
 - `app/modules/court_forms/router.py` — `POST /api/court-forms/generate`
 - Creates `FORM_FILL` overlay in user's vault with filled form data
 - Uses `oauth_token_manager + services.storage.get_provider` pattern (SSOT-compliant)
 - **Status: Working. Needs UX integration on tenant home.**
 
 ### Accountability Module — ⚠️ REGISTERED BUT BROKEN (fixed this session)
+
 - Registered in `product_manifest.py:504` as `lifecycle="beta"`
 - 7 FunctionGroupContracts registered in `app/modules/housing_accountability/register.py`
 - Endpoints: `/api/housing-accountability/*`
@@ -53,11 +59,13 @@
 - **Status: Backend functional. No tenant-facing UI exists.**
 
 ### Calendar Module — ⚠️ EXISTS, NOT REGISTERED
+
 - `app/modules/calendar/router.py` (23KB) exists
 - NOT in `product_manifest.py` — never loaded
 - **Status: Needs registration + tenant UI card**
 
 ### Admin Module Console — ⚠️ PARTIAL
+
 - `static/admin/module_flags.html` exists — toggle module flags
 - `static/admin/dashboard.html` — admin landing
 - `app/modules/admin_console/router.py` (62KB) — backend exists
@@ -65,12 +73,14 @@
 - **Gap:** No interactive switches for module runtime control
 
 ### Free AI for Non-Profit — ⚠️ NO PLAN EXISTS
+
 - `app/modules/local_ai/config.py` — supports Ollama/LM Studio (local)
 - User stated: "I cannot host AI locally"
 - **Need:** Cloud-based, free, no-strings, no-advertising AI services
 - **Status: RESEARCH NEEDED — see Part 4**
 
 ### Non-Profit Organization — ⚠️ NOT SET UP
+
 - 30 files mention "nonprofit" but no 501(c)(3) status documented
 - `FUNDING_PROSPECTUS_ID_SYSTEM.md` exists but funding not secured
 - **Status: RESEARCH NEEDED — see Part 5**
@@ -80,11 +90,12 @@
 ## Part 2: Tenant Home Page Redesign
 
 ### Goal
+
 Make the tenant home page the single launchpad for ALL tenant functionality. Two pillars (RECORD + KNOW) plus access to every tool.
 
 ### New Layout (top to bottom)
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ Welcome [name] — reassuring message          │
 ├─────────────────────────────────────────────┤
@@ -119,14 +130,17 @@ Make the tenant home page the single launchpad for ALL tenant functionality. Two
 ```
 
 ### Files to Edit
+
 1. **`app/templates/pages/tenant_home.html`** — restructure quick actions into 3 sections (RECORD, KNOW, ADVANCED), add SETTINGS section, add jurisdiction display
 2. **`app/main.py:3453` (`tenant_home` route)** — load jurisdiction from `/api/location/current` and pass to template
 3. **`app/core/product_manifest.py`** — register calendar module
 
 ### No New Files
+
 All changes in existing files. Rule 13 compliant.
 
 ### Conflict Check
+
 - `tenant_home.html` — only modified by this plan
 - `main.py:3453-3490` — `tenant_home` route, isolated
 - `product_manifest.py` — adding calendar registration, no conflict with existing entries
@@ -136,20 +150,24 @@ All changes in existing files. Rule 13 compliant.
 ## Part 3: Jurisdiction / Zip Code User Setup
 
 ### Goal
+
 Tenant can enter zip code manually. Used by Law Library for state-specific rights, Accountability for jurisdiction-aware patterns, Court Forms for correct court.
 
 ### Implementation
+
 1. **Add zip code input to tenant home** — in SETTINGS section
 2. **Wire to existing `POST /api/location/update`** — no new endpoint
 3. **Add to onboarding** — `app/modules/onboarding/router.py` should call location update after vault setup
 4. **Law Library reads location** — `app/modules/law_library/router.py` already exists, needs to read user's location for state-specific content
 
 ### Files to Edit
+
 1. `app/templates/pages/tenant_home.html` — add zip code form in SETTINGS section
 2. `app/main.py:3453` — fetch location in `tenant_home` route
 3. `app/modules/onboarding/router.py` — add location step after vault step (Phase 2, not now)
 
 ### No New Endpoints
+
 `POST /api/location/update` and `GET /api/location/current` already exist.
 
 ---
@@ -157,6 +175,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 ## Part 4: Free AI Services for Non-Profit Semptify
 
 ### Requirements
+
 - Totally free, no strings, no advertising
 - Cloud-hosted (user cannot host locally)
 - Suitable for: document summarization, Q&A on tenant rights, form assistance
@@ -164,7 +183,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 ### Research Results — Free AI APIs (no cost, no ads)
 
 | Service | Free Tier | Limits | Best For | Ads? | Strings? |
-|---------|-----------|--------|----------|------|----------|
+| --------- | ----------- | -------- | ---------- | ------ | ---------- |
 | **Google Gemini API** | Free tier | 15 RPM, 1500/day, 1M tokens/min | Summarization, Q&A, vision | No | None |
 | **Cloudflare Workers AI** | Free (10K neurons/day) | 10K neurons/day on free plan | Text gen, summarization | No | None |
 | **HuggingFace Inference API** | Free tier | Rate-limited, community models | Specialized NLP | No | None |
@@ -173,11 +192,13 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 | **Cohere Trial** | Free trial keys | 1000 calls/month, then limited | Embeddings, rerank, gen | No | Trial → paid |
 
 ### Recommended Stack for Semptify
+
 1. **Primary: Google Gemini API** — most generous free tier, vision (read notices), 1M tokens/min
 2. **Fallback: Cloudflare Workers AI** — already on Cloudflare, 10K neurons/day free
 3. **Specialized: HuggingFace** — for legal document analysis models
 
 ### Implementation Plan
+
 1. Add `GEMINI_API_KEY` to Render env vars (free tier key)
 2. Create `app/services/ai/gemini_client.py` — wrapper for Gemini free tier
 3. Create `app/services/ai/router.py` — unified AI endpoint `/api/ai/*`
@@ -185,6 +206,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 5. **Cost: $0/month** — stays within free tiers
 
 ### No-Advertising Verification
+
 - Google Gemini Free Tier: No ads served in API responses ✅
 - Cloudflare Workers AI: No ads ✅
 - HuggingFace: No ads ✅
@@ -194,6 +216,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 ## Part 5: Non-Profit Organization Plan
 
 ### Steps to 501(c)(3) Status
+
 1. **Form a Board** — 3 directors minimum (user + 2 others)
 2. **File Articles of Incorporation** — state level (~$50-100 filing fee)
 3. **Get EIN from IRS** — free, online at IRS.gov
@@ -202,6 +225,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 6. **Register for State Charity Registration** — varies by state
 
 ### Free Resources for Non-Profit Setup
+
 - **IRS Form 1023-EZ** — $275 (vs $600 for full Form 1023)
 - **Pro Bono Legal** — Legal Aid Society, Lawyers Alliance for New York
 - **Free Tech Stack for Non-Profits:**
@@ -214,6 +238,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
   - Cloudflare — free plan (already using)
 
 ### Grant Opportunities (Housing/Tenant Rights)
+
 1. **HUD Fair Housing Initiatives Program (FHIP)** — grants for tenant education
 2. **State Bar Foundation grants** — legal aid for tenants
 3. **Community Development Block Grants (CDBG)** — local housing
@@ -221,6 +246,7 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 5. **Ford Foundation** — housing justice grants
 
 ### Action Items for User
+
 1. Decide board members
 2. Pick state of incorporation (likely MN based on existing data)
 3. File Articles of Incorporation
@@ -232,15 +258,18 @@ Tenant can enter zip code manually. Used by Law Library for state-specific right
 ## Part 6: Admin Module Console — Run Every Module from Admin
 
 ### Goal
+
 Admin can see, enable/disable, and run every module from a single admin GUI.
 
 ### Current State
+
 - `static/admin/module_flags.html` — toggle module flags (exists)
 - `static/admin/dashboard.html` — admin landing (exists)
 - `app/modules/admin_console/router.py` (62KB) — backend exists
 - **Missing:** Unified "run module" GUI with interactive switches
 
 ### Implementation Plan
+
 1. **New admin page:** `static/admin/module_console.html`
    - Lists ALL modules from `product_manifest.py`
    - Each module shows: status (loaded/skipped/error), lifecycle stage, tier
@@ -256,11 +285,13 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 3. **Dashboard link:** Add "🎛️ Module Console" to `static/admin/dashboard.html` nav
 
 ### Files to Edit
+
 1. `static/admin/module_console.html` — NEW file (admin GUI)
 2. `static/admin/dashboard.html` — add nav link
 3. `app/modules/admin_console/router.py` — add "run" endpoint if missing
 
 ### Conflict Check
+
 - `module_flags.html` stays as-is (toggle flags only)
 - New `module_console.html` is additive — no conflict
 - `admin_console/router.py` — check existing endpoints before adding
@@ -270,6 +301,7 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 ## Part 7: Implementation Order
 
 ### Phase 1 — Tenant Home Page (DO FIRST)
+
 1. Register calendar module in `product_manifest.py`
 2. Edit `tenant_home.html` — restructure into RECORD/KNOW/ADVANCED/SETTINGS sections
 3. Edit `main.py:3453` — load location data in `tenant_home` route
@@ -278,18 +310,21 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 6. Commit + push
 
 ### Phase 2 — Accountability Module UI
+
 1. Verify `/api/housing-accountability/dashboard` returns 200 (after CalendarEvent fix deploys)
 2. Create tenant-facing accountability card on home page
 3. Create `/tenant/accountability` page (use existing template pattern)
 4. Wire to existing API endpoints — no new backend
 
 ### Phase 3 — Admin Module Console
+
 1. Audit `admin_console/router.py` existing endpoints
 2. Build `static/admin/module_console.html`
 3. Add nav link to `dashboard.html`
 4. Test: every module can be toggled + run from admin
 
 ### Phase 4 — Free AI Integration
+
 1. Get Gemini API free-tier key
 2. Add `GEMINI_API_KEY` to Render env vars
 3. Create `app/services/ai/gemini_client.py`
@@ -297,6 +332,7 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 5. Test: verify free tier limits not exceeded
 
 ### Phase 5 — Non-Profit Setup (USER ACTION REQUIRED)
+
 1. User files 501(c)(3) paperwork (offline, not code)
 2. Once approved, update `PRIVACY_POLICY.md` and `ABOUT.md`
 3. Apply for Google Workspace for Nonprofits, Microsoft 365, etc.
@@ -306,6 +342,7 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 ## Part 8: Simulation — Conflict Check with Existing System
 
 ### Verified No Conflicts:
+
 - ✅ `tenant_home.html` — only modified by this plan
 - ✅ `main.py:3453` — `tenant_home` route, isolated from other routes
 - ✅ `product_manifest.py` — adding calendar registration at end of file
@@ -315,6 +352,7 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 - ✅ `app/services/ai/` — new directory, no conflict (Phase 4)
 
 ### Verified Working Systems (DO NOT TOUCH):
+
 - DC (`/documents`) — working, 15 docs
 - Journal (`/tenant/journal`) — working, 5 entries
 - Vault upload — working (per restore point)
@@ -322,6 +360,7 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 - Timeline (`/api/timeline/unified`) — working
 
 ### Risk Mitigation:
+
 - Each phase is independent — can be done in any order
 - Each phase has its own commit — easy rollback
 - No phase modifies working systems
@@ -331,15 +370,17 @@ Admin can see, enable/disable, and run every module from a single admin GUI.
 
 ## Part 9: Summary for User
 
-**What's done this session:**
+### What's done this session:
+
 1. ✅ DC verified working (15 docs, viewer, upload)
 2. ✅ Journal fixed (5 entries now display)
 3. ✅ Accountability module fixed (CalendarEvent.event_date → start_datetime)
 
-**What needs doing (in order):**
+### What needs doing (in order):
+
 1. **Tenant home page redesign** — add Law Library, Calendar, Accountability, Help, Settings, zip code entry
 2. **Admin module console** — GUI to run every module from admin
 3. **Free AI integration** — Gemini free tier + Cloudflare Workers AI
 4. **Non-profit filing** — user action (501c3 paperwork)
 
-**Awaiting approval to start Phase 1 (tenant home page).**
+### Awaiting approval to start Phase 1 (tenant home page)

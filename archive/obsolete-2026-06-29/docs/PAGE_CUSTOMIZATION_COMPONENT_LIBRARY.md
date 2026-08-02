@@ -1,4 +1,5 @@
 # Page Customization Component Library
+
 **Purpose:** Complete catalog of all objects, functions, modules & components for page assembly  
 **Status:** Reference Only - For Planning Custom Page Layouts
 
@@ -11,7 +12,7 @@
 ### 1.1 Layout Macros
 
 | Macro | Purpose | Arguments | CSS Class |
-|-------|---------|-----------|-----------|
+| ------- | --------- | ----------- | ----------- |
 | `hero(icon, title, desc, color)` | Page header with gradient | icon, title, desc, color="blue" | .ui-hero |
 | `section_title(icon, text)` | Section divider | icon, text | .ui-section-title |
 | `card_grid(min_width)` | Responsive grid container | min_width="280px" | .ui-card-grid |
@@ -23,7 +24,7 @@
 ### 1.2 Content Macros
 
 | Macro | Purpose | Arguments | Example |
-|-------|---------|-----------|---------|
+| ------- | --------- | ----------- | --------- |
 | `service_card(href, icon, title, desc, featured, badge)` | Feature card | href, icon, title, desc, featured=false, badge="" | Link to /documents |
 | `quick_link(href, icon, text)` | Small nav pill | href, icon, text | Quick task links |
 | `vault_cta(title, desc, button_text)` | Upload prompt | defaults provided | Vault Door CTA |
@@ -45,7 +46,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 2.1 Capture Functions (Document Intake)
 
 | Component | File | Purpose | Size |
-|-----------|------|---------|------|
+| ----------- | ------ | --------- | ------ |
 | Upload Zone | `capture/upload-zone.html` | Drag-drop file upload | 8.3KB |
 | Voice Intake | `capture/voice-intake.html` | Audio recording interface | 12.6KB |
 | Quick Input | `capture/quick-input.html` | Fast text entry | 8.9KB |
@@ -56,7 +57,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 2.2 Understand Functions (Analysis)
 
 | Component | File | Purpose | Size |
-|-----------|------|---------|------|
+| ----------- | ------ | --------- | ------ |
 | Timeline View | `understand/timeline-view.html` | Chronological display | View component |
 | Risk Detection | `understand/risk-detection.html` | Risk analysis UI | Analysis view |
 | Rights Analysis | `understand/rights-analysis.html` | Rights breakdown | Legal analysis |
@@ -66,7 +67,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 2.3 Plan Functions (Action Planning)
 
 | Component | File | Purpose | Size |
-|-----------|------|---------|------|
+| ----------- | ------ | --------- | ------ |
 | Next Step Card | `plan/next-step-card.html` | Action prompt | Card component |
 | Deadline Tracker | `plan/deadline-tracker.html` | Due date display | Tracker widget |
 | Action List | `plan/action-list.html` | Task checklist | List component |
@@ -76,7 +77,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 2.4 Vault Functions (Storage)
 
 | Component | File | Purpose | Size |
-|-----------|------|---------|------|
+| ----------- | ------ | --------- | ------ |
 | Vault Sidebar | `vault/vault-sidebar.html` | Persistent vault panel | Sidebar |
 | Vault Sidebar Fixed | `vault/vault-sidebar-fixed.html` | Fixed position variant | Sidebar |
 | Vault Sidebar Clean | `vault/vault-sidebar-clean.html` | Minimal version | Sidebar |
@@ -84,7 +85,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 2.5 Role-Specific Dashboards
 
 | Role | Component | File | Purpose |
-|------|-----------|------|---------|
+| ------ | ----------- | ------ | --------- |
 | Tenant | Emergency Actions | `role-specific/tenant/emergency-actions.html` | Crisis buttons |
 | Tenant | Dashboard | `role-specific/tenant/dashboard.html` | Main tenant UI |
 | Tenant | Case Summary | `role-specific/tenant/case-summary.html` | Case overview |
@@ -96,7 +97,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 2.6 Onboarding Components
 
 | Component | File | Purpose |
-|-----------|------|---------|
+| ----------- | ------ | --------- |
 | Welcome | `onboarding/welcome.html` | Entry component |
 | Onboarding Tracker | `onboarding/onboarding-tracker.html` | Progress indicator |
 | Demo | `onboarding/demo.html` | Interactive demo |
@@ -108,7 +109,7 @@ Info box types: `info`, `warning`, `success`, `error`
 **Location:** `static/components/`
 
 | Component | File | Purpose | Size |
-|-----------|------|---------|------|
+| ----------- | ------ | --------- | ------ |
 | Footer | `footer.html` | Standard footer | 2.1KB |
 | Header | `header.html` | Page header | 1.3KB |
 | Interactive Timeline | `interactive-timeline.html` | Timeline widget | 21.8KB |
@@ -128,7 +129,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 4.1 App.js Functions
 
 | Function | Purpose | File |
-|----------|---------|------|
+| ---------- | --------- | ------ |
 | `initializeApp()` | App bootstrap | app.js |
 | `setupEventListeners()` | Bind handlers | app.js |
 | `handleNavigation()` | Nav logic | app.js |
@@ -138,7 +139,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 4.2 Vault Portal Functions
 
 | Function | Purpose | File |
-|----------|---------|------|
+| ---------- | --------- | ------ |
 | `openVaultUpload()` | Trigger upload | vault-portal.js |
 | `closeVaultPortal()` | Close modal | vault-portal.js |
 | `handleFileSelect()` | File processing | vault-portal.js |
@@ -148,7 +149,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 4.3 WebSocket Client Functions
 
 | Function | Purpose | File |
-|----------|---------|------|
+| ---------- | --------- | ------ |
 | `connectWebSocket()` | WS connection | websocket-client.js |
 | `handleMessage()` | Message handler | websocket-client.js |
 | `sendMessage()` | Emit message | websocket-client.js |
@@ -157,7 +158,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 4.4 Other JS Files
 
 | File | Functions | Purpose |
-|------|-----------|---------|
+| ------ | ----------- | --------- |
 | `location-detect.js` | Geolocation, timezone | Location services |
 | `unified-footer-loader.js` | Footer injection | Dynamic footer |
 | `workspace-stage-model.js` | Stage management | Workspace state |
@@ -171,7 +172,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.1 Document-Related Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `documents` | upload, list, delete | Yes | Document management |
 | `vault` | create_folders, health_check | Yes | Vault operations |
 | `vault_engine` | process_document, index | Yes | Document processing |
@@ -182,7 +183,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.2 Case/Timeline Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `case_builder` | build_case, analyze | Yes | Case assembly |
 | `timeline` | add_event, view | Yes | Timeline management |
 | `tenant_defense` | generate_response, analyze | No | Defense tools |
@@ -192,7 +193,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.3 Communication Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `communication` | send_message, inbox | Yes | Messaging |
 | `contacts` | manage, import | Yes | Contact book |
 | `calendar` | events, reminders | Yes | Scheduling |
@@ -201,7 +202,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.4 Research & Analysis Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `research` | search, summarize | Yes | Legal research |
 | `research_module` | deep_analysis, dossier | No | Advanced research |
 | `law_library` | lookup, cite | Yes | Law reference |
@@ -212,7 +213,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.5 Intake & Forms Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `intake` | process_intake, guide | Yes | User onboarding |
 | `guided_intake` | step_by_step | Yes | Wizard flow |
 | `complaint_wizard_module` | generate_complaint | No | Complaint builder |
@@ -222,7 +223,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.6 Administrative Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `admin` | manage_users, settings | Yes | Admin panel |
 | `dashboard` | get_stats, widgets | Yes | Dashboard data |
 | `enterprise_dashboard` | org_analytics | Yes | Org dashboard |
@@ -233,7 +234,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 5.7 AI/Auto Modules
 
 | Module | Key Functions | Router | Purpose |
-|--------|---------------|--------|---------|
+| -------- | --------------- | -------- | --------- |
 | `auto_mode` | auto_analyze, suggest | Yes | Auto analysis |
 | `brain` | process_query | Yes | AI engine |
 | `context_loop` | maintain_context | Yes | Context tracking |
@@ -249,7 +250,7 @@ Info box types: `info`, `warning`, `success`, `error`
 **Location:** `app/templates/pages/`
 
 | Template | Extends | Key Features | Use Case |
-|----------|---------|--------------|----------|
+| ---------- | --------- | -------------- | ---------- |
 | `base.html` | None (root) | Full layout, nav, footer | All pages |
 | `welcome.html` | base.html | Role selection, onboarding | Entry point |
 | `library.html` | base.html | Hero, cards, resources | Resource hub |
@@ -263,7 +264,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 6.2 Role Dashboards
 
 | Template | Role | Extends | Key Components |
-|----------|------|---------|----------------|
+| ---------- | ------ | --------- | ---------------- |
 | `tenant_home.html` | Tenant | base.html | Quick access, stats |
 | `tenant_dashboard.html` | Tenant | standalone | Full dashboard |
 | `tenant_journal.html` | Tenant | standalone | Journal interface |
@@ -284,7 +285,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 7.1 Notable Legacy Pages (Ideas to Salvage)
 
 | File | Size | Features Worth Migrating |
-|------|------|--------------------------|
+| ------ | ------ | -------------------------- |
 | `briefcase.html` | 108KB | 14-color highlighter system |
 | `command_center.html` | 79KB | Command palette UI |
 | `complaints.html` | 88KB | Complaint builder workflow |
@@ -307,7 +308,7 @@ Info box types: `info`, `warning`, `success`, `error`
 ### 7.2 Archive Subfolders
 
 | Folder | Contents |
-|--------|----------|
+| -------- | ---------- |
 | `_archive/dashboards/` | 3 dashboard variants |
 | `_archive/documents/` | 4 document UI versions |
 | `_archive/timelines/` | 5 timeline implementations |
@@ -352,7 +353,7 @@ Info box types: `info`, `warning`, `success`, `error`
 {% block scripts %}
 <!-- Page-specific JS -->
 {% endblock %}
-```
+```text
 
 ### 8.2 Adding Design System Components
 
@@ -375,16 +376,16 @@ Info box types: `info`, `warning`, `success`, `error`
 
 {# Or use the JS loader #}
 <script src="/js/core/vault-portal.js"></script>
-```
+```text
 
 ### 8.4 Using Backend Module Data
 
 ```python
-# In your router
+## In your router
 from app.modules.documents import router as documents_router
 from app.modules.timeline import router as timeline_router
 
-# Get data for template
+## Get data for template
 documents = await documents_router.get_documents(user_id)
 timeline_events = await timeline_router.get_timeline(user_id)
 
@@ -402,7 +403,7 @@ return templates.TemplateResponse("page.html", {
 ### 9.1 Choosing Components by Page Type
 
 | Page Type | Required | Optional Add-ons |
-|-----------|----------|------------------|
+| ----------- | ---------- | ------------------ |
 | Landing | hero, nav_bar | vault_cta, privacy_note |
 | Dashboard | hero, card_grid, quick_grid | role-specific components |
 | Document | upload-zone (capture) | vault sidebar |
@@ -414,7 +415,7 @@ return templates.TemplateResponse("page.html", {
 ### 9.2 Choosing Functions by User Goal
 
 | User Goal | Backend Module | Frontend Component |
-|-----------|----------------|-------------------|
+| ----------- | ---------------- | ------------------- |
 | Upload docs | documents, vault | upload-zone, vault-sidebar |
 | Track case | timeline, case_builder | timeline-view, case-summary |
 | Get help | tenant_help, communication | emergency-actions, inbox |
@@ -429,7 +430,7 @@ return templates.TemplateResponse("page.html", {
 ### 10.1 All HTML Files (Consolidated Count)
 
 | Location | Count | Type |
-|----------|-------|------|
+| ---------- | ------- | ------ |
 | `app/templates/pages/` | 25 | Jinja2 full pages |
 | `app/templates/components/` | 4 | Jinja2 partials |
 | `design-system/components/` | 25 | Function group components |
@@ -448,7 +449,7 @@ return templates.TemplateResponse("page.html", {
 ### 10.2 All CSS Files
 
 | Location | Count | Purpose |
-|----------|-------|---------|
+| ---------- | ------- | --------- |
 | `design-system/tokens/` | 7 | Design tokens |
 | `design-system/components/` | 15 | Component styles |
 | `design-system/patterns/` | 1 | Layout patterns |
@@ -460,7 +461,7 @@ return templates.TemplateResponse("page.html", {
 ### 10.3 All JS Files (Project)
 
 | Location | Count | Purpose |
-|----------|-------|---------|
+| ---------- | ------- | --------- |
 | `static/js/core/` | 3 | Core functionality |
 | `design-system/` | 2 | Design system JS |
 | `static/js/` | 3 | Utilities |
@@ -470,7 +471,7 @@ return templates.TemplateResponse("page.html", {
 ### 10.4 Python Modules with Routers
 
 | Count | Modules |
-|-------|---------|
+| ------- | --------- |
 | 90+ | `app/modules/*/` with routers |
 | 25 | Core feature modules |
 | 15 | Supporting modules |
@@ -480,7 +481,8 @@ return templates.TemplateResponse("page.html", {
 ## Appendix: File Trees for Reference
 
 ### A.1 Design System Structure
-```
+
+```text
 design-system/
 ├── tokens/ (7 CSS files)
 ├── components/
@@ -500,7 +502,8 @@ design-system/
 ```
 
 ### A.2 Template Structure
-```
+
+```text
 app/templates/
 ├── base.html (canonical)
 ├── pages/ (25 Jinja2 templates)
@@ -518,7 +521,8 @@ app/templates/
 ```
 
 ### A.3 Static Archive Structure (For Reference)
-```
+
+```text
 staticbac/
 ├── [root pages] (50+ files)
 ├── _archive/
@@ -535,6 +539,6 @@ staticbac/
 
 ---
 
-**END OF COMPONENT LIBRARY**
+#### END OF COMPONENT LIBRARY
 
 *This is a complete reference for planning page customization. No implementation changes have been made.*

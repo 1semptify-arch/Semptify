@@ -1,4 +1,5 @@
 # Build Your Case + Data Freshness Integration
+
 ## Legal Accuracy & Deadline Compliance System
 
 **Date:** June 14, 2026  
@@ -11,6 +12,7 @@
 The Build Your Case module is the **perfect integration point** for data freshness because it directly impacts legal validity and tenant defense outcomes. Stale legal information, outdated deadlines, or expired court forms can render a defense invalid.
 
 ### **Critical Impact Areas:**
+
 - **Legal Defenses** - Must use current statutes and case law
 - **Court Deadlines** - Must be accurate and jurisdiction-specific
 - **Form Requirements** - Must match current court specifications
@@ -21,7 +23,7 @@ The Build Your Case module is the **perfect integration point** for data freshne
 
 ## 🔗 Integration Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                Build Your Case Module                         │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
@@ -45,9 +47,10 @@ The Build Your Case module is the **perfect integration point** for data freshne
 
 **Purpose:** Ensure all legal defenses use current statutes and case law
 
-**Integration Points:**
+#### Integration Points:
+
 ```python
-# Enhanced case builder with freshness validation
+## Enhanced case builder with freshness validation
 class FreshCaseBuilder:
     def validate_legal_defenses(self, case: Case) -> ValidationResult:
         """Validate that all legal defenses are based on current law."""
@@ -84,9 +87,10 @@ class FreshCaseBuilder:
                 )
         
         return validation_result
-```
+```text
 
 **Benefits:**
+
 - Legal defenses always use current law
 - Automatic refresh of critical legal bases
 - Warning system for potentially outdated defenses
@@ -97,8 +101,9 @@ class FreshCaseBuilder:
 **Purpose:** Ensure all deadlines use current court rules and procedures
 
 **Integration Points:**
+
 ```python
-# Fresh deadline calculator
+## Fresh deadline calculator
 class FreshDeadlineCalculator:
     def calculate_answer_deadline(self, case: Case) -> DeadlineResult:
         """Calculate answer deadline using current court rules."""
@@ -139,7 +144,8 @@ class FreshDeadlineCalculator:
         )
 ```
 
-**Benefits:**
+### Benefits:
+
 - Deadlines always use current court rules
 - Automatic rule updates before critical calculations
 - Audit trail for deadline calculations
@@ -149,9 +155,10 @@ class FreshDeadlineCalculator:
 
 **Purpose:** Ensure all court forms meet current specifications
 
-**Integration Points:**
+#### Integration Points:
+
 ```python
-# Fresh form validator
+## Fresh form validator
 class FreshFormValidator:
     def validate_form_requirements(self, form_type: str, jurisdiction: str) -> FormValidation:
         """Validate form against current requirements."""
@@ -178,9 +185,10 @@ class FreshFormValidator:
                 "Form specifications may be outdated - verify with court"
             ]
         )
-```
+```text
 
 **Benefits:**
+
 - Forms always meet current court requirements
 - Automatic specification updates
 - Warning system for potentially outdated forms
@@ -191,8 +199,9 @@ class FreshFormValidator:
 **Purpose:** Ensure evidence handling follows current rules of evidence
 
 **Integration Points:**
+
 ```python
-# Fresh evidence validator
+## Fresh evidence validator
 class FreshEvidenceValidator:
     def validate_evidence_standards(self, evidence: Evidence, jurisdiction: str) -> EvidenceValidation:
         """Validate evidence against current rules of evidence."""
@@ -218,7 +227,8 @@ class FreshEvidenceValidator:
         )
 ```
 
-**Benefits:**
+### Benefits:
+
 - Evidence always meets current standards
 - Automatic rule updates for evidence handling
 - Admissibility verification
@@ -229,21 +239,25 @@ class FreshEvidenceValidator:
 ## 🚀 Implementation Plan
 
 ### **Phase 1: Core Integration (Week 1)**
+
 1. **Fix unhashable dict error** in data freshness manager
 2. **Integrate deadline calculator** with fresh court rules
 3. **Add legal defense validation** with current statutes
 
 ### **Phase 2: Form & Evidence (Week 2)**
+
 1. **Connect form validator** to current specifications
 2. **Integrate evidence standards** with current rules
 3. **Implement automatic refresh** for critical case data
 
 ### **Phase 3: Advanced Features (Week 3)**
+
 1. **Add predictive freshness** for case timelines
 2. **Implement jurisdiction-specific** refresh schedules
 3. **Create compliance reporting** for case validity
 
 ### **Phase 4: User Experience (Week 4)**
+
 1. **Add freshness indicators** in case builder UI
 2. **Implement user notifications** for critical updates
 3. **Create case validity dashboard**
@@ -253,12 +267,14 @@ class FreshEvidenceValidator:
 ## 📊 Success Metrics
 
 ### **Legal Compliance Metrics:**
+
 - Case validity: 100% based on current law
 - Deadline accuracy: < 1% error rate
 - Form compliance: 100% current specifications
 - Evidence admissibility: 95% success rate
 
 ### **User Experience Metrics:**
+
 - Confidence in case validity: > 95%
 - Warning accuracy: < 2% false positives
 - Refresh response time: < 30 seconds
@@ -269,8 +285,9 @@ class FreshEvidenceValidator:
 ## 🔧 Technical Implementation
 
 ### **Enhanced Case Builder Router**
+
 ```python
-# Add freshness validation endpoints
+## Add freshness validation endpoints
 @router.post("/cases/{case_id}/validate-freshness")
 async def validate_case_freshness(
     case_id: str,
@@ -307,11 +324,12 @@ async def validate_case_freshness(
             form_result.valid
         ])
     }
-```
+```text
 
 ### **Freshness-Aware Case Generation**
+
 ```python
-# Enhanced case generation with freshness checks
+## Enhanced case generation with freshness checks
 class FreshCaseGenerator:
     async def generate_case(self, case_request: CaseCreate, user: StorageUser) -> Case:
         """Generate case with freshness validation."""

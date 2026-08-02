@@ -40,51 +40,51 @@ This guide covers deploying Semptify FastAPI to production environments.
 
 ```bash
 cp .env.example .env
-```
+```text
 
 ### Step 2: Configure Required Variables
 
 ```env
-# === CRITICAL: Generate a unique secret key ===
+## === CRITICAL: Generate a unique secret key ===
 SECRET_KEY=your-unique-64-character-secret-key-here
 
-# Application
+## Application
 APP_NAME=Semptify
 APP_VERSION=5.0.0
 ENVIRONMENT=production
 
-# Security
+## Security
 SECURITY_MODE=enforced    # enforced = all security features active
 DEBUG_MODE=false
 
-# Database (PostgreSQL for production)
+## Database (PostgreSQL for production)
 DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/semptify
 
-# Redis (recommended for production)
+## Redis (recommended for production)
 REDIS_URL=redis://localhost:6379/0
 
-# AI Provider (at least one required)
+## AI Provider (at least one required)
 OPENAI_API_KEY=sk-your-openai-api-key
-# Or Azure OpenAI
+## Or Azure OpenAI
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 AZURE_OPENAI_KEY=your-azure-openai-key
 
-# CORS (production domains only)
+## CORS (production domains only)
 CORS_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
 ```
 
 ### Step 3: Generate SECRET_KEY
 
 ```bash
-# Linux/Mac
+## Linux/Mac
 openssl rand -hex 32
 
-# Python
+## Python
 python -c "import secrets; print(secrets.token_hex(32))"
 
-# PowerShell
+## PowerShell
 -join ((1..32) | ForEach-Object { '{0:X2}' -f (Get-Random -Max 256) })
-```
+```text
 
 ---
 
@@ -93,19 +93,20 @@ python -c "import secrets; print(secrets.token_hex(32))"
 ### Quick Start
 
 ```bash
-# Build and start all services
+## Build and start all services
 docker-compose up -d
 
-# Check status
+## Check status
 docker-compose ps
 
-# View logs
+## View logs
 docker-compose logs -f app
 ```
 
 ### Production docker-compose.yml
 
 The included `docker-compose.yml` provides:
+
 - **app**: Semptify FastAPI application
 - **db**: PostgreSQL 16 with health checks
 - **redis**: Redis 7 for sessions/caching
@@ -113,8 +114,8 @@ The included `docker-compose.yml` provides:
 ### Custom Configuration
 
 ```yaml
-# Override for production
-# docker-compose.override.yml
+## Override for production
+## docker-compose.override.yml
 version: '3.9'
 services:
   app:
@@ -126,18 +127,18 @@ services:
         limits:
           cpus: '2'
           memory: 4G
-```
+```text
 
 ### Health Checks
 
 ```bash
-# Liveness check (is the app running?)
+## Liveness check (is the app running?)
 curl http://localhost:8000/livez
 
-# Readiness check (is the app ready to serve?)
+## Readiness check (is the app ready to serve?)
 curl http://localhost:8000/healthz
 
-# Full health status
+## Full health status
 curl http://localhost:8000/api/health
 ```
 
@@ -151,7 +152,7 @@ curl http://localhost:8000/api/health
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
-```
+```text
 
 ### Step 2: Install Dependencies
 
@@ -162,12 +163,12 @@ pip install -r requirements.txt
 ### Step 3: Initialize Database
 
 ```bash
-# Run migrations
+## Run migrations
 alembic upgrade head
 
-# Or for fresh SQLite setup
+## Or for fresh SQLite setup
 python -c "from app.core.database import init_db; import asyncio; asyncio.run(init_db())"
-```
+```text
 
 ### Step 4: Validate Configuration
 
@@ -178,12 +179,12 @@ python scripts/validate.py
 ### Step 5: Start Application
 
 ```bash
-# Development
+## Development
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-# Production with Gunicorn
+## Production with Gunicorn
 gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-```
+```text
 
 ---
 
@@ -205,26 +206,28 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ### Running Migrations
 
 ```bash
-# Check current version
+## Check current version
 alembic current
 
-# Upgrade to latest
+## Upgrade to latest
 alembic upgrade head
 
-# Rollback one version
+## Rollback one version
 alembic downgrade -1
 
-# Generate new migration
+## Generate new migration
 alembic revision --autogenerate -m "description of changes"
-```
+```text
 
 ### Connection Pooling
 
 The application uses SQLAlchemy connection pooling:
+
 - **PostgreSQL**: QueuePool with 5-20 connections
 - **SQLite**: NullPool (single connection)
 
 Configure in `.env`:
+
 ```env
 DATABASE_POOL_SIZE=10
 DATABASE_MAX_OVERFLOW=20
@@ -261,17 +264,17 @@ DATABASE_MAX_OVERFLOW=20
 ### Verification
 
 ```bash
-# Check security headers
+## Check security headers
 curl -I https://yourdomain.com/healthz
 
-# Expected headers:
-# X-Content-Type-Options: nosniff
-# X-Frame-Options: DENY
-# X-XSS-Protection: 1; mode=block
-# Referrer-Policy: strict-origin-when-cross-origin
-# Content-Security-Policy: default-src 'self'...
-# Strict-Transport-Security: max-age=31536000 (when HSTS enabled)
-```
+## Expected headers:
+## X-Content-Type-Options: nosniff
+## X-Frame-Options: DENY
+## X-XSS-Protection: 1; mode=block
+## Referrer-Policy: strict-origin-when-cross-origin
+## Content-Security-Policy: default-src 'self'...
+## Strict-Transport-Security: max-age=31536000 (when HSTS enabled)
+```text
 
 ---
 
@@ -287,6 +290,7 @@ LOG_JSON_FORMAT=true
 ```
 
 Log format:
+
 ```json
 {
   "timestamp": "2024-01-15T10:30:00.000Z",
@@ -298,7 +302,7 @@ Log format:
   "status_code": 200,
   "duration_ms": 45
 }
-```
+```text
 
 ### Log Locations
 
@@ -309,7 +313,7 @@ Log format:
 ### Health Endpoints
 
 | Endpoint | Purpose | Expected Response |
-|----------|---------|-------------------|
+| ---------- | --------- | ------------------- |
 | `GET /healthz` | Full health check | `{"status": "healthy", ...}` |
 | `GET /livez` | Liveness probe | `{"status": "alive"}` |
 | `GET /api/version` | Version info | `{"version": "5.0.0", ...}` |
@@ -328,10 +332,10 @@ Log format:
 ### Automated Backups
 
 ```bash
-# Run backup script
+## Run backup script
 python scripts/backup.py --backup-dir /path/to/backups
 
-# Backup with custom retention
+## Backup with custom retention
 python scripts/backup.py --backup-dir /backups --keep 30
 ```
 
@@ -344,17 +348,17 @@ python scripts/backup.py --backup-dir /backups --keep 30
 ### Restore Process
 
 ```bash
-# Restore from backup
+## Restore from backup
 python scripts/backup.py --restore /path/to/backup/backup_20240115_103000
 
-# PostgreSQL restore
+## PostgreSQL restore
 pg_restore -d semptify /path/to/backup/db_backup.dump
-```
+```text
 
 ### Backup Schedule (Recommended)
 
 | Type | Frequency | Retention |
-|------|-----------|-----------|
+| ------ | ----------- | ----------- |
 | Database | Every 6 hours | 7 days |
 | Full backup | Daily | 30 days |
 | Weekly archive | Weekly | 90 days |
@@ -366,7 +370,7 @@ pg_restore -d semptify /path/to/backup/db_backup.dump
 ### Horizontal Scaling
 
 ```yaml
-# docker-compose.scale.yml
+## docker-compose.scale.yml
 services:
   app:
     deploy:
@@ -393,11 +397,12 @@ server {
         proxy_set_header X-Request-Id $request_id;
     }
 }
-```
+```text
 
 ### Database Scaling
 
 For high traffic:
+
 1. Use PostgreSQL read replicas
 2. Increase connection pool size
 3. Add Redis caching layer
@@ -411,35 +416,35 @@ For high traffic:
 #### Application Won't Start
 
 ```bash
-# Check validation
+## Check validation
 python scripts/validate.py
 
-# Common fixes:
-# - Ensure .env exists with required variables
-# - Check database connectivity
-# - Verify AI provider credentials
+## Common fixes:
+## - Ensure .env exists with required variables
+## - Check database connectivity
+## - Verify AI provider credentials
 ```
 
 #### Database Connection Errors
 
 ```bash
-# Test PostgreSQL connection
+## Test PostgreSQL connection
 psql -h localhost -U semptify_user -d semptify
 
-# Check connection string format
-# postgresql+asyncpg://user:pass@host:5432/dbname
-```
+## Check connection string format
+## postgresql+asyncpg://user:pass@host:5432/dbname
+```text
 
 #### Rate Limiting Issues
 
 ```bash
-# Check current limits
+## Check current limits
 curl -I http://localhost:8000/api/health
 
-# Look for headers:
-# X-RateLimit-Limit: 60
-# X-RateLimit-Remaining: 59
-# X-RateLimit-Reset: 1705315800
+## Look for headers:
+## X-RateLimit-Limit: 60
+## X-RateLimit-Remaining: 59
+## X-RateLimit-Reset: 1705315800
 ```
 
 #### High Memory Usage
@@ -451,22 +456,22 @@ curl -I http://localhost:8000/api/health
 ### Useful Commands
 
 ```bash
-# Check running processes
+## Check running processes
 docker-compose ps
 
-# View real-time logs
+## View real-time logs
 docker-compose logs -f app
 
-# Restart application only
+## Restart application only
 docker-compose restart app
 
-# Full rebuild
+## Full rebuild
 docker-compose down && docker-compose up --build -d
 
-# Database shell
+## Database shell
 docker-compose exec db psql -U postgres -d semptify
 
-# Redis CLI
+## Redis CLI
 docker-compose exec redis redis-cli
 ```
 
@@ -475,7 +480,7 @@ docker-compose exec redis redis-cli
 1. Check application logs: `logs/semptify.log`
 2. Run validation: `python scripts/validate.py`
 3. Health check: `curl http://localhost:8000/healthz`
-4. GitHub Issues: https://github.com/Semptify/Semptify-FastAPI/issues
+4. GitHub Issues: <https://github.com/Semptify/Semptify-FastAPI/issues>
 
 ---
 
@@ -484,7 +489,7 @@ docker-compose exec redis redis-cli
 ### Environment Variables
 
 | Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
+| ---------- | ---------- | --------- | ------------- |
 | `SECRET_KEY` | Yes | auto-generated | JWT signing key |
 | `DATABASE_URL` | Yes | sqlite | Database connection |
 | `SECURITY_MODE` | No | development | Security level |
@@ -497,7 +502,7 @@ docker-compose exec redis redis-cli
 ### Port Reference
 
 | Service | Port | Purpose |
-|---------|------|---------|
+| --------- | ------ | --------- |
 | App | 8000 | API server |
 | PostgreSQL | 5432 | Database |
 | Redis | 6379 | Cache/Sessions |

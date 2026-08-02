@@ -24,12 +24,12 @@ VAULT_OVERLAY_REGISTRY = f"{VAULT_OVERLAY}/registry.json"
 VAULT_TIMELINE = f"{VAULT_ROOT}/timeline"
 VAULT_TIMELINE_EVENTS_FILENAME = "events.json"
 VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}"
-```
+```text
 
 ### Path Usage Summary
 
 | Constant | Path | Purpose |
-|----------|------|---------|
+| ---------- | ------ | --------- |
 | `VAULT_DOCUMENTS` | `Semptify5.0/Vault/documents` | User document storage |
 | `VAULT_CERTIFICATES` | `Semptify5.0/Vault/certificates` | Security certificates |
 | `VAULT_OVERLAY` | `Semptify5.0/Vault/.overlay` | Document overlay metadata |
@@ -38,6 +38,7 @@ VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}
 | `VAULT_TIMELINE_EVENTS_FILE` | `Semptify5.0/Vault/timeline/events.json` | Canonical timeline events |
 
 ### Consumers
+
 - `vault_upload_service.py` - Document uploads
 - `document_overlay.py` - Overlay management
 - `timeline_extraction.py` - Timeline event persistence
@@ -48,40 +49,47 @@ VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}
 ## 1.1 Document Upload Flow Analysis
 
 ### Path (4 Steps)
+
 ```
+
 Step 0: [Entry - HTTP POST /api/setup/documents/upload]
 Step 1: [Vault Upload Service - upload()]
 Step 2: [Document Processing - _process_document()]
 Step 3: [Form Data Hub Update]
-```
+
+```text
 
 ### Storage Locations
+
 | Type | Primary | Backup | Cache |
-|------|---------|--------|-------|
+| ------ | --------- | -------- | ------- |
 | Original File | User's cloud storage (Semptify5.0/Vault/documents/) | None | None |
 | Document Metadata | PostgreSQL (documents table) | None | In-memory |
 | Timeline Events | PostgreSQL (timeline_events table) | None | None |
 | Form Data | PostgreSQL (form_data_hub table) | None | None |
 
 ### SSOT Rule
+>
 > **"Every document upload is a single atomic operation: store → process → certify"**
 
 ### Certification States
+
 | State | vault_id | registry_id | is_valid | Meaning |
-|-------|----------|-------------|----------|---------|
+| ------- | ---------- | ------------- | ---------- | --------- |
 | Valid | ✅ | ✅ | `True` | Successfully uploaded and processed |
 | Partial | ✅ | ❌ | `False` | Uploaded but processing failed |
 | Invalid | ❌ | - | `False` | Upload failed (no file stored) |
 
 ### Code Pattern
+
 ```python
-# OLD: Upload then process separately (potential partial state)
+## OLD: Upload then process separately (potential partial state)
 vault_doc = await vault_service.upload(...)
 extracted = await _process_document(...)  # Separate call
 
-# NEW: Atomic upload with processing
+## NEW: Atomic upload with processing
 certified_doc = await vault_service.upload_and_process(...)
-# All in one transaction, no partial states
+## All in one transaction, no partial states
 ```
 
 ---
@@ -94,7 +102,7 @@ certified_doc = await vault_service.upload_and_process(...)
 
 Every document entering Semptify follows ONE path:
 
-```
+```text
 Tenant Upload
     ↓
 Vault Upload Service (vault_upload_service.upload())
@@ -117,7 +125,7 @@ Return CertifiedVaultDocument
 ### VaultDocument Certification States
 
 | State | vault_id | registry_id | is_certified | Meaning |
-|-------|----------|-------------|--------------|---------|
+| ------- | ---------- | ------------- | -------------- | --------- |
 | **Certified** | ✅ | ✅ | `True` | Full chain of custody, ready for processing |
 | **Uncertified** | ✅ | ❌ | `False` | In vault but registration failed - retry needed |
 | **Invalid** | ❌ | - | `False` | Upload failed, document not stored |
@@ -134,15 +142,15 @@ Return CertifiedVaultDocument
 ### Code Pattern
 
 ```python
-# OLD: Router called registry separately (two-step)
+## OLD: Router called registry separately (two-step)
 vault_doc = await vault_service.upload(...)
 registry_doc = registry.register_document(...)  # REDUNDANT
 
-# NEW: Vault auto-registers, router enriches (unified)
+## NEW: Vault auto-registers, router enriches (unified)
 vault_doc = await vault_service.upload(...)  # Auto-registers
 if vault_doc.registry_id:
     registry.enrich_document(vault_doc.registry_id, case_number=..., ip_address=...)
-```
+```text
 
 ---
 
@@ -153,7 +161,7 @@ if vault_doc.registry_id:
 ### Canonical Role Names
 
 | Backend (API) | Frontend (UI) | Description |
-|---------------|---------------|-------------|
+| --------------- | --------------- | ------------- |
 | `tenant` | `user` | Tenant/end-user role (human-friendly label) |
 | `manager` | `manager` | Property manager role |
 | `advocate` | `advocate` | Tenant advocate role |
@@ -180,6 +188,7 @@ function mapFrontendRoleToBackend(frontendRole) {
 ```
 
 ### Design Principle
+
 - Frontend uses human-friendly terms ("I am a user/tenant")
 - Backend uses canonical identifiers (`ALLOWED_ROLES = {"tenant", "manager", ...}`)
 - Mapping happens at the API boundary, not in storage
@@ -192,12 +201,15 @@ function mapFrontendRoleToBackend(frontendRole) {
 **Files:** `app/routers/security.py`, `app/routers/storage.py`
 
 ### Problem
+
 Browsers reject `Secure` cookies over HTTP (localhost development). This causes:
+
 - Malformed cookie dates (Friday/Saturday same day bug)
 - Immediate cookie expiration
 - Session loss on every request
 
 ### Solution
+
 Environment-based conditional security flag:
 
 ```python
@@ -212,16 +224,18 @@ response.set_cookie(
     secure=False if is_localhost else True,  # Conditional!
     samesite="lax",
 )
-```
+```text
 
 ### Implementation Notes
 
 #### Role Name Consistency (Critical Fix)
+
 **Bug:** Redirect loop caused by role name mismatch between user ID encoding and page guards.
 
 **Root Cause:** User IDs encode role as `"tenant"` but page guards checked for `{"user"}`.
 
 **Files Fixed:**
+
 - `app/main.py` `_guard_role_page` calls for tenant routes:
   - `/tenant/` → changed `{"user"}` to `{"tenant"}`
   - `/tenant/{subpage}` → changed `{"user"}` to `{"tenant"}`  
@@ -230,10 +244,11 @@ response.set_cookie(
 **Rule:** Page guard allowed_roles must match the role string encoded in user IDs (via `get_role_from_user_id`).
 
 #### HTTP/HTTPS Cookie Security Pattern
+
 **Standard:** `secure=False` for localhost HTTP, `secure=True` for production HTTPS
 
 ```python
-# Correct pattern for cookie security
+## Correct pattern for cookie security
 import os
 is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
 response.set_cookie(
@@ -247,20 +262,23 @@ response.set_cookie(
 ```
 
 ### Configuration
+
 Set in `.env` or environment:
+
 ```bash
-# Development (HTTP localhost)
+## Development (HTTP localhost)
 ENVIRONMENT=development
 
-# Production (HTTPS)
+## Production (HTTPS)
 ENVIRONMENT=production
-```
+```text
 
 ### Implementation Checklist
+
 All cookie-setting locations must use this pattern:
 
 | File | Function | Line | Status |
-|------|----------|------|--------|
+| ------ | ---------- | ------ | -------- |
 | `app/routers/security.py` | `login` | ~325 | ✅ Fixed |
 | `app/routers/storage.py` | `oauth_callback` | ~1700 | ✅ Fixed |
 | `app/routers/storage.py` | `oauth_callback` (error path) | ~1744 | ✅ Fixed |
@@ -275,6 +293,7 @@ All cookie-setting locations must use this pattern:
 **Critical Consistency:** The `semptify_uid` cookie must ALWAYS use `httponly=False` (not True) so JavaScript can read it for auth checks. Bug fixed at line ~2346 where `restore_session` incorrectly used `httponly=True` while all other locations used `httponly=False`.
 
 ### Design Principle
+
 - Local development: `secure=False` allows HTTP cookies
 - Production: `secure=True` enforces HTTPS-only cookies
 - SameSite=Lax provides CSRF protection without breaking OAuth flows
@@ -392,10 +411,12 @@ def register_function_group(contract: FunctionGroupContract) -> FunctionGroupCon
 ```
 
 ### Contract Key Format
+
 - Pattern: `{module}::{group_name}` (lowercase, stripped)
 - Example: `timeline::chronology`, `vault::upload`
 
 ### Validation Rules
+
 1. Module name must be non-empty
 2. Group name must be non-empty
 3. Outputs must define at least one key
@@ -407,6 +428,7 @@ def register_function_group(contract: FunctionGroupContract) -> FunctionGroupCon
 **File:** `app/core/workflow_engine.py`
 
 ### Design Principle
+>
 > **NO AI in routing decisions.** The engine is fully deterministic and reproducible. AI layers (Recommender, Auditor, Explainer) sit above this and may influence what the user SEES, but they never override the engine's routing logic or permission decisions.
 
 ### State Enums
@@ -429,7 +451,7 @@ class ProcessCode(str, Enum):
     B2 = "B2"    # Quick Case Triage (Tenant path)
     B3 = "B3"    # Filing & Packet Preparation
     B4 = "B4"    # Professional Review Workspace
-```
+```text
 
 ### Route Mappings
 
@@ -462,7 +484,7 @@ class WorkflowState:
     jurisdiction_set: bool = False
     documents_present: bool = False
     has_active_case: bool = False
-```
+```text
 
 ### Workflow Decision (Output)
 
@@ -514,12 +536,12 @@ def route_user(
         return decision.next_route
     except ValueError:
         return "/storage/providers"
-```
+```text
 
 ### Consumers of route_user()
 
 | File | Function | Usage |
-|------|----------|-------|
+| ------ | ---------- | ------- |
 | `app/routers/storage.py` | `storage_home()`, OAuth callback | Post-auth redirect |
 | `app/main.py` | `_guard_role_page()` | Role page guarding |
 | `app/routers/onboarding.py` | (removed return_to param) | Prevent redirect loops |
@@ -527,11 +549,13 @@ def route_user(
 ### Routing Logic Summary
 
 **Tenant (UserRole.USER):**
+
 1. No storage connected → `/storage/providers` (Process A)
 2. Storage connected, no documents → `/tenant/documents` (Process B1)
 3. Storage + documents → `/tenant` (Process B2)
 
 **Professional Roles (Advocate, Legal, Admin, Manager):**
+
 - Always → `/advocate` or role-specific route (Process B4)
 - Storage warnings shown if not connected
 
@@ -542,6 +566,7 @@ def route_user(
 ### Upload → Overlay → Timeline Flow
 
 ```
+
 1. Document Upload
    ↓
 2. Store at: Semptify5.0/Vault/documents/{filename}
@@ -551,14 +576,15 @@ def route_user(
 4. Register in: Semptify5.0/Vault/.overlay/registry.json
    ↓
 5. Extract timeline events → Semptify5.0/Vault/timeline/events.json
-```
+
+```text
 
 ### Authority Principle
 
 The **cloud paths are authoritative**. Database is fallback only.
 
 | Data | Authority | Fallback |
-|------|-----------|----------|
+| ------ | ----------- | ---------- |
 | Timeline events | `events.json` in cloud | DB timeline table |
 | Document overlays | `.overlay/` directory | DB overlay records |
 | Document registry | `registry.json` | DB document records |
@@ -586,7 +612,7 @@ The **cloud paths are authoritative**. Database is fallback only.
 ```python
 from app.core.vault_paths import VAULT_DOCUMENTS, VAULT_TIMELINE_EVENTS_FILE
 
-# Correct: Use canonical paths
+## Correct: Use canonical paths
 cloud_path = f"{VAULT_DOCUMENTS}/{filename}"
 timeline_path = VAULT_TIMELINE_EVENTS_FILE
 ```
@@ -596,7 +622,7 @@ timeline_path = VAULT_TIMELINE_EVENTS_FILE
 ```python
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-# Register a new function group
+## Register a new function group
 contract = FunctionGroupContract(
     module="my_module",
     group_name="my_group",
@@ -608,16 +634,16 @@ contract = FunctionGroupContract(
 )
 register_function_group(contract)
 
-# Validate all contracts
+## Validate all contracts
 result = contract_registry.validate()
-```
+```text
 
 ### How to Use Routing
 
 ```python
 from app.core.workflow_engine import route_user
 
-# Single source of truth for redirects
+## Single source of truth for redirects
 redirect_url = route_user(
     user_id=request.cookies.get("se_user"),
     documents_present=True,
@@ -631,16 +657,19 @@ return RedirectResponse(redirect_url)
 ## 6. Recent SSOT Hardening Changes
 
 ### OAuth Routing Consolidation
+
 - **Before:** Multiple hardcoded redirect tables in `storage.py`, `main.py`, `onboarding.py`
 - **After:** All redirects flow through `route_user()` in `workflow_engine.py`
 - **Root cause fixed:** `return_to=/onboarding/status` parameter caused ERR_TOO_MANY_REDIRECTS — removed
 
 ### Vault Path Centralization
+
 - **Before:** Path strings scattered across services
 - **After:** All paths defined in `vault_paths.py`, imported by consumers
 - **Result:** One location to change cloud storage structure
 
 ### Contract Registry
+
 - **Before:** Function groups registered ad-hoc
 - **After:** Centralized `ModuleContractRegistry` with validation
 - **Benefit:** Deterministic integration, health checkable
@@ -662,7 +691,7 @@ return RedirectResponse(redirect_url)
 Process contracts define deterministic user workflows with defined entry criteria, steps, and exit criteria.
 
 | Contract ID | Function Group | File | Status | Version |
-|-------------|----------------|------|--------|---------|
+| ------------- | ---------------- | ------ | -------- | --------- |
 | `proc_user_reconnect` | `user_session_recovery` | `docs/process_contracts/user_reconnect_v2.md` | Active | 2.0 |
 
 ### Contract: User Reconnect Flow
@@ -670,6 +699,7 @@ Process contracts define deterministic user workflows with defined entry criteri
 **Purpose**: Enable **returning users** to reconnect their Semptify session. Exclusively for users who have used Semptify before.
 
 **Key Principles**:
+
 - `provider_subject` is the single source of truth for user identity
 - User ID cookie encodes `provider + role + random` (e.g., `GU7x9kM2pQ`)
 - Returning users never select provider/role again - extracted from user ID
@@ -677,10 +707,12 @@ Process contracts define deterministic user workflows with defined entry criteri
 - **Separate from onboarding** - this is for existing users only
 
 **Entry Points**:
+
 - `/storage/` - Returning user with valid cookie
 - `/storage/reconnect` - User lost cookie, must select provider
 
 **Exit Criteria**:
+
 - `semptify_uid` cookie set with 1-year expiry
 - Valid storage tokens in DB
 - User routed to role-appropriate dashboard via `route_user()`
@@ -692,7 +724,7 @@ Process contracts define deterministic user workflows with defined entry criteri
 ## Files That Implement SSOT
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `app/core/vault_paths.py` | Canonical cloud storage paths |
 | `app/core/module_contracts.py` | Function-group contract registry |
 | `app/core/workflow_engine.py` | Deterministic routing engine |

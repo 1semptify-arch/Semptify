@@ -11,7 +11,8 @@
 
 This document describes a FUTURE aspirational user journey that was conceived for the full Semptify Extended product. It is NOT part of Semptify 5.0 Core.
 
-**Semptify 5.0 Core Actual Flow:**
+### Semptify 5.0 Core Actual Flow:
+
 1. Welcome → 2. Role Select → 3. Storage OAuth (mandatory) → 4. Tenant Home
 
 ---
@@ -26,23 +27,27 @@ This was the conceptual framework for a complete, natural progression user exper
 
 ### **PHASE 1: WELCOME & ONBOARDING** (Steps 1-5)
 
-#### **Step 1: Welcome Screen** 
+#### **Step 1: Welcome Screen**
+
 - **User sees:** Beautiful welcome with "Let's Get Started" button
 - **Purpose:** Make them feel safe and confident
 - **Action:** Click to begin their journey
 
 #### **Step 2: Tell Us Your Situation**
+
 - **User sees:** 4 clear options (Eviction, Bad Conditions, Deposit, General)
 - **Purpose:** Personalize their experience
 - **Natural flow:** Before we help, we need to know what's wrong
 
 #### **Step 3: Basic Information**
+
 - **User fills in:**
   - Location (City, State)
   - When it started (Date)
   - What happened (Description)
 
 #### **Step 4: Document Checklist**
+
 - **User checks off what they have:**
   - ✓ Lease Agreement
   - ✓ Eviction Notice
@@ -51,6 +56,7 @@ This was the conceptual framework for a complete, natural progression user exper
   - ✓ Email/Text Communications
 
 #### **Step 5: Timeline Education**
+
 - **User learns why timeline matters:**
   - Shows pattern of behavior
   - Proves proper procedures
@@ -58,6 +64,7 @@ This was the conceptual framework for a complete, natural progression user exper
   - Creates clear court story
 
 #### **Step 6: Ready to Build**
+
 - **User sees:** What happens next (preview of journey)
 
 ---
@@ -67,24 +74,28 @@ This was the conceptual framework for a complete, natural progression user exper
 These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 
 #### **🔓 STEP 1: Upload Documents** (UNLOCKED)
+
 - Drag & drop files
 - AI analyzes them
 - System categorizes automatically
 - Documents appear in vault
 
 #### **🔒 STEP 2: Build Timeline** (Unlocks after Step 1)
+
 - Add events with dates
 - Link to uploaded documents
 - Create visual timeline
 - Export timeline report
 
 #### **🔒 STEP 3: Research Your Rights** (Unlocks after Steps 1-2)
+
 - Search Minnesota statutes
 - Chat with AI legal librarian
 - Find relevant case law
 - Bookmark important statutes
 
 #### **🔒 STEP 4: Get AI Analysis** (Unlocks after Steps 1-3)
+
 - AI reviews all evidence
 - Calculates case strength (0-100%)
 - Identifies evidence gaps
@@ -92,6 +103,7 @@ These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 - Highlights opportunities
 
 #### **🔒 STEP 5: Prepare Court Forms** (Unlocks after Steps 1-4)
+
 - Auto-generate Answer to Eviction
 - Create Affidavit
 - Fill in Motion templates
@@ -103,7 +115,7 @@ These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 ## 🗂️ IMPLEMENTATION STATUS
 
 | Feature | Core 5.0 | Extended | Status |
-|---------|----------|----------|--------|
+| --------- | ---------- | ---------- | -------- |
 | Welcome screen | ✅ | ✅ | Implemented |
 | Role selection | ✅ (Tenant only) | ✅ (All roles) | Partial |
 | Situation selection | ❌ | ✅ | Deferred |
@@ -117,7 +129,8 @@ These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 
 ## 🔄 DECISION LOG
 
-**April 30, 2026:**
+### April 30, 2026:
+
 - Archived this aspirational journey to concepts/
 - Removed "skip storage" option from Core flow (storage is mandatory)
 - Core 5.0 focuses on: Welcome → Role → OAuth → Vault → Home
@@ -125,4 +138,4 @@ These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 
 ---
 
-**This document is for reference only. Do not implement from here without product review.**
+### This document is for reference only. Do not implement from here without product review

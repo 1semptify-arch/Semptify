@@ -1,15 +1,17 @@
 # MINNESOTA DEPARTMENT OF COMMERCE
+
 ## Real Estate Broker/Agent Complaint
 
-**File Online:** https://mn.gov/commerce/consumers/file-a-complaint/  
+**File Online:** <https://mn.gov/commerce/consumers/file-a-complaint/>  
 **Phone:** (651) 539-1600 | **Toll-Free:** 1-800-657-3602  
-**Email:** consumer.protection@state.mn.us
+**Email:** <consumer.protection@state.mn.us>
 
 ---
 
-## WHY FILE WITH MN COMMERCE?
+## WHY FILE WITH MN COMMERCE
 
 This complaint targets **Ryan Schwickert** (Licensed Real Estate Broker) for:
+
 - ✅ Failure to supervise property management staff
 - ✅ Allowing unlicensed practice of real estate
 - ✅ Violations of broker duties under MN Stat. § 82
@@ -23,41 +25,44 @@ This complaint targets **Ryan Schwickert** (Licensed Real Estate Broker) for:
 ## COMPLAINANT INFORMATION
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Bradley A. Crowe |
 | Address | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 |
 | Phone | 651-417-3946 |
-| Email | bradcrowe45@gmail.com |
+| Email | <bradcrowe45@gmail.com> |
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Dena Sazama |
 | Address | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 |
 | Phone | 612-441-6948 |
-| Email | denasazama1@gmail.com |
+| Email | <denasazama1@gmail.com> |
 
 ---
 
 ## RESPONDENT INFORMATION
 
 ### Licensed Broker:
+
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Ryan Schwickert |
 | Company | Velair Property Management, LLC |
 | Address | 7645 Lyndale Ave S, Suite 210, Minneapolis, MN 55423 |
 | Phone | (612) 243-3111 |
-| License # 40395477   | [TO BE VERIFIED - Search at mn.gov/commerce] |
+| License # 40395477 | [TO BE VERIFIED - Search at mn.gov/commerce] |
 
 ### Company Information:
+
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Company | Velair Property Management, LLC |
 | Address | 7645 Lyndale Ave S, Suite 210, Minneapolis, MN 55423 |
 | Phone | (612) 243-3111 |
 | Website | velairmanagement.com |
 
 ### Staff Under Broker's Supervision:
+
 1. **Jodelle Rossi** - Regional Property Manager
 2. **Lisa Burg** - Onsite Property Manager (Lexington Flats)
 
@@ -66,7 +71,7 @@ This complaint targets **Ryan Schwickert** (Licensed Real Estate Broker) for:
 ## PROPERTY INVOLVED
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Property Name | Lexington Flats Apartments |
 | Address | 2985 Lexington Avenue South, Eagan, MN 55121 |
 | Unit | #104 |
@@ -77,7 +82,7 @@ This complaint targets **Ryan Schwickert** (Licensed Real Estate Broker) for:
 ## APPLICABLE STATUTES AND RULES
 
 | Citation | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | Minn. Stat. § 82.81 | Broker duties and responsibilities |
 | Minn. Stat. § 82.83 | Grounds for disciplinary action |
 | Minn. Stat. § 82.83(a)(3) | Making false promises, engaging in dishonest conduct |
@@ -103,22 +108,26 @@ Ryan Schwickert, as the designated broker for Velair Property Management, failed
 
 Under Schwickert's supervision, Velair staff engaged in:
 
-**a) Fabrication of Evidence:**
+#### a) Fabrication of Evidence:
+
 - Issued "Serious Lease Infraction" notice on August 18, 2025 alleging verbal abuse
 - Provided NO documentation: no incident reports, no witness statements, no police reports
 - When requested to provide evidence, refused
 
-**b) Defamatory Statements:**
+#### b) Defamatory Statements:
+
 - Regional Manager Jodelle Rossi falsely claimed tenant was "under the influence" in September 19, 2025 email
 - Zero documentation supports this claim
 - Statement made to justify eviction
 
-**c) Premeditated Eviction Scheme:**
+#### c) Premeditated Eviction Scheme:
+
 - Unit was listed for rent on August 17, 2025
 - Fabricated violation notice issued August 18, 2025
 - Timeline proves decision to evict was made BEFORE alleged misconduct
 
-**d) Lease Backdating Request:**
+#### d) Lease Backdating Request:
+
 - Staff requested tenants backdate the lease renewal
 - This is an irregular practice that can constitute fraud
 
@@ -131,6 +140,7 @@ Under Schwickert's supervision, Velair staff engaged in:
 ### 4. RETALIATION AGAINST TENANTS
 
 Under Schwickert's supervision, Velair retaliated against tenants for:
+
 - Complaining about accounting errors
 - Sending Cease & Desist letter
 - Filing Minnesota Attorney General complaint
@@ -144,15 +154,15 @@ Under Schwickert's supervision, Velair retaliated against tenants for:
 
 ---
 
-**SUMMARY:**
+### SUMMARY:
 
 I am filing this complaint against Ryan Schwickert, licensed real estate broker for Velair Property Management, LLC, for failure to supervise staff and permitting dishonest, retaliatory conduct that violates Minnesota real estate licensing laws.
 
-**BACKGROUND:**
+### BACKGROUND:
 
 I have been a tenant at Lexington Flats (managed by Velair) for over 4 years with a perfect rental history. After complaining about accounting errors and harassment by the new property manager, Velair fabricated lease violations and initiated eviction proceedings.
 
-**BROKER'S FAILURES:**
+### BROKER'S FAILURES:
 
 As the designated broker, Ryan Schwickert is legally responsible for supervising all property management activities. The following occurred under his supervision:
 
@@ -166,9 +176,10 @@ As the designated broker, Ryan Schwickert is legally responsible for supervising
 
 5. **Retaliation:** Every adverse action occurred after we engaged in protected activities (complaining about errors, sending Cease & Desist, filing AG complaint).
 
-**BROKER ACCOUNTABILITY:**
+### BROKER ACCOUNTABILITY:
 
 Under Minnesota law, Ryan Schwickert is responsible for the conduct of Velair staff. He has:
+
 - Failed to establish adequate supervision systems
 - Failed to ensure proper documentation of lease violations
 - Failed to prevent retaliatory conduct
@@ -203,7 +214,8 @@ We request the Minnesota Department of Commerce:
 ## HOW TO FILE
 
 ### Option 1: Online
-1. Go to: **https://mn.gov/commerce/consumers/file-a-complaint/**
+
+1. Go to: **<https://mn.gov/commerce/consumers/file-a-complaint/>**
 2. Select "Real Estate" as complaint type
 3. Enter broker information
 4. Copy/paste narrative above
@@ -211,7 +223,8 @@ We request the Minnesota Department of Commerce:
 6. Submit
 
 ### Option 2: By Mail
-```
+
+```text
 Minnesota Department of Commerce
 Real Estate Section
 85 7th Place East, Suite 280
@@ -219,6 +232,7 @@ Saint Paul, MN 55101-2198
 ```
 
 ### Option 3: By Phone
+
 - **Main:** (651) 539-1600
 - **Toll-Free:** 1-800-657-3602
 - Hours: 8am-4:30pm, Monday-Friday
@@ -229,7 +243,7 @@ Saint Paul, MN 55101-2198
 
 Before filing, verify Ryan Schwickert's license status:
 
-1. Go to: https://www.mn.gov/elicense/
+1. Go to: <https://www.mn.gov/elicense/>
 2. Search for "Ryan Schwickert" or "Velair Property Management"
 3. Note the license number for your complaint
 
@@ -238,7 +252,7 @@ Before filing, verify Ryan Schwickert's license status:
 ## RELATED COMPLAINTS
 
 | Agency | Status |
-|--------|--------|
+| -------- | -------- |
 | Minnesota Attorney General | Filed September 4, 2025 |
 | HUD Fair Housing | Draft prepared |
 | MN Dept of Human Rights | Draft prepared |

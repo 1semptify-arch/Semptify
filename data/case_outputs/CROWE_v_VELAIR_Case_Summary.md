@@ -1,6 +1,7 @@
 # CASE SUMMARY: CROWE v. VELAIR PROPERTY MANAGEMENT
 
 ## RETALIATION & WRONGFUL EVICTION CASE
+
 **Jurisdiction:** Minnesota | **Venue:** Dakota County District Court
 
 ---
@@ -8,20 +9,23 @@
 ## 🔴 PARTIES
 
 ### TENANTS (Plaintiffs)
+
 | Name | Role | Address | Contact |
-|------|------|---------|---------|
-| **Bradley A. Crowe** | Primary Tenant | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 | bradcrowe45@gmail.com • 651-417-3946 |
-| **Dena Sazama** | Co-Tenant | Same address | denasazama1@gmail.com • 612-441-6948 |
+| ------ | ------ | --------- | --------- |
+| **Bradley A. Crowe** | Primary Tenant | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 | <bradcrowe45@gmail.com> • 651-417-3946 |
+| **Dena Sazama** | Co-Tenant | Same address | <denasazama1@gmail.com> • 612-441-6948 |
 
 ### DEFENDANTS (Landlord/Property Management)
+
 | Name | Role | Address | Contact |
-|------|------|---------|---------|
-| **Velair Property Management, LLC** | Property Management Company | 7645 Lyndale Ave S, Suite 210, Minneapolis, MN 55423 | info@velairmanagement.com • (612) 243-3111 |
-| **Jodelle Rossi** | Regional Property Manager | Same as above | jodirossi@velairmanagement.com • 612.324.9600 |
-| **Lisa Burg** | Onsite Property Manager (Lexington Flats) | 2977 Lexington Ave S, Eagan, MN 55121 | liaburg@velairmanagement.com |
+| ------ | ------ | --------- | --------- |
+| **Velair Property Management, LLC** | Property Management Company | 7645 Lyndale Ave S, Suite 210, Minneapolis, MN 55423 | <info@velairmanagement.com> • (612) 243-3111 |
+| **Jodelle Rossi** | Regional Property Manager | Same as above | <jodirossi@velairmanagement.com> • 612.324.9600 |
+| **Lisa Burg** | Onsite Property Manager (Lexington Flats) | 2977 Lexington Ave S, Eagan, MN 55121 | <liaburg@velairmanagement.com> |
 | **Ryan Schwickert** | Licensed Real Estate Broker | Velair Corporate | MN License Lookup Directory |
 
 ### PROPERTY
+
 - **Lexington Flats Apartments**
 - 2985 Lexington Avenue South, Eagan, MN 55121
 - Unit #104 - 2 Bedroom, 2 Bathroom (931 sq ft)
@@ -33,6 +37,7 @@
 ## 📋 CASE OVERVIEW
 
 ### Tenancy Background
+
 - **Tenancy Duration:** 5+ years (Move-in: November 21, 2021)
 - **Prior Violations:** NONE
 - **Lease Term:** November 1, 2024 - October 31, 2025
@@ -40,6 +45,7 @@
 - **Late Fee:** 8% of rent ($67.48)
 
 ### Core Allegations Against Velair
+
 1. **RETALIATION** - Punitive actions after tenant asserted legal rights
 2. **FABRICATED LEASE VIOLATIONS** - Manufactured violations without documentation
 3. **HARASSMENT** - Pattern of intimidation and hostile conduct
@@ -53,14 +59,16 @@
 ## ⚖️ APPLICABLE MINNESOTA LAW
 
 ### Primary Statutes
+
 | Statute | Title | Application |
-|---------|-------|-------------|
+| --------- | ------- | ------------- |
 | **MN § 504B.285** | Retaliatory Eviction | Prohibits eviction for tenant asserting legal rights |
 | **MN § 504B.441** | Tenant Retaliation Protection | Broad protection against landlord retaliation |
 | **MN § 504B.171** | Criminal Activity (cited by landlord) | Referenced in fabricated violation notice |
 | **MN § 504B.321 subd.2** | Health/Safety Threats (cited by landlord) | Misapplied against tenant |
 
 ### Tenant Protections Violated
+
 - ✅ Right to complain about conditions
 - ✅ Right to contact housing authorities
 - ✅ Right to assert legal rights
@@ -75,8 +83,9 @@
 ## 📁 DOCUMENT INVENTORY
 
 ### Critical Evidence Documents
+
 | Document | Date | Type | Key Content |
-|----------|------|------|-------------|
+| ---------- | ------ | ------ | ------------- |
 | 2024-2025 Lease (11 pages) | Nov 2024 | Lease | Full tenancy terms, no prior violations |
 | Notice of Lease Violation | Aug 18, 2025 | Notice | Fabricated violation against Dena Sazama |
 | Cease & Desist Letter | Sep 3, 2025 | Legal Letter | Tenant's formal complaint of harassment |
@@ -89,6 +98,7 @@
 | Payment Ledgers | Various | Financial | Payment history/disputes |
 
 ### Documents Requiring OCR Re-processing
+
 - Notice to Vacate (image - text not extracted)
 - Notice of Lease Violation (image - text not extracted)
 - Maintenance Records (PDF - corrupted/unreadable)
@@ -99,6 +109,7 @@
 ## 🔥 KEY EVIDENCE POINTS
 
 ### Evidence of Retaliation Timeline
+
 1. **Aug 13, 2025** - Velair offers lease renewal ✓
 2. **Aug 17, 2025** - Unit #104 listed on RENTCafe (BEFORE alleged violation!)
 3. **Aug 18, 2025** - Velair issues "Serious Lease Infraction" notice to Dena
@@ -110,12 +121,15 @@
 9. **Sep 20, 2025** - Tenant issues Final Notice Before Legal Action
 
 ### Smoking Gun Evidence
+>
 > **Unit was listed for rent on Aug 17, 2025 - ONE DAY BEFORE the alleged lease violation on Aug 18, 2025**
-> 
+>
 > This proves the decision to remove tenants was made BEFORE any alleged infraction occurred.
 
 ### Fabricated Violation Analysis
+
 The Aug 18, 2025 "Serious Lease Infraction" notice alleges:
+
 - "Verbally abusive to on-call maintenance and property maintenance staff"
 - Cites multiple MN statutes (504B.171, 504B.321)
 - **NO documentation, witness statements, or police reports provided**
@@ -123,10 +137,12 @@ The Aug 18, 2025 "Serious Lease Infraction" notice alleges:
 - Demands "mutual termination" within 7 days or eviction
 
 ### Landlord's False Accusations (Documented)
+
 From Jodelle Rossi's Sep 19, 2025 email:
 > "Unfortunately, there have been multiple incidents in which Bradley has interacted with Velair staff in a **belligerent manner** while appearing to be **under the influence**."
 
-**Tenant's Counter:**
+#### Tenant's Counter:
+
 - No incident reports provided
 - No police reports provided
 - No lease violation notices for Bradley prior to this
@@ -137,6 +153,7 @@ From Jodelle Rossi's Sep 19, 2025 email:
 ## 💰 DAMAGES CLAIMED
 
 ### Financial Damages
+
 - Moving costs (if forced to relocate)
 - Storage costs
 - Lost security deposit ($1,073.00)
@@ -144,13 +161,16 @@ From Jodelle Rossi's Sep 19, 2025 email:
 - Time/wages lost addressing harassment
 
 ### Non-Economic Damages
+
 - Emotional distress (Dena has documented anxiety disorder)
 - Reputational harm (defamatory statements)
 - Loss of quiet enjoyment
 - Fear of homelessness
 
 ### Statutory Damages
+
 Under MN § 504B.285 and § 504B.441:
+
 - Potential treble damages for retaliation
 - Attorney's fees
 - Court costs
@@ -171,7 +191,7 @@ Under MN § 504B.285 and § 504B.441:
 ## 🏛️ AGENCIES CONTACTED
 
 | Agency | Date | Status |
-|--------|------|--------|
+| -------- | ------ | -------- |
 | Minnesota Attorney General | Sep 4, 2025 | Report Filed |
 | HOME Line (Tenant Hotline) | Sep 23, 2025 | Consultation Completed |
 | Minnesota Dept. of Human Rights | Pending | Threatened in notices |
@@ -182,6 +202,7 @@ Under MN § 504B.285 and § 504B.441:
 ## 📞 ATTORNEY RESOURCES
 
 From HOME Line referral (Pattye Hechter):
+
 - HOME Line Hotline: (612) 728-5767
 - Pattye Hechter, Housing Attorney: (612) 255-8868
 - 8011-34th Ave. S. Suite 126, Bloomington, MN 55425

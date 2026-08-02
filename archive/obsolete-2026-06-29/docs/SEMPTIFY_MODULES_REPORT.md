@@ -16,7 +16,7 @@ Semptify is a tenant rights protection platform. The tenant enters data ONCE, an
 
 ## 📊 Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           SEMPTIFY FASTAPI                                  │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -62,12 +62,13 @@ Semptify is a tenant rights protection platform. The tenant enters data ONCE, an
 **File:** `app/services/law_engine.py` (~17,000 bytes)
 
 ### Purpose
+
 Cross-reference engine that matches tenant situations with applicable laws. Acts as the legal knowledge base.
 
 ### Functions
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `add_law()` | Add a new law reference to the library |
 | `get_law(law_id)` | Retrieve a specific law by ID |
 | `get_laws_by_category()` | Filter laws by category (habitability, eviction, etc.) |
@@ -78,6 +79,7 @@ Cross-reference engine that matches tenant situations with applicable laws. Acts
 | `confirm_match()` | User confirms a law match (learning) |
 
 ### Law Categories
+
 - `LEASE_TERMS` - Lease agreement provisions
 - `RENT_PAYMENT` - Payment rules and late fees
 - `SECURITY_DEPOSIT` - Deposit limits, return requirements
@@ -91,6 +93,7 @@ Cross-reference engine that matches tenant situations with applicable laws. Acts
 - `ENTRY_ACCESS` - Landlord entry rules
 
 ### Data Stored
+
 - Statute citations
 - Key points and summaries
 - Tenant rights
@@ -105,12 +108,13 @@ Cross-reference engine that matches tenant situations with applicable laws. Acts
 **File:** `app/routers/vault.py` (~15,000 bytes)
 
 ### Purpose
+
 Secure document storage with cryptographic certification. Documents stored in USER's cloud storage, not on server.
 
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/vault/upload` | POST | Upload document with certification |
 | `/api/vault/documents` | GET | List all documents |
 | `/api/vault/documents/{id}` | GET | Get specific document |
@@ -119,6 +123,7 @@ Secure document storage with cryptographic certification. Documents stored in US
 | `/api/vault/download/{id}` | GET | Download document |
 
 ### Features
+
 - **SHA-256 Hashing** - Every document gets cryptographic fingerprint
 - **Certification** - Timestamp + hash = proof of existence
 - **Cloud Storage** - Uses user's Google Drive/Dropbox/OneDrive
@@ -126,6 +131,7 @@ Secure document storage with cryptographic certification. Documents stored in US
 - **Evidence Marking** - Flag documents as court evidence
 
 ### Document Types Supported
+
 - Leases and amendments
 - Notices (eviction, rent increase, etc.)
 - Photos/videos of conditions
@@ -141,12 +147,13 @@ Secure document storage with cryptographic certification. Documents stored in US
 **File:** `app/routers/timeline.py` (~10,000 bytes)
 
 ### Purpose
+
 Chronological event tracking for building evidence narratives. The tenant's story, in order.
 
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/timeline` | GET | List all events |
 | `/api/timeline` | POST | Create new event |
 | `/api/timeline/{id}` | GET | Get specific event |
@@ -156,6 +163,7 @@ Chronological event tracking for building evidence narratives. The tenant's stor
 | `/api/timeline/range` | GET | Get events in date range |
 
 ### Event Types
+
 - `notice` - Notices received/sent
 - `payment` - Rent payments
 - `maintenance` - Repair requests, work done
@@ -164,6 +172,7 @@ Chronological event tracking for building evidence narratives. The tenant's stor
 - `other` - Everything else
 
 ### Features
+
 - **Document Linking** - Connect events to vault documents
 - **Evidence Flagging** - Mark events for court use
 - **Date Filtering** - Query by date ranges
@@ -176,12 +185,13 @@ Chronological event tracking for building evidence narratives. The tenant's stor
 **File:** `app/routers/calendar.py` (~11,500 bytes)
 
 ### Purpose
+
 Deadline management, court dates, and rent tracking. The urgency engine feeds from here.
 
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/calendar` | GET | List all events |
 | `/api/calendar` | POST | Create event/deadline |
 | `/api/calendar/{id}` | GET | Get specific event |
@@ -192,6 +202,7 @@ Deadline management, court dates, and rent tracking. The urgency engine feeds fr
 | `/api/calendar/range` | GET | Events in date range |
 
 ### Event Types
+
 - `deadline` - Legal deadlines (answer due, etc.)
 - `hearing` - Court hearing dates
 - `reminder` - General reminders
@@ -199,6 +210,7 @@ Deadline management, court dates, and rent tracking. The urgency engine feeds fr
 - `rent_due` - Rent payment dates
 
 ### Features
+
 - **Critical Flagging** - Mark deadlines that affect case
 - **Reminder System** - Set reminders X days before
 - **Intensity Integration** - Feeds the urgency engine
@@ -211,12 +223,13 @@ Deadline management, court dates, and rent tracking. The urgency engine feeds fr
 **File:** `app/services/document_pipeline.py` (~13,000 bytes)
 
 ### Purpose
+
 Full document processing: Upload → Analyze → Classify → Store → Cross-reference
 
 ### Functions
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `process_document()` | Full pipeline from upload to storage |
 | `analyze_document()` | AI analysis of document content |
 | `classify_document()` | Determine document type |
@@ -226,6 +239,7 @@ Full document processing: Upload → Analyze → Classify → Store → Cross-re
 | `list_documents()` | List user's documents |
 
 ### Processing States
+
 - `PENDING` - Uploaded, awaiting processing
 - `ANALYZING` - AI analysis in progress
 - `CLASSIFIED` - Type determined
@@ -233,6 +247,7 @@ Full document processing: Upload → Analyze → Classify → Store → Cross-re
 - `FAILED` - Processing error
 
 ### Extracted Data
+
 - **Key Dates** - Move-in, notices, deadlines
 - **Key Parties** - Landlord, tenant, agents
 - **Key Amounts** - Rent, deposits, fees
@@ -247,12 +262,14 @@ Full document processing: Upload → Analyze → Classify → Store → Cross-re
 **Tests:** `tests/test_document_intake.py` (43 tests - ALL PASS)
 
 ### Purpose
+
 Complete document intake pipeline: Receive → Validate → Extract → Analyze → Enrich
 
 This is the FIRST CONTACT point when a document enters Semptify. Every document passes through this engine before going anywhere else.
 
 ### Architecture
-```
+
+```text
 Document In ─→ INTAKE ─→ EXTRACT ─→ ANALYZE ─→ ENRICH ─→ Ready for Use
                  │          │          │          │
                  ▼          ▼          ▼          ▼
@@ -263,13 +280,14 @@ Document In ─→ INTAKE ─→ EXTRACT ─→ ANALYZE ─→ ENRICH ─→ Rea
 ### Core Classes
 
 | Class | Description |
-|-------|-------------|
+| ------- | ------------- |
 | `DocumentIntakeEngine` | Main engine (singleton) |
 | `DocumentClassifier` | Classifies document types |
 | `DataExtractor` | Extracts dates, parties, amounts |
 | `IssueDetector` | Detects legal issues and defenses |
 
 ### Document Types (30 types)
+
 - `LEASE`, `LEASE_AMENDMENT`
 - `EVICTION_NOTICE`, `NOTICE_TO_QUIT`
 - `COURT_SUMMONS`, `COURT_COMPLAINT`, `COURT_FILING`, `COURT_ORDER`
@@ -284,7 +302,8 @@ Document In ─→ INTAKE ─→ EXTRACT ─→ ANALYZE ─→ ENRICH ─→ Rea
 - `OTHER`
 
 ### Intake Status Flow
-```
+
+```text
 RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
                                                          └──→ FAILED
                                                          └──→ NEEDS_REVIEW
@@ -293,7 +312,7 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 ### Extraction Capabilities
 
 | Type | What We Extract |
-|------|-----------------|
+| ------ | ----------------- |
 | **Dates** | Hearing dates, deadlines, move-in/out, notice dates |
 | **Parties** | Landlord, tenant, attorneys, agents with contact info |
 | **Amounts** | Rent, deposits, fees, damages with labels |
@@ -303,7 +322,7 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 ### Issue Detection
 
 | Severity | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `CRITICAL` | Immediate action needed (eviction, court date) |
 | `HIGH` | Urgent (deadline approaching, violation) |
 | `MEDIUM` | Important (potential issue, follow up) |
@@ -311,6 +330,7 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 | `INFO` | Just information |
 
 ### Issue Types Detected
+
 - **Notice Period Violations** - Less than 14 days for eviction
 - **Improper Service** - Wrong address, wrong person
 - **Missing Requirements** - Missing court info, case numbers
@@ -322,7 +342,7 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/intake/upload` | POST | Upload document for intake |
 | `/api/intake/upload/batch` | POST | Upload multiple documents |
 | `/api/intake/process/{doc_id}` | POST | Process uploaded document |
@@ -340,6 +360,7 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 | `/api/intake/enums/*` | GET | Get enum values for UI |
 
 ### Integration Points
+
 - **Law Engine** - Cross-references issues with applicable laws
 - **Timeline** - Links extracted dates to events
 - **Calendar** - Creates deadline events
@@ -347,6 +368,7 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 - **Adaptive UI** - Tailors UI based on detected issues
 
 ### Languages Supported
+
 - English (primary)
 - Spanish (detection)
 - Somali (detection)
@@ -361,7 +383,9 @@ RECEIVED → VALIDATING → EXTRACTING → ANALYZING → ENRICHING → COMPLETE
 **Tests:** `tests/test_document_registry.py` (65 tests - ALL PASS)
 
 ### Purpose
+
 Tamper-proof document management with chain of custody tracking. Every document gets:
+
 - **Unique SEMPTIFY Document ID** (SEM-YYYY-NNNNNN-XXXX format)
 - **Timestamp** (UTC, ISO 8601)
 - **Tamper-proof hashing** (SHA-256 + HMAC combined hash)
@@ -371,7 +395,8 @@ Tamper-proof document management with chain of custody tracking. Every document 
 - **Complete audit trail**
 
 ### Architecture
-```
+
+```text
 Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track Forever
                   │          │          │          │
                   ▼          ▼          ▼          ▼
@@ -382,7 +407,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### Core Classes
 
 | Class | Description |
-|-------|-------------|
+| ------- | ------------- |
 | `DocumentRegistry` | Main registry (singleton) |
 | `DocumentIDGenerator` | Generates unique SEM-YYYY-NNNNNN-XXXX IDs |
 | `HashGenerator` | SHA-256 + HMAC tamper-proof hashing |
@@ -391,7 +416,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### Document Status Tracking
 
 | Status | Description |
-|--------|-------------|
+| -------- | ------------- |
 | `ORIGINAL` | First instance of this document |
 | `COPY` | Duplicate of existing document |
 | `MODIFIED_COPY` | Copy with detected modifications |
@@ -403,7 +428,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### Integrity Verification
 
 | Status | Meaning |
-|--------|---------|
+| -------- | --------- |
 | `VERIFIED` | All hashes match, no tampering |
 | `TAMPERED` | Content hash mismatch - file modified! |
 | `METADATA_CHANGED` | Metadata altered after registration |
@@ -413,7 +438,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### Forgery Indicators (10 types)
 
 | Indicator | What It Detects |
-|-----------|-----------------|
+| ----------- | ----------------- |
 | `DATE_INCONSISTENCY` | Future dates, impossible dates |
 | `SIGNATURE_ANOMALY` | Signature doesn't match pattern |
 | `FONT_MISMATCH` | Different fonts in document |
@@ -428,7 +453,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### Chain of Custody Actions
 
 | Action | When Recorded |
-|--------|---------------|
+| -------- | --------------- |
 | `RECEIVED` | Document first registered |
 | `VERIFIED` | Integrity check passed |
 | `ACCESSED` | Document viewed/downloaded |
@@ -441,7 +466,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/registry/register` | POST | Register document with hashing |
 | `/api/registry/documents/{id}` | GET | Get registered document |
 | `/api/registry/documents/{id}/verify` | POST | Verify integrity |
@@ -455,6 +480,7 @@ Document In ─→ REGISTER ─→ HASH ─→ ANALYZE ─→ STORE ─→ Track
 ### Tamper-Proof Guarantee
 
 Every registered document has three hashes:
+
 1. **Content Hash** - SHA-256 of file bytes
 2. **Metadata Hash** - SHA-256 of document metadata
 3. **Combined Hash** - HMAC-SHA256 of content + metadata + ID
@@ -468,22 +494,25 @@ If ANY of these don't match on verification → **TAMPERED**
 **File:** `app/routers/copilot.py` (~13,400 bytes)
 
 ### Purpose
+
 AI-powered tenant rights assistant. Multiple provider support.
 
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/copilot/query` | POST | Ask a question |
 | `/api/copilot/analyze` | POST | Analyze a document |
 | `/api/copilot/status` | GET | Check AI availability |
 
 ### AI Providers Supported
+
 - **OpenAI** - GPT-4, GPT-3.5
 - **Azure OpenAI** - Enterprise deployment
 - **Ollama** - Local/self-hosted models
 
 ### System Prompt Capabilities
+
 - Explain tenant rights in plain language
 - Help understand legal documents
 - Guide through processes
@@ -491,6 +520,7 @@ AI-powered tenant rights assistant. Multiple provider support.
 - Always disclaims: "Information, not legal advice"
 
 ### Features
+
 - **Context Awareness** - Uses user's documents/situation
 - **Conversation Memory** - Continue previous chats
 - **Multi-Provider** - Fallback if one provider fails
@@ -502,10 +532,12 @@ AI-powered tenant rights assistant. Multiple provider support.
 **File:** `app/services/context_loop.py` (~31,000 bytes)
 
 ### Purpose
+
 The BRAIN of Semptify. Everything flows through here. Determines urgency and triggers actions.
 
 ### The Loop
-```
+
+```text
 1. INPUT: Document, event, or user action comes in
 2. PROCESS: Extract context, classify, cross-reference with laws
 3. INTENSITY: Calculate urgency/priority based on deadlines, severity, patterns
@@ -516,7 +548,7 @@ The BRAIN of Semptify. Everything flows through here. Determines urgency and tri
 ### Functions
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `process_event()` | Process any incoming event |
 | `calculate_intensity()` | Determine urgency score (0-100) |
 | `get_user_context()` | Get everything we know about user |
@@ -526,11 +558,13 @@ The BRAIN of Semptify. Everything flows through here. Determines urgency and tri
 | `get_recommendations()` | Suggest actions |
 
 ### Intensity Examples
+
 - Eviction notice 3 days before court → **CRITICAL (100)**
 - Lease ending in 60 days → **MEDIUM (40)**
 - Missing rent receipt from 6 months ago → **LOW (15)**
 
 ### Event Types Processed
+
 - `DOCUMENT_UPLOADED` - New document came in
 - `DOCUMENT_ANALYZED` - AI finished analysis
 - `DEADLINE_APPROACHING` - Deadline getting close
@@ -548,18 +582,20 @@ The BRAIN of Semptify. Everything flows through here. Determines urgency and tri
 **File:** `app/services/adaptive_ui.py` (~25,000 bytes)
 
 ### Purpose
+
 Self-building interface based on user needs. The GUI literally builds itself.
 
 ### API Endpoints
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
+| ---------- | -------- | ------------- |
 | `/api/ui/widgets` | GET | Get widgets for current user |
 | `/api/ui/dismiss/{id}` | POST | Dismiss a widget |
 | `/api/ui/action/{id}` | POST | Take action on widget |
 | `/api/ui/context` | GET | Get current UI context |
 
 ### Widget Types
+
 - `ALERT` - Urgent notification (deadline, violation)
 - `ACTION_CARD` - Suggested action to take
 - `INFO_PANEL` - Educational information
@@ -573,6 +609,7 @@ Self-building interface based on user needs. The GUI literally builds itself.
 - `WARNING` - Something to watch out for
 
 ### Tenancy Phases
+
 - `PRE_MOVE_IN` - Signing lease
 - `ACTIVE_TENANCY` - Normal living
 - `ISSUE_EMERGING` - Problems starting
@@ -582,6 +619,7 @@ Self-building interface based on user needs. The GUI literally builds itself.
 - `POST_TENANCY` - After moving out
 
 ### Features
+
 - **Phase Detection** - Automatically detects user's situation
 - **Priority Widgets** - Critical stuff shown first
 - **Learned Patterns** - Shows what helped similar users
@@ -594,12 +632,13 @@ Self-building interface based on user needs. The GUI literally builds itself.
 **Files:** `app/services/storage/` (~35,000 bytes total)
 
 ### Purpose
+
 Store documents in USER's cloud storage, not on Semptify servers.
 
 ### Providers Supported
 
 | Provider | File | OAuth |
-|----------|------|-------|
+| ---------- | ------ | ------- |
 | Google Drive | `google_drive.py` | Yes |
 | Dropbox | `dropbox.py` | Yes |
 | OneDrive | `onedrive.py` | Yes |
@@ -608,7 +647,7 @@ Store documents in USER's cloud storage, not on Semptify servers.
 ### Common Interface
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `upload_file()` | Store a file |
 | `download_file()` | Retrieve a file |
 | `delete_file()` | Remove a file |
@@ -617,6 +656,7 @@ Store documents in USER's cloud storage, not on Semptify servers.
 | `create_folder()` | Create a folder |
 
 ### Features
+
 - **OAuth2 Flow** - Secure user authorization
 - **Token Refresh** - Automatic token management
 - **Folder Structure** - `.semptify/vault/` in user's storage
@@ -635,7 +675,7 @@ Store documents in USER's cloud storage, not on Semptify servers.
 Connects ALL Semptify data sources for court-ready packages.
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `build_case()` | Generate complete case package |
 | `get_tenant_info()` | Pull from user profile |
 | `gather_evidence()` | Collect vault documents |
@@ -645,7 +685,8 @@ Connects ALL Semptify data sources for court-ready packages.
 | `suggest_defenses()` | AI-powered defense suggestions |
 | `get_form_data()` | Pre-fill court form fields |
 
-**MN Court Rules Enforced:**
+#### MN Court Rules Enforced:
+
 - 7-day answer deadline
 - Required service methods
 - Maximum counterclaim amounts ($15,000)
@@ -661,7 +702,7 @@ Connects ALL Semptify data sources for court-ready packages.
 Bidirectional learning - outcomes flow back to improve future strategies.
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `record_case_outcome()` | Store case result |
 | `record_defense_outcome()` | Track which defenses worked |
 | `record_motion_outcome()` | Track motion success |
@@ -670,7 +711,8 @@ Bidirectional learning - outcomes flow back to improve future strategies.
 | `get_landlord_patterns()` | Landlord behavior patterns |
 | `get_recommended_strategy()` | AI strategy recommendation |
 
-**Outcome Types:**
+#### Outcome Types:
+
 - `WON` - Tenant prevailed
 - `LOST` - Landlord prevailed
 - `SETTLED` - Negotiated resolution
@@ -684,14 +726,16 @@ Bidirectional learning - outcomes flow back to improve future strategies.
 
 Complete procedural knowledge for MN eviction defense.
 
-**Rules Included:**
+#### Rules Included:
+
 - 14-day notice requirement (§504B.135)
 - Service requirements (§504B.331)
 - Retaliation protection (§504B.441)
 - Rent escrow procedures (§504B.385)
 - Expungement eligibility (§484.014)
 
-**Motion Templates:**
+#### Motion Templates:
+
 - Motion to Dismiss (improper service)
 - Motion to Dismiss (defective notice)
 - Motion to Dismiss (wrong venue)
@@ -700,9 +744,10 @@ Complete procedural knowledge for MN eviction defense.
 - Motion for Stay of Execution
 - Motion for Expungement
 
-**Objection Responses:**
+#### Objection Responses:
+
 | Objection | How to Overcome |
-|-----------|-----------------|
+| ----------- | ----------------- |
 | Hearsay | Not for truth / party-opponent exception |
 | Relevance | Explain connection to defense |
 | Foundation | Lay proper foundation |
@@ -711,14 +756,16 @@ Complete procedural knowledge for MN eviction defense.
 | Speculation | Clarify personal knowledge |
 | Parol Evidence | Fraud/habitability exceptions |
 
-**Counterclaim Types:**
+#### Counterclaim Types:
+
 - Breach of Habitability (§504B.161)
 - Retaliation (§504B.441)
 - Security Deposit Violations (§504B.178)
 - Illegal Lockout (§504B.375)
 - Housing Code Violations (§504B.395)
 
-**Defense Categories:**
+#### Defense Categories:
+
 - Procedural (notice, service, venue, standing)
 - Habitability (warranty, rent escrow)
 - Retaliation (complaint, organizing, legal action)
@@ -733,7 +780,7 @@ Complete procedural knowledge for MN eviction defense.
 Generate court-ready PDF documents.
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `generate_answer_pdf()` | Answer & Counterclaim form |
 | `generate_counterclaim_pdf()` | Standalone counterclaim |
 | `generate_motion_pdf()` | Motion documents |
@@ -748,14 +795,14 @@ Generate court-ready PDF documents.
 Quad-lingual support for Dakota County's diverse population.
 
 | Language | Code | RTL |
-|----------|------|-----|
+| ---------- | ------ | ----- |
 | English | `en` | No |
 | Spanish | `es` | No |
 | Somali | `so` | No |
 | Arabic | `ar` | Yes |
 
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `get_string(key, lang)` | Get translated string |
 | `get_all_strings(lang)` | Get all translations |
 | `is_rtl(lang)` | Check if right-to-left |
@@ -769,16 +816,18 @@ Quad-lingual support for Dakota County's diverse population.
 
 Step-by-step wizards for court form completion.
 
-**Flows Available:**
+#### Flows Available:
+
 - Answer to Eviction (5 steps)
 - Counterclaim Composer (4 steps)
 - Motion Generator (3 steps)
 - Hearing Preparation (3 steps)
 - Zoom Helper (2 steps)
 
-**Flow Endpoints:**
+#### Flow Endpoints:
+
 | Endpoint | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `/eviction/flows/answer/step{N}` | Answer wizard |
 | `/eviction/flows/counterclaim/step{N}` | Counterclaim wizard |
 | `/eviction/flows/motion/step{N}` | Motion wizard |
@@ -791,6 +840,7 @@ Step-by-step wizards for court form completion.
 **File:** `app/core/security.py` (~30,500 bytes)
 
 ### Features
+
 - **Storage-based Authentication** - Auth via cloud storage OAuth
 - **JWT Tokens** - Secure session management
 - **Rate Limiting** - Prevent abuse
@@ -798,8 +848,9 @@ Step-by-step wizards for court form completion.
 - **Request ID Tracking** - Every request tagged
 
 ### Functions
+
 | Function | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `require_user()` | Dependency for authenticated routes |
 | `get_current_user()` | Get user from token |
 | `rate_limit_dependency()` | Apply rate limits |
@@ -813,8 +864,9 @@ Step-by-step wizards for court form completion.
 **File:** `app/routers/health.py` (~6,700 bytes)
 
 ### Endpoints
+
 | Endpoint | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `/health` | Basic health check |
 | `/health/ready` | Readiness probe |
 | `/health/live` | Liveness probe |
@@ -825,7 +877,7 @@ Step-by-step wizards for court form completion.
 ## 📊 SUMMARY STATISTICS
 
 | Category | Count |
-|----------|-------|
+| ---------- | ------- |
 | **Total Python Files** | 49 |
 | **Total Lines of Code** | ~500,000+ |
 | **API Endpoints** | 115+ |
@@ -838,9 +890,9 @@ Step-by-step wizards for court form completion.
 
 ## 🔗 DATA FLOW EXAMPLE
 
-**Tenant uploads eviction notice:**
+### Tenant uploads eviction notice:
 
-```
+```text
 1. INTAKE: Notice received, validated, hashed
          ↓
 2. REGISTRY: Unique ID assigned, chain of custody starts
@@ -876,7 +928,7 @@ Step-by-step wizards for court form completion.
 
 ## 🎯 THE CORE PROMISE
 
-**Enter data ONCE → It flows EVERYWHERE**
+### Enter data ONCE → It flows EVERYWHERE
 
 - Tenant info entered once → Pre-fills all forms
 - Documents uploaded once → Extracted and analyzed automatically
@@ -884,4 +936,4 @@ Step-by-step wizards for court form completion.
 - Timeline built once → Generates court narrative
 - Case outcome recorded → Improves future recommendations
 
-**Semptify learns. Semptify remembers. Semptify helps tenants win.**
+### Semptify learns. Semptify remembers. Semptify helps tenants win

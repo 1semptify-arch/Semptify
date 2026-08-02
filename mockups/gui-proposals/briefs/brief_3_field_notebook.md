@@ -1,17 +1,20 @@
 # Brief — Proposal 3: "The Field Notebook"
 
 ## Objective
+
 Design a **public welcome / public website** page for Semptify — a public-service
 housing-rights and tenant-support tool. This page is the GUI entry point that gives
 the public access to the Semptify webapp (it leads into onboarding). It is NOT a
 marketing landing page and NOT a commercial product page.
 
 ## Target audience
+
 Tenants facing housing problems. Primary persona for this aesthetic: **The Builder**
 (ongoing dispute, logging evidence over time — photos, dates, communications).
 Wants the entry page to feel like opening a real, tangible case binder.
 
 ## Aesthetic direction — "The Field Notebook"
+
 Evidence-first utilitarian, almost analog. Feels like a detective's case binder or
 a journalist's field notebook. Tangible, organized, court-ready.
 
@@ -30,11 +33,13 @@ a journalist's field notebook. Tangible, organized, court-ready.
 - **No photographs of people.** Subtle paper/kraft texture via CSS only. No external images.
 
 ## Memorable element
+
 **Stamp marks** — rotated mono text stamps like `FILED · 2026-07-22` on saved
 items, and a red `DEADLINE · — DAYS` stamp on the emergency callout. Stamps are
 rotated ~-8deg, mono uppercase, with a thin double border. They should feel ink-stamped.
 
 ## Content structure (sections as "evidence cards", top to bottom)
+
 1. **Cover card** — the page header as a case binder cover. Mono top strip:
    `CASE: — · OPENED: — · STATUS: WELCOME`. Big Inter/serif title: "Semptify".
    Subhead: "A public-service tool to protect the rights of tenants facing
@@ -67,10 +72,12 @@ rotated ~-8deg, mono uppercase, with a thin double border. They should feel ink-
    "Semptify is a public-service housing-rights tool. No ads, ever."
 
 ## Forbidden words (HARD RULE — never use on the page)
+
 "free" (about Semptify itself), "accounts", "log in", "sign up", "subscription",
 "upgrade", "premium", "paid plan", "trial", "pricing". The CTA is "Begin".
 
 ## Technical requirements
+
 - Single self-contained `index.html` + `assets/` if needed.
 - Vanilla CSS (no Tailwind, no Bootstrap). Inline `<style>` fine for mockup.
 - Google Fonts via `<link>` (Inter, IBM Plex Mono, Source Serif 4).
@@ -80,8 +87,10 @@ rotated ~-8deg, mono uppercase, with a thin double border. They should feel ink-
 - No external image services. Generate any assets locally into `assets/`.
 
 ## Output path
-`C:\Semptify\Semptify-FastAPI\mockups\gui-proposals\field_notebook\index.html`
+
+`E:\master-repo\sources\app-semptify-fastapi\mockups\gui-proposals\field_notebook\index.html`
 
 ## Image needs
+
 None expected. Subtle kraft/paper texture via CSS only. If you add any image,
 generate it locally into `assets/` — never reference external hosts.

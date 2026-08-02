@@ -21,7 +21,7 @@
 ## 2. Entry Criteria
 
 | Condition | Required | Source |
-|-----------|----------|--------|
+| ----------- | ---------- | -------- |
 | User arrives from welcome page | Yes | Referrer or session flag |
 | User has existing Semptify journal | Yes | OAuth provider identity |
 | User's storage was previously connected | Yes | OAuth tokens exist in DB |
@@ -33,6 +33,7 @@
 ## 3. Process Steps
 
 ### Step 1: Provider Selection
+
 **Screen**: `/storage/reconnect` (`static/reconnect/index.html`)
 
 **Input**: User picks their storage provider (Google Drive/Dropbox/OneDrive)
@@ -40,12 +41,14 @@
 **Output**: OAuth flow initiated → provider identifies user by provider account ID → `user_id` resolved
 
 ### Step 2: Verify Journal Exists
+
 **Backend Action**: Check if Semptify folder exists in user's storage
 
 **Success**: Journal found → Proceed to Step 3  
 **Failure**: No journal → Show "No journal found" → Option to start fresh onboarding
 
 ### Step 3: Verify Storage Connection
+
 **Backend Action**: Check if OAuth tokens exist and are valid
 
 **Case A - Tokens Valid**:  
@@ -63,14 +66,18 @@
 → After OAuth callback → restore session → redirect to dashboard
 
 ### Step 4: Session Restoration
+
 **Actions**:
+
 1. Set `semptify_uid` cookie
 2. Load user's vault structure from cloud
 3. Verify vault integrity
 4. Log reconnection event
 
 ### Step 5: Role-Based Routing
+
 **Redirect Target**:
+
 - Tenant → `/tenant/dashboard`  
 - Advocate → `/advocate/dashboard`  
 - Legal → `/legal/dashboard`  
@@ -82,7 +89,7 @@
 ## 4. Exit Criteria
 
 | Condition | Required |
-|-----------|----------|
+| ----------- | ---------- |
 | `semptify_uid` cookie set | Yes |
 | Storage tokens valid | Yes |
 | Storage tokens verified | Yes |
@@ -94,7 +101,7 @@
 ## 5. Error Handling
 
 | Scenario | Action | User Message |
-|----------|--------|--------------|
+| ---------- | -------- | -------------- |
 | No journal found | Offer onboarding | "No Semptify journal found in that storage. Start fresh?" |
 | Wrong provider selected | Try different provider | "Try your other storage provider?" |
 | Storage access revoked | Force re-OAuth | "Please reconnect your storage" |
@@ -108,6 +115,7 @@
 **Tone**: Calm, reassuring - "We're reconnecting you..."
 
 **Screen Elements**:
+
 - Clean centered card design
 - Info box: "Semptify doesn't use email accounts"
 - Provider selection (Google Drive/Dropbox/OneDrive)
@@ -116,6 +124,7 @@
 - "Need help?" link to support
 
 **Timing**:
+
 - Instant (< 1s): If tokens valid
 - Brief (< 5s): If refresh needed
 - OAuth flow: Provider-dependent (15-30s typical)
@@ -135,7 +144,7 @@
 ## 8. Implementation Files
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `static/reconnect/index.html` | UI for provider selection |
 | `app/routers/storage.py` | OAuth handler + session restoration |
 | `app/core/user_id.py` | User ID generation/parsing |
@@ -146,10 +155,12 @@
 ## 9. API Endpoints
 
 ### GET `/storage/auth/{provider}`
+
 **Query**: `?return_to=/storage/reconnect`  
 **Purpose**: Initiate OAuth flow
 
 ### GET `/storage/callback/{provider}`
+
 **Query**: `?code=...&state=...`  
 **Purpose**: OAuth callback, identify user by provider account, restore session
 
@@ -157,4 +168,4 @@
 
 ---
 
-**END OF CONTRACT**
+#### END OF CONTRACT

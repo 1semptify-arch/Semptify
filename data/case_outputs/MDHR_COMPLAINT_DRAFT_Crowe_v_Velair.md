@@ -1,13 +1,14 @@
 # MINNESOTA DEPARTMENT OF HUMAN RIGHTS
+
 ## Housing Discrimination Complaint
 
-**File Online:** https://mn.gov/mdhr/intake/housing/  
+**File Online:** <https://mn.gov/mdhr/intake/housing/>  
 **Phone:** (651) 539-1100 | **Toll-Free:** 1-800-657-3704  
 **TTY:** (651) 296-1283
 
 ---
 
-## WHY FILE WITH MDHR?
+## WHY FILE WITH MDHR
 
 ✅ **Faster than HUD** - State agencies often resolve cases more quickly  
 ✅ **Stronger state laws** - Minnesota Human Rights Act provides additional protections  
@@ -19,47 +20,53 @@
 ## COMPLAINANT INFORMATION
 
 ### Complainant 1:
+
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Bradley A. Crowe |
 | Address | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 |
 | Phone | 651-417-3946 |
-| Email | bradcrowe45@gmail.com |
+| Email | <bradcrowe45@gmail.com> |
 
 ### Complainant 2:
+
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Name | Dena Sazama |
 | Address | 2977 Lexington Ave S, Unit #104, Eagan, MN 55121 |
 | Phone | 612-441-6948 |
-| Email | denasazama1@gmail.com |
+| Email | <denasazama1@gmail.com> |
 
 ---
 
 ## RESPONDENT INFORMATION
 
 ### Primary Respondent:
+
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Business Name | Velair Property Management, LLC |
 | Address | 7645 Lyndale Ave S, Suite 210, Minneapolis, MN 55423 |
 | Phone | (612) 243-3111 |
-| Email | info@velairmanagement.com |
+| Email | <info@velairmanagement.com> |
 | Website | velairmanagement.com |
 
 ### Individual Respondents:
 
 **1. Jodelle Rossi** - Regional Property Manager
-- Email: jodirossi@velairmanagement.com
+
+- Email: <jodirossi@velairmanagement.com>
 - Phone: 612-324-9600
 - Role: Made defamatory statements; approved retaliation
 
 **2. Lisa Burg** - Onsite Property Manager
+
 - Location: Lexington Flats, 2977 Lexington Ave S, Eagan, MN 55121
-- Email: liaburg@velairmanagement.com
+- Email: <liaburg@velairmanagement.com>
 - Role: Primary harasser; issued fabricated violation notice
 
 **3. Ryan Schwickert** - Licensed Real Estate Broker
+
 - Role: Failed to supervise; oversight responsibility
 
 ---
@@ -67,7 +74,7 @@
 ## PROPERTY INFORMATION
 
 | Field | Information |
-|-------|-------------|
+| ------- | ------------- |
 | Property Name | Lexington Flats Apartments |
 | Address | 2985 Lexington Avenue South, Eagan, MN 55121 |
 | Unit | #104 (2 Bed / 2 Bath, 931 sq ft) |
@@ -80,11 +87,13 @@
 ## BASIS OF COMPLAINT
 
 Under the **Minnesota Human Rights Act (Minn. Stat. § 363A.09)**, it is unlawful to:
+
 - Retaliate against a person for opposing discriminatory practices
 - Retaliate for filing complaints or participating in proceedings
 - Discriminate in the terms, conditions, or privileges of rental housing
 
 ### Protected Activities We Engaged In:
+
 1. ✅ Complained about accounting errors in rent ledger
 2. ✅ Complained about harassment by new property manager
 3. ✅ Sent formal Cease & Desist letter (September 3, 2025)
@@ -92,6 +101,7 @@ Under the **Minnesota Human Rights Act (Minn. Stat. § 363A.09)**, it is unlawfu
 5. ✅ Asserted legal rights under MN tenant protection statutes
 
 ### Retaliatory Acts That Followed:
+
 1. ❌ Fabricated lease violation (August 18, 2025)
 2. ❌ Demanded "mutual termination" of lease
 3. ❌ Directed us to attorney, threatened eviction
@@ -106,21 +116,22 @@ Under the **Minnesota Human Rights Act (Minn. Stat. § 363A.09)**, it is unlawfu
 
 ---
 
-**INTRODUCTION:**
+### INTRODUCTION:
 
 We are filing this complaint against Velair Property Management, LLC for retaliating against us after we engaged in protected activities under Minnesota law. We have been tenants at Lexington Flats for over 4 years with a perfect rental history—zero lease violations and rent paid on time every month. After we complained about accounting errors and harassment by the new property manager, Velair fabricated lease violations and initiated eviction proceedings against us.
 
-**THE CRITICAL EVIDENCE:**
+### THE CRITICAL EVIDENCE:
 
 Our apartment (Unit #104) was listed for rent on RENTCafe.com on **August 17, 2025**—a full day BEFORE any alleged lease violation occurred on August 18, 2025. This proves Velair decided to remove us from our home before any misconduct was alleged. The "lease violation" was manufactured as a pretext for eviction.
 
-**CHRONOLOGICAL TIMELINE:**
+### CHRONOLOGICAL TIMELINE:
 
 **August 13, 2025:** Velair offered us a lease renewal, confirming we were tenants in good standing with no issues.
 
 **August 17, 2025:** Our unit was listed for rent on RENTCafe.com. We discovered this listing later and preserved screenshots as evidence.
 
 **August 18, 2025:** One day after listing our unit, Velair issued a "Serious Lease Infraction" notice against co-tenant Dena Sazama. The notice alleged she was "verbally abusive" to staff but provided:
+
 - No incident report
 - No witness statements
 - No police report
@@ -137,6 +148,7 @@ The notice demanded we agree to "mutual termination" within 7 days or face evict
 **September 4, 2025:** I filed a formal complaint with the Minnesota Attorney General's Office regarding Velair's conduct.
 
 **September 19, 2025:** Regional Property Manager Jodelle Rossi sent an email containing false and defamatory statements, claiming I had "interacted with Velair staff in a belligerent manner while appearing to be under the influence." This accusation is completely fabricated:
+
 - No incident reports document any such behavior
 - No police were ever called
 - No lease violation was ever issued to me for this
@@ -145,18 +157,18 @@ The notice demanded we agree to "mutual termination" within 7 days or face evict
 
 **September 20, 2025:** I sent a Final Notice Before Legal Action to Velair citing Minnesota retaliation statutes (Minn. Stat. § 504B.285 and § 504B.441).
 
-**PATTERN OF RETALIATION:**
+### PATTERN OF RETALIATION:
 
 Every adverse action by Velair occurred AFTER we engaged in protected activity:
 
 | Protected Activity | Velair's Retaliatory Response |
-|-------------------|------------------------------|
+| ------------------- | ------------------------------ |
 | Complained about accounting errors | Fabricated lease violation issued |
 | Sent Cease & Desist letter | Directed to attorney, eviction threatened |
 | Filed Attorney General complaint | Defamatory statements made |
 | Demanded documentation | Refused to provide any evidence |
 
-**ONGOING HARM:**
+### ONGOING HARM:
 
 We now face eviction proceedings (Dakota County Case #19AV-CV-25-3477) based entirely on fabricated allegations. We have lived in our home for over 4 years without a single legitimate complaint. We pay rent on time every month. Management previously praised how well we kept our unit.
 
@@ -167,7 +179,7 @@ We are being forced from our home as punishment for exercising our legal rights.
 ## DATE OF DISCRIMINATION
 
 | Event | Date |
-|-------|------|
+| ------- | ------ |
 | First retaliatory act | August 18, 2025 |
 | Most recent retaliatory act | September 19, 2025 |
 | Discrimination ongoing? | YES - Eviction pending |
@@ -195,7 +207,7 @@ We request the Minnesota Department of Human Rights:
 ## WITNESSES
 
 | Name | Role | Contact |
-|------|------|---------|
+| ------ | ------ | --------- |
 | Pattye Hechter, Esq. | Housing Attorney | (612) 255-8868 |
 | Minnesota AG Office | Filed complaint 9/4/25 | (651) 296-3353 |
 | Former Manager "Krusteen" | Pattern witness | [Unknown] |
@@ -220,7 +232,8 @@ When submitting, include:
 ## HOW TO FILE
 
 ### Option 1: Online (Recommended)
-1. Go to: **https://mn.gov/mdhr/intake/housing/**
+
+1. Go to: **<https://mn.gov/mdhr/intake/housing/>**
 2. Click "File a Complaint"
 3. Create account or log in
 4. Select "Housing" as complaint type
@@ -229,13 +242,15 @@ When submitting, include:
 7. Submit
 
 ### Option 2: By Phone
+
 - **Metro:** (651) 539-1100
 - **Toll-Free:** 1-800-657-3704
 - **TTY:** (651) 296-1283
 - Hours: 8am-4:30pm, Monday-Friday
 
 ### Option 3: In Person or Mail
-```
+
+```text
 Minnesota Department of Human Rights
 Freeman Building
 625 Robert Street North
@@ -249,7 +264,7 @@ Saint Paul, MN 55155
 ⚠️ **You must file within ONE YEAR of the discriminatory act.**
 
 | Event | Deadline |
-|-------|----------|
+| ------- | ---------- |
 | August 18, 2025 violation notice | August 18, 2026 |
 | September 19, 2025 defamatory email | September 19, 2026 |
 
@@ -260,7 +275,7 @@ Saint Paul, MN 55155
 ## LEGAL REFERENCES
 
 | Statute | Description |
-|---------|-------------|
+| --------- | ------------- |
 | Minn. Stat. § 363A.09 | Unfair discriminatory practices in housing |
 | Minn. Stat. § 363A.12 | Reprisals prohibited |
 | Minn. Stat. § 504B.285 | Retaliatory eviction prohibited |
