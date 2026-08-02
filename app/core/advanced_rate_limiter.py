@@ -210,7 +210,7 @@ class AdvancedRateLimiter:
     def get_client_key(self, user_id: str, ip_address: str, endpoint_type: str) -> str:
         """Generate client key for rate limiting."""
         key_data = f"{user_id}:{ip_address}:{endpoint_type}"
-        return hashlib.md5(key_data.encode()).hexdigest()  # noqa: S324 - non-security cache key
+        return hashlib.md5(key_data.encode(), usedforsecurity=False).hexdigest()
 
     def is_allowed(self, user_id: str, ip_address: str, method: str, path: str) -> tuple[bool, dict[str, Any]]:
         """Check if request is allowed."""
