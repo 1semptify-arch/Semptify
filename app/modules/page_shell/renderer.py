@@ -68,7 +68,10 @@ def render_page_shell(config: PageConfig) -> str:
             continue
         zones_html.append(_render_zone(zone, pillar, suppressed))
 
-    style = f"grid-template-areas: {areas}; " f"grid-template-rows: {rows};"
+    # CSS grid area strings use single quotes so the inline style remains a
+    # valid double-quoted HTML attribute.
+    safe_areas = areas.replace('"', "'")
+    style = f"grid-template-areas: {safe_areas}; " f"grid-template-rows: {rows};"
     return f'<div class="page-shell skeleton-{skeleton}" style="{style}">\n' + "\n".join(zones_html) + "\n</div>"
 
 
