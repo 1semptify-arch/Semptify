@@ -41,7 +41,9 @@ from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.event_bus import EventType as BusEventType, event_bus
 from app.core.job_processor import JobPriority, submit_deep_ocr_job
+from app.core.oauth_token_manager import get_valid_token_for_user
 from app.core.security import StorageUser, get_user_id, yellow_access
+from app.core.user_id import get_provider_from_user_id
 from app.core.utc import utc_now
 from app.models.models import DeepOCRStatus, DocumentPipelineIndex
 from app.services.document_intake import (
@@ -603,9 +605,9 @@ async def upload_and_process(
             if notarization and HAS_NOTARIZATION:
                 try:
                     notarization.storage_path = vault_doc.storage_path
-                except Exception:
+                except Exception as exc:
                     # Notarization update failed, non-critical
-                    pass
+                    logger.debug("Could not update notarization storage path: %s", exc)
 
             logger.info(f"📁 Document stored in vault: {vault_id}")
         except Exception as e:
@@ -799,6 +801,8 @@ async def upload_documents_batch(
                     content=content,
                     mime_type=file.content_type or "application/octet-stream",
                     source_module="intake_batch",
+                    access_token=get_valid_token_for_user(user_id),
+                    storage_provider=get_provider_from_user_id(user_id),
                 )
                 vault_id = vault_doc.vault_id
 
