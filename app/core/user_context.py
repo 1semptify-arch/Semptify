@@ -20,11 +20,11 @@ Design Principles:
 - Gates track user progression without changing identity
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-from typing import Optional
-import logging
+from enum import StrEnum
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +32,8 @@ logger = logging.getLogger(__name__)
 # User Roles
 # =============================================================================
 
-class UserRole(str, Enum):
+
+class UserRole(StrEnum):
     """
     User roles determine what features/UI to show.
     A user can have ONE active role per session, but can switch.
@@ -40,21 +41,24 @@ class UserRole(str, Enum):
     NOTE: Role is stable identity, not tied to gates or activation state.
     TENANT is the canonical role for housing context (previously "user").
     """
-    ADMIN = "admin"            # System admin: full access
-    MANAGER = "manager"        # Case manager: multi-client coordination
-    TENANT = "tenant"          # Tenant: standard housing case user
-    USER = "user"              # Legacy alias for tenant (deprecated, use TENANT)
-    ADVOCATE = "advocate"      # Tenant advocate: help multiple users
-    LEGAL = "legal"            # Legal role: attorneys, judges, clerks, paralegals (sub-roles via legal_sub_role)
-    JUDGE = "judge"            # DEPRECATED — merged into LEGAL as sub_role='judge'. Kept for backward compat only.
+
+    ADMIN = "admin"  # System admin: full access
+    MANAGER = "manager"  # Case manager: multi-client coordination
+    TENANT = "tenant"  # Tenant: standard housing case user
+    USER = "user"  # Legacy alias for tenant (deprecated, use TENANT)
+    ADVOCATE = "advocate"  # Tenant advocate: help multiple users
+    LEGAL = "legal"  # Legal role: attorneys, judges, clerks, paralegals (sub-roles via legal_sub_role)
+    JUDGE = "judge"  # DEPRECATED — merged into LEGAL as sub_role='judge'. Kept for backward compat only.
 
 
 # =============================================================================
 # Storage Providers
 # =============================================================================
 
-class StorageProvider(str, Enum):
+
+class StorageProvider(StrEnum):
     """Supported cloud storage providers."""
+
     GOOGLE_DRIVE = "google_drive"
     DROPBOX = "dropbox"
     ONEDRIVE = "onedrive"
@@ -109,7 +113,6 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
     },
-    
     # ==========================================================================
     # MANAGER - Multi-client housing support coordination
     # ==========================================================================
@@ -122,7 +125,6 @@ ROLE_PERMISSIONS = {
         "property_manage",
         "user_view",  # View user info (not edit)
     },
-    
     # ==========================================================================
     # ADVOCATE - Legal aid workers, paralegals, housing counselors
     # Focus: Help multiple tenants, case management across clients
@@ -143,14 +145,13 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
         # Advocate-specific
-        "complaints_review",      # Review/help with complaints
-        "multi_user",             # Access multiple tenant cases
-        "case_assignment",        # Assign cases to self
-        "case_notes",             # Add advocate notes (non-privileged)
-        "client_intake",          # Intake new clients
-        "bulk_export",            # Export case summaries
+        "complaints_review",  # Review/help with complaints
+        "multi_user",  # Access multiple tenant cases
+        "case_assignment",  # Assign cases to self
+        "case_notes",  # Add advocate notes (non-privileged)
+        "client_intake",  # Intake new clients
+        "bulk_export",  # Export case summaries
     },
-    
     # ==========================================================================
     # LEGAL - Legal and court professionals (unified role with sub-roles)
     # Sub-roles: attorney, judge, clerk, paralegal
@@ -162,11 +163,11 @@ ROLE_PERMISSIONS = {
     # ==========================================================================
     UserRole.LEGAL: {
         # Read access to tenant data (requires invite/relationship)
-        "vault_read",              # View tenant documents (with invite)
+        "vault_read",  # View tenant documents (with invite)
         # NO vault_write — legal cannot modify or delete tenant documents
         "timeline_read",
         "calendar_read",
-        "calendar_write",          # Can write to own calendar
+        "calendar_write",  # Can write to own calendar
         "copilot_use",
         "complaints_create",
         "complaints_review",
@@ -177,30 +178,29 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
         # Multi-tenant access
-        "multi_user",             # Access multiple tenant cases (with invite)
+        "multi_user",  # Access multiple tenant cases (with invite)
         "case_assignment",
-        "case_notes",             # Add legal case notes (as overlays, not on tenant docs)
+        "case_notes",  # Add legal case notes (as overlays, not on tenant docs)
         "client_intake",
         "bulk_export",
         # Legal-specific (PRIVILEGED)
-        "legal_tools",            # Advanced legal analysis tools
-        "privileged_create",      # Create attorney-client privileged notes
-        "privileged_read",        # Read privileged work product
-        "work_product",           # Attorney work product protection
-        "legal_research",         # Advanced legal research tools
-        "court_filing",           # Generate court-ready filings
-        "discovery_prep",         # Prepare discovery responses
-        "case_strategy",          # Strategic case planning
-        "conflict_check",         # Check for conflicts of interest
+        "legal_tools",  # Advanced legal analysis tools
+        "privileged_create",  # Create attorney-client privileged notes
+        "privileged_read",  # Read privileged work product
+        "work_product",  # Attorney work product protection
+        "legal_research",  # Advanced legal research tools
+        "court_filing",  # Generate court-ready filings
+        "discovery_prep",  # Prepare discovery responses
+        "case_strategy",  # Strategic case planning
+        "conflict_check",  # Check for conflicts of interest
         # Merged from Judge role (for judge sub-role, but available to all legal)
-        "case_review",            # Review all case materials
-        "case_oversight",         # Case oversight capabilities
-        "judicial_order",         # Record judicial orders/decisions (judge sub-role)
+        "case_review",  # Review all case materials
+        "case_oversight",  # Case oversight capabilities
+        "judicial_order",  # Record judicial orders/decisions (judge sub-role)
         # New: Legal overlay + forms sharing
-        "overlay_create_legal",   # Create legal overlays (notes, redaction) on tenant docs
-        "forms_share",            # Share from own forms list with tenants
+        "overlay_create_legal",  # Create legal overlays (notes, redaction) on tenant docs
+        "forms_share",  # Share from own forms list with tenants
     },
-    
     # ==========================================================================
     # JUDGE - Judicial officers with oversight capabilities
     # Focus: Case review, read-only access to evidence and timelines
@@ -212,17 +212,16 @@ ROLE_PERMISSIONS = {
         "calendar_read",
         "ledger_read",
         # Case oversight
-        "case_review",            # Review all case materials
-        "case_oversight",         # Judicial oversight of cases
-        "complaints_review",      # Review complaints and evidence
-        "multi_user",             # View multiple case files
+        "case_review",  # Review all case materials
+        "case_oversight",  # Judicial oversight of cases
+        "complaints_review",  # Review complaints and evidence
+        "multi_user",  # View multiple case files
         # Legal tools (read-only)
-        "legal_research",         # Access legal research
+        "legal_research",  # Access legal research
         # Judicial functions
-        "judicial_order",         # Record judicial orders/decisions
-        "case_notes",             # Add judicial notes
+        "judicial_order",  # Record judicial orders/decisions
+        "case_notes",  # Add judicial notes
     },
-    
     # ==========================================================================
     # ADMIN - System administrators (you)
     # Focus: System config, analytics, full access
@@ -242,7 +241,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Tenant",
         "purpose": "Individual renter or resident organizing their own housing and case documents with guided help.",
         "default_landing_process": "B2 - Quick Case Triage",
-        "ui_mode": "mobile",           # Mobile-first, simplified
+        "ui_mode": "mobile",  # Mobile-first, simplified
         "landing_page": "/tenant/home",
         "icon": "🏠",
     },
@@ -250,7 +249,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Advocate",
         "purpose": "Frontline support worker helping tenants prepare evidence, organize timelines, and complete non-privileged actions.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "responsive",       # Tablet-friendly
+        "ui_mode": "responsive",  # Tablet-friendly
         "landing_page": "/advocate/home",
         "icon": "🤝",
     },
@@ -266,7 +265,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Legal",
         "purpose": "Legal and court professionals (attorneys, judges, clerks, paralegals). Bar license required. Read-only access to invited tenant cases with legal overlay and forms sharing.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "desktop",          # Full complexity
+        "ui_mode": "desktop",  # Full complexity
         "landing_page": "/legal/home",
         "icon": "⚖️",
         "sub_roles": ("attorney", "judge", "clerk", "paralegal"),
@@ -276,7 +275,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Judge",
         "purpose": "Judicial officer with case oversight, evidence review, and decision recording capabilities.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "desktop",          # Full complexity
+        "ui_mode": "desktop",  # Full complexity
         "landing_page": "/judge/home",
         "icon": "📜",
     },
@@ -284,7 +283,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Administrator",
         "purpose": "Platform operations role with system-wide configuration, governance, and support access.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "desktop",          # Full complexity
+        "ui_mode": "desktop",  # Full complexity
         "landing_page": "/admin/home",
         "icon": "🔧",
     },
@@ -328,7 +327,7 @@ as a legal_sub_role='judge' when refining behavior.
 """
 
 
-def get_legal_sub_role(user_id: str) -> Optional[str]:
+def get_legal_sub_role(user_id: str) -> str | None:
     """Get the legal sub-role for a user, if they are a legal role.
 
     Returns one of LEGAL_SUB_ROLES or None if the user is not legal
@@ -389,55 +388,57 @@ def get_permissions(role: UserRole) -> set[str]:
 # User Context (carries all session context)
 # =============================================================================
 
+
 @dataclass
 class UserContext:
     """
     Complete context for an authenticated user session.
     This is what gets passed to route handlers.
     """
+
     # Identity (stable)
-    user_id: str                          # Internal ID (hash of provider:storage_id)
-    
+    user_id: str  # Internal ID (hash of provider:storage_id)
+
     # Storage info
-    provider: StorageProvider             # Which storage provider authenticated
-    storage_user_id: str                  # ID in the storage provider
-    access_token: str                     # Current access token for API calls
-    
+    provider: StorageProvider  # Which storage provider authenticated
+    storage_user_id: str  # ID in the storage provider
+    access_token: str  # Current access token for API calls
+
     # Role & permissions
-    role: UserRole = UserRole.USER        # Active role for this session
+    role: UserRole = UserRole.USER  # Active role for this session
     permissions: set[str] = field(default_factory=set)
-    
+
     # Role impersonation (acting_as)
     # When set, this user is impersonating another user's context
-    acting_as: Optional[str] = None      # user_id of user being impersonated
-    acting_as_role: Optional[UserRole] = None  # Role being assumed
-    
+    acting_as: str | None = None  # user_id of user being impersonated
+    acting_as_role: UserRole | None = None  # Role being assumed
+
     # SSOT PRIVACY RULE: For the tenant role, no personal user information
     # may be stored on Semptify servers. Only provider metadata and access state
     # are retained. Tenant PII remains in the user's cloud vault or provider data.
     # This is the strict tenant privacy rule; it may extend to other roles later.
 
     # Session tracking
-    session_id: Optional[str] = None
-    authenticated_at: Optional[datetime] = None
-    
+    session_id: str | None = None
+    authenticated_at: datetime | None = None
+
     def __post_init__(self):
         """Set permissions based on role if not provided."""
         if not self.permissions:
             self.permissions = get_permissions(self.role)
-    
+
     def has_permission(self, permission: str) -> bool:
         """Check if user has a specific permission."""
         return permission in self.permissions or "*" in self.permissions
-    
+
     def can(self, *permissions: str) -> bool:
         """Check if user has ALL specified permissions."""
         return all(self.has_permission(p) for p in permissions)
-    
+
     def can_any(self, *permissions: str) -> bool:
         """Check if user has ANY of the specified permissions."""
         return any(self.has_permission(p) for p in permissions)
-    
+
     @property
     def is_user(self) -> bool:
         return self.role == UserRole.USER
@@ -457,37 +458,37 @@ class UserContext:
     @property
     def is_admin(self) -> bool:
         return self.role == UserRole.ADMIN
-    
+
     @property
     def is_impersonating(self) -> bool:
         """Check if user is currently impersonating another user."""
         return self.acting_as is not None
-    
+
     def start_impersonation(self, target_user_id: str, target_role: UserRole) -> None:
         """
         Start impersonating another user.
-        
+
         Only admins should be able to do this. Permission check should happen
         before calling this method.
         """
         self.acting_as = target_user_id
         self.acting_as_role = target_role
         logger.info(f"User {self.user_id[:6]}... started impersonating {target_user_id[:6]}... as {target_role}")
-    
+
     def stop_impersonation(self) -> None:
         """Stop impersonating and return to original role."""
         if self.acting_as:
             logger.info(f"User {self.user_id[:6]}... stopped impersonating {self.acting_as[:6]}...")
             self.acting_as = None
             self.acting_as_role = None
-    
+
     def get_effective_user_id(self) -> str:
         """
         Get the effective user ID for this session.
         Returns acting_as user_id if impersonating, otherwise own user_id.
         """
         return self.acting_as if self.acting_as else self.user_id
-    
+
     def get_effective_role(self) -> UserRole:
         """
         Get the effective role for this session.
@@ -500,37 +501,39 @@ class UserContext:
 # Session Storage Structure
 # =============================================================================
 
+
 @dataclass
 class StoredSession:
     """
     What we store in the session store (memory/Redis/DB).
     Contains everything needed to reconstruct UserContext.
     """
+
     session_id: str
-    
+
     # Identity
     user_id: str
     provider: str  # StorageProvider value
     storage_user_id: str
-    
+
     # Auth
     access_token: str
-    refresh_token: Optional[str] = None
-    token_expires_at: Optional[datetime] = None
-    
+    refresh_token: str | None = None
+    token_expires_at: datetime | None = None
+
     # Role (can be switched)
     role: str = "user"  # UserRole value
 
     # Impersonation state (admin only)
-    acting_as: Optional[str] = None           # user_id being impersonated
-    acting_as_role: Optional[str] = None      # role being assumed
+    acting_as: str | None = None  # user_id being impersonated
+    acting_as_role: str | None = None  # role being assumed
 
     # SSOT PRIVACY: No email or display_name stored.
 
     # Timestamps
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
-    
+    expires_at: datetime | None = None
+
     def to_context(self) -> UserContext:
         """Convert stored session to UserContext for route handlers."""
         ctx = UserContext(
@@ -546,7 +549,7 @@ class StoredSession:
             ctx.acting_as = self.acting_as
             ctx.acting_as_role = UserRole(self.acting_as_role) if self.acting_as_role else None
         return ctx
-    
+
     def to_dict(self) -> dict:
         """Serialize for storage."""
         return {
@@ -563,7 +566,7 @@ class StoredSession:
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "StoredSession":
         """Deserialize from storage."""
@@ -636,15 +639,15 @@ def get_role_from_user_id(user_id: str) -> UserRole:
     """Get role for a user ID from their stored context."""
     if not user_id:
         return UserRole.USER
-    
+
     # In a real implementation, this would look up the user's role from storage
     # For now, default to USER role since role assignment happens during onboarding
     return UserRole.USER
 
 
 async def get_user_context(
-    storage_provider: Optional[str] = None,
-    semptify_uid: Optional[str] = None,
+    storage_provider: str | None = None,
+    semptify_uid: str | None = None,
 ) -> dict:
     """
     Get user context for API responses.

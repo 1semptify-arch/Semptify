@@ -128,7 +128,7 @@ jobs:
         run: pip install bandit[toml]
 
       - name: Run Bandit security scan
-        run: bandit -r app/ -f json -o bandit-report.json
+        run: bandit -r app/ -c .bandit -f json -o bandit-report.json
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4

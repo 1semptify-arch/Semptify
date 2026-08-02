@@ -9,7 +9,6 @@ import hashlib
 import hmac
 import secrets
 import string
-from typing import Optional
 
 
 def hash_token(token: str) -> str:
@@ -29,7 +28,7 @@ def sign_value(value: str, secret: str) -> str:
     return f"{value}.{sig}"
 
 
-def verify_signed_value(signed: str, secret: str) -> Optional[str]:
+def verify_signed_value(signed: str, secret: str) -> str | None:
     """
     Verify an HMAC-signed value.
     Returns the original value if valid, None if tampered.
@@ -43,7 +42,7 @@ def verify_signed_value(signed: str, secret: str) -> Optional[str]:
     return None
 
 
-def verify_hmac_user_id(signed_user_id: str, secret: str) -> Optional[str]:
+def verify_hmac_user_id(signed_user_id: str, secret: str) -> str | None:
     """
     Verify an HMAC-signed user ID cookie value.
     Returns the raw user_id if valid, None if invalid.

@@ -1,4 +1,5 @@
 """Auto-generated regression test for dispute_tracker."""
+
 from tools.module_health import check_dispute_tracker
 
 

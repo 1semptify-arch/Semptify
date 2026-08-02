@@ -13,30 +13,31 @@ Endpoints:
 # All imports remain absolute since workflow is a CORE module.
 
 import json
+import logging
 import os
+from collections import Counter
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import Any, Optional
-from collections import Counter
-from datetime import datetime, timezone
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.workflow_engine import ProcessCode, evaluate_from_params
-from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
-from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
-from app.core.module_contracts import contract_registry
-from app.core.user_context import UserRole
 from app.core.database import get_db_session
+from app.core.module_contracts import contract_registry
 from app.core.oauth_token_manager import get_valid_token_for_user
+from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
+from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
+from app.core.user_context import UserRole
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent as CalendarEventModel, TimelineEvent, Document, DocumentPipelineIndex
+from app.core.workflow_engine import ProcessCode, evaluate_from_params
+from app.models.models import CalendarEvent as CalendarEventModel, DocumentPipelineIndex, TimelineEvent
+from app.services.positronic_brain import get_brain
 from app.services.storage import get_provider
 from app.services.timeline_extraction import TimelineStore
-from app.services.positronic_brain import get_brain
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/workflow", tags=["Workflow Engine"])
@@ -199,7 +200,7 @@ class RouteResponse(BaseModel):
     allowed_actions: list[str]
     blocked_actions: list[str]
     deterministic_reason: str
-    block_reason: Optional[str] = None
+    block_reason: str | None = None
     warnings: list[str]
 
 
@@ -217,11 +218,11 @@ class AdvanceResponse(BaseModel):
     status: str
     current_page: str
     missing_requirements: list[str]
-    next_process: Optional[str] = None
-    next_route: Optional[str] = None
+    next_process: str | None = None
+    next_route: str | None = None
     allowed_actions: list[str] = []
     blocked_actions: list[str] = []
-    deterministic_reason: Optional[str] = None
+    deterministic_reason: str | None = None
     warnings: list[str] = []
 
 
@@ -480,37 +481,70 @@ def _build_home_alerts(
 
     if role == UserRole.USER.value:
         if not documents_present:
-            alerts.append(HomeAlert(level="warning", message="No case documents found. Upload notices and lease records first."))
+            alerts.append(
+                HomeAlert(level="warning", message="No case documents found. Upload notices and lease records first.")
+            )
         elif timeline_events <= 0:
-            alerts.append(HomeAlert(level="warning", message="Timeline is empty. Review extracted dates before drafting defenses."))
+            alerts.append(
+                HomeAlert(
+                    level="warning", message="Timeline is empty. Review extracted dates before drafting defenses."
+                )
+            )
         elif defense_started and not court_packet_ready:
-            alerts.append(HomeAlert(level="good", message="Defense work has started. Build the court packet to move into hearing prep."))
+            alerts.append(
+                HomeAlert(
+                    level="good", message="Defense work has started. Build the court packet to move into hearing prep."
+                )
+            )
         else:
-            alerts.append(HomeAlert(level="good", message="Evidence is available. Use Research & Knowledge to pressure-test the filing path."))
+            alerts.append(
+                HomeAlert(
+                    level="good",
+                    message="Evidence is available. Use Research & Knowledge to pressure-test the filing path.",
+                )
+            )
 
-        alerts.append(HomeAlert(
-            level="danger" if hearing_scheduled else "good",
-            message="Hearing is on calendar. Finish Zoom Court readiness now." if hearing_scheduled else "Help & Contacts stays available if you need advocate or legal-aid escalation.",
-        ))
+        alerts.append(
+            HomeAlert(
+                level="danger" if hearing_scheduled else "good",
+                message="Hearing is on calendar. Finish Zoom Court readiness now."
+                if hearing_scheduled
+                else "Help & Contacts stays available if you need advocate or legal-aid escalation.",
+            )
+        )
         return alerts[:3]
 
     if not documents_present:
         alerts.append(HomeAlert(level="warning", message="No documents are attached to the active case context yet."))
     elif timeline_events <= 0:
-        alerts.append(HomeAlert(level="warning", message="Case documents are present, but timeline review has not been completed."))
+        alerts.append(
+            HomeAlert(
+                level="warning", message="Case documents are present, but timeline review has not been completed."
+            )
+        )
     else:
-        alerts.append(HomeAlert(level="good", message="Case context is loaded. Move from research into FunctionX actions or output prep."))
+        alerts.append(
+            HomeAlert(
+                level="good",
+                message="Case context is loaded. Move from research into FunctionX actions or output prep.",
+            )
+        )
 
-    alerts.append(HomeAlert(
-        level="danger" if hearing_scheduled else "good",
-        message="A hearing is scheduled. Prioritize output delivery and readiness checks." if hearing_scheduled else "Output & Delivery is available when you need to package filings or handoff materials.",
-    ))
+    alerts.append(
+        HomeAlert(
+            level="danger" if hearing_scheduled else "good",
+            message="A hearing is scheduled. Prioritize output delivery and readiness checks."
+            if hearing_scheduled
+            else "Output & Delivery is available when you need to package filings or handoff materials.",
+        )
+    )
     return alerts[:3]
 
 
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/route", response_model=RouteResponse)
 async def get_route_decision(body: RouteRequest) -> RouteResponse:
@@ -756,45 +790,57 @@ async def get_case_state(request: Request) -> CaseStateResponse:
     try:
         async with get_db_session() as db:
             # Documents stored in DocumentPipelineIndex by pipeline
-            doc_count = len((await db.execute(
-                select(DocumentPipelineIndex.doc_id).where(DocumentPipelineIndex.user_id == user_id)
-            )).scalars().all())
+            doc_count = len(
+                (await db.execute(select(DocumentPipelineIndex.doc_id).where(DocumentPipelineIndex.user_id == user_id)))
+                .scalars()
+                .all()
+            )
 
-            timeline_count = len((await db.execute(
-                select(TimelineEvent.id).where(
-                    TimelineEvent.user_id == user_id
-                )
-            )).scalars().all())
+            timeline_count = len(
+                (await db.execute(select(TimelineEvent.id).where(TimelineEvent.user_id == user_id))).scalars().all()
+            )
 
-            hearing_count = len((await db.execute(
-                select(CalendarEventModel.id).where(
-                    and_(
-                        CalendarEventModel.user_id == user_id,
-                        CalendarEventModel.event_type == "hearing",
-                        CalendarEventModel.start_datetime > now_utc,
+            hearing_count = len(
+                (
+                    await db.execute(
+                        select(CalendarEventModel.id).where(
+                            and_(
+                                CalendarEventModel.user_id == user_id,
+                                CalendarEventModel.event_type == "hearing",
+                                CalendarEventModel.start_datetime > now_utc,
+                            )
+                        )
                     )
                 )
-            )).scalars().all())
+                .scalars()
+                .all()
+            )
 
-            critical_dates = (await db.execute(
-                select(CalendarEventModel.start_datetime).where(
-                    and_(
-                        CalendarEventModel.user_id == user_id,
-                        CalendarEventModel.is_critical.is_(True),
-                        CalendarEventModel.start_datetime > now_utc,
+            critical_dates = (
+                (
+                    await db.execute(
+                        select(CalendarEventModel.start_datetime).where(
+                            and_(
+                                CalendarEventModel.user_id == user_id,
+                                CalendarEventModel.is_critical.is_(True),
+                                CalendarEventModel.start_datetime > now_utc,
+                            )
+                        )
                     )
                 )
-            )).scalars().all()
+                .scalars()
+                .all()
+            )
 
             if critical_dates:
                 nearest_critical = min(critical_dates)
                 nearest_critical_days = max(0, (nearest_critical - now_utc).days)
 
-            timeline_rows = (await db.execute(
-                select(TimelineEvent.urgency, TimelineEvent.is_deadline).where(
-                    TimelineEvent.user_id == user_id
+            timeline_rows = (
+                await db.execute(
+                    select(TimelineEvent.urgency, TimelineEvent.is_deadline).where(TimelineEvent.user_id == user_id)
                 )
-            )).all()
+            ).all()
 
             timeline_urgencies = [row[0] for row in timeline_rows if row[0]]
             has_deadline = any(bool(row[1]) for row in timeline_rows)
@@ -809,11 +855,7 @@ async def get_case_state(request: Request) -> CaseStateResponse:
             for event in cloud_timeline_events
             if isinstance(event, dict) and event.get("urgency")
         ]
-        has_deadline = any(
-            bool(event.get("is_deadline"))
-            for event in cloud_timeline_events
-            if isinstance(event, dict)
-        )
+        has_deadline = any(bool(event.get("is_deadline")) for event in cloud_timeline_events if isinstance(event, dict))
 
     defense_started, court_packet_ready = _scan_user_cases(user_id)
 
@@ -881,7 +923,7 @@ async def get_case_state(request: Request) -> CaseStateResponse:
 
 
 @router.get("/groups")
-async def list_process_groups(role: Optional[str] = None) -> dict:
+async def list_process_groups(role: str | None = None) -> dict:
     """
     Return all 8 process groups, optionally filtered by role.
     """
@@ -940,9 +982,10 @@ async def get_page_contract(page_id: str) -> dict:
     try:
         contract = get_contract(page_id)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail=(
-            f"No contract registered for page_id='{page_id}'. Available: {sorted(PAGE_CONTRACTS.keys())}"
-        )) from exc
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No contract registered for page_id='{page_id}'. Available: {sorted(PAGE_CONTRACTS.keys())}"),
+        ) from exc
     return {
         "page_id": contract.page_id,
         "title": contract.title,
@@ -1025,7 +1068,7 @@ def _event_day(timestamp: str) -> str:
 
 
 @router.get("/help-telemetry-summary")
-async def help_telemetry_summary(limit: int = 1000, page: Optional[str] = None) -> dict:
+async def help_telemetry_summary(limit: int = 1000, page: str | None = None) -> dict:
     """
     Aggregate help-related click telemetry from the positronic brain event history.
     Useful for admin dashboards that need day-by-day and resource-level usage trends.
@@ -1081,20 +1124,8 @@ async def help_telemetry_summary(limit: int = 1000, page: Optional[str] = None) 
             "unique_pages": len(by_page),
             "unique_links": len(by_href),
         },
-        "by_day": [
-            {"day": day, "count": count}
-            for day, count in sorted(by_day.items())
-        ],
-        "top_actions": [
-            {"action": action_name, "count": count}
-            for action_name, count in by_action.most_common(25)
-        ],
-        "top_pages": [
-            {"page": page_name, "count": count}
-            for page_name, count in by_page.most_common(10)
-        ],
-        "top_links": [
-            {"href": href_value, "count": count}
-            for href_value, count in by_href.most_common(25)
-        ],
+        "by_day": [{"day": day, "count": count} for day, count in sorted(by_day.items())],
+        "top_actions": [{"action": action_name, "count": count} for action_name, count in by_action.most_common(25)],
+        "top_pages": [{"page": page_name, "count": count} for page_name, count in by_page.most_common(10)],
+        "top_links": [{"href": href_value, "count": count} for href_value, count in by_href.most_common(25)],
     }

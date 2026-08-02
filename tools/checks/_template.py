@@ -17,10 +17,10 @@ To rename this into a real check:
 - fill in real logic below
 """
 
-from pathlib import Path
-
 # Import the shared CheckResult so plugins don't need to redefine it.
 import sys
+from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from guardrail_engine import CheckResult  # noqa: E402
 

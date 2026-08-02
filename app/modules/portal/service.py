@@ -7,15 +7,14 @@ the portal page. No hallucination — all services are defined in the registry.
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
 
-from app.modules.portal.registry import PortalService, portal
 from app.modules.portal.pages import PortalPage, portal_pages
+from app.modules.portal.registry import PortalService, portal
 
 logger = logging.getLogger(__name__)
 
 
-def get_portal_catalog() -> Dict:
+def get_portal_catalog() -> dict:
     """Build the complete portal catalog for rendering.
 
     Returns a dict with:
@@ -28,7 +27,7 @@ def get_portal_catalog() -> Dict:
     return data
 
 
-def get_services_for_category(category: str) -> List[PortalService]:
+def get_services_for_category(category: str) -> list[PortalService]:
     """Get visible services for a specific category."""
     return portal.get_services_by_category(category)
 
@@ -38,12 +37,12 @@ def get_service(service_id: str) -> PortalService | None:
     return portal.get_service(service_id)
 
 
-def get_footer_pages() -> List[PortalPage]:
+def get_footer_pages() -> list[PortalPage]:
     """Return pages that should appear in the footer."""
     return portal_pages.get_footer_pages()
 
 
-def get_sitemap_pages() -> List[PortalPage]:
+def get_sitemap_pages() -> list[PortalPage]:
     """Return pages that should appear in the sitemap."""
     return portal_pages.get_sitemap_pages()
 
@@ -58,21 +57,22 @@ def get_page_by_path(path: str) -> PortalPage | None:
     return portal_pages.get_page_by_path(path)
 
 
-def get_sitemap_entries() -> List[Dict[str, str]]:
+def get_sitemap_entries() -> list[dict[str, str]]:
     """Return sitemap entries for SEO.
 
     Combines the root page, all registered portal pages, and the service
     detail pages. Each entry is a URL + priority + changefreq.
     """
-    entries: List[Dict[str, str]] = [
+    entries: list[dict[str, str]] = [
         {"path": "/", "priority": "1.0", "changefreq": "weekly"},
     ]
     # Add all registered portal pages
     for page in portal_pages.get_sitemap_pages():
-        entries.append({
-            "path": page.path,
-            "priority": "0.8" if page.id in ("services", "renters_guide") else "0.6",
-            "changefreq": "weekly" if page.id in ("services", "tools") else "monthly",
-        })
+        entries.append(
+            {
+                "path": page.path,
+                "priority": "0.8" if page.id in ("services", "renters_guide") else "0.6",
+                "changefreq": "weekly" if page.id in ("services", "tools") else "monthly",
+            }
+        )
     return entries
-

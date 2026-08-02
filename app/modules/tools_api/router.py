@@ -5,20 +5,18 @@ Connects frontend tools (calculators, generators, checklists) to the vault.
 
 Endpoints:
 - POST /api/tools/save-letter    — save a generated letter to vault
-- POST /api/tools/save-checklist — save checklist state to vault  
+- POST /api/tools/save-checklist — save checklist state to vault
 - POST /api/tools/save-calculation — save a calculation result to vault
 """
 
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, green_access
 from app.core.oauth_token_manager import get_valid_token_for_user
+from app.core.security import StorageUser, green_access
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -30,30 +28,31 @@ router = APIRouter(prefix="/api/tools", tags=["Tools"])
 # Request / Response Models
 # =============================================================================
 
+
 class SaveLetterRequest(BaseModel):
     letter_text: str = Field(..., description="Full text of the generated letter")
     letter_type: str = Field(..., description="repair | notice | deposit_demand")
-    title: Optional[str] = Field(None, description="Custom title/filename")
-    metadata: Optional[dict] = Field(default_factory=dict, description="Extra metadata")
+    title: str | None = Field(None, description="Custom title/filename")
+    metadata: dict | None = Field(default_factory=dict, description="Extra metadata")
 
 
 class SaveChecklistRequest(BaseModel):
     checklist_data: dict = Field(..., description="Checklist items and checked state")
     checklist_type: str = Field(..., description="movein | moveout | evidence")
-    title: Optional[str] = Field(None, description="Custom title/filename")
+    title: str | None = Field(None, description="Custom title/filename")
 
 
 class SaveCalculationRequest(BaseModel):
     calc_type: str = Field(..., description="proration | deadline | late_fee | deposit_interest")
     inputs: dict = Field(default_factory=dict, description="Calculation input values")
     result: str = Field(..., description="Human-readable result string")
-    notes: Optional[str] = Field(None, description="Optional notes")
+    notes: str | None = Field(None, description="Optional notes")
 
 
 class ToolsSaveResponse(BaseModel):
     success: bool
-    vault_id: Optional[str] = None
-    filename: Optional[str] = None
+    vault_id: str | None = None
+    filename: str | None = None
     message: str
 
 
@@ -61,7 +60,8 @@ class ToolsSaveResponse(BaseModel):
 # Helpers
 # =============================================================================
 
-def _get_access_token(user: StorageUser) -> Optional[str]:
+
+def _get_access_token(user: StorageUser) -> str | None:
     """Resolve cloud storage access token for the authenticated user."""
     # Try user object first
     token = getattr(user, "access_token", None)
@@ -80,11 +80,12 @@ async def _save_text_to_vault(
     content: str,
     document_type: str,
     description: str,
-    metadata: Optional[dict] = None,
+    metadata: dict | None = None,
 ) -> ToolsSaveResponse:
     """Save text content to the user's vault via VaultUploadService."""
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault_service = get_vault_service()
     except ImportError:
         return ToolsSaveResponse(
@@ -131,6 +132,7 @@ async def _save_text_to_vault(
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/save-letter", response_model=ToolsSaveResponse)
 async def save_letter(

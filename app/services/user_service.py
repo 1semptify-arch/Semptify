@@ -7,18 +7,15 @@ Solves the "returning user" problem:
 2. What role to load? → Check user's default_role
 """
 
-from datetime import datetime
-from typing import Optional
-
-from app.core.id_gen import make_id
+import logging
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.models import User, LinkedProvider
 from app.core.database import get_db_session
+from app.core.id_gen import make_id
 from app.core.utc import utc_now
-import logging
+from app.models.models import LinkedProvider, User
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,18 +23,18 @@ logger = logging.getLogger(__name__)
 # User CRUD Operations
 # =============================================================================
 
-async def get_user_by_id(user_id: str) -> Optional[User]:
+
+async def get_user_by_id(user_id: str) -> User | None:
     """Get user by their internal ID."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
 
-async def get_user_by_provider(provider: str, storage_user_id: str) -> Optional[User]:
+async def get_user_by_provider(provider: str, storage_user_id: str) -> User | None:
     """Get user by storage provider identity."""
     from app.core.security import derive_user_id
+
     user_id = derive_user_id(provider, storage_user_id)
     return await get_user_by_id(user_id)
 
@@ -91,12 +88,10 @@ async def get_or_create_user(
     return user, True
 
 
-async def update_user_role(user_id: str, role: str) -> Optional[User]:
+async def update_user_role(user_id: str, role: str) -> User | None:
     """Update user's default role preference."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user:
             user.default_role = role
@@ -108,12 +103,10 @@ async def update_user_role(user_id: str, role: str) -> Optional[User]:
 
 async def update_user_role_and_timestamp(
     user_id: str,
-) -> Optional[User]:
+) -> User | None:
     """Update user last-active timestamp. PII updates go to cloud vault, not here."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user:
             user.updated_at = utc_now()
@@ -126,12 +119,13 @@ async def update_user_role_and_timestamp(
 # Linked Providers
 # =============================================================================
 
+
 async def link_provider(
     user_id: str,
     provider: str,
     storage_user_id: str,
-    email: Optional[str] = None,
-    display_name: Optional[str] = None,
+    email: str | None = None,
+    display_name: str | None = None,
 ) -> LinkedProvider:
     """Link an additional storage provider to user's account."""
     async with get_db_session() as session:
@@ -154,9 +148,7 @@ async def get_linked_providers(user_id: str) -> list[LinkedProvider]:
     """Get all linked providers for a user."""
     async with get_db_session() as session:
         result = await session.execute(
-            select(LinkedProvider)
-            .where(LinkedProvider.user_id == user_id)
-            .where(LinkedProvider.is_active == True)
+            select(LinkedProvider).where(LinkedProvider.user_id == user_id).where(LinkedProvider.is_active)
         )
         return list(result.scalars().all())
 
@@ -165,9 +157,7 @@ async def unlink_provider(user_id: str, provider: str) -> bool:
     """Unlink a provider from user's account."""
     async with get_db_session() as session:
         result = await session.execute(
-            select(LinkedProvider)
-            .where(LinkedProvider.user_id == user_id)
-            .where(LinkedProvider.provider == provider)
+            select(LinkedProvider).where(LinkedProvider.user_id == user_id).where(LinkedProvider.provider == provider)
         )
         linked = result.scalar_one_or_none()
         if linked:
@@ -181,10 +171,11 @@ async def unlink_provider(user_id: str, provider: str) -> bool:
 # User Lookup for Returning Users
 # =============================================================================
 
-async def get_user_auth_info(user_id: str) -> Optional[dict]:
+
+async def get_user_auth_info(user_id: str) -> dict | None:
     """
     Get the info needed to re-authenticate a returning user.
-    
+
     Returns:
         {
             "user_id": "abc123",
@@ -197,13 +188,13 @@ async def get_user_auth_info(user_id: str) -> Optional[dict]:
     user = await get_user_by_id(user_id)
     if not user:
         return None
-    
+
     linked = await get_linked_providers(user_id)
-    
+
     return {
         "user_id": user.id,
         "primary_provider": user.primary_provider,
         "default_role": user.default_role,
         "email": user.email,
-        "linked_providers": [user.primary_provider] + [l.provider for l in linked],
+        "linked_providers": [user.primary_provider] + [link.provider for link in linked],
     }

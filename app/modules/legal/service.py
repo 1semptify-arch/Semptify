@@ -17,13 +17,15 @@ from __future__ import annotations
 import json
 import logging
 import secrets
-from datetime import date, datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from app.core.utc import utc_now
+
+if TYPE_CHECKING:
+    from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 
@@ -36,18 +38,19 @@ MATTERS_DIR.mkdir(parents=True, exist_ok=True)
 # Pydantic Models
 # =============================================================================
 
+
 class Matter(BaseModel):
     matter_id: str
     title: str
-    tenant_user_id: Optional[str] = None
-    tenant_name: Optional[str] = None
-    landlord_name: Optional[str] = None
-    address: Optional[str] = None
+    tenant_user_id: str | None = None
+    tenant_name: str | None = None
+    landlord_name: str | None = None
+    address: str | None = None
     status: str = "open"  # open, closed, held
-    notes: Optional[str] = None
+    notes: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
-    created_by: Optional[str] = None
+    created_by: str | None = None
 
 
 class CourtFiling(BaseModel):
@@ -55,10 +58,10 @@ class CourtFiling(BaseModel):
     matter_id: str
     filing_type: str  # complaint, motion, answer, discovery, notice, brief
     court: str
-    docket_number: Optional[str] = None
-    filing_date: Optional[date] = None
+    docket_number: str | None = None
+    filing_date: date | None = None
     status: str = "draft"  # draft, filed, served, rejected
-    notes: Optional[str] = None
+    notes: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
 
 
@@ -66,11 +69,11 @@ class DiscoveryRecord(BaseModel):
     discovery_id: str
     matter_id: str
     discovery_type: str  # interrogatories, requests_for_production, requests_for_admission, depositions
-    served_date: Optional[date] = None
-    due_date: Optional[date] = None
+    served_date: date | None = None
+    due_date: date | None = None
     status: str = "pending"  # pending, served, responded, overdue
-    responses: List[str] = []
-    notes: Optional[str] = None
+    responses: list[str] = []
+    notes: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
 
 
@@ -79,16 +82,17 @@ class Exhibit(BaseModel):
     matter_id: str
     exhibit_number: int
     description: str
-    evidence_item_id: Optional[str] = None
-    vault_path: Optional[str] = None
-    introduced_on: Optional[date] = None
-    notes: Optional[str] = None
+    evidence_item_id: str | None = None
+    vault_path: str | None = None
+    introduced_on: date | None = None
+    notes: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
 
 
 # =============================================================================
 # Helpers
 # =============================================================================
+
 
 def _matter_file(matter_id: str) -> Path:
     return MATTERS_DIR / f"matter_{matter_id}.json"
@@ -134,14 +138,15 @@ def _write_json(path: Path, data) -> None:
 # Matter Operations
 # =============================================================================
 
+
 def create_matter(
     title: str,
-    created_by: Optional[str] = None,
-    tenant_user_id: Optional[str] = None,
-    tenant_name: Optional[str] = None,
-    landlord_name: Optional[str] = None,
-    address: Optional[str] = None,
-    notes: Optional[str] = None,
+    created_by: str | None = None,
+    tenant_user_id: str | None = None,
+    tenant_name: str | None = None,
+    landlord_name: str | None = None,
+    address: str | None = None,
+    notes: str | None = None,
 ) -> Matter:
     matter = Matter(
         matter_id=_gen_id("m_"),
@@ -157,8 +162,8 @@ def create_matter(
     return matter
 
 
-def list_matters(created_by: Optional[str] = None) -> List[Matter]:
-    matters: List[Matter] = []
+def list_matters(created_by: str | None = None) -> list[Matter]:
+    matters: list[Matter] = []
     for f in MATTERS_DIR.glob("matter_*.json"):
         try:
             m = Matter.model_validate_json(f.read_text(encoding="utf-8"))
@@ -192,7 +197,8 @@ def update_matter(matter_id: str, **updates) -> Matter:
 # Court Filings
 # =============================================================================
 
-def list_filings(matter_id: str) -> List[CourtFiling]:
+
+def list_filings(matter_id: str) -> list[CourtFiling]:
     data = _read_json(_filings_file(matter_id), [])
     return [CourtFiling.model_validate(d) for d in data]
 
@@ -201,9 +207,9 @@ def add_filing(
     matter_id: str,
     filing_type: str,
     court: str,
-    docket_number: Optional[str] = None,
-    filing_date: Optional[date] = None,
-    notes: Optional[str] = None,
+    docket_number: str | None = None,
+    filing_date: date | None = None,
+    notes: str | None = None,
 ) -> CourtFiling:
     _ = load_matter(matter_id)  # ensure matter exists
     filing = CourtFiling(
@@ -237,7 +243,8 @@ def update_filing_status(matter_id: str, filing_id: str, status: str) -> CourtFi
 # Discovery
 # =============================================================================
 
-def list_discovery(matter_id: str) -> List[DiscoveryRecord]:
+
+def list_discovery(matter_id: str) -> list[DiscoveryRecord]:
     data = _read_json(_discovery_file(matter_id), [])
     return [DiscoveryRecord.model_validate(d) for d in data]
 
@@ -245,9 +252,9 @@ def list_discovery(matter_id: str) -> List[DiscoveryRecord]:
 def add_discovery(
     matter_id: str,
     discovery_type: str,
-    served_date: Optional[date] = None,
-    due_date: Optional[date] = None,
-    notes: Optional[str] = None,
+    served_date: date | None = None,
+    due_date: date | None = None,
+    notes: str | None = None,
 ) -> DiscoveryRecord:
     _ = load_matter(matter_id)
     rec = DiscoveryRecord(
@@ -268,7 +275,7 @@ def update_discovery_status(
     matter_id: str,
     discovery_id: str,
     status: str,
-    response_note: Optional[str] = None,
+    response_note: str | None = None,
 ) -> DiscoveryRecord:
     records = list_discovery(matter_id)
     for r in records:
@@ -287,7 +294,8 @@ def update_discovery_status(
 # Exhibits
 # =============================================================================
 
-def list_exhibits(matter_id: str) -> List[Exhibit]:
+
+def list_exhibits(matter_id: str) -> list[Exhibit]:
     data = _read_json(_exhibits_file(matter_id), [])
     return [Exhibit.model_validate(d) for d in data]
 
@@ -295,14 +303,14 @@ def list_exhibits(matter_id: str) -> List[Exhibit]:
 def add_exhibit(
     matter_id: str,
     description: str,
-    evidence_item_id: Optional[str] = None,
-    vault_path: Optional[str] = None,
-    introduced_on: Optional[date] = None,
-    notes: Optional[str] = None,
+    evidence_item_id: str | None = None,
+    vault_path: str | None = None,
+    introduced_on: date | None = None,
+    notes: str | None = None,
 ) -> Exhibit:
     _ = load_matter(matter_id)
     existing = list_exhibits(matter_id)
-    next_num = (max((e.exhibit_number for e in existing), default=0) + 1)
+    next_num = max((e.exhibit_number for e in existing), default=0) + 1
     ex = Exhibit(
         exhibit_id=_gen_id("x_"),
         matter_id=matter_id,
@@ -322,6 +330,7 @@ def add_exhibit(
 # =============================================================================
 # Overlay Integration
 # =============================================================================
+
 
 def matter_overlay_payload(matter_id: str) -> dict:
     """Return a combined overlay payload for a matter (filings + discovery + exhibits)."""

@@ -30,6 +30,7 @@ from app.core.errors import (
 
 # ── Error models ─────────────────────────────────────────────────────────────
 
+
 class TestErrorModels:
     def test_error_detail_defaults(self):
         detail = ErrorDetail(msg="oops", type="value_error")
@@ -44,6 +45,7 @@ class TestErrorModels:
 
 
 # ── Custom exceptions ────────────────────────────────────────────────────────
+
 
 class TestSemptifyError:
     def test_defaults(self):
@@ -158,6 +160,7 @@ class TestStorageError:
 
 # ── Exception handlers ───────────────────────────────────────────────────────
 
+
 def _mock_request(path: str = "/test", request_id: str | None = None) -> MagicMock:
     request = MagicMock()
     request.url.path = path
@@ -185,6 +188,7 @@ class TestSemptifyErrorHandler:
         resp = await semptify_error_handler(req, exc)
         assert resp.status_code == 404
         import json
+
         body = json.loads(resp.body.decode())
         assert body["error"] == "not_found"
 
@@ -197,6 +201,7 @@ class TestHttpExceptionHandler:
         resp = await http_exception_handler(req, exc)
         assert resp.status_code == 404
         import json
+
         body = json.loads(resp.body.decode())
         assert body["error"] == "not_found"
         assert body["message"] == "not here"
@@ -207,6 +212,7 @@ class TestHttpExceptionHandler:
         resp = await http_exception_handler(req, exc)
         assert resp.status_code == 418
         import json
+
         body = json.loads(resp.body.decode())
         assert body["error"] == "error"
 
@@ -223,6 +229,7 @@ class TestValidationExceptionHandler:
         resp = await validation_exception_handler(req, exc)
         assert resp.status_code == 422
         import json
+
         body = json.loads(resp.body.decode())
         assert body["error"] == "validation_error"
         assert len(body["details"]) == 1
@@ -235,12 +242,14 @@ class TestGenericExceptionHandler:
         resp = await generic_exception_handler(req, RuntimeError("boom"))
         assert resp.status_code == 500
         import json
+
         body = json.loads(resp.body.decode())
         assert body["error"] == "internal_error"
         assert "boom" not in body["message"]
 
 
 # ── setup_exception_handlers ─────────────────────────────────────────────────
+
 
 class TestSetupExceptionHandlers:
     def test_registers_handlers(self):

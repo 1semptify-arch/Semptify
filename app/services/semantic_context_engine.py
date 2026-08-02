@@ -220,9 +220,7 @@ class SemanticContextEngine:
                 context_lower = context.lower()
                 date_span = (match.start() - line_start, match.end() - line_start)
 
-                label, trigger, confidence = self._classify_date(
-                    context, context_lower, date_span, doc_type
-                )
+                label, trigger, confidence = self._classify_date(context, context_lower, date_span, doc_type)
 
                 confidence = min(0.99, confidence + fmt_bump)
 
@@ -257,9 +255,7 @@ class SemanticContextEngine:
                 return datetime(year, month, day, tzinfo=UTC)
 
             if fmt == "Month DD, YYYY":
-                m = re.match(
-                    r"(\w+)\s+(\d{1,2}),?\s+(\d{4})", raw, flags=re.IGNORECASE
-                )
+                m = re.match(r"(\w+)\s+(\d{1,2}),?\s+(\d{4})", raw, flags=re.IGNORECASE)
                 if not m:
                     return None
                 month = self.MONTH_MAP[m.group(1).lower()]
@@ -268,9 +264,7 @@ class SemanticContextEngine:
                 return datetime(year, month, day, tzinfo=UTC)
 
             if fmt == "DD Month YYYY":
-                m = re.match(
-                    r"(\d{1,2})\s+(\w+)\s+(\d{4})", raw, flags=re.IGNORECASE
-                )
+                m = re.match(r"(\d{1,2})\s+(\w+)\s+(\d{4})", raw, flags=re.IGNORECASE)
                 if not m:
                     return None
                 day = int(m.group(1))
@@ -382,9 +376,7 @@ class SemanticContextEngine:
             return "effective"
 
         # Court/summons contexts favor hearing/deadline dates.
-        if "deadline" in candidates and any(
-            w in context_lower for w in ("court", "hearing", "summons")
-        ):
+        if "deadline" in candidates and any(w in context_lower for w in ("court", "hearing", "summons")):
             return "deadline"
 
         # Notices are usually issued dates.
@@ -393,5 +385,3 @@ class SemanticContextEngine:
 
         # Without a stronger signal, keep the rule-based best guess.
         return None
-
-

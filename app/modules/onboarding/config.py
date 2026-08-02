@@ -6,23 +6,9 @@ the config makes it specific.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from app.core.vault_paths import (
     CANONICAL_VAULT_FOLDERS,
-    SEMPTIFY_ROOT,
-    SYSTEM_FOLDER,
-    AUTH_FOLDER,
-    VAULT_ROOT,
-    VAULT_DOCUMENTS,
-    VAULT_CERTIFICATES,
-    VAULT_TIMELINE,
-    VAULT_OVERLAYS,
-    VAULT_OVERLAY_DOCUMENTS,
-    VAULT_OVERLAY_QUERIES,
-    VAULT_OVERLAYS_FORMS,
-    VAULT_OVERLAY_REDACTIONS,
-    VAULT_FOLDER as VAULT_METADATA_FOLDER,
 )
 
 
@@ -48,19 +34,21 @@ class OnboardingConfig:
 
     # --- Required ---
     product_name: str
-    allowed_roles: List[str]
-    allowed_providers: List[str]
+    allowed_roles: list[str]
+    allowed_providers: list[str]
     on_complete_redirect: str
 
     # --- Vault folders (defaults to canonical paths from vault_paths.py) ---
-    vault_folders: List[str] = field(default_factory=lambda: list(CANONICAL_VAULT_FOLDERS))
+    vault_folders: list[str] = field(default_factory=lambda: list(CANONICAL_VAULT_FOLDERS))
 
     # --- Gates (serial, each unlocks next) ---
-    gates: List[str] = field(default_factory=lambda: [
-        "storage_connected",
-        "vault_initialized",
-        "document_uploaded",
-    ])
+    gates: list[str] = field(
+        default_factory=lambda: [
+            "storage_connected",
+            "vault_initialized",
+            "document_uploaded",
+        ]
+    )
 
     # --- OAuth ---
     oauth_scopes: dict = field(default_factory=dict)
@@ -80,29 +68,31 @@ class OnboardingConfig:
     enable_gate_middleware: bool = True
 
     # --- Provider defaults (used when oauth_scopes not overridden) ---
-    DEFAULT_OAUTH_CONFIGS: dict = field(default_factory=lambda: {
-        "google_drive": {
-            "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
-            "token_url": "https://oauth2.googleapis.com/token",
-            "userinfo_url": "https://www.googleapis.com/oauth2/v2/userinfo",
-            "scopes": [
-                "https://www.googleapis.com/auth/drive.file",
-                "https://www.googleapis.com/auth/userinfo.email",
-            ],
-        },
-        "dropbox": {
-            "auth_url": "https://www.dropbox.com/oauth2/authorize",
-            "token_url": "https://api.dropboxapi.com/oauth2/token",
-            "userinfo_url": "https://api.dropboxapi.com/2/users/get_current_account",
-            "scopes": [],
-        },
-        "onedrive": {
-            "auth_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-            "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-            "userinfo_url": "https://graph.microsoft.com/v1.0/me",
-            "scopes": ["Files.ReadWrite.AppFolder", "User.Read", "offline_access"],
-        },
-    })
+    DEFAULT_OAUTH_CONFIGS: dict = field(
+        default_factory=lambda: {
+            "google_drive": {
+                "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
+                "token_url": "https://oauth2.googleapis.com/token",
+                "userinfo_url": "https://www.googleapis.com/oauth2/v2/userinfo",
+                "scopes": [
+                    "https://www.googleapis.com/auth/drive.file",
+                    "https://www.googleapis.com/auth/userinfo.email",
+                ],
+            },
+            "dropbox": {
+                "auth_url": "https://www.dropbox.com/oauth2/authorize",
+                "token_url": "https://api.dropboxapi.com/oauth2/token",
+                "userinfo_url": "https://api.dropboxapi.com/2/users/get_current_account",
+                "scopes": [],
+            },
+            "onedrive": {
+                "auth_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                "userinfo_url": "https://graph.microsoft.com/v1.0/me",
+                "scopes": ["Files.ReadWrite.AppFolder", "User.Read", "offline_access"],
+            },
+        }
+    )
 
     def get_oauth_config(self, provider: str) -> dict:
         """Get OAuth config for a provider, with scope overrides applied."""
@@ -113,8 +103,4 @@ class OnboardingConfig:
 
     def get_allowed_provider_configs(self) -> dict:
         """Return only the OAuth configs for allowed providers."""
-        return {
-            p: self.get_oauth_config(p)
-            for p in self.allowed_providers
-            if p in self.DEFAULT_OAUTH_CONFIGS
-        }
+        return {p: self.get_oauth_config(p) for p in self.allowed_providers if p in self.DEFAULT_OAUTH_CONFIGS}

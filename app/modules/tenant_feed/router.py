@@ -10,11 +10,10 @@ Query params:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from app.modules.tenant_feed.service import aggregate_feed_async, FEED_TYPES
+from app.modules.tenant_feed.service import FEED_TYPES, aggregate_feed_async
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,7 @@ def _get_user_id_sync(request) -> str:
     """Extract user_id from signed cookie on the request."""
     try:
         from app.core.cookie_auth import verify_user_id
+
         user_id_cookie = request.cookies.get("semptify_uid", "")
         if not user_id_cookie:
             return ""
@@ -37,7 +37,7 @@ def _get_user_id_sync(request) -> str:
 @router.get("/feed")
 async def get_tenant_feed(
     request: Request,
-    type: Optional[str] = Query(
+    type: str | None = Query(
         default=None,
         description=f"Filter by type. Valid: {sorted(FEED_TYPES)}",
     ),

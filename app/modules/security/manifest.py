@@ -4,8 +4,10 @@ Advanced Security Module Manifest
 Self-contained SDK module for 2FA and session management.
 """
 
-from app.core.semptify_internal_sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.core.semptify_internal_sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 MANIFEST = ModuleManifest(
     name="security",
