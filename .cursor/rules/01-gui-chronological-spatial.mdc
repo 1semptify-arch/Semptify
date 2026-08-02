@@ -1,0 +1,32 @@
+---
+description: Standing GUI ordering and spatial layout rule for all tenant-facing and admin GUI work
+alwaysApply: true
+---
+
+# STANDING GUI DESIGN RULE: Chronological & Spatial Task Ordering
+
+Applies to all tenant-facing and admin GUI work, in addition to existing design-system rules (no card borders, zone-based background separation, ssot-design-system.css only).
+
+## 1. Chronological Task Flow
+
+Layout must follow the strict chronological order of the user's task. First required action sits top/left. Each subsequent step follows directly below or to the right. Final/completion step sits at the bottom or end of the path. Never place an early step below a later one, and never place a final action near the top.
+
+## 2. Spatial Common Sense
+
+- High-priority, immediate-use controls: top of viewport.
+- Secondary/configuration controls: grouped logically in the middle.
+- Low-frequency or destructive actions (Reset, Delete, etc.): bottom, visually separated so they can't be hit by accident.
+- Related controls grouped into clear visual containers (zone-based background separation, not card borders) so it is immediately obvious which controls belong to which step.
+
+## 3. Eye-Path Alignment (self-audit, required before marking any GUI task done)
+
+Before completion, trace the eye path top-left → down/right through the page. If any control needed for an earlier step sits physically below a control needed for a later step, the layout is wrong — rearrange before submitting. Visual hierarchy must match execution hierarchy. No forced up/down scrolling back and forth to complete one flow.
+
+## Applies alongside existing conventions
+
+- Desktop-poster vs. mobile-stacked-scroll renderer split still governs viewport-specific layout mechanics.
+- This rule governs ordering/placement WITHIN whichever renderer is active — it doesn't replace the renderer split, it constrains it.
+
+## For handoff docs going forward
+
+Every GUI-building handoff should include: "Apply the standing Chronological & Spatial Task Ordering rule — see `.cursor/rules/01-gui-chronological-spatial.mdc`", and the agent's preflight should include reading it.
