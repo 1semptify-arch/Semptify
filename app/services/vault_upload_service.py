@@ -454,6 +454,13 @@ class VaultUploadService:
             return None
         return file_path.read_bytes()
 
+    def _ensure_local_storage_allowed(self, storage_provider: str) -> None:
+        """Reject local document writes when production storage enforcement is active."""
+        if storage_provider == "local" and get_settings().security_mode == "enforced":
+            raise RuntimeError(
+                "local storage is disabled when SECURITY_MODE=enforced; caller must supply a cloud storage_provider"
+            )
+
     def _validate_upload_input(self, filename: str, content: bytes, mime_type: str) -> None:
         """Validate upload size and extension before storing immutable artifacts."""
         if not filename or not filename.strip():
@@ -536,7 +543,7 @@ class VaultUploadService:
         tags: list[str] | None = None,
         source_module: str = "direct",
         access_token: str | None = None,
-        storage_provider: str = "local",
+        storage_provider: str | None = None,
     ) -> VaultDocument:
         """
         Upload a document to user's vault.
@@ -553,11 +560,24 @@ class VaultUploadService:
             tags: Optional tags list
             source_module: Which module initiated upload (intake, briefcase, etc.)
             access_token: Cloud storage access token (if using cloud storage)
-            storage_provider: Storage provider (google_drive, dropbox, onedrive, local)
+            storage_provider: Storage provider (google_drive, dropbox, onedrive, local).
+                Defaults to local storage only in development mode.
 
         Returns:
             VaultDocument with vault_id and storage details
         """
+        if storage_provider is None or storage_provider == "local":
+            if get_settings().security_mode == "enforced":
+                raise RuntimeError(
+                    "local storage is disabled when SECURITY_MODE=enforced; caller must supply a cloud storage_provider"
+                )
+            if storage_provider is None:
+                logger.warning(
+                    "No storage_provider supplied; falling back to local storage in dev mode (source_module=%s)",
+                    source_module,
+                )
+                storage_provider = "local"
+
         self._validate_upload_input(filename=filename, content=content, mime_type=mime_type)
 
         # Compute hash for deduplication
@@ -756,6 +776,7 @@ class VaultUploadService:
         """Store document in user's connected cloud storage or local test storage."""
 
         if storage_provider == "local":
+            self._ensure_local_storage_allowed(storage_provider)
             await self._local_upload_file(
                 file_content=content,
                 destination_path=self.VAULT_FOLDER,
@@ -833,6 +854,7 @@ class VaultUploadService:
         cert_content = json.dumps(certificate, indent=2).encode("utf-8")
 
         if storage_provider == "local":
+            self._ensure_local_storage_allowed(storage_provider)
             await self._local_upload_file(
                 file_content=cert_content,
                 destination_path=self.CERTS_FOLDER,
