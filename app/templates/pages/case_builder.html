@@ -209,47 +209,6 @@
         <p>Select documents as evidence and add your notes to build your case summary.</p>
     </div>
 
-    <div class="export-panel">
-        <h2 class="panel-title">Attorney Intake Packet</h2>
-        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
-            Download a facts-only packet to share with an attorney.
-        </p>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-            <select id="case-select" class="export-select">
-                <option value="">Loading cases...</option>
-            </select>
-            <button class="btn btn-secondary" id="btn-pdf" onclick="downloadIntakePacket('pdf')" disabled>PDF</button>
-            <button class="btn btn-secondary" id="btn-zip" onclick="downloadIntakePacket('zip')" disabled>ZIP</button>
-        </div>
-        <div id="export-error" class="export-error" style="display: none;"></div>
-    </div>
-
-    <div class="export-panel">
-        <h2 class="panel-title">Curated Packet Export</h2>
-        <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
-            Download a ZIP with clean copies, marked-up copies, and a summary of highlights, notes, and footnotes.
-        </p>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-            <select id="curated-case-select" class="export-select">
-                <option value="">Loading cases...</option>
-            </select>
-            <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
-                <input type="checkbox" id="curated-include-clean" checked>
-                <span>Clean</span>
-            </label>
-            <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
-                <input type="checkbox" id="curated-include-marked" checked>
-                <span>Marked</span>
-            </label>
-            <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
-                <input type="checkbox" id="curated-include-summary" checked>
-                <span>Summary</span>
-            </label>
-            <button class="btn btn-secondary" id="btn-curated-export" onclick="downloadCuratedPacket()" disabled>Export ZIP</button>
-        </div>
-        <div id="curated-export-error" class="export-error" style="display: none;"></div>
-    </div>
-
     <div class="main-content">
         <div class="documents-panel">
             <h2 class="panel-title">● Your Documents</h2>
@@ -284,6 +243,49 @@
             </div>
         </div>
     </div>
+
+    <section class="export-sections">
+        <div class="export-panel">
+            <h2 class="panel-title">Attorney Intake Packet</h2>
+            <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+                Download a facts-only packet to share with an attorney.
+            </p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <select id="case-select" class="export-select">
+                    <option value="">Loading cases...</option>
+                </select>
+                <button class="btn btn-secondary" id="btn-pdf" onclick="downloadIntakePacket('pdf')" disabled>PDF</button>
+                <button class="btn btn-secondary" id="btn-zip" onclick="downloadIntakePacket('zip')" disabled>ZIP</button>
+            </div>
+            <div id="export-error" class="export-error" style="display: none;"></div>
+        </div>
+
+        <div class="export-panel">
+            <h2 class="panel-title">Curated Packet Export</h2>
+            <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+                Download a ZIP with clean copies, marked-up copies, and a summary of highlights, notes, and footnotes.
+            </p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <select id="curated-case-select" class="export-select">
+                    <option value="">Loading cases...</option>
+                </select>
+                <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
+                    <input type="checkbox" id="curated-include-clean" checked>
+                    <span>Clean</span>
+                </label>
+                <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
+                    <input type="checkbox" id="curated-include-marked" checked>
+                    <span>Marked</span>
+                </label>
+                <label style="font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem;">
+                    <input type="checkbox" id="curated-include-summary" checked>
+                    <span>Summary</span>
+                </label>
+                <button class="btn btn-secondary" id="btn-curated-export" onclick="downloadCuratedPacket()" disabled>Export ZIP</button>
+            </div>
+            <div id="curated-export-error" class="export-error" style="display: none;"></div>
+        </div>
+    </section>
 
     <div id="summary-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
         <div style="background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 2rem; max-width: 700px; max-height: 80vh; overflow-y: auto;">
