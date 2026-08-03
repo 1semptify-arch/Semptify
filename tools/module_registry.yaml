@@ -10,10 +10,10 @@
   requires_role:
   - admin
   status: ok
-  last_verified: '2026-08-02T08:34:04.434202+00:00'
+  last_verified: '2026-08-03T10:00:46.553677+00:00'
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 1.07s
+    test_suite: 1 passed in 0.66s
 - id: testing
   display_name: Testing
   category: advanced
@@ -22,12 +22,12 @@
   version: 1.0.0
   health_check: tools.module_health.check_testing
   test_suite: tests/module_health/test_testing.py
-  last_verified: '2026-08-02T08:34:09.185848+00:00'
+  last_verified: '2026-08-03T10:00:51.701755+00:00'
   status: ok
   module_path: app.modules.testing.router
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 1.31s
+    test_suite: 1 passed in 0.47s
 - id: invite_codes
   display_name: Invite Codes & Authorizations
   category: admin
@@ -36,12 +36,12 @@
   version: 1.0.0
   health_check: tools.module_health.check_invite_codes
   test_suite: tests/module_health/test_invite_codes.py
-  last_verified: '2026-08-02T08:34:15.448320+00:00'
+  last_verified: '2026-08-03T10:00:56.744797+00:00'
   status: ok
   module_path: app.modules.invite_codes.router
   last_result:
     health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 2.86s
+    test_suite: 1 passed in 0.47s
 - id: correspondence
   display_name: Correspondence
   category: admin
@@ -54,10 +54,10 @@
   requires_role:
   - admin
   status: ok
-  last_verified: '2026-08-02T08:34:19.786877+00:00'
+  last_verified: '2026-08-03T10:01:01.787131+00:00'
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 0.89s
+    test_suite: 1 passed in 0.48s
 - id: user_concerns
   display_name: User Concerns
   category: admin
@@ -70,10 +70,10 @@
   requires_role:
   - admin
   status: ok
-  last_verified: '2026-08-02T08:34:24.112414+00:00'
+  last_verified: '2026-08-03T10:01:06.840327+00:00'
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 0.94s
+    test_suite: 1 passed in 0.46s
 - id: system_health
   display_name: System Health & Updates
   category: advanced
@@ -86,10 +86,10 @@
   requires_role:
   - admin
   status: ok
-  last_verified: '2026-08-02T08:34:29.674114+00:00'
+  last_verified: '2026-08-03T10:01:11.928202+00:00'
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 2.14s
+    test_suite: 1 passed in 0.48s
 - id: advanced
   display_name: Advanced / Dev Tools
   category: advanced
@@ -102,10 +102,10 @@
   requires_role:
   - admin
   status: ok
-  last_verified: '2026-08-02T08:34:33.775816+00:00'
+  last_verified: '2026-08-03T10:01:17.000346+00:00'
   last_result:
     health_check: 7 route(s), no exposure issues
-    test_suite: 1 passed in 0.68s
+    test_suite: 1 passed in 0.48s
 - id: health
   display_name: Health
   category: core
@@ -115,11 +115,11 @@
   module_path: app.modules.health.router
   health_check: tools.module_health.check_health
   test_suite: tests/module_health/test_health.py
-  last_verified: '2026-08-02T08:34:39.437251+00:00'
+  last_verified: '2026-08-03T10:01:22.076719+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 2.21s
+    test_suite: 1 passed in 0.48s
 - id: versioning
   display_name: System
   category: core
@@ -129,11 +129,11 @@
   module_path: app.core.versioning
   health_check: tools.module_health.check_versioning
   test_suite: tests/module_health/test_versioning.py
-  last_verified: '2026-08-02T08:34:45.056359+00:00'
+  last_verified: '2026-08-03T10:01:27.135442+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 2.25s
+    test_suite: 1 passed in 0.48s
 - id: preamble
   display_name: Preamble
   category: core
@@ -143,11 +143,11 @@
   module_path: app.modules.preamble.router
   health_check: tools.module_health.check_preamble
   test_suite: tests/module_health/test_preamble.py
-  last_verified: '2026-08-02T08:34:49.100275+00:00'
+  last_verified: '2026-08-03T10:01:32.207889+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 0.62s
+    test_suite: 1 passed in 0.47s
 - id: risc
   display_name: Risc
   category: core
@@ -157,11 +157,11 @@
   module_path: app.modules.risc.router
   health_check: tools.module_health.check_risc
   test_suite: tests/module_health/test_risc.py
-  last_verified: '2026-08-02T08:34:56.711790+00:00'
+  last_verified: '2026-08-03T10:01:37.264706+00:00'
   status: ok
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 4.24s
+    test_suite: 1 passed in 0.47s
 - id: role_ui
   display_name: Role Ui
   category: core
@@ -171,11 +171,11 @@
   module_path: app.modules.role_ui.router
   health_check: tools.module_health.check_role_ui
   test_suite: tests/module_health/test_role_ui.py
-  last_verified: '2026-08-02T08:35:01.431598+00:00'
+  last_verified: '2026-08-03T10:01:42.371839+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 1.32s
+    test_suite: 1 passed in 0.48s
 - id: storage
   display_name: Storage Auth
   category: core
@@ -185,11 +185,11 @@
   module_path: app.modules.storage.router
   health_check: tools.module_health.check_storage
   test_suite: tests/module_health/test_storage.py
-  last_verified: '2026-08-02T08:35:06.155699+00:00'
+  last_verified: '2026-08-03T10:01:47.451241+00:00'
   status: ok
   last_result:
     health_check: 29 route(s), no exposure issues
-    test_suite: 1 passed in 1.31s
+    test_suite: 1 passed in 0.47s
 - id: user
   display_name: User
   category: core
@@ -199,11 +199,11 @@
   module_path: app.modules.user.router
   health_check: tools.module_health.check_user
   test_suite: tests/module_health/test_user.py
-  last_verified: '2026-08-02T08:35:10.301750+00:00'
+  last_verified: '2026-08-03T10:01:52.509352+00:00'
   status: ok
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 0.84s
+    test_suite: 1 passed in 0.48s
 - id: rent
   display_name: Rent Ledger
   category: core
@@ -213,11 +213,11 @@
   module_path: app.modules.rent.router
   health_check: tools.module_health.check_rent
   test_suite: tests/module_health/test_rent.py
-  last_verified: '2026-08-02T08:35:16.023304+00:00'
+  last_verified: '2026-08-03T10:01:57.588669+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 2.30s
+    test_suite: 1 passed in 0.47s
 - id: auth
   display_name: Authentication
   category: core
@@ -227,11 +227,11 @@
   module_path: app.modules.auth.router
   health_check: tools.module_health.check_auth
   test_suite: tests/module_health/test_auth.py
-  last_verified: '2026-08-02T08:35:21.380209+00:00'
+  last_verified: '2026-08-03T10:02:02.622831+00:00'
   status: ok
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 2.00s
+    test_suite: 1 passed in 0.46s
 - id: reconnect
   display_name: Onboarding / Reconnect
   category: core
@@ -241,11 +241,11 @@
   module_path: app.modules.onboarding.reconnect
   health_check: tools.module_health.check_reconnect
   test_suite: tests/module_health/test_reconnect.py
-  last_verified: '2026-08-02T08:35:25.779348+00:00'
+  last_verified: '2026-08-03T10:02:07.663432+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 0.83s
+    test_suite: 1 passed in 0.48s
 - id: documents
   display_name: Documents
   category: core
@@ -255,11 +255,11 @@
   module_path: app.modules.documents.router
   health_check: tools.module_health.check_documents
   test_suite: tests/module_health/test_documents.py
-  last_verified: '2026-08-02T08:35:30.742082+00:00'
+  last_verified: '2026-08-03T10:02:13.020709+00:00'
   status: ok
   last_result:
     health_check: 26 route(s), no exposure issues
-    test_suite: 1 passed in 1.32s
+    test_suite: 1 passed in 0.47s
 - id: vault
   display_name: Document Vault
   category: core
@@ -269,11 +269,11 @@
   module_path: app.modules.vault.router
   health_check: tools.module_health.check_vault
   test_suite: tests/module_health/test_vault.py
-  last_verified: '2026-08-02T08:35:35.188534+00:00'
+  last_verified: '2026-08-03T10:02:18.237110+00:00'
   status: ok
   last_result:
     health_check: 19 route(s), no exposure issues
-    test_suite: 1 passed in 0.88s
+    test_suite: 1 passed in 0.47s
 - id: vault_engine
   display_name: Vault Engine / Access Control
   category: core
@@ -283,11 +283,11 @@
   module_path: app.modules.vault_engine.router
   health_check: tools.module_health.check_vault_engine
   test_suite: tests/module_health/test_vault_engine.py
-  last_verified: '2026-08-02T08:35:39.376903+00:00'
+  last_verified: '2026-08-03T10:02:23.316536+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 0.83s
+    test_suite: 1 passed in 0.48s
 - id: timeline
   display_name: Unified Timeline
   category: core
@@ -297,11 +297,11 @@
   module_path: app.modules.timeline.router
   health_check: tools.module_health.check_timeline
   test_suite: tests/module_health/test_timeline.py
-  last_verified: '2026-08-02T08:35:43.367295+00:00'
+  last_verified: '2026-08-03T10:02:28.371431+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 0.65s
+    test_suite: 1 passed in 0.46s
 - id: briefcase
   display_name: Briefcase
   category: core
@@ -311,11 +311,11 @@
   module_path: app.modules.briefcase.router
   health_check: tools.module_health.check_briefcase
   test_suite: tests/module_health/test_briefcase.py
-  last_verified: '2026-08-02T08:35:47.530785+00:00'
+  last_verified: '2026-08-03T10:02:33.462005+00:00'
   status: ok
   last_result:
     health_check: 42 route(s), no exposure issues
-    test_suite: 1 passed in 0.80s
+    test_suite: 1 passed in 0.47s
 - id: packet_builder
   display_name: Packet Builder
   category: core
@@ -325,11 +325,11 @@
   module_path: app.modules.packet_builder.router
   health_check: tools.module_health.check_packet_builder
   test_suite: tests/module_health/test_packet_builder.py
-  last_verified: '2026-08-02T08:35:52.300086+00:00'
+  last_verified: '2026-08-03T10:02:38.580557+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 1.36s
+    test_suite: 1 passed in 0.47s
 - id: workflow
   display_name: Workflow
   category: core
@@ -339,11 +339,11 @@
   module_path: app.modules.workflow.router
   health_check: tools.module_health.check_workflow
   test_suite: tests/module_health/test_workflow.py
-  last_verified: '2026-08-02T08:35:56.204520+00:00'
+  last_verified: '2026-08-03T10:02:43.725487+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.54s
+    test_suite: 1 passed in 0.48s
 - id: workflow_validator
   display_name: Admin
   category: core
@@ -353,11 +353,11 @@
   module_path: app.modules.workflow_validator.router
   health_check: tools.module_health.check_workflow_validator
   test_suite: tests/module_health/test_workflow_validator.py
-  last_verified: '2026-08-02T08:36:00.665467+00:00'
+  last_verified: '2026-08-03T10:02:48.837004+00:00'
   status: ok
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 1.10s
+    test_suite: 1 passed in 0.47s
 - id: state_laws
   display_name: State Laws
   category: core
@@ -367,11 +367,11 @@
   module_path: app.modules.state_laws.router
   health_check: tools.module_health.check_state_laws
   test_suite: tests/module_health/test_state_laws.py
-  last_verified: '2026-08-02T08:36:04.685956+00:00'
+  last_verified: '2026-08-03T10:02:53.915709+00:00'
   status: ok
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 0.71s
+    test_suite: 1 passed in 0.46s
 - id: law_library
   display_name: Law Library
   category: core
@@ -381,11 +381,11 @@
   module_path: app.modules.law_library.router
   health_check: tools.module_health.check_law_library
   test_suite: tests/module_health/test_law_library.py
-  last_verified: '2026-08-02T08:36:08.602013+00:00'
+  last_verified: '2026-08-03T10:02:58.977182+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.67s
+    test_suite: 1 passed in 0.47s
 - id: router
   display_name: Law Library
   category: core
@@ -409,11 +409,11 @@
   module_path: app.modules.contacts.router
   health_check: tools.module_health.check_contacts
   test_suite: tests/module_health/test_contacts.py
-  last_verified: '2026-08-02T08:36:12.828601+00:00'
+  last_verified: '2026-08-03T10:03:04.111312+00:00'
   status: ok
   last_result:
     health_check: 13 route(s), no exposure issues
-    test_suite: 1 passed in 0.86s
+    test_suite: 1 passed in 0.47s
 - id: journal
   display_name: Journal
   category: core
@@ -423,11 +423,11 @@
   module_path: app.modules.journal.router
   health_check: tools.module_health.check_journal
   test_suite: tests/module_health/test_journal.py
-  last_verified: '2026-08-02T08:36:17.604346+00:00'
+  last_verified: '2026-08-03T10:03:09.225523+00:00'
   status: ok
   last_result:
     health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 1.48s
+    test_suite: 1 passed in 0.48s
 - id: public_forms
   display_name: Public Forms
   category: core
@@ -437,11 +437,11 @@
   module_path: app.modules.public_forms.router
   health_check: tools.module_health.check_public_forms
   test_suite: tests/module_health/test_public_forms.py
-  last_verified: '2026-08-02T08:36:21.911826+00:00'
+  last_verified: '2026-08-03T10:03:14.354818+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 0.88s
+    test_suite: 1 passed in 0.46s
 - id: voice
   display_name: Voice
   category: core
@@ -451,11 +451,11 @@
   module_path: app.modules.voice.router
   health_check: tools.module_health.check_voice
   test_suite: tests/module_health/test_voice.py
-  last_verified: '2026-08-02T08:36:26.330646+00:00'
+  last_verified: '2026-08-03T10:03:19.428792+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 0.85s
+    test_suite: 1 passed in 0.47s
 - id: resource_directory
   display_name: Resource Directory
   category: core
@@ -465,11 +465,11 @@
   module_path: app.modules.resource_directory.router
   health_check: tools.module_health.check_resource_directory
   test_suite: tests/module_health/test_resource_directory.py
-  last_verified: '2026-08-02T08:36:30.923452+00:00'
+  last_verified: '2026-08-03T10:03:24.539935+00:00'
   status: ok
   last_result:
     health_check: 7 route(s), no exposure issues
-    test_suite: 1 passed in 1.22s
+    test_suite: 1 passed in 0.48s
 - id: search
   display_name: Global Search
   category: core
@@ -479,11 +479,11 @@
   module_path: app.modules.search.router
   health_check: tools.module_health.check_search
   test_suite: tests/module_health/test_search.py
-  last_verified: '2026-08-02T08:36:34.945565+00:00'
+  last_verified: '2026-08-03T10:03:29.614282+00:00'
   status: ok
   last_result:
     health_check: 7 route(s), no exposure issues
-    test_suite: 1 passed in 0.62s
+    test_suite: 1 passed in 0.46s
 - id: pdf_tools
   display_name: Pdf Tools
   category: core
@@ -493,11 +493,11 @@
   module_path: app.modules.pdf_tools.router
   health_check: tools.module_health.check_pdf_tools
   test_suite: tests/module_health/test_pdf_tools.py
-  last_verified: '2026-08-02T08:36:40.178375+00:00'
+  last_verified: '2026-08-03T10:03:34.766690+00:00'
   status: ok
   last_result:
     health_check: 14 route(s), no exposure issues
-    test_suite: 1 passed in 1.90s
+    test_suite: 1 passed in 0.48s
 - id: preview
   display_name: Document Preview
   category: core
@@ -507,11 +507,11 @@
   module_path: app.modules.preview.router
   health_check: tools.module_health.check_preview
   test_suite: tests/module_health/test_preview.py
-  last_verified: '2026-08-02T08:36:45.227221+00:00'
+  last_verified: '2026-08-03T10:03:39.883142+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 1.69s
+    test_suite: 1 passed in 0.47s
 - id: document_converter
   display_name: Document Converter
   category: core
@@ -521,11 +521,11 @@
   module_path: app.modules.document_converter.router
   health_check: tools.module_health.check_document_converter
   test_suite: tests/module_health/test_document_converter.py
-  last_verified: '2026-08-02T08:36:49.606473+00:00'
+  last_verified: '2026-08-03T10:03:44.950559+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 1.07s
+    test_suite: 1 passed in 0.45s
 - id: legal_analysis
   display_name: Legal Analysis
   category: core
@@ -535,11 +535,11 @@
   module_path: app.modules.legal_analysis.router
   health_check: tools.module_health.check_legal_analysis
   test_suite: tests/module_health/test_legal_analysis.py
-  last_verified: '2026-08-02T08:36:55.057312+00:00'
+  last_verified: '2026-08-03T10:03:50.059546+00:00'
   status: ok
   last_result:
     health_check: 14 route(s), no exposure issues
-    test_suite: 1 passed in 2.15s
+    test_suite: 1 passed in 0.47s
 - id: context_engine
   display_name: Context Engine / Facts / Stories
   category: core
@@ -549,11 +549,11 @@
   module_path: app.modules.context_engine.router
   health_check: tools.module_health.check_context_engine
   test_suite: tests/module_health/test_context_engine.py
-  last_verified: '2026-08-02T08:36:59.865021+00:00'
+  last_verified: '2026-08-03T10:03:55.187637+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 1.42s
+    test_suite: 1 passed in 0.47s
 - id: page_composer
   display_name: Page Composer / Facts / Stories / Case
   category: core
@@ -563,11 +563,11 @@
   module_path: app.modules.page_composer.router
   health_check: tools.module_health.check_page_composer
   test_suite: tests/module_health/test_page_composer.py
-  last_verified: '2026-08-02T08:37:04.270487+00:00'
+  last_verified: '2026-08-03T10:04:00.325141+00:00'
   status: ok
   last_result:
-    health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 1.06s
+    health_check: 7 route(s), no exposure issues
+    test_suite: 1 passed in 0.46s
 - id: portal
   display_name: Portal / Public / Services
   category: core
@@ -577,11 +577,11 @@
   module_path: app.modules.portal.router
   health_check: tools.module_health.check_portal
   test_suite: tests/module_health/test_portal.py
-  last_verified: '2026-08-02T08:37:08.135905+00:00'
+  last_verified: '2026-08-03T10:04:05.464515+00:00'
   status: ok
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 0.59s
+    test_suite: 1 passed in 0.47s
 - id: ui_composer
   display_name: Ui Composer / Gui
   category: core
@@ -591,11 +591,11 @@
   module_path: app.modules.ui_composer.router
   health_check: tools.module_health.check_ui_composer
   test_suite: tests/module_health/test_ui_composer.py
-  last_verified: '2026-08-02T08:37:13.699785+00:00'
+  last_verified: '2026-08-03T10:04:10.556834+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 2.26s
+    test_suite: 1 passed in 0.48s
 - id: tenant_feed
   display_name: Tenant Feed / Record
   category: core
@@ -605,11 +605,11 @@
   module_path: app.modules.tenant_feed.router
   health_check: tools.module_health.check_tenant_feed
   test_suite: tests/module_health/test_tenant_feed.py
-  last_verified: '2026-08-02T08:37:19.147840+00:00'
+  last_verified: '2026-08-03T10:04:15.622700+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 2.16s
+    test_suite: 1 passed in 0.47s
 - id: websocket
   display_name: Websocket Events
   category: core
@@ -619,11 +619,11 @@
   module_path: app.modules.websocket.router
   health_check: tools.module_health.check_websocket
   test_suite: tests/module_health/test_websocket.py
-  last_verified: '2026-08-02T08:37:23.092486+00:00'
+  last_verified: '2026-08-03T10:04:20.713190+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 0.60s
+    test_suite: 1 passed in 0.47s
 - id: free_api
   display_name: Free Apis
   category: core
@@ -633,11 +633,11 @@
   module_path: app.modules.free_api.router
   health_check: tools.module_health.check_free_api
   test_suite: tests/module_health/test_free_api.py
-  last_verified: '2026-08-02T08:37:27.618748+00:00'
+  last_verified: '2026-08-03T10:04:25.750198+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 1.04s
+    test_suite: 1 passed in 0.46s
 - id: security
   display_name: Advanced Security
   category: core
@@ -647,11 +647,11 @@
   module_path: app.modules.security.router
   health_check: tools.module_health.check_security
   test_suite: tests/module_health/test_security.py
-  last_verified: '2026-08-02T08:37:31.525584+00:00'
+  last_verified: '2026-08-03T10:04:30.905271+00:00'
   status: ok
   last_result:
     health_check: 15 route(s), no exposure issues
-    test_suite: 1 passed in 0.58s
+    test_suite: 1 passed in 0.47s
 - id: mndes
   display_name: Mndes
   category: core
@@ -661,11 +661,11 @@
   module_path: app.modules.mndes.router
   health_check: tools.module_health.check_mndes
   test_suite: tests/module_health/test_mndes.py
-  last_verified: '2026-08-02T08:37:35.446887+00:00'
+  last_verified: '2026-08-03T10:04:36.002887+00:00'
   status: ok
   last_result:
     health_check: 12 route(s), no exposure issues
-    test_suite: 1 passed in 0.56s
+    test_suite: 1 passed in 0.47s
 - id: fems
   display_name: Fems
   category: tenant_tool
@@ -675,11 +675,11 @@
   module_path: app.modules.fems.router
   health_check: tools.module_health.check_fems
   test_suite: tests/module_health/test_fems.py
-  last_verified: '2026-08-02T08:37:39.646566+00:00'
+  last_verified: '2026-08-03T10:04:41.135362+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.88s
+    test_suite: 1 passed in 0.48s
 - id: eviction_defense
   display_name: Eviction Defense Toolkit
   category: tenant_tool
@@ -689,11 +689,11 @@
   module_path: app.modules.eviction_defense.router
   health_check: tools.module_health.check_eviction_defense
   test_suite: tests/module_health/test_eviction_defense.py
-  last_verified: '2026-08-02T08:37:44.588253+00:00'
+  last_verified: '2026-08-03T10:04:46.239142+00:00'
   status: ok
   last_result:
     health_check: 18 route(s), no exposure issues
-    test_suite: 1 passed in 1.42s
+    test_suite: 1 passed in 0.48s
 - id: zoom_court
   display_name: Zoom Courtroom
   category: tenant_tool
@@ -703,11 +703,11 @@
   module_path: app.modules.zoom_court.router
   health_check: tools.module_health.check_zoom_court
   test_suite: tests/module_health/test_zoom_court.py
-  last_verified: '2026-08-02T08:37:52.012009+00:00'
+  last_verified: '2026-08-03T10:04:51.295170+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 4.05s
+    test_suite: 1 passed in 0.46s
 - id: zoom_court_prep
   display_name: Zoom Court Prep
   category: tenant_tool
@@ -717,11 +717,11 @@
   module_path: app.modules.zoom_court_prep.router
   health_check: tools.module_health.check_zoom_court_prep
   test_suite: tests/module_health/test_zoom_court_prep.py
-  last_verified: '2026-08-02T08:37:57.779278+00:00'
+  last_verified: '2026-08-03T10:04:56.392413+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 2.32s
+    test_suite: 1 passed in 0.49s
 - id: court_forms
   display_name: Court Forms
   category: tenant_tool
@@ -731,11 +731,11 @@
   module_path: app.modules.court_forms.router
   health_check: tools.module_health.check_court_forms
   test_suite: tests/module_health/test_court_forms.py
-  last_verified: '2026-08-02T08:38:04.381356+00:00'
+  last_verified: '2026-08-03T10:05:01.585493+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 3.07s
+    test_suite: 1 passed in 0.48s
 - id: court_packet
   display_name: Court Packet
   category: tenant_tool
@@ -745,11 +745,11 @@
   module_path: app.modules.court_packet.router
   health_check: tools.module_health.check_court_packet
   test_suite: tests/module_health/test_court_packet.py
-  last_verified: '2026-08-02T08:38:08.954433+00:00'
+  last_verified: '2026-08-03T10:05:06.709602+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 0.98s
+    test_suite: 1 passed in 0.47s
 - id: legal_trails
   display_name: Legal Trails
   category: tenant_tool
@@ -759,11 +759,11 @@
   module_path: app.modules.legal_trails.router
   health_check: tools.module_health.check_legal_trails
   test_suite: tests/module_health/test_legal_trails.py
-  last_verified: '2026-08-02T08:38:12.895703+00:00'
+  last_verified: '2026-08-03T10:05:11.810705+00:00'
   status: ok
   last_result:
     health_check: 22 route(s), no exposure issues
-    test_suite: 1 passed in 0.42s
+    test_suite: 1 passed in 0.47s
 - id: legal
   display_name: Legal / Court Filing / Discovery / Exhibits / Workspace
   category: tenant_tool
@@ -773,11 +773,11 @@
   module_path: app.modules.legal.router
   health_check: tools.module_health.check_legal
   test_suite: tests/module_health/test_legal.py
-  last_verified: '2026-08-02T08:38:17.553054+00:00'
+  last_verified: '2026-08-03T10:05:16.896021+00:00'
   status: ok
   last_result:
     health_check: 13 route(s), no exposure issues
-    test_suite: 1 passed in 1.04s
+    test_suite: 1 passed in 0.46s
 - id: intake
   display_name: Document Intake
   category: tenant_tool
@@ -787,11 +787,11 @@
   module_path: app.modules.intake.router
   health_check: tools.module_health.check_intake
   test_suite: tests/module_health/test_intake.py
-  last_verified: '2026-08-02T08:38:21.697499+00:00'
+  last_verified: '2026-08-03T10:05:21.969830+00:00'
   status: ok
   last_result:
     health_check: 22 route(s), no exposure issues
-    test_suite: 1 passed in 0.64s
+    test_suite: 1 passed in 0.47s
 - id: guided_intake
   display_name: Guided Intake
   category: tenant_tool
@@ -801,11 +801,11 @@
   module_path: app.modules.guided_intake.router
   health_check: tools.module_health.check_guided_intake
   test_suite: tests/module_health/test_guided_intake.py
-  last_verified: '2026-08-02T08:38:26.115089+00:00'
+  last_verified: '2026-08-03T10:05:27.002651+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 0.68s
+    test_suite: 1 passed in 0.47s
 - id: case_builder
   display_name: Case Builder
   category: tenant_tool
@@ -815,11 +815,11 @@
   module_path: app.modules.case_builder.router
   health_check: tools.module_health.check_case_builder
   test_suite: tests/module_health/test_case_builder.py
-  last_verified: '2026-08-02T08:38:30.484937+00:00'
+  last_verified: '2026-08-03T10:05:32.285113+00:00'
   status: ok
   last_result:
     health_check: 41 route(s), no exposure issues
-    test_suite: 1 passed in 0.71s
+    test_suite: 1 passed in 0.47s
 - id: progress
   display_name: Progress Tracker
   category: tenant_tool
@@ -829,11 +829,11 @@
   module_path: app.modules.progress.router
   health_check: tools.module_health.check_progress
   test_suite: tests/module_health/test_progress.py
-  last_verified: '2026-08-02T08:38:34.652520+00:00'
+  last_verified: '2026-08-03T10:05:37.341386+00:00'
   status: ok
   last_result:
     health_check: 12 route(s), no exposure issues
-    test_suite: 1 passed in 0.60s
+    test_suite: 1 passed in 0.48s
 - id: actions
   display_name: Smart Actions
   category: tenant_tool
@@ -843,11 +843,11 @@
   module_path: app.modules.actions.router
   health_check: tools.module_health.check_actions
   test_suite: tests/module_health/test_actions.py
-  last_verified: '2026-08-02T08:38:39.205761+00:00'
+  last_verified: '2026-08-03T10:05:42.433113+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 0.95s
+    test_suite: 1 passed in 0.48s
 - id: plan_maker
   display_name: Plan Maker
   category: tenant_tool
@@ -857,11 +857,11 @@
   module_path: app.modules.plan_maker.router
   health_check: tools.module_health.check_plan_maker
   test_suite: tests/module_health/test_plan_maker.py
-  last_verified: '2026-08-02T08:38:43.278986+00:00'
+  last_verified: '2026-08-03T10:05:47.463114+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 0.49s
+    test_suite: 1 passed in 0.46s
 - id: tools_api
   display_name: Tools
   category: tenant_tool
@@ -871,7 +871,7 @@
   module_path: app.modules.tools_api.router
   health_check: tools.module_health.check_tools_api
   test_suite: tests/module_health/test_tools_api.py
-  last_verified: '2026-08-02T08:38:47.149227+00:00'
+  last_verified: '2026-08-03T10:05:52.532582+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
@@ -885,11 +885,11 @@
   module_path: app.modules.complaints.router
   health_check: tools.module_health.check_complaints
   test_suite: tests/module_health/test_complaints.py
-  last_verified: '2026-08-02T08:38:52.086380+00:00'
+  last_verified: '2026-08-03T10:05:57.626914+00:00'
   status: ok
   last_result:
     health_check: 18 route(s), no exposure issues
-    test_suite: 1 passed in 1.50s
+    test_suite: 1 passed in 0.48s
 - id: pattern_history
   display_name: Pattern History
   category: tenant_tool
@@ -899,11 +899,11 @@
   module_path: app.modules.housing_accountability.pattern_history
   health_check: tools.module_health.check_pattern_history
   test_suite: tests/module_health/test_pattern_history.py
-  last_verified: '2026-08-02T08:38:56.799591+00:00'
+  last_verified: '2026-08-03T10:06:02.712745+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 1.32s
+    test_suite: 1 passed in 0.46s
 - id: role_upgrade
   display_name: Role Management
   category: tenant_tool
@@ -913,11 +913,11 @@
   module_path: app.modules.role_upgrade.router
   health_check: tools.module_health.check_role_upgrade
   test_suite: tests/module_health/test_role_upgrade.py
-  last_verified: '2026-08-02T08:39:00.873079+00:00'
+  last_verified: '2026-08-03T10:06:07.765090+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 0.63s
+    test_suite: 1 passed in 0.46s
 - id: document_delivery
   display_name: Document Delivery
   category: tenant_tool
@@ -927,11 +927,11 @@
   module_path: app.modules.document_delivery.router
   health_check: tools.module_health.check_document_delivery
   test_suite: tests/module_health/test_document_delivery.py
-  last_verified: '2026-08-02T08:39:04.907222+00:00'
+  last_verified: '2026-08-03T10:06:12.833293+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 0.59s
+    test_suite: 1 passed in 0.45s
 - id: communication
   display_name: Communications
   category: tenant_tool
@@ -941,11 +941,11 @@
   module_path: app.modules.communication.router
   health_check: tools.module_health.check_communication
   test_suite: tests/module_health/test_communication.py
-  last_verified: '2026-08-02T08:39:08.963979+00:00'
+  last_verified: '2026-08-03T10:06:17.975879+00:00'
   status: ok
   last_result:
     health_check: 12 route(s), no exposure issues
-    test_suite: 1 passed in 0.67s
+    test_suite: 1 passed in 0.47s
 - id: advocate
   display_name: Advocate / Clients / Case Management
   category: tenant_tool
@@ -955,11 +955,11 @@
   module_path: app.modules.advocate.router
   health_check: tools.module_health.check_advocate
   test_suite: tests/module_health/test_advocate.py
-  last_verified: '2026-08-02T08:39:12.786981+00:00'
+  last_verified: '2026-08-03T10:06:23.069163+00:00'
   status: ok
   last_result:
     health_check: 15 route(s), no exposure issues
-    test_suite: 1 passed in 0.41s
+    test_suite: 1 passed in 0.45s
 - id: admin_console
   display_name: Admin Console
   category: admin
@@ -969,11 +969,11 @@
   module_path: app.modules.admin_console.router
   health_check: tools.module_health.check_admin_console
   test_suite: tests/module_health/test_admin_console.py
-  last_verified: '2026-08-02T08:39:16.659805+00:00'
+  last_verified: '2026-08-03T10:06:28.207533+00:00'
   status: ok
   last_result:
     health_check: 41 route(s), no exposure issues
-    test_suite: 1 passed in 0.50s
+    test_suite: 1 passed in 0.47s
 - id: module_flags
   display_name: Module Flags
   category: admin
@@ -983,11 +983,11 @@
   module_path: app.modules.admin_console.module_flags
   health_check: tools.module_health.check_module_flags
   test_suite: tests/module_health/test_module_flags.py
-  last_verified: '2026-08-02T08:39:21.192612+00:00'
+  last_verified: '2026-08-03T10:06:33.315995+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 1.17s
+    test_suite: 1 passed in 0.47s
 - id: analytics
   display_name: Analytics
   category: admin
@@ -997,11 +997,11 @@
   module_path: app.modules.analytics.router
   health_check: tools.module_health.check_analytics
   test_suite: tests/module_health/test_analytics.py
-  last_verified: '2026-08-02T08:39:26.847094+00:00'
+  last_verified: '2026-08-03T10:06:38.372068+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 2.08s
+    test_suite: 1 passed in 0.47s
 - id: dashboard
   display_name: Unified Dashboard
   category: admin
@@ -1011,11 +1011,11 @@
   module_path: app.modules.dashboard.router
   health_check: tools.module_health.check_dashboard
   test_suite: tests/module_health/test_dashboard.py
-  last_verified: '2026-08-02T08:39:31.048930+00:00'
+  last_verified: '2026-08-03T10:06:43.502617+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 0.80s
+    test_suite: 1 passed in 0.47s
 - id: enterprise_dashboard
   display_name: Enterprise Dashboard
   category: admin
@@ -1025,7 +1025,7 @@
   module_path: app.modules.enterprise_dashboard.router
   health_check: tools.module_health.check_enterprise_dashboard
   test_suite: tests/module_health/test_enterprise_dashboard.py
-  last_verified: '2026-08-02T08:39:34.979588+00:00'
+  last_verified: '2026-08-03T10:06:48.606783+00:00'
   status: ok
   last_result:
     health_check: 14 route(s), no exposure issues
@@ -1039,11 +1039,11 @@
   module_path: app.modules.batch.router
   health_check: tools.module_health.check_batch
   test_suite: tests/module_health/test_batch.py
-  last_verified: '2026-08-02T08:39:40.701555+00:00'
+  last_verified: '2026-08-03T10:06:53.692144+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 2.27s
+    test_suite: 1 passed in 0.46s
 - id: registry
   display_name: Document Registry
   category: admin
@@ -1053,11 +1053,11 @@
   module_path: app.modules.registry.router
   health_check: tools.module_health.check_registry
   test_suite: tests/module_health/test_registry.py
-  last_verified: '2026-08-02T08:39:44.569669+00:00'
+  last_verified: '2026-08-03T10:06:58.787467+00:00'
   status: ok
   last_result:
     health_check: 21 route(s), no exposure issues
-    test_suite: 1 passed in 0.43s
+    test_suite: 1 passed in 0.48s
 - id: tenancy_hub
   display_name: Tenancy Hub
   category: admin
@@ -1067,11 +1067,11 @@
   module_path: app.modules.tenancy_hub.router
   health_check: tools.module_health.check_tenancy_hub
   test_suite: tests/module_health/test_tenancy_hub.py
-  last_verified: '2026-08-02T08:39:48.675617+00:00'
+  last_verified: '2026-08-03T10:07:03.931544+00:00'
   status: ok
   last_result:
     health_check: 26 route(s), no exposure issues
-    test_suite: 1 passed in 0.72s
+    test_suite: 1 passed in 0.46s
 - id: capabilities
   display_name: Capabilities
   category: admin
@@ -1081,11 +1081,11 @@
   module_path: app.modules.capabilities.router
   health_check: tools.module_health.check_capabilities
   test_suite: tests/module_health/test_capabilities.py
-  last_verified: '2026-08-02T08:39:54.447511+00:00'
+  last_verified: '2026-08-03T10:07:09.086978+00:00'
   status: ok
   last_result:
     health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 2.38s
+    test_suite: 1 passed in 0.47s
 - id: manager
   display_name: Manager / Case Assignment / Reporting / Bulk Ops
   category: admin
@@ -1095,11 +1095,11 @@
   module_path: app.modules.manager.router
   health_check: tools.module_health.check_manager
   test_suite: tests/module_health/test_manager.py
-  last_verified: '2026-08-02T08:39:59.307711+00:00'
+  last_verified: '2026-08-03T10:07:14.175706+00:00'
   status: ok
   last_result:
     health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 1.41s
+    test_suite: 1 passed in 0.46s
 - id: funding_mgmt
   display_name: Funding Management
   category: admin
@@ -1109,11 +1109,11 @@
   module_path: app.modules.funding_mgmt.router
   health_check: tools.module_health.check_funding_mgmt
   test_suite: tests/module_health/test_funding_mgmt.py
-  last_verified: '2026-08-02T08:40:03.296943+00:00'
+  last_verified: '2026-08-03T10:07:19.296798+00:00'
   status: ok
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 0.52s
+    test_suite: 1 passed in 0.46s
 - id: recognition
   display_name: Document Recognition
   category: research
@@ -1123,11 +1123,11 @@
   module_path: app.modules.recognition.router
   health_check: tools.module_health.check_recognition
   test_suite: tests/module_health/test_recognition.py
-  last_verified: '2026-08-02T08:40:07.792449+00:00'
+  last_verified: '2026-08-03T10:07:24.393597+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 1.07s
+    test_suite: 1 passed in 0.45s
 - id: extraction
   display_name: Form Field Extraction
   category: research
@@ -1137,11 +1137,11 @@
   module_path: app.modules.extraction.router
   health_check: tools.module_health.check_extraction
   test_suite: tests/module_health/test_extraction.py
-  last_verified: '2026-08-02T08:40:11.795600+00:00'
+  last_verified: '2026-08-03T10:07:29.497207+00:00'
   status: ok
   last_result:
     health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 0.54s
+    test_suite: 1 passed in 0.48s
 - id: crawler
   display_name: Crawler
   category: research
@@ -1151,11 +1151,11 @@
   module_path: app.modules.crawler.router
   health_check: tools.module_health.check_crawler
   test_suite: tests/module_health/test_crawler.py
-  last_verified: '2026-08-02T08:40:15.869034+00:00'
+  last_verified: '2026-08-03T10:07:34.547534+00:00'
   status: ok
   last_result:
     health_check: 12 route(s), no exposure issues
-    test_suite: 1 passed in 0.58s
+    test_suite: 1 passed in 0.45s
 - id: research
   display_name: Research Module
   category: research
@@ -1165,11 +1165,11 @@
   module_path: app.modules.research.router
   health_check: tools.module_health.check_research
   test_suite: tests/module_health/test_research.py
-  last_verified: '2026-08-02T08:40:20.070546+00:00'
+  last_verified: '2026-08-03T10:07:39.656586+00:00'
   status: ok
   last_result:
     health_check: 18 route(s), no exposure issues
-    test_suite: 1 passed in 0.72s
+    test_suite: 1 passed in 0.47s
 - id: form_data
   display_name: Form Data Hub
   category: research
@@ -1179,11 +1179,11 @@
   module_path: app.modules.form_data.router
   health_check: tools.module_health.check_form_data
   test_suite: tests/module_health/test_form_data.py
-  last_verified: '2026-08-02T08:40:24.696018+00:00'
+  last_verified: '2026-08-03T10:07:44.706142+00:00'
   status: ok
   last_result:
     health_check: 15 route(s), no exposure issues
-    test_suite: 1 passed in 1.20s
+    test_suite: 1 passed in 0.47s
 - id: unified_overlays
   display_name: Unified Overlays
   category: research
@@ -1193,11 +1193,11 @@
   module_path: app.modules.unified_overlays.router
   health_check: tools.module_health.check_unified_overlays
   test_suite: tests/module_health/test_unified_overlays.py
-  last_verified: '2026-08-02T08:40:29.018458+00:00'
+  last_verified: '2026-08-03T10:07:49.769187+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 0.86s
+    test_suite: 1 passed in 0.47s
 - id: cloud_sync
   display_name: Cloud Sync
   category: research
@@ -1207,11 +1207,11 @@
   module_path: app.modules.cloud_sync.router
   health_check: tools.module_health.check_cloud_sync
   test_suite: tests/module_health/test_cloud_sync.py
-  last_verified: '2026-08-02T08:40:33.080713+00:00'
+  last_verified: '2026-08-03T10:07:54.939749+00:00'
   status: ok
   last_result:
     health_check: 19 route(s), no exposure issues
-    test_suite: 1 passed in 0.48s
+    test_suite: 1 passed in 0.46s
 - id: emotion
   display_name: Emotion Engine
   category: research
@@ -1221,11 +1221,11 @@
   module_path: app.modules.emotion.router
   health_check: tools.module_health.check_emotion
   test_suite: tests/module_health/test_emotion.py
-  last_verified: '2026-08-02T08:40:38.096502+00:00'
+  last_verified: '2026-08-03T10:08:00.006595+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 1.61s
+    test_suite: 1 passed in 0.45s
 - id: module_hub
   display_name: Module Hub
   category: research
@@ -1235,11 +1235,11 @@
   module_path: app.modules.module_hub.router
   health_check: tools.module_health.check_module_hub
   test_suite: tests/module_health/test_module_hub.py
-  last_verified: '2026-08-02T08:40:42.580198+00:00'
+  last_verified: '2026-08-03T10:08:05.107063+00:00'
   status: ok
   last_result:
     health_check: 21 route(s), no exposure issues
-    test_suite: 1 passed in 1.13s
+    test_suite: 1 passed in 0.46s
 - id: functionx
   display_name: Functionx
   category: research
@@ -1249,11 +1249,11 @@
   module_path: app.modules.functionx.router
   health_check: tools.module_health.check_functionx
   test_suite: tests/module_health/test_functionx.py
-  last_verified: '2026-08-02T08:40:47.122908+00:00'
+  last_verified: '2026-08-03T10:08:10.192400+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 1.25s
+    test_suite: 1 passed in 0.46s
 - id: funding_search
   display_name: Funding & Tax Credit Search
   category: research
@@ -1263,11 +1263,11 @@
   module_path: app.modules.funding_search.router
   health_check: tools.module_health.check_funding_search
   test_suite: tests/module_health/test_funding_search.py
-  last_verified: '2026-08-02T08:40:51.859347+00:00'
+  last_verified: '2026-08-03T10:08:15.343267+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 1.39s
+    test_suite: 1 passed in 0.47s
 - id: hud_funding
   display_name: Hud Funding Guide
   category: research
@@ -1277,11 +1277,11 @@
   module_path: app.modules.hud_funding.router
   health_check: tools.module_health.check_hud_funding
   test_suite: tests/module_health/test_hud_funding.py
-  last_verified: '2026-08-02T08:40:57.807485+00:00'
+  last_verified: '2026-08-03T10:08:20.450024+00:00'
   status: ok
   last_result:
     health_check: 17 route(s), no exposure issues
-    test_suite: 1 passed in 2.60s
+    test_suite: 1 passed in 0.47s
 - id: location
   display_name: Location
   category: research
@@ -1291,11 +1291,11 @@
   module_path: app.modules.location.router
   health_check: tools.module_health.check_location
   test_suite: tests/module_health/test_location.py
-  last_verified: '2026-08-02T08:41:01.770653+00:00'
+  last_verified: '2026-08-03T10:08:25.524244+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.60s
+    test_suite: 1 passed in 0.46s
 - id: campaign
   display_name: Campaign Orchestration
   category: research
@@ -1305,11 +1305,11 @@
   module_path: app.modules.campaign.router
   health_check: tools.module_health.check_campaign
   test_suite: tests/module_health/test_campaign.py
-  last_verified: '2026-08-02T08:41:06.640695+00:00'
+  last_verified: '2026-08-03T10:08:30.611798+00:00'
   status: ok
   last_result:
     health_check: 7 route(s), no exposure issues
-    test_suite: 1 passed in 1.41s
+    test_suite: 1 passed in 0.47s
 - id: public_exposure
   display_name: Public Exposure
   category: research
@@ -1319,11 +1319,11 @@
   module_path: app.modules.public_exposure.router
   health_check: tools.module_health.check_public_exposure
   test_suite: tests/module_health/test_public_exposure.py
-  last_verified: '2026-08-02T08:41:10.417515+00:00'
+  last_verified: '2026-08-03T10:08:35.697585+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.43s
+    test_suite: 1 passed in 0.47s
 - id: fraud_exposure
   display_name: Fraud Exposure
   category: research
@@ -1333,11 +1333,11 @@
   module_path: app.modules.fraud_exposure.router
   health_check: tools.module_health.check_fraud_exposure
   test_suite: tests/module_health/test_fraud_exposure.py
-  last_verified: '2026-08-02T08:41:14.949932+00:00'
+  last_verified: '2026-08-03T10:08:40.750313+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 1.23s
+    test_suite: 1 passed in 0.46s
 - id: setup
   display_name: Setup Wizard
   category: advanced
@@ -1347,11 +1347,11 @@
   module_path: app.modules.setup.router
   health_check: tools.module_health.check_setup
   test_suite: tests/module_health/test_setup.py
-  last_verified: '2026-08-02T08:41:20.841748+00:00'
+  last_verified: '2026-08-03T10:08:45.815534+00:00'
   status: ok
   last_result:
     health_check: 15 route(s), no exposure issues
-    test_suite: 1 passed in 2.58s
+    test_suite: 1 passed in 0.47s
 - id: page_index
   display_name: Page Index
   category: advanced
@@ -1361,11 +1361,11 @@
   module_path: app.modules.page_index.router
   health_check: tools.module_health.check_page_index
   test_suite: tests/module_health/test_page_index.py
-  last_verified: '2026-08-02T08:41:24.798486+00:00'
+  last_verified: '2026-08-03T10:08:50.830673+00:00'
   status: ok
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 0.59s
+    test_suite: 1 passed in 0.45s
 - id: page_editor
   display_name: Page Editor
   category: advanced
@@ -1375,11 +1375,11 @@
   module_path: app.modules.page_editor.router
   health_check: tools.module_health.check_page_editor
   test_suite: tests/module_health/test_page_editor.py
-  last_verified: '2026-08-02T08:41:29.341372+00:00'
+  last_verified: '2026-08-03T10:08:55.892778+00:00'
   status: ok
   last_result:
     health_check: 6 route(s), no exposure issues
-    test_suite: 1 passed in 1.24s
+    test_suite: 1 passed in 0.47s
 - id: development
   display_name: Development Tools
   category: advanced
@@ -1389,11 +1389,11 @@
   module_path: app.modules.development.router
   health_check: tools.module_health.check_development
   test_suite: tests/module_health/test_development.py
-  last_verified: '2026-08-02T08:41:34.147034+00:00'
+  last_verified: '2026-08-03T10:09:00.998987+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 1.44s
+    test_suite: 1 passed in 0.45s
 - id: dev_lab
   display_name: Dev Lab
   category: advanced
@@ -1403,11 +1403,11 @@
   module_path: app.modules.dev_lab.router
   health_check: tools.module_health.check_dev_lab
   test_suite: tests/module_health/test_dev_lab.py
-  last_verified: '2026-08-02T08:41:38.614036+00:00'
+  last_verified: '2026-08-03T10:09:06.050846+00:00'
   status: ok
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 1.15s
+    test_suite: 1 passed in 0.45s
 - id: agent_orchestrator
   display_name: Agent Orchestrator
   category: advanced
@@ -1417,11 +1417,11 @@
   module_path: app.modules.agent_orchestrator.router
   health_check: tools.module_health.check_agent_orchestrator
   test_suite: tests/module_health/test_agent_orchestrator.py
-  last_verified: '2026-08-02T08:41:42.780218+00:00'
+  last_verified: '2026-08-03T10:09:11.089580+00:00'
   status: ok
   last_result:
     health_check: 9 route(s), no exposure issues
-    test_suite: 1 passed in 0.90s
+    test_suite: 1 passed in 0.46s
 - id: ideas
   display_name: Dev Ideas
   category: advanced
@@ -1431,11 +1431,11 @@
   module_path: app.modules.dev_lab.ideas
   health_check: tools.module_health.check_ideas
   test_suite: tests/module_health/test_ideas.py
-  last_verified: '2026-08-02T08:41:47.184427+00:00'
+  last_verified: '2026-08-03T10:09:16.211122+00:00'
   status: ok
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 1.08s
+    test_suite: 1 passed in 0.47s
 - id: filedored
   display_name: Filedored
   category: advanced
@@ -1445,7 +1445,7 @@
   module_path: app.modules.filedored.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:41:47.184450+00:00'
+  last_verified: '2026-08-03T10:09:16.211145+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1460,11 +1460,11 @@
   module_path: app.modules.data_freshness.router
   health_check: tools.module_health.check_data_freshness
   test_suite: tests/module_health/test_data_freshness.py
-  last_verified: '2026-08-02T08:41:53.053970+00:00'
+  last_verified: '2026-08-03T10:09:21.240266+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 2.55s
+    test_suite: 1 passed in 0.47s
 - id: inventory
   display_name: Inventory Management
   category: advanced
@@ -1474,11 +1474,11 @@
   module_path: app.modules.inventory.router
   health_check: tools.module_health.check_inventory
   test_suite: tests/module_health/test_inventory.py
-  last_verified: '2026-08-02T08:41:57.053970+00:00'
+  last_verified: '2026-08-03T10:09:26.255820+00:00'
   status: ok
   last_result:
     health_check: 8 route(s), no exposure issues
-    test_suite: 1 passed in 0.62s
+    test_suite: 1 passed in 0.46s
 - id: judge
   display_name: Judge / Deprecated / Merged Into Legal
   category: advanced
@@ -1488,11 +1488,11 @@
   module_path: app.modules.judge.router
   health_check: tools.module_health.check_judge
   test_suite: tests/module_health/test_judge.py
-  last_verified: '2026-08-02T08:42:01.090426+00:00'
+  last_verified: '2026-08-03T10:09:31.329255+00:00'
   status: ok
   last_result:
     health_check: 1 route(s), no exposure issues
-    test_suite: 1 passed in 0.64s
+    test_suite: 1 passed in 0.48s
 - id: calendar
   display_name: Calendar
   category: advanced
@@ -1502,11 +1502,11 @@
   module_path: app.modules.calendar.router
   health_check: tools.module_health.check_calendar
   test_suite: tests/module_health/test_calendar.py
-  last_verified: '2026-08-02T08:42:05.503225+00:00'
+  last_verified: '2026-08-03T10:09:36.370165+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.98s
+    test_suite: 1 passed in 0.47s
 - id: tactics
   display_name: Tactics
   category: advanced
@@ -1516,11 +1516,11 @@
   module_path: app.modules.tactics.router
   health_check: tools.module_health.check_tactics
   test_suite: tests/module_health/test_tactics.py
-  last_verified: '2026-08-02T08:42:10.174171+00:00'
+  last_verified: '2026-08-03T10:09:41.403847+00:00'
   status: ok
   last_result:
     health_check: 7 route(s), no exposure issues
-    test_suite: 1 passed in 1.32s
+    test_suite: 1 passed in 0.46s
 - id: page_shell
   display_name: Page Shell / Pillar Mixer
   category: advanced
@@ -1530,11 +1530,11 @@
   module_path: app.modules.page_shell.router
   health_check: tools.module_health.check_page_shell
   test_suite: tests/module_health/test_page_shell.py
-  last_verified: '2026-08-02T08:42:14.164806+00:00'
+  last_verified: '2026-08-03T10:09:46.434874+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 0.62s
+    test_suite: 1 passed in 0.46s
 - id: example_payment_tracking
   display_name: Payment Tracking
   category: advanced
@@ -1544,11 +1544,11 @@
   module_path: app.modules.example_payment_tracking
   health_check: tools.module_health.check_example_payment_tracking
   test_suite: tests/module_health/test_example_payment_tracking.py
-  last_verified: '2026-08-02T08:42:18.105807+00:00'
+  last_verified: '2026-08-03T10:09:51.525778+00:00'
   status: ok
   last_result:
     health_check: 2 route(s), no exposure issues
-    test_suite: 1 passed in 0.64s
+    test_suite: 1 passed in 0.46s
 - id: legal_filing_module
   display_name: Legal Filing
   category: advanced
@@ -1558,11 +1558,11 @@
   module_path: app.modules.legal_filing_module
   health_check: tools.module_health.check_legal_filing_module
   test_suite: tests/module_health/test_legal_filing_module.py
-  last_verified: '2026-08-02T08:42:22.257625+00:00'
+  last_verified: '2026-08-03T10:09:56.586320+00:00'
   status: ok
   last_result:
     health_check: 5 route(s), no exposure issues
-    test_suite: 1 passed in 0.86s
+    test_suite: 1 passed in 0.46s
 - id: vault_sync
   display_name: Vault Sync
   category: advanced
@@ -1572,7 +1572,7 @@
   module_path: app.modules.vault_sync
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:42:22.257653+00:00'
+  last_verified: '2026-08-03T10:09:56.586343+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1587,7 +1587,7 @@
   module_path: app.modules.eviction_notice_explainer
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:42:22.257658+00:00'
+  last_verified: '2026-08-03T10:09:56.586349+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1602,7 +1602,7 @@
   module_path: app.modules.response_letter_generator
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:42:22.257663+00:00'
+  last_verified: '2026-08-03T10:09:56.586355+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1617,7 +1617,7 @@
   module_path: app.modules.eviction_defense_content
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:42:22.257667+00:00'
+  last_verified: '2026-08-03T10:09:56.586360+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1632,7 +1632,7 @@
   module_path: app.modules.ai_copilot
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:42:22.257671+00:00'
+  last_verified: '2026-08-03T10:09:56.586365+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1647,11 +1647,11 @@
   module_path: app.modules.context_loop.router
   health_check: tools.module_health.check_context_loop
   test_suite: tests/module_health/test_context_loop.py
-  last_verified: '2026-08-02T08:42:27.137961+00:00'
+  last_verified: '2026-08-03T10:10:01.657282+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 1.39s
+    test_suite: 1 passed in 0.47s
 - id: routes
   display_name: Vault Installer
   category: advanced
@@ -1661,11 +1661,11 @@
   module_path: app.modules.vault_installer.routes
   health_check: tools.module_health.check_routes
   test_suite: tests/module_health/test_routes.py
-  last_verified: '2026-08-02T08:42:32.718867+00:00'
+  last_verified: '2026-08-03T10:10:06.757634+00:00'
   status: ok
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 2.27s
+    test_suite: 1 passed in 0.49s
 - id: export_import
   display_name: Data Export/Import
   category: advanced
@@ -1675,11 +1675,11 @@
   module_path: app.modules.export_import.router
   health_check: tools.module_health.check_export_import
   test_suite: tests/module_health/test_export_import.py
-  last_verified: '2026-08-02T08:42:36.471189+00:00'
+  last_verified: '2026-08-03T10:10:11.901367+00:00'
   status: ok
   last_result:
     health_check: 12 route(s), no exposure issues
-    test_suite: 1 passed in 0.46s
+    test_suite: 1 passed in 0.48s
 - id: documentation
   display_name: Api Documentation
   category: advanced
@@ -1689,11 +1689,11 @@
   module_path: app.modules.documentation.router
   health_check: tools.module_health.check_documentation
   test_suite: tests/module_health/test_documentation.py
-  last_verified: '2026-08-02T08:42:40.377122+00:00'
+  last_verified: '2026-08-03T10:10:16.956159+00:00'
   status: ok
   last_result:
     health_check: 13 route(s), no exposure issues
-    test_suite: 1 passed in 0.56s
+    test_suite: 1 passed in 0.47s
 - id: document_center
   display_name: Document Center
   category: advanced
@@ -1703,11 +1703,11 @@
   module_path: app.modules.document_center.router
   health_check: tools.module_health.check_document_center
   test_suite: tests/module_health/test_document_center.py
-  last_verified: '2026-08-02T08:42:44.776500+00:00'
+  last_verified: '2026-08-03T10:10:22.052571+00:00'
   status: ok
   last_result:
     health_check: 13 route(s), no exposure issues
-    test_suite: 1 passed in 1.07s
+    test_suite: 1 passed in 0.48s
 - id: law_library_page_router
   display_name: Law Library
   category: core
@@ -1717,11 +1717,11 @@
   module_path: app.modules.law_library.router
   health_check: tools.module_health.check_law_library_page_router
   test_suite: tests/module_health/test_law_library_page_router.py
-  last_verified: '2026-08-02T08:42:49.057011+00:00'
+  last_verified: '2026-08-03T10:10:27.123744+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 0.97s
+    test_suite: 1 passed in 0.47s
 - id: portal_seo_router
   display_name: Portal / Seo
   category: core
@@ -1731,11 +1731,11 @@
   module_path: app.modules.portal.router
   health_check: tools.module_health.check_portal_seo_router
   test_suite: tests/module_health/test_portal_seo_router.py
-  last_verified: '2026-08-02T08:42:53.006476+00:00'
+  last_verified: '2026-08-03T10:10:32.156059+00:00'
   status: ok
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 0.68s
+    test_suite: 1 passed in 0.47s
 - id: core_system_core_router
   display_name: Core System
   category: core
@@ -1745,11 +1745,11 @@
   module_path: app.modules.core_system.router
   health_check: tools.module_health.check_core_system_core_router
   test_suite: tests/module_health/test_core_system_core_router.py
-  last_verified: '2026-08-02T08:42:57.857723+00:00'
+  last_verified: '2026-08-03T10:10:37.217386+00:00'
   status: ok
   last_result:
     health_check: 10 route(s), no exposure issues
-    test_suite: 1 passed in 1.55s
+    test_suite: 1 passed in 0.46s
 - id: housing_accountability_accountability_router
   display_name: Housing Accountability
   category: tenant_tool
@@ -1759,7 +1759,7 @@
   module_path: app.modules.housing_accountability.router
   health_check: TODO
   test_suite: TODO
-  last_verified: '2026-08-02T08:42:57.857751+00:00'
+  last_verified: '2026-08-03T10:10:37.217458+00:00'
   status: unverified
   last_result:
     health_check: health_check not configured
@@ -1774,11 +1774,11 @@
   module_path: app.modules.external_mappings.router
   health_check: tools.module_health.check_external_mappings_mappings_router
   test_suite: tests/module_health/test_external_mappings_mappings_router.py
-  last_verified: '2026-08-02T08:43:02.005322+00:00'
+  last_verified: '2026-08-03T10:10:42.366741+00:00'
   status: ok
   last_result:
     health_check: 11 route(s), no exposure issues
-    test_suite: 1 passed in 0.75s
+    test_suite: 1 passed in 0.48s
 - id: litigation_intelligence_lis_router
   display_name: Litigation Intelligence
   category: research
@@ -1788,11 +1788,11 @@
   module_path: app.modules.litigation_intelligence.router
   health_check: tools.module_health.check_litigation_intelligence_lis_router
   test_suite: tests/module_health/test_litigation_intelligence_lis_router.py
-  last_verified: '2026-08-02T08:43:06.251646+00:00'
+  last_verified: '2026-08-03T10:10:47.499236+00:00'
   status: ok
   last_result:
     health_check: 17 route(s), no exposure issues
-    test_suite: 1 passed in 0.76s
+    test_suite: 1 passed in 0.47s
 - id: dispute_tracker
   display_name: Dispute Tracker
   category: tenant_tool
@@ -1803,10 +1803,10 @@
   health_check: tools.module_health.check_dispute_tracker
   test_suite: tests/module_health/test_dispute_tracker.py
   status: ok
-  last_verified: '2026-08-02T08:43:10.285015+00:00'
+  last_verified: '2026-08-03T10:10:52.536858+00:00'
   last_result:
     health_check: 4 route(s), no exposure issues
-    test_suite: 1 passed in 0.63s
+    test_suite: 1 passed in 0.47s
 - id: eviction_timeline
   display_name: Eviction Timeline
   category: tenant_tool
@@ -1817,7 +1817,7 @@
   health_check: tools.module_health.check_eviction_timeline
   test_suite: tests/module_health/test_eviction_timeline.py
   status: ok
-  last_verified: '2026-08-02T08:43:14.219466+00:00'
+  last_verified: '2026-08-03T10:10:57.588186+00:00'
   last_result:
     health_check: 3 route(s), no exposure issues
-    test_suite: 1 passed in 0.56s
+    test_suite: 1 passed in 0.47s
