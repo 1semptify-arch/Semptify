@@ -26,7 +26,7 @@ Architecture:
 import asyncio
 import logging
 import time
-from app.core.id_gen import make_id
+from app.core.id_gen import _MAX_PREFIX_LEN, make_id
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Generic
@@ -189,7 +189,7 @@ class MeshNode:
         node_id: Optional[str] = None,
     ):
         self.identity = NodeIdentity(
-            node_id=node_id or make_id(node_type),
+            node_id=node_id or make_id(node_type.replace("_", "")[:_MAX_PREFIX_LEN]),
             node_type=node_type,
             capabilities=capabilities or set(),
         )
