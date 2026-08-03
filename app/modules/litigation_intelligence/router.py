@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.core.config import get_settings
 from app.core.security import get_current_user
 from app.core.utc import utc_now
 
@@ -90,12 +91,24 @@ class ScheduledTaskRequest(BaseModel):
     enabled: bool = Field(True, description="Whether task is enabled")
 
 
+def _resolve_lis_dsn() -> str:
+    """Use the configured PostgreSQL database for LIS, or skip storage in SQLite mode."""
+    db_url = get_settings().database_url
+    if db_url.startswith("postgresql+asyncpg"):
+        return db_url.replace("postgresql+asyncpg", "postgresql", 1)
+    if db_url.startswith("postgresql://"):
+        return db_url
+    if db_url.startswith("postgres://"):
+        return db_url.replace("postgres://", "postgresql://", 1)
+    return ""
+
+
 # Initialize LIS components
 court_scraper = create_court_scraper()
 entity_normalizer = create_entity_normalizer()
 intelligence_engine = create_intelligence_engine()
 graph_engine = create_graph_engine()
-storage_layer = create_storage_layer("postgresql://user:password@localhost/semptify_lis")
+storage_layer = create_storage_layer(_resolve_lis_dsn())
 reporting_layer = create_reporting_layer(storage_layer)
 gui_butler = create_gui_butler()
 scheduler = create_litigation_scheduler()
