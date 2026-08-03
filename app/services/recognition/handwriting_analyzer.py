@@ -1,5 +1,5 @@
 """
-✍️ Handwriting Recognition & Forgery Detection
+▸ Handwriting Recognition & Forgery Detection
 ===============================================
 Advanced handwriting analysis for document verification.
 
@@ -985,19 +985,19 @@ class HandwritingAnalyzer:
         recommendations = []
         
         if result.overall_risk_level == RiskLevel.CRITICAL:
-            recommendations.append("⚠️ CRITICAL: This document shows strong indicators of forgery or manipulation")
+            recommendations.append("◆ CRITICAL: This document shows strong indicators of forgery or manipulation")
             recommendations.append("Do NOT sign or act on this document until verified")
             recommendations.append("Consider consulting a forensic document examiner")
             recommendations.append("Preserve the original for potential legal action")
         
         elif result.overall_risk_level == RiskLevel.HIGH:
-            recommendations.append("⚠️ HIGH RISK: Document shows concerning indicators")
+            recommendations.append("◆ HIGH RISK: Document shows concerning indicators")
             recommendations.append("Request the original document for examination")
             recommendations.append("Verify all dates and amounts independently")
             recommendations.append("Document your concerns in writing")
         
         elif result.overall_risk_level == RiskLevel.MEDIUM:
-            recommendations.append("⚡ MODERATE CONCERN: Some irregularities detected")
+            recommendations.append("◆ MODERATE CONCERN: Some irregularities detected")
             recommendations.append("Verify key information before acting")
             recommendations.append("Keep records of any discrepancies noted")
         

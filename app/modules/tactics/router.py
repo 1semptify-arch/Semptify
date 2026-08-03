@@ -161,11 +161,11 @@ async def analyze_case(
     Analyze case data and return tactical recommendations.
     
     Decision Tree:
-    1. Was service <7 days? → Motion to Dismiss
-    2. ≥3 serious habitability issues? → Rent Escrow Motion
-    3. Recent protected complaint (<30 days)? → Retaliation Counterclaim
-    4. Pending objective evidence? → Continuance Motion
-    5. Case dismissed or settled? → Expungement Motion
+    1. Was service <7 days? ▸ Motion to Dismiss
+    2. ≥3 serious habitability issues? ▸ Rent Escrow Motion
+    3. Recent protected complaint (<30 days)? ▸ Retaliation Counterclaim
+    4. Pending objective evidence? ▸ Continuance Motion
+    5. Case dismissed or settled? ▸ Expungement Motion
     """
     from app.services.form_data import get_form_data_service
     

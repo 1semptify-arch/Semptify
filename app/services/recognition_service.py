@@ -304,7 +304,7 @@ class EnhancedDocumentProcessor:
         
         # Urgency
         if result.legal_analysis.urgency_level in ["critical", "high"]:
-            lines.append(f"⚠️ URGENCY: {result.legal_analysis.urgency_level.upper()}")
+            lines.append(f"◆ URGENCY: {result.legal_analysis.urgency_level.upper()}")
         
         return "\n".join(lines)
     

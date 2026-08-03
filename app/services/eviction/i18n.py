@@ -344,10 +344,10 @@ STRINGS: Dict[str, Dict[str, str]] = {
     
     # Deadlines & Warnings
     "deadline_warning": {
-        "en": "⚠️ You typically have only 7 days to respond to an eviction summons in Minnesota",
-        "es": "⚠️ Normalmente tiene solo 7 días para responder a una citación de desalojo en Minnesota",
-        "so": "⚠️ Caadi ahaan waxaad haysataa 7 maalmood oo keliya si aad uga jawaabtid wacitaanka saarista Minnesota",
-        "ar": "⚠️ عادة لديك 7 أيام فقط للرد على استدعاء الإخلاء في مينيسوتا"
+        "en": "◆ You typically have only 7 days to respond to an eviction summons in Minnesota",
+        "es": "◆ Normalmente tiene solo 7 días para responder a una citación de desalojo en Minnesota",
+        "so": "◆ Caadi ahaan waxaad haysataa 7 maalmood oo keliya si aad uga jawaabtid wacitaanka saarista Minnesota",
+        "ar": "◆ عادة لديك 7 أيام فقط للرد على استدعاء الإخلاء في مينيسوتا"
     },
     "disclaimer": {
         "en": "This tool provides information only, not legal advice. Consider consulting with a lawyer.",

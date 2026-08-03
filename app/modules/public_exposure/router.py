@@ -272,8 +272,8 @@ async def generate_social_posts(
         "posts": [
             {
                 "platform": "Twitter/X",
-                "post": f"🏠 {headline} {link or ''} {hashtag_str}".strip(),
-                "character_count": len(f"🏠 {headline} {link or ''} {hashtag_str}".strip()),
+                "post": f"○ {headline} {link or ''} {hashtag_str}".strip(),
+                "character_count": len(f"○ {headline} {link or ''} {hashtag_str}".strip()),
             },
             {
                 "platform": "Facebook",
@@ -281,7 +281,7 @@ async def generate_social_posts(
             },
             {
                 "platform": "Instagram",
-                "post": f"🏠 {headline}\n\nTenants deserve safe housing.\n\n{hashtag_str}".strip(),
+                "post": f"○ {headline}\n\nTenants deserve safe housing.\n\n{hashtag_str}".strip(),
             },
             {
                 "platform": "LinkedIn",

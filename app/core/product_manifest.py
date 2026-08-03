@@ -1067,7 +1067,7 @@ _register(
     tags=("Calendar",),
     tier=ProductTier.DEV,
     lifecycle="beta",
-    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly→monthly→weekly→daily→hourly drill-down.",
+    dev_notes="Total Recollection Viewer — appointments, ledger, court dates, contacts, communications, journal. Yearly▸monthly▸weekly▸daily▸hourly drill-down.",
 )
 
 # Tactics — Legal tactics development tools
@@ -1222,17 +1222,17 @@ _register(
     requires_role=("admin",),
     dev_notes=(
         "Document Center — 3-pane GUI (left: vault list, center: viewer, right: overlays). "
-        "✅ Slice 1: HTML shell. "
-        "✅ Slice 2: real vault list from DB. "
-        "✅ Slice 3: iframe/img/download viewer states + /view endpoint. "
-        "✅ Slice 4: /overlays endpoint — synthesizes 6 progress items from VaultDocument metadata. "
-        "✅ Slice 5: /type endpoint — DB persistence + DOCUMENT_CLASSIFICATION overlay + one-trip right-panel refresh. "
-        "✅ Slice 6b: GET /api/dc/unlocks; renderUnlocks() async+cache; CSS extracted. "
-        "✅ Slice 7: openOverlay() drill-down (items field + DOM toggle); "
+        "● Slice 1: HTML shell. "
+        "● Slice 2: real vault list from DB. "
+        "● Slice 3: iframe/img/download viewer states + /view endpoint. "
+        "● Slice 4: /overlays endpoint — synthesizes 6 progress items from VaultDocument metadata. "
+        "● Slice 5: /type endpoint — DB persistence + DOCUMENT_CLASSIFICATION overlay + one-trip right-panel refresh. "
+        "● Slice 6b: GET /api/dc/unlocks; renderUnlocks() async+cache; CSS extracted. "
+        "● Slice 7: openOverlay() drill-down (items field + DOM toggle); "
         "_overlayDataByDoc cache; unlock invalidation on type save. "
-        "✅ Slice 8: _formatExpandItems per-type formatting (pill, code, icons); "
+        "● Slice 8: _formatExpandItems per-type formatting (pill, code, icons); "
         "OCR excerpt cap 200ch; items list cap 10. "
-        "Forge: 28/28 smoke tests. 5 contracts. Promoted beta → stable 2026-06-28."
+        "Forge: 28/28 smoke tests. 5 contracts. Promoted beta ▸ stable 2026-06-28."
     ),
     log_message="Document Center router connected at /api/dc (stable — admin only)",
 )
@@ -1328,7 +1328,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
 #       requires_jurisdiction: tuple[str, ...] = () # e.g. ("MN", "CA")
 #       requires_gate: str = ""                     # e.g. "vault_initialized"
 #
-# 2. Build resolve_modules(role, jurisdiction, gates, device) → set[str]
+# 2. Build resolve_modules(role, jurisdiction, gates, device) ▸ set[str]
 #       Returns the set of module_paths the current user is allowed to use.
 #       Lives in app/core/module_resolver.py
 #

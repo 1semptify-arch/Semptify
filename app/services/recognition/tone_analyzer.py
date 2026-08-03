@@ -156,7 +156,7 @@ class ToneAnalysisResult:
                 "confidence": self.recipient.confidence,
             },
             "communication_flow": self.communication_flow.value,
-            "from_to_summary": f"From {self.sender.role or 'Unknown'} → To {self.recipient.role or 'Unknown'}",
+            "from_to_summary": f"From {self.sender.role or 'Unknown'} ▸ To {self.recipient.role or 'Unknown'}",
             "tone": {
                 "primary": self.primary_tone.value,
                 "confidence": self.tone_confidence,

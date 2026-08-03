@@ -7,12 +7,12 @@ Module Resolver), then assembles a page from the component library.
 Architecture:
     User visits /tenant
         │
-        ▼
+        ▸
     [Context Loop]          — get user state (intensity, documents, predicted_needs)
     [Module Resolver]       — what modules can this user see?
     [UI Composer]           — decide WHAT to show based on context + resolved modules
         │                     outputs: {page_title, pillar, components: [...]}
-        ▼
+        ▸
     [Generic Template]      — render the component list
     [Component Library]     — each component is a Jinja macro
 

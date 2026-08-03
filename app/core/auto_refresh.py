@@ -237,7 +237,7 @@ async def get_valid_token_or_redirect(
     # Build reconnect URL with return_to
     reconnect_url = f"{reconnect_path}?return_to={return_to}&provider={provider}"
     
-    logger.info(f"Reauth required for user {user_id[:6]}*** (status={status}) → {reconnect_path}")
+    logger.info(f"Reauth required for user {user_id[:6]}*** (status={status}) ▸ {reconnect_path}")
     return None, reconnect_url
 
 

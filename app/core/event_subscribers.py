@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 async def _on_document_added(event: Any) -> None:
     """
-    DOCUMENT_ADDED → write a TimelineEvent row so the upload appears
+    DOCUMENT_ADDED ▸ write a TimelineEvent row so the upload appears
     on the tenant's timeline automatically.
     """
     try:
@@ -67,4 +67,4 @@ def register_all_subscribers() -> None:
     from app.core.event_bus import subscribe_async_to_event, EventType
 
     subscribe_async_to_event(EventType.DOCUMENT_ADDED, _on_document_added)
-    logger.info("Event subscribers registered: DOCUMENT_ADDED → timeline")
+    logger.info("Event subscribers registered: DOCUMENT_ADDED ▸ timeline")

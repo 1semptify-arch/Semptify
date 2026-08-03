@@ -4,7 +4,7 @@
 {% block title %}Quick Capture - Semptify{% endblock %}
 
 {% block nav %}
-<a href="/tenant/home">← Back to Home</a>
+<a href="/tenant/home">▸ Back to Home</a>
 {% endblock %}
 
 {% block styles %}
@@ -291,7 +291,7 @@
 
     <!-- Success Message -->
     <div class="success-message" id="successMsg">
-        <div class="success-icon">✅</div>
+        <div class="success-icon">●</div>
         <h3>Recorded successfully</h3>
         <p>Your entry has been saved. What would you like to do next?</p>
         <div style="margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center;">
@@ -306,27 +306,27 @@
         <!-- Type Selection -->
         <div class="type-grid">
             <div class="type-card {% if capture_type == 'notice' %}active{% endif %}" data-type="notice">
-                <div class="type-icon">📋</div>
+                <div class="type-icon">●</div>
                 <div class="type-label">Got a Notice</div>
             </div>
             <div class="type-card {% if capture_type == 'conversation' %}active{% endif %}" data-type="conversation">
-                <div class="type-icon">💬</div>
+                <div class="type-icon">○</div>
                 <div class="type-label">Conversation</div>
             </div>
             <div class="type-card {% if capture_type == 'repair' %}active{% endif %}" data-type="repair">
-                <div class="type-icon">🔧</div>
+                <div class="type-icon">▸</div>
                 <div class="type-label">Repair Issue</div>
             </div>
             <div class="type-card {% if capture_type == 'harassment' %}active{% endif %}" data-type="harassment">
-                <div class="type-icon">⚠️</div>
+                <div class="type-icon">◆</div>
                 <div class="type-label">Feeling Pressured</div>
             </div>
             <div class="type-card {% if capture_type == 'payment' %}active{% endif %}" data-type="payment">
-                <div class="type-icon">💰</div>
+                <div class="type-icon">●</div>
                 <div class="type-label">Payment Issue</div>
             </div>
             <div class="type-card {% if capture_type == 'other' %}active{% endif %}" data-type="other">
-                <div class="type-icon">📝</div>
+                <div class="type-icon">●</div>
                 <div class="type-label">Something Else</div>
             </div>
         </div>
@@ -375,7 +375,7 @@
             <div class="form-group">
                 <label>Have any photos, documents, or recordings?</label>
                 <div class="file-upload" id="fileUpload">
-                    <div class="file-upload-icon">📎</div>
+                    <div class="file-upload-icon">●</div>
                     <div class="file-upload-text">
                         Tap to upload files<br>
                         <small>or drag and drop here</small>
@@ -424,7 +424,7 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
     fileList.innerHTML = '';
     Array.from(e.target.files).forEach(file => {
         const div = document.createElement('div');
-        div.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        div.textContent = `● ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
         div.style.cssText = 'padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 0.25rem;';
         fileList.appendChild(div);
     });

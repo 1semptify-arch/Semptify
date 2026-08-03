@@ -18,14 +18,14 @@
     <header class="dashboard-header">
         <div class="header-content">
             <div>
-                <h1 class="header-title">🏢 Manager Dashboard</h1>
+                <h1 class="header-title">○ Manager Dashboard</h1>
                 <p class="header-subtitle">Multi-tenant case oversight & staff management</p>
             </div>
             <div class="header-actions">
-                <a href="/office/delivery" class="header-btn primary">📤 Send Document</a>
-                <a href="/manager/reports" class="header-btn">📊 Reports</a>
-                <a href="/manager/staff" class="header-btn">👥 Staff</a>
-                <span class="header-btn">🏠 {{ organization_name|default('Agency') }}</span>
+                <a href="/office/delivery" class="header-btn primary">● Send Document</a>
+                <a href="/manager/reports" class="header-btn">◆ Reports</a>
+                <a href="/manager/staff" class="header-btn">● Staff</a>
+                <span class="header-btn">○ {{ organization_name|default('Agency') }}</span>
             </div>
         </div>
     </header>
@@ -66,8 +66,8 @@
                 <!-- Cases Section -->
                 <section class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">📋 Recent Cases</h2>
-                        <a href="/manager/cases" class="section-action">View all →</a>
+                        <h2 class="section-title">● Recent Cases</h2>
+                        <a href="/manager/cases" class="section-action">View all ▸</a>
                     </div>
                     {% if recent_cases -%}
                     <ul class="case-list">{%- for case in recent_cases %}
@@ -83,7 +83,7 @@
                     </ul>
                     {% else %}
                     <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-icon">●</div>
                         <p>No active cases yet</p>
                         <p class="empty-state-hint">Cases will appear when tenants connect</p>
                     </div>
@@ -93,13 +93,13 @@
                 <!-- Activity Feed -->
                 <section class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">📈 Recent Activity</h2>
-                        <a href="/manager/activity" class="section-action">View all →</a>
+                        <h2 class="section-title">◆ Recent Activity</h2>
+                        <a href="/manager/activity" class="section-action">View all ▸</a>
                     </div>
                     {% if recent_activity -%}
                     <ul class="activity-feed">{%- for activity in recent_activity %}
                         <li class="activity-item">
-                            <span class="activity-icon">{{ activity.icon|default('📝') }}</span>
+                            <span class="activity-icon">{{ activity.icon|default('●') }}</span>
                             <span class="activity-text">{{ activity.description|safe }}</span>
                             <span class="activity-time">{{ activity.time|default('Just now') }}</span>
                         </li>
@@ -107,7 +107,7 @@
                     </ul>
                     {% else %}
                     <div class="empty-state">
-                        <div class="empty-state-icon">📈</div>
+                        <div class="empty-state-icon">◆</div>
                         <p>No recent activity</p>
                     </div>
                     {% endif %}
@@ -119,23 +119,23 @@
                 <!-- Quick Actions -->
                 <section class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">⚡ Quick Actions</h2>
+                        <h2 class="section-title">◆ Quick Actions</h2>
                     </div>
                     <div class="quick-actions">
                         <a href="/office/delivery" class="quick-action-btn">
-                            <span class="quick-action-icon">📤</span>
+                            <span class="quick-action-icon">●</span>
                             <span class="quick-action-label">Send Doc</span>
                         </a>
                         <a href="/manager/bulk-upload" class="quick-action-btn">
-                            <span class="quick-action-icon">📁</span>
+                            <span class="quick-action-icon">●</span>
                             <span class="quick-action-label">Bulk Upload</span>
                         </a>
                         <a href="/manager/staff" class="quick-action-btn">
-                            <span class="quick-action-icon">👥</span>
+                            <span class="quick-action-icon">●</span>
                             <span class="quick-action-label">Manage Staff</span>
                         </a>
                         <a href="/manager/reports" class="quick-action-btn">
-                            <span class="quick-action-icon">📊</span>
+                            <span class="quick-action-icon">◆</span>
                             <span class="quick-action-label">Reports</span>
                         </a>
                     </div>
@@ -144,8 +144,8 @@
                 <!-- Staff Online -->
                 <section class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">👥 Staff</h2>
-                        <a href="/manager/staff" class="section-action">Manage →</a>
+                        <h2 class="section-title">● Staff</h2>
+                        <a href="/manager/staff" class="section-action">Manage ▸</a>
                     </div>
                     {% if staff_list -%}
                     <ul class="staff-list">{%- for staff in staff_list %}
@@ -166,13 +166,13 @@
                 <!-- Pending Signatures -->
                 <section class="section-card">
                     <div class="section-header">
-                        <h2 class="section-title">✍️ Pending Signatures</h2>
-                        <a href="/manager/signatures" class="section-action">View all →</a>
+                        <h2 class="section-title">▸ Pending Signatures</h2>
+                        <a href="/manager/signatures" class="section-action">View all ▸</a>
                     </div>
                     {% if pending_signatures -%}
                     <ul class="activity-feed">{%- for doc in pending_signatures %}
                         <li class="activity-item">
-                            <span class="activity-icon">📄</span>
+                            <span class="activity-icon">●</span>
                             <span class="activity-text"><strong>{{ doc.tenant_name }}</strong> — {{ doc.document_name }}</span>
                             <span class="activity-time">{{ doc.due_date|default('No due date') }}</span>
                         </li>

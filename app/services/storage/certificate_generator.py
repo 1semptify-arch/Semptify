@@ -543,7 +543,7 @@ def generate_certificate_html(cert: VerificationCertificate) -> str:
 <body>
     <div class="certificate">
         <div class="header">
-            <div class="seal">🛡️</div>
+            <div class="seal">◆</div>
             <h1>CERTIFICATE OF DOCUMENT INTEGRITY</h1>
             <div class="subtitle">SEMPTIFY LEGAL INTEGRITY MODULE</div>
         </div>
@@ -618,7 +618,7 @@ def generate_certificate_html(cert: VerificationCertificate) -> str:
                     <div class="sig">{cert.certificate_signature}</div>
                 </div>
                 <div class="issued-by">
-                    <div class="logo">⚖️</div>
+                    <div class="logo">▸</div>
                     <div class="name">Semptify</div>
                     <div class="version">Legal Integrity Module v5.0</div>
                 </div>

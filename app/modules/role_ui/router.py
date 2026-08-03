@@ -2,7 +2,7 @@
 Semptify 5.0 - Role-Based UI Router
 Routes users to appropriate interface based on their role and device.
 
-Role → UI Mapping:
+Role ▸ UI Mapping:
 - USER (Tenant):    Mobile-first, simplified wizard-driven interface
 - ADVOCATE:         Responsive, multi-case management view
 - MANAGER (Case Manager): Multi-client professional workspace
@@ -162,7 +162,7 @@ async def ui_route(request: Request):
     if not user_id:
         return ssot_redirect(navigation.get_stage("welcome").path, context="ui_route unauthenticated")
     landing = await _route_user(user_id)
-    logger.info("ui/route: user=%s → %s", user_id, landing)
+    logger.info("ui/route: user=%s ▸ %s", user_id, landing)
     return ssot_redirect(landing, context="ui_route workflow")
 
 
@@ -216,7 +216,7 @@ async def get_available_roles() -> dict:
             "purpose": role_def.get("purpose", meta.get("description", "")),
             "default_landing_process": role_def.get("default_landing_process", ""),
             "landing_page": meta.get("landing_page", "/static/public/welcome.html"),
-            "icon": meta.get("icon", "👤"),
+            "icon": meta.get("icon", "●"),
             "ui_mode": meta.get("ui_mode", "desktop"),
         })
     
@@ -334,8 +334,8 @@ async def get_navigation_menu(
         providers_stage = navigation.get_stage("providers")
         return {
             "menu": [
-                {"label": "Home", "path": navigation.get_stage("welcome").path, "icon": "🏠"},
-                {"label": "Sign In", "path": providers_stage.path if providers_stage else "/storage/providers", "icon": "🔑"},
+                {"label": "Home", "path": navigation.get_stage("welcome").path, "icon": "○"},
+                {"label": "Sign In", "path": providers_stage.path if providers_stage else "/storage/providers", "icon": "◆"},
             ]
         }
     
@@ -345,60 +345,60 @@ async def get_navigation_menu(
     # Tenant (USER) - simplified menu
     if user.role == UserRole.USER:
         menu = [
-            {"label": "My Case", "path": "/tenant", "icon": "📁"},
-            {"label": "Documents", "path": "/documents", "icon": "📄"},
-            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
+            {"label": "My Case", "path": "/tenant", "icon": "●"},
+            {"label": "Documents", "path": "/documents", "icon": "●"},
+            {"label": "Timeline", "path": "/timeline", "icon": "◆"},
             {"divider": True},
-            {"label": "Build My Case", "path": "/ui/tool/case-builder", "icon": "🏗️"},
-            {"label": "Eviction Defense", "path": "/ui/tool/eviction-defense", "icon": "🛡️"},
-            {"label": "File Complaint", "path": "/ui/tool/complaints", "icon": "📢"},
-            {"label": "My Action Plan", "path": "/ui/tool/plan-maker", "icon": "📋"},
-            {"label": "My Progress", "path": "/ui/tool/progress", "icon": "📈"},
+            {"label": "Build My Case", "path": "/ui/tool/case-builder", "icon": "▸"},
+            {"label": "Eviction Defense", "path": "/ui/tool/eviction-defense", "icon": "◆"},
+            {"label": "File Complaint", "path": "/ui/tool/complaints", "icon": "▸"},
+            {"label": "My Action Plan", "path": "/ui/tool/plan-maker", "icon": "●"},
+            {"label": "My Progress", "path": "/ui/tool/progress", "icon": "◆"},
             {"divider": True},
             {"label": "Get Help", "path": "/tenant/help", "icon": "🆘"},
-            {"label": "AI Assistant", "path": "/tenant/copilot", "icon": "🤖"},
+            {"label": "AI Assistant", "path": "/tenant/copilot", "icon": "○"},
         ]
     
     # Advocate - case management focus
     elif user.role == UserRole.ADVOCATE:
         menu = [
-            {"label": "Dashboard", "path": "/advocate", "icon": "📊"},
-            {"label": "Documents", "path": "/documents", "icon": "📄"},
-            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
-            {"label": "My Clients", "path": "/advocate/clients", "icon": "👥"},
-            {"label": "Case Queue", "path": "/advocate/queue", "icon": "📋"},
-            {"label": "New Intake", "path": "/advocate/intake", "icon": "➕"},
+            {"label": "Dashboard", "path": "/advocate", "icon": "◆"},
+            {"label": "Documents", "path": "/documents", "icon": "●"},
+            {"label": "Timeline", "path": "/timeline", "icon": "◆"},
+            {"label": "My Clients", "path": "/advocate/clients", "icon": "●"},
+            {"label": "Case Queue", "path": "/advocate/queue", "icon": "●"},
+            {"label": "New Intake", "path": "/advocate/intake", "icon": "▸"},
         ]
     
     # Legal (Attorney) - full legal tools
     elif user.role == UserRole.LEGAL:
         menu = [
-            {"label": "Dashboard", "path": "/legal", "icon": "⚖️"},
-            {"label": "Documents", "path": "/documents", "icon": "📄"},
-            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
-            {"label": "Case Files", "path": "/legal/cases", "icon": "📁"},
-            {"label": "Court Filings", "path": "/legal/filings", "icon": "🏛️"},
+            {"label": "Dashboard", "path": "/legal", "icon": "▸"},
+            {"label": "Documents", "path": "/documents", "icon": "●"},
+            {"label": "Timeline", "path": "/timeline", "icon": "◆"},
+            {"label": "Case Files", "path": "/legal/cases", "icon": "●"},
+            {"label": "Court Filings", "path": "/legal/filings", "icon": "▸"},
             {"divider": True},
-            {"label": "Privileged Notes", "path": "/legal/privileged", "icon": "🔒", "badge": "PRIV"},
-            {"label": "Conflict Check", "path": "/legal/conflicts", "icon": "🧭"},
+            {"label": "Privileged Notes", "path": "/legal/privileged", "icon": "◆", "badge": "PRIV"},
+            {"label": "Conflict Check", "path": "/legal/conflicts", "icon": "▸"},
             {"divider": True},
-            {"label": "Legal Research", "path": "/law-library", "icon": "🔍"},
-            {"label": "Law Library", "path": "/law-library", "icon": "📚"},
+            {"label": "Legal Research", "path": "/law-library", "icon": "▸"},
+            {"label": "Law Library", "path": "/law-library", "icon": "○"},
         ]
     
     # Admin - system management
     elif user.role == UserRole.ADMIN:
         menu = [
-            {"label": "Dashboard", "path": "/admin", "icon": "📊"},
-            {"label": "Documents", "path": "/documents", "icon": "📄"},
-            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
-            {"label": "Mission Control", "path": "/admin/mission-control", "icon": "🎯"},
-            {"label": "GUI Hub", "path": "/admin/gui", "icon": "🗺️"},
-            {"label": "Mode Selector", "path": "/admin/mode-selector", "icon": "⚙️"},
-            {"label": "Easy Settings", "path": "/admin/easy-mode", "icon": "👶"},
+            {"label": "Dashboard", "path": "/admin", "icon": "◆"},
+            {"label": "Documents", "path": "/documents", "icon": "●"},
+            {"label": "Timeline", "path": "/timeline", "icon": "◆"},
+            {"label": "Mission Control", "path": "/admin/mission-control", "icon": "▸"},
+            {"label": "GUI Hub", "path": "/admin/gui", "icon": "○"},
+            {"label": "Mode Selector", "path": "/admin/mode-selector", "icon": "▸"},
+            {"label": "Easy Settings", "path": "/admin/easy-mode", "icon": "○"},
             {"divider": True},
-            {"label": "Docs Hub", "path": "/admin/docs", "icon": "📚"},
-            {"label": "All Features", "path": "/dashboard", "icon": "🔧"},
+            {"label": "Docs Hub", "path": "/admin/docs", "icon": "○"},
+            {"label": "All Features", "path": "/dashboard", "icon": "▸"},
         ]
     
     return {
@@ -434,16 +434,16 @@ LEGAL_DISCLAIMER = (
 _MODULE_CONTRACTS = {
     "eviction-defense": {
         "title": "Eviction Defense",
-        "icon": "🛡️",
+        "icon": "◆",
         "description": "Understand your rights, build your defense, and prepare for court. Every step guided.",
         "api_base": "/api/eviction-defense",
         "disclaimer": LEGAL_DISCLAIMER,
         "tags": ["Legal Defense", "Court Prep", "Rights"],
         "actions": [
-            {"label": "My Defense Options", "icon": "⚖️", "endpoint": "/defenses", "method": "GET", "description": "See defenses available for your situation"},
-            {"label": "Timeline Checker", "icon": "📅", "endpoint": "/timeline", "method": "GET", "description": "Check critical deadlines in your case"},
-            {"label": "Motions Library", "icon": "📋", "endpoint": "/motions", "method": "GET", "description": "Pre-built motions you can file"},
-            {"label": "Court Checklist", "icon": "✅", "endpoint": "/court-checklist", "method": "GET", "description": "What to bring and do on court day"},
+            {"label": "My Defense Options", "icon": "▸", "endpoint": "/defenses", "method": "GET", "description": "See defenses available for your situation"},
+            {"label": "Timeline Checker", "icon": "◆", "endpoint": "/timeline", "method": "GET", "description": "Check critical deadlines in your case"},
+            {"label": "Motions Library", "icon": "●", "endpoint": "/motions", "method": "GET", "description": "Pre-built motions you can file"},
+            {"label": "Court Checklist", "icon": "●", "endpoint": "/court-checklist", "method": "GET", "description": "What to bring and do on court day"},
         ],
         "sections": [
             {"title": "How This Works", "body": "Select an action above. The system will analyze your situation and give you plain-language guidance based on the law in your jurisdiction."},
@@ -451,55 +451,55 @@ _MODULE_CONTRACTS = {
     },
     "complaints": {
         "title": "File a Complaint",
-        "icon": "📢",
+        "icon": "▸",
         "description": "File complaints with housing agencies, building inspectors, and regulatory bodies.",
         "api_base": "/api/complaints",
         "disclaimer": None,
         "tags": ["Complaints", "Housing Authority", "Code Enforcement"],
         "actions": [
-            {"label": "Find Agencies", "icon": "🏛️", "endpoint": "/agencies", "method": "GET", "description": "Find the right agency for your complaint"},
-            {"label": "Quick Start Guide", "icon": "🚀", "endpoint": "/quick-start", "method": "GET", "description": "Step-by-step guide to filing"},
-            {"label": "My Drafts", "icon": "📝", "endpoint": "/drafts", "method": "GET", "description": "View and continue complaint drafts"},
+            {"label": "Find Agencies", "icon": "▸", "endpoint": "/agencies", "method": "GET", "description": "Find the right agency for your complaint"},
+            {"label": "Quick Start Guide", "icon": "▸", "endpoint": "/quick-start", "method": "GET", "description": "Step-by-step guide to filing"},
+            {"label": "My Drafts", "icon": "●", "endpoint": "/drafts", "method": "GET", "description": "View and continue complaint drafts"},
         ],
         "sections": [],
     },
     "plan-maker": {
         "title": "My Action Plan",
-        "icon": "📋",
+        "icon": "●",
         "description": "A personalized step-by-step plan for your housing situation.",
         "api_base": "/api/plan-maker",
         "disclaimer": None,
         "tags": ["Action Plan", "Next Steps", "Strategy"],
         "actions": [
-            {"label": "Generate My Plan", "icon": "✨", "endpoint": "/generate", "method": "GET", "description": "Build a plan based on your case"},
-            {"label": "View Current Plan", "icon": "👁️", "endpoint": "/current", "method": "GET", "description": "See your active plan"},
+            {"label": "Generate My Plan", "icon": "◆", "endpoint": "/generate", "method": "GET", "description": "Build a plan based on your case"},
+            {"label": "View Current Plan", "icon": "●", "endpoint": "/current", "method": "GET", "description": "See your active plan"},
         ],
         "sections": [],
     },
     "case-builder": {
         "title": "Build My Case",
-        "icon": "🏗️",
+        "icon": "▸",
         "description": "Organize your evidence, documents, and timeline into a coherent legal case.",
         "api_base": "/api/case-builder",
         "disclaimer": None,
         "tags": ["Evidence", "Case File", "Organization"],
         "actions": [
-            {"label": "Case Summary", "icon": "📁", "endpoint": "/summary", "method": "GET", "description": "Overview of your current case"},
-            {"label": "Evidence Checklist", "icon": "✅", "endpoint": "/evidence-checklist", "method": "GET", "description": "What evidence you should have"},
-            {"label": "Strength Assessment", "icon": "💪", "endpoint": "/strength", "method": "GET", "description": "How strong is your case?"},
+            {"label": "Case Summary", "icon": "●", "endpoint": "/summary", "method": "GET", "description": "Overview of your current case"},
+            {"label": "Evidence Checklist", "icon": "●", "endpoint": "/evidence-checklist", "method": "GET", "description": "What evidence you should have"},
+            {"label": "Strength Assessment", "icon": "○", "endpoint": "/strength", "method": "GET", "description": "How strong is your case?"},
         ],
         "sections": [],
     },
     "progress": {
         "title": "My Progress",
-        "icon": "📈",
+        "icon": "◆",
         "description": "Track where you are in your legal journey and what comes next.",
         "api_base": "/progress",
         "disclaimer": None,
         "tags": ["Progress", "Milestones", "Journey"],
         "actions": [
-            {"label": "My Milestones", "icon": "🏁", "endpoint": "/milestones", "method": "GET", "description": "Key stages you have completed"},
-            {"label": "Next Steps", "icon": "➡️", "endpoint": "/next-steps", "method": "GET", "description": "What to focus on now"},
+            {"label": "My Milestones", "icon": "◆", "endpoint": "/milestones", "method": "GET", "description": "Key stages you have completed"},
+            {"label": "Next Steps", "icon": "▸", "endpoint": "/next-steps", "method": "GET", "description": "What to focus on now"},
         ],
         "sections": [],
     },

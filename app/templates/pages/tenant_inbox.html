@@ -202,7 +202,7 @@
     
     <div class="inbox-header">
         <h1>
-            📬 Inbox
+            ● Inbox
             {% if unread_count > 0 %}
             <span class="unread-badge">{{ unread_count }}</span>
             {% endif %}
@@ -224,12 +224,12 @@
         {% for notification in notifications %}
         <div class="notification-item {% if not notification.read %}unread{% endif %} {% if notification.priority == 'urgent' %}urgent{% endif %}" data-id="{{ notification.id }}" data-read="{{ notification.read }}" data-priority="{{ notification.priority }}">
             <div class="notification-icon">
-                {% if notification.type == 'deadline' %}⏰
-                {% elif notification.type == 'document' %}📄
-                {% elif notification.type == 'message' %}💬
-                {% elif notification.type == 'alert' %}⚠️
-                {% elif notification.type == 'success' %}✅
-                {% else %}📢
+                {% if notification.type == 'deadline' %}◆
+                {% elif notification.type == 'document' %}●
+                {% elif notification.type == 'message' %}○
+                {% elif notification.type == 'alert' %}◆
+                {% elif notification.type == 'success' %}●
+                {% else %}▸
                 {% endif %}
             </div>
             <div class="notification-content">
@@ -255,7 +255,7 @@
     {% else %}
     <!-- Empty -->
     <div class="empty-inbox">
-        <div class="empty-icon">📭</div>
+        <div class="empty-icon">○</div>
         <h3>Your inbox is empty</h3>
         <p>We'll notify you about deadlines, document uploads, and important updates here.</p>
     </div>

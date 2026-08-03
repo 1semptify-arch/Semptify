@@ -270,7 +270,7 @@ class DocumentTrainingService:
         mistakes = {}
         for ex in self.examples:
             if ex.predicted_type != ex.correct_type:
-                key = f"{ex.predicted_type} → {ex.correct_type}"
+                key = f"{ex.predicted_type} ▸ {ex.correct_type}"
                 mistakes[key] = mistakes.get(key, 0) + 1
         
         common_mistakes = sorted(mistakes.items(), key=lambda x: -x[1])[:10]

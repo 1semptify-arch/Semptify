@@ -104,7 +104,7 @@ async def delivery_inbox_page(request: Request):
 
 
 # =============================================================================
-# Send Document (Professional → Tenant)
+# Send Document (Professional ▸ Tenant)
 # =============================================================================
 
 

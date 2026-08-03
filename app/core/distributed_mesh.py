@@ -11,13 +11,13 @@ Replaces the centralized brain bottleneck with a distributed architecture:
 
 Architecture:
 ┌─────────┐     ┌─────────┐     ┌─────────┐
-│ Legal   │◄───►│Documents│◄───►│Timeline │
+│ Legal   │▸───▸│Documents│▸───▸│Timeline │
 │ Analysis│     │ Engine  │     │ Service │
 └────┬────┘     └────┬────┘     └────┬────┘
      │               │               │
      └───────────────┼───────────────┘
                      │
-              ┌──────▼──────┐
+              ┌──────▸──────┐
               │  Mesh Index │  (Discovery only, not routing)
               │  (Optional) │
               └─────────────┘
@@ -217,7 +217,7 @@ class MeshNode:
             "avg_response_time_ms": 0,
         }
         
-        logger.info(f"🔷 MeshNode created: {self.identity.node_id} ({node_type})")
+        logger.info(f"◆ MeshNode created: {self.identity.node_id} ({node_type})")
     
     # =========================================================================
     # PEER MANAGEMENT (Direct Connections)
@@ -239,7 +239,7 @@ class MeshNode:
         if self.identity.node_id not in peer._peers:
             peer.connect_peer(self)
         
-        logger.debug(f"🔗 {self.identity.node_id} connected to {peer.identity.node_id}")
+        logger.debug(f"▸ {self.identity.node_id} connected to {peer.identity.node_id}")
     
     def disconnect_peer(self, peer_id: str):
         """Disconnect from a peer"""
@@ -264,7 +264,7 @@ class MeshNode:
         """Register a handler for a capability"""
         self._handlers[capability] = handler
         self.identity.capabilities.add(capability)
-        logger.debug(f"⚡ {self.identity.node_id} registered handler: {capability}")
+        logger.debug(f"◆ {self.identity.node_id} registered handler: {capability}")
     
     def on_event(self, event_type: str, handler: Callable):
         """Subscribe to events of a specific type"""
@@ -488,7 +488,7 @@ class MeshNode:
         
         self._running = True
         self._message_processor_task = asyncio.create_task(self._process_messages())
-        logger.info(f"🟢 MeshNode started: {self.identity.node_id}")
+        logger.info(f"● MeshNode started: {self.identity.node_id}")
     
     async def stop(self):
         """Stop the node"""
@@ -499,7 +499,7 @@ class MeshNode:
                 await self._message_processor_task
             except asyncio.CancelledError:
                 pass
-        logger.info(f"🔴 MeshNode stopped: {self.identity.node_id}")
+        logger.info(f"◆ MeshNode stopped: {self.identity.node_id}")
     
     def get_status(self) -> Dict[str, Any]:
         """Get node status"""
@@ -540,7 +540,7 @@ class MeshCoordinator:
         self._capability_registry: Dict[str, Set[str]] = defaultdict(set)  # capability -> node_ids
         self._websocket_observers: Set[Any] = WeakSet()  # For UI visualization
         
-        logger.info("🌐 MeshCoordinator initialized (discovery service)")
+        logger.info("○ MeshCoordinator initialized (discovery service)")
     
     def register_node(self, node: MeshNode):
         """Register a node for discovery"""
@@ -554,7 +554,7 @@ class MeshCoordinator:
             if existing_node.identity.node_id != node.identity.node_id:
                 node.connect_peer(existing_node)
         
-        logger.info(f"📍 Node registered: {node.identity.node_id}")
+        logger.info(f"○ Node registered: {node.identity.node_id}")
     
     def unregister_node(self, node_id: str):
         """Unregister a node"""

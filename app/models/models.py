@@ -356,7 +356,7 @@ class TimelineEvent(Base):
     # Event status (lifecycle tracking)
     event_status: Mapped[str | None] = mapped_column(String(20), nullable=True)  # EventStatus enum value
 
-    # Event chaining (for linked events: start→continued→finish)
+    # Event chaining (for linked events: start▸continued▸finish)
     parent_event_id: Mapped[str | None] = mapped_column(String(36), nullable=True)  # Links to parent event
     sequence_number: Mapped[int] = mapped_column(Integer, default=0)  # Order in chain
 
@@ -1135,7 +1135,7 @@ class VaultItem(Base):
     - Never flatten metadata
     - Never overwrite timestamps
     - Preserve nested JSON
-    - If unknown → set null
+    - If unknown ▸ set null
     """
 
     __tablename__ = "vault_items"

@@ -23,12 +23,12 @@
             return;
         }
         var html = facts.slice(0, 5).map(function (f) {
-            var source = f.source_url ? '<a href="' + escHtml(f.source_url) + '" target="_blank" rel="noopener" class="ctx-source">Source ↗</a>' : '';
+            var source = f.source_url ? '<a href="' + escHtml(f.source_url) + '" target="_blank" rel="noopener" class="ctx-source">Source ▸</a>' : '';
             return '<div class="ctx-fact">' +
                 '<div class="ctx-claim">' + escHtml(f.claim) + '</div>' +
                 '<div class="ctx-meta">' +
                     '<span class="ctx-jurisdiction">' + escHtml(f.jurisdiction || 'MN') + '</span>' +
-                    (f.is_verified ? '<span class="ctx-verified">✓ Verified</span>' : '<span class="ctx-unverified">Unverified</span>') +
+                    (f.is_verified ? '<span class="ctx-verified">● Verified</span>' : '<span class="ctx-unverified">Unverified</span>') +
                     source +
                 '</div>' +
             '</div>';
@@ -47,7 +47,7 @@
             return '<div class="ctx-story">' +
                 '<div class="ctx-story-body">' + escHtml(body) + '</div>' +
                 outcome +
-                (s.outcome === 'avoided_court' ? '<div class="ctx-story-tag">✓ Avoided court</div>' : '') +
+                (s.outcome === 'avoided_court' ? '<div class="ctx-story-tag">● Avoided court</div>' : '') +
             '</div>';
         }).join('');
         container.innerHTML = html;

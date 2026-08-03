@@ -1,5 +1,5 @@
 """
-🔍 Document Recognition Engine - API Router
+▸ Document Recognition Engine - API Router
 ============================================
 REST API endpoints for the world-class document recognition engine.
 Integrates with Brain Mesh for real-time updates and cross-module communication.
@@ -150,7 +150,7 @@ class ToneResponse(BaseModel):
     sender: PartyResponse
     recipient: PartyResponse
     communication_flow: str  # e.g., "landlord_to_tenant"
-    from_to_summary: str  # e.g., "From Landlord → To Tenant"
+    from_to_summary: str  # e.g., "From Landlord ▸ To Tenant"
     
     # Tone analysis
     primary_tone: str
@@ -369,7 +369,7 @@ def result_to_response(
                 confidence=tone.recipient.confidence,
             ),
             communication_flow=tone.communication_flow.value,
-            from_to_summary=f"From {tone.sender.role or 'Unknown'} → To {tone.recipient.role or 'Unknown'}",
+            from_to_summary=f"From {tone.sender.role or 'Unknown'} ▸ To {tone.recipient.role or 'Unknown'}",
             # Tone
             primary_tone=tone.primary_tone.value,
             tone_confidence=tone.tone_confidence,
@@ -436,7 +436,7 @@ async def analyze_text(
     user: StorageUser = Depends(green_access),
 ):
     """
-    🔍 Analyze document text with the recognition engine.
+    ▸ Analyze document text with the recognition engine.
     
     Performs multi-pass analysis including:
     - Context-aware document structure analysis
@@ -502,7 +502,7 @@ async def analyze_file(
     user: StorageUser = Depends(green_access),
 ):
     """
-    📁 Analyze an uploaded document file.
+    ● Analyze an uploaded document file.
     
     Supports:
     - PDF files (text extraction)
@@ -658,7 +658,7 @@ async def quick_classify(
     user: StorageUser = Depends(green_access),
 ):
     """
-    ⚡ Quick document classification without full analysis.
+    ◆ Quick document classification without full analysis.
     
     Fast classification for upload sorting and initial triage.
     """
@@ -691,7 +691,7 @@ async def analyze_handwriting_endpoint(
     user: StorageUser = Depends(green_access),
 ):
     """
-    ✍️ Analyze document for handwriting and detect forgery.
+    ▸ Analyze document for handwriting and detect forgery.
     
     Performs comprehensive handwriting analysis including:
     - Signature extraction and profiling
@@ -771,7 +771,7 @@ async def verify_signature(
     user: StorageUser = Depends(green_access),
 ):
     """
-    ✅ Verify signature against known reference.
+    ● Verify signature against known reference.
     
     Compares signatures found in document against expected signer.
     Returns verification status and discrepancy details.
@@ -827,7 +827,7 @@ async def verify_signature(
 @router.get("/forgery/types")
 async def get_forgery_types():
     """
-    📋 Get all detectable forgery types.
+    ● Get all detectable forgery types.
     """
     return {
         "forgery_types": [
@@ -878,7 +878,7 @@ async def batch_analyze(
     user: StorageUser = Depends(green_access),
 ):
     """
-    📚 Batch analyze multiple documents.
+    ○ Batch analyze multiple documents.
     """
     engine = get_engine()
     analyzer = get_handwriting_analyzer()
@@ -925,7 +925,7 @@ async def batch_analyze(
 
 @router.get("/document-types")
 async def get_document_types():
-    """📋 Get all supported document types."""
+    """● Get all supported document types."""
     return {
         "types": [{"value": dt.value, "name": dt.name} for dt in DocumentType],
         "categories": [{"value": dc.value, "name": dc.name} for dc in DocumentCategory],
@@ -934,7 +934,7 @@ async def get_document_types():
 
 @router.get("/entity-types")
 async def get_entity_types():
-    """🏷️ Get all entity types the engine can extract."""
+    """● Get all entity types the engine can extract."""
     return {
         "entity_types": [{"value": et.value, "name": et.name} for et in EntityType],
     }
@@ -942,7 +942,7 @@ async def get_entity_types():
 
 @router.get("/health")
 async def recognition_health():
-    """💚 Health check for the recognition engine."""
+    """● Health check for the recognition engine."""
     return {
         "status": "healthy",
         "engine": "DocumentRecognitionEngine",

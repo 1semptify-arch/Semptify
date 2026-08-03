@@ -414,7 +414,7 @@
     <header class="header">
         <div class="header-content">
             <a href="/onboarding/select-role.html" class="back-link">
-                <span>←</span> Back
+                <span>▸</span> Back
             </a>
             <div class="logo">Semptify</div>
             <span class="step-indicator">Step 2 of 4</span>
@@ -426,7 +426,7 @@
         <div class="container">
             <!-- Validation Form -->
             <div id="validationForm" class="validation-card">
-                <div class="icon-circle">⚖️</div>
+                <div class="icon-circle">▸</div>
                 <h1>Legal Professional Verification</h1>
                 <p class="subtitle">
                     Verify your bar membership to access legal professional features.
@@ -523,7 +523,7 @@
 
                 <!-- Alternative Verification -->
                 <div class="alt-verification">
-                    <h4>📎 Having trouble with verification?</h4>
+                    <h4>● Having trouble with verification?</h4>
                     <div class="upload-area" onclick="document.getElementById('barCardUpload').click()">
                         <p>Click to upload bar card or license<br><small>PNG, JPG, or PDF (max 5MB)</small></p>
                         <input type="file" id="barCardUpload" accept=".png,.jpg,.jpeg,.pdf" class="hidden-input" onchange="handleFileUpload(this)">
@@ -531,7 +531,7 @@
                 </div>
 
                 <div class="info-box">
-                    <h3>ℹ️ Why verify?</h3>
+                    <h3>ℹ Why verify?</h3>
                     <p>Legal professional verification ensures:</p>
                     <ul>
                         <li>Attorney-client privilege protections</li>
@@ -544,19 +544,19 @@
 
             <!-- Success State -->
             <div id="successState" class="validation-card success-state">
-                <div class="success-icon">✓</div>
+                <div class="success-icon">●</div>
                 <h1>Welcome, Counselor!</h1>
                 <p class="subtitle">
                     Your bar membership has been verified. You now have access to legal professional tools.
                 </p>
                 <button class="btn btn-primary" onclick="continueToStorage()">
-                    Continue to Storage Setup →
+                    Continue to Storage Setup ▸
                 </button>
             </div>
 
             <!-- Pending Review State -->
             <div id="pendingState" class="validation-card success-state">
-                <div class="success-icon success-icon-pending">⏳</div>
+                <div class="success-icon success-icon-pending">◆</div>
                 <h1>Verification Submitted</h1>
                 <p class="subtitle">
                     Your documentation has been uploaded for manual review. This typically takes 1-2 business days.
@@ -570,7 +570,7 @@
                     </ul>
                 </div>
                 <button class="btn btn-primary" onclick="continueAsTenant()">
-                    Continue as Tenant →
+                    Continue as Tenant ▸
                 </button>
             </div>
         </div>
@@ -578,7 +578,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <p>🔒 Attorney-client privilege protected · <a href="/public/privacy.html">Privacy</a></p>
+        <p>◆ Attorney-client privilege protected · <a href="/public/privacy.html">Privacy</a></p>
     </footer>
 
     <script>

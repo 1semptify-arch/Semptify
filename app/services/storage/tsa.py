@@ -51,9 +51,9 @@ class TSAResult:
     """
     Result of a timestamp operation.
 
-    tsa_backed=True  → token_b64 is a base64-encoded RFC 3161 .tsr file.
+    tsa_backed=True  ▸ token_b64 is a base64-encoded RFC 3161 .tsr file.
                         Verify with: openssl ts -verify -in token.tsr -data <file>
-    tsa_backed=False → token_b64 is a base64-encoded HMAC-SHA256 fallback.
+    tsa_backed=False ▸ token_b64 is a base64-encoded HMAC-SHA256 fallback.
                         Self-signed — weaker legal standing.
     """
     timestamp_iso: str        # UTC ISO 8601 timestamp used in the request

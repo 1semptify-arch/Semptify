@@ -1,14 +1,14 @@
-"""Zone level → block count / prominence / visual weight.
+"""Zone level ▸ block count / prominence / visual weight.
 
 §8 threshold rule (prominence):
-    level 0–25   → 0-1 blocks, collapsed/low-emphasis styling
-    level 26–60  → 1-2 blocks, standard styling
-    level 61–100 → up to max_blocks, high-emphasis styling
+    level 0–25   ▸ 0-1 blocks, collapsed/low-emphasis styling
+    level 26–60  ▸ 1-2 blocks, standard styling
+    level 61–100 ▸ up to max_blocks, high-emphasis styling
 
 §11 threshold rule (visual weight):
-    level 0–30   → minimal/near-invisible shade shift
-    level 31–70  → moderate shade/gradient shift
-    level 71–100 → deepest shade shift used anywhere on the page
+    level 0–30   ▸ minimal/near-invisible shade shift
+    level 31–70  ▸ moderate shade/gradient shift
+    level 71–100 ▸ deepest shade shift used anywhere on the page
 
 Both are implemented as ONE configurable function each — not hardcoded
 per zone — because the spec says these thresholds are expected to be
@@ -44,12 +44,12 @@ class VisualWeight:
 # Hand-tunable thresholds. Change here once, affects every zone.
 LOW_MAX = 25
 STANDARD_MAX = 60
-# Above STANDARD_MAX → high emphasis.
+# Above STANDARD_MAX ▸ high emphasis.
 
 # §11 visual-weight thresholds.
 VW_LOW_MAX = 30
 VW_MODERATE_MAX = 70
-# Above VW_MODERATE_MAX → deep.
+# Above VW_MODERATE_MAX ▸ deep.
 
 
 def level_to_prominence(level: int, max_blocks: int = 4) -> Prominence:
@@ -68,13 +68,13 @@ def level_to_prominence(level: int, max_blocks: int = 4) -> Prominence:
 
     if level <= STANDARD_MAX:
         # 1-2 blocks, standard emphasis
-        # Scale within the band: 26→1, 60→2
+        # Scale within the band: 26▸1, 60▸2
         scaled = 1 + (level - LOW_MAX - 1) // ((STANDARD_MAX - LOW_MAX) // 1)
         count = min(max(scaled, 1), 2)
         return Prominence(block_count=count, emphasis="standard", collapsed=False)
 
-    # 61-100 → up to max_blocks, high emphasis
-    # Scale within the band: 61→2, 100→max_blocks
+    # 61-100 ▸ up to max_blocks, high emphasis
+    # Scale within the band: 61▸2, 100▸max_blocks
     band = 100 - STANDARD_MAX
     extra = (level - STANDARD_MAX) // max(band // max(1, max_blocks - 2), 1)
     count = min(2 + extra, max_blocks)

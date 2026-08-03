@@ -957,7 +957,7 @@ class DocumentAnalyzer:
         if issues:
             critical = [i for i in issues if i.severity == IssueSeverity.CRITICAL]
             if critical:
-                base_summary += f" ⚠️ {len(critical)} CRITICAL issue(s) detected requiring immediate attention."
+                base_summary += f" ◆ {len(critical)} CRITICAL issue(s) detected requiring immediate attention."
 
         return base_summary
 
@@ -978,26 +978,26 @@ class DocumentAnalyzer:
             if d.days_until is not None:
                 if d.days_until >= 0:
                     points.append(
-                        f"📅 {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({d.days_until} days away)"
+                        f"◆ {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({d.days_until} days away)"
                     )
                 else:
                     points.append(
-                        f"⚠️ {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({abs(d.days_until)} days ago)"
+                        f"◆ {d.label.replace('_', ' ').title()}: {d.date.strftime('%B %d, %Y')} ({abs(d.days_until)} days ago)"
                     )
 
         # Amount points
         for a in amounts:
             if a.label in ["rent", "likely_rent"]:
-                points.append(f"💰 Rent amount: ${a.amount:,.2f}" + (f" ({a.period})" if a.period else ""))
+                points.append(f"● Rent amount: ${a.amount:,.2f}" + (f" ({a.period})" if a.period else ""))
             elif a.label == "security_deposit":
-                points.append(f"💰 Security deposit: ${a.amount:,.2f}")
+                points.append(f"● Security deposit: ${a.amount:,.2f}")
             elif a.label in ["late_fee", "damages"]:
-                points.append(f"⚠️ {a.label.replace('_', ' ').title()}: ${a.amount:,.2f}")
+                points.append(f"◆ {a.label.replace('_', ' ').title()}: ${a.amount:,.2f}")
 
         # Issue points
         for issue in issues:
             if issue.severity in [IssueSeverity.CRITICAL, IssueSeverity.HIGH]:
-                points.append(f"🚨 {issue.title}")
+                points.append(f"◆ {issue.title}")
 
         return points[:10]  # Limit to top 10 points
 

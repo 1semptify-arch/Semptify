@@ -13,7 +13,7 @@ Data Contract Rules (NON-NEGOTIABLE):
 - Never flatten metadata
 - Never overwrite timestamps
 - Preserve nested JSON
-- If unknown → set null
+- If unknown ▸ set null
 
 Three-Timestamp Model (NON-NEGOTIABLE):
 - event_time: Factual time of event occurrence

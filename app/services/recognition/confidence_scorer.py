@@ -783,12 +783,12 @@ class ConfidenceScorer:
             explanation.append("")
             explanation.append("Uncertain Areas:")
             for item in metrics.ambiguous_elements[:5]:
-                explanation.append(f"  ⚠ {item}")
+                explanation.append(f"  ◆ {item}")
         
         if metrics.missing_information:
             explanation.append("")
             explanation.append("Missing Information:")
             for item in metrics.missing_information[:5]:
-                explanation.append(f"  ❓ {item}")
+                explanation.append(f"  ? {item}")
         
         return "\n".join(explanation)

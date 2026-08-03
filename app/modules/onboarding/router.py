@@ -2,19 +2,19 @@
 Onboarding Router — all page and API routes for the onboarding flow.
 
 Routes:
-  GET  {prefix}/                     → entry point (role selection)
-  GET  {prefix}/providers            → storage provider selection
-  GET  {prefix}/auth/{provider}      → initiate OAuth (onboarding-specific)
-  GET  {prefix}/callback/{provider}  → OAuth callback (onboarding-specific)
-  GET  {prefix}/vault-setup          → vault setup page (step 1: build folders)
-  GET  {prefix}/vault-setup/security → vault security page (step 2: token backup)
-  GET  {prefix}/vault-setup/inspect  → vault inspect page (step 3: final check)
-  POST {prefix}/api/vault/init       → create vault folders
-  POST {prefix}/api/vault/security   → write token backup
-  POST {prefix}/api/vault/verify     → live probe + document upload → marks both final gates
-  GET  {prefix}/api/vault/status     → check user auth status
-  GET  {prefix}/complete             → route to product home
-  GET  {prefix}/status               → gate status check page
+  GET  {prefix}/                     ▸ entry point (role selection)
+  GET  {prefix}/providers            ▸ storage provider selection
+  GET  {prefix}/auth/{provider}      ▸ initiate OAuth (onboarding-specific)
+  GET  {prefix}/callback/{provider}  ▸ OAuth callback (onboarding-specific)
+  GET  {prefix}/vault-setup          ▸ vault setup page (step 1: build folders)
+  GET  {prefix}/vault-setup/security ▸ vault security page (step 2: token backup)
+  GET  {prefix}/vault-setup/inspect  ▸ vault inspect page (step 3: final check)
+  POST {prefix}/api/vault/init       ▸ create vault folders
+  POST {prefix}/api/vault/security   ▸ write token backup
+  POST {prefix}/api/vault/verify     ▸ live probe + document upload ▸ marks both final gates
+  GET  {prefix}/api/vault/status     ▸ check user auth status
+  GET  {prefix}/complete             ▸ route to product home
+  GET  {prefix}/status               ▸ gate status check page
 """
 
 import logging
@@ -86,7 +86,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     async def onboarding_start(
         semptify_uid: str | None = Cookie(None),
     ):
-        """Smart entry: returning user → reconnect, new user → role select."""
+        """Smart entry: returning user ▸ reconnect, new user ▸ role select."""
         if semptify_uid:
             raw_uid = verify_user_id(semptify_uid)
             if raw_uid:
@@ -224,7 +224,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 landing = f"{config.route_prefix}/vault-setup"
 
             logger.info(
-                "Onboarding callback complete: user=%s vault=%s → %s",
+                "Onboarding callback complete: user=%s vault=%s ▸ %s",
                 user_id[:6] + "***",
                 vault_initialized,
                 landing,
@@ -447,8 +447,8 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         1. Live write/read-back probe — proves the vault is writable.
         2. Routes the uploaded document through VaultUploadService (the canonical
-           full pipeline): certificate → registry → overlay → timeline extraction
-           → event bus → positronic mesh workflows.
+           full pipeline): certificate ▸ registry ▸ overlay ▸ timeline extraction
+           ▸ event bus ▸ positronic mesh workflows.
         3. Marks the document_uploaded gate only after the pipeline succeeds.
 
         A document is REQUIRED — there is no skip path.
@@ -507,7 +507,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             return {"ok": False, "accessible": False, "error": f"Vault probe failed: {str(e)}"}
 
         # ── 3. Full pipeline via VaultUploadService ────────────────────────────
-        #   certificate → registry → overlay → timeline → event bus → mesh
+        #   certificate ▸ registry ▸ overlay ▸ timeline ▸ event bus ▸ mesh
         try:
             from app.services.vault_upload_service import VaultUploadService
 
@@ -799,7 +799,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         # All gates passed - route to role-specific homepage
         destination = await route_user(raw_uid)
-        logger.info("Onboarding completed successfully for user %s → %s", raw_uid[:6] + "***", destination)
+        logger.info("Onboarding completed successfully for user %s ▸ %s", raw_uid[:6] + "***", destination)
         return ssot_redirect(destination, context="onboarding_complete success")
 
     # ------------------------------------------------------------------
@@ -851,11 +851,11 @@ def _render_role_selection_page(config: OnboardingConfig) -> str:
     providers_path = f"{config.route_prefix}/providers"
 
     roles = [
-        ("tenant", "🏠", "Tenant", "I'm renting a home and need to protect my rights", True),
+        ("tenant", "○", "Tenant", "I'm renting a home and need to protect my rights", True),
         ("manager", "�", "Worker / Manager", "I work with multiple clients across housing cases", False),
-        ("advocate", "⚖️", "Housing Advocate", "I help tenants navigate housing law", False),
-        ("legal", "📋", "Legal Professional", "I'm an attorney or paralegal working housing cases", False),
-        ("admin", "🛡️", "Administrator", "Platform administration and oversight", False),
+        ("advocate", "▸", "Housing Advocate", "I help tenants navigate housing law", False),
+        ("legal", "●", "Legal Professional", "I'm an attorney or paralegal working housing cases", False),
+        ("admin", "◆", "Administrator", "Platform administration and oversight", False),
     ]
 
     role_cards = ""
@@ -916,12 +916,12 @@ def _render_providers_page(config: OnboardingConfig) -> str:
     """Render storage provider selection page."""
     provider_cards = ""
     provider_info = {
-        "google_drive": ("Google Drive", "🟢", "Free 15 GB • Fast sync"),
-        "dropbox": ("Dropbox", "🔵", "Free 2 GB • Reliable sync"),
-        "onedrive": ("OneDrive", "🟠", "Free 5 GB • Microsoft integration"),
+        "google_drive": ("Google Drive", "●", "Free 15 GB • Fast sync"),
+        "dropbox": ("Dropbox", "◆", "Free 2 GB • Reliable sync"),
+        "onedrive": ("OneDrive", "◆", "Free 5 GB • Microsoft integration"),
     }
     for p in config.allowed_providers:
-        name, icon, desc = provider_info.get(p, (p, "📁", "Cloud storage"))
+        name, icon, desc = provider_info.get(p, (p, "●", "Cloud storage"))
         provider_cards += f"""
         <button class="provider-card" onclick="selectProvider('{p}')">
             <span class="provider-icon">{icon}</span>
@@ -1107,7 +1107,7 @@ run();
     return _vault_step_shell(
         config.product_name,
         1,
-        "🏗️",
+        "▸",
         "Semptify is Building Your Vault",
         "Constructing your secure folder structure in the cloud...",
         body_html,
@@ -1152,7 +1152,7 @@ run();
     return _vault_step_shell(
         config.product_name,
         2,
-        "🔐",
+        "◆",
         "Wiring Your Security System",
         "Installing encrypted keys and securing your access credentials...",
         body_html,
@@ -1172,7 +1172,7 @@ def _render_vault_step3(config: OnboardingConfig) -> str:
                 This document completes your setup and gives Semptify a starting point.
             </p>
             <label id="drop-zone" for="file-input" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;border:2px dashed #cbd5e1;border-radius:10px;padding:2rem 1rem;cursor:pointer;background:#f8fafc;transition:border-color 0.2s,background 0.2s;margin-bottom:1rem;">
-                <span style="font-size:2.2rem;">📄</span>
+                <span style="font-size:2.2rem;">●</span>
                 <span style="font-family:sans-serif;font-size:0.9rem;color:#1e3a5f;font-weight:600;">Click to choose a file or drag &amp; drop</span>
                 <span style="font-family:sans-serif;font-size:0.78rem;color:#94a3b8;">PDF, image, Word doc, email &mdash; any format accepted</span>
             </label>
@@ -1254,7 +1254,7 @@ uploadBtn.addEventListener('click', () => {{ if (chosenFile) doUpload(chosenFile
     return _vault_step_shell(
         config.product_name,
         3,
-        "📂",
+        "●",
         "Upload Your First Document",
         "One document to finish setup. Your vault needs something to protect.",
         body_html,

@@ -201,7 +201,7 @@ class PluginManager:
         # Semptify version (for compatibility checks)
         self.semptify_version = "1.0.0"
         
-        logger.info("🔌 Plugin Manager initialized")
+        logger.info("○ Plugin Manager initialized")
     
     def add_plugin_dir(self, path: str):
         """Add a directory to search for plugins"""
@@ -226,7 +226,7 @@ class PluginManager:
                     if plugin:
                         discovered.append(plugin)
         
-        logger.info(f"🔍 Discovered {len(discovered)} plugins")
+        logger.info(f"▸ Discovered {len(discovered)} plugins")
         return discovered
     
     def _discover_plugin(self, path: Path) -> Optional[Plugin]:
@@ -266,7 +266,7 @@ class PluginManager:
         # Store in registry
         self.plugins[metadata.name] = plugin
         
-        logger.debug(f"   📦 Found plugin: {metadata.name} v{metadata.version}")
+        logger.debug(f"   ● Found plugin: {metadata.name} v{metadata.version}")
         
         return plugin
     
@@ -286,7 +286,7 @@ class PluginManager:
             results[plugin_name] = success
         
         loaded_count = sum(1 for v in results.values() if v)
-        logger.info(f"✅ Loaded {loaded_count}/{len(results)} plugins")
+        logger.info(f"● Loaded {loaded_count}/{len(results)} plugins")
         
         return results
     
@@ -335,7 +335,7 @@ class PluginManager:
             plugin.status = PluginStatus.ACTIVE
             plugin.loaded_at = utc_now()
             
-            logger.info(f"✅ Loaded plugin: {name} v{plugin.metadata.version}")
+            logger.info(f"● Loaded plugin: {name} v{plugin.metadata.version}")
             
             # Notify callbacks
             for callback in self.on_plugin_loaded:
@@ -473,7 +473,7 @@ class PluginManager:
             plugin.module = None
             plugin.sdk = None
             
-            logger.info(f"🔌 Unloaded plugin: {name}")
+            logger.info(f"○ Unloaded plugin: {name}")
             
             # Notify callbacks
             for callback in self.on_plugin_unloaded:
@@ -617,12 +617,12 @@ async def get_state(user_id: str, params: Dict[str, Any], context: Dict[str, Any
 def initialize():
     """Initialize the plugin"""
     sdk.initialize()
-    logger.info("✅ {display_name} plugin loaded")
+    logger.info("● {display_name} plugin loaded")
 
 
 def cleanup():
     """Cleanup when plugin is unloaded"""
-    logger.info("🔌 {display_name} plugin unloaded")
+    logger.info("○ {display_name} plugin unloaded")
 
 
 __all__ = ["sdk", "module_definition", "initialize", "cleanup"]
@@ -668,7 +668,7 @@ MIT
         with open(plugin_dir / "README.md", 'w') as f:
             f.write(readme)
         
-        logger.info(f"✅ Created plugin template: {plugin_dir}")
+        logger.info(f"● Created plugin template: {plugin_dir}")
         
         return plugin_dir
 
@@ -716,7 +716,7 @@ def main():
         logger.info("Discovered Plugins:")
         logger.info("-" * 60)
         for plugin in plugin_manager.plugins.values():
-            status_icon = "✅" if plugin.status == PluginStatus.ACTIVE else "⚪"
+            status_icon = "●" if plugin.status == PluginStatus.ACTIVE else "○"
             logger.info(f"{status_icon} {plugin.metadata.name:<20} v{plugin.metadata.version:<10} [{plugin.status.value}]")
             logger.info(f"   {plugin.metadata.description[:50]}")
     
@@ -734,16 +734,16 @@ def main():
         plugin_manager.discover_plugins()
         success = plugin_manager.load_plugin(args.name)
         if success:
-            logger.info(f"✅ Loaded: {args.name}")
+            logger.info(f"● Loaded: {args.name}")
         else:
-            logger.error(f"❌ Failed to load: {args.name}")
+            logger.error(f"◆ Failed to load: {args.name}")
     
     elif args.command == "unload":
         success = plugin_manager.unload_plugin(args.name)
         if success:
-            logger.info(f"✅ Unloaded: {args.name}")
+            logger.info(f"● Unloaded: {args.name}")
         else:
-            logger.error(f"❌ Failed to unload: {args.name}")
+            logger.error(f"◆ Failed to unload: {args.name}")
     
     elif args.command == "status":
         if args.name:

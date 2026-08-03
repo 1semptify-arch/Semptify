@@ -92,42 +92,42 @@ async def funding_dashboard(request: Request):
     <body>
         <div class="container">
             <div class="header">
-                <h1>💰 Semptify Funding Management</h1>
+                <h1>● Semptify Funding Management</h1>
                 <p>Admin tool for tracking funding sources, applications, and budgets</p>
             </div>
             
             <div class="nav">
-                <a href="/admin/funding/">📊 Dashboard</a>
-                <a href="/admin/funding/sources">🏦 Funding Sources</a>
-                <a href="/admin/funding/applications">📝 Applications</a>
-                <a href="/admin/funding/budget">💵 Budget</a>
-                <a href="/admin/funding/prospectus">📄 ID System Prospectus</a>
+                <a href="/admin/funding/">◆ Dashboard</a>
+                <a href="/admin/funding/sources">● Funding Sources</a>
+                <a href="/admin/funding/applications">● Applications</a>
+                <a href="/admin/funding/budget">● Budget</a>
+                <a href="/admin/funding/prospectus">● ID System Prospectus</a>
             </div>
             
             <div class="grid">
                 <div class="card">
-                    <h3>🏦 Active Prospects</h3>
+                    <h3>● Active Prospects</h3>
                     <div class="stat">{active_sources}</div>
                     <p>Potential funding sources identified and active</p>
                     <a href="/admin/funding/sources" class="btn">Manage Sources</a>
                 </div>
                 
                 <div class="card">
-                    <h3>⏳ Pending Applications</h3>
+                    <h3>◆ Pending Applications</h3>
                     <div class="stat">{pending_apps}</div>
                     <p>Applications submitted or currently under review</p>
                     <a href="/admin/funding/applications" class="btn">Track Applications</a>
                 </div>
                 
                 <div class="card">
-                    <h3>✅ Secured Awards</h3>
+                    <h3>● Secured Awards</h3>
                     <div class="stat">{secured}</div>
                     <p>Successfully funded applications</p>
                     <a href="/admin/funding/applications?status=awarded" class="btn">View Awards</a>
                 </div>
                 
                 <div class="card">
-                    <h3>🔐 Secured ID System</h3>
+                    <h3>◆ Secured ID System</h3>
                     <div class="stat" style="font-size: 1.5em; color: #3498db;">PLANNED</div>
                     <p>Cryptographic document verification system pending funding</p>
                     <a href="/admin/funding/prospectus" class="btn">View Prospectus</a>
@@ -135,7 +135,7 @@ async def funding_dashboard(request: Request):
             </div>
             
             <div class="card" style="margin-top: 20px;">
-                <h3>🎯 Priority Actions</h3>
+                <h3>▸ Priority Actions</h3>
                 <ul>
                     <li><strong>LSC Grant:</strong> Legal Services Corporation application - Deadline approaching</li>
                     <li><strong>Suffolk LIT Lab:</strong> Partnership discussion - Technical credibility</li>
@@ -181,11 +181,11 @@ async def funding_prospectus(request: Request):
     <body>
         <div class="container">
             <div class="nav">
-                <a href="/admin/funding/">← Back to Funding Dashboard</a>
+                <a href="/admin/funding/">▸ Back to Funding Dashboard</a>
             </div>
             
             <div class="header">
-                <h1>🔐 Semptify Secured ID System</h1>
+                <h1>◆ Semptify Secured ID System</h1>
                 <h2>Funding Prospectus</h2>
                 <p><strong>Semptify — Tenant Rights Advocate Organization</strong></p>
             </div>
@@ -205,10 +205,10 @@ async def funding_prospectus(request: Request):
             <h2>Current State (Demonstration Prototype)</h2>
             <p><strong>Implemented:</strong></p>
             <ul>
-                <li>✅ Functional ID generation for users and documents</li>
-                <li>✅ Privacy-preserving architecture (user-controlled vault storage)</li>
-                <li>✅ Stateless design with no centralized data harvesting</li>
-                <li>✅ Demonstration-grade identifiers suitable for beta testing</li>
+                <li>● Functional ID generation for users and documents</li>
+                <li>● Privacy-preserving architecture (user-controlled vault storage)</li>
+                <li>● Stateless design with no centralized data harvesting</li>
+                <li>● Demonstration-grade identifiers suitable for beta testing</li>
             </ul>
             
             <h2>Post-Funding Implementation</h2>

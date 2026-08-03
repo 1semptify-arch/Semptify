@@ -6,13 +6,13 @@
 <div class="doc-card" data-doc-id="{{ doc.id }}">
     <div class="doc-card__icon">
         {% if doc.mime_type and 'pdf' in doc.mime_type %}
-        📄
+        ●
         {% elif doc.mime_type and 'image' in doc.mime_type %}
-        🖼️
+        ○
         {% elif doc.mime_type and ('word' in doc.mime_type or 'doc' in doc.mime_type) %}
-        📝
+        ●
         {% else %}
-        📎
+        ●
         {% endif %}
     </div>
     
@@ -26,7 +26,7 @@
             <span>{{ doc.uploaded_at[:10] }}</span>
             {% endif %}
             {% if doc.certified %}
-            <span class="doc-card__badge doc-card__badge--certified">✓ Certified</span>
+            <span class="doc-card__badge doc-card__badge--certified">● Certified</span>
             {% endif %}
         </div>
     </div>
@@ -34,12 +34,12 @@
     <div class="doc-card__actions">
         {% if show_download %}
         <button class="btn btn--secondary btn--sm" onclick="downloadDocument('{{ doc.id }}')">
-            📥 Download
+            ● Download
         </button>
         {% endif %}
         {% if show_delete %}
         <button class="btn btn--danger btn--sm" onclick="deleteDocument('{{ doc.id }}')">
-            🗑️
+            ◆
         </button>
         {% endif %}
     </div>

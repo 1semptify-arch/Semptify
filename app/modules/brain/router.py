@@ -1,5 +1,5 @@
 """
-🧠 Positronic Brain - API Router
+○ Positronic Brain - API Router
 ================================
 REST API and WebSocket endpoints for the brain.
 
@@ -63,7 +63,7 @@ class ThinkRequest(BaseModel):
 @router.get("/status")
 async def get_brain_status(brain: PositronicBrain = Depends(get_brain)):
     """
-    🧠 Get full brain status.
+    ○ Get full brain status.
     
     Returns information about:
     - Connected modules
@@ -77,7 +77,7 @@ async def get_brain_status(brain: PositronicBrain = Depends(get_brain)):
 @router.get("/modules")
 async def list_modules(brain: PositronicBrain = Depends(get_brain)):
     """
-    🔌 List all connected modules.
+    ○ List all connected modules.
     """
     return {
         "modules": brain.list_modules(),
@@ -91,7 +91,7 @@ async def get_state(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    📊 Get shared state.
+    ◆ Get shared state.
     
     Optionally filter by key.
     """
@@ -107,7 +107,7 @@ async def update_state(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    ✏️ Update shared state.
+    ▸ Update shared state.
     
     This will notify all connected modules.
     """
@@ -121,7 +121,7 @@ async def get_recent_events(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    📜 Get recent brain events.
+    ● Get recent brain events.
     """
     return {
         "events": brain.get_recent_events(limit),
@@ -135,7 +135,7 @@ async def emit_event(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    📤 Emit an event to the brain.
+    ● Emit an event to the brain.
     """
     try:
         event_type = EventType(request.event_type)
@@ -159,7 +159,7 @@ async def trigger_workflow(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    ⚡ Trigger a cross-module workflow.
+    ◆ Trigger a cross-module workflow.
     
     Available workflows:
     - document_intake: Process uploaded document through all modules
@@ -182,7 +182,7 @@ async def trigger_workflow(
 @router.get("/workflows")
 async def list_workflows(brain: PositronicBrain = Depends(get_brain)):
     """
-    📋 List active and recent workflows.
+    ● List active and recent workflows.
     """
     return {
         "active": brain.active_workflows,
@@ -196,7 +196,7 @@ async def get_workflow(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    🔍 Get workflow status.
+    ▸ Get workflow status.
     """
     workflow = brain.active_workflows.get(workflow_id)
     if not workflow:
@@ -210,7 +210,7 @@ async def brain_think(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    🤔 Ask the brain to think and suggest actions.
+    ◆ Ask the brain to think and suggest actions.
     
     The brain analyzes current context and provides:
     - Priority suggestions
@@ -224,7 +224,7 @@ async def brain_think(
 @router.post("/sync")
 async def sync_all(brain: PositronicBrain = Depends(get_brain)):
     """
-    🔄 Force full synchronization of all modules.
+    ▸ Force full synchronization of all modules.
     """
     workflow_id = await brain.trigger_workflow("full_sync", {})
     return {
@@ -244,7 +244,7 @@ async def brain_websocket(
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
-    🔌 WebSocket connection to the brain.
+    ○ WebSocket connection to the brain.
     
     Clients receive:
     - All brain events in real-time
@@ -259,7 +259,7 @@ async def brain_websocket(
     await websocket.accept()
     brain.websocket_clients.add(websocket)
     
-    logger.info(f"🧠 Brain WebSocket connected (total: {len(brain.websocket_clients)})")
+    logger.info(f"○ Brain WebSocket connected (total: {len(brain.websocket_clients)})")
     
     # Send initial state
     await websocket.send_json({
@@ -321,4 +321,4 @@ async def brain_websocket(
         pass
     finally:
         brain.websocket_clients.discard(websocket)
-        logger.info(f"🧠 Brain WebSocket disconnected (total: {len(brain.websocket_clients)})")
+        logger.info(f"○ Brain WebSocket disconnected (total: {len(brain.websocket_clients)})")

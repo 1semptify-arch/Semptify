@@ -153,7 +153,7 @@
             <h1>Document Vault</h1>
             <div style="display:flex; gap:0.75rem; align-items:center;">
                 <button class="btn" id="export-btn" onclick="exportCase()" style="display:none;">
-                    ⬇ Export My Case (ZIP)
+                    ▸ Export My Case (ZIP)
                 </button>
                 <span class="status" id="provider-status">Loading...</span>
             </div>
@@ -335,10 +335,10 @@
                 } else {
                     list.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-state-icon">📁</div>
+                            <div class="empty-state-icon">●</div>
                             <p>No documents yet.</p>
                             <p class="empty-state-hint">Upload your first document to get started.</p>
-                            <button class="btn btn--primary mt-md" onclick="openVaultUpload()">📄 Upload Document</button>
+                            <button class="btn btn--primary mt-md" onclick="openVaultUpload()">● Upload Document</button>
                         </div>
                     `;
                 }
@@ -376,7 +376,7 @@
         async function exportCase() {
             const btn = document.getElementById('export-btn');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳ Preparing ZIP...';
+            btn.innerHTML = '◆ Preparing ZIP...';
             btn.disabled = true;
             try {
                 const res = await fetch('/api/vault/export', { credentials: 'include' });
@@ -396,7 +396,7 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showMessage('✅ Case exported as ZIP', 'success');
+                showMessage('● Case exported as ZIP', 'success');
             } catch (e) {
                 showMessage('Export failed: ' + e.message, 'error');
             } finally {

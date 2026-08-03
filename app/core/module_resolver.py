@@ -6,7 +6,7 @@ module_paths the user is allowed to use. This is the single source of truth
 for module visibility.
 
 Resolution order per module:
-  1. lifecycle check (dev_only/preview → admin only)
+  1. lifecycle check (dev_only/preview ▸ admin only)
   2. role check (requires_role)
   3. jurisdiction check (requires_jurisdiction)
   4. gate check (requires_gate)

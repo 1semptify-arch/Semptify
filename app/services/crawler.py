@@ -334,12 +334,12 @@ class CrawlerService:
         if use_cache:
             cached = self._get_cached(url)
             if cached:
-                logger.info(f"📦 Cache hit: {url}")
+                logger.info(f"● Cache hit: {url}")
                 return cached
 
         # Check robots.txt
         if not await self._check_robots(url):
-            logger.warning(f"🚫 Blocked by robots.txt: {url}")
+            logger.warning(f"◆ Blocked by robots.txt: {url}")
             return CrawlResult(
                 url=url,
                 success=False,
@@ -375,14 +375,14 @@ class CrawlerService:
             if result.success:
                 self._save_cache(result)
 
-            logger.info(f"✅ Crawled: {url} ({response.status_code})")
+            logger.info(f"● Crawled: {url} ({response.status_code})")
             return result
 
         except httpx.TimeoutException:
-            logger.error(f"⏱️ Timeout: {url}")
+            logger.error(f"◆ Timeout: {url}")
             return CrawlResult(url=url, success=False, error="Request timeout")
         except Exception as e:
-            logger.error(f"❌ Crawl failed: {url} - {e}")
+            logger.error(f"◆ Crawl failed: {url} - {e}")
             return CrawlResult(url=url, success=False, error=str(e))
 
     def _parse_html(self, result: CrawlResult, html: str) -> CrawlResult:

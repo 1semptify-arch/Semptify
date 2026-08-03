@@ -182,14 +182,14 @@ async def register_document(
     messages.append(f"Document registered with ID: {doc.document_id}")
     
     if doc.is_duplicate:
-        messages.append(f"⚠️ DUPLICATE: This is a copy of document {doc.original_document_id}")
+        messages.append(f"◆ DUPLICATE: This is a copy of document {doc.original_document_id}")
     
     if doc.forgery_score > 0.7:
-        messages.append("🚨 HIGH FORGERY RISK: Document quarantined for review")
+        messages.append("◆ HIGH FORGERY RISK: Document quarantined for review")
     elif doc.forgery_score > 0.3:
-        messages.append("⚠️ FORGERY INDICATORS DETECTED: Flagged for review")
+        messages.append("◆ FORGERY INDICATORS DETECTED: Flagged for review")
     elif doc.forgery_alerts:
-        messages.append("ℹ️ Minor concerns detected - see alerts")
+        messages.append("ℹ Minor concerns detected - see alerts")
     
     return DocumentRegistrationResponse(
         document_id=doc.document_id,
@@ -411,11 +411,11 @@ async def verify_document(
     verified = status == IntegrityStatus.VERIFIED
     
     messages = {
-        IntegrityStatus.VERIFIED: "✅ Document integrity verified - no tampering detected",
-        IntegrityStatus.TAMPERED: "🚨 TAMPER DETECTED - Document content has been modified!",
-        IntegrityStatus.METADATA_CHANGED: "⚠️ Document metadata has been altered",
-        IntegrityStatus.CORRUPTED: "❌ Document appears to be corrupted",
-        IntegrityStatus.UNVERIFIED: "⏳ Document could not be verified",
+        IntegrityStatus.VERIFIED: "● Document integrity verified - no tampering detected",
+        IntegrityStatus.TAMPERED: "◆ TAMPER DETECTED - Document content has been modified!",
+        IntegrityStatus.METADATA_CHANGED: "◆ Document metadata has been altered",
+        IntegrityStatus.CORRUPTED: "◆ Document appears to be corrupted",
+        IntegrityStatus.UNVERIFIED: "◆ Document could not be verified",
     }
     
     return VerificationResponse(
@@ -442,11 +442,11 @@ async def get_integrity_status(doc_id: str):
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
 
     messages = {
-        IntegrityStatus.VERIFIED: "✅ Document integrity verified - no tampering detected",
-        IntegrityStatus.TAMPERED: "🚨 TAMPER DETECTED - Document content has been modified!",
-        IntegrityStatus.METADATA_CHANGED: "⚠️ Document metadata has been altered",
-        IntegrityStatus.CORRUPTED: "❌ Document appears to be corrupted",
-        IntegrityStatus.UNVERIFIED: "⏳ Document has not been verified yet",
+        IntegrityStatus.VERIFIED: "● Document integrity verified - no tampering detected",
+        IntegrityStatus.TAMPERED: "◆ TAMPER DETECTED - Document content has been modified!",
+        IntegrityStatus.METADATA_CHANGED: "◆ Document metadata has been altered",
+        IntegrityStatus.CORRUPTED: "◆ Document appears to be corrupted",
+        IntegrityStatus.UNVERIFIED: "◆ Document has not been verified yet",
     }
 
     return {

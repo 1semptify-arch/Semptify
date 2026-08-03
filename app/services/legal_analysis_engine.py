@@ -11,7 +11,7 @@ Evaluates documents, timelines, and information in legal context for:
 - Statute of limitations checking
 - Notice requirement compliance
 
-Integrated with 🧠 Positronic Brain for real-time event communication.
+Integrated with ○ Positronic Brain for real-time event communication.
 """
 
 import logging

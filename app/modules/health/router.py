@@ -382,11 +382,11 @@ async def system_dashboard():
     </style>
 </head>
 <body>
-    <h1>⚖️ Semptify</h1>
+    <h1>▸ Semptify</h1>
     <p class="subtitle">Eviction Defense Intelligence Platform</p>
     
     <div class="status-banner">
-        <div class="big">✅</div>
+        <div class="big">●</div>
         <div>System Status: <span id="live-status">All Systems Operational</span></div>
         <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">
             Last checked: <span id="last-check">--</span>
@@ -396,7 +396,7 @@ async def system_dashboard():
     <div class="grid">
         <!-- Core System -->
         <div class="card">
-            <h2><span>🏥</span> System Health</h2>
+            <h2><span>○</span> System Health</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/health</span></span>
@@ -420,7 +420,7 @@ async def system_dashboard():
 
         <!-- Defense Analysis -->
         <div class="card">
-            <h2><span>🛡️</span> Defense Analysis Engine</h2>
+            <h2><span>◆</span> Defense Analysis Engine</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/api/eviction/defenses</span></span>
@@ -443,7 +443,7 @@ async def system_dashboard():
 
         <!-- Document Management -->
         <div class="card">
-            <h2><span>📄</span> Document Pipeline</h2>
+            <h2><span>●</span> Document Pipeline</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/api/documents</span></span>
@@ -465,7 +465,7 @@ async def system_dashboard():
 
         <!-- Court Forms -->
         <div class="card">
-            <h2><span>📋</span> Court Form Generator</h2>
+            <h2><span>●</span> Court Form Generator</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/api/forms/library</span></span>
@@ -492,7 +492,7 @@ async def system_dashboard():
 
         <!-- Zoom Court -->
         <div class="card">
-            <h2><span>🎥</span> Zoom Court Preparation</h2>
+            <h2><span>●</span> Zoom Court Preparation</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/api/zoom-court/quick-tips</span></span>
@@ -519,7 +519,7 @@ async def system_dashboard():
 
         <!-- AI Copilot -->
         <div class="card">
-            <h2><span>🤖</span> AI Legal Copilot</h2>
+            <h2><span>○</span> AI Legal Copilot</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-post">POST</span><span class="endpoint-path">/api/copilot/analyze</span></span>
@@ -541,7 +541,7 @@ async def system_dashboard():
 
         <!-- Context Loop -->
         <div class="card">
-            <h2><span>🔄</span> Context Intelligence</h2>
+            <h2><span>▸</span> Context Intelligence</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/api/context/status</span></span>
@@ -559,7 +559,7 @@ async def system_dashboard():
 
         <!-- Storage -->
         <div class="card">
-            <h2><span>☁️</span> Cloud Storage</h2>
+            <h2><span>○</span> Cloud Storage</h2>
             <ul class="endpoint-list">
                 <li>
                     <span><span class="method method-get">GET</span><span class="endpoint-path">/api/storage/providers</span></span>
@@ -577,7 +577,7 @@ async def system_dashboard():
     </div>
 
     <div style="text-align: center; margin-top: 2rem; color: var(--text-muted);">
-        <p>📚 <a href="/api/docs" style="color: var(--primary);">Full API Documentation</a></p>
+        <p>○ <a href="/api/docs" style="color: var(--primary);">Full API Documentation</a></p>
         <p style="margin-top: 0.5rem; font-size: 0.8rem;">
             Semptify v1.0 - Making Justice Accessible
         </p>

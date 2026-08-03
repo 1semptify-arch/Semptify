@@ -28,43 +28,43 @@ def validate_production_mode() -> bool:
 
         if settings.ENVIRONMENT == "production":
             # Critical checks
-            logger.info("\n🔐 SECURITY CHECKS:")
+            logger.info("\n◆ SECURITY CHECKS:")
 
             # 1. Debug mode
             if settings.DEBUG:
-                logger.error("❌ DEBUG mode is ENABLED in production!")
+                logger.error("◆ DEBUG mode is ENABLED in production!")
                 return False
-            logger.info("✅ Debug mode disabled")
+            logger.info("● Debug mode disabled")
 
             # 2. Secret key
             if settings.SECRET_KEY == "change-me-in-production":
-                logger.error("❌ SECRET_KEY not changed from default!")
+                logger.error("◆ SECRET_KEY not changed from default!")
                 return False
-            logger.info("✅ Secret key configured")
+            logger.info("● Secret key configured")
 
             # 3. HTTPS enforcement
             if not settings.HTTPS_ONLY:
-                logger.error("❌ HTTPS NOT enforced!")
+                logger.error("◆ HTTPS NOT enforced!")
                 return False
-            logger.info("✅ HTTPS enforced")
+            logger.info("● HTTPS enforced")
 
             # 4. Authentication
             if not settings.AUTH_REQUIRED:
-                logger.error("❌ Authentication NOT required!")
+                logger.error("◆ Authentication NOT required!")
                 return False
-            logger.info("✅ Authentication required")
+            logger.info("● Authentication required")
 
             # 5. Rate limiting
             if not settings.RATE_LIMIT_ENABLED:
-                logger.error("❌ Rate limiting NOT enabled!")
+                logger.error("◆ Rate limiting NOT enabled!")
                 return False
-            logger.info(f"✅ Rate limiting enabled ({settings.RATE_LIMIT_REQUESTS} req/{settings.RATE_LIMIT_PERIOD}s)")
+            logger.info(f"● Rate limiting enabled ({settings.RATE_LIMIT_REQUESTS} req/{settings.RATE_LIMIT_PERIOD}s)")
 
             # 6. CORS
             if len(settings.ALLOWED_ORIGINS) == 0:
-                logger.error("❌ No CORS origins configured!")
+                logger.error("◆ No CORS origins configured!")
                 return False
-            logger.info(f"✅ CORS configured for {len(settings.ALLOWED_ORIGINS)} origins")
+            logger.info(f"● CORS configured for {len(settings.ALLOWED_ORIGINS)} origins")
 
             # 7. System storage: Cloudflare R2
             missing_r2 = []
@@ -77,33 +77,33 @@ def validate_production_mode() -> bool:
             if not settings.R2_BUCKET_NAME:
                 missing_r2.append("R2_BUCKET_NAME")
             if missing_r2:
-                logger.error("❌ Cloudflare R2 system storage not fully configured: %s", ", ".join(missing_r2))
+                logger.error("◆ Cloudflare R2 system storage not fully configured: %s", ", ".join(missing_r2))
                 return False
             else:
-                logger.info("✅ Cloudflare R2 system storage configured")
+                logger.info("● Cloudflare R2 system storage configured")
 
             # 8. Database SSL
             if settings.DB_SSL_MODE != "require":
-                logger.warning("⚠️  Database SSL mode not set to 'require'")
-            logger.info(f"✅ Database SSL: {settings.DB_SSL_MODE}")
+                logger.warning("◆  Database SSL mode not set to 'require'")
+            logger.info(f"● Database SSL: {settings.DB_SSL_MODE}")
 
             # 9. Secure cookies
             if not settings.SECURE_COOKIES or not settings.HTTPONLY_COOKIES:
-                logger.warning("⚠️  Cookie security may not be optimal")
-            logger.info(f"✅ Secure cookies: {settings.SECURE_COOKIES}, HttpOnly: {settings.HTTPONLY_COOKIES}")
+                logger.warning("◆  Cookie security may not be optimal")
+            logger.info(f"● Secure cookies: {settings.SECURE_COOKIES}, HttpOnly: {settings.HTTPONLY_COOKIES}")
 
             logger.info("\n" + "=" * 70)
-            logger.info("✅ PRODUCTION MODE: ALL SECURITY CHECKS PASSED")
+            logger.info("● PRODUCTION MODE: ALL SECURITY CHECKS PASSED")
             logger.info("=" * 70)
 
         else:
-            logger.info(f"💡 Running in {settings.ENVIRONMENT} mode")
+            logger.info(f"○ Running in {settings.ENVIRONMENT} mode")
             logger.info("Security checks relaxed for non-production environment")
 
         return True
 
     except Exception as e:
-        logger.error(f"❌ Production validation failed: {str(e)}")
+        logger.error(f"◆ Production validation failed: {str(e)}")
         return False
 
 

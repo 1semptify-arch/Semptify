@@ -88,11 +88,11 @@ window.LocationDetect = {
     // Get support message for state
     getSupportMessage: function(state) {
         const messages = {
-            'MN': '✅ Full Minnesota tenant rights support available',
-            'WI': '⚠️ Limited Wisconsin tenant rights support',
-            'IA': '⚠️ Limited Iowa tenant rights support',
-            'SD': '⚠️ Limited South Dakota tenant rights support',
-            'default': '⚠️ Limited tenant rights support for this state'
+            'MN': '● Full Minnesota tenant rights support available',
+            'WI': '◆ Limited Wisconsin tenant rights support',
+            'IA': '◆ Limited Iowa tenant rights support',
+            'SD': '◆ Limited South Dakota tenant rights support',
+            'default': '◆ Limited tenant rights support for this state'
         };
         
         return messages[state] || messages['default'];

@@ -37,7 +37,7 @@ async def on_eviction_pack_received(pack: InfoPack):
     When an eviction notice, court summons, or related document is uploaded,
     this function receives the extracted data and initializes the case.
     """
-    logger.info(f"📦 Eviction Defense received pack: {pack.pack_type.value}")
+    logger.info(f"● Eviction Defense received pack: {pack.pack_type.value}")
     
     # Get the case builder service
     try:
@@ -106,7 +106,7 @@ async def on_eviction_pack_received(pack: InfoPack):
             user_id=pack.user_id,
         )
         
-        logger.info(f"✅ Eviction case initialized for user {pack.user_id}")
+        logger.info(f"● Eviction case initialized for user {pack.user_id}")
         
     except Exception as e:
         logger.error(f"Failed to process eviction pack: {e}")
@@ -114,7 +114,7 @@ async def on_eviction_pack_received(pack: InfoPack):
 
 async def on_eviction_update_received(update: ModuleUpdate):
     """Handle updates from other modules relevant to eviction defense"""
-    logger.info(f"📬 Eviction Defense received update: {update.update_type}")
+    logger.info(f"● Eviction Defense received update: {update.update_type}")
     
     # Handle timeline events that might be relevant
     if update.update_type == "timeline_event_added":
@@ -138,7 +138,7 @@ async def on_eviction_update_received(update: ModuleUpdate):
 
 async def on_timeline_pack_received(pack: InfoPack):
     """Handle info pack received by Timeline module"""
-    logger.info(f"📦 Timeline received pack: {pack.pack_type.value}")
+    logger.info(f"● Timeline received pack: {pack.pack_type.value}")
     
     # Add events to timeline
     try:
@@ -154,7 +154,7 @@ async def on_timeline_pack_received(pack: InfoPack):
 
 async def on_timeline_update_received(update: ModuleUpdate):
     """Handle updates from other modules for timeline"""
-    logger.info(f"📬 Timeline received update: {update.update_type}")
+    logger.info(f"● Timeline received update: {update.update_type}")
 
 
 # =============================================================================
@@ -163,7 +163,7 @@ async def on_timeline_update_received(update: ModuleUpdate):
 
 async def on_calendar_pack_received(pack: InfoPack):
     """Handle info pack received by Calendar module"""
-    logger.info(f"📦 Calendar received pack: {pack.pack_type.value}")
+    logger.info(f"● Calendar received pack: {pack.pack_type.value}")
     
     # Add deadlines to calendar
     if pack.pack_type == PackType.CALENDAR_DEADLINES:
@@ -173,7 +173,7 @@ async def on_calendar_pack_received(pack: InfoPack):
 
 async def on_calendar_update_received(update: ModuleUpdate):
     """Handle updates from other modules for calendar"""
-    logger.info(f"📬 Calendar received update: {update.update_type}")
+    logger.info(f"● Calendar received update: {update.update_type}")
     
     if update.update_type == "deadline_added":
         # Add to calendar
@@ -195,12 +195,12 @@ async def on_calendar_update_received(update: ModuleUpdate):
 
 async def on_documents_pack_received(pack: InfoPack):
     """Handle info pack received by Documents module"""
-    logger.info(f"📦 Documents received pack: {pack.pack_type.value}")
+    logger.info(f"● Documents received pack: {pack.pack_type.value}")
 
 
 async def on_documents_update_received(update: ModuleUpdate):
     """Handle updates for documents module"""
-    logger.info(f"📬 Documents received update: {update.update_type}")
+    logger.info(f"● Documents received update: {update.update_type}")
 
 
 # =============================================================================
@@ -212,7 +212,7 @@ def register_all_modules():
     Register all modules with the Module Hub.
     Called during application startup.
     """
-    logger.info("🔌 Registering modules with Module Hub...")
+    logger.info("○ Registering modules with Module Hub...")
     
     # Eviction Defense Module
     module_hub.register_module(
@@ -446,7 +446,7 @@ def register_all_modules():
     )
 
     status = module_hub.get_hub_status()
-    logger.info(f"✅ Module Hub ready: {status['modules_registered']} modules registered")
+    logger.info(f"● Module Hub ready: {status['modules_registered']} modules registered")
     
     return status
 
@@ -464,7 +464,7 @@ async def initialize_module_hub():
     
     # Log the hub status
     status = module_hub.get_hub_status()
-    logger.info(f"🔄 Module Hub Status:")
+    logger.info(f"▸ Module Hub Status:")
     logger.info(f"   Modules: {status['modules_registered']}")
     for module in status['modules']:
         logger.info(f"   - {module['name']} ({module['type']})")

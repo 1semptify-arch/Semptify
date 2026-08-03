@@ -253,7 +253,7 @@ def get_recent_activity(
     for doc in recent_docs:
         user = db_session.query(User).filter_by(id=doc.user_id).first()
         activities.append({
-            "icon": "📄",
+            "icon": "●",
             "description": f"<strong>Tenant {doc.user_id[:8]}</strong> uploaded {doc.filename or 'a document'}",
             "time": format_time_ago(doc.created_at),
             "timestamp": doc.created_at.isoformat() if doc.created_at else None,

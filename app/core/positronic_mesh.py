@@ -33,14 +33,14 @@ logger = logging.getLogger(__name__)
 class WorkflowType(str, Enum):
     """Pre-defined cross-module workflows"""
     # Document-triggered workflows
-    EVICTION_DEFENSE = "eviction_defense"  # Document → Eviction → Calendar → Forms → Copilot
-    LEASE_ANALYSIS = "lease_analysis"  # Document → Analysis → Timeline → Calendar
-    COURT_PREP = "court_prep"  # Multiple docs → Case Builder → Forms → Zoom Court
+    EVICTION_DEFENSE = "eviction_defense"  # Document ▸ Eviction ▸ Calendar ▸ Forms ▸ Copilot
+    LEASE_ANALYSIS = "lease_analysis"  # Document ▸ Analysis ▸ Timeline ▸ Calendar
+    COURT_PREP = "court_prep"  # Multiple docs ▸ Case Builder ▸ Forms ▸ Zoom Court
     
     # User-initiated workflows
-    DEADLINE_ALERT = "deadline_alert"  # Calendar → UI → Copilot
-    CASE_STATUS = "case_status"  # All modules → Summary → UI
-    DOCUMENT_REQUEST = "document_request"  # Copilot → Documents → User
+    DEADLINE_ALERT = "deadline_alert"  # Calendar ▸ UI ▸ Copilot
+    CASE_STATUS = "case_status"  # All modules ▸ Summary ▸ UI
+    DOCUMENT_REQUEST = "document_request"  # Copilot ▸ Documents ▸ User
     
     # System workflows
     FULL_SYNC = "full_sync"  # Sync all module states
@@ -187,7 +187,7 @@ class PositronicMesh:
         # Initialize workflow templates
         self._init_workflow_templates()
         
-        logger.info("🧠 Positronic Mesh initialized - Neural pathways active")
+        logger.info("○ Positronic Mesh initialized - Neural pathways active")
     
     def _init_workflow_templates(self):
         """Define the standard workflow templates"""
@@ -325,7 +325,7 @@ class PositronicMesh:
             },
         ]
         
-        logger.info(f"📋 Loaded {len(self.workflow_templates)} workflow templates")
+        logger.info(f"● Loaded {len(self.workflow_templates)} workflow templates")
     
     # =========================================================================
     # MODULE ACTION REGISTRATION
@@ -355,7 +355,7 @@ class PositronicMesh:
             produces=produces or [],
         )
         
-        logger.debug(f"⚡ Registered action: {module}.{action}")
+        logger.debug(f"◆ Registered action: {module}.{action}")
     
     def get_module_actions(self, module: str) -> List[Dict[str, Any]]:
         """Get all registered actions for a module"""
@@ -421,7 +421,7 @@ class PositronicMesh:
             self.user_workflows[user_id] = []
         self.user_workflows[user_id].append(workflow_id)
         
-        logger.info(f"🚀 Started workflow {workflow_type.value} for user {user_id[:8]}...")
+        logger.info(f"▸ Started workflow {workflow_type.value} for user {user_id[:8]}...")
         
         # Start executing
         asyncio.create_task(self._execute_workflow(workflow))
@@ -511,7 +511,7 @@ class PositronicMesh:
         workflow.stage = WorkflowStage.COMPLETED
         workflow.completed_at = utc_now()
         
-        logger.info(f"✅ Workflow {workflow.id} completed successfully")
+        logger.info(f"● Workflow {workflow.id} completed successfully")
         
         await self._emit_event("workflow_completed", {
             "workflow_id": workflow.id,
@@ -526,7 +526,7 @@ class PositronicMesh:
         # Check mesh mode - skip deferred modules in lean mode
         mesh_config = get_mesh_config()
         if not mesh_config.is_action_allowed(step.module, step.action):
-            logger.info(f"⏭️ Skipping deferred action in lean mode: {step.module}.{step.action}")
+            logger.info(f"▸ Skipping deferred action in lean mode: {step.module}.{step.action}")
             # Record for potential retry when mode changes
             await deferral_queue.defer(
                 module=step.module,
@@ -643,7 +643,7 @@ class PositronicMesh:
         # Check mesh mode
         mesh_config = get_mesh_config()
         if not mesh_config.is_action_allowed(module, action):
-            logger.info(f"⏭️ Action deferred in lean mode: {module}.{action}")
+            logger.info(f"▸ Action deferred in lean mode: {module}.{action}")
             # Record for potential retry
             await deferral_queue.defer(
                 module=module,
@@ -665,7 +665,7 @@ class PositronicMesh:
         else:
             result = action_def.handler(user_id, params or {}, {})
         
-        logger.info(f"⚡ Invoked {module}.{action} for user {user_id[:8]}...")
+        logger.info(f"◆ Invoked {module}.{action} for user {user_id[:8]}...")
         
         await self._emit_event("module_invoked", {
             "module": module,
@@ -801,16 +801,16 @@ async def sync_all_modules(user_id: str) -> Workflow:
 # Mapping from telemetry event types to workflow types
 # This connects the telemetry_hooks.py system to mesh workflows
 TELEMETRY_WORKFLOW_TRIGGERS: Dict[str, WorkflowType] = {
-    # Document upload → Auto analysis
+    # Document upload ▸ Auto analysis
     "vault_upload_complete": WorkflowType.LEASE_ANALYSIS,
     
-    # Eviction answer flow → Full eviction defense
+    # Eviction answer flow ▸ Full eviction defense
     "eviction_answer_load": WorkflowType.EVICTION_DEFENSE,
     
-    # Crisis intake → Emergency mode + escalation
+    # Crisis intake ▸ Emergency mode + escalation
     "crisis_intake_load": WorkflowType.EMERGENCY_MODE,
     
-    # Court packet → Court prep
+    # Court packet ▸ Court prep
     "court_packet_load": WorkflowType.COURT_PREP,
 }
 

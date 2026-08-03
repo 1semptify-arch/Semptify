@@ -278,7 +278,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
     # Streak recognition
     streak_message = ""
     if progress.streak_days >= 7:
-        streak_message = f"🔥 {progress.streak_days} day streak!"
+        streak_message = f"◆ {progress.streak_days} day streak!"
     elif progress.streak_days >= 3:
         streak_message = f"Great consistency - {progress.streak_days} days in a row!"
     
@@ -287,7 +287,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
     if progress.court_date:
         days_to_court = (progress.court_date - utc_now()).days
         if days_to_court <= 3:
-            urgency_message = "⚠️ Court is very soon. Let's make sure you're ready."
+            urgency_message = "◆ Court is very soon. Let's make sure you're ready."
         elif days_to_court <= 7:
             urgency_message = "Court is coming up. Time to finalize your preparation."
     

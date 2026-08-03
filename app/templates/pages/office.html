@@ -14,28 +14,28 @@
 {% block content %}
 <div class="office-page">
 
-    {{ hero("🏢", "Your Office", "Documents, communication, timeline, and paperwork — your complete case management center.", "blue") }}
+    {{ hero("○", "Your Office", "Documents, communication, timeline, and paperwork — your complete case management center.", "blue") }}
 
     {{ vault_cta() }}
 
     {{ privacy_note() }}
 
-    {{ section_title("📁", "Office Services") }}
+    {{ section_title("●", "Office Services") }}
     {% call card_grid() %}
-        {{ service_card("/documents", "🔒", "Document Vault", "Upload, organize, and search all your case documents. Blockchain timestamped. Stored in your cloud.", featured=true, badge="ONE WAY IN") }}
-        {{ service_card("/tenant/inbox", "📨", "Communication Center", "Secure messaging with advocates, attorneys, and notifications.") }}
-        {{ service_card("/timeline", "📅", "Timeline / Journal", "Chronological record of all events. Links to documents and evidence.") }}
-        {{ service_card("/tenant/tools/letters", "📋", "Letter Builder", "Generate maintenance requests, deposit demands, and response letters.") }}
+        {{ service_card("/documents", "◆", "Document Vault", "Upload, organize, and search all your case documents. Blockchain timestamped. Stored in your cloud.", featured=true, badge="ONE WAY IN") }}
+        {{ service_card("/tenant/inbox", "●", "Communication Center", "Secure messaging with advocates, attorneys, and notifications.") }}
+        {{ service_card("/timeline", "◆", "Timeline / Journal", "Chronological record of all events. Links to documents and evidence.") }}
+        {{ service_card("/tenant/tools/letters", "●", "Letter Builder", "Generate maintenance requests, deposit demands, and response letters.") }}
     {% endcall %}
 
-    {{ section_title("⚡", "Quick Tasks") }}
+    {{ section_title("◆", "Quick Tasks") }}
     {% call quick_grid() %}
-        {{ quick_link("/documents", "🔒", "View My Vault") }}
-        {{ quick_link("/tenant/inbox", "📥", "Check Inbox") }}
-        {{ quick_link("/timeline", "➕", "Add Event") }}
-        {{ quick_link("/tenant/journal", "📓", "Journal") }}
-        {{ quick_link("/tenant/tools/letters", "📄", "Write Letter") }}
-        {{ quick_link("/law-library", "📝", "Find a Form") }}
+        {{ quick_link("/documents", "◆", "View My Vault") }}
+        {{ quick_link("/tenant/inbox", "●", "Check Inbox") }}
+        {{ quick_link("/timeline", "▸", "Add Event") }}
+        {{ quick_link("/tenant/journal", "●", "Journal") }}
+        {{ quick_link("/tenant/tools/letters", "●", "Write Letter") }}
+        {{ quick_link("/law-library", "●", "Find a Form") }}
     {% endcall %}
 
 </div>

@@ -397,11 +397,11 @@
     }
     
     /* File Type Icons */
-    .icon-html::before { content: '🌐'; }
-    .icon-jinja::before { content: '🎨'; }
-    .icon-css::before { content: '🎨'; }
-    .icon-js::before { content: '⚡'; }
-    .icon-folder::before { content: '📁'; }
+    .icon-html::before { content: '○'; }
+    .icon-jinja::before { content: '○'; }
+    .icon-css::before { content: '○'; }
+    .icon-js::before { content: '◆'; }
+    .icon-folder::before { content: '●'; }
     
     /* Split View */
     .editor-container.preview-open {
@@ -413,14 +413,14 @@
   <!-- Header -->
   <header class="editor-header">
     <div class="editor-title">
-      <span>📝</span>
+      <span>●</span>
       <span>Semptify Page Editor</span>
     </div>
     <div id="admin-nav-container" class="admin-nav--dark"></div>
     <div class="editor-actions">
-      <button class="btn btn-secondary" onclick="togglePreview()">👁 Preview</button>
-      <button class="btn btn-primary" onclick="saveFile()">💾 Save</button>
-      <button class="btn btn-success" onclick="deployChanges()">🚀 Deploy</button>
+      <button class="btn btn-secondary" onclick="togglePreview()">● Preview</button>
+      <button class="btn btn-primary" onclick="saveFile()">● Save</button>
+      <button class="btn btn-success" onclick="deployChanges()">▸ Deploy</button>
     </div>
   </header>
 
@@ -430,8 +430,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-tabs">
-        <button class="sidebar-tab active" onclick="switchTab('static')">📁 Static</button>
-        <button class="sidebar-tab" onclick="switchTab('templates')">🎨 Templates</button>
+        <button class="sidebar-tab active" onclick="switchTab('static')">● Static</button>
+        <button class="sidebar-tab" onclick="switchTab('templates')">○ Templates</button>
       </div>
       
       <div class="search-box">
@@ -441,7 +441,7 @@
       <div class="file-browser" id="fileBrowser">
         <!-- Files loaded dynamically -->
         <div class="empty-state">
-          <div class="empty-state-icon">📂</div>
+          <div class="empty-state-icon">●</div>
           <p>Loading files...</p>
         </div>
       </div>
@@ -455,7 +455,7 @@
       
       <div class="code-container" id="codeContainer">
         <div class="empty-state">
-          <div class="empty-state-icon">📝</div>
+          <div class="empty-state-icon">●</div>
           <h3>No file open</h3>
           <p>Select a file from the sidebar to start editing</p>
           <p style="margin-top: 1rem; font-size: 0.8rem;">
@@ -529,7 +529,7 @@
       if (files.length === 0) {
         browser.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-icon">●</div>
             <p>No files found</p>
           </div>
         `;
@@ -717,7 +717,7 @@
     function showEmptyState() {
       document.getElementById('codeContainer').innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">📝</div>
+          <div class="empty-state-icon">●</div>
           <h3>No file open</h3>
           <p>Select a file from the sidebar to start editing</p>
         </div>

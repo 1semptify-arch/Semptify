@@ -4,7 +4,7 @@ Legal Analysis API Router
 Provides endpoints for analyzing legal merit, consistency, corroboration,
 and evidentiary value of tenancy case information.
 
-Integrated with 🧠 Positronic Brain for real-time event communication.
+Integrated with ○ Positronic Brain for real-time event communication.
 """
 # Migrated from app/routers/legal_analysis.py into the legal_analysis SDK module.
 # All imports remain absolute since legal_analysis is a CORE module.

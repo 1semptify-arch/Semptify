@@ -233,12 +233,12 @@
     <!-- Header -->
     <div class="header-section">
         <div>
-            <h1>📊 Auto Analysis Summary</h1>
+            <h1>◆ Auto Analysis Summary</h1>
             <p>Review automated analysis results</p>
         </div>
         <div class="header-controls">
-            <button class="btn btn-primary" onclick="runAnalysis()">🚀 Run Analysis</button>
-            <a href="/auto-mode" class="btn btn-secondary">⚙️ Configure</a>
+            <button class="btn btn-primary" onclick="runAnalysis()">▸ Run Analysis</button>
+            <a href="/auto-mode" class="btn btn-secondary">▸ Configure</a>
         </div>
     </div>
 
@@ -269,9 +269,9 @@
     <!-- Filters -->
     <div class="filters">
         <button class="filter-btn active" onclick="filterResults('all')">All Results</button>
-        <button class="filter-btn" onclick="filterResults('success')">✅ Success</button>
-        <button class="filter-btn" onclick="filterResults('warning')">⚠️ Warnings</button>
-        <button class="filter-btn" onclick="filterResults('pending')">⏳ Pending</button>
+        <button class="filter-btn" onclick="filterResults('success')">● Success</button>
+        <button class="filter-btn" onclick="filterResults('warning')">◆ Warnings</button>
+        <button class="filter-btn" onclick="filterResults('pending')">◆ Pending</button>
     </div>
 
     <!-- Analysis Results -->
@@ -279,7 +279,7 @@
         <h2>Analysis Results</h2>
         <div id="results-container">
             <div class="empty-state">
-                <p>📭 No analyses yet. Run an analysis to get started.</p>
+                <p>○ No analyses yet. Run an analysis to get started.</p>
                 <button class="btn btn-primary" onclick="runAnalysis()" style="margin-top: 1rem;">Run First Analysis</button>
             </div>
         </div>
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function runAnalysis() {
-    if (window.SemptifyFeedback) { SemptifyFeedback.info('Analysis started. This may take a few moments.'); } else { alert('📊 Analysis started. This may take a few moments...'); }
+    if (window.SemptifyFeedback) { SemptifyFeedback.info('Analysis started. This may take a few moments.'); } else { alert('◆ Analysis started. This may take a few moments...'); }
 }
 
 function filterResults(type) {
@@ -324,19 +324,19 @@ function filterResults(type) {
 function loadSampleResults() {
     const results = [
         {
-            icon: '📅',
+            icon: '◆',
             title: 'Timeline Events',
             description: 'Extracted 12 important dates and events from your documents',
             status: 'success'
         },
         {
-            icon: '⚖️',
+            icon: '▸',
             title: 'Legal Rights Assessment',
             description: 'Identified potential violations of tenant rights',
             status: 'warning'
         },
         {
-            icon: '📋',
+            icon: '●',
             title: 'Document Classification',
             description: 'Categorized all uploaded documents',
             status: 'success'
@@ -354,7 +354,7 @@ function loadSampleResults() {
                 <p>${result.description}</p>
             </div>
             <div class="result-status status-${result.status}">
-                ${result.status === 'success' ? '✅ Success' : result.status === 'warning' ? '⚠️ Warning' : '⏳ Pending'}
+                ${result.status === 'success' ? '● Success' : result.status === 'warning' ? '◆ Warning' : '◆ Pending'}
             </div>
         </div>
     `).join('');

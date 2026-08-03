@@ -121,8 +121,8 @@
   .checklist { list-style: none; padding-left: 0; }
   .checklist li { padding: 0.25rem 0; font-size: 0.85rem; }
   .checklist li::before { content: "☐ "; color: var(--muted); }
-  .checklist li.passed::before { content: "✅ "; }
-  .checklist li.current::before { content: "→ "; color: var(--accent); }
+  .checklist li.passed::before { content: "● "; }
+  .checklist li.current::before { content: "▸ "; color: var(--accent); }
   .modal-overlay {
     display: none;
     position: fixed;
@@ -216,11 +216,11 @@
 <body>
 
 <div class="forge-header">
-  <span class="forge-logo">⚒️</span>
+  <span class="forge-logo">▸</span>
   <h1>Semptify Forge</h1>
   <span class="forge-tagline">Canonical Dev System</span>
 </div>
-<p class="subtitle">Module incubator & lifecycle system. Build, test, and promote modules from dev_only → stable. Admin only.</p>
+<p class="subtitle">Module incubator & lifecycle system. Build, test, and promote modules from dev_only ▸ stable. Admin only.</p>
 
 <div class="forge-info-banner">
   <strong>The Forge</strong> is the canonical module development system for Semptify. All new modules start as
@@ -231,31 +231,31 @@
 <div class="forge-pipeline">
   <span style="color:var(--muted);font-weight:600">Lifecycle Pipeline:</span>
   <span class="pipeline-stage pipeline-dev_only">dev_only</span>
-  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-arrow">▸</span>
   <span class="pipeline-stage pipeline-preview">preview</span>
-  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-arrow">▸</span>
   <span class="pipeline-stage pipeline-experimental">experimental</span>
-  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-arrow">▸</span>
   <span class="pipeline-stage pipeline-beta">beta</span>
-  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-arrow">▸</span>
   <span class="pipeline-stage pipeline-stable">stable</span>
 </div>
 
 <div class="quick-actions">
   <a href="#tab-modules" class="quick-action" onclick="switchTab('modules')">
-    <div class="quick-action-title">📦 Module Lifecycle</div>
+    <div class="quick-action-title">● Module Lifecycle</div>
     <div class="quick-action-desc">View & promote dev modules</div>
   </a>
   <a href="#tab-ideas" class="quick-action" onclick="switchTab('ideas')">
-    <div class="quick-action-title">💡 Idea Intake</div>
+    <div class="quick-action-title">○ Idea Intake</div>
     <div class="quick-action-desc">Submit & promote new ideas</div>
   </a>
   <a href="#tab-external" class="quick-action" onclick="switchTab('external')">
-    <div class="quick-action-title">🔌 External Modules</div>
+    <div class="quick-action-title">○ External Modules</div>
     <div class="quick-action-desc">Third-party module loader</div>
   </a>
   <a href="/admin/module-flags.html" class="quick-action">
-    <div class="quick-action-title">🚩 Module Flags</div>
+    <div class="quick-action-title">▸ Module Flags</div>
     <div class="quick-action-desc">Runtime override controls</div>
   </a>
 </div>
@@ -436,7 +436,7 @@ function renderModules() {
       <td><span class="badge ${tierBadge}">${m.tier}</span></td>
       <td><span class="badge badge-${m.lifecycle}">${m.lifecycle}</span></td>
       <td><span class="badge badge-${m.origin}">${m.origin}</span></td>
-      <td>${m.has_tests ? '✅' : '⛔'}</td>
+      <td>${m.has_tests ? '●' : '◆'}</td>
       <td>${m.next_lifecycle ? `<span class="badge badge-${m.next_lifecycle}">${m.next_lifecycle}</span>` : '—'}</td>
       <td><button class="btn btn-sm" onclick="openModuleModal('${m.module_path}')">View</button></td>
     </tr>`;
@@ -456,9 +456,9 @@ async function openModuleModal(modulePath) {
 
     let html = `
       <p><strong>Lifecycle:</strong> <span class="badge badge-${m.lifecycle}">${m.lifecycle}</span>
-         → Next: <span class="badge badge-${m.next_lifecycle}">${m.next_lifecycle || '—'}</span></p>
+         ▸ Next: <span class="badge badge-${m.next_lifecycle}">${m.next_lifecycle || '—'}</span></p>
       <p><strong>Tier:</strong> ${m.tier} | <strong>Origin:</strong> ${m.origin}</p>
-      <p><strong>Has tests:</strong> ${m.has_tests ? '✅ Yes' : '⛔ No'}</p>
+      <p><strong>Has tests:</strong> ${m.has_tests ? '● Yes' : '◆ No'}</p>
       ${m.dev_notes ? `<p><strong>Notes:</strong> ${escapeHtml(m.dev_notes)}</p>` : ''}
       <h3 style="margin-top:1rem;font-size:0.95rem">Current Stage Checklist (${m.lifecycle})</h3>
       <ul class="checklist">

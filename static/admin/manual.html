@@ -252,11 +252,11 @@
     </aside>
 
     <main class="content" id="content">
-      <h1>📖 Admin Manual</h1>
+      <h1>○ Admin Manual</h1>
       <p class="subtitle">Version 1.0 • Last Updated: 2026-06-16 • For System Administrators</p>
 
       <div class="feature-card">
-        <h3>🎯 Quick Start</h3>
+        <h3>▸ Quick Start</h3>
         <p>This manual provides comprehensive documentation for all Semptify admin features. Use the table of contents on the left to navigate, or search above to find specific topics.</p>
         <p><strong>Key Sections:</strong></p>
         <ul>
@@ -275,7 +275,7 @@
       <p>The Semptify Admin Portal provides system-wide oversight, configuration, and maintenance tools. Access requires admin credentials and 2FA authentication.</p>
 
       <div class="feature-card">
-        <h3>🔐 Access Requirements</h3>
+        <h3>◆ Access Requirements</h3>
         <p><strong>Authentication:</strong> Username + Password + 6-digit TOTP code</p>
         <p><strong>Environment Variables Required:</strong></p>
         <ul>
@@ -303,23 +303,23 @@
       <p><strong>Purpose:</strong> Central hub for system monitoring, user management, and quick access to admin tools.</p>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>1. System Overview Hero</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>1. System Overview Hero</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Displays high-level platform metrics at a glance.</p>
           <p><strong>Metrics shown:</strong> Total users, Active cases, Documents in vaults, Pending signatures, Uptime, Security incidents, Rate limit violations, Blockchain timestamps.</p>
-          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Monitor these metrics daily to detect anomalies. Sudden drops in uptime or spikes in rate limit violations may indicate attacks or system issues.</p></div>
-          <div class="testing-box"><div class="testing-title">🧪 Testing</div><p>No switches to test. Metrics are read-only from database.</p></div>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Metrics not loading:</strong> Check database connection. Verify <code>get_db_session()</code> is working.</li><li><strong>Stale data:</strong> Metrics may cache for up to 5 minutes. Refresh page.</li></ul></div>
+          <div class="how-to-box"><div class="how-to-title">○ How to Use</div><p>Monitor these metrics daily to detect anomalies. Sudden drops in uptime or spikes in rate limit violations may indicate attacks or system issues.</p></div>
+          <div class="testing-box"><div class="testing-title">○ Testing</div><p>No switches to test. Metrics are read-only from database.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Metrics not loading:</strong> Check database connection. Verify <code>get_db_session()</code> is working.</li><li><strong>Stale data:</strong> Metrics may cache for up to 5 minutes. Refresh page.</li></ul></div>
         </div>
       </div>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>2. User Search Widget</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>2. User Search Widget</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Search for users by ID, email, or name. View user details and perform admin actions.</p>
           <p><strong>Admin Actions:</strong> Impersonate (log in as user), Reset Gates (reset onboarding gates), View Vault (view vault summary).</p>
-          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><ol><li>Enter search term in input field</li><li>Click "Search" button</li><li>Click on a user result to view details</li><li>Use action buttons: Impersonate, Reset Gates, View Vault</li></ol></div>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Search returns 403:</strong> Verify admin role is set in cookie. Check <code>_guard_role_page()</code> middleware.</li><li><strong>Impersonate fails:</strong> Check if impersonation endpoint exists at <code>/admin-console/api/users/{user_id}/impersonate</code>.</li></ul></div>
+          <div class="how-to-box"><div class="how-to-title">○ How to Use</div><ol><li>Enter search term in input field</li><li>Click "Search" button</li><li>Click on a user result to view details</li><li>Use action buttons: Impersonate, Reset Gates, View Vault</li></ol></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Search returns 403:</strong> Verify admin role is set in cookie. Check <code>_guard_role_page()</code> middleware.</li><li><strong>Impersonate fails:</strong> Check if impersonation endpoint exists at <code>/admin-console/api/users/{user_id}/impersonate</code>.</li></ul></div>
         </div>
       </div>
 
@@ -328,11 +328,11 @@
       <p><strong>Purpose:</strong> Interactive documentation of all Semptify functions. View function details, inputs, settings, and related pages.</p>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>1. Filter by View</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>1. Filter by View</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Filter functions by page group (Home, Library, Office, Tools, Help).</p>
-          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Click filter buttons to show only functions in that group. Click "All" to show all functions.</p></div>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Filter not working:</strong> Check JavaScript filter logic in <code>function-browser.html</code>.</li></ul></div>
+          <div class="how-to-box"><div class="how-to-title">○ How to Use</div><p>Click filter buttons to show only functions in that group. Click "All" to show all functions.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Filter not working:</strong> Check JavaScript filter logic in <code>function-browser.html</code>.</li></ul></div>
         </div>
       </div>
 
@@ -341,11 +341,11 @@
       <p><strong>Purpose:</strong> View and verify page contracts and module contracts. Check health status and violations.</p>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>1. Health Bar</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>1. Health Bar</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Shows overall contract health status (pass/fail) and summary statistics.</p>
-          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Monitor overall system health. Green = all contracts healthy. Red = violations detected.</p></div>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Health not loading:</strong> Check if health endpoint exists at <code>/api/workflow/health</code>.</li><li><strong>Always failing:</strong> Review contract violations. Fix underlying issues.</li></ul></div>
+          <div class="how-to-box"><div class="how-to-title">○ How to Use</div><p>Monitor overall system health. Green = all contracts healthy. Red = violations detected.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Health not loading:</strong> Check if health endpoint exists at <code>/api/workflow/health</code>.</li><li><strong>Always failing:</strong> Review contract violations. Fix underlying issues.</li></ul></div>
         </div>
       </div>
 
@@ -354,11 +354,11 @@
       <p><strong>Purpose:</strong> Edit static HTML files and Jinja2 templates directly in the browser with live preview.</p>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>1. Save File</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>1. Save File</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Save current file changes to the server.</p>
-          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Click Save button or press Ctrl+S. Status bar shows "Saved [filename]" on success.</p></div>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Save failing:</strong> Check if save endpoint exists at <code>/api/editor/save</code>.</li><li><strong>Permission error:</strong> Check file system permissions for the target file.</li></ul></div>
+          <div class="how-to-box"><div class="how-to-title">○ How to Use</div><p>Click Save button or press Ctrl+S. Status bar shows "Saved [filename]" on success.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Save failing:</strong> Check if save endpoint exists at <code>/api/editor/save</code>.</li><li><strong>Permission error:</strong> Check file system permissions for the target file.</li></ul></div>
         </div>
       </div>
 
@@ -367,11 +367,11 @@
       <p><strong>Purpose:</strong> Run automated verification tests for contracts, routes, SSOT compliance, footer consistency, and security.</p>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>1. Run Tests Button</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>1. Run Tests Button</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Run all automated tests in sequence and display results.</p>
-          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Click "Run Tests" button. Wait for all tests to complete. Review results panel.</p></div>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Tests not running:</strong> Check JavaScript test execution logic.</li><li><strong>Tests hanging:</strong> Check if any test has infinite loop or timeout.</li></ul></div>
+          <div class="how-to-box"><div class="how-to-title">○ How to Use</div><p>Click "Run Tests" button. Wait for all tests to complete. Review results panel.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Tests not running:</strong> Check JavaScript test execution logic.</li><li><strong>Tests hanging:</strong> Check if any test has infinite loop or timeout.</li></ul></div>
         </div>
       </div>
 
@@ -379,7 +379,7 @@
       <p><strong>Purpose:</strong> Automated issue detection and resolution system that fixes problems without deleting data or functionality.</p>
 
       <div class="feature-card">
-        <h3>🎯 Design Principles</h3>
+        <h3>▸ Design Principles</h3>
         <ol>
           <li><strong>Never Delete:</strong> The bot never deletes data, files, or configurations. It only fixes, adds, or modifies.</li>
           <li><strong>Root Cause First:</strong> Always identify and fix the root cause, not symptoms.</li>
@@ -390,18 +390,18 @@
       </div>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>1. Automated Health Checks</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>1. Automated Health Checks</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>What it does:</strong> Continuously monitors system health and detects issues.</p>
           <p><strong>Checks performed:</strong> Database connection, Storage provider connectivity, API endpoint availability, SSL certificate validity, Disk space, Memory usage, Error rate monitoring.</p>
-          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Bot not detecting issues:</strong> Check health check logic. Verify monitoring endpoints.</li><li><strong>Alerts not sending:</strong> Check notification configuration.</li></ul></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">▸ Troubleshooting</div><ul><li><strong>Bot not detecting issues:</strong> Check health check logic. Verify monitoring endpoints.</li><li><strong>Alerts not sending:</strong> Check notification configuration.</li></ul></div>
         </div>
       </div>
 
       <h2 id="troubleshooting-guide">Troubleshooting Guide</h2>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>Issue: Admin Login Fails with 401 Unauthorized</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>Issue: Admin Login Fails with 401 Unauthorized</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>Symptoms:</strong> Admin login returns 401 error, TOTP code always rejected, "Invalid credentials" message.</p>
           <p><strong>Root Causes:</strong> <code>ADMIN_PASSWORD</code> not set, <code>ADMIN_TOTP_SECRET</code> not set, Clock drift, Wrong TOTP code.</p>
@@ -410,7 +410,7 @@
       </div>
 
       <div class="collapsible" onclick="toggleCollapsible(this)">
-        <div class="collapsible-header"><span>Issue: Dashboard Metrics Not Loading</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-header"><span>Issue: Dashboard Metrics Not Loading</span><span class="collapsible-arrow">▸</span></div>
         <div class="collapsible-content">
           <p><strong>Symptoms:</strong> Dashboard shows "Loading..." indefinitely, Metrics display as zero, Console shows 500 errors.</p>
           <p><strong>Root Causes:</strong> Database connection failed, Metrics query timed out, Missing database tables, Insufficient permissions.</p>
@@ -421,13 +421,13 @@
       <h2 id="issue-reporting">Issue Reporting</h2>
 
       <div class="feature-card">
-        <h3>📝 How to Report Issues</h3>
+        <h3>● How to Report Issues</h3>
         <p><strong>GitHub Issues (Recommended):</strong> <a href="https://github.com/1semptify-arch/Semptify/issues" target="_blank" style="color: var(--accent2);">https://github.com/1semptify-arch/Semptify/issues</a></p>
         <p><strong>Email:</strong> <a href="mailto:admin@semptify.org" style="color: var(--accent2);">admin@semptify.org</a></p>
       </div>
 
       <div class="feature-card">
-        <h3>⚡ Severity Levels</h3>
+        <h3>◆ Severity Levels</h3>
         <ul>
           <li><strong>Critical:</strong> System down, data loss, security breach (Within 1 hour)</li>
           <li><strong>High:</strong> Major feature broken, significant impact (Within 4 hours)</li>
@@ -443,7 +443,7 @@
     </main>
   </div>
 
-  <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
+  <button class="back-to-top" id="backToTop" onclick="scrollToTop()">▸</button>
 
   <script>
     function generateTOC() {

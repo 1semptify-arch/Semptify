@@ -351,7 +351,7 @@ class AutoModeSummaryService:
         if summary.missteps_count > 0:
             urgent.append({
                 'action': 'address_missteps',
-                'message': f'⚠️ {summary.missteps_count} legal procedural violation(s) detected',
+                'message': f'◆ {summary.missteps_count} legal procedural violation(s) detected',
                 'severity': 'critical',
                 'deadline': 'Immediate'
             })
@@ -363,7 +363,7 @@ class AutoModeSummaryService:
         if urgent_deadlines:
             urgent.append({
                 'action': 'review_deadlines',
-                'message': f'⏰ {len(urgent_deadlines)} critical deadline(s)',
+                'message': f'◆ {len(urgent_deadlines)} critical deadline(s)',
                 'severity': 'critical',
                 'deadline': 'Within 24 hours'
             })
@@ -372,7 +372,7 @@ class AutoModeSummaryService:
         if summary.complaints_identified > 0:
             urgent.append({
                 'action': 'file_complaints',
-                'message': f'📋 {summary.complaints_identified} complaint(s) ready to file',
+                'message': f'● {summary.complaints_identified} complaint(s) ready to file',
                 'severity': 'high',
                 'deadline': 'Within 3 days'
             })
@@ -390,7 +390,7 @@ class AutoModeSummaryService:
         steps.append("1. Review the automatically extracted timeline and calendar for accuracy")
         
         if summary.missteps_count > 0:
-            steps.append("2. ⚠️ ADDRESS MISSTEPS IMMEDIATELY - Review legal procedural violations")
+            steps.append("2. ◆ ADDRESS MISSTEPS IMMEDIATELY - Review legal procedural violations")
         else:
             steps.append("2. Review your legal rights and protections identified in the analysis")
 

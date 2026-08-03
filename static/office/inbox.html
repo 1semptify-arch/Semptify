@@ -107,17 +107,17 @@
       <strong style="color:#fff;">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
-    <a href="/home.html">🏠 Home</a>
-    <a href="/library.html">📚 Library</a>
-    <a href="/office.html">🏢 Office</a>
-    <a href="/tools.html">🔧 Tools</a>
+    <a href="/home.html">○ Home</a>
+    <a href="/library.html">○ Library</a>
+    <a href="/office.html">○ Office</a>
+    <a href="/tools.html">▸ Tools</a>
     <a href="/help.html">🆘 Help</a>
     <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
-    <a href="/office/vault.html">🔒 Vault</a>
-    <a href="/office/inbox.html" style="color:#f59e0b;font-weight:700;">📨 Inbox</a>
-    <a href="/office/timeline.html">📅 Timeline</a>
-    <a href="/office/delivery.html">📬 Delivery</a>
-    <a href="/office/signer.html">✍️ Signer</a>
+    <a href="/office/vault.html">◆ Vault</a>
+    <a href="/office/inbox.html" style="color:#f59e0b;font-weight:700;">● Inbox</a>
+    <a href="/office/timeline.html">◆ Timeline</a>
+    <a href="/office/delivery.html">● Delivery</a>
+    <a href="/office/signer.html">▸ Signer</a>
   </nav>
 
   <header>
@@ -125,15 +125,15 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/home.html" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/home.html">🏠 Home</a>
-        <a href="/library.html">📚 Library</a>
-        <a href="/office.html" class="active">🏢 Office</a>
-        <a href="/tools.html">🔧 Tools</a>
+        <a href="/home.html">○ Home</a>
+        <a href="/library.html">○ Library</a>
+        <a href="/office.html" class="active">○ Office</a>
+        <a href="/tools.html">▸ Tools</a>
         <a href="/help.html">🆘 Help</a>
       </nav>
       <div class="header-actions">
-        <button class="vault-btn" onclick="openVaultUpload ? openVaultUpload() : null">🔒 Vault</button>
-        <button class="user-btn">👤 User</button>
+        <button class="vault-btn" onclick="openVaultUpload ? openVaultUpload() : null">◆ Vault</button>
+        <button class="user-btn">● User</button>
       </div>
     </div>
   </header>
@@ -151,20 +151,20 @@
     <nav class="inbox-nav" aria-label="Inbox folders">
       <div class="inbox-nav-title">Folders</div>
       <a href="#" class="inbox-nav-item active" onclick="switchFolder(event,'inbox')">
-        📥 Inbox <span class="inbox-badge">2</span>
+        ● Inbox <span class="inbox-badge">2</span>
       </a>
       <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'pending')">
-        ⏳ Pending Action <span class="inbox-badge" style="background:#f59e0b;">1</span>
+        ◆ Pending Action <span class="inbox-badge" style="background:#f59e0b;">1</span>
       </a>
-      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'sent')">📤 Sent</a>
-      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'archived')">🗄 Archived</a>
+      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'sent')">● Sent</a>
+      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'archived')">● Archived</a>
 
       <hr class="inbox-nav-divider">
       <div class="inbox-nav-title">Office</div>
-      <a href="/office/vault.html" class="inbox-nav-item">🔒 Vault</a>
-      <a href="/office/timeline.html" class="inbox-nav-item">📅 Timeline</a>
-      <a href="/office/delivery.html" class="inbox-nav-item">📬 Delivery</a>
-      <a href="/office/signer.html" class="inbox-nav-item">✍️ Signer</a>
+      <a href="/office/vault.html" class="inbox-nav-item">◆ Vault</a>
+      <a href="/office/timeline.html" class="inbox-nav-item">◆ Timeline</a>
+      <a href="/office/delivery.html" class="inbox-nav-item">● Delivery</a>
+      <a href="/office/signer.html" class="inbox-nav-item">▸ Signer</a>
     </nav>
 
     <!-- MESSAGE PANE -->
@@ -177,7 +177,7 @@
 
         <!-- UNREAD: SIGNATURE REQUIRED -->
         <div class="msg-item unread" data-folder="inbox" data-id="1" onclick="openMessage(1)">
-          <div class="msg-avatar avatar-legal">⚖</div>
+          <div class="msg-avatar avatar-legal">▸</div>
           <div class="msg-content">
             <div class="msg-from">Legal Aid Society</div>
             <div class="msg-subject">Settlement Agreement — Signature Required</div>
@@ -185,13 +185,13 @@
           </div>
           <div class="msg-meta">
             <span class="msg-time">Today 9:14am</span>
-            <span class="msg-type-badge badge-signature">✍️ Signature</span>
+            <span class="msg-type-badge badge-signature">▸ Signature</span>
           </div>
         </div>
 
         <!-- UNREAD: REVIEW -->
         <div class="msg-item unread" data-folder="inbox" data-id="2" onclick="openMessage(2)">
-          <div class="msg-avatar avatar-advocate">🌿</div>
+          <div class="msg-avatar avatar-advocate">○</div>
           <div class="msg-content">
             <div class="msg-from">Maria Gonzalez — Housing Advocate</div>
             <div class="msg-subject">Review: Repair Request Response from Landlord</div>
@@ -199,13 +199,13 @@
           </div>
           <div class="msg-meta">
             <span class="msg-time">Yesterday</span>
-            <span class="msg-type-badge badge-review">👁 Review</span>
+            <span class="msg-type-badge badge-review">● Review</span>
           </div>
         </div>
 
         <!-- READ: MESSAGE -->
         <div class="msg-item" data-folder="inbox" data-id="3" onclick="openMessage(3)">
-          <div class="msg-avatar avatar-advocate">🌿</div>
+          <div class="msg-avatar avatar-advocate">○</div>
           <div class="msg-content">
             <div class="msg-from">Maria Gonzalez — Housing Advocate</div>
             <div class="msg-subject">Next steps for your case</div>
@@ -213,13 +213,13 @@
           </div>
           <div class="msg-meta">
             <span class="msg-time">Apr 18</span>
-            <span class="msg-type-badge badge-message">💬 Message</span>
+            <span class="msg-type-badge badge-message">○ Message</span>
           </div>
         </div>
 
         <!-- READ: SYSTEM -->
         <div class="msg-item" data-folder="inbox" data-id="4" onclick="openMessage(4)">
-          <div class="msg-avatar avatar-system">⚙</div>
+          <div class="msg-avatar avatar-system">▸</div>
           <div class="msg-content">
             <div class="msg-from">Semptify System</div>
             <div class="msg-subject">Your vault document was timestamped</div>
@@ -227,13 +227,13 @@
           </div>
           <div class="msg-meta">
             <span class="msg-time">Apr 19</span>
-            <span class="msg-type-badge badge-system">🔔 System</span>
+            <span class="msg-type-badge badge-system">◆ System</span>
           </div>
         </div>
 
         <!-- PENDING ACTION -->
         <div class="msg-item" data-folder="pending" data-id="5" style="display:none;" onclick="openMessage(5)">
-          <div class="msg-avatar avatar-delivery">📬</div>
+          <div class="msg-avatar avatar-delivery">●</div>
           <div class="msg-content">
             <div class="msg-from">Manager · Harborview Properties</div>
             <div class="msg-subject">Lease Renewal Notice — Action Required</div>
@@ -241,7 +241,7 @@
           </div>
           <div class="msg-meta">
             <span class="msg-time">Apr 15</span>
-            <span class="msg-type-badge badge-review">⏳ Pending</span>
+            <span class="msg-type-badge badge-review">◆ Pending</span>
           </div>
         </div>
 
@@ -282,14 +282,14 @@
         updateBadgeCounts();
       } catch (e) {
         console.error('Inbox load failed:', e);
-        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">⚠️</div><strong>Could not load inbox</strong><p>${e.message}</p><button onclick="loadInbox()" style="margin-top:1rem;padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;">Retry</button></div>`;
+        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">◆</div><strong>Could not load inbox</strong><p>${e.message}</p><button onclick="loadInbox()" style="margin-top:1rem;padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;">Retry</button></div>`;
       }
     }
 
     function renderInbox() {
       const list = document.getElementById('msg-list');
       if (!currentDeliveries.length) {
-        list.innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">📭</div><strong>No messages</strong><p>Your inbox is empty.</p></div>`;
+        list.innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">○</div><strong>No messages</strong><p>Your inbox is empty.</p></div>`;
         return;
       }
 
@@ -310,12 +310,12 @@
     }
 
     function getAvatarIcon(role) {
-      const icons = { legal: '⚖', advocate: '🌿', manager: '🏢', admin: '⚙', system: '⚙', tenant: '🏠' };
-      return icons[role] || '👤';
+      const icons = { legal: '▸', advocate: '○', manager: '○', admin: '▸', system: '▸', tenant: '○' };
+      return icons[role] || '●';
     }
 
     function getTypeLabel(type) {
-      const labels = { signature: '✍️ Signature', review: '👁 Review', message: '💬 Message', system: '🔔 System', pending: '⏳ Pending' };
+      const labels = { signature: '▸ Signature', review: '● Review', message: '○ Message', system: '◆ System', pending: '◆ Pending' };
       return labels[type] || type;
     }
 
@@ -360,12 +360,12 @@
       }
 
       const actionMap = {
-        sign: `<button class="msg-action primary" onclick="signDelivery('${id}')">✍️ Sign Document</button>`,
+        sign: `<button class="msg-action primary" onclick="signDelivery('${id}')">▸ Sign Document</button>`,
         reject: `<button class="msg-action danger" onclick="rejectDelivery('${id}')">✕ Reject</button>`,
-        acknowledge: `<button class="msg-action primary" onclick="acknowledgeDelivery('${id}')">✓ Acknowledge</button>`,
-        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
-        reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">↩ Reply</button>`,
-        message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">💬 Message Advocate</button>`
+        acknowledge: `<button class="msg-action primary" onclick="acknowledgeDelivery('${id}')">● Acknowledge</button>`,
+        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">◆ Save to Vault</a>`,
+        reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">▸ Reply</button>`,
+        message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">○ Message Advocate</button>`
       };
 
       const notice = d.requires_action ? `<div class="delivery-notice"><strong>${getTypeLabel(d.delivery_type)} Required</strong>${d.notice_text || 'Action required by deadline.'} Uploader: ${escapeHtml(d.sender_name)} · Sent ${formatTime(d.sent_at)}</div><br>` : '';
@@ -469,7 +469,7 @@
         from: 'Legal Aid Society',
         time: 'Today at 9:14am',
         type: 'signature',
-        body: `<div class="delivery-notice"><strong>✍️ Signature Required</strong>This document requires your signature. You must sign or reject it by <strong>April 25, 2025</strong>. Uploader: Legal Aid Society · Timestamped Apr 21, 2025.</div><br><p>Please review the attached settlement agreement carefully. This document outlines the terms negotiated on your behalf with your landlord.</p><br><p>Key points:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Landlord agrees to complete repairs within 30 days</li><li>No eviction proceedings for 90 days</li><li>Back rent reduced by $450</li></ul><br><p>If you have questions, contact your advocate before signing.</p>`,
+        body: `<div class="delivery-notice"><strong>▸ Signature Required</strong>This document requires your signature. You must sign or reject it by <strong>April 25, 2025</strong>. Uploader: Legal Aid Society · Timestamped Apr 21, 2025.</div><br><p>Please review the attached settlement agreement carefully. This document outlines the terms negotiated on your behalf with your landlord.</p><br><p>Key points:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Landlord agrees to complete repairs within 30 days</li><li>No eviction proceedings for 90 days</li><li>Back rent reduced by $450</li></ul><br><p>If you have questions, contact your advocate before signing.</p>`,
         actions: ['sign','reject','vault','message']
       },
       2: {
@@ -477,7 +477,7 @@
         from: 'Maria Gonzalez — Housing Advocate',
         time: 'Yesterday at 2:31pm',
         type: 'review',
-        body: `<div class="delivery-notice"><strong>👁 Review Required</strong>Your advocate has sent you a document to review. No signature required. Uploader: Maria Gonzalez · Timestamped Apr 20, 2025.</div><br><p>Your landlord has responded to the repair request letter we sent on January 14th. They are disputing the mold issue and claim it was caused by tenant negligence.</p><br><p>Please review the attached response and let me know:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Is their account accurate?</li><li>Do you have photos from before you moved in?</li><li>Did they enter your unit to inspect?</li></ul>`,
+        body: `<div class="delivery-notice"><strong>● Review Required</strong>Your advocate has sent you a document to review. No signature required. Uploader: Maria Gonzalez · Timestamped Apr 20, 2025.</div><br><p>Your landlord has responded to the repair request letter we sent on January 14th. They are disputing the mold issue and claim it was caused by tenant negligence.</p><br><p>Please review the attached response and let me know:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Is their account accurate?</li><li>Do you have photos from before you moved in?</li><li>Did they enter your unit to inspect?</li></ul>`,
         actions: ['acknowledge','vault','reply']
       },
       3: {
@@ -501,7 +501,7 @@
         from: 'Harborview Properties',
         time: 'April 15 at 10:00am',
         type: 'pending',
-        body: `<div class="delivery-notice"><strong>⏳ Action Required by May 15, 2025</strong>Sent by: Harborview Properties (Manager role) · You must respond before the deadline.</div><br><p>Your current lease expires on <strong>June 30, 2025</strong>. Please indicate your intent to renew or vacate by May 15, 2025.</p><br><p>Options:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Renew at current rate + 3% increase</li><li>Month-to-month after June 30 (requires 60-day notice)</li><li>Vacate by June 30</li></ul>`,
+        body: `<div class="delivery-notice"><strong>◆ Action Required by May 15, 2025</strong>Sent by: Harborview Properties (Manager role) · You must respond before the deadline.</div><br><p>Your current lease expires on <strong>June 30, 2025</strong>. Please indicate your intent to renew or vacate by May 15, 2025.</p><br><p>Options:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Renew at current rate + 3% increase</li><li>Month-to-month after June 30 (requires 60-day notice)</li><li>Vacate by June 30</li></ul>`,
         actions: ['acknowledge','vault','reply']
       }
     };
@@ -522,12 +522,12 @@
       if (!m) return;
 
       const actionMap = {
-        sign: `<button class="msg-action primary" onclick="SemptifyFeedback.info('Signature flow — coming soon')">✍️ Sign Document</button>`,
+        sign: `<button class="msg-action primary" onclick="SemptifyFeedback.info('Signature flow — coming soon')">▸ Sign Document</button>`,
         reject: `<button class="msg-action danger" onclick="SemptifyFeedback.info('Rejection recorded')">✕ Reject</button>`,
-        acknowledge: `<button class="msg-action primary" onclick="SemptifyFeedback.success('Acknowledged.')">✓ Acknowledge</button>`,
-        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
-        reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">↩ Reply</button>`,
-        message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">💬 Message Advocate</button>`
+        acknowledge: `<button class="msg-action primary" onclick="SemptifyFeedback.success('Acknowledged.')">● Acknowledge</button>`,
+        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">◆ Save to Vault</a>`,
+        reply: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Reply — coming soon')">▸ Reply</button>`,
+        message: `<button class="msg-action secondary" onclick="SemptifyFeedback.info('Message advocate')">○ Message Advocate</button>`
       };
 
       const viewer = document.getElementById('msg-viewer');
@@ -556,7 +556,7 @@
         el.style.display = el.dataset.folder === folder ? '' : 'none';
       });
       if (folder === 'sent' || folder === 'archived') {
-        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">📭</div><strong>No messages here</strong><p>This folder is empty.</p></div>`;
+        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">○</div><strong>No messages here</strong><p>This folder is empty.</p></div>`;
       }
     }
 
@@ -572,7 +572,7 @@
   <div style="max-width: 1200px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
-        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">⚖️ Semptify</div>
+        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">▸ Semptify</div>
         <p style="font-size: 0.85rem; opacity: 0.8; line-height: 1.5; margin: 0;">
           The Tenant's Journal. Helping renters document their tenancy, understand rights AND responsibilities, and stay organized.
         </p>

@@ -47,7 +47,7 @@ briefcase_data = {
         },
         "extracted": {
             "id": "extracted",
-            "name": "📄 Extracted Pages",
+            "name": "● Extracted Pages",
             "parent_id": "root",
             "created_at": utc_now().isoformat(),
             "color": "#f59e0b",
@@ -56,7 +56,7 @@ briefcase_data = {
         },
         "highlights": {
             "id": "highlights",
-            "name": "🖍️ Highlights & Notes",
+            "name": "▸ Highlights & Notes",
             "parent_id": "root",
             "created_at": utc_now().isoformat(),
             "color": "#ec4899",
@@ -65,7 +65,7 @@ briefcase_data = {
         },
         "evidence": {
             "id": "evidence",
-            "name": "📸 Evidence",
+            "name": "● Evidence",
             "parent_id": "root",
             "created_at": utc_now().isoformat(),
             "color": "#ef4444",
@@ -74,7 +74,7 @@ briefcase_data = {
         },
         "converted": {
             "id": "converted",
-            "name": "📄 Converted Documents",
+            "name": "● Converted Documents",
             "parent_id": "root",
             "created_at": utc_now().isoformat(),
             "color": "#22c55e",
@@ -83,7 +83,7 @@ briefcase_data = {
         },
         "court_packets": {
             "id": "court_packets",
-            "name": "⚖️ Court Packets",
+            "name": "▸ Court Packets",
             "parent_id": "root",
             "created_at": utc_now().isoformat(),
             "color": "#3b82f6",
@@ -358,7 +358,7 @@ async def upload_document(
             )
             vault_id = vault_doc.vault_id
             vault_path = vault_doc.storage_path
-            logger.info(f"📁 Document stored in vault: {vault_id}")
+            logger.info(f"● Document stored in vault: {vault_id}")
         except Exception as e:
             logger.warning(f"Vault upload failed: {e}")
     
@@ -1239,20 +1239,20 @@ async def reset_annotation_counters(document_id: Optional[str] = Form(None)):
 async def get_extraction_codes():
     """Get the complete list of extraction codes with colors and icons."""
     codes = {
-        "DT": {"name": "Dates & Deadlines", "color": "#fbbf24", "icon": "📅", "category": "date"},
-        "PT": {"name": "Parties & Names", "color": "#3b82f6", "icon": "👤", "category": "party"},
-        "$": {"name": "Money & Amounts", "color": "#10b981", "icon": "💰", "category": "amount"},
-        "AD": {"name": "Addresses & Locations", "color": "#8b5cf6", "icon": "📍", "category": "address"},
-        "LG": {"name": "Legal Terms & Citations", "color": "#ef4444", "icon": "⚖️", "category": "legal"},
-        "NT": {"name": "Notes & Footnotes", "color": "#f97316", "icon": "📝", "category": "note"},
-        "FM": {"name": "Form Field Data", "color": "#ec4899", "icon": "📋", "category": "form"},
-        "EV": {"name": "Events & Actions", "color": "#06b6d4", "icon": "📆", "category": "event"},
-        "DL": {"name": "Critical Deadline", "color": "#dc2626", "icon": "🚨", "category": "deadline"},
-        "WS": {"name": "Witness/Testimony", "color": "#84cc16", "icon": "👁️", "category": "witness"},
-        "VL": {"name": "Violation/Issue", "color": "#f43f5e", "icon": "⚠️", "category": "violation"},
-        "ED": {"name": "Evidence Markers", "color": "#14b8a6", "icon": "🔍", "category": "evidence"},
-        "QT": {"name": "Quoted Text", "color": "#a855f7", "icon": "💬", "category": "quote"},
-        "TL": {"name": "Timeline Key Dates", "color": "#0ea5e9", "icon": "🕐", "category": "timeline"}
+        "DT": {"name": "Dates & Deadlines", "color": "#fbbf24", "icon": "◆", "category": "date"},
+        "PT": {"name": "Parties & Names", "color": "#3b82f6", "icon": "●", "category": "party"},
+        "$": {"name": "Money & Amounts", "color": "#10b981", "icon": "●", "category": "amount"},
+        "AD": {"name": "Addresses & Locations", "color": "#8b5cf6", "icon": "○", "category": "address"},
+        "LG": {"name": "Legal Terms & Citations", "color": "#ef4444", "icon": "▸", "category": "legal"},
+        "NT": {"name": "Notes & Footnotes", "color": "#f97316", "icon": "●", "category": "note"},
+        "FM": {"name": "Form Field Data", "color": "#ec4899", "icon": "●", "category": "form"},
+        "EV": {"name": "Events & Actions", "color": "#06b6d4", "icon": "◆", "category": "event"},
+        "DL": {"name": "Critical Deadline", "color": "#dc2626", "icon": "◆", "category": "deadline"},
+        "WS": {"name": "Witness/Testimony", "color": "#84cc16", "icon": "●", "category": "witness"},
+        "VL": {"name": "Violation/Issue", "color": "#f43f5e", "icon": "◆", "category": "violation"},
+        "ED": {"name": "Evidence Markers", "color": "#14b8a6", "icon": "▸", "category": "evidence"},
+        "QT": {"name": "Quoted Text", "color": "#a855f7", "icon": "○", "category": "quote"},
+        "TL": {"name": "Timeline Key Dates", "color": "#0ea5e9", "icon": "◆", "category": "timeline"}
     }
     return {"codes": codes}
 

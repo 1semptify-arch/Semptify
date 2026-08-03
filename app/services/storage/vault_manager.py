@@ -1,7 +1,7 @@
 """
 Semptify 5.0 - Vault Manager (DEPRECATED)
 
-⚠️ DEPRECATED: This module is being replaced by the Vault SDK + Vault Installer architecture.
+◆ DEPRECATED: This module is being replaced by the Vault SDK + Vault Installer architecture.
 New architecture:
 - Vault SDK (app/sdk/vault/): Isolated storage operations
 - Vault Installer (app/modules/vault_installer/): Orchestrates vault creation
@@ -98,8 +98,8 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
     provider_names = {"google_drive": "Google Drive", "dropbox": "Dropbox", "onedrive": "OneDrive"}
     provider_display = provider_names.get(provider, provider)
 
-    provider_icons = {"google_drive": "🔷", "dropbox": "📦", "onedrive": "☁️"}
-    provider_icon = provider_icons.get(provider, "📁")
+    provider_icons = {"google_drive": "◆", "dropbox": "●", "onedrive": "○"}
+    provider_icon = provider_icons.get(provider, "●")
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -211,7 +211,7 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
 </head>
 <body>
     <div class="container">
-        <div class="logo">🏠</div>
+        <div class="logo">○</div>
         <h1>Welcome Back</h1>
         <p class="subtitle">Reconnect this device to your Semptify account</p>
 
@@ -222,23 +222,23 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
             </div>
             <div class="info-row">
                 <span class="info-label">Account Type</span>
-                <span class="info-value" style="text-transform: capitalize;">🏷️ {role or 'User'}</span>
+                <span class="info-value" style="text-transform: capitalize;">● {role or 'User'}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Account ID</span>
-                <span class="info-value" style="font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem;">🔑 {user_id}</span>
+                <span class="info-value" style="font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem;">◆ {user_id}</span>
             </div>
         </div>
 
         <!-- Direct link: works from file:// without any JS fetch restrictions -->
         <a href="{base_url}/storage/rehome/{user_id}" class="btn btn-primary" id="rehomeBtn">
-            <span>🔗</span> Connect This Device
+            <span>▸</span> Connect This Device
         </a>
 
         <div class="status" id="status"></div>
 
         <div class="security-note">
-            <strong>🔒 Secure Connection</strong>
+            <strong>◆ Secure Connection</strong>
             Your data stays encrypted in your {provider_display}.
             Semptify never stores your files on external servers.
         </div>
@@ -301,10 +301,10 @@ FOLDER STRUCTURE — READ BEFORE DELETING ANYTHING
 
 Semptify5.0/
 │
-├── VAULT_MANIFEST.txt        ← THIS FILE
+├── VAULT_MANIFEST.txt        ▸ THIS FILE
 │       The first document written to your vault.
 │       Its presence proves your vault is active.
-│       ⛔ DO NOT DELETE. There is no way to recover your vault
+│       ◆ DO NOT DELETE. There is no way to recover your vault
 │       setup without this file intact.
 │
 ├── README.txt
@@ -315,12 +315,12 @@ Semptify5.0/
 │       Open this file in any browser to reconnect Semptify
 │       on a new device or after clearing your browser.
 │       It contains no sensitive data — only reconnection logic.
-│       ⛔ DO NOT DELETE. If lost, reconnection requires full
+│       ◆ DO NOT DELETE. If lost, reconnection requires full
 │       re-authentication and vault re-verification.
 │
 ├── .auth/                    (may be hidden by your cloud provider)
 │   │   This folder contains your encrypted authentication files.
-│   │   ⛔ DO NOT DELETE THIS FOLDER OR ANY FILE INSIDE IT.
+│   │   ◆ DO NOT DELETE THIS FOLDER OR ANY FILE INSIDE IT.
 │   │   Deleting any auth file permanently breaks your vault.
 │   │   There is no server-side backup Semptify can restore from.
 │   │
@@ -329,12 +329,12 @@ Semptify5.0/
 │   │       proves your identity. It is encrypted with a key
 │   │       derived from your unique user ID — only your active
 │   │       Semptify session can decrypt it.
-│   │       ⛔ DO NOT DELETE OR MODIFY.
+│   │       ◆ DO NOT DELETE OR MODIFY.
 │   │
 │   ├── token.enc.backup
 │   │       Backup copy of your master token. Used automatically
 │   │       if the primary token file becomes unreadable.
-│   │       ⛔ DO NOT DELETE OR MODIFY.
+│   │       ◆ DO NOT DELETE OR MODIFY.
 │   │
 │   ├── device_keys.json
 │   │       List of devices authorized to access your vault.
@@ -403,28 +403,28 @@ def generate_readme() -> str:
 ║              Your Legal Defense Vault                         ║
 ╚══════════════════════════════════════════════════════════════╝
 
-⚠️  IMPORTANT: DO NOT DELETE THIS FOLDER
+◆  IMPORTANT: DO NOT DELETE THIS FOLDER
 
 This folder contains your encrypted legal documents and
 authentication data for Semptify.
 
-📁 FOLDER CONTENTS:
+● FOLDER CONTENTS:
    • Vault/      - Your encrypted documents
    • Rehome.html - Click to reconnect on new devices
    • .auth/      - Authentication (hidden, do not modify)
 
-🔒 SECURITY:
+◆ SECURITY:
    • All files are encrypted with your personal key
    • Your data never leaves your cloud storage
    • Only you can decrypt your documents
 
-🔄 RECONNECTING:
+▸ RECONNECTING:
    If you need to use Semptify on a new device or browser:
    1. Open this folder in your cloud storage
    2. Click on "Rehome.html"
    3. You'll be automatically reconnected
 
-📞 SUPPORT:
+● SUPPORT:
    Visit: https://semptify.org/help
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

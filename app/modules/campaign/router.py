@@ -238,7 +238,7 @@ async def launch_campaign(
     # Store campaign
     _campaigns[campaign_id] = results
     
-    logger.info(f"🚀 Campaign launched: {campaign_id} by user {user_id}")
+    logger.info(f"▸ Campaign launched: {campaign_id} by user {user_id}")
     return results
 
 @router.get("/status/{campaign_id}")

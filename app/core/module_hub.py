@@ -3,7 +3,7 @@ Module Hub - Bidirectional Communication System for All Modules
 ==============================================================
 
 This is the CENTRAL NERVOUS SYSTEM that connects all modules:
-- Document Intake → Creates Info Packs → Routes to appropriate modules
+- Document Intake ▸ Creates Info Packs ▸ Routes to appropriate modules
 - Modules can REQUEST data from the hub
 - Modules can SEND updates back to the hub
 - All communication is logged and traceable
@@ -12,9 +12,9 @@ Architecture:
 ┌─────────────────────────────────────────────────────────────────┐
 │                         MODULE HUB                               │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │  Info Packs  │ ←→ │  Data Store  │ ←→ │  Event Bus   │      │
+│  │  Info Packs  │ ▸▸ │  Data Store  │ ▸▸ │  Event Bus   │      │
 │  └──────────────┘    └──────────────┘    └──────────────┘      │
-│         ↓                   ↕                   ↓               │
+│         ▸                   ▸                   ▸               │
 │  ┌──────────────────────────────────────────────────────┐      │
 │  │                 MODULE REGISTRY                       │      │
 │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐    │      │
@@ -411,7 +411,7 @@ class ModuleHub:
         # Communication log (bounded)
         self._comm_log: deque = deque(maxlen=1000)
         
-        logger.info("🔄 Module Hub initialized")
+        logger.info("▸ Module Hub initialized")
     
     # =========================================================================
     # MODULE REGISTRATION
@@ -480,7 +480,7 @@ class ModuleHub:
 
         self._modules[module_type] = module
         self._log_comm("register", module_type.value, {"name": name})
-        logger.info(f"📦 Module registered: {name} ({module_type.value})")
+        logger.info(f"● Module registered: {name} ({module_type.value})")
         return module
     
     def get_module(self, module_type: ModuleType) -> Optional[RegisteredModule]:
@@ -559,7 +559,7 @@ class ModuleHub:
         )
         
         logger.info(
-            f"📨 Document routed: {doc_category.value} → "
+            f"● Document routed: {doc_category.value} ▸ "
             f"{routing['target_module'].value} (pack: {pack.id})"
         )
         
@@ -667,7 +667,7 @@ class ModuleHub:
         )
     
     # =========================================================================
-    # DATA REQUESTS (Module → Hub)
+    # DATA REQUESTS (Module ▸ Hub)
     # =========================================================================
     
     async def request_data(
@@ -871,7 +871,7 @@ class ModuleHub:
             return {"error": str(e)}
     
     # =========================================================================
-    # MODULE UPDATES (Module → Hub → Other Modules)
+    # MODULE UPDATES (Module ▸ Hub ▸ Other Modules)
     # =========================================================================
     
     async def send_update(
@@ -1027,7 +1027,7 @@ class ModuleHub:
         # Notify target module
         await self._send_pack_to_module(pack)
         
-        logger.info(f"✅ Info pack completed: {pack_id}")
+        logger.info(f"● Info pack completed: {pack_id}")
         
         return pack
     

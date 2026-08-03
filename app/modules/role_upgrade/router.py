@@ -180,7 +180,7 @@ async def request_role_upgrade(
             status="verified",
             role=requested_role.value,
             method=verification.method.value,
-            message=f"✅ Role upgrade approved! You now have {requested_role.value} access.",
+            message=f"● Role upgrade approved! You now have {requested_role.value} access.",
             next_steps="Refresh the page to access your new dashboard."
         )
     
@@ -190,7 +190,7 @@ async def request_role_upgrade(
             status="pending",
             role=requested_role.value,
             method=verification.method.value,
-            message="⏳ Your request is pending manual review.",
+            message="◆ Your request is pending manual review.",
             next_steps=(
                 "An administrator will review your request within 1-2 business days. "
                 "You'll receive an email when approved."
@@ -203,7 +203,7 @@ async def request_role_upgrade(
             status="rejected",
             role=requested_role.value,
             method=verification.method.value,
-            message=f"❌ Verification failed: {verification.notes}",
+            message=f"◆ Verification failed: {verification.notes}",
             next_steps=(
                 "Please verify your credentials and try again, or contact support "
                 "if you believe this is an error."

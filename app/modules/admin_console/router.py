@@ -99,7 +99,7 @@ async def _stealth_admin(request: Request) -> UserContext:
     # No OAuth session — try admin elevation cookie as fallback.
     # The elevation cookie is issued after OAuth + TOTP verification and is
     # valid for 2 hours. It allows admin API access even if the OAuth session
-    # has expired, preventing the /admin/dashboard ↔ /admin/login redirect loop.
+    # has expired, preventing the /admin/dashboard ▸ /admin/login redirect loop.
     if not user:
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
 
@@ -162,7 +162,7 @@ _RUNTIME_CONFIG = {
 @router.get("/panel", response_class=HTMLResponse)
 async def admin_panel(user: UserContext = Depends(_stealth_admin)):
     """Redirect stub panel to real dashboard."""
-    return ssot_redirect("/admin/dashboard.html", context="admin_console.panel → dashboard")
+    return ssot_redirect("/admin/dashboard.html", context="admin_console.panel ▸ dashboard")
 
 
 @router.get("/health")

@@ -26,9 +26,9 @@ Rule: A document that is uncertified (no registry_id) may not receive overlays.
 Rule: All overlays are stored in the USER's cloud storage — never on our servers.
 
 Overlay lifecycle:
-  1. Vault stores raw file → issues vault_id + certificate
-  2. Registry certifies → issues registry_id (sem_id)
-  3. VAULT_UPLOAD_MANIFEST overlay created → document is now visible
+  1. Vault stores raw file ▸ issues vault_id + certificate
+  2. Registry certifies ▸ issues registry_id (sem_id)
+  3. VAULT_UPLOAD_MANIFEST overlay created ▸ document is now visible
   4. Downstream processes create additional overlays (extraction, classification, etc.)
   5. All reads go through overlay — raw file is never re-opened by Semptify
 =============================================================================

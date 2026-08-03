@@ -5,12 +5,12 @@ Every user enters the application through /preamble. This router makes
 exactly one decision: where does this specific user go next?
 
 Decision logic:
-  1. No cookie          → new user  → onboarding (role select)
-  2. Invalid cookie     → stale     → clear cookie → onboarding
+  1. No cookie          ▸ new user  ▸ onboarding (role select)
+  2. Invalid cookie     ▸ stale     ▸ clear cookie ▸ onboarding
   3. Valid cookie
-       a. All gates done → returning user → role-specific home
-       b. Partial gates  → incomplete     → exact next required step
-       c. No gates done  → new account    → start of onboarding
+       a. All gates done ▸ returning user ▸ role-specific home
+       b. Partial gates  ▸ incomplete     ▸ exact next required step
+       c. No gates done  ▸ new account    ▸ start of onboarding
 
 This is the ONLY place in the codebase that branches new vs returning.
 Nothing downstream needs to make this decision again.
@@ -53,7 +53,7 @@ async def preamble(request: Request):
 
     # ── Fast path: no cookie = definitely new user ────────────────────────────
     if not raw_cookie:
-        logger.debug("Preamble: no cookie → onboarding")
+        logger.debug("Preamble: no cookie ▸ onboarding")
         role_stage = navigation.get_stage("role_select")
         role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
         return ssot_redirect(role_path, context="preamble no cookie")
@@ -61,7 +61,7 @@ async def preamble(request: Request):
     # ── Validate cookie signature ─────────────────────────────────────────────
     raw_uid = verify_user_id(raw_cookie)
     if not raw_uid:
-        logger.warning("Preamble: invalid cookie signature → onboarding")
+        logger.warning("Preamble: invalid cookie signature ▸ onboarding")
         role_stage = navigation.get_stage("role_select")
         role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
         response = ssot_redirect(role_path, context="preamble invalid cookie")
@@ -98,7 +98,7 @@ async def preamble(request: Request):
         # Returning user — send to their role-specific home
         from app.core.workflow_engine import route_user
         destination = await route_user(raw_uid)
-        logger.info("Preamble: returning user %s → %s", raw_uid[:6] + "***", destination)
+        logger.info("Preamble: returning user %s ▸ %s", raw_uid[:6] + "***", destination)
         return ssot_redirect(destination, context="preamble returning user")
 
     # New or incomplete — send to exact next required step
@@ -108,7 +108,7 @@ async def preamble(request: Request):
         next_path = role_stage.path if role_stage else "/onboarding/select-role.html"
 
     logger.info(
-        "Preamble: user %s incomplete (gate=%s) → %s",
+        "Preamble: user %s incomplete (gate=%s) ▸ %s",
         raw_uid[:6] + "***",
         state.next_required_gate,
         next_path,

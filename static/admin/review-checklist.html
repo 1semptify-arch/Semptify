@@ -236,7 +236,7 @@
     }
     
     .custom-checkbox.checked::after {
-      content: '✓';
+      content: '●';
       color: white;
       font-weight: 700;
       font-size: 14px;
@@ -501,7 +501,7 @@
     <!-- Header -->
     <div class="header">
       <div id="admin-nav-container" class="admin-nav--dark"></div>
-      <h1>🔍 Review Checklist</h1>
+      <h1>▸ Review Checklist</h1>
       <p>Contracts & Routes Verification — Ensure all systems work correctly</p>
       
       <div class="progress-bar">
@@ -510,17 +510,17 @@
       
       <div class="stats">
         <div class="stat-item">
-          <span>✅</span>
+          <span>●</span>
           <span class="stat-value" id="completedCount">0</span>
           <span>Completed</span>
         </div>
         <div class="stat-item">
-          <span>📋</span>
+          <span>●</span>
           <span class="stat-value" id="totalCount">0</span>
           <span>Total Items</span>
         </div>
         <div class="stat-item">
-          <span>⚠️</span>
+          <span>◆</span>
           <span class="stat-value" id="pendingCount">0</span>
           <span>Pending</span>
         </div>
@@ -540,12 +540,12 @@
     <div class="checklist-section" data-category="contracts">
       <div class="section-header" onclick="toggleSection('contracts')">
         <div class="section-title">
-          <span class="section-icon">📄</span>
+          <span class="section-icon">●</span>
           <span>Contract Verification</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem;">
           <span class="section-count" id="contractsCount">0/0</span>
-          <span class="expand-icon" id="contractsExpand">▼</span>
+          <span class="expand-icon" id="contractsExpand">▸</span>
         </div>
       </div>
       <div class="section-content" id="contractsContent">
@@ -557,12 +557,12 @@
     <div class="checklist-section" data-category="routes">
       <div class="section-header" onclick="toggleSection('routes')">
         <div class="section-title">
-          <span class="section-icon">🛣️</span>
+          <span class="section-icon">○</span>
           <span>Routes & Navigation Verification</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem;">
           <span class="section-count" id="routesCount">0/0</span>
-          <span class="expand-icon" id="routesExpand">▼</span>
+          <span class="expand-icon" id="routesExpand">▸</span>
         </div>
       </div>
       <div class="section-content" id="routesContent">
@@ -574,12 +574,12 @@
     <div class="checklist-section" data-category="ssot">
       <div class="section-header" onclick="toggleSection('ssot')">
         <div class="section-title">
-          <span class="section-icon">🏛️</span>
+          <span class="section-icon">▸</span>
           <span>SSOT Architecture Compliance</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem;">
           <span class="section-count" id="ssotCount">0/0</span>
-          <span class="expand-icon" id="ssotExpand">▼</span>
+          <span class="expand-icon" id="ssotExpand">▸</span>
         </div>
       </div>
       <div class="section-content" id="ssotContent">
@@ -591,12 +591,12 @@
     <div class="checklist-section" data-category="footer">
       <div class="section-header" onclick="toggleSection('footer')">
         <div class="section-title">
-          <span class="section-icon">🦶</span>
+          <span class="section-icon">○</span>
           <span>Footer Consistency Check</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem;">
           <span class="section-count" id="footerCount">0/0</span>
-          <span class="expand-icon" id="footerExpand">▼</span>
+          <span class="expand-icon" id="footerExpand">▸</span>
         </div>
       </div>
       <div class="section-content" id="footerContent">
@@ -608,12 +608,12 @@
     <div class="checklist-section" data-category="security">
       <div class="section-header" onclick="toggleSection('security')">
         <div class="section-title">
-          <span class="section-icon">🔒</span>
+          <span class="section-icon">◆</span>
           <span>Security & Privacy Verification</span>
         </div>
         <div style="display: flex; align-items: center; gap: 1rem;">
           <span class="section-count" id="securityCount">0/0</span>
-          <span class="expand-icon" id="securityExpand">▼</span>
+          <span class="expand-icon" id="securityExpand">▸</span>
         </div>
       </div>
       <div class="section-content" id="securityContent">
@@ -624,8 +624,8 @@
 
   <!-- Global Actions -->
   <div class="global-actions">
-    <button class="btn-floating btn-reset" onclick="resetAll()">🔄 Reset All</button>
-    <button class="btn-floating btn-save" onclick="runVerification()">▶️ Run Tests</button>
+    <button class="btn-floating btn-reset" onclick="resetAll()">▸ Reset All</button>
+    <button class="btn-floating btn-save" onclick="runVerification()">▸ Run Tests</button>
   </div>
 
   <!-- Results Overlay -->
@@ -887,7 +887,7 @@
               <div class="item-title">${item.title}</div>
               <div class="item-description">${item.description}</div>
               <div class="item-meta">
-                ${item.critical ? '<span class="meta-tag critical">🔴 CRITICAL</span>' : ''}
+                ${item.critical ? '<span class="meta-tag critical">◆ CRITICAL</span>' : ''}
                 <span class="meta-tag">${section.toUpperCase()}</span>
               </div>
               <textarea class="notes-field" 
@@ -896,8 +896,8 @@
                         oninput="saveNote('${item.id}', this.value)">${getNote(item.id)}</textarea>
             </div>
             <div class="item-actions">
-              <button class="btn-small btn-test" onclick="testItem('${item.id}')">🧪 Test</button>
-              ${item.url ? `<a href="${item.url}" class="btn-small btn-view" target="_blank">👁 View</a>` : ''}
+              <button class="btn-small btn-test" onclick="testItem('${item.id}')">○ Test</button>
+              ${item.url ? `<a href="${item.url}" class="btn-small btn-view" target="_blank">● View</a>` : ''}
             </div>
           </div>
         `).join('');
@@ -967,37 +967,37 @@
         const item = items.find(i => i.id === id);
         if (item && item.test) {
           const btn = event.target;
-          btn.textContent = '⏳ Testing...';
+          btn.textContent = '◆ Testing...';
           btn.disabled = true;
           
           try {
             const result = await Promise.resolve(item.test());
             if (result === true || (typeof result === 'object' && result.skip)) {
-              btn.textContent = '✅ Pass';
+              btn.textContent = '● Pass';
               btn.style.background = '#22c55e';
               setTimeout(() => {
-                btn.textContent = '🧪 Test';
+                btn.textContent = '○ Test';
                 btn.style.background = '';
                 btn.disabled = false;
               }, 2000);
             } else {
-              btn.textContent = '❌ Fail';
+              btn.textContent = '◆ Fail';
               btn.style.background = '#ef4444';
               // Show AI Fix button
               showAIFixButton(id, item, 'Test failed');
               setTimeout(() => {
-                btn.textContent = '🧪 Test';
+                btn.textContent = '○ Test';
                 btn.style.background = '';
                 btn.disabled = false;
               }, 2000);
             }
           } catch (e) {
-            btn.textContent = '❌ Error';
+            btn.textContent = '◆ Error';
             btn.style.background = '#ef4444';
             // Show AI Fix button
             showAIFixButton(id, item, e.message);
             setTimeout(() => {
-              btn.textContent = '🧪 Test';
+              btn.textContent = '○ Test';
               btn.style.background = '';
               btn.disabled = false;
             }, 2000);
@@ -1042,7 +1042,7 @@
       content.innerHTML = `
         <div style="text-align: center; margin-bottom: 1.5rem;">
           <div style="font-size: 3rem; margin-bottom: 0.5rem;">
-            ${failed === 0 ? '✅' : failed > 2 ? '❌' : '⚠️'}
+            ${failed === 0 ? '●' : failed > 2 ? '◆' : '◆'}
           </div>
           <div style="font-size: 1.2rem; color: ${failed === 0 ? '#22c55e' : failed > 2 ? '#ef4444' : '#f59e0b'};">
             ${failed === 0 ? 'All Tests Passed!' : `${failed} Tests Failed`}
@@ -1050,7 +1050,7 @@
         </div>
         ${results.map(r => `
           <div class="result-item ${r.status}">
-            <span>${r.status === 'success' ? '✓' : r.status === 'warning' ? '⚠' : '✗'}</span>
+            <span>${r.status === 'success' ? '●' : r.status === 'warning' ? '◆' : '◆'}</span>
             <span>${r.item.title}</span>
             ${r.message ? `<span style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">${r.message}</span>` : ''}
           </div>
@@ -1115,7 +1115,7 @@
       
       const fixBtn = document.createElement('button');
       fixBtn.className = 'ai-fix-btn';
-      fixBtn.textContent = '🤖 AI Fix';
+      fixBtn.textContent = '○ AI Fix';
       fixBtn.style.cssText = `
         margin-left: auto;
         padding: 0.4rem 0.8rem;

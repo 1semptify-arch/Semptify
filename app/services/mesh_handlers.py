@@ -932,6 +932,6 @@ def register_all_mesh_handlers():
             }
         return {"legal_trails_ready": True}
 
-    logger.info("✅ All mesh handlers registered")  # Return stats
+    logger.info("● All mesh handlers registered")  # Return stats
     mesh_status = mesh.get_status()
     return {"modules_registered": mesh_status["modules_connected"], "total_handlers": mesh_status["total_handlers"]}

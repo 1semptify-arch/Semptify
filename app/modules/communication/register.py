@@ -1,7 +1,7 @@
 """Communication module registration helper — FunctionGroupContracts.
 
 The communication module handles conversations and messages between users
-(tenant ↔ advocate, tenant ↔ legal). It supports document collaboration
+(tenant ▸ advocate, tenant ▸ legal). It supports document collaboration
 within conversations — reject, fill-and-sign, attachments.
 """
 

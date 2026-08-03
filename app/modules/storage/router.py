@@ -2,10 +2,10 @@
 Semptify 5.0 - Storage OAuth Router (Simplified)
 
 Simple flow:
-1. User visits site → check for semptify_uid cookie
-2. If cookie exists → parse user ID → know provider + role
-3. Redirect to provider OAuth → get token → find encrypted token in storage
-4. Decrypt → user authenticated → load UI based on role
+1. User visits site ▸ check for semptify_uid cookie
+2. If cookie exists ▸ parse user ID ▸ know provider + role
+3. Redirect to provider OAuth ▸ get token ▸ find encrypted token in storage
+4. Decrypt ▸ user authenticated ▸ load UI based on role
 
 User ID format: <provider><role><random>
 Example: GT7x9kM2pQ = Google + Tenant + unique
@@ -198,7 +198,7 @@ async def _cleanup_expired_states(db: AsyncSession) -> None:
 
     result = await db.execute(sa_delete(OAuthState).where(OAuthState.expires_at < utc_now()))
     if result.rowcount:
-        logger.info(f"🧹 Cleaned up {result.rowcount} expired OAuth states")
+        logger.info(f"○ Cleaned up {result.rowcount} expired OAuth states")
 
     # Transitional cleanup for legacy in-memory state map.
     now = utc_now()
@@ -391,7 +391,7 @@ async def get_valid_session(
     #         session = await oauth_manager.get_session(user_id)
     #
     #         if session:
-    #             logger.info(f"✅ Session retrieved from cloud storage for user={user_id[:4]}...")
+    #             logger.info(f"● Session retrieved from cloud storage for user={user_id[:4]}...")
     #
     #             # Check if session is still valid
     #             expires_at = session.get("expires_at")
@@ -826,9 +826,9 @@ async def storage_home(
     Main entry point. Checks cookie and routes user appropriately.
 
     Returning User Flow (seamless reconnect):
-    - Has valid cookie + valid session → Route to their home page
-    - Has valid cookie + invalid session → Silent OAuth reauthorize (same provider)
-    - No cookie → Show provider selection page for new users
+    - Has valid cookie + valid session ▸ Route to their home page
+    - Has valid cookie + invalid session ▸ Silent OAuth reauthorize (same provider)
+    - No cookie ▸ Show provider selection page for new users
     """
     providers_stage = navigation.get_stage("providers")
     providers_path = providers_stage.path if providers_stage else "/storage/providers"
@@ -870,9 +870,9 @@ def _generate_connect_page(role: str) -> str:
 
     # Provider button configurations
     PROVIDER_CONFIG = {
-        "google_drive": ("📁", "Google Drive", settings.google_drive_client_id),
-        "dropbox": ("☁️", "Dropbox", settings.dropbox_app_key),
-        "onedrive": ("🔵", "OneDrive", settings.onedrive_client_id),
+        "google_drive": ("●", "Google Drive", settings.google_drive_client_id),
+        "dropbox": ("○", "Dropbox", settings.dropbox_app_key),
+        "onedrive": ("◆", "OneDrive", settings.onedrive_client_id),
     }
 
     # Generate HTML
@@ -948,7 +948,7 @@ def _generate_connect_page(role: str) -> str:
 </head>
 <body>
     <div class="container">
-        <div class="icon">🔐</div>
+        <div class="icon">◆</div>
         <h1>Connect Your Storage</h1>
         <div class="role-badge">Role: {role.title()}</div>
         <p class="subtitle">Choose where to store your documents. Your data stays private and under your control.</p>
@@ -1110,7 +1110,7 @@ def _generate_providers_html(
     if error_info:
         error_html = f"""
         <div class="error-banner" id="error-banner">
-            <div class="error-icon">⚠️</div>
+            <div class="error-icon">◆</div>
             <div class="error-content">
                 <div class="error-title">Connection Failed</div>
                 <div class="error-message">{error_info.get("message", "Authentication failed. Please try again.")}</div>
@@ -1145,7 +1145,7 @@ def _generate_providers_html(
                 </svg>
             </div>
             <div class="provider-name">Google Drive</div>
-            <div class="provider-status">{" ✓ Connected" if connected else "Click to connect"}</div>
+            <div class="provider-status">{" ● Connected" if connected else "Click to connect"}</div>
         </a>
         """
 
@@ -1159,7 +1159,7 @@ def _generate_providers_html(
                 </svg>
             </div>
             <div class="provider-name">Dropbox</div>
-            <div class="provider-status">{" ✓ Connected" if connected else "Click to connect"}</div>
+            <div class="provider-status">{" ● Connected" if connected else "Click to connect"}</div>
         </a>
         """
 
@@ -1173,14 +1173,14 @@ def _generate_providers_html(
                 </svg>
             </div>
             <div class="provider-name">OneDrive</div>
-            <div class="provider-status">{" ✓ Connected" if connected else "Click to connect"}</div>
+            <div class="provider-status">{" ● Connected" if connected else "Click to connect"}</div>
         </a>
         """
 
     if not provider_cards:
         provider_cards = """
         <div class="no-providers">
-            <p>⚠️ No storage providers configured.</p>
+            <p>◆ No storage providers configured.</p>
             <p>Please contact support to set up cloud storage integration.</p>
         </div>
         """
@@ -1389,17 +1389,17 @@ def _generate_providers_html(
 <body>
     <div class="container">
         {error_html}
-        <div class="logo">⚖️</div>
+        <div class="logo">▸</div>
         {"<div class='step-indicator'>Step 2 of 3</div>" if from_source == "onboarding" and role == "user" else "<div class='step-indicator'>Step 3 of 3</div>" if from_source == "onboarding" else ""}
         <h1>Connect Your Storage</h1>
         <p class="subtitle">Your documents stay in YOUR cloud storage. We never store your files.</p>
 
         <div class="security-badge">
-            🔒 Your data, your storage, your control
+            ◆ Your data, your storage, your control
         </div>
 
         <div class="alert-box">
-            <strong>⚠️ IMPORTANT:</strong> Semptify requires a cloud storage provider.<br>
+            <strong>◆ IMPORTANT:</strong> Semptify requires a cloud storage provider.<br>
             <span style="font-size: 0.95rem; color: #cbd5e1;">Local storage is NOT supported. Please select one of the providers below.</span>
         </div>
 
@@ -1408,7 +1408,7 @@ def _generate_providers_html(
         </div>
 
         <div class="info-box">
-            <h3>🛡️ Why connect storage?</h3>
+            <h3>◆ Why connect storage?</h3>
             <ul>
                 <li><strong>Security:</strong> Your documents never leave your control</li>
                 <li><strong>Privacy:</strong> We can't access your files without your permission</li>
@@ -1840,7 +1840,7 @@ async def oauth_callback(
             # Only reuse existing_uid if the user exists AND OAuth subject matches
             if bound_user and bound_user.storage_user_id == provider_subject:
                 user_id = existing_uid
-                logger.info(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
+                logger.info(f"▸ OAuth callback: Returning user with existing ID: {user_id}")
             else:
                 # existing_uid doesn't match current OAuth account - treat as new user
                 matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
@@ -1849,7 +1849,7 @@ async def oauth_callback(
                     user_id = matched_user.id
                     # Use stored default_role from DB — authoritative source for role
                     role = (matched_user.default_role or "tenant").strip().lower()
-                    logger.info(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id} (role={role})")
+                    logger.info(f"▸ OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id} (role={role})")
                 else:
                     # Completely new user - generate new ID
                     role = (state_data.get("role") or "tenant").strip().lower()
@@ -1872,10 +1872,10 @@ async def oauth_callback(
                     matched_user.default_role = state_role
                     await db.commit()
                     role = state_role
-                    logger.info(f"🔄 OAuth callback: Updated default_role for existing user {user_id[:6]}... from {db_role} to {state_role}")
+                    logger.info(f"▸ OAuth callback: Updated default_role for existing user {user_id[:6]}... from {db_role} to {state_role}")
                 else:
                     role = db_role
-                logger.info(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
+                logger.info(f"▸ OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
             else:
                 # New user - generate ID encoding provider + role
                 role = (state_data.get("role") or "tenant").strip().lower()
@@ -2540,7 +2540,7 @@ async def rehome_device(
 </head>
 <body>
     <div class="box">
-        <div class="success-icon">🏠</div>
+        <div class="success-icon">○</div>
         <h1>Welcome Home!</h1>
         <p>This device is now connected to your Semptify account.</p>
         <div class="info">
@@ -2585,9 +2585,9 @@ def _error_html(title: str, message: str) -> str:
 </head>
 <body>
     <div class="box">
-        <h1>❌ {title}</h1>
+        <h1>◆ {title}</h1>
         <p>{message}</p>
-        <p style="margin-top: 20px;"><a href="/storage/providers">← Try again</a></p>
+        <p style="margin-top: 20px;"><a href="/storage/providers">▸ Try again</a></p>
     </div>
 </body>
 </html>"""
@@ -2612,14 +2612,14 @@ async def get_status(
     Returns provider, role, and access token for API calls.
     Automatically refreshes expired tokens if possible.
     """
-    logger.info(f"📊 /storage/status called - cookie semptify_uid: {semptify_uid[:10] if semptify_uid else 'None'}...")
+    logger.info(f"◆ /storage/status called - cookie semptify_uid: {semptify_uid[:10] if semptify_uid else 'None'}...")
     if not semptify_uid:
-        logger.info("❌ No semptify_uid cookie found")
+        logger.info("◆ No semptify_uid cookie found")
         return {"authenticated": False}
 
     # Use get_valid_session which handles token refresh automatically
     session = await get_valid_session(db, semptify_uid, auto_refresh=True)
-    logger.info(f"📊 Session lookup result: {bool(session)}")
+    logger.info(f"◆ Session lookup result: {bool(session)}")
 
     if not session:
         # Have cookie but no active/valid session - need to re-auth
@@ -2711,7 +2711,7 @@ async def lookup_user(
         return {"found": False}
 
     except Exception as e:
-        logger.error(f"❌ Error in lookup_user: {e}")
+        logger.error(f"◆ Error in lookup_user: {e}")
         return {"found": False, "error": "Lookup failed"}
 
 
@@ -2770,7 +2770,7 @@ async def restore_session(
         }
 
     except Exception as e:
-        logger.error(f"❌ Error in restore_session: {e}")
+        logger.error(f"◆ Error in restore_session: {e}")
         return {"success": False, "error": "Session restoration failed"}
 
 
@@ -3083,7 +3083,7 @@ async def switch_role(
         # Re-raise HTTP exceptions (already formatted)
         raise
     except Exception as e:
-        logger.error(f"Role switch failed for {semptify_uid} → {request.role}: {type(e).__name__}: {str(e)}", exc_info=True)
+        logger.error(f"Role switch failed for {semptify_uid} ▸ {request.role}: {type(e).__name__}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Role switch failed: {type(e).__name__}. Check server logs for details."
@@ -3422,12 +3422,12 @@ async def verify_certificate(
 </head>
 <body>
     <div class="box">
-        <div class="icon">🛡️</div>
+        <div class="icon">◆</div>
         <h1>Certificate Verification</h1>
         <div class="cert-id">{certificate_id}</div>
         {'<div class="code">Code: ' + code + '</div>' if code else ''}
         <div class="status">
-            ✅ Certificate format is valid
+            ● Certificate format is valid
         </div>
         <div class="info">
             To fully verify this certificate, the original document must be

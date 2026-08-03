@@ -289,7 +289,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
                     app.include_router(router, **kwargs)
                     installed.router = router
                     logger.info(
-                        "🔄 %s: router registered (%s)",
+                        "▸ %s: router registered (%s)",
                         manifest.name,
                         entry.qualified_name,
                     )
@@ -298,7 +298,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
                     if not entry.optional:
                         raise RuntimeError(installed.error)
                     logger.warning(
-                        "ℹ️  %s: router skipped (optional, not found)",
+                        "ℹ  %s: router skipped (optional, not found)",
                         manifest.name,
                     )
             except Exception as exc:
@@ -312,7 +312,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
         for contract in manifest.contracts:
             contract_registry.register(contract)
             logger.info(
-                "📋 %s: contract %s::%s registered",
+                "● %s: contract %s::%s registered",
                 manifest.name,
                 contract.module,
                 contract.group_name,
@@ -323,7 +323,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
     installed.initialized = True
 
     logger.info(
-        "✅ Module installed: %s (%s) — capabilities=%s",
+        "● Module installed: %s (%s) — capabilities=%s",
         manifest.name,
         manifest.tier.value,
         ", ".join(c.value for c in manifest.capabilities),
@@ -394,7 +394,7 @@ def register_tier_modules(app: FastAPI, *tiers: ProductTier) -> dict[str, Any]:
     }
 
     logger.info(
-        "🚀 Module registration complete: %d installed, %d skipped, %d errors (of %d)",
+        "▸ Module registration complete: %d installed, %d skipped, %d errors (of %d)",
         installed_count,
         skipped_count,
         error_count,

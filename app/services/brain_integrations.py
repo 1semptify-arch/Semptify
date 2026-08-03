@@ -1,5 +1,5 @@
 """
-🧠 Positronic Brain - Module Integrations
+○ Positronic Brain - Module Integrations
 =========================================
 Connects all Semptify modules to the brain.
 """
@@ -96,7 +96,7 @@ async def initialize_brain_connections():
     # Set up event handlers
     _setup_event_handlers(brain)
     
-    logger.info("🧠 Positronic Brain fully initialized with all modules")
+    logger.info("○ Positronic Brain fully initialized with all modules")
     
     return brain
 
@@ -106,7 +106,7 @@ def _setup_event_handlers(brain):
     
     # When document uploaded -> analyze and classify
     async def on_document_uploaded(event: BrainEvent):
-        logger.info(f"🧠 Brain processing: {event.event_type.value}")
+        logger.info(f"○ Brain processing: {event.event_type.value}")
         
         # Update shared state
         docs = brain.get_state("documents") or []

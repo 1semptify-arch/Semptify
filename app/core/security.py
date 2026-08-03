@@ -1127,9 +1127,9 @@ async def get_current_user(
             #
             # ICE-CUBE TOKEN MODEL (same as storage_middleware):
             #   1. Check in-memory cache (ice cube) — fastest, no DB/provider call.
-            #   2. Cache empty or melted (expired) → load refresh_token from DB (freezer)
+            #   2. Cache empty or melted (expired) ▸ load refresh_token from DB (freezer)
             #      and knock on provider's door to get a new access_token.
-            #   3. Provider says no → return "no-token" so yellow/red access redirects
+            #   3. Provider says no ▸ return "no-token" so yellow/red access redirects
             #      to /storage/reconnect.
             #
             # CRITICAL: This must use auto_refresh.ensure_valid_token(), NOT
@@ -1259,9 +1259,9 @@ async def require_user(
 #          Token checked: always ask provider to confirm, no cache accepted.
 #
 # Usage:
-#   user = Depends(green_access)   ← library, read pages
-#   user = Depends(yellow_access)  ← normal app use (default)
-#   user = Depends(red_access)     ← destructive / sensitive actions
+#   user = Depends(green_access)   ▸ library, read pages
+#   user = Depends(yellow_access)  ▸ normal app use (default)
+#   user = Depends(red_access)     ▸ destructive / sensitive actions
 #
 # =============================================================================
 

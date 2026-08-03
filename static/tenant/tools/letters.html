@@ -153,10 +153,10 @@
       <strong style="color:#fff;">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
-    <a href="/tenant/home">🏠 Dashboard</a>
-    <a href="/tenant/journal">📓 Journal</a>
-    <a href="/tenant/documents">📁 Documents</a>
-    <a href="/law-library">📚 Rights</a>
+    <a href="/tenant/home">○ Dashboard</a>
+    <a href="/tenant/journal">● Journal</a>
+    <a href="/tenant/documents">● Documents</a>
+    <a href="/law-library">○ Rights</a>
     <a href="/tenant/help">🆘 Help</a>
   </nav>
 
@@ -165,10 +165,10 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/tenant/home" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/tenant/home">🏠 Home</a>
-        <a href="/tenant/journal">📓 Journal</a>
-        <a href="/tenant/documents">📁 Documents</a>
-        <a href="/law-library">📚 Rights</a>
+        <a href="/tenant/home">○ Home</a>
+        <a href="/tenant/journal">● Journal</a>
+        <a href="/tenant/documents">● Documents</a>
+        <a href="/law-library">○ Rights</a>
         <a href="/tenant/help">🆘 Help</a>
       </nav>
     </div>
@@ -176,7 +176,7 @@
 
   <div class="hero">
     <div class="hero-inner">
-      <h1>✉️ Template Letters</h1>
+      <h1>● Template Letters</h1>
       <p>Professional letters you can edit and send to your landlord. Every letter creates a paper trail that protects you.</p>
     </div>
   </div>
@@ -184,10 +184,10 @@
   <!-- Signature Modal -->
   <div class="sig-modal-backdrop" id="sig-modal-backdrop">
     <div class="sig-modal">
-      <h2>✍️ Add Your Signature</h2>
+      <h2>▸ Add Your Signature</h2>
       <div class="sig-tabs">
-        <button class="sig-tab active" onclick="switchSigTab('draw')">✏️ Draw</button>
-        <button class="sig-tab" onclick="switchSigTab('type')">⌨️ Type</button>
+        <button class="sig-tab active" onclick="switchSigTab('draw')">▸ Draw</button>
+        <button class="sig-tab" onclick="switchSigTab('type')">▸ Type</button>
       </div>
 
       <!-- Draw panel -->
@@ -210,7 +210,7 @@
 
       <div class="sig-modal-actions">
         <button class="btn-cancel-sig" onclick="closeSigModal()">Cancel</button>
-        <button class="btn-apply-sig" onclick="applySig()">Apply Signature →</button>
+        <button class="btn-apply-sig" onclick="applySig()">Apply Signature ▸</button>
       </div>
     </div>
   </div>
@@ -219,14 +219,14 @@
 
     <div class="autofill-bar">
       <div>
-        <p>🗂️ <strong>Have a case on file?</strong> Fill all letter fields with one click.</p>
+        <p>○ <strong>Have a case on file?</strong> Fill all letter fields with one click.</p>
         <div class="autofill-status" id="autofill-status"></div>
       </div>
-      <button class="btn-autofill" id="btn-autofill" onclick="doAutofill()">⚡ Fill from my case</button>
+      <button class="btn-autofill" id="btn-autofill" onclick="doAutofill()">◆ Fill from my case</button>
     </div>
 
     <div class="disclaimer">
-      <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+      <strong>▸ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer ▸</a>
     </div>
 
     <div class="letter-grid">
@@ -234,7 +234,7 @@
       <!-- MAINTENANCE REQUEST -->
       <div class="letter-card" id="card-maintenance">
         <div class="letter-card-header">
-          <h3>🔧 Maintenance Request</h3>
+          <h3>▸ Maintenance Request</h3>
           <p>Written repair request to your landlord</p>
         </div>
         <div class="letter-card-body">
@@ -263,11 +263,11 @@
             <button class="btn btn-primary" onclick="generateMaintenance()">Generate Letter</button>
             <button class="btn btn-copy" onclick="copyLetter('maint-preview')">Copy</button>
           </div>
-          <div class="copy-confirm" id="maint-confirm">✅ Copied to clipboard</div>
+          <div class="copy-confirm" id="maint-confirm">● Copied to clipboard</div>
           <div class="preview-box" id="maint-preview"></div>
           <div class="sign-row" id="maint-sign-row">
-            <button class="btn btn-sign" onclick="openSigModal('maint')">✍️ Sign</button>
-            <button class="btn btn-print-signed" onclick="printSigned('maint')" id="maint-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <button class="btn btn-sign" onclick="openSigModal('maint')">▸ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('maint')" id="maint-print-btn" style="display:none">● Print / Save PDF</button>
             <img class="sig-preview-img" id="maint-sig-img" style="display:none" alt="signature">
           </div>
           <div class="print-sig-block" id="maint-print-sig"></div>
@@ -277,7 +277,7 @@
       <!-- SECURITY DEPOSIT DEMAND -->
       <div class="letter-card" id="card-deposit">
         <div class="letter-card-header">
-          <h3>💰 Security Deposit Return Demand</h3>
+          <h3>● Security Deposit Return Demand</h3>
           <p>Demand return of your security deposit</p>
         </div>
         <div class="letter-card-body">
@@ -314,11 +314,11 @@
             <button class="btn btn-primary" onclick="generateDeposit()">Generate Letter</button>
             <button class="btn btn-copy" onclick="copyLetter('dep-preview')">Copy</button>
           </div>
-          <div class="copy-confirm" id="dep-confirm">✅ Copied to clipboard</div>
+          <div class="copy-confirm" id="dep-confirm">● Copied to clipboard</div>
           <div class="preview-box" id="dep-preview"></div>
           <div class="sign-row" id="dep-sign-row">
-            <button class="btn btn-sign" onclick="openSigModal('dep')">✍️ Sign</button>
-            <button class="btn btn-print-signed" onclick="printSigned('dep')" id="dep-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <button class="btn btn-sign" onclick="openSigModal('dep')">▸ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('dep')" id="dep-print-btn" style="display:none">● Print / Save PDF</button>
             <img class="sig-preview-img" id="dep-sig-img" style="display:none" alt="signature">
           </div>
           <div class="print-sig-block" id="dep-print-sig"></div>
@@ -328,7 +328,7 @@
       <!-- HABITABILITY COMPLAINT -->
       <div class="letter-card" id="card-habitability">
         <div class="letter-card-header">
-          <h3>🏚️ Habitability Complaint</h3>
+          <h3>◆ Habitability Complaint</h3>
           <p>Formal complaint about unsafe or unlivable conditions</p>
         </div>
         <div class="letter-card-body">
@@ -361,11 +361,11 @@
             <button class="btn btn-primary" onclick="generateHabitability()">Generate Letter</button>
             <button class="btn btn-copy" onclick="copyLetter('hab-preview')">Copy</button>
           </div>
-          <div class="copy-confirm" id="hab-confirm">✅ Copied to clipboard</div>
+          <div class="copy-confirm" id="hab-confirm">● Copied to clipboard</div>
           <div class="preview-box" id="hab-preview"></div>
           <div class="sign-row" id="hab-sign-row">
-            <button class="btn btn-sign" onclick="openSigModal('hab')">✍️ Sign</button>
-            <button class="btn btn-print-signed" onclick="printSigned('hab')" id="hab-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <button class="btn btn-sign" onclick="openSigModal('hab')">▸ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('hab')" id="hab-print-btn" style="display:none">● Print / Save PDF</button>
             <img class="sig-preview-img" id="hab-sig-img" style="display:none" alt="signature">
           </div>
           <div class="print-sig-block" id="hab-print-sig"></div>
@@ -375,7 +375,7 @@
       <!-- LEASE NON-RENEWAL NOTICE RESPONSE -->
       <div class="letter-card" id="card-nonrenewal">
         <div class="letter-card-header">
-          <h3>📋 Response to Non-Renewal Notice</h3>
+          <h3>● Response to Non-Renewal Notice</h3>
           <p>Formal response when landlord declines to renew</p>
         </div>
         <div class="letter-card-body">
@@ -408,11 +408,11 @@
             <button class="btn btn-primary" onclick="generateNonRenewal()">Generate Letter</button>
             <button class="btn btn-copy" onclick="copyLetter('nr-preview')">Copy</button>
           </div>
-          <div class="copy-confirm" id="nr-confirm">✅ Copied to clipboard</div>
+          <div class="copy-confirm" id="nr-confirm">● Copied to clipboard</div>
           <div class="preview-box" id="nr-preview"></div>
           <div class="sign-row" id="nr-sign-row">
-            <button class="btn btn-sign" onclick="openSigModal('nr')">✍️ Sign</button>
-            <button class="btn btn-print-signed" onclick="printSigned('nr')" id="nr-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <button class="btn btn-sign" onclick="openSigModal('nr')">▸ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('nr')" id="nr-print-btn" style="display:none">● Print / Save PDF</button>
             <img class="sig-preview-img" id="nr-sig-img" style="display:none" alt="signature">
           </div>
           <div class="print-sig-block" id="nr-print-sig"></div>
@@ -422,7 +422,7 @@
       <!-- RESPONSE TO EVICTION NOTICE -->
       <div class="letter-card" id="card-eviction">
         <div class="letter-card-header">
-          <h3>⚖️ Response to Eviction Notice</h3>
+          <h3>▸ Response to Eviction Notice</h3>
           <p>Formal response to eviction summons or notice</p>
         </div>
         <div class="letter-card-body">
@@ -459,11 +459,11 @@
             <button class="btn btn-primary" onclick="generateEviction()">Generate Letter</button>
             <button class="btn btn-copy" onclick="copyLetter('ev-preview')">Copy</button>
           </div>
-          <div class="copy-confirm" id="ev-confirm">✅ Copied to clipboard</div>
+          <div class="copy-confirm" id="ev-confirm">● Copied to clipboard</div>
           <div class="preview-box" id="ev-preview"></div>
           <div class="sign-row" id="ev-sign-row">
-            <button class="btn btn-sign" onclick="openSigModal('ev')">✍️ Sign</button>
-            <button class="btn btn-print-signed" onclick="printSigned('ev')" id="ev-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <button class="btn btn-sign" onclick="openSigModal('ev')">▸ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('ev')" id="ev-print-btn" style="display:none">● Print / Save PDF</button>
             <img class="sig-preview-img" id="ev-sig-img" style="display:none" alt="signature">
           </div>
           <div class="print-sig-block" id="ev-print-sig"></div>
@@ -473,7 +473,7 @@
       <!-- COMPLAINT TO HOUSING INSPECTOR -->
       <div class="letter-card" id="card-inspector">
         <div class="letter-card-header">
-          <h3>🏢 Complaint to Housing Inspector</h3>
+          <h3>○ Complaint to Housing Inspector</h3>
           <p>Report violations to city housing inspection</p>
         </div>
         <div class="letter-card-body">
@@ -506,11 +506,11 @@
             <button class="btn btn-primary" onclick="generateInspector()">Generate Letter</button>
             <button class="btn btn-copy" onclick="copyLetter('insp-preview')">Copy</button>
           </div>
-          <div class="copy-confirm" id="insp-confirm">✅ Copied to clipboard</div>
+          <div class="copy-confirm" id="insp-confirm">● Copied to clipboard</div>
           <div class="preview-box" id="insp-preview"></div>
           <div class="sign-row" id="insp-sign-row">
-            <button class="btn btn-sign" onclick="openSigModal('insp')">✍️ Sign</button>
-            <button class="btn btn-print-signed" onclick="printSigned('insp')" id="insp-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <button class="btn btn-sign" onclick="openSigModal('insp')">▸ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('insp')" id="insp-print-btn" style="display:none">● Print / Save PDF</button>
             <img class="sig-preview-img" id="insp-sig-img" style="display:none" alt="signature">
           </div>
           <div class="print-sig-block" id="insp-print-sig"></div>
@@ -826,7 +826,7 @@ ${a}
       const btn = document.getElementById('btn-autofill');
       const status = document.getElementById('autofill-status');
       btn.disabled = true;
-      btn.textContent = '⏳ Loading...';
+      btn.textContent = '◆ Loading...';
       try {
         const res = await fetch('/api/tenant/autofill', { method: 'POST' });
         const data = await res.json();
@@ -842,12 +842,12 @@ ${a}
         fill('insp-tenant',  name);    fill('insp-address',    addr); fill('insp-landlord',  ll);
         const filled = [name && 'name', addr && 'address', ll && 'landlord'].filter(Boolean);
         status.textContent = filled.length
-          ? `✅ Filled: ${filled.join(', ')} — review each field before sending.`
-          : '⚠️ Logged in but no case details yet — fill fields manually.';
-        btn.textContent = '✅ Filled';
+          ? `● Filled: ${filled.join(', ')} — review each field before sending.`
+          : '◆ Logged in but no case details yet — fill fields manually.';
+        btn.textContent = '● Filled';
       } catch(e) {
         status.textContent = 'Could not load case data. Fill fields manually.';
-        btn.textContent = '⚡ Fill from my case';
+        btn.textContent = '◆ Fill from my case';
         btn.disabled = false;
       }
     }

@@ -224,7 +224,7 @@
 
 {% block content %}
 <div class="advocate-client-detail">
-    <a href="/advocate" class="back-link">← Back to Advocate Dashboard</a>
+    <a href="/advocate" class="back-link">▸ Back to Advocate Dashboard</a>
 
     <div class="client-header">
         <div class="client-avatar-lg" id="client-avatar">--</div>
@@ -240,7 +240,7 @@
     </div>
 
     <div class="action-bar">
-        <a class="btn btn--primary btn--sm" href="/advocate">← Dashboard</a>
+        <a class="btn btn--primary btn--sm" href="/advocate">▸ Dashboard</a>
         <button class="btn btn--secondary btn--sm" id="btn-refresh">Refresh</button>
         <button class="btn btn--secondary btn--sm" id="btn-message">Send Message</button>
         <button class="btn btn--secondary btn--sm" id="btn-review-all">Review All Docs</button>
@@ -347,7 +347,7 @@ async function loadClientDetail() {
             const reviewLabel = d.certified ? 'Reviewed' : 'Pending';
             return `
                 <li class="doc-item">
-                    <span class="doc-icon">📄</span>
+                    <span class="doc-icon">●</span>
                     <div class="doc-info">
                         <div class="doc-name">${d.filename || 'Untitled'}</div>
                         <div class="doc-meta">${d.doc_type || 'unknown'} · ${formatDate(d.created_at)}</div>

@@ -1,7 +1,7 @@
 """
 Dev Ideas — Phase 3.1b / 3.6
 
-Idea submission pipeline: Idea → Spec → Dev Module → Experimental → Beta → Stable
+Idea submission pipeline: Idea ▸ Spec ▸ Dev Module ▸ Experimental ▸ Beta ▸ Stable
 
 Endpoints:
   GET  /dev/lab/ideas           — List all submitted ideas

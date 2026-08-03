@@ -37,7 +37,7 @@ SKELETON_AREAS: dict[str, list[str]] = {
 }
 
 
-# Map major_pillar → skeleton name. One-to-one, no fallback chain.
+# Map major_pillar ▸ skeleton name. One-to-one, no fallback chain.
 PILLAR_TO_SKELETON: dict[str, str] = {
     "record": "record_focus",
     "know": "know_focus",

@@ -8,7 +8,7 @@
   <!-- Brand -->
   <div class="header-brand">
     <a href="/" class="header-logo">
-      <span class="header-logo-icon">⚖️</span>
+      <span class="header-logo-icon">▸</span>
       <span>Semptify</span>
     </a>
     <span class="header-tagline">The Tenant's Journal</span>
@@ -34,7 +34,7 @@
 
     <!-- Vault Door Button -->
     <button class="btn vault-door-btn btn-sm" onclick="openVaultPortal()" title="Upload to Your Vault">
-      <span>🔒</span>
+      <span>◆</span>
       <span class="hide-mobile">Vault</span>
     </button>
 
@@ -82,7 +82,7 @@
 
         if (data.authenticated) {
           dot.className = 'status-dot status-connected';
-          text.textContent = 'Connected ✓';
+          text.textContent = 'Connected ●';
           setTimeout(() => { text.textContent = 'Connected'; }, 2000);
         } else {
           // Not authenticated - redirect to reconnect flow

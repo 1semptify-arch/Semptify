@@ -327,8 +327,8 @@
 >
     <div class="uic-process-indicator__icon" aria-hidden="true">
         {% if data.state == "running" %}⟳
-        {% elif data.state == "complete" %}✓
-        {% elif data.state == "error" %}⚠
+        {% elif data.state == "complete" %}●
+        {% elif data.state == "error" %}◆
         {% else %}•{% endif %}
     </div>
     <div class="uic-process-indicator__body">

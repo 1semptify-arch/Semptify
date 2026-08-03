@@ -308,7 +308,7 @@ class AdaptiveUIEngine:
             widgets.append(UIWidget(
                 id="eviction_alert",
                 type=WidgetType.ALERT,
-                title="⚠️ Eviction Notice Detected",
+                title="◆ Eviction Notice Detected",
                 content={
                     "message": "This is serious but you have rights. Let's make sure you know them.",
                     "steps": [
@@ -452,7 +452,7 @@ class AdaptiveUIEngine:
             predictions.append(UIWidget(
                 id="predict_photos",
                 type=WidgetType.ACTION_CARD,
-                title="📸 Take Move-In Photos",
+                title="● Take Move-In Photos",
                 content={
                     "message": "Protect your security deposit by documenting the condition now.",
                     "why": "Move-in photos are your best defense against unfair deposit deductions.",

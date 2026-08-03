@@ -59,7 +59,7 @@ class TelemetryEvent:
         return json.dumps(self.to_dict(), default=str)
 
 
-# Event type → Priority mapping (from PageContracts)
+# Event type ▸ Priority mapping (from PageContracts)
 EVENT_PRIORITIES: Dict[str, EventPriority] = {
     # Critical: Rights-affecting actions
     "eviction_answer_load": EventPriority.CRITICAL,
@@ -282,11 +282,11 @@ EMITTER = TelemetryEmitter()
 def console_handler(event: TelemetryEvent) -> None:
     """Log telemetry to console (development)."""
     emoji = {
-        EventPriority.CRITICAL: "🚨",
-        EventPriority.HIGH: "⚡",
-        EventPriority.MEDIUM: "📊",
-        EventPriority.LOW: "🔍",
-    }.get(event.priority, "📊")
+        EventPriority.CRITICAL: "◆",
+        EventPriority.HIGH: "◆",
+        EventPriority.MEDIUM: "◆",
+        EventPriority.LOW: "▸",
+    }.get(event.priority, "◆")
     
     logger.info(
         f"{emoji} [{event.priority.name}] {event.event_type} "

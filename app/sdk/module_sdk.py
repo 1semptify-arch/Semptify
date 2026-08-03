@@ -220,7 +220,7 @@ class ModuleSDK:
         self._mesh = None
         self._hub = None
         
-        logger.info(f"📦 ModuleSDK created for: {definition.name}")
+        logger.info(f"● ModuleSDK created for: {definition.name}")
     
     # =========================================================================
     # ACTION REGISTRATION (Decorator-based)
@@ -267,7 +267,7 @@ class ModuleSDK:
             )
             
             self.actions[name] = action_def
-            logger.debug(f"   ⚡ Registered action: {self.definition.name}.{name}")
+            logger.debug(f"   ◆ Registered action: {self.definition.name}.{name}")
             
             return handler
         
@@ -338,7 +338,7 @@ class ModuleSDK:
                 target_module=target_module,
             )
         
-        logger.info(f"📤 {self.definition.name} created pack: {pack_type.value}")
+        logger.info(f"● {self.definition.name} created pack: {pack_type.value}")
         return pack
     
     async def request_data(
@@ -452,7 +452,7 @@ class ModuleSDK:
                     self._mesh.subscribe(event_type, handler)
         
         self._initialized = True
-        logger.info(f"✅ Module initialized: {self.definition.name} ({len(self.actions)} actions)")
+        logger.info(f"● Module initialized: {self.definition.name} ({len(self.actions)} actions)")
     
     def get_status(self) -> Dict[str, Any]:
         """Get current module status"""
@@ -728,7 +728,7 @@ async def on_workflow_completed(event_type: str, data: Dict[str, Any]):
 def initialize():
     """Initialize this module - call on application startup"""
     sdk.initialize()
-    logger.info(f"✅ {{module_definition.display_name}} module ready")
+    logger.info(f"● {{module_definition.display_name}} module ready")
 
 
 # Export for easy importing
@@ -741,6 +741,6 @@ __all__ = ["sdk", "module_definition", "initialize"]
         filepath = os.path.join(output_dir, f"{module_name}.py")
         with open(filepath, "w") as f:
             f.write(template)
-        logger.info(f"📄 Generated module template: {filepath}")
+        logger.info(f"● Generated module template: {filepath}")
     
     return template

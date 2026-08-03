@@ -73,20 +73,20 @@
       <strong style="color:#fff">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer">✕</button>
     </div>
-    <a href="/admin/dashboard.html" style="color:#fbbf24;font-weight:700">🏠 Dashboard</a>
-    <a href="/library.html">📚 Library</a>
-    <a href="/office.html">🏢 Office</a>
-    <a href="/tools.html">🔧 Tools</a>
+    <a href="/admin/dashboard.html" style="color:#fbbf24;font-weight:700">○ Dashboard</a>
+    <a href="/library.html">○ Library</a>
+    <a href="/office.html">○ Office</a>
+    <a href="/tools.html">▸ Tools</a>
     <a href="/help.html">🆘 Help</a>
     <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0">
-    <a href="/admin/function-browser.html">⚙️ Function Browser</a>
-    <a href="/admin/contract-browser.html">📋 Contract Browser</a>
-    <a href="/admin/page-editor.html">📝 Page Editor</a>
-    <a href="/admin/review-checklist.html">✅ Review Checklist</a>
-    <a href="/admin/manual.html">📖 Admin Manual</a>
-    <a href="/admin/api-workbook.html">🔑 API Workbook</a>
-    <a href="/admin/module-flags.html">🚩 Module Flags</a>
-    <a href="/admin/forge.html">⚒️ Forge</a>
+    <a href="/admin/function-browser.html">▸ Function Browser</a>
+    <a href="/admin/contract-browser.html">● Contract Browser</a>
+    <a href="/admin/page-editor.html">● Page Editor</a>
+    <a href="/admin/review-checklist.html">● Review Checklist</a>
+    <a href="/admin/manual.html">○ Admin Manual</a>
+    <a href="/admin/api-workbook.html">◆ API Workbook</a>
+    <a href="/admin/module-flags.html">▸ Module Flags</a>
+    <a href="/admin/forge.html">▸ Forge</a>
   </nav>
 
   <header>
@@ -94,22 +94,22 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/home.html" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/admin/dashboard.html" class="active">🏠 Home</a>
-        <a href="/library.html">📚 Library</a>
-        <a href="/office.html">🏢 Office</a>
-        <a href="/tools.html">🔧 Tools</a>
+        <a href="/admin/dashboard.html" class="active">○ Home</a>
+        <a href="/library.html">○ Library</a>
+        <a href="/office.html">○ Office</a>
+        <a href="/tools.html">▸ Tools</a>
         <a href="/help.html">🆘 Help</a>
       </nav>
       <div id="admin-nav-container" class="admin-nav--dark"></div>
       <div class="header-actions">
-        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
-        <button class="user-btn">🔧 Admin</button>
-        <button class="user-btn" onclick="logout()" title="Logout">🚪</button>
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">◆ Vault</button>
+        <button class="user-btn">▸ Admin</button>
+        <button class="user-btn" onclick="logout()" title="Logout">○</button>
       </div>
     </div>
   </header>
 
-  <div class="role-banner">🔧 Admin View — System overview and operations</div>
+  <div class="role-banner">▸ Admin View — System overview and operations</div>
 
   <div class="main">
     <div>
@@ -121,8 +121,8 @@
       <div class="grid-2">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📊 Platform Metrics</span>
-            <span class="card-icon">📈</span>
+            <span class="card-title">◆ Platform Metrics</span>
+            <span class="card-icon">◆</span>
           </div>
           <div class="card-body" id="platform-metrics">
             <div class="metric-row">
@@ -155,15 +155,15 @@
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" onclick="showAnalyticsDetails(); return false;" class="card-action" style="flex:1;text-align:center">Full analytics →</a>
-            <button onclick="testPlatformMetrics()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
+            <a href="#" onclick="showAnalyticsDetails(); return false;" class="card-action" style="flex:1;text-align:center">Full analytics ▸</a>
+            <button onclick="testPlatformMetrics()" class="btn btn--secondary btn--sm" style="flex:1">○ Test</button>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">👥 User Breakdown</span>
-            <span class="card-icon">🌐</span>
+            <span class="card-title">● User Breakdown</span>
+            <span class="card-icon">○</span>
           </div>
           <div class="card-body" id="user-breakdown">
             <div class="metric-row">
@@ -189,29 +189,29 @@
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" onclick="searchUsers(); return false;" class="card-action" style="flex:1;text-align:center">User management →</a>
-            <button onclick="testUserBreakdown()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
+            <a href="#" onclick="searchUsers(); return false;" class="card-action" style="flex:1;text-align:center">User management ▸</a>
+            <button onclick="testUserBreakdown()" class="btn btn--secondary btn--sm" style="flex:1">○ Test</button>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">⚡ Recent Activity</span>
-            <span class="card-icon">🔔</span>
+            <span class="card-title">◆ Recent Activity</span>
+            <span class="card-icon">◆</span>
           </div>
           <div class="card-body" id="recent-activity">
             <p style="color:#888;font-style:italic">Loading...</p>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" onclick="loadAuditLog(50); return false;" class="card-action" style="flex:1;text-align:center">Activity log →</a>
-            <button onclick="testRecentActivity()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
+            <a href="#" onclick="loadAuditLog(50); return false;" class="card-action" style="flex:1;text-align:center">Activity log ▸</a>
+            <button onclick="testRecentActivity()" class="btn btn--secondary btn--sm" style="flex:1">○ Test</button>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">🛡️ Security</span>
-            <span class="card-icon">🔒</span>
+            <span class="card-title">◆ Security</span>
+            <span class="card-icon">◆</span>
           </div>
           <div class="card-body" id="security-metrics">
             <div class="metric-row">
@@ -244,22 +244,22 @@
             </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="#" class="card-action" style="flex:1;text-align:center">Security dashboard →</a>
-            <button onclick="testSecurityMetrics()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
+            <a href="#" class="card-action" style="flex:1;text-align:center">Security dashboard ▸</a>
+            <button onclick="testSecurityMetrics()" class="btn btn--secondary btn--sm" style="flex:1">○ Test</button>
           </div>
         </div>
 
         <div class="card" style="border-left:4px solid #1d4ed8;">
           <div class="card-header">
-            <span class="card-title">⚖️ MNDES System Compliance</span>
-            <span class="card-icon">🏛️</span>
+            <span class="card-title">▸ MNDES System Compliance</span>
+            <span class="card-icon">▸</span>
           </div>
           <div class="card-body">
             Order ADM09-8010 (eff. Jan 1, 2025). Semptify enforces the Acceptable File Types List automatically. Update <code>mndes_compliance.py</code> when the State Court Administrator revises the official list.
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-            <a href="/mndes/compliance-guide?role=admin" class="card-action" style="flex:1;text-align:center">MNDES Compliance Guide →</a>
-            <button onclick="testMndesCompliance()" class="btn btn--secondary btn--sm" style="flex:1">🧪 Test</button>
+            <a href="/mndes/compliance-guide?role=admin" class="card-action" style="flex:1;text-align:center">MNDES Compliance Guide ▸</a>
+            <button onclick="testMndesCompliance()" class="btn btn--secondary btn--sm" style="flex:1">○ Test</button>
           </div>
         </div>
       </div>
@@ -267,26 +267,26 @@
 
     <aside>
       <div class="card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">⚡ Quick Actions</div>
-        <a href="/admin/function-browser.html" class="btn-block">⚙️ Function Browser</a>
-        <a href="/admin/contract-browser.html" class="btn-block">📋 Contract Browser</a>
-        <a href="/admin/page-editor.html" class="btn-block">📝 Page Editor</a>
-        <a href="/admin/review-checklist.html" class="btn-block">✅ Review Checklist</a>
-        <a href="/admin/manual.html" class="btn-block">📖 Admin Manual</a>
-        <a href="/admin/module-flags.html" class="btn-block">🚩 Module Flags</a>
-        <a href="/admin/forge.html" class="btn-block">⚒️ Semptify Forge</a>
-        <a href="/admin/agent_orchestrator.html" class="btn-block">🤖 Agent Orchestrator</a>
-        <a href="#" class="btn-block" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none" onclick="openTaskQueue();return false;">📋 Task Queue (Workbook)</a>
-        <a href="/docs/component-inventory.html" class="btn-block">📦 Component Inventory</a>
-        <a href="/docs/navigation-structure.html" class="btn-block">🧭 Navigation Structure</a>
-        <a href="/mndes/compliance-guide?role=admin" class="btn-block">🏛️ MNDES Compliance</a>
-        <a href="/api/docs" class="btn-block" target="_blank">📘 API Docs (Swagger)</a>
-        <a href="/api/redoc" class="btn-block" target="_blank">📗 API Docs (ReDoc)</a>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">◆ Quick Actions</div>
+        <a href="/admin/function-browser.html" class="btn-block">▸ Function Browser</a>
+        <a href="/admin/contract-browser.html" class="btn-block">● Contract Browser</a>
+        <a href="/admin/page-editor.html" class="btn-block">● Page Editor</a>
+        <a href="/admin/review-checklist.html" class="btn-block">● Review Checklist</a>
+        <a href="/admin/manual.html" class="btn-block">○ Admin Manual</a>
+        <a href="/admin/module-flags.html" class="btn-block">▸ Module Flags</a>
+        <a href="/admin/forge.html" class="btn-block">▸ Semptify Forge</a>
+        <a href="/admin/agent_orchestrator.html" class="btn-block">○ Agent Orchestrator</a>
+        <a href="#" class="btn-block" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none" onclick="openTaskQueue();return false;">● Task Queue (Workbook)</a>
+        <a href="/docs/component-inventory.html" class="btn-block">● Component Inventory</a>
+        <a href="/docs/navigation-structure.html" class="btn-block">▸ Navigation Structure</a>
+        <a href="/mndes/compliance-guide?role=admin" class="btn-block">▸ MNDES Compliance</a>
+        <a href="/api/docs" class="btn-block" target="_blank">● API Docs (Swagger)</a>
+        <a href="/api/redoc" class="btn-block" target="_blank">● API Docs (ReDoc)</a>
       </div>
 
       <!-- User Search Widget -->
       <div class="card" id="user-search-card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🔍 User Search</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">▸ User Search</div>
         <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
           <input type="text" id="user-search-input" placeholder="Search users..." style="flex:1;padding:0.4rem 0.6rem;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem">
           <button onclick="searchUsers()" style="padding:0.4rem 0.75rem;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem">Search</button>
@@ -295,32 +295,32 @@
           <p style="color:#888;font-style:italic">Enter search term to find users</p>
         </div>
         <div id="user-search-loading" style="display:none;font-size:0.8rem;color:#666;margin-top:0.5rem">
-          <span>⏳ Searching...</span>
+          <span>◆ Searching...</span>
         </div>
       </div>
 
       <!-- Audit Log Viewer -->
       <div class="card" id="audit-log-card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📜 Recent Admin Actions</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">● Recent Admin Actions</div>
         <div id="audit-log-results" style="font-size:0.8rem;color:#555;max-height:200px;overflow-y:auto;margin-bottom:0.5rem">
           <p style="color:#888;font-style:italic">Loading audit log...</p>
         </div>
         <div id="audit-log-loading" style="display:none;font-size:0.8rem;color:#666">
-          <span>⏳ Loading...</span>
+          <span>◆ Loading...</span>
         </div>
         <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
           <button onclick="loadAuditLog(20)" style="flex:1;padding:0.3rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:0.75rem">
             Refresh
           </button>
           <button onclick="testAuditLog()" style="padding:0.3rem 0.5rem;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#92400e">
-            🧪
+            ○
           </button>
         </div>
       </div>
 
       <!-- System Configuration (Phase 3) -->
       <div class="card" id="system-config-card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">⚙️ System Config</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">▸ System Config</div>
         <div id="system-config-status" style="font-size:0.8rem;margin-bottom:0.75rem">
           <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
             <span>Tiers:</span>
@@ -340,17 +340,17 @@
             Refresh
           </button>
           <button onclick="showModuleManager()" style="flex:1;padding:0.3rem;background:#dbeafe;border:1px solid #3b82f6;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#1d4ed8">
-            Modules →
+            Modules ▸
           </button>
           <button onclick="testSystemConfig()" style="padding:0.3rem 0.5rem;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#92400e">
-            🧪
+            ○
           </button>
         </div>
       </div>
 
       <!-- API Keys Status -->
       <div class="card" id="api-keys-card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🔑 API Keys</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">◆ API Keys</div>
         <div id="api-keys-summary" style="font-size:0.8rem;margin-bottom:0.75rem">
           <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
             <span>Configured:</span>
@@ -366,17 +366,17 @@
             Refresh
           </button>
           <button onclick="openApiKeysModal()" style="flex:1;padding:0.3rem;background:#dbeafe;border:1px solid #3b82f6;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#1d4ed8">
-            Manage →
+            Manage ▸
           </button>
           <button onclick="testApiKeys()" style="padding:0.3rem 0.5rem;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#92400e">
-            🧪
+            ○
           </button>
         </div>
       </div>
 
       <!-- Analytics (Phase 4) -->
       <div class="card" id="analytics-card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📊 Analytics</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">◆ Analytics</div>
         <div id="analytics-status" style="font-size:0.8rem;margin-bottom:0.75rem">
           <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
             <span>Active Users:</span>
@@ -396,16 +396,16 @@
             Refresh
           </button>
           <button onclick="showAnalyticsDetails()" style="flex:1;padding:0.3rem;background:#dbeafe;border:1px solid #3b82f6;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#1d4ed8">
-            Details →
+            Details ▸
           </button>
           <button onclick="testAnalytics()" style="padding:0.3rem 0.5rem;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#92400e">
-            🧪
+            ○
           </button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📊 Today</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">◆ Today</div>
         <div class="stat-row"><span>New signups</span><span class="stat-val">12</span></div>
         <div class="stat-row"><span>Documents uploaded</span><span class="stat-val">98</span></div>
         <div class="stat-row"><span>Signatures completed</span><span class="stat-val">23</span></div>
@@ -414,7 +414,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🚀 System Status</div>
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">▸ System Status</div>
         <div style="font-size:0.85rem;color:#555;line-height:1.6">
           <p style="margin-bottom:0.5rem"><span style="color:#22c55e;font-weight:700">●</span> All systems operational</p>
           <p style="margin-bottom:0.5rem"><span style="color:#22c55e;font-weight:700">●</span> Database: Healthy</p>
@@ -507,7 +507,7 @@
         });
 
         if (response.status === 403) {
-          resultsDiv.innerHTML = '<p style="color:#dc2626">❌ Admin access required. Please ensure you have admin role.</p>';
+          resultsDiv.innerHTML = '<p style="color:#dc2626">◆ Admin access required. Please ensure you have admin role.</p>';
           return;
         }
 
@@ -522,7 +522,7 @@
           resultsDiv.innerHTML = `
             <div style="padding:0.5rem;background:#fef3c7;border-radius:6px;border:1px solid #fcd34d">
               <p style="margin:0;color:#92400e;font-size:0.8rem">
-                ⚠️ ${data.note}<br>
+                ◆ ${data.note}<br>
                 <strong>Next step:</strong> Wire this to actual user database query
               </p>
             </div>
@@ -550,7 +550,7 @@
 
       } catch (error) {
         console.error('User search failed:', error);
-        resultsDiv.innerHTML = `<p style="color:#dc2626">❌ Error: ${error.message}</p>`;
+        resultsDiv.innerHTML = `<p style="color:#dc2626">◆ Error: ${error.message}</p>`;
       } finally {
         loadingDiv.style.display = 'none';
       }
@@ -608,24 +608,24 @@
               ${canImpersonate ? `
                 <button onclick="event.stopPropagation();impersonateUser('${userId}')" 
                         style="padding:0.3rem 0.6rem;background:#f59e0b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
-                  👤 Impersonate
+                  ● Impersonate
                 </button>
               ` : ''}
               ${canResetGates ? `
                 <button onclick="event.stopPropagation();resetUserGates('${userId}')" 
                         style="padding:0.3rem 0.6rem;background:#ef4444;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
-                  🔄 Reset Gates
+                  ▸ Reset Gates
                 </button>
               ` : ''}
               ${canViewVault ? `
                 <button onclick="event.stopPropagation();viewVaultSummary('${userId}')" 
                         style="padding:0.3rem 0.6rem;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
-                  📁 Vault
+                  ● Vault
                 </button>
               ` : ''}
               <button onclick="event.stopPropagation();searchUsers()" 
                       style="padding:0.3rem 0.6rem;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
-                ← Back
+                ▸ Back
               </button>
             </div>
           </div>
@@ -859,20 +859,20 @@
         }
         
         const iconMap = {
-          'impersonate_start': '👤',
-          'impersonate_stop': '🚪',
-          'reset_gates': '🔄',
-          'view_vault_summary': '📁',
-          'toggle_module': '⚙️',
-          'toggle_tier': '📊',
-          'set_feature_flag': '🚩',
-          'set_system_setting': '⚙️'
+          'impersonate_start': '●',
+          'impersonate_stop': '○',
+          'reset_gates': '▸',
+          'view_vault_summary': '●',
+          'toggle_module': '▸',
+          'toggle_tier': '◆',
+          'set_feature_flag': '▸',
+          'set_system_setting': '▸'
         };
         
         const entriesHtml = data.entries.map(entry => {
           const timestamp = new Date(entry.timestamp).toLocaleString();
           const timeAgo = getTimeAgo(new Date(entry.timestamp));
-          const icon = iconMap[entry.action] || '📝';
+          const icon = iconMap[entry.action] || '●';
           
           return `
             <div class="activity-item">
@@ -1198,7 +1198,7 @@
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
         modal.innerHTML = `
           <div style="background:#fff;padding:1.5rem;border-radius:8px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto">
-            <h3 style="margin:0 0 1rem 0">📊 Analytics Dashboard</h3>
+            <h3 style="margin:0 0 1rem 0">◆ Analytics Dashboard</h3>
             ${html}
             <div style="margin-top:1.5rem;text-align:right">
               <button onclick="this.closest('.modal').remove()" style="padding:0.5rem 1rem;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button>
@@ -1223,7 +1223,7 @@
         const d = await r.json();
         const missing = d.total - d.filled;
         document.getElementById('api-keys-filled').textContent = d.filled + ' / ' + d.total;
-        document.getElementById('api-keys-missing').textContent = missing === 0 ? '0 ✅' : missing + ' ⚠️';
+        document.getElementById('api-keys-missing').textContent = missing === 0 ? '0 ●' : missing + ' ◆';
         document.getElementById('api-keys-missing').style.color = missing === 0 ? '#22c55e' : '#ef4444';
         // store for modal
         window._envStatusData = d;
@@ -1246,14 +1246,14 @@
           <tr id="row_${k.key}">
             <td style="padding:6px 8px;font-family:monospace;font-size:12px;white-space:nowrap">${k.key}</td>
             <td style="padding:6px 8px;text-align:center">${k.set
-              ? '<span style="color:#22c55e;font-weight:700">✅ Set</span>'
-              : '<span style="color:#ef4444;font-weight:700">⚪ Missing</span>'}</td>
+              ? '<span style="color:#22c55e;font-weight:700">● Set</span>'
+              : '<span style="color:#ef4444;font-weight:700">○ Missing</span>'}</td>
             <td style="padding:6px 8px">
               <div style="display:flex;gap:6px;align-items:center">
                 <input type="password" id="inp_${k.key}" placeholder="${k.set ? '(keep current — leave blank)' : 'Enter value...'}"
                   style="flex:1;padding:4px 7px;border:1px solid #e2e8f0;border-radius:4px;font-size:12px;font-family:monospace">
                 <button onclick="toggleEnvInput('${k.key}')" title="Show/hide"
-                  style="padding:3px 6px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:12px">👁</button>
+                  style="padding:3px 6px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:12px">●</button>
                 <button onclick="saveOneKey('${k.key}')"
                   style="padding:3px 8px;background:#1d4ed8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">Save</button>
               </div>
@@ -1273,7 +1273,7 @@
         <div style="background:#fff;border-radius:12px;width:90%;max-width:820px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 25px 60px rgba(0,0,0,.35)">
           <div style="padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between">
             <div>
-              <div style="font-weight:800;font-size:1rem">🔑 API Keys &amp; Environment Variables</div>
+              <div style="font-weight:800;font-size:1rem">◆ API Keys &amp; Environment Variables</div>
               <div style="font-size:12px;color:#64748b;margin-top:2px">Admin-only. Values are write-only — existing values are never shown here. Changes apply immediately and persist to .env.</div>
             </div>
             <button onclick="document.getElementById('apiKeysModal').remove()"
@@ -1292,7 +1292,7 @@
             </table>
           </div>
           <div style="padding:14px 22px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:11px;color:#94a3b8">⚠️ Plain JSON in transit — use only over HTTPS or localhost.</span>
+            <span style="font-size:11px;color:#94a3b8">◆ Plain JSON in transit — use only over HTTPS or localhost.</span>
             <button onclick="document.getElementById('apiKeysModal').remove()"
               style="padding:7px 18px;background:#64748b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">Close</button>
           </div>
@@ -1321,14 +1321,14 @@
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.detail || ('HTTP ' + r.status));
-        if(msg) { msg.style.color='#22c55e'; msg.textContent = '✅ Saved' + (d.persisted_to_env ? ' + .env updated' : ' (runtime only)'); }
+        if(msg) { msg.style.color='#22c55e'; msg.textContent = '● Saved' + (d.persisted_to_env ? ' + .env updated' : ' (runtime only)'); }
         if(inp) inp.value = '';
         // update status dot in row
         const row = document.getElementById('row_' + key);
-        if (row) row.cells[1].innerHTML = '<span style="color:#22c55e;font-weight:700">✅ Set</span>';
+        if (row) row.cells[1].innerHTML = '<span style="color:#22c55e;font-weight:700">● Set</span>';
         loadEnvStatus();
       } catch(e) {
-        if(msg) { msg.style.color='#ef4444'; msg.textContent = '✗ ' + e.message; }
+        if(msg) { msg.style.color='#ef4444'; msg.textContent = '◆ ' + e.message; }
       }
     }
 
@@ -1339,7 +1339,7 @@
     async function testPlatformMetrics() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳ Testing...';
+      button.textContent = '◆ Testing...';
       button.disabled = true;
 
       try {
@@ -1368,7 +1368,7 @@
     async function testUserBreakdown() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳ Testing...';
+      button.textContent = '◆ Testing...';
       button.disabled = true;
 
       try {
@@ -1398,7 +1398,7 @@
     async function testRecentActivity() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳ Testing...';
+      button.textContent = '◆ Testing...';
       button.disabled = true;
 
       try {
@@ -1428,7 +1428,7 @@
     async function testSecurityMetrics() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳ Testing...';
+      button.textContent = '◆ Testing...';
       button.disabled = true;
 
       try {
@@ -1457,7 +1457,7 @@
     async function testMndesCompliance() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳ Testing...';
+      button.textContent = '◆ Testing...';
       button.disabled = true;
 
       try {
@@ -1539,7 +1539,7 @@ Please fix this issue in the admin dashboard.
     async function testSystemConfig() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳';
+      button.textContent = '◆';
       button.disabled = true;
 
       try {
@@ -1572,7 +1572,7 @@ Please fix this issue in the admin dashboard.
     async function testApiKeys() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳';
+      button.textContent = '◆';
       button.disabled = true;
 
       try {
@@ -1604,7 +1604,7 @@ Please fix this issue in the admin dashboard.
     async function testAnalytics() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳';
+      button.textContent = '◆';
       button.disabled = true;
 
       try {
@@ -1635,7 +1635,7 @@ Please fix this issue in the admin dashboard.
     async function testAuditLog() {
       const button = event.target;
       const originalText = button.textContent;
-      button.textContent = '⏳';
+      button.textContent = '◆';
       button.disabled = true;
 
       try {

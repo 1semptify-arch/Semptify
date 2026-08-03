@@ -1,5 +1,5 @@
 """
-📍 Location Service - Integrated with Positronic Brain
+○ Location Service - Integrated with Positronic Brain
 ======================================================
 Manages user location context for state-specific tenant rights,
 agencies, and legal resources.
@@ -214,7 +214,7 @@ class LocationService:
         # Default location (Minnesota)
         self.default_state = "MN"
         
-        logger.info("📍 Location Service initialized - Minnesota-focused tenant rights")
+        logger.info("○ Location Service initialized - Minnesota-focused tenant rights")
 
     # =========================================================================
     # LOCATION MANAGEMENT
@@ -249,7 +249,7 @@ class LocationService:
         
         self.user_locations[user_id] = location
 
-        logger.info("📍 Location set for user %s...: %s, %s", user_id[:8], state_code, county or 'no county')
+        logger.info("○ Location set for user %s...: %s, %s", user_id[:8], state_code, county or 'no county')
 
         return location
 
@@ -271,7 +271,7 @@ class LocationService:
         """Clear user's location (will default to MN)"""
         if user_id in self.user_locations:
             del self.user_locations[user_id]
-            logger.info("📍 Location cleared for user %s...", user_id[:8])
+            logger.info("○ Location cleared for user %s...", user_id[:8])
 
     # =========================================================================
     # STATE INFORMATION
@@ -506,7 +506,7 @@ def register_with_mesh():
             produces=["eviction_timeline"],
         )
         
-        logger.info("📍 Location service registered with Positronic Mesh")
+        logger.info("○ Location service registered with Positronic Mesh")
         
     except ImportError:
         logger.warning("Positronic Mesh not available, location service running standalone")

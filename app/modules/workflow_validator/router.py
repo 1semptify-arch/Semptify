@@ -169,20 +169,20 @@ async def validator_dashboard(
     </style>
 </head>
 <body>
-    <h1>⚡ Workflow Validator</h1>
+    <h1>◆ Workflow Validator</h1>
     <p class="subtitle">Conductor System — Real-time routing verification</p>
     
     <div class="grid">
         <!-- Cookie State -->
         <div class="card">
-            <h2>🔐 Cookie State</h2>
+            <h2>◆ Cookie State</h2>
             <div class="metric">
                 <span>Cookie Present</span>
-                <span class="metric-value">{"✓ Yes" if semptify_uid else "✗ No"}</span>
+                <span class="metric-value">{"● Yes" if semptify_uid else "◆ No"}</span>
             </div>
             <div class="metric">
                 <span>Signature Valid</span>
-                <span class="metric-value">{"✓ Valid" if cookie_valid else "✗ Invalid"}</span>
+                <span class="metric-value">{"● Valid" if cookie_valid else "◆ Invalid"}</span>
             </div>
             <div class="metric">
                 <span>Provider</span>
@@ -200,7 +200,7 @@ async def validator_dashboard(
         
         <!-- System Health -->
         <div class="card">
-            <h2>🏥 System Health</h2>
+            <h2>○ System Health</h2>
             <div class="metric">
                 <span>Module Contracts</span>
                 <span class="metric-value">{len(contracts)} registered</span>
@@ -225,20 +225,20 @@ async def validator_dashboard(
         
         <!-- Routing Tests -->
         <div class="card">
-            <h2>🚦 Routing Tests (route_user)</h2>
+            <h2>○ Routing Tests (route_user)</h2>
             <table>
                 <tr>
                     <th>Scenario</th>
                     <th>Result</th>
                     <th>Status</th>
                 </tr>
-                {''.join(f"<tr><td>{t['name']}</td><td class='route'>{t.get('route', t.get('error', '—'))}</td><td><span class='status {'ok' if t['ok'] else 'error'}'>{'✓' if t['ok'] else '✗'}</span></td></tr>" for t in routing_tests)}
+                {''.join(f"<tr><td>{t['name']}</td><td class='route'>{t.get('route', t.get('error', '—'))}</td><td><span class='status {'ok' if t['ok'] else 'error'}'>{'●' if t['ok'] else '◆'}</span></td></tr>" for t in routing_tests)}
             </table>
         </div>
         
         <!-- Workflow Matrix -->
         <div class="card">
-            <h2>📊 Workflow Matrix</h2>
+            <h2>◆ Workflow Matrix</h2>
             <table>
                 <tr>
                     <th>Role</th>
@@ -252,25 +252,25 @@ async def validator_dashboard(
         
         <!-- Conductor Architecture -->
         <div class="card" style="grid-column: 1 / -1;">
-            <h2>🎼 Conductor Architecture</h2>
+            <h2>○ Conductor Architecture</h2>
             <div class="conductor-diagram">
 ┌─────────────────────────────────────────────────────────────────┐
 │                       THE CONDUCTOR                             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │   ┌──────────────────┐        ┌──────────────────┐             │
-│   │  Cookie Auth     │◄──────►│  route_user()    │             │
+│   │  Cookie Auth     │▸──────▸│  route_user()    │             │
 │   │  (Identity)      │        │  (Conductor)     │             │
 │   └────────┬─────────┘        └────────┬─────────┘             │
 │            │                           │                       │
-│            ▼                           ▼                       │
+│            ▸                           ▸                       │
 │   ┌──────────────────┐        ┌──────────────────┐             │
 │   │  verify_user_id  │        │  Workflow Engine │             │
-│   │  sign_user_id    │        │  Process A→B1/B2 │             │
+│   │  sign_user_id    │        │  Process A▸B1/B2 │             │
 │   └──────────────────┘        └────────┬─────────┘             │
 │                                        │                       │
 │                    ┌───────────────────┼───────────────────┐     │
-│                    ▼                   ▼                   ▼     │
+│                    ▸                   ▸                   ▸     │
 │            ┌───────────┐      ┌───────────┐      ┌───────────┐ │
 │            │  Library  │      │  Office   │      │  Tools    │ │
 │            │  (Pages)  │      │  (Vault)  │      │ (Analysis)│ │
@@ -287,33 +287,33 @@ async def validator_dashboard(
         
         <!-- Entry Points Verification -->
         <div class="card">
-            <h2>🚪 Entry Points</h2>
+            <h2>○ Entry Points</h2>
             <div class="metric">
                 <span>Onboarding Flow</span>
-                <span class="status ok">✓ Verified</span>
+                <span class="status ok">● Verified</span>
             </div>
             <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
-                /welcome → /select-role → /storage → OAuth → /tenant/home
+                /welcome ▸ /select-role ▸ /storage ▸ OAuth ▸ /tenant/home
             </p>
             <div class="metric" style="margin-top: 1rem;">
                 <span>Reconnect Flow</span>
-                <span class="status ok">✓ Verified</span>
+                <span class="status ok">● Verified</span>
             </div>
             <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
-                /reconnect → Session? → (Valid: home | Invalid: OAuth → home)
+                /reconnect ▸ Session? ▸ (Valid: home | Invalid: OAuth ▸ home)
             </p>
             <div class="metric" style="margin-top: 1rem;">
                 <span>Task Recovery</span>
-                <span class="status ok">✓ Verified</span>
+                <span class="status ok">● Verified</span>
             </div>
             <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">
-                /reconnect?return_to=/task → OAuth → /task (not home)
+                /reconnect?return_to=/task ▸ OAuth ▸ /task (not home)
             </p>
         </div>
         
         <!-- Quick Actions -->
         <div class="card">
-            <h2>⚡ Quick Actions</h2>
+            <h2>◆ Quick Actions</h2>
             {''.join(f'<div class="metric"><span>{k}</span><span class="metric-value">{v.target}</span></div>' for k, v in list(DASHBOARD_QUICK_ACTIONS.items())[:5])}
             <div class="metric">
                 <span>...</span>

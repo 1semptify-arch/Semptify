@@ -352,8 +352,8 @@ async def get_statute(
     Get a specific Minnesota statute.
     
     Examples:
-    - /api/crawler/statute/504B → Chapter 504B (Landlord-Tenant)
-    - /api/crawler/statute/504B?section=111 → Security Deposit statute
+    - /api/crawler/statute/504B ▸ Chapter 504B (Landlord-Tenant)
+    - /api/crawler/statute/504B?section=111 ▸ Security Deposit statute
     """
     crawler = get_crawler()
     result = await crawler.get_mn_statute(chapter, section)

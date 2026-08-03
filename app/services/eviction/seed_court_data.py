@@ -156,7 +156,7 @@ class CourtDataSeeder:
         Returns:
             Summary of seeded data
         """
-        logger.info(f"🌱 Starting court data seeding with {num_cases} cases...")
+        logger.info(f"○ Starting court data seeding with {num_cases} cases...")
 
         results = {
             "cases_seeded": 0,
@@ -228,7 +228,7 @@ class CourtDataSeeder:
             if (i + 1) % 100 == 0:
                 logger.info(f"  Seeded {i + 1}/{num_cases} cases...")
 
-        logger.info(f"✅ Seeding complete: {results['cases_seeded']} cases, {results['defenses_learned']} defense records")
+        logger.info(f"● Seeding complete: {results['cases_seeded']} cases, {results['defenses_learned']} defense records")
         return results
 
     def _generate_historical_case(self, case_index: int) -> dict:

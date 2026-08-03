@@ -7,7 +7,7 @@
             {# Left: Briefcase Summary #}
             <div class="functions-bar__briefcase">
                 <a href="/tenant/journal" class="functions-bar__briefcase-link" title="View your vault">
-                    <span class="functions-bar__icon">💼</span>
+                    <span class="functions-bar__icon">○</span>
                     <span class="functions-bar__count">{{ briefcase.vault.total_documents if briefcase else 0 }}</span>
                     <span class="functions-bar__label">items</span>
                     {% if briefcase and briefcase.inbox.unread_count > 0 %}
@@ -32,19 +32,19 @@
 
                 {# Quick Capture #}
                 <a href="/tenant/capture" class="functions-bar__btn functions-bar__btn--secondary">
-                    <span>➕</span>
+                    <span>▸</span>
                     Capture
                 </a>
 
                 {# Quick Journal #}
                 <a href="/tenant/journal" class="functions-bar__btn functions-bar__btn--secondary">
-                    <span>📖</span>
+                    <span>○</span>
                     Journal
                 </a>
 
                 {# Inbox (with badge if unread) #}
                 <a href="/tenant/inbox" class="functions-bar__btn functions-bar__btn--secondary {% if briefcase and briefcase.inbox.unread_count > 0 %}functions-bar__btn--alert{% endif %}">
-                    <span>🔔</span>
+                    <span>◆</span>
                     Inbox
                     {% if briefcase and briefcase.inbox.unread_count > 0 %}
                     <span class="functions-bar__btn-badge">{{ briefcase.inbox.unread_count }}</span>
@@ -55,7 +55,7 @@
             {# Right: Help #}
             <div class="functions-bar__help">
                 <a href="/tenant/help" class="functions-bar__help-link" title="Get help">
-                    <span>❓</span>
+                    <span>?</span>
                     <span class="functions-bar__help-text">Help</span>
                 </a>
             </div>

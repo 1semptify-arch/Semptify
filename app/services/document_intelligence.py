@@ -18,17 +18,17 @@ ARCHITECTURE:
 │                    Document Intelligence                        │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │   OCR/Text   │──▶│  Recognition │──▶│   Entity     │        │
+│  │   OCR/Text   │──▸│  Recognition │──▸│   Entity     │        │
 │  │  Extraction  │  │    Engine    │  │  Extraction  │         │
 │  └──────────────┘  └──────────────┘  └──────────────┘         │
 │         │                 │                 │                  │
-│         ▼                 ▼                 ▼                  │
+│         ▸                 ▸                 ▸                  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
 │  │    Legal     │  │   Timeline   │  │   Urgency    │         │
 │  │  Reasoning   │  │  Generation  │  │   Scoring    │         │
 │  └──────────────┘  └──────────────┘  └──────────────┘         │
 │                            │                                   │
-│                            ▼                                   │
+│                            ▸                                   │
 │              ┌──────────────────────────┐                     │
 │              │   Intelligence Result    │                     │
 │              │  (Actionable Insights)   │                     │
@@ -740,7 +740,7 @@ class DocumentIntelligenceService:
                 "Read it carefully to understand exactly what you're being accused of."
             ),
             DocumentType.WRIT: (
-                "⚠️ CRITICAL: This is a Writ of Restitution - this means the court has already "
+                "◆ CRITICAL: This is a Writ of Restitution - this means the court has already "
                 "ruled that you must leave, and the sheriff can physically remove you. "
                 "You typically have only 24 hours notice. Contact Legal Aid IMMEDIATELY."
             ),
@@ -772,14 +772,14 @@ class DocumentIntelligenceService:
         
         # Add urgency context
         if urgency == UrgencyLevel.CRITICAL:
-            base = f"⚠️ URGENT ACTION REQUIRED ⚠️\n\n{base}"
+            base = f"◆ URGENT ACTION REQUIRED ◆\n\n{base}"
         elif urgency == UrgencyLevel.HIGH:
-            base = f"⏰ TIME-SENSITIVE\n\n{base}"
+            base = f"◆ TIME-SENSITIVE\n\n{base}"
         
         # Add action summary
         if action_items:
             top_action = min(action_items, key=lambda a: a.priority)
-            base += f"\n\n👉 Most Important Action: {top_action.title}"
+            base += f"\n\n▸ Most Important Action: {top_action.title}"
         
         return base
 

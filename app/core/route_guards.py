@@ -321,7 +321,7 @@ def setup_guarded_routes(app, page_manifest: dict):
 
     Args:
         app: FastAPI app instance
-        page_manifest: Dict of page_id → route info
+        page_manifest: Dict of page_id ▸ route info
     """
     from fastapi.responses import FileResponse
 
@@ -370,8 +370,8 @@ if __name__ == "__main__":
         contract = PAGE_CONTRACTS.get(page.page_id)
         if contract:
             roles = [r.value for r in contract.roles_supported]
-            logger.info(f"  ✓ {page.page_id}: roles={roles}")
+            logger.info(f"  ● {page.page_id}: roles={roles}")
         else:
-            logger.info(f"  ✗ {page.page_id}: NO CONTRACT")
+            logger.info(f"  ◆ {page.page_id}: NO CONTRACT")
 
     logger.info("Guard ready for integration with FastAPI routers.")

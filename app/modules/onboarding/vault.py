@@ -6,7 +6,7 @@ This module handles the vault_initialized gate:
 1. Call Vault Installer (uses Vault SDK for storage operations)
 2. Mark vault_initialized gate (only after verified)
 
-Architecture: Onboarding → Vault Installer → Vault SDK → Storage Providers
+Architecture: Onboarding ▸ Vault Installer ▸ Vault SDK ▸ Storage Providers
 """
 
 import logging
@@ -36,7 +36,7 @@ async def init_vault(
     """
     Full vault initialization using Vault Installer (SDK-based).
 
-    Architecture: Onboarding → Vault Installer → Vault SDK → Storage Providers
+    Architecture: Onboarding ▸ Vault Installer ▸ Vault SDK ▸ Storage Providers
 
     The installer handles:
     1. Create folders (via Vault SDK)

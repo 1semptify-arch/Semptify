@@ -3,8 +3,8 @@ Semptify 5.0 - User Service
 Handles user persistence, lookup, and provider management.
 
 Solves the "returning user" problem:
-1. Where to look for token? → Check user's primary_provider
-2. What role to load? → Check user's default_role
+1. Where to look for token? ▸ Check user's primary_provider
+2. What role to load? ▸ Check user's default_role
 """
 
 from datetime import datetime

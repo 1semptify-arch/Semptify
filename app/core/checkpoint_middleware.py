@@ -5,10 +5,10 @@ Enforces single entry point for NEW users while allowing returning users
 to bypass. Validates Semptify's legal right to work with user documents.
 
 Logic:
-- Has valid session (semptify_uid)? → ALLOW (returning user)
-- Has checkpoint cookie? → ALLOW (saw welcome page)
-- Protected path + no checkpoint? → Redirect to welcome
-- Public paths → Always ALLOW
+- Has valid session (semptify_uid)? ▸ ALLOW (returning user)
+- Has checkpoint cookie? ▸ ALLOW (saw welcome page)
+- Protected path + no checkpoint? ▸ Redirect to welcome
+- Public paths ▸ Always ALLOW
 """
 
 from fastapi import Request
@@ -88,18 +88,18 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
         if self._is_exempt(path):
             return await call_next(request)
         
-        # Has valid session? → Allow (returning user)
+        # Has valid session? ▸ Allow (returning user)
         user_id = request.cookies.get(USER_COOKIE)
         if user_id and len(str(user_id)) >= 10:
             return await call_next(request)
         
-        # Has checkpoint? → Allow (saw welcome)
+        # Has checkpoint? ▸ Allow (saw welcome)
         checkpoint = request.cookies.get(CHECKPOINT_COOKIE)
         if checkpoint == CHECKPOINT_VALUE:
             return await call_next(request)
         
-        # Protected path with no credentials? → Allow all (checkpoint disabled)
-        # Public path → Allow
+        # Protected path with no credentials? ▸ Allow all (checkpoint disabled)
+        # Public path ▸ Allow
         return await call_next(request)
     
     def _is_exempt(self, path: str) -> bool:

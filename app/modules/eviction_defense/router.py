@@ -854,9 +854,9 @@ async def calculate_deadlines(
     answer_date = service + timedelta(days=7)
     
     if today > answer_date:
-        deadlines["warnings"].append("⚠️ ANSWER DEADLINE HAS PASSED - File immediately!")
+        deadlines["warnings"].append("◆ ANSWER DEADLINE HAS PASSED - File immediately!")
     elif (answer_date - today).days <= 2:
-        deadlines["warnings"].append("⚠️ Answer due in " + str((answer_date - today).days) + " days!")
+        deadlines["warnings"].append("◆ Answer due in " + str((answer_date - today).days) + " days!")
     
     return deadlines
 
@@ -980,7 +980,7 @@ async def analyze_case(
     Analyze the user's case for violations and defense strategies.
     
     This is the MAIN ENTRY POINT for case analysis.
-    Connects: FormDataHub → LawEngine → DefenseStrategies → FormsRecommendation
+    Connects: FormDataHub ▸ LawEngine ▸ DefenseStrategies ▸ FormsRecommendation
     """
     # Get form data service for this user
     form_service = get_form_data_service(user.user_id)

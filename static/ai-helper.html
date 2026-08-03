@@ -170,7 +170,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>🤖 Semptify AI Helper</h1>
+  <h1>○ Semptify AI Helper</h1>
   <p class="subtitle">One click. No typing. Get your framework.</p>
 
   <!-- STEP 1: Download bundle -->
@@ -178,7 +178,7 @@
     <span class="step-num">1</span><span class="step-title">Download Your Document Bundle</span>
     <p class="step-desc">One file with all 8 key Semptify docs combined (158KB). You'll drag this into the AI.</p>
     <a href="/static/ai-helper-bundle.txt" download="semptify-docs-bundle.txt" class="btn btn-green">
-      ⬇️ Download Bundle (158KB)
+      ▸ Download Bundle (158KB)
     </a>
   </div>
 
@@ -188,18 +188,18 @@
     <p class="step-desc">Step A: Copy Prompt 1 for Claude. Step B: After Claude answers, come back and copy Prompt 2 for Gemini.</p>
 
     <button class="btn btn-primary" id="copy-btn-1" onclick="copyPrompt(1)">
-      📋 Copy Prompt 1 — For Claude (First Pass)
+      ● Copy Prompt 1 — For Claude (First Pass)
     </button>
     <div class="prompt-preview" id="prompt-preview-1"></div>
 
     <div style="height:0.75rem"></div>
 
     <button class="btn btn-purple" id="copy-btn-2" onclick="copyPrompt(2)">
-      📋 Copy Prompt 2 — For Gemini (Cross-Check)
+      ● Copy Prompt 2 — For Gemini (Cross-Check)
     </button>
     <div class="prompt-preview" id="prompt-preview-2"></div>
 
-    <div class="status-msg success" id="copy-status">✅ Copied! Now open the AI and paste.</div>
+    <div class="status-msg success" id="copy-status">● Copied! Now open the AI and paste.</div>
   </div>
 
   <!-- STEP 3: Open AI -->
@@ -211,19 +211,19 @@
     </p>
     <div class="ai-grid">
       <a href="https://claude.ai/new" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('claude')">
-        <div class="ai-name">🟠 Claude.ai</div>
+        <div class="ai-name">◆ Claude.ai</div>
         <div class="ai-desc">Step A — First pass framework</div>
         <div class="ai-badge">STEP A</div>
       </a>
       <a href="https://aistudio.google.com/app/prompts/new_chat" target="_blank" rel="noopener" class="ai-card" onclick="return trackOpen('gemini')">
-        <div class="ai-name">🔵 Google AI Studio</div>
+        <div class="ai-name">◆ Google AI Studio</div>
         <div class="ai-desc">Step B — Cross-check with 1M context</div>
         <div class="ai-badge">STEP B</div>
       </a>
     </div>
     <div style="height:0.5rem"></div>
     <a href="https://chatgpt.com/?model=gpt-4o" target="_blank" rel="noopener" class="ai-card" style="display:block">
-      <div class="ai-name">🟢 ChatGPT (optional 3rd opinion)</div>
+      <div class="ai-name">● ChatGPT (optional 3rd opinion)</div>
       <div class="ai-desc">If Claude and Gemini disagree, ask ChatGPT to break the tie</div>
     </a>
   </div>
@@ -242,7 +242,7 @@
   </div>
 
   <div class="footer">
-    Semptify AI Helper — Built to save your fingers. 💙
+    Semptify AI Helper — Built to save your fingers. ◆
   </div>
 </div>
 
@@ -296,10 +296,10 @@ WHAT I NEED FROM YOU — THE FULL FRAMEWORK:
    - How do these share components? What's common vs role-specific?
 
 5. MAP EVERY SEMPTIFY MODULE TO A PILLAR
-   - Document Center, Vault, Timeline, Journal, Calendar, Capture → RECORD?
-   - Law Library, State Laws, Context Engine, Help, Accountability → KNOW?
-   - Court Forms, Case Builder, Eviction Defense, Complaints → ACTION (third pillar?)
-   - Admin Console, Module Flags, Forge → GOVERNANCE (fourth pillar?)
+   - Document Center, Vault, Timeline, Journal, Calendar, Capture ▸ RECORD?
+   - Law Library, State Laws, Context Engine, Help, Accountability ▸ KNOW?
+   - Court Forms, Case Builder, Eviction Defense, Complaints ▸ ACTION (third pillar?)
+   - Admin Console, Module Flags, Forge ▸ GOVERNANCE (fourth pillar?)
    - Where do jurisdiction/location, AI assistance, contacts, search fit?
 
 6. WHAT'S MISSING FROM THE FOUNDATION
@@ -375,11 +375,11 @@ function copyPrompt(which) {
   const btn = document.getElementById(btnId);
   const status = document.getElementById('copy-status');
   navigator.clipboard.writeText(prompt).then(() => {
-    btn.textContent = '✅ Copied!';
+    btn.textContent = '● Copied!';
     btn.classList.add('copied');
     status.classList.add('show');
     setTimeout(() => {
-      btn.textContent = which === 1 ? '📋 Copy Prompt 1 — For Claude (First Pass)' : '📋 Copy Prompt 2 — For Gemini (Cross-Check)';
+      btn.textContent = which === 1 ? '● Copy Prompt 1 — For Claude (First Pass)' : '● Copy Prompt 2 — For Gemini (Cross-Check)';
       btn.classList.remove('copied');
     }, 3000);
   }).catch(() => {
@@ -389,11 +389,11 @@ function copyPrompt(which) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    btn.textContent = '✅ Copied!';
+    btn.textContent = '● Copied!';
     btn.classList.add('copied');
     status.classList.add('show');
     setTimeout(() => {
-      btn.textContent = which === 1 ? '📋 Copy Prompt 1 — For Claude (First Pass)' : '📋 Copy Prompt 2 — For Gemini (Cross-Check)';
+      btn.textContent = which === 1 ? '● Copy Prompt 1 — For Claude (First Pass)' : '● Copy Prompt 2 — For Gemini (Cross-Check)';
       btn.classList.remove('copied');
     }, 3000);
   });
@@ -410,7 +410,7 @@ window.addEventListener('load', () => {
     try {
       navigator.clipboard.writeText(PROMPT_1);
       const status = document.getElementById('copy-status');
-      status.textContent = '✅ Prompt 1 auto-copied! Open Claude and paste.';
+      status.textContent = '● Prompt 1 auto-copied! Open Claude and paste.';
       status.classList.add('show');
     } catch (e) {
       // Some browsers block auto-copy without user interaction. That's fine.

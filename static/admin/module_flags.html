@@ -157,7 +157,7 @@
 </head>
 <body>
 
-<h1>🚩 Module Flag Overlay</h1>
+<h1>▸ Module Flag Overlay</h1>
 <p class="subtitle">Runtime lifecycle, feature flag, and visibility management for all registered modules.</p>
 
 <!-- Summary -->
@@ -202,7 +202,7 @@
       <option value="overridden">Only Overridden</option>
       <option value="not-overridden">Not Overridden</option>
     </select>
-    <button class="btn btn-secondary" onclick="loadData()">↻ Reload</button>
+    <button class="btn btn-secondary" onclick="loadData()">▸ Reload</button>
   </div>
 </div>
 
@@ -231,7 +231,7 @@
 
 <!-- Test as User -->
 <div class="card">
-  <h3 style="font-size:1rem;margin-bottom:0.75rem">🧪 Test as User — Preview Module Visibility</h3>
+  <h3 style="font-size:1rem;margin-bottom:0.75rem">○ Test as User — Preview Module Visibility</h3>
   <div class="filters">
     <select id="preview-role">
       <option value="tenant">Tenant</option>
@@ -357,12 +357,12 @@ function renderTable() {
       <td>
         <div class="module-path">${m.module_path}</div>
         ${m.dev_notes ? `<div class="dev-notes">${escapeHtml(m.dev_notes)}</div>` : ''}
-        ${hasOverride && m.override.notes ? `<div class="dev-notes" style="color:var(--yellow)">⚠ ${escapeHtml(m.override.notes)}</div>` : ''}
+        ${hasOverride && m.override.notes ? `<div class="dev-notes" style="color:var(--yellow)">◆ ${escapeHtml(m.override.notes)}</div>` : ''}
       </td>
       <td><span class="tier-badge">${m.tier}</span></td>
       <td>
         <span class="badge ${lcClass}">${m.lifecycle}</span>
-        ${hasOverride && m.override.lifecycle ? `<br><span class="badge badge-override">→ ${m.override.lifecycle}</span>` : ''}
+        ${hasOverride && m.override.lifecycle ? `<br><span class="badge badge-override">▸ ${m.override.lifecycle}</span>` : ''}
       </td>
       <td><span class="badge badge-${m.origin}">${m.origin}</span></td>
       <td>${m.requires_role.length ? m.requires_role.join(', ') : '<span style="color:var(--muted)">all</span>'}</td>
@@ -482,7 +482,7 @@ async function runPreview() {
       html += `<h4 style="margin-top:0.75rem;font-size:0.9rem;color:var(--muted)">${tier.toUpperCase()} (${visible.length} visible, ${hidden.length} hidden)</h4>`;
       html += '<ul style="list-style:none;font-size:0.85rem">';
       for (const m of modules) {
-        const icon = m.allowed ? '✅' : '⛔';
+        const icon = m.allowed ? '●' : '◆';
         const lcBadge = `<span class="badge badge-${m.lifecycle}" style="font-size:0.7rem">${m.lifecycle}</span>`;
         html += `<li>${icon} ${lcBadge} <span class="module-path">${m.module_path}</span></li>`;
       }

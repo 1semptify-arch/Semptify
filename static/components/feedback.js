@@ -54,7 +54,7 @@
 
         var icon = document.createElement('span');
         icon.className = 'se-pt-icon';
-        icon.textContent = ({ success: '✓', error: '!', info: 'i', story: '📖' })[kind] || '';
+        icon.textContent = ({ success: '●', error: '!', info: 'i', story: '○' })[kind] || '';
         el.appendChild(icon);
 
         var body = document.createElement('div');

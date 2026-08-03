@@ -1,6 +1,6 @@
 """
 Semptify 5.0 - Document Processing Pipeline
-Handles the full lifecycle: Upload → Analyze → Classify → Store → Cross-reference
+Handles the full lifecycle: Upload ▸ Analyze ▸ Classify ▸ Store ▸ Cross-reference
 
 Enhanced with world-class document intelligence integration.
 """
@@ -427,7 +427,7 @@ class DocumentPipeline:
                 )
                 
                 if info_pack:
-                    logger.info(f"📦 Document routed to module: {info_pack.target_module}")
+                    logger.info(f"● Document routed to module: {info_pack.target_module}")
 
             except Exception as hub_err:
                 logger.error(f"Module hub routing failed: {hub_err}")
@@ -438,7 +438,7 @@ class DocumentPipeline:
                 doc_type_str = doc.doc_type.value if doc.doc_type else ""
                 
                 # Process document - will either add to existing case or create new one
-                logger.info(f"🔍 Processing document for case management...")
+                logger.info(f"▸ Processing document for case management...")
                 
                 result = await process_document_for_case(
                     user_id=doc.user_id,
@@ -491,7 +491,7 @@ class DocumentPipeline:
                             )
             except Exception as case_err:
                 logger.error(f"Case processing failed: {case_err}")
-                logger.error(f"⚠️ Case processing failed: {case_err}")
+                logger.error(f"◆ Case processing failed: {case_err}")
 
         return doc
 
