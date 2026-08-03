@@ -114,3 +114,48 @@ async def test_eviction_timeline_evidence_filter(authenticated_client):
     subtypes = {i["item_subtype"] for i in data["items"]}
     assert "judgment" in subtypes
     assert "payment_plan" not in subtypes
+
+
+@pytest.mark.anyio
+async def test_tenant_timeline_renders_eviction_event(authenticated_client):
+    """/tenant/timeline (UI Composer) renders an eviction-sourced event."""
+    user_id = "GUa1b2c3d4"
+    event = EvictionTimelineEvent(
+        id=str(uuid4()),
+        user_id=user_id,
+        event_type="court_filing",
+        event_date=utc_now() - timedelta(days=10),
+        source="court",
+        source_document_id="doc-123",
+    )
+    async with get_db_session() as db:
+        db.add(event)
+
+    response = await authenticated_client.get("/tenant/timeline")
+    assert response.status_code == 200
+    text = response.text
+    assert "Court Filing" in text
+    assert "▸" in text
+    assert "Evidence" in text
+
+
+@pytest.mark.anyio
+async def test_legacy_timeline_page_loads_with_eviction_event(authenticated_client):
+    """/timeline (legacy list page) loads and contains the unified timeline script."""
+    user_id = "GUa1b2c3d4"
+    event = EvictionTimelineEvent(
+        id=str(uuid4()),
+        user_id=user_id,
+        event_type="response_deadline",
+        event_date=utc_now() - timedelta(days=5),
+        source="manual",
+    )
+    async with get_db_session() as db:
+        db.add(event)
+
+    response = await authenticated_client.get("/timeline")
+    assert response.status_code == 200
+    text = response.text
+    assert "Timeline" in text
+    assert "typeIcon" in text
+    assert "is_deadline" in text or "is_evidence" in text

@@ -107,22 +107,22 @@
 
     function typeIcon(it) {
         const type = it.item_type || '';
-        const subtype = it.item_subtype || '';
+        const subtype = (it.item_subtype || '').toLowerCase();
         if (type === 'document') return '●';
         if (type === 'rent_payment') return '●';
         if (type === 'vault_item') return it.is_evidence ? '●' : '○';
         if (type === 'calendar_event') {
-            if (subtype === 'hearing') return '▸';
-            if (subtype === 'deadline' || subtype === 'rent_due' || subtype === 'late_fee') return '◆';
+            if (subtype.includes('hearing')) return '▸';
+            if (subtype.includes('deadline') || subtype === 'rent_due' || subtype === 'late_fee') return '◆';
             return '◆';
         }
         if (type === 'cloud_event') return '○';
-        if (subtype === 'court' || subtype === 'hearing') return '▸';
-        if (subtype === 'deadline') return '◆';
-        if (subtype === 'notice') return '◆';
-        if (subtype === 'payment' || subtype === 'rent_payment') return '●';
-        if (subtype === 'maintenance') return '◆';
-        if (subtype === 'communication') return '○';
+        // Timeline events (manual + eviction) use keyword-based markers
+        if (subtype.includes('court') || subtype.includes('filing') || subtype.includes('hearing') || subtype.includes('judgment')) return '▸';
+        if (subtype.includes('deadline') || subtype.includes('due') || subtype.includes('response') || subtype.includes('appeal')) return '◆';
+        if (subtype.includes('notice') || subtype.includes('maintenance')) return '◆';
+        if (subtype.includes('payment') || subtype.includes('rent')) return '●';
+        if (subtype.includes('communication')) return '○';
         return '○';
     }
 

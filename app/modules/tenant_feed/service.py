@@ -27,7 +27,7 @@ Filterable by type via the `type_filter` parameter.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.core.utc import utc_now
@@ -37,6 +37,41 @@ logger = logging.getLogger(__name__)
 
 # Valid feed item types
 FEED_TYPES = {"document", "timeline_event", "journal", "deadline", "letter"}
+
+
+def _feed_icon_for_event_type(event_type: str, is_evidence: bool = False) -> str:
+    """Choose a minimal unicode marker icon based on the event type."""
+    subtype = (event_type or "").lower()
+    if any(k in subtype for k in ("court", "filing", "hearing", "judgment")):
+        return "▸"
+    if any(k in subtype for k in ("deadline", "due", "response", "appeal")):
+        return "◆"
+    if any(k in subtype for k in ("notice", "maintenance")):
+        return "◆"
+    if any(k in subtype for k in ("payment", "rent")):
+        return "●"
+    if "communication" in subtype:
+        return "○"
+    return "●" if is_evidence else "○"
+
+
+def _is_evidence_event_type(event_type: str) -> bool:
+    """Best-guess evidence classification from event_type keywords."""
+    subtype = (event_type or "").lower()
+    return any(k in subtype for k in ("court", "filing", "hearing", "judgment", "notice"))
+
+
+def _is_deadline_event_type(event_type: str) -> bool:
+    """Best-guess deadline classification from event_type keywords."""
+    subtype = (event_type or "").lower()
+    return any(k in subtype for k in ("deadline", "due", "response", "appeal"))
+
+
+def _source_label(source: Optional[str]) -> str:
+    """Human-readable source label for eviction-sourced events."""
+    if not source or source.lower() == "manual":
+        return ""
+    return source.replace("_", " ").title()
 
 
 def _empty_item() -> Dict[str, Any]:
@@ -58,6 +93,8 @@ def _format_timestamp(dt: Optional[datetime]) -> Dict[str, str]:
     if dt is None:
         return {"timestamp_iso": "", "timestamp_label": ""}
     try:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
         iso = dt.isoformat()
         now = utc_now()
         delta = now - dt
@@ -154,6 +191,9 @@ def _fetch_timeline_events(user_id: str) -> List[Dict[str, Any]]:
                 rows = (await db.execute(stmt)).scalars().all()
                 for event in rows:
                     ts_data = _format_timestamp(event.event_date or event.created_at)
+                    is_evidence = bool(getattr(event, "is_evidence", False))
+                    is_deadline = bool(getattr(event, "is_deadline", False))
+                    event_type = event.event_type or ""
                     item = _empty_item()
                     item.update({
                         "type": "timeline_event",
@@ -161,12 +201,14 @@ def _fetch_timeline_events(user_id: str) -> List[Dict[str, Any]]:
                         "subtitle": event.description or "",
                         "timestamp_iso": ts_data["timestamp_iso"],
                         "timestamp_label": ts_data["timestamp_label"],
-                        "icon": "•",
+                        "icon": _feed_icon_for_event_type(event_type, is_evidence),
                         "link": "/tenant/timeline",
                         "metadata": {
                             "event_id": event.id,
-                            "event_type": event.event_type,
+                            "event_type": event_type,
                             "is_urgent": event.is_urgent if hasattr(event, "is_urgent") else False,
+                            "is_evidence": is_evidence,
+                            "is_deadline": is_deadline,
                         },
                     })
                     results.append(item)
@@ -205,6 +247,7 @@ async def aggregate_feed_async(
         items.extend(await _fetch_documents_async(user_id))
     if not type_filter or type_filter == "timeline_event":
         items.extend(await _fetch_timeline_events_async(user_id))
+        items.extend(await _fetch_eviction_timeline_events_async(user_id))
     if not type_filter or type_filter == "journal":
         items.extend(_fetch_journal_entries(user_id))
     if not type_filter or type_filter == "deadline":
@@ -269,6 +312,9 @@ async def _fetch_timeline_events_async(user_id: str) -> List[Dict[str, Any]]:
             rows = (await db.execute(stmt)).scalars().all()
             for event in rows:
                 ts_data = _format_timestamp(event.event_date or event.created_at)
+                is_evidence = bool(getattr(event, "is_evidence", False))
+                is_deadline = bool(getattr(event, "is_deadline", False))
+                event_type = event.event_type or ""
                 item = _empty_item()
                 item.update({
                     "type": "timeline_event",
@@ -276,17 +322,88 @@ async def _fetch_timeline_events_async(user_id: str) -> List[Dict[str, Any]]:
                     "subtitle": event.description or "",
                     "timestamp_iso": ts_data["timestamp_iso"],
                     "timestamp_label": ts_data["timestamp_label"],
-                    "icon": "•",
+                    "icon": _feed_icon_for_event_type(event_type, is_evidence),
                     "link": "/tenant/timeline",
                     "metadata": {
                         "event_id": event.id,
-                        "event_type": event.event_type,
+                        "event_type": event_type,
                         "is_urgent": bool(getattr(event, "is_urgent", False)),
+                        "is_evidence": is_evidence,
+                        "is_deadline": is_deadline,
                     },
                 })
                 items.append(item)
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: timeline async fetch failed for %s: %s", user_id, e)
+    return items
+
+
+async def _fetch_eviction_timeline_events_async(user_id: str) -> List[Dict[str, Any]]:
+    """Async fetch of eviction timeline events from the EvictionTimelineEvent model."""
+    items: List[Dict[str, Any]] = []
+    try:
+        from sqlalchemy import select
+        from app.models.models import EvictionTimelineEvent
+        from app.core.database import get_db_session
+
+        async with get_db_session() as db:
+            stmt = (
+                select(EvictionTimelineEvent)
+                .where(EvictionTimelineEvent.user_id == user_id)
+                .order_by(EvictionTimelineEvent.event_date.desc())
+                .limit(50)
+            )
+            rows = (await db.execute(stmt)).scalars().all()
+            for event in rows:
+                ts_data = _format_timestamp(event.event_date or event.created_at)
+                event_type = event.event_type or ""
+                is_evidence = _is_evidence_event_type(event_type)
+                is_deadline = _is_deadline_event_type(event_type)
+                item = _empty_item()
+                item.update({
+                    "type": "timeline_event",
+                    "title": event_type.replace("_", " ").title() or "Eviction event",
+                    "subtitle": _source_label(event.source),
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": _feed_icon_for_event_type(event_type, is_evidence),
+                    "link": "/tenant/timeline",
+                    "metadata": {
+                        "event_id": event.id,
+                        "event_type": event_type,
+                        "source": event.source,
+                        "is_evidence": is_evidence,
+                        "is_deadline": is_deadline,
+                        "is_urgent": is_deadline,
+                    },
+                })
+                items.append(item)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.warning("Feed: eviction timeline fetch failed for %s: %s", user_id, e)
+    return items
+
+
+async def _fetch_eviction_timeline_events(user_id: str) -> List[Dict[str, Any]]:
+    """Sync-compatible wrapper for _fetch_eviction_timeline_events_async."""
+    items: List[Dict[str, Any]] = []
+    try:
+        import asyncio
+        from sqlalchemy import select
+        from app.models.models import EvictionTimelineEvent
+        from app.core.database import get_db_session
+
+        async def _query() -> List[Dict[str, Any]]:
+            return await _fetch_eviction_timeline_events_async(user_id)
+
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                return items  # Async path handled in aggregate_feed_async
+            items = loop.run_until_complete(_query())
+        except RuntimeError:
+            items = asyncio.run(_query())
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.warning("Feed: eviction timeline sync fetch failed for %s: %s", user_id, e)
     return items
 
 
@@ -414,6 +531,7 @@ def aggregate_feed(
         items.extend(_fetch_documents(user_id))
     if not type_filter or type_filter == "timeline_event":
         items.extend(_fetch_timeline_events(user_id))
+        items.extend(_fetch_eviction_timeline_events(user_id))
     if not type_filter or type_filter == "journal":
         items.extend(_fetch_journal_entries(user_id))
     if not type_filter or type_filter == "deadline":
