@@ -198,12 +198,12 @@ def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
         components.append(_component("stat_badge", {
             "label": "Documents",
             "value": ctx.get("document_count", 0),
-            "icon": "📄",
+            "icon": "●",
         }))
         components.append(_component("stat_badge", {
             "label": "Upcoming deadlines",
             "value": ctx.get("upcoming_deadlines", 0),
-            "icon": "⏰",
+            "icon": "◆",
         }))
         components.append(_component("prompt_card", {
             "title": "Welcome back",
@@ -238,12 +238,12 @@ def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     components.append(_component("stat_badge", {
         "label": "Documents",
         "value": ctx.get("document_count", 0),
-        "icon": "📄",
+        "icon": "●",
     }))
     components.append(_component("stat_badge", {
         "label": "Upcoming deadlines",
         "value": ctx.get("upcoming_deadlines", 0),
-        "icon": "⏰",
+        "icon": "◆",
     }))
 
     # Filter chips (HTMX swaps the timeline_group below)
@@ -291,19 +291,19 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     # Icon map for the 13 canonical subjects — keeps the grid visual
     # without hardcoding labels (those come from SUBJECT_LABELS).
     _SUBJECT_ICONS = {
-        "eviction": "🚪",
-        "repair": "🔧",
-        "rent": "💵",
-        "lease": "📋",
-        "deposit": "💰",
-        "discrimination": "⚖️",
-        "safety": "🛡️",
-        "habitability": "🏠",
-        "retaliation": "🛡️",
-        "small_claims": "⚖️",
-        "court_prep": "🏛️",
-        "evidence": "📄",
-        "timeline": "📅",
+        "eviction": "▸",
+        "repair": "◆",
+        "rent": "●",
+        "lease": "○",
+        "deposit": "●",
+        "discrimination": "▸",
+        "safety": "◆",
+        "habitability": "●",
+        "retaliation": "◆",
+        "small_claims": "▸",
+        "court_prep": "▸",
+        "evidence": "●",
+        "timeline": "◆",
     }
 
     components: List[Dict[str, Any]] = []
@@ -316,7 +316,7 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
 
         if not facts and not stories:
             components.append(_component("empty_state", {
-                "icon": "📚",
+                "icon": "▸",
                 "title": f"No verified facts yet for {label}",
                 "body": "This topic has not been populated yet. Choose another topic or check back later.",
             }))
@@ -372,12 +372,12 @@ def _compose_documents(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     components.append(_component("stat_badge", {
         "label": "Total documents",
         "value": ctx.get("document_count", 0),
-        "icon": "📄",
+        "icon": "●",
     }))
 
     if ctx.get("document_count", 0) == 0:
         components.append(_component("empty_state", {
-            "icon": "📄",
+            "icon": "●",
             "title": "No documents yet",
             "body": "Add your first document — lease, photos, receipts, communications.",
             "cta_label": "Add a document",

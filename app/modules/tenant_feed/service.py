@@ -116,7 +116,7 @@ def _fetch_documents(user_id: str) -> List[Dict[str, Any]]:
                 "subtitle": getattr(doc, "description", "") or "",
                 "timestamp_iso": ts_data["timestamp_iso"],
                 "timestamp_label": ts_data["timestamp_label"],
-                "icon": "📄",
+                "icon": "●",
                 "link": f"/tenant/documents/{getattr(doc, 'vault_id', '')}",
                 "metadata": {
                     "doc_id": getattr(doc, "vault_id", None),
@@ -237,7 +237,7 @@ async def _fetch_documents_async(user_id: str) -> List[Dict[str, Any]]:
                 "subtitle": getattr(doc, "description", "") or "",
                 "timestamp_iso": ts_data["timestamp_iso"],
                 "timestamp_label": ts_data["timestamp_label"],
-                "icon": "📄",
+                "icon": "●",
                 "link": f"/tenant/documents/{getattr(doc, 'vault_id', '')}",
                 "metadata": {
                     "doc_id": getattr(doc, "vault_id", None),
@@ -307,7 +307,7 @@ def _fetch_journal_entries(user_id: str) -> List[Dict[str, Any]]:
                 "subtitle": (entry.get("body") or "")[:120],
                 "timestamp_iso": ts_data["timestamp_iso"],
                 "timestamp_label": ts_data["timestamp_label"],
-                "icon": "📝",
+                "icon": "○",
                 "link": "/tenant/journal",
                 "metadata": {
                     "entry_id": entry.get("id"),
@@ -339,7 +339,7 @@ def _fetch_deadlines(user_id: str) -> List[Dict[str, Any]]:
                 "subtitle": deadline.get("description") or "",
                 "timestamp_iso": ts_data["timestamp_iso"],
                 "timestamp_label": ts_data["timestamp_label"],
-                "icon": "⏰",
+                "icon": "◆",
                 "link": "/tenant/tools/deadlines",
                 "metadata": {
                     "deadline_id": deadline.get("id"),
@@ -371,7 +371,7 @@ def _fetch_letters(user_id: str) -> List[Dict[str, Any]]:
                 "subtitle": letter.get("recipient") or "",
                 "timestamp_iso": ts_data["timestamp_iso"],
                 "timestamp_label": ts_data["timestamp_label"],
-                "icon": "✉️",
+                "icon": "●",
                 "link": "/tenant/tools/letters",
                 "metadata": {
                     "letter_id": letter.get("id"),
