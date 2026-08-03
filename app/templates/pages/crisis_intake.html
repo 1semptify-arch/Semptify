@@ -28,7 +28,6 @@
     .emergency-resources {
         padding: 1.25rem;
         background: rgba(239, 68, 68, 0.08);
-        border: 1px solid var(--color-error);
         border-radius: var(--radius-lg);
         margin-bottom: 2rem;
     }
@@ -91,7 +90,6 @@
         gap: 0.75rem;
         padding: 1rem 1.25rem;
         background: var(--color-bg-card);
-        border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
         cursor: pointer;
         transition: all var(--transition-fast);
@@ -104,11 +102,9 @@
 
     .crisis-choice:hover {
         background: var(--color-bg-hover);
-        border-color: var(--color-accent);
     }
 
     .crisis-choice--selected {
-        border-color: var(--color-accent);
         background: rgba(59, 130, 246, 0.08);
     }
 
@@ -119,7 +115,7 @@
         width: 100%;
         padding: 0.75rem 1rem;
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--color-border);
+        border: none;
         border-radius: var(--radius-md);
         color: var(--color-text-primary);
         font-size: var(--font-size-base);
@@ -187,7 +183,6 @@
     .crisis-output__item {
         padding: 1rem 1.25rem;
         background: var(--color-bg-card);
-        border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
     }
     .crisis-output__item strong { font-weight: 600; }
