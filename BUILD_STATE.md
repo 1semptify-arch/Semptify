@@ -1,3 +1,50 @@
+## Session -- 2026-08-03 — GUI Phase 2 handoff: eviction timeline integration, emoji sweep, and placement audit
+
+### Verification Run — 2026-08-03
+
+- `python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py`: PASS
+- `pytest tests/test_ssot_architecture.py tests/test_unified_timeline.py tests/test_page_composer_render.py tests/module_health -q --no-cov`: **140 passed** (4:11), **132 passed** (4:10)
+- `Jinja2 compile of app/templates/**/*.html`: PASS
+- Playwright smoke suite (`C:\tmp\playwright-test-semptify.js`): **6 passed, 0 failed**
+
+### Deploy
+
+- **Commit**: 68b18b1a (gui: move export/support actions to bottom per placement rule)
+- **Branch**: main
+- **Pushed**: 2026-08-03
+
+### What was shipped
+
+- `app/modules/timeline/router.py`: integrated `EvictionTimelineEvent` into the unified timeline.
+- `app/modules/tenant_feed/service.py`: eviction timeline events now flow into the tenant feed with `is_evidence` / `is_deadline` metadata.
+- `app/templates/components/ui_composer.html`, `app/templates/pages/timeline.html`, `app/templates/generic_page.html`: render eviction events with appropriate markers (`▸` court, `◆` deadline, etc.) and Evidence/Deadline badges.
+- `app/core/page_manifest.py`: fixed `interactive_timeline` source_file path; component left parked.
+- `app/` and `static/`: replaced colored emoji/dingbats with the minimal marker set `▸ ◆ ● ○` across 279 UI files.
+- `AGENTS.md`, `BUILD_STATE.md`, `GUI_PHASE1_DESIGN.md`: refined docs and added GUI Placement Rule.
+- `app/templates/pages/case_builder.html`, `app/templates/pages/tenant_dashboard.html`, `app/templates/gui/record.html`: moved export and support actions to the bottom per the placement rule.
+
+### Known Working
+
+- All Jinja templates compile cleanly.
+- Public and tenant routes from the smoke test set render 200 / redirect correctly.
+- Eviction events render with correct markers in both UI Composer and legacy timeline.
+- Module health test suite passes.
+
+### Known Broken / Pending
+
+- `app/templates/pages/law_library.html`: too dynamic to source-audit for placement; needs a runtime visual pass.
+- Many other `app/templates/pages/*.html` and `static/*` pages were not covered by the placement audit.
+- Non-English i18n catalogs are still stub/fallback.
+- `interactive-timeline.html` remains parked pending product decision.
+- `PR_BODY.md` exists untracked in the working tree.
+
+### Next Session Should Start With
+
+- Complete the GUI placement audit on the remaining tenant, advocate, admin, legal, manager, office, onboarding, public, and tools pages.
+- Conduct a live visual pass of `law_library.html` for chronological/spatial ordering.
+
+---
+
 ## Session -- 2026-08-01 — Task 6 i18n locale selector + set-locale endpoint
 
 ### Guardrail Engine Run — 2026-08-02T06:44:24
