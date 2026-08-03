@@ -1,435 +1,564 @@
 {% extends "base.html" %}
-{% block body_class %}template-4{% endblock %}
-
-{% block title %}Auto Mode Control Panel - Semptify{% endblock %}
 
 {% block styles %}
 <style>
-    .auto-mode-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem;
+  /* ===== Page Layout ===== */
+  .auto-mode-panel {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  /* ===== INFORMATION ===== */
+  .amp-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .amp-info__title {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+    font-weight: 700;
+  }
+
+  .amp-info__subtitle {
+    margin: 0;
+    font-size: var(--font-size-md);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ===== OUTPUT — Current Status ===== */
+  .amp-status {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .amp-status__heading {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .amp-status__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+  }
+
+  .amp-status__item {
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .amp-status__label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .amp-status__value {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .amp-status__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-xxs) var(--space-xs);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    width: fit-content;
+  }
+
+  .amp-status__badge--enabled {
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+  }
+
+  .amp-status__badge--disabled {
+    background: var(--color-danger-bg);
+    color: var(--color-danger-text);
+  }
+
+  /* ===== INPUT — Configuration ===== */
+  .amp-config {
+    background: var(--color-surface-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg) var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .amp-config__heading {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .amp-config__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .amp-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    gap: var(--space-md);
+  }
+
+  .amp-toggle__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xxs);
+  }
+
+  .amp-toggle__label {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .amp-toggle__description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .amp-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .amp-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .amp-switch__slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--color-border-default);
+    border-radius: var(--radius-pill);
+    transition: background 0.2s ease;
+  }
+
+  .amp-switch__slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: var(--color-surface-primary);
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+  }
+
+  .amp-switch input:checked + .amp-switch__slider {
+    background: var(--color-primary);
+  }
+
+  .amp-switch input:checked + .amp-switch__slider::before {
+    transform: translateX(20px);
+  }
+
+  .amp-select {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    background: var(--color-surface-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+
+  .amp-select__label {
+    font-size: var(--font-size-md);
+    color: var(--color-text-primary);
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .amp-select__field {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-md);
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    width: 100%;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-md) center;
+  }
+
+  .amp-select__field:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -1px;
+  }
+
+  /* ===== ACTION — Save ===== */
+  .amp-action {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--space-sm);
+  }
+
+  .amp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+
+  .amp-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .amp-btn--primary {
+    background: var(--color-primary);
+    color: var(--color-text-on-primary);
+  }
+
+  .amp-btn--primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  .amp-btn--ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+  }
+
+  .amp-btn--ghost:hover:not(:disabled) {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+  }
+
+  /* ===== REACTION ===== */
+  .amp-reaction {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+  }
+
+  .amp-reaction[data-state="idle"] .amp-reaction__text { color: var(--color-text-secondary); }
+  .amp-reaction[data-state="working"] .amp-reaction__text { color: var(--color-primary); }
+  .amp-reaction[data-state="done"] .amp-reaction__text { color: var(--color-success-text); }
+  .amp-reaction[data-state="error"] .amp-reaction__text { color: var(--color-danger-text); }
+
+  .amp-reaction__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border-default);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: amp-spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .amp-reaction[data-state="working"] .amp-reaction__spinner { display: block; }
+
+  @keyframes amp-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .amp-reaction__icon {
+    display: none;
+    font-size: var(--font-size-md);
+    line-height: 1;
+  }
+
+  .amp-reaction[data-state="done"] .amp-reaction__icon--done { display: inline; color: var(--color-success-text); }
+  .amp-reaction[data-state="error"] .amp-reaction__icon--error { display: inline; color: var(--color-danger-text); }
+
+  /* ===== Low-frequency Action — Reset ===== */
+  .amp-reset {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border-subtle);
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ===== Mobile Responsive ===== */
+  @media (max-width: 768px) {
+    .auto-mode-panel {
+      padding: var(--space-md) var(--space-sm);
+      gap: var(--space-md);
     }
 
-    .header-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
+    .amp-status__grid {
+      grid-template-columns: 1fr;
     }
 
-    .header-section h1 {
-        margin: 0;
-        font-size: 2em;
-        margin-bottom: 0.5rem;
+    .amp-toggle {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-sm);
     }
 
-    .header-section p {
-        margin: 0;
-        opacity: 0.9;
+    .amp-toggle__text {
+      width: 100%;
     }
 
-    .control-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+    .amp-switch {
+      align-self: flex-end;
     }
 
-    .control-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    .amp-action {
+      justify-content: stretch;
     }
 
-    .control-card h3 {
-        margin: 0 0 1rem 0;
-        color: #1f2937;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    .amp-btn--primary {
+      width: 100%;
     }
 
-    .toggle-switch {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1rem;
+    .amp-reset {
+      justify-content: stretch;
     }
 
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 50px;
-        height: 24px;
+    .amp-reset .amp-btn--ghost {
+      width: 100%;
     }
-
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: 0.4s;
-        border-radius: 24px;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.4s;
-        border-radius: 50%;
-    }
-
-    input:checked + .slider {
-        background-color: #2C5F2D;
-    }
-
-    input:checked + .slider:before {
-        transform: translateX(26px);
-    }
-
-    .feature-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .feature-list li {
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .feature-list li:last-child {
-        border-bottom: none;
-    }
-
-    .feature-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex: 1;
-    }
-
-    .feature-checkbox input {
-        cursor: pointer;
-    }
-
-    .status-section {
-        background: #f8f9fa;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .status-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .status-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .status-label {
-        font-weight: 500;
-        color: #374151;
-    }
-
-    .status-value {
-        color: #6b7280;
-    }
-
-    .status-value.active {
-        color: #10b981;
-        font-weight: 600;
-    }
-
-    .button-group {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
-
-    .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-        background: #2C5F2D;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: #3a7d3b;
-    }
-
-    .btn-secondary {
-        background: #e5e7eb;
-        color: #374151;
-    }
-
-    .btn-secondary:hover {
-        background: #d1d5db;
-    }
-
-    .info-box {
-        background: #dbeafe;
-        border: 1px solid #93c5fd;
-        border-radius: 6px;
-        padding: 1rem;
-        margin-top: 1rem;
-        color: #1e40af;
-    }
-
-    @media (max-width: 768px) {
-        .control-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .button-group {
-            flex-direction: column;
-        }
-
-        .btn {
-            width: 100%;
-        }
-    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auto-mode-container">
-    <!-- Header -->
-    <div class="header-section">
-        <h1>▸ Auto Mode Control Panel</h1>
-        <p>Configure and manage automated analysis features</p>
+<div class="auto-mode-panel">
+
+  <!-- ===== INFORMATION ===== -->
+  <section class="amp-info">
+    <h1 class="amp-info__title">Auto Mode Panel</h1>
+    <p class="amp-info__subtitle">Configure automated workflow triggers and execution rules.</p>
+  </section>
+
+  <!-- ===== OUTPUT — Current Status ===== -->
+  <section class="amp-status">
+    <h2 class="amp-status__heading">Current Status</h2>
+    <div class="amp-status__grid">
+      <div class="amp-status__item">
+        <span class="amp-status__label">Auto Mode</span>
+        <span class="amp-status__badge amp-status__badge--enabled" id="status-badge">Enabled</span>
+      </div>
+      <div class="amp-status__item">
+        <span class="amp-status__label">Active Workflows</span>
+        <span class="amp-status__value" id="status-workflows">4</span>
+      </div>
+      <div class="amp-status__item">
+        <span class="amp-status__label">Last Run</span>
+        <span class="amp-status__value" id="status-last-run">2025-01-14 09:32</span>
+      </div>
     </div>
+  </section>
 
-    <!-- Status Section -->
-    <div class="status-section">
-        <h2>Status Overview</h2>
-        <div class="status-item">
-            <span class="status-label">Auto Mode Status</span>
-            <span class="status-value active" id="auto-mode-status">Checking...</span>
+  <!-- ===== INPUT — Configuration ===== -->
+  <section class="amp-config">
+    <h2 class="amp-config__heading">Configuration</h2>
+
+    <div class="amp-config__group">
+      <div class="amp-toggle">
+        <div class="amp-toggle__text">
+          <span class="amp-toggle__label">Enable Auto Mode</span>
+          <span class="amp-toggle__description">Master switch for all automated workflow triggers.</span>
         </div>
-        <div class="status-item">
-            <span class="status-label">Last Analysis</span>
-            <span class="status-value" id="last-analysis">Never</span>
+        <label class="amp-switch">
+          <input type="checkbox" id="toggle-enable" checked>
+          <span class="amp-switch__slider"></span>
+        </label>
+      </div>
+
+      <div class="amp-toggle">
+        <div class="amp-toggle__text">
+          <span class="amp-toggle__label">Auto-extract dates from new documents</span>
+          <span class="amp-toggle__description">Scan incoming documents and extract relevant dates automatically.</span>
         </div>
-        <div class="status-item">
-            <span class="status-label">Total Analyses</span>
-            <span class="status-value" id="analysis-count">0</span>
+        <label class="amp-switch">
+          <input type="checkbox" id="toggle-extract" checked>
+          <span class="amp-switch__slider"></span>
+        </label>
+      </div>
+
+      <div class="amp-toggle">
+        <div class="amp-toggle__text">
+          <span class="amp-toggle__label">Auto-generate timeline</span>
+          <span class="amp-toggle__description">Build a chronological timeline from extracted dates.</span>
         </div>
-        <div class="status-item">
-            <span class="status-label">Features Enabled</span>
-            <span class="status-value" id="features-count">0/6</span>
+        <label class="amp-switch">
+          <input type="checkbox" id="toggle-timeline" checked>
+          <span class="amp-switch__slider"></span>
+        </label>
+      </div>
+
+      <div class="amp-toggle">
+        <div class="amp-toggle__text">
+          <span class="amp-toggle__label">Auto-suggest motions</span>
+          <span class="amp-toggle__description">Recommend motions based on case context and timeline events.</span>
         </div>
+        <label class="amp-switch">
+          <input type="checkbox" id="toggle-motions">
+          <span class="amp-switch__slider"></span>
+        </label>
+      </div>
+
+      <div class="amp-select">
+        <span class="amp-select__label">Execution Frequency</span>
+        <select class="amp-select__field" id="select-frequency">
+          <option value="hourly">Every hour</option>
+          <option value="6h" selected>Every 6 hours</option>
+          <option value="12h">Every 12 hours</option>
+          <option value="daily">Once daily</option>
+          <option value="weekly">Once weekly</option>
+        </select>
+      </div>
     </div>
+  </section>
 
-    <!-- Control Cards -->
-    <div class="control-grid">
-        <!-- Master Toggle -->
-        <div class="control-card">
-            <h3><span>▸</span> Master Control</h3>
-            <div class="toggle-switch">
-                <label class="switch">
-                    <input type="checkbox" id="auto-mode-toggle" checked>
-                    <span class="slider"></span>
-                </label>
-                <span>Auto Mode <span id="toggle-status">Enabled</span></span>
-            </div>
-            <div class="info-box">
-                Enable or disable all automated analysis features with one click
-            </div>
-        </div>
+  <!-- ===== ACTION — Save ===== -->
+  <section class="amp-action">
+    <button class="amp-btn amp-btn--primary" id="btn-save" type="button">
+      Save Configuration
+    </button>
+  </section>
 
-        <!-- Timeline Generation -->
-        <div class="control-card">
-            <h3><span>◆</span> Timeline Generation</h3>
-            <ul class="feature-list">
-                <li>
-                    <label class="feature-checkbox">
-                        <input type="checkbox" class="feature-toggle" data-feature="auto_generate_timeline" checked>
-                        <span>Auto extract dates</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="feature-checkbox">
-                        <input type="checkbox" class="feature-toggle" data-feature="auto_generate_calendar" checked>
-                        <span>Build calendar events</span>
-                    </label>
-                </li>
-            </ul>
-        </div>
+  <!-- ===== REACTION ===== -->
+  <div class="amp-reaction" id="save-reaction" data-state="idle">
+    <span class="amp-reaction__spinner"></span>
+    <span class="amp-reaction__icon amp-reaction__icon--done">&#10003;</span>
+    <span class="amp-reaction__icon amp-reaction__icon--error">&#9888;</span>
+    <span class="amp-reaction__text" id="reaction-text"></span>
+  </div>
 
-        <!-- Analysis Features -->
-        <div class="control-card">
-            <h3><span>▸</span> Analysis Features</h3>
-            <ul class="feature-list">
-                <li>
-                    <label class="feature-checkbox">
-                        <input type="checkbox" class="feature-toggle" data-feature="auto_identify_complaints" checked>
-                        <span>Identify complaints</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="feature-checkbox">
-                        <input type="checkbox" class="feature-toggle" data-feature="auto_assess_rights" checked>
-                        <span>Assess rights</span>
-                    </label>
-                </li>
-            </ul>
-        </div>
+  <!-- ===== Low-frequency Action — Reset ===== -->
+  <div class="amp-reset">
+    <button class="amp-btn amp-btn--ghost" id="btn-reset" type="button">
+      Reset to defaults
+    </button>
+  </div>
 
-        <!-- Suggestions -->
-        <div class="control-card">
-            <h3><span>○</span> Smart Suggestions</h3>
-            <ul class="feature-list">
-                <li>
-                    <label class="feature-checkbox">
-                        <input type="checkbox" class="feature-toggle" data-feature="auto_detect_missteps" checked>
-                        <span>Detect missteps</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="feature-checkbox">
-                        <input type="checkbox" class="feature-toggle" data-feature="auto_suggest_tactics" checked>
-                        <span>Suggest tactics</span>
-                    </label>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="button-group">
-        <button class="btn btn-primary" onclick="saveConfiguration()">● Save Configuration</button>
-        <button class="btn btn-secondary" onclick="resetToDefaults()">▸ Reset to Defaults</button>
-    </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-// Load status on page load
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        // Get auto mode status
-        const statusResponse = await fetch('/api/auto-mode/status');
-        const status = await statusResponse.json();
-        
-        // Update UI with status
-        document.getElementById('auto-mode-status').textContent = status.enabled ? '● Enabled' : '○ Disabled';
-        document.getElementById('auto-mode-toggle').checked = status.enabled;
-        document.getElementById('toggle-status').textContent = status.enabled ? 'Enabled' : 'Disabled';
-        document.getElementById('last-analysis').textContent = status.last_analysis || 'Never';
-        document.getElementById('analysis-count').textContent = status.analysis_count;
+  (function () {
+    const btnSave = document.getElementById('btn-save');
+    const btnReset = document.getElementById('btn-reset');
+    const reaction = document.getElementById('save-reaction');
+    const reactionText = document.getElementById('reaction-text');
 
-        // Set feature checkboxes
-        let enabledCount = 0;
-        Object.keys(status.config).forEach(feature => {
-            const checkbox = document.querySelector(`[data-feature="${feature}"]`);
-            if (checkbox) {
-                checkbox.checked = status.config[feature];
-                if (status.config[feature]) enabledCount++;
-            }
-        });
-        document.getElementById('features-count').textContent = `${enabledCount}/6`;
-
-    } catch (error) {
-        console.error('Error loading status:', error);
+    function setReaction(state, message) {
+      reaction.setAttribute('data-state', state);
+      reactionText.textContent = message || '';
     }
-});
 
-// Toggle master switch
-document.getElementById('auto-mode-toggle').addEventListener('change', async function() {
-    try {
-        const enabled = this.checked;
-        await fetch('/api/auto-mode/toggle?enabled=' + enabled, { method: 'POST' });
-        document.getElementById('toggle-status').textContent = enabled ? 'Enabled' : 'Disabled';
-        document.getElementById('auto-mode-status').textContent = enabled ? '● Enabled' : '○ Disabled';
-    } catch (error) {
-        console.error('Error toggling auto mode:', error);
+    function collectConfig() {
+      return {
+        enable_auto_mode: document.getElementById('toggle-enable').checked,
+        auto_extract_dates: document.getElementById('toggle-extract').checked,
+        auto_generate_timeline: document.getElementById('toggle-timeline').checked,
+        auto_suggest_motions: document.getElementById('toggle-motions').checked,
+        execution_frequency: document.getElementById('select-frequency').value
+      };
     }
-});
 
-async function saveConfiguration() {
-    try {
-        const config = {};
-        document.querySelectorAll('.feature-toggle').forEach(checkbox => {
-            config[checkbox.dataset.feature] = checkbox.checked;
-        });
-
-        const response = await fetch('/api/auto-mode/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(config)
-        });
-
-        if (response.ok) {
-            if (window.SemptifyFeedback) { SemptifyFeedback.success('Configuration saved successfully.'); } else { alert('● Configuration saved successfully!'); }
-        }
-    } catch (error) {
-        console.error('Error saving configuration:', error);
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error saving configuration.'); } else { alert('◆ Error saving configuration'); }
+    function applyConfig(cfg) {
+      document.getElementById('toggle-enable').checked = cfg.enable_auto_mode;
+      document.getElementById('toggle-extract').checked = cfg.auto_extract_dates;
+      document.getElementById('toggle-timeline').checked = cfg.auto_generate_timeline;
+      document.getElementById('toggle-motions').checked = cfg.auto_suggest_motions;
+      document.getElementById('select-frequency').value = cfg.execution_frequency;
     }
-}
 
-async function resetToDefaults() {
-    if (confirm('Reset all auto mode settings to defaults?')) {
-        const defaults = {
-            auto_generate_timeline: true,
-            auto_generate_calendar: true,
-            auto_identify_complaints: true,
-            auto_assess_rights: true,
-            auto_detect_missteps: true,
-            auto_suggest_tactics: true
-        };
-        
-        document.querySelectorAll('.feature-toggle').forEach(checkbox => {
-            checkbox.checked = defaults[checkbox.dataset.feature];
+    const DEFAULTS = {
+      enable_auto_mode: true,
+      auto_extract_dates: true,
+      auto_generate_timeline: true,
+      auto_suggest_motions: false,
+      execution_frequency: '6h'
+    };
+
+    btnSave.addEventListener('click', function () {
+      btnSave.disabled = true;
+      setReaction('working', 'Saving...');
+
+      const payload = collectConfig();
+
+      fetch('/auto-mode-panel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Request failed: ' + res.status);
+          return res.json().catch(function () { return {}; });
+        })
+        .then(function () {
+          setReaction('done', 'Saved');
+          setTimeout(function () {
+            setReaction('idle', '');
+          }, 3000);
+        })
+        .catch(function () {
+          setReaction('error', 'Failed to save configuration. Please try again.');
+        })
+        .finally(function () {
+          btnSave.disabled = false;
         });
-        
-        await saveConfiguration();
-    }
-}
-
-// Update feature count display
-document.querySelectorAll('.feature-toggle').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        const enabledCount = document.querySelectorAll('.feature-toggle:checked').length;
-        document.getElementById('features-count').textContent = `${enabledCount}/6`;
     });
-});
+
+    btnReset.addEventListener('click', function () {
+      applyConfig(DEFAULTS);
+      setReaction('idle', 'Configuration reset to defaults. Save to apply changes.');
+    });
+  })();
 </script>
 {% endblock %}
