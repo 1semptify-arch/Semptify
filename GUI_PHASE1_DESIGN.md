@@ -181,7 +181,7 @@ This is the big "Add Record" button from the product direction. It's a modal tha
 ### Current 8 pages → New 4 pages
 
 | Current | New | Action |
-|---------|-----|--------|
+| --------- | ----- | -------- |
 | `tenant/index.html` | **Remove** — replaced by timeline | Redirect to `/tenant/timeline.html` |
 | `tenant/dashboard.html` | **Remove** — stats fold into timeline header | Redirect to `/tenant/timeline.html` |
 | `tenant/journal.html` | **Merge into timeline** — journal entries are timeline events | Journal entry = timeline event with type 'journal' |

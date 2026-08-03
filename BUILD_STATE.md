@@ -1,3 +1,42 @@
+## Session -- 2026-08-03 — Full 75-page Jinja2 conversion (4 commits, 65 new templates)
+
+### Overview
+
+Converted all 75 Semptify application pages to a unified Jinja2 template system. Every page now extends `base.html`, uses only `ssot-design-system.css` tokens, follows the chronological placement rule, and includes REACTION states for every action.
+
+### Commits (in order)
+
+| Commit | Title | Files | Summary |
+|--------|-------|-------|---------|
+| `1e2584e9` | gui: sync placement rule and page router foundation | 6 | Manifest source_file fixes (66 entries), 13 orphaned contracts added, unified page router module created and registered in product_manifest.py |
+| `bc7ebf71` | gui: Batch 1 — high-priority page templates (6 pages) | 6 | role_selection, storage_info, storage_connecting, storage_setup, documents, crisis_intake |
+| `935ddf65` | gui: Batch 2 — medium-priority page templates (12 pages) | 12 | settings, setup_wizard, motions, counterclaim, brain, mesh_network, intake, interactive_timeline, timeline_builder, timeline_auto_build, document_calendar, auto_mode_panel |
+| `5f729e66` | gui: Batch 3 — low-priority page templates (47 pages) + route fixes | 49 | 47 new templates across legal/court, document/tools, admin/dev, funding, journey/delivery, and auth categories. Route fixes: removed stale skip-list entries, added /index route, updated /command-center to template-first |
+
+### What was shipped
+
+- **Manifest fixes**: 66 `source_file` entries corrected to point to actual template paths. All 80 template pages now have files on disk.
+- **Orphaned contracts**: 13 contracts without manifest entries now have manifest entries (9 new + 4 aliases).
+- **Unified page router** (`app/modules/page_router/router.py`): Handles 62 routes with contract-based guards. Registered in `product_manifest.py`. Routes are stored in `_IncludedRouter` objects (FastAPI 0.141.1).
+- **65 new Jinja2 templates**: All extend `base.html`, use only `var(--color-*)` / `var(--font-size-*)` / `var(--space-*)` / `var(--radius-*)` tokens, no card borders or box-shadows, chronological placement (INFORMATION → INPUT → ACTION → REACTION → OUTPUT), mobile responsive `@media (max-width: 768px)`, and REACTION states (idle/working/done/error) for every action.
+- **Route fixes**: Removed `/delivery/inbox`, `/delivery/send`, `/error`, `/register/success`, `/storage-reconnect` from page_router skip list (no external handlers existed). Added `/index` route in main.py. Updated `/command-center` to try Jinja2 template first with static fallback.
+
+### Verification
+
+- `python -m py_compile app/main.py app/modules/page_router/router.py`: PASS
+- Jinja2 parse of all 80 template files: PASS (0 failures)
+- HTTP route check of all 84 manifest routes: **83 return 200 OK, 1 returns 401** (`/admin` — correct auth guard behavior)
+- Server starts cleanly with no template-related errors
+
+### Known Working
+
+- All 84 manifest routes registered and responding.
+- All 80 template pages have Jinja2 files on disk.
+- Unified page router loads 58 routes, skips 22 (already handled elsewhere).
+- Server starts in ~3 seconds with all modules loaded.
+
+---
+
 ## Session -- 2026-08-03 — GUI Phase 2 handoff: eviction timeline integration, emoji sweep, and placement audit
 
 ### Verification Run — 2026-08-03
@@ -3307,7 +3346,7 @@ All checks passed.
 #### Icon Replacement (5 commits, one per file)
 Replaced emoji icons with minimal unicode markers across 5 GUI templates. Per Step 4 of the 2026-07-18 handoff.
 | Commit | File | Markers |
-|--------|------|--------|
+| -------- | ------ | -------- |
 | `5b24db2` | `app/templates/gui/record.html` | 📅📝💰 → ▸ |
 | `b780c23` | `app/templates/gui/know.html` | 📚🏡🔧💰 → ▸ |
 | `03beef0` | `app/templates/gui/act.html` | ✉🏛🛠📅 → ▸ |
@@ -3377,7 +3416,7 @@ Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zo
 
 #### Commits (in order)
 | Commit | File | Summary |
-|--------|------|---------|
+| -------- | ------ | --------- |
 | `10106ba` | `static/css/ssot-design-system.css` + `static/css/gui-panels.css` | Added `--zone-bg-primary`/`secondary`/`tertiary`/`inverse`, `--zone-gap-*`, `--zone-header-weight` tokens to `:root`. Removed `border` from `.frame-panel`, `.frame-panel--header`, `.frame-item`; now uses zone backgrounds + `nth-child(even)` rhythm + hover state. `.frame-btn` keeps border (genuine interactive control). |
 | `830c750` | `app/templates/pages/document_center.html` | 3-pane layout: panes use `var(--zone-bg-primary/secondary/tertiary)` instead of `border-right`/`border-left`/`border-bottom`. Modals lost `border-radius:0.5rem`. JS-generated image/PDF wrappers and highlight popover lost `box-shadow`. `#dcTypeSuggest` lost border → zone background. Form controls (`<select>`, `<input>`, `<textarea>`) kept their borders per rule. |
 | `619660b` | `app/templates/gui/record.html` | 4 `.frame-card` tool links lost `border-radius:0.5rem` + hardcoded `#1e293b` → `var(--zone-bg-secondary)`. `#dropZone` lost `border-style:dashed` → `var(--zone-bg-tertiary)`. Drag handlers switched from `borderColor` to `background` toggling. |
@@ -3455,7 +3494,7 @@ Resumed browser switch + storage validation work from 10 hours prior. Identified
 
 ### Test Results
 | Endpoint | Status | Expected | Result |
-|----------|--------|----------|--------|
+| ---------- | -------- | ---------- | -------- |
 | Browser switch (no session) | 401 | 401 | ✅ FIXED |
 | Admin health (no session) | 302 → /preamble | 302/redirect | ✅ Good UX |
 | Storage providers | 200 | 200 | ✅ Working |
@@ -7153,7 +7192,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ### What Was Shipped (58)
 
 | File | Change |
-|------|--------|
+| ------ | -------- |
 | `app/modules/public_forms/router.py` | Autofill now pulls `landlord_name` + address from `Contact` table (DB). Respects privacy design — no email/address in User table. |
 | `app/core/audit.py` | `_log_to_database()` implemented — writes to `admin_audit_logs` table when DB logging enabled. Skips anonymous events (NOT NULL FK constraint). |
 | `app/core/gdpr_compliance.py` | `_get_user_account_info()` now queries real `User.created_at` and `User.last_login` via async thread pool. |
@@ -7193,7 +7232,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 **Live Data Wiring — ALL Admin Endpoints:**
 
 | Endpoint | Before | After |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `POST /reset-gates` | `note: "not fully implemented"` | Live DB update to `User.completed_groups` |
 | `GET /vault-summary` | `document_count: 0` placeholder | Real `vault_service.get_user_documents()` |
 | `GET /audit` | In-memory `_AUDIT_LOG: List[dict]` | Live PostgreSQL `admin_audit_logs` table |
@@ -9616,7 +9655,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 Set these in Render Dashboard > Service > Environment:
 
 | Variable | Status | Notes |
-|----------|--------|-------|
+| ---------- | -------- | ------- |
 | `SECRET_KEY` | Auto-generated by Render | Already in render.yaml |
 | `DATABASE_URL` | MUST BE SET MANUALLY | Use Neon.tech free PostgreSQL |
 | `SECURITY_MODE` | `enforced` | Already in render.yaml |
