@@ -1001,6 +1001,12 @@ _register(
     tier=ProductTier.DEV,
     log_message="Page Editor router connected - Interactive editor for static & Jinja2 templates",
 )
+_register(
+    "app.modules.page_router.router",
+    tags=("Unified Pages",),
+    tier=ProductTier.CORE,
+    log_message="Unified page router connected — all manifest template pages served with contract guards",
+)
 _register("app.modules.development.router", tags=("Development Tools",), tier=ProductTier.DEV)
 _register(
     "app.modules.dev_lab.router",

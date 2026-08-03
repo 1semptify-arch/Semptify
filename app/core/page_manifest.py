@@ -253,7 +253,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="tenant_dashboard",
         route="/tenant",
-        source_file="app/templates/pages/tenant.html",
+        source_file="app/templates/pages/tenant_dashboard.html",
         page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
@@ -295,8 +295,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="documents",
         route="/documents",
-        source_file="static/documents.html",
-        page_type="static",
+        source_file="app/templates/pages/documents.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_DOCUMENTS registered in page_contracts.py"
@@ -337,8 +337,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="timeline",
         route="/timeline",
-        source_file="static/timeline.html",
-        page_type="static",
+        source_file="app/templates/pages/timeline.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_TIMELINE registered in page_contracts.py"
@@ -379,8 +379,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="calendar",
         route="/calendar",
-        source_file="static/calendar.html",
-        page_type="static",
+        source_file="app/templates/pages/calendar.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_CALENDAR registered in page_contracts.py"
@@ -553,8 +553,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="law_library",
         route="/law-library",
-        source_file="static/law_library.html",
-        page_type="static",
+        source_file="app/templates/pages/law_library.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -595,8 +595,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="research",
         route="/research",
-        source_file="static/research.html",
-        page_type="static",
+        source_file="app/templates/pages/research.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -637,8 +637,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="legal_trails",
         route="/legal-trails",
-        source_file="static/legal_trails.html",
-        page_type="static",
+        source_file="app/templates/pages/legal_trails.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -682,8 +682,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="vault",
         route="/vault",
-        source_file="static/vault.html",
-        page_type="static",
+        source_file="app/templates/pages/vault.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_VAULT registered in page_contracts.py"
@@ -724,8 +724,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="document_viewer",
         route="/document-viewer",
-        source_file="static/document_viewer.html",
-        page_type="static",
+        source_file="app/templates/pages/document_viewer.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_DOCUMENT_VIEWER registered in page_contracts.py"
@@ -766,8 +766,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="document_intake",
         route="/document-intake",
-        source_file="static/document_intake.html",
-        page_type="static",
+        source_file="app/templates/pages/document_intake.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -811,8 +811,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="court_packet",
         route="/court-packet",
-        source_file="static/court_packet.html",
-        page_type="static",
+        source_file="app/templates/pages/court_packet.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_COURT_PACKET registered in page_contracts.py"
@@ -853,8 +853,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="eviction_answer",
         route="/eviction-answer",
-        source_file="static/eviction_answer.html",
-        page_type="static",
+        source_file="app/templates/pages/eviction_answer.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_EVICTION_ANSWER registered in page_contracts.py"
@@ -895,8 +895,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="hearing_prep",
         route="/hearing-prep",
-        source_file="static/hearing_prep.html",
-        page_type="static",
+        source_file="app/templates/pages/hearing_prep.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_HEARING_PREP registered in page_contracts.py"
@@ -937,8 +937,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="zoom_court",
         route="/zoom-court",
-        source_file="static/zoom_court.html",
-        page_type="static",
+        source_file="app/templates/pages/zoom_court.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_ZOOM_COURT registered in page_contracts.py"
@@ -979,8 +979,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="motions",
         route="/motions",
-        source_file="static/motions.html",
-        page_type="static",
+        source_file="app/templates/pages/motions.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_MOTIONS registered in page_contracts.py"
@@ -1021,8 +1021,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="counterclaim",
         route="/counterclaim",
-        source_file="static/counterclaim.html",
-        page_type="static",
+        source_file="app/templates/pages/counterclaim.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1066,8 +1066,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="case_builder",
         route="/case-builder",
-        source_file="static/cases.html",
-        page_type="static",
+        source_file="app/templates/pages/case_builder.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1108,8 +1108,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="briefcase",
         route="/briefcase",
-        source_file="static/briefcase.html",
-        page_type="static",
+        source_file="app/templates/pages/briefcase.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1153,8 +1153,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="pdf_tools",
         route="/pdf-tools",
-        source_file="static/pdf_tools.html",
-        page_type="static",
+        source_file="app/templates/pages/pdf_tools.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1195,8 +1195,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="document_converter",
         route="/document-converter",
-        source_file="static/document-converter.html",
-        page_type="static",
+        source_file="app/templates/pages/document_converter.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1237,8 +1237,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="contacts",
         route="/contacts",
-        source_file="static/contacts.html",
-        page_type="static",
+        source_file="app/templates/pages/contacts.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1279,8 +1279,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="correspondence",
         route="/correspondence",
-        source_file="static/correspondence.html",
-        page_type="static",
+        source_file="app/templates/pages/correspondence.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1321,8 +1321,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="letter_builder",
         route="/letter-builder",
-        source_file="static/letter_builder.html",
-        page_type="static",
+        source_file="app/templates/pages/letter_builder.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1366,8 +1366,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="settings",
         route="/settings",
-        source_file="static/settings-v2.html",
-        page_type="static",
+        source_file="app/templates/pages/settings.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1408,8 +1408,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="setup_wizard",
         route="/setup",
-        source_file="static/setup_wizard.html",
-        page_type="static",
+        source_file="app/templates/pages/setup_wizard.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1450,8 +1450,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="storage_setup",
         route="/storage-setup",
-        source_file="static/storage_setup.html",
-        page_type="static",
+        source_file="app/templates/pages/storage_setup.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_STORAGE_SETUP registered in page_contracts.py"
@@ -1496,7 +1496,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         page_id="help",
         route="/help",
         source_file="app/templates/pages/help.html",
-        page_type="jinja",
+        page_type="static",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1537,7 +1537,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="about",
         route="/about",
-        source_file="static/about.html",
+        source_file="static/public/about.html",
         page_type="static",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
@@ -1579,7 +1579,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="privacy",
         route="/privacy",
-        source_file="static/privacy.html",
+        source_file="static/public/privacy.html",
         page_type="static",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
@@ -1624,8 +1624,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="fraud_exposure",
         route="/fraud-exposure",
-        source_file="static/fraud.html",
-        page_type="static",
+        source_file="app/templates/pages/fraud_exposure.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1666,8 +1666,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="public_exposure",
         route="/public-exposure",
-        source_file="static/exposure.html",
-        page_type="static",
+        source_file="app/templates/pages/public_exposure.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1708,8 +1708,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="complaints",
         route="/complaints",
-        source_file="static/complaints.html",
-        page_type="static",
+        source_file="app/templates/pages/complaints.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1750,8 +1750,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="dakota_defense",
         route="/dakota-defense",
-        source_file="static/dakota_defense.html",
-        page_type="static",
+        source_file="app/templates/pages/dakota_defense.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1795,8 +1795,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="command_center",
         route="/command-center",
-        source_file="static/command_center.html",
-        page_type="static",
+        source_file="app/templates/pages/command_center.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1837,8 +1837,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="brain",
         route="/brain",
-        source_file="static/brain.html",
-        page_type="static",
+        source_file="app/templates/pages/brain.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1879,8 +1879,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="focus",
         route="/focus",
-        source_file="static/focus.html",
-        page_type="static",
+        source_file="app/templates/pages/focus.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1921,8 +1921,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="campaign",
         route="/campaign",
-        source_file="static/campaign.html",
-        page_type="static",
+        source_file="app/templates/pages/campaign.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -1963,8 +1963,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="mesh_network",
         route="/mesh-network",
-        source_file="static/mesh_network.html",
-        page_type="static",
+        source_file="app/templates/pages/mesh_network.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2005,8 +2005,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="crawler",
         route="/crawler",
-        source_file="static/crawler.html",
-        page_type="static",
+        source_file="app/templates/pages/crawler.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2047,8 +2047,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="auto_analysis_summary",
         route="/auto-analysis",
-        source_file="static/auto_analysis_summary.html",
-        page_type="static",
+        source_file="app/templates/pages/auto_analysis_summary.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2096,7 +2096,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         page_id="home",
         route="/home",
         source_file="app/templates/pages/semptify_hub.html",
-        page_type="jinja",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2137,7 +2137,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="index",
         route="/index",
-        source_file="static/index.html",
+        source_file="static/advocate/index.html",
         page_type="static",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
@@ -2224,8 +2224,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="page_editor",
         route="/page-editor",
-        source_file="static/page_editor.html",
-        page_type="static",
+        source_file="app/templates/pages/page_editor.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2266,8 +2266,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="layout_builder",
         route="/layout-builder",
-        source_file="static/layout_builder.html",
-        page_type="static",
+        source_file="app/templates/pages/layout_builder.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2308,8 +2308,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="style_editor",
         route="/style-editor",
-        source_file="static/style_editor.html",
-        page_type="static",
+        source_file="app/templates/pages/style_editor.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2350,8 +2350,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="module_converter",
         route="/module-converter",
-        source_file="static/module-converter.html",
-        page_type="static",
+        source_file="app/templates/pages/module_converter.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2392,7 +2392,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="component_converter",
         route="/component-converter",
-        source_file="app/templates/pages/auto_analysis_summary.html",
+        source_file="app/templates/pages/component_converter.html",
         page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
@@ -2434,8 +2434,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="page_index",
         route="/page-index",
-        source_file="static/page-index.html",
-        page_type="static",
+        source_file="app/templates/pages/page_index.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2521,8 +2521,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="funding_search",
         route="/funding-search",
-        source_file="static/funding_search.html",
-        page_type="static",
+        source_file="app/templates/pages/funding_search.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2563,8 +2563,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="hud_funding",
         route="/hud-funding",
-        source_file="static/hud_funding.html",
-        page_type="static",
+        source_file="app/templates/pages/hud_funding.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2605,8 +2605,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="recognition",
         route="/recognition",
-        source_file="static/recognition.html",
-        page_type="static",
+        source_file="app/templates/pages/recognition.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2647,8 +2647,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="evaluation_report",
         route="/evaluation-report",
-        source_file="static/evaluation_report.html",
-        page_type="static",
+        source_file="app/templates/pages/evaluation_report.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2689,8 +2689,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="crisis_intake",
         route="/crisis-intake",
-        source_file="static/crisis_intake.html",
-        page_type="static",
+        source_file="app/templates/pages/crisis_intake.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "CONTRACT_CRISIS_INTAKE registered in page_contracts.py"
@@ -2731,8 +2731,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="court_learning",
         route="/court-learning",
-        source_file="static/court_learning.html",
-        page_type="static",
+        source_file="app/templates/pages/court_learning.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2773,8 +2773,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="complete_journey",
         route="/complete-journey",
-        source_file="static/complete-journey.html",
-        page_type="static",
+        source_file="app/templates/pages/complete_journey.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2815,8 +2815,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="interactive_timeline",
         route="/interactive-timeline",
-        source_file="static/components/interactive-timeline.html",
-        page_type="static",
+        source_file="app/templates/pages/interactive_timeline.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2857,8 +2857,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="timeline_builder",
         route="/timeline-builder",
-        source_file="static/timeline-builder.html",
-        page_type="static",
+        source_file="app/templates/pages/timeline_builder.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2899,8 +2899,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="timeline_auto_build",
         route="/timeline-auto-build",
-        source_file="static/timeline_auto_build.html",
-        page_type="static",
+        source_file="app/templates/pages/timeline_auto_build.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2941,8 +2941,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="document_calendar",
         route="/document-calendar",
-        source_file="static/document_calendar.html",
-        page_type="static",
+        source_file="app/templates/pages/document_calendar.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2983,8 +2983,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="sample_certificate",
         route="/sample-certificate",
-        source_file="static/sample_certificate.html",
-        page_type="static",
+        source_file="app/templates/pages/sample_certificate.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3025,8 +3025,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="sidebar_with_auto_mode",
         route="/sidebar-auto-mode",
-        source_file="static/sidebar_with_auto_mode.html",
-        page_type="static",
+        source_file="app/templates/pages/sidebar_with_auto_mode.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3067,8 +3067,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="roles",
         route="/roles",
-        source_file="static/roles.html",
-        page_type="static",
+        source_file="app/templates/pages/roles.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3109,8 +3109,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="enterprise_dashboard",
         route="/enterprise-dashboard",
-        source_file="static/enterprise-dashboard.html",
-        page_type="static",
+        source_file="app/templates/pages/enterprise_dashboard.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3151,8 +3151,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="intake",
         route="/intake",
-        source_file="static/intake.html",
-        page_type="static",
+        source_file="app/templates/pages/intake.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3193,8 +3193,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="research_module",
         route="/research-module",
-        source_file="static/research_module.html",
-        page_type="static",
+        source_file="app/templates/pages/research_module.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3235,8 +3235,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="journey",
         route="/journey",
-        source_file="static/journey.html",
-        page_type="static",
+        source_file="app/templates/pages/journey.html",
+        page_type="template",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -3272,6 +3272,388 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         overall_coverage=CoverageStatus.COMPLETE,
         missing_object_sets=[],
         recommended_priority="low"
+    ),
+
+    #
+    # ORPHANED CONTRACTS — manifest entries for contracts that had no manifest tracking
+    #
+
+    PageManifestEntry(
+        page_id="document_delivery_inbox",
+        route="/delivery/inbox",
+        source_file="app/templates/pages/document_delivery_inbox.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_DOCUMENT_DELIVERY_INBOX registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Auth required, role guard pending"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document delivery module"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "View inbox, open document, sign/reject actions"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "User delivery queue"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document list, signature status"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.MISSING,
+            "No mesh binding"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["route_guards", "module_links", "action_map"],
+        recommended_priority="medium"
+    ),
+
+    PageManifestEntry(
+        page_id="document_delivery_send",
+        route="/delivery/send",
+        source_file="app/templates/pages/document_delivery_send.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_DOCUMENT_DELIVERY_SEND registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Auth required, role guard pending"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document delivery module"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Select document, select recipient, send"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document list, recipient list"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Send confirmation, delivery tracking"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.MISSING,
+            "No mesh binding"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["route_guards", "module_links", "action_map"],
+        recommended_priority="medium"
+    ),
+
+    PageManifestEntry(
+        page_id="document_rejection",
+        route="/delivery/reject",
+        source_file="app/templates/pages/document_rejection.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_DOCUMENT_REJECTION registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Auth required, role guard pending"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document delivery module, communication system"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Reject document, provide reason, notify sender"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document ID, rejection reason"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Rejection record, sender notification"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.MISSING,
+            "No mesh binding"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["route_guards", "module_links", "action_map"],
+        recommended_priority="medium"
+    ),
+
+    PageManifestEntry(
+        page_id="document_signature",
+        route="/delivery/sign",
+        source_file="app/templates/pages/document_signature.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_DOCUMENT_SIGNATURE registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Auth required, role guard pending"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document delivery module"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Review document, sign, confirm"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Document ID, signature data"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Signed document, signature record"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.MISSING,
+            "No mesh binding"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["route_guards", "module_links", "action_map"],
+        recommended_priority="medium"
+    ),
+
+    PageManifestEntry(
+        page_id="manager",
+        route="/manager",
+        source_file="app/templates/pages/manager.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_MANAGER_PORTAL registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Auth required, manager role guard pending"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Manager module, case assignment, reporting"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Assign cases, view reports, bulk operations"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Case list, team list, analytics"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Case assignments, reports, team status"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.MISSING,
+            "No mesh binding"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["route_guards", "module_links", "action_map"],
+        recommended_priority="medium"
+    ),
+
+    PageManifestEntry(
+        page_id="register",
+        route="/register",
+        source_file="app/templates/pages/register.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_REGISTER registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Public access — no auth required"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Registration module, security validation"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Submit registration form, validate invite code"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Invite code, user details"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Registration confirmation, redirect to success"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.NA,
+            "No mesh workflow at registration"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["module_links", "action_map"],
+        recommended_priority="medium"
+    ),
+
+    PageManifestEntry(
+        page_id="register_success",
+        route="/register/success",
+        source_file="app/templates/pages/register_success.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_REGISTER_SUCCESS registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Public access — no auth required"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Registration module"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Continue to onboarding, view next steps"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Registration confirmation"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Onboarding redirect, welcome message"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.NA,
+            "No mesh workflow at registration success"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["module_links", "action_map"],
+        recommended_priority="low"
+    ),
+
+    PageManifestEntry(
+        page_id="storage_reconnect_prompt",
+        route="/storage-reconnect",
+        source_file="app/templates/pages/storage_reconnect_prompt.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_STORAGE_RECONNECT registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Auth required — user must reconnect storage"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "OAuth module, storage setup module"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Reconnect provider, retry, contact support"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Provider list, error context"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "OAuth redirect, reconnect confirmation"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.NA,
+            "No mesh workflow at reconnect"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["module_links", "action_map"],
+        recommended_priority="high"
+    ),
+
+    PageManifestEntry(
+        page_id="tenant_help",
+        route="/tenant/help",
+        source_file="app/templates/pages/tenant_help.html",
+        page_type="template",
+        page_contract=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "CONTRACT_TENANT_HELP registered"
+        ),
+        route_guards=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Auth required, tenant role guard pending"
+        ),
+        module_links=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Help module, contacts module"
+        ),
+        action_map=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Search help, contact support, view resources"
+        ),
+        object_set_inputs=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Help articles, contact options"
+        ),
+        output_objects=ObjectSetCoverage(
+            CoverageStatus.PARTIAL,
+            "Help content, support contact form"
+        ),
+        telemetry_hooks=ObjectSetCoverage(
+            CoverageStatus.COMPLETE,
+            "Telemetry events defined in PageContract"
+        ),
+        mesh_binding=ObjectSetCoverage(
+            CoverageStatus.NA,
+            "No mesh workflow at help"
+        ),
+        overall_coverage=CoverageStatus.PARTIAL,
+        missing_object_sets=["route_guards", "module_links", "action_map"],
+        recommended_priority="medium"
     ),
 ]
 
