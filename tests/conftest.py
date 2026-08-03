@@ -20,6 +20,7 @@ os.environ["INVITE_CODES"] = "TEST-INVITE-CODE"
 os.environ["ADMIN_PIN"] = "TEST-PIN"
 
 from app.core.config import get_settings  # noqa: E402
+from app.core.cookie_auth import sign_user_id  # noqa: E402
 from app.core.database import close_db  # noqa: E402
 from app.main import app  # noqa: E402
 
@@ -78,7 +79,7 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
     """Create authenticated test client with mock session in both cache and database."""
     # Use properly formatted user ID: <provider><role><8-char-unique>
     # G=Google, U=User, followed by 8 alphanumeric chars = 10 chars total
-    test_uid = "GUtest1234"  # Google + User + 8-char unique
+    test_uid = "GUa1b2c3d4"  # Google + User + 8-char unique (no blocked substrings)
 
     # Create session in database
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -123,7 +124,7 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
         await session.commit()
 
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test", cookies={"semptify_uid": test_uid}) as ac:
+    async with AsyncClient(transport=transport, base_url="http://test", cookies={"semptify_uid": sign_user_id(test_uid)}) as ac:
         # Also inject into memory cache for faster lookups
         from app.modules.storage.router import SESSIONS
 
