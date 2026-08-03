@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Funding Search - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .filter-row { display: flex; gap: var(--space-md); margin-bottom: var(--space-md); flex-wrap: wrap; }
+  .form-group { flex: 1; min-width: 180px; }
+  .form-group label { display: block; font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-xs); }
+  .form-control { width: 100%; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); background: var(--color-background); color: var(--color-text-primary); font-size: var(--font-size-base); border: none; }
+  .btn { padding: var(--space-sm) var(--space-lg); border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-primary); font-size: var(--font-size-base); border: none; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: var(--space-sm) 0; min-height: 1.5em; }
+  .status.working { color: var(--color-warning); }
+  .result-item { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-sm); }
+  .result-item h3 { font-size: var(--font-size-base); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .result-meta { font-size: var(--font-size-sm); color: var(--color-text-secondary); display: flex; gap: var(--space-md); flex-wrap: wrap; }
+  .result-meta .label { color: var(--color-text-secondary); }
+  .result-count { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); }
+  @media (max-width: 768px) {
+    .filter-row { flex-direction: column; }
+    .panel { padding: var(--space-md); }
+    .page-header h1 { font-size: var(--font-size-xl); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Funding Search</h1>
+  <p>Find housing assistance programs you may qualify for.</p>
+</section>
+
+<section class="panel">
+  <div class="form-group" style="margin-bottom: var(--space-md);">
+    <label for="searchBar">Search</label>
+    <input id="searchBar" class="form-control" type="text" placeholder="Search programs..." />
+  </div>
+  <div class="filter-row">
+    <div class="form-group">
+      <label for="programType">Program Type</label>
+      <select id="programType" class="form-control"><option>All</option><option>Rental</option><option>Repair</option><option>Utility</option></select>
+    </div>
+    <div class="form-group">
+      <label for="eligibility">Eligibility</label>
+      <select id="eligibility" class="form-control"><option>All</option><option>Low Income</option><option>Senior</option><option>Disabled</option></select>
+    </div>
+    <div class="form-group">
+      <label for="location">Location</label>
+      <select id="location" class="form-control"><option>All</option><option>Statewide</option><option>County</option><option>City</option></select>
+    </div>
+  </div>
+  <button id="searchBtn" class="btn">Search</button>
+  <div id="status" class="status"></div>
+</section>
+
+<section class="panel">
+  <div id="resultCount" class="result-count">4 programs found</div>
+  <div id="results">
+    <div class="result-item">
+      <h3>Emergency Rental Assistance Program</h3>
+      <div class="result-meta"><span class="label">Amount: Up to $15,000</span><span class="label">Eligibility: Low Income</span><span class="label">Deadline: 2025-12-31</span></div>
+    </div>
+    <div class="result-item">
+      <h3>Home Repair Grant</h3>
+      <div class="result-meta"><span class="label">Amount: Up to $7,500</span><span class="label">Eligibility: Senior</span><span class="label">Deadline: 2025-09-15</span></div>
+    </div>
+    <div class="result-item">
+      <h3>Utility Assistance Program</h3>
+      <div class="result-meta"><span class="label">Amount: Up to $3,000</span><span class="label">Eligibility: Low Income</span><span class="label">Deadline: 2025-11-01</span></div>
+    </div>
+    <div class="result-item">
+      <h3>Disability Housing Modification Fund</h3>
+      <div class="result-meta"><span class="label">Amount: Up to $10,000</span><span class="label">Eligibility: Disabled</span><span class="label">Deadline: 2025-10-30</span></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const btn = document.getElementById('searchBtn');
+  const status = document.getElementById('status');
+  const results = document.querySelectorAll('#results .result-item');
+  const resultCount = document.getElementById('resultCount');
+  const searchBar = document.getElementById('searchBar');
+
+  function doSearch() {
+    btn.disabled = true;
+    status.className = 'status working';
+    status.textContent = 'Searching...';
+    const q = searchBar.value.toLowerCase();
+    setTimeout(() => {
+      let visible = 0;
+      results.forEach(r => {
+        const match = r.textContent.toLowerCase().includes(q);
+        r.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      resultCount.textContent = visible + ' program' + (visible !== 1 ? 's' : '') + ' found';
+      status.className = 'status';
+      status.textContent = '';
+      btn.disabled = false;
+    }, 1200);
+  }
+  btn.addEventListener('click', doSearch);
+  searchBar.addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
+</script>
+{% endblock %}

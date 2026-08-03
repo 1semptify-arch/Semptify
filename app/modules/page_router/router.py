@@ -182,13 +182,8 @@ _SKIP_ROUTES = {
     "/complaints",  # complaints — handled in main.py
     "/command-center",  # command_center — handled in main.py
     "/auto-analysis",  # auto_analysis_summary — handled in main.py
-    "/error",  # error — handled in main.py
     "/manager",  # manager — handled by manager module
-    "/delivery/inbox",  # document_delivery_inbox — handled by delivery module
-    "/delivery/send",  # document_delivery_send — handled by delivery module
     "/register",  # register — handled by auth module
-    "/register/success",  # register_success — handled by auth module
-    "/storage-reconnect",  # storage_reconnect_prompt — handled by onboarding module
     "/tenant/help",  # tenant_help — handled in main.py
 }
 

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Journey - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .status { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-md); min-height: 1.5em; }
+  .status.working { color: var(--color-warning); }
+  .timeline { display: flex; flex-direction: column; gap: var(--space-md); }
+  .phase { display: flex; align-items: flex-start; gap: var(--space-md); }
+  .phase-marker { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-sm); flex-shrink: 0; }
+  .phase-marker.done { background: var(--color-success); color: var(--color-on-primary); }
+  .phase-marker.current { background: var(--color-primary); color: var(--color-on-primary); }
+  .phase-marker.upcoming { background: var(--color-background); color: var(--color-text-secondary); }
+  .phase-content { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); flex: 1; }
+  .phase-content h3 { font-size: var(--font-size-base); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .phase-content p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-xs) 0; }
+  .phase-badge { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  .phase-badge.done { color: var(--color-success); }
+  .phase-badge.current { color: var(--color-primary); }
+  .progress-summary { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); }
+  .progress-summary h2 { font-size: var(--font-size-base); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .progress-bar { width: 100%; height: 8px; border-radius: var(--radius-sm); background: var(--color-surface); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--color-primary); width: 33%; }
+  .progress-text { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-xs); }
+  @media (max-width: 768px) {
+    .panel { padding: var(--space-md); }
+    .page-header h1 { font-size: var(--font-size-xl); }
+    .phase { flex-direction: column; gap: var(--space-xs); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Complete Journey</h1>
+  <p>Your full tenant rights journey from start to finish.</p>
+</section>
+
+<section class="panel">
+  <div id="status" class="status"></div>
+  <div id="journeyContent" style="display:none;">
+    <div class="progress-summary">
+      <h2>Overall Progress</h2>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <div class="progress-text">2 of 6 phases complete — Currently in Case Building</div>
+    </div>
+    <div class="timeline">
+      <div class="phase">
+        <div class="phase-marker done">&#10003;</div>
+        <div class="phase-content">
+          <h3>1. Assessment</h3>
+          <p>Initial case evaluation completed. Your tenant rights situation has been assessed and a strategy has been outlined.</p>
+          <span class="phase-badge done">Done</span>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-marker done">&#10003;</div>
+        <div class="phase-content">
+          <h3>2. Document Collection</h3>
+          <p>All required documents have been gathered including lease, correspondence, and evidence of violations.</p>
+          <span class="phase-badge done">Done</span>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-marker current">&#9679;</div>
+        <div class="phase-content">
+          <h3>3. Case Building</h3>
+          <p>Building your legal case with collected evidence. Organizing documentation and preparing arguments.</p>
+          <span class="phase-badge current">Current</span>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-marker upcoming">4</div>
+        <div class="phase-content">
+          <h3>4. Filing</h3>
+          <p>File your case with the appropriate court or housing authority. Submit all required forms and documentation.</p>
+          <span class="phase-badge">Upcoming</span>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-marker upcoming">5</div>
+        <div class="phase-content">
+          <h3>5. Court</h3>
+          <p>Attend court hearing and present your case. Be prepared to testify and submit evidence.</p>
+          <span class="phase-badge">Upcoming</span>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-marker upcoming">6</div>
+        <div class="phase-content">
+          <h3>6. Resolution</h3>
+          <p>Receive final judgment and resolution. Enforce court orders if necessary and follow up on outcomes.</p>
+          <span class="phase-badge">Upcoming</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const status = document.getElementById('status');
+  const journeyContent = document.getElementById('journeyContent');
+  status.className = 'status working';
+  status.textContent = 'Loading journey...';
+  setTimeout(() => {
+    status.className = 'status';
+    status.textContent = '';
+    journeyContent.style.display = '';
+  }, 1000);
+</script>
+{% endblock %}

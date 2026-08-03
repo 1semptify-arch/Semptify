@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Document Rejected - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-wrap { max-width: var(--space-xxl); margin: 0 auto; padding: var(--space-lg); }
+
+  .page-info { margin-bottom: var(--space-lg); }
+  .page-info h1 { font-size: var(--font-size-xl); color: var(--color-error); margin: 0 0 var(--space-xs); }
+
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+
+  .detail-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; }
+  .detail-row + .detail-row { border-top: 1px solid var(--color-surface-alt); }
+  .detail-label { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+  .detail-value { font-size: var(--font-size-sm); color: var(--color-text-primary); font-weight: 500; }
+
+  .reason-box { background: var(--color-surface-alt); border-radius: var(--radius-md); padding: var(--space-md); margin-top: var(--space-md); }
+  .reason-box p { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: 0; }
+
+  .actions { display: flex; gap: var(--space-md); }
+  .btn-primary, .btn-secondary {
+    padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);
+    border: none; font-size: var(--font-size-sm); cursor: pointer;
+  }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text-primary); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .reaction { margin-top: var(--space-md); font-size: var(--font-size-sm); color: var(--color-warning); }
+
+  @media (max-width: 768px) {
+    .page-wrap { padding: var(--space-md); }
+    .panel { padding: var(--space-md); }
+    .actions { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <!-- INFORMATION -->
+  <div class="page-info">
+    <h1>Document Rejected</h1>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="panel">
+    <div class="detail-row"><span class="detail-label">Document</span><span class="detail-value">Lease Agreement.pdf</span></div>
+    <div class="detail-row"><span class="detail-label">Rejected By</span><span class="detail-value">Jane Doe</span></div>
+    <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">2024-03-15</span></div>
+    <div class="reason-box">
+      <p><strong>Reason:</strong> Clause 4.2 regarding security deposit terms needs revision. The current wording does not comply with state regulations.</p>
+    </div>
+  </div>
+
+  <!-- ACTION -->
+  <div class="actions">
+    <button class="btn-primary" id="request-btn" onclick="requestChanges()">Request Changes</button>
+    <button class="btn-secondary" onclick="alert('Contact form would open.')">Contact Sender</button>
+  </div>
+  <div class="reaction" id="reaction" style="display:none;">Processing...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function requestChanges() {
+    const btn = document.getElementById('request-btn');
+    const rxn = document.getElementById('reaction');
+    btn.disabled = true;
+    rxn.style.display = 'block';
+    rxn.textContent = 'Processing...';
+    setTimeout(() => {
+      rxn.style.display = 'none';
+      btn.disabled = false;
+      alert('Change request sent to sender.');
+    }, 1500);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Command Center - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-container {
+    max-width: var(--space-content-max, 960px);
+    margin: 0 auto;
+    padding: var(--space-xl, 2rem) var(--space-md, 1rem);
+  }
+  .page-heading {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .page-subheading {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md, 1rem);
+    margin-bottom: var(--space-lg, 1.5rem);
+  }
+  .dashboard-card {
+    background: var(--color-surface-raised, #f7f7f7);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-lg, 1.5rem);
+  }
+  .dashboard-card-label {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .dashboard-card-value {
+    font-size: var(--font-size-xxl, 2rem);
+    color: var(--color-text-primary, #111);
+  }
+  .dashboard-card.alert .dashboard-card-value { color: var(--color-danger, #d32f2f); }
+  .reaction-area {
+    margin-top: var(--space-lg, 1.5rem);
+    min-height: var(--space-xl, 2rem);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .reaction-working { color: var(--color-action, #1a73e8); }
+  .reaction-done { color: var(--color-success, #2e7d32); }
+  .reaction-error { color: var(--color-danger, #d32f2f); }
+  @media (max-width: 768px) {
+    .page-container { padding: var(--space-md, 1rem); }
+    .page-heading { font-size: var(--font-size-xl, 1.5rem); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1 class="page-heading">Command Center</h1>
+  <p class="page-subheading">Overview of all active cases and tasks.</p>
+
+  <div class="dashboard-grid" id="dashboardGrid">
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">Active Cases</div>
+      <div class="dashboard-card-value" id="activeCases">—</div>
+    </div>
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">Pending Deadlines</div>
+      <div class="dashboard-card-value" id="pendingDeadlines">—</div>
+    </div>
+    <div class="dashboard-card">
+      <div class="dashboard-card-label">Recent Activity</div>
+      <div class="dashboard-card-value" id="recentActivity">—</div>
+    </div>
+    <div class="dashboard-card alert">
+      <div class="dashboard-card-label">Alerts</div>
+      <div class="dashboard-card-value" id="alerts">—</div>
+    </div>
+  </div>
+
+  <div class="reaction-area" id="reactionArea"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function setReaction(state, msg) {
+    var area = document.getElementById('reactionArea');
+    area.className = 'reaction-area reaction-' + state;
+    area.textContent = msg;
+  }
+
+  (function () {
+    setReaction('working', 'Loading data...');
+    setTimeout(function () {
+      document.getElementById('activeCases').textContent = '12';
+      document.getElementById('pendingDeadlines').textContent = '5';
+      document.getElementById('recentActivity').textContent = '8';
+      document.getElementById('alerts').textContent = '2';
+      setReaction('done', 'Dashboard data loaded.');
+    }, 1500);
+  })();
+</script>
+{% endblock %}
