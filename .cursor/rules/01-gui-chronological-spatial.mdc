@@ -1,32 +1,38 @@
 ---
-description: Standing GUI ordering and spatial layout rule for all tenant-facing and admin GUI work
+description: "Standing GUI placement rule: every new screen must follow chronological and spatial ordering. See AGENTS.md for the canonical version."
 alwaysApply: true
 ---
 
-# STANDING GUI DESIGN RULE: Chronological & Spatial Task Ordering
+# STANDING GUI PLACEMENT RULE (apply on every new page/screen)
 
-Applies to all tenant-facing and admin GUI work, in addition to existing design-system rules (no card borders, zone-based background separation, ssot-design-system.css only).
+Applies to all tenant-facing and admin GUI work, alongside the existing design-system rules (no card borders, zone separation via background only, `ssot-design-system.css` only) and the desktop-poster/mobile-stacked-scroll split.
 
-## 1. Chronological Task Flow
+> Every screen must be laid out in the user's actual task order — first action top/left, last action bottom/end, priority controls above secondary, destructive actions isolated at the bottom — self-audited before the build is called done.
 
-Layout must follow the strict chronological order of the user's task. First required action sits top/left. Each subsequent step follows directly below or to the right. Final/completion step sits at the bottom or end of the path. Never place an early step below a later one, and never place a final action near the top.
+## 1. Chronological order
 
-## 2. Spatial Common Sense
+Lay out elements in the order the user actually performs the task. First required action → top/left. Each next step → directly below or after, in sequence. Final/completion step → bottom/end. Never place a later step above an earlier one.
 
-- High-priority, immediate-use controls: top of viewport.
-- Secondary/configuration controls: grouped logically in the middle.
-- Low-frequency or destructive actions (Reset, Delete, etc.): bottom, visually separated so they can't be hit by accident.
-- Related controls grouped into clear visual containers (zone-based background separation, not card borders) so it is immediately obvious which controls belong to which step.
+## 2. Spatial priority
 
-## 3. Eye-Path Alignment (self-audit, required before marking any GUI task done)
+- High-priority, immediate-use controls → top.
+- Secondary/supporting controls → middle.
+- Low-frequency or destructive actions (delete, reset, wipe) → bottom, isolated from primary actions.
+- Group related controls together so it's clear what belongs to which step.
 
-Before completion, trace the eye path top-left → down/right through the page. If any control needed for an earlier step sits physically below a control needed for a later step, the layout is wrong — rearrange before submitting. Visual hierarchy must match execution hierarchy. No forced up/down scrolling back and forth to complete one flow.
+## 3. Self-audit before marking a page done
+
+Trace the eye path top-left → bottom-right. If anything needed for an earlier step sits below something needed for a later step, fix it before considering the build complete.
+
+## 4. Scope
+
+This rule governs placement and ordering only. It does not authorize new components, new CSS, new colors, or restyling — it governs where existing/planned elements sit relative to each other.
 
 ## Applies alongside existing conventions
 
 - Desktop-poster vs. mobile-stacked-scroll renderer split still governs viewport-specific layout mechanics.
 - This rule governs ordering/placement WITHIN whichever renderer is active — it doesn't replace the renderer split, it constrains it.
 
-## For handoff docs going forward
+## Canonical source
 
-Every GUI-building handoff should include: "Apply the standing Chronological & Spatial Task Ordering rule — see `.cursor/rules/01-gui-chronological-spatial.mdc`", and the agent's preflight should include reading it.
+For the full rule, see `AGENTS.md` § **🎨 GUI Placement Rule (apply on every new page/screen)**.
