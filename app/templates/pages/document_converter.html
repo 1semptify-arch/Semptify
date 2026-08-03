@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Document Converter - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header {
+    margin-bottom: var(--space-lg);
+  }
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .page-header p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+  .section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+  .form-group {
+    margin-bottom: var(--space-lg);
+  }
+  .form-group label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+  .upload-area {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+  }
+  .upload-area:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .select {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    border: none;
+  }
+  .btn {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-primary {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .reaction {
+    margin-top: var(--space-md);
+    font-size: var(--font-size-sm);
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+  .reaction.working {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+  .reaction.done {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+  }
+  .reaction.hidden {
+    display: none;
+  }
+  .download-link {
+    display: inline-block;
+    margin-top: var(--space-md);
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+  }
+  @media (max-width: 768px) {
+    .section {
+      padding: var(--space-md);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Document Converter</h1>
+  <p>Convert documents between formats.</p>
+</div>
+
+<div class="section">
+  <div class="form-group">
+    <label>Upload File</label>
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+      Click to select a file to convert
+    </div>
+    <input type="file" id="fileInput" style="display:none">
+  </div>
+
+  <div class="form-group">
+    <label for="outputFormat">Output Format</label>
+    <select id="outputFormat" class="select">
+      <option value="pdf">PDF</option>
+      <option value="docx">DOCX</option>
+      <option value="txt">TXT</option>
+      <option value="html">HTML</option>
+    </select>
+  </div>
+
+  <button class="btn btn-primary" id="convertBtn" onclick="convertFile()" disabled>Convert</button>
+
+  <div class="reaction working hidden" id="reactionWorking">Converting...</div>
+  <div class="reaction done hidden" id="reactionDone">Converted</div>
+  <a href="#" id="downloadLink" class="download-link" style="display:none">Download converted file</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let selectedFile = null;
+  const fileInput = document.getElementById('fileInput');
+  const uploadArea = document.querySelector('.upload-area');
+
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files.length > 0) {
+      selectedFile = e.target.files[0];
+      uploadArea.textContent = selectedFile.name;
+      document.getElementById('convertBtn').disabled = false;
+    }
+  });
+
+  function convertFile() {
+    if (!selectedFile) return;
+    const btn = document.getElementById('convertBtn');
+    const working = document.getElementById('reactionWorking');
+    const done = document.getElementById('reactionDone');
+    const link = document.getElementById('downloadLink');
+    const format = document.getElementById('outputFormat').value;
+    btn.disabled = true;
+    working.classList.remove('hidden');
+    done.classList.add('hidden');
+    link.style.display = 'none';
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('format', format);
+    fetch('/document-converter/convert', { method: 'POST', body: formData })
+      .then(r => r.blob())
+      .then(blob => {
+        working.classList.add('hidden');
+        done.classList.remove('hidden');
+        btn.disabled = false;
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'converted.' + format;
+        link.style.display = 'inline-block';
+      })
+      .catch(() => {
+        working.classList.add('hidden');
+        btn.disabled = false;
+      });
+  }
+</script>
+{% endblock %}

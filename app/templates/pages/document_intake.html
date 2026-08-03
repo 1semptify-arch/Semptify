@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Document Intake - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .intake-page {
+    max-width: var(--space-content-max, 900px);
+    margin: 0 auto;
+    padding: var(--space-lg, 2rem);
+  }
+  .intake-header {
+    margin-bottom: var(--space-xl, 2.5rem);
+  }
+  .intake-header h1 {
+    font-size: var(--font-size-xl, 2rem);
+    color: var(--color-text-primary, #1a1a1a);
+    margin-bottom: var(--space-xs, 0.5rem);
+  }
+  .intake-header p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .drop-zone {
+    border: 2px dashed var(--color-border, #ccc);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-xl, 2.5rem);
+    text-align: center;
+    background: var(--color-surface-alt, #f7f7f7);
+    margin-bottom: var(--space-md, 1.5rem);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .drop-zone:hover { background: var(--color-surface-hover, #efefef); }
+  .drop-zone p {
+    font-size: var(--font-size-md, 1rem);
+    color: var(--color-text-secondary, #555);
+  }
+  .filter-row {
+    display: flex;
+    gap: var(--space-sm, 1rem);
+    align-items: center;
+    margin-bottom: var(--space-md, 1.5rem);
+  }
+  .filter-select {
+    padding: var(--space-sm, 1rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--color-border, #ccc);
+    background: var(--color-surface, #fff);
+    color: var(--color-text-primary, #1a1a1a);
+  }
+  .btn-upload {
+    padding: var(--space-sm, 1rem) var(--space-lg, 2rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    border: none;
+    background: var(--color-accent, #0066cc);
+    color: var(--color-surface, #fff);
+    cursor: pointer;
+  }
+  .btn-upload:hover { background: var(--color-accent-dark, #004fa3); }
+  .reaction {
+    padding: var(--space-sm, 1rem);
+    font-size: var(--font-size-md, 1rem);
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: var(--space-md, 1.5rem);
+    display: none;
+  }
+  .reaction-working {
+    display: none;
+    align-items: center;
+    gap: var(--space-sm, 1rem);
+    color: var(--color-text-secondary, #555);
+    margin-bottom: var(--space-md, 1.5rem);
+  }
+  .reaction-working.active { display: flex; }
+  .reaction-done {
+    background: var(--color-success-soft, #e6f9ec);
+    color: var(--color-success, #1a7a3a);
+  }
+  .reaction-done.active { display: block; }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--color-border, #ccc);
+    border-top-color: var(--color-accent, #0066cc);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .uploaded-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm, 1rem);
+  }
+  .uploaded-item {
+    background: var(--color-surface-alt, #f7f7f7);
+    padding: var(--space-sm, 1rem);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-primary, #1a1a1a);
+  }
+  .uploaded-item .file-meta {
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-secondary, #555);
+  }
+  @media (max-width: 768px) {
+    .intake-page { padding: var(--space-md, 1.5rem); }
+    .filter-row { flex-direction: column; align-items: stretch; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="intake-page">
+  <div class="intake-header">
+    <h1>Document Intake</h1>
+    <p>Upload documents for analysis and organization.</p>
+  </div>
+
+  <div class="drop-zone" id="dropZone">
+    <p>Drag and drop files here, or click to browse</p>
+  </div>
+
+  <div class="filter-row">
+    <select class="filter-select" id="typeFilter">
+      <option value="all">All File Types</option>
+      <option value="pdf">PDF</option>
+      <option value="doc">Word Documents</option>
+      <option value="img">Images</option>
+    </select>
+    <button class="btn-upload" id="uploadBtn">Upload</button>
+  </div>
+
+  <div class="reaction-working" id="uploadWorking">
+    <div class="spinner"></div>
+    <span>Uploading...</span>
+  </div>
+  <div class="reaction reaction-done" id="uploadDone">Uploaded successfully.</div>
+
+  <div class="uploaded-list" id="uploadedList">
+    <div class="uploaded-item">
+      lease_agreement.pdf <span class="file-meta">— 2.4 MB — Uploaded just now</span>
+    </div>
+    <div class="uploaded-item">
+      eviction_notice.pdf <span class="file-meta">— 1.1 MB — Uploaded 1 hour ago</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var uploadBtn = document.getElementById('uploadBtn');
+  var working = document.getElementById('uploadWorking');
+  var done = document.getElementById('uploadDone');
+
+  uploadBtn.addEventListener('click', function() {
+    working.classList.add('active');
+    done.classList.remove('active');
+    setTimeout(function() {
+      working.classList.remove('active');
+      done.classList.add('active');
+    }, 1200);
+  });
+</script>
+{% endblock %}

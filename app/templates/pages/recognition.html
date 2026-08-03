@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Recognition - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header { margin-bottom: var(--space-lg); }
+  .page-header h1 { font-size: var(--font-size-2xl); color: var(--color-text-primary); margin: 0 0 var(--space-xs) 0; }
+  .page-header p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin: 0; }
+  .panel { background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-lg); }
+  .drop-zone { padding: var(--space-xl); border-radius: var(--radius-lg); background: var(--color-background); text-align: center; color: var(--color-text-secondary); font-size: var(--font-size-base); margin-bottom: var(--space-md); cursor: pointer; }
+  .drop-zone.dragover { background: var(--color-primary); color: var(--color-on-primary); }
+  .drop-zone.has-file { background: var(--color-surface); color: var(--color-text-primary); }
+  .file-info { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-sm); }
+  .btn { padding: var(--space-sm) var(--space-lg); border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-primary); font-size: var(--font-size-base); border: none; cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { font-size: var(--font-size-sm); color: var(--color-text-secondary); margin: var(--space-sm) 0; min-height: 1.5em; }
+  .status.working { color: var(--color-warning); }
+  .status.done { color: var(--color-success); }
+  .progress-bar { width: 100%; height: 6px; border-radius: var(--radius-sm); background: var(--color-background); margin-bottom: var(--space-sm); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--color-primary); width: 0%; transition: width 0.3s; }
+  .output { background: var(--color-background); border-radius: var(--radius-md); padding: var(--space-md); font-size: var(--font-size-sm); color: var(--color-text-primary); white-space: pre-wrap; min-height: 100px; }
+  .output-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); display: block; margin-bottom: var(--space-xs); }
+  .meta-grid { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-sm); }
+  .meta-item { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+  @media (max-width: 768px) {
+    .panel { padding: var(--space-md); }
+    .drop-zone { padding: var(--space-md); }
+    .page-header h1 { font-size: var(--font-size-xl); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Document Recognition</h1>
+  <p>Extract text and data from scanned documents.</p>
+</section>
+
+<section class="panel">
+  <div class="drop-zone" id="dropZone">Drag and drop a file here, or click to browse</div>
+  <div id="fileInfo" class="file-info" style="display:none;"></div>
+  <button id="recognizeBtn" class="btn" disabled>Recognize</button>
+  <div id="status" class="status"></div>
+  <div class="progress-bar" id="progressBar" style="display:none;">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</section>
+
+<section class="panel">
+  <span class="output-label">Extracted Text</span>
+  <div id="output" class="output">No document processed yet. Upload a file and click Recognize to begin.</div>
+  <div id="metaGrid" class="meta-grid" style="display:none;">
+    <span class="meta-item" id="metaPages">Pages: 0</span>
+    <span class="meta-item" id="metaWords">Words: 0</span>
+    <span class="meta-item" id="metaConfidence">Confidence: 0%</span>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const dropZone = document.getElementById('dropZone');
+  const btn = document.getElementById('recognizeBtn');
+  const status = document.getElementById('status');
+  const output = document.getElementById('output');
+  const fileInfo = document.getElementById('fileInfo');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const metaGrid = document.getElementById('metaGrid');
+  let fileName = '';
+
+  dropZone.addEventListener('click', () => {
+    fileName = 'document.pdf';
+    dropZone.textContent = 'File selected: ' + fileName;
+    dropZone.classList.add('has-file');
+    fileInfo.textContent = 'Selected: ' + fileName + ' | Type: PDF | Size: 245 KB';
+    fileInfo.style.display = '';
+    btn.disabled = false;
+  });
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    fileName = e.dataTransfer.files[0].name;
+    dropZone.textContent = 'File selected: ' + fileName;
+    dropZone.classList.add('has-file');
+    fileInfo.textContent = 'Selected: ' + fileName;
+    fileInfo.style.display = '';
+    btn.disabled = false;
+  });
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    status.className = 'status working';
+    status.textContent = 'Processing...';
+    progressBar.style.display = 'block';
+    metaGrid.style.display = 'none';
+    let p = 0;
+    const interval = setInterval(() => {
+      p += 10;
+      progressFill.style.width = p + '%';
+      if (p >= 100) {
+        clearInterval(interval);
+        status.className = 'status done';
+        status.textContent = 'Done';
+        output.textContent = '--- Extracted Text ---\n\nThis is a sample extracted text from the uploaded document.\nThe OCR engine has processed the scanned pages and\nextracted the following content successfully.\n\nDocument Type: Lease Agreement\nDate: January 15, 2025\nParties: Tenant and Landlord';
+        document.getElementById('metaPages').textContent = 'Pages: 3';
+        document.getElementById('metaWords').textContent = 'Words: 487';
+        document.getElementById('metaConfidence').textContent = 'Confidence: 94%';
+        metaGrid.style.display = '';
+        progressBar.style.display = 'none';
+        btn.disabled = false;
+      }
+    }, 200);
+  });
+</script>
+{% endblock %}

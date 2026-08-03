@@ -3161,6 +3161,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return HTMLResponse(content="<h1>Auto Analysis Summary not found</h1>", status_code=404)
 
+    @fastapi_app.get("/index", response_class=HTMLResponse)
+    async def advocate_index():
+        """Advocate index page (static)."""
+        index_path = BASE_PATH / "static" / "advocate" / "index.html"
+        index_fallback = _render_static_page(index_path)
+        if index_fallback:
+            return index_fallback
+        return HTMLResponse(content="<h1>Index not found</h1>", status_code=404)
+
     @fastapi_app.get("/dev/elbow", response_class=HTMLResponse)
     async def elbow_dev():
         """
@@ -3814,8 +3823,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @fastapi_app.get("/command-center", response_class=HTMLResponse)
-    async def command_center_page():
+    async def command_center_page(request: Request):
         """Serve the command center dashboard."""
+        command_center_template_path = BASE_PATH / "app" / "templates" / "pages" / "command_center.html"
+        if command_center_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/command_center.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Command Center template error, falling back to static: %s", e)
         command_center_path = BASE_PATH / "static" / "command_center.html"
         command_center_content = _render_static_page(command_center_path)
         if command_center_content:

@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Tools - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+  .page-header {
+    margin-bottom: var(--space-lg);
+  }
+  .page-header h1 {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-xs) 0;
+  }
+  .page-header p {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+  .section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .tool-option {
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .tool-option:hover {
+    background: var(--color-primary-bg);
+  }
+  .tool-option.selected {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .upload-area {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-xl);
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-lg);
+    cursor: pointer;
+  }
+  .upload-area:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .btn {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-primary {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .reaction {
+    margin-top: var(--space-md);
+    font-size: var(--font-size-sm);
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+  .reaction.working {
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+  }
+  .reaction.done {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+  }
+  .reaction.hidden {
+    display: none;
+  }
+  .download-link {
+    display: inline-block;
+    margin-top: var(--space-md);
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+  }
+  @media (max-width: 768px) {
+    .section {
+      padding: var(--space-md);
+    }
+    .tool-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>PDF Tools</h1>
+  <p>Merge, split, and convert PDF documents.</p>
+</div>
+
+<div class="section">
+  <div class="tool-grid">
+    <div class="tool-option" data-tool="merge" onclick="selectTool('merge')">Merge PDFs</div>
+    <div class="tool-option" data-tool="split" onclick="selectTool('split')">Split PDF</div>
+    <div class="tool-option" data-tool="pdf_to_text" onclick="selectTool('pdf_to_text')">PDF to Text</div>
+    <div class="tool-option" data-tool="text_to_pdf" onclick="selectTool('text_to_pdf')">Text to PDF</div>
+  </div>
+
+  <div id="uploadArea" class="upload-area" style="display:none" onclick="document.getElementById('fileInput').click()">
+    Click to select files for processing
+  </div>
+  <input type="file" id="fileInput" style="display:none" multiple>
+
+  <button class="btn btn-primary" id="processBtn" onclick="processFiles()" disabled>Process</button>
+
+  <div class="reaction working hidden" id="reactionWorking">Processing...</div>
+  <div class="reaction done hidden" id="reactionDone">Done</div>
+  <a href="#" id="downloadLink" class="download-link" style="display:none">Download result</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let selectedTool = null;
+
+  function selectTool(tool) {
+    selectedTool = tool;
+    document.querySelectorAll('.tool-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.tool === tool);
+    });
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('processBtn').disabled = false;
+    document.getElementById('reactionWorking').classList.add('hidden');
+    document.getElementById('reactionDone').classList.add('hidden');
+    document.getElementById('downloadLink').style.display = 'none';
+  }
+
+  function processFiles() {
+    const files = document.getElementById('fileInput').files;
+    if (!files.length || !selectedTool) return;
+    const btn = document.getElementById('processBtn');
+    const working = document.getElementById('reactionWorking');
+    const done = document.getElementById('reactionDone');
+    const link = document.getElementById('downloadLink');
+    btn.disabled = true;
+    working.classList.remove('hidden');
+    done.classList.add('hidden');
+    link.style.display = 'none';
+    const formData = new FormData();
+    formData.append('tool', selectedTool);
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    fetch('/pdf-tools/process', { method: 'POST', body: formData })
+      .then(r => r.blob())
+      .then(blob => {
+        working.classList.add('hidden');
+        done.classList.remove('hidden');
+        btn.disabled = false;
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'result.pdf';
+        link.style.display = 'inline-block';
+      })
+      .catch(() => {
+        working.classList.add('hidden');
+        btn.disabled = false;
+      });
+  }
+</script>
+{% endblock %}
