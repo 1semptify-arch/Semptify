@@ -10,9 +10,9 @@
  * dedicated grid area in all four.
  *
  * Visual weight (§11) is level-driven via level_to_visual_weight:
- *   0–30   → low (near-invisible shade shift)
- *   31–70  → moderate (clear shade/gradient shift)
- *   71–100 → deep (deepest shade on the page)
+ *   0–30   ▸ low (near-invisible shade shift)
+ *   31–70  ▸ moderate (clear shade/gradient shift)
+ *   71–100 ▸ deep (deepest shade on the page)
  * Applied to ALL four zones — no per-skeleton special cases.
  */
 
@@ -222,8 +222,8 @@
 
 /* ---------------------------------------------------------------------------
  * Mobile renderer — §12: one config, two renderers.
- * ≤1024px → mobile (single column, normal scroll, GOVERN pinned).
- * >1024px → desktop skeleton renderer (§10), unchanged.
+ * ≤1024px ▸ mobile (single column, normal scroll, GOVERN pinned).
+ * >1024px ▸ desktop skeleton renderer (§10), unchanged.
  *
  * Breakpoint values and stack order come directly from spec §12 — not
  * assumptions. 768–1024px uses the same mobile layout with wider
@@ -251,10 +251,10 @@
   }
 
   /* --- Zone stack order (§12) ---
-   * Default: KNOW → RECORD → ACT. Major_pillar zone gets order:0 (first).
+   * Default: KNOW ▸ RECORD ▸ ACT. Major_pillar zone gets order:0 (first).
    * GOVERN is NOT in the scroll stack — pinned separately below.
    * The skeleton class already encodes major_pillar (e.g. skeleton-record_focus
-   * → record is major), so CSS can order without any renderer-side branching. */
+   * ▸ record is major), so CSS can order without any renderer-side branching. */
   .zone[data-zone="know"]   { order: 1; }
   .zone[data-zone="record"] { order: 2; }
   .zone[data-zone="act"]    { order: 3; }
@@ -263,7 +263,7 @@
   .skeleton-know_focus   .zone[data-zone="know"]   { order: 0; }
   .skeleton-act_focus    .zone[data-zone="act"]    { order: 0; }
   /* govern_focus: no override — GOVERN is major but pinned, scroll stack
-   * is KNOW → RECORD → ACT in default order. */
+   * is KNOW ▸ RECORD ▸ ACT in default order. */
 
   /* --- GOVERN persistent band (§12) ---
    * Pinned to bottom of viewport, stays visible regardless of scroll.

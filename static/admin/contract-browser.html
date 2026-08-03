@@ -59,11 +59,11 @@
     .cov-na{background:#1e293b;color:#475569}
     .criteria-list{list-style:none;padding:0}
     .criteria-list li{padding:0.18rem 0;color:var(--muted);font-size:0.8rem}
-    .criteria-list li::before{content:"✓ ";color:var(--green);font-weight:700}
+    .criteria-list li::before{content:"● ";color:var(--green);font-weight:700}
     .ai-rules{background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:8px;padding:0.6rem 0.75rem;margin-top:0.5rem}
     .ai-rules .rule-title{font-size:0.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem}
     .ai-rules li{font-size:0.78rem;color:#fdba74;padding:0.15rem 0;list-style:none}
-    .ai-rules li::before{content:"⚠ ";color:var(--orange)}
+    .ai-rules li::before{content:"◆ ";color:var(--orange)}
     .card-foot{padding:0.6rem 1rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.5rem}
     .btn{font-size:0.78rem;padding:0.3rem 0.7rem;border-radius:6px;border:none;cursor:pointer;font-weight:600;transition:all 0.15s}
     .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
@@ -73,7 +73,7 @@
     .violations-section{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:0.5rem 0.75rem;margin-top:0.5rem}
     .violations-section .v-title{font-size:0.72rem;font-weight:700;color:#fca5a5;margin-bottom:0.25rem}
     .violations-section li{font-size:0.78rem;color:#fca5a5;list-style:none;padding:0.1rem 0}
-    .violations-section li::before{content:"✗ ";color:var(--red)}
+    .violations-section li::before{content:"◆ ";color:var(--red)}
     .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
     .empty-state .icon{font-size:2.5rem;margin-bottom:0.75rem}
     .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
@@ -94,7 +94,7 @@
 <header>
   <a href="/admin" class="logo">Semptify</a>
   <div id="admin-nav-container" class="admin-nav--dark" style="display:flex;gap:0.25rem;flex:1"></div>
-  <div style="font-size:0.8rem;color:rgba(255,255,255,0.6)">🔧 Admin</div>
+  <div style="font-size:0.8rem;color:rgba(255,255,255,0.6)">▸ Admin</div>
 </header>
 
 <div class="toolbar">
@@ -119,7 +119,7 @@
     <option value="violations">Has Violations</option>
     <option value="clean">Clean</option>
   </select>
-  <button class="btn btn-ghost" onclick="loadAll()" title="Refresh data">↻ Refresh</button>
+  <button class="btn btn-ghost" onclick="loadAll()" title="Refresh data">▸ Refresh</button>
 </div>
 
 <div class="tab-bar">
@@ -147,7 +147,7 @@
       <pre id="modal-json"></pre>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="copyJson()">📋 Copy JSON</button>
+      <button class="btn btn-ghost" onclick="copyJson()">● Copy JSON</button>
       <button class="btn btn-primary" onclick="closeModal()">Close</button>
     </div>
   </div>
@@ -244,7 +244,7 @@
   function renderPageContracts(contracts) {
     const grid = document.getElementById('contract-grid');
     if (!contracts.length) {
-      grid.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>No contracts match your filters.</div></div>';
+      grid.innerHTML = '<div class="empty-state"><div class="icon">●</div><div>No contracts match your filters.</div></div>';
       return;
     }
     grid.innerHTML = contracts.map(c => {
@@ -252,10 +252,10 @@
       const status = c.status || 'active';
       const covHtml = renderCoverage(c.group_coverage || {});
       const rulesHtml = c.ai_constraints?.length
-        ? `<div class="ai-rules"><div class="rule-title">⚠ AI Rules (Read Before Editing)</div><ul>${c.ai_constraints.map(r=>`<li>${escHtml(r)}</li>`).join('')}</ul></div>`
+        ? `<div class="ai-rules"><div class="rule-title">◆ AI Rules (Read Before Editing)</div><ul>${c.ai_constraints.map(r=>`<li>${escHtml(r)}</li>`).join('')}</ul></div>`
         : '';
       const violHtml = v.length
-        ? `<div class="violations-section"><div class="v-title">✗ ${v.length} Violation${v.length>1?'s':''}</div><ul>${v.map(vv=>`<li>${escHtml(vv)}</li>`).join('')}</ul></div>`
+        ? `<div class="violations-section"><div class="v-title">◆ ${v.length} Violation${v.length>1?'s':''}</div><ul>${v.map(vv=>`<li>${escHtml(vv)}</li>`).join('')}</ul></div>`
         : '';
       return `
         <div class="card ${v.length?'has-violations':''}">
@@ -287,7 +287,7 @@
   function renderModuleContracts(contracts) {
     const grid = document.getElementById('contract-grid');
     if (!contracts.length) {
-      grid.innerHTML = '<div class="empty-state"><div class="icon">⚙️</div><div>No module contracts registered yet.</div></div>';
+      grid.innerHTML = '<div class="empty-state"><div class="icon">▸</div><div>No module contracts registered yet.</div></div>';
       return;
     }
     grid.innerHTML = contracts.map(c => `
@@ -302,13 +302,13 @@
         <div class="card-body">
           ${c.description ? `<p>${escHtml(c.description)}</p>` : ''}
           <div class="section-label">Inputs</div>
-          <div class="pill-row">${(c.inputs||[]).map(i=>`<span class="pill">→ ${escHtml(i)}</span>`).join('')}</div>
+          <div class="pill-row">${(c.inputs||[]).map(i=>`<span class="pill">▸ ${escHtml(i)}</span>`).join('')}</div>
           <div class="section-label">Outputs</div>
-          <div class="pill-row">${(c.outputs||[]).map(o=>`<span class="pill" style="border-color:#22c55e;color:#86efac">← ${escHtml(o)}</span>`).join('')}</div>
+          <div class="pill-row">${(c.outputs||[]).map(o=>`<span class="pill" style="border-color:#22c55e;color:#86efac">▸ ${escHtml(o)}</span>`).join('')}</div>
           <div class="section-label">Dependencies</div>
           <div class="pill-row">${(c.dependencies||[]).map(d=>`<span class="pill" style="font-family:monospace">${escHtml(d)}</span>`).join('')}</div>
           <div style="margin-top:0.5rem;font-size:0.75rem;color:${c.deterministic?'var(--green)':'var(--yellow)'}">
-            ${c.deterministic ? '✓ Deterministic' : '⚡ Non-deterministic'}
+            ${c.deterministic ? '● Deterministic' : '◆ Non-deterministic'}
           </div>
         </div>
         <div class="card-foot">
@@ -341,8 +341,8 @@
     const text = document.getElementById('modal-json').textContent;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.querySelector('.modal-foot .btn-ghost');
-      btn.textContent = '✓ Copied!';
-      setTimeout(() => btn.textContent = '📋 Copy JSON', 1500);
+      btn.textContent = '● Copied!';
+      setTimeout(() => btn.textContent = '● Copy JSON', 1500);
     });
   }
 

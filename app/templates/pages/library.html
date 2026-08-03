@@ -14,19 +14,19 @@
 {% block content %}
 <div class="library-page">
 
-    {{ hero("📚", "Library", "Legal resources, rights guides, and educational materials to help you understand and protect your housing rights.", "purple") }}
+    {{ hero("○", "Library", "Legal resources, rights guides, and educational materials to help you understand and protect your housing rights.", "purple") }}
 
-    {{ section_title("⚖️", "Legal Resources") }}
+    {{ section_title("▸", "Legal Resources") }}
     {% call card_grid() %}
-        {{ service_card("/law-library", "📖", "Law Library", "Browse tenant protection laws, statutes, and regulations by topic.") }}
-        {{ service_card("/tenant/help", "🏠", "Tenant Rights Guide", "Plain-language guide to your rights as a tenant — leases, deposits, repairs, and more.") }}
-        {{ service_card("/eviction-defense", "🛡️", "Eviction Defense", "Step-by-step guides for responding to eviction notices and court filings.") }}
+        {{ service_card("/law-library", "○", "Law Library", "Browse tenant protection laws, statutes, and regulations by topic.") }}
+        {{ service_card("/tenant/help", "○", "Tenant Rights Guide", "Plain-language guide to your rights as a tenant — leases, deposits, repairs, and more.") }}
+        {{ service_card("/eviction-defense", "◆", "Eviction Defense", "Step-by-step guides for responding to eviction notices and court filings.") }}
     {% endcall %}
 
-    {{ section_title("📋", "Forms & Templates") }}
+    {{ section_title("●", "Forms & Templates") }}
     {% call card_grid() %}
-        {{ service_card("/tenant/tools/letters", "✉️", "Letter Templates", "Pre-written letters for maintenance requests, deposit demands, and lease disputes.") }}
-        {{ service_card("/zoom-court", "💻", "Zoom Court Guide", "How to prepare for and attend virtual court hearings.") }}
+        {{ service_card("/tenant/tools/letters", "●", "Letter Templates", "Pre-written letters for maintenance requests, deposit demands, and lease disputes.") }}
+        {{ service_card("/zoom-court", "○", "Zoom Court Guide", "How to prepare for and attend virtual court hearings.") }}
     {% endcall %}
 
 </div>

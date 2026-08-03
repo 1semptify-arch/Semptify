@@ -107,17 +107,17 @@
       <strong style="color:#fff;">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
-    <a href="/home.html">🏠 Home</a>
-    <a href="/library.html">📚 Library</a>
-    <a href="/office.html">🏢 Office</a>
-    <a href="/tools.html">🔧 Tools</a>
+    <a href="/home.html">○ Home</a>
+    <a href="/library.html">○ Library</a>
+    <a href="/office.html">○ Office</a>
+    <a href="/tools.html">▸ Tools</a>
     <a href="/help.html">🆘 Help</a>
     <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
-    <a href="/office/vault.html">🔒 Vault</a>
-    <a href="/office/inbox.html">📨 Inbox</a>
-    <a href="/office/timeline.html">📅 Timeline</a>
-    <a href="/office/delivery.html">📬 Delivery</a>
-    <a href="/office/signer.html" style="color:#f59e0b;font-weight:700;">✍️ Signer</a>
+    <a href="/office/vault.html">◆ Vault</a>
+    <a href="/office/inbox.html">● Inbox</a>
+    <a href="/office/timeline.html">◆ Timeline</a>
+    <a href="/office/delivery.html">● Delivery</a>
+    <a href="/office/signer.html" style="color:#f59e0b;font-weight:700;">▸ Signer</a>
   </nav>
 
   <header>
@@ -125,15 +125,15 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/home.html" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/home.html">🏠 Home</a>
-        <a href="/library.html">📚 Library</a>
-        <a href="/office.html" class="active">🏢 Office</a>
-        <a href="/tools.html">🔧 Tools</a>
+        <a href="/home.html">○ Home</a>
+        <a href="/library.html">○ Library</a>
+        <a href="/office.html" class="active">○ Office</a>
+        <a href="/tools.html">▸ Tools</a>
         <a href="/help.html">🆘 Help</a>
       </nav>
       <div class="header-actions">
-        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
-        <button class="user-btn">👤 User</button>
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">◆ Vault</button>
+        <button class="user-btn">● User</button>
       </div>
     </div>
   </header>
@@ -150,7 +150,7 @@
     <div>
       <!-- DESKTOP WARNING -->
       <div class="desktop-warning">
-        <span style="font-size:1.25rem;">💻</span>
+        <span style="font-size:1.25rem;">○</span>
         <div>
           <strong>Desktop Recommended</strong>
           Electronic signatures require a larger screen and a mouse or stylus for accuracy. Use a phone only in emergencies.
@@ -159,20 +159,20 @@
 
       <!-- PENDING TO SIGN -->
       <div class="pending-list">
-        <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">📥 Pending Signature</h3>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">● Pending Signature</h3>
 
         <div class="pending-card selected" id="pending-1" onclick="selectDoc(1)">
-          <span class="pending-icon">📄</span>
+          <span class="pending-icon">●</span>
           <div class="pending-info">
             <div class="pending-title">Settlement Agreement — Harborview Properties</div>
             <div class="pending-meta">From: Legal Aid Society · Sent Apr 21, 2025 · Deadline: Apr 25, 2025</div>
           </div>
-          <span class="pending-urgent">⚠️ 4 DAYS</span>
+          <span class="pending-urgent">◆ 4 DAYS</span>
           <button class="pending-action" onclick="event.stopPropagation();selectDoc(1)">Sign</button>
         </div>
 
         <div class="pending-card" id="pending-2" onclick="selectDoc(2)">
-          <span class="pending-icon">📋</span>
+          <span class="pending-icon">●</span>
           <div class="pending-info">
             <div class="pending-title">Lease Renewal Acknowledgment</div>
             <div class="pending-meta">From: Harborview Properties · Sent Apr 15, 2025 · Deadline: May 15, 2025</div>
@@ -184,7 +184,7 @@
 
       <!-- SIGNATURE AREA -->
       <div class="signature-area" id="sig-area">
-        <h3>✍️ Sign Document</h3>
+        <h3>▸ Sign Document</h3>
 
         <div class="doc-preview" id="doc-preview">
           <div class="doc-preview-placeholder" id="doc-preview-content">
@@ -206,7 +206,7 @@
         <div class="signature-pad" id="sig-pad">
           <canvas id="sig-canvas"></canvas>
           <div class="sig-placeholder" id="sig-placeholder">
-            <span style="font-size:1.5rem;">✍️</span> Click and drag to sign
+            <span style="font-size:1.5rem;">▸</span> Click and drag to sign
           </div>
         </div>
 
@@ -215,17 +215,17 @@
         </div>
 
         <div class="sign-actions">
-          <button class="btn-sign" onclick="submitSignature()">✓ Sign Document</button>
+          <button class="btn-sign" onclick="submitSignature()">● Sign Document</button>
           <button class="btn-clear" onclick="clearSignature()">Clear Signature</button>
           <button class="btn-reject" onclick="rejectDocument()">✕ Reject</button>
         </div>
       </div>
 
       <!-- SIGNATURE HISTORY -->
-      <div class="history-title">📜 Signature History</div>
+      <div class="history-title">● Signature History</div>
 
       <div class="history-card">
-        <span class="history-status">✅</span>
+        <span class="history-status">●</span>
         <div class="history-info">
           <div class="history-doc">Move-In Inspection Checklist</div>
           <div class="history-meta">Signed Mar 2, 2024 · To: Harborview Properties · Timestamped in vault</div>
@@ -234,7 +234,7 @@
       </div>
 
       <div class="history-card">
-        <span class="history-status">❌</span>
+        <span class="history-status">◆</span>
         <div class="history-info">
           <div class="history-doc">Unauthorized Entry Waiver</div>
           <div class="history-meta">Rejected Feb 10, 2025 · Reason: "I do not agree to waive my right to privacy"</div>
@@ -246,7 +246,7 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-card">
-        <div class="sidebar-title">📊 Signature Stats</div>
+        <div class="sidebar-title">◆ Signature Stats</div>
         <div class="sidebar-stat"><span>Pending</span><strong>2</strong></div>
         <div class="sidebar-stat"><span>Signed</span><strong>1</strong></div>
         <div class="sidebar-stat"><span>Rejected</span><strong>1</strong></div>
@@ -254,24 +254,24 @@
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">⏰ Next Deadline</div>
+        <div class="sidebar-title">◆ Next Deadline</div>
         <div style="font-size:0.9rem;color:#92400e;font-weight:700;">April 25, 2025</div>
         <div style="font-size:0.82rem;color:#666;margin-top:0.25rem;">Settlement Agreement — 4 days remaining</div>
       </div>
 
       <div class="notice-box">
-        <strong>🔒 Tamper-Evident Signing</strong>
+        <strong>◆ Tamper-Evident Signing</strong>
         When you sign, Semptify creates a blockchain timestamped record of your signature, identity, and the exact document version. This record is stored in your vault as evidence. The original document never leaves your cloud storage.
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">🏢 Office Navigation</div>
+        <div class="sidebar-title">○ Office Navigation</div>
         <div style="display:flex;flex-direction:column;gap:0.25rem;">
-          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
-          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
-          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
-          <a href="/office/delivery.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
-          <a href="/office/signer.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer ←</a>
+          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">◆ Document Vault</a>
+          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">● Inbox</a>
+          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">◆ Timeline</a>
+          <a href="/office/delivery.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">● Document Delivery</a>
+          <a href="/office/signer.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">▸ Document Signer ▸</a>
         </div>
       </div>
     </aside>
@@ -401,7 +401,7 @@
   <div style="max-width: 1200px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
-        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">⚖️ Semptify</div>
+        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">▸ Semptify</div>
         <p style="font-size: 0.85rem; opacity: 0.8; line-height: 1.5; margin: 0;">
           The Tenant's Journal. Helping renters document their tenancy, understand rights AND responsibilities, and stay organized.
         </p>

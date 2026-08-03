@@ -178,7 +178,7 @@ class PublicExposureService:
     def __init__(self):
         self._releases: Dict[str, PressRelease] = {}
         self._kits: Dict[str, MediaKit] = {}
-        logger.info("📰 Public Exposure Service initialized")
+        logger.info("● Public Exposure Service initialized")
     
     async def generate_press_release(
         self,
@@ -278,7 +278,7 @@ class PublicExposureService:
         )
         
         self._releases[release_id] = release
-        logger.info(f"📰 Press release generated: {release_id}")
+        logger.info(f"● Press release generated: {release_id}")
         
         return release
     
@@ -328,7 +328,7 @@ class PublicExposureService:
         social_posts = [
             {
                 "platform": "Twitter/X",
-                "post": f"🏠 THREAD: Tenants at {press_release.contact_info.get('property', 'a local property')} are exposing housing violations. Here's what we found... #TenantRights #HousingJustice",
+                "post": f"○ THREAD: Tenants at {press_release.contact_info.get('property', 'a local property')} are exposing housing violations. Here's what we found... #TenantRights #HousingJustice",
             },
             {
                 "platform": "Facebook",
@@ -336,7 +336,7 @@ class PublicExposureService:
             },
             {
                 "platform": "Instagram",
-                "post": f"🏠 Housing violations exposed\n\nTenants deserve safe homes. When landlords don't maintain properties, tenants organize.\n\n#TenantRights #HousingJustice #RentersRights",
+                "post": f"○ Housing violations exposed\n\nTenants deserve safe homes. When landlords don't maintain properties, tenants organize.\n\n#TenantRights #HousingJustice #RentersRights",
             },
         ]
         
@@ -355,7 +355,7 @@ class PublicExposureService:
         )
         
         self._kits[kit_id] = kit
-        logger.info(f"📰 Media kit generated: {kit_id}")
+        logger.info(f"● Media kit generated: {kit_id}")
         
         return kit
     

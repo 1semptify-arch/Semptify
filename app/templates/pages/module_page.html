@@ -201,7 +201,7 @@
 
 {% block content %}
 <div class="module-page">
-    <a class="module-back" href="/tenant">← Back to My Case</a>
+    <a class="module-back" href="/tenant">▸ Back to My Case</a>
 
     <div class="module-header">
         <h1>{{ contract.icon }} {{ contract.title }}</h1>
@@ -216,7 +216,7 @@
     </div>
 
     {% if contract.disclaimer %}
-    <div class="disclaimer">⚠️ {{ contract.disclaimer }}</div>
+    <div class="disclaimer">◆ {{ contract.disclaimer }}</div>
     {% endif %}
 
     {% if contract.actions %}

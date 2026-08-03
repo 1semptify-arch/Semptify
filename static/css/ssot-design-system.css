@@ -193,7 +193,7 @@
 
   /* ============================================================================
      ZONE BACKGROUND TIERS — replaces border/shadow separation
-     Derived from the existing dark palette (body gradient #1a1a2e → #16213e).
+     Derived from the existing dark palette (body gradient #1a1a2e ▸ #16213e).
      Primary = base page, secondary = adjacent zone, tertiary = nested/emphasized,
      inverse = high-emphasis dark band (GOVERN-style).
      ============================================================================ */

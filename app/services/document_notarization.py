@@ -257,7 +257,7 @@ class DocumentNotarizationService:
         self._notarizations[notarization_id] = notarization
         
         logger.info(
-            f"✓ Document notarized: {notarization_id} "
+            f"● Document notarized: {notarization_id} "
             f"({filename} from {username}, {file_size} bytes)"
         )
         

@@ -261,7 +261,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
             # Log the issue
             if user_id:
                 logger.warning(
-                    "🚫 Invalid/system user blocked: user_id=%s path=%s",
+                    "◆ Invalid/system user blocked: user_id=%s path=%s",
                     user_id[:4] + "***" if user_id else "None",
                     path,
                 )

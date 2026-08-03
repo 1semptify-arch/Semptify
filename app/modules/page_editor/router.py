@@ -230,7 +230,7 @@ async def preview_file(
             </head>
             <body>
                 <div class="preview-notice">
-                    <strong>⚠️ Template Preview</strong><br>
+                    <strong>◆ Template Preview</strong><br>
                     Jinja2 templates require server-side rendering. This preview shows the raw template syntax.
                 </div>
                 <div class="template-content">

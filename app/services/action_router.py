@@ -165,7 +165,7 @@ class SmartActionRouter:
                 estimated_minutes=1,
                 emotional_cost=0.0,
                 page_url="#",
-                icon="🧘",
+                icon="○",
                 benefits=["Reduces stress", "Improves focus", "Calms nervous system"],
                 encouragement="Your wellbeing matters. Take a moment."
             ),
@@ -178,7 +178,7 @@ class SmartActionRouter:
                 estimated_minutes=1,
                 emotional_cost=0.0,
                 page_url="#",
-                icon="💧",
+                icon="○",
                 benefits=["Improves clarity", "Boosts energy", "Supports focus"],
                 encouragement="Small acts of self-care make a big difference."
             ),
@@ -191,7 +191,7 @@ class SmartActionRouter:
                 estimated_minutes=2,
                 emotional_cost=0.0,
                 page_url="#",
-                icon="🙆",
+                icon="●",
                 benefits=["Releases tension", "Improves circulation", "Refreshes mind"],
                 encouragement="Your body carries stress. Give it a moment."
             ),
@@ -204,7 +204,7 @@ class SmartActionRouter:
                 estimated_minutes=1,
                 emotional_cost=-0.2,  # Actually helps!
                 page_url="#",
-                icon="🎉",
+                icon="○",
                 benefits=["Boosts confidence", "Builds momentum", "Reduces overwhelm"],
                 encouragement="You've done hard things. Honor that."
             )
@@ -224,7 +224,7 @@ class SmartActionRouter:
             estimated_minutes=5,
             emotional_cost=0.2,
             page_url="/static/document_intake.html?type=lease",
-            icon="📄",
+            icon="●",
             benefits=["Enables violation detection", "Required for court", "Protects your rights"],
             encouragement="This is one of the most important documents. You're doing the right thing."
         )
@@ -238,7 +238,7 @@ class SmartActionRouter:
             estimated_minutes=10,
             emotional_cost=0.3,
             page_url="/static/document_intake.html?type=payment",
-            icon="💰",
+            icon="●",
             benefits=["Proves payment history", "Counters false claims", "Strengthens defense"],
             encouragement="Every receipt is evidence. You're building your case."
         )
@@ -252,7 +252,7 @@ class SmartActionRouter:
             estimated_minutes=15,
             emotional_cost=0.4,
             page_url="/static/document_intake.html?type=maintenance",
-            icon="🔧",
+            icon="▸",
             benefits=["Shows landlord neglect", "Supports habitability defense", "Documents timeline"],
             encouragement="Documenting maintenance issues is powerful defense."
         )
@@ -266,7 +266,7 @@ class SmartActionRouter:
             estimated_minutes=20,
             emotional_cost=0.5,
             page_url="/static/document_intake.html?type=photos",
-            icon="📸",
+            icon="●",
             benefits=["Visual evidence is powerful", "Documents conditions", "Hard to dispute"],
             encouragement="A picture is worth a thousand words in court."
         )
@@ -281,7 +281,7 @@ class SmartActionRouter:
             estimated_minutes=5,
             emotional_cost=0.3,
             page_url="/static/recognition.html",
-            icon="🔍",
+            icon="▸",
             benefits=["Finds violations automatically", "Identifies key issues", "Saves hours of research"],
             encouragement="Let the system work for you. Knowledge is power."
         )
@@ -295,7 +295,7 @@ class SmartActionRouter:
             estimated_minutes=10,
             emotional_cost=0.4,
             page_url="/static/court_packet.html",
-            icon="📦",
+            icon="●",
             benefits=["Looks professional", "All evidence organized", "Judge-ready format"],
             encouragement="An organized packet shows the court you're serious."
         )
@@ -309,7 +309,7 @@ class SmartActionRouter:
             estimated_minutes=10,
             emotional_cost=0.2,
             page_url="/static/briefcase.html",
-            icon="💼",
+            icon="○",
             benefits=["See full picture", "Identify gaps", "Track progress"],
             encouragement="Organization reduces overwhelm. You're being smart."
         )
@@ -324,7 +324,7 @@ class SmartActionRouter:
             estimated_minutes=15,
             emotional_cost=0.3,
             page_url="/static/court_learning.html",
-            icon="📚",
+            icon="○",
             benefits=["Reduces anxiety", "Prepares you mentally", "Know what to expect"],
             encouragement="Knowledge is your shield. The more you know, the less scary it becomes."
         )
@@ -338,7 +338,7 @@ class SmartActionRouter:
             estimated_minutes=20,
             emotional_cost=0.4,
             page_url="/static/law_library.html",
-            icon="⚖️",
+            icon="▸",
             benefits=["Understand your rights", "Find defenses", "Speak with authority"],
             encouragement="The law is on your side more than you might think."
         )
@@ -352,7 +352,7 @@ class SmartActionRouter:
             estimated_minutes=2,
             emotional_cost=0.2,
             page_url="/static/calendar.html",
-            icon="📅",
+            icon="◆",
             benefits=["Never miss a deadline", "Countdown tracking", "Automatic reminders"],
             encouragement="Knowing your deadline is the first step to meeting it."
         )
@@ -367,7 +367,7 @@ class SmartActionRouter:
             estimated_minutes=5,
             emotional_cost=0.1,
             page_url="/static/contacts.html",
-            icon="👥",
+            icon="●",
             benefits=["Quick access", "Organized info", "Track communications"],
             encouragement="Building your support network is important."
         )

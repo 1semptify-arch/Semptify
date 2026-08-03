@@ -101,7 +101,7 @@ async def record_payment(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Record a rent payment to the user's history"""
-    logger.info(f"💰 Recording payment for user {user_id[:8]}...")
+    logger.info(f"● Recording payment for user {user_id[:8]}...")
     
     amount = params.get("amount", 0)
     date = params.get("date", utc_now().isoformat())
@@ -136,7 +136,7 @@ async def get_payment_history(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Retrieve payment history for court documentation"""
-    logger.info(f"📊 Getting payment history for user {user_id[:8]}...")
+    logger.info(f"◆ Getting payment history for user {user_id[:8]}...")
     
     # In production, fetch from database
     # For now, return mock data
@@ -170,7 +170,7 @@ async def analyze_payment_pattern(
     Analyze payment patterns to find potential defense points.
     This is called as part of the eviction defense workflow.
     """
-    logger.info(f"🔍 Analyzing payment patterns for user {user_id[:8]}...")
+    logger.info(f"▸ Analyzing payment patterns for user {user_id[:8]}...")
     
     # Get context from workflow
     rent_amount = context.get("rent_amount", 0)
@@ -223,7 +223,7 @@ async def generate_payment_summary(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Generate a formatted payment summary for court"""
-    logger.info(f"📄 Generating payment summary for user {user_id[:8]}...")
+    logger.info(f"● Generating payment summary for user {user_id[:8]}...")
     
     history_result = await get_payment_history(user_id, {}, context)
     
@@ -269,7 +269,7 @@ async def on_workflow_started(event_type: str, data: Dict[str, Any]):
     """React when a workflow starts"""
     workflow_type = data.get("type", "")
     if workflow_type == "eviction_defense":
-        logger.info("💰 Payment tracking: Eviction workflow started, preparing data...")
+        logger.info("● Payment tracking: Eviction workflow started, preparing data...")
 
 
 @sdk.on_event("document_uploaded")
@@ -277,7 +277,7 @@ async def on_document_uploaded(event_type: str, data: Dict[str, Any]):
     """React when a document is uploaded"""
     doc_type = data.get("document_type", "")
     if doc_type == "payment_record":
-        logger.info("💰 Payment tracking: New payment record uploaded!")
+        logger.info("● Payment tracking: New payment record uploaded!")
         # Could trigger automatic extraction here
 
 
@@ -291,7 +291,7 @@ def initialize():
     Call this from main.py on application startup.
     """
     sdk.initialize()
-    logger.info(f"✅ {module_definition.display_name} module ready")
+    logger.info(f"● {module_definition.display_name} module ready")
 
 
 # =============================================================================

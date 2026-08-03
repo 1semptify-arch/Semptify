@@ -18,7 +18,7 @@
 {# Page header with icon, title, and description.                    #}
 {#                                                                   #}
 {# Args:                                                             #}
-{#   icon: str     — emoji or icon (e.g. "🏢")                      #}
+{#   icon: str     — emoji or icon (e.g. "○")                      #}
 {#   title: str    — page heading                                    #}
 {#   desc: str     — short description                               #}
 {#   color: str    — accent color for gradient (default: blue)       #}
@@ -142,7 +142,7 @@
 {# ----------------------------------------------------------------- #}
 {% macro privacy_note() %}
 {% call info_box("info") %}
-    🔒 <strong>Privacy note:</strong> Your documents are stored in <em>your</em> cloud storage.
+    ◆ <strong>Privacy note:</strong> Your documents are stored in <em>your</em> cloud storage.
     Semptify processes only a metadata overlay (key dates, parties, document type).
     Full documents never touch our servers.
 {% endcall %}
@@ -158,7 +158,7 @@
 {#   desc: str        — description (default provided)               #}
 {#   button_text: str — button label (default provided)              #}
 {# ----------------------------------------------------------------- #}
-{% macro vault_cta(title="🔒 Upload to Your Vault", desc="All documents go through the Vault Door. Your files go directly to your cloud storage — Semptify creates an overlay for search and timeline.", button_text="📤 Open Vault Door") %}
+{% macro vault_cta(title="◆ Upload to Your Vault", desc="All documents go through the Vault Door. Your files go directly to your cloud storage — Semptify creates an overlay for search and timeline.", button_text="● Open Vault Door") %}
 <div class="ui-vault-cta">
     <h3 class="ui-vault-cta__title">{{ title }}</h3>
     <p class="ui-vault-cta__desc">{{ desc }}</p>
@@ -199,7 +199,7 @@
     {% for step in steps %}
     <div class="ui-progress__step {% if loop.index0 < current %}ui-progress__step--done{% elif loop.index0 == current %}ui-progress__step--active{% endif %}">
         <div class="ui-progress__dot">
-            {% if loop.index0 < current %}✓{% else %}{{ loop.index }}{% endif %}
+            {% if loop.index0 < current %}●{% else %}{{ loop.index }}{% endif %}
         </div>
         <span class="ui-progress__label">{{ step }}</span>
     </div>
@@ -312,11 +312,11 @@
 {# ----------------------------------------------------------------- #}
 {% macro admin_nav(current_page="dashboard") %}
 <nav class="admin-nav">
-  <a href="/admin/dashboard.html" class="admin-nav__item {% if current_page == 'dashboard' %}admin-nav__item--active{% endif %}">🏠 Dashboard</a>
-  <a href="/admin/function-browser.html" class="admin-nav__item {% if current_page == 'function-browser' %}admin-nav__item--active{% endif %}">⚙️ Functions</a>
-  <a href="/admin/contract-browser.html" class="admin-nav__item {% if current_page == 'contract-browser' %}admin-nav__item--active{% endif %}">📋 Contracts</a>
-  <a href="/admin/page-editor.html" class="admin-nav__item {% if current_page == 'page-editor' %}admin-nav__item--active{% endif %}">📝 Editor</a>
-  <a href="/admin/review-checklist.html" class="admin-nav__item {% if current_page == 'review-checklist' %}admin-nav__item--active{% endif %}">✅ Review</a>
-  <a href="/admin/manual.html" class="admin-nav__item {% if current_page == 'manual' %}admin-nav__item--active{% endif %}">📖 Manual</a>
+  <a href="/admin/dashboard.html" class="admin-nav__item {% if current_page == 'dashboard' %}admin-nav__item--active{% endif %}">○ Dashboard</a>
+  <a href="/admin/function-browser.html" class="admin-nav__item {% if current_page == 'function-browser' %}admin-nav__item--active{% endif %}">▸ Functions</a>
+  <a href="/admin/contract-browser.html" class="admin-nav__item {% if current_page == 'contract-browser' %}admin-nav__item--active{% endif %}">● Contracts</a>
+  <a href="/admin/page-editor.html" class="admin-nav__item {% if current_page == 'page-editor' %}admin-nav__item--active{% endif %}">● Editor</a>
+  <a href="/admin/review-checklist.html" class="admin-nav__item {% if current_page == 'review-checklist' %}admin-nav__item--active{% endif %}">● Review</a>
+  <a href="/admin/manual.html" class="admin-nav__item {% if current_page == 'manual' %}admin-nav__item--active{% endif %}">○ Manual</a>
 </nav>
 {% endmacro %}

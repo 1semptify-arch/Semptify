@@ -202,7 +202,7 @@ class TimelineExtractor:
             "%m-%d-%Y",    # 01-15-2024
             "%Y-%m-%d",    # 2024-01-15  (already ISO)
             "%d/%m/%Y",    # 15/01/2024
-            "%B %Y",       # January 2024  (day unknown → 1st)
+            "%B %Y",       # January 2024  (day unknown ▸ 1st)
             "%b %Y",       # Jan 2024
         ):
             try:

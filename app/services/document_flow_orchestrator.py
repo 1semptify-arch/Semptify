@@ -3,8 +3,8 @@ Document Flow Orchestrator
 ==========================
 Ties together the complete document processing pipeline:
 
-User uploads → Vault stores → Extractor processes → 
-Timeline updates → FormData updates → Contacts updates → UI refreshes
+User uploads ▸ Vault stores ▸ Extractor processes ▸ 
+Timeline updates ▸ FormData updates ▸ Contacts updates ▸ UI refreshes
 
 This orchestrator connects all existing services into a seamless flow.
 """

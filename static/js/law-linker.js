@@ -15,7 +15,7 @@
  *   - Minnesota Cases (XXX Minn. XX, XXX N.W.2d XXX) -> courtlistener.com
  *
  * Each popup shows: title, summary, full text excerpt, and a clickable
- * "View Official Source →" link to the authoritative source.
+ * "View Official Source ▸" link to the authoritative source.
  *
  * TODO (post-funding): Build a live-feed verification engine that continuously
  * checks all registered URLs and alerts when a source page moves or a statute
@@ -179,7 +179,7 @@
             <div class="law-linker-content"></div>
             <div class="law-linker-footer">
                 <span class="law-linker-source-name">Source: —</span>
-                <a href="#" class="law-linker-full" target="_blank" rel="noopener noreferrer">View Official Source →</a>
+                <a href="#" class="law-linker-full" target="_blank" rel="noopener noreferrer">View Official Source ▸</a>
             </div>
         `;
         document.body.appendChild(el);

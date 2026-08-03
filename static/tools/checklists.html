@@ -80,15 +80,15 @@
       <strong style="color:#fff;">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
-    <a href="/home.html">🏠 Home</a>
-    <a href="/library.html">📚 Library</a>
-    <a href="/office.html">🏢 Office</a>
-    <a href="/tools.html" style="color:#f59e0b;font-weight:700;">🔧 Tools</a>
+    <a href="/home.html">○ Home</a>
+    <a href="/library.html">○ Library</a>
+    <a href="/office.html">○ Office</a>
+    <a href="/tools.html" style="color:#f59e0b;font-weight:700;">▸ Tools</a>
     <a href="/help.html">🆘 Help</a>
     <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
-    <a href="/tools/calculators.html">🧮 Calculators</a>
-    <a href="/tools/generators.html">📝 Generators</a>
-    <a href="/tools/checklists.html" style="color:#f59e0b;font-weight:700;">☑️ Checklists</a>
+    <a href="/tools/calculators.html">● Calculators</a>
+    <a href="/tools/generators.html">● Generators</a>
+    <a href="/tools/checklists.html" style="color:#f59e0b;font-weight:700;">☑ Checklists</a>
   </nav>
 
   <header>
@@ -96,15 +96,15 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/home.html" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/home.html">🏠 Home</a>
-        <a href="/library.html">📚 Library</a>
-        <a href="/office.html">🏢 Office</a>
-        <a href="/tools.html" class="active">🔧 Tools</a>
+        <a href="/home.html">○ Home</a>
+        <a href="/library.html">○ Library</a>
+        <a href="/office.html">○ Office</a>
+        <a href="/tools.html" class="active">▸ Tools</a>
         <a href="/help.html">🆘 Help</a>
       </nav>
       <div class="header-actions">
-        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
-        <button class="user-btn">👤 User</button>
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">◆ Vault</button>
+        <button class="user-btn">● User</button>
       </div>
     </div>
   </header>
@@ -120,7 +120,7 @@
   <div class="main">
     <div>
       <div class="hero">
-        <h1>☑️ Checklists</h1>
+        <h1>☑ Checklists</h1>
         <p>Track what matters. Check off items, save progress, and generate evidence you can use.</p>
       </div>
 
@@ -132,7 +132,7 @@
 
       <!-- MOVE-IN CHECKLIST -->
       <div class="checklist-card" data-list="movein">
-        <h3>📦 Move-In Inspection Checklist</h3>
+        <h3>● Move-In Inspection Checklist</h3>
         <div class="checklist-progress"><div class="checklist-progress-bar" id="bar-movein"></div></div>
         <div class="checklist-body" id="list-movein">
           <div class="checklist-item"><input type="checkbox" id="mi1" onchange="updateList('movein')"><label for="mi1">Document the date and time of move-in <span class="cl-note">Take a photo of your phone showing the date</span></label></div>
@@ -153,14 +153,14 @@
         </div>
         <div class="btn-bar">
           <button class="btn-sm btn-reset" onclick="resetList('movein')">Reset</button>
-          <button class="btn-sm btn-vault-sm" onclick="saveList('movein')">🔒 Save to Vault</button>
-          <button class="btn-sm btn-print" onclick="printList('movein')">🖨 Print</button>
+          <button class="btn-sm btn-vault-sm" onclick="saveList('movein')">◆ Save to Vault</button>
+          <button class="btn-sm btn-print" onclick="printList('movein')">● Print</button>
         </div>
       </div>
 
       <!-- MOVE-OUT CHECKLIST -->
       <div class="checklist-card" data-list="moveout">
-        <h3>📦 Move-Out Inspection Checklist</h3>
+        <h3>● Move-Out Inspection Checklist</h3>
         <div class="checklist-progress"><div class="checklist-progress-bar" id="bar-moveout"></div></div>
         <div class="checklist-body" id="list-moveout">
           <div class="checklist-item"><input type="checkbox" id="mo1" onchange="updateList('moveout')"><label for="mo1">Document the date and time of move-out <span class="cl-note">Photo your phone showing date, or newspaper front page</span></label></div>
@@ -177,14 +177,14 @@
         </div>
         <div class="btn-bar">
           <button class="btn-sm btn-reset" onclick="resetList('moveout')">Reset</button>
-          <button class="btn-sm btn-vault-sm" onclick="saveList('moveout')">🔒 Save to Vault</button>
-          <button class="btn-sm btn-print" onclick="printList('moveout')">🖨 Print</button>
+          <button class="btn-sm btn-vault-sm" onclick="saveList('moveout')">◆ Save to Vault</button>
+          <button class="btn-sm btn-print" onclick="printList('moveout')">● Print</button>
         </div>
       </div>
 
       <!-- EVIDENCE PRESERVATION CHECKLIST -->
       <div class="checklist-card" data-list="evidence">
-        <h3>🔒 Evidence Preservation Checklist</h3>
+        <h3>◆ Evidence Preservation Checklist</h3>
         <div class="checklist-progress"><div class="checklist-progress-bar" id="bar-evidence"></div></div>
         <div class="checklist-body" id="list-evidence">
           <div class="checklist-item"><input type="checkbox" id="ev1" onchange="updateList('evidence')"><label for="ev1">Start a timeline in Semptify Office › Timeline <span class="cl-note">Every event needs a date, description, and supporting document</span></label></div>
@@ -202,31 +202,31 @@
         </div>
         <div class="btn-bar">
           <button class="btn-sm btn-reset" onclick="resetList('evidence')">Reset</button>
-          <button class="btn-sm btn-vault-sm" onclick="saveList('evidence')">🔒 Save to Vault</button>
-          <button class="btn-sm btn-print" onclick="printList('evidence')">🖨 Print</button>
+          <button class="btn-sm btn-vault-sm" onclick="saveList('evidence')">◆ Save to Vault</button>
+          <button class="btn-sm btn-print" onclick="printList('evidence')">● Print</button>
         </div>
       </div>
     </div>
 
     <aside class="sidebar">
       <div class="sidebar-card">
-        <div class="sidebar-title">🔧 Tools Menu</div>
-        <a href="/tools/calculators.html" class="sidebar-link">🧮 Calculators</a>
-        <a href="/tools/generators.html" class="sidebar-link">📝 Document Generators</a>
-        <a href="/tools/checklists.html" class="sidebar-link" style="font-weight:700;color:#1a1a2e;">☑️ Checklists ←</a>
-        <a href="/office/timeline.html" class="sidebar-link">📅 Timeline</a>
+        <div class="sidebar-title">▸ Tools Menu</div>
+        <a href="/tools/calculators.html" class="sidebar-link">● Calculators</a>
+        <a href="/tools/generators.html" class="sidebar-link">● Document Generators</a>
+        <a href="/tools/checklists.html" class="sidebar-link" style="font-weight:700;color:#1a1a2e;">☑ Checklists ▸</a>
+        <a href="/office/timeline.html" class="sidebar-link">◆ Timeline</a>
       </div>
 
       <div class="notice-box">
-        <strong>⚠️ Not Legal Advice</strong>
+        <strong>◆ Not Legal Advice</strong>
         These checklists help organize evidence. They do not create attorney-client privilege. Consult a housing advocate or attorney for legal strategy.
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">📚 Related Resources</div>
-        <a href="/library.html" class="sidebar-link">Research Center →</a>
-        <a href="/office/vault.html" class="sidebar-link">Save checklists to Vault →</a>
-        <a href="/help.html" class="sidebar-link">Find Legal Aid →</a>
+        <div class="sidebar-title">○ Related Resources</div>
+        <a href="/library.html" class="sidebar-link">Research Center ▸</a>
+        <a href="/office/vault.html" class="sidebar-link">Save checklists to Vault ▸</a>
+        <a href="/help.html" class="sidebar-link">Find Legal Aid ▸</a>
       </div>
     </aside>
   </div>

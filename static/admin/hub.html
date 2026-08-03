@@ -109,11 +109,11 @@ const TILE_DEFS = [
 ];
 
 const BADGE = {
-  ok: { symbol: "🟢", class: "status-ok", label: "OK" },
-  warning: { symbol: "🟡", class: "status-warning", label: "Needs attention" },
-  broken: { symbol: "🔴", class: "status-broken", label: "Broken" },
-  unverified: { symbol: "⚪", class: "status-unverified", label: "Untested" },
-  orphaned: { symbol: "🟠", class: "status-orphaned", label: "Orphaned" },
+  ok: { symbol: "●", class: "status-ok", label: "OK" },
+  warning: { symbol: "◆", class: "status-warning", label: "Needs attention" },
+  broken: { symbol: "◆", class: "status-broken", label: "Broken" },
+  unverified: { symbol: "○", class: "status-unverified", label: "Untested" },
+  orphaned: { symbol: "◆", class: "status-orphaned", label: "Orphaned" },
 };
 
 async function fetchRegistry() {

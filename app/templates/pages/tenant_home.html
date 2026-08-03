@@ -459,26 +459,26 @@
     <!-- Health Badges - Status at a glance -->
     <section class="health-badges">
         <span class="badge {% if vault_connected %}badge-ok{% else %}badge-warn{% endif %}">
-            {% if vault_connected %}✓{% else %}⚠{% endif %} Vault: {% if vault_connected %}Connected{% else %}Not Set Up{% endif %}
+            {% if vault_connected %}●{% else %}◆{% endif %} Vault: {% if vault_connected %}Connected{% else %}Not Set Up{% endif %}
         </span>
-        <span class="badge badge-info">📍 {% if jurisdiction %}{{ jurisdiction }}{% else %}Set Location{% endif %}</span>
+        <span class="badge badge-info">○ {% if jurisdiction %}{{ jurisdiction }}{% else %}Set Location{% endif %}</span>
         <span class="badge badge-info">Role: Tenant</span>
     </section>
 
     <!-- THE BIG THREE - Quick Actions (Journal is #1 per framework) -->
     <section class="big-three">
         <a href="/tenant/timeline" class="big-action big-action-primary">
-            <div class="big-action-icon">📝</div>
+            <div class="big-action-icon">●</div>
             <div class="big-action-title">Write in Journal</div>
             <div class="big-action-desc">Record what happened</div>
         </a>
         <a href="/tenant/capture" class="big-action">
-            <div class="big-action-icon">📄</div>
+            <div class="big-action-icon">●</div>
             <div class="big-action-title">Add Document/Photo</div>
             <div class="big-action-desc">Upload evidence</div>
         </a>
         <a href="/tenant/library" class="big-action">
-            <div class="big-action-icon">⚖️</div>
+            <div class="big-action-icon">▸</div>
             <div class="big-action-title">Check a Right</div>
             <div class="big-action-desc">Look up the facts</div>
         </a>
@@ -486,7 +486,7 @@
 
     <!-- Quick Capture - For stress moments -->
     <section class="emergency-capture">
-        <h2>⚡ Something just happened?</h2>
+        <h2>◆ Something just happened?</h2>
         <p>Quickly record it now while it's fresh. One tap, we'll handle the rest.</p>
         <div class="capture-chips">
             <button class="capture-chip" data-capture="notice">Got a notice</button>
@@ -502,7 +502,7 @@
         <h2>Your Situation</h2>
 
         <div class="status-item">
-            <span class="status-icon">📅</span>
+            <span class="status-icon">◆</span>
             <div class="status-content">
                 <div class="status-label">
                     {% if next_deadline %}
@@ -522,7 +522,7 @@
         </div>
 
         <div class="status-item">
-            <span class="status-icon">📄</span>
+            <span class="status-icon">●</span>
             <div class="status-content">
                 <div class="status-label">
                     {% if document_count %}
@@ -542,7 +542,7 @@
         </div>
 
         <div class="status-item">
-            <span class="status-icon">📝</span>
+            <span class="status-icon">●</span>
             <div class="status-content">
                 <div class="status-label">
                     {% if journal_count %}
@@ -591,7 +591,7 @@
             <ul class="activity-list">{% for item in recent_activity %}<li class="activity-item"><span class="activity-icon">{{ item.icon }}</span><span class="activity-text">{{ item.description }}</span><span class="activity-time">{{ item.time_ago }}</span></li>{% endfor %}</ul>
         {% else %}
             <div class="activity-empty">
-                <div class="activity-empty-icon">🌱</div>
+                <div class="activity-empty-icon">○</div>
                 <p>Your activity will appear here.<br>Start by writing in your journal.</p>
             </div>
         {% endif %}
@@ -599,25 +599,25 @@
 
     <!-- ACT Pillar - Defense Tools -->
     <section class="pillar-section">
-        <h2 class="pillar-heading">⚔️ Take Action</h2>
+        <h2 class="pillar-heading">◆ Take Action</h2>
         <div class="quick-actions">
             <a href="/ui/tool/eviction-defense" class="action-card">
-                <div class="action-icon">🛡️</div>
+                <div class="action-icon">◆</div>
                 <div class="action-title">Eviction Defense</div>
                 <div class="action-desc">Know your rights, build your defense</div>
             </a>
             <a href="/ui/tool/complaints" class="action-card">
-                <div class="action-icon">📢</div>
+                <div class="action-icon">▸</div>
                 <div class="action-title">File a Complaint</div>
                 <div class="action-desc">Report to housing agencies</div>
             </a>
             <a href="/ui/tool/case-builder" class="action-card">
-                <div class="action-icon">🏗️</div>
+                <div class="action-icon">▸</div>
                 <div class="action-title">Build My Case</div>
                 <div class="action-desc">Organize evidence and arguments</div>
             </a>
             <a href="/ui/tool/plan-maker" class="action-card">
-                <div class="action-icon">📋</div>
+                <div class="action-icon">●</div>
                 <div class="action-title">My Action Plan</div>
                 <div class="action-desc">Step-by-step next actions</div>
             </a>
@@ -626,10 +626,10 @@
 
     <!-- Settings - Jurisdiction & Profile -->
     <section class="pillar-section">
-        <h2 class="pillar-heading">⚙️ Settings</h2>
+        <h2 class="pillar-heading">▸ Settings</h2>
         <div class="quick-actions">
             <a href="/tenant/capture" class="action-card">
-                <div class="action-icon">📍</div>
+                <div class="action-icon">○</div>
                 <div class="action-title">My Location</div>
                 <div class="action-desc">Set your zip code for local laws</div>
             </a>
@@ -644,7 +644,7 @@
     <!-- Help Footer -->
     <footer class="help-footer">
         <p>Need help understanding your rights or next steps?</p>
-        <a href="/tenant/help" class="help-link">Get personalized guidance →</a>
+        <a href="/tenant/help" class="help-link">Get personalized guidance ▸</a>
     </footer>
 
 </div>

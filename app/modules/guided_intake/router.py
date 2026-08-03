@@ -155,37 +155,37 @@ def get_next_steps(summary: IntakeSummary) -> List[str]:
     
     # Urgent matters first
     if summary.urgency_level in ['court_soon', 'deadline', 'move_out']:
-        steps.append("⚠️ Review your urgent deadline and available legal resources")
+        steps.append("◆ Review your urgent deadline and available legal resources")
     
     # Based on primary concern
     if summary.primary_concern == 'eviction':
-        steps.append("📋 Review the eviction process timeline for Minnesota")
-        steps.append("📄 Gather any notices you've received from your landlord")
-        steps.append("⚖️ Explore your legal defenses")
+        steps.append("● Review the eviction process timeline for Minnesota")
+        steps.append("● Gather any notices you've received from your landlord")
+        steps.append("▸ Explore your legal defenses")
         
     elif summary.primary_concern == 'repairs':
-        steps.append("📸 Document current conditions with photos")
-        steps.append("✉️ Draft a repair request letter to your landlord")
-        steps.append("🏛️ Learn about rent escrow options")
+        steps.append("● Document current conditions with photos")
+        steps.append("● Draft a repair request letter to your landlord")
+        steps.append("▸ Learn about rent escrow options")
         
     elif summary.primary_concern == 'rent':
-        steps.append("📊 Review your rent payment history")
-        steps.append("📋 Check if rent increases follow MN law")
-        steps.append("💰 Explore rental assistance programs")
+        steps.append("◆ Review your rent payment history")
+        steps.append("● Check if rent increases follow MN law")
+        steps.append("● Explore rental assistance programs")
         
     elif summary.primary_concern == 'harassment':
-        steps.append("📝 Start a log of incidents")
-        steps.append("📄 Review your lease for landlord entry rules")
-        steps.append("🏛️ Learn about tenant protection laws")
+        steps.append("● Start a log of incidents")
+        steps.append("● Review your lease for landlord entry rules")
+        steps.append("▸ Learn about tenant protection laws")
         
     elif summary.primary_concern == 'lease':
-        steps.append("📄 Upload your lease for analysis")
-        steps.append("📋 Review common lease issues in MN")
-        steps.append("✍️ Get help understanding lease terms")
+        steps.append("● Upload your lease for analysis")
+        steps.append("● Review common lease issues in MN")
+        steps.append("▸ Get help understanding lease terms")
     
     # Document gathering
     if 'none' in summary.available_documents or not summary.available_documents:
-        steps.append("📁 Start building your evidence file")
+        steps.append("● Start building your evidence file")
     
     return steps[:5]  # Return top 5 most relevant
 
@@ -196,29 +196,29 @@ def get_recommended_modules(summary: IntakeSummary) -> List[Dict[str, str]]:
     
     if summary.primary_concern == 'eviction':
         modules.extend([
-            {"id": "eviction_defense", "name": "Eviction Defense", "icon": "🛡️"},
-            {"id": "timeline", "name": "Timeline Builder", "icon": "📅"},
-            {"id": "law_library", "name": "MN Eviction Law", "icon": "📚"}
+            {"id": "eviction_defense", "name": "Eviction Defense", "icon": "◆"},
+            {"id": "timeline", "name": "Timeline Builder", "icon": "◆"},
+            {"id": "law_library", "name": "MN Eviction Law", "icon": "○"}
         ])
         
     elif summary.primary_concern == 'repairs':
         modules.extend([
-            {"id": "evidence", "name": "Evidence Collection", "icon": "📸"},
-            {"id": "complaint_wizard", "name": "File a Complaint", "icon": "📝"},
-            {"id": "law_library", "name": "Habitability Rights", "icon": "📚"}
+            {"id": "evidence", "name": "Evidence Collection", "icon": "●"},
+            {"id": "complaint_wizard", "name": "File a Complaint", "icon": "●"},
+            {"id": "law_library", "name": "Habitability Rights", "icon": "○"}
         ])
         
     elif summary.primary_concern == 'harassment':
         modules.extend([
-            {"id": "incident_log", "name": "Incident Logger", "icon": "📋"},
-            {"id": "complaint_wizard", "name": "File a Complaint", "icon": "📝"},
-            {"id": "law_library", "name": "Tenant Protections", "icon": "📚"}
+            {"id": "incident_log", "name": "Incident Logger", "icon": "●"},
+            {"id": "complaint_wizard", "name": "File a Complaint", "icon": "●"},
+            {"id": "law_library", "name": "Tenant Protections", "icon": "○"}
         ])
     
     # Always recommend these
     modules.extend([
-        {"id": "documents", "name": "Document Vault", "icon": "📁"},
-        {"id": "calendar", "name": "Deadlines & Dates", "icon": "📆"}
+        {"id": "documents", "name": "Document Vault", "icon": "●"},
+        {"id": "calendar", "name": "Deadlines & Dates", "icon": "◆"}
     ])
     
     # Deduplicate by id

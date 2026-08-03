@@ -1,5 +1,5 @@
 """
-📍 Location Router - API Endpoints
+○ Location Router - API Endpoints
 ==================================
 REST API for location detection and state-specific resources.
 Integrated with Positronic Brain for cross-module awareness.
@@ -76,7 +76,7 @@ async def get_current_location(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    📍 Get current user location.
+    ○ Get current user location.
     
     Returns the user's stored location or default (Minnesota).
     """
@@ -101,7 +101,7 @@ async def update_location(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    📍 Update user's location.
+    ○ Update user's location.
     
     This is called by the frontend location detection script
     or when user manually selects their state.
@@ -119,7 +119,7 @@ async def update_location(
         longitude=location_data.longitude,
     )
     
-    logger.info("📍 Location updated for %s...: %s", user_id[:8], location.state_code)
+    logger.info("○ Location updated for %s...: %s", user_id[:8], location.state_code)
 
     # Emit brain event for location change
     try:
@@ -157,7 +157,7 @@ async def clear_location(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    🗑️ Clear saved location (resets to default Minnesota).
+    ◆ Clear saved location (resets to default Minnesota).
     """
     user_id = get_user_id(request)
     service.clear_user_location(user_id)
@@ -170,7 +170,7 @@ async def get_supported_states(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    📋 Get list of supported states.
+    ● Get list of supported states.
     
     Returns all states with their support levels:
     - full: Complete tenant rights database
@@ -190,7 +190,7 @@ async def get_state_info(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    📊 Get detailed information about a specific state.
+    ◆ Get detailed information about a specific state.
     """
     state_info = service.get_state_info(state_code.upper())
     
@@ -215,7 +215,7 @@ async def get_legal_resources(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    ⚖️ Get legal resources based on user's location.
+    ▸ Get legal resources based on user's location.
     
     Returns:
     - State-specific tenant rights links
@@ -233,7 +233,7 @@ async def get_eviction_timeline(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    ⏱️ Get eviction timeline rules for user's state.
+    ◆ Get eviction timeline rules for user's state.
     
     Returns:
     - Answer period (days to respond to eviction)
@@ -249,7 +249,7 @@ async def get_mn_counties(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    🏛️ Get Minnesota counties with housing court information.
+    ▸ Get Minnesota counties with housing court information.
     """
     return {
         "counties": service.get_mn_counties(),
@@ -264,7 +264,7 @@ async def get_county_info(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    🏛️ Get county-specific information (housing court, etc).
+    ▸ Get county-specific information (housing court, etc).
     
     Currently only supports Minnesota counties.
     """
@@ -289,7 +289,7 @@ async def get_location_context(
     service: LocationService = Depends(get_location_service),
 ):
     """
-    🧠 Get full location context for brain/mesh integration.
+    ○ Get full location context for brain/mesh integration.
     
     This endpoint provides complete location data for
     cross-module workflows and the Positronic Brain.

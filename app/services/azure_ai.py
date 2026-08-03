@@ -289,7 +289,7 @@ Respond in JSON format:
         try:
             result = await self._call_ollama(prompt, settings)
             if result:
-                logger.info("✓ Using Ollama (free, local)")
+                logger.info("● Using Ollama (free, local)")
                 return result
         except Exception as e:
             pass  # Silent fail, try next
@@ -298,7 +298,7 @@ Respond in JSON format:
         if settings.groq_api_key:
             try:
                 result = await self._call_groq(prompt, settings)
-                logger.info("✓ Using Groq (free tier)")
+                logger.info("● Using Groq (free tier)")
                 return result
             except Exception as e:
                 logger.error(f"Groq failed: {e}")
@@ -308,13 +308,13 @@ Respond in JSON format:
             try:
                 result = await self._call_azure_openai(prompt, settings)
                 if result:
-                    logger.info("✓ Using Azure OpenAI")
+                    logger.info("● Using Azure OpenAI")
                     return result
             except Exception as e:
                 logger.error(f"Azure OpenAI failed: {e}")
 
         # 4. Fall back to rule-based (always free, always works)
-        logger.info("✓ Using rule-based classification (free)")
+        logger.info("● Using rule-based classification (free)")
         return self._rule_based_classify(prompt)
 
     async def _call_azure_openai(self, prompt: str, settings) -> Optional[dict]:
@@ -499,11 +499,11 @@ Respond in JSON format:
             if result.urgency_level in ("critical", "high"):
                 if result.has_deadline and result.days_to_respond is not None:
                     if result.days_to_respond < 0:
-                        summary = f"⚠️ URGENT: Deadline has PASSED! {summary}"
+                        summary = f"◆ URGENT: Deadline has PASSED! {summary}"
                     elif result.days_to_respond <= 3:
-                        summary = f"⚠️ CRITICAL: Only {result.days_to_respond} days to respond! {summary}"
+                        summary = f"◆ CRITICAL: Only {result.days_to_respond} days to respond! {summary}"
                     elif result.days_to_respond <= 7:
-                        summary = f"⚠️ URGENT: {result.days_to_respond} days to respond. {summary}"
+                        summary = f"◆ URGENT: {result.days_to_respond} days to respond. {summary}"
             
             return {
                 "doc_type": doc_type,

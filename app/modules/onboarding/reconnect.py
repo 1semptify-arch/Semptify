@@ -9,10 +9,10 @@ storage_connected gate — both setting it (new user) and restoring it (token ex
 Mounted at /storage/reconnect (SSOT-registered path) so no other code changes.
 
 Flow:
-  1. Cookie + valid session       → route to role home or return_to
-  2. Cookie + expired + provider  → silent OAuth (user never sees this page)
-  3. Cookie + unknown provider    → show provider picker with auto-reconnect
-  4. No cookie                    → show provider picker (lost state)
+  1. Cookie + valid session       ▸ route to role home or return_to
+  2. Cookie + expired + provider  ▸ silent OAuth (user never sees this page)
+  3. Cookie + unknown provider    ▸ show provider picker with auto-reconnect
+  4. No cookie                    ▸ show provider picker (lost state)
 """
 
 import json as _json
@@ -100,9 +100,9 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
     known_provider = get_provider_from_user_id(existing_uid) if existing_uid else None
 
     PROVIDER_CONFIG = {
-        "google_drive": ("📁", "Google Drive", settings.google_drive_client_id),
-        "dropbox": ("☁️", "Dropbox", settings.dropbox_app_key),
-        "onedrive": ("🔵", "OneDrive", settings.onedrive_client_id),
+        "google_drive": ("●", "Google Drive", settings.google_drive_client_id),
+        "dropbox": ("○", "Dropbox", settings.dropbox_app_key),
+        "onedrive": ("◆", "OneDrive", settings.onedrive_client_id),
     }
 
     if known_provider and known_provider in PROVIDER_CONFIG:
@@ -110,7 +110,7 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
         if enabled:
             auto_redirect = f"""
             <div id="reconnecting-msg" style="text-align:center;padding:2rem;">
-                <div style="font-size:3rem;margin-bottom:1rem;">🔄</div>
+                <div style="font-size:3rem;margin-bottom:1rem;">▸</div>
                 <h3>We're reconnecting you to {name}...</h3>
                 <p>Your documents are safe. You'll be back to your work in just a moment.</p>
             </div>
@@ -185,7 +185,7 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
 </head>
 <body>
     <div class="container">
-        <div class="icon">👋</div>
+        <div class="icon">○</div>
         <h1>Welcome Back!</h1>
         <p class="subtitle">We're reconnecting you to your documents</p>
         <div class="info-box">
@@ -195,7 +195,7 @@ def _reconnect_html(existing_uid: str | None = None, return_to: str | None = Non
         <div class="button-grid">
             {providers_html}
         </div>
-        <a href="/" class="back-link">← Back to welcome page</a>
+        <a href="/" class="back-link">▸ Back to welcome page</a>
     </div>
     <script>
         var EXISTING_UID = {existing_uid_js};

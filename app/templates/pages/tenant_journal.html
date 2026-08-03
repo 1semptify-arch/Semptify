@@ -200,7 +200,7 @@
 <div class="journal-container">
     
     <div class="journal-header">
-        <h1>📓 Your Journal</h1>
+        <h1>● Your Journal</h1>
         <a href="/tenant/capture" class="new-entry-btn">+ New Entry</a>
     </div>
     
@@ -231,7 +231,7 @@
         <button class="filter-btn" data-filter="notice">Notices</button>
         <button class="filter-btn" data-filter="conversation">Conversations</button>
         <button class="filter-btn" data-filter="repair">Repairs</button>
-        <button class="filter-btn" data-filter="urgent">⚠️ Urgent</button>
+        <button class="filter-btn" data-filter="urgent">◆ Urgent</button>
     </div>
     
     <!-- Entries -->
@@ -240,13 +240,13 @@
         <article class="entry-card" data-type="{{ entry.entry_type }}" data-urgent="{{ entry.is_urgent }}">
             <div class="entry-header">
                 <span class="entry-type {% if entry.is_urgent %}urgent{% endif %}">
-                    {% if entry.entry_type == 'notice' %}📋 Notice
-                    {% elif entry.entry_type == 'conversation' %}💬 Conversation
-                    {% elif entry.entry_type == 'repair' %}🔧 Repair
-                    {% elif entry.entry_type == 'harassment' %}⚠️ Harassment
-                    {% elif entry.entry_type == 'payment' %}💰 Payment
-                    {% elif entry.entry_type == 'document_upload' %}📄 Document
-                    {% else %}📝 {{ entry.entry_type|title }}
+                    {% if entry.entry_type == 'notice' %}● Notice
+                    {% elif entry.entry_type == 'conversation' %}○ Conversation
+                    {% elif entry.entry_type == 'repair' %}▸ Repair
+                    {% elif entry.entry_type == 'harassment' %}◆ Harassment
+                    {% elif entry.entry_type == 'payment' %}● Payment
+                    {% elif entry.entry_type == 'document_upload' %}● Document
+                    {% else %}● {{ entry.entry_type|title }}
                     {% endif %}
                 </span>
                 <span class="entry-date">{{ entry.created_at|format_date }}</span>
@@ -254,13 +254,13 @@
             <p class="entry-preview">{{ entry.description }}</p>
             <div class="entry-meta">
                 {% if entry.has_attachments %}
-                <span>📎 {{ entry.attachment_count }} file(s)</span>
+                <span>● {{ entry.attachment_count }} file(s)</span>
                 {% endif %}
                 {% if entry.who_involved %}
-                <span>👤 {{ entry.who_involved }}</span>
+                <span>● {{ entry.who_involved }}</span>
                 {% endif %}
                 {% if entry.location %}
-                <span>📍 {{ entry.location }}</span>
+                <span>○ {{ entry.location }}</span>
                 {% endif %}
             </div>
         </article>
@@ -270,7 +270,7 @@
     {% else %}
     <!-- Empty State -->
     <div class="empty-state">
-        <div class="empty-icon">🌱</div>
+        <div class="empty-icon">○</div>
         <h3>Your journal is empty</h3>
         <p>Every detail you record strengthens your position. Start with something that happened today.</p>
         <a href="/tenant/capture" class="new-entry-btn">Record Your First Entry</a>

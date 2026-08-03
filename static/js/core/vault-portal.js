@@ -1,73 +1,73 @@
 /**
  * Semptify Vault Portal - Single Entry Point for ALL Document Uploads
- * All files go through here → Overlay extraction → User's cloud storage
+ * All files go through here ▸ Overlay extraction ▸ User's cloud storage
  */
 
 // Document Type Categories
 const DOCUMENT_TYPES = {
   'lease': {
     label: 'Lease Agreement',
-    icon: '📄',
+    icon: '●',
     description: 'Rental contract, lease terms, addendums',
     autoFields: ['lease_start', 'lease_end', 'rent_amount', 'security_deposit']
   },
   'notice': {
     label: 'Notice / Letter',
-    icon: '📨',
+    icon: '●',
     description: 'Eviction notice, rent increase, lease termination, warnings',
     autoFields: ['notice_type', 'notice_date', 'deadline_date', 'sender']
   },
   'receipt': {
     label: 'Rent Receipt / Payment',
-    icon: '🧾',
+    icon: '●',
     description: 'Proof of rent payment, money order, bank transfer',
     autoFields: ['payment_date', 'amount', 'payment_method', 'period_covered']
   },
   'repair': {
     label: 'Repair Request / Maintenance',
-    icon: '🔧',
+    icon: '▸',
     description: 'Maintenance requests, repair records, inspection reports',
     autoFields: ['request_date', 'issue_type', 'urgency', 'completion_status']
   },
   'photo': {
     label: 'Photo Evidence',
-    icon: '📷',
+    icon: '●',
     description: 'Property condition, damage, repairs, safety issues',
     autoFields: ['capture_date', 'location', 'description', 'geotag']
   },
   'legal': {
     label: 'Legal Document',
-    icon: '⚖️',
+    icon: '▸',
     description: 'Court papers, attorney correspondence, legal notices',
     autoFields: ['court_name', 'case_number', 'filing_date', 'document_type']
   },
   'communication': {
     label: 'Communication / Messages',
-    icon: '💬',
+    icon: '○',
     description: 'Emails, texts, chat logs with landlord/property manager',
     autoFields: ['communication_date', 'parties', 'method', 'subject']
   },
   'insurance': {
     label: 'Insurance Document',
-    icon: '🛡️',
+    icon: '◆',
     description: 'Renter\'s insurance, claims, correspondence',
     autoFields: ['provider', 'policy_number', 'coverage_date', 'claim_number']
   },
   'financial': {
     label: 'Financial Record',
-    icon: '💰',
+    icon: '●',
     description: 'Bank statements, income proof, hardship documentation',
     autoFields: ['statement_date', 'account_type', 'institution']
   },
   'medical': {
     label: 'Medical / Disability',
-    icon: '🏥',
+    icon: '○',
     description: 'Medical records, disability accommodation requests, doctor notes',
     autoFields: ['provider_name', 'date_of_service', 'accommodation_type']
   },
   'other': {
     label: 'Other Document',
-    icon: '📑',
+    icon: '●',
     description: 'Any other document related to your tenancy',
     autoFields: []
   }
@@ -96,7 +96,7 @@ async function vaultCheckBeforeAction() {
 }
 
 /**
- * Open file picker → Upload → Overlay extraction → Cloud storage
+ * Open file picker ▸ Upload ▸ Overlay extraction ▸ Cloud storage
  */
 async function openVaultUpload() {
   // Vault check before upload — if not connected, reconnect cycle
@@ -130,7 +130,7 @@ function handleVaultFiles(files) {
       <div class="vault-modal-backdrop" onclick="closeVaultCapture()"></div>
       <div class="vault-modal-content vault-capture-content">
         <div class="vault-header">
-          <h2>📤 Document Upload (${filesArray.length} file${filesArray.length > 1 ? 's' : ''})</h2>
+          <h2>● Document Upload (${filesArray.length} file${filesArray.length > 1 ? 's' : ''})</h2>
           <button class="vault-close" onclick="closeVaultCapture()">&times;</button>
         </div>
         
@@ -170,18 +170,18 @@ function handleVaultFiles(files) {
             <div class="form-group checkbox-group">
               <label class="checkbox-label">
                 <input type="checkbox" id="vault-emergency" value="emergency">
-                <span>🚨 This is an emergency/urgent situation</span>
+                <span>◆ This is an emergency/urgent situation</span>
               </label>
             </div>
           </div>
           
           <div class="metadata-preview">
-            <h4>📊 Auto-Captured Metadata</h4>
+            <h4>◆ Auto-Captured Metadata</h4>
             <ul class="metadata-list">
               <li><strong>Upload time:</strong> ${new Date().toLocaleString()}</li>
               <li><strong>Files:</strong> ${filesArray.length} document${filesArray.length > 1 ? 's' : ''}</li>
-              <li><strong>Blockchain timestamp:</strong> ✅ Auto-enabled</li>
-              <li><strong>Overlay extraction:</strong> ✅ Will process after upload</li>
+              <li><strong>Blockchain timestamp:</strong> ● Auto-enabled</li>
+              <li><strong>Overlay extraction:</strong> ● Will process after upload</li>
             </ul>
             <p class="metadata-note">
               After upload, OCR will attempt to read dates, parties, and amounts. You can review and edit those details from your vault.
@@ -191,11 +191,11 @@ function handleVaultFiles(files) {
         
         <div class="vault-storage-info">
           <div class="storage-provider">
-            <span>☁️</span>
+            <span>○</span>
             <span>Saving to: <strong>Your Google Drive</strong> (Semptify/Vault/)</span>
           </div>
           <p class="privacy-note">
-            🔒 Your document stays in YOUR storage. Semptify creates an overlay (metadata only) 
+            ◆ Your document stays in YOUR storage. Semptify creates an overlay (metadata only) 
             for searching and timeline. Full document never touches our servers.
           </p>
         </div>
@@ -206,7 +206,7 @@ function handleVaultFiles(files) {
             Skip Details & Upload
           </button>
           <button class="btn btn-primary" onclick="uploadToVault(${filesArray.length})">
-            Upload to Vault →
+            Upload to Vault ▸
           </button>
         </div>
       </div>
@@ -422,15 +422,15 @@ async function generateBlockchainHash() {
 function getFileIcon(filename) {
   const ext = filename.split('.').pop().toLowerCase();
   const icons = {
-    'pdf': '📕',
-    'jpg': '🖼️',
-    'jpeg': '🖼️',
-    'png': '🖼️',
-    'doc': '📝',
-    'docx': '📝',
-    'txt': '📄'
+    'pdf': '●',
+    'jpg': '○',
+    'jpeg': '○',
+    'png': '○',
+    'doc': '●',
+    'docx': '●',
+    'txt': '●'
   };
-  return icons[ext] || '📄';
+  return icons[ext] || '●';
 }
 
 /**

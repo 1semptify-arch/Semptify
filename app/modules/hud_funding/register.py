@@ -186,7 +186,7 @@ register_function_group(FunctionGroupContract(
     module="hud_funding",
     group_name="hud_funding_quick_reference",
     title="Hud_Funding Quick Reference (GET) (SSOT)",
-    description="📚 Quick reference guide for understanding HUD programs.",
+    description="○ Quick reference guide for understanding HUD programs.",
     inputs=(),
     outputs=("result",),
     dependencies=("app.modules.hud_funding.router",),

@@ -281,7 +281,7 @@ async def global_search(
                 }
             ))
 
-        logger.info(f"🔍 BM25 search found {len(results)} documents for query: {q}")
+        logger.info(f"▸ BM25 search found {len(results)} documents for query: {q}")
 
     except Exception as e:
         logger.warning(f"Advanced document search error: {e}")

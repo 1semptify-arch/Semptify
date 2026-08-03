@@ -339,18 +339,18 @@ class VaultInstaller:
 
 This vault contains your protected housing documents and evidence.
 
-📁 Folders:
+● Folders:
 • documents/ - Your uploaded documents
 • certificates/ - Official certificates and filings  
 • timeline/ - Event timeline and journal
 • overlays/ - Analysis and evidence overlays
 
-🔐 Security:
+◆ Security:
 • Vault is encrypted at rest in your {self.provider_name} account
 • Only you have access through your Semptify account
 • All timestamps use UTC timezone
 
-📞 Support:
+● Support:
 • For help: https://semptify.org/help
 • Privacy policy: https://semptify.org/privacy
 

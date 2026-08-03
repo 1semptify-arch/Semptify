@@ -4,7 +4,7 @@
 {% block title %}Build My Case - Semptify{% endblock %}
 {% block description %}Organize your documents and evidence for your housing case.{% endblock %}
 
-{% block nav %}<a href="/tenant/home">← Home</a><a href="/documents">Documents</a><a href="/timeline">Timeline</a>{% endblock %}
+{% block nav %}<a href="/tenant/home">▸ Home</a><a href="/documents">Documents</a><a href="/timeline">Timeline</a>{% endblock %}
 
 {% block styles %}
 <style>
@@ -252,14 +252,14 @@
 
     <div class="main-content">
         <div class="documents-panel">
-            <h2 class="panel-title">📄 Your Documents</h2>
+            <h2 class="panel-title">● Your Documents</h2>
             <div id="documents-list">
                 <div class="empty-state">Loading documents...</div>
             </div>
         </div>
 
         <div class="evidence-panel">
-            <h2 class="panel-title">📋 Evidence Summary</h2>
+            <h2 class="panel-title">● Evidence Summary</h2>
 
             <div class="evidence-section">
                 <h3>Selected Documents</h3>
@@ -316,7 +316,7 @@ async function loadDocuments() {
 function renderDocuments() {
     const container = document.getElementById('documents-list');
     if (documents.length === 0) {
-        container.innerHTML = '<div class="empty-state">No documents uploaded yet. <a href="/documents">Upload documents →</a></div>';
+        container.innerHTML = '<div class="empty-state">No documents uploaded yet. <a href="/documents">Upload documents ▸</a></div>';
         return;
     }
 
@@ -349,7 +349,7 @@ function updateSelectedDocs() {
 
     const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
     container.innerHTML = '<ul style="list-style: none; padding: 0;">' + selectedNames.map(name => `
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem;">📄 ${name}</li>
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem;">● ${name}</li>
     `).join('') + '</ul>';
 }
 

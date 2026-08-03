@@ -176,7 +176,7 @@ class ResearchService:
         self._profiles: Dict[str, LandlordProfile] = {}
         self._checkpoints: Dict[str, ResearchCheckpoint] = {}
         self._zip_cache: Dict[str, bytes] = {}
-        logger.info("🔍 Research Service initialized")
+        logger.info("▸ Research Service initialized")
     
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client"""
@@ -630,7 +630,7 @@ class ResearchService:
         self._checkpoints[checkpoint.id] = checkpoint
         self._zip_cache[property_id] = zip_bytes
         
-        logger.info(f"🔍 Research complete for property {property_id}: {len(fraud_flags)} fraud flags")
+        logger.info(f"▸ Research complete for property {property_id}: {len(fraud_flags)} fraud flags")
         
         return {
             "landlord_profile": profile_dict,

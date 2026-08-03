@@ -275,7 +275,7 @@ class ProactiveTacticsEngine:
                 urgency=UrgencyLevel.HIGH,
                 reason=f"Eviction filed only {closest.days_between} days after {closest.protected_activity}. This proximity suggests retaliation under Minn. Stat. § 504B.441.",
                 action_items=[
-                    "Document the timeline of protected activity → eviction",
+                    "Document the timeline of protected activity ▸ eviction",
                     "Gather evidence of the protected activity (emails, reports)",
                     "Draft Retaliation Counterclaim",
                     "Request treble damages if proven",
@@ -398,11 +398,11 @@ class ProactiveTacticsEngine:
         Run the full decision tree and return all applicable tactics.
         
         Decision Tree:
-        1. Was service <7 days? → Motion to Dismiss
-        2. ≥3 serious habitability issues? → Rent Escrow Motion
-        3. Recent protected complaint (<30 days)? → Retaliation Counterclaim
-        4. Pending objective evidence? → Continuance Motion
-        5. Case dismissed or settled? → Expungement Motion
+        1. Was service <7 days? ▸ Motion to Dismiss
+        2. ≥3 serious habitability issues? ▸ Rent Escrow Motion
+        3. Recent protected complaint (<30 days)? ▸ Retaliation Counterclaim
+        4. Pending objective evidence? ▸ Continuance Motion
+        5. Case dismissed or settled? ▸ Expungement Motion
         """
         recommendations = []
         

@@ -63,7 +63,7 @@ class TimelineEvent:
     days_until: Optional[int] = None
     is_urgent: bool = False
     source_doc_id: Optional[str] = None
-    icon: str = "📅"
+    icon: str = "◆"
 
 
 @dataclass
@@ -91,7 +91,7 @@ class JournalEntry:
     is_urgent: bool = False
     has_attachments: bool = False
     attachment_count: int = 0
-    icon: str = "📝"
+    icon: str = "●"
 
 
 @dataclass
@@ -116,7 +116,7 @@ class Notification:
     is_urgent: bool = False
     action_url: Optional[str] = None
     action_text: str = "View"
-    icon: str = "📬"
+    icon: str = "●"
 
 
 @dataclass
@@ -348,7 +348,7 @@ class TenantBriefcase:
                 "id": doc.get("id", "unknown"),
                 "title": doc.get("title", "Unknown document"),
                 "date": doc.get("uploaded_at"),
-                "icon": "📄",
+                "icon": "●",
                 "description": f"Uploaded: {doc.get('title', 'Document')}",
             })
         
@@ -586,7 +586,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 event_type="document_upload",
                 title=f"Uploaded: {doc['title']}",
                 date=doc["uploaded_at"],
-                icon="📄",
+                icon="●",
             ))
         
         # Check for document dates (from key_dates in full doc)
@@ -595,7 +595,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 id=f"docdate_{doc['id']}",
                 event_type="document_date",
                 title=f"Date in: {doc['title']}",
-                icon="📅",
+                icon="◆",
             ))
     
     # Load real timeline events from DB
@@ -616,7 +616,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                     event_type=te.event_type or "event",
                     title=te.title or te.event_type or "Event",
                     date=date_val,
-                    icon="📅",
+                    icon="◆",
                 ))
     except Exception as _e:
         logger.warning("Timeline DB load failed: %s", _e)
@@ -651,11 +651,11 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
 def _journal_icon(entry_type: str) -> str:
     """Return a calm icon for a journal entry type."""
     return {
-        "conversation": "💬",
-        "incident": "⚠",
-        "repair_request": "🔧",
-        "note": "📝",
-    }.get(entry_type, "❓")
+        "conversation": "○",
+        "incident": "◆",
+        "repair_request": "▸",
+        "note": "●",
+    }.get(entry_type, "?")
 
 
 async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSummary:
@@ -712,7 +712,7 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
                 is_urgent=is_urgent,
                 has_attachments=True,
                 attachment_count=1,
-                icon="📄",
+                icon="●",
             ))
     except Exception as _e:
         logger.warning("Journal vault load failed: %s", _e)
@@ -728,7 +728,7 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
                 is_urgent=is_urgent,
                 has_attachments=True,
                 attachment_count=1,
-                icon="📄",
+                icon="●",
             ))
 
     urgent_count = len([e for e in entries if e.is_urgent])
@@ -825,7 +825,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
             title="Upload Your First Document",
             description="Start by uploading a lease, notice, or any relevant document",
             priority=1,
-            icon="📄",
+            icon="●",
             url="/tenant/capture",
             reason="No documents in your vault yet",
         )
@@ -838,7 +838,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
                 title="Review Upcoming Deadline",
                 description=f"You have a deadline in {briefcase.timeline.next_deadline.days_until} days",
                 priority=1 if briefcase.timeline.next_deadline.days_until <= 3 else 2,
-                icon="⏰",
+                icon="◆",
                 url="/timeline",
                 reason="Urgent deadline approaching",
             )
@@ -852,7 +852,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
             title="Check Urgent Notifications",
             description=f"{briefcase.inbox.urgent_count} item(s) need attention",
             priority=1,
-            icon="📬",
+            icon="●",
             url="/tenant/inbox",
             reason="Unread urgent notifications",
         ))
@@ -863,7 +863,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
         title="Quick Capture",
         description="Record something that just happened",
         priority=3,
-        icon="⚡",
+        icon="◆",
         url="/tenant/capture",
         reason="Keep your record up to date",
     ))

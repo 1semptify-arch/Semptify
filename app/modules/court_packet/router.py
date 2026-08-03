@@ -436,7 +436,7 @@ def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> 
         lines.append(f"   Type: {doc.get('type', 'Unknown')}")
         lines.append(f"   Category: {doc.get('category', 'General')}")
         if doc.get('starred'):
-            lines.append("   ★ STARRED - Key Evidence")
+            lines.append("   ◆ STARRED - Key Evidence")
         lines.append("")
     
     if extractions:
@@ -481,12 +481,12 @@ def generate_highlights_summary(highlights: Dict) -> str:
     # Group by color
     by_color = {}
     color_labels = {
-        "yellow": "🟡 KEY TERMS",
-        "green": "🟢 DATES",
-        "blue": "🔵 NAMES",
-        "pink": "🟣 MONEY/AMOUNTS",
-        "orange": "🟠 DEADLINES",
-        "red": "🔴 VIOLATIONS"
+        "yellow": "◆ KEY TERMS",
+        "green": "● DATES",
+        "blue": "◆ NAMES",
+        "pink": "● MONEY/AMOUNTS",
+        "orange": "◆ DEADLINES",
+        "red": "◆ VIOLATIONS"
     }
     
     for h_id, h in highlights.items():
@@ -534,7 +534,7 @@ HOW TO USE THIS PACKET
 1. Review the EVIDENCE_INDEX.txt for a complete list of contents
 2. Documents are organized in numbered folders
 3. HIGHLIGHTS_SUMMARY.txt contains all annotations by category
-4. Present starred (★) items as key evidence
+4. Present starred (◆) items as key evidence
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

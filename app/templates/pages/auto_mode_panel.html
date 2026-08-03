@@ -233,7 +233,7 @@
 <div class="auto-mode-container">
     <!-- Header -->
     <div class="header-section">
-        <h1>🚀 Auto Mode Control Panel</h1>
+        <h1>▸ Auto Mode Control Panel</h1>
         <p>Configure and manage automated analysis features</p>
     </div>
 
@@ -262,7 +262,7 @@
     <div class="control-grid">
         <!-- Master Toggle -->
         <div class="control-card">
-            <h3><span>⚙️</span> Master Control</h3>
+            <h3><span>▸</span> Master Control</h3>
             <div class="toggle-switch">
                 <label class="switch">
                     <input type="checkbox" id="auto-mode-toggle" checked>
@@ -277,7 +277,7 @@
 
         <!-- Timeline Generation -->
         <div class="control-card">
-            <h3><span>📅</span> Timeline Generation</h3>
+            <h3><span>◆</span> Timeline Generation</h3>
             <ul class="feature-list">
                 <li>
                     <label class="feature-checkbox">
@@ -296,7 +296,7 @@
 
         <!-- Analysis Features -->
         <div class="control-card">
-            <h3><span>🔍</span> Analysis Features</h3>
+            <h3><span>▸</span> Analysis Features</h3>
             <ul class="feature-list">
                 <li>
                     <label class="feature-checkbox">
@@ -315,7 +315,7 @@
 
         <!-- Suggestions -->
         <div class="control-card">
-            <h3><span>💡</span> Smart Suggestions</h3>
+            <h3><span>○</span> Smart Suggestions</h3>
             <ul class="feature-list">
                 <li>
                     <label class="feature-checkbox">
@@ -335,8 +335,8 @@
 
     <!-- Actions -->
     <div class="button-group">
-        <button class="btn btn-primary" onclick="saveConfiguration()">💾 Save Configuration</button>
-        <button class="btn btn-secondary" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
+        <button class="btn btn-primary" onclick="saveConfiguration()">● Save Configuration</button>
+        <button class="btn btn-secondary" onclick="resetToDefaults()">▸ Reset to Defaults</button>
     </div>
 </div>
 
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const status = await statusResponse.json();
         
         // Update UI with status
-        document.getElementById('auto-mode-status').textContent = status.enabled ? '✅ Enabled' : '⏸️ Disabled';
+        document.getElementById('auto-mode-status').textContent = status.enabled ? '● Enabled' : '○ Disabled';
         document.getElementById('auto-mode-toggle').checked = status.enabled;
         document.getElementById('toggle-status').textContent = status.enabled ? 'Enabled' : 'Disabled';
         document.getElementById('last-analysis').textContent = status.last_analysis || 'Never';
@@ -377,7 +377,7 @@ document.getElementById('auto-mode-toggle').addEventListener('change', async fun
         const enabled = this.checked;
         await fetch('/api/auto-mode/toggle?enabled=' + enabled, { method: 'POST' });
         document.getElementById('toggle-status').textContent = enabled ? 'Enabled' : 'Disabled';
-        document.getElementById('auto-mode-status').textContent = enabled ? '✅ Enabled' : '⏸️ Disabled';
+        document.getElementById('auto-mode-status').textContent = enabled ? '● Enabled' : '○ Disabled';
     } catch (error) {
         console.error('Error toggling auto mode:', error);
     }
@@ -397,11 +397,11 @@ async function saveConfiguration() {
         });
 
         if (response.ok) {
-            if (window.SemptifyFeedback) { SemptifyFeedback.success('Configuration saved successfully.'); } else { alert('✅ Configuration saved successfully!'); }
+            if (window.SemptifyFeedback) { SemptifyFeedback.success('Configuration saved successfully.'); } else { alert('● Configuration saved successfully!'); }
         }
     } catch (error) {
         console.error('Error saving configuration:', error);
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error saving configuration.'); } else { alert('❌ Error saving configuration'); }
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error saving configuration.'); } else { alert('◆ Error saving configuration'); }
     }
 }
 

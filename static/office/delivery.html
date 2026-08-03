@@ -118,17 +118,17 @@
       <strong style="color:#fff;">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
-    <a href="/home.html">🏠 Home</a>
-    <a href="/library.html">📚 Library</a>
-    <a href="/office.html">🏢 Office</a>
-    <a href="/tools.html">🔧 Tools</a>
+    <a href="/home.html">○ Home</a>
+    <a href="/library.html">○ Library</a>
+    <a href="/office.html">○ Office</a>
+    <a href="/tools.html">▸ Tools</a>
     <a href="/help.html">🆘 Help</a>
     <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
-    <a href="/office/vault.html">🔒 Vault</a>
-    <a href="/office/inbox.html">📨 Inbox</a>
-    <a href="/office/timeline.html">📅 Timeline</a>
-    <a href="/office/delivery.html" style="color:#f59e0b;font-weight:700;">📬 Delivery</a>
-    <a href="/office/signer.html">✍️ Signer</a>
+    <a href="/office/vault.html">◆ Vault</a>
+    <a href="/office/inbox.html">● Inbox</a>
+    <a href="/office/timeline.html">◆ Timeline</a>
+    <a href="/office/delivery.html" style="color:#f59e0b;font-weight:700;">● Delivery</a>
+    <a href="/office/signer.html">▸ Signer</a>
   </nav>
 
   <header>
@@ -136,15 +136,15 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/home.html" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/home.html">🏠 Home</a>
-        <a href="/library.html">📚 Library</a>
-        <a href="/office.html" class="active">🏢 Office</a>
-        <a href="/tools.html">🔧 Tools</a>
+        <a href="/home.html">○ Home</a>
+        <a href="/library.html">○ Library</a>
+        <a href="/office.html" class="active">○ Office</a>
+        <a href="/tools.html">▸ Tools</a>
         <a href="/help.html">🆘 Help</a>
       </nav>
       <div class="header-actions">
-        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
-        <button class="user-btn">👤 User</button>
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">◆ Vault</button>
+        <button class="user-btn">● User</button>
       </div>
     </div>
   </header>
@@ -161,7 +161,7 @@
     <div>
       <!-- SEND FORM -->
       <div class="form-card">
-        <h3>📤 Send a Document</h3>
+        <h3>● Send a Document</h3>
 
         <div class="form-group">
           <label>Select Document from Vault</label>
@@ -170,21 +170,21 @@
               <input type="radio" name="doc" value="eviction-notice.pdf" checked>
               <span class="doc-select-info">
                 <span class="doc-select-name">3-Day Notice to Pay or Quit.pdf</span>
-                <span class="doc-select-meta">182 KB · Uploaded Apr 19, 2025 <span class="doc-tag-inline tag-timestamped">✓ Timestamped</span></span>
+                <span class="doc-select-meta">182 KB · Uploaded Apr 19, 2025 <span class="doc-tag-inline tag-timestamped">● Timestamped</span></span>
               </span>
             </label>
             <label class="doc-select-item">
               <input type="radio" name="doc" value="lease-agreement.pdf">
               <span class="doc-select-info">
                 <span class="doc-select-name">Lease Agreement — 2024.pdf</span>
-                <span class="doc-select-meta">1.2 MB · Uploaded Mar 1, 2025 <span class="doc-tag-inline tag-timestamped">✓ Timestamped</span></span>
+                <span class="doc-select-meta">1.2 MB · Uploaded Mar 1, 2025 <span class="doc-tag-inline tag-timestamped">● Timestamped</span></span>
               </span>
             </label>
             <label class="doc-select-item">
               <input type="radio" name="doc" value="repair-request.pdf">
               <span class="doc-select-info">
                 <span class="doc-select-name">Repair Request Letter — Heater.pdf</span>
-                <span class="doc-select-meta">89 KB · Uploaded Jan 14, 2025 <span class="doc-tag-inline" style="background:#fef3c7;color:#92400e;">⏳ Pending</span></span>
+                <span class="doc-select-meta">89 KB · Uploaded Jan 14, 2025 <span class="doc-tag-inline" style="background:#fef3c7;color:#92400e;">◆ Pending</span></span>
               </span>
             </label>
           </div>
@@ -194,22 +194,22 @@
           <label>Select Recipient</label>
           <div class="recipient-grid" id="recipient-grid">
             <div class="recipient-card selected" data-recipient="advocate" onclick="selectRecipient(this)">
-              <span class="rc-icon">🌿</span>
+              <span class="rc-icon">○</span>
               <span class="rc-name">Maria Gonzalez</span>
               <span class="rc-role">Housing Advocate</span>
             </div>
             <div class="recipient-card" data-recipient="legal" onclick="selectRecipient(this)">
-              <span class="rc-icon">⚖️</span>
+              <span class="rc-icon">▸</span>
               <span class="rc-name">Legal Aid Society</span>
               <span class="rc-role">Attorney</span>
             </div>
             <div class="recipient-card" data-recipient="court" onclick="selectRecipient(this)">
-              <span class="rc-icon">🏛️</span>
+              <span class="rc-icon">▸</span>
               <span class="rc-name">Small Claims Court</span>
               <span class="rc-role">Court Clerk</span>
             </div>
             <div class="recipient-card" data-recipient="landlord" onclick="selectRecipient(this)">
-              <span class="rc-icon">🏠</span>
+              <span class="rc-icon">○</span>
               <span class="rc-name">Harborview Properties</span>
               <span class="rc-role">Landlord / Manager</span>
             </div>
@@ -220,17 +220,17 @@
           <label>Delivery Type</label>
           <div class="delivery-type-grid" id="delivery-type-grid">
             <div class="delivery-type-card selected" data-type="review" onclick="selectDeliveryType(this)">
-              <div class="dt-title">👁 Review Required</div>
+              <div class="dt-title">● Review Required</div>
               <div class="dt-desc">Recipient reviews your document. You can request a read receipt to prove they opened it.</div>
               <span class="dt-badge" style="background:#dbeafe;color:#1e40af;">Read receipt optional</span>
             </div>
             <div class="delivery-type-card" data-type="signature" onclick="selectDeliveryType(this)">
-              <div class="dt-title">✍️ Signature Required</div>
+              <div class="dt-title">▸ Signature Required</div>
               <div class="dt-desc">Recipient must sign or reject the document. Signature, timestamp, and identity are stored in your vault.</div>
               <span class="dt-badge" style="background:#fef3c7;color:#92400e;">Always tracked</span>
             </div>
             <div class="delivery-type-card" data-type="process" style="opacity:0.5;cursor:default;" onclick="return">
-              <div class="dt-title">📨 Process Server</div>
+              <div class="dt-title">● Process Server</div>
               <div class="dt-desc">Formal legal service of process. Full legal service record for court proceedings.</div>
               <span class="dt-badge" style="background:#f3f4f6;color:#6b7280;">Coming soon</span>
             </div>
@@ -251,13 +251,13 @@
 
         <div class="send-bar">
           <button class="btn-cancel" onclick="clearForm()">Clear</button>
-          <button class="btn-send" onclick="sendDocument()">📤 Send Document</button>
+          <button class="btn-send" onclick="sendDocument()">● Send Document</button>
         </div>
       </div>
 
       <!-- SENT ITEMS -->
       <div class="form-card" style="padding-top:1rem;">
-        <div class="sent-list-title">📬 Previously Sent</div>
+        <div class="sent-list-title">● Previously Sent</div>
 
         <div class="sent-card">
           <span class="sent-status status-read"></span>
@@ -265,7 +265,7 @@
             <div class="sent-doc">Repair Request Letter — Heater.pdf</div>
             <div class="sent-meta">To: Maria Gonzalez · Sent Apr 14, 2025 · Read Apr 14, 2025 2:47pm</div>
           </div>
-          <span class="sent-badge badge-review">👁 Review</span>
+          <span class="sent-badge badge-review">● Review</span>
         </div>
 
         <div class="sent-card">
@@ -274,7 +274,7 @@
             <div class="sent-doc">Lease Agreement — 2024.pdf</div>
             <div class="sent-meta">To: Legal Aid Society · Sent Apr 10, 2025 · Pending</div>
           </div>
-          <span class="sent-badge badge-signature">✍️ Signature</span>
+          <span class="sent-badge badge-signature">▸ Signature</span>
         </div>
 
         <div class="sent-card">
@@ -283,7 +283,7 @@
             <div class="sent-doc">Move-In Inspection Checklist</div>
             <div class="sent-meta">To: Harborview Properties · Sent Mar 1, 2024 · Signed Mar 2, 2024</div>
           </div>
-          <span class="sent-badge badge-signature">✍️ Signed</span>
+          <span class="sent-badge badge-signature">▸ Signed</span>
         </div>
       </div>
     </div>
@@ -291,7 +291,7 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-card">
-        <div class="sidebar-title">📊 Delivery Stats</div>
+        <div class="sidebar-title">◆ Delivery Stats</div>
         <div class="sidebar-stat"><span>Sent</span><strong>3</strong></div>
         <div class="sidebar-stat"><span>Pending</span><strong>1</strong></div>
         <div class="sidebar-stat"><span>Read</span><strong>1</strong></div>
@@ -300,27 +300,27 @@
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">⚡ Quick Actions</div>
+        <div class="sidebar-title">◆ Quick Actions</div>
         <div style="display:flex;flex-direction:column;gap:0.4rem;">
-          <a href="/office/vault.html" style="background:#e8eaf6;color:#3949ab;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">🔒 Open Vault</a>
-          <a href="/office/inbox.html" style="background:#f0f0f0;color:#444;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📨 Check Inbox</a>
-          <a href="/office/signer.html" style="background:#f0f0f0;color:#444;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">✍️ Sign Document</a>
+          <a href="/office/vault.html" style="background:#e8eaf6;color:#3949ab;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">◆ Open Vault</a>
+          <a href="/office/inbox.html" style="background:#f0f0f0;color:#444;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">● Check Inbox</a>
+          <a href="/office/signer.html" style="background:#f0f0f0;color:#444;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">▸ Sign Document</a>
         </div>
       </div>
 
       <div class="notice-box">
-        <strong>🔒 Privacy</strong>
+        <strong>◆ Privacy</strong>
         When you send a document, a delivery receipt is created in your vault. For signature-required deliveries, the recipient's signature, timestamp, and identity are recorded as tamper-evident evidence. You always keep the original in your cloud storage.
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">🏢 Office Navigation</div>
+        <div class="sidebar-title">○ Office Navigation</div>
         <div style="display:flex;flex-direction:column;gap:0.25rem;">
-          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
-          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
-          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
-          <a href="/office/delivery.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery ←</a>
-          <a href="/office/signer.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
+          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">◆ Document Vault</a>
+          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">● Inbox</a>
+          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">◆ Timeline</a>
+          <a href="/office/delivery.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">● Document Delivery ▸</a>
+          <a href="/office/signer.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">▸ Document Signer</a>
         </div>
       </div>
     </aside>
@@ -371,7 +371,7 @@
           <input type="radio" name="doc" value="${doc.id || doc.document_id}" ${i === 0 ? 'checked' : ''}>
           <span class="doc-select-info">
             <span class="doc-select-name">${escapeHtml(doc.filename || doc.name || 'Untitled')}</span>
-            <span class="doc-select-meta">${formatFileSize(doc.size)} · ${formatDate(doc.created_at || doc.uploaded_at)} ${doc.timestamped ? '<span class="doc-tag-inline tag-timestamped">✓ Timestamped</span>' : ''}</span>
+            <span class="doc-select-meta">${formatFileSize(doc.size)} · ${formatDate(doc.created_at || doc.uploaded_at)} ${doc.timestamped ? '<span class="doc-tag-inline tag-timestamped">● Timestamped</span>' : ''}</span>
           </span>
         </label>
       `).join('');
@@ -409,8 +409,8 @@
     }
 
     function getRoleIcon(role) {
-      const icons = { advocate: '🌿', legal: '⚖️', manager: '🏢', admin: '⚙️', court: '🏛️', landlord: '🏠' };
-      return icons[role] || '👤';
+      const icons = { advocate: '○', legal: '▸', manager: '○', admin: '▸', court: '▸', landlord: '○' };
+      return icons[role] || '●';
     }
 
     async function loadOutbox() {
@@ -430,10 +430,10 @@
     function renderOutbox() {
       const container = document.querySelector('.sent-list-title').parentElement;
       if (!outboxItems.length) {
-        container.innerHTML = '<div class="sent-list-title">📬 Previously Sent</div><p style="padding:1rem;color:#888;">No sent documents yet.</p>';
+        container.innerHTML = '<div class="sent-list-title">● Previously Sent</div><p style="padding:1rem;color:#888;">No sent documents yet.</p>';
         return;
       }
-      container.innerHTML = '<div class="sent-list-title">📬 Previously Sent</div>' +
+      container.innerHTML = '<div class="sent-list-title">● Previously Sent</div>' +
         outboxItems.map(item => `
         <div class="sent-card">
           <span class="sent-status status-${item.status}"></span>
@@ -468,7 +468,7 @@
     }
 
     function getTypeLabel(type) {
-      const labels = { signature: '✍️ Signature', review: '👁 Review' };
+      const labels = { signature: '▸ Signature', review: '● Review' };
       return labels[type] || type;
     }
 
@@ -525,7 +525,7 @@
         const btn = document.querySelector('.btn-send');
         const originalText = btn.textContent;
         btn.disabled = true;
-        btn.textContent = '📤 Sending...';
+        btn.textContent = '● Sending...';
 
         const resp = await fetch('/api/delivery/send', {
           method: 'POST',
@@ -547,7 +547,7 @@
       } finally {
         const btn = document.querySelector('.btn-send');
         btn.disabled = false;
-        btn.textContent = '📤 Send Document';
+        btn.textContent = '● Send Document';
       }
     }
 

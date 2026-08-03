@@ -7,8 +7,8 @@
 """Canonical cloud vault paths (single source of truth).
 
 Structure in user's cloud storage:
-    Semptify5.0/                     ← user-visible root
-    ├── Vault/                       ← user owns + sees this
+    Semptify5.0/                     ▸ user-visible root
+    ├── Vault/                       ▸ user owns + sees this
     │   ├── documents/
     │   ├── certificates/
     │   ├── timeline/
@@ -17,9 +17,9 @@ Structure in user's cloud storage:
     │       ├── queries/
     │       ├── forms/
     │       └── redactions/
-    └── .semptify/                   ← hidden system config (dot-prefix hides from casual browsing)
-        ├── auth/                    ← token.enc, device_keys.json, provisioning.json, rehome.json
-        └── vault/                   ← manifest.json, README.md
+    └── .semptify/                   ▸ hidden system config (dot-prefix hides from casual browsing)
+        ├── auth/                    ▸ token.enc, device_keys.json, provisioning.json, rehome.json
+        └── vault/                   ▸ manifest.json, README.md
 """
 
 from app.core.path_utils import normalize_cloud_path

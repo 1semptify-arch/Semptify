@@ -460,7 +460,7 @@ async def create_case_from_document(
         with open(file_path, 'w') as f:
             json.dump(case_data, f, indent=2, default=str)
         
-        logger.info(f"✅ Auto-created case {case_number} from document {filename}")
+        logger.info(f"● Auto-created case {case_number} from document {filename}")
         
         return case_data
         
@@ -475,7 +475,7 @@ def get_case_creation_summary(case_data: Dict[str, Any]) -> str:
         return ""
     
     lines = [
-        f"📋 Case Auto-Created: {case_data.get('case_number', 'Unknown')}",
+        f"● Case Auto-Created: {case_data.get('case_number', 'Unknown')}",
         f"   Type: {case_data.get('case_type', 'Unknown')}",
         f"   Court: {case_data.get('court', 'Unknown')}",
     ]
@@ -608,7 +608,7 @@ async def add_document_to_case(
         with open(file_path, 'w') as f:
             json.dump(case_data, f, indent=2, default=str)
         
-        logger.info(f"✅ Added document '{filename}' to case {case_number}")
+        logger.info(f"● Added document '{filename}' to case {case_number}")
         
     except Exception as e:
         logger.error(f"Failed to save updated case: {e}")
@@ -625,7 +625,7 @@ def get_document_added_summary(case_data: Dict[str, Any], filename: str) -> str:
     evidence_count = len(case_data.get('evidence', []))
     
     lines = [
-        f"📄 Document Added to Existing Case",
+        f"● Document Added to Existing Case",
         f"   Case: {case_number}",
         f"   Document: {filename}",
         f"   Total Evidence: {evidence_count} documents",
@@ -685,7 +685,7 @@ async def process_document_for_case(
         file_path, case_data = existing_case
         case_number = case_data.get("case_number", "Unknown")
         
-        logger.info(f"📎 Document references existing case {case_number}, adding to case...")
+        logger.info(f"● Document references existing case {case_number}, adding to case...")
         
         updated_case = await add_document_to_case(
             file_path=file_path,
@@ -744,7 +744,7 @@ async def trigger_case_evaluation(user_id: str, case_number: str, trigger_docume
     This notifies the legal analysis engine to re-evaluate the case
     based on the new evidence.
     """
-    logger.info(f"⚖️ Triggering case evaluation for {case_number}")
+    logger.info(f"▸ Triggering case evaluation for {case_number}")
     
     try:
         # Try to import and use the legal analysis engine
@@ -754,7 +754,7 @@ async def trigger_case_evaluation(user_id: str, case_number: str, trigger_docume
         if engine:
             # Queue the case for evaluation
             # The engine will analyze all evidence and update case strength
-            logger.info(f"📊 Case {case_number} queued for legal analysis")
+            logger.info(f"◆ Case {case_number} queued for legal analysis")
             
     except ImportError:
         logger.debug("Legal analysis engine not available")

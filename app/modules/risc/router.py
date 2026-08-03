@@ -15,7 +15,7 @@ When Google fires an event, we:
 3. Act: revoke session, delete cookie, log the event
 
 This endpoint must be registered in Google Cloud Console:
-  APIs & Services → OAuth consent screen → Cross-Account Protection
+  APIs & Services ▸ OAuth consent screen ▸ Cross-Account Protection
   Receiver endpoint URL: https://semptify-jsam.onrender.com/risc/google/webhook
 """
 # Migrated from app/routers/risc.py into the risc SDK module.

@@ -2,7 +2,7 @@
 Unit tests for the template module scaffold.
 
 Copy this file to your module's tests/ directory and replace with real tests.
-Tests are required to progress from dev_only → experimental.
+Tests are required to progress from dev_only ▸ experimental.
 """
 
 import pytest

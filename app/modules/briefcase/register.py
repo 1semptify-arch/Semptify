@@ -505,7 +505,7 @@ register_function_group(FunctionGroupContract(
     module="briefcase",
     group_name="briefcase_event_chain",
     title="Briefcase Get Event Chain (GET) (SSOT)",
-    description="Get an event chain (linked events: start→continued→finish).",
+    description="Get an event chain (linked events: start▸continued▸finish).",
     inputs=(),
     outputs=("result",),
     dependencies=("app.modules.briefcase.router",),

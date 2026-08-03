@@ -20,4 +20,4 @@ def register_vault_installer(app: FastAPI):
     router = create_router()
     app.include_router(router)
     
-    logger.info("📦 Vault installer module registered")
+    logger.info("● Vault installer module registered")

@@ -1,7 +1,7 @@
 """Onboarding module registration helper — FunctionGroupContracts.
 
 The onboarding module is the entry gate. It walks a new tenant from role
-selection → storage OAuth → vault setup → completion. Gate-driven, not
+selection ▸ storage OAuth ▸ vault setup ▸ completion. Gate-driven, not
 flag-driven. Storage connection is mandatory — no skip option.
 """
 
@@ -14,8 +14,8 @@ register_function_group(FunctionGroupContract(
     title="Onboarding Start (SSOT)",
     description=(
         "CANONICAL entry point for onboarding. Redirects to the appropriate "
-        "step based on the user's gate state: no cookie → role-select, "
-        "no storage → providers, no vault → vault-setup, else → complete."
+        "step based on the user's gate state: no cookie ▸ role-select, "
+        "no storage ▸ providers, no vault ▸ vault-setup, else ▸ complete."
     ),
     inputs=("semptify_uid?",),
     outputs=("redirect",),
@@ -88,8 +88,8 @@ register_function_group(FunctionGroupContract(
     group_name="onboarding_vault_setup_page",
     title="Onboarding Vault Setup Page (SSOT)",
     description=(
-        "CANONICAL vault setup wizard page. Three-step UI: folders → "
-        "security → inspect. Each step has its own API endpoint."
+        "CANONICAL vault setup wizard page. Three-step UI: folders ▸ "
+        "security ▸ inspect. Each step has its own API endpoint."
     ),
     inputs=("semptify_uid?",),
     outputs=("page",),

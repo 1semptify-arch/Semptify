@@ -1220,7 +1220,7 @@ class HUDFundingGuideService:
         self._initialized = True
         self.programs = FUNDING_PROGRAMS
         self.tax_breaks = GENERAL_TAX_BREAKS
-        logger.info("📊 HUD Funding Guide Service initialized")
+        logger.info("◆ HUD Funding Guide Service initialized")
     
     # =========================================================================
     # PROGRAM QUERIES

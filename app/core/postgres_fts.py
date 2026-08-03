@@ -230,8 +230,8 @@ class PostgresFTSService:
         Build a PostgreSQL tsquery from user input.
         
         Converts simple query to tsquery format:
-        - "rent increase" → 'rent' & 'increase'
-        - "eviction notice" → 'eviction' & 'notice'
+        - "rent increase" ▸ 'rent' & 'increase'
+        - "eviction notice" ▸ 'eviction' & 'notice'
         
         Args:
             query: User search query

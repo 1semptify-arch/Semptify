@@ -51,7 +51,7 @@ class ActionDeferralQueue:
                 context=context,
             )
             self._deferred.append(deferred)
-            logger.info(f"📥 Deferred: {module}.{action} for user {user_id[:8]}...")
+            logger.info(f"● Deferred: {module}.{action} for user {user_id[:8]}...")
     
     async def get_pending(self) -> List[DeferredAction]:
         """Get all pending deferred actions."""
@@ -95,12 +95,12 @@ class ActionDeferralQueue:
                     )
                     self._deferred.remove(action)
                     results["succeeded"] += 1
-                    logger.info(f"✅ Retried deferred action succeeded: {action.module}.{action.action}")
+                    logger.info(f"● Retried deferred action succeeded: {action.module}.{action.action}")
                 except Exception as e:
                     action.retry_count += 1
                     if action.retry_count >= action.max_retries:
                         self._deferred.remove(action)
-                        logger.error(f"❌ Deferred action exhausted retries: {action.module}.{action.action}: {e}")
+                        logger.error(f"◆ Deferred action exhausted retries: {action.module}.{action.action}: {e}")
                     else:
                         results["still_deferred"].append(f"{action.module}.{action.action}")
                     results["failed"] += 1

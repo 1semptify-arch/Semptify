@@ -473,7 +473,7 @@ async def on_workflow_started(event_type: str, data: Dict[str, Any]):
 def initialize():
     """Initialize this module - call from main.py on startup"""
     sdk.initialize()
-    logger.info(f"✅ {module_definition.display_name} module ready")'''
+    logger.info(f"● {module_definition.display_name} module ready")'''
     
     def _generate_router(self) -> str:
         """Generate FastAPI router from Flask routes"""
@@ -624,7 +624,7 @@ class FlaskConverter:
         analyzer = FlaskAnalyzer(flask_code)
         analysis = analyzer.analyze()
         
-        logger.info(f"📊 Analyzed Flask app: {analysis.app_name}")
+        logger.info(f"◆ Analyzed Flask app: {analysis.app_name}")
         logger.info(f"   Routes: {len(analysis.routes)}")
         logger.info(f"   Blueprints: {len(analysis.blueprints)}")
         
@@ -646,11 +646,11 @@ class FlaskConverter:
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(code)
         
-        logger.info(f"✅ Generated module: {filepath}")
+        logger.info(f"● Generated module: {filepath}")
         
         print(f"""
 ╔══════════════════════════════════════════════════════════════╗
-║  ✅ Flask to FastAPI Conversion Complete!                    ║
+║  ● Flask to FastAPI Conversion Complete!                    ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  Output: {filepath:<50} ║

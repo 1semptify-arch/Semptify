@@ -512,7 +512,7 @@ class ContextDataLoop:
     """
     The Core Processing Loop - Everything flows through here.
 
-    INPUT → PROCESS → INTENSITY → OUTPUT → LEARN
+    INPUT ▸ PROCESS ▸ INTENSITY ▸ OUTPUT ▸ LEARN
     
     Subscribes to EventBus events and orchestrates responses.
     """
@@ -540,7 +540,7 @@ class ContextDataLoop:
         # Case update events
         subscribe_async_to_event(BusEventType.CASE_INFO_UPDATED, self._on_case_updated)
 
-        logger.info("🔄 ContextDataLoop subscribed to EventBus")
+        logger.info("▸ ContextDataLoop subscribed to EventBus")
 
     async def _on_document_added(self, event):
         """Handle new document added to vault."""
@@ -559,10 +559,10 @@ class ContextDataLoop:
         if FRESHNESS_AVAILABLE:
             freshness_validation = context.validate_context_freshness()
             if freshness_validation["stale_items"] > 0:
-                logger.warning(f"⚠️ Freshness warnings for {user_id}: {freshness_validation['warnings']}")
+                logger.warning(f"◆ Freshness warnings for {user_id}: {freshness_validation['warnings']}")
         
         # Trigger document processing
-        logger.info(f"📄 Document added for {user_id}, triggering processing")
+        logger.info(f"● Document added for {user_id}, triggering processing")
         await event_bus.publish(
             BusEventType.UI_REFRESH_NEEDED,
             {"section": "documents"},
@@ -578,7 +578,7 @@ class ContextDataLoop:
         
         context = self.get_context(user_id)
         # Update context with processed info
-        logger.info(f"✅ Document processed for {user_id}")
+        logger.info(f"● Document processed for {user_id}")
 
     async def _on_document_classified(self, event):
         """Handle document classified - trigger automatic event extraction."""
@@ -590,7 +590,7 @@ class ContextDataLoop:
         doc_type = event.data.get("doc_type", "unknown")
         
         if event.data.get("ready_for_extraction"):
-            logger.info(f"🔍 Auto-extracting events from {doc_type} document {doc_id}")
+            logger.info(f"▸ Auto-extracting events from {doc_type} document {doc_id}")
             
             try:
                 # Get the document pipeline and event extractor
@@ -619,7 +619,7 @@ class ContextDataLoop:
                             source="context_loop",
                             user_id=user_id,
                         )
-                        logger.info(f"📅 Extracted {len(events)} events from document {doc_id}")
+                        logger.info(f"◆ Extracted {len(events)} events from document {doc_id}")
             except Exception as e:
                 logger.error(f"Failed to auto-extract events: {e}")
 
@@ -634,7 +634,7 @@ class ContextDataLoop:
         
         # Add to timeline
         if extracted.get("count", 0) > 0:
-            logger.info(f"📅 {extracted['count']} events extracted for {user_id}")
+            logger.info(f"◆ {extracted['count']} events extracted for {user_id}")
             
             # Validate freshness of extracted events
             if FRESHNESS_AVAILABLE and extracted.get("events"):
@@ -644,7 +644,7 @@ class ContextDataLoop:
                         jurisdiction = event_data.get("jurisdiction", "default")
                         freshness = data_freshness_manager.check_freshness(f"deadline_rules_{jurisdiction}")
                         if freshness != FreshnessStatus.FRESH:
-                            logger.warning(f"⚠️ Stale deadline rules for {jurisdiction} in event extraction")
+                            logger.warning(f"◆ Stale deadline rules for {jurisdiction} in event extraction")
             
             # Publish timeline update
             await event_bus.publish(
@@ -663,7 +663,7 @@ class ContextDataLoop:
         context = self.get_context(user_id)
         updates = event.data.get("updates", [])
         
-        logger.info(f"📋 Case updated for {user_id}: {updates}")
+        logger.info(f"● Case updated for {user_id}: {updates}")
         
         # Check for deadline updates
         if "hearing_date" in updates or "answer_deadline" in updates:
@@ -1084,35 +1084,35 @@ class ContextDataLoop:
                 "level": "critical",
                 "color": "red",
                 "message": "Immediate action required",
-                "icon": "🚨",
+                "icon": "◆",
             }
         elif intensity >= 60:
             return {
                 "level": "high",
                 "color": "orange",
                 "message": "Urgent attention needed",
-                "icon": "⚠️",
+                "icon": "◆",
             }
         elif intensity >= 40:
             return {
                 "level": "elevated",
                 "color": "yellow",
                 "message": "Active issues to address",
-                "icon": "📋",
+                "icon": "●",
             }
         elif intensity >= 20:
             return {
                 "level": "moderate",
                 "color": "blue",
                 "message": "Monitor and prepare",
-                "icon": "📝",
+                "icon": "●",
             }
         else:
             return {
                 "level": "low",
                 "color": "green",
                 "message": "Situation stable",
-                "icon": "✓",
+                "icon": "●",
             }
 
 

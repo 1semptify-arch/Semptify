@@ -419,7 +419,7 @@ class APIDocumentationGenerator:
                 .card:hover::before {{ opacity: 1; }}
                 .card:hover {{ transform: translateY(-5px); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }}
                 .card h2 {{ font-size: 1.8rem; font-weight: 700; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }}
-                .card h2::before {{ content: '📖'; font-size: 1.5rem; }}
+                .card h2::before {{ content: '○'; font-size: 1.5rem; }}
                 .card h3 {{ font-size: 1.3rem; font-weight: 600; color: #334155; margin: 25px 0 15px 0; }}
                 .card p {{ color: #475569; line-height: 1.8; margin-bottom: 15px; }}
                 .card code {{ background: #f1f5f9; padding: 3px 8px; border-radius: 4px; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9em; color: #e11d48; }}
@@ -429,11 +429,11 @@ class APIDocumentationGenerator:
                 .card li {{ color: #475569; line-height: 1.8; margin-bottom: 10px; }}
                 .card li::marker {{ color: #667eea; }}
                 .card .warning {{ background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 20px 0; }}
-                .card .warning::before {{ content: '⚠️ '; font-weight: bold; }}
+                .card .warning::before {{ content: '◆ '; font-weight: bold; }}
                 .card .info {{ background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin: 20px 0; }}
-                .card .info::before {{ content: 'ℹ️ '; font-weight: bold; }}
+                .card .info::before {{ content: 'ℹ '; font-weight: bold; }}
                 .card .success {{ background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; margin: 20px 0; }}
-                .card .success::before {{ content: '✅ '; font-weight: bold; }}
+                .card .success::before {{ content: '● '; font-weight: bold; }}
                 .module-list {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }}
                 .module-item {{ background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 25px; border-radius: 12px; border-left: 5px solid #667eea; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden; }}
                 .module-item::before {{ content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); opacity: 0; transition: opacity 0.3s; }}
@@ -447,7 +447,7 @@ class APIDocumentationGenerator:
                 .code-example {{ background: #1e293b; color: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; position: relative; overflow: hidden; }}
                 .code-example::before {{ content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #667eea, #764ba2); }}
                 .code-example h3 {{ margin-bottom: 20px; color: #e2e8f0; display: flex; align-items: center; gap: 10px; }}
-                .code-example h3::before {{ content: '💻'; }}
+                .code-example h3::before {{ content: '○'; }}
                 .code-block {{ background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 20px; overflow-x: auto; }}
                 .code-block pre {{ margin: 0; font-family: 'Monaco', 'Menlo', monospace; font-size: 0.9rem; line-height: 1.6; color: #e2e8f0; }}
                 .btn {{ display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; cursor: pointer; border: none; position: relative; overflow: hidden; }}
@@ -463,7 +463,7 @@ class APIDocumentationGenerator:
                 .step-content h4 {{ margin: 0 0 10px 0; color: #1e293b; }}
                 .step-content p {{ margin: 0; color: #475569; }}
                 .admin-section {{ background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; }}
-                .admin-section h2::before {{ content: '🔐'; }}
+                .admin-section h2::before {{ content: '◆'; }}
                 .admin-section::before {{ background: linear-gradient(90deg, #f59e0b, #d97706); }}
                 .accordion {{ border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin: 20px 0; }}
                 .accordion-item {{ border-bottom: 1px solid #e5e7eb; }}
@@ -483,23 +483,23 @@ class APIDocumentationGenerator:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🚀 Semptify API Developer Portal</h1>
+                    <h1>▸ Semptify API Developer Portal</h1>
                     <p>Comprehensive documentation for integrating with the Semptify Housing Rights Platform. Build powerful applications to help tenants protect their rights through documentation, education, and evidence preservation.</p>
                     <div class="meta">
-                        <span>📅 Version: {self.api_version}</span>
-                        <span>🌐 Base URL: {self.base_url}</span>
-                        <span>📧 Support: {self.contact_info['email']}</span>
+                        <span>◆ Version: {self.api_version}</span>
+                        <span>○ Base URL: {self.base_url}</span>
+                        <span>● Support: {self.contact_info['email']}</span>
                     </div>
                 </div>
                 
                 <div class="nav">
-                    <a href="#overview" class="nav-item active" data-section="overview">📖 Overview</a>
-                    <a href="#authentication" class="nav-item" data-section="authentication">🔑 Authentication</a>
-                    <a href="#modules" class="nav-item" data-section="modules">📚 API Modules</a>
-                    <a href="#admin" class="nav-item" data-section="admin">🔐 Admin Guide</a>
-                    <a href="#examples" class="nav-item" data-section="examples">💻 Code Examples</a>
-                    <a href="/docs/swagger" class="nav-item" target="_blank">🔍 Swagger UI</a>
-                    <a href="/docs/redoc" class="nav-item" target="_blank">📄 ReDoc</a>
+                    <a href="#overview" class="nav-item active" data-section="overview">○ Overview</a>
+                    <a href="#authentication" class="nav-item" data-section="authentication">◆ Authentication</a>
+                    <a href="#modules" class="nav-item" data-section="modules">○ API Modules</a>
+                    <a href="#admin" class="nav-item" data-section="admin">◆ Admin Guide</a>
+                    <a href="#examples" class="nav-item" data-section="examples">○ Code Examples</a>
+                    <a href="/docs/swagger" class="nav-item" target="_blank">▸ Swagger UI</a>
+                    <a href="/docs/redoc" class="nav-item" target="_blank">● ReDoc</a>
                 </div>
                 
                 <div id="overview" class="content-section active">
@@ -547,8 +547,8 @@ class APIDocumentationGenerator:
                         </div>
                         
                         <div class="btn-group">
-                            <a href="/docs/openapi.json" class="btn">📥 Download OpenAPI Spec</a>
-                            <a href="/docs/postman" class="btn btn-secondary">📥 Download Postman Collection</a>
+                            <a href="/docs/openapi.json" class="btn">● Download OpenAPI Spec</a>
+                            <a href="/docs/postman" class="btn btn-secondary">● Download Postman Collection</a>
                         </div>
                     </div>
                     
@@ -560,7 +560,7 @@ class APIDocumentationGenerator:
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Step 1: Test Connection</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>curl -X GET {self.base_url}/api/v1/health</code></pre>
@@ -570,7 +570,7 @@ class APIDocumentationGenerator:
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Step 2: Authenticate</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>curl -X POST {self.base_url}/api/v1/auth/login \\
@@ -582,7 +582,7 @@ class APIDocumentationGenerator:
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Step 3: List Documents</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>curl -X GET {self.base_url}/api/v1/documents \\
@@ -651,11 +651,11 @@ class APIDocumentationGenerator:
                                 <div class="module-path">{module['base_path']}</div>
                                 <div class="module-stats">
                                     <div class="stat">
-                                        <span>📚</span>
+                                        <span>○</span>
                                         <span>{module['endpoint_count']} endpoints</span>
                                     </div>
                                     <div class="stat">
-                                        <span>🏷️</span>
+                                        <span>●</span>
                                         <span>v{module['version']}</span>
                                     </div>
                                 </div>
@@ -686,7 +686,7 @@ class APIDocumentationGenerator:
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>View All Users</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>GET /api/admin/users
@@ -697,7 +697,7 @@ Authorization: Bearer ADMIN_TOKEN</code></pre>
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Update User Role</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>PUT /api/admin/users/{{user_id}}/role
@@ -713,7 +713,7 @@ Content-Type: application/json
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Disable User Account</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>POST /api/admin/users/{{user_id}}/disable
@@ -756,7 +756,7 @@ Query params: user_id, action, start_date, end_date</code></pre>
                         <h3>Render Deployment</h3>
                         <p>For Render deployment, set environment variables in the Render dashboard:</p>
                         <ol>
-                            <li>Go to Render dashboard → Semptify service</li>
+                            <li>Go to Render dashboard ▸ Semptify service</li>
                             <li>Click "Environment" tab</li>
                             <li>Add all required environment variables</li>
                             <li>Click "Save Changes"</li>
@@ -766,7 +766,7 @@ Query params: user_id, action, start_date, end_date</code></pre>
                         <h3>Database Management</h3>
                         <p>Access PostgreSQL database directly for advanced operations:</p>
                         <ul>
-                            <li>Use Render dashboard → PostgreSQL → semptify_db</li>
+                            <li>Use Render dashboard ▸ PostgreSQL ▸ semptify_db</li>
                             <li>Or use psql with connection string from DATABASE_URL</li>
                             <li>Always use SSL mode: <code>sslmode=require</code></li>
                         </ul>
@@ -804,7 +804,7 @@ Query params: user_id, action, start_date, end_date</code></pre>
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Upload Document (Python)</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>import requests
@@ -828,7 +828,7 @@ if response.status_code == 200:
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Create Case (JavaScript)</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>// Create a new case
@@ -858,7 +858,7 @@ if (response.ok) {{
                             <div class="accordion-item">
                                 <div class="accordion-header" onclick="toggleAccordion(this)">
                                     <h4>Get Timeline Events (cURL)</h4>
-                                    <span>▼</span>
+                                    <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
                                     <pre><code>curl -X GET '{self.base_url}/api/v1/timeline/unified' \\

@@ -511,7 +511,7 @@ class ComplaintWizardService:
             updated_at=now
         )
         self._cache[draft_id] = draft
-        logger.info("📝 Created complaint draft %s... for user %s...", draft_id[:8], user_id[:8])
+        logger.info("● Created complaint draft %s... for user %s...", draft_id[:8], user_id[:8])
         return draft
 
     async def get_draft_db(self, db: AsyncSession, draft_id: str) -> Optional[ComplaintDraft]:
@@ -613,7 +613,7 @@ class ComplaintWizardService:
         await db.commit()
         await db.refresh(db_complaint)
 
-        logger.info("📎 Attached %s documents to complaint %s...", len(document_ids), draft_id[:8])
+        logger.info("● Attached %s documents to complaint %s...", len(document_ids), draft_id[:8])
         return self._db_to_draft(db_complaint)
 
     async def mark_as_filed_db(
@@ -642,7 +642,7 @@ class ComplaintWizardService:
         await db.commit()
         await db.refresh(db_complaint)
 
-        logger.info("✅ Complaint %s... marked as FILED with %s", draft_id[:8], agency.name if agency else 'agency')
+        logger.info("● Complaint %s... marked as FILED with %s", draft_id[:8], agency.name if agency else 'agency')
         return self._db_to_draft(db_complaint)
 
     async def delete_draft_db(self, db: AsyncSession, draft_id: str) -> bool:
@@ -658,7 +658,7 @@ class ComplaintWizardService:
 
         await db.delete(db_complaint)
         await db.commit()
-        logger.info("🗑️ Deleted complaint draft %s...", draft_id[:8])
+        logger.info("◆ Deleted complaint draft %s...", draft_id[:8])
         return True
 
     def _db_to_draft(self, db_complaint) -> ComplaintDraft:

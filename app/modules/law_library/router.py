@@ -1713,51 +1713,51 @@ async def list_categories():
     """List all available categories in the law library."""
     return {
         "statute_categories": [
-            {"id": "tenant_rights", "name": "Tenant Rights", "icon": "🏠"},
-            {"id": "eviction", "name": "Eviction Procedures", "icon": "⚖️"},
-            {"id": "security_deposits", "name": "Security Deposits", "icon": "💰"},
-            {"id": "habitability", "name": "Habitability", "icon": "🔧"},
-            {"id": "retaliation", "name": "Retaliation Protection", "icon": "🛡️"},
-            {"id": "discrimination", "name": "Fair Housing", "icon": "👥"},
-            {"id": "disability", "name": "Disability Rights & ADA", "icon": "♿"},
-            {"id": "lease_terms", "name": "Lease Terms", "icon": "📝"},
-            {"id": "repairs", "name": "Repairs & Maintenance", "icon": "🛠️"}
+            {"id": "tenant_rights", "name": "Tenant Rights", "icon": "○"},
+            {"id": "eviction", "name": "Eviction Procedures", "icon": "▸"},
+            {"id": "security_deposits", "name": "Security Deposits", "icon": "●"},
+            {"id": "habitability", "name": "Habitability", "icon": "▸"},
+            {"id": "retaliation", "name": "Retaliation Protection", "icon": "◆"},
+            {"id": "discrimination", "name": "Fair Housing", "icon": "●"},
+            {"id": "disability", "name": "Disability Rights & ADA", "icon": "○"},
+            {"id": "lease_terms", "name": "Lease Terms", "icon": "●"},
+            {"id": "repairs", "name": "Repairs & Maintenance", "icon": "▸"}
         ],
         "federal_categories": [
             {"id": "fair_housing", "name": "Federal Fair Housing Act", "icon": "🇺🇸"},
-            {"id": "ada", "name": "Americans with Disabilities Act", "icon": "♿"},
-            {"id": "section_504", "name": "Section 504 Rehab Act", "icon": "🏛️"},
-            {"id": "vawa", "name": "Violence Against Women Act", "icon": "🛡️"},
-            {"id": "debt_collection", "name": "Fair Debt Collection", "icon": "💳"}
+            {"id": "ada", "name": "Americans with Disabilities Act", "icon": "○"},
+            {"id": "section_504", "name": "Section 504 Rehab Act", "icon": "▸"},
+            {"id": "vawa", "name": "Violence Against Women Act", "icon": "◆"},
+            {"id": "debt_collection", "name": "Fair Debt Collection", "icon": "●"}
         ],
         "disability_categories": [
-            {"id": "reasonable_accommodations", "name": "Reasonable Accommodations", "icon": "🔧"},
-            {"id": "reasonable_modifications", "name": "Physical Modifications", "icon": "🏗️"},
-            {"id": "assistance_animals", "name": "Assistance Animals", "icon": "🐕"},
-            {"id": "accessibility", "name": "Accessibility Requirements", "icon": "♿"},
-            {"id": "public_housing", "name": "Public Housing ADA", "icon": "🏢"}
+            {"id": "reasonable_accommodations", "name": "Reasonable Accommodations", "icon": "▸"},
+            {"id": "reasonable_modifications", "name": "Physical Modifications", "icon": "▸"},
+            {"id": "assistance_animals", "name": "Assistance Animals", "icon": "○"},
+            {"id": "accessibility", "name": "Accessibility Requirements", "icon": "○"},
+            {"id": "public_housing", "name": "Public Housing ADA", "icon": "○"}
         ],
         "court_rule_categories": [
-            {"id": "housing_court", "name": "Housing Court Rules", "icon": "🏛️"},
-            {"id": "eviction", "name": "Eviction Procedures", "icon": "📋"},
-            {"id": "remote_hearing", "name": "Zoom/Remote Hearings", "icon": "💻"},
-            {"id": "filing", "name": "Filing Requirements", "icon": "📁"},
-            {"id": "evidence", "name": "Evidence Rules", "icon": "📊"}
+            {"id": "housing_court", "name": "Housing Court Rules", "icon": "▸"},
+            {"id": "eviction", "name": "Eviction Procedures", "icon": "●"},
+            {"id": "remote_hearing", "name": "Zoom/Remote Hearings", "icon": "○"},
+            {"id": "filing", "name": "Filing Requirements", "icon": "●"},
+            {"id": "evidence", "name": "Evidence Rules", "icon": "◆"}
         ],
         "tax_categories": [
-            {"id": "tax_federal", "name": "Federal Tax Laws", "icon": "🏛️"},
-            {"id": "tax_state", "name": "Minnesota Tax Laws", "icon": "📋"},
-            {"id": "tax_local", "name": "Local Tax Laws", "icon": "🏘️"}
+            {"id": "tax_federal", "name": "Federal Tax Laws", "icon": "▸"},
+            {"id": "tax_state", "name": "Minnesota Tax Laws", "icon": "●"},
+            {"id": "tax_local", "name": "Local Tax Laws", "icon": "○"}
         ],
         "real_estate_categories": [
             {"id": "real_estate_federal", "name": "Federal Real Estate", "icon": "🇺🇸"},
-            {"id": "real_estate_state", "name": "Minnesota Real Estate", "icon": "🏠"},
-            {"id": "real_estate_local", "name": "Local Real Estate", "icon": "🏘️"}
+            {"id": "real_estate_state", "name": "Minnesota Real Estate", "icon": "○"},
+            {"id": "real_estate_local", "name": "Local Real Estate", "icon": "○"}
         ],
         "business_categories": [
-            {"id": "business_federal", "name": "Federal Business Law", "icon": "🏢"},
-            {"id": "business_state", "name": "Minnesota Business Law", "icon": "📊"},
-            {"id": "business_local", "name": "Local Business Law", "icon": "🏪"}
+            {"id": "business_federal", "name": "Federal Business Law", "icon": "○"},
+            {"id": "business_state", "name": "Minnesota Business Law", "icon": "◆"},
+            {"id": "business_local", "name": "Local Business Law", "icon": "○"}
         ]
     }
 

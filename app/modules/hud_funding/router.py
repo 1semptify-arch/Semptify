@@ -70,7 +70,7 @@ async def list_all_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[ProgramSummary]:
     """
-    📋 List all HUD funding and tax credit programs.
+    ● List all HUD funding and tax credit programs.
     
     Optionally filter by program type.
     """
@@ -103,7 +103,7 @@ async def get_program_details(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, Any]:
     """
-    📊 Get full details for a specific program.
+    ◆ Get full details for a specific program.
     
     Includes landlord eligibility, tenant requirements,
     landlord obligations, compliance info, and resources.
@@ -121,7 +121,7 @@ async def get_program_summary(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, Any]:
     """
-    📝 Get a concise summary of a program.
+    ● Get a concise summary of a program.
     """
     summary = service.get_program_summary(program_id)
     if not summary:
@@ -135,7 +135,7 @@ async def search_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[ProgramSummary]:
     """
-    🔍 Search programs by keyword.
+    ▸ Search programs by keyword.
     
     Searches program names, descriptions, and eligibility requirements.
     """
@@ -163,7 +163,7 @@ async def list_tax_credit_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[ProgramSummary]:
     """
-    💰 List all tax credit programs.
+    ● List all tax credit programs.
     
     Includes LIHTC, Historic Tax Credit, etc.
     """
@@ -187,7 +187,7 @@ async def list_voucher_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[ProgramSummary]:
     """
-    🏠 List Section 8 and other voucher programs.
+    ○ List Section 8 and other voucher programs.
     """
     programs = service.get_voucher_programs()
     return [
@@ -209,7 +209,7 @@ async def list_grant_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[ProgramSummary]:
     """
-    💵 List grant programs (Section 202, 811, HOME, CDBG).
+    ● List grant programs (Section 202, 811, HOME, CDBG).
     """
     programs = service.get_grant_programs()
     return [
@@ -236,7 +236,7 @@ async def get_landlord_requirements(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[LandlordObligation]:
     """
-    📜 Get what a landlord MUST do to qualify for and maintain a program.
+    ● Get what a landlord MUST do to qualify for and maintain a program.
     
     Includes penalties for violations and what tenants can do.
     """
@@ -261,7 +261,7 @@ async def get_landlord_eligibility(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, Any]:
     """
-    ✅ Get landlord eligibility requirements for a program.
+    ● Get landlord eligibility requirements for a program.
     
     What the landlord must have/do to APPLY for the program.
     """
@@ -285,7 +285,7 @@ async def get_all_landlord_obligations(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, List[Dict]]:
     """
-    📋 Get ALL landlord obligations across ALL programs.
+    ● Get ALL landlord obligations across ALL programs.
     
     Useful for understanding what your landlord should be doing
     if they're receiving any government funding.
@@ -303,7 +303,7 @@ async def get_tenant_recourse(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[TenantRecourse]:
     """
-    ⚖️ Get what a tenant can do if landlord violates program requirements.
+    ▸ Get what a tenant can do if landlord violates program requirements.
     
     This is your ammunition if your landlord is getting government
     money but not following the rules.
@@ -332,7 +332,7 @@ async def list_tax_breaks(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[Dict[str, Any]]:
     """
-    💰 List general tax breaks available to rental property owners.
+    ● List general tax breaks available to rental property owners.
     
     These are standard deductions/credits available to ALL landlords,
     not program-specific benefits.
@@ -346,7 +346,7 @@ async def get_tax_break(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, Any]:
     """
-    📊 Get details on a specific tax break.
+    ◆ Get details on a specific tax break.
     """
     tax_break = service.get_tax_break(tax_break_id)
     if not tax_break:
@@ -364,7 +364,7 @@ async def check_tenant_eligibility(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, Any]:
     """
-    🔍 Check which programs a tenant might be eligible for.
+    ▸ Check which programs a tenant might be eligible for.
     
     Provide annual income and Area Median Income (AMI) for your location.
     AMI can be found at: https://www.huduser.gov/portal/datasets/il.html
@@ -399,7 +399,7 @@ async def check_property_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> Dict[str, Any]:
     """
-    🏢 Get resources to check what programs a property participates in.
+    ○ Get resources to check what programs a property participates in.
     
     NOTE: This provides links to official databases where you can search.
     Actual property lookup would require integration with HUD APIs.
@@ -417,7 +417,7 @@ async def compare_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> List[Dict[str, Any]]:
     """
-    📊 Compare multiple programs side by side.
+    ◆ Compare multiple programs side by side.
     
     Example: /compare?programs=lihtc_9_percent,section_8_pbv,home_program
     """
@@ -432,7 +432,7 @@ async def compare_programs(
 @router.get("/quick-reference")
 async def quick_reference() -> Dict[str, Any]:
     """
-    📚 Quick reference guide for understanding HUD programs.
+    ○ Quick reference guide for understanding HUD programs.
     """
     return {
         "income_categories": {

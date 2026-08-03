@@ -289,7 +289,7 @@
     <!-- Header -->
     <header class="header">
         <div class="header-content">
-            <h1>🔍 Search</h1>
+            <h1>▸ Search</h1>
             <nav class="header-nav">
                 <a href="/home.html">Home</a>
                 <a href="/static/documents.html">Documents</a>
@@ -329,7 +329,7 @@
         <div class="results-container">
             <div id="resultsContent">
                 <div class="results-empty">
-                    <h3>🔍 Ready to Search</h3>
+                    <h3>▸ Ready to Search</h3>
                     <p>Enter a search query above to find documents, timeline events, contacts, and legal information.</p>
                 </div>
             </div>
@@ -439,7 +439,7 @@
             const resultsContent = document.getElementById('resultsContent');
             resultsContent.innerHTML = `
                 <div class="results-loading">
-                    <div class="spinner">🔍</div>
+                    <div class="spinner">▸</div>
                     <p>Searching...</p>
                 </div>
             `;
@@ -449,7 +449,7 @@
             const resultsContent = document.getElementById('resultsContent');
             resultsContent.innerHTML = `
                 <div class="results-empty">
-                    <h3>❌ Error</h3>
+                    <h3>◆ Error</h3>
                     <p>${message}</p>
                 </div>
             `;
@@ -461,7 +461,7 @@
             if (!data.total_results || data.total_results === 0) {
                 resultsContent.innerHTML = `
                     <div class="results-empty">
-                        <h3>📭 No Results</h3>
+                        <h3>○ No Results</h3>
                         <p>No results found for "<strong>${escapeHtml(currentQuery)}</strong>"</p>
                         <p>Try different keywords or check your spelling.</p>
                     </div>
@@ -502,11 +502,11 @@
 
         function renderSection(title, results, type) {
             const icon = {
-                document: '📄',
-                timeline: '📅',
-                contact: '👤',
-                law: '⚖️'
-            }[type] || '📋';
+                document: '●',
+                timeline: '◆',
+                contact: '●',
+                law: '▸'
+            }[type] || '●';
             
             let html = `
                 <div class="result-section">
@@ -546,8 +546,8 @@
                 metaHtml = `
                     <span class="result-type contact">Contact</span>
                     ${metadata.role ? `<span>${metadata.role}</span>` : ''}
-                    ${metadata.phone ? `<span>📞 ${metadata.phone}</span>` : ''}
-                    ${metadata.email ? `<span>✉️ ${metadata.email}</span>` : ''}
+                    ${metadata.phone ? `<span>● ${metadata.phone}</span>` : ''}
+                    ${metadata.email ? `<span>● ${metadata.email}</span>` : ''}
                 `;
             } else if (type === 'law') {
                 metaHtml = `

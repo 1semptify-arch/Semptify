@@ -156,7 +156,7 @@ class FraudExposureService:
     
     def __init__(self):
         self._reports: Dict[str, FraudReport] = {}
-        logger.info("🔍 Fraud Exposure Service initialized")
+        logger.info("▸ Fraud Exposure Service initialized")
     
     async def analyze_fraud(
         self,
@@ -321,7 +321,7 @@ class FraudExposureService:
         )
         
         self._reports[report_id] = report
-        logger.info(f"🔍 Fraud analysis complete: {len(findings)} findings, risk score {risk_score}")
+        logger.info(f"▸ Fraud analysis complete: {len(findings)} findings, risk score {risk_score}")
         
         return report
     

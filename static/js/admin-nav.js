@@ -12,13 +12,13 @@ function renderAdminNav(containerId, currentPage) {
   if (!container) return;
 
   const navItems = [
-    { id: 'dashboard', label: '🏠 Dashboard', href: '/admin/dashboard.html' },
+    { id: 'dashboard', label: '○ Dashboard', href: '/admin/dashboard.html' },
     { id: 'script-catalog', label: 'Script Catalog', href: '/admin/script-catalog.html' },
-    { id: 'function-browser', label: '⚙️ Functions', href: '/admin/function-browser.html' },
-    { id: 'contract-browser', label: '📋 Contracts', href: '/admin/contract-browser.html' },
-    { id: 'page-editor', label: '📝 Editor', href: '/admin/page-editor.html' },
-    { id: 'review-checklist', label: '✅ Review', href: '/admin/review-checklist.html' },
-    { id: 'manual', label: '📖 Manual', href: '/admin/manual.html' }
+    { id: 'function-browser', label: '▸ Functions', href: '/admin/function-browser.html' },
+    { id: 'contract-browser', label: '● Contracts', href: '/admin/contract-browser.html' },
+    { id: 'page-editor', label: '● Editor', href: '/admin/page-editor.html' },
+    { id: 'review-checklist', label: '● Review', href: '/admin/review-checklist.html' },
+    { id: 'manual', label: '○ Manual', href: '/admin/manual.html' }
   ];
 
   const navHtml = `

@@ -199,7 +199,7 @@ async def on_workflow_started(event_type: str, data: Dict[str, Any]):
 def initialize():
     """Initialize this module - call from main.py on startup"""
     sdk.initialize()
-    logger.info(f"✅ {{module_definition.display_name}} module ready")
+    logger.info(f"● {{module_definition.display_name}} module ready")
 
 
 # =============================================================================
@@ -298,11 +298,11 @@ def generate_module(
         filepath = os.path.join(output_dir, f"{module_name}.py")
         with open(filepath, "w") as f:
             f.write(content)
-        logger.info(f"✅ Generated module: {filepath}")
+        logger.info(f"● Generated module: {filepath}")
         
         # Print next steps
         print(f"""
-📋 Next Steps:
+● Next Steps:
 1. Edit {filepath} to implement your logic
 2. Add to main.py startup:
    

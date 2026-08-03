@@ -116,10 +116,10 @@
       <strong style="color:#fff;">Semptify</strong>
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
-    <a href="/tenant/home">🏠 Dashboard</a>
-    <a href="/tenant/journal">📓 Journal</a>
-    <a href="/tenant/documents">📁 Documents</a>
-    <a href="/law-library">📚 Rights</a>
+    <a href="/tenant/home">○ Dashboard</a>
+    <a href="/tenant/journal">● Journal</a>
+    <a href="/tenant/documents">● Documents</a>
+    <a href="/law-library">○ Rights</a>
     <a href="/tenant/help">🆘 Help</a>
   </nav>
 
@@ -128,10 +128,10 @@
       <button class="hamburger" onclick="openDrawer()">☰</button>
       <a href="/tenant/home" class="logo">Semptify</a>
       <nav class="core-nav">
-        <a href="/tenant/home">🏠 Home</a>
-        <a href="/tenant/journal">📓 Journal</a>
-        <a href="/tenant/documents">📁 Documents</a>
-        <a href="/law-library">📚 Rights</a>
+        <a href="/tenant/home">○ Home</a>
+        <a href="/tenant/journal">● Journal</a>
+        <a href="/tenant/documents">● Documents</a>
+        <a href="/law-library">○ Rights</a>
         <a href="/tenant/help">🆘 Help</a>
       </nav>
     </div>
@@ -139,7 +139,7 @@
 
   <div class="hero">
     <div class="hero-inner">
-      <h1>⏰ Deadline Tracker</h1>
+      <h1>◆ Deadline Tracker</h1>
       <p>Track rent due dates, court dates, response deadlines, and lease milestones. Missing a deadline can be costly — don't let it happen.</p>
     </div>
   </div>
@@ -147,12 +147,12 @@
   <div class="container">
 
     <div class="disclaimer">
-      <strong>⚖️ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:#92400e;">HOME Line</a> for your specific situation. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+      <strong>▸ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:#92400e;">HOME Line</a> for your specific situation. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer ▸</a>
     </div>
 
     <!-- Add Deadline Form -->
     <div class="add-form">
-      <h2>➕ Add a Deadline</h2>
+      <h2>▸ Add a Deadline</h2>
       <div class="form-row">
         <div class="form-group">
           <label>Description</label>
@@ -179,10 +179,10 @@
 
     <!-- Deadline List -->
     <div class="deadlines-header">
-      <h2>📋 Your Deadlines</h2>
+      <h2>● Your Deadlines</h2>
       <div class="filter-tabs">
         <button class="filter-tab active" onclick="filterDeadlines('all', this)">All</button>
-        <button class="filter-tab" onclick="filterDeadlines('overdue', this)">⚠️ Overdue</button>
+        <button class="filter-tab" onclick="filterDeadlines('overdue', this)">◆ Overdue</button>
         <button class="filter-tab" onclick="filterDeadlines('court', this)">Court</button>
         <button class="filter-tab" onclick="filterDeadlines('rent', this)">Rent</button>
       </div>
@@ -194,7 +194,7 @@
 
     <!-- MN Legal Deadlines Reference -->
     <div class="reference-section">
-      <h2>📜 Key Minnesota Legal Deadlines (Reference)</h2>
+      <h2>● Key Minnesota Legal Deadlines (Reference)</h2>
       <table class="ref-table">
         <thead>
           <tr>
@@ -296,7 +296,7 @@
     }
 
     function categoryLabel(cat) {
-      const map = { court: '🏛️ Court', rent: '💰 Rent', lease: '📋 Lease', response: '📬 Response', deposit: '💵 Deposit', other: '📌 Other' };
+      const map = { court: '▸ Court', rent: '● Rent', lease: '● Lease', response: '● Response', deposit: '● Deposit', other: '○ Other' };
       return map[cat] || cat;
     }
 
@@ -309,7 +309,7 @@
         items.filter(i => i.category === filter);
 
       if (!filtered.length) {
-        list.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>${filter === 'overdue' ? 'No overdue deadlines.' : 'No deadlines yet. Add one above.'}</p></div>`;
+        list.innerHTML = `<div class="empty-state"><div class="icon">●</div><p>${filter === 'overdue' ? 'No overdue deadlines.' : 'No deadlines yet. Add one above.'}</p></div>`;
         return;
       }
 
@@ -373,7 +373,7 @@
   <div style="max-width: 1000px; margin: 0 auto;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
       <div>
-        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">⚖️ Semptify</div>
+        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">▸ Semptify</div>
         <p style="font-size: 0.85rem; opacity: 0.8; line-height: 1.5; margin: 0;">
           The Tenant's Journal. Helping renters document their tenancy, understand rights AND responsibilities, and stay organized.
         </p>

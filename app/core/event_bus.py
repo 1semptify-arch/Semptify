@@ -133,7 +133,7 @@ class EventBus:
         self._max_history = 1000
         self._initialized = True
         
-        logger.info("🚌 EventBus initialized")
+        logger.info("○ EventBus initialized")
     
     def subscribe(self, event_type: EventType, callback: Callable) -> None:
         """Subscribe a sync callback to an event type"""
@@ -183,7 +183,7 @@ class EventBus:
         if len(self._event_history) > self._max_history:
             self._event_history = self._event_history[-self._max_history:]
         
-        logger.info(f"📢 Event: {event_type.value} from {source}")
+        logger.info(f"▸ Event: {event_type.value} from {source}")
         
         # Call sync subscribers
         if event_type in self._subscribers:
@@ -277,7 +277,7 @@ class EventBus:
         if user_id not in self._websocket_connections:
             self._websocket_connections[user_id] = []
         self._websocket_connections[user_id].append(websocket)
-        logger.info(f"🔌 WebSocket registered for {user_id}")
+        logger.info(f"○ WebSocket registered for {user_id}")
     
     def unregister_websocket(self, websocket: Any, user_id: str = "broadcast") -> None:
         """Unregister a WebSocket connection"""

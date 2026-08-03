@@ -439,4 +439,4 @@ if __name__ == "__main__":
             roles = action.required_roles or ["all"]
             logger.info(f"  - {action.label} ({action.action_type.name}, roles: {roles})")
     
-    logger.info(f"\n✅ Action maps ready for integration.")
+    logger.info(f"\n● Action maps ready for integration.")

@@ -5,13 +5,13 @@ Multi-dimensional emotional state tracking that mimics human psychology.
 Drives adaptive UI, content presentation, and system behavior.
 
 The 7 Emotional Dimensions:
-1. INTENSITY - How urgent/critical the situation feels (panic → calm)
-2. CLARITY - How well user understands their situation (confused → clear)
-3. CONFIDENCE - User's belief they can win (hopeless → empowered)
-4. MOMENTUM - Progress feeling (stuck → moving forward)
-5. OVERWHELM - Cognitive load (drowning → manageable)
-6. TRUST - Trust in the system (skeptical → relying on it)
-7. RESOLVE - Fighting spirit (giving up → determined)
+1. INTENSITY - How urgent/critical the situation feels (panic ▸ calm)
+2. CLARITY - How well user understands their situation (confused ▸ clear)
+3. CONFIDENCE - User's belief they can win (hopeless ▸ empowered)
+4. MOMENTUM - Progress feeling (stuck ▸ moving forward)
+5. OVERWHELM - Cognitive load (drowning ▸ manageable)
+6. TRUST - Trust in the system (skeptical ▸ relying on it)
+7. RESOLVE - Fighting spirit (giving up ▸ determined)
 
 Each dimension influences:
 - What content to show

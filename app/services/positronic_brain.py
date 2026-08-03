@@ -1,5 +1,5 @@
 """
-🧠 POSITRONIC BRAIN - Central Intelligence Hub
+○ POSITRONIC BRAIN - Central Intelligence Hub
 ==============================================
 The neural core that connects ALL Semptify modules together.
 
@@ -155,7 +155,7 @@ class ModuleConnection:
 
 class PositronicBrain:
     """
-    🧠 The Positronic Brain - Central Intelligence Hub
+    ○ The Positronic Brain - Central Intelligence Hub
     
     This is the neural core of Semptify that:
     1. Maintains awareness of all connected modules
@@ -218,7 +218,7 @@ class PositronicBrain:
             ModuleType.CONTACTS: {ModuleType.DOCUMENTS},
         }
         
-        logger.info("🧠 Positronic Brain initialized")
+        logger.info("○ Positronic Brain initialized")
     
     # =========================================================================
     # Module Management
@@ -240,7 +240,7 @@ class PositronicBrain:
         )
         self.modules[module_type] = connection
         
-        logger.info(f"🔌 Module registered: {name} ({module_type.value})")
+        logger.info(f"○ Module registered: {name} ({module_type.value})")
         
         # Emit registration event
         asyncio.create_task(self.emit(BrainEvent(
@@ -275,7 +275,7 @@ class PositronicBrain:
     def subscribe(self, event_type: EventType, handler: Callable):
         """Subscribe to an event type."""
         self.event_handlers[event_type].append(handler)
-        logger.debug(f"📡 Subscribed to {event_type.value}")
+        logger.debug(f"○ Subscribed to {event_type.value}")
     
     def unsubscribe(self, event_type: EventType, handler: Callable):
         """Unsubscribe from an event type."""
@@ -303,7 +303,7 @@ class PositronicBrain:
         # Broadcast to WebSocket clients
         await self._broadcast_to_websockets(event)
         
-        logger.debug(f"📤 Event emitted: {event.event_type.value} from {event.source_module.value}")
+        logger.debug(f"● Event emitted: {event.event_type.value} from {event.source_module.value}")
     
     async def _broadcast_to_websockets(self, event: BrainEvent):
         """Send event to all connected WebSocket clients."""

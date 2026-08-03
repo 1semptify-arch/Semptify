@@ -370,7 +370,7 @@ async def upload_document(
                 },
             )
             notarization_id = notarization.notarization_id
-            logger.info(f"✓ Document notarized: {notarization_id}")
+            logger.info(f"● Document notarized: {notarization_id}")
         except Exception as e:
             logger.warning(f"Notarization failed (non-blocking): {e}")
 
@@ -394,7 +394,7 @@ async def upload_document(
             if notarization and HAS_NOTARIZATION:
                 try:
                     notarization.storage_path = vault_doc.storage_path
-                    logger.info(f"📁 Document stored in vault: {vault_id}")
+                    logger.info(f"● Document stored in vault: {vault_id}")
                 except Exception as e:
                     logger.debug(f"Could not update notarization storage path: {e}")
         except Exception as e:
@@ -434,7 +434,7 @@ async def upload_document(
             vault_id=vault_id,  # Pass vault reference
             urgency=urgency,
         )
-        logger.info(f"📋 Document registered: {doc.id}")
+        logger.info(f"● Document registered: {doc.id}")
     except Exception as e:
         logger.error(f"Intake failed: {e}")
         doc = None
@@ -451,7 +451,7 @@ async def upload_document(
         filename=file.filename or "unknown",
         status="notarized" if notarization else "received",
         message=(
-            f"✓ Document notarized and stored in vault ({vault_id or 'local'}). "
+            f"● Document notarized and stored in vault ({vault_id or 'local'}). "
             f"Notarization: {notarization_id}. "
             f"Use /status/{doc.id if doc else 'pending'} to check processing."
         ),
@@ -579,7 +579,7 @@ async def upload_and_process(
                 },
             )
             notarization_id = notarization.notarization_id
-            logger.info(f"✓ Document notarized: {notarization_id}")
+            logger.info(f"● Document notarized: {notarization_id}")
         except Exception as e:
             logger.warning(f"Notarization failed (non-blocking): {e}")
 
@@ -607,7 +607,7 @@ async def upload_and_process(
                     # Notarization update failed, non-critical
                     pass
 
-            logger.info(f"📁 Document stored in vault: {vault_id}")
+            logger.info(f"● Document stored in vault: {vault_id}")
         except Exception as e:
             logger.warning("Vault upload failed: %s", e)
 
@@ -620,12 +620,12 @@ async def upload_and_process(
         vault_id=vault_id,
         urgency=urgency,
     )
-    logger.info(f"📋 Document intake complete: {doc.id}")
+    logger.info(f"● Document intake complete: {doc.id}")
 
     # Step 2: Process (extract text, classify, analyze) — Light Intake / Pass 1
     try:
         doc = await engine.process_document(doc.id)
-        logger.info(f"✓ Light Intake (Pass 1) complete: {doc.id}")
+        logger.info(f"● Light Intake (Pass 1) complete: {doc.id}")
     except Exception as e:
         logger.error("Processing failed: %s", e)
         return AutoProcessResponse(
@@ -679,7 +679,7 @@ async def upload_and_process(
                 user_id=user_id,
                 notarization_id=notarization_id,  # Pass notarization for chain of custody
             )
-            logger.info(f"✓ Flow orchestration complete: {len(flow_result.get('stages', {}))} stages")
+            logger.info(f"● Flow orchestration complete: {len(flow_result.get('stages', {}))} stages")
         except Exception as flow_err:
             logger.warning("Flow orchestration partial: %s", flow_err)
 
@@ -749,7 +749,7 @@ async def upload_and_process(
         status="processing",
         doc_type=doc.extraction.doc_type.value if doc.extraction and doc.extraction.doc_type else "unknown",
         message=(
-            f"✓ Document stored, notarized ({notarization_id}), "
+            f"● Document stored, notarized ({notarization_id}), "
             f"and Light Intake complete in vault ({vault_id or 'local'}). "
             f"Deep OCR Pass 2 is queued and processing."
         ),

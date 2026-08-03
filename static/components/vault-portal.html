@@ -1,14 +1,14 @@
 <!-- 
   Semptify Vault Portal Component
   Single entry point for ALL document uploads
-  Files go through here → User's cloud storage (Drive/Dropbox)
+  Files go through here ▸ User's cloud storage (Drive/Dropbox)
   
   Usage: Include this modal and trigger with data-vault-open
 -->
 
 <!-- Vault Door Button (Place in header or nav) -->
 <button class="vault-door-btn" onclick="openVaultPortal()" title="Open Vault - Upload Documents">
-  <span class="vault-icon">🔒</span>
+  <span class="vault-icon">◆</span>
   <span class="vault-label">Vault</span>
 </button>
 
@@ -20,7 +20,7 @@
     <!-- Header -->
     <div class="vault-header">
       <div class="vault-title">
-        <span class="vault-icon-large">🔒</span>
+        <span class="vault-icon-large">◆</span>
         <div>
           <h2 id="vault-title">Document Vault Portal</h2>
           <p class="vault-subtitle">Secure upload to your cloud storage</p>
@@ -31,7 +31,7 @@
     
     <!-- Upload Zone -->
     <div class="vault-upload-zone" id="vault-dropzone">
-      <div class="vault-upload-icon">📁</div>
+      <div class="vault-upload-icon">●</div>
       <p class="vault-upload-text">Drop files here or click to browse</p>
       <p class="vault-upload-hint">PDF, JPG, PNG, DOC, DOCX, TXT up to 25MB</p>
       <input type="file" id="vault-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" hidden>
@@ -67,10 +67,10 @@
     <!-- Storage Info -->
     <div class="vault-storage-info">
       <div class="storage-provider">
-        <span class="storage-icon">☁️</span>
+        <span class="storage-icon">○</span>
         <span>Connected: <strong id="vault-storage-name">Google Drive</strong></span>
       </div>
-      <p class="storage-privacy">✓ Your documents stay in YOUR storage. Semptify never stores or sees your files.</p>
+      <p class="storage-privacy">● Your documents stay in YOUR storage. Semptify never stores or sees your files.</p>
     </div>
     
     <!-- File List (populated when files selected) -->
@@ -81,7 +81,7 @@
       <button class="btn btn-secondary" onclick="closeVaultPortal()">Cancel</button>
       <button class="btn btn-primary" id="vault-upload-btn" onclick="uploadToVault()">
         <span>Upload to Vault</span>
-        <span class="upload-arrow">→</span>
+        <span class="upload-arrow">▸</span>
       </button>
     </div>
   </div>
@@ -275,7 +275,7 @@
       const item = document.createElement('div');
       item.className = 'vault-file-item';
       item.innerHTML = `
-        <span>📄</span>
+        <span>●</span>
         <div style="flex: 1;">
           <div style="font-weight: 500;">${file.name}</div>
           <div style="font-size: 0.8rem; color: #9ca3af;">${(file.size/1024/1024).toFixed(2)} MB</div>

@@ -179,7 +179,7 @@ function handleVaultFiles(files) {
     const item = document.createElement('div');
     item.className = 'vault-file-item';
     item.innerHTML = `
-      <span>📄</span>
+      <span>●</span>
       <div style="flex: 1;">
         <div style="font-weight: 500;">${file.name}</div>
         <div style="font-size: 0.8rem; color: #9ca3af;">${(file.size/1024/1024).toFixed(2)} MB</div>

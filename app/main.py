@@ -1564,7 +1564,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning("Filedored post-process failed for %s: %s", vault_id, _fe)
 
         event_bus.subscribe_async(_ET.DOCUMENT_ADDED, _on_document_added)
-        logger.info("📂 Filedored event subscriber wired")
+        logger.info("● Filedored event subscriber wired")
     except ImportError:
         logger.warning("Filedored service not available (optional module)")
 
@@ -1740,7 +1740,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.jurisdiction_middleware import JurisdictionMiddleware
 
     fastapi_app.add_middleware(JurisdictionMiddleware)
-    logger.info("📍 Jurisdiction middleware enabled (auto-detect state from IP)")
+    logger.info("○ Jurisdiction middleware enabled (auto-detect state from IP)")
 
     # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
@@ -2127,7 +2127,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
             return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
-        return ssot_redirect("/tenant/timeline", context="tenant dashboard → timeline")
+        return ssot_redirect("/tenant/timeline", context="tenant dashboard ▸ timeline")
 
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
@@ -4020,7 +4020,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return ssot_redirect("/tenant/home", context="tenant root → tenant home")
+        return ssot_redirect("/tenant/home", context="tenant root ▸ tenant home")
 
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
@@ -4308,7 +4308,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return ssot_redirect("/tenant/timeline", context="tenant journal → timeline")
+        return ssot_redirect("/tenant/timeline", context="tenant journal ▸ timeline")
 
     @fastapi_app.get("/tenant/law-library", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/law-library/", response_class=HTMLResponse)
@@ -4317,7 +4317,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        return ssot_redirect("/tenant/library", context="tenant law-library → KNOW pillar")
+        return ssot_redirect("/tenant/library", context="tenant law-library ▸ KNOW pillar")
 
     @fastapi_app.get("/tenant/inbox", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/inbox/", response_class=HTMLResponse)
@@ -4436,21 +4436,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         MODULE_ACTIONS = {
             "eviction_answer": [
                 {
-                    "icon": "📋",
+                    "icon": "●",
                     "label": "Start Answer",
                     "description": "Begin filling out eviction answer form",
                     "endpoint": "/start",
                     "method": "POST",
                 },
                 {
-                    "icon": "📄",
+                    "icon": "●",
                     "label": "Load Template",
                     "description": "Load eviction answer template",
                     "endpoint": "/template",
                     "method": "GET",
                 },
                 {
-                    "icon": "💾",
+                    "icon": "●",
                     "label": "Save Draft",
                     "description": "Save current progress",
                     "endpoint": "/save",
@@ -4459,21 +4459,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
             "counterclaim": [
                 {
-                    "icon": "⚖️",
+                    "icon": "▸",
                     "label": "Build Counterclaim",
                     "description": "Create a counterclaim against landlord",
                     "endpoint": "/build",
                     "method": "POST",
                 },
                 {
-                    "icon": "📚",
+                    "icon": "○",
                     "label": "Legal Grounds",
                     "description": "Browse valid counterclaim grounds",
                     "endpoint": "/grounds",
                     "method": "GET",
                 },
                 {
-                    "icon": "📎",
+                    "icon": "●",
                     "label": "Attach Evidence",
                     "description": "Link supporting documents",
                     "endpoint": "/attach",
@@ -4482,21 +4482,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
             "complaints": [
                 {
-                    "icon": "📝",
+                    "icon": "●",
                     "label": "File Complaint",
                     "description": "Submit a new housing complaint",
                     "endpoint": "/file",
                     "method": "POST",
                 },
                 {
-                    "icon": "📊",
+                    "icon": "◆",
                     "label": "Track Status",
                     "description": "Check complaint status",
                     "endpoint": "/status",
                     "method": "GET",
                 },
                 {
-                    "icon": "🏛️",
+                    "icon": "▸",
                     "label": "Agency Guide",
                     "description": "Find the right agency to complain to",
                     "endpoint": "/agencies",
@@ -4505,21 +4505,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
             "case_builder": [
                 {
-                    "icon": "🏗️",
+                    "icon": "▸",
                     "label": "Add Fact",
                     "description": "Add case fact or event",
                     "endpoint": "/facts",
                     "method": "POST",
                 },
                 {
-                    "icon": "📎",
+                    "icon": "●",
                     "label": "Link Evidence",
                     "description": "Attach documents to facts",
                     "endpoint": "/evidence",
                     "method": "POST",
                 },
                 {
-                    "icon": "📋",
+                    "icon": "●",
                     "label": "View Timeline",
                     "description": "See case chronology",
                     "endpoint": "/timeline",
@@ -4528,21 +4528,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             ],
             "timeline": [
                 {
-                    "icon": "➕",
+                    "icon": "▸",
                     "label": "Add Event",
                     "description": "Add event to timeline",
                     "endpoint": "/events",
                     "method": "POST",
                 },
                 {
-                    "icon": "📅",
+                    "icon": "◆",
                     "label": "View Calendar",
                     "description": "See deadline calendar",
                     "endpoint": "/calendar",
                     "method": "GET",
                 },
                 {
-                    "icon": "🔔",
+                    "icon": "◆",
                     "label": "Set Reminder",
                     "description": "Set deadline reminders",
                     "endpoint": "/remind",
@@ -4553,36 +4553,36 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         # Icon mapping for common modules
         ICON_MAP = {
-            "eviction_answer": "🏠",
-            "counterclaim": "⚖️",
-            "complaints": "📢",
-            "case_builder": "🏗️",
-            "timeline": "📅",
-            "vault": "🔐",
-            "documents": "📄",
-            "law_library": "📚",
-            "hearing_prep": "🎤",
-            "dakota_defense": "🏛️",
+            "eviction_answer": "○",
+            "counterclaim": "▸",
+            "complaints": "▸",
+            "case_builder": "▸",
+            "timeline": "◆",
+            "vault": "◆",
+            "documents": "●",
+            "law_library": "○",
+            "hearing_prep": "▸",
+            "dakota_defense": "▸",
         }
 
         template_contract = {
             "title": contract.title,
             "description": contract.expectations or contract.qualification,
-            "icon": ICON_MAP.get(page_id, "🔧"),
+            "icon": ICON_MAP.get(page_id, "▸"),
             "tags": contract.primary_groups + contract.secondary_groups,
             "disclaimer": "This is a legal self-help tool. Consult an attorney for your specific situation.",
             "actions": MODULE_ACTIONS.get(
                 page_id,
                 [
                     {
-                        "icon": "▶️",
+                        "icon": "▸",
                         "label": "Get Started",
                         "description": "Begin using this tool",
                         "endpoint": "/start",
                         "method": "POST",
                     },
                     {
-                        "icon": "📖",
+                        "icon": "○",
                         "label": "Learn More",
                         "description": "Read documentation",
                         "endpoint": "/docs",
@@ -4666,7 +4666,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Phase 1B/1C — Self-Assembling Tenant GUI (UI Composer)
     #
     # /tenant/timeline — RECORD pillar (merged feed via tenant_feed aggregator)
-    # /tenant/library  — KNOW pillar (subject grid → Page Composer facts)
+    # /tenant/library  — KNOW pillar (subject grid ▸ Page Composer facts)
     #
     # These pages are assembled by the UI Composer from the component library
     # (app/templates/components/ui_composer.html) via the generic template
@@ -4902,7 +4902,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 {
                     "type": "empty_state",
                     "data": {
-                        "icon": "📚",
+                        "icon": "○",
                         "title": f"No verified facts yet for {label}",
                         "body": "This topic hasn't been populated. Try another topic, or check back later.",
                     },
@@ -5194,7 +5194,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     <li>If you get stuck, clear your browser cookies and start fresh</li>
                 </ol>
             </div>
-            <p><a href="/">← Back to start</a></p>
+            <p><a href="/">▸ Back to start</a></p>
         </body>
         </html>
         """)

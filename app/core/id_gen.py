@@ -5,10 +5,10 @@ All entity IDs in the system MUST be generated through this module.
 
 Format: {prefix}_{16-char alphanumeric}
 Examples:
-    make_id("doc")  → "doc_K8mXp2nR4jW7qF9a"
-    make_id("ovl")  → "ovl_Tb3xM7kL9pR2wH5s"
-    make_id("evt")  → "evt_Q4nJ8vR2mK6xP3wA"
-    make_id("cert") → "cert_Y7hF3tN9bK2xR5mW"
+    make_id("doc")  ▸ "doc_K8mXp2nR4jW7qF9a"
+    make_id("ovl")  ▸ "ovl_Tb3xM7kL9pR2wH5s"
+    make_id("evt")  ▸ "evt_Q4nJ8vR2mK6xP3wA"
+    make_id("cert") ▸ "cert_Y7hF3tN9bK2xR5mW"
 
 Properties:
     - 16-char alphanumeric suffix = ~95 bits of entropy (~10^28 combinations)

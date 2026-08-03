@@ -73,7 +73,7 @@ class PageContract:
     roles_supported: list[UserRole]           # roles that may access this page
     primary_groups: list[str]                 # group names this page leads with
     secondary_groups: list[str]               # group names touched but not primary
-    group_coverage: dict[str, str]            # all 8 group names → coverage state
+    group_coverage: dict[str, str]            # all 8 group names ▸ coverage state
     qualification: str                        # plain-English access requirement
     expectations: str                         # what the user accomplishes here
     scope_of_use: str                         # intended use boundaries
@@ -181,7 +181,7 @@ CONTRACT_WELCOME = PageContract(
     exit_criteria=[
         "Role selected (cookie set to 'user' for tenant)",
         "User clicks 'Get Started' and proceeds to role selection",
-        "All users routed through: Welcome → Role Select → Storage Connect (mandatory) → Tenant Home",
+        "All users routed through: Welcome ▸ Role Select ▸ Storage Connect (mandatory) ▸ Tenant Home",
     ],
     telemetry_events=[
         "welcome_page_load",
@@ -528,7 +528,7 @@ CONTRACT_VAULT = PageContract(
         "Vault service available (vault_upload_service)",
     ],
     exit_criteria=[
-        "Document uploaded to user's cloud storage → mesh workflow triggered",
+        "Document uploaded to user's cloud storage ▸ mesh workflow triggered",
         "Document downloaded or previewed",
         "Certificate generated and stored",
     ],
@@ -2081,9 +2081,9 @@ CONTRACT_HOME = PageContract(
     expectations=(
         "On load, home always validates session and token health before rendering. "
         "Three possible states: "
-        "(1) Cookie valid + token valid → normal home load, vault accessible. "
-        "(2) Cookie missing or corrupt → look for rehome.html in client's storage root. If found: read account_id, account_type, provider → skip role selection → go to /storage-reconnect pre-filled. If NOT found: genuinely new device → redirect to /choose-role. "
-        "(3) Cookie valid but storage token expired/revoked → save oauth_return_to='/home' → redirect to /storage-reconnect. "
+        "(1) Cookie valid + token valid ▸ normal home load, vault accessible. "
+        "(2) Cookie missing or corrupt ▸ look for rehome.html in client's storage root. If found: read account_id, account_type, provider ▸ skip role selection ▸ go to /storage-reconnect pre-filled. If NOT found: genuinely new device ▸ redirect to /choose-role. "
+        "(3) Cookie valid but storage token expired/revoked ▸ save oauth_return_to='/home' ▸ redirect to /storage-reconnect. "
         "Home never renders in a broken state — it always self-heals or reroutes."
     ),
     scope_of_use=(
@@ -2098,7 +2098,7 @@ CONTRACT_HOME = PageContract(
     ],
     exit_criteria=[
         "User navigates to their role area, vault, or any app section",
-        "OR: health check fails → rehome.html lookup → /storage-reconnect (known user) or /choose-role (new device)",
+        "OR: health check fails ▸ rehome.html lookup ▸ /storage-reconnect (known user) or /choose-role (new device)",
     ],
     telemetry_events=[
         "home_load",
@@ -2698,7 +2698,7 @@ CONTRACT_STORAGE_CONNECTING = PageContract(
         "User lands here immediately after granting OAuth access. "
         "The page shows a calm, step-by-step progress narrative while the backend: "
         "validates the token, creates the Semptify folder, and runs the first sync. "
-        "Steps are shown progressively (e.g. 'Connected → Creating your folder → First sync → All set!'). "
+        "Steps are shown progressively (e.g. 'Connected ▸ Creating your folder ▸ First sync ▸ All set!'). "
         "On success: auto-redirect to /home. "
         "On failure: show friendly error and link back to /storage-info to try again."
     ),
@@ -2714,8 +2714,8 @@ CONTRACT_STORAGE_CONNECTING = PageContract(
         "Backend storage setup job has been queued",
     ],
     exit_criteria=[
-        "Storage setup job reports success → auto-redirect to /home",
-        "OR: setup job reports failure → show error + link to /storage-info",
+        "Storage setup job reports success ▸ auto-redirect to /home",
+        "OR: setup job reports failure ▸ show error + link to /storage-info",
     ],
     telemetry_events=[
         "storage_connecting_load",
@@ -2776,8 +2776,8 @@ CONTRACT_STORAGE_RECONNECT = PageContract(
         "oauth_return_to saved to session before OAuth redirect",
     ],
     exit_criteria=[
-        "User clicks reconnect → sent to OAuth",
-        "OR: user dismisses → sent to /home with storage-limited mode notice",
+        "User clicks reconnect ▸ sent to OAuth",
+        "OR: user dismisses ▸ sent to /home with storage-limited mode notice",
     ],
     telemetry_events=[
         "storage_reconnect_prompt_load",
@@ -2912,7 +2912,7 @@ def get_contract(page_id: str) -> PageContract:
 def validate_all_contracts() -> dict[str, list[str]]:
     """
     Validate every registered contract.
-    Returns dict of page_id → list of violation strings.
+    Returns dict of page_id ▸ list of violation strings.
     Only pages with violations appear in the output.
     """
     results: dict[str, list[str]] = {}
@@ -3029,10 +3029,10 @@ DOCUMENT_REJECTION_COMING_SOON = register_coming_soon(
             "Create rejection UI in static HTML",
         ],
         completed_items=[
-            "Create CONTRACT_DOCUMENT_REJECTION page contract",  # ✅ Done 2026-04-21
-            "Add rejection flow to delivery router",  # ✅ /api/delivery/{id}/reject
-            "Implement rejection overlay in vault",  # ✅ COMMUNICATION type overlay with watermark
-            "Create rejection UI in static HTML",  # ✅ document_signer.html modal
+            "Create CONTRACT_DOCUMENT_REJECTION page contract",  # ● Done 2026-04-21
+            "Add rejection flow to delivery router",  # ● /api/delivery/{id}/reject
+            "Implement rejection overlay in vault",  # ● COMMUNICATION type overlay with watermark
+            "Create rejection UI in static HTML",  # ● document_signer.html modal
         ],
         notes="COMPLETE: Rejection records saved as COMMUNICATION overlays with 'DOCUMENT REJECTED' watermark in Semptify5.0/Vault/communications/rejections/",
     )

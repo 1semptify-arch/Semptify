@@ -791,7 +791,7 @@ async def _create_deadline_events(
     # Answer deadline
     if answer_deadline:
         events_to_create.append({
-            "title": "⚠️ ANSWER DEADLINE",
+            "title": "◆ ANSWER DEADLINE",
             "description": f"File your Answer to Eviction Complaint by end of day. Case: {case_info.case_number}",
             "event_date": answer_deadline,
             "event_type": "deadline",
@@ -802,7 +802,7 @@ async def _create_deadline_events(
     if case_info.hearing_date:
         time_str = case_info.hearing_time or "TBD"
         events_to_create.append({
-            "title": "🏛️ COURT HEARING",
+            "title": "▸ COURT HEARING",
             "description": f"Eviction hearing at {case_info.court_name}. Time: {time_str}. Case: {case_info.case_number}",
             "event_date": case_info.hearing_date,
             "event_type": "hearing",

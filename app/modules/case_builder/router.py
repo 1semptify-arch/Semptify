@@ -1042,7 +1042,7 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_acces
 
     # Log freshness warnings for legal compliance
     if freshness_validation.get("warnings"):
-        logger.warning(f"⚠️ Legal freshness warnings for case {case.case_number}: {freshness_validation['warnings']}")
+        logger.warning(f"◆ Legal freshness warnings for case {case.case_number}: {freshness_validation['warnings']}")
 
     # Build complete case data
     complete_case_data = {
@@ -1115,11 +1115,11 @@ async def validate_case_legal_accuracy(
 
     # Add user-friendly messaging
     if validation_results["freshness_score"] >= 95:
-        status_message = "✅ All legal content is current and accurate"
+        status_message = "● All legal content is current and accurate"
     elif validation_results["freshness_score"] >= 85:
-        status_message = "⚠️ Some legal content may need review"
+        status_message = "◆ Some legal content may need review"
     else:
-        status_message = "🚨 Legal content requires immediate review"
+        status_message = "◆ Legal content requires immediate review"
 
     return {
         "status": validation_results["status"],

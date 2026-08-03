@@ -64,7 +64,7 @@
       <div class="header-content">
         <div class="header-brand">
           <a href="/" class="header-logo">
-            <span class="header-logo-icon">⚖️</span>
+            <span class="header-logo-icon">▸</span>
             <span>Semptify</span>
           </a>
           <span class="header-tagline">The Tenant's Journal</span>
@@ -103,7 +103,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
           <div class="card card-hover">
             <div class="card-header">
-              <span class="card-icon">📓</span>
+              <span class="card-icon">●</span>
               <h3 class="card-title">Your Journal</h3>
             </div>
             <div class="card-body">
@@ -116,7 +116,7 @@
           
           <div class="card card-hover">
             <div class="card-header">
-              <span class="card-icon">📚</span>
+              <span class="card-icon">○</span>
               <h3 class="card-title">Know Your Rights</h3>
             </div>
             <div class="card-body">
@@ -129,7 +129,7 @@
           
           <div class="card card-hover">
             <div class="card-header">
-              <span class="card-icon">☁️</span>
+              <span class="card-icon">○</span>
               <h3 class="card-title">Your Storage</h3>
             </div>
             <div class="card-body">
@@ -217,7 +217,7 @@
 
         if (data.authenticated) {
           dot.className = 'status-dot status-connected';
-          text.textContent = 'Connected ✓';
+          text.textContent = 'Connected ●';
           setTimeout(() => { text.textContent = 'Connected'; }, 2000);
         } else {
           // Not authenticated - redirect to reconnect flow

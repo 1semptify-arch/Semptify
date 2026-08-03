@@ -107,7 +107,7 @@ class NavigationRegistry:
             requires_checkpoint=True
         ),
         # NOTE: /storage/providers is the RECONNECT entry point (returning users)
-        # Onboarding flow goes directly: providers → vault_setup → home
+        # Onboarding flow goes directly: providers ▸ vault_setup ▸ home
         "providers": FlowStage(
             id="providers",
             name="Storage Providers (Reconnect)",
@@ -320,10 +320,10 @@ class NavigationRegistry:
     # Home, Library, Office, Tools, Help
     # All paths are RENDERED routes (auth + gates) — never .html static files.
     MAIN_NAV: ClassVar[List[NavItem]] = [
-        NavItem(name="Home", path="/home", icon="🏠", order=0, requires=""),
-        NavItem(name="Library", path="/library", icon="📚", order=1, requires=""),
-        NavItem(name="Office", path="/office", icon="🏢", order=2, requires=""),
-        NavItem(name="Tools", path="/tools", icon="🔧", order=3, requires=""),
+        NavItem(name="Home", path="/home", icon="○", order=0, requires=""),
+        NavItem(name="Library", path="/library", icon="○", order=1, requires=""),
+        NavItem(name="Office", path="/office", icon="○", order=2, requires=""),
+        NavItem(name="Tools", path="/tools", icon="▸", order=3, requires=""),
         NavItem(name="Help", path="/help", icon="🆘", order=4, requires=""),
     ]
     

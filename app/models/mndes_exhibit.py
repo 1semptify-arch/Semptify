@@ -6,7 +6,7 @@ Pydantic models for tracking exhibits submitted through the Minnesota
 Digital Exhibit System (MNDES) — MN Supreme Court Order ADM09-8010.
 
 Exhibit lifecycle:
-  pre_hearing → offered → admitted | rejected | withdrawn
+  pre_hearing ▸ offered ▸ admitted | rejected | withdrawn
 
 Key rules encoded here:
 - Pre-hearing exhibits are NOT case records (not publicly accessible).

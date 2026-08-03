@@ -167,16 +167,16 @@
   </head>
   <body>
     <div class="container">
-      <div class="logo">📓 Semptify</div>
+      <div class="logo">● Semptify</div>
       <div class="subtitle">Activate Your Vault</div>
 
       <div class="status" id="status">
         <div class="status-item">
-          <div class="status-icon connected" id="storage-status">✓</div>
+          <div class="status-icon connected" id="storage-status">●</div>
           <span>Storage Connected</span>
         </div>
         <div class="status-item">
-          <div class="status-icon pending" id="vault-status">⏳</div>
+          <div class="status-icon pending" id="vault-status">◆</div>
           <span>Vault Installation</span>
         </div>
       </div>
@@ -213,10 +213,10 @@
           const storageStatus = document.getElementById("storage-status");
           if (data.storage_connected) {
             storageStatus.className = "status-icon connected";
-            storageStatus.textContent = "✓";
+            storageStatus.textContent = "●";
           } else {
             storageStatus.className = "status-icon error";
-            storageStatus.textContent = "✗";
+            storageStatus.textContent = "◆";
             window.location.href = "/onboarding/providers";
             return;
           }
@@ -227,12 +227,12 @@
 
           if (data.vault_installed) {
             vaultStatus.className = "status-icon connected";
-            vaultStatus.textContent = "✓";
+            vaultStatus.textContent = "●";
             installBtn.textContent = "Vault Ready - Continue to Home";
             installBtn.onclick = () => (window.location.href = "/tenant/home");
           } else {
             vaultStatus.className = "status-icon pending";
-            vaultStatus.textContent = "⏳";
+            vaultStatus.textContent = "◆";
             installBtn.style.display = "block";
           }
         } catch (error) {
@@ -277,7 +277,7 @@
             loading.style.display = "none";
             success.style.display = "block";
             success.innerHTML = `
-                        <strong>✅ Vault Installed Successfully!</strong><br>
+                        <strong>● Vault Installed Successfully!</strong><br>
                         Activation Code: ${data.activation_code}<br>
                         Created ${data.folders_created.length} folders and ${data.files_created.length} files.<br>
                         <div id="finalizing-msg" style="margin-top:10px;color:#666">Finalizing setup — this may take a few seconds...</div>
@@ -285,7 +285,7 @@
 
             // Update status indicator
             document.getElementById("vault-status").className = "status-icon connected";
-            document.getElementById("vault-status").textContent = "✓";
+            document.getElementById("vault-status").textContent = "●";
 
             // Start polling the vault status endpoint (poll helper at /static/onboarding/vault_status_poll.js)
             try {

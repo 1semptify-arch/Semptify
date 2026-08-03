@@ -31,8 +31,8 @@ register_function_group(FunctionGroupContract(
     title="Storage Entry (SSOT)",
     description=(
         "CANONICAL storage entry point. Redirects to the appropriate page "
-        "based on the user's state: no cookie → welcome, no storage → "
-        "providers, has storage → home."
+        "based on the user's state: no cookie ▸ welcome, no storage ▸ "
+        "providers, has storage ▸ home."
     ),
     inputs=("semptify_uid?"),
     outputs=("redirect",),

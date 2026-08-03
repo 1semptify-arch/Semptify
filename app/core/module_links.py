@@ -474,6 +474,6 @@ if __name__ == "__main__":
     logger.info("\nSample: dashboard modules")
     for link in DASHBOARD_MODULE_LINKS:
         req = "required" if link.required else "optional"
-        logger.info(f"  - {link.module_id} ({req}) → {link.connection_point}")
+        logger.info(f"  - {link.module_id} ({req}) ▸ {link.connection_point}")
     
-    logger.info(f"\n✅ Module links ready for health checks.")
+    logger.info(f"\n● Module links ready for health checks.")

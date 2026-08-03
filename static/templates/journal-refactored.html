@@ -50,10 +50,10 @@
       <strong>Semptify</strong>
       <button onclick="closeDrawer()" class="drawer-close">✕</button>
     </div>
-    <a href="/tenant/home">🏠 Home</a>
-    <a href="/tenant/journal" class="active-link">📝 Journal</a>
-    <a href="/tenant/documents">📁 Documents</a>
-    <a href="/law-library">⚖️ Rights</a>
+    <a href="/tenant/home">○ Home</a>
+    <a href="/tenant/journal" class="active-link">● Journal</a>
+    <a href="/tenant/documents">● Documents</a>
+    <a href="/law-library">▸ Rights</a>
     <a href="/tenant/help">🆘 Help</a>
   </nav>
   
@@ -66,15 +66,15 @@
           <a href="/" class="text-2xl font-bold text-inverse" style="text-decoration: none;">Semptify</a>
         </div>
         <nav class="core-nav hide-mobile">
-          <a href="/tenant/home" class="nav__link">🏠 Home</a>
-          <a href="/tenant/journal" class="nav__link nav__link--active">📝 Journal</a>
-          <a href="/tenant/documents" class="nav__link">📁 Documents</a>
-          <a href="/law-library" class="nav__link">⚖️ Rights</a>
+          <a href="/tenant/home" class="nav__link">○ Home</a>
+          <a href="/tenant/journal" class="nav__link nav__link--active">● Journal</a>
+          <a href="/tenant/documents" class="nav__link">● Documents</a>
+          <a href="/law-library" class="nav__link">▸ Rights</a>
           <a href="/tenant/help" class="nav__link">🆘 Help</a>
         </nav>
         <div class="flex items-center gap-3">
-          <button class="btn btn--ghost text-inverse">🔒 Vault</button>
-          <button class="btn btn--ghost text-inverse">👤 Tenant</button>
+          <button class="btn btn--ghost text-inverse">◆ Vault</button>
+          <button class="btn btn--ghost text-inverse">● Tenant</button>
         </div>
       </div>
       <div class="mt-6">
@@ -93,10 +93,10 @@
         <div class="sidebar__section">
           <h3 class="sidebar__title">Actions</h3>
           <button class="btn btn--primary w-full mb-2" onclick="showAddModal()">
-            ➕ New Entry
+            ▸ New Entry
           </button>
           <button class="btn btn--secondary w-full" onclick="exportJournal()">
-            📤 Export
+            ● Export
           </button>
         </div>
         
@@ -104,10 +104,10 @@
           <h3 class="sidebar__title">Categories</h3>
           <nav class="nav nav--vertical">
             <a href="#" class="nav__link nav__link--active">All Entries</a>
-            <a href="#" class="nav__link">🏠 Maintenance</a>
-            <a href="#" class="nav__link">💬 Communication</a>
-            <a href="#" class="nav__link">⚖️ Legal</a>
-            <a href="#" class="nav__link">💰 Payments</a>
+            <a href="#" class="nav__link">○ Maintenance</a>
+            <a href="#" class="nav__link">○ Communication</a>
+            <a href="#" class="nav__link">▸ Legal</a>
+            <a href="#" class="nav__link">● Payments</a>
           </nav>
         </div>
         
@@ -129,13 +129,13 @@
         
         <!-- Mobile Actions -->
         <div class="hide-desktop mb-4 flex gap-2">
-          <button class="btn btn--primary flex-1" onclick="showAddModal()">➕ New Entry</button>
-          <button class="btn btn--secondary" onclick="exportJournal()">📤</button>
+          <button class="btn btn--primary flex-1" onclick="showAddModal()">▸ New Entry</button>
+          <button class="btn btn--secondary" onclick="exportJournal()">●</button>
         </div>
         
         <!-- Empty State -->
         <div id="empty-state" class="text-center py-12">
-          <div class="text-6xl mb-4">📝</div>
+          <div class="text-6xl mb-4">●</div>
           <h3 class="text-xl font-semibold mb-2">No journal entries yet</h3>
           <p class="text-secondary mb-4">Start documenting your tenancy journey</p>
           <button class="btn btn--primary" onclick="showAddModal()">
@@ -151,15 +151,15 @@
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
-                    <span class="badge badge--warning">🏠 Maintenance</span>
+                    <span class="badge badge--warning">○ Maintenance</span>
                     <span class="text-sm text-muted">Jan 15, 2026</span>
                   </div>
                   <h4 class="font-semibold text-lg mb-1">Reported leaking faucet</h4>
                   <p class="text-secondary text-sm">Submitted maintenance request through tenant portal. Attached photos of the leak under kitchen sink.</p>
                 </div>
                 <div class="flex gap-2">
-                  <button class="btn btn--ghost btn--sm" onclick="editEntry(1)">✏️</button>
-                  <button class="btn btn--ghost btn--sm" onclick="deleteEntry(1)">🗑️</button>
+                  <button class="btn btn--ghost btn--sm" onclick="editEntry(1)">▸</button>
+                  <button class="btn btn--ghost btn--sm" onclick="deleteEntry(1)">◆</button>
                 </div>
               </div>
             </div>
@@ -171,15 +171,15 @@
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
-                    <span class="badge badge--accent">⚠️ Notice</span>
+                    <span class="badge badge--accent">◆ Notice</span>
                     <span class="text-sm text-muted">Jan 10, 2026</span>
                   </div>
                   <h4 class="font-semibold text-lg mb-1">Received rent increase notice</h4>
                   <p class="text-secondary text-sm">Landlord provided 60-day notice of rent increase effective March 1st. Increase is 5% which is within legal limits.</p>
                 </div>
                 <div class="flex gap-2">
-                  <button class="btn btn--ghost btn--sm">✏️</button>
-                  <button class="btn btn--ghost btn--sm">🗑️</button>
+                  <button class="btn btn--ghost btn--sm">▸</button>
+                  <button class="btn btn--ghost btn--sm">◆</button>
                 </div>
               </div>
             </div>
@@ -209,12 +209,12 @@
             <label class="form-label form-label--required" for="entry-category">Category</label>
             <select id="entry-category" class="form-select" required>
               <option value="">Select category...</option>
-              <option value="maintenance">🏠 Maintenance Request</option>
-              <option value="communication">💬 Landlord Communication</option>
-              <option value="payment">💰 Rent Payment</option>
-              <option value="notice">⚠️ Notice Received</option>
-              <option value="court">⚖️ Court/Legal</option>
-              <option value="general">📝 General Note</option>
+              <option value="maintenance">○ Maintenance Request</option>
+              <option value="communication">○ Landlord Communication</option>
+              <option value="payment">● Rent Payment</option>
+              <option value="notice">◆ Notice Received</option>
+              <option value="court">▸ Court/Legal</option>
+              <option value="general">● General Note</option>
             </select>
           </div>
           

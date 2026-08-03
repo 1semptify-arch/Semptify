@@ -1,5 +1,5 @@
 """
-🔄 User Cloud Sync - Persistent Storage in User's Cloud
+▸ User Cloud Sync - Persistent Storage in User's Cloud
 ========================================================
 
 This service uses the user's connected cloud storage (Google Drive, Dropbox, OneDrive)
@@ -194,7 +194,7 @@ class UserCloudSync:
             for folder in folders:
                 await self.storage.create_folder_if_not_exists(folder)
             
-            logger.info(f"📁 Folder structure ensured for user {self.user_id[:8]}...")
+            logger.info(f"● Folder structure ensured for user {self.user_id[:8]}...")
             return True
             
         except Exception as e:
@@ -224,7 +224,7 @@ class UserCloudSync:
             data = profile.to_dict()
             await self._write_json("profile.json", data)
             self._cache["profile"] = data
-            logger.info(f"💾 Profile saved for user {self.user_id[:8]}...")
+            logger.info(f"● Profile saved for user {self.user_id[:8]}...")
             return True
         except Exception as e:
             logger.error(f"Failed to save profile: {e}")
@@ -264,7 +264,7 @@ class UserCloudSync:
             data = case.to_dict()
             await self._write_json("case.json", data)
             self._cache["case"] = data
-            logger.info(f"💾 Case saved: {case.case_number or case.case_id[:8]}")
+            logger.info(f"● Case saved: {case.case_number or case.case_id[:8]}")
             return True
         except Exception as e:
             logger.error(f"Failed to save case: {e}")
@@ -307,7 +307,7 @@ class UserCloudSync:
             }
             await self._write_json("timeline.json", data)
             self._cache["timeline"] = events
-            logger.info(f"💾 Timeline saved: {len(events)} events")
+            logger.info(f"● Timeline saved: {len(events)} events")
             return True
         except Exception as e:
             logger.error(f"Failed to save timeline: {e}")
@@ -344,7 +344,7 @@ class UserCloudSync:
             }
             await self._write_json("calendar.json", data)
             self._cache["calendar"] = events
-            logger.info(f"💾 Calendar saved: {len(events)} events")
+            logger.info(f"● Calendar saved: {len(events)} events")
             return True
         except Exception as e:
             logger.error(f"Failed to save calendar: {e}")
@@ -375,7 +375,7 @@ class UserCloudSync:
             }
             await self._write_json("documents/index.json", data)
             self._cache["documents"] = documents
-            logger.info(f"💾 Document index saved: {len(documents)} docs")
+            logger.info(f"● Document index saved: {len(documents)} docs")
             return True
         except Exception as e:
             logger.error(f"Failed to save document index: {e}")
@@ -401,7 +401,7 @@ class UserCloudSync:
             docs.append(doc_entry)
             await self.save_document_index(docs)
             
-            logger.info(f"📤 Document uploaded: {filename}")
+            logger.info(f"● Document uploaded: {filename}")
             return file_id
             
         except Exception as e:
@@ -432,7 +432,7 @@ class UserCloudSync:
                 provider_id = None
             from app.services.storage.utils import download_prefer_id
             content = await download_prefer_id(self.storage, path, provider_file_id=provider_id)
-            logger.info(f"📥 Document downloaded: {path}")
+            logger.info(f"● Document downloaded: {path}")
             return content
             
         except Exception as e:
@@ -455,7 +455,7 @@ class UserCloudSync:
                     path = f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
             
             await self.storage.delete_file(path)
-            logger.info(f"🗑️ Document deleted: {path}")
+            logger.info(f"◆ Document deleted: {path}")
             return True
             
         except Exception as e:
@@ -500,7 +500,7 @@ class UserCloudSync:
                 "synced_at": utc_now().isoformat(),
             }
             
-            logger.info(f"🔄 Full sync complete for user {self.user_id[:8]}...")
+            logger.info(f"▸ Full sync complete for user {self.user_id[:8]}...")
             return summary
             
         except Exception as e:
@@ -538,7 +538,7 @@ class UserCloudSync:
             if "documents" in data:
                 await self.save_document_index(data["documents"])
             
-            logger.info(f"📥 Data imported for user {self.user_id[:8]}...")
+            logger.info(f"● Data imported for user {self.user_id[:8]}...")
             return True
         except Exception as e:
             logger.error(f"Import failed: {e}")

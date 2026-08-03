@@ -706,7 +706,7 @@ class VaultUploadService:
                     overlay_err,
                 )
 
-            logger.info(f"✅ Document certified: {reg_doc.document_id} for vault {vault_id}")
+            logger.info(f"● Document certified: {reg_doc.document_id} for vault {vault_id}")
 
         except Exception as e:
             import traceback
@@ -722,7 +722,7 @@ class VaultUploadService:
         # Upload stores the document, certifies it, and indexes it. That is all.
         # Any module that needs an overlay calls UnifiedOverlayManager directly.
 
-        logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
+        logger.info("● Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
 
         # Emit event for other modules
         await self._emit_upload_event(doc)
@@ -1051,7 +1051,7 @@ try:
             title="Document Vault Upload (SSOT)",
             description=(
                 "CANONICAL upload handler. All document ingestion goes through VaultUploadService.upload(). "
-                "Pipeline: validate → deduplicate (SHA256) → store to cloud → certificate → registry (get registry_id) → emit event. "
+                "Pipeline: validate ▸ deduplicate (SHA256) ▸ store to cloud ▸ certificate ▸ registry (get registry_id) ▸ emit event. "
                 "VAULT DOES NOT: create overlays, trigger intake, run analysis, or start workflows. "
                 "Overlays are created on-demand by the requesting process. "
                 "Intake/analysis is triggered by the caller after upload returns. "

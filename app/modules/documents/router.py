@@ -417,21 +417,21 @@ async def process_document(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    🚀 DOCUMENT PROCESSING - Process a vaulted document
+    ▸ DOCUMENT PROCESSING - Process a vaulted document
 
     This endpoint processes a document that has already been uploaded to the vault.
     It performs the full downstream processing pipeline:
 
-    1. ✅ ENRICH REGISTRY - Add case number, IP address to auto-registered document
-    2. ✅ PIPELINE PROCESSING - Store, analyze, classify
-    3. ✅ INTAKE PROCESSING - Deep extraction
-    4. ✅ LAW CROSS-REFERENCE - Match with applicable tenant laws
-    5. ✅ INTELLIGENCE ANALYSIS - Urgency, action items
-    6. ✅ DISTRIBUTE - Send to Briefcase, Form Data, Court Packet
-    7. ✅ EMIT EVENTS - Brain, event bus
-    8. ✅ INDEX FOR SEARCH - Add to inverted index
+    1. ● ENRICH REGISTRY - Add case number, IP address to auto-registered document
+    2. ● PIPELINE PROCESSING - Store, analyze, classify
+    3. ● INTAKE PROCESSING - Deep extraction
+    4. ● LAW CROSS-REFERENCE - Match with applicable tenant laws
+    5. ● INTELLIGENCE ANALYSIS - Urgency, action items
+    6. ● DISTRIBUTE - Send to Briefcase, Form Data, Court Packet
+    7. ● EMIT EVENTS - Brain, event bus
+    8. ● INDEX FOR SEARCH - Add to inverted index
 
-    Upload first: POST /api/vault/upload → returns vault_id
+    Upload first: POST /api/vault/upload ▸ returns vault_id
     Then process: POST /api/documents/process with vault_id
     """
 
@@ -474,7 +474,7 @@ async def process_document(
         mime_type = vault_doc.mime_type or "application/octet-stream"
         filename = vault_doc.filename
 
-        logger.info(f"📁 Retrieved from vault: {vault_id}")
+        logger.info(f"● Retrieved from vault: {vault_id}")
 
     except HTTPException:
         raise
@@ -766,7 +766,7 @@ async def process_document(
 
         search_engine.add_document(doc_index)
 
-        logger.info(f"🔍 Document indexed for search: {doc.id}")
+        logger.info(f"▸ Document indexed for search: {doc.id}")
 
     except Exception as e:
         logger.warning("Search indexing failed (non-critical): %s", e)
@@ -867,7 +867,7 @@ async def process_document(
         action_items_count=action_items_count,
         # Metadata
         processed_at=utc_now().isoformat(),
-        message="✅ Document fully processed: uploaded, registered, analyzed, classified, and cross-referenced",
+        message="● Document fully processed: uploaded, registered, analyzed, classified, and cross-referenced",
     )
 
 
