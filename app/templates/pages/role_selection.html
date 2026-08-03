@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Choose Your Role - Semptify{% endblock %}
+{% block description %}Select your role to get started with Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    .role-selection-page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
+
+    /* INFORMATION — what this is, why it matters */
+    .role-info {
+        margin-bottom: 2rem;
+    }
+    .role-info__title {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .role-info__subtitle {
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-base);
+        margin: 0;
+    }
+
+    /* INPUT/ACTION — role choices in chronological order */
+    .role-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .role-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        text-align: left;
+        width: 100%;
+        font-family: inherit;
+        font-size: inherit;
+        color: inherit;
+    }
+
+    .role-option:hover {
+        background: var(--color-bg-hover);
+        border-color: var(--color-accent);
+    }
+
+    .role-option__icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        line-height: 1.4;
+    }
+
+    .role-option__body {
+        flex: 1;
+    }
+
+    .role-option__name {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        margin: 0 0 0.25rem;
+    }
+
+    .role-option__desc {
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+        margin: 0;
+    }
+
+    /* REACTION — feedback when selecting */
+    .role-reaction {
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+    }
+
+    .role-reaction[data-state="working"] .role-reaction__spinner {
+        display: inline-block;
+    }
+    .role-reaction[data-state="working"] .role-reaction__text {
+        display: inline;
+    }
+    .role-reaction[data-state="idle"] .role-reaction__spinner,
+    .role-reaction[data-state="idle"] .role-reaction__text {
+        display: none;
+    }
+
+    .role-reaction__spinner {
+        display: none;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--color-border);
+        border-top-color: var(--color-accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    /* Mobile: stacked scroll */
+    @media (max-width: 768px) {
+        .role-selection-page {
+            padding: 1rem 0.75rem 3rem;
+        }
+        .role-option {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="role-selection-page">
+
+    <!-- INFORMATION: what this is, why it matters -->
+    <section class="role-info">
+        <h1 class="role-info__title">Choose Your Role</h1>
+        <p class="role-info__subtitle">
+            Tell us how you'll use Semptify so we can show you the right tools.
+            You can change this later in Settings.
+        </p>
+    </section>
+
+    <!-- INPUT/ACTION: role choices, first action top/left -->
+    <section class="role-list" id="role-list">
+        <button class="role-option" data-role="tenant" onclick="selectRole(this, 'tenant')">
+            <span class="role-option__icon">&#8962;</span>
+            <span class="role-option__body">
+                <span class="role-option__name">Tenant</span>
+                <span class="role-option__desc">I'm a renter who needs help protecting my rights.</span>
+            </span>
+        </button>
+
+        <button class="role-option" data-role="advocate" onclick="selectRole(this, 'advocate')">
+            <span class="role-option__icon">&#9997;</span>
+            <span class="role-option__body">
+                <span class="role-option__name">Advocate</span>
+                <span class="role-option__desc">I help tenants navigate housing issues and disputes.</span>
+            </span>
+        </button>
+
+        <button class="role-option" data-role="legal" onclick="selectRole(this, 'legal')">
+            <span class="role-option__icon">&#9878;</span>
+            <span class="role-option__body">
+                <span class="role-option__name">Legal Professional</span>
+                <span class="role-option__desc">I'm an attorney or legal worker handling tenant cases.</span>
+            </span>
+        </button>
+
+        <button class="role-option" data-role="manager" onclick="selectRole(this, 'manager')">
+            <span class="role-option__icon">&#9881;</span>
+            <span class="role-option__body">
+                <span class="role-option__name">Manager</span>
+                <span class="role-option__desc">I coordinate case assignments and team operations.</span>
+            </span>
+        </button>
+
+        <button class="role-option" data-role="admin" onclick="selectRole(this, 'admin')">
+            <span class="role-option__icon">&#9881;</span>
+            <span class="role-option__body">
+                <span class="role-option__name">Admin</span>
+                <span class="role-option__desc">I manage the Semptify platform and system configuration.</span>
+            </span>
+        </button>
+    </section>
+
+    <!-- REACTION: feedback state -->
+    <div class="role-reaction" id="role-reaction" data-state="idle">
+        <span class="role-reaction__spinner"></span>
+        <span class="role-reaction__text">Saving your choice...</span>
+    </div>
+
+</div>
+
+{% block scripts %}
+<script>
+    async function selectRole(btn, role) {
+        const reaction = document.getElementById('role-reaction');
+
+        // Disable all options while working
+        document.querySelectorAll('.role-option').forEach(b => b.style.pointerEvents = 'none');
+
+        // Show working state
+        reaction.dataset.state = 'working';
+
+        try {
+            const resp = await fetch('/api/auth/set-role', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': window.CSRF_TOKEN,
+                },
+                body: JSON.stringify({ role }),
+                credentials: 'include',
+            });
+
+            if (resp.ok) {
+                reaction.querySelector('.role-reaction__text').textContent = 'Role saved. Redirecting...';
+                setTimeout(() => {
+                    window.location.href = '/storage-info';
+                }, 500);
+            } else {
+                throw new Error('Failed to set role');
+            }
+        } catch (err) {
+            reaction.dataset.state = 'idle';
+            reaction.querySelector('.role-reaction__text').textContent = 'Something went wrong. Please try again.';
+            reaction.dataset.state = 'working';
+            reaction.querySelector('.role-reaction__spinner').style.display = 'none';
+            document.querySelectorAll('.role-option').forEach(b => b.style.pointerEvents = '');
+            setTimeout(() => { reaction.dataset.state = 'idle'; }, 3000);
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

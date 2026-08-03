@@ -1,16 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Center — Semptify</title>
-    <meta http-equiv="refresh" content="0; url=/dc">
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        a { color: #3b82f6; }
-    </style>
-</head>
-<body>
-    <p>Redirecting to the <a href="/dc">Document Center</a>…</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Documents - Semptify{% endblock %}
+{% block description %}Document management system - under rework{% endblock %}
+
+{% block styles %}
+<style>
+    .documents-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
+
+    /* INFORMATION — what/why/expect */
+    .docs-info {
+        margin-bottom: 2rem;
+    }
+    .docs-info h1 {
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .docs-info p {
+        color: var(--color-text-secondary);
+        margin: 0 0 0.75rem;
+    }
+
+    /* Status notice */
+    .docs-status {
+        padding: 1.25rem;
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid var(--color-warning);
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+    }
+    .docs-status h2 {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        margin: 0 0 0.5rem;
+    }
+    .docs-status p {
+        color: var(--color-text-secondary);
+        margin: 0 0 0.5rem;
+        font-size: var(--font-size-sm);
+    }
+
+    /* ACTION — alternatives while reworking */
+    .docs-alternatives {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .alt-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        text-decoration: none;
+        color: var(--color-text-primary);
+        transition: all var(--transition-fast);
+    }
+
+    .alt-link:hover {
+        background: var(--color-bg-hover);
+        border-color: var(--color-accent);
+    }
+
+    .alt-link__icon { font-size: 1.25rem; flex-shrink: 0; }
+    .alt-link__body { flex: 1; }
+    .alt-link__title { font-weight: 600; font-size: var(--font-size-base); }
+    .alt-link__desc { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+
+    @media (max-width: 768px) {
+        .documents-page { padding: 1rem 0.75rem 3rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="documents-page">
+
+    <!-- INFORMATION -->
+    <section class="docs-info">
+        <h1>Documents</h1>
+        <p>The document management system is being reworked to better serve your needs.</p>
+    </section>
+
+    <!-- Status notice -->
+    <section class="docs-status">
+        <h2>Under Rework</h2>
+        <p>We're rebuilding the document system to make it more intuitive and powerful.</p>
+        <p>In the meantime, you can still upload and manage documents through these alternatives:</p>
+    </section>
+
+    <!-- ACTION — alternative paths -->
+    <section class="docs-alternatives">
+        <a href="/vault" class="alt-link">
+            <span class="alt-link__icon">&#128274;</span>
+            <span class="alt-link__body">
+                <span class="alt-link__title">Vault</span>
+                <span class="alt-link__desc">Upload and organize your documents securely.</span>
+            </span>
+        </a>
+        <a href="/timeline" class="alt-link">
+            <span class="alt-link__icon">&#128197;</span>
+            <span class="alt-link__body">
+                <span class="alt-link__title">Timeline</span>
+                <span class="alt-link__desc">View documents in your case timeline.</span>
+            </span>
+        </a>
+        <a href="/tenant/timeline" class="alt-link">
+            <span class="alt-link__icon">&#9654;</span>
+            <span class="alt-link__body">
+                <span class="alt-link__title">Record Pillar</span>
+                <span class="alt-link__desc">Full record view with document integration.</span>
+            </span>
+        </a>
+    </section>
+
+</div>
+{% endblock %}
