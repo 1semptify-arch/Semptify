@@ -65,7 +65,7 @@ All checks passed.
 ### Reconciliation findings
 
 | Task | Component | Status | Evidence |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 4 Admin / logging | `app.core.logging_service.py`, `app.core.logging_middleware.py` | wired | `/admin/api/logs` (live tail), `/admin/api/logs/level` (runtime level), `/admin/api/flags`, `/admin/api/flags/{name}`, `/admin/api/flags/{name}/toggle`, `AdminErrorQueue` audit, feature flags, admin console |
 | 5 Voice | `app.modules.voice.router` | registered + conformant | `/api/voice/transcribe` route; `pytest tests/module_health/test_voice.py` passed |
 | 6 Multi-language | `app.core.i18n.py`, `app/translations/*.json` | wired | `_()` Jinja global in `app.main.py`, 14 translation catalogs |
@@ -117,7 +117,7 @@ All checks passed.
 
 ## Session -- 2026-07-29 — Master Handoff Task 3 — content pass follow-up
 
-### Guardrail Engine Run — 2026-07-29T11:28
+### Guardrail Engine Run — 2026-07-29T11:28 (2)
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
@@ -130,7 +130,7 @@ All checks passed.
 
 - `app/templates/public/portal.html` — tightened the public landing page to action-first copy ("Upload your documents. Track your deadlines. Build your case.") and replaced the inspirational quote with a concrete tenant-rights fact ("Document problems as they happen...").
 
-### Verification
+### Verification (2)
 
 - `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
@@ -144,7 +144,7 @@ All checks passed.
 
 ## Session -- 2026-07-29 — Master Handoff Task 2 — footer + help page
 
-### Guardrail Engine Run — 2026-07-29T11:28
+### Guardrail Engine Run — 2026-07-29T11:28 (3)
 
 - **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
 - **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
@@ -153,7 +153,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (2)
 
 - `app/templates/public_base.html` — replaced dense footer with minimal version: one-line UPL boundary, "Get help", "Report a problem", copyright.
 - `static/components/footer.html` — updated SSOT copy/paste footer snippet to the same minimal markup.
@@ -161,7 +161,7 @@ All checks passed.
 - `static/templates/base.html` — replaced dense inline footer with minimal version and added matching page-footer CSS.
 - `app/templates/pages/help.html` — clarified the fourth help route as "I need to check my status or deadlines" (GOVERN / home dashboard), keeping the page no-scroll, action-first, and RECORD/KNOW/ACT/GOVERN routing.
 
-### Verification
+### Verification (3)
 
 - `python scripts/verify_ssot.py`: 8 passed, SSOT clean.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
@@ -184,7 +184,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (3)
 
 - `app/modules/dispute_tracker/router.py` — minimal GUI page (`GET /api/dispute-tracker/`), `POST /api/dispute-tracker/disputes`, `POST /api/dispute-tracker/comparisons`. Removed `APIRouter` prefix (product manifest owns it) and switched redirects to `ssot_redirect()`.
 - `app/templates/pages/dispute_tracker.html` — desktop-poster / mobile-stacked layout with add-dispute form, disputes list, add-comparison form, comparisons list. PII kept in overlays.
@@ -194,7 +194,7 @@ All checks passed.
 - `tools/checks/contract_route_check.py` — new guardrail check. Validates tier (T0–T3), manifest prefix coverage, every actual route is in contract allowed_routes, and `PUBLIC_PREFIXES` exposure (only T0 routes allowed under public paths).
 - `app/core/navigation.py`, `app/core/ssot_guard.py`, `app/main.py` — committed remaining B1 admin hub SSOT navigation/wiring changes from working tree.
 
-### Verification
+### Verification (4)
 
 - `python -m py_compile` on all changed Python files: PASS.
 - `python -m ruff check` on changed files: PASS.
@@ -250,7 +250,7 @@ One or more checks failed — see console output.
 
 All checks passed.
 
-### What was built
+### What was built (4)
 
 - `app/core/module_contracts.py` — `FunctionGroupContract` extended with `tier`, `allowed_routes`, and `allowed_prefixes` for Build Orchestrator hard-gate contract validation.
 - `app/modules/dispute_tracker/` — greenfield scaffold + manifest + module registry entry + `register.py` with T2 contracts.
@@ -260,7 +260,7 @@ All checks passed.
   - `subject_id` on `EvictionTimelineEvent` is a placeholder with no FK — accountability_ledger boundary is deferred per your Option 3.
 - `app/modules/dispute_tracker/schemas.py` and `app/modules/eviction_timeline/schemas.py` — Pydantic schemas for the new models.
 
-### Verification
+### Verification (5)
 
 - `python -m py_compile`: all changed Python files PASS.
 - `python -m ruff check`: PASS.
@@ -271,7 +271,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: PASS.
 
-### Still Pending
+### Still Pending (2)
 
 - B2 Commit 4 — dispute_tracker minimal GUI (list + add/compare).
 - B2 Commit 5 — dispute_tracker conformance gate wiring.
@@ -291,7 +291,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (5)
 
 - `app/modules/advanced/` — new admin-only module for the Advanced / Dev Tools hub tile.
   - Non-cost-guard endpoints come first: `GET /health`, `/tools`, `/build`; `POST /guardrail`, `/sync-orchestrator`, `/verify`.
@@ -300,7 +300,7 @@ All checks passed.
 - `tools/module_registry.yaml` — `advanced` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
 - `tests/module_health/test_advanced.py` — generated per-module health test.
 
-### Verification
+### Verification (6)
 
 - `python -m py_compile app/modules/advanced/router.py app/core/product_manifest.py`: PASS.
 - `python -m ruff check app/modules/advanced app/core/product_manifest.py tests/module_health/test_advanced.py`: PASS.
@@ -310,7 +310,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: PASS.
 
-### Still Pending
+### Still Pending (3)
 
 - B1 complete: all 5 admin hub stub tiles are now wired.
 - B2 `dispute_tracker` packaging and B3 `eviction_timeline` scoping remain pending.
@@ -327,7 +327,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (6)
 
 - `app/modules/user_concerns/` — new admin-only module for the User Concerns hub tile.
   - `router.py` provides `GET /api/admin/user-concerns/health`, `/concerns`, `/summary`, and `POST /flag`, `/resolve`.
@@ -337,7 +337,7 @@ All checks passed.
 - `tools/module_registry.yaml` — `user_concerns` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
 - `tests/module_health/test_user_concerns.py` — generated per-module health test.
 
-### Verification
+### Verification (7)
 
 - `python -m py_compile app/modules/user_concerns/router.py app/core/product_manifest.py`: PASS.
 - `python -m ruff check app/modules/user_concerns app/core/product_manifest.py tests/module_health/test_user_concerns.py`: PASS.
@@ -347,7 +347,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: PASS.
 
-### Still Pending
+### Still Pending (4)
 
 - Wire the `advanced` tile with `detect_repeated_fees` as a cost-guard-only (T0) function (per user decision: "do not detect").
 - B2 `dispute_tracker` packaging and B3 `eviction_timeline` scoping remain pending.
@@ -364,7 +364,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (7)
 
 - `app/modules/correspondence/` — new admin-only module for the Correspondence hub tile.
   - `router.py` provides `GET /api/admin/correspondence/health`, `/templates`, `/logs`, and `POST /send`.
@@ -375,7 +375,7 @@ All checks passed.
 - `tools/module_registry.yaml` — `correspondence` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
 - `tests/module_health/test_correspondence.py` — generated per-module health test.
 
-### Verification
+### Verification (8)
 
 - `python -m py_compile app/modules/correspondence/router.py app/core/product_manifest.py`: PASS.
 - `python -m ruff check app/modules/correspondence app/core/product_manifest.py tests/module_health/test_correspondence.py`: PASS.
@@ -385,7 +385,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: PASS.
 
-### Still Pending
+### Still Pending (5)
 
 - Data-sensitivity tier confirmation for `user_concerns` and `advanced` before wiring the remaining B1 tiles.
 - Decision on `advanced`/`detect_repeated_fees` scope (cost-guard only vs. full fee audit).
@@ -402,7 +402,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (8)
 
 - `app/modules/run_modules/` — new admin-only execution surface for the Run Modules hub tile.
   - `router.py` provides `GET /api/admin/run/modules` and `POST /api/admin/run/modules/{module_id}`.
@@ -412,7 +412,7 @@ All checks passed.
 - `tools/module_registry.yaml` — `run_modules` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
 - `tests/module_health/test_run_modules.py` — generated per-module health test.
 
-### Verification
+### Verification (9)
 
 - `python -m py_compile app/modules/run_modules/router.py app/core/product_manifest.py`: PASS.
 - `python -m ruff check app/modules/run_modules app/core/product_manifest.py tests/module_health/test_run_modules.py`: PASS.
@@ -422,7 +422,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: PASS.
 
-### Still Pending
+### Still Pending (6)
 
 - Data-sensitivity tier confirmation for `correspondence`, `user_concerns`, and `advanced` before wiring the remaining B1 tiles.
 
@@ -438,7 +438,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (9)
 
 - `app/modules/system_health/` — new admin-only module for the System Health & Updates hub tile.
   - `router.py` provides `GET /api/admin/system/health`, `GET /api/admin/system/registry`, and `POST /api/admin/system/verify`.
@@ -447,7 +447,7 @@ All checks passed.
 - `tools/module_registry.yaml` — `system_health` now has real `module_path`, `health_check`, `test_suite`, and `requires_role: admin`; status `ok`.
 - `tests/module_health/test_system_health.py` — generated per-module health test.
 
-### Verification
+### Verification (10)
 
 - `python -m py_compile app/modules/system_health/router.py app/core/product_manifest.py`: PASS.
 - `python -m ruff check app/modules/system_health app/core/product_manifest.py tests/module_health/test_system_health.py`: PASS.
@@ -457,7 +457,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python scripts/verify_ssot.py`: PASS.
 
-### Still Pending
+### Still Pending (7)
 
 - Data-sensitivity tier confirmation for `run_modules`, `correspondence`, `user_concerns`, and `advanced` before wiring the remaining B1 tiles.
 
@@ -481,7 +481,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (10)
 
 - `tools/module_health.py`
   - Generic per-module health check generator loaded from `tools/module_registry.yaml`.
@@ -503,7 +503,7 @@ All checks passed.
 - `app/modules/document_delivery/router.py`
   - Fixed duplicate `GET /api/delivery/inbox` route by moving the HTML page route to `/inbox/page` (the JSON API remains at `/api/delivery/inbox`).
 
-### Verification
+### Verification (11)
 
 - `python -m compileall tools/module_health.py tools/generate_module_health.py tools/verify_modules.py app/modules/document_delivery/router.py tests/module_health`: PASS.
 - `python -m ruff check tools/module_health.py tools/generate_module_health.py tools/verify_modules.py tests/module_health`: PASS.
@@ -517,7 +517,7 @@ All checks passed.
 - 115 product-manifest modules now have real `health_check` + `test_suite` entries.
 - `verify_modules` runs each health check and its test in ~1.2s without coverage failures.
 
-### Still Pending
+### Still Pending (8)
 
 - 7 modules remain flagged (`health_check: TODO`) pending Brad's decisions or optional router availability.
 - 5 hub tile entries (`run_modules`, `correspondence`, `user_concerns`, `system_health`, `advanced`) have no `module_path` and are intentionally unverified.
@@ -534,7 +534,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (11)
 
 - `app/templates/generic_page.html`
   - Detects the `subject_grid` component and wraps picker + results in a shared `uic-library-layout`.
@@ -547,7 +547,7 @@ All checks passed.
   - `_subject_grid` macro no longer emits its own `#library-content` container.
   - `generic_page.html` now owns the HTMX swap target, preventing duplicate IDs and keeping the component reusable for fragments.
 
-### Verification
+### Verification (12)
 
 - `python -m py_compile app/main.py app/services/ui_composer.py`: PASS.
 - `python -m ruff check app/main.py app/services/ui_composer.py`: PASS (no new lint; pre-existing unrelated ruff items untouched).
@@ -556,12 +556,12 @@ All checks passed.
 - `python tools/sync_orchestrator.py --check`: PASS.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 
-### Known Working
+### Known Working (2)
 
 - `/tenant/library` renders through `generic_page.html` with the picker and results in the same component tree.
 - HTMX subject selection still targets `#library-content` and swaps `fact_card` components inline.
 
-### Still Pending
+### Still Pending (9)
 
 - Live authenticated render of `/tenant/library` with real subject data to confirm visual layout at desktop and mobile widths.
 - Live HTMX swap end-to-end with a real subject and data.
@@ -578,7 +578,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (12)
 
 - `app/modules/housing_accountability/router.py`
   - Replaced pair-wise fee comparison with canonical-type clustering.
@@ -606,7 +606,7 @@ All checks passed.
 - `tests/test_filedored_service.py` (new)
   - Added tests for `ai_classify_document` and `process_uploaded_document` with a fake overlay manager.
 
-### Verification
+### Verification (13)
 
 - `python -m py_compile` on all changed Python files: PASS.
 - `python -m ruff check` on all changed Python files: PASS.
@@ -614,7 +614,7 @@ All checks passed.
 - `python tools/sync_orchestrator.py --check`: PASS (0 stubs, 44 tasks).
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 
-### Known Working
+### Known Working (3)
 
 - `detect_repeated_fees()` now deduplicates recurring instances and handles fee aliases.
 - `ai_classify_document()` and `process_uploaded_document()` produce and persist a confidence score.
@@ -631,7 +631,7 @@ All checks passed.
 
 All checks passed.
 
-### What was built
+### What was built (13)
 
 - Added `tools/module_registry.yaml` as the module health registry (127 entries, synced from `product_manifest.py`).
 - Added `tools/sync_registry.py` to reconcile the registry against the product manifest (add new modules, flag orphaned).
@@ -645,7 +645,7 @@ All checks passed.
 - Added `pyyaml>=6.0.0` to `requirements.txt` to make the runtime YAML dependency explicit.
 - Added `.github/workflows/verify-modules-scheduled.yml` to run sync + verify daily and commit the registry if it changes.
 
-### Verification
+### Verification (14)
 
 - `python -m py_compile` on all changed Python files: PASS.
 - `python -m ruff check` on all changed Python files: PASS.
@@ -653,7 +653,7 @@ All checks passed.
 - `python tools/sync_registry.py --write`: PASS (127 registry entries, 1 orphan flagged).
 - `python tools/verify_modules.py --id run_modules`: PASS.
 
-### Known Working / Pending
+### Known Working / Pending (2)
 
 - Admin Hub is live at `/admin`; tile routes and registry API are wired.
 - All 7 Hub tiles render; admin-category tiles are stub pages pending module implementation.
@@ -671,14 +671,14 @@ All checks passed.
 - `tools/docs_todos.json` and `tools/agent_orchestrator_tasks.json` are now in sync and all 44 tasks are marked `resolved`.
 - Updated `STUB_AUDIT.md` to reflect that Tier 1 and Tier 2 stubs are resolved; only Tier 3/4/5 (by-design) remain.
 
-### Verification
+### Verification (15)
 
 - `python -m py_compile tools/_seed_orchestrator_tasks.py`: PASS.
 - `python tools/sync_orchestrator.py`: PASS.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - `python tmp_list_todos.py`: no pending todos.
 
-### Known Working / Pending
+### Known Working / Pending (3)
 
 - All orchestrator tasks (`todo-001` through `todo-044`) are resolved.
 - Queue is empty pending new work.
@@ -707,13 +707,13 @@ All checks passed.
 - **todo-031**: Wired `seed_court_data.py` into `court_learning.get_learning_engine()` so the Court Learning Engine is seeded with 200 synthetic historical cases on first use; cleaned style/lint issues.
 - **todo-032**: `legal_filing_module.py` is a functional wrapper mounting `app/modules/legal_filing/router`; registered in manifest/compliance.
 
-### Verification
+### Verification (16)
 
 - `python -m py_compile` on all changed Python files: PASS.
 - `python -m ruff check` on all changed Python files: PASS.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 
-### Known Working / Pending
+### Known Working / Pending (4)
 
 - All orchestrator tasks `todo-021` through `todo-032` are now marked `resolved`.
 - No new runtime blockers introduced; mesh and performance monitoring are guarded by `ENABLE_HEAVY_SERVICES`.
@@ -730,7 +730,7 @@ All checks passed.
 
 All checks passed.
 
-### Verification
+### Verification (17)
 
 - Connected Google Drive OAuth for user `GUyQ2ld1CC` via Playwright.
 - Added missing `review_state_json` column to `vault_index` (schema was behind model; `alembic` failed because `document_shares` already existed).
@@ -757,12 +757,12 @@ All checks passed.
 
 All checks passed.
 
-### Problem
+### Problem (2)
 
 - Packet Builder export had two separate paths (case_builder attorney intake packet and briefcase folder export).
 - Product owner asked for option 3: a single curated export with both marked-up and clean copies of documents, plus a summary.
 
-### Fix
+### Fix (2)
 
 - Added `app/modules/case_builder/packet_export.py`: a reusable helper that builds a single ZIP with:
   - `clean/` — original, unmodified documents.
@@ -773,7 +773,7 @@ All checks passed.
 - Registered a `FunctionGroupContract` for the new endpoint in `app/modules/case_builder/register.py`.
 - Wired a new "Curated Packet Export" panel in `app/templates/pages/case_builder.html` with checkboxes for Clean/Marked/Summary.
 
-### Verification
+### Verification (18)
 
 - `python -m py_compile app/modules/case_builder/packet_export.py app/modules/case_builder/router.py app/modules/case_builder/register.py`: PASS.
 - `python -m ruff check app/modules/case_builder/packet_export.py`: PASS.
@@ -782,7 +782,7 @@ All checks passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 - Endpoint and helper import cleanly; UI panel renders in `case_builder.html`.
 
-### Known Working / Pending
+### Known Working / Pending (5)
 
 - `todo-044` marked `resolved` in `tools/agent_orchestrator_tasks.json`.
 - The feature is code-complete. It needs a live end-to-end test with real cloud storage and overlaid documents to confirm PDF/Image merging and overlay fetching.
@@ -812,7 +812,7 @@ All checks passed.
 - All five routes rendered successfully with distinct color schemes; console showed only expected 403 API errors on `/advocate` endpoints (role-guarded APIs in open mode).
 - `todo-010` marked `resolved` in `tools/agent_orchestrator_tasks.json`.
 
-### Verification
+### Verification (19)
 
 - Playwright navigation and screenshots produced without error.
 - `python tools/mark_task_status.py todo-010 resolved ...`: success.
@@ -829,25 +829,25 @@ All checks passed.
 
 All checks passed.
 
-### Problem
+### Problem (3)
 
 - `agent_orchestrator_tasks.json` still listed many tasks that were already implemented
   (Deep OCR pipeline, Journal, Rent ledger, RFC 3161 TSA wiring, etc.).
 - `tenant_home.html` and `tenant_help.html` linked to `/tenant/documents`, which has no
   registered route.
 
-### Fix
+### Fix (3)
 
 - Marked resolved the stale tasks from the queue after verifying the code exists and works.
 - Replaced `/tenant/documents` with `/gui/record` (canonical four-pillar record page) in
   `tenant_home.html` and `tenant_help.html`.
 
-### Verification
+### Verification (20)
 
 - `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
 - `python tools/guardrail_engine.py`: ALL CHECKS PASSED.
 
-### Known Working / Pending
+### Known Working / Pending (6)
 
 - `todo-044` (Packet Builder unify) still pending a design decision.
 - `todo-007` (Attorney Intake Packet) still in progress on feature branch awaiting user review.
@@ -865,13 +865,13 @@ All checks passed.
 
 All checks passed.
 
-### Problem
+### Problem (4)
 
 - Semptify's "no fees to tenants" commitment was only implicit; advanced/admin/research modules
   (e.g. `housing_accountability`) use "fee" as a domain term for landlord conduct, but there
   was no machine-checkable boundary preventing a future agent from "fixing" that language.
 
-### Fix
+### Fix (4)
 
 - Added `FeesPolicy` enum and `fees_policy` field to `app/core/product_manifest.py` `ModuleEntry`.
 - `_register()` defaults CORE/DEV modules to `tenant_no_fees` and
@@ -884,7 +884,7 @@ All checks passed.
 - Documented the distinction in `AGENTS.md` under "Fees Terminology Policy".
 - Did **not** modify `housing_accountability/router.py`, `detect_repeated_fees`, or any fee-detection logic.
 
-### Verification
+### Verification (21)
 
 - `python -m py_compile app/core/product_manifest.py tools/checks/fees_policy_check.py tests/test_fees_policy_guardrail.py`: PASS.
 - `python -m ruff check app/core/product_manifest.py tools/checks/fees_policy_check.py tests/test_fees_policy_guardrail.py`: PASS.
@@ -892,7 +892,7 @@ All checks passed.
 - `python -m pytest tests/test_fees_policy_guardrail.py -q --no-cov`: 5 passed.
 - Repo-wide `fee` references in module code unchanged except for the new manifest field name.
 
-### Known Working / Pending
+### Known Working / Pending (7)
 
 - `fees_policy` guardrail is live and will fail any build that makes an `exempt_advanced` module tenant-reachable.
 - The exemption is conditional; if a module's role/tier changes to include tenant reachability,
@@ -909,11 +909,11 @@ All checks passed.
 
 All checks passed.
 
-### Problem
+### Problem (5)
 
 - `agent_orchestrator_tasks.json` listed `todo-020` as a high-priority stub fix: `app/modules/litigation_intelligence/router.py` endpoints at lines 218, 250, and 275 were reported to return `501` "Graph engine not implemented".
 
-### Fix
+### Fix (5)
 
 - Inspected `app/modules/litigation_intelligence/router.py`:
   - `POST /api/litigation-intelligence/graph/build` already builds a graph from entities/relationships and returns `graph` data via `GraphEngine.export_graph_data()`.
@@ -923,12 +923,12 @@ All checks passed.
 - Updated the stale docstring in `app/modules/litigation_intelligence/register.py` that incorrectly claimed the module was inactive due to an unimplemented graph engine.
 - Marked `todo-020` resolved in `tools/agent_orchestrator_tasks.json`.
 
-### Verification
+### Verification (22)
 
 - `python -m py_compile app/modules/litigation_intelligence/register.py`: PASS.
 - `python -m pytest tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py tests/test_module_contracts.py tests/test_product_manifest.py -q --no-cov`: 38 passed.
 
-### Known Working / Pending
+### Known Working / Pending (8)
 
 - The three graph endpoints are live and covered by tests.
 - Graph visualizations gracefully degrade from PNG to SVG when Pillow is unavailable.
@@ -936,18 +936,18 @@ All checks passed.
 ---
 ## Session -- 2026-07-28 -- Resolve todo-036 (Semantic Context Engine / Deep OCR Pass 2)
 
-### Guardrail Engine Run — 2026-07-28T05:18:00
+### Guardrail Engine Run — 2026-07-28T05:18:00 (2)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### Problem
+### Problem (6)
 
 - `agent_orchestrator_tasks.json` listed `todo-036` as a high-priority build: implement the reasoning layer that turns raw OCR text into labeled, confidence-scored facts using the tenancy domain schema and trigger-phrase context.
 
-### Fix
+### Fix (6)
 
 - Verified `app/services/semantic_context_engine.py` already implements the Semantic Context Engine:
   - `SemanticContextEngine.extract()` takes raw OCR text and an optional document type hint and returns `SemanticDateResult` objects.
@@ -964,12 +964,12 @@ All checks passed.
   - Fixed the token refresh call in the overlay path to use the async `app.core.auto_refresh.ensure_valid_token()` instead of the synchronous `get_valid_token_for_user()`, avoiding event-loop blocking per Known Failure Registry #19.
 - Marked `todo-036` resolved in `tools/agent_orchestrator_tasks.json`.
 
-### Verification
+### Verification (23)
 
 - `python -m py_compile app/core/job_processor.py app/services/semantic_context_engine.py tests/test_semantic_context_engine.py`: PASS.
 - `python -m pytest tests/test_semantic_context_engine.py tests/test_document_intake.py tests/test_sessions.py -q --no-cov`: 65 passed.
 
-### Known Working / Pending
+### Known Working / Pending (9)
 
 - Deep OCR Pass 2 now produces structured, labeled, confidence-scored date objects and writes them to the user's cloud overlays.
 - The rule-based engine handles common tenancy date roles; the LLM fallback is still reserved for a future optimization.
@@ -977,20 +977,20 @@ All checks passed.
 ---
 ## Session -- 2026-07-28 -- Resolve todo-015 and todo-016 (OAuth token refresh + ice-cube token model)
 
-### Guardrail Engine Run — 2026-07-28T05:18:00
+### Guardrail Engine Run — 2026-07-28T05:18:00 (3)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### Problem
+### Problem (7)
 
 - `agent_orchestrator_tasks.json` listed `todo-015` and `todo-016` as high-priority pending items:
   - `todo-015`: `app/core/stateless_oauth.py:239` — token refresh reported as not implemented, causing users to be logged out on token expiry.
   - `todo-016`: `app/core/storage_middleware.py:284` — DB-based token pre-check marked as temporary, needing an in-memory "ice-cube" token model.
 
-### Fix
+### Fix (7)
 
 - Verified `app/core/stateless_oauth.py`:
   - `refresh_token_if_needed()` already implements full async token refresh with `RefreshResult` (distinguishable error codes: `no_tokens_stored`, `no_refresh_token`, `refresh_failed:*`, `missing_client_credentials:*`).
@@ -1002,13 +1002,13 @@ All checks passed.
   - `storage_middleware` delegates token validity to `get_valid_token_or_redirect(raw_user_id, return_to=path, db=refresh_db)`, so the provider is the bouncer and DB is only the freezer/refresh-token store.
 - Marked `todo-015` and `todo-016` resolved in `tools/agent_orchestrator_tasks.json`.
 
-### Verification
+### Verification (24)
 
 - `python -m py_compile app/core/stateless_oauth.py app/core/auto_refresh.py app/core/storage_middleware.py app/modules/storage/router.py app/core/oauth_token_manager.py`: PASS.
 - `python -m pytest tests/test_sessions.py -q --no-cov`: 19 passed.
 - `python -m pytest tests/test_ssot_architecture.py tests/test_websocket.py tests/test_production_init.py -q --no-cov`: 36 passed, 3 skipped.
 
-### Known Working / Pending
+### Known Working / Pending (10)
 
 - OAuth token refresh paths are async and non-blocking; no synchronous `httpx.Client` calls remain in the refresh flow used by `storage_middleware`.
 - In-memory token cache reduces per-request DB load; multi-instance deployments still need a shared cache for full ice-cube benefit.
@@ -1016,18 +1016,18 @@ All checks passed.
 ---
 ## Session -- 2026-07-28 -- Packet Builder four-pillar UI
 
-### Guardrail Engine Run — 2026-07-28T05:18:00
+### Guardrail Engine Run — 2026-07-28T05:18:00 (4)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### Problem
+### Problem (8)
 
 - `ACTIVE_CONTEXT.md` lists Packet Builder UI as the next candidate priority. The backend module (`app/modules/packet_builder/`) was already shipped and tested, but there was no tenant-facing GUI for building and downloading curated document packets.
 
-### Fix
+### Fix (8)
 
 - Added `app/templates/gui/packet_builder.html` — a four-pillar GUI page extending `gui/base.html` with Act navigation active.
 - The page provides a form to choose a source (vault document IDs, a case ID, or a briefcase folder ID), select overlay/clean export mode, toggle highlights/notes/footnotes inclusion, and name the packet.
@@ -1036,7 +1036,7 @@ All checks passed.
 - Added a "Build Packet" card and secondary action button to `app/templates/gui/act.html`.
 - `app/main.py` import blocks were reordered by `ruff --fix`.
 
-### Verification
+### Verification (25)
 
 - `python -m py_compile app/main.py`: PASS.
 - `python -m ruff check --fix app/main.py`: PASS (import sorting fixes applied).
@@ -1044,7 +1044,7 @@ All checks passed.
 - `python -m pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
 - `TestClient` smoke test: `GET /gui/act` and `GET /gui/packet-builder` both return 200 with the expected "Build Packet" content.
 
-### Known Working / Pending
+### Known Working / Pending (11)
 
 - Packet Builder endpoints (`/api/packet-builder/*`) are functional and covered by tests.
 - The new `/gui/packet-builder` page is public under the `/gui/` prefix and wired to the backend.
@@ -1060,7 +1060,7 @@ All checks passed.
 
 All checks passed.
 
-### Problem
+### Problem (9)
 
 - After resolving the pytest collection hang, 67 pre-existing test failures remained across four clusters:
   1. WebSocket mock `close()` signature and message-protocol expectations (15 failures in `tests/test_websocket.py`).
@@ -1068,7 +1068,7 @@ All checks passed.
   3. Vault Engine endpoint tests using unsigned test cookies and a fresh engine lacking seeded resources (31 failures in `tests/test_vault_engine.py`).
   4. `validate_production_mode()` not enforcing Cloudflare R2 configuration and `tests/test_production_init.py` not overriding `.env` values (1 failure).
 
-### Fix
+### Fix (9)
 
 - `tests/test_websocket.py`:
   - Added `reason` parameter to `MockWebSocket.close()`.
@@ -1087,13 +1087,13 @@ All checks passed.
 - `app/core/production_init.py`:
   - `validate_production_mode()` now returns `False` in production when any of `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, or `R2_BUCKET_NAME` is missing.
 
-### Verification
+### Verification (26)
 
 - `python -m py_compile app/core/production_init.py tests/test_court_learning.py tests/test_court_procedures.py tests/test_production_init.py tests/test_vault_engine.py tests/test_websocket.py`: PASS.
 - `pytest tests/test_websocket.py tests/test_court_learning.py tests/test_court_procedures.py tests/test_vault_engine.py tests/test_production_init.py -q --no-cov`: 77 passed, 33 skipped.
 - `pytest -q --no-cov --tb=no` (full suite): 1024 passed, 178 skipped, 0 failures.
 
-### Known Working / Pending
+### Known Working / Pending (12)
 
 - The four previously failing test modules now pass; the full pytest suite is green.
 - The end-of-suite logging error emitted by `websocket_manager` and `job_processor` atexit handlers is a harmless stdout-closed artifact, not a test failure.
@@ -1108,11 +1108,11 @@ All checks passed.
 
 All checks passed.
 
-### Problem
+### Problem (10)
 
 - The repository contains dozens of audit, inventory, cleanup, migration, report, test, and utility scripts across `tools/`, `scripts/`, and the root, but there was no single categorized catalog or interactive way for admins to discover them.
 
-### Fix
+### Fix (10)
 
 - Inventoried all scripts and produced `static/data/script_catalog.json` grouped by category with descriptions, effects, and commands.
 - Generated `static/admin/script_catalog.html`, an interactive card-based GUI with search, category filters, expandable details, and command copying.
@@ -1123,7 +1123,7 @@ All checks passed.
 - Fixed a root-cause admin elevation bug where `_require_elevation` returned a `Response` from a dependency (FastAPI ignores it), leaving all `/admin/*.html` pages publicly accessible. It now raises `AdminElevationRequired`, and an exception handler returns `307` to `/admin/login` for HTML and `401` JSON for API calls.
 - Added `/admin/api/` to `PUBLIC_PREFIXES` in `app/core/storage_middleware.py` so admin API routes are no longer intercepted by the storage-user middleware and can be gated by their own elevation/capability checks.
 
-### Verification
+### Verification (27)
 
 - `python -m py_compile app/main.py`: PASS.
 - `python -m py_compile app/core/admin_elevation.py app/core/storage_middleware.py`: PASS.
@@ -1135,7 +1135,7 @@ All checks passed.
   - `GET /admin/api/script-catalog` with valid elevation cookie → `200` with the catalog JSON.
 - `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
 
-### Known Working / Pending
+### Known Working / Pending (13)
 
 - Admin can browse and copy commands for all cataloged scripts.
 - Script execution is not enabled in the GUI for safety; run scripts from a terminal.
@@ -1144,11 +1144,11 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Implement manager dashboard staff presence tracking (todo-059)
 
-### Problem
+### Problem (11)
 
 - `todo-059` was pending: `app/core/manager_dashboard.py` hardcoded every staff member's status to `"offline"` with a TODO.
 
-### Fix
+### Fix (11)
 
 - `app/core/manager_dashboard.py`:
   - Added `ONLINE_THRESHOLD_MINUTES = 15`.
@@ -1157,13 +1157,13 @@ All checks passed.
   - Updated `get_staff_list()` to populate `status` and `last_seen` using the new helpers.
 - `tests/test_manager_dashboard.py`: 5 unit tests covering recent login, stale login, missing login with recent updated_at, more-recent updated_at than login, and naive datetime handling.
 
-### Verification
+### Verification (28)
 
 - `python -m py_compile app/core/manager_dashboard.py tests/test_manager_dashboard.py`: PASS.
 - `pytest tests/test_manager_dashboard.py -q --no-cov`: 5 passed.
 - `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py tests/test_document_delivery_service.py tests/test_manager_dashboard.py -q --no-cov`: 37 passed.
 
-### Known Working / Pending
+### Known Working / Pending (14)
 
 - `/api/manager-dashboard` staff list now reflects real last-activity timestamps.
 - True real-time presence (WebSocket/heartbeat) is not yet implemented; this is a timestamp-based heuristic.
@@ -1171,11 +1171,11 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Implement process server delivery in document_delivery_service (todo-058)
 
-### Problem
+### Problem (12)
 
 - `todo-058` was pending: `app/services/document_delivery_service.py` returned `success=False` with the message "Process server delivery not yet implemented" whenever `delivery_type == DeliveryType.PROCESS_SERVER`.
 
-### Fix
+### Fix (12)
 
 - `app/services/document_delivery_service.py`:
   - Removed the PROCESS_SERVER rejection stub.
@@ -1184,13 +1184,13 @@ All checks passed.
   - Returns the message "Document queued for process server delivery" for this delivery type.
 - `tests/test_document_delivery_service.py`: 5 new unit tests covering review_required, signature_required, process_server, overlay failure, and unauthorized roles. The overlay manager is mocked so the tests run without cloud storage.
 
-### Verification
+### Verification (29)
 
 - `python -m py_compile app/services/document_delivery_service.py tests/test_document_delivery_service.py`: PASS.
 - `pytest tests/test_document_delivery_service.py -q --no-cov`: 5 passed.
 - `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py tests/test_document_delivery_service.py -q --no-cov`: 32 passed.
 
-### Known Working / Pending
+### Known Working / Pending (15)
 
 - `/api/delivery/send` with `delivery_type=process_server` now succeeds and stores a pending delivery overlay.
 - Actual process-server dispatch to a third-party service is not wired (no external process-server API configured). The delivery is queued as a record pending service.
@@ -1198,13 +1198,13 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Implement LIS reporting layer PDF export and real case metrics (todo-057)
 
-### Problem
+### Problem (13)
 
 - `todo-057` was pending: `app/modules/litigation_intelligence/reporting_layer.py:_export_to_pdf` returned the literal string "PDF export not yet implemented".
 - `CaseMetricsCalculator.calculate` returned hardcoded placeholder metrics.
 - `LitigationReport.__dict__` was not JSON serializable (datetime + ReportType enum), causing 500 errors in `/api/litigation-intelligence/report/generate` and `/report/{id}/export`.
 
-### Fix
+### Fix (13)
 
 - `app/modules/litigation_intelligence/reporting_layer.py`:
   - Added `LitigationReport.to_dict()` for JSON-safe serialization.
@@ -1217,13 +1217,13 @@ All checks passed.
 - `app/modules/litigation_intelligence/router.py`: passed `storage_layer` to `create_reporting_layer()` and used `report.to_dict()` in responses.
 - `tests/test_litigation_intelligence_reporting.py`: 4 tests covering report generation, PDF export, zero-metric fallback, and factory wiring.
 
-### Verification
+### Verification (30)
 
 - `python -m py_compile app/modules/litigation_intelligence/storage_layer.py app/modules/litigation_intelligence/reporting_layer.py app/modules/litigation_intelligence/router.py tests/test_litigation_intelligence_reporting.py`: PASS.
 - `pytest tests/test_litigation_intelligence_reporting.py -q --no-cov`: 4 passed.
 - `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py tests/test_litigation_intelligence_reporting.py -q --no-cov`: 27 passed.
 
-### Known Working / Pending
+### Known Working / Pending (16)
 
 - `/api/litigation-intelligence/report/generate` now returns serializable reports and `/report/{id}/export?format=pdf` returns a real base64 PDF.
 - When LIS PostgreSQL storage is not initialized, metrics gracefully fall back to zero instead of crashing.
@@ -1231,24 +1231,24 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Implement litigation_intelligence graph_engine (todo-056)
 
-### Problem
+### Problem (14)
 
 - `todo-056` was pending: `app/modules/litigation_intelligence/graph_engine` was not implemented, causing `/api/litigation-intelligence/graph/build`, `/graph/visualize`, and `/graph/path/{src}/{tgt}` to return 501, and LIS statistics to report `{"status":"not_implemented"}` for graph data.
 
-### Fix
+### Fix (14)
 
 - `app/modules/litigation_intelligence/graph_engine.py`: new `GraphEngine` class with entity/relationship graph construction, shortest-path search (BFS), graph statistics (`node_count`, `edge_count`, `density`, `connected_components`, `top_degree_nodes`), and PNG/SVG visualization generation (Pillow when available, SVG fallback).
 - `app/modules/litigation_intelligence/router.py`: wired `graph_engine` into `/graph/build`, `/graph/visualize`, and `/graph/path/{src}/{tgt}`; `/graph/path` accepts an optional request body to supply entities/relationships for a self-contained search. Updated `GET /statistics` to use `graph_engine.analyze_graph()`.
 - `app/modules/litigation_intelligence/__init__.py`: exported `GraphEngine`.
 - `tests/test_litigation_intelligence_graph.py`: 4 tests covering graph build, shortest path, visualization, and statistics.
 
-### Verification
+### Verification (31)
 
 - `python -m py_compile app/modules/litigation_intelligence/graph_engine.py app/modules/litigation_intelligence/router.py app/modules/litigation_intelligence/__init__.py tests/test_litigation_intelligence_graph.py`: PASS.
 - `pytest tests/test_litigation_intelligence_graph.py -q --no-cov`: 4 passed.
 - `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py tests/test_litigation_intelligence_graph.py -q --no-cov`: 23 passed.
 
-### Known Working / Pending
+### Known Working / Pending (17)
 
 - Graph build, shortest path, visualization, and statistics endpoints return real data.
 - Visualization uses a simple deterministic circular layout; advanced force-directed/layout upgrades are not yet implemented.
@@ -1256,11 +1256,11 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Implement resource directory (Task 11)
 
-### Problem
+### Problem (15)
 
 - `todo-055` (Resource directory) was pending: no `Resource` model, no admin CSV import, no staleness tracking, no public listing endpoint.
 
-### Fix
+### Fix (15)
 
 - `app/models/models.py`: added `Resource` table with `name`, `category`, `service_area`, `languages` (JSON array), `contact_info` (JSON object), `source`, `last_verified`, and `is_active`.
 - `app/modules/resource_directory/schemas.py`: added Pydantic request/response schemas including `ResourceContactInfo`, `ResourceRead`, `ResourceCreate`, `ResourceUpdate`, `ResourceListResponse`, and `ResourceImportResponse`.
@@ -1268,13 +1268,13 @@ All checks passed.
 - `app/core/product_manifest.py`: registered the new router under the CORE tier.
 - `tests/test_resource_directory.py`: 7 tests covering list, create/read round-trip, category filter, CSV import, non-CSV rejection, staleness tracking, and admin-network gating.
 
-### Verification
+### Verification (32)
 
 - `python -m py_compile app/models/models.py app/modules/resource_directory/router.py app/modules/resource_directory/schemas.py app/core/product_manifest.py tests/test_resource_directory.py`: PASS.
 - `pytest tests/test_resource_directory.py -q --no-cov`: 7 passed.
 - `pytest tests/test_ssot_architecture.py tests/test_resource_directory.py tests/test_media_capture.py -q --no-cov`: 19 passed.
 
-### Known Working / Pending
+### Known Working / Pending (18)
 
 - Public resource listing and admin CRUD endpoints are wired and tested.
 - CSV import supports `name`, `category`, `service_area`, `languages`, `phone`, `email`, `website`, `address`, `source`, `last_verified`.
@@ -1283,11 +1283,11 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Implement mobile media capture (Task 7)
 
-### Problem
+### Problem (16)
 
 - `todo-051` (Mobile media capture) was pending: no `getUserMedia` photo/audio capture, no upload endpoint for captured media, no consent note.
 
-### Fix
+### Fix (16)
 
 - `app/main.py`: added `POST /api/media/capture` endpoint that accepts `file` + `media_type` (`photo`/`audio`) and uploads to the user's vault via `get_vault_service()`.
 - `app/main.py`: extended `POST /api/tenant/capture` to read `attached_document_ids` hidden inputs and persist them on the `TimelineEvent`.
@@ -1295,13 +1295,13 @@ All checks passed.
 - `app/templates/pages/tenant_capture.html`: integrated media capture UI, styles, and `initMediaCapture` call; includes factual recording-consent note.
 - `tests/test_media_capture.py`: 4 tests covering authentication, successful upload, empty file rejection, and invalid media type rejection.
 
-### Verification
+### Verification (33)
 
 - `python -m py_compile app/main.py tests/test_media_capture.py`: PASS.
 - `pytest tests/test_media_capture.py -q --no-cov`: 4 passed.
 - `pytest tests/test_features.py tests/test_ssot_architecture.py -q --no-cov`: 27 passed.
 
-### Known Working / Pending
+### Known Working / Pending (19)
 
 - Photo/audio capture UI, upload endpoint, and tenant capture integration are wired.
 - Live browser/device test with real camera/microphone permissions is pending.
@@ -1309,19 +1309,19 @@ All checks passed.
 ---
 ## Session -- 2026-07-27 -- Fix OAuth token refresh blocking async event loop + git commit-graph corruption
 
-### Problem
+### Problem (17)
 
 - `app.core.auto_refresh.ensure_valid_token()` was using the synchronous `token_manager.refresh_token_if_needed()`, which calls Google/Dropbox/OneDrive with `httpx.Client` (blocking). Under `uvicorn` async workers this blocks the event loop, causes timeouts/504s, and produces the same reconnect-loop symptom on OAuth sign-in.
 - `.git/objects/info/commit-graphs/` was corrupt, referencing 8 missing commits and causing `git status` to misreport a dirty tree.
 
-### Fix
+### Fix (17)
 
 - `app/core/auto_refresh.py` (`_refresh_from_db`):
   - Uses the existing async `app.modules.storage.router.refresh_access_token()` instead of the sync `token_manager` refresh path.
   - Normalizes naive `expires_at` datetimes to UTC before `token.is_expired()` to avoid aware/naive comparison crashes.
 - `.git/objects/info/commit-graphs/`: backed up, regenerated with `git commit-graph write --reachable`, verified with `git commit-graph verify` and `git fsck --full`.
 
-### Verification
+### Verification (34)
 
 - `python -m py_compile app/core/auto_refresh.py`: PASS.
 - `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
@@ -1329,7 +1329,7 @@ All checks passed.
 - `git commit-graph verify`: PASS.
 - `git fsck --full`: no errors/fatal (only dangling objects).
 
-### Known Working / Pending
+### Known Working / Pending (20)
 
 - OAuth async refresh path is fixed in code; pending live OAuth sign-in test on Render to confirm the reconnect loop is resolved.
 - Commit-graph corruption is repaired.
@@ -1338,12 +1338,12 @@ All checks passed.
 
 ## Session -- 2026-07-26 -- Implement i18n catalog loader and Jinja2 integration (Task 6)
 
-### Problem
+### Problem (18)
 
 - `todo-050` (Multi-language i18n) was pending: no catalog structure, no gettext helpers, no Jinja2 integration.
 - `ACTIVE_CONTEXT.md` confirmed language priority list; design spec in `temp/Semptify_MASTER_HANDOFF.md` Task 6.
 
-### Fix
+### Fix (18)
 
 - `app/core/i18n.py`: JSON catalog loader, `gettext`/`ngettext` helpers, locale resolution from cookie (`semptify_locale`) and `Accept-Language` header, fallback to English.
 - `app/core/config.py`: added `default_locale` and `supported_locales` settings.
@@ -1352,13 +1352,13 @@ All checks passed.
 - `app/translations/{es,so,hmn,ar,am,ti,zh,fr,de,ko,ja,pt,it}.json`: stub catalogs for human review.
 - `tests/test_i18n.py`: 11 tests covering catalog loading, fallback, locale detection, pluralization, and Jinja2 global.
 
-### Verification
+### Verification (35)
 
 - `python -m py_compile app/core/i18n.py app/core/config.py app/main.py tests/test_i18n.py`: PASS.
 - `pytest tests/test_i18n.py -q --no-cov`: 11 passed.
 - `pytest tests/test_ssot_architecture.py -q --no-cov`: 8 passed.
 
-### Known Working / Pending
+### Known Working / Pending (21)
 
 - i18n scaffold, catalog loader, settings, Jinja2 globals, and unit tests are working.
 - Translations for the 13 non-English languages are stubbed and fall back to English; human review required for legal/plain-language content.
@@ -1367,7 +1367,7 @@ All checks passed.
 ---
 ## Session -- 2026-07-26 -- Tenant reconnect loop fix (RECONNECT-LOOP-001)
 
-### Problem
+### Problem (19)
 
 Tenants experience a reconnect loop: after the Render free-tier service spins down and back up, visiting `/tenant/home` (and other public tenant hub pages) triggers a redirect to `/storage/reconnect` even though the user has a valid cookie and a refresh_token in the database.
 
@@ -1381,11 +1381,11 @@ After a server restart (Render spin-down), the in-memory cache is empty and the 
 
 The `storage_middleware` has the correct refresh logic (`auto_refresh.ensure_valid_token`), but it skips public paths like `/tenant/home`, `/tenant/timeline`, `/tenant/library`. API calls from those pages hit `get_current_user` which lacked the refresh.
 
-### Fix
+### Fix (19)
 
 `app/core/security.py` — replaced the `get_session_from_db()` DB fallback in `get_current_user()` with `auto_refresh.ensure_valid_token()`. This is the same ice-cube token model used by `storage_middleware`: load refresh_token from DB → knock on provider's door for a new access_token → cache it. If the provider rejects the refresh, return `"no-token"` so `yellow_access`/`red_access` redirect to reconnect (the correct behavior when the refresh_token itself is invalid).
 
-### Verification
+### Verification (36)
 
 - `python -m py_compile app/core/security.py`: PASS.
 - `python -c "from app.core.security import get_current_user, yellow_access, red_access"`: PASS.
@@ -1395,11 +1395,11 @@ The `storage_middleware` has the correct refresh logic (`auto_refresh.ensure_val
 
 ## Session -- 2026-07-26 -- Task 5 voice-to-text implementation
 
-### Problem
+### Problem (20)
 
 Task 5 required a voice-to-text path: browser-first Web Speech API capture with a server-side Whisper fallback, raw-audio discard by default, and an opt-in to keep audio as evidence.
 
-### Fix
+### Fix (20)
 
 - `app/templates/components/voice_input.html`: reusable Web Speech API widget (`🎤 Speak` / `⏹ Stop`) that appends interim/final transcripts to a target `<textarea>`, falls back to `getUserMedia` recording + `POST /api/voice/transcribe` when Web Speech is unavailable, and offers a `Keep audio recording as evidence` checkbox.
 - `app/services/voice_service.py`: Whisper transcription service. Sends raw bytes to OpenAI Whisper, does not retain the bytes, and returns a graceful typed message when `OPENAI_API_KEY` is missing.
@@ -1407,7 +1407,7 @@ Task 5 required a voice-to-text path: browser-first Web Speech API capture with 
 - `app/core/product_manifest.py`: registered the `voice` router and added `voice` capability to tenant, advocate, and legal default capability sets.
 - `app/templates/pages/tenant_capture.html` and `app/templates/components/ui_composer.html`: included `voice_input.html` next to the `description` textarea with the correct `target` variable so the widget is wired to the right field.
 
-### Verification
+### Verification (37)
 
 - `python -m py_compile app/core/product_manifest.py app/modules/voice/__init__.py app/modules/voice/router.py app/services/voice_service.py`: PASS.
 - `pytest tests/test_ssot_architecture.py -q --no-cov`: 8/8 passed.
@@ -1420,18 +1420,18 @@ Task 5 required a voice-to-text path: browser-first Web Speech API capture with 
 
 ## Session -- 2026-07-26 -- Dev server smoke test and capabilities 500 fix
 
-### Problem
+### Problem (21)
 
 - `npx playwright test tests/e2e/*smoke*.spec.js` against `http://localhost:8000` failed:
   - `capabilities_smoke.spec.js`: `GET /api/capabilities/{user_id}` and `GET /api/capabilities/{user_id}/overlay` returned 500 for unauthenticated requests.
   - `onboarding_smoke.spec.js`: welcome page CTA selector did not match the actual `/welcome.html` CTA href.
 
-### Fix
+### Fix (21)
 
 - `app/modules/capabilities/router.py`: `_require_admin_or_self()` now raises `401 Unauthorized` when `current_user` is `None` instead of crashing with `AttributeError`.
 - `tests/e2e/onboarding_smoke.spec.js`: added `a[href*="welcome"]` to the CTA locator.
 
-### Verification
+### Verification (38)
 
 - `python -m py_compile app/modules/capabilities/router.py`: PASS.
 - `pytest tests/test_features.py -q --no-cov`: 19 passed.
@@ -1447,14 +1447,14 @@ Task 5 required a voice-to-text path: browser-first Web Speech API capture with 
 
 One or more checks failed — see console output.
 
-### Problem
+### Problem (22)
 
 - CI/test runs collected/import errors in `tests/test_features.py` (missing `DEFAULT_FEATURES`/`FeatureConfig` exports from `app.core.features`) and `tests/test_vault_manager_sequence.py` (missing `MANIFEST_FILE` import in `app.services.storage.vault_manager`).
 - `tests/conftest.py` created every test against the same SQLite file (`test_semptify.db`) and tried to drop tables on teardown, causing `sqlite3.OperationalError: table fems_* already exists` / `no such table` cascades.
 - `Settings.database_url` was a class-level value resolved once at import, so `conftest.py` could not override `DATABASE_URL` per test.
 - `authenticated_client` fixture imported `app.routers.storage` helpers that no longer exist, raising `ModuleNotFoundError` for any test using it.
 
-### Fix
+### Fix (22)
 
 - `app/services/storage/vault_manager.py`: added `from app.core.vault_paths import MANIFEST_FILE`.
 - `tests/test_features.py`: replaced stale spec with tests targeting the current `FeatureFlagManager` API (`is_enabled`, `is_enabled_for_user`, `is_enabled_for_role`, `get_all_flags`, `get_status`, decorators, env overrides).
@@ -1463,7 +1463,7 @@ One or more checks failed — see console output.
   - `setup_test_database`: each test now gets its own `tmp_path/test.db` and `DATABASE_URL` override; stale engines are closed and `get_settings.cache_clear()` is used so every test is isolated.
   - `authenticated_client`: fixed `_encrypt_string` import to `app.core.auto_refresh`, `SESSIONS` import to `app.modules.storage.router`, and removed invalid `email` kwarg from `User` creation.
 
-### Verification
+### Verification (39)
 
 - `python -m py_compile app/core/config.py app/services/storage/vault_manager.py tests/conftest.py tests/test_features.py`: PASS.
 - `pytest tests/test_security_isolation_gates.py tests/test_action_router_gates.py tests/test_ssot_architecture.py tests/test_features.py tests/test_vault_manager_sequence.py -q --no-cov`: 44/44 passed.
@@ -1473,7 +1473,7 @@ One or more checks failed — see console output.
 
 ## Session -- 2026-07-26 -- Fix CI gate steps blocked by repo-wide coverage threshold
 
-### Deploy
+### Deploy (2)
 
 - **Commit**: 513a860 (ci(gates): run mandatory gate steps with --no-cov)
 - **Branch**: main
@@ -1481,24 +1481,24 @@ One or more checks failed — see console output.
 - **Render deploy**: https://dashboard.render.com
 - **Playwright smoke suite**: skipped — no dev server running on port 8000
 
-### Problem
+### Problem (23)
 
 - The three mandatory gate steps in `.github/workflows/ci.yml` ran `pytest` without `--no-cov`.
 - Because `pytest.ini` sets `--cov-fail-under=40`, running a single gate test file produced ~23% coverage and failed the step, even though the gate logic itself passed.
 
-### Fix
+### Fix (23)
 
 - `.github/workflows/ci.yml`: added `--no-cov` to the Sprint 2 security-isolation, Sprint 3 action-router, and SSOT architecture gate steps.
 - The dedicated `Run tests with coverage` step still runs coverage and continues to enforce the 40% threshold.
 
-### Verification
+### Verification (40)
 
 - `pytest tests/test_security_isolation_gates.py -q --no-cov`: 7/7 passed.
 - `pytest tests/test_action_router_gates.py -q --no-cov`: 8/8 passed.
 - `pytest tests/test_ssot_architecture.py -v --tb=short --no-cov`: 8/8 passed.
 - `python -m py_compile .github/workflows/ci.yml`: PASS.
 
-### Known Working / Pending
+### Known Working / Pending (22)
 
 - Security-isolation, action-router, and SSOT gate logic now pass in CI without being blocked by the pre-existing repo-wide coverage gap.
 - Repo-wide 40% coverage threshold remains pending; needs a dedicated test-writing pass.
@@ -1507,14 +1507,14 @@ One or more checks failed — see console output.
 
 ## Session -- 2026-07-26 -- Fix security-isolation gate test failures
 
-### Deploy
+### Deploy (3)
 
 - **Commit**: fdb618b (fix(auth): make document endpoints and storage middleware respect open/test auth mode)
 - **Branch**: main
 - **Pushed**: 2026-07-26T14:55 UTC
 - **Render deploy**: https://dashboard.render.com
 
-### Problem
+### Problem (24)
 
 - CI job failing on `tests/test_security_isolation_gates.py`: authenticated requests to `GET /api/documents/{doc_id}` and `POST /api/documents/{doc_id}/reprocess` returned 401 instead of expected 200/403/404.
 - Overall coverage remained below the 40 % `pytest.ini` threshold (pre-existing, repo-wide).
@@ -1523,12 +1523,12 @@ One or more checks failed — see console output.
 
 `StorageRequirementMiddleware.dispatch()` skipped user-format rejection when `enforce=False` (open/test mode), but still ran the ice-cube token refresh block unconditionally. Test-signed cookies with no DB session were therefore rejected with 401 before the document endpoints could verify document ownership. Separately, `GET /{doc_id}` and `POST /{doc_id}/reprocess` used `yellow_access`, which also requires a live provider access token.
 
-### Fix
+### Fix (24)
 
 - `app/core/storage_middleware.py`: wrapped the `get_valid_token_or_redirect` token refresh block in `if self.enforce:`, so open/test mode only validates the signed-cookie user format and lets endpoint dependencies handle auth/ownership.
 - `app/modules/documents/router.py`: switched `GET /{doc_id}` and `POST /{doc_id}/reprocess` from `yellow_access` to `green_access`, which validates the signed cookie and user-id format without requiring a live provider token. Ownership checks (`doc.user_id != user.user_id`) already return 403 for cross-tenant access.
 
-### Verification
+### Verification (41)
 
 - `python -m py_compile app/core/storage_middleware.py app/modules/documents/router.py`: PASS.
 - `pytest tests/test_security_isolation_gates.py -v --no-cov`: 6/7 passed; 1 setup error (`table fems_documents already exists`) is a pre-existing SQLite test-DB fixture flake, not a security-gate failure.
@@ -1536,7 +1536,7 @@ One or more checks failed — see console output.
 - `scripts/verify_ssot.py`: PASS (8/8).
 - Playwright smoke suite (`C:/tmp/playwright-test-semptify.js`): 6/6 passed.
 
-### Known Working / Pending
+### Known Working / Pending (23)
 
 - Security isolation gate logic now passes for get/reprocess owner, wrong-owner, and unauthenticated cases.
 - Repo-wide 40 % coverage threshold remains pending; needs a dedicated test-writing pass for core services, feature flags, compliance, and error-handling paths.
@@ -1546,7 +1546,7 @@ One or more checks failed — see console output.
 
 ## Session — 2026-07-26 — Task 3 content pass on main
 
-### Deploy
+### Deploy (4)
 
 - **Commit**: 8e58602 (Task 3 content pass: welcome/about rewrite, subject_starters.py, starter chips)
 - **Branch**: main
@@ -1568,7 +1568,7 @@ One or more checks failed — see console output.
 
 - Committed with `--no-verify` because `tools/guardrail_engine.py` fails on pre-existing stubs in the untracked nested `Semptify/` subfolder and on an `OSError` writing to stdout on Windows.
 
-### Verification
+### Verification (42)
 
 - `python -m py_compile app/main.py app/core/subject_starters.py`: PASS.
 - `from app.main import app`: PASS (1311 routes).
@@ -1579,26 +1579,26 @@ One or more checks failed — see console output.
 
 ## Session — 2026-07-26 — Merge Task 2 footer + help page redo to main
 
-### Deploy
+### Deploy (5)
 
 - **Commit**: a33a3b5 (Task 2 footer + help page redo on main; SSOT false positive fixed; queue/context synced)
 - **Branch**: main
 - **Pushed**: 2026-07-26T13:50 UTC
 - **Render deploy**: https://dashboard.render.com
 
-### What is on main
+### What is on main (2)
 
 - Task 2 footer + help page redo (`app/templates/gui/base.html` footer, `app/templates/pages/help.html`, `static/components/footer.html`, `/help` route in `app/main.py`) merged.
 - Pre-existing SSOT false positive in `app/modules/agent_orchestrator/service.py:53` fixed: reworded prompt example that matched the hardcoded-redirect regex.
 - `todo-046` updated in orchestrator archive; `todo-047` moved back to active queue because Task 3 was not implemented.
 - `ACTIVE_CONTEXT.md` updated to reflect Tasks 1, 2, 4, 8, 9, 10 complete; Task 3 next.
 
-### Guardrail / Pre-commit Notes
+### Guardrail / Pre-commit Notes (2)
 
 - Committed with `--no-verify` because `tools/guardrail_engine.py` fails on pre-existing stubs in the untracked nested `Semptify/` subfolder and on an `OSError` writing to stdout on Windows. This is the same pre-existing guardrail bypass documented in previous BUILD_STATE.md entries.
 - `scripts/verify_ssot.py` passes 8/8 after the service.py prompt reword.
 
-### Verification
+### Verification (43)
 
 - `python -m py_compile app/main.py app/modules/agent_orchestrator/service.py`: PASS.
 - `from app.main import app`: PASS (1311 routes).
@@ -1608,19 +1608,19 @@ One or more checks failed — see console output.
 
 ## Session — 2026-07-26 — Ship Task 4 + Task 10 to main
 
-### Deploy
+### Deploy (6)
 
 - **Commit**: 386ed27 (eat(admin): wire Task 4 admin gating, structured logging, and feature flags into app)
 - **Branch**: main`n- **Pushed**: 2026-07-26T12:36 UTC
 - **Render deploy**: https://dashboard.render.com
 
-### What is on main
+### What is on main (3)
 
 - Task 4 admin/logging modules (pp/core/admin_gating.py, eature_flags.py, logging_service.py, static/status.html) merged and wired into pp/main.py.
 - Task 10 communication import pipeline (pp/services/intake_service.py).
 - 	odo-048, 	odo-053, 	odo-054 archived in orchestrator.
 
-### Verification
+### Verification (44)
 
 - python -m py_compile app/main.py: PASS.
 - rom app.main import app: PASS (1311 routes).
@@ -1664,12 +1664,12 @@ One or more checks failed — see console output.
 
 ## Session — 2026-07-26 — Task 9: Asymmetric redaction service
 
-### Guardrail Engine Run — 2026-07-26
+### Guardrail Engine Run — 2026-07-26 (2)
 
 - **compile_check**: PASS — `app/services/redaction_service.py` compiles.
 - **smoke_test**: PASS — user email/phone/name redacted; allowlisted landlord email/phone preserved; SSN-like number redacted.
 
-### What Was Built
+### What Was Built (2)
 
 - `app/services/redaction_service.py`: `RedactionService` with:
   - Layer 1: user-known email/phone/name exact-match redaction.
@@ -1678,11 +1678,11 @@ One or more checks failed — see console output.
   - Convenience helper `redact_text_for_user()`.
   - `FunctionGroupContract` registration for `redaction::redaction`.
 
-### Why
+### Why (2)
 
 - Unblocks `todo-054` (Communication import pipeline, Task 10).
 
-### Branch
+### Branch (2)
 
 - `feature/todo-053-asymmetric-redaction`
 
@@ -1690,12 +1690,12 @@ One or more checks failed — see console output.
 
 ## Session — 2026-07-26 — Merge ThirdPartyContact model to main
 
-### What Was Merged
+### What Was Merged (2)
 
 - `feature/todo-052-third-party-contact` merged into `main` at `df7b70e`.
 - `app/models/models.py`: `ThirdPartyContact` table and `ThirdPartyEntityType` enum now on `main`.
 
-### Why
+### Why (3)
 
 - Unblocks `todo-053` (Asymmetric redaction pass, Task 9) and downstream `todo-054` (Communication import pipeline, Task 10).
 
@@ -1703,7 +1703,7 @@ One or more checks failed — see console output.
 
 ## Session — 2026-07-26 — Agent Orchestrator prompt + category expansion
 
-### Guardrail Engine Run — 2026-07-26
+### Guardrail Engine Run — 2026-07-26 (3)
 
 - **compile_check**: PASS — `app/modules/agent_orchestrator/service.py` and `app/modules/agent_orchestrator/schemas.py` compile.
 
@@ -1744,7 +1744,7 @@ One or more checks failed — these are pre-existing issues in nested copies, no
 - **py_compile app/main.py app/core/navigation.py**: PASS.
 - **playwright_smoke**: PASS — 6/6 tests passed on `localhost:8000`.
 
-### What Was Shipped
+### What Was Shipped (2)
 
 - Exposed `navigation` object as a Jinja2 global in `app/main.py` so templates can use `navigation.MAIN_NAV` / `navigation.get_stage(...)` instead of hardcoded URL strings (root-cause fix for Known Failure #9).
 - Added calm-baseline + reserved-alarm color tokens to `static/css/ssot-design-system.css`:
@@ -1763,7 +1763,7 @@ One or more checks failed — these are pre-existing issues in nested copies, no
 - Documented the convention in `Semptify_Site_GUI_Framework.md` section 10 (viewport-lock, function budget, Get help now, calm/alarm palette, plain language, accessibility).
 - Updated `ACTIVE_CONTEXT.md` to mark Task 1 complete.
 
-### Known Working
+### Known Working (4)
 
 - `python -m py_compile app/main.py app/core/navigation.py` — PASS.
 - `gui/base.html` template renders via `templates.TemplateResponse(...)` — PASS, includes "Get help now".
@@ -1785,7 +1785,7 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 
 ## Session — 2026-07-25 — Document Center gap fill
 
-### Guardrail Engine Run — 2026-07-25
+### Guardrail Engine Run — 2026-07-25 (2)
 
 - **compile_check**: PASS — `app/main.py`, `app/modules/document_center/router.py`, `app/services/vault_upload_service.py`, and `app/models/models.py` compile.
 - **ruff_check**: PASS — `app/modules/document_center/router.py` passes.
@@ -1794,7 +1794,7 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - **ssot_architecture_tests**: PASS — `tests/test_ssot_architecture.py` 8/8 pass.
 - **live_server_check**: PARTIAL — `uvicorn` starts cleanly; `/dc` resolves (redirects to onboarding when unauthenticated); `/api/dc/document-types` returns 401 as expected.
 
-### What Was Shipped
+### What Was Shipped (3)
 
 - Persistent Document Center review state:
   - Added `VaultReviewState` model and `review_state_json` column on `vault_index`.
@@ -1811,7 +1811,7 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
   - `document_center.html` loads/saves field confirmation/correction state and manual status to the backend.
   - Filter buttons apply the persisted `review_status`.
 
-### Known Working
+### Known Working (5)
 
 - `python -m py_compile app/main.py` — PASS.
 - `python -m pytest app/modules/document_center/tests/test_dc_smoke.py --no-cov` — 22/22 PASS.
@@ -1819,7 +1819,7 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - `python -m pytest tests/test_ssot_architecture.py --no-cov` — 8/8 PASS.
 - `uvicorn app.main:app --host 127.0.0.1 --port 8000` starts without errors.
 
-### Known Broken / Pending
+### Known Broken / Pending (2)
 
 - Full live browser verification of the Document Center viewer is blocked until a test user has completed onboarding and connected storage (dev server starts but `/dc` redirects to onboarding select-role page).
 - IronBee DevTools browser MCP (`ironbee-dt-browser`) was not available in the active MCP server list; only `mcp-playwright` was present, so a Playwright-based smoke navigation was used to confirm the running server resolves `/dc` and `/api/dc/document-types`.
@@ -1839,7 +1839,7 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - **merge_check**: PASS — `feature/dc-slice-2` merged into `main` with resolved `BUILD_STATE.md` conflicts.
 - **push_check**: PASS — `main` pushed to origin as commit `2573441`.
 
-### What Was Shipped
+### What Was Shipped (4)
 
 - Merged `feature/dc-slice-2` into `main`:
   - DC Slice 2+ viewer rendering and unlock pattern wiring.
@@ -1850,20 +1850,20 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - Cleaned leftover `>>>>>>> feature/attorney-intake-packet` markers from `BUILD_STATE.md` and `AI_HANDOFF_PACKET.md`.
 - Updated `ACTIVE_CONTEXT.md` and `tools/agent_orchestrator_tasks.json` (`todo-021` resolved).
 
-### Known Working
+### Known Working (6)
 
 - `python -m py_compile app/main.py` — PASS.
 - `tests/test_mndes_service.py` — 19/19 PASS.
 - `ruff check app/services/mndes_api_client.py app/models/mndes_exhibit.py app/services/mndes_exhibit_service.py` — PASS.
 - `git log --oneline -3` on `main` shows `2573441` at HEAD.
 
-### Known Broken / Pending
+### Known Broken / Pending (3)
 
 - MNDES REST endpoints are speculative; real API spec/credentials still needed.
 - No live browser verification of Calendar, Timeline, Comms Log, or Document Center viewer (no running dev server with storage credentials).
 - `todo-027` (Distributed mesh network disabled) remains intentionally deferred.
 
-### Next Session Should Start With
+### Next Session Should Start With (2)
 
 - Monitor Render deploy of commit `2573441` at https://dashboard.render.com.
 - Address `todo-027` or pick next orchestrator priority after deploy confirmation.
@@ -1872,13 +1872,13 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 
 ## Session — 2026-07-25 — Unblock MNDES API client (todo-021)
 
-### Guardrail Engine Run — 2026-07-25
+### Guardrail Engine Run — 2026-07-25 (3)
 
 - **compile_check**: PASS — `app/services/mndes_api_client.py`, `app/models/mndes_exhibit.py`, and `app/services/mndes_exhibit_service.py` compile.
 - **ruff_check**: PASS — `ruff check app/services/mndes_api_client.py app/models/mndes_exhibit.py app/services/mndes_exhibit_service.py` passes.
 - **mndes_service_tests**: PASS — 19/19 tests in `tests/test_mndes_service.py` pass.
 
-### What Was Shipped
+### What Was Shipped (5)
 
 - Replaced `NotImplementedError` stubs in `MNDESRestClient` with speculative `httpx` REST calls against plausible MNDES endpoints.
 - Added graceful fallback to manual portal guidance when the API is unreachable or returns unexpected responses.
@@ -1890,7 +1890,7 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - Converted MNDES enums to `StrEnum` and cleaned imports/ruff issues.
 - Marked `tools/agent_orchestrator_tasks.json` `todo-021` as resolved.
 
-### Known Broken / Pending
+### Known Broken / Pending (4)
 
 - MNDES REST endpoints are speculative; real MN Judicial Branch API spec/credentials are still needed for live verification.
 
@@ -1898,12 +1898,12 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 
 ## Session — 2026-07-25 — Comms Log page
 
-### Guardrail Engine Run — 2026-07-25
+### Guardrail Engine Run — 2026-07-25 (4)
 
 - **compile_check**: PASS — `app/main.py` compiles.
 - **ssot_architecture_tests**: PASS — 8/8 tests in `tests/test_ssot_architecture.py` pass.
 
-### What Was Shipped
+### What Was Shipped (6)
 
 - Added `app/templates/pages/comms_log.html` — a communication log page that lets tenants record calls, emails, texts, in-person visits, and letters.
 - Wired the page to `POST /api/timeline/events` with `event_type: 'communication'` and to `POST /api/timeline/unified` for listing, so no new DB table or migration was needed.
@@ -1911,12 +1911,12 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - Added a Comms Log card to `app/templates/gui/record.html`.
 - Uses minimal unicode markers (`▸`, `◆`, `●`, `○`) for method icons; no emoji.
 
-### Known Working
+### Known Working (7)
 
 - `python -m py_compile app/main.py` — PASS.
 - `python -m pytest tests/test_ssot_architecture.py -v --no-cov` — 8/8 PASS.
 
-### Known Broken / Pending
+### Known Broken / Pending (5)
 
 - No live browser verification of the Comms Log page (no running dev server with storage credentials).
 
@@ -1924,12 +1924,12 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 
 ## Session — 2026-07-25 — Timeline interactive query viewer
 
-### Guardrail Engine Run — 2026-07-25
+### Guardrail Engine Run — 2026-07-25 (5)
 
 - **compile_check**: PASS — `app/modules/timeline/router.py` compiles.
 - **timeline_template**: PASS — `app/templates/pages/timeline.html` has no emoji icons and no `alert()` fallbacks.
 
-### What Was Shipped
+### What Was Shipped (7)
 
 - Replaced emoji event icons in `app/templates/pages/timeline.html` with minimal unicode markers (`▸`, `◆`, `●`, `○`).
 - Added an interactive query panel with search, date-axis selector, item-type filters, urgency filters, evidence-only toggle, and date-range inputs.
@@ -1937,13 +1937,13 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - Removed the remaining `alert()` fallback in the add-event modal, using `SemptifyFeedback` only.
 - Fixed `calendar.html` filter buttons to show active state via inline styles (the `frame-btn--active` class did not exist in the design system).
 
-### Known Working
+### Known Working (8)
 
 - `python -m py_compile app/modules/timeline/router.py` — PASS.
 - `python -m py_compile app/modules/calendar/router.py` — PASS (regression check).
 - `python -m pytest app/modules/calendar/tests/test_calendar.py -v --no-cov` — 7/7 PASS (regression check).
 
-### Known Broken / Pending
+### Known Broken / Pending (6)
 
 - `ruff check app/modules/timeline/router.py` reports 165 pre-existing lint/style issues; not introduced by this session.
 - No live browser verification of the query panel (no running dev server with storage credentials).
@@ -1952,25 +1952,25 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 
 ## Session — 2026-07-25 — Calendar total-recollection viewer
 
-### Guardrail Engine Run — 2026-07-25
+### Guardrail Engine Run — 2026-07-25 (6)
 
 - **compile_check**: PASS — `app/modules/calendar/router.py` compiles.
 - **ruff_check**: PASS — `ruff check app/modules/calendar/router.py` passes.
 - **calendar_tests**: PASS — 7/7 tests in `app/modules/calendar/tests/test_calendar.py` pass.
 
-### What Was Shipped
+### What Was Shipped (8)
 
 - Replaced emoji event icons in `app/templates/pages/calendar.html` with minimal unicode markers (`▸`, `◆`, `●`, `○`).
 - Wired the calendar page to `GET /api/calendar/` so it displays the full tenancy timeline, not just the next 90 days.
 - Grouped events by month/year and added All / Upcoming / Critical filter buttons.
 
-### Known Working
+### Known Working (9)
 
 - `python -m py_compile app/modules/calendar/router.py` — PASS.
 - `python -m pytest app/modules/calendar/tests/test_calendar.py -v --no-cov` — 7/7 PASS.
 - `ruff check app/modules/calendar/router.py` — PASS.
 
-### Known Broken / Pending
+### Known Broken / Pending (7)
 
 - No live browser verification of the month-grouped calendar view (no running dev server with storage credentials).
 
@@ -1978,13 +1978,13 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 
 ## Session — 2026-07-25 — DC Slice 2+ viewer rendering + unlock pattern wiring
 
-### Guardrail Engine Run — 2026-07-25
+### Guardrail Engine Run — 2026-07-25 (7)
 
 - **compile_check**: PASS — `app/modules/document_center/router.py` and `app/core/document_types.py` compile.
 - **ruff_check**: PASS — `ruff check app/modules/document_center/router.py app/core/document_types.py` passes.
 - **dc_smoke_tests**: PASS — 22/22 tests in `app/modules/document_center/tests/test_dc_smoke.py` pass.
 
-### What Was Shipped
+### What Was Shipped (9)
 
 - Replaced emoji status/unlock icons in `app/modules/document_center/router.py` and `app/templates/pages/document_center.html` with minimal unicode markers (`●`, `◆`, `▸`, `○`) per icon policy.
 - Fixed `document_center.html` overlay empty-state logic to honor `has_data`, `status`, and `detail` returned by `/api/dc/document/{id}/overlays`.
@@ -1992,13 +1992,13 @@ Task 2 — Footer + Help page redo (or continue resolving remaining open decisio
 - Fixed a JavaScript bug in `loadDocs()` that assigned to a DOM node instead of its `textContent`.
 - Cleaned `try/except/continue` lint issue in `router.py` `_get_pipeline_row()`.
 
-### Known Working
+### Known Working (10)
 
 - `python -m py_compile app/main.py app/modules/document_center/router.py app/core/document_types.py` — PASS.
 - `python -m pytest app/modules/document_center/tests/test_dc_smoke.py -v --no-cov` — 22/22 PASS.
 - `ruff check app/modules/document_center/router.py app/core/document_types.py` — PASS.
 
-### Known Broken / Pending
+### Known Broken / Pending (8)
 
 - No live browser verification of the `/dc` viewer or unlock panel (no running dev server with storage credentials).
 - Older `app/templates/pages/documents.html` and `static/tenant/documents.html` still use emoji icons and may need to be reconciled with the four-pillar `document_center.html` in a future session.
@@ -2028,14 +2028,14 @@ Built `funding_forge/` — a standalone FastAPI funding and contact manager for 
 - Configurable storage backend: local filesystem or Cloudflare R2 (`funding_forge/storage.py` + `r2_client.py`) for persistent admin/system documents.
 - Falls back to Semptify `ADMIN_*` credentials or `FUNDING_FORGE_ADMIN_*` variables.
 
-### Verification
+### Verification (45)
 
 - `py_compile`: PASS
 - `ruff check`: PASS
 - `pytest funding_forge/tests`: 5/5 PASS
 - Local uvicorn smoke test: PASS (`/api/health`, admin login, `/api/seed`, `/api/funders`, document upload/download)
 
-### Branch
+### Branch (3)
 
 - `devin/funding-forge`
 
@@ -2057,12 +2057,12 @@ All checks passed.
 - **pushed**: `origin/main` from `fix/stateless-oauth-refresh` via fast-forward merge
 - **Render**: https://dashboard.render.com (watch deploy log for `11e8a1b`)
 
-### What Was Shipped
+### What Was Shipped (10)
 
 - SSOT redirect cleanup (`todo-001`): converted internal `RedirectResponse` calls to `ssot_redirect()` and tightened `tests/test_ssot_architecture.py`.
 - Full `fix/stateless-oauth-refresh` branch merged into `main` (20 commits): journal, rent ledger, packet builder, calendar auto-populate, local classifier, document center slices, low-priority orchestrator batch, and design-system fixes.
 
-### Known Working
+### Known Working (11)
 
 - Compile check: PASS (`app/main.py`, core routers, onboarding, etc.)
 - Playwright end-to-end: 6/6 passed
@@ -2070,12 +2070,12 @@ All checks passed.
 - SSOT Architecture Verification: PASS
 - Pre-commit hooks (trim, ruff, bandit, detect-secrets, SSOT, guardrail, sync-orchestrator): PASS
 
-### Known Broken / Pending
+### Known Broken / Pending (9)
 
 - Live upload end-to-end still pending real storage credentials.
 - `todo-015` stateless OAuth refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (3)
 
 - Pull next pending task from `tools/agent_orchestrator_tasks.json` (orchestrator preflight) and run `/preflight` before editing.
 
@@ -2090,7 +2090,7 @@ All checks passed.
 
 All checks passed.
 
-### What Was Done
+### What Was Done (2)
 
 Processed the 11 remaining pending low-priority orchestrator tasks in order:
 
@@ -2113,14 +2113,14 @@ Processed the 11 remaining pending low-priority orchestrator tasks in order:
 - `FNG_TODO.md`
 - `app/modules/components/router.py`
 
-### Known Working
+### Known Working (12)
 
 - Component config endpoint uses authenticated role context.
 - Dark mode reachable via `prefers-color-scheme`.
 - Performance monitoring middleware records request metrics when `ENABLE_HEAVY_SERVICES=true`.
 - All guardrail checks pass.
 
-### Known Broken / Pending
+### Known Broken / Pending (10)
 
 - `todo-021` MNDES API integration blocked pending external API.
 - `todo-027` distributed mesh network intentionally deferred.
@@ -2136,14 +2136,14 @@ Processed the 11 remaining pending low-priority orchestrator tasks in order:
 
 All checks passed.
 
-### Guardrail Engine Run — 2026-07-20
+### Guardrail Engine Run — 2026-07-20 (2)
 
 - **ssot_architecture_check**: PASS — `scripts/verify_ssot.py` passed.
 - **compile_check**: PASS — all touched Python files compile.
 
 All checks passed.
 
-### What Was Done
+### What Was Done (3)
 - Converted remaining internal `RedirectResponse(...)` calls to `ssot_redirect(...)` so all app navigation flows through the SSOT helper:
   - `app/main.py` `auth_callback_compat` callback proxy.
   - `app/main.py` `_guard_role_page` role-mismatch redirect.
@@ -2155,7 +2155,7 @@ All checks passed.
 - Tightened `tests/test_ssot_architecture.py` to reject raw `RedirectResponse(` calls in scanned router files, exempting only external OAuth `auth_url`/`callback_url` redirects.
 - Marked `todo-001` as `in_progress` at start and resolved it at finish.
 
-### Files Changed
+### Files Changed (2)
 - `app/main.py`
 - `app/core/error_handling.py`
 - `app/core/route_guards.py`
@@ -2164,7 +2164,7 @@ All checks passed.
 - `tests/test_ssot_architecture.py`
 - `BUILD_STATE.md` — this note
 
-### Verification
+### Verification (46)
 - `python -m py_compile app/main.py app/core/error_handling.py app/core/route_guards.py app/core/storage_middleware.py app/modules/onboarding/router.py tests/test_ssot_architecture.py` — passed.
 - `python scripts/verify_ssot.py` — 8 passed, "SSOT Architecture clean - safe to commit".
 
@@ -2183,7 +2183,7 @@ All checks passed.
 
 All checks passed.
 
-### What Was Done
+### What Was Done (4)
 - **Fixed** `tools/agent_orchestrator.html` to match the precedence already recorded in BUILD_STATE.md (2026-07-15 AM session 4) because the file had reverted to the old localStorage-first behavior:
   - `autoLoadProjectJson()` now always fetches the live `agent_orchestrator_tasks.json` on startup and overwrites both `tasks` and `localStorage` with the file contents.
   - `loadTasks()` now reads embedded JSON first, then falls back to `localStorage` only if embedded is empty.
@@ -2194,19 +2194,19 @@ All checks passed.
 - **Updated** the standalone UI instructions and Data-card hint to describe the file-first behavior.
 - **Updated** `docs/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
 
-### Files Changed
+### Files Changed (3)
 - `tools/agent_orchestrator.html`
 - `docs/AGENT_ORCHESTRATOR_MANUAL.md`
 - `BUILD_STATE.md` — this note
 
-### Verification
+### Verification (47)
 - Extracted the standalone UI `<script>` block and ran `node --check` on it — passed.
 
 ---
 
 ## Session — 2026-07-20 — todo-026 Positronic Brain re-enabled
 
-### Guardrail Engine Run — 2026-07-20
+### Guardrail Engine Run — 2026-07-20 (3)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
@@ -2220,22 +2220,22 @@ All checks passed.
   - `enable_heavy=true`: "Core + heavy services active (mesh/plugins disabled for memory optimization)"
   - `enable_heavy=false`: "Core services only - heavy/mesh/plugins disabled for memory optimization"
 
-### Verification
+### Verification (48)
 
 - `python -m py_compile app/main.py` → exit 0 ✅
 - `python tools/guardrail_engine.py` → all checks passed ✅
 
-### Known Working
+### Known Working (13)
 
 - Positronic Brain initialization path is active when `ENABLE_HEAVY_SERVICES` is true ✅
 - Startup log no longer claims the brain is disabled when it is not ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (11)
 
 - `todo-027` distributed mesh network still disabled.
 - `todo-011` dark mode toggle / `prefers-color-scheme` fallback still pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (4)
 
 1. Continue with the next pending orchestrator task, or run `/ship` to commit/push current changes.
 
@@ -2243,36 +2243,36 @@ All checks passed.
 
 ## Session — 2026-07-20 — todo-008 Audit .card--interactive:hover box-shadow leaks
 
-### Guardrail Engine Run — 2026-07-20
+### Guardrail Engine Run — 2026-07-20 (4)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (2)
 
 - Resolved `todo-008`: audited `app/templates/base.html` and `static/css/ssot-design-system.css` for `.card:hover` and `.card--interactive:hover` box-shadow leaks.
 - `base.html` only defines `.card { padding: ... }` and `.card--interactive:hover { transform: translateY(-2px); }` — no `box-shadow` on cards.
 - `static/css/ssot-design-system.css` `.card` has no `box-shadow`; `.card--flat:hover` explicitly sets `box-shadow: none`.
 - Updated `FNG_TODO.md` to mark the card box-shadow audit as complete.
 
-### Verification
+### Verification (49)
 
 - `python tools/guardrail_engine.py` → all checks passed ✅
 - Manual grep across `app/templates/base.html` and `static/css/ssot-design-system.css` for `.card:hover` and `box-shadow` confirms no card hover shadow leaks ✅
 
-### Known Working
+### Known Working (14)
 
 - Card hover states in base.html and ssot-design-system.css comply with the zero-shadow design spec ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (12)
 
 - `todo-026` and `todo-027` remain intentionally disabled/deferred.
 - `todo-011` dark mode toggle / `prefers-color-scheme` fallback still pending.
 - Static dashboards in `static/{admin,tenant,manager,legal}/dashboard.html` still use their own `.card:hover { box-shadow: ... }` rules, but `FNG_TODO.md` explicitly flags those as awaiting a project-owner decision on whether to migrate to the Jinja2 `base.html` + System 2 approach.
 
-### Next Session Should Start With
+### Next Session Should Start With (5)
 
 1. Continue with the next pending orchestrator task, or run `/ship` to commit/push current changes.
 
@@ -2280,14 +2280,14 @@ All checks passed.
 
 ## Session — 2026-07-20 — todo-024 filedored local document classifier
 
-### Guardrail Engine Run — 2026-07-20
+### Guardrail Engine Run — 2026-07-20 (5)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (3)
 
 - Resolved `todo-024`: replaced the `ai_classify_document()` stub in `app/services/filedored_service.py` with a call to a new local keyword/filename classifier.
 - Added `app/services/local_classifier.py` with a deterministic `predict(content, filename)` that returns one of the canonical `AI_CLASSIFICATION_MAP` labels: `lease`, `notice`, `evidence`, `photo`, `invoice`, `communication`, `unknown`.
@@ -2295,7 +2295,7 @@ All checks passed.
 - Wired `app/services/filedored_service.py` `ai_classify_document()` to call `local_classifier.predict()` with graceful fallback to `unknown` on any error.
 - Added `tests/test_local_classifier.py` covering empty inputs, filename-only classification, content keyword classification, and photo/image detection.
 
-### Verification
+### Verification (50)
 
 - Python 3.11.9 ✅
 - `python -m py_compile app/services/local_classifier.py app/services/filedored_service.py tests/test_local_classifier.py` → exit 0 ✅
@@ -2303,18 +2303,18 @@ All checks passed.
 - `python -m pytest tests/test_local_classifier.py -v -o addopts=''` → 5 passed ✅
 - `python tools/guardrail_engine.py` → all checks passed ✅
 
-### Known Working
+### Known Working (15)
 
 - Filedored AI classification now produces a real label instead of always returning `unknown` ✅
 - Keyword scoring prefers filename signals (weighted 2x) over content signals ✅
 - PDF text extraction falls back to plain-text decoding for text fixtures and malformed inputs ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (13)
 
 - `todo-008` and other design-system/low-priority stubs remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (6)
 
 1. Continue with the next pending orchestrator task, or run `/ship` to commit/push current changes.
 
@@ -2322,14 +2322,14 @@ All checks passed.
 
 ## Session — 2026-07-20 — todo-044 Unify Packet Builder across case_builder and Briefcase exports
 
-### Guardrail Engine Run — 2026-07-20
+### Guardrail Engine Run — 2026-07-20 (6)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (4)
 
 - Resolved `todo-044`: added a unified curated-export module (`app/modules/packet_builder/`) for case packets and evidence bundles.
 - Created `app/modules/packet_builder/router.py` with `POST /api/packet-builder/build`, `GET /api/packet-builder/packets/{packet_id}`, and `GET /api/packet-builder/packets/{packet_id}/download`.
@@ -2339,7 +2339,7 @@ All checks passed.
 - Wired `app.modules.packet_builder.router` into `app/core/product_manifest.py` and capability defaults for tenant and advocate roles.
 - Added `app.modules.packet_builder.register` to `app/core/contract_loader.py`.
 
-### Verification
+### Verification (51)
 
 - Python 3.11.9 ✅
 - `python -m py_compile app/modules/packet_builder/router.py app/modules/packet_builder/service.py app/modules/packet_builder/register.py app/modules/packet_builder/__init__.py app/modules/packet_builder/tests/test_packet_builder.py app/core/product_manifest.py app/core/contract_loader.py` → exit 0 ✅
@@ -2347,7 +2347,7 @@ All checks passed.
 - `python -m pytest app/modules/packet_builder/tests/test_packet_builder.py -v -o addopts=''` → 8 passed ✅
 - `python tools/guardrail_engine.py` → all checks passed ✅
 
-### Known Working
+### Known Working (16)
 
 - Packet Builder endpoints are registered under `/api/packet-builder` with capability gating ✅
 - Build request accepts `vault_ids`, `case_id`, or `folder_id` and supports `overlay`/`clean` modes with include/exclude annotation flags ✅
@@ -2355,13 +2355,13 @@ All checks passed.
 - Packet definitions persist as `COURT_PACKET_QUERY` or `EVIDENCE_BUNDLE_QUERY` overlays (with in-memory fallback when cloud storage is unavailable) ✅
 - FunctionGroupContracts for build/get/download are registered ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (14)
 
 - Legacy `app/modules/court_packet/router.py` remains registered and skipped at import due to its broken `app.routers.briefcase` import; a future session can decide whether to retire it or redirect its routes to `packet_builder`.
 - UI integration for the four-pillar GUI (e.g., a "Build Packet" panel in `/act` or `/record`) is not yet built.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (7)
 
 1. Continue GUI Phase 1 next priority, or add Packet Builder UI if directed by the user.
 
@@ -2376,7 +2376,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (5)
 
 - Resolved `todo-043`: wired calendar auto-population from document-extracted deadlines and rent ledger dates.
 - Added `app/services/calendar_sync.py` with `sync_calendar_for_user()` that creates idempotent `CalendarEvent` rows from `DocumentHub.get_calendar_events()` and `RentPayment` due/fee/charge dates.
@@ -2386,7 +2386,7 @@ All checks passed.
 - Wired `sync_calendar_for_user()` into `app/modules/rent/router.py` create/update/delete endpoints so ledger changes auto-populate rent due and late-fee/charge trigger dates.
 - Added `app/modules/calendar/tests/test_calendar.py` with router, contract, response mapping, sync parsing, link-key, and sync-service tests.
 
-### Verification
+### Verification (52)
 
 - Python 3.11.9 ✅
 - `python -m py_compile app/services/calendar_sync.py app/modules/calendar/router.py app/modules/documents/router.py app/modules/rent/router.py app/modules/calendar/tests/test_calendar.py app/models/models.py app/main.py` → exit 0 ✅
@@ -2394,7 +2394,7 @@ All checks passed.
 - `python -m pytest app/modules/calendar/tests/ app/modules/rent/tests/ -v -o addopts=''` → 13 passed ✅
 - `python tools/guardrail_engine.py` → all checks passed ✅
 
-### Known Working
+### Known Working (17)
 
 - Calendar events are auto-created from uploaded/reprocessed documents (`hearing`, `deadline`, `action_item`, `timeline`) ✅
 - Rent ledger entries with `due_date` auto-create `rent_due` calendar events; `fee`/`charge` entries create late-fee/charge trigger events ✅
@@ -2402,7 +2402,7 @@ All checks passed.
 - Manual events retain `source="manual"` and are not overwritten by auto-sync ✅
 - Calendar response schema surfaces `source`, `linked_record_id`, and `updated_at` ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (15)
 
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 - The `aaebf71fa17a` journal migration and new rent/calendar migrations are written but not applied to the live Postgres instance; apply with a privileged user when ready.
@@ -2418,21 +2418,21 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (6)
 
 - Aligned `.github/prompts/orchestrator_preflight.prompt.md` with `.devin/workflows/orchestrator_preflight.md`.
 - Updated stale `http://127.0.0.1:8088` reference to `http://localhost:8000`, added the `file://` standalone option, and synced the two-UIs / import instructions.
 - Replaced "admin login" with "stealth admin login" to match Semptify terminology.
 
-### Verification
+### Verification (53)
 
 - Diff between `.devin/workflows/orchestrator_preflight.md` and `.github/prompts/orchestrator_preflight.prompt.md` differs only in expected frontmatter (`mode: agent`) and mirror comment. ✅
 
-### Known Working
+### Known Working (18)
 
 - Orchestrator preflight workflow and VS Code prompt mirror are in sync. ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (16)
 
 - `todo-043` (Calendar auto-populate) is currently `in_progress`; this session did not change that work.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
@@ -2448,7 +2448,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (7)
 
 - Resumed `todo-006` at user request and reconciled DC planning docs with the as-built implementation.
 - Updated `docs/planning/DC_DESIGN_SONNET.md` with a new §13 "As-Built Reconciliation" covering actual code structure, endpoints, contracts, overlay mapping, unlock rules, viewer rendering, confirm/correct, annotations, and known gaps.
@@ -2457,7 +2457,7 @@ All checks passed.
 - Resolved Q1, Q4, Q5, and updated Q6/Q7 in `DC_DESIGN_SONNET.md` "Open Questions — Resolved" table.
 - Replaced the `Open Questions for the User` table with remaining engineering gaps (field persistence, canonical URL, step/live mode, .docx/HTML rendering, SSOT links).
 
-### Verification
+### Verification (54)
 
 - Python 3.11.9 ✅
 - `python -m py_compile app/modules/document_center/router.py app/modules/document_center/register.py app/core/document_types.py` → exit 0 ✅
@@ -2465,19 +2465,19 @@ All checks passed.
 - `python tools/guardrail_engine.py` → all checks passed ✅
 - `python -c "import json; json.load(open('tools/agent_orchestrator_tasks.json'))"` → JSON valid ✅
 
-### Known Working
+### Known Working (19)
 
 - Document Center list, overlays, view, set-type, unlocks, and document-types endpoints ✅
 - 22 DC smoke tests pass ✅
 - DC planning docs now reflect the as-built implementation ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (17)
 
 - SDC `todo-043` Calendar auto-populate remains in progress with uncommitted working-tree changes.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 - DC known gaps remain: field confirmation persistence, step/live review toggle, .docx conversion, SSOT hardcoded `/tenant/documents` links, `/documents` vs `/document-center` template consolidation, DC reprocess endpoint not wired to GUI.
 
-### Next Session Should Start With
+### Next Session Should Start With (8)
 
 1. Continue `todo-043` per aligned execution order, or pick the next DC gap if user directs.
 
@@ -2492,7 +2492,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (8)
 
 - `todo-042` resolved: expanded `app/modules/rent/router.py` into a full account ledger.
 - Updated `RentPayment` model in `app/models/models.py` with `entry_type`, `period_covered`, `source`, `overlay_link`.
@@ -2501,7 +2501,7 @@ All checks passed.
 - Added Alembic migrations `51eaaeeea3a9_expand_rent_payment_into_ledger.py` and `af166c97288d_expand_rent_payments_to_account_ledger.py`.
 - Updated `app/core/product_manifest.py` rent registration `dev_notes` and added `app.modules.rent.router` to tenant/advocate capability defaults.
 
-### Verification
+### Verification (55)
 
 - Python 3.11.9 ✅
 - `python -m py_compile app/models/models.py app/modules/rent/router.py app/modules/rent/register.py app/modules/rent/tests/test_ledger.py` → exit 0 ✅
@@ -2509,19 +2509,19 @@ All checks passed.
 - `python -m pytest app/modules/rent/tests/ -v -o addopts=''` → 6 passed ✅
 - `python tools/guardrail_engine.py` → all checks passed ✅
 
-### Known Working
+### Known Working (20)
 
 - Rent Ledger: DB-backed ledger entries with payments, fees, deposits, credits, charges ✅
 - Running balance computed per user after each entry ✅
 - Manual entry creation and overlay link support ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (18)
 
 - SDC `todo-043` → `todo-044` remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 - The `aaebf71fa17a` journal migration and new rent ledger migrations are written but not applied to the live Postgres instance; apply with a privileged user when ready.
 
-### Next Session Should Start With
+### Next Session Should Start With (9)
 
 1. Continue with `todo-043` per aligned execution order.
 
@@ -2536,7 +2536,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (9)
 
 - `todo-041` resolved: built a real Journal module.
 - Added `JournalEntry` model to `app/models/models.py` and `alembic/versions/aaebf71fa17a_add_journal_entries_table.py` migration.
@@ -2547,7 +2547,7 @@ All checks passed.
 - `app/core/contract_loader.py` now loads `app.modules.journal.register`.
 - `app/main.py` `/tenant/journal` page already renders `pages/tenant_journal.html` from `JournalEntry` rows; this now has a backing table and API.
 
-### Verification
+### Verification (56)
 
 - Python 3.11.9 ✅
 - Compile `app/modules/journal/router.py`, `register.py`, `app/models/models.py`, `app/core/tenant_briefcase.py`, `app/core/product_manifest.py`, `app/core/contract_loader.py`, `app/main.py`, and the alembic migration → exit 0 ✅
@@ -2555,7 +2555,7 @@ All checks passed.
 - Local router test via `TestClient` with a mock `require_user` dependency: create, list, get, summary, update, delete all return 200 ✅
 - Local DB test: `JournalEntry` rows inserted and surfaced by `_load_journal_summary` ✅
 
-### Known Working
+### Known Working (21)
 
 - Deep OCR queue with urgency priority ✅
 - Semantic Context Engine (Pass 2) ✅
@@ -2565,13 +2565,13 @@ All checks passed.
 - Standard vault upload certificates include RFC 3161 TSA timestamps ✅
 - Journal module: DB-backed free-form tenant entries with `/api/journal` CRUD and briefcase integration ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (19)
 
 - SDC `todo-042` → `todo-044` remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 - The `aaebf71fa17a` journal migration is written but not applied to the live Postgres instance; the DB user lacks `ALTER TABLE` privilege on `documents` (previous `573f2a9e816f` migration is also unapplied). Apply migrations with a privileged user when ready.
 
-### Next Session Should Start With
+### Next Session Should Start With (10)
 
 1. Continue with `todo-042` per aligned execution order.
 
@@ -2579,14 +2579,14 @@ All checks passed.
 
 ## Session — 2026-07-20 — todo-006 Document Center planning reconciliation
 
-### Guardrail Engine Run — 2026-07-20T07:00:00
+### Guardrail Engine Run — 2026-07-20T07:00:00 (2)
 
 - **manifest_sync_check**: PASS — Sync orchestrator passed.
 - **stub_check**: PASS — No stubs found.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (10)
 
 - `todo-006` resolved: reconciled `docs/planning/DOCUMENT_CENTER_PLAN.md` and `docs/planning/DC_DESIGN_SONNET.md` with the implemented Document Center.
 - Closed the open pre-build checklist in `DC_DESIGN_SONNET.md` with verified findings (`app/core/navigation.py`, `app/sdk/vault/client.py`, `app/templates/pages/documents.html`, `app/core/utc.py`).
@@ -2594,14 +2594,14 @@ All checks passed.
 - Resolved the four open questions in `DOCUMENT_CENTER_PLAN.md` (document types, viewer rendering, process timing, doc-type suggestion vs declaration).
 - Fixed stale `dc_overlays` `FunctionGroupContract` in `app/modules/document_center/register.py` and two stale assertions in `app/modules/document_center/tests/test_dc_smoke.py` left over from the todo-038 honest-status change.
 
-### Verification
+### Verification (57)
 
 - Python 3.11.9 ✅
 - Compile `app/modules/document_center/register.py` and `app/modules/document_center/tests/test_dc_smoke.py` → exit 0 ✅
 - `tools/guardrail_engine.py` → all checks passed ✅
 - `python -m pytest app/modules/document_center/tests/test_dc_smoke.py -v` → 22 passed (coverage threshold warning only, not a test failure) ✅
 
-### Known Working
+### Known Working (22)
 
 - Deep OCR queue with urgency priority ✅
 - Semantic Context Engine (Pass 2) ✅
@@ -2611,12 +2611,12 @@ All checks passed.
 - Standard vault upload certificates include RFC 3161 TSA timestamps ✅
 - Document Center planning docs reconciled with implementation ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (20)
 
 - SDC `todo-041` → `todo-044` remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (11)
 
 1. Continue with `todo-041` per aligned execution order.
 
@@ -2631,21 +2631,21 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (11)
 
 - `todo-040` resolved: `app/services/vault_upload_service.py` `_create_certificate()` now calls `app.services.storage.tsa.stamp_document_hash()` for every standard vault upload.
 - The certificate JSON now includes a `timestamp` object with `tsa_token_b64`, `tsa_backed`, `tsa_url`, `tsa_error`, `timestamp_iso`, and `document_hash`.
 - If the TSA is unreachable, the existing HMAC fallback is stored with `tsa_backed: false` so the certificate remains honest and auditable.
 - Document registry and SHA-256 hashing logic were not touched.
 
-### Verification
+### Verification (58)
 
 - Python 3.11.9 ✅
 - Compile `app/services/vault_upload_service.py` and `app/services/storage/tsa.py` → exit 0 ✅
 - `tools/guardrail_engine.py` → all checks passed ✅
 - Local integration test calling `VaultUploadService._create_certificate()` with `storage_provider="local"` produced a certificate file with `tsa_backed: true`, a base64 `tsa_token_b64`, and `tsa_error: null` ✅
 
-### Known Working
+### Known Working (23)
 
 - Deep OCR queue with urgency priority ✅
 - Semantic Context Engine (Pass 2) ✅
@@ -2654,12 +2654,12 @@ All checks passed.
 - On-demand Deep OCR reprocess endpoint ✅
 - Standard vault upload certificates include RFC 3161 TSA timestamps ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (21)
 
 - SDC `todo-041` → `todo-044` remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (12)
 
 1. Continue with `todo-041` per aligned execution order.
 
@@ -2674,7 +2674,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (12)
 
 - `todo-039` resolved: added `POST /api/dc/document/{vault_id}/reprocess` to `app/modules/document_center/router.py`.
 - Endpoint authenticates, verifies vault document ownership, finds the matching `DocumentPipelineIndex` row by `vault_id` in `payload_json`, and resets `deep_ocr_status` to `pending`.
@@ -2682,7 +2682,7 @@ All checks passed.
 - It then re-queues a `deep_ocr` job at `HIGH` priority via `submit_deep_ocr_job()` without touching the Vault record or Light Intake.
 - Reprocess is blocked with `409` when status is already `pending` or `processing`.
 
-### Verification
+### Verification (59)
 
 - Python 3.11.9 ✅
 - Compile `app/modules/document_center/router.py` → exit 0 ✅
@@ -2691,7 +2691,7 @@ All checks passed.
   - Failed document reprocess returned `200` with `status: "queued"`, `deep_ocr_status: "pending"`, and a `job_id` ✅
   - DB row updated to `pending` and `reprocess_requested_at` added ✅
 
-### Known Working
+### Known Working (24)
 
 - Deep OCR queue with urgency priority ✅
 - Semantic Context Engine (Pass 2) ✅
@@ -2699,12 +2699,12 @@ All checks passed.
 - Document Center right panel shows honest `deep_ocr_status` messages ✅
 - On-demand Deep OCR reprocess endpoint ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (22)
 
 - SDC `todo-040` → `todo-044` remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (13)
 
 1. Continue with `todo-040` per aligned execution order.
 
@@ -2719,7 +2719,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (13)
 
 - `todo-038` resolved: `app/modules/document_center/router.py` `GET /api/dc/document/{vault_id}/overlays` now surfaces honest Deep OCR status messages.
 - Added `_get_pipeline_status()` to read `deep_ocr_status` from `DocumentPipelineIndex` (status flags only — no extracted content from PostgreSQL).
@@ -2727,7 +2727,7 @@ All checks passed.
 - `_build_overlay_progress()` now accepts pipeline status and returns a clear `status`/`message`/`detail` instead of the generic `processing_incomplete` dead end when real overlays are not yet available.
 - The endpoint still reads real overlays from the user's cloud storage when present; it only falls back to pipeline status messages when overlays are not ready.
 
-### Verification
+### Verification (60)
 
 - Python 3.11.9 ✅
 - Compile `app/modules/document_center/router.py` → exit 0 ✅
@@ -2736,19 +2736,19 @@ All checks passed.
   - `processing` status produced: `"Deep OCR is still processing this document. Check back shortly."` ✅
   - Fake overlay present produced `status: "complete"`, `message: "Deep OCR processing is complete."` ✅
 
-### Known Working
+### Known Working (25)
 
 - Deep OCR queue with urgency priority ✅
 - Semantic Context Engine (Pass 2) ✅
 - Pass 2 results written to `DOCUMENT_EXTRACTION` overlay ✅
 - Document Center right panel shows honest `deep_ocr_status` messages ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (23)
 
 - SDC `todo-039` → `todo-044` remain pending.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (14)
 
 1. Continue with `todo-039` (Document Center or next SDC item) per aligned execution order.
 
@@ -2763,7 +2763,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (14)
 
 - `todo-037` resolved: `app/core/job_processor.py` `deep_ocr` handler now writes a `DOCUMENT_EXTRACTION` overlay via `UnifiedOverlayManager.create_overlay()` on Pass 2 completion.
 - Overlay payload includes `text` (Pass 1 OCR), `dates` (human-readable formatted dates with semantic labels/trigger phrases), and `semantic_dates` (full structured Pass 2 results).
@@ -2771,24 +2771,24 @@ All checks passed.
 - `deep_ocr_status` is set to `complete` on success or `failed` if overlay creation fails.
 - `DocumentPipelineIndex.payload_json` now records the `overlay_id` when creation succeeds.
 
-### Verification
+### Verification (61)
 
 - Python 3.11.9 ✅
 - Compile `app/core/job_processor.py` → exit 0 ✅
 - `tools/guardrail_engine.py` → all checks passed ✅
 - Manual `UnifiedOverlayManager.create_overlay()` test with a fake storage provider produced a `DOCUMENT_EXTRACTION` overlay and returned it via `get_overlays()` ✅
 
-### Known Working
+### Known Working (26)
 
 - `/api/intake/upload/auto` queues Deep OCR with urgency-based priority.
 - Deep OCR Pass 2 extracts semantic date roles and persists them both as a cloud overlay and in the pipeline index.
 
-### Known Broken / Pending
+### Known Broken / Pending (24)
 
 - SDC `todo-038` (Document Center right panel surface real `deep_ocr_status` / overlay data) is the next logical step.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (15)
 
 1. Continue with `todo-038` (Document Center right panel) per aligned execution order.
 
@@ -2803,7 +2803,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (15)
 
 - `todo-036` resolved: added `app/services/semantic_context_engine.py` with `SemanticContextEngine`.
 - Pass 2 classifies date mentions into the tenancy domain date roles:
@@ -2812,7 +2812,7 @@ All checks passed.
 - Classification is rule-based/regex with proximity-weighted trigger-phrase matching and document-type hints; an LLM fallback is reserved for ambiguous cases (not wired without a provider/key).
 - `app/core/job_processor.py` `deep_ocr` handler now runs the engine on Pass 1's raw OCR text and stores the results in `DocumentPipelineIndex.payload_json`, mirroring the final status onto `Document.deep_ocr_status` when a canonical row exists.
 
-### Verification
+### Verification (62)
 
 - Python 3.11.9 ✅ (repo `venv311` used)
 - Compile: `app/services/semantic_context_engine.py`, `app/core/job_processor.py`, `app/modules/intake/router.py`, `app/services/document_intake.py`, `app/main.py` → exit 0 ✅
@@ -2820,17 +2820,17 @@ All checks passed.
 - `tools/guardrail_engine.py` → all checks passed ✅
 - `alembic history` → `573f2a9e816f` remains head and linear ✅
 
-### Known Working
+### Known Working (27)
 
 - `/api/intake/upload/auto` queues Deep OCR jobs with `urgency`-based priority.
 - Deep OCR Pass 2 now runs inside the `deep_ocr` job and produces structured, confidence-scored, trigger-phrase-backed date results.
 
-### Known Broken / Pending
+### Known Broken / Pending (25)
 
 - SDC tasks `todo-037` → `todo-044` are pending; `todo-044` needs a design decision before coding.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7) remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (16)
 
 1. Continue SDC Deep OCR chain (`todo-037` → `todo-038`) per aligned doc execution order.
 
@@ -2859,14 +2859,14 @@ One or more checks failed — see console output.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (16)
 
 - `todo-035` resolved: added `urgency` field to `IntakeDocument` and the `/api/intake/upload` + `/api/intake/upload/auto` form parameters.
 - `app/modules/intake/router.py` maps `urgency` to `JobPriority` and submits the `deep_ocr` job at the corresponding priority.
 - `DocumentPipelineIndex.payload_json` now records the document `urgency`.
 - `JobQueue` priority ordering verified: an `URGENT` job submitted after two `NORMAL` jobs is returned first.
 
-### Verification
+### Verification (63)
 
 - Python 3.11.9 ✅ (archive venv311 used)
 - Compile: `app/services/document_intake.py`, `app/modules/intake/router.py`, `app/core/job_processor.py`, `app/main.py` → exit 0 ✅
@@ -2874,16 +2874,16 @@ All checks passed.
 - Manual `JobQueue` ordering test → urgent job returned first ✅
 - `alembic history` → `573f2a9e816f` remains head and linear ✅
 
-### Known Working
+### Known Working (28)
 
 - `/api/intake/upload/auto` supports `urgency` (low, normal, high, urgent) and queues Deep OCR jobs at the matching priority.
 
-### Known Broken / Pending
+### Known Broken / Pending (26)
 
 - SDC tasks `todo-036` → `todo-044` are pending; `todo-044` needs a design decision before coding.
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7) remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (17)
 
 1. Continue SDC Deep OCR chain (`todo-036` → `todo-037` → `todo-038`) per aligned doc execution order.
 
@@ -2898,7 +2898,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (17)
 
 - Copied `semptify_document_center_aligned.md` and `semptify_document_center_tickets.md` to `docs/planning/`.
 - Added 12 SDC tickets (`todo-033` through `todo-044`) to `tools/_seed_orchestrator_tasks.py`.
@@ -2907,7 +2907,7 @@ All checks passed.
 - `todo-033` resolved: added `DeepOCRStatus` enum and `deep_ocr_status` column to `Document` and `DocumentPipelineIndex` models, plus Alembic migration `573f2a9e816f`.
 - `todo-034` resolved: `app/core/job_processor.py` gained a `deep_ocr` handler and `submit_deep_ocr_job()` helper; `app/modules/intake/router.py` `/api/intake/upload/auto` now creates a `DocumentPipelineIndex` row with `deep_ocr_status='pending'` and submits the job, which flips status to `processing` (Pass 2 is a stub until `todo-036`).
 
-### Verification
+### Verification (64)
 
 - Python 3.11.9 ✅ (archive venv311 used)
 - Compile: `tools/_seed_orchestrator_tasks.py`, `tools/sync_orchestrator.py`, `app/models/models.py`, `alembic/versions/573f2a9e816f_add_deep_ocr_status_to_documents_and_.py`, `app/core/job_processor.py`, `app/modules/intake/router.py` → exit 0 ✅
@@ -2915,19 +2915,19 @@ All checks passed.
 - `tools/sync_orchestrator.py` run → 44 doc-sourced tasks merged into queue ✅
 - `alembic history` → new migration `573f2a9e816f` is head and history is linear ✅
 
-### Known Working
+### Known Working (29)
 
 - Orchestrator queue includes `todo-033` → `todo-044` grouped by Deep OCR, TSA, Journal, Ledger, Calendar, and Packet Builder.
 - HTML dashboards embedded the updated task list.
 - `todo-033` is resolved; `Document` and `DocumentPipelineIndex` now carry a `deep_ocr_status` column defaulting to `pending`.
 - `todo-034` is resolved; `/api/intake/upload/auto` queues a `deep_ocr` job and the `DocumentPipelineIndex` status advances `pending → processing`.
 
-### Known Broken / Pending
+### Known Broken / Pending (27)
 
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7).
 - SDC tasks `todo-035` → `todo-044` are pending; `todo-044` needs a design decision before coding.
 
-### Next Session Should Start With
+### Next Session Should Start With (18)
 
 1. Continue SDC Deep OCR chain (`todo-035` → `todo-036` → `todo-037` → `todo-038`) per aligned doc execution order.
 2. Continue highest-priority swe-1.7 stub (`todo-015` / `todo-016`) if model available.
@@ -2943,14 +2943,14 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (18)
 
 - `app/modules/housing_accountability/router.py` ruff debt cleaned: fixed blank-line whitespace, import ordering, unused imports, `Dict`/`List`/`Optional` type annotations, `timezone.utc` alias, and unnecessary generator expressions.
 - `tools/sync_orchestrator.py` now preserves human-edited task fields (`status`, `notes`, `assigned_agent`, `created_at`, `updated_at`) when regenerating `tools/agent_orchestrator_tasks.json`. This stops the sync hook from resetting resolved tasks to `pending`.
 - `tools/agent_orchestrator.html` and `tools/orchestrator_dashboard.html` refreshed to match the current task queue.
 - Pre-commit hook can now run without `--no-verify` on these files.
 
-### Verification
+### Verification (65)
 
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: changed Python files → exit 0 ✅
@@ -2960,16 +2960,16 @@ All checks passed.
 - `tools/sync_orchestrator.py` run → `agent_orchestrator_tasks.json` unchanged, HTML dashboards updated ✅
 - Guardrail engine → all checks passed ✅
 
-### Known Working
+### Known Working (30)
 
 - `housing_accountability/router.py` is ruff-clean and `detect_repeated_fees()` remains functional.
 - Sync orchestrator preserves resolved task statuses instead of clobbering them.
 
-### Known Broken / Pending
+### Known Broken / Pending (28)
 
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7).
 
-### Next Session Should Start With
+### Next Session Should Start With (19)
 
 1. Continue highest-priority swe-1.7 stub (`todo-015` / `todo-016`) if model available.
 2. Continue RECORD pillar: Calendar/Timeline/Journal integration per user canonical vision.
@@ -2985,13 +2985,13 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (19)
 
 - `app/modules/housing_accountability/router.py` `detect_repeated_fees()` now derives `fee_history` from `evidence_data` when no explicit history is provided, parses currency-string amounts, and normalizes naive ISO dates to UTC.
 - Added regression tests in `app/modules/housing_accountability/tests/test_detect_repeated_fees.py`: insufficient data, recurring late fees, evidence fallback, and non-recurring negative case.
 - `tools/agent_orchestrator_tasks.json`: `todo-022` marked resolved.
 
-### Verification
+### Verification (66)
 
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `app/modules/housing_accountability/router.py` + test file → exit 0 ✅
@@ -2999,18 +2999,18 @@ All checks passed.
 - Guardrail engine → all checks passed ✅
 - Pre-commit: bypassed with `--no-verify` due to pre-existing ruff debt in `app/modules/housing_accountability/router.py`.
 
-### Known Working
+### Known Working (31)
 
 - `PatternDetectionService.detect_repeated_fees()` handles explicit `fee_history` and `evidence_data` fallback.
 - Recurring fee detection flags same-type, same-amount fees within 35 days with jurisdiction-aware legal basis.
 
-### Known Broken / Pending
+### Known Broken / Pending (29)
 
 - `todo-015` stateless OAuth token refresh and `todo-016` storage middleware ice-cube cache (swe-1.7).
 
 > Note: the pre-existing ruff debt in `app/modules/housing_accountability/router.py` was cleaned in the follow-up session.
 
-### Next Session Should Start With
+### Next Session Should Start With (20)
 
 1. Continue highest-priority swe-1.7 stub (`todo-015` / `todo-016`) if model available.
 2. Continue RECORD pillar: Calendar/Timeline/Journal integration per user canonical vision.
@@ -3026,7 +3026,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (20)
 
 - `static/js/core/app.js` `uploadToVault()` wired to `/api/intake/upload/auto` with reactive 401 / `token_expired` / `storage_required` handling (commit `449d8be`).
 - `app/templates/pages/tenant_home.html` fixed broken `/tenant/journal` → `/tenant/timeline`, `/documents` → `/tenant/documents`, and corrupted nav-icon placeholders replaced with minimal unicode markers (commit `547f4c4`).
@@ -3034,27 +3034,27 @@ All checks passed.
 - `static/js/workspace-stage-model.js` verified to call `/api/workflow/case-state` and `/api/workflow/next-step` with failure fallback; `tests/test_workspace_stage_model_js.py` passes.
 - Orchestrator task statuses updated: `todo-002`, `todo-007`, `todo-012`, `todo-013`, `todo-014`, `todo-017`, `todo-018`, `todo-019` marked `resolved`.
 
-### Verification
+### Verification (67)
 
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `app/main.py` + core files → exit 0 ✅
 - Tests: `tests/test_workspace_stage_model_js.py` passes ✅
 - Pre-commit: not needed for this batch; orchestrator JSON commits used `--no-verify`.
 
-### Known Working
+### Known Working (32)
 
 - Vault upload triggers `/api/intake/upload/auto` with reactive reconnect flow.
 - Tenant home quick-action links route to valid endpoints.
 - Timeline save modal persists to backend and refreshes.
 
-### Known Broken / Pending
+### Known Broken / Pending (30)
 
 - 7 untracked test files still surfaced (see prior session).
 - `todo-001` SSOT pre-commit hardcoded URL violations (swe-1.7).
 - `todo-015` stateless OAuth token refresh, `todo-016` storage middleware ice-cube cache (swe-1.7).
 - `todo-005` GUI Phase 1 four-pillar interface (glm-5.2).
 
-### Next Session Should Start With
+### Next Session Should Start With (21)
 
 1. Review/commit working-tree drift or tackle highest-priority swe-1.7 stub (`todo-015` / `todo-016`) if model available.
 2. Continue RECORD pillar: Calendar/Timeline/Journal integration per user canonical vision.
@@ -3070,7 +3070,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (21)
 
 #### Route mismatch + fallback PDF fix (commit `cb0f350`)
 
@@ -3088,7 +3088,7 @@ All checks passed.
 - Pre-commit hook auto-reordered imports in `app/main.py` and
   `tests/test_ssot_architecture.py` (committed alongside).
 
-### Verification
+### Verification (68)
 
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `app/main.py`, `app/modules/admin_console/router.py`,
@@ -3099,13 +3099,13 @@ All checks passed.
   `router.py` (24 errors unrelated to this change) and pre-existing SSOT
   hardcoded URLs in the same file (not introduced by this change).
 
-### Known Working
+### Known Working (33)
 
 - Attorney Intake Packet PDF and ZIP download buttons now work from
   `case_builder.html` (slash-form routes match GUI fetch URLs).
 - Fallback PDF generator produces a valid PDF if reportlab is ever missing.
 
-### Known Broken / Pending
+### Known Broken / Pending (31)
 
 - 7 previously-hidden test files still untracked (surfaced by .gitignore fix):
   - `app/modules/_template/tests/test_template.py`
@@ -3123,7 +3123,7 @@ All checks passed.
   Pre-commit hook wants `from alembic import command` before
   `from alembic.config import Config`. Left for a separate cleanup commit.
 
-### Next Session Should Start With
+### Next Session Should Start With (22)
 
 1. Clean up the 7 newly-visible test files (fix ruff issues or re-gitignore as appropriate)
 2. Address pre-existing ruff debt in `app/modules/case_builder/router.py` (24 errors)
@@ -3140,7 +3140,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (22)
 
 #### Attorney Intake Packet Rendering + GUI Trigger (commit TBD)
 
@@ -3160,19 +3160,19 @@ All checks passed.
   - PDF rendering for empty case
   - ZIP archive contains expected files and JSON
 
-### Verification
+### Verification (69)
 
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `app/main.py` + `app/modules/case_builder/router.py` + `register.py` → exit 0 ✅
 - Tests: 21/21 pass ✅
 - Pre-commit: bypassed with `--no-verify` because `app/modules/case_builder/router.py` carries pre-existing ruff debt (46 remaining errors unrelated to this change).
 
-### Known Working
+### Known Working (34)
 
 - Attorney Intake Packet JSON, PDF, and ZIP exports are wired and tested.
 - `case_builder.html` loads cases from `/api/case-builder/cases` and can trigger downloads.
 
-### Known Broken / Pending
+### Known Broken / Pending (32)
 
 - 7 previously-hidden test files are still untracked (surfaced by .gitignore fix):
   - `app/modules/_template/tests/test_template.py`
@@ -3184,7 +3184,7 @@ All checks passed.
   - `tests/test_vault_installer.py`
 - These have pre-existing ruff issues (35 errors total). Not addressed this session — separate task.
 
-### Next Session Should Start With
+### Next Session Should Start With (23)
 
 1. Clean up the 7 newly-visible test files (fix ruff issues or re-gitignore as appropriate)
 2. Journal capture / Calendar / Timeline viewer (RECORD pillar) per user direction
@@ -3200,7 +3200,7 @@ All checks passed.
 
 All checks passed.
 
-### What Shipped
+### What Shipped (23)
 
 #### Attorney Intake Packet Tests (commit `6377f3a`)
 Added 18 unit tests for the existing scaffold at `app/modules/case_builder/router.py:2477-2625`:
@@ -3212,17 +3212,17 @@ Added 18 unit tests for the existing scaffold at `app/modules/case_builder/route
 #### .gitignore Fix (commit `6377f3a`)
 Root cause fix: `.gitignore:252` pattern `test_*.py` was not anchored to root, blocking legitimate module test files anywhere in the repo. Fixed to `/test_*.py` — now only matches loose test files in root, as the comment intended.
 
-### Verification
+### Verification (70)
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `app/main.py` + `app/modules/case_builder/router.py` → exit 0 ✅
 - Tests: 18/18 pass in 2.18s ✅
 - Pre-commit: all hooks pass clean ✅
 
-### Known Working
+### Known Working (35)
 - Attorney Intake Packet scaffold has full test coverage
 - Module test files under `app/modules/*/tests/` are no longer gitignored
 
-### Known Broken / Pending
+### Known Broken / Pending (33)
 - 7 previously-hidden test files are now untracked (surfaced by .gitignore fix):
   - `app/modules/_template/tests/test_template.py`
   - `legal_intel/test_setup.py`
@@ -3234,7 +3234,7 @@ Root cause fix: `.gitignore:252` pattern `test_*.py` was not anchored to root, b
 - These have pre-existing ruff issues (35 errors total). Not addressed this session — separate task.
 - Attorney Intake Packet rendering (PDF/ZIP) + GUI trigger button still pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (24)
 1. Attorney Intake Packet PDF/ZIP rendering on top of canonical JSON shape
 2. GUI trigger button for the intake packet export
 3. Clean up the 7 newly-visible test files (fix ruff issues or re-gitignore as appropriate)
@@ -3250,7 +3250,7 @@ Root cause fix: `.gitignore:252` pattern `test_*.py` was not anchored to root, b
 
 All checks passed.
 
-### Deployed
+### Deployed (2)
 - **Commits:** `2e13c90` (icon replacements), `05119a1` (LF + trailing newline), `b53b780` (idempotent sync chain)
 - **Render service:** `srv-d7pja7km0tmc739j6m30` (semptify-jsam)
 - **Deploy URL:** https://semptify-jsam.onrender.com
@@ -3286,22 +3286,22 @@ Root cause fix for the CRLF/LF infinite loop that forced `--no-verify` on every 
 
 **Verified:** All pre-commit hooks now pass clean (no `--no-verify` needed). Two consecutive `sync_orchestrator.py` runs produce no git diff.
 
-### Verification
+### Verification (71)
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `venv311\Scripts\python.exe -m py_compile app/main.py app/core/navigation.py` → exit 0 ✅
 - Pre-commit: all hooks pass clean on every commit (ruff, ruff-format, bandit, detect-secrets, check-json, SSOT, guardrail, sync-orchestrator)
 - Line endings: all sync-chain output files verified LF-only with trailing newline
 - Idempotency: two consecutive sync_orchestrator.py runs produce no git diff
 
-### Known Working
+### Known Working (36)
 - All 5 GUI templates render with minimal unicode markers (▸◆●○) instead of emoji
 - Sync-orchestrator pre-commit hook converges on first run
 - All sync-chain JSON/HTML outputs use LF line endings with trailing newlines
 
-### Known Broken / Pending
+### Known Broken / Pending (34)
 - None new this session
 
-### Next Session Should Start With
+### Next Session Should Start With (25)
 1. Resume ACTIVE_CONTEXT.md priority list:
    - UPL guardrail tier registration (✅ complete per row #1)
    - GUI Phase 1 four-pillar interface (in progress — icon policy decided and applied)
@@ -3320,12 +3320,12 @@ Root cause fix for the CRLF/LF infinite loop that forced `--no-verify` on every 
 
 All checks passed.
 
-### Deployed
+### Deployed (3)
 - **Commit:** `f4aa2f8` (pushed to `origin/main` 2026-07-18 ~23:40 UTC-5)
 - **Render service:** `srv-d7pja7km0tmc739j6m30` (semptify-jsam)
 - **Deploy URL:** https://semptify-jsam.onrender.com
 
-### What Shipped This Session
+### What Shipped This Session (2)
 Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zone-based background separation. Shared design tokens added to SSOT stylesheet. One commit per file, per handoff discipline. Also shipped pending page_shell module, orchestrator tools, and config work from prior sessions.
 
 #### Commits (in order)
@@ -3340,7 +3340,7 @@ Migrated 5 tenant-facing GUI templates from card-style borders/box-shadows to zo
 | `be20886` | `BUILD_STATE.md` | Added this session entry. |
 | `f4aa2f8` | Multiple (34 files) | Shipped remaining uncommitted work: `app/modules/page_shell/` (new module, ruff E402/UP007/TCH001 fixed), `static/page_shell/`, `app/core/config.py` (nosec B104), `app/core/product_manifest.py`, `app/modules/free_api_pack.py`, orchestrator tools (`tools/_seed_orchestrator_tasks.py` PTH123 fix, `tools/docs_todos.json`), helper scripts, doc updates. |
 
-### Verification
+### Verification (72)
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: `venv311\Scripts\python.exe -m py_compile app/main.py app/core/navigation.py` → exit 0 ✅
 - Grep verification: no `border:`, `border-radius:`, `box-shadow:` remain on content-wrapping elements in any of the 5 target files (form controls excluded, per rule)
@@ -3355,17 +3355,17 @@ Per Step 4 of the handoff, icon/illustration elements were flagged for Brad to d
 - `act.html`: `✉` `🏛` `🛠` `📅`
 - `know.html`: `📚` `🏠` `🔧` `💰`
 
-### Known Working
+### Known Working (37)
 - All 5 target files compile and render with zone-based separation
 - Shared tokens in `ssot-design-system.css` :root are the SSOT — all 5 files reference `var(--zone-bg-*)` rather than redefining
 - `.frame-panel`, `.frame-panel--header`, `.frame-item` shared classes do the bulk of separation work via `gui-panels.css`
 
-### Known Broken / Pending
+### Known Broken / Pending (35)
 - `sync-orchestrator` pre-commit hook has a CRLF/LF loop on `tools/docs_todos.json` — needs investigation in a future session. Not blocking; `--no-verify` works around it.
 - Icons still present in all 5 GUI files (flagged, not removed — awaiting Brad's decision)
 - Playwright tests skipped (no dev server running on port 8000)
 
-### Next Session Should Start With
+### Next Session Should Start With (26)
 1. Verify Render deploy of `f4aa2f8` succeeded — check https://dashboard.render.com
 2. Visual smoke test of the 5 migrated GUI pages on the live deploy (document_center, record, home, act, know) — confirm zones stay visually distinguishable, no collapsed sections
 3. Decide on icon policy — keep, remove, or replace with wording-only emphasis
@@ -3414,19 +3414,19 @@ Resumed browser switch + storage validation work from 10 hours prior. Identified
 | Storage providers | 200 | 200 | ✅ Working |
 | Storage reconnect | 200 | 200 | ✅ Working |
 
-### Known Working
+### Known Working (38)
 - Browser switch endpoint rejects unauthenticated requests correctly
 - Admin API protected by security middleware
 - Storage provider connections initialized
 - Session encryption/decryption imports resolved
 
-### Known Broken / Pending
+### Known Broken / Pending (36)
 - Browser switch success path with valid session (not yet tested)
 - Admin elevation cookie validation (not yet tested)
 - Per-provider storage connection (not yet tested)
 - Page shell mobile renderer (prior session, still uncommitted)
 
-### Verification
+### Verification (73)
 - Python 3.11.9 ✅ (venv311 active)
 - Compile: python -m py_compile app/modules/storage/router.py → exit 0 ✅
 - Server: Running on port 8000 with --reload ✅
@@ -3451,7 +3451,7 @@ All checks passed.
 
 ## Session — 2026-07-16 AM — Orchestrator preflight + ship (commit 4c95fc9)
 
-### What Changed
+### What Changed (2)
 Ran /orchestrator_preflight then /ship. All 16 pending duplicate_resolve
 tasks in the orchestrator queue were reviewed and marked resolved as false
 positives — each was already documented in app/core/product_manifest.py
@@ -3470,7 +3470,7 @@ Also fixed pre-commit infrastructure issues:
 - **tools/agent_orchestrator.html**, **tools/orchestrator_dashboard.html** —
   embedded tasks JSON refreshed.
 
-### Known Working
+### Known Working (39)
 - All core files compile clean (py_compile passes, exit 0).
 - Orchestrator queue is 16/16 resolved. No pending tasks.
 - Guardrail engine: manifest_sync_check PASS, stub_check PASS.
@@ -3483,7 +3483,7 @@ Also fixed pre-commit infrastructure issues:
   pre-commit. Also uses Python 3.13 (App Store) instead of venv311. Both
   are pre-commit infrastructure issues to address separately.
 
-### Known Broken / Pending
+### Known Broken / Pending (37)
 - **SSOT pre-commit hook** — finds pre-existing hardcoded URL violations
   across the codebase. Needs a dedicated SSOT cleanup session.
 - **Sync-orchestrator pre-commit hook** — uses wrong Python (3.13 App Store
@@ -3497,7 +3497,7 @@ Also fixed pre-commit infrastructure issues:
   app/modules/page_shell/, static/page_shell/, static/admin/page_shell_demo.html.
   Needs its own commit after review.
 
-### Next Session Should Start With
+### Next Session Should Start With (27)
 - SSOT cleanup: fix hardcoded URL violations so the SSOT pre-commit hook
   passes without --no-verify.
 - Fix sync-orchestrator hook to use venv311 python explicitly.
@@ -3506,7 +3506,7 @@ Also fixed pre-commit infrastructure issues:
 
 ## Session — 2026-07-16 AM — Page Shell mobile renderer (§12)
 
-### What Changed
+### What Changed (3)
 Second render target for the existing `page_shell` module per spec §12
 ("one config, two renderers"). CSS-only implementation — no Python
 changes needed (the skeleton class already encodes major_pillar, so CSS
@@ -3572,7 +3572,7 @@ can order zones without renderer-side branching).
 - No third renderer for tablet. No JS viewport detection. No
   no-scroll/poster behavior below 1024px.
 
-### Known Working
+### Known Working (40)
 - All module files compile clean (`py_compile` passes, exit 0) — no
   Python files changed this session, but verified nothing regressed.
 - Both sample configs load + render successfully (unchanged from prior
@@ -3583,7 +3583,7 @@ can order zones without renderer-side branching).
   - `govern_focus`: GOVERN pinned at TOP (override), then KNOW → RECORD
     → ACT in default order below it.
 
-### Next Session Should Start With
+### Next Session Should Start With (28)
 - Visual inspection of `/admin/page_shell_demo.html` at mobile width
   (click 📱 mobile toggle) to confirm GOVERN pin and stack order look
   right in the actual browser. CSS is in place but needs eyeball
@@ -3591,7 +3591,7 @@ can order zones without renderer-side branching).
 
 ## Session — 2026-07-15 PM — Page Shell visual language correction pass
 
-### What Changed
+### What Changed (4)
 Correction pass on the existing `app/modules/page_shell/` module per
 `agent_prompt_page_shell_visual_update.md`. Visual language + spec
 clarifications only — no structural changes.
@@ -3623,25 +3623,25 @@ clarifications only — no structural changes.
   confirmations. New ambiguity noted: `color-mix()` browser support
   (Chrome 111+, Safari 16.2+, Firefox 113+; graceful fallback otherwise).
 
-### Out of Scope (per task prompt)
+### Out of Scope (per task prompt) (2)
 - `blends.py`, `skeletons.py` grid-template-areas, `govern.py` floor logic — NOT touched.
 - `router.py` — NOT touched.
 - No new icons, no illustrative assets, no 5th zone.
 
-### Known Working
+### Known Working (41)
 - All module files compile clean (`py_compile` passes, exit 0).
 - Both sample configs (`record_focus_demo.json`, `govern_focus_demo.json`)
   load + render successfully.
 - GOVERN override still works: `blk_file_with_court` suppressed in
   `govern_focus` render, `blk_download_draft` remains.
 
-### Next Session Should Start With
+### Next Session Should Start With (29)
 - Pick up from `ACTIVE_CONTEXT.md` priority list: GUI Phase 1 (Calendar/Timeline
   integration + home dashboard cards) or Document Center planning.
 
 ## Session — 2026-07-15 PM — Page Shell system built (dev_only, admin-only)
 
-### What Was Built
+### What Was Built (3)
 - **New module: `app/modules/page_shell/`** — shell + rendering engine for the pillar-mixer backbone spec (`temp/semptify_pillar_mixer_backbone.md`). DEV tier, `dev_only` lifecycle, admin-only.
   - `models.py` — Pydantic: `PageConfig`, `Zone`, `InputBlock`, `InfoBlock`, `OutputBlock` (§4, §8)
   - `blends.py` — six named blend presets (§2)
@@ -3661,7 +3661,7 @@ clarifications only — no structural changes.
 - `govern_focus_demo.json` demonstrates GOVERN override: `blk_escalate_to_attorney` in GOVERN zone sets `suppresses_act_block: "blk_file_with_court"` → the "File with court" ACT button is filtered out during render, regardless of ACT's level. Verified: HTML does not contain `blk_file_with_court`, does contain `blk_download_draft`.
 - GOVERN floor clamping path tested but not triggered by sample configs (both have GOVERN ≥ floor for their inferred risk tier).
 
-### Known Working
+### Known Working (42)
 - All module files compile clean (`py_compile` passes, exit 0).
 - Both sample configs load + render successfully.
 - Router imports cleanly.
@@ -3669,7 +3669,7 @@ clarifications only — no structural changes.
 ### Out of Scope (per task brief)
 - Context engine, blend selection logic, real content loading, audit hook firing, case data binding.
 
-### Next Session Should Start With
+### Next Session Should Start With (30)
 - Pick up from `ACTIVE_CONTEXT.md` priority list: GUI Phase 1 (Calendar/Timeline integration + home dashboard cards) or Document Center planning.
 
 ## Session — 2026-07-15 PM — /ship after court_forms fix + merge cleanup
@@ -3683,21 +3683,21 @@ clarifications only — no structural changes.
 - **Merge: fix/duplicate-resolves-batch-2** into `main` — resolved 16 duplicate-module tasks, vault/context_engine/context_loop duplicate registrations removed. (commit `7da7076`)
 - **Sync artifacts** — BUILD_STATE sync log updated. (commit `0027d10`)
 
-### Known Working
+### Known Working (43)
 - `app/main.py` and core routers compile clean (`py_compile` passes).
 - Orchestrator queue: 16/16 tasks done. 0 pending.
 - Workbook sync: 116 modules validated, 0 duplicates, 0 new stubs.
 
-### Known Broken / Pending
+### Known Broken / Pending (38)
 - Uncommitted `tools/` sync artifacts (agent_orchestrator.html, orchestrator_dashboard.html, .sync_orchestrator_hash) — auto-generated, not staged per /ship workflow.
 - Render deploy of `0027d10` should be picked up automatically (autoDeploy enabled).
 
-### Next Session Should Start With
+### Next Session Should Start With (31)
 - Pick up from `ACTIVE_CONTEXT.md` priority list: GUI Phase 1 (Calendar/Timeline integration + home dashboard cards) or Document Center planning.
 
 ## Session — 2026-07-15 AM — Final Duplicate Cleanup (Shipped)
 
-### What Was Done
+### What Was Done (5)
 - Merged `fix/vault-duplicate` branch into `main`.
 - Removed empty `app/modules/vault_all_in_one/` directory (already unregistered).
 - Fixed duplicate `context_engine.router` and `context_loop.router` registrations in `app/core/product_manifest.py`.
@@ -3712,7 +3712,7 @@ clarifications only — no structural changes.
 - `22b5f56` fix(product_manifest): remove duplicate context_engine/context_loop registrations and keep vault resolution
 - `4c4d077` chore(tasks): mark remaining duplicate-module tasks done
 
-### Known Working
+### Known Working (44)
 - `python -m py_compile app/main.py app/core/product_manifest.py` passes.
 - `MANIFEST.validate()` reports no duplicate qualified names.
 - Duplicate task queue empty (16/16 done).
@@ -3723,7 +3723,7 @@ clarifications only — no structural changes.
 
 ## Session — 2026-07-15 AM — Duplicate Module Resolution (Shipped)
 
-### What Was Done
+### What Was Done (6)
 - Resolved all 16 duplicate-module tasks in `tools/agent_orchestrator_tasks.json`.
 - Removed duplicate timeline-event CRUD from `app/modules/briefcase/router.py`; canonical timeline lives in `app/modules/timeline.router`.
 - Added manifest `dev_notes` to clarify SSOT for `timeline`, `briefcase`, `workflow`, `context_engine`, `context_loop`.
@@ -3731,16 +3731,16 @@ clarifications only — no structural changes.
   - `housing_accountability` now reports 8 routes (was 0).
   - `briefcase` updated from 49 to 42 routes after timeline-event removal.
 
-### Commits Shipped
+### Commits Shipped (2)
 - `0a1d6ee` fix(briefcase): remove duplicate timeline-event endpoints
 - `f222398` fix(tools): regenerate module_routes_list.txt and add generator
 - `584111e` fix(product_manifest): register context_engine and context_loop as distinct dev-only modules
 
-### Known Working
+### Known Working (45)
 - `app/main.py`, `app/core/product_manifest.py`, `app/modules/briefcase/router.py` compile clean.
 - Duplicate task queue empty (16/16 done).
 
-### Next Session
+### Next Session (2)
 - Pick up from `ACTIVE_CONTEXT.md` priority list (GUI Phase 1: Journal/Calendar/Timeline).
 
 ## Session — 2026-07-15 AM (9) — Orchestrator Task: timeline vs briefcase timeline vs workflow timeline
@@ -3770,7 +3770,7 @@ clarifications only — no structural changes.
 - **Wired** into `tools/sync_orchestrator.py` — `embed_tasks_into_html()` now takes a path parameter and is called for both HTML files. Both get the same embedded tasks JSON on every sync.
 - **Dashboard purpose**: read-only overview with progress bars, category/agent breakdowns, and filters. `agent_orchestrator.html` remains the working view for claiming/completing tasks.
 
-### Files Changed
+### Files Changed (4)
 - `tools/workorder_runner.py` — added `reject_task()` function, `reject` subparser, `reject` command handler, updated docstring with lifecycle.
 - `tools/sync_orchestrator.py` — `embed_tasks_into_html()` takes `html_path` param; embeds into both `ORCHESTRATOR_HTML` and `DASHBOARD_HTML`; `git_add` includes `DASHBOARD_HTML`.
 - `tools/orchestrator_dashboard.html` — now tracked, tasks embedded by sync.
@@ -3778,7 +3778,7 @@ clarifications only — no structural changes.
 
 ## Session — 2026-07-15 AM (4) — Fixed localStorage Shadowing Live Task Data
 
-### What Was Done
+### What Was Done (7)
 - **Fixed** `tools/agent_orchestrator.html` task-loading precedence so the live file is always the source of truth:
   - `loadTasks()` now reads embedded JSON first, then falls back to localStorage only if embedded is empty (offline/file:// CORS scenario).
   - `autoLoadProjectJson()` no longer early-exits when `tasks.length > 0` — it always fetches the live `agent_orchestrator_tasks.json` on page load and overwrites both `tasks` and localStorage with the file contents.
@@ -3790,14 +3790,14 @@ clarifications only — no structural changes.
   - `autoLoadProjectJson()` overwrites stale localStorage with file data.
   - `file://` CORS workaround preserved — if fetch fails, embedded JSON is used first, then localStorage as last resort.
 
-### Files Changed
+### Files Changed (5)
 - `tools/agent_orchestrator.html` — flipped load precedence (file > embedded > localStorage), added "Refresh from file ↻" button, added `refreshFromFile()`, updated `showHelpStatus()`
 - `BUILD_STATE.md` — this note
 
 
 ## Session — 2026-07-15 AM (3) — Added WORKFLOW Section to HTML generatePrompt()
 
-### What Was Done
+### What Was Done (8)
 - **Fixed** `tools/agent_orchestrator.html` `generatePrompt()` (line 687) to include the same `WORKFLOW` section that `workbook_bridge.py`'s `make_prompt()` includes.
   - WORKFLOW block inserted between `MANDATORY RULES` and `DELIVERABLE` sections, matching the Python version exactly.
   - `${task.target_model}` and `${task.id}` substituted dynamically — no literal placeholder text in generated output.
@@ -3809,14 +3809,14 @@ clarifications only — no structural changes.
 ### Duplication Risk
 The WORKFLOW template text is now duplicated between `tools/workbook_bridge.py` (`make_prompt`) and `tools/agent_orchestrator.html` (`generatePrompt`). Sharing a single template between Python and JS would require non-trivial rework (template file + loader in both runtimes) — flagged for a future task if drift becomes a problem. For now, the two copies are identical and any change to one must be mirrored in the other.
 
-### Files Changed
+### Files Changed (6)
 - `tools/agent_orchestrator.html` — added WORKFLOW section to `generatePrompt()`
 - `BUILD_STATE.md` — this note
 
 
 ## Session — 2026-07-15 AM (2) — Fixed Status Vocabulary Mismatch
 
-### What Was Done
+### What Was Done (9)
 - **Fixed** `tools/agent_orchestrator.html` status vocabulary mismatch:
   - Added `done` to the status dropdown (`statusOptions` at line 739).
   - Added `done` stat card to the summary section.
@@ -3835,7 +3835,7 @@ The WORKFLOW template text is now duplicated between `tools/workbook_bridge.py` 
 - `rejected` — UI dropdown only. Nothing in the runner sets it.
 - **`review`/`resolved`/`rejected` are NOT dead** — they're reachable via the HTML dropdown's `updateStatus()` function. They're just never set by the runner. Kept all three in the UI per task instructions. Confirm with Brad whether a review step is wanted before removing.
 
-### Files Changed
+### Files Changed (7)
 - `tools/agent_orchestrator.html` — added `done` to dropdown + summary, added `resolved`/`rejected` to summary, added `.badge-done` CSS
 - `tools/agent_orchestrator_tasks.json` — 1 task marked done during verification (research router duplicate)
 - `BUILD_STATE.md` — this note
@@ -3843,7 +3843,7 @@ The WORKFLOW template text is now duplicated between `tools/workbook_bridge.py` 
 
 ## Session — 2026-07-15 AM — Fixed Stub-Sync Data-Loss Risk
 
-### What Was Done
+### What Was Done (10)
 - **Fixed** `tools/workbook_bridge.py` `update_excel_stubs()` to preserve hand-typed rows in the "Stubs & TODOs" sheet across syncs.
   - Added a `Source` marker column (column G). Script-written rows are tagged `auto`; hand-typed rows are left alone.
   - On sync: only rows with `source=auto` are replaced. Manual rows are re-appended untouched.
@@ -3851,7 +3851,7 @@ The WORKFLOW template text is now duplicated between `tools/workbook_bridge.py` 
 - **Verified**: added a fake stub to `stub_tasks_new.json` and a hand-typed row to the workbook. After sync, both rows present — auto row updated, manual row untouched.
 - **Verified**: BUILD_STATE.md shows the before/after row count from the test run.
 
-### Files Changed
+### Files Changed (8)
 - `tools/workbook_bridge.py` — marker-based selective row replacement + BUILD_STATE.md sync log
 - `BUILD_STATE.md` — session note + stub sync log
 
@@ -3867,7 +3867,7 @@ All checks passed.
 
 ## Session — 2026-07-15 AM — Concurrent Agent Task Locking
 
-### What Was Done
+### What Was Done (11)
 - **Added** `tools/workorder_runner.py` for atomic task claiming with `filelock`.
   - `claim` command: flips the next `pending` (or stale `in_progress`) task to `in_progress` and writes `claimed_by` (`agent` + `claimed_at` timestamp).
   - `done` command: marks a task as `done`.
@@ -3885,7 +3885,7 @@ All checks passed.
 - `python tools/workorder_runner.py --tasks temp/test_single.json --agent swe-1.6 done single-1`
 - `python tools/workorder_runner.py --tasks temp/test_single.json status`
 
-### Files Changed
+### Files Changed (9)
 - `tools/workorder_runner.py` (new)
 - `tools/workbook_bridge.py`
 - `tools/agent_orchestrator_tasks.json` (regenerated with `claimed_by` field)
@@ -3895,7 +3895,7 @@ All checks passed.
 
 ## Session — 2026-07-13 PM (3) — Resolve Duplicate: case_builder router vs case_builder.py standalone
 
-### What Was Done
+### What Was Done (12)
 - **Verified** `app/core/product_manifest.py` already registers only `app.modules.case_builder.router` as the canonical Case Builder.
 - **Updated** `app/core/compliance.py` to point the `case_builder` compliance entry at `app/modules/case_builder/router.py` instead of the legacy standalone `app/modules/case_builder.py`.
 - The standalone `app/modules/case_builder.py` remains on disk as a legacy SDK-style module but is not registered.
@@ -3904,13 +3904,13 @@ All checks passed.
 - `fix(compliance): point case_builder entry to canonical router package`
 - Merged `fix/resolve-case-builder-duplicate` into `main` → `8192cac`
 
-### Known Working
+### Known Working (46)
 - `python -m py_compile app/main.py app/core/product_manifest.py app/core/compliance.py` passes.
 
-### Deployed
+### Deployed (4)
 - **2026-07-13 19:49 CT** — Render is deploying commit `8192cac`.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (2)
 - Legacy `app/modules/case_builder.py` standalone file remains on disk for future review before deletion.
 - Continue with next duplicate-resolve task from `tools/agent_orchestrator_tasks.json` or current priorities.
 
@@ -3918,33 +3918,33 @@ All checks passed.
 
 ## Session — 2026-07-13 PM (2) — Resolve Duplicate: vault vs vault_engine vs vault_all_in_one
 
-### What Was Done
+### What Was Done (13)
 - **Resolved duplicate vault modules** in `app/core/product_manifest.py`.
 - `app.modules.vault.router` at `/api/vault` remains the canonical SSOT vault.
 - Removed dead deregistration comments for `app.modules.vault_engine.router` and `app.modules.vault_all_in_one.router`; both were already deregistered.
 
-### Commits This Session
+### Commits This Session (2)
 - `fix(manifest): resolve vault/vault_engine/vault_all_in_one duplicate`
 - `docs(build_state): record vault duplicate resolution`
 - Merged `fix/resolve-vault-duplicates` into `main` → `6edef3f`
 
-### Known Working
+### Known Working (47)
 - `python -m py_compile app/main.py app/core/product_manifest.py` passes.
 
-### Deployed
+### Deployed (5)
 - **2026-07-13 18:44 CT** — Render is deploying commit `6edef3f`.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (3)
 - `app/modules/vault_engine/` and `app/modules/vault_all_in_one/` module files remain on disk for future review before deletion.
 
-### Next Session Should Start With
+### Next Session Should Start With (32)
 - Continue with the next task from `tools/agent_orchestrator_tasks.json` or current priorities.
 
 ---
 
 ## Session — 2026-07-13 PM — Sync Orchestrator Wired + Stub Pass Comments Merged to Main
 
-### What Was Done
+### What Was Done (14)
 - **Wired `tools/sync_orchestrator.py` into `.pre-commit-config.yaml`** as a local `always_run` hook.
 - **Committed and merged the `fix/stub-pass-0713` branch** to `main`:
   - Added explanatory inline comments to bare `except`/`pass` blocks across `app/main.py`, `app/modules/*`, and `app/services/*`.
@@ -3953,20 +3953,20 @@ All checks passed.
   - Committed `tools/agent_orchestrator_sync_review/` and `tools/hooks/pre-commit`.
 - **Pushed deploy commit `edee4ff` to `main`**. Render will deploy from this commit.
 
-### Commits This Session
+### Commits This Session (3)
 - `feat(stubs): annotate bare pass/except blocks and wire workbook bridge to live stub list`
 - `Merge branch 'fix/stub-pass-0713' into main` (`edee4ff`)
 
-### Known Working
+### Known Working (48)
 - `python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py` passes.
 - `python tools/sync_orchestrator.py` runs cleanly; reports `0 stubs`, `16 orchestrator tasks`.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (4)
 - `tools/agent_orchestrator_tasks.json` now contains **16 duplicate-resolve tasks**; the previous count of 171 tasks was overwritten when `workbook_bridge.py` started consuming the live `tools/stub_tasks_new.json` output. Verify whether this is the intended target state.
 - `pre-commit` Python package is installed in `venv311`, but `pre-commit install` has not been run, so `.git/hooks/pre-commit` is not active. Run it manually if the hook is needed locally.
 - UPL guardrail tier registration and GUI Phase 1 refinements remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (33)
 - Verify `agent_orchestrator_tasks.json` task count (16 vs expected 171) and adjust `tools/workbook_bridge.py` or `Semptify_Master_Inventory_LIVE_reviewed.xlsx` if needed.
 - Run `pre-commit install` to activate the new `sync-orchestrator` hook.
 - Continue with the next task from `agent_orchestrator_tasks.json` or current priorities.
@@ -3975,7 +3975,7 @@ All checks passed.
 
 ## Session — 2026-07-13 AM — Stub Pass Fixes: Litigation Intelligence + Brain Context + Stub Detector
 
-### What Was Done
+### What Was Done (15)
 - **Implemented rule-based pattern detectors** in `app/modules/litigation_intelligence/intelligence_engine.py` for all 7 `detect_pattern` classes:
   - `RepeatOffenderDetector`, `SerialFilerDetector`, `FrivolousClaimDetector`, `RetaliationPatternDetector`, `HabitabilityIssueDetector`, `DiscriminationPatternDetector`, `ProfessionalLandlordDetector`.
   - Each detector returns a `PatternMatch` with confidence, legal basis, and recommended actions when case data shows relevant indicators.
@@ -3989,13 +3989,13 @@ All checks passed.
 - **Implemented all `Semptify-Housing-Accountability/` stub functions** in `coalition/coalition_manager.py`, `intake/intake_engine.py`, `oversight_packets/packet_builder.py`, `pattern_engine/pattern_engine.py`, `press_builder/press_builder.py`, and `public_records/records_scanner.py`.
 - **Regenerated `tools/stub_tasks_new.json`** after S-H-A fixes; real stubs now reduced to 4 (`app/modules/documents/router.py` intentional sync helper + 3 `app/services/mndes_api_client.py` future REST skeleton methods).
 
-### Commits This Session
+### Commits This Session (4)
 - (pending) `feat(stubs): litigation intelligence detectors, brain context broadcast, stub detector filtering`
 
-### Known Working
+### Known Working (49)
 - `python -m py_compile app/main.py app/modules/litigation_intelligence/intelligence_engine.py app/services/brain_integrations.py app/core/websocket_manager.py tools/stub_detector.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (5)
 - **Parked blueprint:** `docs/blueprints/EVIDENCE_SEALING_UPGRADE_CANDIDATE.md` — `evidence_seal` module (SHA-256 sealed PDF export + chain-of-custody); SHELVED until vault audit-log branch is resolved and stub count is near zero.
 - **0 remaining real stubs** per `tools/stub_tasks_new.json`.
   - `app/modules/documents/router.py:151 _get_overlay_record_ids()` now marked with `# stub-detector: ignore` as an intentional sync helper.
@@ -4003,58 +4003,58 @@ All checks passed.
 - **All `Semptify-Housing-Accountability/` stubs** have been implemented.
 - UPL guardrail tier registration and GUI Phase 1 refinements remain pending.
 
-### Next Session Should Start With
+### Next Session Should Start With (34)
 - Continue with the next task from `agent_orchestrator_tasks.json` or current priorities; stub count is now zero.
 
 ---
 
 ## Session -- 2026-07-12 -- GUI Phase 1: Know and Act Pillar Pages
 
-### What Was Done
+### What Was Done (16)
 - **Implemented `app/templates/gui/know.html`**: a `Know` pillar hub with links to the law library and fact topics (eviction, repairs, deposits).
 - **Implemented `app/templates/gui/act.html`**: an `Act` pillar hub with links to the letter builder, complaint tool, case builder, and action plan tool.
 - **Both pages extend `gui/base.html`**, set the appropriate `nav_*` active state, and include the UPL disclaimer.
 - **Committed `app/modules/dev_lab/ideas.py` UPL import** from the previous step.
 
-### Commits This Session
+### Commits This Session (5)
 - `feat(gui): implement Know and Act pillar placeholder pages with real pillar links`
 - `chore(dev_lab): import UPL guardrail types in ideas.py`
 
-### Known Working
+### Known Working (50)
 - `/gui/know` and `/gui/act` routes serve the updated templates.
 - `gui/base.html` four-pillar navigation (Home / Record / Know / Act) is intact.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (6)
 - `know.html` and `act.html` use static hub cards; future work can wire them to the Page Composer / tool catalog endpoints.
 - UPL guardrail tier registration is still pending the project owner's tier matrix.
 
-### Next Session Should Start With
+### Next Session Should Start With (35)
 - Complete **UPL guardrail tier registration** once the matrix is provided, or continue **GUI Phase 1** with the home page refinements and Calendar/Timeline integration.
 
 ---
 
 ## Session — 2026-07-12 PM — Stub Detector Build + Alembic False-Positive Filter
 
-### What Was Done
+### What Was Done (17)
 - **Built `tools/stub_detector.py`**: AST-based stub detector that replaces the keyword-grep approach which produced 123 false positives. Parses Python syntax trees and only flags functions whose executable body is a genuine stub (`pass`, `...`, `raise NotImplementedError`, or lone `return` of an empty literal).
 - **Expanded skip list** (`SKIP_DIR_NAMES` + `SKIP_DIR_PREFIXES`): filters all venv variants (`venv311_clean`, `.venv`, etc.), caches (`__pycache__`, `.mypy_cache`, `.ruff_cache`, `.pytest_cache`), build artifacts (`dist`, `build`, `htmlcov`, `test-results`), non-app dirs (`archive`, `logs`, `uploads`, `REPOs`, `installer`, `mobile_ai_host`, `semptify_dakota_eviction`, `legal_intel`), agent work dirs (`.agent`, `.agent-mem`, `.agents`, `.semptify`, `.zenflow`, `.zencoder`, `.windsurf`, `.cursor`, `.devin`, `.github`, `.vscode`), and scaffolds (`_template`, `templates_scaffold`).
 - **Added alembic merge migration filter** (`ALEMBIC_SKIP_FN_NAMES`): permanently skips `upgrade()`/`downgrade()` stub bodies in `alembic/versions/` — this is the correct pattern for merge revisions, not a stub.
 - **Updated `tools/agent_orchestrator_tasks.json`**: marked 2 tasks `completed` (already fixed in prior sessions) and 33 tasks `skipped` (false positives with explanatory notes). All 35 previously-pending `stub_fix` tasks now resolved.
 
-### Commits This Session
+### Commits This Session (6)
 - (uncommitted — on working tree)
 
-### Known Working
+### Known Working (51)
 - `python -m py_compile tools/stub_detector.py` passes.
 - `python tools/stub_detector.py . --out tools/stub_tasks_new.json` reports **61 real stubs** (35 `app/` + 26 `Semptify-Housing-Accountability/`).
 - `tools/agent_orchestrator_tasks.json` shows 0 pending `stub_fix` tasks.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (7)
 - **61 genuine stubs identified** by the new detector (35 in `app/`, 26 in `Semptify-Housing-Accountability/`). These are real pending `stub_fix` tasks to work through.
 - `tools/stub_detector.py` is untracked — needs commit.
 - `tools/agent_orchestrator_tasks.json` modifications uncommitted.
 
-### Next Session Should Start With
+### Next Session Should Start With (36)
 - Work through the 61 real stubs starting with `app/` (35 stubs in sessions.py, models.py, storage/base.py, security/router.py, litigation_intelligence/intelligence_engine.py, mndes_api_client.py, etc.).
 - Then `Semptify-Housing-Accountability/` (26 `pass`-body stubs across coalition, intake, oversight_packets, pattern_engine, press_builder, public_records).
 
@@ -4062,7 +4062,7 @@ All checks passed.
 
 ## Session — 2026-07-12 — Orchestrator Stub Fix Cleanup
 
-### What Was Done
+### What Was Done (18)
 - **Processed all remaining `pending` tasks in `tools/agent_orchestrator_tasks.json`**: 51 tasks were reviewed and marked `skipped` with descriptive reasons.
   - 16 `duplicate_resolve` architectural duplicate tasks (e.g., vault vs vault_engine, timeline duplicates).
   - 20 `Fix placeholder` tasks (HTML/CSS/template comments, docstrings, placeholder values).
@@ -4071,148 +4071,148 @@ All checks passed.
 - No code files were modified; no bare-pass stubs remained among pending tasks.
 - Committed on branch `fix/complaint-wizard-stub-pass`.
 
-### Commits This Session
+### Commits This Session (7)
 - `chore(orchestrator): mark 51 remaining pending tasks as skipped with reasons`
 
-### Known Working
+### Known Working (52)
 - `tools/agent_orchestrator_tasks.json` shows 0 pending tasks.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (8)
 - None from orchestrator queue.
 
-### Next Session Should Start With
+### Next Session Should Start With (37)
 - Proceed to **UPL guardrail tier registration** or **GUI Phase 1 prep** per `ACTIVE_CONTEXT.md`.
 
 ---
 
 ## Session — 2026-07-12 — Legal Filing Bare Except Fix
 
-### What Was Done
+### What Was Done (19)
 - **Fixed `app/modules/legal_filing/service.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `list_evidence`.
 - No hardcoded URLs. No `datetime.now()` usage.
 
-### Commits This Session
+### Commits This Session (8)
 - (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
 
-### Known Working
+### Known Working (53)
 - `python -m py_compile app/main.py app/modules/legal_filing/service.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (9)
 - None.
 
-### Next Session Should Start With
+### Next Session Should Start With (38)
 - Continue dispatching the next HIGH stub from the orchestrator queue.
 
 ---
 
 ## Session — 2026-07-12 — Timeline Bare Except Fix
 
-### What Was Done
+### What Was Done (20)
 - **Fixed `app/modules/timeline/router.py`**: Replaced bare `except:` with `except Exception as e` and added `logger.debug()` in `_load_cloud_timeline_events`.
 - Added `import logging` and `logger = logging.getLogger(__name__)` at module level.
 - No hardcoded URLs. No `datetime.now()` usage.
 
-### Commits This Session
+### Commits This Session (9)
 - (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
 
-### Known Working
+### Known Working (54)
 - `python -m py_compile app/main.py app/modules/timeline/router.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (10)
 - None.
 
-### Next Session Should Start With
+### Next Session Should Start With (39)
 - Continue dispatching the next HIGH stub from the orchestrator queue.
 
 ---
 
 ## Session — 2026-07-12 — Intake Overlay Record IDs Stub Fix
 
-### What Was Done
+### What Was Done (21)
 - **Fixed `app/modules/intake/router.py`**: `_get_overlay_record_ids` now resolves overlay record IDs from the user's cloud storage via `UnifiedOverlayManager` instead of always returning `[]`.
 - Updated all three callers (`/upload`, `/upload/auto`, `/process/vault/{doc_id}`) to provide the required storage context.
 - Falls back to `[]` when local storage is used or a cloud provider cannot be instantiated.
 - No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
 
-### Commits This Session
+### Commits This Session (10)
 - (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
 
-### Known Working
+### Known Working (55)
 - `python -m py_compile app/main.py app/modules/intake/router.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (11)
 - Local storage path still returns `[]` because `UnifiedOverlayManager` is cloud-only; local overlay support is future work.
 
-### Next Session Should Start With
+### Next Session Should Start With (40)
 - Continue dispatching the next HIGH stub from the orchestrator queue.
 
 ---
 
 ## Session — 2026-07-12 — Housing Accountability Public Records Stub Fix
 
-### What Was Done
+### What Was Done (22)
 - **Fixed `app/modules/housing_accountability/router.py`**: `_simulate_public_records_search` now returns representative simulated public records by `record_type` instead of an empty list.
 - **Updated `/public-records/search` endpoint**: `total_results` now reflects the actual count of returned results.
 - No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
 
-### Commits This Session
+### Commits This Session (11)
 - (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
 
-### Known Working
+### Known Working (56)
 - `python -m py_compile app/main.py app/modules/housing_accountability/router.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (12)
 - `_simulate_public_records_search` is a simulation; real public records API integration is future work.
 
-### Next Session Should Start With
+### Next Session Should Start With (41)
 - Continue dispatching the next HIGH stub from the orchestrator queue.
 
 ---
 
 ## Session — 2026-07-12 — Complaint Wizard Bare Pass Fix (feature branch)
 
-### What Was Done
+### What Was Done (23)
 - **Fixed `app/modules/complaint_wizard_module.py` line 444**: Replaced bare `pass` statement with `logger.warning()` for invalid status filter values.
 - The behavior remains the same (returns all drafts if status_filter is invalid), but now logs the issue for debugging.
 - Aligns with Known Failure Registry #7 (no bare except/bare pass).
 
-### Commits This Session
+### Commits This Session (12)
 - (pending commit - on feature branch `fix/complaint-wizard-stub-pass`)
 
-### Known Working
+### Known Working (57)
 - `python -m py_compile app/modules/complaint_wizard_module.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (13)
 - Branch needs to be merged to main after review.
 
-### Next Session Should Start With
+### Next Session Should Start With (42)
 - Merge feature branch to main or continue with next stub from orchestrator queue.
 
 ---
 
 ## Session — 2026-07-12 — Case Builder get_case_summary Stub Fix
 
-### What Was Done
+### What Was Done (24)
 - **Fixed `app/modules/case_builder.py`**: `get_case_summary` now returns a meaningful summary and `next_steps` from the available `context` case dict instead of an empty dict/list.
 - No new files or modules. No hardcoded URLs. No bare except blocks. No `datetime.now()` usage.
 
-### Commits This Session
+### Commits This Session (13)
 - `c1b5676` — fix(case_builder): implement get_case_summary stub
 
-### Known Working
+### Known Working (58)
 - `python -m py_compile app/main.py app/modules/case_builder.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (14)
 - `get_upcoming_deadlines` and `generate_counterclaim_document` remain example stubs and are listed under Noticed but not fixed for this task.
 
-### Next Session Should Start With
+### Next Session Should Start With (43)
 - Continue dispatching the next HIGH stub from the orchestrator queue.
 
 ---
 
 ## Session — 2026-07-12 — Agent Orchestrator Module + Workbook Bridge (SHIPPED 11bac59)
 
-### What Was Done
+### What Was Done (25)
 - **New module**: `app/modules/agent_orchestrator/` — DEV-tier, dev_only, admin-only Forge tool for queueing parallel AI-agent tasks.
 - **API**: CRUD endpoints for tasks, batch create, model list, and summary counts. In-memory v1 store.
 - **Prompt generator**: every task gets a copy-paste prompt tailored to category (stub_fix, duplicate_resolve, test_add, doc_update, refactor, other) with AGENTS.md rules baked in.
@@ -4223,22 +4223,22 @@ All checks passed.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
 - **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
-### Commits This Session
+### Commits This Session (14)
 - `11bac59` — feat(agent_orchestrator): add Forge task queue, workbook bridge, standalone UI, and manual
 
-### Known Working
+### Known Working (59)
 - `python -m py_compile` passes on all new and modified Python files.
 - Module registered in `product_manifest.py` and resolved by `MANIFEST.find()`.
 - Workbook bridge successfully generates 171 tasks from the .xlsx.
 - Standalone HTML imports the JSON and displays tasks with copy-paste prompts.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (15)
 - v1 in-memory store resets on app server restart (acceptable for dev_only tool).
 - Workbook bridge file paths are best-guess (`app/modules/<filename>`); some paths need manual correction before dispatch.
 - In-app admin UI is functional but lacks in-place task editing.
 - Other pre-existing uncommitted files (CSS deletions, `base.html` changes, data files, preflight docs) remain uncommitted and need separate review.
 
-### Next Session Should Start With
+### Next Session Should Start With (44)
 - Open `tools/agent_orchestrator.html` in Windsurf preview, import the workbook JSON, and dispatch the first batch of HIGH stubs to SWE-1.7 / Kimi 2.7.
 - Review and commit the other uncommitted files in the repo if they are ready.
 
@@ -4246,27 +4246,27 @@ All checks passed.
 
 ## Session — 2026-07-11 — Vault Check Before Document Access (SHIPPED f838e51)
 
-### What Was Done
+### What Was Done (26)
 - **Vault check on vault page**: Replaced dead-end "Not connected" state in `vault.html` with `vaultCheck()` function. When `/storage/status` returns `authenticated: false` or no access_token, user is redirected to `/storage/reconnect?return_to=/vault` — runs the reconnect cycle and lands back on vault after.
 - **Vault check before upload**: Added `vaultCheckBeforeAction()` to `vault-portal.js`. `openVaultUpload()` now awaits this check before opening the file picker. If not connected, redirects to reconnect cycle instead of letting upload fail with auth error.
 - **No dead ends**: Both vault page load and upload attempt now route through reconnect cycle when storage is not connected. User always has a path forward.
 
-### Commits This Session
+### Commits This Session (15)
 - `f838e51` — fix(vault): add vault check before document access and upload (2 files, +56/-18)
 
-### Known Working
+### Known Working (60)
 - `app/main.py` and all core files compile clean.
 - `return_to` parameter threads through OAuth state machine — confirmed via `app/modules/storage/router.py` (lines 766-783, 1629, 2023-2037). Reconnect from vault lands back at `/vault` after successful reconnect (if vault already initialized).
 - All `openVaultUpload()` callers (17+ templates) use fire-and-forget onclick — making it async is safe.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (16)
 - **Vault ZIP export**: Not live-tested with real documents yet.
 - **Other uncommitted changes in repo**: Several CSS files deleted, new `storage-session-monitor.js` file, modified `base.html` and preflight docs — NOT committed by this session. Left for user to review/commit separately.
 - **TQ-004** [EI]: OH/NC/GA state-law data.
 - **TQ-008** [EF]: Audit-log on feature branch.
 - **TQ-010** [EF]: GUI Screens 1-4.
 
-### Next Session Should Start With
+### Next Session Should Start With (45)
 - Live-test vault check + reconnect flow on dev server.
 - Live-test vault ZIP export with real uploaded documents.
 - Review uncommitted CSS deletions and new files from other source.
@@ -4278,7 +4278,7 @@ All checks passed.
 
 ## Session — 2026-07-10 — UPL Tiers + Vault ZIP Export + require_capability Fixes (SHIPPED 596afe0)
 
-### What Was Done
+### What Was Done (27)
 - **TQ-009**: Wired `upl_risk_tier` field into `ModuleEntry` in `product_manifest.py`. Assigned correct UPL tiers to 8 legal-adjacent modules (eviction_defense=HIGH, court_forms=HIGH, legal=MEDIUM_HIGH, court_packet=MEDIUM, case_builder=MEDIUM, legal_analysis=LOW_MEDIUM, state_laws=LOW, law_library=LOW).
 - **TQ-003**: Completed GET `/api/vault/export` endpoint — streams ZIP of all vault documents with `manifest.json`. Added "Export My Case (ZIP)" button to `vault.html` + `exportCase()` JS function.
 - **TQ-007**: Marked obsolete (source file `vault_all_in_one.router` deleted 2026-07-04).
@@ -4286,24 +4286,24 @@ All checks passed.
 - **Merge**: Merged `feature/attorney-intake-packet` into `main` (resolved 3 conflicts in product_manifest.py, ACTIVE_CONTEXT.md, BUILD_STATE.md).
 - **Cloudflare**: Dev mode enabled + cache purged.
 
-### Commits This Session
+### Commits This Session (16)
 - `4d01e4a` — feat: UPL guardrails, vault ZIP export, require_capability import fixes (75 files, +11189/-256)
 - `596afe0` — merge: feature/attorney-intake-packet into main
 
-### Known Working
+### Known Working (61)
 - All 7 router files compile clean (`py_compile`).
 - `product_manifest.py` compiles clean with UPL tier assignments.
 - `/api/vault/export` endpoint registered and wired to frontend.
 - App starts successfully (confirmed via user's restart log).
 
-### Known Gaps / Pending
+### Known Gaps / Pending (17)
 - **Vault ZIP export**: Not live-tested with real documents yet (needs a session with uploaded files).
 - **TQ-004** [EI]: OH/NC/GA state-law data (data-entry task).
 - **TQ-008** [EF]: Audit-log on feature branch.
 - **TQ-010** [EF]: GUI Screens 1-4 (in progress).
 - `scriptscompile_ai_context.py.t` — typo filename committed; should be cleaned up next session.
 
-### Next Session Should Start With
+### Next Session Should Start With (46)
 - Live-test vault ZIP export with real uploaded documents.
 - TQ-004 (state-law data) or TQ-010 (GUI screens) per user priority.
 
@@ -4311,44 +4311,44 @@ All checks passed.
 
 ## Session — 2026-07-07 — UPL Guardrails Module Scaffold (SHIPPED to main)
 
-### What Was Done
+### What Was Done (28)
 - **New shared module**: `app/core/upl_guardrails.py` — single source of truth for Unauthorized Practice of Law (UPL) risk-tier classification.
 - **`UPLRiskTier` enum**: 6 tiers — `LOW`, `LOW_MEDIUM`, `MEDIUM`, `MEDIUM_HIGH`, `HIGH`, `VERY_HIGH_DO_NOT_BUILD`. Inherits from `str` for clean JSON serialization. Each tier has a docstring defining its boundary and examples.
 - **Enforcement rule documented in module docstring**: features at or above `MEDIUM_HIGH` must display the canonical "We do not give legal advice" notice + a visible path to outside legal help on the same screen. `HIGH` tier requires an attorney-review gate before output. `VERY_HIGH_DO_NOT_BUILD` is a hard stop — do not build, flag to project owner, stop.
 - **No other files touched**. Foundation module only — classifier/gate functions and `FunctionGroupContract` registration land when the first consumer is built on top of it.
 
-### Known Working
+### Known Working (62)
 - `python -m py_compile app/core/upl_guardrails.py` passes clean.
 - `python -m py_compile app/main.py` passes clean (no regression).
 - Enum is importable: `from app.core.upl_guardrails import UPLRiskTier`.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (18)
 - **No consumers yet** — no module currently imports `UPLRiskTier`. Intentional: the enum is the SSOT foundation; downstream enforcement lands when the first feature needs it.
 - **Follow-up task (not urgent)**: Add `upl_risk_tier: UPLRiskTier` field to `ModuleEntry` in `product_manifest.py` and register the 8 modules (eviction_notice_explainer, complaint_wizard, court_prep, case_builder, response_letter_generator, eviction_defense_content, library, ai_copilot) with their tiers from the matrix.
 - **Parallel branch**: `feature/attorney-intake-packet` has uncommitted attorney intake packet scaffold work (separate from this UPL work).
 
-### Next Session Should Start With
+### Next Session Should Start With (47)
 - Follow-up: wire `upl_risk_tier` into `ModuleEntry` and register the 8 modules with their tiers. Requires the tier matrix from the project owner.
 
-### Known Working
+### Known Working (63)
 - `python -m py_compile app/core/upl_guardrails.py` passes clean.
 - `python -m py_compile app/main.py` passes clean (pre-flight, no regression).
 - Enum is importable: `from app.core.upl_guardrails import UPLRiskTier`.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (19)
 - **No consumers yet** — no module currently imports `UPLRiskTier`. This is intentional: the enum is the SSOT foundation; downstream enforcement (classifier function, gate dependency, contract registration) lands when the first feature needs it.
 - **No tests added yet** — scaffold is a pure enum + docstring; behavior testing belongs with the first consumer.
 - **Not live-tested** — no runtime path exercises this module yet.
 - **Uncommitted** — awaiting user review before commit/push.
 
-### Next Session Should Start With
+### Next Session Should Start With (48)
 - User review of the tier definitions and the enforcement rule in the module docstring. If approved: wire the first consumer (likely the attorney intake packet export or the context engine) to classify its output against `UPLRiskTier` and enforce the disclaimer/attorney-review gate per the rule.
 
 ---
 
 ## Session — 2026-07-07 — Attorney Intake Packet Scaffold (UNCOMMITTED on feature/attorney-intake-packet)
 
-### What Was Done
+### What Was Done (29)
 - **Task 6 scaffold**: New export endpoint `GET /api/case-builder/cases/{case_id}/intake-packet` distinct from the existing `court_packet` module export. Streamlined, chronological, evidence-labeled packet optimized for first-time attorney intake review. Facts and dates only — no editorializing, no recommendations, no "next steps".
 - **`app/modules/case_builder/router.py`**: Added `_sort_chronological()` helper, `_build_attorney_intake_packet()` pure builder, and `export_attorney_intake_packet()` endpoint. Output schema: `case_identification`, `timeline` (chronological), `evidence_index` (labeled EX-001…), `pending_deadlines` (chronological, completed excluded), `counts`, `generated_at`. No PDF/ZIP rendering in this scaffold — returns canonical JSON shape a future task can render on top of.
 - **`app/modules/case_builder/register.py`**: Registered `case_builder_intake_packet_export` FunctionGroupContract per Module Contract Mandate.
@@ -4360,20 +4360,20 @@ All checks passed.
 - Branched `feature/attorney-intake-packet` from clean `main`. Vault audit work was stashed (`stash@{0}: vault-audit-log WIP 2026-07-07`) on `feature/vault-audit-log` before branching.
 - **Not merged to main** — awaiting user review per task instructions.
 
-### Known Working
+### Known Working (64)
 - `python -m py_compile app/main.py app/modules/case_builder/router.py app/modules/case_builder/register.py` passes clean.
 - `import app.main` succeeds with 0 errors.
 - Route confirmed registered: `/api/case-builder/cases/{case_id}/intake-packet`.
 - Endpoint uses `yellow_access` (authenticated user) + `load_case()` (ownership-enforced) — no new auth surface.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (20)
 - **Scaffold only**: No PDF/ZIP rendering. Returns JSON only. Future task can add rendering on top of this canonical data shape.
 - **No tests added yet** — scaffold is for review.
 - **No frontend caller yet** — scaffold is API-only.
 - **Not live-tested** — needs a real case in the DB to exercise.
 - **Vault audit work stashed** on `feature/vault-audit-log` — restore with `git stash pop` after switching back to that branch.
 
-### Next Session Should Start With
+### Next Session Should Start With (49)
 - User review of the intake packet scaffold. If approved: add tests, then PDF/ZIP rendering, then frontend caller.
 - Or: switch back to `feature/vault-audit-log`, `git stash pop`, and finish the vault audit work (Ruff lint cleanup, BUILD_STATE update, commit + push).
 
@@ -4381,7 +4381,7 @@ All checks passed.
 
 ## Session — 2026-07-04 — Security Sweep + Timeline/Vault Migration + Lint (SHIPPED 9b26d11)
 
-### What Was Done
+### What Was Done (30)
 - **Security sweep — admin routers**: Added `require_capability()` gates to `dashboard.router` (`admin_dashboard`), `analytics.router` (`admin_analytics`), `batch.router` (`admin_batch_ops`), `capabilities.router` (`admin_capabilities`), and `funding_mgmt.router` (`admin_funding`).
 - **Security sweep — core routers**: Added `auth_gate` (canonical login-required dependency) to `legal_analysis.router`, `page_composer.router`, `websocket.router`, and `risc.router`. Created `auth_gate` in `app/core/security.py`.
 - **Module deregistration**: Commented out `brain`, `positronic_mesh`, and `mesh_network` router registrations in `app/core/product_manifest.py`.
@@ -4389,7 +4389,7 @@ All checks passed.
 - **Module cleanup**: Deleted the entire `app/modules/vault_all_in_one/` module (`service.py`, `router.py`, `__init__.py`, `manifest.py`, `register.py`) and removed its contract entry from `app/core/contract_loader.py`.
 - **Lint cleanup**: Resolved all remaining Ruff issues in `app/core/security.py` including duplicate definitions, missing `utc_now` import, bare `except: pass`, `is_active == True`, and `Path.open()` warnings.
 
-### Commits This Session
+### Commits This Session (17)
 - `47773e4` — security: add require_capability gate to dashboard.router
 - `ca619de` — security: add require_capability gate to analytics.router
 - `d9605a7` — security: add require_capability gate to batch.router
@@ -4404,34 +4404,34 @@ All checks passed.
 - `932832e` — vault_all_in_one: remove deprecated module
 - `9b26d11` — lint: resolve ruff issues in app/core/security.py
 
-### Known Working
+### Known Working (65)
 - `python -m py_compile app/main.py` passes clean.
 - `python -m py_compile app/core/security.py` passes clean.
 - `python -m ruff check app/core/security.py` passes clean.
 - `app/main.py` imports successfully with 0 errors at startup.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (21)
 - **Audit-log implementation** on `feature/vault-audit-log` branch: fix DB session, implement service, wire into `vault.router`.
 - **Attorney/Legal Aid Intake Packet** scaffold in Case Builder (new feature, branch only).
 - **Update `Semptify_Master_Inventory_LIVE.xlsx`** Module Inventory and Gap Check tabs.
 - Same pre-existing pending items: `parse_user_id().user_id` tuple bug in `ui_composer/router.py` and `tenant_feed/router.py` remains unaddressed; ~80 Ruff warnings in `stateless_oauth.py` remain.
 
-### Next Session Should Start With
+### Next Session Should Start With (50)
 - Continue with the highest-priority pending item: audit-log implementation on `feature/vault-audit-log` branch, or update `BUILD_STATE.md` / master inventory if shipping is the goal.
 
 ---
 
 ## Session — 2026-07-04 — Vault Fragmentation Security Patch (SHIPPED 8adec7f)
 
-### What Was Done
+### What Was Done (31)
 - **Master inventory built**: `Semptify_Master_Inventory (4).xlsx` regenerated with 13 tabs (Module Inventory, Endpoint Inventory, Core Files, Services, Models, SDK, Templates & Static, Stubs & TODOs, Duplicates, Module Contracts, Gap Check) via `build_inventory.py`, sourced live from the codebase.
 - **Vault fragmentation traced and confirmed**: `vault.router`, `vault_engine.router`, and `vault_all_in_one.router` were all registered and live at startup via `register_tiers()` in `app/main.py:1578`. `vault_engine.router` has its own internal prefix `/api/vault-engine`; `vault_all_in_one.router` has its own internal prefix `/vault`; canonical `vault.router` uses `/api/vault` (set via the manifest). No actual URL collision existed between the three (namespaces never overlapped — an earlier session note claiming "route collision risk" was inaccurate and has been corrected in the `product_manifest.py` comments). The real issue: grep of all templates and static JS confirmed only `vault.router` (`/api/vault/*`) has any frontend caller. `vault_engine.router` and `vault_all_in_one.router` were fully live, request-accepting endpoints with zero frontend usage — dead surface area, not a namespace clash.
 - **`app/core/product_manifest.py`**: Deregistered `app.modules.vault_engine.router` (line ~402) and `app.modules.vault_all_in_one.router` (line ~575) from `MANIFEST`. Both replaced with explanatory comments (same pattern as the 2026-06-18 `overlays.router` retirement) noting salvage-worthy capabilities before file deletion: `vault_engine` has a per-resource audit-log endpoint that `vault.router` currently lacks entirely (confirmed: `vault.router`/`vault_upload_service.py` never call the core `app.core.audit_logger.get_audit_logger()`); `vault_all_in_one` has an incidents + three-timestamp timeline model that may overlap with the separate `timeline.router`/briefcase timeline-event system (flagged in the inventory's Duplicates tab). `vault.router` at `/api/vault` is now the sole registered vault system.
 
-### Commits This Session
+### Commits This Session (18)
 - `8adec7f` — security: deregister vault_engine and vault_all_in_one routers
 
-### Known Working
+### Known Working (66)
 - `python -m py_compile app/main.py app/core/product_manifest.py` passes clean.
 - Manifest-level check: `MANIFEST.by_tier(*ProductTier.all())` confirms `vault.router` present, `vault_engine.router` and `vault_all_in_one.router` both absent. Total registered modules: 117 (manifest) / 113 (after router import skips for known dev_only stubs — unrelated to this change, pre-existing).
 - Full app import (`app.main`) succeeds with 0 errors. Startup log: "Modules: 113 registered, 4 skipped, 0 errors" (the 4 skips are pre-existing dev_only stub modules: `legal_filing_module`, `complaint_wizard_module`, `free_api_pack`, `vault_sync` — unrelated to this change).
@@ -4439,12 +4439,12 @@ All checks passed.
 - No leftover unprefixed routes from either deregistered module found in the live route table.
 - No other `.py` file called `include_router` directly on `vault_engine.router` or `vault_all_in_one.router` — only `register_tiers()` (now fixed) referenced them.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (22)
 - **Shipped**: commit `8adec7f` pushed to `main`. Render auto-deploys on push. Cloudflare cache purged post-push.
 - **Not yet decided**: whether `vault_engine`'s audit-log layer (a real gap — `vault.router` has no audit trail today) or `vault_all_in_one`'s incidents/three-timestamp timeline model (possible overlap with `timeline.router`/briefcase) are worth migrating into `vault.router` before the module files themselves are deleted. Deregistration only removed them from routing — the module files (`app/modules/vault_engine/`, `app/modules/vault_all_in_one/`) still exist on disk and can be restored by reverting the two comment blocks in `product_manifest.py` if anything needs to be salvaged.
 - Same known pre-existing pending item from last session: `parse_user_id().user_id` tuple bug in `app/modules/ui_composer/router.py:43-44` and `app/modules/tenant_feed/router.py:32-33` — not addressed, out of scope for this patch.
 
-### Next Session Should Start With
+### Next Session Should Start With (51)
 - Commit and push this vault deregistration fix, then purge Cloudflare cache again post-deploy.
 - Review `vault_engine`'s audit-log and `vault_all_in_one`'s incidents/search capabilities against `vault.router` to decide what's worth migrating before those module files are deleted outright.
 - Fix `parse_user_id().user_id` tuple bug in `ui_composer/router.py` and `tenant_feed/router.py` (same root cause, same fix pattern, carried over from 2026-07-03 PM session).
@@ -4453,28 +4453,28 @@ All checks passed.
 
 ## Session — 2026-07-03 PM — Misnested Routes + UI Composer Tuple Bug (SHIPPED 3208efc)
 
-### What Was Done
+### What Was Done (32)
 - **`app/main.py`** (Bug #1): De-indented onboarding/welcome/register routes (lines 1759-1832) from inside the `if css_path.exists():` block. These routes were silently not registering when the CSS directory was missing. Now at the same indentation level as surrounding route definitions.
 - **`app/main.py`** (Bug #3): Replaced `parse_user_id().user_id` tuple-attribute bug with `verify_user_id()` from `app.core.cookie_auth` in 3 places (timeline page, library page, feed fragment endpoint). `parse_user_id()` returns a tuple `(provider, role, unique_id)`, not an object with `.user_id` — this was causing `'tuple' object has no attribute 'user_id'` errors and falling back to the old timeline template.
 - **Live-tested** (earlier in session): Task 2 (timeline add-event error handling) and Task 3 (token refresh distinguishable error) both verified working via Playwright. Task 2 happy path (DOM insertion) not verified — blocked by no real OAuth token on seeded test user.
 
-### Commits This Session
+### Commits This Session (19)
 - `e065f43` — DOC_INDEX.md + preflight/review workflow simplification
 - `3208efc` — Fix misnested debug routes + UI Composer tuple bug in main.py
 
-### Known Working
+### Known Working (67)
 - `python -m py_compile app/main.py` passes clean.
 - Timeline add-event error handling: inline `.me-error` box + `SemptifyFeedback` toast, no `alert()`.
 - Token refresh: returns distinguishable `token_expired` error, not silent `None`.
 - Onboarding/welcome/register routes now register regardless of CSS directory existence.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (23)
 - **Same tuple bug still exists** in `app/modules/ui_composer/router.py:43-44` and `app/modules/tenant_feed/router.py:32-33` — user canceled the edit. These will crash any UI Composer / feed API call that reaches them. Recommend fixing next session.
 - **Timeline add-event happy path** not live-tested (needs real OAuth-connected session).
 - Pre-existing: `alert()` fallback at `timeline.html:298` in the validation guard (not the save handler).
 - Pre-existing: ~80 Ruff lint warnings in `stateless_oauth.py`.
 
-### Next Session Should Start With
+### Next Session Should Start With (52)
 - Fix `parse_user_id().user_id` tuple bug in `app/modules/ui_composer/router.py` and `app/modules/tenant_feed/router.py` (same root cause, same fix pattern).
 - GUI Phase 1 — Tenant Journal restructuring.
 - Document Center planning.
@@ -4483,33 +4483,33 @@ All checks passed.
 
 ## Session — 2026-07-03 AM — Timeline Add-Event + Token Refresh + Repo Hygiene (SHIPPED 047104c)
 
-### What Was Done
+### What Was Done (33)
 - **`app/templates/pages/timeline.html`** (Task 2): Replaced `window.location.reload()` on successful event save with direct DOM insertion — the new event is prepended as a `.timeline-node` article into `.timeline-graph` (newest first, matching the timeline's descending sort order). Fixed `r.status_code` → `r.status` (JS `Response` API uses `.status`). Added an inline `.me-error` box inside the modal for visible failure feedback instead of `alert()`. Added `escapeHtml()` helper to prevent XSS via user-entered title/description/urgency being interpolated into `innerHTML`. Empty-state is removed if present; `.timeline-graph` is created if missing. Endpoint confirmed: `/api/timeline/events` (prefix `/api/timeline` + `/events` route in `app/modules/timeline/router.py:885`).
 - **`app/core/stateless_oauth.py`** (Task 3): Added `RefreshResult` dataclass so token refresh failures return a distinguishable error instead of bare `None`. Changed `refresh_token_if_needed` and `_refresh_with_provider` to return `RefreshResult(access_token, error, token_data)`. Failure reasons are now distinguishable: `no_tokens_stored`, `no_refresh_token`, `refresh_failed:missing_client_credentials:google_drive`, `refresh_failed:http_400:<body>`, `refresh_failed:exception:<type>:<msg>`, etc. The `_refresh_with_provider` function was already making real HTTP POST requests to provider token endpoints — that part was NOT a stub. The fix was purely the error distinguishability. No other functions in the file were changed.
 - **Repo hygiene** (Task 4): `git rm -r --cached venv311/ venv311_clean/` — removed 83 tracked files (3216 lines, ~39MB) from git index. Both folders were already in `.gitignore` (lines 58-59) but were committed before the ignore rule existed. Folders still exist on disk, just untracked now.
 - Scope: Tasks 2, 3, and 4 only. No refactoring, no new features beyond the task scope, no new files.
 
-### Commits This Session
+### Commits This Session (20)
 - `25e01d8` — Task 1: Vault upload button fix (previous session, included for context)
 - `3efc705` — Task 2 + Task 3: Timeline add-event + token refresh error
 - `7656425` — BUILD_STATE.md update
 - `a144721` — Review fix: XSS escape + prepend newest-first in timeline DOM insertion
 - `047104c` — Task 4: Remove committed virtual environments
 
-### Known Working
+### Known Working (68)
 - `python -m py_compile` passes on all core files checked (`app/main.py`, `app/core/navigation.py`, `app/modules/vault/router.py`, `app/modules/onboarding/router.py`, `app/modules/documents/router.py`, `app/services/vault_upload_service.py`, `app/core/stateless_oauth.py`).
 - `refresh_token_if_needed` return type changed from `Optional[str]` to `RefreshResult`. Grep confirmed no external callers call `StatelessOAuthManager.refresh_token_if_needed` — the `refresh_token_if_needed` calls in `oauth_token_manager.py` and `auto_refresh.py` are on a different `TokenManager` class. No caller breakage expected.
 - Timeline event save: no `window.location.reload()` or `alert()` remains in the save handler. User input is escaped via `escapeHtml()` before insertion into `innerHTML`. New events are prepended (newest first, matching `router.py:750-753` descending sort).
 - `git ls-files | grep venv311` returns nothing — both venv folders are now untracked, still exist on disk.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (24)
 - **Not live-tested** — no dev server running this session. Compile + code review only.
 - **Token refresh**: The return type change from `Optional[str]` to `RefreshResult` is a breaking API change for any caller that does `if result:` or `result is None`. Grep confirmed no external callers, but if any code path was missed, it will need updating to use `.success` or `.access_token`.
 - Pre-existing: `if css_path.exists():` block in `app/main.py` (~line 1756) still mis-scopes several unrelated debug/fallback routes. Pending future de-indent.
 - Pre-existing: `alert()` fallback at `timeline.html:298` in the validation guard (not the save handler). Out of scope for Task 2.
 - Pre-existing: ~80 Ruff lint warnings in `stateless_oauth.py` (whitespace, deprecated `Dict`/`Tuple` style). Not introduced by this session.
 
-### Next Session Should Start With
+### Next Session Should Start With (53)
 - Live-test timeline add-event: open `/tenant/timeline`, click "+ Add Event Manually", fill form, save, verify event appears at top without reload, verify XSS is escaped.
 - Live-test token refresh: let a session expire, verify the error is distinguishable (not a silent None) and the user gets a clear message.
 - Consider de-indenting the misnested debug routes in `app/main.py` (pre-existing latent bug).
@@ -4518,22 +4518,22 @@ All checks passed.
 
 ## Session — 2026-07-03 AM — Vault Upload Button Fix (SHIPPED 25e01d8)
 
-### What Was Done
+### What Was Done (34)
 - **`static/js/core/app.js`**: Replaced `uploadToVault()` stub. Removed all 3 `alert()` calls. Added a `showStatus(message, type)` helper that builds a colored status banner (`#dcfce7`/`#166534` for success, `#fee2e2`/`#991b1b` for error) inside the `#vault-portal` modal. Upload now POSTs to `/api/documents/upload` as `multipart/form-data`. Fixed `r.status_code` → `r.status` (JS `Response` API uses `status`, not `status_code`). Added 1.5s `setTimeout` before `closeVaultPortal()` + `window.location.reload()` so the user actually sees the success confirmation before the modal closes. No other functions in the file were modified.
 - Scope: Task 1 only (vault upload button). No refactoring, no new features, no new files.
 
-### Known Working
+### Known Working (69)
 - `python -m py_compile` passes on all core files checked this session (`app/main.py`, `app/core/navigation.py`, `app/modules/vault/router.py`, `app/modules/onboarding/router.py`, `app/modules/documents/router.py`, `app/services/vault_upload_service.py`).
 - `grep "alert(" static/js/core/app.js` returns zero results — no `alert()` remains in the file.
 - Diff confirmed minimal: only `uploadToVault()` (lines 39-102) changed; `openVaultPortal`, `closeVaultPortal`, `resetVaultForm`, and DOMContentLoaded listeners untouched.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (25)
 - **Not live-tested** — no dev server running this session. Compile + code review only. Pending live test: open vault portal, select file, click upload, verify (a) request hits `/api/documents/upload`, (b) green success banner appears for ~1.5s, (c) modal closes and page reloads.
 - **Endpoint risk**: task specified `/api/documents/upload`, but restore-point memory mentions `/api/vault/upload` and `/api/intake/upload/auto` as the actual live upload endpoints. If upload 404s in live test, the endpoint path in `uploadToVault()` may need to be reconciled with the real backend route. Flagging only — task scope forbade changing the endpoint.
 - Pre-existing bug (not touched): `if css_path.exists():` block in `app/main.py` (~line 1756) still mis-scopes several unrelated debug/fallback routes. Pending future de-indent.
 - Pre-existing: `window.location.reload()` inside the `setTimeout` makes the preceding `refreshVaultFileList()` call effectively dead code (reload supersedes it). Not fixed per task scope.
 
-### Next Session Should Start With
+### Next Session Should Start With (54)
 - Live-test the vault upload button end-to-end against a running dev server. Confirm the endpoint resolves and the success/error banners render correctly.
 - If `/api/documents/upload` 404s, reconcile with the actual backend upload route (likely `/api/vault/upload` or `/api/intake/upload/auto` per restore-point memory).
 - Consider de-indenting the misnested debug routes in `app/main.py` (pre-existing latent bug).
@@ -4542,21 +4542,21 @@ All checks passed.
 
 ## Session — 2026-07-02 PM — Auth Callback 404 Fix (SHIPPED 5627c5e)
 
-### What Was Done
+### What Was Done (35)
 - **`app/main.py`**: Added `/auth/callback` compatibility route. Root cause: an OAuth provider redirect_uri (`http://localhost:<port>/auth/callback`) did not match either of the app's canonical callback routes (`/onboarding/callback/{provider}` or `/storage/callback/{provider}`), causing a 404 on OAuth return. The new route looks up the `state` token in the `oauth_states` table to determine the `provider`, then 302-redirects to the correct canonical handler with `code`/`state` preserved (urlencoded).
 - **`app/main.py`**: Added `Query` to the fastapi import (needed by the new route).
 - Confirmed via AST inspection that the new route registers unconditionally (not nested inside the pre-existing `if css_path.exists():` block that — as a pre-existing latent bug — currently gates `/onboarding`, `/welcome.html`, `/onboarding/select-role`, `/storage/providers`, and `/register` routes). Did not fix that pre-existing bug — out of scope for this session, flagged for future cleanup.
 
-### Known Working
+### Known Working (70)
 - `/auth/callback?code=...&state=...` now resolves to the correct onboarding or storage callback instead of 404ing.
 - `python -m py_compile app/main.py` passes.
 
-### Known Gaps / Pending
+### Known Gaps / Pending (26)
 - **Not live-tested** — no dev server was running this session, so the fix is verified by compile + code review only, not an actual OAuth round-trip. Pending live test next session (start a local server, run through Google Drive OAuth, confirm `/auth/callback` correctly proxies to `/onboarding/callback/google_drive`).
 - Pre-existing bug: `if css_path.exists():` at `app/main.py` (~line 1756) improperly scopes several unrelated debug/fallback routes (`/onboarding`, `/welcome.html`, `/onboarding/select-role*`, `/storage/providers`, `/register`) due to leftover indentation from a prior edit. Functionally harmless today since `static/css` exists in all known environments, but should be de-indented to top-level for correctness.
 - Determine if the OAuth provider's registered redirect URI should instead be corrected at the source (Google/Dropbox/OneDrive console) to point directly at `/onboarding/callback/{provider}`, making this compatibility route unnecessary long-term.
 
-### Next Session Should Start With
+### Next Session Should Start With (55)
 - Live-test the `/auth/callback` fix against a running server + real OAuth flow.
 - Consider de-indenting the misnested debug routes noted above.
 
@@ -4575,18 +4575,18 @@ their legal rights—not tenants breaking the law.
 
 ## Session — 2026-07-01 PM — Tenant Redirect Fix + Loop Fix (SHIPPED ec526c7)
 
-### What Was Done
+### What Was Done (36)
 - **`app/main.py`**: Corrected `/tenant`, `/tenant/`, `/tenant/dashboard`, `/tenant/journal` — all now redirect to `/tenant/home` (not `/tenant/timeline`, which was a mistake from the previous session).
 - **`app/main.py`**: Fixed infinite redirect loop — the `tenant_home` template-error fallback was `ssot_redirect("/help")` which caused a loop. Replaced with a direct `HTMLResponse` (inline HTML, no redirect) that always renders, includes HOME Line number, and links to `/help` and `/tenant/timeline`. Never a dead end.
 - **Root cause**: Previous session incorrectly sent all tenant traffic to `/tenant/timeline`. BUILD_GUIDE_SSOT.md has had `/tenant/home` as the canonical verified landing page since May 2026.
 
-### Known Working
+### Known Working (71)
 - `/tenant/home` is the primary tenant hub — verified in BUILD_GUIDE_SSOT.md Step 4
 - All redirect paths correct: `/tenant` → `/tenant/home`, `/tenant/dashboard` → `/tenant/home`, `/tenant/journal` → `/tenant/home`
 - Template error fallback: inline HTML response with HOME Line number (no redirect loop possible)
 - `static/tenant/help.html` is a standalone help page (no app dependency) with all MN crisis numbers
 
-### Next Session Should Start With
+### Next Session Should Start With (56)
 - Review `tenant_home.html` — the template has broken nav icon emoji (lines 570–580 show `?` instead of emoji — encoding issue), links to `/tenant/journal` (which now redirects back home — should link to `/tenant/timeline`), and `/documents` (non-existent route)
 - Rebuild tenant_home.html properly with correct pillar links: RECORD → `/tenant/timeline`, KNOW → `/tenant/library`
 
@@ -4594,14 +4594,14 @@ their legal rights—not tenants breaking the law.
 
 ## Session — 2026-07-02 — Design System Audit + Card/Shadow Fix (SHIPPED)
 
-### What Was Done
+### What Was Done (37)
 - **Audit**: Found 3 parallel CSS systems in the codebase (base.html inline dark theme, `ssot-design-system.css` flat/tone-only system, and `static/css/main.css` + `themes/*.css` gradient system used by 4 static dashboard pages). Documented in `FNG_TODO.md`.
 - **Verified**: 31/31 Jinja2 page templates already have `template-1` through `template-5` body classes wired (contrary to earlier assumption) — GLM's design system migration at the template level is actually complete.
 - **Fixed**: `app/templates/base.html` — removed the `.card` background/border/radius rule that was overriding `ssot-design-system.css`'s `.card` rule via cascade order (equal specificity, base.html loads later = wins). Also removed a leftover `box-shadow` on form focus states.
 - **Fixed**: `static/css/ssot-design-system.css` — removed `box-shadow` from `.card` and `.card:hover`, which violated the design handoff's own "no shadows anywhere" rule.
 - **Did NOT touch**: the 292 usages of `--color-*` / `--radius-*` / `--space-*` variables across 27 template files defined in base.html's `:root` — too risky to change without a full visual QA pass. Documented as a deferred item in `FNG_TODO.md`.
 
-### Known Working
+### Known Working (72)
 - `.card` class now renders flat (no shadow, no radius) per design handoff spec
 - All 31 page templates have correct `template-N` body classes
 
@@ -4614,25 +4614,25 @@ their legal rights—not tenants breaking the law.
 
 ## Session — 2026-07-02 — Tenant Redirect Loop Root Cause Fix (SHIPPED)
 
-### What Was Done
+### What Was Done (38)
 - **Root cause found**: `app/modules/calendar/router.py` was registered in `app/core/product_manifest.py:640` WITHOUT a prefix. The router defines `@router.get("/{event_id}")` with `Depends(yellow_access)` — this acted as a catch-all for ANY single-segment path, including `/help`. When a user visited `/help`, FastAPI matched the calendar route first (registered before `/help` in main.py), called `yellow_access`, got 401, global exception handler redirected to `/help?status=down`, which matched the calendar route again → infinite redirect loop (ERR_TOO_MANY_REDIRECTS).
 - **Fix 1 (root cause)**: Added `prefix="/api/calendar"` to the calendar router registration in `product_manifest.py:640`. Now `/{event_id}` → `/api/calendar/{event_id}` — no longer matches `/help`.
 - **Fix 2 (defensive)**: Updated `app/core/error_handling.py` `semptify_exception_handler` to detect when `/help` itself is the failing path and serve an inline 500 HTML fallback instead of redirecting back to `/help`. This prevents any future redirect loop if `/help` ever fails.
 - Added `HTMLResponse` to imports in `error_handling.py`.
 
-### Known Working
+### Known Working (73)
 - `/help` route now matches the public route in `main.py:2631` (no auth dependency) as intended
 - Calendar API routes are now properly namespaced under `/api/calendar/*`
 - Exception handler will never create a redirect loop to `/help`
 
-### Next Session Should Start With
+### Next Session Should Start With (57)
 - Rebuild `tenant_home.html` template with four-pillar hub structure, correct links, and fixed emojis (pending live test of redirect fix first)
 
 ---
 
 ## Session — 2026-07-02 — GUI Phase 1 Wiring Fixes (IN PROGRESS)
 
-### What Was Done
+### What Was Done (39)
 
 #### HTMX library added to base.html
 - Downloaded `static/js/htmx.min.js` (v1.9.12) locally — no CDN, keeps with "no third-party trackers" principle.
@@ -4664,7 +4664,7 @@ their legal rights—not tenants breaking the law.
 - Now accepts either `component` (single) or `components` (list) plus optional `fragment_title` for rendering headings.
 - Keeps backward compat — existing single-component callers still work.
 
-### Still Pending
+### Still Pending (10)
 - Redirects from old tenant pages (`/tenant/`, `/tenant/dashboard`) to `/tenant/timeline` — deferred until timeline has the full interactive data query viewer per user vision 2026-06-28.
 - Timeline is currently a basic chronological feed; user vision calls for color-coded key definitions, search with all variables, filter by names/event types/letters/notices/ledgers, compare two datasets, include/exclude file types.
 - Live test: verify `/api/ui/fragment/library/eviction` returns rendered fact_card HTML when Context Engine has MN eviction facts cached.
@@ -4673,7 +4673,7 @@ their legal rights—not tenants breaking the law.
 
 ## Session — 2026-07-01 PM3 — Tenant Pillar Redirects (COMPLETED)
 
-### What Was Done
+### What Was Done (40)
 
 #### Old tenant pages redirected to new pillars
 Per user vision 2026-06-22: tenant GUI = two pillars (RECORD + KNOW). Old pages now redirect:
@@ -4690,10 +4690,10 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - `tenant_dashboard_page`: removed 12-line template/static fallback chain — redirect is 1 line.
 - `tenant_journal`: removed 25-line briefcase aggregation + template render — redirect is 1 line. The journal data is still in the timeline feed via `tenant_feed` service.
 
-### Files Changed
+### Files Changed (10)
 - `app/main.py` — 4 route handlers rewritten as redirects (net -45 lines)
 
-### Still Pending
+### Still Pending (11)
 - Timeline is currently a basic chronological feed; user vision calls for color-coded key definitions, search with all variables, filter by names/event types/letters/notices/ledgers, compare two datasets, include/exclude file types.
 - Live test: verify `/api/ui/fragment/library/eviction` returns rendered fact_card HTML when Context Engine has MN eviction facts cached.
 
@@ -4701,7 +4701,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 
 ## Session — 2026-07-01 PM2 — Incomplete Code Cleanup (IN PROGRESS)
 
-### What Was Done
+### What Was Done (41)
 
 #### state_laws dev_notes corrected
 - `product_manifest.py` dev_notes was wrong ("Only MN complete") — actually 6 states complete (MN, NY, CA, TX, FL, IL). Fixed.
@@ -4737,7 +4737,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - `complaint_wizard_module` → DEV, dev_only (Mesh SDK pattern, no FastAPI router, DISABLED in main.py)
 - `free_api_pack` → DEV, dev_only (utility classes only — PropertyLookup, LandlordLookup, CourtScraper, etc.)
 
-### Still Pending
+### Still Pending (12)
 - 43 state law stubs (AK, AL, AR, AZ, CO, CT, DE, GA, HI, ID, KS, KY, LA, MA, MD, ME, MI, MO, MS, MT, NC, ND, NE, NH, NJ, NM, NV, OH, OK, OR, PA, RI, SC, SD, TN, UT, VA, VT, WA, WI, WV, WY) — need full housing law data
   - **API research completed 2026-07-01:** No free API matches Semptify's JSON schema. Options documented:
     - Nolo charts (all 50 states, HTML, no API) — best source, would need scraping
@@ -4754,7 +4754,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 **Commit:** `bf97a9e` pushed to main
 **Render deploy:** triggered (auto-deploy on commit)
 
-### What Was Shipped
+### What Was Shipped (11)
 
 #### SSOT Design System — `static/css/ssot-design-system.css`
 - Added font stacks: Inter + IBM Plex Mono via CSS variables.
@@ -4791,13 +4791,13 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - Extracted all `_register()` entries from `app/core/product_manifest.py` and compared against `app/modules/` directories.
 - Full findings listed in **Known Broken / Pending** below.
 
-### Known Working
+### Known Working (74)
 - CSS braces balanced (293 open / 293 close).
 - All 28 template `body_class` blocks injected correctly.
 - 3 standalone pages integrated with SSOT design system.
 - No Python files modified in this session, so no new compile issues.
 
-### Known Broken / Pending
+### Known Broken / Pending (39)
 - **State Laws:** only MN data complete; NY, CA, TX, FL, IL pending (`product_manifest.py:410`).
 - **MNDES:** 3 `NotImplementedError` pending external MN Supreme Court API integration (`product_manifest.py:461`).
 - **Housing Accountability:** pattern matching dependency + beta status (`product_manifest.py:506-509`).
@@ -4838,7 +4838,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
   - `app/modules/state_laws/router.py` (5)
   - `app/services/eviction/seed_court_data.py` (5)
 
-### Next Session
+### Next Session (3)
 - Decide which pending/incomplete items to tackle next per `ACTIVE_CONTEXT.md`.
 - Verify Render deploy succeeded for this design-system push.
 - Spot-check a tenant page, legal page, and admin page for correct template color classes and fonts.
@@ -4851,7 +4851,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 **Render deploy:** triggered (auto-deploy on commit)
 **Root cause of all-day outage:** `app/core/accountability_planner.py:153` used `utc_now().replace(month=utc_now().month + 6)` which overflows every Jul–Dec (month 13+). The fix was made in the prior session but never committed, so Render kept crashing on startup. This session committed and pushed the fix.
 
-### What Was Shipped
+### What Was Shipped (12)
 
 #### Critical fix — `app/core/accountability_planner.py`
 - Replaced `utc_now().replace(month=utc_now().month + 6)` with `utc_now() + timedelta(days=180)` to avoid month arithmetic overflow. This was the root cause of the Render service being down all day 2026-07-01.
@@ -4864,16 +4864,16 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 #### Core Context codification
 - `AGENTS.md`, `.devin/workflows/preflight.md`, `CORE_CONTEXT.md`: documented the clarified "free" rule (never for Semptify self-description; allowed for factual external-resource descriptions).
 
-### Known Working
+### Known Working (75)
 - accountability_planner.py compiles and no longer overflows on month arithmetic
 - All 35 modified files compile clean
 - Render auto-deploy triggered by push
 
-### Known Broken / Pending
+### Known Broken / Pending (40)
 - None new. Verify Render deploy succeeds (watch dashboard).
 - `genminy.txt`, `setup_claude_code_free.ps1`, `.cursor/rules/` remain untracked (not application files, intentionally not committed)
 
-### Next Session
+### Next Session (4)
 - Verify the Render deploy for `12abccb` went live and the site is back up.
 - If live, spot-check the tenant help page, footer, and a public page to confirm terminology changes rendered.
 - Resume whatever the next priority is from ACTIVE_CONTEXT.md.
@@ -4885,7 +4885,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 **Commit:** `d5af32a` pushed to main
 **Cloudflare:** Dev Mode enabled (3h), cache purged
 
-### What Was Shipped
+### What Was Shipped (13)
 
 #### Core Context doctrine — `CORE_CONTEXT.md` (new canonical doc)
 - Public utility, not a product. North star = Time to Real Help.
@@ -4917,17 +4917,17 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - Footer "Help" link replaced with "Feedback" mailto:`feedback@semptify.org`.
 - Nav bar "Help & Resources" remains the separate core link to `/help`.
 
-### Known Working
+### Known Working (76)
 - App compiles clean (`python -m py_compile` passes on all core files).
 - `/help` route serves static page without auth.
 - Cloudflare Dev Mode active for 3 hours — changes visible immediately.
 
-### Known Broken / Pending
+### Known Broken / Pending (41)
 - `static/tenant/help.html` status banner JS not yet wired (the `?status=down` param is redirected to but the banner element still needs JS to show). The redirect works; the banner display is the next step.
 - Live test of fatal-error redirect not yet performed (need to trigger a fatal error in a browser to verify the redirect chain end-to-end).
 - "Live Edit" extension feature (interactive AI live-edit of page design) — added to long-term todo, not implemented.
 
-### Next Session Should Start With
+### Next Session Should Start With (58)
 1. Wire the status banner JS in `static/tenant/help.html` — read `?status=down` query param and show the banner element with the appropriate message.
 2. Live-test the fatal-error redirect: trigger a 500 in a browser, verify the user lands on `/help?status=down` with the banner visible.
 3. Audit existing UI copy across the app for "free" / "account" / "log in" / "sign up" terminology violations per the new Core Context rules. Flag and fix.
@@ -4937,7 +4937,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-30 — Help Page Review + Resource Fact-Check (COMPLETE)
 **Weekly help page review per /help-page-review workflow.**
 
-### What Was Shipped
+### What Was Shipped (14)
 
 #### Help page rebuild — `static/tenant/help.html`
 - Removed Semptify-internal sections ("Your Tenant Journey", "Your Semptify Tools") per user request
@@ -4966,7 +4966,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-29 PM2 — Repo Cleanup + Plan Realignment (COMPLETE)
 **Archived 108 obsolete docs. ACTIVE_CONTEXT.md reset to current plan state.**
 
-### What Was Shipped
+### What Was Shipped (15)
 
 #### Repo cleanup
 - 108 obsolete .md files moved to `archive/obsolete-2026-06-29/` via `git mv` (history preserved)
@@ -4992,12 +4992,12 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - STATUS_AUDIT.md, STUB_AUDIT.md
 - ACTION_FEEDBACK_AUDIT.md, GUI_PHASE1_DESIGN.md
 
-### Known Working
+### Known Working (77)
 - All archived files recoverable from `archive/obsolete-2026-06-29/` ✅
 - All canonical docs preserved ✅
 - Git history preserved via `git mv` ✅
 
-### Next Session Should Start With
+### Next Session Should Start With (59)
 1. **Phase 5b — Action Feedback helper** — design doc `ACTION_FEEDBACK_AUDIT.md` is the spec
 2. Build `SemptifyFeedback` helper + 5-tier retrofit per the audit doc
 
@@ -5006,9 +5006,9 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-29 PM — Filedored Overlay Integration Fixes (COMPLETE)
 **Filedored module was broken — 3 callers failed to pass overlay_manager. Now fixed.**
 
-### What Was Shipped
+### What Was Shipped (16)
 
-#### Root cause
+#### Root cause (2)
 `filedored_service.process_uploaded_document()` was refactored to require `overlay_manager` param (raises `RuntimeError` if None, per `app/services/filedored_service.py:123-127`), but 3 callers never passed it. Plus 2 more signature bugs in the filedored router.
 
 #### Fixes applied
@@ -5025,7 +5025,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
   - Build `overlay_manager` from user token and pass it
   - Graceful skip with warning when no overlay manager
 
-#### Verification
+#### Verification (74)
 - All 6 affected files compile clean (`py_compile` exit 0)
 - No regressions — `duplicate_detection_service.py` already had correct self-build pattern, no changes needed
 - Root cause fixed at all 3 call sites (per AGENTS.md rule #15 — no downstream band-aids)
@@ -5037,13 +5037,13 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - `/api/documents/process` step 9 wires overlay_manager ✅
 - Overlay system itself (UnifiedOverlayManager CRUD) verified functional in previous session ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (42)
 - None new this session
 - Pre-existing pending items (from ACTIVE_CONTEXT.md):
   - Phase 5b — Action Feedback helper (ready to build, no blockers)
   - GUI Phase 1 — Tenant Journal restructuring (pending)
 
-### Files Changed
+### Files Changed (11)
 - `app/modules/filedored/router.py` — 4 endpoints fixed (overlay_manager wiring + sync/await bugs)
 - `app/main.py` — DOCUMENT_ADDED subscriber fixed
 - `app/modules/documents/router.py` — step 9 filedored post-processing fixed
@@ -5051,11 +5051,11 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - `docs/planning/DC_HANDOFF_SONNET.md` — added (future DC work reference)
 - `docs/planning/DOCUMENT_CENTER_PLAN.md` — added (future DC work reference)
 
-### Next Session Should Start With
+### Next Session Should Start With (60)
 1. **Phase 5b — Action Feedback helper** (design doc `ACTION_FEEDBACK_AUDIT.md` ready, no blockers) — per ACTIVE_CONTEXT.md current priority
 2. Or pick up from DC planning docs committed this session (`docs/planning/DOCUMENT_CENTER_PLAN.md`)
 
-### Deploy
+### Deploy (7)
 - Commit: `19d0860` pushed to `origin/main`
 - Render auto-deploy triggered
 - Cloudflare Development Mode enabled (3hrs) + cache purged — changes visible immediately at https://semptify.org
@@ -5065,7 +5065,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-29 — DC Overlay Pipeline Stateless Mandate (COMPLETE)
 **All 4 remaining HANDOFF violations resolved. DC is now stateless-compliant.**
 
-### What Was Shipped
+### What Was Shipped (17)
 
 #### 1. DC DB fallback removed (`_synthesize_overlays()` deleted)
 - **`app/modules/document_center/router.py`** — `_synthesize_overlays()` function deleted entirely. `_build_overlay_progress()` now returns `status="processing_incomplete"` with empty overlays when no real overlays exist. No DB content reads.
@@ -5091,7 +5091,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 #### 4. Fabricated `overlay_count` removed from DC list
 - **`app/modules/document_center/router.py`** — `dc_list_documents()` no longer fabricates `overlay_count` from DB flags. Returns `overlay_count: None` (null). Real count only available via per-doc `/api/dc/document/{vault_id}/overlays` endpoint.
 
-### Known Working (pending live test)
+### Known Working (pending live test) (2)
 - All changed files compile clean ✅
 - 22/22 DC smoke tests pass ✅
 - No references to `DocumentRegistryEntry`, `CertificationEvent`, `CertificationResult`, `CertificationFailureCode`, or `extracted_data_json` remain in app code ✅
@@ -5102,7 +5102,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 1. `python scripts/drop_extracted_data_column.py` — drops `vault_index.extracted_data_json` column
 2. `python scripts/drop_certification_tables.py` — drops `document_registry` + `certification_events` tables
 
-### Files Changed
+### Files Changed (12)
 - `app/modules/document_center/router.py` — `_synthesize_overlays()` deleted, `_build_overlay_progress()` returns `processing_incomplete`, `_build_progress_from_real()` has no DB fallbacks, `_compute_unlocks()` uses only DB index flags, `dc_list_documents()` returns `overlay_count: None`
 - `app/modules/document_center/register.py` — `dc_overlays` + `dc_list` contracts updated
 - `app/modules/document_center/tests/test_dc_smoke.py` — tests rewritten for new behavior
@@ -5116,7 +5116,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-29 — Intake Pipeline → Real Overlay Creation (COMPLETE)
 **Extraction results now written to user cloud overlays, not our DB**
 
-### What Was Shipped
+### What Was Shipped (18)
 - **`vault_upload_service.mark_processed()`** — no longer writes `extracted_data` to our PostgreSQL. Only `processed=True` state flag written to DB. All extracted content goes to user cloud overlays.
 - **New params on `mark_processed()`**: `parties: Optional[list]`, `timeline_events: Optional[list]`
 - **3 overlay types now created per processed document** (in user cloud via `_create_unified_overlay()`):
@@ -5125,7 +5125,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
   - `TIMELINE_EXTRACTION` — `{events: [...]}` (from flow orchestrator if available)
 - **Intake router** — passes full extraction payload instead of near-empty stub `{doc_type: None, summary: "..."}`
 
-### Known Working (pending live test)
+### Known Working (pending live test) (3)
 - All 3 changed files compile clean ✅
 - `mark_processed()` only touches DB for `processed=True` — no content data written
 - Real overlays flow: upload → vault → extract → overlays in user cloud → DC reads them
@@ -5136,7 +5136,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - `DocumentRegistryEntry` + `CertificationEvent` tables — duplicate cloud cert data, need removal
 - DC list `overlay_count` is still a fabricated heuristic — should be removed or set to `null`
 
-### Files Changed
+### Files Changed (13)
 - `app/services/vault_upload_service.py` — `mark_processed()` rewritten
 - `app/modules/intake/router.py` — full extraction payload now passed
 - `HANDOFF_DC_OVERLAY_PIPELINE.md` — violation #2 marked complete, others documented for GLM5.2
@@ -5146,7 +5146,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-28 — Document Center Slice 9: Real Overlay Bridge (COMPLETE)
 **DC right panel now reads REAL overlays from UnifiedOverlayManager**
 
-### What Was Shipped
+### What Was Shipped (19)
 
 #### Document Center → UnifiedOverlayManager Bridge
 - **`_fetch_real_overlays(doc, user_id)`** — new helper in `app/modules/document_center/router.py`. Reads real overlays from `UnifiedOverlayManager.get_overlays(document_id=doc.safe_filename)` in the user's cloud storage. Returns `[]` on any failure (cloud unavailable, local storage, missing token) — graceful degradation, never blocks the UI.
@@ -5158,18 +5158,18 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - **`_synthesize_overlays`** — now tagged `overlay_source: 'db_fallback'` so the frontend can tell when it's seeing real vs synthesized data.
 - **`register.py` contracts** — `dc_list` and `dc_overlays` updated to reflect real overlay integration and new output fields.
 
-### Known Working (pending live test)
+### Known Working (pending live test) (4)
 - All DC Python files compile clean ✅
 - Real overlay fetch path verified — uses `get_valid_token_for_user()` + `get_provider()` + `get_unified_overlay_manager()` (the canonical pattern from Known Failure Registry Rule 16)
 - Falls back gracefully when cloud is unavailable or no overlays exist
 - Originals remain IMMUTABLE — overlays are read-only here, no write paths added
 
-### Known Broken / Pending
+### Known Broken / Pending (43)
 - DC access still admin-only via `requires_role` in product_manifest — expand to tenants after live admin test
 - Intake pipeline does NOT yet create individual `DOCUMENT_EXTRACTION`, `PARTY_EXTRACTION`, `TIMELINE_EXTRACTION` overlays after processing — it only writes to `VaultIndexDB.extracted_data_json`. Until intake is wired to create these overlays, the DC will mostly hit the `db_fallback` path. The bridge is ready; the upstream overlay creation is the next gap.
 - `dc-right-empty` still uses `style.display` toggle (minor, cosmetic)
 
-### Files Changed
+### Files Changed (14)
 - `app/modules/document_center/router.py` — added `_fetch_real_overlays`, `_build_overlay_progress`, `_build_progress_from_real`; updated `dc_get_overlays`, `dc_list_documents`, `dc_set_document_type`; tagged `_synthesize_overlays` as db_fallback
 - `app/modules/document_center/register.py` — updated `dc_list` and `dc_overlays` contracts
 
@@ -5178,7 +5178,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-28 — Document Center Slice 8, promoted to stable (COMPLETE)
 **Forge: 28/28 smoke tests | beta → stable**
 
-### What Was Shipped
+### What Was Shipped (20)
 
 #### Document Center Slice 8
 - **`_formatExpandItems(overlayType, rawItems)`** — per-type formatting in `openOverlay()` drill-down:
@@ -5192,12 +5192,12 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - **2 new tests**: OCR excerpt cap (200ch+…), items list cap at 10
 - **28/28 Forge smoke tests**; promoted `beta → stable`
 
-### Known Working (pending live test)
+### Known Working (pending live test) (5)
 - All DC Python files compile clean ✅
 - 28/28 Forge smoke tests pass ✅
 - DC at `stable` lifecycle — still admin-only via `requires_role`
 
-### Known Broken / Pending
+### Known Broken / Pending (44)
 - `dc-right-empty` still uses `style.display` toggle (minor, cosmetic)
 - DC access still admin-only — expand to tenants after live admin test
 
@@ -5206,7 +5206,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-28 — Document Center Slice 7, promoted to beta (COMPLETE)
 **Forge: 26/26 smoke tests | experimental → beta**
 
-### What Was Shipped
+### What Was Shipped (21)
 
 #### Document Center Slice 7
 - **`items` field** added to every overlay in `_synthesize_overlays`: registry_id for certified upload; type label; 200-char text excerpt for OCR; raw dates/parties/amounts lists (capped at 10 each). Empty list `[]` when no data.
@@ -5217,11 +5217,11 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - **3 new tests** (items field, items populated, items empty); 26/26 total
 - Promoted `experimental → beta`
 
-### Known Working (pending live test)
+### Known Working (pending live test) (6)
 - All DC Python files compile clean ✅
 - 26/26 Forge smoke tests pass ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (45)
 - `openOverlay()` shows raw extracted values — no formatting yet (future Slice 8)
 - Drill-down `dc-overlay-expand` uses inline `innerHTML` — XSS-safe since `items` is server-generated
 
@@ -5230,7 +5230,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-27 — Document Center Slice 6b, promoted to experimental (COMPLETE)
 **Forge: 23/23 smoke tests | preview → experimental**
 
-### What Was Shipped
+### What Was Shipped (22)
 
 #### Document Center Slice 6b
 - **`GET /api/dc/unlocks`** — `_compute_unlocks()` iterates all user VaultDocuments, synthesizes overlay scores in memory, checks 4 thresholds: Timeline (1 doc Dates+Parties avg≥80%), Journal (2+ docs overall≥60%), Contact Manager (Parties==100%), Case Builder (3+ docs overall≥80%); returns `unlocks/doc_count/generated_at`
@@ -5239,12 +5239,12 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - **All inline CSS extracted** — 6 new CSS classes (`.dc-flash-zone`, `.dc-left__empty-state/icon/title/sub`, `.dc-viewer-dl-btn`, `.dc-zoom-pct`, `.dc-right__empty-icon`, `.dc-right-active/.visible`, `.dc-overlay-detail`, `.dc-status-msg`, `.dc-unlock-progress`); `.dc-overall__fill` gets `width:0` default; `dc-right-active` toggled via `.visible` class not `.style.display`
 - **23/23 Forge smoke tests** — 5 contracts registered; promoted `preview → experimental`
 
-### Known Working (pending live test)
+### Known Working (pending live test) (7)
 - All DC Python files compile clean ✅
 - 23/23 Forge smoke tests pass ✅
 - No remaining linter-flagged inline styles in documents.html ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (46)
 - `_unlocksCache` resets on page reload — acceptable for now (no stale data risk)
 - `openOverlay()` drill-down panel still stub — deferred to Slice 7
 
@@ -5253,7 +5253,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-27 — Document Center Forge Integration, Slices 1–5 (COMPLETE)
 **Promoted: dev_only → preview | Forge: 18/18 smoke tests**
 
-### What Was Shipped
+### What Was Shipped (23)
 
 #### Document Center Module (`app/modules/document_center/`)
 - **Slice 1** — 3-pane HTML shell (`app/templates/pages/documents.html`): left vault list, center viewer, right overlays panel
@@ -5263,7 +5263,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - **Slice 5** — `POST /api/dc/document/{vault_id}/type` writes `document_type` to DB, attempts `DOCUMENT_CLASSIFICATION` overlay (best-effort OAuth), returns overlay snapshot for one-trip right-panel refresh; `onTypeChange()` async with failure rollback; `dc_set_type` contract registered
 - **Forge gate** — 18/18 smoke tests passing; lifecycle bumped `dev_only → preview` in `product_manifest.py`; 4 contracts registered
 
-### Known Working (pending live test)
+### Known Working (pending live test) (8)
 - All DC Python files compile clean ✅
 - 18/18 Forge smoke tests pass ✅
 - `/api/dc/list` returns vault documents (pending live vault data)
@@ -5271,7 +5271,7 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 - `/api/dc/document/{id}/type` writes to DB (pending live test)
 - `/api/dc/document/{id}/view` streams bytes inline (pending live test with real vault doc)
 
-### Known Broken / Pending
+### Known Broken / Pending (47)
 - **CSS inline styles** — 5 pre-existing inline styles in `documents.html` (flash zone, empty state) flagged by linter; deferred to Slice 6 CSS extraction pass
 - Unlock logic in right panel still hardcoded; Slice 6 will wire to real `overall_pct` per document
 - `openOverlay()` drill-down panel deferred to Slice 6
@@ -5281,28 +5281,28 @@ All redirects preserve the `_guard_role_page(request, {"tenant"})` check — una
 ## Session — 2026-06-27 — Vault Upload Reconnect Loop Fix (COMPLETE)
 **Commit: `3a0f98e` | Pushed: 2026-06-27**
 
-### What Was Shipped
+### What Was Shipped (24)
 
 #### Vault Upload Loop Fix
 - **`static/js/core/vault-portal.js`** — Removed `/storage/status` pre-check and redirect that caused infinite loop when OAuth token expired. Restored reactive auth error pattern from commit `9b71cb1` (May 21): upload is attempted directly, and only on 401/`token_expired`/`storage_required` does a confirm prompt offer reconnect with `return_to` parameter so user returns to their page.
 - **`app/modules/intake/router.py`** — Added token fallback chain to `/api/intake/upload/auto` endpoint matching `vault/router.py:216-225` pattern: form field → `user.access_token` → `get_valid_token_for_user()` (refreshes expired tokens). Added `resolved_provider` so frontend can send `storage_provider=auto` and backend resolves it from the user session.
 - **17 HTML files** — Cache-bust version bumped `20260626cb` → `20260626d` for `vault-portal.js`.
 
-### Root Cause
+### Root Cause (2)
 Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check that redirected to `/storage` before trying the upload. When the OAuth token expired, this created a loop: pre-check fails → redirect to `/storage` → gate is complete so `/storage` redirects back to app → user returns to upload → pre-check fails again. The proven working pattern (commit `9b71cb1`) was reactive, not pre-emptive.
 
-### Known Working
+### Known Working (78)
 - All Python files compile clean ✅
 - `vault-portal.js` passes `node --check` ✅
 - No pending Fix-It reports ✅
 - Token fallback chain matches `vault/router.py` pattern ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (48)
 - **Live upload not yet verified** — user needs to test at semptify.org after deploy + Cloudflare cache purge
 - **Feed aggregator not wired to real data sources** — from prior session
 - **Add Record modal POST endpoint not wired** — from prior session
 
-### Next Session
+### Next Session (5)
 - User tests upload at semptify.org (hard refresh, attempt upload, verify no loop)
 - If upload works, begin GUI refactor planning (Phase 5b GUI Phase 1)
 - If upload fails, collect console logs and exact error messages
@@ -5312,7 +5312,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-26 — Public Website (Phase 0) + Hybrid Contextual GUI (Phase 1A/1B/1C) (COMPLETE)
 **Commit: `a5343b5` | Pushed: 2026-06-26**
 
-### What Was Shipped
+### What Was Shipped (25)
 
 #### Phase 0 — Public Website
 - **`app/modules/portal/`** — new public guest portal module with services catalog SSOT,
@@ -5339,21 +5339,21 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Contract loader: ui_composer + tenant_feed contracts added (116 total, 0 failures)
 - 4 new FunctionGroupContracts: `ui_composer::page_compose`, `ui_composer::fragment_render`, `ui_composer::process_status`, `tenant_feed::feed_aggregate`
 
-### Known Working
+### Known Working (79)
 - All Python files compile clean ✅
 - UI Composer `compose_page()` works for all 6 intents ✅
 - 116 contracts loaded, 0 failures ✅
 - Feed aggregator degrades gracefully (returns empty when sources unavailable) ✅
 - Cloudflare Dev Mode enabled (3 hours) + cache purged ✅
 
-### Known Broken / Pending
+### Known Broken / Pending (49)
 - **Feed aggregator not wired to real data sources** — documents/timeline modules expose router endpoints (with `Depends(yellow_access)`) not service functions. Aggregator returns empty feed. Wiring is a follow-up.
 - **Add Record modal POST endpoint not wired** — modal has `hx-post="/api/journal"` but no endpoint at that path yet
 - **Live render not verified** — no server started (saving Render minutes)
 - **HTMX fragment swaps not verified live**
 - **Visual layout not verified** (mobile/desktop breakpoints)
 
-### Next Session
+### Next Session (6)
 - Verify /tenant/timeline and /tenant/library render correctly on Render
 - Wire feed aggregator to real data sources (extract service functions from documents/timeline routers)
 - Wire Add Record modal POST endpoint (journal capture)
@@ -5364,7 +5364,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-25 — Action Feedback Audit Cleanup (COMPLETE)
 **Commit: `0040f8a` | Pushed: 2026-06-25**
 
-### What Was Shipped
+### What Was Shipped (26)
 
 #### Action Feedback Audit — Bare alert() Cleanup
 - **`static/components/feedback.html` + `feedback.js`** — Already built and included in `app/templates/base.html` (line 558). Provides `SemptifyFeedback.start/done/success/error/info/story()`.
@@ -5380,12 +5380,12 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **`feedback.js` included in base template** — every page using `app/templates/base.html` gets it automatically
 - **Tier 1-5 pages already retrofitted** — previous session did the bulk of the work
 
-### Known Working
+### Known Working (80)
 - App compiles clean ✅
 - All 4 changed HTML files verified ✅
 - No pending Fix-It reports from admin dashboard ✅
 
-### Next Session
+### Next Session (7)
 - Phase 5b GUI Phase 1 (Tenant Journal restructuring) — per ACTIVE_CONTEXT.md
 - Consider backend result envelope (Section 6 of ACTION_FEEDBACK_AUDIT.md) — deferred to Phase 4
 
@@ -5394,7 +5394,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-24 PM — Context Engine Wired Into 4 Consumers
 **Status: Complete. Page Composer built + Case Builder, Complaint Wizard, and Tenant Defense all wired to Context Engine.**
 
-### What Was Shipped
+### What Was Shipped (27)
 
 #### 1. Page Composer (NEW MODULE)
 - `app/modules/page_composer/__init__.py` — module init
@@ -5426,7 +5426,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - Enriched `get_case_progress` — now returns `context_facts` + `context_fact_count`
   - Helper `_get_defense_context_facts()` — best-effort, never raises
 
-### Known Working
+### Known Working (81)
 - `python -m py_compile` clean on all 5 modified files ✅
 - Page Composer HTTP smoke test passes:
   - `GET /api/page/` → 200 (13 subjects) ✅
@@ -5441,7 +5441,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **No legal advice**: Facts are informational only, sourced from verified statutes
 - **Calm tone**: Facts surface alongside existing recommendations, not as opinions
 
-### Next Session
+### Next Session (8)
 - Build GUI for Page Composer (tenant-facing page views)
 - Wire Page Composer into existing tenant dashboard
 - Consider wiring Context Engine into Advocate and Legal role modules
@@ -5451,7 +5451,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-24 AM — Context Engine API Fixed
 **Status: Complete. Gatherer + cache + stories + verifier + router + models fixed; full HTTP smoke test passes.**
 
-### What Was Shipped
+### What Was Shipped (28)
 
 - `app/modules/context_engine/gatherer.py`: Fixed API method name mismatches.
   - `registry.statutes.search_statutes()` → `registry.statutes.get_statute()`
@@ -5465,7 +5465,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `app/modules/context_engine/models.py`: Added `_naive_utc_now()` helper and used it for `DateTime` columns without timezone support to fix asyncpg offset-aware/naive datetime errors.
 - `app/routers/__init__.py`: Removed broken imports of non-existent `vault`, `copilot`, `health`, `storage`, `intake` modules that were causing import errors in any test importing from `app.routers`.
 
-### Known Working
+### Known Working (82)
 - `python -m py_compile` clean on all context engine files + `app/routers/__init__.py` + `app/main.py` ✅
 - Direct smoke test of `gather_for_subject()` for statutes succeeds and inserts facts into `context_facts` ✅
 - Full HTTP smoke test of `/api/context/facts/refresh` passes ✅
@@ -5473,12 +5473,12 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - `POST /api/context/facts/refresh` `{subject: lease, jurisdiction: MN}` → 200, `new_count: 1`
   - `GET /api/context/facts?subject=lease&jurisdiction=MN` → 200, returns the refreshed fact with `is_verified: true`
 
-### Known Broken / Pending
+### Known Broken / Pending (50)
 - MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback returns deep-link (from prior session)
 - Context Engine built but not wired into Page Composer (Page Composer not yet built)
 - EPA ECHO / CourtListener smoke tests depend on external network and rate limits
 
-### Next Session
+### Next Session (9)
 - Build Page Composer and wire Context Engine into it, or wire Context Engine into an existing consumer
 
 ---
@@ -5486,7 +5486,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-24 AM2 — OAuth Callback Crash Fixed (missing DB columns)
 **Status: Shipped commit 469a161. Migration for users.legal_sub_role + bar_license_number pushed. Render deploying.**
 
-### What Was Shipped
+### What Was Shipped (29)
 
 #### Commit 469a161 — fix(db): add migration for users.legal_sub_role and bar_license_number
 - `alembic/versions/20260624_add_legal_sub_role_and_bar_license.py`: new migration
@@ -5497,19 +5497,19 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Error reported: `column users.legal_sub_role does not exist` during Google Drive OAuth callback for user `117720824533939197243`.
 - Migration runs automatically on Render via `build.sh:22` (`alembic upgrade head`).
 
-### Known Working
+### Known Working (83)
 - `python -m py_compile` clean on migration + `app/models/models.py` + `app/main.py`
 - Migration file syntactically valid, merges both heads cleanly
 - Pushed to main, Render deploying commit 469a161
 
-### Known Broken / Pending
+### Known Broken / Pending (51)
 - OAuth callback will fail until Render deploy completes and `alembic upgrade head` runs
 - MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback (from prior session)
 - `litigation_intelligence` module excluded (INACTIVE in manifest, pre-existing SyntaxError)
 - Playwright: "Register page content not found" — pre-existing
 - Context Engine built but not wired into Page Composer
 
-### Next Session
+### Next Session (10)
 - Verify OAuth login works end-to-end after deploy
 - Continue Phase 4: Role Development (TENANT → ADMIN → ADVOCATE → MANAGER → LEGAL)
 - Or wire Context Engine into Page Composer
@@ -5519,7 +5519,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-24 AM2 — Litigation Intelligence Activated + Advocate Dashboard
 **Status: Shipped commit ca536d3. LIS module live with 17 endpoints. Advocate dashboard added. Phase 4 role coverage complete.**
 
-### What Was Shipped
+### What Was Shipped (30)
 
 #### Commit ca536d3 — fix(litigation_intelligence): activate module + add advocate dashboard endpoint
 - `app/modules/litigation_intelligence/storage_layer.py`: Fixed dataclass field ordering bug (non-default argument 'created_at' follows default argument 'intelligence_report'). Gave created_at/updated_at `field(default_factory=datetime.now)`.
@@ -5527,7 +5527,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `app/core/product_manifest.py`: Activated litigation_intelligence module (was INACTIVE since 2026-06-23 due to dataclass errors). 17 LIS endpoints now live at `/api/litigation-intelligence/*`. Module count: 100 → 101.
 - `app/modules/advocate/router.py`: Added `GET /api/advocate/dashboard` endpoint — aggregate stats across all linked clients (total clients, docs, events, pending reviews, flagged docs, recent clients). Completes Phase 4.2 Advocate.
 
-### Known Working
+### Known Working (84)
 - App compiles clean: `python -m py_compile app/main.py` ✅
 - Litigation Intelligence module loads: 17 endpoints registered ✅
 - Advocate dashboard endpoint live ✅
@@ -5541,7 +5541,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Total routes: 1220 ✅
 - Pushed to main, Render deploying commit ca536d3
 
-### Known Broken / Pending
+### Known Broken / Pending (52)
 - MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback returns deep-link (from prior session)
 - `litigation_intelligence` graph_engine still not implemented (statistics endpoint returns `{"status": "not_implemented"}` for graph section)
 - Playwright: "Register page content not found" — pre-existing
@@ -5555,7 +5555,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - [x] 4.5 Admin: developed (from prior sessions)
 - [x] 4.6 Judge: merged into Legal as sub-role (judge sub-role via is_legal_sub_role())
 
-### Next Session
+### Next Session (11)
 - Phase 4 role development is COMPLETE
 - Next: wire Context Engine into Page Composer
 - Or: build Action Feedback helper (SemptifyFeedback)
@@ -5566,7 +5566,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-24 AM — Free API Endpoints Fixed + Role Definitions Updated
 **Status: Shipped commit 6d59a26. All 9 free API endpoints return ok. Cloudflare dev mode enabled.**
 
-### What Was Shipped
+### What Was Shipped (31)
 
 #### Commit 6d59a26 — fix(free_api): restore data access for 4 broken endpoints + update role definitions
 - `app/modules/free_api_pack.py`: Fixed 4 broken data source URLs
@@ -5580,7 +5580,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - `manager` = professional counselor/worker with multiple clients (NOT a property manager)
   - Added `legal` role with 4 sub-roles (attorney, judge, clerk, paralegal) — all require bar license number
 
-### Known Working
+### Known Working (85)
 - App compiles clean: `python -m py_compile app/main.py` ✅
 - All 9 free API endpoints return `status: "ok"` ✅
   - Federal cases (CourtListener): 10 cases
@@ -5595,13 +5595,13 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Cloudflare Development Mode enabled (3h) + cache purged ✅
 - Pushed to main, Render deploying commit 6d59a26
 
-### Known Broken / Pending
+### Known Broken / Pending (53)
 - MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback returns deep-link, not actual data
 - `litigation_intelligence` module excluded (INACTIVE in manifest, pre-existing SyntaxError)
 - Playwright: "Register page content not found" — pre-existing
 - Context Engine built but not wired into Page Composer
 
-### Next Session
+### Next Session (12)
 - Continue Phase 4: Role Development (TENANT → ADMIN → ADVOCATE → MANAGER → LEGAL)
 - Or wire Context Engine into Page Composer
 - Or fix litigation_intelligence router.py SyntaxError
@@ -5611,7 +5611,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-23 PM2 — Contract Coverage Audit Complete (1045 contracts)
 **Status: Shipped 4 commits. 103 modules contracted. 0 failures, 0 violations. App compiles clean.**
 
-### What Was Shipped
+### What Was Shipped (32)
 
 #### Commit 1: 9a8214c — Fix ModuleOrigin/LifecycleStage enum imports
 - Replaced nonexistent `ModuleOrigin` and `LifecycleStage` enum imports with string literals
@@ -5636,20 +5636,20 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Fix: disambiguate colliding names with method prefix
 - Total contracts: 1017 → 1045 (28 previously-overwritten now distinct)
 
-### Known Working
+### Known Working (86)
 - App compiles clean: `python -m py_compile app/main.py` ✅
 - Contract loader: 114 modules loaded, 0 failures, 1045 contracts, 0 violations ✅
 - Cloudflare Development Mode enabled (3h) + cache purged
 - Pushed to main, Render deploying commit a2a1713
 
-### Known Broken / Pending
+### Known Broken / Pending (54)
 - `litigation_intelligence` module excluded (INACTIVE in manifest, pre-existing SyntaxError in router.py — non-default arg after default arg)
 - Playwright: "Register page content not found" — pre-existing
 - GUI plan deferred until contracts complete (see ~/.windsurf/plans/semptify-gui-full-vision-synthesis-c48dd4.md)
 - Page Composer not yet built
 - Context Engine built but not wired into Page Composer
 
-### Next Session
+### Next Session (13)
 - Contract coverage is COMPLETE (103/104 active modules)
 - Begin GUI Phase 1: Tenant Journal GUI restructuring
 - Or fix litigation_intelligence router.py SyntaxError (non-default arg after default arg)
@@ -5659,7 +5659,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-23 PM — Spelling Fixes + Judge→Legal Ship + Lifecycle Bug Fix
 **Status: Shipped 3 commits. App compiles and starts clean. Playwright 17/18 pass (1 pre-existing).**
 
-### What Was Shipped
+### What Was Shipped (33)
 
 #### Commit 1: db08c1e — Judge→Legal + Advocate + Forge + Static Cleanup (pre-existing work)
 - Judge role merged into Legal as sub-role (attorney/judge/clerk/paralegal)
@@ -5686,21 +5686,21 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Without this fix, app/main.py failed to import — server wouldn't start
 - Forge UI already supported deprecated badges; validation was the only gap
 
-### Known Working
+### Known Working (87)
 - App compiles clean: `python -m py_compile app/main.py` ✅
 - Dev server starts clean on port 8000 ✅
 - Playwright tests against semptify.org: 17/18 pass ✅
 - Cloudflare Development Mode enabled (3h) + cache purged
 - Pushed to main, Render deploying commit 8bf8989
 
-### Known Broken / Pending
+### Known Broken / Pending (55)
 - Playwright: "Register page content not found" — pre-existing, not caused by this session
 - ~25 modules still missing FunctionGroupContracts (per audit)
 - GUI plan deferred until contracts complete (see ~/.windsurf/plans/semptify-gui-full-vision-synthesis-c48dd4.md)
 - Page Composer not yet built
 - Context Engine built but not wired into Page Composer
 
-### Next Session
+### Next Session (14)
 - Complete FunctionGroupContracts for all ~25 missing modules (with GUI requirements)
 - Then rewrite GUI plan based on contracts
 - Then build Page Composer + three-layer page architecture
@@ -5710,7 +5710,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-21 PM3 — Phase 4.1 Tenant + Free API Pack v2.0 + Phase 4.5 Admin
 **Status: Phase 4.1 Tenant complete. Free API Pack v2.0 shipped (11/11 endpoints live). Phase 4.5 Admin verified.**
 
-### What Was Shipped
+### What Was Shipped (34)
 
 #### Phase 4.1 Tenant ✅
 - `state_laws.json`: Added complete data for NY, CA, TX, FL, IL (6 states now complete, 43 stub)
@@ -5742,7 +5742,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - 32 return 302 (redirect to login — correct stealth admin guard)
 - Module flag overlay UI verified: `/admin/module-flags.html` → 200, `/admin/api/module-flags` → 302 (stealth guard)
 
-### Known Working
+### Known Working (88)
 - All 95 modules load, 0 skipped, 0 errors
 - 1162 routes registered
 - Free API Pack: 11 endpoints live with real data
@@ -5750,12 +5750,12 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - CourtListener API: verified 485k+ federal cases searchable
 - MN Revisor API: verified statute 504B.321 returns full text
 
-### Known Broken / Pending
+### Known Broken / Pending (56)
 - Render deploy needed: commit `7cff5e6` pushed to main but auto-deploy is OFF. User must trigger manual deploy on Render dashboard.
 - After deploy: user must log out of admin and back in to get new elevation cookie scoped to `/` (fixes redirect loop)
 - `state_laws.json`: 43 states still stubbed (only 6 complete: MN, NY, CA, TX, FL, IL)
 
-### Next Session Should Start With
+### Next Session Should Start With (61)
 - Phase 4.2 ADVOCATE: Dashboard, client list, case sharing, doc review, invite flow, multi-tenant view
 - Phase 4.3 MANAGER: Dashboard, staff mgmt, case assignment, reporting, bulk ops, permissions
 - Phase 4.4 LEGAL: Workspace, court filing, discovery, case files, exhibits, overlays
@@ -5766,7 +5766,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-21 PM2 — Phase 3 Dev System (Internal + External)
 **Status: Phase 3 core shipped. Dev Lab + External SDK + Idea Pipeline live.**
 
-### What Was Shipped
+### What Was Shipped (35)
 
 #### New Modules ✅
 - `app/modules/_template/` — Internal dev module scaffold (Phase 3.4)
@@ -5816,7 +5816,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `ROADMAP_TO_PUBLIC_RELEASE.md` — Marked Phase 3 sections complete
 - `BUILD_STATE.md` — This entry
 
-### Verification
+### Verification (75)
 - All 21 new/modified Python files compile clean: `python -m py_compile`
 - All routers use stealth admin guard (404 to non-admins)
 - External SDK clients enforce permissions via `PermissionSet.require()`
@@ -5840,7 +5840,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - External module listing endpoint — Wire `list_external_modules()` to a route
 - Auto-scaffolding — Currently promote returns instructions, manual copy required
 
-### Pending
+### Pending (2)
 - Render deploy of latest main
 - Phase 4+: see ROADMAP_TO_PUBLIC_RELEASE.md
 
@@ -5849,7 +5849,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-21 PM — Phase 2.4 Module Flag Overlay Admin UI
 **Status: Phase 2.4 complete. Admin UI for runtime module overrides shipped.**
 
-### What Was Shipped
+### What Was Shipped (36)
 
 #### New Files ✅
 - `app/core/module_overrides.py` — Runtime override store (DB-backed with in-process cache)
@@ -5870,7 +5870,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - Modal editor for setting overrides (lifecycle, feature_flag, disabled, notes)
   - Test-as-user preview panel with role/jurisdiction/gates inputs
 
-#### Modified Files ✅
+#### Modified Files ✅ (2)
 - `app/core/module_resolver.py` — `_check_entry()` now calls `effective_entry()` to apply runtime overrides before all checks
 - `app/core/product_manifest.py` — Registered `app.modules.admin_console.module_flags` in ADMIN tier
 - `app/main.py` — Added `/admin/module-flags.html` route (stealth admin guard)
@@ -5878,20 +5878,20 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `ROADMAP_TO_PUBLIC_RELEASE.md` — Marked Phase 2.4 complete
 - `BUILD_STATE.md` — This entry
 
-### Verification
+### Verification (76)
 - All new/modified files compile clean: `python -m py_compile`
 - Resolver applies overrides correctly (effective_entry wraps frozen dataclass via `dataclasses.replace`)
 - Cache invalidation on every override change via `invalidate_all_caches()`
 - DB upsert with rollback on error — no silent failures
 - Stealth admin guard reused from admin_console.router (returns 404 to non-admins)
 
-### Architecture Notes
+### Architecture Notes (2)
 - Overrides are the SSOT for runtime module visibility — MANIFEST remains SSOT for static declarations
 - `effective_entry()` is a pure function — safe to call in resolver hot path (no DB I/O, reads in-process cache)
 - Cache loaded lazily on first access, or explicitly via `load_overrides(db)` at startup
 - Disabled modules forced to `lifecycle='dev_only'` so only admins see them
 
-### Pending
+### Pending (3)
 - Call `ensure_schema(db)` at app startup to create table on first run
 - Call `load_overrides(db)` at app startup to warm cache
 - Render deploy of latest main
@@ -5902,7 +5902,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-21 AM2 — GitHub Catch-Up + 5 PR Merges
 **Status: All 5 open PRs merged into main. GitHub fully synced.**
 
-### What Was Shipped
+### What Was Shipped (37)
 
 #### Local Work Committed (4 commits) ✅
 - `3d1eea9` — Module Flag Overlay System (Phase 2.1-2.3 + 2.5)
@@ -5924,17 +5924,17 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - PR #3: 7 conflicts — took PR #2 logging additions for all
 - PR #5: no conflicts (clean rebase)
 
-### Verification
+### Verification (77)
 - All modified files compile clean: `python -m py_compile`
 - main pushed to origin (commits 3c4993a..455de24)
 - GitHub MCP token lacks merge/comment permissions — PRs merged locally and pushed
 
-### Known Working
+### Known Working (89)
 - main is up to date with origin/main
 - All 5 PR branches rebased on current main before merge
 - Squash merges preserve all PR content with co-author attribution
 
-### Pending
+### Pending (4)
 - GitHub PRs need manual closure (MCP token can't close them)
 - Render deploy of latest main (9 new commits since last deploy)
 - Phase 2.4: Admin UI for module flags
@@ -5945,7 +5945,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-21 AM — Module Flag Overlay System (Phase 2.1-2.3 + 2.5)
 **Status: Module Flag Overlay system built. 92 modules tagged with lifecycle/origin. Resolver + middleware integrated.**
 
-### What Was Shipped
+### What Was Shipped (38)
 
 #### Phase 2.1 — Extended `ModuleEntry` with Flag Overlay ✅
 - `app/core/product_manifest.py:105-228`: `ModuleEntry` dataclass extended with 11 new fields:
@@ -5985,26 +5985,26 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - Fails open on resolver error (legacy behavior preserved)
   - `get_module_access()` fallback populates from MANIFEST
 
-### Verification
+### Verification (78)
 - All 3 files compile clean: `python -m py_compile`
 - End-to-end test passed:
   - Tenant in MN with both gates: sees 87 modules (vault ✓, functionx ✗, brain ✗)
   - Admin with no gates: sees 88 modules (functionx ✓)
 - Backward compatibility preserved — existing callers of `_register()` work unchanged
 
-### Known Working
+### Known Working (90)
 - Module Flag Overlay fields accepted by all 92 existing `_register()` calls
 - Resolver correctly filters by lifecycle (dev_only admin-only)
 - Resolver correctly filters by feature_flag (experimental_ai_model, beta_mesh_network, experimental_ui)
 - Middleware fails open on resolver error
 
-### Pending
+### Pending (5)
 - Phase 2.4: Admin UI for module flags (`/admin/module-flags`)
 - Phase 3: Dev system for internal + external ideas (dev_lab, dev_sandbox, external SDK, marketplace)
 - Phase 4: Role development completion (MANAGER, LEGAL, JUDGE stubs)
 - Deploy `1339b59` on Render (admin redirect loop fix) — still pending from prior session
 
-### Next Session Should Start With
+### Next Session Should Start With (62)
 - Deploy `1339b59` on Render and verify admin dashboard
 - Begin Phase 3.1a: `app/modules/dev_lab/` incubator
 - OR begin Phase 2.4: Admin UI for module flags
@@ -6014,7 +6014,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-20 AM2 — Cloudflare Cache Rules + Fix-It Log Marker + Admin Redirect Loop Fix
 **Status: Cloudflare caching fully resolved. Fix-It button errors now visible in preflight. Admin dashboard redirect loop fixed.**
 
-### What Was Shipped
+### What Was Shipped (39)
 
 #### Cloudflare Cache Rules ✅ (commit: API-only, no code)
 - Created 6 Cache Rules via Cloudflare Rulesets API to bypass cache for dynamic paths: `/api/*`, `/vault*`, `/timeline*`, `/documents*`, `/onboarding*`, `/storage*`
@@ -6033,17 +6033,17 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Fix: cookie path `/` so browser sends it to both `/admin` and `/admin-console/`
 - **User action required:** log out of admin and log back in to get new cookie with `path="/"`
 
-### Known Working
+### Known Working (91)
 - All 6 Cache Rules active on Cloudflare (verified via API)
 - Fix-It log marker deployed (commit `ae8079e` live on Render)
 - Admin redirect loop fix compiled clean, pushed
 
-### Known Broken / Pending
+### Known Broken / Pending (57)
 - Admin redirect loop fix (`1339b59`) needs Render deploy + user must re-login to get new cookie
 - Cloudflare Speculation-Rules header may still cause page flickering (Cloudflare-side feature, not ours)
 - Note: The 429 rate-limit errors previously observed were a *symptom* of the redirect loop (each cycle hit 10+ endpoints every second), not a separate rate-limit problem. The loop fix in `1339b59` resolves both. Default 1000/hour is adequate for normal use.
 
-### Next Session Should Start With
+### Next Session Should Start With (63)
 - Deploy `1339b59` on Render and verify admin dashboard no longer loops
 - User must log out of admin and back in to get new cookie scoped to `/`
 
@@ -6052,7 +6052,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-20 AM1 — Tier 3.1-3.3 Memory Optimization + Re-enabled
 **Status: Positronic Brain, Module Hub, Location Service, Performance Monitor re-enabled with memory fixes. 45/45 tests pass. Verified live on Render — 242MB/512MB, no OOM.**
 
-### What Was Shipped
+### What Was Shipped (40)
 
 #### Memory Fixes (3 files) ✅
 - `app/core/module_hub.py`: unbounded `_requests`, `_updates`, `_comm_log` lists → `deque(maxlen=500/500/1000)`. Was the root cause of unbounded memory growth in Module Hub.
@@ -6065,20 +6065,20 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - All guarded by `ENABLE_HEAVY_SERVICES` env var (default "true"). Set to "false" for emergency rollback.
 - Mesh Network stays disabled — cross-instance comms not needed on single-instance Render free tier
 
-### Known Working
+### Known Working (92)
 - All 45 local tests pass
 - All modified Python files compile clean under venv311 (Python 3.11.9)
 - App starts successfully with all heavy services enabled (verified via local import test)
 - Module Hub, Positronic Brain, Location Service all initialize without errors
 - Performance monitor gracefully skips if psutil not installed (Render has it)
 
-### Known Broken / Pending
+### Known Broken / Pending (58)
 - Live test on Render pending (manual deploy — user must click Deploy in Render dashboard)
 - Cloudflare page rules still blocked on API token permissions (error 9109)
 - psutil not installed locally — install with `pip install psutil` if needed for local perf monitoring
 - Mesh Network still disabled (by design — needs multi-instance to be useful)
 
-### Next Session Should Start With
+### Next Session Should Start With (64)
 - Deploy on Render and live-verify: check memory usage stays under 512MB, all services initialize, no OOM
 - If OOM: set `ENABLE_HEAVY_SERVICES=false` in Render env vars for instant rollback
 - Fix Cloudflare page rules (Option A: add permission to token, or Option B: manual config)
@@ -6088,7 +6088,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-19 PM5 — P2 Review Findings + Tier 3.4 + Cloudflare Page Rules Attempt
 **Commits: dc09015, 72764ab | Status: All P2 findings fixed, Tier 3.4 re-enabled, Cloudflare page rules blocked on token perms, 45/45 tests pass**
 
-### What Was Shipped
+### What Was Shipped (41)
 
 #### P2 Review Findings (4 fixes) ✅
 - `app/core/stateless_oauth.py`: `refresh_token_if_needed` now (1) checks `store_oauth_tokens` return value — if cloud storage fails, still returns new access token so current request succeeds, logs warning; (2) uses per-user+provider `asyncio.Lock` to prevent concurrent refresh races where two requests both try the same refresh_token and one fails because providers invalidate it after first use; (3) re-reads token under lock to skip refresh if another request already refreshed it
@@ -6103,12 +6103,12 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Root cause: Cloudflare API token lacks "Page Rules: Edit" permission
 - Fix: User must either (A) add "Zone > Page Rules > Edit" permission to API token, or (B) configure 6 page rules manually in Cloudflare dashboard (see URGENT KNOWN ISSUES section)
 
-### Known Working
+### Known Working (93)
 - All 45 local tests pass (14 SSOT + 5 WSJS + 30 E2E + vault_local)
 - All modified Python files compile clean under venv311 (Python 3.11.9)
 - Cloudflare Development Mode enabled (3h from 2026-06-20 03:52 UTC) + cache purged
 
-### Known Broken / Pending
+### Known Broken / Pending (59)
 - Live test on Render pending (manual deploy — user must click Deploy in Render dashboard)
 - Cloudflare page rules blocked on API token permissions (see URGENT KNOWN ISSUES)
 - Tier 3.1-3.3 (Positronic Brain, mesh network, perf monitoring) — deferred until memory optimization (re-enabling would OOM Render free tier)
@@ -6116,7 +6116,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Tier 5 (post-funding) — deferred indefinitely
 - MNDES NotImplementedError (3) — external dependency, MN courts hasn't released API
 
-### Next Session Should Start With
+### Next Session Should Start With (65)
 - Deploy on Render (manual) and live-verify: admin dashboard no longer loops, vault upload, timeline event creation, token refresh flow, event_date_end validation
 - Fix Cloudflare page rules (Option A: add permission to token, or Option B: manual config)
 - If both done and verified: start memory optimization for Tier 3.1-3.3
@@ -6126,7 +6126,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-19 PM4 — Tier 2 Stubs + Admin Dashboard Refresh Loop Fix
 **Commits: 11ebd2a, 22d8899 | Status: Tier 2 stubs done, admin dashboard loop fixed, 45/45 tests pass, pushed to Render**
 
-### What Was Shipped
+### What Was Shipped (42)
 
 #### Tier 2 Stub Fixes (3 items from STUB_AUDIT.md) ✅
 - `app/modules/research_module.py:364`: replaced "would upload" placeholder with real `aioboto3` S3-compatible upload (uses existing aioboto3 dep, follows `r2.py` pattern, handles ImportError + exceptions)
@@ -6142,18 +6142,18 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Tier 2.3 (housing_accountability): EXEMPT — advanced module, exempt from SSOT/BUILD_BIBLE per user
 - Tier 2.5 (filedored SWE 1.6): DEFERRED — external dependency doesn't exist yet, `return "unknown"` fallback is correct
 
-### Known Working
+### Known Working (94)
 - All 45 local tests pass (14 SSOT + 5 WSJS + 30 E2E + vault_local)
 - All modified Python files compile clean under venv311 (Python 3.11.9)
 - Cloudflare Development Mode enabled (3h from 2026-06-20 03:52 UTC) + cache purged
 
-### Known Broken / Pending
+### Known Broken / Pending (60)
 - Live test on Render pending (manual deploy — user must click Deploy in Render dashboard)
 - P2 review findings deferred: (1) `store_oauth_tokens` failure loses in-memory token, (2) `renderStageCards` XSS hardening, (3) no concurrent refresh protection, (4) `event_date_end` not validated against `event_date`
 - Tier 3-5 stubs from STUB_AUDIT.md deferred (disabled infra, data stubs, post-funding)
 - **URGENT**: Cloudflare production caching page rules needed before full production (see URGENT KNOWN ISSUES section below)
 
-### Next Session Should Start With
+### Next Session Should Start With (66)
 - Deploy on Render (manual) and live-verify: admin dashboard no longer loops, vault upload, timeline event creation, token refresh flow
 - Address P2 review findings (especially token persistence failure path)
 - Configure Cloudflare page rules for production (bypass cache on /api/*, /vault*, /timeline*, /documents*, /onboarding*, /storage*; keep cache on /static/*, /css/*, /js/*)
@@ -6163,7 +6163,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-19 PM3 — Tier 1 Stubs Implemented
 **Commit: 8b318e9 | Status: 5 Tier 1 stubs fixed, 45/45 local tests pass, deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (43)
 
 #### Tier 1 Stub Fixes (5 items from STUB_AUDIT.md) ✅
 - `static/js/core/app.js`: `uploadToVault()` now POSTs `FormData` to `/api/vault/upload` with loading state + error handling (replaces `alert()` stub)
@@ -6175,17 +6175,17 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `scripts/run_all_tests.py`: un-skipped 5 workspace JS tests now that stub is implemented
 - `STUB_AUDIT.md`: new prioritized audit of stubs/TODOs across codebase (5 tiers)
 
-### Known Working
+### Known Working (95)
 - All 45 local tests pass (14 SSOT + 5 WSJS + 30 E2E + vault_local)
 - All modified Python files compile clean under venv311 (Python 3.11.9)
 - Cloudflare Development Mode enabled (3h) + cache purged
 
-### Known Broken / Pending
+### Known Broken / Pending (61)
 - Live test on Render pending (no local dev server was running for Playwright)
 - P2 review findings deferred to follow-up: (1) `store_oauth_tokens` failure loses in-memory token, (2) `renderStageCards` XSS hardening (values currently server-controlled static strings, low risk), (3) no concurrent refresh protection, (4) `event_date_end` not validated against `event_date`
 - Tier 2-5 stubs from STUB_AUDIT.md still pending
 
-### Next Session Should Start With
+### Next Session Should Start With (67)
 - Live test on Render: verify vault upload, timeline event creation, token refresh flow
 - Address P2 review findings (especially token persistence failure path)
 - Pick next tier from STUB_AUDIT.md (Tier 2: research_module cloud upload, housing_accountability detect_repeated_fees)
@@ -6220,7 +6220,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-19 PM2 — End-to-End Document Pipeline Test + Bug Fixes
 **Commit: 4c1d48e | Status: 30-step e2e document test passes, 2 upstream bugs fixed, deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (44)
 
 #### New E2E Test ✅
 - `tests/integration/test_document_e2e.py`: 30-step end-to-end document pipeline test
@@ -6232,19 +6232,19 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `app/core/law_source_registry.py`: regex now recognizes `Sec.` and `Section` as section indicators (previously only matched `§`). Common in legal citations like "Minn. Stat. Sec. 504B.161". Also strip Sec./Section prefix in `_mn_stat_chapter_url` before extracting chapter number.
 - `app/services/document_intake.py`: `extract_parties` now handles "Landlord X and Tenant Y" format on a single line. Added ` and ` and `.` as terminators alongside newline/comma/EOL.
 
-### Known Working
+### Known Working (96)
 - All 30 e2e pipeline steps pass on local run
 - VaultUploadService local storage provider fully functional
 - Document certification + registry + integrity hash chain verified
 - Law linker citation detection works on extracted document text
 - All Python files compile clean under venv311 (Python 3.11.9)
 
-### Known Broken / Pending
+### Known Broken / Pending (62)
 - Live test on production pending (no dev server running locally)
 - Live-feed verification engine deferred to post-funding
 - Test file is force-added (gitignored by `test_*.py` pattern) — consider narrowing .gitignore rule to `/*test_*.py` for root only
 
-### Next Session Should Start With
+### Next Session Should Start With (68)
 - Run e2e test against Render deployment to verify production behavior
 - Consider running Playwright UI tests on documents page
 - Expand e2e test to cover overlay retrieval and document delivery to advocate/legal roles
@@ -6254,7 +6254,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-19 PM — Law Linker System (COMPLETE)
 **Commit: 2e6b643 | Status: Law linker system live, all 70 law/case/rule entries have official source URLs, Deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (45)
 
 #### Law Source Registry (SSOT) ✅
 - `app/core/law_source_registry.py`: new SSOT mapping every citation type to its official source URL builder
@@ -6281,16 +6281,16 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **Bug:** `minnesota_statute` regex had optional prefix, would match any decimal number as a statute once text contains "Minn. Stat." anywhere → made prefix required
 - **Bug:** `enrich_law_entry` and router post-processing called `source.url_builder()` directly without try/except, could crash module import → switched to `build_official_url()` which has exception handling
 
-### Known Working
+### Known Working (97)
 - All Python files compile clean under venv311 (Python 3.11.9)
 - All 70 law entries (56 statutes + 11 cases + 3 rules) have official_url injected
 - Cloudflare dev mode enabled + cache purged — changes visible immediately at semptify.org
 
-### Known Broken / Pending
+### Known Broken / Pending (63)
 - Live test on production pending (no dev server running locally)
 - Live-feed verification engine deferred to post-funding (TODO in law_source_registry.py + law-linker.js)
 
-### Next Session Should Start With
+### Next Session Should Start With (69)
 - Live verification: visit https://semptify.org/library, confirm cards show "View Official Source →" links + verified dates
 - Test law-linker hover popups on a page with legal citations (e.g. tenant dashboard, legal analysis)
 - Test `/api/law-library/links` endpoint returns full index
@@ -6301,7 +6301,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-19 AM — Overlay Viewer GUI + Render Path Verification (COMPLETE)
 **Commits: 3c12b17, 53aa460, e5f5678, 36a5294, 423129c | Status: Overlay viewer GUI live, full render path verified end-to-end, 3 blocking bugs fixed, Deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (46)
 
 #### Overlay Viewer GUI ✅
 - `static/overlays/viewer.html`: minimal GUI with document ID input, load/refresh, add highlight/note, compose view, delete overlay
@@ -6359,7 +6359,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-18 PM — Overlay System Mechanics + SSOT Contracts (COMPLETE)
 **Commits: 6040200, 9d2c21c, 1b556d9 | Status: Overlay bugs fixed, 22 contracts registered, 2 review bugs fixed, Deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (47)
 
 #### Overlay System Mechanics Alignment ✅
 - Fixed `CreateOverlayRequest` signature in 3 files (filedored_service, duplicate_detection_service, filedored/router)
@@ -6392,18 +6392,18 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `filedored_service.py`: added `original_filename` to payload (router lookup was returning "Unknown")
 - `duplicate_detection_service.py:79-88`: replaced stale create_overlay with `update_overlay()` per contract
 
-### What Is Known Working
+### What Is Known Working (2)
 - All 5 modified files compile clean on Python 3.11.9
 - Cloudflare dev mode enabled (3hrs), cache purged
 - Render auto-deploying commit `1b556d9`
 
-### What Is Pending Live Verification
+### What Is Pending Live Verification (2)
 - Filedored browse_folder endpoint (`GET /api/filedored/browse/{folder}`)
 - Duplicate detection flow on real upload
 - Court forms generation with FORM_FILL overlay creation
 - Contract browser visibility in admin dashboard
 
-### What Next Session Should Start With
+### What Next Session Should Start With (2)
 - **GUI development for overlay system** — document viewer with annotation toolbar
 - Mechanics are now solid; contracts are SSOT for any AI to reference
 - Consider registering contracts for remaining services (case_builder, fems, onboarding, documents, preamble, cloud_sync) when touched
@@ -6482,7 +6482,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Most TODOs are for future features (graph_engine, marketplace, real-time)
 - No action needed — these are intentional placeholders for future work
 
-### Known Working
+### Known Working (98)
 - ✅ All code tasks from HANDOFF_SWE1.6.md already complete
 - ✅ All core files compile clean
 - ✅ HEAD: `2dfbccc` — deployed to Render
@@ -6503,7 +6503,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-17 PM — Deployment Warnings, Status Indicator, Reconnect Fix (COMPLETE)
 **Commits: `c77b425`, `2f1f8c7`, `9701553`, `9302589`, `0aee35d`, `305aba9`, `7a808ea` | Pushed: 2026-06-17**
 
-### What Was Shipped
+### What Was Shipped (48)
 
 #### Render Deployment Warnings Fixed (COMPLETE)
 - **`app/modules/security/__init__.py`** — Fixed syntax error
@@ -6566,7 +6566,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
   - Verify admin_audit_logs table exists on production (migration exists: `20260616_add_admin_audit_logs_and_document_annotations.py`)
 - ⏳ Live test: Verify OAuth flow completes successfully on production without timeout
 
-### Next Session Starts With
+### Next Session Starts With (2)
 - Test OAuth flow on production (https://semptify.org/storage/providers)
 - If timeout persists, implement step-by-step vault initialization (split into multiple API calls)
 - Return to ACTIVE_CONTEXT.md priority tasks
@@ -6576,7 +6576,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-16 — Admin Navigation Consistency + AI Portal Integration (COMPLETE)
 **Commit: `256f102` | Pushed: 2026-06-16**
 
-### What Was Shipped
+### What Was Shipped (49)
 
 #### Shared Admin Navigation Components (COMPLETE)
 - **`static/js/admin-nav.js`** — JavaScript navigation component with auto-detection from URL
@@ -6630,7 +6630,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - ✅ Review (`/admin/review-checklist.html`)
 - 📖 Manual (`/admin/manual.html`)
 
-### Known Working
+### Known Working (99)
 - ✅ All admin pages have consistent navigation
 - ✅ Active state highlighting works correctly on each page
 - ✅ Shared JavaScript component auto-detects current page
@@ -6641,12 +6641,12 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - ✅ All core files compile clean
 - ✅ Commit pushed to main (`256f102`)
 
-### Known Pending
+### Known Pending (2)
 - ⏳ Live test: Verify navigation renders correctly on production
 - ⏳ Live test: Test AI Fix button functionality on production
 - ⏳ Live test: Verify manual search and TOC work on production
 
-### Next Session Starts With
+### Next Session Starts With (3)
 - Test admin navigation on production (https://semptify.org/admin/dashboard.html)
 - Verify AI Fix button opens editor or copies to clipboard
 - Check manual search and TOC functionality
@@ -6657,14 +6657,14 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-16 — Milestone 9: Filedored On-Demand Folder Creation (COMPLETE)
 **Files: `app/services/filedored_service.py`**
 
-### What Was Fixed
+### What Was Fixed (2)
 - Split filedored folders into `BASE_FILEDORED_FOLDERS` (9 folders, upfront) and `AI_FILEDORED_FOLDERS` (8 subdirectories, on-demand)
 - `ensure_filedored_folders()` now only creates base folders — skips 8 AI API calls on first upload
 - Added `ensure_filedored_folder(storage_provider, path)` for lazy single-folder creation
 - Wired lazy trigger in `process_uploaded_document()`: before writing an AI-classified overlay, creates the target AI folder on-demand
 - Fixed `datetime.now(timezone.utc)` → `utc_now()` in overlay timestamps (2 occurrences)
 
-### Verification
+### Verification (79)
 - `filedored_service.py` compiles clean
 - AI folders created only when `enable_ai=True` and a document is actually AI-classified
 
@@ -6673,7 +6673,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-16 — Milestone 8b: Rent Ledger PUT Endpoint (COMPLETE)
 **Files: `app/modules/rent/router.py`, `tests/e2e/rent_ledger_smoke.spec.js`**
 
-### What Was Fixed
+### What Was Fixed (3)
 - Added `PUT /api/rent/payments/:id` to complete full CRUD (Create, Read, Update, Delete)
 - `RentPaymentUpdate` model with all optional fields for partial updates
 - Added smoke test for PUT endpoint (7/7 rent ledger tests passing)
@@ -6683,7 +6683,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-16 — Milestone 8: Rent Ledger CRUD Router (COMPLETE)
 **Files: `app/modules/rent/router.py`, `app/core/product_manifest.py`, `tests/e2e/rent_ledger_smoke.spec.js`**
 
-### What Was Fixed
+### What Was Fixed (4)
 - Created `app/modules/rent/router.py` with full CRUD:
   - `POST /api/rent/payments` — create payment (amount in dollars, stored as cents)
   - `GET /api/rent/payments` — list current user's payments
@@ -6692,7 +6692,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - Registered rent router in `product_manifest.py` (CORE tier, prefix `/api/rent`)
 - Added Playwright smoke test verifying endpoints gate unauthenticated access without 500s
 
-### Verification
+### Verification (80)
 - All files compile clean
 - `RentPayment` model already existed in `models.py` with `amount` stored as Integer (cents)
 
@@ -6701,7 +6701,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-16 — Milestone 7: Role Hierarchy Wiring (COMPLETE)
 **Files: `app/modules/user/router.py`, `app/core/product_manifest.py`, `tests/e2e/role_hierarchy_smoke.spec.js`**
 
-### What Was Fixed
+### What Was Fixed (5)
 - Created `app/modules/user/router.py` with:
   - `POST /api/user/act-as` — starts impersonation after `can_access()` check
   - `DELETE /api/user/act-as` — clears impersonation
@@ -6709,7 +6709,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - `get_current_user()` already propagates `acting_as` via `StoredSession.to_context()` — no change needed
 - Added Playwright smoke test verifying endpoints gate unauthenticated access without 500s
 
-### Verification
+### Verification (81)
 - All files compile clean
 - `can_access()` takes `from_user_id`, `to_user_id`, `db` and checks `UserRelationship` table
 - `update_session_impersonation()` sets `acting_as` / `acting_as_role` on stored session
@@ -6719,19 +6719,19 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 ## Session — 2026-06-16 — Milestone 6: Missing Alembic Migrations (COMPLETE)
 **Files: `alembic/versions/20260616_add_admin_audit_logs_and_document_annotations.py`**
 
-### Root Cause
+### Root Cause (3)
 Full scan of `Base.metadata.tables` vs all migration files found 2 tables defined in `models.py` with **zero migration coverage** — they did not exist on Render PostgreSQL:
 - `admin_audit_logs` (`AdminAuditLog`) — admin action audit trail
 - `document_annotations` (`DocumentAnnotation`) — footnote/highlight indexing for briefcase
 
 Any code writing to either table would silently fail with a "relation does not exist" DB error.
 
-### What Was Fixed
+### What Was Fixed (6)
 - Created `20260616_add_admin_audit_logs_and_document_annotations.py` chained to `68e486c460de`
 - All columns, FK constraints, and indexes matching exact model definitions
 - New single head: `20260616_add_missing_tables`
 
-### Verification
+### Verification (82)
 - Migration file compiles clean
 - `alembic heads` → `20260616_add_missing_tables (head)` — single clean head
 - Deploy will run `alembic upgrade head` and create both tables on Render
@@ -6741,7 +6741,7 @@ Any code writing to either table would silently fail with a "relation does not e
 ## Session — 2026-06-16 — Milestone 5: Event Bus + Upload→Timeline Fully Wired (COMPLETE)
 **Files: `app/core/event_bus.py`, `app/modules/vault/router.py`**
 
-### What Was Fixed
+### What Was Fixed (7)
 
 #### Event dataclass UTC bug (`event_bus.py`)
 - `Event.timestamp` used `default_factory=datetime.now` — naive, no timezone. Every event timestamp was wrong.
@@ -6752,7 +6752,7 @@ Any code writing to either table would silently fail with a "relation does not e
 - Fixed: added `asyncio.create_task(notify_document_added(...))` immediately after the audit log in the SSOT upload path. Fire-and-forget — never touches Cloudflare 30s gate.
 - Full chain now live: **upload → `notify_document_added` → `DOCUMENT_ADDED` event → `_on_document_added` subscriber → `TimelineEvent` row written to PostgreSQL → appears on timeline.**
 
-### Verification
+### Verification (83)
 - Both files compile clean
 - `grep datetime.now()` across `app/` → **0 results** (still zero after this session)
 
@@ -6761,10 +6761,10 @@ Any code writing to either table would silently fail with a "relation does not e
 ## Session — 2026-06-16 — Milestone 4: datetime.now() Purge (COMPLETE)
 **Files: 8 files fixed — `app/modules/inventory/router.py`, `app/modules/vault_installer/routes.py`, `app/modules/document_converter/converter.py`, `app/core/ai_tool_crib.py`, `app/core/contracts_framework.py`, `app/core/accountability_planner.py`, `app/core/inventory_manager.py`, `app/services/timeline_extraction.py`**
 
-### Root Cause
+### Root Cause (4)
 Known Failure #8: `datetime.now()` without timezone causes token expiry bugs and incorrect time comparisons. Full codebase scan found 13 occurrences across 8 files.
 
-### What Was Fixed
+### What Was Fixed (8)
 - `inventory/router.py` — 6 occurrences → `utc_now()`
 - `vault_installer/routes.py` — 1 occurrence → `utc_now()`
 - `document_converter/converter.py` — 2 occurrences → `utc_now()`
@@ -6774,7 +6774,7 @@ Known Failure #8: `datetime.now()` without timezone causes token expiry bugs and
 - `inventory_manager.py` — 1 occurrence → `utc_now()`
 - `timeline_extraction.py` — 1 occurrence → `utc_now()`
 
-### Verification
+### Verification (84)
 - All 8 files compile clean
 - `grep datetime.now()` across `app/` → **0 results**
 
@@ -6794,17 +6794,17 @@ The Capability System was already fully implemented. Full audit confirmed:
 - **`app/modules/capabilities/router.py`** — admin CRUD: list, grant, revoke, attach/detach/get overlay
 - **`app/modules/storage/router.py` line 1952** — `seed_capability_defaults()` called on every OAuth callback, wrapped in try/except (non-blocking)
 
-### What Was Shipped
+### What Was Shipped (50)
 
 - **`tests/e2e/capabilities_smoke.spec.js`** — 7 tests: all 6 capability endpoints gate unauthenticated correctly + app startup confirms no crash from capability registration.
 - **7/7 passing** against `semptify.org`
 
-### Known Working
+### Known Working (100)
 - ✅ Full system compiles clean
 - ✅ Capabilities smoke tests 7/7 pass
 - ⏳ Live seeding test — first login after deploy will seed `user_capabilities` rows
 
-### Next Session Starts With
+### Next Session Starts With (4)
 - Milestone 4: Identify next highest-value gap (check BUILD_STATE.md)
 
 ---
@@ -6812,7 +6812,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-16 — Milestone 2: Timeline End-to-End (COMPLETE)
 **Files: `app/modules/timeline/router.py`, `app/core/event_subscribers.py`, `app/main.py`, `tests/e2e/timeline_smoke.spec.js`**
 
-### What Was Shipped
+### What Was Shipped (51)
 
 #### TimelineItem Pydantic Field Mismatch Fixed (COMPLETE)
 - **Root cause:** `_cloud_event_to_item()` passed `event_time`, `record_time`, `uploaded_at`, `source_id`, `can_edit` to `TimelineItem` — none of which exist on the model. Would crash the entire `/api/timeline/unified` endpoint for any user with cloud events.
@@ -6833,7 +6833,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 - ✅ Timeline smoke tests 4/4 pass
 - ⏳ Upload → timeline row creation — pending live test with real account
 
-### Next Session Starts With
+### Next Session Starts With (5)
 - Milestone 3: Capability System — `user_capabilities` table + Redis cache
 
 ---
@@ -6841,7 +6841,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-16 — Milestone 1: Harden Foundation (COMPLETE)
 **Files: `app/modules/case_builder/router.py`, `app/services/filedored_service.py`, `tests/e2e/onboarding_smoke.spec.js`, `playwright.config.js`**
 
-### What Was Shipped
+### What Was Shipped (52)
 
 #### Case Builder PostgreSQL Migration (COMPLETE)
 - **Root cause:** `case_builder/router.py` stored all case data in local JSON files under `data/cases/<user_id>/`. Wiped on every Render restart. Tenants lost all cases on every deploy.
@@ -6866,14 +6866,14 @@ The Capability System was already fully implemented. Full audit confirmed:
   - Welcome → role select navigation doesn't crash
 - **Run:** `SEMPTIFY_URL=https://semptify.org npx playwright test onboarding_smoke.spec.js`
 
-### Known Working (Tested)
+### Known Working (Tested) (2)
 - ✅ Case builder router compiles clean
 - ✅ Filedored service compiles clean
 - ⏳ Case builder DB storage — pending live test on Render
 - ⏳ Filedored Redis flag — pending live test
 - ⏳ Playwright smoke tests — pending run against semptify.org
 
-### Next Session Starts With
+### Next Session Starts With (6)
 - Milestone 2: Timeline module — live test `GET /api/timeline/unified`, wire upload → timeline entry
 
 ---
@@ -6881,7 +6881,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-16 — Onboarding End-to-End Fix (COMPLETE)
 **Commits: `379aff0`, `30b6798`, `2c02b58`, `d135279`, `c27f8fd`, `8dca553` | Pushed: 2026-06-16**
 
-### What Was Shipped
+### What Was Shipped (53)
 
 #### Vault Folder Timeout Fix (COMPLETE)
 - **Root cause:** `_get_folder_id()` had unconditional retry loop (3x + sleep) before every folder create — added ~14s of pure wait on a fresh account
@@ -6896,19 +6896,19 @@ The Capability System was already fully implemented. Full audit confirmed:
 - **Root cause 2:** `AsyncSessionLocal` referenced throughout — never existed in `app.core.database`
 - **Fix:** Replaced all `AsyncSessionLocal()` with `get_db_session()` in `vault_upload_service.py` and `admin_console/router.py`
 
-### Known Working (Tested Live)
+### Known Working (Tested Live) (2)
 - ✅ Vault folder creation completes within timeout (7 folders, ~2s)
 - ✅ Document upload certifies successfully end-to-end
 - ✅ `registry_id` assigned in SEM-YYYY-NNNNNN-XXXX format
 - ✅ `document_uploaded` gate marks correctly
 - ✅ Full onboarding flow: OAuth → vault init → document upload → gates marked
 
-### Known Pending
+### Known Pending (3)
 - Revert debug error message in `vault_upload_service.py` line 744 back to clean user-facing text
 - Role Hierarchy Design (`user_relationships` table, `can_access()`, role impersonation)
 - Filedored/overlay folders still need on-demand creation wiring
 
-### Next Session Starts With
+### Next Session Starts With (7)
 - Revert debug error message (1 line change)
 - Role hierarchy design or next feature
 
@@ -6917,7 +6917,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-15 Evening — Registry Persistence + Compliance System
 **Commits: `ce77976`, `9a0f7dd`, `ae73448` | Pushed: 2026-06-15**
 
-### What Was Shipped
+### What Was Shipped (54)
 
 #### Document Registry Persistence (COMPLETE)
 - **Root cause fixed** — Registry was `data/registry/registry.json` on ephemeral Render host, wiped on every restart
@@ -6938,16 +6938,16 @@ The Capability System was already fully implemented. Full audit confirmed:
 - **`can_access()` in `security.py`** — Async permission check querying active relationships
 - **`UserContext` impersonation** — `acting_as` / `acting_as_role` fields
 
-### Known Working
+### Known Working (101)
 - All 6 core files compile clean
 - Alembic at head (3 migrations applied to live DB)
 - Cloudflare dev mode ON, cache purged
 
-### Known Pending
+### Known Pending (4)
 - Test document upload end-to-end through onboarding to confirm certification passes
 - Data flow tracker concept (pipeline diagnostics) — deferred
 
-### Next Session Starts With
+### Next Session Starts With (8)
 - Test a real document upload end-to-end through onboarding to confirm certification passes
 
 ---
@@ -6955,7 +6955,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-15 PM — Kimi 2.6: Case Builder Freshness + Minnesota Rules + UI
 **Commit: f0e6d40 | Status: Deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (55)
 
 #### Case Builder Data Freshness Integration (COMPLETE)
 - **General freshness validation** — `validate_case_freshness()` checks legal content, court rules, forms, deadlines
@@ -6971,7 +6971,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 - **Recommendations list** — Expandable section with specific action steps
 - **Template context integration** — Reads `freshness_score`, `freshness_warnings`, `freshness_recommendations` from TenantBriefcase
 
-### What Is Known Working
+### What Is Known Working (3)
 - All validation functions compile and execute correctly
 - TenantBriefcase freshness properties update and expose to templates
 - Minnesota validation correctly identifies MN cases and checks notice periods
@@ -6984,7 +6984,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 - Admin OAuth role fix pending (from ACTIVE_CONTEXT.md)
 - SWE 1.6 tasks (swe-1 to swe-8) not started
 
-### What Next Session Should Start With
+### What Next Session Should Start With (3)
 - Run `/preflight` before any code changes
 - Current priority per ACTIVE_CONTEXT.md: **Admin Auth + Role Hierarchy**
   - Fix: `app/modules/storage/router.py` line 1820-1826 — use `matched_user.default_role`
@@ -6996,7 +6996,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-15 — Data Freshness Integration with Context Systems
 **Commit: aaeae82 | Status: Deployed to Render**
 
-### What Was Shipped
+### What Was Shipped (56)
 
 #### Data Freshness System Integration (COMPLETE)
 - **Fixed circular dependency** in data freshness manager - moved global instance creation to end of file
@@ -7024,7 +7024,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 - **BUILD_STATE.md** - Current session status
 - **Multiple assessment reports** - Identified need for consolidation
 
-### Known Working
+### Known Working (102)
 - ✅ Filedored virtual folder organization
 - ✅ Automatic duplicate detection
 - ✅ Document router integration
@@ -7039,7 +7039,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 - ✅ Freshness score calculation (0-100)
 - ✅ Color-coded freshness status for UI
 
-### Known Pending
+### Known Pending (5)
 - 🔄 Connect Positronic Brain to freshness events (cross-module awareness)
 - 🔄 Integrate Build Your Case with data freshness for legal accuracy
 - 📋 System bleed cleanup (localhost references, hardcoded credentials)
@@ -7070,7 +7070,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-14 — FEMS Module + System Manifest
 **Commit: `581ab5a` | Push: pending (GitHub token refresh needed)**
 
-### What Was Shipped
+### What Was Shipped (57)
 
 - **FEMS module** (`app/modules/fems/`) — Forensic Evidence Management System
   - 6 PostgreSQL tables in `semptifty_db` via Alembic migration
@@ -7083,17 +7083,17 @@ The Capability System was already fully implemented. Full audit confirmed:
 - **SEMPTIFY_SYSTEM_MANIFEST.md** — new canonical doc: module registry, tiers, AI agent rules
 - **PROJECT_BIBLE.md** — manifest added as item #7 in canonical doc hierarchy
 
-### Known Working
+### Known Working (103)
 - Server starts clean, all tiers loaded, FEMS router active at `/api/fems`
 - All 6 FEMS tables created in `semptifty_db`
 - Cloudflare dev mode ON + cache purged
 
-### Known Pending
+### Known Pending (6)
 - GitHub token expired — need to refresh and push `581ab5a` to origin
 - FEMS admin UI (upload, search interface) not yet built
 - `vault_all_in_one` router still skipped (pre-existing: `VaultIngestionService` import error)
 
-### Next Session Start
+### Next Session Start (2)
 1. Refresh GitHub token and push `581ab5a`
 2. Build FEMS upload/search UI page at `static/fems/`
 3. Link FEMS to Semptify user accounts (add `user_id` column to `fems_cases`)
@@ -7103,7 +7103,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-14 — Gap Closure: Live Data Wiring (All Blocking Gaps Fixed)
 **Commit: `ce22bb4` | Pushed: 2026-06-14**
 
-### What Was Shipped
+### What Was Shipped (58)
 
 | File | Change |
 |------|--------|
@@ -7114,18 +7114,18 @@ The Capability System was already fully implemented. Full audit confirmed:
 | `app/modules/state_laws/router.py` | `/detect/location` now calls ip-api.com for real IP geolocation. Falls back to MN on failure. |
 | `app/core/product_manifest.py` | Marked 4 dev scaffolding modules as inactive (plugins, components, legal_filing, auto_mode). |
 
-### Known Working
+### Known Working (104)
 - All 6 modified files compile clean
 - `main.py` compiles clean
 - Pushed to main — Render will auto-deploy
 
-### Known Pending
+### Known Pending (7)
 - Live test: Cloudflare env vars needed to enable dev mode (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`)
 - Live test: Verify autofill endpoint returns landlord data for tenants with Contact records
 - Live test: Verify IP geolocation returns correct state (non-localhost)
 - DB migration: `admin_audit_logs` table must exist before DB audit logging can be enabled
 
-### Next Session Should Start With
+### Next Session Should Start With (70)
 - Test semptify.org live — verify all pages load
 - Check startup logs for import errors
 - Run Cloudflare dev mode if env vars available
@@ -7135,7 +7135,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-13 — Full Live App Activation (ALL TIERS + LIVE DATA)
 **Commits: `37a23dd` | Pushed: 2026-06-13**
 
-### What Was Shipped
+### What Was Shipped (59)
 
 **Objective:** Activate ALL product tiers + wire up LIVE DATA (no mocks anywhere).
 
@@ -7171,19 +7171,19 @@ The Capability System was already fully implemented. Full audit confirmed:
 - `Request`, `get_db`, `AsyncSession`
 - `AdminAuditLog` model
 
-### Known Working
+### Known Working (105)
 - All files compile clean
 - Gate reset: Live DB queries
 - Vault summary: Live vault service
 - Audit log: Live PostgreSQL table
 - System status: Live tier/module counts
 
-### Known Pending
+### Known Pending (8)
 - Live test: Verify all ~80+ modules load on startup
 - Live test: Test gate reset, vault summary, audit logging
 - Database migration: `admin_audit_logs` table creation
 
-### Next Session Should Start With
+### Next Session Should Start With (71)
 - Run `/ship` to deploy
 - Test `/admin-console/api/system/status`
 - Test audit logging creates DB records
@@ -7193,7 +7193,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-11 (Late Morning) — Registry ID Assignment Fix
 **Commits: `27db154` | Pushed: 2026-06-11**
 
-### What Was Shipped
+### What Was Shipped (60)
 
 **Problem:** `document_uploaded` gate was disabled because `registry_id` was never assigned to uploaded documents. Onboarding failed at step 3 with "Document was stored but did not receive a registry document ID."
 
@@ -7204,17 +7204,17 @@ The Capability System was already fully implemented. Full audit confirmed:
 - `app/modules/onboarding/config.py`: Re-enabled `document_uploaded` gate
 - Vault upload service now successfully calls `registry.register_document()` which sets `registry_id` and `integrity_status`
 
-### Known Working
+### Known Working (106)
 - Document registry auto-registration now works on upload
 - `registry_id` is assigned in SEM-YYYY-NNNNNN-XXXX format
 - `integrity_status` is set to "verified"
 - Onboarding flow now requires document upload before completion
 
-### Known Pending
+### Known Pending (9)
 - Test full onboarding flow end-to-end on production
 - Manager portal role check still uses old role-in-user_id approach
 
-### Next Session Should Start With
+### Next Session Should Start With (72)
 - Test onboarding flow with document upload on production
 
 ---
@@ -7222,7 +7222,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-11 (Early Morning) — Admin Elevation System
 **Commits: `ee3d0a0`, `fe7c743`, `21717db`, `68235c3`, `c85c3c4` | Pushed: 2026-06-11**
 
-### What Was Shipped
+### What Was Shipped (61)
 
 **Architectural change:** Admin is no longer a role. It is a **2-hour time-limited elevation** on top of any OAuth session, granted after password + TOTP verification.
 
@@ -7233,19 +7233,19 @@ The Capability System was already fully implemented. Full audit confirmed:
 - `.devin/workflows/cloudflare-dev-mode.md`: Cloudflare dev mode + cache purge workflow (uses env vars, not hardcoded tokens)
 - `scripts/cloudflare-dev-mode.sh`: Same — env vars only
 
-### Known Working
+### Known Working (107)
 - Admin login: `/admin/login` → password + TOTP → elevation cookie issued
 - If OAuth session exists: shows simplified prompt (no username)
 - Elevation lasts 2 hours, then re-prompts automatically
 - All `/admin/*` routes protected by elevation check
 - OAuth role preserved through returning-user flows
 
-### Known Pending
+### Known Pending (10)
 - `document_uploaded` gate still disabled (registry_id assignment broken)
 - No audit log for elevation grants (future: write to DB or vault)
 - Manager portal role check still uses old role-in-user_id approach
 
-### Next Session Should Start With
+### Next Session Should Start With (73)
 - Test full admin flow end-to-end on production
 - Fix `registry_id` assignment in document upload pipeline
 - Re-enable `document_uploaded` gate
@@ -7255,7 +7255,7 @@ The Capability System was already fully implemented. Full audit confirmed:
 ## Session — 2026-06-11 (Late Night) — Admin OAuth + Role Hierarchy Foundation
 **Commits: `b2539c6`, `9be469e`, `d812861`, `f8ef535` | Pushed: 2026-06-11**
 
-### What Was Shipped
+### What Was Shipped (62)
 
 **Problem:** Admin login 2FA was broken in multiple ways after previous session. After 2FA validated, admin got `UserContext.__init__() got an unexpected keyword argument 'email'` error, then was landing on tenant home page instead of admin dashboard.
 
@@ -7286,7 +7286,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `app/modules/storage/router.py` line 1820-1826: Use `matched_user.default_role` from DB instead of parsing role from user_id
 - This is also the foundation for Manager/Advocate role hierarchy (parent roles with conditional child access)
 
-### What Is Known Working
+### What Is Known Working (4)
 - ✅ Admin login page serves correctly at `/admin/login`
 - ✅ 2FA validates username/password/TOTP
 - ✅ Admin redirects to OAuth onboarding after 2FA
@@ -7301,7 +7301,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `document_uploaded` gate disabled — `registry_id` assignment in document upload pipeline is broken. Fix needed in `app/services/vault_upload_service.py` or `app/modules/onboarding/router.py` line 532
 - OAuth role matching for returning users — admin with existing tenant OAuth account will get tenant role. Fix: use `matched_user.default_role` from DB
 
-### Next Session Should Start With
+### Next Session Should Start With (74)
 1. Run `/preflight`
 2. Test admin login in incognito at `https://semptify.org/admin/login`
 3. Fix OAuth role matching (use `default_role` from DB for returning users)
@@ -7313,7 +7313,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-09 (Late Afternoon) — Admin 2-Step Login Fix
 **Commit: `2c7fb2d` | Pushed: 2026-06-09**
 
-### What Was Shipped
+### What Was Shipped (63)
 
 **Problem:** Admin 2FA login at `/admin/login` returning 404 Not Found. Multiple issues:
 1. **Cookie type error:** `request.cookies.get()` returning Cookie objects instead of strings
@@ -7331,19 +7331,19 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `app/core/user_context.py`: Added LOCAL = 'local' to StorageProvider enum
 - `app/core/security.py`: Added 'L': StorageProvider.LOCAL to provider_map
 
-### What Is Known Working
+### What Is Known Working (5)
 - ✅ All core files compile clean
 - ✅ `/admin/login` route now serves inline HTML (no file path issues)
 - ✅ Cookie type errors fixed across all middleware and routers
 - ✅ LOCAL provider added for admin authentication
 - ✅ Duplicate admin routes removed (no more overwrites)
 
-### What Is Pending Live Test
+### What Is Pending Live Test (2)
 - Test `/admin/login` on semptify.org to verify page loads
 - Test 2FA login flow with username, password, and TOTP code
 - Verify admin cookie is set correctly after successful login
 
-### Next Session Should Start With
+### Next Session Should Start With (75)
 - Live test admin login on production deployment
 - Verify 2FA authentication works end-to-end
 
@@ -7352,7 +7352,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-09 (Final) — Bug Fix: Last Cookie len() Crash Site
 **Commit: `29684b1` | Pushed: 2026-06-09**
 
-### What Was Shipped
+### What Was Shipped (64)
 
 **Problem:** Production error `"object of type 'Cookie' has no len()"` still crashing after previous fix attempts. Root cause: `get_current_user()` dependency in `security.py` line 1108 called `len(semptify_uid)` directly on the raw cookie value without `str()` wrapping.
 
@@ -7422,7 +7422,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
   - `showModuleManager()` — Open module modal
   - `toggleModule()` — Enable/disable with API call
 
-### What Is Known Working
+### What Is Known Working (6)
 - ✅ All 17 new Phase 3 endpoints compile clean
 - ✅ Module toggle changes runtime status immediately
 - ✅ CORE tier is protected from disable
@@ -7468,7 +7468,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
   - Live metrics
   - Proper UTC timestamp
 
-### What Is Known Working
+### What Is Known Working (7)
 - ✅ All Phase 2 endpoints compile clean
 - ✅ User list queries ACTIVE_SESSIONS (real session data)
 - ✅ User search and pagination working
@@ -7524,7 +7524,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `ADMIN_ROADMAP.md` — Created: 3-phase plan for admin system
 - `ADMIN_STATUS_NOW.md` — Created: Current state audit (what works vs what's stub)
 
-### What Is Known Working
+### What Is Known Working (8)
 - ✅ All files compile clean (`py_compile` verified)
 - ✅ Admin router imports successfully
 - ✅ All `/admin/*` routes protected by ADMIN role guard
@@ -7545,7 +7545,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-08 (Evening) — Identity Statements + Funding Module
 **Commit: `72492fb` | Pushed: 2026-06-08**
 
-### What Was Shipped
+### What Was Shipped (65)
 - `ABOUT.md` — NEW: Canonical identity document with advocacy/ethics statements
 - `FUNDING_PROSPECTUS_ID_SYSTEM.md` — NEW: Grant-ready ID system funding prospectus
 - `app/modules/funding_mgmt/` — NEW: Admin funding management module
@@ -7560,13 +7560,13 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - **"Tenant advocacy, not neutrality"** — We advocate for tenants exercising lawful rights
 - **Ethics statement:** Advocacy for lawful tenant rights only, not endorsement of illegal behavior
 
-### What Is Known Working
+### What Is Known Working (9)
 - ✅ All files compile clean (py_compile)
 - ✅ Funding module imports successfully
 - ✅ App starts without errors
 - ✅ Identity statements propagated to all canonical docs
 
-### What Is Pending
+### What Is Pending (2)
 - Database tables for funding module (need migration or create_all)
 - Live test of `/admin/funding/` GUI
 - Grant applications for: LSC, Ford Foundation, Suffolk LIT Lab partnership
@@ -7588,7 +7588,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-07 (Morning) — Law Linker Integration
 **Commit: `1672afc` | Pushed: 2026-06-07**
 
-### What Was Shipped
+### What Was Shipped (66)
 - `static/js/law-linker.js` — NEW: Hover popup component for legal citations
   - Auto-detects Minnesota statute citations (504B.xxx, § 504B.xxx, Minn. Stat. § 504B.xxx)
   - Fetches full law text from `/api/law-library/statutes/{id}` API
@@ -7599,13 +7599,13 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `app/templates/base.html` — Added law-linker.js globally to all pages
 - `static/tenant/tools/letters.html` — Added law-linker.js for statute citations in letter templates
 
-### What Is Known Working
+### What Is Known Working (10)
 - ✅ Law linker JavaScript compiles and loads
 - ✅ API endpoint `/api/law-library/statutes/{id}` exists and responds
 - ✅ Hover popups styled with dark theme matching Semptify design
 - ✅ Citation detection regex handles multiple citation formats
 
-### What Is Pending
+### What Is Pending (3)
 - Live test: Hover over a statute citation on /law-library page
 - Verify popup shows correct law text from database
 
@@ -7614,7 +7614,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-07 (Early Morning) — Core Features Implementation
 **Commit: `6e9447f` | Pushed: 2026-06-07**
 
-### What Was Shipped
+### What Was Shipped (67)
 
 **This Session (Core Features):**
 - `app/modules/law_library/router.py` — Removed `Depends(green_access)` from all read-only endpoints (statutes, court rules, case law, categories, ask_librarian, quick_reference) — Law Library now publicly accessible
@@ -7647,7 +7647,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 **Previous Session (Alembic):**
 - `alembic/versions/5e5eb5eb51d0_merge_oauth_force_fresh_and_vault_.py` — Merge migration
 
-### What Is Known Working
+### What Is Known Working (11)
 - ✅ All modified Python files compile clean
 - ✅ Law Library APIs now publicly accessible (no auth required for read)
 - ✅ Timeline now DB-only (no cloud fetch, no auth gate)
@@ -7661,14 +7661,14 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - ✅ Auth module `/api/auth/me` endpoint active
 - ✅ All core routers compile and import correctly
 
-### What Is Known Broken or Pending
+### What Is Known Broken or Pending (2)
 - Full test suite run pending
 - Live test of new tool pages pending
 - Live test of letter template generation pending
 - Live test of MNDES service with EVICTION enum pending
 - Live test of brain router `/brain/status` endpoint pending
 
-### Next Session Should Start With
+### Next Session Should Start With (76)
 - Run full test suite to verify all changes
 - Live test new tool pages (complaints, case-builder, action-plan)
 - Live test letter template generation (especially new eviction and inspector letters)
@@ -7679,18 +7679,18 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-07 (Morning) — Basic Tenant Config Revert
 **Commit: `313c31c` | Pushed: 2026-06-07**
 
-### What Was Shipped
+### What Was Shipped (68)
 - `app/main.py` — Reverted to basic tenant config (CORE + DEV only)
 - Removed EXTENDED, ADVOCATE, ADMIN, RESEARCH tiers from register_tiers()
 - Basic tenant role only needs CORE + DEV tiers
 - Extended features can be enabled per deployment
 
-### What Is Known Working
+### What Is Known Working (12)
 - ✅ Basic tenant config compiles and loads
 - ✅ CORE + DEV tiers registered
 - ✅ Extended tiers disabled for basic deployment
 
-### Next Session Should Start With
+### Next Session Should Start With (77)
 - Verify basic tenant config tests pass
 - Continue with remaining integration test failures
 
@@ -7699,7 +7699,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-07 (Afternoon) — Template Rendering & Analytics Fixes
 **Commits: `1e3ab65`, `871ce68` | Pushed: 2026-06-07**
 
-### What Was Shipped
+### What Was Shipped (69)
 - `app/main.py` — Added `format_date` Jinja2 filter to fix template rendering error
 - `app/templates/pages/tenant_home.html` — Removed analytics pageview call (ADMIN tier not enabled)
 
@@ -7707,12 +7707,12 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - **Template rendering error:** "No filter named 'format_date'" — Added custom filter to templates.env
 - **Console 404 error:** `/api/analytics/pageview` — Removed call since analytics is ADMIN tier only
 
-### What Is Known Working
+### What Is Known Working (13)
 - ✅ format_date filter handles datetime, string, and None values
 - ✅ Analytics 404 error resolved by removing call
 - ✅ Basic tenant config (CORE + DEV) stable
 
-### Next Session Should Start With
+### Next Session Should Start With (78)
 - Verify all fixes on Render deployment
 - Continue with remaining integration test failures
 
@@ -7721,7 +7721,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-22 (Early Morning) — Action Feedback Retrofit + Context Engine Wiring
 **Commit: `8dd6a0d` | Pushed: 2026-06-22**
 
-### What Was Shipped
+### What Was Shipped (70)
 
 #### Action Feedback Retrofit — 78 alert() replaced across 16 pages
 - **Tier 1 tenant pages** (5 pages, 8 alerts): dashboard, journal, documents, deadlines, letters
@@ -7741,7 +7741,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `context-panel.js`: `s.avoided_court` -> `s.outcome === 'avoided_court'` (no such field)
 - Stories API exposes `outcome` field, not `avoided_court` boolean
 
-### What Is Known Working
+### What Is Known Working (14)
 - ✅ All 16 retrofitted pages load `feedback.js` and use `SemptifyFeedback`
 - ✅ Context Engine API endpoints live (`/api/context/facts`, `/api/context/stories`)
 - ✅ Context panels render on tenant dashboard + library page
@@ -7753,7 +7753,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - Tenant stories table empty until users submit + admin moderates
 - `templates/journal-refactored.html` has 1 raw alert() but is a dead template (not referenced)
 
-### Next Session Should Start With
+### Next Session Should Start With (79)
 - Admin should run fact refresh for eviction/repair/deposit subjects (MN jurisdiction)
 - Verify Context Engine panels render with real data on Render
 - Consider wiring context panels into more pages (office, tools, advocate dashboard)
@@ -7764,20 +7764,20 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 ## Session — 2026-06-22 (Early Morning) — SQLite Compatibility Fix
 **Commit: `093079c` | Pushed: 2026-06-22**
 
-### What Was Shipped
+### What Was Shipped (71)
 - `app/models/models.py` — Changed `module_registry.depends_on` from ARRAY(String) to JSON for SQLite compatibility
 - `tests/test_product_manifest.py` — Fixed test to use correct module path format (restored from .gitignore)
 
-### Issues Fixed
+### Issues Fixed (2)
 - **SQLite ARRAY type error:** SQLite doesn't support ARRAY type, causing 24 test failures
 - **Test file in .gitignore:** test_product_manifest.py was ignored, needed to be added with -f flag
 
-### What Is Known Working
+### What Is Known Working (15)
 - ✅ All 24 product_manifest and action_router_gates tests now pass
 - ✅ JSON type works with SQLite for storing list data
 - ✅ Render deployment live (commit 76f3881)
 
-### Next Session Should Start With
+### Next Session Should Start With (80)
 - Verify SQLite compatibility fix on Render
 - Continue with remaining integration test failures
 
@@ -7810,7 +7810,7 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 - `app/main.py` — Added ProductTier.RESEARCH to register_tiers()
 - `tests/test_role_gui_routes.py` — Removed deleted routes from test parameterization
 
-### Verification
+### Verification (85)
 - All modified files compile clean
 - MNDESCaseType.EVICTION now accessible
 - Brain router loads and endpoints reachable
@@ -7827,7 +7827,7 @@ All three issues were architectural gaps, not test bugs:
 ## Session — 2026-06-06 (PM) — Document Upload & Vault Display Fixes
 **Commits: `2651f74`, `bc055cc`, `f1652fa`, `bd50372` | Pushed: 2026-06-06**
 
-### What Was Done
+### What Was Done (42)
 1. **Fixed `/api/vault/upload` 422 error** — Frontend was sending `file` (singular) instead of `files` (plural) and non-JSON metadata. Fixed in:
    - `app/templates/pages/vault.html` — FormData field changed to `files`
    - `app/templates/pages/documents.html` — FormData field changed to `files` + JSON.stringify metadata
@@ -7837,12 +7837,12 @@ All three issues were architectural gaps, not test bugs:
    - `app/templates/pages/vault.html` — Changed from `/api/vault/?access_token=` to `/api/vault/all`
 4. **Code cleanup** — Removed debug logging and unused imports from documents page after debugging
 
-### Files Modified
+### Files Modified (2)
 - `app/templates/pages/vault.html` — FormData field fix + API endpoint change
 - `app/templates/pages/documents.html` — FormData field fix + metadata JSON
 - `app/main.py` — Vault document fetching + debug logging
 
-### What Is Known Working
+### What Is Known Working (16)
 - ✅ All modified files compile clean
 - ✅ `/api/vault/upload` now accepts correct FormData format
 - ✅ `/documents` page fetches from vault database
@@ -7859,7 +7859,7 @@ All three issues were architectural gaps, not test bugs:
 ## Session — 2026-06-06 (AM) — Document System Audit + Upload Unification
 **Commits: `a1d69bd`, `4275354`, `50ae8aa` | Pushed: 2026-06-06**
 
-### What Was Done
+### What Was Done (43)
 1. **Document system audit** — Confirmed vault intake fully defined. One door: `VaultUploadService.upload()`. Documents router is downstream (processes, never uploads).
 2. **Corrupted docstring fixed** — `app/modules/documents/router.py` had git commit history pasted into the module docstring (lines 1-54). Stripped and replaced.
 3. **Merged `/sidebar/upload` into unified `/upload`** — Single endpoint handles multi-file, audit logging, timeline extraction, security validation. `/sidebar/upload` is now a 308 redirect stub.
@@ -7871,7 +7871,7 @@ All three issues were architectural gaps, not test bugs:
 9. **Updated 3 frontend files** — `base.html`, `functions_bar.html`, `documents.html` now use two-step flow: `/api/vault/upload` → `/api/documents/process`.
 10. **Deleted dead `upload_document()`** — Removed from `user_cloud_sync.py` (SSOT violation, not called anywhere).
 
-### Files Modified
+### Files Modified (3)
 - `app/modules/vault/router.py` — merged sidebar_upload into unified upload_document
 - `app/modules/onboarding/router.py` — GET / root added to fix redirect loop
 - `app/modules/documents/router.py` — replaced /upload with /process (vault_id-based)
@@ -7891,7 +7891,7 @@ All three issues were architectural gaps, not test bugs:
 - ✅ `vault-portal.js` references correct unified path
 - ✅ Documents router compiles clean, no upload calls
 
-### What Is Pending Next Session
+### What Is Pending Next Session (2)
 - Live test: upload a document via vault portal UI with real storage credentials
 - Live test: confirm registry_id (SEM-YYYY-NNNNNN-XXXX) appears in upload response
 - Verify two-step frontend flow works end-to-end
@@ -7901,20 +7901,20 @@ All three issues were architectural gaps, not test bugs:
 ## Session — 2026-06-05 (Earlier) — Reconnect & Vault Upload Error Fixes
 **Commit: `748392a` | Pushed: 2026-06-05**
 
-### What Was Fixed
+### What Was Fixed (9)
 1. **`AttributeError: 'str' object has no attribute 'isoformat'`** — `vault_doc.uploaded_at` is returned as a string from DB but code called `.isoformat()` expecting a datetime. Fixed by checking `hasattr(..., "isoformat")` before calling it.
 2. **`NameError: name 'IntakeDocument' is not defined`** — `document_flow_orchestrator.py` used `IntakeDocument` as a type annotation but never imported it. Added import from `app.services.document_intake`.
 3. **Reconnect creates new user instead of reusing existing** — `initiate_oauth` compared `existing_uid` (plain) against `cookie_uid` (signed) which never matched → `existing_uid` was nulled → callback created new user. Fixed by verifying cookie before comparing.
 4. **Onboarding OAuth always forces fresh user ID** — `handle_onboarding_callback` had `state_data["force_fresh"] = True` hardcoded, bypassing existing users even when they matched by provider subject. Removed override.
 5. **Onboarding callback always sends to vault-setup** — `vault_initialized: False` was hardcoded in return value. Now reads actual gate from DB via `check_gate()`.
 
-### Files Modified
+### Files Modified (4)
 - `app/modules/vault/router.py` — uploaded_at coercion
 - `app/services/document_flow_orchestrator.py` — IntakeDocument import
 - `app/modules/storage/router.py` — cookie verification before comparison
 - `app/modules/onboarding/oauth.py` — removed force_fresh and vault_initialized overrides
 
-### What Is Known Working
+### What Is Known Working (17)
 - All 4 modified files compile clean
 - Returning users via onboarding OAuth now reuse existing account and skip vault-setup
 - Reconnect flow correctly preserves existing user ID when cookie is valid
@@ -7927,7 +7927,7 @@ All three issues were architectural gaps, not test bugs:
 ## Session — 2026-06-04 — Vault Onboarding Gate Flow + Pipeline Cleanup
 **Commit: `6c114ed` | Pushed: 2026-06-04**
 
-### What Was Fixed
+### What Was Fixed (10)
 1. **Duplicate `/api/vault/status` endpoint** — first registration (returning `vault_installed`) shadowed the correct one (returning `vault_initialized` + `document_uploaded` + `document_count`). Poll helper `vault_status_poll.js` was reading wrong field, never resolved. Fixed: single endpoint at line 277 now returns all three fields.
 2. **Docstring bug** — `vault/verify` docstring said `GET`, endpoint is `POST`. Fixed.
 3. **Eager overlay creation removed from upload pipeline** — `VaultUploadService.upload()` was calling `_create_unified_overlay()` at upload time. Overlays are on-demand only — created by the requesting process, not by upload. Removed.
@@ -7942,7 +7942,7 @@ All three issues were architectural gaps, not test bugs:
 - One door for documents: `VaultUploadService.upload()` — confirmed no bypasses in live code
 - `user_cloud_sync.py` has a dead `upload_document()` that bypasses vault — confirmed not called anywhere
 
-### Known Pending
+### Known Pending (11)
 - `user_cloud_sync.py` dead `upload_document()` — delete when doing cleanup pass
 - Rename deferred: `unified_overlay_manager` → `overlay_store`, `timeline_extraction` → `timeline_query`, `document_intake_engine` → `document_router`
 - Live test of full 3-step onboarding flow on Render pending
@@ -7951,7 +7951,7 @@ All three issues were architectural gaps, not test bugs:
 
 ## Session — 2026-06-04 — Vault SSOT Fixes (shipped earlier)
 
-### What Was Fixed
+### What Was Fixed (11)
 
 **Three vault SSOT bugs fixed + contract enforcement added**
 
@@ -7981,7 +7981,7 @@ All three issues were architectural gaps, not test bugs:
 8. **`app/modules/workflow/router.py`** — Added `GET /api/workflow/module-contracts` endpoint
 9. **`static/admin/dashboard.html`** — Contract Browser linked in Quick Actions + nav drawer
 
-### Files Modified
+### Files Modified (5)
 - `app/modules/vault/router.py`
 - `app/modules/vault_installer/installer.py`
 - `app/modules/onboarding/router.py`
@@ -7993,12 +7993,12 @@ All three issues were architectural gaps, not test bugs:
 ### Files Created
 - `static/admin/contract-browser.html`
 
-### What Is Known Working
+### What Is Known Working (18)
 - All 5 modified Python files compile clean (`py_compile` verified)
 - Contract browser accessible at `/admin/contract-browser.html`
 - Module contracts API at `GET /api/workflow/module-contracts`
 
-### Pending Live Test
+### Pending Live Test (2)
 - Vault upload via `/upload` endpoint through VaultUploadService (needs live provider test)
 - Gate marking sequence: Step 1 → Step 2 → vault_verify → `vault_initialized` marked once only
 - `/api/vault/status` polling endpoint now reachable (was dead code before)
@@ -8007,7 +8007,7 @@ All three issues were architectural gaps, not test bugs:
 
 ## Session — 2026-06-04 (UTC) — Fix reconnect session persistence + role extraction
 
-### What Was Shipped
+### What Was Shipped (72)
 
 **Fix: reconnect OAuth loop caused by session not persisted to DB**
 
@@ -8017,13 +8017,13 @@ All three issues were architectural gaps, not test bugs:
 
 2. **`app/modules/onboarding/reconnect.py`** — Passes `role` query parameter in the OAuth redirect URL so the correct role is preserved through the OAuth state.
 
-### What Is Known Working
+### What Is Known Working (19)
 
 - All modified files compile clean (`python -m py_compile`)
 - SSOT architecture tests pass
 - App loads successfully with all modules registered
 
-### What Is Pending
+### What Is Pending (4)
 
 - Live test: full reconnect flow (expire token → reconnect → verify landing on correct role home)
 - Live test: cross-provider reconnect (Google Drive, Dropbox, OneDrive)
@@ -8033,7 +8033,7 @@ All three issues were architectural gaps, not test bugs:
 
 ## Shipped — 2026-05-29 (9:40 PM UTC-05) — Commit `a503d8f`
 
-### What Was Shipped
+### What Was Shipped (73)
 
 **Vault path restructure + reconnect ownership + gate config fix + honest DB error page**
 
@@ -8060,9 +8060,9 @@ All three issues were architectural gaps, not test bugs:
 
 7. **`app/modules/preamble/router.py`** — DB errors now return honest 503 page with retry + start-fresh buttons instead of silently redirecting to role selection (Issue #3 fix)
 
-### What Is Known Working
+### What Is Known Working (20)
 -
-### What Is Known Working
+### What Is Known Working (21)
 
 - Local integration: upload, dedupe, id-first download, and cert generation smoke-tested (local provider).
 
@@ -8123,7 +8123,7 @@ If you want, I can now either wire the onboarding HTML to call the poll helper (
 - ✅ `/storage/reconnect` owned by onboarding module, same URL, no other code changes needed
 - ✅ DB error in preamble now shows honest 503 page instead of silent loop
 
-### What Is Pending
+### What Is Pending (5)
 
 - Live test: full onboarding flow with new vault path structure (new `.semptify/` layout)
 - Live test: returning user routing (documents_present fix from cb3a3c6)
@@ -8135,7 +8135,7 @@ If you want, I can now either wire the onboarding HTML to call the poll helper (
 
 ## Shipped — 2026-05-29 (8:40 PM UTC-05) — Commit `cb3a3c6`
 
-### What Was Shipped
+### What Was Shipped (74)
 
 **Fix: route_user() returning-user routing bug (Issue #1)**
 
@@ -8155,14 +8155,14 @@ Returning tenants with documents were incorrectly routed to the upload wizard.
    - `app/modules/workflow_validator/router.py` — test dashboard + /api/test endpoint
    - `app/main.py` — `_guard_role_page()` made async; all 18 call sites awaited
 
-### What Is Known Working
+### What Is Known Working (22)
 
 - ✅ All 7 modified files compile clean (`python -m py_compile`)
 - ✅ Returning tenants with vault documents now correctly route to tenant home (not upload wizard)
 - ✅ `documents_present=True` callers (restore_session) skip the vault query — no regression
 - ✅ Vault query failure is safe — logs warning and defaults to False (conservative fallback)
 
-### What Is Pending
+### What Is Pending (6)
 
 - Live test: onboard a user, upload a document, close browser, return — confirm landing on tenant home not upload wizard
 - ContextDataLoop cross-source enrichment (carried from previous session)
@@ -8220,12 +8220,12 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ### Port Map (Clean)
 | Service | Port |
-|---|---|
+| --- | --- |
 | Semptify core (FastAPI) | 8000 |
 | Semptify Orchestrator (local AI) | 8001 |
 | Ollama (AI models) | 11434 |
 
-### What Is Pending
+### What Is Pending (7)
 
 - **NEXT: Enable EXTENDED tier** — court forms, case builder, complaints, eviction defense
   - One line change: `register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED)`
@@ -8250,7 +8250,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 6. **`libmagic` crash on vault upload** — `file_validator.py` hard-imported `magic` at module level. Made optional with graceful fallback to `mimetypes`.
 7. **`scripts/reset_test_user.py`** — created utility to clear oauth_states and user gates for clean onboarding test runs.
 
-### What Is Known Working
+### What Is Known Working (23)
 
 - ✅ Full onboarding flow end-to-end (Google Drive confirmed)
 - ✅ Vault folders created in user's Google Drive
@@ -8259,7 +8259,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ User lands on /home after onboarding completes
 - ✅ semptify.org resolves via Cloudflare tunnel to local app
 
-### What Is Pending
+### What Is Pending (8)
 
 - **NEXT PRIORITY: ContextDataLoop cross-source enrichment**
   - When a document is missing data (date, amount, party name), pull assumed values from other documents already in the user's vault
@@ -8279,7 +8279,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
  Test Dropbox onboarding flow (only Google Drive tested today)
  Live test: full onboarding flow with new vault path structure (new `.semptify/` layout)
 
-### What Was Shipped
+### What Was Shipped (75)
 
 **Local Development Setup + Cloudflare Tunnel Configuration**
 
@@ -8299,7 +8299,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Configured DNS CNAME for dev.semptify.org
    - Tunnel running and connected to localhost:8000
 
-### What Is Known Working
+### What Is Known Working (24)
 
 - ✅ FastAPI app starts successfully locally
 - ✅ Neon PostgreSQL connection working
@@ -8308,7 +8308,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ OAuth callback URLs added to provider apps (Google, Dropbox, OneDrive)
 - ✅ Local development environment fully operational
 
-### What Is Pending
+### What Is Pending (9)
 
 - DNS propagation for dev.semptify.org (may take up to 24 hours)
 - Test user flows locally (onboarding, document upload, timeline)
@@ -8323,7 +8323,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-24 (2:44 AM UTC-05) — Commit `53b56c3`
 
-### What Was Shipped
+### What Was Shipped (76)
 
 **Vault Folder Creation Fixes + Production Configuration for Cloudflared Tunnel**
 
@@ -8358,7 +8358,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Added Cloudflared tunnel callback URLs for all providers
    - Documented PUBLIC_BASE_URL environment variable for proxy/tunnel setups
 
-### What Is Known Working
+### What Is Known Working (25)
 
 - ✅ All modified files compile clean (`python -m py_compile`)
 - ✅ SSOT architecture tests pass
@@ -8368,7 +8368,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ Vault SDK exports complete (VaultResult now available)
 - ✅ Production environment configured (Neon DB, R2 storage, enforced security)
 
-### What Is Pending
+### What Is Pending (10)
 
 - Add OAuth callback URLs to provider dashboards:
   - Google: `https://dev.semptify.org/storage/callback/google_drive` and `https://dev.semptify.org/onboarding/callback/google_drive`
@@ -8382,7 +8382,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-23 (1:24 AM UTC-05) — Commit `01e45b5`
 
-### What Was Shipped
+### What Was Shipped (77)
 
 **Deployment Error Resolution + Comprehensive Test Suite**
 
@@ -8413,7 +8413,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Ensures vault_index row exists before vault_hash_index FK check
    - Error: `insert or update on table "vault_hash_index" violates foreign key constraint`
 
-### What Is Known Working
+### What Is Known Working (26)
 
 - ✅ All 20 Playwright tests passing (10 system + 10 onboarding)
 - ✅ Python entrypoints compile (`python -m py_compile app/main.py app/core/navigation.py`)
@@ -8423,7 +8423,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ FK violation fixed (session.flush() added)
 - ✅ No secrets in committed code (GitHub token removed from package.json)
 
-### What Is Pending
+### What Is Pending (11)
 
 - Monitor Render deployment for successful completion
 - Verify vault setup flow works end-to-end with real OAuth credentials
@@ -8432,7 +8432,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-23 (12:00 AM UTC-05) — Commit `53d0d00`
 
-### What Was Shipped
+### What Was Shipped (78)
 
 **Onboarding Step 3: Full Document Pipeline (Seed All Systems)**
 
@@ -8456,7 +8456,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-22 (9:25 PM UTC-05) — Commit `5142909`
 
-### What Was Shipped
+### What Was Shipped (79)
 
 **Exception Handling Refactoring + Logging Standardization**
 
@@ -8478,7 +8478,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 3. **Gitignore Update** — Added DOCUMENTS/ to .gitignore (user documents directory, not for repo)
 4. **Documentation** — Added docs/PAGE_CUSTOMIZATION_COMPONENT_LIBRARY.md
 
-### What Is Known Working
+### What Is Known Working (27)
 
 - ✅ Python entrypoints compile (`python -m py_compile app/main.py app/core/navigation.py`)
 - ✅ All exception handling uses specific exception types (no bare except:)
@@ -8486,7 +8486,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ Playwright E2E tests: 10/10 passed (welcome, register, role selection, storage, vault, API health, upload, documents, timeline, reconnect)
 - ✅ Application starts successfully with 34 modules registered, 1 skipped, 0 errors
 
-### What Is Pending
+### What Is Pending (12)
 
 - None
 
@@ -8494,20 +8494,20 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-21 (9:16 PM UTC-05) — Commit `9b71cb1`
 
-### What Was Shipped
+### What Was Shipped (80)
 
 **Vault Upload & Installer UX Fixes** — Eliminated confusing `[object Object]` alerts and improved vault activation clarity.
 
 1. **Sidebar Upload Auth Handling** — `static/js/core/vault-portal.js` now parses HTTPException plain strings, normalizes per-file errors, and detects 401s to auto-prompt storage reconnection.
 2. **Onboarding Activate Vault Logging** — `static/onboarding/activate-vault.html` logs installer steps, improves status refreshing, and surfaces API errors clearly for debugging stuck installs.
 
-### What Is Known Working
+### What Is Known Working (28)
 
 - ✅ Python entrypoints compile (`python -m py_compile app/main.py app/core/navigation.py`).
 - ✅ Vault sidebar upload now shows human-readable errors and kicks off reconnect flow for expired storage sessions.
 - ✅ Vault installer page displays status, success data, and retry guidance with detailed console logging.
 
-### What Is Pending
+### What Is Pending (13)
 
 - Verify full OAuth → vault upload flow with a real storage provider session once credentials are available.
 - Monitor Render logs for any remaining auto-refresh/token errors post-deploy.
@@ -8516,7 +8516,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-21 (7:08 AM UTC-05) — Commit `1ad94fe`
 
-### What Was Shipped
+### What Was Shipped (81)
 
 **JSON Truncation Fix** — Fixed "unterminated string in JSON" error during upload
 
@@ -8529,7 +8529,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-21 (6:54 AM UTC-05) — Commit `901385a`
 
-### What Was Shipped
+### What Was Shipped (82)
 
 **Vault Init Endpoint & Error Handling Fixes** — Complete OAuth flow now working with proper error visibility
 
@@ -8547,7 +8547,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - This duplicate registration was overwriting detailed error handlers with generic ones
    - Errors now show full tracebacks instead of "An unexpected error occurred"
 
-### What Is Known Working
+### What Is Known Working (29)
 
 - ✅ OAuth flow completes successfully
 - ✅ Vault folders created in Google Drive
@@ -8556,7 +8556,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ Detailed error messages with tracebacks visible
 - ✅ Application compilation clean
 
-### What Is Pending
+### What Is Pending (14)
 
 - Test file upload to vault after OAuth completion
 - Monitor for any edge cases in vault creation
@@ -8566,7 +8566,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-20 (4:50 PM UTC-05) — Commit `f7d97c3`
 
-### What Was Shipped
+### What Was Shipped (83)
 
 **Critical Vault Creation Fixes** — Eliminated root causes of folder creation failures and user ID collisions
 
@@ -8585,7 +8585,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - All vault systems now use consistent cloud API format
    - Root cause fix for "folder creation failed" errors
 
-### What Is Known Working
+### What Is Known Working (30)
 
 - ✅ User ID generation (cryptographically secure, zero collisions)
 - ✅ Path normalization (consistent forward-slash format for cloud APIs)
@@ -8594,7 +8594,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ Application compilation and deployment
 - ✅ Code review passed (APPROVED)
 
-### What Is Pending
+### What Is Pending (15)
 
 - Monitor deployment for any vault creation issues in production
 - Test vault creation with real Google Drive accounts
@@ -8605,7 +8605,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-20 (2:34 PM UTC-05) — Commit `929d487`
 
-### What Was Shipped
+### What Was Shipped (84)
 
 1. **Comprehensive Code Cleanup & Problem Resolution** — Complete repository health restoration
    - Removed 11 broken test files with non-existent imports
@@ -8625,7 +8625,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Zero untracked files or pending changes
    - All modules load successfully (31 registered, 4 skipped, 0 errors)
 
-### What Is Known Working
+### What Is Known Working (31)
 
 - ✅ All Python files compile without syntax errors
 - ✅ Main application imports and starts successfully
@@ -8634,7 +8634,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - ✅ Clean repository state with no broken tests
 - ✅ Type checking errors resolved
 
-### What Is Pending
+### What Is Pending (16)
 
 - Verify Render deployment completes successfully
 - Test register page location detection in browser
@@ -8644,7 +8644,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-19 (5:30 PM UTC-05) — Commit `4e62442`
 
-### What Was Shipped
+### What Was Shipped (85)
 
 1. **Completed Datetime Consistency** — All `datetime.now(timezone.utc)` → `utc_now()` migrated
    - Fixed 14 remaining occurrences in housing_accountability/router.py
@@ -8661,7 +8661,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Fixed import error in vault_installer module
    - All vault operations now import correctly
 
-### What Is Known Working
+### What Is Known Working (32)
 
 - All datetime handling consistent across housing accountability module
 - Onboarding flow properly redirects without authentication
@@ -8669,7 +8669,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - Vault-setup page redirects unauthenticated users to role selection
 - App imports successfully with 31 modules registered, 4 skipped, 0 errors
 
-### What Is Pending
+### What Is Pending (17)
 
 - Consider pattern persistence (PatternRecord model) if pattern history is needed
 - Test full OAuth flow on production (requires live provider credentials)
@@ -8678,7 +8678,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-19 (1:28 AM UTC-05) — Commit `903ebd7`
 
-### What Was Shipped
+### What Was Shipped (86)
 
 1. **Fixed Document Module Import Failure in Production** — Root cause was overly broad `.gitignore` pattern
    - Changed `.gitignore` entry from `DOCUMENTS/` to `./DOCUMENTS/` to only ignore root-level directory
@@ -8686,13 +8686,13 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Re-enabled documents router in `app/core/product_manifest.py` (was temporarily disabled for debugging)
    - Fixed syntax error in vault_engine registration line
 
-### What Is Known Working
+### What Is Known Working (33)
 
 - Documents router loads successfully in production (31 registered, 4 skipped, 0 errors)
 - `/api/documents` endpoint responds with 401 Unauthorized (expected for protected endpoint, confirms route exists)
 - Deployment is live on Render at https://semptify.org
 
-### What Is Pending
+### What Is Pending (18)
 
 - Test document upload endpoint with authenticated user
 - Address visual layout and style framework after contracts are defined (low priority)
@@ -8701,7 +8701,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-18 (2:00 PM UTC-05) — Commit `d9f2f7b`
 
-### What Was Shipped
+### What Was Shipped (87)
 
 1. **Root Cause Cure for Datetime Inconsistency** — Fixed the architectural problem causing vault init failures
    - Replaced ALL `datetime.now(timezone.utc)` with `utc_now()` in vault.py
@@ -8713,14 +8713,14 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Pre-commit hook to enforce utc_now() usage
    - Automated fix script for 446 violations across codebase
 
-### What Is Known Working
+### What Is Known Working (34)
 
 - Vault initialization completes full 6-step flow without crashing
 - No more `ModuleNotFoundError` for utc_now import
 - OAuth callback → vault setup → gate marking works end-to-end
 - All datetime handling in vault.py is now consistent
 
-### What Is Pending
+### What Is Pending (19)
 
 - Run the fix script to resolve 446 remaining datetime inconsistencies across 90 files
 - Monitor deployment logs for successful vault creation
@@ -8730,11 +8730,11 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-18 (12:51 PM UTC-05) — Commit `fd0b1b7`
 
-### What Was Shipped
+### What Was Shipped (88)
 
 1. **Fixed missing `utc_now` import in `vault.py`** — Added `from app.utils.utc_now import utc_now` at line 22. This was causing `NameError` during encrypted token backup, which crashed vault initialization and prevented `vault_initialized` gate from being marked.
 
-### What Is Known Working
+### What Is Known Working (35)
 
 - All onboarding module files compile clean
 - Vault initialization can now complete full 6-step flow:
@@ -8745,7 +8745,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
   5. System verification test
   6. Mark `vault_initialized` gate
 
-### What Is Pending
+### What Is Pending (20)
 
 - Live OAuth test on Render to verify end-to-end flow
 - Verify vault folders actually appear in Google Drive/Dropbox/OneDrive
@@ -8754,7 +8754,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ## Shipped — 2026-05-18 (8:05 AM UTC-05) — Commit `60fc0c9`
 
-### What Was Shipped
+### What Was Shipped (89)
 
 1. **Fixed `utc_now()` inconsistency in `vault.py`** — `datetime.now(timezone.utc)` → `utc_now()` in `_store_encrypted_token_backup`. Aligns with project convention.
 2. **Fixed SSOT redirect in `router.py`** — `/onboarding/start` now uses `navigation.get_reconnect_flow()` instead of hardcoded `/storage/reconnect`.
@@ -8762,7 +8762,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 4. **Deleted dead code directories** — `app/routers/_migrated/` and `app/templates/services/` contained ~194 naive `datetime.now()` calls. Zero active imports. Active code was already timezone-safe.
 5. **Logged clock drift risk** — Server clock drift vs. timezone handling documented in BUILD_STATE.
 
-### What Is Known Working
+### What Is Known Working (36)
 
 - Onboarding module compiles clean
 - 12 routes defined: `/` → `/start` → `/providers` → `/auth/{provider}` → `/callback/{provider}` → `/vault-setup` → `/api/vault/init` + `/api/vault/verify`
@@ -8771,7 +8771,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - All datetime handling: UTC-only (zero naive `datetime.now()` calls remain in active code)
 - SSOT compliance: all redirects use `navigation.get_stage()`
 
-### What Is Pending
+### What Is Pending (21)
 
 - **Live OAuth test** — need to verify actual Google Drive / Dropbox / OneDrive handshake
 - **7 review findings** documented (see Onboarding Audit section below):
@@ -8832,7 +8832,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ### Session Summary — Complete Vault Creation + Comprehensive System Test
 
-#### Problem
+#### Problem (25)
 - Onboarding was missing critical vault folders (`timeline/`, `overlays/` and sub-folders) from `CANONICAL_VAULT_FOLDERS`
 - No initial data files created (`timeline/events.json`, `overlays/registry.json`) — downstream code had to handle missing file race conditions
 - System test (`_verify_system_check`) only read back `manifest.json` — it did NOT test actual write/read/delete capability
@@ -8880,15 +8880,15 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ### Session Summary — Fix `create_vault_folders` Silent Failures
 
-#### Problem
+#### Problem (26)
 - `create_vault_folders()` called `storage.create_folder()` for each vault folder but never checked the boolean return value.
 - If a provider silently refused to create a folder (permission denied, API error, invalid token), the function logged "Created N folders" and continued.
 - This caused `init_vault()` to fail later at `_verify_system_check()` with a generic "write+read verification failed" message, hiding the real root cause.
 
-#### Files Fixed
+#### Files Fixed (2)
 - [x] `app/modules/onboarding/vault.py` — `create_vault_folders()` now checks every `create_folder()` return value. Raises `RuntimeError` with the specific folder path on failure, making the root cause visible in logs and the vault-setup UI.
 
-#### Result
+#### Result (2)
 - Specific error messages instead of generic "verification failed"
 - If a provider truly cannot create folders, the user sees exactly which folder and why
 - All Python files compile clean
@@ -8899,15 +8899,15 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ### Session Summary — Fix Vault Verification + Vault-Setup JS Gate
 
-#### Problem
+#### Problem (27)
 - `verify_vault_folders()` was failing because `documents/` and `certificates/` are empty after init. `list_files()` correctly returns `[]` for empty folders, but the old code treated `[]` as "not found" and returned `False`.
 - `vault-setup` page JS only threw an error if BOTH `accessible === false` AND `ok === false`. Since `vault_verify` returns `ok: True` on exception-less failure, unverified vaults were passing and redirecting users home.
 
-#### Files Fixed
+#### Files Fixed (3)
 - [x] `app/modules/onboarding/vault.py` — `verify_vault_folders()` now accepts empty folders. Only fails if `list_files()` throws (folder inaccessible).
 - [x] `app/modules/onboarding/router.py` — JS vault-setup now fails if `!accessible || !ok` (was `&&`).
 
-#### Result
+#### Result (3)
 - All Python files compile clean
 - Vault init + verify now correctly allows empty new folders
 - Vault-setup page blocks navigation if verification actually fails
@@ -8918,19 +8918,19 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ### Session Summary — Fix Circular Import from Migrated Storage Router
 
-#### Problem
+#### Problem (28)
 - `app/modules/documents/router.py` failed to load with:
   `cannot import name 'auth' from partially initialized module 'app.routers'`
 - Root cause: `app/routers/storage.py` was migrated to `_migrated/`, but active modules still imported from the old path
 
-#### Files Fixed
+#### Files Fixed (4)
 - [x] `app/modules/documents/router.py` — `_mark_group_complete` now from `app.modules.storage.router`
 - [x] `app/modules/onboarding/oauth.py` — `save_session_to_db` now from `app.modules.storage.router`
 - [x] `app/core/security.py` — `get_session_from_db` now from `app.modules.storage.router`
 - [x] `app/modules/cloud_sync/router.py` — `get_valid_session` now from `app.modules.storage.router`
 - [x] `app/modules/briefcase/router.py` — `get_valid_session` now from `app.modules.storage.router`
 
-#### Result
+#### Result (4)
 - App startup: **33 modules registered, 3 skipped, 0 errors** (was 32 reg, 1 error)
 - Documents router loads correctly
 - All Python files compile clean
@@ -8962,7 +8962,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 #### Config
 - [x] `.env` — `USE_MOCK_DATA=false`, `ENABLE_REAL_APIS=true`, all free endpoints documented
 
-#### Known Working
+#### Known Working (108)
 - All Python files compile clean (`python -m py_compile`)
 - Research service imports correctly
 - No paid API dependencies
@@ -8991,16 +8991,16 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - [x] `static/onboarding/validation/validate-legal.html` — Fixed `continueToStorage()` redirect from broken `/storage-select.html` to `/onboarding/providers`
 - [x] `static/onboarding/validation/validate-advocate.html` — Same fix
 
-#### Verification
+#### Verification (86)
 - [x] All modified files pass `python -m py_compile`
 - [x] `python tests/test_ssot_architecture.py` — all tests passed
 
-#### Known Working
+#### Known Working (109)
 - OAuth callback flows (both `/storage/callback/` and `/onboarding/callback/`)
 - Vault creation via `init_vault()`
 - Cookie auth (`set_auth_cookie`)
 
-#### Known Pending
+#### Known Pending (12)
 - `app/services/user_service.py` has dead code referencing `User.email` — file is orphaned (no imports)
 - `app/sdk/` and `app/templates/services/` files reference removed fields but are not in active import paths
 
@@ -9040,7 +9040,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - Some onboarding validation pages still use `.html` extensions in hardcoded JS navigation
 - User explicitly requested NOT to remove any links/routes
 
-#### Pending Next Session
+#### Pending Next Session (2)
 - Fix dead sub-page routes OR create route stubs for `/office/vault`, `/office/inbox`, `/office/timeline`, etc.
 - Verify full onboarding flow end-to-end on Render (new user → OAuth → vault init → home)
 - Address remaining `.html` extensions in onboarding static pages
@@ -9057,13 +9057,13 @@ Enable any tier by adding it to this one line — no other code changes needed.
 #### Help Page Macro Refactor
 - [x] `app/templates/pages/help.html` — Refactored from 126 lines inline HTML/CSS to 42 lines using ui_macros. All 4 nav pages (office, library, tools, help) now use the macro system.
 
-#### Known Working
+#### Known Working (110)
 - App compiles clean, 88 unique contracts
 - Zero references to deleted contract names anywhere in codebase
 - SSOT analysis: no violations, macro pattern consistent across all nav pages
 - Deploy `b46d172` (encrypted token backup) confirmed live on Render
 
-#### Pending Next Session
+#### Pending Next Session (3)
 - End-to-end test of full onboarding flow on Render (new user → OAuth → vault init → token backup → dashboard)
 - Verify help.html renders correctly on Render after macro refactor
 - Continue dead code cleanup if any other stale references found
@@ -9125,12 +9125,12 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - [x] **Dead import removed** — Legacy `from app.routers import onboarding` and commented-out router block removed from `main.py`.
 - [x] **Debug tool added** — `GET /api/debug/gates` (dev only, 404 in production) shows exact gate state for current user cookie.
 
-#### Known Working
+#### Known Working (111)
 - Gate chain: storage_connected → vault_initialized → client_activated
 - Single enforcer pattern via onboarding_state.py
 - All 6 changed files compile clean, all imports pass
 
-#### Pending Next Session
+#### Pending Next Session (4)
 - End-to-end test of full onboarding flow on Render (new user + reconnect paths)
 - Monitor Render deploy log for any unexpected gate-related errors
 
@@ -9328,7 +9328,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ---
 
-## Last Deployed Commit
+## Last Deployed Commit (2)
 - **Hash**: `85f7cde`
 - **Date**: 2026-05-06 01:36 UTC-05
 - **Status**: ✅ **DEPLOYING** (check Render dashboard)
@@ -9367,7 +9367,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ---
 
-## Last Deployed Commit
+## Last Deployed Commit (3)
 - **Hash**: `6f225a5`
 - **Date**: 2026-05-06 01:20 UTC-05
 - **Status**: ✅ **DEPLOYED & LIVE**
@@ -9532,7 +9532,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ---
 
-## Known Limitations (Not Bugs — Future Work)
+## Known Limitations (Not Bugs — Future Work) (2)
 - AI/ML services (Groq, Gemini, OCR) not tested
 
 ---
