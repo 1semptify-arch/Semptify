@@ -2815,7 +2815,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="interactive_timeline",
         route="/interactive-timeline",
-        source_file="static/interactive-timeline.html",
+        source_file="static/components/interactive-timeline.html",
         page_type="static",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
