@@ -130,7 +130,15 @@
 <div class="uic-timeline-event uic-timeline-event--{{ data.type or 'event' }}">
     <div class="uic-timeline-event__icon">{{ data.icon or "•" }}</div>
     <div class="uic-timeline-event__body">
-        <h4 class="uic-timeline-event__title">{{ data.title }}</h4>
+        <div class="uic-timeline-event__head">
+            <h4 class="uic-timeline-event__title">{{ data.title }}</h4>
+            {% if data.metadata.is_evidence or data.metadata.is_deadline %}
+            <div class="uic-timeline-event__badges">
+                {% if data.metadata.is_evidence %}<span class="uic-timeline-event__badge uic-timeline-event__badge--evidence">Evidence</span>{% endif %}
+                {% if data.metadata.is_deadline %}<span class="uic-timeline-event__badge uic-timeline-event__badge--deadline">Deadline</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
         {% if data.subtitle %}
         <p class="uic-timeline-event__subtitle">{{ data.subtitle }}</p>
         {% endif %}
