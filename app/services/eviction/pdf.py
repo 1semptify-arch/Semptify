@@ -4,10 +4,10 @@ Generates court documents as PDFs using xhtml2pdf (cross-platform, no external d
 """
 
 import io
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from app.core.utc import utc_now
 import logging
+
+from app.core.utc import utc_now
+
 logger = logging.getLogger(__name__)
 
 # Try to import xhtml2pdf for advanced PDF generation
@@ -51,15 +51,15 @@ def _generate_pdf_from_html(html_content: str, css: str = "") -> bytes:
 """
         else:
             styled_html = html_content
-        
+
         # Create PDF in memory
         result = io.BytesIO()
         pisa_status = pisa.CreatePDF(io.StringIO(styled_html), dest=result)
-        
+
         if pisa_status.err:
             logger.error(f"[WARN] PDF generation had errors: {pisa_status.err}")
             # Still return what we have
-        
+
         return result.getvalue()
     else:
         # Fallback: return HTML as bytes (caller should handle)
@@ -136,19 +136,19 @@ def generate_answer_pdf(
     case_number: str = "",
     address: str = "",
     served_date: str = "",
-    defenses: List[str] = None,
+    defenses: list[str] = None,
     defense_details: str = ""
 ) -> bytes:
     """Generate Answer to Eviction Summons PDF."""
     defenses = defenses or []
-    
+
     defense_html = ""
     for i, defense in enumerate(defenses, 1):
         defense_html += f'<div class="numbered-item">{i}. {defense}</div>'
-    
+
     if defense_details:
         defense_html += f'<div class="section"><div class="section-title">Additional Details:</div>{defense_details}</div>'
-    
+
     html = f"""
 <!DOCTYPE html>
 <html>
@@ -216,17 +216,17 @@ def generate_counterclaim_pdf(
     landlord_name: str,
     case_number: str = "",
     address: str = "",
-    claims: List[str] = None,
+    claims: list[str] = None,
     claim_details: str = "",
     damages_requested: str = ""
 ) -> bytes:
     """Generate Counterclaim PDF."""
     claims = claims or []
-    
+
     claims_html = ""
     for i, claim in enumerate(claims, 1):
         claims_html += f'<div class="numbered-item">{i}. {claim}</div>'
-    
+
     html = f"""
 <!DOCTYPE html>
 <html>
@@ -304,9 +304,9 @@ def generate_motion_pdf(
         "stay": "MOTION TO STAY EVICTION",
         "fee_waiver": "APPLICATION TO PROCEED IN FORMA PAUPERIS (IFP)"
     }
-    
+
     title = motion_titles.get(motion_type, "MOTION")
-    
+
     html = f"""
 <!DOCTYPE html>
 <html>
@@ -362,7 +362,7 @@ def generate_hearing_prep_pdf(
     hearing_date: str = "",
     hearing_time: str = "",
     is_zoom: bool = False,
-    checklist_items: List[str] = None
+    checklist_items: list[str] = None
 ) -> bytes:
     """Generate Hearing Preparation checklist PDF."""
     checklist_items = checklist_items or [
@@ -373,7 +373,7 @@ def generate_hearing_prep_pdf(
         "Dress professionally",
         "Arrive 15 minutes early"
     ]
-    
+
     if is_zoom:
         checklist_items.extend([
             "Test Zoom connection before hearing",
@@ -381,11 +381,11 @@ def generate_hearing_prep_pdf(
             "Have documents ready on screen or nearby",
             "Keep yourself muted when not speaking"
         ])
-    
+
     checklist_html = ""
     for item in checklist_items:
         checklist_html += f'<div class="numbered-item">☐ {item}</div>'
-    
+
     html = f"""
 <!DOCTYPE html>
 <html>

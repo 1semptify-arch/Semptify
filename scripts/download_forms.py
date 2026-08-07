@@ -4,9 +4,9 @@ These are public domain court forms from mncourts.gov.
 """
 
 import asyncio
-import httpx
 from pathlib import Path
-import json
+
+import httpx
 
 FORMS_DIR = Path("c:/Semptify/Semptify-FastAPI/semptify_dakota_eviction/app/assets/forms")
 FORMS_JSON = Path("c:/Semptify/Semptify-FastAPI/semptify_dakota_eviction/app/assets/forms.json")
@@ -37,15 +37,15 @@ ALT_FORM_URLS = {
 async def download_form(client: httpx.AsyncClient, filename: str, url: str) -> bool:
     """Download a single form."""
     filepath = FORMS_DIR / filename
-    
+
     if filepath.exists():
         print(f"  ✓ {filename} (already exists)")
         return True
-    
+
     try:
         print(f"  ⬇ Downloading {filename}...")
         response = await client.get(url, follow_redirects=True, timeout=30.0)
-        
+
         if response.status_code == 200:
             # Check if it's actually a PDF
             content_type = response.headers.get("content-type", "")
@@ -68,13 +68,13 @@ async def main():
     """Download all forms."""
     print("📥 Downloading Minnesota Court Forms")
     print("=" * 50)
-    
+
     # Create forms directory
     FORMS_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     success = 0
     failed = 0
-    
+
     async with httpx.AsyncClient(
         headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -85,11 +85,11 @@ async def main():
                 success += 1
             else:
                 failed += 1
-    
+
     print("=" * 50)
     print(f"✅ Downloaded: {success}")
     print(f"❌ Failed: {failed}")
-    
+
     # List what's in the forms folder
     print("\n📁 Forms folder contents:")
     for f in FORMS_DIR.iterdir():

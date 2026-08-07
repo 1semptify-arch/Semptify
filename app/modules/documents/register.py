@@ -7,7 +7,6 @@ analysis. This is what makes a pile of files into an organized evidence record.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Document Processing ---
 
 register_function_group(FunctionGroupContract(

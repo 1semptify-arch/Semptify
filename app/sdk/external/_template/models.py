@@ -4,7 +4,6 @@ Example External Module — Models
 Pydantic models for request/response validation. External modules
 must NOT define SQLAlchemy DB models — only Pydantic models.
 """
-from typing import Optional
 from pydantic import BaseModel, Field
 
 

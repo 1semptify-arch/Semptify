@@ -5,11 +5,11 @@ File Validator - Security and Validation for File Uploads
 Handles file type validation, size limits, and security checks.
 """
 
+import hashlib
 import logging
 import mimetypes
 import os
-import hashlib
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any
 
 try:
     import magic as _magic
@@ -17,8 +17,8 @@ try:
 except ImportError:
     _magic = None
     _MAGIC_AVAILABLE = False
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +26,16 @@ logger = logging.getLogger(__name__)
 class FileValidationResult:
     """Result of file validation."""
     is_valid: bool
-    error_message: Optional[str] = None
-    file_type: Optional[str] = None
-    file_size: Optional[int] = None
-    mime_type: Optional[str] = None
-    security_risk: Optional[str] = None
-    recommended_action: Optional[str] = None
+    error_message: str | None = None
+    file_type: str | None = None
+    file_size: int | None = None
+    mime_type: str | None = None
+    security_risk: str | None = None
+    recommended_action: str | None = None
 
 class FileValidator:
     """Validates files for security and compliance."""
-    
+
     # Allowed file types and their properties
     ALLOWED_TYPES = {
         # Documents
@@ -69,7 +69,7 @@ class FileValidator:
             'description': 'Rich text format',
             'risk_level': 'medium'
         },
-        
+
         # Images
         'jpg': {
             'mime_types': ['image/jpeg'],
@@ -107,7 +107,7 @@ class FileValidator:
             'description': 'Bitmap image',
             'risk_level': 'low'
         },
-        
+
         # Audio
         'mp3': {
             'mime_types': ['audio/mpeg', 'audio/mp3'],
@@ -151,7 +151,7 @@ class FileValidator:
             'description': 'FLAC audio file',
             'risk_level': 'low'
         },
-        
+
         # Video
         'mp4': {
             'mime_types': ['video/mp4'],
@@ -207,7 +207,7 @@ class FileValidator:
             'description': 'M4V video file',
             'risk_level': 'medium'
         },
-        
+
         # Spreadsheets
         'xls': {
             'mime_types': ['application/vnd.ms-excel'],
@@ -227,7 +227,7 @@ class FileValidator:
             'description': 'CSV spreadsheet',
             'risk_level': 'low'
         },
-        
+
         # Presentations (MNDES-required)
         'ppt': {
             'mime_types': ['application/vnd.ms-powerpoint'],
@@ -241,7 +241,7 @@ class FileValidator:
             'description': 'Microsoft PowerPoint',
             'risk_level': 'medium'
         },
-        
+
         # Additional image formats (MNDES-required)
         'tif': {
             'mime_types': ['image/tiff', 'image/tiff-fx'],
@@ -250,18 +250,18 @@ class FileValidator:
             'risk_level': 'low'
         },
     }
-    
+
     # Dangerous file extensions to block
     BLOCKED_EXTENSIONS = {
         'exe', 'bat', 'cmd', 'com', 'pif', 'scr', 'vbs', 'js', 'jar', 'app', 'deb', 'pkg',
         'dmg', 'iso', 'img', 'bin', 'run', 'sh', 'ps1', 'py', 'pl', 'rb', 'php', 'asp', 'jsp',
-        'msi', 'msp', 'mst', 'cpl', 'inf', 'reg', 'scr', 'sct', 'shb', 'shs', 'url', 'vbe',
+        'msi', 'msp', 'mst', 'cpl', 'inf', 'reg', 'sct', 'shb', 'shs', 'url', 'vbe',
         'wsc', 'wsf', 'wsh', 'ps1xml', 'ps2', 'ps2xml', 'psc1', 'psd1', 'psdxml', 'cdxml',
         'cer', 'crt', 'der', 'p7b', 'p7c', 'p7m', 'p7s', 'spc', 'sst', 'stl',
         # Archives — explicitly prohibited by MNDES Order ADM09-8010 (no zipped files)
         'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz',
     }
-    
+
     # Dangerous MIME types to block
     BLOCKED_MIME_TYPES = {
         'application/x-executable', 'application/x-msdownload', 'application/x-msdos-program',
@@ -271,20 +271,20 @@ class FileValidator:
         'application/x-perl', 'application/x-ruby', 'application/x-php', 'text/x-php',
         'application/x-ms-shortcut', 'application/x-lnk'
     }
-    
+
     def __init__(self):
         self.max_total_size_mb = 1000  # Max total upload size per session
-        
+
     def validate_file(self, file_content: bytes, filename: str, file_size: int) -> FileValidationResult:
         """Validate a file for security and compliance."""
-        
+
         # Basic checks
         if not file_content or file_size == 0:
             return FileValidationResult(
                 is_valid=False,
                 error_message="File is empty"
             )
-        
+
         # Check file extension
         file_ext = Path(filename).suffix.lower().lstrip('.')
         if file_ext in self.BLOCKED_EXTENSIONS:
@@ -294,7 +294,7 @@ class FileValidator:
                 security_risk="blocked_extension",
                 recommended_action="Use a different file format"
             )
-        
+
         # Check if file type is allowed
         if file_ext not in self.ALLOWED_TYPES:
             return FileValidationResult(
@@ -303,9 +303,9 @@ class FileValidator:
                 file_type=file_ext,
                 recommended_action="Use supported file formats: PDF, DOC, DOCX, TXT, JPG, PNG, MP3, MP4, etc."
             )
-        
+
         file_type_info = self.ALLOWED_TYPES[file_ext]
-        
+
         # Check file size
         if file_size > file_type_info['max_size_mb'] * 1024 * 1024:
             return FileValidationResult(
@@ -314,10 +314,10 @@ class FileValidator:
                 file_size=file_size,
                 recommended_action="Compress the file or use a smaller version"
             )
-        
+
         # Detect MIME type
         detected_mime = self._detect_mime_type(file_content, filename)
-        
+
         # Validate MIME type matches extension
         if detected_mime and detected_mime not in file_type_info['mime_types']:
             return FileValidationResult(
@@ -328,7 +328,7 @@ class FileValidator:
                 security_risk="mime_mismatch",
                 recommended_action="Ensure file has correct extension"
             )
-        
+
         # Check for dangerous MIME types
         if detected_mime in self.BLOCKED_MIME_TYPES:
             return FileValidationResult(
@@ -338,7 +338,7 @@ class FileValidator:
                 security_risk="dangerous_mime",
                 recommended_action="Use a safe file format"
             )
-        
+
         # Additional security checks for high-risk files
         security_issues = self._check_file_security(file_content, file_ext)
         if security_issues:
@@ -349,7 +349,7 @@ class FileValidator:
                 security_risk=", ".join(security_issues),
                 recommended_action="Scan file for viruses and try again"
             )
-        
+
         # File is valid
         return FileValidationResult(
             is_valid=True,
@@ -358,8 +358,8 @@ class FileValidator:
             mime_type=detected_mime,
             security_risk=file_type_info['risk_level']
         )
-    
-    def _detect_mime_type(self, file_content: bytes, filename: str) -> Optional[str]:
+
+    def _detect_mime_type(self, file_content: bytes, filename: str) -> str | None:
         """Detect MIME type using python-magic or fallback to mimetypes."""
         try:
             # Try python-magic first (more accurate)
@@ -367,7 +367,7 @@ class FileValidator:
                 raise ImportError("libmagic not available")
             mime = _magic.Magic(mime=True)
             detected_mime = mime.from_buffer(file_content)
-            
+
             # Validate the detected MIME type
             if detected_mime and '/' in detected_mime:
                 return detected_mime
@@ -377,32 +377,32 @@ class FileValidator:
             return detected_mime
         except Exception as e:
             logger.warning(f"MIME type detection failed: {e}")
-        
+
         return None
-    
-    def _check_file_security(self, file_content: bytes, file_ext: str) -> List[str]:
+
+    def _check_file_security(self, file_content: bytes, file_ext: str) -> list[str]:
         """Check for security issues in file content."""
         issues = []
-        
+
         # Check for executable signatures
         if self._has_executable_signature(file_content):
             issues.append("executable_signature")
-        
+
         # Check for script content
         if self._has_script_content(file_content):
             issues.append("script_content")
-        
+
         # Check for suspicious patterns
         if self._has_suspicious_patterns(file_content):
             issues.append("suspicious_patterns")
-        
+
         # Specific checks for document types
         if file_ext in ['doc', 'docx', 'xls', 'xlsx']:
             if self._has_macro_content(file_content):
                 issues.append("macro_content")
-        
+
         return issues
-    
+
     def _has_executable_signature(self, file_content: bytes) -> bool:
         """Check if file has executable signature."""
         # Check for common executable signatures
@@ -413,13 +413,13 @@ class FileValidator:
             b'\xfe\xed\xfa\xce',     # Mach-O binary (macOS)
             b'\xfe\xed\xfa\xcf',     # Mach-O binary (macOS)
         ]
-        
+
         for signature in exe_signatures:
             if file_content.startswith(signature):
                 return True
-        
+
         return False
-    
+
     def _has_script_content(self, file_content: bytes) -> bool:
         """Check if file contains script content."""
         script_patterns = [
@@ -433,14 +433,14 @@ class FileValidator:
             b'exec(',                # Common in scripts
             b'system(',              # System calls
         ]
-        
+
         content_lower = file_content.lower()
         for pattern in script_patterns:
             if pattern in content_lower:
                 return True
-        
+
         return False
-    
+
     def _has_suspicious_patterns(self, file_content: bytes) -> bool:
         """Check for suspicious patterns in file."""
         suspicious_patterns = [
@@ -451,14 +451,14 @@ class FileValidator:
             b'curl_exec',            # HTTP execution
             b'create_function',      # Dynamic function creation
         ]
-        
+
         content_lower = file_content.lower()
         for pattern in suspicious_patterns:
             if pattern in content_lower:
                 return True
-        
+
         return False
-    
+
     def _has_macro_content(self, file_content: bytes) -> bool:
         """Check if Office document contains macros."""
         # Simple check for macro indicators in Office documents
@@ -469,45 +469,45 @@ class FileValidator:
             b'Workbook_Open',        # Excel auto-open
             b'Document_Open',        # Word auto-open
         ]
-        
+
         content_lower = file_content.lower()
         for indicator in macro_indicators:
             if indicator in content_lower:
                 return True
-        
+
         return False
-    
-    def get_allowed_extensions(self) -> List[str]:
+
+    def get_allowed_extensions(self) -> list[str]:
         """Get list of allowed file extensions."""
         return list(self.ALLOWED_TYPES.keys())
-    
-    def get_file_type_info(self, extension: str) -> Optional[Dict[str, Any]]:
+
+    def get_file_type_info(self, extension: str) -> dict[str, Any] | None:
         """Get information about a file type."""
         extension = extension.lower().lstrip('.')
         return self.ALLOWED_TYPES.get(extension)
-    
+
     def generate_file_hash(self, file_content: bytes) -> str:
         """Generate SHA-256 hash of file content."""
         return hashlib.sha256(file_content).hexdigest()
-    
+
     def sanitize_filename(self, filename: str) -> str:
         """Sanitize filename to prevent path traversal."""
         # Remove path separators and dangerous characters
         safe_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_"
         sanitized = ''.join(c for c in filename if c in safe_chars)
-        
+
         # Remove leading dots and dashes
         sanitized = sanitized.lstrip('.-')
-        
+
         # Ensure filename is not empty
         if not sanitized:
             sanitized = "uploaded_file"
-        
+
         # Limit length
         if len(sanitized) > 255:
             name, ext = os.path.splitext(sanitized)
             sanitized = name[:255-len(ext)] + ext
-        
+
         return sanitized
 
 # Global validator instance
@@ -521,6 +521,6 @@ def validate_upload_file(file_content: bytes, filename: str, file_size: int) -> 
     """Validate uploaded file."""
     return file_validator.validate_file(file_content, filename, file_size)
 
-def get_allowed_file_types() -> Dict[str, Dict[str, Any]]:
+def get_allowed_file_types() -> dict[str, dict[str, Any]]:
     """Get allowed file types with their properties."""
     return file_validator.ALLOWED_TYPES.copy()

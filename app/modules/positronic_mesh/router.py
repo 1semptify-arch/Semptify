@@ -6,19 +6,20 @@ REST API endpoints for the Positronic Mesh orchestration system.
 Allows starting workflows, checking status, and module invocation.
 """
 
-from fastapi import APIRouter, Cookie, HTTPException, BackgroundTasks
-from pydantic import BaseModel
-from typing import Any, Dict, List, Optional
 import logging
+from typing import Any
+
+from fastapi import APIRouter, Cookie, HTTPException
+from pydantic import BaseModel
 
 from app.core.positronic_mesh import (
-    positronic_mesh,
-    WorkflowType,
     WorkflowStage,
+    WorkflowType,
+    positronic_mesh,
+    sync_all_modules,
+    trigger_court_prep,
     trigger_eviction_workflow,
     trigger_lease_analysis,
-    trigger_court_prep,
-    sync_all_modules,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,19 +32,19 @@ router = APIRouter()
 
 class StartWorkflowRequest(BaseModel):
     workflow_type: str
-    initial_context: Dict[str, Any] = {}
+    initial_context: dict[str, Any] = {}
     trigger: str = "api_request"
 
 
 class ProvideInputRequest(BaseModel):
     step_id: str
-    user_input: Dict[str, Any]
+    user_input: dict[str, Any]
 
 
 class InvokeModuleRequest(BaseModel):
     module: str
     action: str
-    params: Dict[str, Any] = {}
+    params: dict[str, Any] = {}
 
 
 class WorkflowResponse(BaseModel):
@@ -53,14 +54,14 @@ class WorkflowResponse(BaseModel):
     current_step: int
     total_steps: int
     waiting_for_input: bool = False
-    input_prompt: Optional[str] = None
+    input_prompt: str | None = None
 
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
-def get_user_id(semptify_uid: Optional[str]) -> str:
+def get_user_id(semptify_uid: str | None) -> str:
     """Get user ID from cookie or return anonymous"""
     return semptify_uid or "anonymous"
 
@@ -90,7 +91,7 @@ async def get_connected_modules():
     modules = {}
     for module_name in positronic_mesh.actions:
         modules[module_name] = positronic_mesh.get_module_actions(module_name)
-    
+
     return {
         "total_modules": len(modules),
         "modules": modules,
@@ -104,11 +105,11 @@ async def get_connected_modules():
 @router.post("/mesh/workflow/start")
 async def start_workflow(
     request: StartWorkflowRequest,
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Start a new workflow"""
     user_id = get_user_id(semptify_uid)
-    
+
     # Validate workflow type
     try:
         workflow_type = WorkflowType(request.workflow_type)
@@ -117,7 +118,7 @@ async def start_workflow(
             status_code=400,
             detail=f"Invalid workflow type. Available: {[wt.value for wt in WorkflowType]}"
         )
-    
+
     # Start the workflow
     workflow = await positronic_mesh.start_workflow(
         workflow_type=workflow_type,
@@ -125,7 +126,7 @@ async def start_workflow(
         trigger=request.trigger,
         initial_context=request.initial_context,
     )
-    
+
     return {
         "success": True,
         "workflow": workflow.to_dict(),
@@ -136,28 +137,28 @@ async def start_workflow(
 @router.get("/mesh/workflow/{workflow_id}")
 async def get_workflow_status(
     workflow_id: str,
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Get status of a specific workflow"""
     workflow = positronic_mesh.get_workflow(workflow_id)
-    
+
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    
+
     # Check user owns this workflow
     user_id = get_user_id(semptify_uid)
     if workflow.user_id != user_id and user_id != "anonymous":
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     response = workflow.to_dict()
-    
+
     # Add input prompt if waiting
     if workflow.stage == WorkflowStage.WAITING_INPUT:
         current_step = workflow.steps[workflow.current_step_index]
         response["waiting_for_input"] = True
         response["input_step_id"] = current_step.id
         response["input_prompt"] = current_step.input_prompt
-    
+
     return response
 
 
@@ -165,25 +166,25 @@ async def get_workflow_status(
 async def provide_workflow_input(
     workflow_id: str,
     request: ProvideInputRequest,
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Provide input for a workflow step that's waiting"""
     user_id = get_user_id(semptify_uid)
-    
+
     workflow = positronic_mesh.get_workflow(workflow_id)
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    
+
     if workflow.user_id != user_id and user_id != "anonymous":
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     try:
         workflow = await positronic_mesh.provide_workflow_input(
             workflow_id=workflow_id,
             step_id=request.step_id,
             user_input=request.user_input,
         )
-        
+
         return {
             "success": True,
             "workflow": workflow.to_dict(),
@@ -196,13 +197,13 @@ async def provide_workflow_input(
 @router.get("/mesh/workflows")
 async def get_user_workflows(
     active_only: bool = False,
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Get all workflows for the current user"""
     user_id = get_user_id(semptify_uid)
-    
+
     workflows = positronic_mesh.get_user_workflows(user_id, active_only=active_only)
-    
+
     return {
         "user_id": user_id,
         "total": len(workflows),
@@ -216,14 +217,14 @@ async def get_user_workflows(
 
 @router.post("/mesh/quick/eviction")
 async def quick_start_eviction(
-    document_data: Dict[str, Any] = {},
-    semptify_uid: Optional[str] = Cookie(default=None),
+    document_data: dict[str, Any] = {},
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Quick start an eviction defense workflow"""
     user_id = get_user_id(semptify_uid)
-    
+
     workflow = await trigger_eviction_workflow(user_id, document_data)
-    
+
     return {
         "success": True,
         "workflow_id": workflow.id,
@@ -234,14 +235,14 @@ async def quick_start_eviction(
 
 @router.post("/mesh/quick/lease-analysis")
 async def quick_start_lease_analysis(
-    lease_data: Dict[str, Any] = {},
-    semptify_uid: Optional[str] = Cookie(default=None),
+    lease_data: dict[str, Any] = {},
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Quick start a lease analysis workflow"""
     user_id = get_user_id(semptify_uid)
-    
+
     workflow = await trigger_lease_analysis(user_id, lease_data)
-    
+
     return {
         "success": True,
         "workflow_id": workflow.id,
@@ -252,14 +253,14 @@ async def quick_start_lease_analysis(
 
 @router.post("/mesh/quick/court-prep")
 async def quick_start_court_prep(
-    case_data: Dict[str, Any] = {},
-    semptify_uid: Optional[str] = Cookie(default=None),
+    case_data: dict[str, Any] = {},
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Quick start a court preparation workflow"""
     user_id = get_user_id(semptify_uid)
-    
+
     workflow = await trigger_court_prep(user_id, case_data)
-    
+
     return {
         "success": True,
         "workflow_id": workflow.id,
@@ -270,13 +271,13 @@ async def quick_start_court_prep(
 
 @router.post("/mesh/quick/sync")
 async def quick_sync_modules(
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Quick sync all modules for the user"""
     user_id = get_user_id(semptify_uid)
-    
+
     workflow = await sync_all_modules(user_id)
-    
+
     return {
         "success": True,
         "workflow_id": workflow.id,
@@ -292,11 +293,11 @@ async def quick_sync_modules(
 @router.post("/mesh/invoke")
 async def invoke_module_action(
     request: InvokeModuleRequest,
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """Directly invoke a module action (without full workflow)"""
     user_id = get_user_id(semptify_uid)
-    
+
     try:
         result = await positronic_mesh.invoke_module(
             module=request.module,
@@ -304,7 +305,7 @@ async def invoke_module_action(
             user_id=user_id,
             params=request.params,
         )
-        
+
         return {
             "success": True,
             "module": request.module,
@@ -322,13 +323,13 @@ async def invoke_module_action(
 async def get_module_actions(module_name: str):
     """Get available actions for a specific module"""
     actions = positronic_mesh.get_module_actions(module_name)
-    
+
     if not actions:
         raise HTTPException(
             status_code=404,
             detail=f"Module '{module_name}' not found or has no registered actions"
         )
-    
+
     return {
         "module": module_name,
         "actions": actions,

@@ -13,29 +13,30 @@ Endpoints:
 # All imports remain absolute since workflow is a CORE module.
 
 import json
+import logging
 import os
+from collections import Counter
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import Any, Optional
-from collections import Counter
-from datetime import datetime, timezone
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.workflow_engine import ProcessCode, evaluate_from_params
-from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
-from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
-from app.core.module_contracts import contract_registry
-from app.core.user_context import UserRole
 from app.core.database import get_db_session
+from app.core.module_contracts import contract_registry
+from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
+from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
+from app.core.user_context import UserRole
 from app.core.utc import utc_now
-from app.models.models import CalendarEvent as CalendarEventModel, TimelineEvent, Document, DocumentPipelineIndex
+from app.core.workflow_engine import ProcessCode, evaluate_from_params
+from app.models.models import CalendarEvent as CalendarEventModel, DocumentPipelineIndex, TimelineEvent
+from app.services.positronic_brain import get_brain
 from app.services.storage import get_provider
 from app.services.timeline_extraction import TimelineStore
-from app.services.positronic_brain import get_brain
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/workflow", tags=["Workflow Engine"])
@@ -206,7 +207,7 @@ class RouteResponse(BaseModel):
     allowed_actions: list[str]
     blocked_actions: list[str]
     deterministic_reason: str
-    block_reason: Optional[str] = None
+    block_reason: str | None = None
     warnings: list[str]
 
 
@@ -224,11 +225,11 @@ class AdvanceResponse(BaseModel):
     status: str
     current_page: str
     missing_requirements: list[str]
-    next_process: Optional[str] = None
-    next_route: Optional[str] = None
+    next_process: str | None = None
+    next_route: str | None = None
     allowed_actions: list[str] = []
     blocked_actions: list[str] = []
-    deterministic_reason: Optional[str] = None
+    deterministic_reason: str | None = None
     warnings: list[str] = []
 
 
@@ -888,7 +889,7 @@ async def get_case_state(request: Request) -> CaseStateResponse:
 
 
 @router.get("/groups")
-async def list_process_groups(role: Optional[str] = None) -> dict:
+async def list_process_groups(role: str | None = None) -> dict:
     """
     Return all 8 process groups, optionally filtered by role.
     """
@@ -1032,7 +1033,7 @@ def _event_day(timestamp: str) -> str:
 
 
 @router.get("/help-telemetry-summary")
-async def help_telemetry_summary(limit: int = 1000, page: Optional[str] = None) -> dict:
+async def help_telemetry_summary(limit: int = 1000, page: str | None = None) -> dict:
     """
     Aggregate help-related click telemetry from the positronic brain event history.
     Useful for admin dashboards that need day-by-day and resource-level usage trends.

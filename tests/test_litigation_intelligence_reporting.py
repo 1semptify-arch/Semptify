@@ -7,7 +7,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.core.cookie_auth import sign_user_id
 from app.main import app
-from app.modules.litigation_intelligence.reporting_layer import create_reporting_layer, ReportingLayer
+from app.modules.litigation_intelligence.reporting_layer import ReportingLayer, create_reporting_layer
 
 
 def _client() -> AsyncClient:

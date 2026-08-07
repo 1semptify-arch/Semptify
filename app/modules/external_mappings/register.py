@@ -6,7 +6,6 @@ IDs: court cases, properties, agencies. Used for cross-system reference.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="external_mappings",
     group_name="external_mappings_mapping_create",

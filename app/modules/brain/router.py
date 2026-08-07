@@ -8,20 +8,12 @@ All imports remain absolute since brain is a RESEARCH module that depends
 on shared infrastructure (positronic_brain service).
 """
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import Optional
-from pydantic import BaseModel
-from datetime import datetime
-import json
 import logging
 
-from app.services.positronic_brain import (
-    get_brain, 
-    PositronicBrain, 
-    BrainEvent, 
-    EventType, 
-    ModuleType
-)
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+
+from app.services.positronic_brain import BrainEvent, EventType, ModuleType, PositronicBrain, get_brain
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +79,7 @@ async def list_modules(brain: PositronicBrain = Depends(get_brain)):
 
 @router.get("/state")
 async def get_state(
-    key: Optional[str] = None,
+    key: str | None = None,
     brain: PositronicBrain = Depends(get_brain)
 ):
     """
@@ -142,13 +134,13 @@ async def emit_event(
         source_module = ModuleType(request.source_module)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid event/module type: {e}")
-    
+
     event = BrainEvent(
         event_type=event_type,
         source_module=source_module,
         data=request.data
     )
-    
+
     await brain.emit(event)
     return {"success": True, "event": event.to_dict()}
 
@@ -171,7 +163,7 @@ async def trigger_workflow(
         request.workflow_name,
         request.data
     )
-    
+
     return {
         "workflow_id": workflow_id,
         "name": request.workflow_name,
@@ -258,23 +250,23 @@ async def brain_websocket(
     """
     await websocket.accept()
     brain.websocket_clients.add(websocket)
-    
+
     logger.info(f"○ Brain WebSocket connected (total: {len(brain.websocket_clients)})")
-    
+
     # Send initial state
     await websocket.send_json({
         "type": "connected",
         "state": brain.get_state(),
         "modules": brain.list_modules()
     })
-    
+
     try:
         while True:
             # Receive messages from client
             data = await websocket.receive_json()
-            
+
             msg_type = data.get("type")
-            
+
             if msg_type == "emit_event":
                 # Client wants to emit an event
                 try:
@@ -286,7 +278,7 @@ async def brain_websocket(
                     await brain.emit(event)
                 except Exception as e:
                     await websocket.send_json({"type": "error", "message": str(e)})
-            
+
             elif msg_type == "update_state":
                 # Client wants to update state
                 await brain.update_state(
@@ -294,7 +286,7 @@ async def brain_websocket(
                     data["value"],
                     ModuleType.UI
                 )
-            
+
             elif msg_type == "trigger_workflow":
                 # Client wants to trigger workflow
                 workflow_id = await brain.trigger_workflow(
@@ -305,18 +297,18 @@ async def brain_websocket(
                     "type": "workflow_started",
                     "workflow_id": workflow_id
                 })
-            
+
             elif msg_type == "get_state":
                 # Client requests current state
                 await websocket.send_json({
                     "type": "state",
                     "state": brain.get_state()
                 })
-            
+
             elif msg_type == "ping":
                 # Keep-alive
                 await websocket.send_json({"type": "pong"})
-    
+
     except WebSocketDisconnect:
         pass
     finally:

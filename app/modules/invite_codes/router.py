@@ -13,22 +13,20 @@ Routes:
 - DELETE /api/invite-codes/{code} - Deactivate a code
 """
 
-from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
 
 from app.core.database import get_db_session
-from app.core.request_utils import require_request_user_id
 from app.core.invite_codes import (
     create_invite_code,
-    validate_invite_code,
-    redeem_invite_code,
-    get_organization_codes,
     deactivate_invite_code,
     get_code_stats,
+    get_organization_codes,
+    redeem_invite_code,
+    validate_invite_code,
 )
-from app.core.user_id import COOKIE_USER_ID
+from app.core.request_utils import require_request_user_id
 
 router = APIRouter(prefix="/api/invite-codes", tags=["Invite Codes"])
 
@@ -44,8 +42,8 @@ class ValidateCodeRequest(BaseModel):
 class ValidateCodeResponse(BaseModel):
     valid: bool
     message: str
-    role: Optional[str] = None
-    organization: Optional[str] = None
+    role: str | None = None
+    organization: str | None = None
 
 
 class RedeemCodeRequest(BaseModel):
@@ -55,37 +53,37 @@ class RedeemCodeRequest(BaseModel):
 class RedeemCodeResponse(BaseModel):
     success: bool
     message: str
-    role: Optional[str] = None
-    organization: Optional[str] = None
+    role: str | None = None
+    organization: str | None = None
 
 
 class CreateCodeRequest(BaseModel):
     role: str = Field(default="advocate", description="Role to grant: advocate, legal, admin")
     max_uses: int = Field(default=1, ge=1, le=100, description="Maximum number of uses")
-    expires_days: Optional[int] = Field(default=None, ge=1, le=365, description="Days until expiration")
-    description: Optional[str] = Field(default=None, max_length=200, description="Optional note")
-    custom_code: Optional[str] = Field(default=None, max_length=32, description="Custom code (optional)")
+    expires_days: int | None = Field(default=None, ge=1, le=365, description="Days until expiration")
+    description: str | None = Field(default=None, max_length=200, description="Optional note")
+    custom_code: str | None = Field(default=None, max_length=32, description="Custom code (optional)")
 
 
 class CreateCodeResponse(BaseModel):
     success: bool
     code: str
     role: str
-    expires_at: Optional[str] = None
+    expires_at: str | None = None
 
 
 class CodeInfo(BaseModel):
     code: str
     role: str
-    organization: Optional[str]
+    organization: str | None
     max_uses: int
     uses_count: int
     remaining_uses: int
     is_active: bool
     is_expired: bool
-    expires_at: Optional[str]
+    expires_at: str | None
     created_at: str
-    description: Optional[str]
+    description: str | None
 
 
 # =============================================================================
@@ -105,7 +103,7 @@ async def validate_code(
     """
     with get_db_session() as db:
         is_valid, message, invite = validate_invite_code(body.code, db)
-        
+
         return ValidateCodeResponse(
             valid=is_valid,
             message=message,
@@ -126,13 +124,13 @@ async def redeem_code(
     and grants them the specified role.
     """
     user_id = require_request_user_id(request)
-    
+
     with get_db_session() as db:
         success, message, invite = redeem_invite_code(body.code, user_id, db)
-        
+
         if not success:
             raise HTTPException(status_code=400, detail=message)
-        
+
         return RedeemCodeResponse(
             success=True,
             message=message,
@@ -156,22 +154,22 @@ async def create_code(
     Requires manager or admin role. The created code will be
     associated with the creator's organization.
     """
-    from app.core.user_context import get_role_from_user_id, UserRole
+    from app.core.user_context import UserRole, get_role_from_user_id
     from app.models.models import User
-    
+
     user_id = require_request_user_id(request)
-    
+
     # Check permissions
     role = get_role_from_user_id(user_id)
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can create invite codes")
-    
+
     with get_db_session() as db:
         # Get user's organization info
         user = db.query(User).filter_by(id=user_id).first()
         org_id = user_id[:12] if user else None  # Use part of user ID as org ID
         org_name = f"Org {user_id[:8]}" if user else "Unknown Organization"
-        
+
         # Create the code
         invite = create_invite_code(
             created_by=user_id,
@@ -183,10 +181,10 @@ async def create_code(
             description=body.description,
             custom_code=body.custom_code,
         )
-        
+
         db.add(invite)
         db.commit()
-        
+
         return CreateCodeResponse(
             success=True,
             code=invite.code,
@@ -202,23 +200,23 @@ async def list_codes(request: Request):
     
     Returns active and inactive codes with usage statistics.
     """
-    from app.core.user_context import get_role_from_user_id, UserRole
+    from app.core.user_context import UserRole, get_role_from_user_id
     from app.models.models import User
-    
+
     user_id = require_request_user_id(request)
-    
+
     # Check permissions
     role = get_role_from_user_id(user_id)
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can view invite codes")
-    
+
     with get_db_session() as db:
         # Get user's organization
         user = db.query(User).filter_by(id=user_id).first()
         org_id = user_id[:12] if user else None
-        
+
         codes = get_organization_codes(org_id, db, include_inactive=True)
-        
+
         return {
             "codes": [
                 {
@@ -246,21 +244,21 @@ async def delete_code(code: str, request: Request):
     The code becomes permanently invalid but remains in the
     database for audit purposes.
     """
-    from app.core.user_context import get_role_from_user_id, UserRole
-    
+    from app.core.user_context import UserRole, get_role_from_user_id
+
     user_id = require_request_user_id(request)
-    
+
     # Check permissions
     role = get_role_from_user_id(user_id)
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can deactivate invite codes")
-    
+
     with get_db_session() as db:
         success = deactivate_invite_code(code, db)
-        
+
         if not success:
             raise HTTPException(status_code=404, detail="Invite code not found")
-        
+
         return {"success": True, "message": "Invite code deactivated"}
 
 
@@ -269,19 +267,19 @@ async def code_stats(code: str, request: Request):
     """
     Get detailed statistics about a specific invite code.
     """
-    from app.core.user_context import get_role_from_user_id, UserRole
-    
+    from app.core.user_context import UserRole, get_role_from_user_id
+
     user_id = require_request_user_id(request)
-    
+
     # Check permissions
     role = get_role_from_user_id(user_id)
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can view code stats")
-    
+
     with get_db_session() as db:
         stats = get_code_stats(code, db)
-        
+
         if not stats:
             raise HTTPException(status_code=404, detail="Invite code not found")
-        
+
         return stats

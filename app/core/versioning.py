@@ -5,9 +5,11 @@ Provides versioned API endpoints while maintaining backward compatibility.
 Current version: v1
 """
 
+import logging
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,7 +104,7 @@ def deprecation_warning(version: str, sunset_date: str) -> dict:
     return {
         "Deprecation": f"version={version}",
         "Sunset": sunset_date,
-        "Link": f'</api/version>; rel="successor-version"'
+        "Link": '</api/version>; rel="successor-version"'
     }
 
 
@@ -115,10 +117,10 @@ class APIVersionHeader:
         async def get_resource(version: str = Depends(APIVersionHeader())):
             ...
     """
-    
+
     def __init__(self, default: str = LATEST_VERSION):
         self.default = default
-    
+
     async def __call__(self, request: Request) -> str:
         version = request.headers.get("X-API-Version", self.default)
         if version not in SUPPORTED_VERSIONS:

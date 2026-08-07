@@ -5,7 +5,6 @@ Creates /modules/admin_console/ with router, UI panel, and SDK registration
 """
 
 import os
-import sys
 
 SEMPtIFY_PATH = r"C:\Semptify\Semptify-FastAPI"
 MODULES_PATH = os.path.join(SEMPtIFY_PATH, "modules")
@@ -30,12 +29,12 @@ def main():
     print("Semptify Admin Console Module Generator")
     print("=" * 60)
     print()
-    
+
     # Create directory structure
     create_directory(ADMIN_PATH)
     create_directory(os.path.join(ADMIN_PATH, "templates"))
     create_directory(os.path.join(ADMIN_PATH, "static"))
-    
+
     # 1. Create module manifest (__init__.py)
     manifest_content = '''"""
 Admin Console Module for Semptify
@@ -67,7 +66,7 @@ def check_local_ai() -> dict:
     try:
         resp = requests.get(f"{LOCAL_AI_URL}/", timeout=2)
         return {"connected": True, "status": resp.json()}
-    except:
+    except Exception:
         return {"connected": False, "status": "Local AI offline"}
 
 @router.get("/status")
@@ -98,7 +97,7 @@ def proxy_tools_list():
     try:
         resp = requests.get(f"{LOCAL_AI_URL}/tools/list", timeout=5)
         return resp.json()
-    except:
+    except Exception:
         return {"tools": [], "error": "Local AI offline"}
 
 @router.post("/tools/execute")
@@ -131,9 +130,9 @@ def register():
 # Auto-register on import
 register()
 '''
-    
+
     write_file(os.path.join(ADMIN_PATH, "__init__.py"), manifest_content)
-    
+
     # 2. Create admin panel UI template
     ui_content = '''<!DOCTYPE html>
 <html>
@@ -358,9 +357,9 @@ register()
 </body>
 </html>
 '''
-    
+
     write_file(os.path.join(ADMIN_PATH, "templates", "admin_panel.html"), ui_content)
-    
+
     print()
     print("=" * 60)
     print("Admin Console Module Created Successfully!")

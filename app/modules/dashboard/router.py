@@ -10,19 +10,20 @@ Single endpoint that combines data from:
 This provides everything the frontend needs in one call.
 """
 
-from fastapi import APIRouter, Query, Depends
-from typing import Dict, Any, Optional
-from pydantic import BaseModel
-from datetime import datetime
-
-from app.core.security import get_optional_user_id, green_access
-from app.core.user_context import UserContext
-from app.services.emotion_engine import emotion_engine
-from .service import progress_tracker
-from app.services.action_router import action_router
-from app.core.utc import utc_now
-from app.core.capabilities import require_capability
 import logging
+
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from app.core.capabilities import require_capability
+from app.core.security import green_access
+from app.core.user_context import UserContext
+from app.core.utc import utc_now
+from app.services.action_router import action_router
+from app.services.emotion_engine import emotion_engine
+
+from .service import progress_tracker
+
 logger = logging.getLogger(__name__)
 
 
@@ -63,12 +64,12 @@ async def get_unified_dashboard(
     emotional_state = emotion_engine.get_state(user_id)
     ui_adaptation = emotion_engine.calculate_ui_adaptation(user_id)
     dashboard_config = emotion_engine.get_dashboard_config(user_id)
-    
+
     # Get progress
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
     next_milestones = progress_tracker.get_next_milestones(user_id, 3)
-    
+
     # Build case context from progress
     case_context = {
         "has_court_date": progress.court_date is not None,
@@ -95,11 +96,11 @@ async def get_unified_dashboard(
         journey_days = (utc_now() - progress.journey_started).days + 1
     if progress.court_date:
         days_to_court = (progress.court_date - utc_now()).days
-    
+
     return {
         "success": True,
         "timestamp": utc_now().isoformat(),
-        
+
         # Emotional Layer
         "emotion": {
             "state": emotional_state,
@@ -115,7 +116,7 @@ async def get_unified_dashboard(
                 "message_tone": ui_adaptation.message_tone
             }
         },
-        
+
         # Progress Layer
         "progress": {
             "readiness": {
@@ -132,7 +133,7 @@ async def get_unified_dashboard(
             },
             "next_milestones": next_milestones
         },
-        
+
         # Timeline Layer
         "timeline": {
             "journey_days": journey_days,
@@ -140,7 +141,7 @@ async def get_unified_dashboard(
             "court_date": progress.court_date.strftime("%b %d, %Y") if progress.court_date else None,
             "case_type": progress.case_type
         },
-        
+
         # Action Layer
         "actions": {
             "primary": action_plan.primary_action.to_dict() if action_plan.primary_action else None,
@@ -149,7 +150,7 @@ async def get_unified_dashboard(
             "encouragement": action_plan.encouragement_message,
             "total_estimated_time": action_plan.total_estimated_time
         },
-        
+
         # Visible Sections (based on mode)
         "visible_sections": dashboard_config.get("visible_sections", [
             "mission_status", "today_tasks", "timeline", "quick_actions", "evidence_summary"
@@ -203,7 +204,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
     emotional_state = emotion_engine.get_state(user_id)
-    
+
     # Convert to dict for action router
     emotional_dict = {
         "intensity": emotional_state.intensity,
@@ -215,7 +216,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
         "resolve": emotional_state.resolve
     }
     mode = action_router.get_dashboard_mode(emotional_dict)
-    
+
     days_to_court = None
     urgent_count = 0
     if progress.court_date:
@@ -223,7 +224,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
         # Count as urgent if court date is within 14 days
         if days_to_court is not None and 0 < days_to_court <= 14:
             urgent_count = 1
-    
+
     return {
         "mode": mode,
         "readiness_percent": readiness["percent"],
@@ -244,7 +245,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
     """
     progress = progress_tracker.get_progress(user_id)
     emotional_state = emotion_engine.get_state(user_id)
-    
+
     # Convert to dict for action router
     emotional_dict = {
         "intensity": emotional_state.intensity,
@@ -256,7 +257,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
         "resolve": emotional_state.resolve
     }
     mode = action_router.get_dashboard_mode(emotional_dict)
-    
+
     # Time-based greeting
     hour = utc_now().hour
     if hour < 12:
@@ -265,7 +266,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
         time_greeting = "Good afternoon"
     else:
         time_greeting = "Good evening"
-    
+
     # Mode-based suffix
     mode_messages = {
         "crisis": "Let's focus on what matters most right now.",
@@ -274,14 +275,14 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
         "flow": "You're doing great! Let's keep the momentum.",
         "power": "You're on fire today!"
     }
-    
+
     # Streak recognition
     streak_message = ""
     if progress.streak_days >= 7:
         streak_message = f"◆ {progress.streak_days} day streak!"
     elif progress.streak_days >= 3:
         streak_message = f"Great consistency - {progress.streak_days} days in a row!"
-    
+
     # Court urgency
     urgency_message = ""
     if progress.court_date:
@@ -290,7 +291,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
             urgency_message = "◆ Court is very soon. Let's make sure you're ready."
         elif days_to_court <= 7:
             urgency_message = "Court is coming up. Time to finalize your preparation."
-    
+
     return {
         "greeting": time_greeting,
         "message": mode_messages.get(mode, "Welcome back."),
@@ -307,7 +308,7 @@ async def get_quick_stats(user_id: str = Depends(resolve_user_id)):
     """
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
-    
+
     return {
         "documents_uploaded": progress.documents_uploaded,
         "violations_found": progress.violations_found,

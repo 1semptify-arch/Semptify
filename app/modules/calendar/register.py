@@ -7,7 +7,6 @@ synced from documents (extracted dates).
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="calendar",
     group_name="calendar_create_event",

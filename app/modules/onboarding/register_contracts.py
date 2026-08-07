@@ -7,7 +7,6 @@ flag-driven. Storage connection is mandatory — no skip option.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="onboarding",
     group_name="onboarding_start",

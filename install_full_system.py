@@ -18,7 +18,7 @@ def run_command(cmd, cwd=None):
     if result.returncode != 0:
         print(f"Error: {result.stderr}")
     else:
-        print(f"✓ Success")
+        print("✓ Success")
     return result.returncode == 0
 
 def install_dependencies():
@@ -146,19 +146,19 @@ def main():
     print("Semptify Full System Installer")
     print("Tenant Advocacy Platform")
     print("=" * 60)
-    
+
     install_dependencies()
     setup_backend()
     setup_admin_module()
     create_launcher()
     create_readme()
-    
+
     print("\n" + "=" * 60)
     print("Installation Complete!")
     print("=" * 60)
-    print(f"\nNext steps:")
+    print("\nNext steps:")
     print(f"1. Run: {SEMPtIFY_PATH}\\launch_semptify.bat")
-    print(f"2. Open: http://127.0.0.1:8001")
+    print("2. Open: http://127.0.0.1:8001")
     print(f"3. Read: {SEMPtIFY_PATH}\\SETUP_COMPLETE.md")
     print()
 

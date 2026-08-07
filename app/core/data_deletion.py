@@ -6,14 +6,14 @@ Handles secure deletion of user data, documents, and compliance requirements.
 """
 
 import logging
-from app.core.utc import utc_now
 import os
 import shutil
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
-import json
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -38,30 +38,30 @@ class DeletionRequest:
     request_id: str
     user_id: str
     scope: DeletionScope
-    target_id: Optional[str]  # Document ID for single document deletion
+    target_id: str | None  # Document ID for single document deletion
     reason: str
     requested_at: datetime
     status: DeletionStatus
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
-    audit_log: List[str] = None
-    
+    completed_at: datetime | None = None
+    error_message: str | None = None
+    audit_log: list[str] = None
+
     def __post_init__(self):
         if self.audit_log is None:
             self.audit_log = []
 
 class DataDeletionManager:
     """Manages secure data deletion operations."""
-    
+
     def __init__(self):
-        self.requests: Dict[str, DeletionRequest] = {}
+        self.requests: dict[str, DeletionRequest] = {}
         self.deletion_retention_days = 30  # Keep deletion records for 30 days
-        
-    def create_deletion_request(self, user_id: str, scope: DeletionScope, 
-                              target_id: Optional[str] = None, reason: str = "") -> str:
+
+    def create_deletion_request(self, user_id: str, scope: DeletionScope,
+                              target_id: str | None = None, reason: str = "") -> str:
         """Create a new deletion request."""
         request_id = f"del_{utc_now().timestamp()}_{user_id}"
-        
+
         request = DeletionRequest(
             request_id=request_id,
             user_id=user_id,
@@ -71,34 +71,34 @@ class DataDeletionManager:
             requested_at=utc_now(),
             status=DeletionStatus.PENDING
         )
-        
+
         self.requests[request_id] = request
         logger.info(f"Created deletion request {request_id} for user {user_id}, scope {scope.value}")
-        
+
         return request_id
-    
-    def get_deletion_request(self, request_id: str) -> Optional[DeletionRequest]:
+
+    def get_deletion_request(self, request_id: str) -> DeletionRequest | None:
         """Get deletion request by ID."""
         return self.requests.get(request_id)
-    
-    def get_user_deletion_requests(self, user_id: str) -> List[DeletionRequest]:
+
+    def get_user_deletion_requests(self, user_id: str) -> list[DeletionRequest]:
         """Get all deletion requests for a user."""
         return [req for req in self.requests.values() if req.user_id == user_id]
-    
+
     def execute_deletion(self, request_id: str) -> bool:
         """Execute a deletion request."""
         request = self.requests.get(request_id)
         if not request:
             logger.error(f"Deletion request {request_id} not found")
             return False
-        
+
         if request.status != DeletionStatus.PENDING:
             logger.warning(f"Deletion request {request_id} already processed")
             return False
-        
+
         request.status = DeletionStatus.IN_PROGRESS
         request.audit_log.append(f"Started deletion at {utc_now()}")
-        
+
         try:
             if request.scope == DeletionScope.SINGLE_DOCUMENT:
                 success = self._delete_single_document(request)
@@ -110,7 +110,7 @@ class DataDeletionManager:
                 success = self._delete_complete_account(request)
             else:
                 raise ValueError(f"Unknown deletion scope: {request.scope}")
-            
+
             if success:
                 request.status = DeletionStatus.COMPLETED
                 request.completed_at = utc_now()
@@ -121,32 +121,32 @@ class DataDeletionManager:
                 request.error_message = "Deletion operation failed"
                 request.audit_log.append("Deletion failed")
                 logger.error(f"Failed deletion request {request_id}")
-            
+
             return success
-            
+
         except Exception as e:
             request.status = DeletionStatus.FAILED
             request.error_message = str(e)
             request.audit_log.append(f"Deletion failed with error: {str(e)}")
             logger.error(f"Error executing deletion request {request_id}: {e}")
             return False
-    
+
     def _delete_single_document(self, request: DeletionRequest) -> bool:
         """Delete a single document."""
         if not request.target_id:
             raise ValueError("Document ID required for single document deletion")
-        
+
         try:
             # Get vault service
             from app.services.vault_upload_service import get_vault_service
             vault_service = get_vault_service()
-            
+
             # Delete from vault
             success = vault_service.delete_document(request.target_id, request.user_id)
-            
+
             if success:
                 request.audit_log.append(f"Deleted document {request.target_id} from vault")
-                
+
                 # Log deletion
                 from app.core.audit_logger import get_audit_logger
                 audit_logger = get_audit_logger()
@@ -160,33 +160,33 @@ class DataDeletionManager:
                 )
             else:
                 request.audit_log.append(f"Failed to delete document {request.target_id} from vault")
-            
+
             return success
-            
+
         except Exception as e:
             request.audit_log.append(f"Error deleting document {request.target_id}: {str(e)}")
             raise
-    
+
     def _delete_all_documents(self, request: DeletionRequest) -> bool:
         """Delete all documents for a user."""
         try:
             # Get vault service
             from app.services.vault_upload_service import get_vault_service
             vault_service = get_vault_service()
-            
+
             # Get all user documents
             documents = vault_service.get_user_documents(request.user_id)
-            
+
             deleted_count = 0
             failed_count = 0
-            
+
             for doc in documents:
                 try:
                     success = vault_service.delete_document(doc.vault_id, request.user_id)
                     if success:
                         deleted_count += 1
                         request.audit_log.append(f"Deleted document {doc.vault_id} ({doc.filename})")
-                        
+
                         # Log deletion
                         from app.core.audit_logger import get_audit_logger
                         audit_logger = get_audit_logger()
@@ -204,21 +204,21 @@ class DataDeletionManager:
                 except Exception as e:
                     failed_count += 1
                     request.audit_log.append(f"Error deleting document {doc.vault_id}: {str(e)}")
-            
+
             request.audit_log.append(f"Deleted {deleted_count} documents, {failed_count} failed")
-            
+
             return failed_count == 0
-            
+
         except Exception as e:
             request.audit_log.append(f"Error deleting all documents: {str(e)}")
             raise
-    
+
     def _delete_user_data(self, request: DeletionRequest) -> bool:
         """Delete user data (excluding documents)."""
         try:
             # Delete user preferences, settings, and other metadata
             deleted_items = []
-            
+
             # Delete user from database if applicable
             try:
                 # This would depend on your database structure
@@ -227,7 +227,7 @@ class DataDeletionManager:
                 request.audit_log.append("Deleted user database record")
             except Exception as e:
                 request.audit_log.append(f"Failed to delete user database record: {str(e)}")
-            
+
             # Delete user cache files
             try:
                 cache_dir = f"cache/user_{request.user_id}"
@@ -237,7 +237,7 @@ class DataDeletionManager:
                     request.audit_log.append("Deleted user cache directory")
             except Exception as e:
                 request.audit_log.append(f"Failed to delete user cache: {str(e)}")
-            
+
             # Delete user temporary files
             try:
                 temp_dir = f"temp/user_{request.user_id}"
@@ -247,26 +247,26 @@ class DataDeletionManager:
                     request.audit_log.append("Deleted user temporary files")
             except Exception as e:
                 request.audit_log.append(f"Failed to delete user temp files: {str(e)}")
-            
+
             request.audit_log.append(f"Deleted user data items: {', '.join(deleted_items)}")
-            
+
             return True
-            
+
         except Exception as e:
             request.audit_log.append(f"Error deleting user data: {str(e)}")
             raise
-    
+
     def _delete_complete_account(self, request: DeletionRequest) -> bool:
         """Delete complete user account including all data."""
         try:
             # Delete all documents first
             docs_success = self._delete_all_documents(request)
             request.audit_log.append("Document deletion completed for account deletion")
-            
+
             # Delete user data
             data_success = self._delete_user_data(request)
             request.audit_log.append("User data deletion completed for account deletion")
-            
+
             # Additional cleanup
             try:
                 # Delete any remaining user-related files
@@ -275,83 +275,83 @@ class DataDeletionManager:
                     f"processing/{request.user_id}",
                     f"backups/{request.user_id}"
                 ]
-                
+
                 for user_dir in user_dirs:
                     if os.path.exists(user_dir):
                         shutil.rmtree(user_dir)
                         request.audit_log.append(f"Deleted directory: {user_dir}")
-                
+
             except Exception as e:
                 request.audit_log.append(f"Error cleaning up user directories: {str(e)}")
-            
+
             overall_success = docs_success and data_success
             request.audit_log.append(f"Complete account deletion {'succeeded' if overall_success else 'failed'}")
-            
+
             return overall_success
-            
+
         except Exception as e:
             request.audit_log.append(f"Error deleting complete account: {str(e)}")
             raise
-    
+
     def cancel_deletion_request(self, request_id: str) -> bool:
         """Cancel a pending deletion request."""
         request = self.requests.get(request_id)
         if not request:
             return False
-        
+
         if request.status != DeletionStatus.PENDING:
             return False
-        
+
         request.status = DeletionStatus.CANCELLED
         request.completed_at = utc_now()
         request.audit_log.append(f"Request cancelled at {request.completed_at}")
-        
+
         logger.info(f"Cancelled deletion request {request_id}")
         return True
-    
+
     def cleanup_old_requests(self):
         """Clean up old deletion requests."""
         cutoff_date = utc_now() - timedelta(days=self.deletion_retention_days)
-        
+
         old_requests = [
             req_id for req_id, req in self.requests.items()
             if req.completed_at and req.completed_at < cutoff_date
         ]
-        
+
         for req_id in old_requests:
             del self.requests[req_id]
-        
+
         if old_requests:
             logger.info(f"Cleaned up {len(old_requests)} old deletion requests")
-    
-    def get_deletion_summary(self, user_id: Optional[str] = None) -> Dict[str, Any]:
+
+    def get_deletion_summary(self, user_id: str | None = None) -> dict[str, Any]:
         """Get summary of deletion operations."""
         requests = list(self.requests.values())
-        
+
         if user_id:
             requests = [req for req in requests if req.user_id == user_id]
-        
+
         # Count by status
         status_counts = {}
         for req in requests:
             status = req.status.value
             status_counts[status] = status_counts.get(status, 0) + 1
-        
+
         # Count by scope
         scope_counts = {}
         for req in requests:
             scope = req.scope.value
             scope_counts[scope] = scope_counts.get(scope, 0) + 1
-        
+
         # Success rate
         completed_requests = [req for req in requests if req.status == DeletionStatus.COMPLETED]
         failed_requests = [req for req in requests if req.status == DeletionStatus.FAILED]
-        
+
         success_rate = 0
         total_finished = len(completed_requests) + len(failed_requests)
         if total_finished > 0:
             success_rate = (len(completed_requests) / total_finished) * 100
-        
+
         return {
             "total_requests": len(requests),
             "status_counts": status_counts,

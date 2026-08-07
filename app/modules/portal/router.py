@@ -10,19 +10,16 @@ Endpoints:
 """
 
 import logging
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import Response
 
+from app.core.utc import utc_now
 from app.modules.portal.service import (
     get_portal_catalog,
     get_service,
     get_sitemap_entries,
-    get_footer_pages,
-    get_sitemap_pages,
 )
-from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 

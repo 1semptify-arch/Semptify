@@ -12,16 +12,14 @@ Contract:
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import Optional, Tuple
+from datetime import UTC
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.oauth_token_manager import token_manager, OAuthToken
-from app.core.user_id import parse_user_id, COOKIE_USER_ID
-from app.core.cookie_auth import verify_user_id
 from app.core.database import get_session_factory
-from app.core.utc import utc_now
+from app.core.oauth_token_manager import OAuthToken, token_manager
+from app.core.user_id import parse_user_id
 from app.models.models import Session as SessionModel
 
 logger = logging.getLogger(__name__)
@@ -38,8 +36,8 @@ class RefreshResult:
 
 async def ensure_valid_token(
     user_id: str,
-    db: Optional[AsyncSession] = None
-) -> Tuple[bool, Optional[OAuthToken], str]:
+    db: AsyncSession | None = None
+) -> tuple[bool, OAuthToken | None, str]:
     """
     Ensure the user has a valid access token, refreshing if needed.
     
@@ -54,7 +52,7 @@ async def ensure_valid_token(
     if cached_token and not cached_token.is_expired():
         logger.debug(f"Token valid in cache for user {user_id[:6]}***")
         return True, cached_token, RefreshResult.SUCCESS
-    
+
     # Token not in cache or expired - try to refresh from DB
     if not db:
         factory = get_session_factory()
@@ -66,8 +64,9 @@ async def ensure_valid_token(
 
 def _derive_key(user_id: str) -> bytes:
     """Derive encryption key from user_id + server secret."""
-    from app.core.config import get_settings
     import hashlib
+
+    from app.core.config import get_settings
     settings = get_settings()
     secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
     combined = f"{secret_key}:{user_id}".encode()
@@ -79,8 +78,9 @@ def _encrypt_string(value: str, user_id: str) -> str:
     import base64
     import json
     import secrets
+
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    
+
     key = _derive_key(user_id)
     nonce = secrets.token_bytes(12)
     plaintext = json.dumps({"v": value}).encode()
@@ -93,8 +93,9 @@ def _decrypt_string(encrypted: str, user_id: str) -> str:
     """Decrypt a base64 encoded encrypted string."""
     import base64
     import json
+
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    
+
     key = _derive_key(user_id)
     encrypted_bytes = base64.b64decode(encrypted.encode('utf-8'))
     nonce = encrypted_bytes[:12]
@@ -108,7 +109,7 @@ def _decrypt_string(encrypted: str, user_id: str) -> str:
 async def _refresh_from_db(
     user_id: str,
     db: AsyncSession
-) -> Tuple[bool, Optional[OAuthToken], str]:
+) -> tuple[bool, OAuthToken | None, str]:
     """
     Load refresh token from DB and attempt async refresh.
 
@@ -156,7 +157,7 @@ async def _refresh_from_db(
         # comparing aware and naive datetimes (SQLite returns naive datetimes).
         expires_at = session_row.expires_at
         if expires_at and expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
 
         # Create token object from DB data
         token = OAuthToken(
@@ -209,8 +210,8 @@ async def _refresh_from_db(
 async def get_valid_token_or_redirect(
     user_id: str,
     return_to: str,
-    db: Optional[AsyncSession] = None
-) -> Tuple[Optional[OAuthToken], Optional[str]]:
+    db: AsyncSession | None = None
+) -> tuple[OAuthToken | None, str | None]:
     """
     Get a valid token, or return the redirect URL for full reauth.
     
@@ -222,21 +223,20 @@ async def get_valid_token_or_redirect(
         - If reauth needed: (None, redirect_url)
     """
     is_valid, token, status = await ensure_valid_token(user_id, db)
-    
+
     if is_valid:
         return token, None
-    
+
     # Refresh failed - need full reauth
     from app.core.navigation import navigation
-    from app.core.ssot_guard import ssot_redirect
-    
+
     provider, role, unique = parse_user_id(user_id)
     reconnect_stage = navigation.get_stage("reconnect")
     reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
-    
+
     # Build reconnect URL with return_to
     reconnect_url = f"{reconnect_path}?return_to={return_to}&provider={provider}"
-    
+
     logger.info(f"Reauth required for user {user_id[:6]}*** (status={status}) ▸ {reconnect_path}")
     return None, reconnect_url
 
@@ -244,15 +244,15 @@ async def get_valid_token_or_redirect(
 def register_provider_refresh_callbacks():
     """Register all provider-specific refresh callbacks."""
     from app.core.oauth_token_manager import (
-        register_google_refresh_callback,
         register_dropbox_refresh_callback,
-        register_onedrive_refresh_callback
+        register_google_refresh_callback,
+        register_onedrive_refresh_callback,
     )
-    
+
     register_google_refresh_callback()
     register_dropbox_refresh_callback()
     register_onedrive_refresh_callback()
-    
+
     logger.info("All provider refresh callbacks registered")
 
 

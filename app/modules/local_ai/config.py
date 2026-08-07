@@ -6,7 +6,7 @@ the config makes it specific.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -41,7 +41,7 @@ class LocalAIConfig:
     route_prefix: str = "/local-ai"
 
     # --- Features ---
-    enabled_features: List[str] = field(default_factory=lambda: [
+    enabled_features: list[str] = field(default_factory=lambda: [
         "chat",
         "analysis",
         "summarization",
@@ -55,10 +55,10 @@ class LocalAIConfig:
     )
 
     # --- Additional parameters ---
-    model_params: Dict[str, Any] = field(default_factory=dict)
+    model_params: dict[str, Any] = field(default_factory=dict)
 
     # --- Supported model presets ---
-    MODEL_PRESETS: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {
+    MODEL_PRESETS: dict[str, dict[str, Any]] = field(default_factory=lambda: {
         "llama-3-8b": {
             "max_tokens": 2048,
             "temperature": 0.7,
@@ -81,7 +81,7 @@ class LocalAIConfig:
         },
     })
 
-    def get_model_config(self) -> Dict[str, Any]:
+    def get_model_config(self) -> dict[str, Any]:
         """Get complete model configuration with presets applied."""
         preset = self.MODEL_PRESETS.get(self.model_name, {})
         return {

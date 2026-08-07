@@ -1,8 +1,9 @@
 
-from pydantic import BaseModel
-from datetime import date
-from typing import List, Optional
 import logging
+from datetime import date
+
+from pydantic import BaseModel
+
 logger = logging.getLogger(__name__)
 
 class LegalCase(BaseModel):
@@ -11,15 +12,15 @@ class LegalCase(BaseModel):
     landlord_name: str
     address: str
     status: str = "draft"
-    due_date: Optional[date] = None
-    notes: Optional[str] = None
+    due_date: date | None = None
+    notes: str | None = None
 
 class EvidenceItem(BaseModel):
     item_id: str
     case_id: str
     description: str
-    collected_on: Optional[date] = None
-    tags: List[str] = []
-    vault_id: Optional[str] = None
-    overlay_record_ids: List[str] = []
-    extracted_data: Optional[dict] = None
+    collected_on: date | None = None
+    tags: list[str] = []
+    vault_id: str | None = None
+    overlay_record_ids: list[str] = []
+    extracted_data: dict | None = None

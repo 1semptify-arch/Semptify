@@ -6,7 +6,6 @@ notification.send permission. All notifications are audited with the
 originating module name.
 """
 import logging
-from typing import Optional
 
 from app.sdk.external.context import ExternalModuleContext
 from app.sdk.external.permissions import Permission
@@ -26,7 +25,7 @@ class NotificationClient:
         title: str,
         body: str,
         category: str = "external_module",
-        action_url: Optional[str] = None,
+        action_url: str | None = None,
     ) -> dict:
         """Send a notification to a user. Requires notification.send."""
         self._ctx.require_permission(Permission.NOTIFICATION_SEND.value, "send_notification")

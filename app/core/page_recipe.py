@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any
 from enum import Enum
+from typing import Any
 
 
 class PageIntent(str, Enum):
@@ -73,8 +73,8 @@ class PageComponent:
     description: str               # What it does
     required: bool = True          # Can page work without this?
     implemented: bool = False      # Status
-    file_path: Optional[str] = None  # Where it lives
-    depends_on: List[str] = field(default_factory=list)  # Other components this needs
+    file_path: str | None = None  # Where it lives
+    depends_on: list[str] = field(default_factory=list)  # Other components this needs
 
 
 @dataclass
@@ -91,11 +91,11 @@ class PageStep:
     order: int                     # Step number (reverse: highest = final)
     description: str               # What user does or system does
     actor: str                     # "user" or "system"
-    triggers: List[str] = field(default_factory=list)      # What triggers this step
-    requires: List[str] = field(default_factory=list)      # Components needed
-    outputs: List[str] = field(default_factory=list)       # Data produced
-    error_states: List[str] = field(default_factory=list) # What can go wrong
-    next_step: Optional[int] = None  # Next in sequence
+    triggers: list[str] = field(default_factory=list)      # What triggers this step
+    requires: list[str] = field(default_factory=list)      # Components needed
+    outputs: list[str] = field(default_factory=list)       # Data produced
+    error_states: list[str] = field(default_factory=list) # What can go wrong
+    next_step: int | None = None  # Next in sequence
 
 
 @dataclass
@@ -109,43 +109,43 @@ class PageRecipe:
     - HOW does it get there? (steps, components)
     - WHAT can go wrong? (error_states)
     """
-    
+
     # Identity
     page_id: str                   # Unique identifier
     page_title: str                # Human name
     intent: PageIntent             # Classification
-    
+
     # Purpose
     purpose: str                   # One sentence: what this page achieves
     user_intent: str               # What the user wants when they arrive
-    success_criteria: List[str] = field(default_factory=list)  # How we know it worked
-    
+    success_criteria: list[str] = field(default_factory=list)  # How we know it worked
+
     # Triggers - How users get here
-    trigger_routes: List[str] = field(default_factory=list)      # URLs that lead here
-    entry_conditions: List[str] = field(default_factory=list)      # What must be true
-    
+    trigger_routes: list[str] = field(default_factory=list)      # URLs that lead here
+    entry_conditions: list[str] = field(default_factory=list)      # What must be true
+
     # Components - What must exist
-    components: List[PageComponent] = field(default_factory=list)
-    
+    components: list[PageComponent] = field(default_factory=list)
+
     # Steps - The journey
-    steps: List[PageStep] = field(default_factory=list)
-    
+    steps: list[PageStep] = field(default_factory=list)
+
     # Data flow
-    data_inputs: List[str] = field(default_factory=list)   # What comes in
-    data_outputs: List[str] = field(default_factory=list) # What goes out
-    
+    data_inputs: list[str] = field(default_factory=list)   # What comes in
+    data_outputs: list[str] = field(default_factory=list) # What goes out
+
     # Completion
-    completion_redirect: Optional[str] = None  # Where to go when done
-    completion_actions: List[str] = field(default_factory=list)  # Side effects
-    
+    completion_redirect: str | None = None  # Where to go when done
+    completion_actions: list[str] = field(default_factory=list)  # Side effects
+
     # Failure handling
-    error_states: List[str] = field(default_factory=list)      # Known error cases
-    recovery_paths: Dict[str, str] = field(default_factory=dict)  # error -> recovery route
-    
+    error_states: list[str] = field(default_factory=list)      # Known error cases
+    recovery_paths: dict[str, str] = field(default_factory=dict)  # error -> recovery route
+
     # Observability
-    telemetry_events: List[str] = field(default_factory=list)
-    
-    def validate(self) -> Dict[str, Any]:
+    telemetry_events: list[str] = field(default_factory=list)
+
+    def validate(self) -> dict[str, Any]:
         """Check recipe completeness and return status."""
         missing = []
         if not self.purpose:
@@ -156,9 +156,9 @@ class PageRecipe:
             missing.append("success_criteria")
         if not self.steps:
             missing.append("steps")
-        
+
         unimplemented = [c for c in self.components if c.required and not c.implemented]
-        
+
         return {
             "complete": len(missing) == 0 and len(unimplemented) == 0,
             "missing_fields": missing,
@@ -166,14 +166,14 @@ class PageRecipe:
             "total_components": len(self.components),
             "implemented_count": len([c for c in self.components if c.implemented])
         }
-    
-    def get_dependency_graph(self) -> Dict[str, List[str]]:
+
+    def get_dependency_graph(self) -> dict[str, list[str]]:
         """Build dependency graph of components."""
         graph = {}
         for component in self.components:
             graph[component.name] = component.depends_on
         return graph
-    
+
     def to_dict(self) -> dict:
         """Export recipe as dictionary."""
         return {
@@ -224,31 +224,31 @@ class PageRecipe:
 
 class RecipeRegistry:
     """Central registry of all page recipes."""
-    
-    _recipes: Dict[str, PageRecipe] = {}
-    
+
+    _recipes: dict[str, PageRecipe] = {}
+
     @classmethod
     def register(cls, recipe: PageRecipe) -> None:
         """Add a recipe to the registry."""
         cls._recipes[recipe.page_id] = recipe
-    
+
     @classmethod
-    def get(cls, page_id: str) -> Optional[PageRecipe]:
+    def get(cls, page_id: str) -> PageRecipe | None:
         """Retrieve a recipe by page_id."""
         return cls._recipes.get(page_id)
-    
+
     @classmethod
-    def all_recipes(cls) -> Dict[str, PageRecipe]:
+    def all_recipes(cls) -> dict[str, PageRecipe]:
         """Get all registered recipes."""
         return cls._recipes.copy()
-    
+
     @classmethod
-    def by_intent(cls, intent: PageIntent) -> List[PageRecipe]:
+    def by_intent(cls, intent: PageIntent) -> list[PageRecipe]:
         """Get all recipes of a specific intent type."""
         return [r for r in cls._recipes.values() if r.intent == intent]
-    
+
     @classmethod
-    def incomplete(cls) -> List[PageRecipe]:
+    def incomplete(cls) -> list[PageRecipe]:
         """Get all recipes that aren't fully implemented."""
         return [r for r in cls._recipes.values() if not r.validate()["complete"]]
 
@@ -267,7 +267,7 @@ def create_document_intake_recipe() -> PageRecipe:
         page_id="document_intake",
         page_title="Document Upload",
         intent=PageIntent.COLLECT,
-        
+
         # Purpose
         purpose="Allow tenants to upload case documents to their vault with automatic categorization",
         user_intent="I need to get my eviction notice and lease into the system so my advocate can see them",
@@ -278,11 +278,11 @@ def create_document_intake_recipe() -> PageRecipe:
             "Documents appear in timeline",
             "Processing status visible"
         ],
-        
+
         # Triggers
         trigger_routes=["/documents/upload", "/vault/add", "/intake/documents"],
         entry_conditions=["User authenticated", "Storage connected", "Vault initialized"],
-        
+
         # Components (work backwards from success criteria)
         components=[
             # UI Components
@@ -314,7 +314,7 @@ def create_document_intake_recipe() -> PageRecipe:
                 file_path="app/templates/components/success_modal.html",
                 depends_on=["upload_endpoint"]
             ),
-            
+
             # API Endpoints
             PageComponent(
                 component_type=ComponentType.API_ENDPOINT,
@@ -330,7 +330,7 @@ def create_document_intake_recipe() -> PageRecipe:
                 file_path="app/routers/vault.py",
                 depends_on=["upload_endpoint"]
             ),
-            
+
             # Services
             PageComponent(
                 component_type=ComponentType.SERVICE_FUNCTION,
@@ -360,7 +360,7 @@ def create_document_intake_recipe() -> PageRecipe:
                 file_path="app/services/timeline_extractor.py",
                 depends_on=["auto_categorize_service"]
             ),
-            
+
             # Guards
             PageComponent(
                 component_type=ComponentType.ROUTE_GUARD,
@@ -376,7 +376,7 @@ def create_document_intake_recipe() -> PageRecipe:
                 file_path="app/routers/role_ui.py",
                 depends_on=["auth_guard"]
             ),
-            
+
             # Telemetry
             PageComponent(
                 component_type=ComponentType.TELEMETRY_HOOK,
@@ -386,7 +386,7 @@ def create_document_intake_recipe() -> PageRecipe:
                 depends_on=[]
             )
         ],
-        
+
         # Steps (work backwards from completion)
         steps=[
             # Final step
@@ -444,19 +444,19 @@ def create_document_intake_recipe() -> PageRecipe:
                 outputs=["file_selection"]
             )
         ],
-        
+
         # Data
         data_inputs=["files", "document_type_hint", "case_id", "user_id"],
         data_outputs=["vault_document_id", "upload_manifest", "category", "timeline_events"],
-        
+
         # Completion
         completion_redirect="/vault",
         completion_actions=["timeline_updated", "notification_sent"],
-        
+
         # Errors
         error_states=[
             "file_too_large",
-            "unsupported_format", 
+            "unsupported_format",
             "upload_failed",
             "scan_failed",
             "virus_detected",
@@ -470,7 +470,7 @@ def create_document_intake_recipe() -> PageRecipe:
             "upload_failed": "/documents/upload?retry=1",
             "unauthorized": "/storage/providers"
         },
-        
+
         # Telemetry
         telemetry_events=[
             "upload_started",

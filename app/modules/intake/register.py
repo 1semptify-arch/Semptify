@@ -8,7 +8,6 @@ This is the RECORD pillar's entry point.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Upload Endpoints ---
 
 register_function_group(FunctionGroupContract(

@@ -25,12 +25,13 @@ Architecture Note:
 - One cookie, one ID, clean separation of concerns
 """
 
+import logging
 import secrets
 import string
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
-import logging
+from typing import Optional
+
 logger = logging.getLogger(__name__)
 
 
@@ -119,30 +120,30 @@ def generate_user_id(provider: str, role: str = "user") -> str:
     # Get codes
     provider_code = PROVIDER_TO_CODE.get(provider, ProviderCode.GOOGLE_DRIVE)
     role_code = ROLE_TO_CODE.get(role, RoleCode.USER)
-    
+
     # Generate cryptographically secure 8-char random suffix
     # Use token_urlsafe for URL-safe characters, then convert to alphanumeric
     random_bytes = secrets.token_bytes(6)  # 48 bits = ~8 base64 chars
     random_part = secrets.token_urlsafe(6)[:8]  # Take first 8 chars
-    
+
     # Ensure all characters are alphanumeric (replace URL-safe chars if needed)
     alphabet = string.ascii_letters + string.digits
     # If any non-alphanumeric chars appear, replace them with random alphanumeric
     random_part = ''.join(
-        c if c in alphabet else secrets.choice(alphabet) 
+        c if c in alphabet else secrets.choice(alphabet)
         for c in random_part
     )
-    
+
     # Ensure exactly 8 characters
     while len(random_part) < 8:
         random_part += secrets.choice(alphabet)
-    
+
     user_id = f"{provider_code.value}{role_code.value}{random_part}"
-    
+
     return user_id
 
 
-def parse_user_id(user_id: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+def parse_user_id(user_id: str) -> tuple[str | None, str | None, str | None]:
     """
     Parse a user ID to extract provider, role, and unique part.
     
@@ -166,17 +167,17 @@ def parse_user_id(user_id: str) -> Tuple[Optional[str], Optional[str], Optional[
     provider_char = user_id[0].upper()
     role_char = user_id[1].upper()
     unique_part = user_id[2:]
-    
+
     provider = CODE_TO_PROVIDER.get(provider_char)
     role = CODE_TO_ROLE.get(role_char)
-    
+
     if not provider or not role:
         return None, None, None
-    
+
     return provider, role, unique_part
 
 
-def update_user_id_role(user_id: str, new_role: str) -> Optional[str]:
+def update_user_id_role(user_id: str, new_role: str) -> str | None:
     """
     Create a new user ID with updated role (keeps provider and unique part).
     
@@ -192,20 +193,20 @@ def update_user_id_role(user_id: str, new_role: str) -> Optional[str]:
     provider, _, unique_part = parse_user_id(user_id)
     if not provider or not unique_part:
         return None
-    
+
     role_code = ROLE_TO_CODE.get(new_role, RoleCode.USER)
     provider_code = PROVIDER_TO_CODE.get(provider, ProviderCode.GOOGLE_DRIVE)
-    
+
     return f"{provider_code.value}{role_code.value}{unique_part}"
 
 
-def get_provider_from_user_id(user_id: str) -> Optional[str]:
+def get_provider_from_user_id(user_id: str) -> str | None:
     """Quick helper to get just the provider from user ID."""
     provider, _, _ = parse_user_id(user_id)
     return provider
 
 
-def get_role_from_user_id(user_id: str) -> Optional[str]:
+def get_role_from_user_id(user_id: str) -> str | None:
     """Quick helper to get just the role from user ID."""
     _, role, _ = parse_user_id(user_id)
     return role
@@ -222,7 +223,7 @@ class ParsedUserId:
     provider: str
     role: str
     unique_part: str
-    
+
     @classmethod
     def from_string(cls, user_id: str) -> Optional["ParsedUserId"]:
         """Parse user ID string into structured object."""
@@ -235,7 +236,7 @@ class ParsedUserId:
             role=role,
             unique_part=unique_part,
         )
-    
+
     def with_role(self, new_role: str) -> "ParsedUserId":
         """Create new ParsedUserId with different role."""
         new_id = update_user_id_role(self.user_id, new_role)
@@ -245,7 +246,7 @@ class ParsedUserId:
             role=new_role,
             unique_part=self.unique_part,
         )
-    
+
     @property
     def provider_name(self) -> str:
         """Human-readable provider name."""
@@ -255,8 +256,8 @@ class ParsedUserId:
             "onedrive": "OneDrive",
         }
         return names.get(self.provider, self.provider)
-    
-    @property 
+
+    @property
     def role_name(self) -> str:
         """Human-readable role name."""
         return self.role.title()

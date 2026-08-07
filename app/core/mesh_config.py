@@ -4,32 +4,32 @@ Controls Positronic Mesh intensity to conserve resources while
 maintaining core mechanics integrity.
 """
 
-from dataclasses import dataclass
-from typing import Set
 import logging
+from dataclasses import dataclass
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class MeshModeConfig:
     """Configuration for mesh operating mode."""
-    
+
     mode: str  # "lean" or "full"
     max_concurrent_workflows: int
     enable_speculative_execution: bool
     enable_action_chaining: bool
-    deferred_action_modules: Set[str]
+    deferred_action_modules: set[str]
     critical_only: bool
-    
+
     def is_action_allowed(self, module: str, action: str) -> bool:
         """Check if action should execute in current mode."""
         if self.mode == "full":
             return True
-        
+
         # Lean mode: skip deferred modules
         if module in self.deferred_action_modules:
             return False
-        
+
         return True
 
 
@@ -42,7 +42,7 @@ LEAN_MESH_CONFIG = MeshModeConfig(
     deferred_action_modules={
         # Deferred until scale-up triggers met
         "fraud_exposure",
-        "public_exposure", 
+        "public_exposure",
         "research",
         "legal_trails",
         "adaptive_ui",

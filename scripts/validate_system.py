@@ -4,9 +4,9 @@ Tests all endpoints, database, and functionality
 """
 
 import asyncio
-import httpx
-import json
 from pathlib import Path
+
+import httpx
 
 BASE_URL = "http://localhost:8000"
 
@@ -25,11 +25,11 @@ def test(name):
 
 async def run_tests():
     global PASSED, FAILED
-    
+
     print("=" * 60)
     print("🔍 SEMPTIFY FULL SYSTEM VALIDATION")
     print("=" * 60)
-    
+
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=30.0) as client:
         for name, test_func in TESTS:
             try:
@@ -43,7 +43,7 @@ async def run_tests():
             except Exception as e:
                 print(f"❌ {name} - Error: {e}")
                 FAILED += 1
-    
+
     print("=" * 60)
     print(f"RESULTS: {PASSED} passed, {FAILED} failed")
     print("=" * 60)

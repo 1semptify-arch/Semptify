@@ -6,16 +6,24 @@ Provides endpoints for running and managing automated tests.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, red_access
+from app.core.security import StorageUser, red_access
 from app.core.testing_framework import (
-    get_test_framework, get_cicd_pipeline, TestType, TestStatus,
-    create_test_suite, run_test_suite, get_test_suite, get_test_run,
-    get_test_statistics, create_pipeline_config, run_pipeline,
-    get_pipeline_status, get_pipeline_statistics
+    TestStatus,
+    create_pipeline_config,
+    create_test_suite,
+    get_pipeline_statistics,
+    get_pipeline_status,
+    get_test_framework,
+    get_test_run,
+    get_test_statistics,
+    get_test_suite,
+    run_pipeline,
+    run_test_suite,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,20 +38,20 @@ class TestSuiteCreateRequest(BaseModel):
     suite_id: str = Field(..., description="Unique suite identifier")
     name: str = Field(..., description="Suite name")
     description: str = Field(..., description="Suite description")
-    tags: List[str] = Field(default_factory=list, description="Suite tags")
+    tags: list[str] = Field(default_factory=list, description="Suite tags")
 
 class TestRunRequest(BaseModel):
     """Test run request."""
     suite_id: str = Field(..., description="Suite ID to run")
-    test_filter: Optional[str] = Field(None, description="Filter tests by tag")
-    environment: Optional[Dict[str, Any]] = Field(None, description="Test environment variables")
+    test_filter: str | None = Field(None, description="Filter tests by tag")
+    environment: dict[str, Any] | None = Field(None, description="Test environment variables")
 
 class PipelineConfigRequest(BaseModel):
     """Pipeline configuration request."""
     name: str = Field(..., description="Pipeline name")
-    stages: List[str] = Field(default_factory=list, description="Pipeline stages")
-    environment: Optional[Dict[str, Any]] = Field(None, description="Pipeline environment")
-    notifications: Optional[Dict[str, bool]] = Field(None, description="Notification settings")
+    stages: list[str] = Field(default_factory=list, description="Pipeline stages")
+    environment: dict[str, Any] | None = Field(None, description="Pipeline environment")
+    notifications: dict[str, bool] | None = Field(None, description="Notification settings")
 
 # =============================================================================
 # Test Suite Management Endpoints
@@ -62,9 +70,9 @@ async def create_test_suite_endpoint(
     try:
         # Create test cases for the suite
         from app.core.testing_framework import TestCase, TestType
-        
+
         test_cases = []
-        
+
         if "core" in request.tags:
             # Add core functionality tests
             test_cases.extend([
@@ -121,7 +129,7 @@ async def create_test_suite_endpoint(
                     expected_result={"success": True}
                 )
             ])
-        
+
         if "security" in request.tags:
             # Add security tests
             test_cases.extend([
@@ -152,7 +160,7 @@ async def create_test_suite_endpoint(
                     expected_result={"success": True}
                 )
             ])
-        
+
         if "performance" in request.tags:
             # Add performance tests
             test_cases.extend([
@@ -188,7 +196,7 @@ async def create_test_suite_endpoint(
                     expected_result={"success": True}
                 )
             ])
-        
+
         # Create test suite
         suite = create_test_suite(
             suite_id=request.suite_id,
@@ -197,7 +205,7 @@ async def create_test_suite_endpoint(
             test_cases=test_cases,
             tags=request.tags
         )
-        
+
         return {
             "success": True,
             "suite_id": suite.suite_id,
@@ -206,7 +214,7 @@ async def create_test_suite_endpoint(
             "tags": suite.tags,
             "message": "Test suite created successfully"
         }
-        
+
     except Exception as e:
         logger.error(f"Test suite creation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to create test suite")
@@ -221,12 +229,12 @@ async def get_test_suite_endpoint(
     """
     try:
         suite = get_test_suite(suite_id)
-        
+
         if not suite:
             raise HTTPException(status_code=404, detail="Test suite not found")
-        
+
         return suite.to_dict()
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -242,17 +250,17 @@ async def list_test_suites(
     """
     try:
         framework = get_test_framework()
-        
+
         suites = []
         for suite in framework.test_suites.values():
             suites.append(suite.to_dict())
-        
+
         return {
             "suites": suites,
             "total_suites": len(suites),
             "test_framework_stats": framework.get_statistics()
         }
-        
+
     except Exception as e:
         logger.error(f"List test suites failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to list test suites")
@@ -279,10 +287,10 @@ async def run_test_suite_endpoint(
             test_filter=request.test_filter,
             environment=request.environment
         )
-        
+
         # Add background task to monitor progress
         background_tasks.add_task(monitor_test_run, run_id, request.suite_id)
-        
+
         return {
             "success": True,
             "run_id": run_id,
@@ -291,7 +299,7 @@ async def run_test_suite_endpoint(
             "message": "Test suite execution started",
             "monitor_url": f"/testing/run/{run_id}"
         }
-        
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -308,12 +316,12 @@ async def get_test_run_endpoint(
     """
     try:
         run = get_test_run(run_id)
-        
+
         if not run:
             raise HTTPException(status_code=404, detail="Test run not found")
-        
+
         return run.to_dict()
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -333,10 +341,10 @@ async def get_test_results_endpoint(
     """
     try:
         run = get_test_run(run_id)
-        
+
         if not run:
             raise HTTPException(status_code=404, detail="Test run not found")
-        
+
         if format == "json":
             return {
                 "run_id": run_id,
@@ -344,21 +352,21 @@ async def get_test_results_endpoint(
                 "results": [tr.to_dict() for tr in run.test_results],
                 "summary": run.get_summary()
             }
-        
+
         elif format == "csv":
             # Generate CSV format
             import csv
             import io
-            
+
             output = io.StringIO()
             writer = csv.writer(output)
-            
+
             # Header
             writer.writerow([
-                "Test ID", "Name", "Type", "Status", "Duration", 
+                "Test ID", "Name", "Type", "Status", "Duration",
                 "Error Message", "Passed"
             ])
-            
+
             # Data rows
             for result in run.test_results:
                 writer.writerow([
@@ -370,29 +378,29 @@ async def get_test_results_endpoint(
                     result.error_message or "",
                     result.passed
                 ])
-            
+
             return {
                 "run_id": run_id,
                 "format": "csv",
                 "csv_data": output.getvalue()
             }
-        
+
         elif format == "html":
             # Generate HTML report
             html_report = generate_html_report(run)
-            
+
             return {
                 "run_id": run_id,
                 "format": "html",
                 "html_report": html_report
             }
-        
+
         else:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unsupported format: {format}"
             )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -408,7 +416,7 @@ async def get_test_statistics_endpoint(
     """
     try:
         stats = get_test_statistics()
-        
+
         return {
             "statistics": stats,
             "summary": {
@@ -419,7 +427,7 @@ async def get_test_statistics_endpoint(
                 "active_runs": stats["active_runs"]
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Get test statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get test statistics")
@@ -445,12 +453,12 @@ async def create_pipeline_endpoint(
             "environment": request.environment,
             "notifications": request.notifications
         }
-        
+
         pipeline_id = create_pipeline_config(
             name=request.name,
             config=config
         )
-        
+
         return {
             "success": True,
             "pipeline_id": pipeline_id,
@@ -458,7 +466,7 @@ async def create_pipeline_endpoint(
             "stages": request.stages,
             "message": "Pipeline configuration created successfully"
         }
-        
+
     except Exception as e:
         logger.error(f"Pipeline creation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to create pipeline")
@@ -478,10 +486,10 @@ async def run_pipeline_endpoint(
     try:
         # Start pipeline run
         run_id = run_pipeline(pipeline_id, trigger)
-        
+
         # Add background task to monitor pipeline
         background_tasks.add_task(monitor_pipeline_run, run_id, pipeline_id)
-        
+
         return {
             "success": True,
             "run_id": run_id,
@@ -491,7 +499,7 @@ async def run_pipeline_endpoint(
             "message": "Pipeline execution started",
             "monitor_url": f"/testing/pipeline/run/{run_id}"
         }
-        
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -508,12 +516,12 @@ async def get_pipeline_run_endpoint(
     """
     try:
         run = get_pipeline_status(run_id)
-        
+
         if not run:
             raise HTTPException(status_code=404, detail="Pipeline run not found")
-        
+
         return run
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -529,7 +537,7 @@ async def get_pipeline_statistics_endpoint(
     """
     try:
         stats = get_pipeline_statistics()
-        
+
         return {
             "statistics": stats,
             "summary": {
@@ -539,7 +547,7 @@ async def get_pipeline_statistics_endpoint(
                 "active_runs": stats["active_runs"]
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Get pipeline statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get pipeline statistics")
@@ -553,17 +561,17 @@ async def monitor_test_run(run_id: str, suite_id: str):
     try:
         # Check test run status periodically
         import asyncio
-        
+
         while True:
             run = get_test_run(run_id)
             if not run or run.status in [TestStatus.PASSED, TestStatus.FAILED, TestStatus.ERROR]:
                 break
-            
+
             # Send WebSocket update if available
             try:
                 from app.core.websocket_manager import get_websocket_manager
                 ws_manager = get_websocket_manager()
-                
+
                 await ws_manager.broadcast_to_subscription(
                     "testing_updates",
                     {
@@ -577,9 +585,9 @@ async def monitor_test_run(run_id: str, suite_id: str):
                 )
             except Exception:
                 pass  # WebSocket not available
-            
+
             await asyncio.sleep(5)  # Check every 5 seconds
-        
+
     except Exception as e:
         logger.error(f"Test run monitoring failed: {e}")
 
@@ -587,17 +595,17 @@ async def monitor_pipeline_run(run_id: str, pipeline_id: str):
     """Background task to monitor pipeline run progress."""
     try:
         import asyncio
-        
+
         while True:
             run = get_pipeline_status(run_id)
             if not run or run["status"] in ["passed", "failed", "error"]:
                 break
-            
+
             # Send WebSocket update if available
             try:
                 from app.core.websocket_manager import get_websocket_manager
                 ws_manager = get_websocket_manager()
-                
+
                 await ws_manager.broadcast_to_subscription(
                     "pipeline_updates",
                     {
@@ -610,9 +618,9 @@ async def monitor_pipeline_run(run_id: str, pipeline_id: str):
                 )
             except Exception:
                 pass  # WebSocket not available
-            
+
             await asyncio.sleep(10)  # Check every 10 seconds
-        
+
     except Exception as e:
         logger.error(f"Pipeline run monitoring failed: {e}")
 
@@ -651,7 +659,7 @@ def generate_html_report(run) -> str:
         <div class="results">
             <h2>Test Results</h2>
     """
-    
+
     for result in run.test_results:
         css_class = "passed" if result.passed else "failed"
         html += f"""
@@ -662,11 +670,11 @@ def generate_html_report(run) -> str:
                 {f'<p><strong>Error:</strong> {result.error_message}</p>' if result.error_message else ''}
             </div>
         """
-    
+
     html += """
         </div>
     </body>
     </html>
     """
-    
+
     return html

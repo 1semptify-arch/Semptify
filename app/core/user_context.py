@@ -20,11 +20,11 @@ Design Principles:
 - Gates track user progression without changing identity
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -109,7 +109,7 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
     },
-    
+
     # ==========================================================================
     # MANAGER - Multi-client housing support coordination
     # ==========================================================================
@@ -122,7 +122,7 @@ ROLE_PERMISSIONS = {
         "property_manage",
         "user_view",  # View user info (not edit)
     },
-    
+
     # ==========================================================================
     # ADVOCATE - Legal aid workers, paralegals, housing counselors
     # Focus: Help multiple tenants, case management across clients
@@ -150,7 +150,7 @@ ROLE_PERMISSIONS = {
         "client_intake",          # Intake new clients
         "bulk_export",            # Export case summaries
     },
-    
+
     # ==========================================================================
     # LEGAL - Legal and court professionals (unified role with sub-roles)
     # Sub-roles: attorney, judge, clerk, paralegal
@@ -200,7 +200,7 @@ ROLE_PERMISSIONS = {
         "overlay_create_legal",   # Create legal overlays (notes, redaction) on tenant docs
         "forms_share",            # Share from own forms list with tenants
     },
-    
+
     # ==========================================================================
     # JUDGE - Judicial officers with oversight capabilities
     # Focus: Case review, read-only access to evidence and timelines
@@ -222,7 +222,7 @@ ROLE_PERMISSIONS = {
         "judicial_order",         # Record judicial orders/decisions
         "case_notes",             # Add judicial notes
     },
-    
+
     # ==========================================================================
     # ADMIN - System administrators (you)
     # Focus: System config, analytics, full access
@@ -328,7 +328,7 @@ as a legal_sub_role='judge' when refining behavior.
 """
 
 
-def get_legal_sub_role(user_id: str) -> Optional[str]:
+def get_legal_sub_role(user_id: str) -> str | None:
     """Get the legal sub-role for a user, if they are a legal role.
 
     Returns one of LEGAL_SUB_ROLES or None if the user is not legal
@@ -397,47 +397,47 @@ class UserContext:
     """
     # Identity (stable)
     user_id: str                          # Internal ID (hash of provider:storage_id)
-    
+
     # Storage info
     provider: StorageProvider             # Which storage provider authenticated
     storage_user_id: str                  # ID in the storage provider
     access_token: str                     # Current access token for API calls
-    
+
     # Role & permissions
     role: UserRole = UserRole.USER        # Active role for this session
     permissions: set[str] = field(default_factory=set)
-    
+
     # Role impersonation (acting_as)
     # When set, this user is impersonating another user's context
-    acting_as: Optional[str] = None      # user_id of user being impersonated
-    acting_as_role: Optional[UserRole] = None  # Role being assumed
-    
+    acting_as: str | None = None      # user_id of user being impersonated
+    acting_as_role: UserRole | None = None  # Role being assumed
+
     # SSOT PRIVACY RULE: For the tenant role, no personal user information
     # may be stored on Semptify servers. Only provider metadata and access state
     # are retained. Tenant PII remains in the user's cloud vault or provider data.
     # This is the strict tenant privacy rule; it may extend to other roles later.
 
     # Session tracking
-    session_id: Optional[str] = None
-    authenticated_at: Optional[datetime] = None
-    
+    session_id: str | None = None
+    authenticated_at: datetime | None = None
+
     def __post_init__(self):
         """Set permissions based on role if not provided."""
         if not self.permissions:
             self.permissions = get_permissions(self.role)
-    
+
     def has_permission(self, permission: str) -> bool:
         """Check if user has a specific permission."""
         return permission in self.permissions or "*" in self.permissions
-    
+
     def can(self, *permissions: str) -> bool:
         """Check if user has ALL specified permissions."""
         return all(self.has_permission(p) for p in permissions)
-    
+
     def can_any(self, *permissions: str) -> bool:
         """Check if user has ANY of the specified permissions."""
         return any(self.has_permission(p) for p in permissions)
-    
+
     @property
     def is_user(self) -> bool:
         return self.role == UserRole.USER
@@ -457,12 +457,12 @@ class UserContext:
     @property
     def is_admin(self) -> bool:
         return self.role == UserRole.ADMIN
-    
+
     @property
     def is_impersonating(self) -> bool:
         """Check if user is currently impersonating another user."""
         return self.acting_as is not None
-    
+
     def start_impersonation(self, target_user_id: str, target_role: UserRole) -> None:
         """
         Start impersonating another user.
@@ -473,21 +473,21 @@ class UserContext:
         self.acting_as = target_user_id
         self.acting_as_role = target_role
         logger.info(f"User {self.user_id[:6]}... started impersonating {target_user_id[:6]}... as {target_role}")
-    
+
     def stop_impersonation(self) -> None:
         """Stop impersonating and return to original role."""
         if self.acting_as:
             logger.info(f"User {self.user_id[:6]}... stopped impersonating {self.acting_as[:6]}...")
             self.acting_as = None
             self.acting_as_role = None
-    
+
     def get_effective_user_id(self) -> str:
         """
         Get the effective user ID for this session.
         Returns acting_as user_id if impersonating, otherwise own user_id.
         """
         return self.acting_as if self.acting_as else self.user_id
-    
+
     def get_effective_role(self) -> UserRole:
         """
         Get the effective role for this session.
@@ -507,30 +507,30 @@ class StoredSession:
     Contains everything needed to reconstruct UserContext.
     """
     session_id: str
-    
+
     # Identity
     user_id: str
     provider: str  # StorageProvider value
     storage_user_id: str
-    
+
     # Auth
     access_token: str
-    refresh_token: Optional[str] = None
-    token_expires_at: Optional[datetime] = None
-    
+    refresh_token: str | None = None
+    token_expires_at: datetime | None = None
+
     # Role (can be switched)
     role: str = "user"  # UserRole value
 
     # Impersonation state (admin only)
-    acting_as: Optional[str] = None           # user_id being impersonated
-    acting_as_role: Optional[str] = None      # role being assumed
+    acting_as: str | None = None           # user_id being impersonated
+    acting_as_role: str | None = None      # role being assumed
 
     # SSOT PRIVACY: No email or display_name stored.
 
     # Timestamps
     created_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
-    
+    expires_at: datetime | None = None
+
     def to_context(self) -> UserContext:
         """Convert stored session to UserContext for route handlers."""
         ctx = UserContext(
@@ -546,7 +546,7 @@ class StoredSession:
             ctx.acting_as = self.acting_as
             ctx.acting_as_role = UserRole(self.acting_as_role) if self.acting_as_role else None
         return ctx
-    
+
     def to_dict(self) -> dict:
         """Serialize for storage."""
         return {
@@ -563,7 +563,7 @@ class StoredSession:
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "StoredSession":
         """Deserialize from storage."""
@@ -636,15 +636,15 @@ def get_role_from_user_id(user_id: str) -> UserRole:
     """Get role for a user ID from their stored context."""
     if not user_id:
         return UserRole.USER
-    
+
     # In a real implementation, this would look up the user's role from storage
     # For now, default to USER role since role assignment happens during onboarding
     return UserRole.USER
 
 
 async def get_user_context(
-    storage_provider: Optional[str] = None,
-    semptify_uid: Optional[str] = None,
+    storage_provider: str | None = None,
+    semptify_uid: str | None = None,
 ) -> dict:
     """
     Get user context for API responses.

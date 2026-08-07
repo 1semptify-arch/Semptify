@@ -1,6 +1,5 @@
 """FEMS FastAPI router — Forensic Evidence Management System."""
 import shutil
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import func, select

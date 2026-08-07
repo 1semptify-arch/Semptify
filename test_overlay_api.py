@@ -8,7 +8,7 @@ import os
 import sys
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -32,8 +32,8 @@ def test_overlay_storage():
     # Create test overlay
     overlay = {
         "document_id": doc_id,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
         "version": 1,
         "highlights": [
             {
@@ -45,7 +45,7 @@ def test_overlay_storage():
                 },
                 "color": "yellow",
                 "note": "Critical deadline requirement",
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user"
             },
             {
@@ -57,7 +57,7 @@ def test_overlay_storage():
                 },
                 "color": "green",
                 "note": "Security deposit return deadline",
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user"
             }
         ],
@@ -73,7 +73,7 @@ def test_overlay_storage():
                 "note_type": "legal",
                 "priority": "high",
                 "tags": ["notice", "deadline", "eviction"],
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user",
                 "resolved": False
             },
@@ -84,7 +84,7 @@ def test_overlay_storage():
                 "note_type": "user",
                 "priority": "normal",
                 "tags": ["general"],
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user",
                 "resolved": False
             }
@@ -100,7 +100,7 @@ def test_overlay_storage():
                 },
                 "content": "Minnesota Statutes Chapter 504B is the primary statutory framework governing residential landlord-tenant relationships in Minnesota.",
                 "citation": "Minn. Stat. § 504B.001 et seq.",
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user"
             },
             {
@@ -113,7 +113,7 @@ def test_overlay_storage():
                 },
                 "content": "Under Minn. Stat. § 504B.285, tenants are protected from retaliatory actions by landlords.",
                 "citation": "Minn. Stat. § 504B.285",
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user"
             }
         ],
@@ -130,7 +130,7 @@ def test_overlay_storage():
                 "edit_type": "replace",
                 "reason": "Legal documents should spell out numbers for clarity",
                 "status": "pending",
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user",
                 "reviewed_at": None,
                 "reviewed_by": None
@@ -147,9 +147,9 @@ def test_overlay_storage():
                 "edit_type": "insert",
                 "reason": "Add helpful direction for tenants",
                 "status": "accepted",
-                "created_at": datetime.now().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "created_by": "test_user",
-                "reviewed_at": datetime.now().isoformat(),
+                "reviewed_at": datetime.now(timezone.utc).isoformat(),
                 "reviewed_by": "reviewer"
             }
         ],
@@ -167,7 +167,7 @@ def test_overlay_storage():
                     ],
                     "summary": "Legal reference document covering Minnesota tenant rights including notice requirements, security deposits, habitability standards, and retaliation protections."
                 },
-                "created_at": datetime.now().isoformat()
+                "created_at": datetime.now(timezone.utc).isoformat()
             }
         ]
     }

@@ -6,7 +6,6 @@ tenant's documents, evidence, timeline, and legal documents.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="court_packet",
     group_name="court_packet_status",

@@ -4,9 +4,10 @@ Comprehensive API Endpoint Test Suite for Semptify-FastAPI
 Tests all routes to verify functionality
 """
 
+from collections.abc import Callable
+from typing import Any
+
 import requests
-import json
-from typing import Optional, Dict, Any, Callable
 
 BASE_URL = "http://localhost:8000"
 
@@ -21,7 +22,7 @@ def get(path: str) -> requests.Response:
     """GET request helper"""
     return requests.get(f"{BASE_URL}{path}", timeout=10)
 
-def post(path: str, data: Dict[str, Any] = None) -> requests.Response:
+def post(path: str, data: dict[str, Any] = None) -> requests.Response:
     """POST request helper"""
     return requests.post(f"{BASE_URL}{path}", json=data or {}, timeout=10)
 
@@ -29,7 +30,7 @@ def test(name: str, request_func: Callable, expected_codes: list = None):
     """Run a test and record result"""
     if expected_codes is None:
         expected_codes = [200, 201, 204, 307, 404]  # 404 is OK for verify endpoints without real data
-    
+
     try:
         response = request_func()
         if response.status_code in expected_codes:
@@ -113,7 +114,7 @@ if __name__ == "__main__":
 
     # Certificate endpoints need auth headers - test with X-User-Id
     def gen_cert():
-        return requests.post(f"{BASE_URL}/storage/certificate/generate", 
+        return requests.post(f"{BASE_URL}/storage/certificate/generate",
             json={"document_name": "Test Document", "document_hash": "abc123def456"},
             headers={"X-User-Id": "test-user"}, timeout=10)
     def gen_html():
@@ -133,7 +134,7 @@ if __name__ == "__main__":
 
     # Vault list endpoint - GET /api/vault/
     def vault_list():
-        return requests.get(f"{BASE_URL}/api/vault/", 
+        return requests.get(f"{BASE_URL}/api/vault/",
             headers={"X-User-Id": "test-user"}, timeout=10)
     test("Vault Document List", vault_list)
 

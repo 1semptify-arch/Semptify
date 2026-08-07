@@ -5,8 +5,9 @@ Provides consistent UTC datetime handling across the entire codebase.
 All datetimes should be stored and handled in UTC with timezone awareness.
 """
 
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +29,7 @@ def utc_now() -> datetime:
         
         created_at = utc_now()  # 2025-12-08 03:00:00+00:00
     """
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def utc_now_iso() -> str:
@@ -60,10 +61,10 @@ def to_utc(dt: datetime) -> datetime:
     """
     if dt.tzinfo is None:
         # Naive datetime - assume it's UTC
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=UTC)
     else:
         # Aware datetime - convert to UTC
-        return dt.astimezone(timezone.utc)
+        return dt.astimezone(UTC)
 
 
 def parse_iso(iso_string: str) -> datetime:
@@ -83,11 +84,11 @@ def parse_iso(iso_string: str) -> datetime:
     """
     # Handle Z suffix
     cleaned = iso_string.replace("Z", "+00:00")
-    
+
     try:
         dt = datetime.fromisoformat(cleaned)
     except ValueError:
         # Try parsing without timezone for naive strings
         dt = datetime.fromisoformat(iso_string)
-    
+
     return to_utc(dt)

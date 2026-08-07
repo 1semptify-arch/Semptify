@@ -6,7 +6,6 @@ to collect case information. Saves intake summaries and tracks status.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="guided_intake",
     group_name="guided_intake_save",

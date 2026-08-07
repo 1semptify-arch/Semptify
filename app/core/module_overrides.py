@@ -21,9 +21,8 @@ calls these functions. The resolver reads from get_override().
 """
 
 import logging
-from typing import Optional
 
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.product_manifest import MANIFEST, ModuleEntry
@@ -50,7 +49,7 @@ class _OverrideCache:
         self._store: dict[str, dict] = {}
         self._loaded: bool = False
 
-    def get(self, module_path: str) -> Optional[dict]:
+    def get(self, module_path: str) -> dict | None:
         return self._store.get(module_path)
 
     def set(self, module_path: str, override: dict) -> None:
@@ -111,7 +110,7 @@ async def load_overrides(db: AsyncSession) -> None:
         _CACHE.mark_loaded()
 
 
-async def get_override(module_path: str, db: Optional[AsyncSession] = None) -> Optional[dict]:
+async def get_override(module_path: str, db: AsyncSession | None = None) -> dict | None:
     """Get the runtime override for a module, if any.
 
     Returns None if no override is set. Returns a dict with keys
@@ -122,7 +121,7 @@ async def get_override(module_path: str, db: Optional[AsyncSession] = None) -> O
     return _CACHE.get(module_path)
 
 
-def get_override_sync(module_path: str) -> Optional[dict]:
+def get_override_sync(module_path: str) -> dict | None:
     """Synchronous version for use in resolver hot path.
 
     Returns None if cache not loaded or no override exists.
@@ -135,9 +134,9 @@ def get_override_sync(module_path: str) -> Optional[dict]:
 async def set_override(
     db: AsyncSession,
     module_path: str,
-    lifecycle: Optional[str] = None,
-    feature_flag: Optional[str] = None,
-    disabled: Optional[bool] = None,
+    lifecycle: str | None = None,
+    feature_flag: str | None = None,
+    disabled: bool | None = None,
     notes: str = "",
 ) -> dict:
     """Set or update an override for a module.

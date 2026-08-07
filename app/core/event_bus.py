@@ -4,13 +4,15 @@ Enables bi-directional communication between all modules.
 """
 
 import asyncio
-from typing import Any, Callable, Dict, List, Optional
-from datetime import datetime
-from dataclasses import dataclass, field
-from app.core.utc import utc_now
-from enum import Enum
-import logging
 import json
+import logging
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Optional
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class EventType(str, Enum):
     DOCUMENT_DELETED = "document_deleted"
     DOCUMENT_PROCESSED = "document_processed"
     DOCUMENT_CLASSIFIED = "document_classified"
-    
+
     # Document Integration events (unified upload)
     DOCUMENT_REGISTERED = "document_registered"
     DOCUMENT_READY_FOR_BRIEFCASE = "document_ready_for_briefcase"
@@ -36,21 +38,21 @@ class EventType(str, Enum):
     DATES_EXTRACTED = "dates_extracted"
     AMOUNTS_EXTRACTED = "amounts_extracted"
     PARTIES_EXTRACTED = "parties_extracted"
-    
+
     # Form data events
     FORM_DATA_UPDATED = "form_data_updated"
     CASE_INFO_UPDATED = "case_info_updated"
     PROFILE_UPDATED = "profile_updated"
-    
+
     # Timeline events
     TIMELINE_UPDATED = "timeline_updated"
     TIMELINE_EVENT_ADDED = "timeline_event_added"
-    
+
     # Calendar events
     DEADLINE_ADDED = "deadline_added"
     DEADLINE_APPROACHING = "deadline_approaching"
     HEARING_SCHEDULED = "hearing_scheduled"
-    
+
     # Defense events
     VIOLATION_FOUND = "violation_found"
     DEFENSE_GENERATED = "defense_generated"
@@ -60,12 +62,12 @@ class EventType(str, Enum):
     # AI events
     AI_ANALYSIS_COMPLETE = "ai_analysis_complete"
     AI_SUGGESTION_READY = "ai_suggestion_ready"
-    
+
     # System events
     SETUP_COMPLETE = "setup_complete"
     USER_ACTION = "user_action"
     ERROR_OCCURRED = "error_occurred"
-    
+
     # UI events
     UI_REFRESH_NEEDED = "ui_refresh_needed"
     NOTIFICATION = "notification"
@@ -91,12 +93,12 @@ class EventType(str, Enum):
 class Event:
     """Event data structure"""
     type: EventType
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: datetime = field(default_factory=utc_now)
     source: str = "system"
-    user_id: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    user_id: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.type.value,
             "data": self.data,
@@ -104,7 +106,7 @@ class Event:
             "source": self.source,
             "user_id": self.user_id,
         }
-    
+
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
@@ -116,39 +118,39 @@ class EventBus:
     """
     _instance: Optional["EventBus"] = None
     _initialized: bool = False
-    
+
     def __new__(cls) -> "EventBus":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
-        self._subscribers: Dict[EventType, List[Callable]] = {}
-        self._async_subscribers: Dict[EventType, List[Callable]] = {}
-        self._websocket_connections: Dict[str, List[Any]] = {}  # user_id -> websockets
-        self._event_history: List[Event] = []
+
+        self._subscribers: dict[EventType, list[Callable]] = {}
+        self._async_subscribers: dict[EventType, list[Callable]] = {}
+        self._websocket_connections: dict[str, list[Any]] = {}  # user_id -> websockets
+        self._event_history: list[Event] = []
         self._max_history = 1000
         self._initialized = True
-        
+
         logger.info("○ EventBus initialized")
-    
+
     def subscribe(self, event_type: EventType, callback: Callable) -> None:
         """Subscribe a sync callback to an event type"""
         if event_type not in self._subscribers:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(callback)
         logger.debug(f"Subscribed to {event_type.value}: {callback.__name__}")
-    
+
     def subscribe_async(self, event_type: EventType, callback: Callable) -> None:
         """Subscribe an async callback to an event type"""
         if event_type not in self._async_subscribers:
             self._async_subscribers[event_type] = []
         self._async_subscribers[event_type].append(callback)
         logger.debug(f"Async subscribed to {event_type.value}: {callback.__name__}")
-    
+
     def unsubscribe(self, event_type: EventType, callback: Callable) -> None:
         """Unsubscribe a callback from an event type"""
         if event_type in self._subscribers:
@@ -159,13 +161,13 @@ class EventBus:
             self._async_subscribers[event_type] = [
                 cb for cb in self._async_subscribers[event_type] if cb != callback
             ]
-    
+
     async def publish(
         self,
         event_type: EventType,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         source: str = "system",
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> Event:
         """
         Publish an event to all subscribers.
@@ -177,14 +179,14 @@ class EventBus:
             source=source,
             user_id=user_id,
         )
-        
+
         # Store in history
         self._event_history.append(event)
         if len(self._event_history) > self._max_history:
             self._event_history = self._event_history[-self._max_history:]
-        
+
         logger.info(f"▸ Event: {event_type.value} from {source}")
-        
+
         # Call sync subscribers
         if event_type in self._subscribers:
             for callback in self._subscribers[event_type]:
@@ -192,24 +194,24 @@ class EventBus:
                     callback(event)
                 except Exception as e:
                     logger.error(f"Error in sync subscriber {callback.__name__}: {e}")
-        
+
         # Call async subscribers — fire-and-forget so they never add latency
         # to the request that published the event (Cloudflare 30s gate safety)
         if event_type in self._async_subscribers:
             for callback in self._async_subscribers[event_type]:
                 asyncio.create_task(callback(event))
-        
+
         # Push to WebSocket connections
         await self._push_to_websockets(event, user_id)
-        
+
         return event
-    
+
     def publish_sync(
         self,
         event_type: EventType,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         source: str = "system",
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> Event:
         """Synchronous publish - schedules async work"""
         event = Event(
@@ -218,11 +220,11 @@ class EventBus:
             source=source,
             user_id=user_id,
         )
-        
+
         self._event_history.append(event)
         if len(self._event_history) > self._max_history:
             self._event_history = self._event_history[-self._max_history:]
-        
+
         # Call sync subscribers only
         if event_type in self._subscribers:
             for callback in self._subscribers[event_type]:
@@ -230,7 +232,7 @@ class EventBus:
                     callback(event)
                 except Exception as e:
                     logger.error(f"Error in sync subscriber: {e}")
-        
+
         # Schedule async work
         try:
             loop = asyncio.get_event_loop()
@@ -238,10 +240,10 @@ class EventBus:
                 asyncio.create_task(self._process_async_subscribers(event, user_id))
         except RuntimeError:
             pass  # No event loop, skip async
-        
+
         return event
-    
-    async def _process_async_subscribers(self, event: Event, user_id: Optional[str]):
+
+    async def _process_async_subscribers(self, event: Event, user_id: str | None):
         """Process async subscribers and websockets"""
         if event.type in self._async_subscribers:
             for callback in self._async_subscribers[event.type]:
@@ -249,13 +251,13 @@ class EventBus:
                     await callback(event)
                 except Exception as e:
                     logger.error(f"Error in async subscriber: {e}")
-        
+
         await self._push_to_websockets(event, user_id)
-    
-    async def _push_to_websockets(self, event: Event, user_id: Optional[str]):
+
+    async def _push_to_websockets(self, event: Event, user_id: str | None):
         """Push event to connected WebSocket clients"""
         message = event.to_json()
-        
+
         # Push to specific user if user_id provided
         if user_id and user_id in self._websocket_connections:
             for ws in self._websocket_connections[user_id]:
@@ -263,7 +265,7 @@ class EventBus:
                     await ws.send_text(message)
                 except Exception as e:
                     logger.error(f"WebSocket send error: {e}")
-        
+
         # Also push to broadcast connections (user_id = "broadcast")
         if "broadcast" in self._websocket_connections:
             for ws in self._websocket_connections["broadcast"]:
@@ -271,38 +273,38 @@ class EventBus:
                     await ws.send_text(message)
                 except Exception as e:
                     logger.error(f"WebSocket broadcast error: {e}")
-    
+
     def register_websocket(self, websocket: Any, user_id: str = "broadcast") -> None:
         """Register a WebSocket connection"""
         if user_id not in self._websocket_connections:
             self._websocket_connections[user_id] = []
         self._websocket_connections[user_id].append(websocket)
         logger.info(f"○ WebSocket registered for {user_id}")
-    
+
     def unregister_websocket(self, websocket: Any, user_id: str = "broadcast") -> None:
         """Unregister a WebSocket connection"""
         if user_id in self._websocket_connections:
             self._websocket_connections[user_id] = [
                 ws for ws in self._websocket_connections[user_id] if ws != websocket
             ]
-    
+
     def get_history(
         self,
-        event_type: Optional[EventType] = None,
-        user_id: Optional[str] = None,
+        event_type: EventType | None = None,
+        user_id: str | None = None,
         limit: int = 100,
-    ) -> List[Event]:
+    ) -> list[Event]:
         """Get recent events from history"""
         events = self._event_history
-        
+
         if event_type:
             events = [e for e in events if e.type == event_type]
-        
+
         if user_id:
             events = [e for e in events if e.user_id == user_id]
-        
+
         return events[-limit:]
-    
+
     def clear_history(self) -> None:
         """Clear event history"""
         self._event_history = []
@@ -315,9 +317,9 @@ event_bus = EventBus()
 # Convenience functions
 async def publish_event(
     event_type: EventType,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     source: str = "system",
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
 ) -> Event:
     """Publish an event to the bus"""
     return await event_bus.publish(event_type, data, source, user_id)
@@ -374,7 +376,7 @@ async def notify_violation_found(violation: str, law_ref: str, user_id: str):
     )
 
 
-async def send_notification(title: str, message: str, level: str = "info", user_id: Optional[str] = None):
+async def send_notification(title: str, message: str, level: str = "info", user_id: str | None = None):
     """Send a UI notification"""
     await publish_event(
         EventType.NOTIFICATION,

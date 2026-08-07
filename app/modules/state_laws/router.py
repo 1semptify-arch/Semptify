@@ -6,11 +6,12 @@ Provides dynamic state law information with MN as the complete reference impleme
 # All imports remain absolute since state_laws is a CORE module.
 
 import json
+import logging
 import os
-from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
-import logging
+
 logger = logging.getLogger(__name__)
 
 from app.core.capabilities import require_capability
@@ -31,7 +32,7 @@ def _load_state_laws():
     global _state_laws_cache
     if _state_laws_cache is None:
         try:
-            with open(DATA_PATH, 'r', encoding='utf-8') as f:
+            with open(DATA_PATH, encoding='utf-8') as f:
                 _state_laws_cache = json.load(f)
         except FileNotFoundError:
             raise HTTPException(status_code=500, detail="State laws data file not found")
@@ -51,22 +52,22 @@ class StateDetails(BaseModel):
     """Full state housing law details."""
     code: str
     name: str
-    nickname: Optional[str] = None
+    nickname: str | None = None
     status: str
-    housing_laws: Optional[dict] = None
-    notice_requirements: Optional[dict] = None
-    security_deposit: Optional[dict] = None
-    rent_control: Optional[dict] = None
-    repairs: Optional[dict] = None
-    landlord_entry: Optional[dict] = None
-    eviction: Optional[dict] = None
-    discrimination: Optional[dict] = None
-    legal_aid: Optional[list] = None
-    government_resources: Optional[list] = None
-    forms_templates: Optional[list] = None
-    special_programs: Optional[dict] = None
-    stub_url: Optional[str] = None
-    notes: Optional[str] = None
+    housing_laws: dict | None = None
+    notice_requirements: dict | None = None
+    security_deposit: dict | None = None
+    rent_control: dict | None = None
+    repairs: dict | None = None
+    landlord_entry: dict | None = None
+    eviction: dict | None = None
+    discrimination: dict | None = None
+    legal_aid: list | None = None
+    government_resources: list | None = None
+    forms_templates: list | None = None
+    special_programs: dict | None = None
+    stub_url: str | None = None
+    notes: str | None = None
 
 
 @router.get("/", response_model=dict)
@@ -86,7 +87,7 @@ async def list_states():
             "status": info.get("status", "stub"),
             "has_complete_data": info.get("status") == "complete"
         })
-    
+
     return {
         "count": len(states),
         "complete_count": sum(1 for s in states if s["has_complete_data"]),
@@ -108,10 +109,10 @@ async def get_state(state_code: str):
     """
     data = _load_state_laws()
     state = data.get("states", {}).get(state_code.upper())
-    
+
     if not state:
         raise HTTPException(status_code=404, detail=f"State '{state_code}' not found")
-    
+
     return state
 
 
@@ -161,10 +162,10 @@ async def find_nearby_states(
         "VA": {"lat": 37.5, "lon": -78.8, "name": "Virginia"},
         "NJ": {"lat": 40.0, "lon": -74.7, "name": "New Jersey"},
     }
-    
+
     # Calculate rough distances
     import math
-    
+
     def haversine_distance(lat1, lon1, lat2, lon2):
         """Calculate rough distance between two points."""
         R = 3959  # Earth's radius in miles
@@ -174,7 +175,7 @@ async def find_nearby_states(
         a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
         c = 2 * math.asin(math.sqrt(a))
         return R * c
-    
+
     distances = []
     for code, centroid in state_centroids.items():
         dist = haversine_distance(lat, lon, centroid["lat"], centroid["lon"])
@@ -183,9 +184,9 @@ async def find_nearby_states(
             "name": centroid["name"],
             "distance_miles": round(dist, 1)
         })
-    
+
     distances.sort(key=lambda x: x["distance_miles"])
-    
+
     return {
         "query": {"latitude": lat, "longitude": lon},
         "nearby_states": distances[:limit]
@@ -206,7 +207,7 @@ async def detect_user_state(request: Request):
     try:
         import httpx
         client_ip = request.client.host if request.client else "127.0.0.1"
-        
+
         # Skip localhost for dev
         if client_ip in ("127.0.0.1", "localhost", "::1"):
             return {
@@ -217,7 +218,7 @@ async def detect_user_state(request: Request):
                 "message": "Local development detected. Defaulting to Minnesota.",
                 "manual_selection_url": "/library.html#state-selector"
             }
-        
+
         async with httpx.AsyncClient(timeout=3.0) as http_client:
             response = await http_client.get(f"http://ip-api.com/json/{client_ip}")
             if response.status_code == 200:
@@ -229,12 +230,12 @@ async def detect_user_state(request: Request):
                     "detected_state": state_code,
                     "state_name": state_name,
                     "confidence": "high",
-                    "message": f"Detected location based on your IP address.",
+                    "message": "Detected location based on your IP address.",
                     "manual_selection_url": "/library.html#state-selector"
                 }
     except Exception as e:
         logger.warning(f"IP geolocation failed: {e}")
-    
+
     # Fallback to MN
     return {
         "method": "default",

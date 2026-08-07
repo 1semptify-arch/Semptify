@@ -6,15 +6,16 @@ API endpoints for tracking user progress through
 their legal defense journey.
 """
 
-from fastapi import APIRouter, Query, Depends
-from typing import Dict, Any, Optional, List
+import logging
+
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from app.core.security import get_optional_user_id
-from app.services.progress_tracker import progress_tracker, MilestoneCategory
-from app.services.emotion_engine import emotion_engine
 from app.core.utc import utc_now
-import logging
+from app.services.emotion_engine import emotion_engine
+from app.services.progress_tracker import progress_tracker
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,7 +23,7 @@ router = APIRouter(prefix="/progress", tags=["Progress Tracker"])
 
 
 def resolve_user_id(
-    session_user_id: Optional[str] = Depends(get_optional_user_id),
+    session_user_id: str | None = Depends(get_optional_user_id),
 ) -> str:
     """Resolve user_id from session, fallback to default."""
     return session_user_id or "default"
@@ -31,14 +32,14 @@ def resolve_user_id(
 class MilestoneCompletion(BaseModel):
     """Request to complete a milestone"""
     milestone_id: str
-    notes: Optional[str] = None
-    evidence_ids: Optional[List[str]] = None
+    notes: str | None = None
+    evidence_ids: list[str] | None = None
 
 
 class CaseSetup(BaseModel):
     """Initial case setup data"""
-    case_type: Optional[str] = None
-    court_date: Optional[str] = None
+    case_type: str | None = None
+    court_date: str | None = None
 
 
 @router.get("/")
@@ -92,7 +93,7 @@ async def complete_milestone(completion: MilestoneCompletion, user_id: str = Dep
         notes=completion.notes,
         evidence_ids=completion.evidence_ids
     )
-    
+
     # Trigger emotion engine if successful
     if result.get("success") and not result.get("already_completed"):
         emotion_engine.process_trigger("task_completed", {
@@ -100,7 +101,7 @@ async def complete_milestone(completion: MilestoneCompletion, user_id: str = Dep
             "points": result.get("points_earned", 0)
         })
         emotion_engine.process_trigger("progress_made")
-    
+
     return result
 
 
@@ -110,13 +111,13 @@ async def skip_milestone(milestone_id: str, user_id: str = Depends(resolve_user_
     Skip a milestone (mark as not applicable).
     """
     progress = progress_tracker.get_progress(user_id)
-    
+
     if milestone_id not in progress_tracker.milestones:
         return {"success": False, "error": "Milestone not found"}
-    
+
     progress.skipped_milestones.add(milestone_id)
     progress_tracker.save_progress(user_id)
-    
+
     return {
         "success": True,
         "message": "Milestone marked as skipped"
@@ -130,7 +131,7 @@ async def get_points(user_id: str = Depends(resolve_user_id)):
     """
     total = progress_tracker.get_total_points(user_id)
     progress = progress_tracker.get_progress(user_id)
-    
+
     return {
         "total_points": total,
         "tasks_completed": progress.tasks_completed,
@@ -145,7 +146,7 @@ async def get_stats(user_id: str = Depends(resolve_user_id)):
     """
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
-    
+
     return {
         "documents_uploaded": progress.documents_uploaded,
         "violations_found": progress.violations_found,
@@ -177,7 +178,7 @@ async def increment_stat(
             "success": False,
             "error": f"Invalid stat. Must be one of: {valid_stats}"
         }
-    
+
     success = progress_tracker.increment_stat(stat, user_id, amount)
     return {"success": success}
 
@@ -188,20 +189,20 @@ async def setup_case(setup: CaseSetup, user_id: str = Depends(resolve_user_id)):
     Initialize or update case setup information.
     """
     from datetime import datetime
-    
+
     progress = progress_tracker.get_progress(user_id)
-    
+
     if setup.case_type:
         progress.case_type = setup.case_type
-    
+
     if setup.court_date:
         try:
             progress.court_date = datetime.fromisoformat(setup.court_date)
         except ValueError:
             return {"success": False, "error": "Invalid date format"}
-    
+
     progress_tracker.save_progress(user_id)
-    
+
     return {
         "success": True,
         "progress": progress.to_dict()
@@ -216,16 +217,15 @@ async def get_journey_overview(user_id: str = Depends(resolve_user_id)):
     progress = progress_tracker.get_progress(user_id)
     readiness = progress_tracker.get_case_readiness(user_id)
     next_milestones = progress_tracker.get_next_milestones(user_id, 3)
-    
+
     # Calculate days
     journey_days = 0
     days_to_court = None
     if progress.journey_started:
         journey_days = (progress.last_active - progress.journey_started).days + 1 if progress.last_active else 1
     if progress.court_date:
-        from datetime import datetime
         days_to_court = (progress.court_date - utc_now()).days
-    
+
     return {
         "case_type": progress.case_type,
         "journey_days": journey_days,
@@ -253,7 +253,7 @@ async def get_achievements(user_id: str = Depends(resolve_user_id)):
     Get earned achievements/completed milestones.
     """
     progress = progress_tracker.get_progress(user_id)
-    
+
     achievements = []
     for milestone_id, completed in progress.completed_milestones.items():
         if milestone_id in progress_tracker.milestones:
@@ -266,10 +266,10 @@ async def get_achievements(user_id: str = Depends(resolve_user_id)):
                 "points": milestone.points,
                 "completed_at": completed.completed_at.isoformat()
             })
-    
+
     # Sort by completion time
     achievements.sort(key=lambda a: a["completed_at"], reverse=True)
-    
+
     return {
         "achievements": achievements,
         "total_count": len(achievements),

@@ -17,22 +17,22 @@ Usage:
     analysis = client.copilot.analyze(doc.id)
 """
 
-from .client import SemptifyClient
 from .auth import AuthClient
-from .documents import DocumentClient
-from .timeline import TimelineClient
-from .copilot import CopilotClient
-from .complaints import ComplaintClient
 from .briefcase import BriefcaseClient
-from .vault import VaultClient
+from .client import SemptifyClient
+from .complaints import ComplaintClient
+from .copilot import CopilotClient
+from .documents import DocumentClient
 from .exceptions import (
-    SemptifyError,
     AuthenticationError,
     NotFoundError,
-    ValidationError,
     RateLimitError,
+    SemptifyError,
     ServerError,
+    ValidationError,
 )
+from .timeline import TimelineClient
+from .vault import VaultClient
 
 __version__ = "5.0.0"
 __all__ = [

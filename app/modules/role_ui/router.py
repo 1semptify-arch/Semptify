@@ -12,24 +12,18 @@ Role ▸ UI Mapping:
 # Migrated from app/routers/role_ui.py into the role_ui SDK module.
 # All imports remain absolute since role_ui is a CORE module.
 
-from fastapi import APIRouter, Request, Depends, HTTPException
-from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
-from typing import Optional
-from pathlib import Path
 import logging
+from pathlib import Path
 
-from app.core.user_context import (
-    UserRole, 
-    UserContext, 
-    get_role_metadata,
-    get_role_definition,
-    ROLE_METADATA
-)
-from app.core.security import get_current_user
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 from app.core.navigation import navigation
-from app.core.user_id import parse_user_id, COOKIE_STORAGE_PROVIDER
+from app.core.security import get_current_user
 from app.core.ssot_guard import ssot_redirect
+from app.core.user_context import ROLE_METADATA, UserContext, UserRole, get_role_definition, get_role_metadata
+from app.core.user_id import COOKIE_STORAGE_PROVIDER, parse_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +40,10 @@ def detect_device_type(request: Request) -> str:
     Returns: 'mobile', 'tablet', or 'desktop'
     """
     user_agent = request.headers.get("user-agent", "").lower()
-    
+
     mobile_keywords = ["iphone", "android", "mobile", "phone", "ipod"]
     tablet_keywords = ["ipad", "tablet", "kindle"]
-    
+
     if any(kw in user_agent for kw in tablet_keywords):
         return "tablet"
     elif any(kw in user_agent for kw in mobile_keywords):
@@ -74,7 +68,7 @@ def has_storage_connection(request: Request) -> bool:
         if storage_provider:
             logger.info("Storage check: found provider cookie: %s", storage_provider)
             return True
-            
+
         # Check if user_id contains valid provider (signed cookie, tamper-proof)
         from app.core.cookie_auth import extract_user_id
         user_id = extract_user_id(request)
@@ -83,7 +77,7 @@ def has_storage_connection(request: Request) -> bool:
             if provider in ["google_drive", "dropbox", "onedrive"]:
                 logger.info("Storage check: provider detected in user_id: %s", provider)
                 return True
-                
+
         logger.warning("Storage check: no storage connection found for request")
         return False
     except Exception as e:
@@ -114,7 +108,7 @@ ROLE_FALLBACK_PAGES = {
 @router.get("/")
 async def ui_router(
     request: Request,
-    user: Optional[UserContext] = Depends(get_current_user)
+    user: UserContext | None = Depends(get_current_user)
 ):
     """
     Main UI router - redirects to appropriate interface based on role.
@@ -123,10 +117,10 @@ async def ui_router(
     """
     if not user:
         return ssot_redirect(navigation.get_stage("welcome").path, context="ui_router unauthenticated")
-    
+
     device = detect_device_type(request)
     logger.info("UI routing: user=%s, role=%s, device=%s", user.user_id, user.role.value, device)
-    
+
     # CRITICAL: Check storage requirement for USER (tenant) role
     # This prevents the security bypass allowing /tenant/home without storage
     if user.role == UserRole.USER:
@@ -134,18 +128,18 @@ async def ui_router(
             logger.warning("STORAGE GATE: User %s attempted bypass without storage. Redirecting to storage setup.", user.user_id)
             storage_stage = navigation.get_stage("storage_select")
             return ssot_redirect(storage_stage.path, context="ui_router storage gate")
-    
+
     # Use canonical role landing page first, static fallback handled by route layer
     landing_page = ROLE_LANDING_PAGES.get(user.role) or ROLE_FALLBACK_PAGES.get(user.role)
-    
+
     # SSOT: All redirects flow through the navigation registry
     if not landing_page:
         logger.error("No landing page configured for role: %s", user.role.value)
         landing_page = navigation.get_stage("welcome").path
-    
+
     # Log for debugging
     logger.info("Redirecting to: %s", landing_page)
-    
+
     return ssot_redirect(landing_page, context=f"ui_router role={user.role.value}")
 
 
@@ -156,8 +150,8 @@ async def ui_route(request: Request):
     and sends the user directly to their role home page. No extra hops.
     Returning users and newly onboarded users both land here cleanly.
     """
-    from app.core.workflow_engine import route_user as _route_user
     from app.core.cookie_auth import extract_user_id
+    from app.core.workflow_engine import route_user as _route_user
     user_id = extract_user_id(request)
     if not user_id:
         return ssot_redirect(navigation.get_stage("welcome").path, context="ui_route unauthenticated")
@@ -168,7 +162,7 @@ async def ui_route(request: Request):
 
 @router.get("/role-info")
 async def get_role_info(
-    user: Optional[UserContext] = Depends(get_current_user)
+    user: UserContext | None = Depends(get_current_user)
 ) -> dict:
     """
     Get current user's role information for UI customization.
@@ -181,9 +175,9 @@ async def get_role_info(
             "ui_mode": "public",
             "landing_page": navigation.get_stage("welcome").path
         }
-    
+
     role_meta = get_role_metadata(user.role)
-    
+
     return {
         "authenticated": True,
         "user_id": user.user_id,
@@ -219,7 +213,7 @@ async def get_available_roles() -> dict:
             "icon": meta.get("icon", "●"),
             "ui_mode": meta.get("ui_mode", "desktop"),
         })
-    
+
     return {
         "roles": roles,
         "default_role": UserRole.USER.value
@@ -232,14 +226,14 @@ async def get_available_roles() -> dict:
 
 @router.get("/features")
 async def get_role_features(
-    user: Optional[UserContext] = Depends(get_current_user)
+    user: UserContext | None = Depends(get_current_user)
 ) -> dict:
     """
     Get feature flags based on user's role.
     Frontend uses this to show/hide UI elements.
     Role-specific UI flags are combined with live DB feature flags.
     """
-    from app.core.features import features as _features, Feature
+    from app.core.features import Feature, features as _features
     if not user:
         return {
             "features": {
@@ -247,7 +241,7 @@ async def get_role_features(
                 "show_demo": True,
             }
         }
-    
+
     # Base features for all authenticated users
     features = {
         "show_login": False,
@@ -259,7 +253,7 @@ async def get_role_features(
         "show_complaints": user.has_permission("complaints_create"),
         "show_ledger": user.has_permission("ledger_read"),
     }
-    
+
     # Role-specific features
     if user.role == UserRole.USER:
         features.update({
@@ -268,7 +262,7 @@ async def get_role_features(
             "show_quick_actions": True,    # Big action buttons
             "show_help_request": True,     # Request advocate help
         })
-    
+
     elif user.role == UserRole.ADVOCATE:
         features.update({
             "ui_mode": "standard",
@@ -277,7 +271,7 @@ async def get_role_features(
             "show_intake_form": True,      # New client intake
             "show_case_notes": True,       # Non-privileged notes
         })
-    
+
     elif user.role == UserRole.LEGAL:
         features.update({
             "ui_mode": "advanced",
@@ -294,7 +288,7 @@ async def get_role_features(
             "show_conflict_check": True,     # Conflict checking
             "privilege_indicator": True,     # Show privilege badges
         })
-    
+
     elif user.role == UserRole.ADMIN:
         features.update({
             "ui_mode": "full",
@@ -324,7 +318,7 @@ async def get_role_features(
 
 @router.get("/navigation")
 async def get_navigation_menu(
-    user: Optional[UserContext] = Depends(get_current_user)
+    user: UserContext | None = Depends(get_current_user)
 ) -> dict:
     """
     Get navigation menu items based on user's role.
@@ -338,10 +332,10 @@ async def get_navigation_menu(
                 {"label": "Sign In", "path": providers_stage.path if providers_stage else "/storage/providers", "icon": "◆"},
             ]
         }
-    
+
     # Base menu for all users
     menu = []
-    
+
     # Tenant (USER) - simplified menu
     if user.role == UserRole.USER:
         menu = [
@@ -358,7 +352,7 @@ async def get_navigation_menu(
             {"label": "Get Help", "path": "/tenant/help", "icon": "🆘"},
             {"label": "AI Assistant", "path": "/tenant/copilot", "icon": "○"},
         ]
-    
+
     # Advocate - case management focus
     elif user.role == UserRole.ADVOCATE:
         menu = [
@@ -369,7 +363,7 @@ async def get_navigation_menu(
             {"label": "Case Queue", "path": "/advocate/queue", "icon": "●"},
             {"label": "New Intake", "path": "/advocate/intake", "icon": "▸"},
         ]
-    
+
     # Legal (Attorney) - full legal tools
     elif user.role == UserRole.LEGAL:
         menu = [
@@ -385,7 +379,7 @@ async def get_navigation_menu(
             {"label": "Legal Research", "path": "/law-library", "icon": "▸"},
             {"label": "Law Library", "path": "/law-library", "icon": "○"},
         ]
-    
+
     # Admin - system management
     elif user.role == UserRole.ADMIN:
         menu = [
@@ -400,7 +394,7 @@ async def get_navigation_menu(
             {"label": "Docs Hub", "path": "/admin/docs", "icon": "○"},
             {"label": "All Features", "path": "/dashboard", "icon": "▸"},
         ]
-    
+
     return {
         "menu": menu,
         "role": user.role.value,
@@ -510,7 +504,7 @@ _MODULE_CONTRACTS = {
 async def module_tool_page(
     module_name: str,
     request: Request,
-    user: Optional[UserContext] = Depends(get_current_user),
+    user: UserContext | None = Depends(get_current_user),
 ):
     """Generic module page — renders any tool from its contract."""
     if not user:

@@ -4,19 +4,18 @@ Emotion Engine API Router
 Endpoints to track emotional state and get adaptive UI configurations.
 """
 
-from fastapi import APIRouter, Request, Query
-from typing import Dict, Any, Optional, List
 import logging
+from typing import Any
+
+from fastapi import APIRouter, Query, Request
 
 from app.core.request_utils import get_request_user_id
-
 from app.services.emotion_engine import (
     emotion_engine,
-    EmotionalTrigger,
+    get_adaptive_dashboard,
+    get_ui_adaptation,
     get_user_emotional_state,
     process_user_trigger,
-    get_adaptive_dashboard,
-    get_ui_adaptation
 )
 
 logger = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ router = APIRouter(prefix="/api/emotion", tags=["Emotion Engine"])
 
 
 @router.get("/state")
-async def get_emotional_state(request: Request) -> Dict[str, Any]:
+async def get_emotional_state(request: Request) -> dict[str, Any]:
     """
     Get current emotional state for user.
     
@@ -43,9 +42,9 @@ async def get_emotional_state(request: Request) -> Dict[str, Any]:
 async def record_trigger(
     request: Request,
     trigger: str = Query(..., description="Trigger event name"),
-    days_until_deadline: Optional[int] = Query(None),
-    days_until_court: Optional[int] = Query(None)
-) -> Dict[str, Any]:
+    days_until_deadline: int | None = Query(None),
+    days_until_court: int | None = Query(None)
+) -> dict[str, Any]:
     """
     Record an emotional trigger event.
     
@@ -59,18 +58,18 @@ async def record_trigger(
     - help_accessed
     """
     user_id = get_request_user_id(request)
-    
+
     context = {}
     if days_until_deadline is not None:
         context['days_until_deadline'] = days_until_deadline
     if days_until_court is not None:
         context['days_until_court'] = days_until_court
-    
+
     result = process_user_trigger(user_id, trigger, context)
-    
+
     if 'error' in result:
         return {"success": False, "error": result['error']}
-    
+
     return {
         "success": True,
         "trigger": trigger,
@@ -79,7 +78,7 @@ async def record_trigger(
 
 
 @router.get("/dashboard-config")
-async def get_dashboard_configuration(request: Request) -> Dict[str, Any]:
+async def get_dashboard_configuration(request: Request) -> dict[str, Any]:
     """
     Get full adaptive dashboard configuration.
     
@@ -102,7 +101,7 @@ async def get_dashboard_configuration(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/ui-adaptation")
-async def get_ui_settings(request: Request) -> Dict[str, Any]:
+async def get_ui_settings(request: Request) -> dict[str, Any]:
     """
     Get UI adaptation settings only.
     
@@ -118,18 +117,18 @@ async def get_ui_settings(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/suggested-action")
-async def get_suggested_action(request: Request) -> Dict[str, Any]:
+async def get_suggested_action(request: Request) -> dict[str, Any]:
     """
     Get the emotionally-appropriate next action for user.
     """
     user_id = get_request_user_id(request)
-    
+
     # Get available actions (would come from case context in real app)
     # For now, return mock suggestion based on state
     state = emotion_engine.get_state(user_id)
     messages = emotion_engine.get_personalized_message(user_id)
     adaptation = emotion_engine.calculate_ui_adaptation(user_id)
-    
+
     return {
         "success": True,
         "dominant_emotion": state.dominant_emotion,
@@ -141,7 +140,7 @@ async def get_suggested_action(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/triggers")
-async def list_available_triggers() -> Dict[str, Any]:
+async def list_available_triggers() -> dict[str, Any]:
     """
     List all available emotional triggers.
     """
@@ -183,14 +182,14 @@ async def list_available_triggers() -> Dict[str, Any]:
 async def simulate_emotional_scenario(
     request: Request,
     scenario: str = Query(..., description="Scenario to simulate: crisis|hopeful|overwhelmed|determined|confused")
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Simulate an emotional scenario for testing/demo.
     Sets user's emotional state to match scenario.
     """
     user_id = get_request_user_id(request)
     state = emotion_engine.get_state(user_id)
-    
+
     scenarios = {
         "crisis": {
             "intensity": 0.15,    # Panicking
@@ -247,20 +246,20 @@ async def simulate_emotional_scenario(
             "resolve": 0.95
         }
     }
-    
+
     if scenario not in scenarios:
         return {
             "success": False,
             "error": f"Unknown scenario. Available: {list(scenarios.keys())}"
         }
-    
+
     # Apply scenario
     for dim, value in scenarios[scenario].items():
         setattr(state, dim, value)
-    
+
     # Return full config
     config = emotion_engine.get_dashboard_config(user_id)
-    
+
     return {
         "success": True,
         "scenario": scenario,
@@ -272,13 +271,13 @@ async def simulate_emotional_scenario(
 async def get_emotional_history(
     request: Request,
     limit: int = Query(20, le=100)
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get recent emotional trigger history for user.
     """
     user_id = get_request_user_id(request)
     history = emotion_engine.user_history.get(user_id, [])
-    
+
     return {
         "success": True,
         "user_id": user_id,

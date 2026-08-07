@@ -1,11 +1,10 @@
 """Tests for app.core.i18n."""
 
 import json
-from pathlib import Path
 
 import pytest
 
-from app.core.i18n import I18n, SUPPORTED_LOCALES, _jinja2_gettext, get_locale, gettext, ngettext
+from app.core.i18n import SUPPORTED_LOCALES, I18n, _jinja2_gettext, get_locale, gettext, ngettext
 
 
 class _FakeRequest:

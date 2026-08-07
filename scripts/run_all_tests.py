@@ -16,8 +16,8 @@ import asyncio
 import importlib
 import sys
 import traceback
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -125,10 +125,11 @@ async def run_e2e_tests():
     try:
         # test_vault_local.py uses user_id="testuser" which fails FK constraint.
         # Create that user first so the test can run.
-        from app.core.database import init_db, get_db_session
+        from sqlalchemy import select
+
+        from app.core.database import get_db_session, init_db
         from app.core.utc import utc_now
         from app.models.models import User
-        from sqlalchemy import select
         await init_db()
         async with get_db_session() as session:
             existing = await session.execute(select(User).where(User.id == "testuser"))
@@ -206,8 +207,8 @@ def report_pytest_skipped():
     for fname, count, desc in pytest_tests:
         print(f"  {fname:<40} {count:<15} {desc}")
     print(f"\n  Total: {len(pytest_tests)} test files need a running server (Render or local uvicorn)")
-    print(f"  These are skipped locally due to conftest.py SQLite ARRAY incompatibility.")
-    print(f"  Run on Render with: pytest tests/ -v --tb=short")
+    print("  These are skipped locally due to conftest.py SQLite ARRAY incompatibility.")
+    print("  Run on Render with: pytest tests/ -v --tb=short")
 
 
 # =============================================================================
@@ -218,11 +219,11 @@ def final_report():
     print("\n" + "=" * 70)
     print("  FINAL REPORT")
     print("=" * 70)
-    print(f"\n  Date: {datetime.now(timezone.utc).isoformat()}")
+    print(f"\n  Date: {datetime.now(UTC).isoformat()}")
     print(f"  Python: {sys.version.split()[0]}")
     print(f"\n  Static analysis:  {PASS} pass, {FAIL} fail, {SKIP} skip")
-    print(f"  E2E document:     30 pass, 0 fail (30-step pipeline)")
-    print(f"  Pytest (server):  38 files need running server (run on Render)")
+    print("  E2E document:     30 pass, 0 fail (30-step pipeline)")
+    print("  Pytest (server):  38 files need running server (run on Render)")
     print(f"\n  TOTAL PASS: {PASS + 30}")
     print(f"  TOTAL FAIL: {FAIL}")
 

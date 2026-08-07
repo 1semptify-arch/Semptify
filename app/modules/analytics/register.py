@@ -7,7 +7,6 @@ for all endpoints except track (which accepts events from any user).
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Event Tracking ---
 
 register_function_group(FunctionGroupContract(

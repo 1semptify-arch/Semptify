@@ -8,11 +8,10 @@ requiring a live server or DB. All tests are pure-function unit tests against
 the canonical JSON shape defined in router.py:2501-2601.
 """
 
-from datetime import datetime
-from typing import Any
-
 import io
 import zipfile
+from datetime import datetime
+from typing import Any
 
 from app.modules.case_builder.router import (
     _build_attorney_intake_packet,

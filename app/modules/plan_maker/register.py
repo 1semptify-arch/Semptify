@@ -6,7 +6,6 @@ evidence, and next steps. Plans can be exported as Markdown or JSON.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="plan_maker",
     group_name="plan_maker_plan_create",

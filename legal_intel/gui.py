@@ -10,7 +10,7 @@ import asyncio
 import threading
 import httpx
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 API_BASE = "http://localhost:8000"
 
@@ -20,7 +20,7 @@ def run_async(coro):
 
 def log(msg, log_box):
     """Add message to log box with timestamp."""
-    timestamp = datetime.now().strftime("%H:%M:%S")
+    timestamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
     log_box.insert(tk.END, f"[{timestamp}] {msg}\n")
     log_box.see(tk.END)
 

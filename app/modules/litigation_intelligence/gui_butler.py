@@ -6,12 +6,12 @@ Integrates Litigation Intelligence System with Semptify's existing GUI Butler.
 Provides seamless interface for accessing LIS features through the main application.
 """
 
-import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
-from dataclasses import dataclass
-import json
 import asyncio
+import logging
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class ButlerCommand:
     command_id: str
     command_type: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     handler: str
     icon: str
     category: str
@@ -32,19 +32,19 @@ class ButlerResponse:
     """Response from GUI Butler integration."""
     command_id: str
     success: bool
-    data: Dict[str, Any]
+    data: dict[str, Any]
     message: str
     timestamp: datetime
 
 class GUIButlerIntegration:
     """Main GUI Butler integration for Litigation Intelligence System."""
-    
+
     def __init__(self):
         self.command_registry = self._initialize_command_registry()
         self.active_sessions = {}
         self.integration_handlers = {}
-        
-    def _initialize_command_registry(self) -> Dict[str, ButlerCommand]:
+
+    def _initialize_command_registry(self) -> dict[str, ButlerCommand]:
         """Initialize command registry for LIS features."""
         return {
             # Court Scraper Commands
@@ -84,7 +84,7 @@ class GUIButlerIntegration:
                 icon="●",
                 category="court_scraping"
             ),
-            
+
             # Entity Normalizer Commands
             "normalize_entity": ButlerCommand(
                 command_id="normalize_entity",
@@ -121,7 +121,7 @@ class GUIButlerIntegration:
                 icon="▸",
                 category="entity_resolution"
             ),
-            
+
             # Intelligence Engine Commands
             "analyze_case": ButlerCommand(
                 command_id="analyze_case",
@@ -154,7 +154,7 @@ class GUIButlerIntegration:
                 icon="◆",
                 category="intelligence_analysis"
             ),
-            
+
             # Graph Engine Commands
             "build_entity_graph": ButlerCommand(
                 command_id="build_entity_graph",
@@ -191,7 +191,7 @@ class GUIButlerIntegration:
                 icon="○",
                 category="graph_visualization"
             ),
-            
+
             # Storage Layer Commands
             "store_case": ButlerCommand(
                 command_id="store_case",
@@ -236,7 +236,7 @@ class GUIButlerIntegration:
                 icon="◆",
                 category="data_storage"
             ),
-            
+
             # Reporting Layer Commands
             "generate_case_summary": ButlerCommand(
                 command_id="generate_case_summary",
@@ -274,8 +274,8 @@ class GUIButlerIntegration:
                 category="reporting"
             )
         }
-    
-    async def execute_command(self, command_id: str, parameters: Dict[str, Any],
+
+    async def execute_command(self, command_id: str, parameters: dict[str, Any],
                         session_id: str = None) -> ButlerResponse:
         """Execute a GUI Butler command."""
         if command_id not in self.command_registry:
@@ -286,13 +286,13 @@ class GUIButlerIntegration:
                 message=f"Unknown command: {command_id}",
                 timestamp=utc_now()
             )
-        
+
         command = self.command_registry[command_id]
-        
+
         try:
             # Log command execution
             logger.info(f"Executing LIS command: {command_id} with parameters: {parameters}")
-            
+
             # Execute command based on handler
             if command.handler == "court_scraper":
                 result = await self._handle_court_scraper_command(command, parameters)
@@ -308,7 +308,7 @@ class GUIButlerIntegration:
                 result = await self._handle_reporting_layer_command(command, parameters)
             else:
                 raise ValueError(f"Unknown handler: {command.handler}")
-            
+
             return ButlerResponse(
                 command_id=command_id,
                 success=True,
@@ -316,7 +316,7 @@ class GUIButlerIntegration:
                 message=f"Command {command_id} executed successfully",
                 timestamp=utc_now()
             )
-            
+
         except Exception as e:
             logger.error(f"Command {command_id} failed: {e}")
             return ButlerResponse(
@@ -326,14 +326,14 @@ class GUIButlerIntegration:
                 message=f"Command failed: {str(e)}",
                 timestamp=utc_now()
             )
-    
+
     async def _handle_court_scraper_command(self, command: ButlerCommand,
-                                        parameters: Dict[str, Any]) -> Dict[str, Any]:
+                                        parameters: dict[str, Any]) -> dict[str, Any]:
         """Handle court scraper commands."""
         from .court_scraper import create_court_scraper
-        
+
         scraper = create_court_scraper()
-        
+
         if command.command_id == "scrape_mncis":
             cases = await scraper.scrape_mncis_cases(
                 case_number=parameters.get("case_number"),
@@ -341,36 +341,36 @@ class GUIButlerIntegration:
                 date_range=parameters.get("date_range")
             )
             return {"cases": cases, "source": "mncis"}
-        
+
         elif command.command_id == "scrape_efilemn":
             cases = await scraper.scrape_efilemn_cases(
                 case_number=parameters.get("case_number"),
                 party_name=parameters.get("party_name")
             )
             return {"cases": cases, "source": "efilemn"}
-        
+
         elif command.command_id == "get_efilemn_filings":
             filings = await scraper.scrape_efilemn_filings(
                 case_number=parameters["case_number"]
             )
             return {"filings": filings, "source": "efilemn"}
-        
+
         return {}
-    
+
     async def _handle_entity_normalizer_command(self, command: ButlerCommand,
-                                            parameters: Dict[str, Any]) -> Dict[str, Any]:
+                                            parameters: dict[str, Any]) -> dict[str, Any]:
         """Handle entity normalizer commands."""
         from .entity_normalizer import create_entity_normalizer
-        
+
         normalizer = create_entity_normalizer()
-        
+
         if command.command_id == "normalize_entity":
             result = normalizer.normalize_entity(
                 parameters["entity_name"],
                 parameters.get("context", "general")
             )
             return {"resolution": result.to_dict()}
-        
+
         elif command.command_id == "resolve_entities":
             results = normalizer.resolve_entities(
                 parameters["entities"],
@@ -378,41 +378,41 @@ class GUIButlerIntegration:
             )
             relationships = normalizer.get_entity_relationships(results)
             return {"resolutions": [r.to_dict() for r in results], "relationships": relationships}
-        
+
         elif command.command_id == "get_entity_relationships":
             # This would need entity data from storage
             return {"message": "Entity relationships query requires storage integration"}
-        
+
         return {}
-    
+
     async def _handle_intelligence_engine_command(self, command: ButlerCommand,
-                                            parameters: Dict[str, Any]) -> Dict[str, Any]:
+                                            parameters: dict[str, Any]) -> dict[str, Any]:
         """Handle intelligence engine commands."""
         from .intelligence_engine import create_intelligence_engine
-        
+
         engine = create_intelligence_engine()
-        
+
         if command.command_id == "analyze_case":
             report = await engine.analyze_case(parameters["case_data"])
             return {"intelligence_report": report.__dict__}
-        
+
         elif command.command_id == "get_case_intelligence":
             report = engine.get_case_intelligence(parameters["case_id"])
             return {"intelligence_report": report.__dict__ if report else {}}
-        
+
         elif command.command_id == "get_pattern_statistics":
             stats = engine.get_pattern_statistics()
             return {"statistics": stats}
-        
+
         return {}
-    
+
     async def _handle_graph_engine_command(self, command: ButlerCommand,
-                                       parameters: Dict[str, Any]) -> Dict[str, Any]:
+                                       parameters: dict[str, Any]) -> dict[str, Any]:
         """Handle graph engine commands."""
         from .graph_engine import create_graph_engine
-        
+
         graph_engine = create_graph_engine()
-        
+
         if command.command_id == "build_entity_graph":
             graph_engine.build_from_entities(parameters["entities"])
             relationships = parameters.get("relationships", [])
@@ -424,84 +424,83 @@ class GUIButlerIntegration:
                         rel.get("weight", 1.0),
                         rel.get("attributes", {})
                     )
-            
+
             graph_data = graph_engine.export_graph_data()
             return {"graph_data": graph_data}
-        
+
         elif command.command_id == "find_shortest_path":
             path = graph_engine.find_shortest_path(
                 parameters["source_entity"],
                 parameters["target_entity"]
             )
             return {"path": path}
-        
+
         elif command.command_id == "generate_graph_visualization":
             viz_data = graph_engine.generate_visualization(
                 parameters.get("format", "png")
             )
             return {"visualization": viz_data}
-        
+
         return {}
-    
+
     async def _handle_storage_layer_command(self, command: ButlerCommand,
-                                       parameters: Dict[str, Any]) -> Dict[str, Any]:
+                                       parameters: dict[str, Any]) -> dict[str, Any]:
         """Handle storage layer commands."""
-        from .storage_layer import create_storage_layer
-        
+
         # This would need database connection string
         # For now, return mock responses
         if command.command_id == "store_case":
             return {"case_id": f"stored_case_{utc_now().timestamp()}"}
-        
+
         elif command.command_id == "store_entity":
             return {"entity_id": f"stored_entity_{utc_now().timestamp()}"}
-        
+
         elif command.command_id == "search_cases":
             return {"cases": [], "total": 0}
-        
+
         elif command.command_id == "get_case_statistics":
             return {"statistics": {"total_cases": 0, "storage_type": "mock"}}
-        
+
         return {}
-    
+
     async def _handle_reporting_layer_command(self, command: ButlerCommand,
-                                        parameters: Dict[str, Any]) -> Dict[str, Any]:
+                                        parameters: dict[str, Any]) -> dict[str, Any]:
         """Handle reporting layer commands."""
         from .reporting_layer import create_reporting_layer
-        
+
         reporting = create_reporting_layer()
-        
+
         if command.command_id == "generate_case_summary":
             report = await reporting.generate_case_summary_report(
                 parameters.get("time_period", "30_days"),
                 parameters.get("filters")
             )
             return {"report": report.__dict__}
-        
+
         elif command.command_id == "generate_entity_analysis":
             report = await reporting.generate_entity_analysis_report(
                 parameters.get("time_period", "30_days"),
                 parameters.get("entity_type")
             )
             return {"report": report.__dict__}
-        
+
         elif command.command_id == "generate_pattern_trends":
             report = await reporting.generate_pattern_trends_report(
                 parameters.get("time_period", "90_days")
             )
             return {"report": report.__dict__}
-        
+
         return {}
-    
-    def get_available_commands(self) -> List[ButlerCommand]:
+
+    def get_available_commands(self) -> list[ButlerCommand]:
         """Get list of available commands."""
         return list(self.command_registry.values())
-    
-    def get_commands_by_category(self, category: str) -> List[ButlerCommand]:
+
+    def get_commands_by_category(self, category: str) -> list[ButlerCommand]:
         """Get commands filtered by category."""
         return [cmd for cmd in self.command_registry.values() if cmd.category == category]
-    
-    def register_session(self, session_id: str, user_context: Dict[str, Any]):
+
+    def register_session(self, session_id: str, user_context: dict[str, Any]):
         """Register a new GUI Butler session."""
         self.active_sessions[session_id] = {
             "user_context": user_context,
@@ -509,29 +508,29 @@ class GUIButlerIntegration:
             "last_activity": utc_now()
         }
         logger.info(f"Registered GUI Butler session: {session_id}")
-    
-    def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+
+    def get_session(self, session_id: str) -> dict[str, Any] | None:
         """Get active session information."""
         return self.active_sessions.get(session_id)
-    
+
     def update_session_activity(self, session_id: str):
         """Update session activity timestamp."""
         if session_id in self.active_sessions:
             self.active_sessions[session_id]["last_activity"] = utc_now()
-    
+
     def cleanup_sessions(self, max_age_hours: int = 24):
         """Clean up old sessions."""
         current_time = utc_now()
         expired_sessions = []
-        
+
         for session_id, session_data in self.active_sessions.items():
             age_hours = (current_time - session_data["created_at"]).total_seconds() / 3600
             if age_hours > max_age_hours:
                 expired_sessions.append(session_id)
-        
+
         for session_id in expired_sessions:
             del self.active_sessions[session_id]
-        
+
         if expired_sessions:
             logger.info(f"Cleaned up {len(expired_sessions)} expired GUI Butler sessions")
 
@@ -544,29 +543,29 @@ def create_gui_butler() -> GUIButlerIntegration:
 async def example_usage():
     """Example usage of GUI Butler integration."""
     butler = create_gui_butler()
-    
+
     # Register session
     session_id = "test_session_123"
     butler.register_session(session_id, {"user_id": "test_user", "role": "tenant_advocate"})
-    
+
     # Get available commands
     commands = butler.get_available_commands()
     logger.info(f"Available commands: {len(commands)}")
-    
+
     # Execute a command
     response = await butler.execute_command(
         "analyze_case",
         {"case_data": {"case_number": "27-CV-21-12345", "case_type": "eviction"}},
         session_id
     )
-    
+
     logger.info(f"Command executed: {response.success}")
     logger.info(f"Response: {response.message}")
-    
+
     # Get court scraping commands
     court_commands = butler.get_commands_by_category("court_scraping")
     logger.info(f"Court scraping commands: {len(court_commands)}")
-    
+
     # Cleanup
     butler.cleanup_sessions()
 

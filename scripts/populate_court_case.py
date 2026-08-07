@@ -5,17 +5,18 @@ Run this to set up a complete case with documents, timeline, and defenses.
 
 import asyncio
 import sys
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from app.models.models import Base, Document, TimelineEvent, CalendarEvent
-import uuid
 import hashlib
+import uuid
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from app.models.models import Base, CalendarEvent, Document, TimelineEvent
 
 DATABASE_URL = "sqlite+aiosqlite:///data/semptify.db"
 
@@ -103,7 +104,7 @@ TIMELINE_EVENTS = [
     {
         "event_type": "court",
         "title": "Court Hearing Scheduled",
-        "description": f"Initial hearing scheduled. Judge: Hon. Sarah Mitchell. Courtroom 1856, Hennepin County Government Center.",
+        "description": "Initial hearing scheduled. Judge: Hon. Sarah Mitchell. Courtroom 1856, Hennepin County Government Center.",
         "event_date": "2024-12-02",
         "is_evidence": False,
     },
@@ -281,15 +282,15 @@ Demo Tenant, Pro Se Defendant
 async def populate_database():
     """Populate database with court-ready case data."""
     engine = create_async_engine(DATABASE_URL, echo=False)
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    
+
     async with async_session() as session:
         user_id = "open-mode-user"
-        
+
         # Add documents
         print("📄 Adding documents...")
         for doc_data in DOCUMENTS:
@@ -308,7 +309,7 @@ async def populate_database():
                 sha256_hash=hashlib.sha256(content.encode()).hexdigest(),
             )
             session.add(doc)
-        
+
         # Add timeline events
         print("📅 Adding timeline events...")
         for event_data in TIMELINE_EVENTS:
@@ -323,7 +324,7 @@ async def populate_database():
                 is_evidence=event_data["is_evidence"],
             )
             session.add(event)
-        
+
         # Add calendar events
         print("📆 Adding calendar events...")
         for cal_data in CALENDAR_EVENTS:
@@ -339,14 +340,14 @@ async def populate_database():
                 is_critical=cal_data["event_type"] == "court",
             )
             session.add(cal)
-        
+
         await session.commit()
         print("\n✅ Court case populated successfully!")
         print(f"   📄 {len(DOCUMENTS)} documents")
         print(f"   📅 {len(TIMELINE_EVENTS)} timeline events")
         print(f"   📆 {len(CALENDAR_EVENTS)} calendar events")
         print(f"\n🏛️ Case Number: {CASE_DATA['case_number']}")
-        print(f"📍 Hearing: December 2, 2024 at 9:00 AM")
+        print("📍 Hearing: December 2, 2024 at 9:00 AM")
         print(f"🏠 Property: {CASE_DATA['property_address']}")
 
 

@@ -5,10 +5,9 @@ Converts Markdown documents to DOCX and HTML formats with legal styling.
 """
 
 import logging
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
-from dataclasses import dataclass
 
 from app.core.utc import utc_now
 
@@ -18,13 +17,13 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DocumentMetadata:
     """Metadata for converted documents."""
-    title: Optional[str] = None
-    case_number: Optional[str] = None
-    court: Optional[str] = None
-    parties: Optional[str] = None
-    author: Optional[str] = None
+    title: str | None = None
+    case_number: str | None = None
+    court: str | None = None
+    parties: str | None = None
+    author: str | None = None
     created_at: datetime = None
-    
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = utc_now()
@@ -53,40 +52,40 @@ DOCUMENT_STYLES = {
 
 class DocumentConverter:
     """Main document converter class."""
-    
+
     def __init__(self):
         self.output_dir = Path("data/converted_documents")
         self.output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     def convert_to_docx(
         self,
         markdown_text: str,
-        metadata: Optional[DocumentMetadata] = None,
-        style: Optional[DocumentStyle] = None
+        metadata: DocumentMetadata | None = None,
+        style: DocumentStyle | None = None
     ) -> Path:
         """Convert markdown text to DOCX format."""
         try:
             import docx
             from docx import Document
-            from docx.shared import Pt, Inches
             from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+            from docx.shared import Inches, Pt
         except ImportError:
             raise ImportError("python-docx is required for DOCX conversion")
-        
+
         if metadata is None:
             metadata = DocumentMetadata()
         if style is None:
             style = DocumentStyle.STYLES["standard"]
-        
+
         # Create document
         doc = Document()
-        
+
         # Set default font
         style_obj = doc.styles['Normal']
         font = style_obj.font
         font.name = style.font_family
         font.size = Pt(style.font_size)
-        
+
         # Add title if provided
         if metadata.title:
             title_para = doc.add_paragraph(metadata.title)
@@ -94,7 +93,7 @@ class DocumentConverter:
             title_run = title_para.runs[0]
             title_run.font.size = Pt(style.font_size + 4)
             title_run.font.bold = True
-        
+
         # Add metadata header
         if any([metadata.case_number, metadata.court, metadata.parties, metadata.author]):
             meta_para = doc.add_paragraph()
@@ -108,7 +107,7 @@ class DocumentConverter:
                 meta_para.add_run(f"Author: {metadata.author}\n")
             if metadata.created_at:
                 meta_para.add_run(f"Date: {metadata.created_at.strftime('%B %d, %Y')}")
-        
+
         # Add markdown content (basic conversion)
         lines = markdown_text.split('\n')
         for line in lines:
@@ -128,35 +127,35 @@ class DocumentConverter:
                 else:
                     # Regular paragraph
                     doc.add_paragraph(line)
-        
+
         # Save document
         filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.docx"
         filepath = self.output_dir / filename
         doc.save(filepath)
-        
+
         logger.info(f"Converted markdown to DOCX: {filepath}")
         return filepath
-    
+
     def convert_to_html(
         self,
         markdown_text: str,
-        metadata: Optional[DocumentMetadata] = None,
-        style: Optional[DocumentStyle] = None
+        metadata: DocumentMetadata | None = None,
+        style: DocumentStyle | None = None
     ) -> Path:
         """Convert markdown text to interactive HTML format."""
         try:
             import markdown
         except ImportError:
             raise ImportError("markdown is required for HTML conversion")
-        
+
         if metadata is None:
             metadata = DocumentMetadata()
         if style is None:
             style = DocumentStyle.STYLES["standard"]
-        
+
         # Convert markdown to HTML
         html_content = markdown.markdown(markdown_text, extensions=['tables', 'fenced_code'])
-        
+
         # Create HTML document
         html_template = f"""<!DOCTYPE html>
 <html lang="en">
@@ -193,7 +192,7 @@ class DocumentConverter:
 </head>
 <body>
 """
-        
+
         # Add metadata header
         if any([metadata.title, metadata.case_number, metadata.court, metadata.parties, metadata.author]):
             html_template += '<div class="metadata">'
@@ -210,18 +209,18 @@ class DocumentConverter:
             if metadata.created_at:
                 html_template += f'<p><strong>Date:</strong> {metadata.created_at.strftime("%B %d, %Y")}</p>'
             html_template += '</div>'
-        
+
         # Add content
         html_template += f'<div class="content">{html_content}</div>'
         html_template += '</body></html>'
-        
+
         # Save HTML file
         filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.html"
         filepath = self.output_dir / filename
-        
+
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(html_template)
-        
+
         logger.info(f"Converted markdown to HTML: {filepath}")
         return filepath
 
@@ -229,11 +228,11 @@ class DocumentConverter:
 # Convenience functions
 def markdown_to_docx(
     markdown_text: str,
-    title: Optional[str] = None,
-    case_number: Optional[str] = None,
-    court: Optional[str] = None,
-    parties: Optional[str] = None,
-    author: Optional[str] = None,
+    title: str | None = None,
+    case_number: str | None = None,
+    court: str | None = None,
+    parties: str | None = None,
+    author: str | None = None,
     style: str = "standard"
 ) -> Path:
     """Convert markdown to DOCX with metadata."""
@@ -244,20 +243,20 @@ def markdown_to_docx(
         parties=parties,
         author=author
     )
-    
+
     doc_style = DocumentStyle.STYLES.get(style, DocumentStyle.STYLES["standard"])
-    
+
     converter = DocumentConverter()
     return converter.convert_to_docx(markdown_text, metadata, doc_style)
 
 
 def markdown_to_html(
     markdown_text: str,
-    title: Optional[str] = None,
-    case_number: Optional[str] = None,
-    court: Optional[str] = None,
-    parties: Optional[str] = None,
-    author: Optional[str] = None,
+    title: str | None = None,
+    case_number: str | None = None,
+    court: str | None = None,
+    parties: str | None = None,
+    author: str | None = None,
     style: str = "standard"
 ) -> Path:
     """Convert markdown to HTML with metadata."""
@@ -268,8 +267,8 @@ def markdown_to_html(
         parties=parties,
         author=author
     )
-    
+
     doc_style = DocumentStyle.STYLES.get(style, DocumentStyle.STYLES["standard"])
-    
+
     converter = DocumentConverter()
     return converter.convert_to_html(markdown_text, metadata, doc_style)

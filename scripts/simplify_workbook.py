@@ -8,12 +8,12 @@ self-explanatory for anyone opening it cold:
   - Translates status text to emoji versions
   - Inserts a legend row just below the header row
 """
-import os
 from pathlib import Path
+
 from openpyxl import load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.datavalidation import DataValidation
 
 WORKBOOK_PATH = Path(__file__).resolve().parent.parent / "Semptify_Master_Inventory_LIVE_reviewed.xlsx"
 

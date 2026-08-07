@@ -9,11 +9,9 @@ Runs periodically (cron/manual) to mark facts stale.
 """
 
 import logging
-from datetime import timedelta
-from typing import List
 
 import httpx
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now

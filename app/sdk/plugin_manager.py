@@ -28,17 +28,18 @@ Usage:
 
 import importlib
 import importlib.util
-import logging
-import os
-import sys
 import json
+import logging
+import sys
+import traceback
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from app.core.utc import utc_now
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set
-import traceback
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -72,26 +73,26 @@ class PluginMetadata:
     author: str = ""
     website: str = ""
     license: str = "MIT"
-    
+
     # Requirements
     min_semptify_version: str = "1.0.0"
-    dependencies: List[str] = field(default_factory=list)  # Other plugins required
-    python_packages: List[str] = field(default_factory=list)  # pip packages
-    
+    dependencies: list[str] = field(default_factory=list)  # Other plugins required
+    python_packages: list[str] = field(default_factory=list)  # pip packages
+
     # Categorization
     category: str = "utility"
-    tags: List[str] = field(default_factory=list)
-    
+    tags: list[str] = field(default_factory=list)
+
     # Entry points
     main_module: str = "main"  # Main module file (without .py)
     init_function: str = "initialize"  # Function to call on load
-    
+
     # Optional
     icon: str = ""
-    screenshots: List[str] = field(default_factory=list)
-    
+    screenshots: list[str] = field(default_factory=list)
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'PluginMetadata':
+    def from_dict(cls, data: dict[str, Any]) -> 'PluginMetadata':
         return cls(
             name=data.get("name", "unknown"),
             display_name=data.get("display_name", data.get("name", "Unknown")),
@@ -110,8 +111,8 @@ class PluginMetadata:
             icon=data.get("icon", ""),
             screenshots=data.get("screenshots", []),
         )
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "display_name": self.display_name,
@@ -142,10 +143,10 @@ class Plugin:
     status: PluginStatus = PluginStatus.DISCOVERED
     module: Any = None  # The loaded Python module
     sdk: Any = None  # The plugin's SDK instance
-    error: Optional[str] = None
-    loaded_at: Optional[datetime] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    error: str | None = None
+    loaded_at: datetime | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.metadata.name,
             "display_name": self.metadata.display_name,
@@ -168,72 +169,72 @@ class PluginManager:
     
     Handles discovery, loading, and lifecycle of plugins.
     """
-    
+
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         self._initialized = True
-        
+
         # Plugin storage
-        self.plugins: Dict[str, Plugin] = {}
-        
+        self.plugins: dict[str, Plugin] = {}
+
         # Plugin directories
-        self.plugin_dirs: List[Path] = [
+        self.plugin_dirs: list[Path] = [
             Path("app/plugins"),      # Built-in plugins
             Path("plugins"),          # User plugins
             Path.home() / ".semptify" / "plugins",  # User home plugins
         ]
-        
+
         # Callbacks
-        self.on_plugin_loaded: List[Callable] = []
-        self.on_plugin_unloaded: List[Callable] = []
-        self.on_plugin_error: List[Callable] = []
-        
+        self.on_plugin_loaded: list[Callable] = []
+        self.on_plugin_unloaded: list[Callable] = []
+        self.on_plugin_error: list[Callable] = []
+
         # Semptify version (for compatibility checks)
         self.semptify_version = "1.0.0"
-        
+
         logger.info("○ Plugin Manager initialized")
-    
+
     def add_plugin_dir(self, path: str):
         """Add a directory to search for plugins"""
         self.plugin_dirs.append(Path(path))
-    
+
     # =========================================================================
     # DISCOVERY
     # =========================================================================
-    
-    def discover_plugins(self) -> List[Plugin]:
+
+    def discover_plugins(self) -> list[Plugin]:
         """Discover all plugins in plugin directories"""
         discovered = []
-        
+
         for plugin_dir in self.plugin_dirs:
             if not plugin_dir.exists():
                 continue
-            
+
             # Each subdirectory is a potential plugin
             for item in plugin_dir.iterdir():
                 if item.is_dir() and not item.name.startswith(('_', '.')):
                     plugin = self._discover_plugin(item)
                     if plugin:
                         discovered.append(plugin)
-        
+
         logger.info(f"▸ Discovered {len(discovered)} plugins")
         return discovered
-    
-    def _discover_plugin(self, path: Path) -> Optional[Plugin]:
+
+    def _discover_plugin(self, path: Path) -> Plugin | None:
         """Discover a single plugin from a directory"""
         # Look for plugin.json or setup.py
         metadata_file = path / "plugin.json"
-        
+
         if not metadata_file.exists():
             # Try to infer from __init__.py
             init_file = path / "__init__.py"
@@ -249,135 +250,135 @@ class PluginManager:
         else:
             # Load from plugin.json
             try:
-                with open(metadata_file, 'r') as f:
+                with open(metadata_file) as f:
                     data = json.load(f)
                 metadata = PluginMetadata.from_dict(data)
             except Exception as e:
                 logger.error(f"Failed to load plugin.json from {path}: {e}")
                 return None
-        
+
         # Create plugin instance
         plugin = Plugin(
             metadata=metadata,
             path=path,
             status=PluginStatus.DISCOVERED,
         )
-        
+
         # Store in registry
         self.plugins[metadata.name] = plugin
-        
+
         logger.debug(f"   ● Found plugin: {metadata.name} v{metadata.version}")
-        
+
         return plugin
-    
+
     # =========================================================================
     # LOADING
     # =========================================================================
-    
-    def load_all(self) -> Dict[str, bool]:
+
+    def load_all(self) -> dict[str, bool]:
         """Load all discovered plugins"""
         results = {}
-        
+
         # Sort by dependencies
         load_order = self._resolve_load_order()
-        
+
         for plugin_name in load_order:
             success = self.load_plugin(plugin_name)
             results[plugin_name] = success
-        
+
         loaded_count = sum(1 for v in results.values() if v)
         logger.info(f"● Loaded {loaded_count}/{len(results)} plugins")
-        
+
         return results
-    
+
     def load_plugin(self, name: str) -> bool:
         """Load a specific plugin"""
         if name not in self.plugins:
             logger.error(f"Plugin not found: {name}")
             return False
-        
+
         plugin = self.plugins[name]
-        
+
         if plugin.status == PluginStatus.ACTIVE:
             logger.warning(f"Plugin already loaded: {name}")
             return True
-        
+
         plugin.status = PluginStatus.LOADING
-        
+
         try:
             # Check dependencies
             if not self._check_dependencies(plugin):
                 plugin.status = PluginStatus.INCOMPATIBLE
                 return False
-            
+
             # Check Python packages
             if not self._check_python_packages(plugin):
                 plugin.status = PluginStatus.INCOMPATIBLE
                 return False
-            
+
             # Load the module
             module = self._load_module(plugin)
             if not module:
                 plugin.status = PluginStatus.ERROR
                 return False
-            
+
             plugin.module = module
-            
+
             # Get SDK instance if available
             if hasattr(module, 'sdk'):
                 plugin.sdk = module.sdk
-            
+
             # Call init function
             init_func = getattr(module, plugin.metadata.init_function, None)
             if init_func:
                 init_func()
-            
+
             plugin.status = PluginStatus.ACTIVE
             plugin.loaded_at = utc_now()
-            
+
             logger.info(f"● Loaded plugin: {name} v{plugin.metadata.version}")
-            
+
             # Notify callbacks
             for callback in self.on_plugin_loaded:
                 try:
                     callback(plugin)
                 except Exception as e:
                     logger.error(f"Plugin loaded callback error: {e}")
-            
+
             return True
-            
+
         except Exception as e:
             plugin.status = PluginStatus.ERROR
             plugin.error = str(e)
             logger.error(f"Failed to load plugin {name}: {e}")
             logger.debug(traceback.format_exc())
-            
+
             # Notify error callbacks
             for callback in self.on_plugin_error:
                 try:
                     callback(plugin, e)
                 except Exception:
                     pass
-            
+
             return False
-    
-    def _load_module(self, plugin: Plugin) -> Optional[Any]:
+
+    def _load_module(self, plugin: Plugin) -> Any | None:
         """Load the plugin's Python module"""
         main_module = plugin.metadata.main_module
         module_path = plugin.path / f"{main_module}.py"
-        
+
         if not module_path.exists():
             # Try __init__.py
             module_path = plugin.path / "__init__.py"
             if not module_path.exists():
                 plugin.error = f"Module not found: {main_module}.py or __init__.py"
                 return None
-        
+
         # Add plugin path to sys.path temporarily
         plugin_parent = str(plugin.path.parent)
         if plugin_parent not in sys.path:
             sys.path.insert(0, plugin_parent)
-        
+
         try:
             # Load the module
             spec = importlib.util.spec_from_file_location(
@@ -387,14 +388,14 @@ class PluginManager:
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
-            
+
             return module
-            
+
         except Exception as e:
             plugin.error = f"Import error: {e}"
             logger.error(f"Failed to import plugin module: {e}")
             return None
-    
+
     def _check_dependencies(self, plugin: Plugin) -> bool:
         """Check if plugin dependencies are met"""
         for dep in plugin.metadata.dependencies:
@@ -402,15 +403,15 @@ class PluginManager:
                 plugin.error = f"Missing dependency: {dep}"
                 logger.error(f"Plugin {plugin.metadata.name} missing dependency: {dep}")
                 return False
-            
+
             dep_plugin = self.plugins[dep]
             if dep_plugin.status != PluginStatus.ACTIVE:
                 plugin.error = f"Dependency not active: {dep}"
                 logger.error(f"Plugin {plugin.metadata.name} dependency not active: {dep}")
                 return False
-        
+
         return True
-    
+
     def _check_python_packages(self, plugin: Plugin) -> bool:
         """Check if required Python packages are installed"""
         for package in plugin.metadata.python_packages:
@@ -420,120 +421,120 @@ class PluginManager:
                 plugin.error = f"Missing Python package: {package}"
                 logger.error(f"Plugin {plugin.metadata.name} missing package: {package}")
                 return False
-        
+
         return True
-    
-    def _resolve_load_order(self) -> List[str]:
+
+    def _resolve_load_order(self) -> list[str]:
         """Resolve plugin load order based on dependencies"""
         # Simple topological sort
         order = []
         visited = set()
-        
+
         def visit(name: str):
             if name in visited:
                 return
             visited.add(name)
-            
+
             plugin = self.plugins.get(name)
             if plugin:
                 for dep in plugin.metadata.dependencies:
                     visit(dep)
                 order.append(name)
-        
+
         for name in self.plugins:
             visit(name)
-        
+
         return order
-    
+
     # =========================================================================
     # UNLOADING
     # =========================================================================
-    
+
     def unload_plugin(self, name: str) -> bool:
         """Unload a plugin"""
         if name not in self.plugins:
             return False
-        
+
         plugin = self.plugins[name]
-        
+
         if plugin.status != PluginStatus.ACTIVE:
             return True
-        
+
         try:
             # Call cleanup if available
             if plugin.module and hasattr(plugin.module, 'cleanup'):
                 plugin.module.cleanup()
-            
+
             # Remove from sys.modules
             module_name = f"semptify_plugin_{name}"
             if module_name in sys.modules:
                 del sys.modules[module_name]
-            
+
             plugin.status = PluginStatus.DISABLED
             plugin.module = None
             plugin.sdk = None
-            
+
             logger.info(f"○ Unloaded plugin: {name}")
-            
+
             # Notify callbacks
             for callback in self.on_plugin_unloaded:
                 try:
                     callback(plugin)
                 except Exception:
                     pass
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to unload plugin {name}: {e}")
             return False
-    
+
     def reload_plugin(self, name: str) -> bool:
         """Reload a plugin"""
         self.unload_plugin(name)
         return self.load_plugin(name)
-    
+
     # =========================================================================
     # STATUS & INFO
     # =========================================================================
-    
-    def get_plugin(self, name: str) -> Optional[Plugin]:
+
+    def get_plugin(self, name: str) -> Plugin | None:
         """Get a plugin by name"""
         return self.plugins.get(name)
-    
-    def get_plugin_status(self, name: str) -> Optional[Dict[str, Any]]:
+
+    def get_plugin_status(self, name: str) -> dict[str, Any] | None:
         """Get plugin status"""
         plugin = self.plugins.get(name)
         if not plugin:
             return None
         return plugin.to_dict()
-    
-    def get_all_plugins(self) -> List[Dict[str, Any]]:
+
+    def get_all_plugins(self) -> list[dict[str, Any]]:
         """Get all plugins info"""
         return [p.to_dict() for p in self.plugins.values()]
-    
-    def get_active_plugins(self) -> List[Plugin]:
+
+    def get_active_plugins(self) -> list[Plugin]:
         """Get all active plugins"""
         return [p for p in self.plugins.values() if p.status == PluginStatus.ACTIVE]
-    
-    def get_status_summary(self) -> Dict[str, Any]:
+
+    def get_status_summary(self) -> dict[str, Any]:
         """Get summary of plugin system status"""
         by_status = {}
         for plugin in self.plugins.values():
             status = plugin.status.value
             by_status[status] = by_status.get(status, 0) + 1
-        
+
         return {
             "total_plugins": len(self.plugins),
             "active_plugins": len(self.get_active_plugins()),
             "by_status": by_status,
             "plugin_dirs": [str(d) for d in self.plugin_dirs],
         }
-    
+
     # =========================================================================
     # PLUGIN CREATION HELPERS
     # =========================================================================
-    
+
     def create_plugin_template(
         self,
         name: str,
@@ -545,7 +546,7 @@ class PluginManager:
         output_dir = Path(output_dir or "plugins")
         plugin_dir = output_dir / name
         plugin_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create plugin.json
         metadata = {
             "name": name,
@@ -563,10 +564,10 @@ class PluginManager:
             "main_module": "main",
             "init_function": "initialize",
         }
-        
+
         with open(plugin_dir / "plugin.json", 'w') as f:
             json.dump(metadata, f, indent=2)
-        
+
         # Create main.py
         main_code = f'''"""
 {display_name} Plugin
@@ -627,15 +628,15 @@ def cleanup():
 
 __all__ = ["sdk", "module_definition", "initialize", "cleanup"]
 '''
-        
+
         with open(plugin_dir / "main.py", 'w') as f:
             f.write(main_code)
-        
+
         # Create __init__.py
         with open(plugin_dir / "__init__.py", 'w') as f:
             f.write(f'"""Plugin: {display_name}"""\n')
             f.write('from .main import *\n')
-        
+
         # Create README
         readme = f'''# {display_name}
 
@@ -664,12 +665,12 @@ Edit `plugin.json` to configure the plugin.
 
 MIT
 '''
-        
+
         with open(plugin_dir / "README.md", 'w') as f:
             f.write(readme)
-        
+
         logger.info(f"● Created plugin template: {plugin_dir}")
-        
+
         return plugin_dir
 
 
@@ -683,34 +684,34 @@ plugin_manager = PluginManager()
 
 def main():
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Semptify Plugin Manager")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    
+
     # List plugins
     list_parser = subparsers.add_parser("list", help="List all plugins")
-    
+
     # Create plugin
     create_parser = subparsers.add_parser("create", help="Create new plugin")
     create_parser.add_argument("name", help="Plugin name")
     create_parser.add_argument("display_name", help="Display name")
     create_parser.add_argument("description", help="Description")
     create_parser.add_argument("--output", "-o", default="plugins", help="Output directory")
-    
+
     # Load plugin
     load_parser = subparsers.add_parser("load", help="Load a plugin")
     load_parser.add_argument("name", help="Plugin name")
-    
+
     # Unload plugin
     unload_parser = subparsers.add_parser("unload", help="Unload a plugin")
     unload_parser.add_argument("name", help="Plugin name")
-    
+
     # Status
     status_parser = subparsers.add_parser("status", help="Show plugin status")
     status_parser.add_argument("name", nargs="?", help="Plugin name (optional)")
-    
+
     args = parser.parse_args()
-    
+
     if args.command == "list":
         plugin_manager.discover_plugins()
         logger.info("Discovered Plugins:")
@@ -719,7 +720,7 @@ def main():
             status_icon = "●" if plugin.status == PluginStatus.ACTIVE else "○"
             logger.info(f"{status_icon} {plugin.metadata.name:<20} v{plugin.metadata.version:<10} [{plugin.status.value}]")
             logger.info(f"   {plugin.metadata.description[:50]}")
-    
+
     elif args.command == "create":
         plugin_manager.create_plugin_template(
             args.name,
@@ -729,7 +730,7 @@ def main():
         )
         logger.info(f"Created plugin: {args.name}")
         logger.info(f"   Location: {args.output}/{args.name}")
-    
+
     elif args.command == "load":
         plugin_manager.discover_plugins()
         success = plugin_manager.load_plugin(args.name)
@@ -737,14 +738,14 @@ def main():
             logger.info(f"● Loaded: {args.name}")
         else:
             logger.error(f"◆ Failed to load: {args.name}")
-    
+
     elif args.command == "unload":
         success = plugin_manager.unload_plugin(args.name)
         if success:
             logger.info(f"● Unloaded: {args.name}")
         else:
             logger.error(f"◆ Failed to unload: {args.name}")
-    
+
     elif args.command == "status":
         if args.name:
             status = plugin_manager.get_plugin_status(args.name)
@@ -755,7 +756,7 @@ def main():
         else:
             summary = plugin_manager.get_status_summary()
             logger.info(json.dumps(summary, indent=2))
-    
+
     else:
         parser.print_help()
 

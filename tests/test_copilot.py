@@ -5,8 +5,6 @@ Tests for the AI assistant and context loop.
 
 import pytest
 from httpx import AsyncClient
-from unittest.mock import patch, AsyncMock, MagicMock
-
 
 # =============================================================================
 # Copilot Status Tests

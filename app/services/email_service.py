@@ -11,7 +11,6 @@ skipped so the app runs fine in development without credentials.
 
 import logging
 import os
-from typing import Optional
 
 import httpx
 
@@ -27,8 +26,8 @@ async def send_email(
     to: str | list[str],
     subject: str,
     html: str,
-    from_address: Optional[str] = None,
-    reply_to: Optional[str] = None,
+    from_address: str | None = None,
+    reply_to: str | None = None,
 ) -> bool:
     """
     Send a transactional email via Resend.
@@ -78,7 +77,7 @@ async def send_email(
 async def send_support_notification(
     subject: str,
     body_html: str,
-    reply_to: Optional[str] = None,
+    reply_to: str | None = None,
 ) -> bool:
     """Send an internal notification to the support inbox."""
     return await send_email(
@@ -90,9 +89,9 @@ async def send_support_notification(
 
 
 async def send_feedback_email(
-    user_email: Optional[str],
+    user_email: str | None,
     feedback_text: str,
-    page: Optional[str] = None,
+    page: str | None = None,
 ) -> bool:
     """Forward a user feedback submission to the support inbox."""
     source = f"<p><strong>Page:</strong> {page}</p>" if page else ""

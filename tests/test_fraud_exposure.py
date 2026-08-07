@@ -2,9 +2,9 @@
 Tests for the Fraud Exposure module - Fraud detection and analysis.
 """
 import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
+from httpx import ASGITransport, AsyncClient
 
+from app.main import app
 
 # ============================================================================
 # HEALTH ENDPOINT
@@ -12,7 +12,7 @@ from app.main import app
 
 class TestFraudHealth:
     """Test fraud exposure service health."""
-    
+
     @pytest.mark.asyncio
     async def test_health_check(self):
         """Test fraud service health endpoint."""
@@ -30,7 +30,7 @@ class TestFraudHealth:
 
 class TestFraudPatterns:
     """Test fraud pattern definitions."""
-    
+
     @pytest.mark.asyncio
     async def test_get_patterns(self):
         """Test getting fraud pattern definitions."""
@@ -38,7 +38,7 @@ class TestFraudPatterns:
             response = await client.get("/api/fraud/patterns")
             # May return 200 or 404 depending on implementation
             assert response.status_code in [200, 401, 404, 500]
-    
+
     @pytest.mark.asyncio
     async def test_patterns_endpoint_exists(self):
         """Test that patterns endpoint is accessible."""
@@ -54,7 +54,7 @@ class TestFraudPatterns:
 
 class TestCaseAnalysis:
     """Test fraud case analysis functionality."""
-    
+
     @pytest.mark.asyncio
     async def test_analyze_endpoint_exists(self):
         """Test that analyze endpoint exists."""
@@ -69,7 +69,7 @@ class TestCaseAnalysis:
             )
             # Accept various status codes
             assert response.status_code in [200, 201, 401, 422, 500]
-    
+
     @pytest.mark.asyncio
     async def test_analyze_requires_case_id(self):
         """Test that analysis requires case_id."""
@@ -80,7 +80,7 @@ class TestCaseAnalysis:
             )
             # Should fail validation without case_id
             assert response.status_code in [400, 401, 422, 500]
-    
+
     @pytest.mark.asyncio
     async def test_analyze_with_full_data(self):
         """Test analysis with complete case data."""
@@ -107,7 +107,7 @@ class TestCaseAnalysis:
 
 class TestStatutesOfLimitation:
     """Test statutes of limitation information."""
-    
+
     @pytest.mark.asyncio
     async def test_statutes_endpoint(self):
         """Test getting statutes of limitation."""
@@ -123,7 +123,7 @@ class TestStatutesOfLimitation:
 
 class TestHUDSubsidyFraud:
     """Test HUD subsidy fraud detection."""
-    
+
     @pytest.mark.asyncio
     async def test_hud_fraud_check(self):
         """Test checking for HUD subsidy fraud indicators."""
@@ -147,7 +147,7 @@ class TestHUDSubsidyFraud:
 
 class TestWhistleblowerInfo:
     """Test whistleblower protection information."""
-    
+
     @pytest.mark.asyncio
     async def test_whistleblower_endpoint(self):
         """Test getting whistleblower protection info."""
@@ -163,7 +163,7 @@ class TestWhistleblowerInfo:
 
 class TestFraudIndicators:
     """Test fraud indicator detection."""
-    
+
     @pytest.mark.asyncio
     async def test_indicators_list(self):
         """Test getting list of fraud indicators."""
@@ -171,7 +171,7 @@ class TestFraudIndicators:
             response = await client.get("/api/fraud/indicators")
             # May return list or 404
             assert response.status_code in [200, 404]
-    
+
     @pytest.mark.asyncio
     async def test_property_fraud_check(self):
         """Test checking a property for fraud indicators."""
@@ -192,7 +192,7 @@ class TestFraudIndicators:
 
 class TestReportGeneration:
     """Test fraud report generation."""
-    
+
     @pytest.mark.asyncio
     async def test_generate_report(self):
         """Test generating a fraud analysis report."""
@@ -213,14 +213,14 @@ class TestReportGeneration:
 
 class TestServiceIntegration:
     """Test fraud service integration with other modules."""
-    
+
     @pytest.mark.asyncio
     async def test_service_responds(self):
         """Test that fraud service responds to requests."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/fraud/health")
             assert response.status_code == 200
-    
+
     @pytest.mark.asyncio
     async def test_json_content_type(self):
         """Test that responses are JSON."""
@@ -235,7 +235,7 @@ class TestServiceIntegration:
 
 class TestErrorHandling:
     """Test fraud service error handling."""
-    
+
     @pytest.mark.asyncio
     async def test_invalid_json(self):
         """Test handling of invalid JSON."""
@@ -246,7 +246,7 @@ class TestErrorHandling:
                 headers={"Content-Type": "application/json"}
             )
             assert response.status_code in [400, 422]
-    
+
     @pytest.mark.asyncio
     async def test_empty_body(self):
         """Test handling of empty request body."""

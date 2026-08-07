@@ -3,10 +3,9 @@ Dakota County Eviction Defense - Internationalization Service
 Supports: English (EN), Spanish (ES), Somali (SO), Arabic (AR)
 """
 
-from typing import Dict, Optional
 
 # Primary language strings - English as base
-STRINGS: Dict[str, Dict[str, str]] = {
+STRINGS: dict[str, dict[str, str]] = {
     # Navigation
     "nav_home": {
         "en": "Home",
@@ -50,7 +49,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Caawiyaha Maxkamadda Zoom",
         "ar": "مساعد المحكمة عبر زوم"
     },
-    
+
     # Common Actions
     "btn_next": {
         "en": "Next Step",
@@ -94,7 +93,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Kansal",
         "ar": "إلغاء"
     },
-    
+
     # Headings
     "title_main": {
         "en": "Dakota County Eviction Defense",
@@ -132,7 +131,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Hagaha Muuqaalka Maxkamadda Zoom",
         "ar": "دليل المثول أمام المحكمة عبر زوم"
     },
-    
+
     # Timeline/Deadlines
     "deadline_warning": {
         "en": "⚠️ You have {days} days to respond!",
@@ -152,7 +151,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Muxuu yahay taariikhda dhageysigaaga?",
         "ar": "ما هو تاريخ جلستك؟"
     },
-    
+
     # Defense Types
     "defense_nonpayment": {
         "en": "I couldn't pay rent because...",
@@ -190,7 +189,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Kirada ayaan horay u bixiyey",
         "ar": "لقد دفعت الإيجار بالفعل"
     },
-    
+
     # Counterclaim Reasons
     "counterclaim_repairs": {
         "en": "Landlord failed to make repairs",
@@ -222,7 +221,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Mulkiilahu wuu xiray adeegyada guryaha",
         "ar": "قطع المالك المرافق"
     },
-    
+
     # Motions
     "motion_dismiss": {
         "en": "Motion to Dismiss",
@@ -248,7 +247,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Codsiga Cafinta Kharashka",
         "ar": "طلب الإعفاء من الرسوم"
     },
-    
+
     # Zoom Court
     "zoom_checklist": {
         "en": "Pre-Hearing Checklist",
@@ -286,7 +285,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Raadi meel aamusan",
         "ar": "ابحث عن مكان هادئ"
     },
-    
+
     # Status Messages
     "status_saved": {
         "en": "Your progress has been saved",
@@ -306,7 +305,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Dhammaystiran! Soo deji baakadaada hoose.",
         "ar": "اكتمل! حمّل حزمتك أدناه."
     },
-    
+
     # Error Messages
     "error_required": {
         "en": "This field is required",
@@ -326,7 +325,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Wax baa qaldamay. Fadlan isku day mar kale.",
         "ar": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
     },
-    
+
     # Help Text
     "help_fee_waiver": {
         "en": "If you cannot afford court fees, you may qualify for a fee waiver (IFP).",
@@ -340,7 +339,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Caawimo sharci oo bilaash ah ayaa la heli karaa. Wac HomeLine: 612-728-5767",
         "ar": "قد تتوفر مساعدة قانونية مجانية. اتصل بـ HomeLine: 612-728-5767"
     },
-    
+
     # Footer
     "footer_disclaimer": {
         "en": "This tool provides legal information, not legal advice. For legal advice, consult an attorney.",
@@ -360,31 +359,31 @@ def get_string(key: str, lang: str = "en", **kwargs) -> str:
     """Get translated string by key and language code."""
     if key not in STRINGS:
         return f"[Missing: {key}]"
-    
+
     translations = STRINGS[key]
     lang = lang.lower()
-    
+
     # Fallback chain: requested -> en
     text = translations.get(lang, translations.get("en", f"[No translation: {key}]"))
-    
+
     # Format with kwargs if provided
     if kwargs:
         try:
             text = text.format(**kwargs)
         except KeyError:
             pass
-    
+
     return text
 
-def get_all_strings(lang: str = "en") -> Dict[str, str]:
+def get_all_strings(lang: str = "en") -> dict[str, str]:
     """Get all strings for a language (for template injection)."""
-    return {key: get_string(key, lang) for key in STRINGS.keys()}
+    return {key: get_string(key, lang) for key in STRINGS}
 
 def get_supported_languages() -> list:
     """Return list of supported language codes."""
     return ["en", "es", "so", "ar"]
 
-def get_language_names() -> Dict[str, str]:
+def get_language_names() -> dict[str, str]:
     """Return language code to name mapping."""
     return {
         "en": "English",

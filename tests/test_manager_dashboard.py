@@ -1,13 +1,13 @@
 """Tests for manager dashboard presence and statistics."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
 
+from app.core.manager_dashboard import ONLINE_THRESHOLD_MINUTES, get_staff_list
 from app.core.utc import utc_now
-from app.core.manager_dashboard import get_staff_list, ONLINE_THRESHOLD_MINUTES
-from app.models.models import User, InviteCode
+from app.models.models import InviteCode, User
 
 
 def _make_session(users_by_id, redeemed_codes):
@@ -117,7 +117,7 @@ async def test_staff_list_online_prefers_most_recent_activity():
 @pytest.mark.anyio
 async def test_staff_list_handles_naive_datetime():
     """Naive datetimes are treated as UTC before comparing."""
-    recent_naive = datetime.utcnow() - timedelta(minutes=3)
+    recent_naive = datetime.now(UTC) - timedelta(minutes=3)
     user = _user(last_login=recent_naive, user_id="user_naive")
     code = _invite_code(role="advocate", used_by=["user_naive"])
     session = _make_session({"user_naive": user}, [code])

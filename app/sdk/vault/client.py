@@ -20,12 +20,11 @@ Usage:
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Coroutine, List, Optional, Any
 
 from app.core.vault_paths import VAULT_ROOT
-from app.sdk.vault.folder_spec import VaultFolderSpec, TENANT_VAULT
-from app.sdk.vault.errors import VaultError, VaultProviderError, VaultFolderError
+from app.sdk.vault.folder_spec import TENANT_VAULT, VaultFolderSpec
 
 logger = logging.getLogger("semptify.vault.sdk")
 
@@ -45,18 +44,18 @@ class FolderResult:
 @dataclass
 class VaultResult:
     """Aggregate result for a vault operation."""
-    folders: List[FolderResult] = field(default_factory=list)
+    folders: list[FolderResult] = field(default_factory=list)
 
     @property
     def all_ok(self) -> bool:
         return all(f.status == "ok" for f in self.folders)
 
     @property
-    def failed(self) -> List[FolderResult]:
+    def failed(self) -> list[FolderResult]:
         return [f for f in self.folders if f.status == "error"]
 
     @property
-    def succeeded(self) -> List[FolderResult]:
+    def succeeded(self) -> list[FolderResult]:
         return [f for f in self.folders if f.status == "ok"]
 
     def to_dict(self) -> dict:
@@ -76,8 +75,8 @@ class VaultResult:
 class HealthResult:
     """Result of a vault health check."""
     healthy: bool
-    folders_exist: List[str]
-    folders_missing: List[str]
+    folders_exist: list[str]
+    folders_missing: list[str]
     provider_connected: bool
     detail: str = ""
 
@@ -120,7 +119,7 @@ class VaultClient:
         access_token: str,
         user_id: str,
         folder_spec: VaultFolderSpec,
-        token_refresher: Optional[Callable] = None,
+        token_refresher: Callable | None = None,
         inter_call_delay: float = 0.5,  # Increased to avoid rate limiting
     ):
         self._provider_name = provider
@@ -219,11 +218,11 @@ class VaultClient:
 
         return result
 
-    def list_expected_folders(self) -> List[str]:
+    def list_expected_folders(self) -> list[str]:
         """Return the list of folder paths this vault should contain."""
         return self._folder_spec.all_folders
 
-    def register_folders(self, folders: List[str]) -> None:
+    def register_folders(self, folders: list[str]) -> None:
         """
         Add product-specific folders to the spec.
 
@@ -240,7 +239,7 @@ class VaultClient:
         subfolder: str,
         filename: str,
         content: bytes,
-        mime_type: Optional[str] = None,
+        mime_type: str | None = None,
     ):
         """
         Upload a file to a vault subfolder.

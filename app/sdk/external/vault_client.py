@@ -8,7 +8,6 @@ This is a thin wrapper around the internal VaultClient that injects the
 external module's context for audit logging and permission checks.
 """
 import logging
-from typing import List, Optional
 
 from app.sdk.external.context import ExternalModuleContext
 from app.sdk.external.permissions import Permission
@@ -38,7 +37,7 @@ class VaultClient:
             folder_spec=folder_spec,
         )
 
-    async def list_files(self, folder_path: str) -> List[dict]:
+    async def list_files(self, folder_path: str) -> list[dict]:
         """List files in a vault folder. Requires vault.read."""
         self._ctx.require_permission(Permission.VAULT_READ.value, "list_files")
         logger.info(

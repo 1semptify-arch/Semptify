@@ -4,25 +4,25 @@ Semptify SDK - Custom Exceptions
 Provides typed exceptions for API error handling.
 """
 
-from typing import Optional, Dict, Any
+from typing import Any
 
 
 class SemptifyError(Exception):
     """Base exception for all Semptify SDK errors."""
-    
+
     def __init__(
         self,
         message: str,
-        status_code: Optional[int] = None,
-        response_data: Optional[Dict[str, Any]] = None,
-        request_id: Optional[str] = None,
+        status_code: int | None = None,
+        response_data: dict[str, Any] | None = None,
+        request_id: str | None = None,
     ):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
         self.response_data = response_data or {}
         self.request_id = request_id
-    
+
     def __str__(self) -> str:
         parts = [self.message]
         if self.status_code:
@@ -34,11 +34,11 @@ class SemptifyError(Exception):
 
 class AuthenticationError(SemptifyError):
     """Raised when authentication fails or is required."""
-    
+
     def __init__(
         self,
         message: str = "Authentication required",
-        redirect_url: Optional[str] = None,
+        redirect_url: str | None = None,
         **kwargs,
     ):
         super().__init__(message, **kwargs)
@@ -47,11 +47,11 @@ class AuthenticationError(SemptifyError):
 
 class NotFoundError(SemptifyError):
     """Raised when a requested resource is not found."""
-    
+
     def __init__(
         self,
         resource_type: str = "Resource",
-        resource_id: Optional[str] = None,
+        resource_id: str | None = None,
         **kwargs,
     ):
         message = f"{resource_type} not found"
@@ -64,11 +64,11 @@ class NotFoundError(SemptifyError):
 
 class ValidationError(SemptifyError):
     """Raised when request validation fails."""
-    
+
     def __init__(
         self,
         message: str = "Validation error",
-        errors: Optional[list] = None,
+        errors: list | None = None,
         **kwargs,
     ):
         super().__init__(message, status_code=422, **kwargs)
@@ -77,11 +77,11 @@ class ValidationError(SemptifyError):
 
 class RateLimitError(SemptifyError):
     """Raised when rate limit is exceeded."""
-    
+
     def __init__(
         self,
         message: str = "Rate limit exceeded",
-        retry_after: Optional[int] = None,
+        retry_after: int | None = None,
         **kwargs,
     ):
         super().__init__(message, status_code=429, **kwargs)
@@ -90,7 +90,7 @@ class RateLimitError(SemptifyError):
 
 class ServerError(SemptifyError):
     """Raised when a server error occurs."""
-    
+
     def __init__(
         self,
         message: str = "Internal server error",
@@ -101,7 +101,7 @@ class ServerError(SemptifyError):
 
 class StorageRequiredError(AuthenticationError):
     """Raised when cloud storage connection is required."""
-    
+
     def __init__(
         self,
         message: str = "Cloud storage connection required",
@@ -113,11 +113,11 @@ class StorageRequiredError(AuthenticationError):
 
 class PermissionError(SemptifyError):
     """Raised when user lacks required permissions."""
-    
+
     def __init__(
         self,
         message: str = "Permission denied",
-        required_role: Optional[str] = None,
+        required_role: str | None = None,
         **kwargs,
     ):
         super().__init__(message, status_code=403, **kwargs)

@@ -73,16 +73,17 @@ def step(name, ok, detail=""):
 
 async def run():
     # Imports happen after env override
-    from app.services.vault_upload_service import get_vault_service
-    from app.services.document_intake import (
-        DocumentClassifier,
-        DataExtractor,
-        DocumentIntakeEngine,
-    )
-    from app.core.database import init_db, get_db_session
+    from sqlalchemy import select
+
+    from app.core.database import get_db_session, init_db
     from app.core.utc import utc_now
     from app.models.models import User
-    from sqlalchemy import select
+    from app.services.document_intake import (
+        DataExtractor,
+        DocumentClassifier,
+        DocumentIntakeEngine,
+    )
+    from app.services.vault_upload_service import get_vault_service
 
     print("\n=== SETUP: init DB + local vault ===")
     await init_db()
@@ -321,8 +322,9 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
     # ---- Step 12: Law linker citation detection on extracted text ----
     print("\n=== STEP 12: Law linker citation detection ===")
     try:
-        from app.core.law_source_registry import resolve_source, build_official_url
         import re
+
+        from app.core.law_source_registry import build_official_url, resolve_source
         citations_found = []
         if text:
             patterns = [

@@ -11,9 +11,10 @@ Logic:
 - Public paths ▸ Always ALLOW
 """
 
+import logging
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -80,35 +81,35 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
     """
     Smart gate: New users through welcome, returning users bypass.
     """
-    
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        
+
         # Always exempt paths
         if self._is_exempt(path):
             return await call_next(request)
-        
+
         # Has valid session? ▸ Allow (returning user)
         user_id = request.cookies.get(USER_COOKIE)
         if user_id and len(str(user_id)) >= 10:
             return await call_next(request)
-        
+
         # Has checkpoint? ▸ Allow (saw welcome)
         checkpoint = request.cookies.get(CHECKPOINT_COOKIE)
         if checkpoint == CHECKPOINT_VALUE:
             return await call_next(request)
-        
+
         # Protected path with no credentials? ▸ Allow all (checkpoint disabled)
         # Public path ▸ Allow
         return await call_next(request)
-    
+
     def _is_exempt(self, path: str) -> bool:
         """Check if path is always exempt."""
         for exempt in EXEMPT_PATHS:
             if path == exempt or path.startswith(exempt):
                 return True
         return False
-    
+
     def _is_protected(self, path: str) -> bool:
         """Check if path requires checkpoint."""
         for prefix in PROTECTED_PREFIXES:
@@ -152,7 +153,7 @@ async def require_checkpoint(request: Request):
     """
     user_id = request.cookies.get(USER_COOKIE)
     checkpoint = request.cookies.get(CHECKPOINT_COOKIE)
-    
+
     if not user_id and checkpoint != CHECKPOINT_VALUE:
         raise HTTPException(
             status_code=403,

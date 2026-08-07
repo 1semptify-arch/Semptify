@@ -21,19 +21,16 @@ Compliant with:
 """
 
 import hashlib
-import base64
 import secrets
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any
 
 from app.core.config import get_settings
 from app.core.utc import utc_now
 from app.services.storage.legal_integrity import (
-    hash_document,
-    create_timestamp_proof,
-    DocumentProof,
     AuditEntry,
+    DocumentProof,
 )
 
 settings = get_settings()
@@ -50,33 +47,33 @@ class VerificationCertificate:
     certificate_type: str  # "document_integrity", "chain_of_custody", "notarized"
     issued_at: str
     expires_at: str  # Certificates valid for 10 years
-    
+
     # Document Info
     document_name: str
     document_hash: str
     document_size_bytes: int
     hash_algorithm: str
-    
+
     # Timestamp Info
     original_timestamp: str
     timestamp_proof: str
-    
+
     # User Info
     owner_id: str
     owner_display: str  # e.g., "Google Drive User"
-    
+
     # Verification
     verification_url: str
     verification_code: str  # Short code for manual verification
     qr_data: str
-    
+
     # Legal
     attestation: str
     legal_notice: str
-    
+
     # Signature
     certificate_signature: str
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -104,11 +101,11 @@ def sign_certificate(certificate_data: dict) -> str:
     """Create digital signature for certificate."""
     import hmac
     import json
-    
+
     # Remove signature field for signing
     data_to_sign = {k: v for k, v in certificate_data.items() if k != "certificate_signature"}
     content = json.dumps(data_to_sign, sort_keys=True)
-    
+
     return hmac.new(
         settings.SECRET_KEY.encode(),
         content.encode(),
@@ -122,31 +119,31 @@ def create_verification_certificate(
     proof: DocumentProof,
     user_id: str,
     base_url: str = "https://semptify.org",
-    audit_entries: Optional[List[AuditEntry]] = None,
+    audit_entries: list[AuditEntry] | None = None,
 ) -> VerificationCertificate:
     """
     Create a verification certificate for a document.
     This is the main function for generating certificates.
     """
     from app.core.user_id import parse_user_id
-    
+
     now = utc_now()
     certificate_id = generate_certificate_id()
-    
+
     # Parse user info for display
     provider, role, _ = parse_user_id(user_id)
     provider_names = {
         "google_drive": "Google Drive",
-        "dropbox": "Dropbox", 
+        "dropbox": "Dropbox",
         "onedrive": "OneDrive"
     }
     owner_display = f"{provider_names.get(provider, 'Storage')} User ({role.title() if role else 'User'})"
-    
+
     # Generate verification URL and code
     verification_code = generate_verification_code(certificate_id, proof.document_hash)
     verification_url = f"{base_url}/verify/{certificate_id}"
     qr_data = f"{verification_url}?code={verification_code}"
-    
+
     # Create attestation text
     attestation = f"""
 CERTIFICATE OF DOCUMENT INTEGRITY
@@ -197,10 +194,10 @@ Semptify Legal Integrity Module v5.0
         "legal_notice": legal_notice,
         "certificate_signature": "",
     }
-    
+
     # Sign the certificate
     cert_data["certificate_signature"] = sign_certificate(cert_data)
-    
+
     return VerificationCertificate(**cert_data)
 
 
@@ -213,12 +210,12 @@ def generate_certificate_html(cert: VerificationCertificate) -> str:
     Generate printable HTML certificate.
     Designed for professional court presentation.
     """
-    
+
     # Format dates nicely
     issued_date = datetime.fromisoformat(cert.issued_at.replace('Z', '+00:00'))
     original_date = datetime.fromisoformat(cert.original_timestamp.replace('Z', '+00:00'))
     expires_date = datetime.fromisoformat(cert.expires_at.replace('Z', '+00:00'))
-    
+
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -642,7 +639,7 @@ def generate_certificate_text(cert: VerificationCertificate) -> str:
     """
     issued_date = datetime.fromisoformat(cert.issued_at.replace('Z', '+00:00'))
     original_date = datetime.fromisoformat(cert.original_timestamp.replace('Z', '+00:00'))
-    
+
     return f'''
 ================================================================================
                     CERTIFICATE OF DOCUMENT INTEGRITY
@@ -709,16 +706,16 @@ async def quick_certificate(
     document_name: str,
     user_id: str,
     base_url: str = "http://localhost:8000",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Quick one-call certificate generation.
     Creates proof and certificate in one step.
     """
     from app.services.storage.legal_integrity import get_legal_integrity
-    
+
     integrity = get_legal_integrity(user_id)
     proof = await integrity.create_document_proof(document_content, action="certify")
-    
+
     cert = create_verification_certificate(
         document_content=document_content,
         document_name=document_name,
@@ -726,7 +723,7 @@ async def quick_certificate(
         user_id=user_id,
         base_url=base_url,
     )
-    
+
     return {
         "certificate": cert.to_dict(),
         "html": generate_certificate_html(cert),

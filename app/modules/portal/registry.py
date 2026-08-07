@@ -24,8 +24,8 @@ Categories group services for the visitor:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import ClassVar, Dict, List, Optional
+from dataclasses import dataclass
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ class PortalRegistry:
     """
 
     # --- Portal Services (SSOT) ---
-    SERVICES: ClassVar[List[PortalService]] = [
+    SERVICES: ClassVar[list[PortalService]] = [
         # =====================================================================
         # TENANT SERVICES
         # =====================================================================
@@ -329,7 +329,7 @@ class PortalRegistry:
     ]
 
     # --- Category Metadata ---
-    CATEGORIES: ClassVar[Dict[str, Dict[str, str]]] = {
+    CATEGORIES: ClassVar[dict[str, dict[str, str]]] = {
         "tenant": {
             "label": "For Tenants",
             "icon": "○",
@@ -374,7 +374,7 @@ class PortalRegistry:
 
     # --- Utility Methods ---
     @classmethod
-    def get_visible_services(cls) -> List[PortalService]:
+    def get_visible_services(cls) -> list[PortalService]:
         """Return all visible services, sorted by category order then service order."""
         return sorted(
             [s for s in cls.SERVICES if s.visible],
@@ -382,7 +382,7 @@ class PortalRegistry:
         )
 
     @classmethod
-    def get_services_by_category(cls, category: str) -> List[PortalService]:
+    def get_services_by_category(cls, category: str) -> list[PortalService]:
         """Return visible services in a specific category."""
         return sorted(
             [s for s in cls.SERVICES if s.visible and s.category == category],
@@ -390,7 +390,7 @@ class PortalRegistry:
         )
 
     @classmethod
-    def get_service(cls, service_id: str) -> Optional[PortalService]:
+    def get_service(cls, service_id: str) -> PortalService | None:
         """Get a single service by ID."""
         for s in cls.SERVICES:
             if s.id == service_id:
@@ -398,7 +398,7 @@ class PortalRegistry:
         return None
 
     @classmethod
-    def get_categories_with_services(cls) -> Dict[str, Dict[str, str]]:
+    def get_categories_with_services(cls) -> dict[str, dict[str, str]]:
         """Return categories that have at least one visible service."""
         visible = cls.get_visible_services()
         active_categories = {s.category for s in visible}

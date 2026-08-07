@@ -6,19 +6,16 @@ This file never defines its own path strings. Products extend the base spec
 with additional folders using vault_paths constants.
 """
 
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
 
 from app.core.vault_paths import (
+    AUTH_FOLDER,
     SEMPTIFY_ROOT,
     SYSTEM_FOLDER,
-    AUTH_FOLDER,
+    VAULT_CERTIFICATES,
+    VAULT_DOCUMENTS,
     VAULT_FOLDER,
     VAULT_ROOT,
-    VAULT_DOCUMENTS,
-    VAULT_CERTIFICATES,
-    VAULT_TIMELINE,
-    VAULT_OVERLAYS,
 )
 
 
@@ -49,11 +46,11 @@ class VaultFolderSpec:
     product_folders: tuple = ()
 
     @property
-    def all_folders(self) -> List[str]:
+    def all_folders(self) -> list[str]:
         """All folders that should exist, in creation order (base + product)."""
         return list(self.base_folders) + list(self.product_folders)
 
-    def extend(self, folders: List[str]) -> "VaultFolderSpec":
+    def extend(self, folders: list[str]) -> "VaultFolderSpec":
         """Return a new spec with additional product-specific folders."""
         return VaultFolderSpec(
             root=self.root,

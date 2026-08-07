@@ -7,7 +7,6 @@ inspections, and statutes. Minnesota-focused.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="free_api",
     group_name="free_api_property_parcel",

@@ -6,10 +6,12 @@ Migrated from app/routers/free_api.py into the free_api SDK module.
 All endpoints mounted at /freeapi/*
 """
 
+import logging
+
 from fastapi import APIRouter
 
 from app.modules.free_api_pack import api
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/freeapi", tags=["Free API Pack"])

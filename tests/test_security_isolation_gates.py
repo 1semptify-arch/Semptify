@@ -10,15 +10,13 @@ Contracts protected:
 - Pipeline get_document() must never be exposed without auth + ownership check
 """
 
-import io
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.services.document_pipeline import (
-    TenancyDocument,
-    ProcessingStatus,
     DocumentType,
+    ProcessingStatus,
+    TenancyDocument,
     get_document_pipeline,
 )
 

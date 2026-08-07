@@ -6,7 +6,6 @@ validate codes during onboarding; managers/admins create and manage them.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="invite_codes",
     group_name="invite_codes_validate",

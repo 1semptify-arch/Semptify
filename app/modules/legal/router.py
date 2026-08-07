@@ -23,13 +23,12 @@ Routes:
 
 import logging
 from datetime import date
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole
+from app.core.user_context import UserRole, get_role_from_user_id
 from app.modules.legal import service as legal_svc
 
 logger = logging.getLogger(__name__)
@@ -56,28 +55,28 @@ def _require_legal(user_id: str) -> None:
 
 class CreateMatterRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
-    tenant_user_id: Optional[str] = None
-    tenant_name: Optional[str] = None
-    landlord_name: Optional[str] = None
-    address: Optional[str] = None
-    notes: Optional[str] = None
+    tenant_user_id: str | None = None
+    tenant_name: str | None = None
+    landlord_name: str | None = None
+    address: str | None = None
+    notes: str | None = None
 
 
 class UpdateMatterRequest(BaseModel):
-    title: Optional[str] = None
-    tenant_name: Optional[str] = None
-    landlord_name: Optional[str] = None
-    address: Optional[str] = None
-    status: Optional[str] = None
-    notes: Optional[str] = None
+    title: str | None = None
+    tenant_name: str | None = None
+    landlord_name: str | None = None
+    address: str | None = None
+    status: str | None = None
+    notes: str | None = None
 
 
 class AddFilingRequest(BaseModel):
     filing_type: str = Field(..., description="complaint, motion, answer, discovery, notice, brief")
     court: str = Field(..., min_length=1, max_length=200)
-    docket_number: Optional[str] = None
-    filing_date: Optional[date] = None
-    notes: Optional[str] = None
+    docket_number: str | None = None
+    filing_date: date | None = None
+    notes: str | None = None
 
 
 class UpdateFilingStatusRequest(BaseModel):
@@ -86,22 +85,22 @@ class UpdateFilingStatusRequest(BaseModel):
 
 class AddDiscoveryRequest(BaseModel):
     discovery_type: str = Field(..., description="interrogatories, requests_for_production, requests_for_admission, depositions")
-    served_date: Optional[date] = None
-    due_date: Optional[date] = None
-    notes: Optional[str] = None
+    served_date: date | None = None
+    due_date: date | None = None
+    notes: str | None = None
 
 
 class UpdateDiscoveryStatusRequest(BaseModel):
     status: str = Field(..., description="pending, served, responded, overdue")
-    response_note: Optional[str] = None
+    response_note: str | None = None
 
 
 class AddExhibitRequest(BaseModel):
     description: str = Field(..., min_length=1, max_length=500)
-    evidence_item_id: Optional[str] = None
-    vault_path: Optional[str] = None
-    introduced_on: Optional[date] = None
-    notes: Optional[str] = None
+    evidence_item_id: str | None = None
+    vault_path: str | None = None
+    introduced_on: date | None = None
+    notes: str | None = None
 
 
 _VALID_MATTER_STATUSES = {"open", "closed", "held"}

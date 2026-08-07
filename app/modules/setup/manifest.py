@@ -4,8 +4,10 @@ Setup Wizard Module Manifest
 Self-contained SDK module for Application setup wizard.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

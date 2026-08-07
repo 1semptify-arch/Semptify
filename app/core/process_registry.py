@@ -12,10 +12,11 @@ Coverage states used by PageContract:
   n-a      — group not relevant to this page
 """
 
-from dataclasses import dataclass
-from typing import FrozenSet
-from app.core.user_context import UserRole
 import logging
+from dataclasses import dataclass
+
+from app.core.user_context import UserRole
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +46,7 @@ class ProcessGroup:
     name: str                              # machine key, e.g. "welcome"
     title: str                             # display title
     purpose: str                           # one-sentence function description
-    roles_with_access: FrozenSet[UserRole] # roles that can reach this group's pages
+    roles_with_access: frozenset[UserRole] # roles that can reach this group's pages
     scope_includes: tuple[str, ...]        # what belongs here
     scope_excludes: tuple[str, ...]        # explicitly out of scope
     entry_criteria: tuple[str, ...]        # preconditions before a page in this group loads
@@ -57,11 +58,11 @@ class ProcessGroup:
 # The 8 Process Groups
 # =============================================================================
 
-ALL_ROLES: FrozenSet[UserRole] = frozenset(UserRole)
-PROFESSIONAL_ROLES: FrozenSet[UserRole] = frozenset({
+ALL_ROLES: frozenset[UserRole] = frozenset(UserRole)
+PROFESSIONAL_ROLES: frozenset[UserRole] = frozenset({
     UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADMIN
 })
-ADMIN_ONLY: FrozenSet[UserRole] = frozenset({UserRole.ADMIN})
+ADMIN_ONLY: frozenset[UserRole] = frozenset({UserRole.ADMIN})
 
 
 GROUP_WELCOME = ProcessGroup(

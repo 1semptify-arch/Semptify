@@ -2,9 +2,9 @@
 Tests for the Public Exposure module - Press releases and media campaigns.
 """
 import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
+from httpx import ASGITransport, AsyncClient
 
+from app.main import app
 
 # ============================================================================
 # HEALTH ENDPOINT
@@ -12,7 +12,7 @@ from app.main import app
 
 class TestExposureHealth:
     """Test public exposure service health."""
-    
+
     @pytest.mark.asyncio
     async def test_health_check(self):
         """Test exposure service health endpoint."""
@@ -30,7 +30,7 @@ class TestExposureHealth:
 
 class TestPressReleaseGeneration:
     """Test press release generation functionality."""
-    
+
     @pytest.mark.asyncio
     async def test_generate_press_release(self):
         """Test generating a press release."""
@@ -46,7 +46,7 @@ class TestPressReleaseGeneration:
             )
             # Accept various status codes
             assert response.status_code in [200, 201, 401, 422, 500]
-    
+
     @pytest.mark.asyncio
     async def test_press_release_requires_headline(self):
         """Test that press release requires headline."""
@@ -59,7 +59,7 @@ class TestPressReleaseGeneration:
                 }
             )
             assert response.status_code in [400, 401, 422, 500]
-    
+
     @pytest.mark.asyncio
     async def test_press_release_multilingual(self):
         """Test generating press release in multiple languages."""
@@ -83,7 +83,7 @@ class TestPressReleaseGeneration:
 
 class TestMediaOutlets:
     """Test media outlet database."""
-    
+
     @pytest.mark.asyncio
     async def test_get_mn_outlets(self):
         """Test getting Minnesota media outlets."""
@@ -91,7 +91,7 @@ class TestMediaOutlets:
             response = await client.get("/api/exposure/outlets/mn")
             # May return data or 404
             assert response.status_code in [200, 404]
-    
+
     @pytest.mark.asyncio
     async def test_outlets_endpoint_format(self):
         """Test outlets endpoint format."""
@@ -107,7 +107,7 @@ class TestMediaOutlets:
 
 class TestMediaKitGeneration:
     """Test media kit generation."""
-    
+
     @pytest.mark.asyncio
     async def test_generate_media_kit(self):
         """Test generating a complete media kit."""
@@ -122,7 +122,7 @@ class TestMediaKitGeneration:
                 }
             )
             assert response.status_code in [200, 201, 401, 404, 422]
-    
+
     @pytest.mark.asyncio
     async def test_media_kit_requires_case_id(self):
         """Test that media kit requires case_id."""
@@ -140,7 +140,7 @@ class TestMediaKitGeneration:
 
 class TestFactSheetGeneration:
     """Test fact sheet generation."""
-    
+
     @pytest.mark.asyncio
     async def test_generate_fact_sheet(self):
         """Test generating a fact sheet."""
@@ -162,7 +162,7 @@ class TestFactSheetGeneration:
 
 class TestSocialMediaPosts:
     """Test social media post generation."""
-    
+
     @pytest.mark.asyncio
     async def test_generate_social_posts(self):
         """Test generating social media posts."""
@@ -184,7 +184,7 @@ class TestSocialMediaPosts:
 
 class TestLanguageSupport:
     """Test multi-language support."""
-    
+
     @pytest.mark.asyncio
     async def test_supported_languages(self):
         """Test getting list of supported languages."""
@@ -192,7 +192,7 @@ class TestLanguageSupport:
             response = await client.get("/api/exposure/languages")
             # May return list or 404
             assert response.status_code in [200, 401, 404]
-    
+
     @pytest.mark.asyncio
     async def test_hmong_support(self):
         """Test Hmong language support."""
@@ -208,7 +208,7 @@ class TestLanguageSupport:
             )
             # Should accept Hmong as a language option
             assert response.status_code in [200, 201, 401, 422, 500]
-    
+
     @pytest.mark.asyncio
     async def test_somali_support(self):
         """Test Somali language support."""
@@ -232,14 +232,14 @@ class TestLanguageSupport:
 
 class TestDistribution:
     """Test press release distribution features."""
-    
+
     @pytest.mark.asyncio
     async def test_distribution_list(self):
         """Test getting distribution list."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/exposure/distribution-list")
             assert response.status_code in [200, 404]
-    
+
     @pytest.mark.asyncio
     async def test_queue_distribution(self):
         """Test queuing a release for distribution."""
@@ -260,7 +260,7 @@ class TestDistribution:
 
 class TestTemplates:
     """Test press release templates."""
-    
+
     @pytest.mark.asyncio
     async def test_get_templates(self):
         """Test getting available templates."""
@@ -275,14 +275,14 @@ class TestTemplates:
 
 class TestServiceIntegration:
     """Test exposure service integration."""
-    
+
     @pytest.mark.asyncio
     async def test_service_responds(self):
         """Test that exposure service responds."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/exposure/health")
             assert response.status_code == 200
-    
+
     @pytest.mark.asyncio
     async def test_json_content_type(self):
         """Test that responses are JSON."""
@@ -297,7 +297,7 @@ class TestServiceIntegration:
 
 class TestErrorHandling:
     """Test exposure service error handling."""
-    
+
     @pytest.mark.asyncio
     async def test_invalid_json(self):
         """Test handling of invalid JSON."""
@@ -308,7 +308,7 @@ class TestErrorHandling:
                 headers={"Content-Type": "application/json"}
             )
             assert response.status_code in [400, 422]
-    
+
     @pytest.mark.asyncio
     async def test_empty_body(self):
         """Test handling of empty request body."""

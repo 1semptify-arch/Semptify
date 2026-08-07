@@ -6,7 +6,6 @@ and document extraction data. Supports Minnesota eviction defense forms.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="court_forms",
     group_name="court_forms_list_types",

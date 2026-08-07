@@ -7,15 +7,12 @@ the storage_middleware in app/core/ — it only enforces ONBOARDING gates.
 """
 
 import logging
-from typing import Optional
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
 
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_db_session
-
 from app.modules.onboarding.config import OnboardingConfig
 from app.modules.onboarding.gates import get_first_incomplete_gate
 

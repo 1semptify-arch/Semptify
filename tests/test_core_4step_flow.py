@@ -9,8 +9,8 @@ Test Core 4-Step User Flow
 Critical: Storage must be MANDATORY - no skip option
 """
 
-import pytest
 import httpx
+import pytest
 from bs4 import BeautifulSoup
 
 BASE_URL = "http://localhost:8000"
@@ -32,16 +32,16 @@ class TestStep1Welcome:
         """Welcome page returns 200 and has expected content"""
         resp = httpx.get(f"{BASE_URL}/static/welcome.html", follow_redirects=True)
         assert resp.status_code == 200, f"Welcome page failed: {resp.status_code}"
-        
+
         soup = BeautifulSoup(resp.text, 'html.parser')
-        
+
         # Should have "Get Started" or similar primary CTA
         cta_found = any(
             keyword in resp.text.lower()
             for keyword in ['get started', 'begin', 'start', 'enter']
         )
         assert cta_found, "Welcome page missing primary CTA (Get Started/Begin/Start)"
-        
+
         # Should mention tenant/journal/document theme
         theme_found = any(
             keyword in resp.text.lower()
@@ -70,7 +70,7 @@ class TestStep2RoleSelect:
         """Tenant role must be available as primary option"""
         resp = httpx.get(f"{BASE_URL}/onboarding/select-role.html", follow_redirects=True)
         soup = BeautifulSoup(resp.text, 'html.parser')
-        
+
         # Look for tenant option
         tenant_found = any(
             keyword in resp.text.lower()
@@ -99,10 +99,10 @@ class TestStep3StorageMandatory:
         """CRITICAL: No skip, bypass, or 'do later' button should exist"""
         resp = httpx.get(f"{BASE_URL}/onboarding/storage-select.html", follow_redirects=True)
         soup = BeautifulSoup(resp.text, 'html.parser')
-        
+
         # Check for skip-related text in buttons/links
         skip_keywords = ['skip', 'bypass', 'do later', 'remind me', 'not now', 'cancel', 'continue without']
-        
+
         # Check buttons
         buttons = soup.find_all('button')
         for btn in buttons:
@@ -110,7 +110,7 @@ class TestStep3StorageMandatory:
             for keyword in skip_keywords:
                 assert keyword not in btn_text, \
                     f"SKIP BUTTON FOUND: '{btn_text}' contains '{keyword}' - Storage must be MANDATORY"
-        
+
         # Check links
         links = soup.find_all('a')
         for link in links:
@@ -127,13 +127,13 @@ class TestStep3StorageMandatory:
     def test_storage_connect_buttons_present(self):
         """Should have storage provider connection buttons"""
         resp = httpx.get(f"{BASE_URL}/onboarding/storage-select.html", follow_redirects=True)
-        
+
         # Look for common storage provider names or connect buttons
         storage_indicators = [
             'google', 'drive', 'dropbox', 'onedrive', 'box', 'connect',
             'oauth', 'sign in', 'authenticate', 'storage', 'cloud'
         ]
-        
+
         found_storage = any(indicator in resp.text.lower() for indicator in storage_indicators)
         assert found_storage, "No storage provider options found on storage-select page"
 
@@ -142,11 +142,11 @@ class TestStep3StorageMandatory:
         # Try to access home without storage session
         resp = httpx.get(f"{BASE_URL}/tenant/home", follow_redirects=True)
         final_url = str(resp.url)
-        
+
         # Should NOT end up at tenant/home
         if '/tenant/home' in final_url and resp.status_code == 200:
             pytest.fail("CRITICAL: Tenant home accessible WITHOUT storage! Flow bypass possible.")
-        
+
         # Should redirect to storage setup or welcome
         assert any(x in final_url for x in ['/storage', '/onboarding', '/welcome']), \
             f"Unauthorized access to /tenant/home should redirect to storage, got: {final_url}"
@@ -173,7 +173,7 @@ class TestCompleteFlowIntegration:
             ("/onboarding/select-role.html", "Role Select"),
             ("/onboarding/storage-select.html", "Storage"),
         ]
-        
+
         for path, name in steps:
             resp = httpx.get(f"{BASE_URL}{path}", follow_redirects=True)
             assert resp.status_code == 200, f"Step '{name}' ({path}) failed with {resp.status_code}"
@@ -183,7 +183,7 @@ class TestCompleteFlowIntegration:
         try:
             resp = httpx.get(f"{BASE_URL}/api/health", timeout=5)
             assert resp.status_code == 200, f"API health check failed: {resp.status_code}"
-            
+
             data = resp.json()
             assert 'status' in data or 'healthy' in str(data).lower(), \
                 "Health endpoint missing expected fields"

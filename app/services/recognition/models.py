@@ -9,12 +9,14 @@ Comprehensive data structures for document recognition, supporting:
 - Relationship mapping
 """
 
-from dataclasses import dataclass, field
-from datetime import datetime, date
-from enum import Enum
-from typing import Optional, List, Dict, Any, Set, Tuple
-from app.core.id_gen import make_id
 import logging
+from dataclasses import dataclass, field
+from datetime import date, datetime
+from enum import Enum
+from typing import Any
+
+from app.core.id_gen import make_id
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,7 +45,7 @@ class DocumentType(Enum):
     FOURTEEN_DAY_NOTICE = "14_day_notice"
     THIRTY_DAY_NOTICE = "30_day_notice"
     IMMEDIATE_NOTICE = "immediate_notice"
-    
+
     # Court Documents
     SUMMONS = "summons"
     COMPLAINT = "complaint"
@@ -55,13 +57,13 @@ class DocumentType(Enum):
     SUBPOENA = "subpoena"
     COURT_ORDER = "court_order"
     JUDGMENT = "judgment"
-    
+
     # Lease Documents
     LEASE = "lease"
     LEASE_AMENDMENT = "lease_amendment"
     LEASE_RENEWAL = "lease_renewal"
     LEASE_TERMINATION = "lease_termination"
-    
+
     # Financial Documents
     RENT_RECEIPT = "rent_receipt"
     RENT_LEDGER = "rent_ledger"
@@ -69,30 +71,30 @@ class DocumentType(Enum):
     SECURITY_DEPOSIT_RECEIPT = "security_deposit_receipt"
     SECURITY_DEPOSIT_ITEMIZATION = "security_deposit_itemization"
     LATE_FEE_NOTICE = "late_fee_notice"
-    
+
     # Maintenance/Habitability
     REPAIR_REQUEST = "repair_request"
     MAINTENANCE_LOG = "maintenance_log"
     INSPECTION_REPORT = "inspection_report"
     CODE_VIOLATION = "code_violation"
-    
+
     # Correspondence
     LANDLORD_LETTER = "landlord_letter"
     TENANT_LETTER = "tenant_letter"
     PROPERTY_MANAGER_LETTER = "property_manager_letter"
     ATTORNEY_LETTER = "attorney_letter"
-    
+
     # Evidence
     PHOTOGRAPH = "photograph"
     TEXT_MESSAGES = "text_messages"
     EMAIL = "email"
     BANK_STATEMENT = "bank_statement"
-    
+
     # Government
     HUD_FORM = "hud_form"
     HOUSING_ASSISTANCE_NOTICE = "housing_assistance_notice"
     SECTION_8_DOCUMENT = "section_8_document"
-    
+
     UNKNOWN = "unknown"
 
 
@@ -169,7 +171,7 @@ class ConfidenceMetrics:
     """
     overall_score: float = 0.0  # 0-100 aggregate confidence
     level: ConfidenceLevel = ConfidenceLevel.UNCERTAIN
-    
+
     # Component scores (0-100)
     document_type_confidence: float = 0.0
     text_quality_confidence: float = 0.0
@@ -177,17 +179,17 @@ class ConfidenceMetrics:
     legal_analysis_confidence: float = 0.0
     relationship_confidence: float = 0.0
     temporal_confidence: float = 0.0
-    
+
     # Uncertainty factors
-    ambiguous_elements: List[str] = field(default_factory=list)
-    missing_information: List[str] = field(default_factory=list)
-    conflicting_signals: List[str] = field(default_factory=list)
-    
+    ambiguous_elements: list[str] = field(default_factory=list)
+    missing_information: list[str] = field(default_factory=list)
+    conflicting_signals: list[str] = field(default_factory=list)
+
     # Quality indicators
     text_completeness: float = 0.0  # How complete is the extracted text
     structural_clarity: float = 0.0  # How clear is document structure
     reasoning_agreement: float = 0.0  # How well do multiple passes agree
-    
+
     def classify(self) -> ConfidenceLevel:
         """Classify overall confidence into level"""
         if self.overall_score >= 95:
@@ -199,8 +201,8 @@ class ConfidenceMetrics:
         elif self.overall_score >= 40:
             return ConfidenceLevel.LOW
         return ConfidenceLevel.UNCERTAIN
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "overall_score": self.overall_score,
             "level": self.level.value,
@@ -233,26 +235,26 @@ class ExtractedEntity:
     id: str = field(default_factory=lambda: make_id("ent"))
     entity_type: EntityType = EntityType.PERSON
     value: str = ""
-    normalized_value: Optional[str] = None  # Standardized form
-    
+    normalized_value: str | None = None  # Standardized form
+
     # Position in document
     start_position: int = 0
     end_position: int = 0
     page_number: int = 1
-    section: Optional[str] = None
-    
+    section: str | None = None
+
     # Confidence and reasoning
     confidence: float = 0.0
     extraction_method: str = ""
     reasoning: str = ""
-    
+
     # Additional attributes based on type
-    attributes: Dict[str, Any] = field(default_factory=dict)
-    
+    attributes: dict[str, Any] = field(default_factory=dict)
+
     # For relationships
-    related_entities: List[str] = field(default_factory=list)  # Entity IDs
-    
-    def to_dict(self) -> Dict[str, Any]:
+    related_entities: list[str] = field(default_factory=list)  # Entity IDs
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "type": self.entity_type.value,
@@ -278,8 +280,8 @@ class ReasoningStep:
     step_number: int = 0
     reasoning_type: ReasoningType = ReasoningType.PATTERN_MATCH
     description: str = ""
-    input_data: Dict[str, Any] = field(default_factory=dict)
-    output_data: Dict[str, Any] = field(default_factory=dict)
+    input_data: dict[str, Any] = field(default_factory=dict)
+    output_data: dict[str, Any] = field(default_factory=dict)
     confidence_impact: float = 0.0  # How much this step affected confidence
     duration_ms: float = 0.0
 
@@ -292,25 +294,25 @@ class ReasoningChain:
     """
     chain_id: str = field(default_factory=lambda: make_id("chain"))
     started_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
-    
-    steps: List[ReasoningStep] = field(default_factory=list)
-    
+    completed_at: datetime | None = None
+
+    steps: list[ReasoningStep] = field(default_factory=list)
+
     # Multi-pass tracking
     pass_number: int = 1
-    previous_pass_id: Optional[str] = None
-    
+    previous_pass_id: str | None = None
+
     # Consensus tracking
-    findings_confirmed: List[str] = field(default_factory=list)
-    findings_revised: List[str] = field(default_factory=list)
-    new_findings: List[str] = field(default_factory=list)
-    
+    findings_confirmed: list[str] = field(default_factory=list)
+    findings_revised: list[str] = field(default_factory=list)
+    new_findings: list[str] = field(default_factory=list)
+
     # Final determination
     conclusion: str = ""
     confidence_delta: float = 0.0  # Change in confidence from this pass
-    
+
     def add_step(self, reasoning_type: ReasoningType, description: str,
-                 input_data: Dict = None, output_data: Dict = None,
+                 input_data: dict = None, output_data: dict = None,
                  confidence_impact: float = 0.0) -> ReasoningStep:
         step = ReasoningStep(
             step_number=len(self.steps) + 1,
@@ -322,8 +324,8 @@ class ReasoningChain:
         )
         self.steps.append(step)
         return step
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "chain_id": self.chain_id,
             "pass_number": self.pass_number,
@@ -353,20 +355,20 @@ class DocumentSection:
     """A recognized section within a document"""
     id: str = field(default_factory=lambda: make_id("sec"))
     section_type: str = ""  # header, body, footer, signature, etc.
-    title: Optional[str] = None
+    title: str | None = None
     content: str = ""
-    
+
     start_position: int = 0
     end_position: int = 0
     page_number: int = 1
-    
+
     # Hierarchy
-    parent_section_id: Optional[str] = None
-    child_section_ids: List[str] = field(default_factory=list)
-    
+    parent_section_id: str | None = None
+    child_section_ids: list[str] = field(default_factory=list)
+
     # Analysis
     importance_score: float = 0.0  # How important is this section
-    entities_in_section: List[str] = field(default_factory=list)
+    entities_in_section: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -375,11 +377,11 @@ class DocumentContext:
     Rich context about the document structure and content.
     """
     # Document identification
-    filename: Optional[str] = None
+    filename: str | None = None
     file_type: str = ""  # pdf, jpg, docx, etc.
     file_size: int = 0
     page_count: int = 1
-    
+
     # Quality assessment
     is_scanned: bool = False
     ocr_quality: float = 0.0  # 0-100
@@ -387,20 +389,20 @@ class DocumentContext:
     has_signatures: bool = False
     has_stamps: bool = False
     language: str = "en"
-    
+
     # Structure analysis
-    sections: List[DocumentSection] = field(default_factory=list)
+    sections: list[DocumentSection] = field(default_factory=list)
     has_header: bool = False
     has_footer: bool = False
     has_letterhead: bool = False
     is_form: bool = False
     is_multi_document: bool = False
-    
+
     # Content overview
     total_characters: int = 0
     total_words: int = 0
     total_sentences: int = 0
-    
+
     # Key structural elements found
     has_date_line: bool = False
     has_address_block: bool = False
@@ -408,12 +410,12 @@ class DocumentContext:
     has_signature_block: bool = False
     has_notary_block: bool = False
     has_case_caption: bool = False
-    
+
     # Document flow
     document_flow_type: str = ""  # letter, form, legal_filing, etc.
-    reading_order: List[str] = field(default_factory=list)  # Section IDs in order
-    
-    def to_dict(self) -> Dict[str, Any]:
+    reading_order: list[str] = field(default_factory=list)  # Section IDs in order
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "file": {
                 "name": self.filename,
@@ -454,36 +456,36 @@ class LegalIssue:
     A legal issue detected in the document.
     """
     id: str = field(default_factory=lambda: make_id("iss"))
-    
+
     # Issue details
     issue_type: str = ""
     title: str = ""
     description: str = ""
     severity: IssueSeverity = IssueSeverity.MEDIUM
-    
+
     # Legal basis
-    legal_basis: List[str] = field(default_factory=list)  # Statutes, case law
-    mn_statute: Optional[str] = None  # Specific MN statute if applicable
-    
+    legal_basis: list[str] = field(default_factory=list)  # Statutes, case law
+    mn_statute: str | None = None  # Specific MN statute if applicable
+
     # Evidence in document
     supporting_text: str = ""
-    text_location: Tuple[int, int] = (0, 0)  # Start, end positions
+    text_location: tuple[int, int] = (0, 0)  # Start, end positions
     page_number: int = 1
-    
+
     # Analysis
     confidence: float = 0.0
     reasoning: str = ""
-    
+
     # Action items
-    recommended_actions: List[str] = field(default_factory=list)
-    deadline: Optional[date] = None
-    days_to_act: Optional[int] = None
-    
+    recommended_actions: list[str] = field(default_factory=list)
+    deadline: date | None = None
+    days_to_act: int | None = None
+
     # Defense potential
     defense_available: bool = False
-    defense_strategies: List[str] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    defense_strategies: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "type": self.issue_type,
@@ -515,31 +517,31 @@ class LegalIssue:
 class TimelineEntry:
     """An event extracted for timeline"""
     id: str = field(default_factory=lambda: make_id("tle"))
-    
-    event_date: Optional[date] = None
-    event_date_end: Optional[date] = None  # For ranges
+
+    event_date: date | None = None
+    event_date_end: date | None = None  # For ranges
     date_text: str = ""  # Original text
     is_approximate: bool = False
-    
+
     event_type: str = ""
     title: str = ""
     description: str = ""
-    
+
     # Importance
     is_deadline: bool = False
     is_court_date: bool = False
     is_milestone: bool = False
-    
+
     # Source
     source_text: str = ""
     page_number: int = 1
     confidence: float = 0.0
-    
+
     # Related entities
-    related_party_ids: List[str] = field(default_factory=list)
-    related_amount_ids: List[str] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    related_party_ids: list[str] = field(default_factory=list)
+    related_amount_ids: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "date": self.event_date.isoformat() if self.event_date else None,
@@ -559,25 +561,25 @@ class TimelineEntry:
         }
 
 
-@dataclass 
+@dataclass
 class PartyRelationship:
     """Relationship between parties"""
     id: str = field(default_factory=lambda: make_id("rel"))
-    
+
     party_a_id: str = ""
     party_a_role: PartyRole = PartyRole.UNKNOWN
     party_a_name: str = ""
-    
+
     party_b_id: str = ""
     party_b_role: PartyRole = PartyRole.UNKNOWN
     party_b_name: str = ""
-    
+
     relationship_type: str = ""  # landlord_tenant, attorney_client, etc.
-    
+
     # Details
-    property_address: Optional[str] = None
-    unit_number: Optional[str] = None
-    
+    property_address: str | None = None
+    unit_number: str | None = None
+
     # Evidence
     supporting_text: str = ""
     confidence: float = 0.0
@@ -587,30 +589,30 @@ class PartyRelationship:
 class AmountRelationship:
     """Financial amount with context"""
     id: str = field(default_factory=lambda: make_id("amt"))
-    
+
     amount: float = 0.0
     currency: str = "USD"
     amount_text: str = ""  # Original text
-    
+
     # Classification
     amount_type: str = ""  # rent, deposit, fee, damages, etc.
-    period: Optional[str] = None  # monthly, one-time, etc.
-    
+    period: str | None = None  # monthly, one-time, etc.
+
     # Related entities
-    owed_by_id: Optional[str] = None
-    owed_to_id: Optional[str] = None
-    
+    owed_by_id: str | None = None
+    owed_to_id: str | None = None
+
     # Dates
-    due_date: Optional[date] = None
-    period_start: Optional[date] = None
-    period_end: Optional[date] = None
-    
+    due_date: date | None = None
+    period_start: date | None = None
+    period_end: date | None = None
+
     # Analysis
     is_disputed: bool = False
-    dispute_reason: Optional[str] = None
+    dispute_reason: str | None = None
     may_be_illegal: bool = False
-    illegality_reason: Optional[str] = None
-    
+    illegality_reason: str | None = None
+
     confidence: float = 0.0
 
 
@@ -620,40 +622,40 @@ class RelationshipMap:
     Complete map of relationships in the document.
     """
     # Parties
-    parties: List[ExtractedEntity] = field(default_factory=list)
-    party_relationships: List[PartyRelationship] = field(default_factory=list)
-    
+    parties: list[ExtractedEntity] = field(default_factory=list)
+    party_relationships: list[PartyRelationship] = field(default_factory=list)
+
     # Financial
-    amounts: List[ExtractedEntity] = field(default_factory=list)
-    amount_relationships: List[AmountRelationship] = field(default_factory=list)
-    
+    amounts: list[ExtractedEntity] = field(default_factory=list)
+    amount_relationships: list[AmountRelationship] = field(default_factory=list)
+
     # Temporal
-    dates: List[ExtractedEntity] = field(default_factory=list)
-    timeline: List[TimelineEntry] = field(default_factory=list)
-    
+    dates: list[ExtractedEntity] = field(default_factory=list)
+    timeline: list[TimelineEntry] = field(default_factory=list)
+
     # Property
-    addresses: List[ExtractedEntity] = field(default_factory=list)
-    primary_property: Optional[str] = None
-    
+    addresses: list[ExtractedEntity] = field(default_factory=list)
+    primary_property: str | None = None
+
     # Legal
-    statutes_cited: List[ExtractedEntity] = field(default_factory=list)
-    case_numbers: List[ExtractedEntity] = field(default_factory=list)
-    
-    def get_tenant(self) -> Optional[ExtractedEntity]:
+    statutes_cited: list[ExtractedEntity] = field(default_factory=list)
+    case_numbers: list[ExtractedEntity] = field(default_factory=list)
+
+    def get_tenant(self) -> ExtractedEntity | None:
         """Get primary tenant from parties"""
         for party in self.parties:
             if party.attributes.get("role") == PartyRole.TENANT.value:
                 return party
         return None
-    
-    def get_landlord(self) -> Optional[ExtractedEntity]:
+
+    def get_landlord(self) -> ExtractedEntity | None:
         """Get primary landlord from parties"""
         for party in self.parties:
             role = party.attributes.get("role")
             if role in [PartyRole.LANDLORD.value, PartyRole.PROPERTY_MANAGER.value]:
                 return party
         return None
-    
+
     def get_total_claimed(self) -> float:
         """Get total amount claimed"""
         total = 0.0
@@ -661,8 +663,8 @@ class RelationshipMap:
             if rel.amount_type in ["rent_owed", "damages", "fees", "total_owed"]:
                 total += rel.amount
         return total
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "parties": [p.to_dict() for p in self.parties],
             "party_relationships": [
@@ -709,40 +711,40 @@ class LegalAnalysis:
     document_category: DocumentCategory = DocumentCategory.UNKNOWN
     document_type: DocumentType = DocumentType.UNKNOWN
     document_type_reasoning: str = ""
-    
+
     # Issues found
-    issues: List[LegalIssue] = field(default_factory=list)
-    critical_issues: List[LegalIssue] = field(default_factory=list)
-    
+    issues: list[LegalIssue] = field(default_factory=list)
+    critical_issues: list[LegalIssue] = field(default_factory=list)
+
     # Minnesota law specific
-    applicable_mn_statutes: List[str] = field(default_factory=list)
-    statute_references: List[Dict[str, Any]] = field(default_factory=list)  # Enhanced statute info
-    procedural_requirements: List[str] = field(default_factory=list)
-    procedural_violations: List[str] = field(default_factory=list)
-    
+    applicable_mn_statutes: list[str] = field(default_factory=list)
+    statute_references: list[dict[str, Any]] = field(default_factory=list)  # Enhanced statute info
+    procedural_requirements: list[str] = field(default_factory=list)
+    procedural_violations: list[str] = field(default_factory=list)
+
     # Notice analysis (if applicable)
-    notice_type: Optional[str] = None
-    notice_period_days: Optional[int] = None
-    notice_period_compliant: Optional[bool] = None
-    notice_served_date: Optional[date] = None
-    notice_effective_date: Optional[date] = None
-    
+    notice_type: str | None = None
+    notice_period_days: int | None = None
+    notice_period_compliant: bool | None = None
+    notice_served_date: date | None = None
+    notice_effective_date: date | None = None
+
     # Court case analysis (if applicable)
-    court_name: Optional[str] = None
-    case_number: Optional[str] = None
-    judge_name: Optional[str] = None
-    next_court_date: Optional[date] = None
-    
+    court_name: str | None = None
+    case_number: str | None = None
+    judge_name: str | None = None
+    next_court_date: date | None = None
+
     # Recommended actions
-    immediate_actions: List[str] = field(default_factory=list)
-    upcoming_deadlines: List[TimelineEntry] = field(default_factory=list)
-    defense_options: List[str] = field(default_factory=list)
-    
+    immediate_actions: list[str] = field(default_factory=list)
+    upcoming_deadlines: list[TimelineEntry] = field(default_factory=list)
+    defense_options: list[str] = field(default_factory=list)
+
     # Risk assessment
     urgency_level: str = "normal"  # critical, high, normal, low
     risk_score: float = 0.0  # 0-100
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "classification": {
                 "category": self.document_category.value,
@@ -795,44 +797,44 @@ class RecognitionResult:
     analysis_id: str = field(default_factory=lambda: make_id("anl"))
     analyzed_at: datetime = field(default_factory=datetime.now)
     engine_version: str = "1.0.0"
-    
+
     # Raw content
     original_text: str = ""
     cleaned_text: str = ""
-    
+
     # Context and structure
     context: DocumentContext = field(default_factory=DocumentContext)
-    
+
     # Extracted data
-    entities: List[ExtractedEntity] = field(default_factory=list)
+    entities: list[ExtractedEntity] = field(default_factory=list)
     relationships: RelationshipMap = field(default_factory=RelationshipMap)
-    
+
     # Legal analysis
     document_type: DocumentType = DocumentType.UNKNOWN
     document_category: DocumentCategory = DocumentCategory.UNKNOWN
     legal_analysis: LegalAnalysis = field(default_factory=LegalAnalysis)
-    
+
     # Tone and direction analysis
     tone_analysis: Any = None  # ToneAnalysisResult (avoid circular import)
-    
+
     # Confidence and reasoning
     confidence: ConfidenceMetrics = field(default_factory=ConfidenceMetrics)
-    reasoning_chains: List[ReasoningChain] = field(default_factory=list)
-    
+    reasoning_chains: list[ReasoningChain] = field(default_factory=list)
+
     # Processing stats
     processing_time_ms: float = 0.0
     passes_completed: int = 0
-    
+
     # Warnings and notes
-    warnings: List[str] = field(default_factory=list)
-    notes: List[str] = field(default_factory=list)
-    
-    def get_critical_issues(self) -> List[LegalIssue]:
+    warnings: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+    def get_critical_issues(self) -> list[LegalIssue]:
         """Get all critical severity issues"""
-        return [i for i in self.legal_analysis.issues 
+        return [i for i in self.legal_analysis.issues
                 if i.severity == IssueSeverity.CRITICAL]
-    
-    def get_deadlines(self, within_days: int = 30) -> List[TimelineEntry]:
+
+    def get_deadlines(self, within_days: int = 30) -> list[TimelineEntry]:
         """Get upcoming deadlines within specified days"""
         today = date.today()
         deadlines = []
@@ -842,8 +844,8 @@ class RecognitionResult:
                 if 0 <= days_until <= within_days:
                     deadlines.append(entry)
         return sorted(deadlines, key=lambda x: x.event_date or date.max)
-    
-    def get_summary(self) -> Dict[str, Any]:
+
+    def get_summary(self) -> dict[str, Any]:
         """Get a concise summary of the analysis"""
         return {
             "document_type": self.document_type.value,
@@ -858,8 +860,8 @@ class RecognitionResult:
             "landlord": self.relationships.get_landlord().value if self.relationships.get_landlord() else None,
             "total_claimed": self.relationships.get_total_claimed(),
         }
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to full dictionary representation"""
         return {
             "analysis_id": self.analysis_id,
@@ -881,7 +883,7 @@ class RecognitionResult:
             "warnings": self.warnings,
             "notes": self.notes,
         }
-    
+
     def to_json(self) -> str:
         """Convert to JSON string"""
         import json

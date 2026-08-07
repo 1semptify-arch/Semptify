@@ -3,17 +3,16 @@ Semptify 5.0 - Crawler API Router
 Provides API endpoints for ethical web crawling of public data.
 """
 
-from typing import Optional
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from .service import (
-    get_crawler,
     MN_SOURCES,
     SearchResult,
     SourceType,
+    get_crawler,
 )
-
 
 router = APIRouter(prefix="/api/crawler", tags=["Crawler"])
 
@@ -32,18 +31,18 @@ class CrawlResponse(BaseModel):
     """Response from crawl operation."""
     url: str
     success: bool
-    status_code: Optional[int] = None
-    title: Optional[str] = None
-    text_preview: Optional[str] = None
+    status_code: int | None = None
+    title: str | None = None
+    text_preview: str | None = None
     links_count: int = 0
     cached: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class SearchRequest(BaseModel):
     """Request to search public data."""
     query: str
-    sources: Optional[list[str]] = None  # Filter to specific sources
+    sources: list[str] | None = None  # Filter to specific sources
     limit: int = 20
 
 
@@ -76,12 +75,12 @@ class SourceInfo(BaseModel):
 class StatuteResponse(BaseModel):
     """Response for statute lookup."""
     chapter: str
-    section: Optional[str] = None
+    section: str | None = None
     url: str
-    title: Optional[str] = None
-    text: Optional[str] = None
+    title: str | None = None
+    text: str | None = None
     cached: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
 
 # =============================================================================
@@ -112,7 +111,7 @@ async def get_source(source_id: str) -> SourceInfo:
     """Get details about a specific source."""
     if source_id not in MN_SOURCES:
         raise HTTPException(status_code=404, detail="Source not found")
-    
+
     source = MN_SOURCES[source_id]
     return SourceInfo(
         id=source_id,
@@ -136,19 +135,19 @@ async def crawl_url(request: CrawlRequest) -> CrawlResponse:
     Only URLs from allowed domains are permitted.
     """
     crawler = get_crawler()
-    
+
     # Validate URL is from allowed domain
     allowed_domains = [source["base_url"] for source in MN_SOURCES.values()]
     url_allowed = any(request.url.startswith(domain) or domain in request.url for domain in allowed_domains)
-    
+
     if not url_allowed:
         raise HTTPException(
             status_code=400,
             detail="URL not from allowed public data source. Use /api/crawler/sources to see allowed sources."
         )
-    
+
     result = await crawler.crawl(request.url, use_cache=request.use_cache)
-    
+
     return CrawlResponse(
         url=result.url,
         success=result.success,
@@ -164,7 +163,7 @@ async def crawl_url(request: CrawlRequest) -> CrawlResponse:
 @router.get("/search")
 async def search(
     query: str = Query(..., min_length=2, description="Search query"),
-    source: Optional[str] = Query(None, description="Limit to specific source ID"),
+    source: str | None = Query(None, description="Limit to specific source ID"),
     limit: int = Query(20, ge=1, le=50, description="Max results"),
 ) -> SearchResponse:
     """
@@ -173,17 +172,17 @@ async def search(
     Searches Minnesota government websites, legal resources, and public records.
     """
     crawler = get_crawler()
-    
+
     if source and source not in MN_SOURCES:
         raise HTTPException(status_code=400, detail=f"Unknown source: {source}")
-    
+
     # Search all or specific source
     if source:
         source_info = MN_SOURCES[source]
         if "{query}" in source_info.get("search_url", ""):
             search_url = source_info["search_url"].format(query=query.replace(" ", "+"))
             result = await crawler.crawl(search_url)
-            
+
             results = []
             if result.success:
                 results.append(SearchResult(
@@ -198,7 +197,7 @@ async def search(
             results = []
     else:
         results = await crawler.search_all(query)
-    
+
     return SearchResponse(
         query=query,
         total_results=len(results),
@@ -230,7 +229,7 @@ async def search_statutes(
     """
     crawler = get_crawler()
     results = await crawler.search_mn_statutes(query)
-    
+
     return SearchResponse(
         query=query,
         total_results=len(results),
@@ -262,7 +261,7 @@ async def search_business(
     """
     crawler = get_crawler()
     results = await crawler.search_business(name)
-    
+
     return SearchResponse(
         query=name,
         total_results=len(results),
@@ -295,7 +294,7 @@ async def search_property(
     """
     crawler = get_crawler()
     results = await crawler.search_property(address, county)
-    
+
     return SearchResponse(
         query=address,
         total_results=len(results),
@@ -326,7 +325,7 @@ async def search_legal_aid(
     """
     crawler = get_crawler()
     results = await crawler.search_legal_resources(query)
-    
+
     return SearchResponse(
         query=query,
         total_results=len(results),
@@ -347,7 +346,7 @@ async def search_legal_aid(
 @router.get("/statute/{chapter}")
 async def get_statute(
     chapter: str,
-    section: Optional[str] = Query(None, description="Section number"),
+    section: str | None = Query(None, description="Section number"),
 ) -> StatuteResponse:
     """
     Get a specific Minnesota statute.
@@ -358,7 +357,7 @@ async def get_statute(
     """
     crawler = get_crawler()
     result = await crawler.get_mn_statute(chapter, section)
-    
+
     return StatuteResponse(
         chapter=result.get("chapter", chapter),
         section=result.get("section"),
@@ -385,7 +384,7 @@ async def get_tenant_rights_statutes() -> list[StatuteResponse]:
     """
     crawler = get_crawler()
     results = await crawler.get_tenant_rights_statutes()
-    
+
     return [
         StatuteResponse(
             chapter=r.get("chapter", ""),
@@ -436,12 +435,12 @@ async def clear_cache() -> dict:
     """
     import shutil
     from pathlib import Path
-    
+
     cache_dir = Path("data/crawler_cache")
     if cache_dir.exists():
         count = len(list(cache_dir.glob("*.json")))
         shutil.rmtree(cache_dir)
         cache_dir.mkdir(parents=True, exist_ok=True)
         return {"status": "cleared", "files_removed": count}
-    
+
     return {"status": "cache_empty", "files_removed": 0}

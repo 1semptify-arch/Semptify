@@ -6,7 +6,6 @@ Used by the document hub to export tenant documents.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="document_converter",
     group_name="document_converter_to_docx",

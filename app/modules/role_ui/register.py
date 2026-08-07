@@ -7,7 +7,6 @@ role info, feature flags, and navigation menus per role.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="role_ui",
     group_name="role_ui_route",

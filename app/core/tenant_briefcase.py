@@ -22,11 +22,11 @@ Usage in Python:
 """
 
 import logging
-from app.core.utc import utc_now
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any
-from enum import Enum
+from datetime import datetime
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +41,10 @@ class VaultSummary:
     total_documents: int = 0
     recent_documents: int = 0  # This month
     has_documents: bool = False
-    by_type: Dict[str, int] = field(default_factory=dict)
-    documents: List[Dict[str, Any]] = field(default_factory=list)  # Last 10 only
+    by_type: dict[str, int] = field(default_factory=dict)
+    documents: list[dict[str, Any]] = field(default_factory=list)  # Last 10 only
     storage_used_mb: float = 0.0
-    
+
     @property
     def primary_type(self) -> str:
         """Most common document type."""
@@ -59,10 +59,10 @@ class TimelineEvent:
     id: str
     event_type: str  # document_upload, deadline, court_date, notice_received, etc.
     title: str
-    date: Optional[str] = None  # ISO format
-    days_until: Optional[int] = None
+    date: str | None = None  # ISO format
+    days_until: int | None = None
     is_urgent: bool = False
-    source_doc_id: Optional[str] = None
+    source_doc_id: str | None = None
     icon: str = "◆"
 
 
@@ -72,10 +72,10 @@ class TimelineSummary:
     total_events: int = 0
     events_this_month: int = 0
     has_timeline: bool = False
-    next_deadline: Optional[TimelineEvent] = None
-    urgent_events: List[TimelineEvent] = field(default_factory=list)
-    recent_events: List[TimelineEvent] = field(default_factory=list)  # Last 5
-    
+    next_deadline: TimelineEvent | None = None
+    urgent_events: list[TimelineEvent] = field(default_factory=list)
+    recent_events: list[TimelineEvent] = field(default_factory=list)  # Last 5
+
     @property
     def has_upcoming_deadline(self) -> bool:
         return self.next_deadline is not None and self.next_deadline.days_until is not None
@@ -101,7 +101,7 @@ class JournalSummary:
     entries_this_month: int = 0
     has_journal: bool = False
     urgent_entries: int = 0
-    recent_entries: List[JournalEntry] = field(default_factory=list)  # Last 5
+    recent_entries: list[JournalEntry] = field(default_factory=list)  # Last 5
 
 
 @dataclass
@@ -114,7 +114,7 @@ class Notification:
     created_at: str
     is_read: bool = False
     is_urgent: bool = False
-    action_url: Optional[str] = None
+    action_url: str | None = None
     action_text: str = "View"
     icon: str = "●"
 
@@ -126,7 +126,7 @@ class InboxSummary:
     unread_count: int = 0
     urgent_count: int = 0
     has_notifications: bool = False
-    latest_notification: Optional[Notification] = None
+    latest_notification: Notification | None = None
 
 
 @dataclass
@@ -144,8 +144,8 @@ class QuickAction:
 @dataclass
 class ActionSummary:
     """Available and suggested actions."""
-    suggested_next: Optional[QuickAction] = None
-    available_actions: List[QuickAction] = field(default_factory=list)
+    suggested_next: QuickAction | None = None
+    available_actions: list[QuickAction] = field(default_factory=list)
     completion_percentage: int = 0  # Case progress 0-100
 
 
@@ -168,42 +168,42 @@ class TenantBriefcase:
     All fields are lightweight summaries. Use methods to fetch details.
     """
     user_id: str
-    user_name: Optional[str] = None
-    
+    user_name: str | None = None
+
     # Subsystem summaries
     vault: VaultSummary = field(default_factory=VaultSummary)
     timeline: TimelineSummary = field(default_factory=TimelineSummary)
     journal: JournalSummary = field(default_factory=JournalSummary)
     inbox: InboxSummary = field(default_factory=InboxSummary)
     actions: ActionSummary = field(default_factory=ActionSummary)
-    
+
     # Metadata
     generated_at: str = field(default_factory=lambda: utc_now().isoformat())
     is_fresh: bool = True  # False if any subsystem failed to load
-    
+
     # Freshness indicators
     freshness_score: float = 100.0  # Overall freshness score 0-100
-    freshness_warnings: List[str] = field(default_factory=list)
-    data_freshness_indicators: Dict[str, str] = field(default_factory=dict)
-    
+    freshness_warnings: list[str] = field(default_factory=list)
+    data_freshness_indicators: dict[str, str] = field(default_factory=dict)
+
     # =============================================================================
     # Smart Properties (Template-friendly)
     # =============================================================================
-    
+
     @property
     def has_any_data(self) -> bool:
         """True if tenant has any documents, entries, or events."""
         return (
-            self.vault.has_documents or 
-            self.timeline.has_timeline or 
+            self.vault.has_documents or
+            self.timeline.has_timeline or
             self.journal.has_journal
         )
-    
+
     @property
     def is_new_tenant(self) -> bool:
         """True if tenant has no data yet (fresh onboarding)."""
         return not self.has_any_data
-    
+
     @property
     def has_urgent_items(self) -> bool:
         """True if any urgent deadlines, notifications, or entries."""
@@ -212,7 +212,7 @@ class TenantBriefcase:
             self.journal.urgent_entries > 0 or
             self.inbox.urgent_count > 0
         )
-    
+
     @property
     def needs_attention(self) -> bool:
         """True if tenant has unread notifications or upcoming deadlines."""
@@ -220,17 +220,17 @@ class TenantBriefcase:
             self.inbox.unread_count > 0 or
             (self.timeline.next_deadline and self.timeline.next_deadline.days_until is not None and self.timeline.next_deadline.days_until <= 7)
         )
-    
+
     @property
-    def next_deadline(self) -> Optional[TimelineEvent]:
+    def next_deadline(self) -> TimelineEvent | None:
         """Most urgent upcoming deadline (or None)."""
         return self.timeline.next_deadline
-    
+
     @property
     def document_count(self) -> int:
         """Total documents in vault."""
         return self.vault.total_documents
-    
+
     @property
     def activity_count(self) -> int:
         """Total activity (docs + entries + events)."""
@@ -239,12 +239,12 @@ class TenantBriefcase:
             self.journal.total_entries +
             self.timeline.total_events
         )
-    
+
     @property
     def case_progress(self) -> int:
         """Percentage of case completion (0-100)."""
         return self.actions.completion_percentage
-    
+
     @property
     def has_freshness_issues(self) -> bool:
         """True if any data freshness issues detected."""
@@ -253,7 +253,7 @@ class TenantBriefcase:
             len(self.freshness_warnings) > 0 or
             any(status == "stale" for status in self.data_freshness_indicators.values())
         )
-    
+
     @property
     def freshness_status(self) -> str:
         """Overall freshness status for UI display."""
@@ -265,7 +265,7 @@ class TenantBriefcase:
             return "fair"
         else:
             return "poor"
-    
+
     @property
     def freshness_color(self) -> str:
         """Color indicator for freshness status."""
@@ -277,18 +277,18 @@ class TenantBriefcase:
             return "#f59e0b"  # amber
         else:
             return "#ef4444"  # red
-    
+
     # =============================================================================
     # Smart Methods (Lazy-load details)
     # =============================================================================
-    
-    def get_urgent_items(self, max_items: int = 5) -> List[Dict[str, Any]]:
+
+    def get_urgent_items(self, max_items: int = 5) -> list[dict[str, Any]]:
         """
         Get all urgent items sorted by priority.
         Combines timeline, journal, and inbox urgent items.
         """
         items = []
-        
+
         # Timeline urgent events
         for event in self.timeline.urgent_events[:max_items]:
             items.append({
@@ -300,7 +300,7 @@ class TenantBriefcase:
                 "icon": event.icon,
                 "priority": 1 if event.days_until is not None and event.days_until <= 3 else 2,
             })
-        
+
         # Journal urgent entries
         for entry in self.journal.recent_entries:
             if entry.is_urgent:
@@ -312,7 +312,7 @@ class TenantBriefcase:
                     "icon": entry.icon,
                     "priority": 2,
                 })
-        
+
         # Inbox urgent notifications
         if self.inbox.latest_notification and self.inbox.latest_notification.is_urgent:
             n = self.inbox.latest_notification
@@ -324,11 +324,11 @@ class TenantBriefcase:
                 "icon": n.icon,
                 "priority": 1,
             })
-        
+
         # Sort by priority
         items.sort(key=lambda x: x["priority"])
         return items[:max_items]
-    
+
     def has_deadline_approaching(self, days: int = 7) -> bool:
         """Check if any deadline is within N days."""
         if not self.timeline.next_deadline:
@@ -336,11 +336,11 @@ class TenantBriefcase:
         if self.timeline.next_deadline.days_until is None:
             return False
         return self.timeline.next_deadline.days_until <= days
-    
-    def get_recent_activity(self, max_items: int = 10) -> List[Dict[str, Any]]:
+
+    def get_recent_activity(self, max_items: int = 10) -> list[dict[str, Any]]:
         """Get mixed recent activity from all sources."""
         activities = []
-        
+
         # Vault uploads
         for doc in self.vault.documents[:max_items]:
             activities.append({
@@ -351,7 +351,7 @@ class TenantBriefcase:
                 "icon": "●",
                 "description": f"Uploaded: {doc.get('title', 'Document')}",
             })
-        
+
         # Journal entries
         for entry in self.journal.recent_entries[:max_items]:
             activities.append({
@@ -362,7 +362,7 @@ class TenantBriefcase:
                 "icon": entry.icon,
                 "description": entry.description,
             })
-        
+
         # Timeline events
         for event in self.timeline.recent_events[:max_items]:
             activities.append({
@@ -373,62 +373,62 @@ class TenantBriefcase:
                 "icon": event.icon,
                 "description": event.title,
             })
-        
+
         # Sort by date (newest first) - approximate since dates may be ISO strings
         activities.sort(key=lambda x: x.get("date") or "", reverse=True)
         return activities[:max_items]
-    
+
     def update_freshness_indicators(self) -> None:
         """Update freshness indicators from data freshness manager."""
         try:
-            from app.core.data_freshness_manager import data_freshness_manager, FreshnessStatus
+            from app.core.data_freshness_manager import FreshnessStatus, data_freshness_manager
         except ImportError:
             logger.warning("Data freshness manager not available")
             return
-        
+
         # Check key data freshness
         indicators = {}
         warnings = []
-        
+
         # Legal content freshness
         legal_freshness = data_freshness_manager.check_freshness("legal_content")
         indicators["legal_content"] = legal_freshness.value
         if legal_freshness != FreshnessStatus.FRESH:
             warnings.append("Legal content may be outdated")
-        
+
         # Court forms freshness
         forms_freshness = data_freshness_manager.check_freshness("court_forms")
         indicators["court_forms"] = forms_freshness.value
         if forms_freshness != FreshnessStatus.FRESH:
             warnings.append("Court form requirements may be outdated")
-        
+
         # Deadline rules freshness
         deadlines_freshness = data_freshness_manager.check_freshness("deadline_rules")
         indicators["deadline_rules"] = deadlines_freshness.value
         if deadlines_freshness != FreshnessStatus.FRESH:
             warnings.append("Deadline calculation rules may be outdated")
-        
+
         # Update briefcase
         self.data_freshness_indicators = indicators
         self.freshness_warnings = warnings
-        
+
         # Calculate overall score
         fresh_count = sum(1 for status in indicators.values() if status == FreshnessStatus.FRESH.value)
         self.freshness_score = (fresh_count / len(indicators)) * 100 if indicators else 100.0
-    
-    def to_template_context(self) -> Dict[str, Any]:
+
+    def to_template_context(self) -> dict[str, Any]:
         """Convert to flat dict for template rendering."""
         return {
             # Direct briefcase access
             "briefcase": self,
-            
+
             # Flat shortcuts (for template convenience)
             "vault": self.vault,
             "timeline": self.timeline,
             "journal": self.journal,
             "inbox": self.inbox,
             "actions": self.actions,
-            
+
             # Common quick accessors
             "user_name": self.user_name,
             "document_count": self.document_count,
@@ -439,7 +439,7 @@ class TenantBriefcase:
             "has_urgent_items": self.has_urgent_items,
             "needs_attention": self.needs_attention,
             "next_deadline": self.next_deadline,
-            
+
             # Freshness indicators
             "freshness_score": self.freshness_score,
             "freshness_status": self.freshness_status,
@@ -447,7 +447,7 @@ class TenantBriefcase:
             "has_freshness_issues": self.has_freshness_issues,
             "freshness_warnings": self.freshness_warnings,
             "data_freshness_indicators": self.data_freshness_indicators,
-            
+
             # Pre-computed lists
             "urgent_items": self.get_urgent_items(),
             "recent_activity": self.get_recent_activity(),
@@ -458,7 +458,7 @@ class TenantBriefcase:
 # Factory Function
 # =============================================================================
 
-async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) -> TenantBriefcase:
+async def get_tenant_briefcase(user_id: str, user_name: str | None = None) -> TenantBriefcase:
     """
     Build a complete TenantBriefcase for the given user.
     
@@ -473,7 +473,7 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
         TenantBriefcase with all subsystem summaries
     """
     briefcase = TenantBriefcase(user_id=user_id, user_name=user_name)
-    
+
     try:
         # Load vault summary
         vault_data = await _load_vault_summary(user_id)
@@ -481,7 +481,7 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Failed to load vault for {user_id}: {e}")
         briefcase.is_fresh = False
-    
+
     try:
         # Load timeline from vault documents
         timeline_data = await _load_timeline_summary(user_id, briefcase.vault)
@@ -489,7 +489,7 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Failed to load timeline for {user_id}: {e}")
         briefcase.is_fresh = False
-    
+
     try:
         # Load journal (captures/entries)
         journal_data = await _load_journal_summary(user_id, briefcase.vault)
@@ -497,7 +497,7 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Failed to load journal for {user_id}: {e}")
         briefcase.is_fresh = False
-    
+
     try:
         # Generate inbox from state changes
         inbox_data = await _load_inbox_summary(user_id, briefcase)
@@ -505,7 +505,7 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Failed to load inbox for {user_id}: {e}")
         briefcase.is_fresh = False
-    
+
     try:
         # Compute suggested actions
         action_data = await _load_action_summary(user_id, briefcase)
@@ -513,13 +513,13 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Failed to load actions for {user_id}: {e}")
         briefcase.is_fresh = False
-    
+
     # Update freshness indicators (non-blocking)
     try:
         briefcase.update_freshness_indicators()
     except Exception as e:
         logger.warning(f"Failed to update freshness indicators for {user_id}: {e}")
-    
+
     return briefcase
 
 
@@ -531,13 +531,12 @@ async def _load_vault_summary(user_id: str) -> VaultSummary:
     """Load vault documents and compute summary."""
     try:
         from app.services.document_pipeline import get_document_pipeline
-        from app.services.vault_upload_service import get_vault_service
-        
+
         # Try pipeline first (has rich metadata)
         pipeline = get_document_pipeline()
         docs = pipeline.get_user_documents(user_id)
         summary = pipeline.get_summary(user_id) if hasattr(pipeline, 'get_summary') else {}
-        
+
         # Format last 10 documents
         doc_list = []
         for doc in docs[-10:]:
@@ -551,14 +550,14 @@ async def _load_vault_summary(user_id: str) -> VaultSummary:
                 "has_timeline": bool(doc.key_dates),
                 "is_certified": getattr(doc, 'registry_id', None) is not None,
             })
-        
+
         # Count recent (this month)
         now = utc_now()
         recent = len([
-            d for d in docs 
+            d for d in docs
             if d.uploaded_at and (now - d.uploaded_at).days < 30
         ])
-        
+
         return VaultSummary(
             total_documents=len(docs),
             recent_documents=recent,
@@ -577,7 +576,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
     events = []
     urgent_events = []
     next_deadline = None
-    
+
     # Extract dates from vault documents
     for doc in vault.documents:
         if doc.get("uploaded_at"):
@@ -588,7 +587,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 date=doc["uploaded_at"],
                 icon="●",
             ))
-        
+
         # Check for document dates (from key_dates in full doc)
         if doc.get("has_timeline"):
             events.append(TimelineEvent(
@@ -597,12 +596,13 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 title=f"Date in: {doc['title']}",
                 icon="◆",
             ))
-    
+
     # Load real timeline events from DB
     try:
+        from sqlalchemy import select as _sel
+
         from app.core.database import get_db_session
         from app.models.models import TimelineEvent as TimelineEventModel
-        from sqlalchemy import select as _sel
         async with get_db_session() as _db:
             result = await _db.execute(
                 _sel(TimelineEventModel)
@@ -637,7 +637,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                         next_deadline = event
             except ValueError:
                 pass
-    
+
     return TimelineSummary(
         total_events=len(events),
         events_this_month=len([e for e in events if e.date and "2026-04" in e.date]),  # Simplistic
@@ -745,7 +745,7 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
 async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> InboxSummary:
     """Generate inbox notifications from briefcase state."""
     notifications = []
-    
+
     # Notification: New documents this month
     if briefcase.vault.recent_documents > 0:
         notifications.append(Notification(
@@ -759,7 +759,7 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
             action_url="/tenant/journal",
             action_text="View",
         ))
-    
+
     # Notification: Upcoming deadline
     if briefcase.timeline.next_deadline and briefcase.timeline.next_deadline.days_until is not None:
         days = briefcase.timeline.next_deadline.days_until
@@ -775,7 +775,7 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
                 action_url="/timeline",
                 action_text="View Timeline",
             ))
-    
+
     # Notification: Urgent journal entries
     if briefcase.journal.urgent_entries > 0:
         notifications.append(Notification(
@@ -789,10 +789,10 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
             action_url="/tenant/journal",
             action_text="Review",
         ))
-    
+
     unread = len([n for n in notifications if not n.is_read])
     urgent = len([n for n in notifications if n.is_urgent])
-    
+
     return InboxSummary(
         total_notifications=len(notifications),
         unread_count=unread,
@@ -806,7 +806,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
     """Compute suggested next actions based on tenant state."""
     actions = []
     suggested = None
-    
+
     # Determine progress based on data volume
     progress = 0
     if briefcase.vault.has_documents:
@@ -817,7 +817,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
         progress += 20
     if briefcase.inbox.urgent_count == 0:
         progress += 30
-    
+
     # Suggest actions based on state
     if not briefcase.vault.has_documents:
         suggested = QuickAction(
@@ -830,7 +830,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
             reason="No documents in your vault yet",
         )
         actions.append(suggested)
-    
+
     if briefcase.timeline.next_deadline and briefcase.timeline.next_deadline.days_until is not None:
         if briefcase.timeline.next_deadline.days_until <= 7:
             deadline_action = QuickAction(
@@ -845,7 +845,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
             if not suggested:
                 suggested = deadline_action
             actions.append(deadline_action)
-    
+
     if briefcase.inbox.urgent_count > 0:
         actions.append(QuickAction(
             action_id="check_inbox",
@@ -856,7 +856,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
             url="/tenant/inbox",
             reason="Unread urgent notifications",
         ))
-    
+
     # Always suggest capture
     actions.append(QuickAction(
         action_id="quick_capture",
@@ -867,7 +867,7 @@ async def _load_action_summary(user_id: str, briefcase: TenantBriefcase) -> Acti
         url="/tenant/capture",
         reason="Keep your record up to date",
     ))
-    
+
     return ActionSummary(
         suggested_next=suggested,
         available_actions=actions,

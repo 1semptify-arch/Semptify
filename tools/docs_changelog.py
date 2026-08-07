@@ -2,7 +2,7 @@
 """docs_changelog.py — append categorized commit summaries to docs/CHANGELOG-{category}.md.
 
 Usage:
-    .\venv311\Scripts\Activate.ps1
+    .\venv311\\Scripts\\Activate.ps1
     python tools/docs_changelog.py [options]
 
 Reads `docs/doc-map.yaml` to know which code paths and docs belong to each
@@ -90,7 +90,7 @@ def _latest_logged_dates() -> dict[str, datetime.datetime]:
             m = re.match(r"^- (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ", line)
             if m:
                 dt = datetime.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M")
-                dt = dt.replace(tzinfo=datetime.timezone.utc)
+                dt = dt.replace(tzinfo=datetime.UTC)
                 if cat not in dates or dt > dates[cat]:
                     dates[cat] = dt
     return dates
@@ -150,7 +150,7 @@ def _append_to_changelog(cat: str, lines: list[str]) -> None:
 
 
 def _format_entry(commit: dict, cleaned_subject: str, files: list[str]) -> str:
-    date_str = commit["date"].astimezone(datetime.timezone.utc).strftime(
+    date_str = commit["date"].astimezone(datetime.UTC).strftime(
         "%Y-%m-%d %H:%M"
     )
     file_list = ", ".join(sorted(files))[:120]

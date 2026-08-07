@@ -15,21 +15,20 @@ Provides unified search results with BM25 relevance scoring, highlights, and sug
 
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, or_, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import or_, select
 
-from app.core.database import get_db_session
-from app.core.security import require_user, StorageUser, green_access
 from app.core.capabilities import require_capability
-from app.core.search_engine import get_search_engine, SearchType, SearchOperator
+from app.core.database import get_db_session
+from app.core.search_engine import SearchOperator, SearchType, get_search_engine
+from app.core.security import StorageUser, green_access
 from app.models.models import (
+    Contact as ContactModel,
     Document as DocumentModel,
     TimelineEvent as TimelineEventModel,
-    Contact as ContactModel,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,17 +49,17 @@ class SearchResult(BaseModel):
     snippet: str
     url: str
     score: float = 1.0
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class SearchResponse(BaseModel):
     """Search response with results grouped by type."""
     query: str
     total_results: int
-    documents: List[SearchResult] = Field(default_factory=list)
-    timeline: List[SearchResult] = Field(default_factory=list)
-    contacts: List[SearchResult] = Field(default_factory=list)
-    law_library: List[SearchResult] = Field(default_factory=list)
+    documents: list[SearchResult] = Field(default_factory=list)
+    timeline: list[SearchResult] = Field(default_factory=list)
+    contacts: list[SearchResult] = Field(default_factory=list)
+    law_library: list[SearchResult] = Field(default_factory=list)
 
 
 # =============================================================================
@@ -135,14 +134,14 @@ def _snippet(text: str, query: str, max_length: int = 150) -> str:
     """Create a snippet highlighting the query match."""
     if not text:
         return ""
-    
+
     text = text.strip()
     query_lower = query.lower()
     text_lower = text.lower()
-    
+
     # Find query position
     pos = text_lower.find(query_lower)
-    
+
     if pos >= 0:
         # Show context around match
         start = max(0, pos - 50)
@@ -153,7 +152,7 @@ def _snippet(text: str, query: str, max_length: int = 150) -> str:
         if end < len(text):
             snippet = snippet + "..."
         return snippet
-    
+
     # No match, just truncate
     return text[:max_length] + ("..." if len(text) > max_length else "")
 
@@ -162,17 +161,17 @@ def _score_match(text: str, query: str) -> float:
     """Calculate relevance score for a match."""
     if not text:
         return 0.0
-    
+
     text_lower = text.lower()
     query_lower = query.lower()
     query_words = query_lower.split()
-    
+
     score = 0.0
-    
+
     # Exact match bonus
     if query_lower in text_lower:
         score += 1.0
-    
+
     # Word match scoring
     for word in query_words:
         if word in text_lower:
@@ -180,32 +179,32 @@ def _score_match(text: str, query: str) -> float:
             # Title/start bonus
             if text_lower.startswith(word):
                 score += 0.3
-    
+
     return min(score, 2.0)  # Cap at 2.0
 
 
-def _search_law_library(query: str) -> List[SearchResult]:
+def _search_law_library(query: str) -> list[SearchResult]:
     """Search Minnesota law entries."""
     results = []
     query_lower = query.lower()
     query_words = query_lower.split()
-    
+
     for entry in MINNESOTA_LAW_ENTRIES:
         # Check title, content, and keywords
         searchable = f"{entry['title']} {entry['content']} {' '.join(entry['keywords'])}".lower()
-        
+
         # Score based on matches
         score = 0.0
-        
+
         if query_lower in searchable:
             score += 1.5
-        
+
         for word in query_words:
             if word in searchable:
                 score += 0.5
             if word in entry['keywords']:
                 score += 0.3  # Keyword bonus
-        
+
         if score > 0:
             results.append(SearchResult(
                 id=entry['id'],
@@ -216,7 +215,7 @@ def _search_law_library(query: str) -> List[SearchResult]:
                 score=score,
                 metadata={"keywords": entry['keywords']}
             ))
-    
+
     # Sort by score
     results.sort(key=lambda r: r.score, reverse=True)
     return results[:5]  # Top 5
@@ -392,20 +391,20 @@ async def global_search(
 
     # Search Law Library (no DB, just local data)
     response.law_library = _search_law_library(q)
-    
+
     # Sort each category by score
     response.documents.sort(key=lambda r: r.score, reverse=True)
     response.timeline.sort(key=lambda r: r.score, reverse=True)
     response.contacts.sort(key=lambda r: r.score, reverse=True)
-    
+
     # Calculate total
     response.total_results = (
-        len(response.documents) + 
-        len(response.timeline) + 
-        len(response.contacts) + 
+        len(response.documents) +
+        len(response.timeline) +
+        len(response.contacts) +
         len(response.law_library)
     )
-    
+
     return response
 
 
@@ -414,10 +413,10 @@ async def advanced_search(
     q: str = Query(..., min_length=1, description="Search query"),
     search_type: str = Query("full_text", description="Search type: full_text, metadata, content, hybrid"),
     operator: str = Query("and", description="Search operator: and, or, not"),
-    file_types: Optional[str] = Query(None, description="Comma-separated file types to filter"),
-    tags: Optional[str] = Query(None, description="Comma-separated tags to filter"),
-    date_from: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
-    date_to: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    file_types: str | None = Query(None, description="Comma-separated file types to filter"),
+    tags: str | None = Query(None, description="Comma-separated tags to filter"),
+    date_from: str | None = Query(None, description="Start date (YYYY-MM-DD)"),
+    date_to: str | None = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(20, ge=1, le=100, description="Max results"),
     offset: int = Query(0, ge=0, description="Results offset"),
     user: StorageUser = Depends(green_access),
@@ -436,10 +435,10 @@ async def advanced_search(
         # Parse search parameters
         search_type_enum = SearchType(search_type)
         operator_enum = SearchOperator(operator)
-        
+
         file_type_list = file_types.split(',') if file_types else None
         tag_list = tags.split(',') if tags else None
-        
+
         date_range = None
         if date_from and date_to:
             try:
@@ -448,7 +447,7 @@ async def advanced_search(
                 date_range = (start_date, end_date)
             except ValueError:
                 pass
-        
+
         # Perform advanced search
         search_engine = get_search_engine()
         results = search_engine.search(
@@ -462,9 +461,9 @@ async def advanced_search(
             limit=limit,
             offset=offset
         )
-        
+
         return results
-        
+
     except ValueError as e:
         return {
             "error": f"Invalid search parameters: {str(e)}",
@@ -492,13 +491,13 @@ async def search_suggestions(
     try:
         search_engine = get_search_engine()
         suggestions = search_engine.suggest_queries(q, user.user_id, limit)
-        
+
         return {
             "query": q,
             "suggestions": suggestions,
             "total": len(suggestions)
         }
-        
+
     except Exception as e:
         logger.error(f"Search suggestions error: {e}")
         return {
@@ -517,9 +516,9 @@ async def search_statistics(
     try:
         search_engine = get_search_engine()
         stats = search_engine.get_search_statistics()
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(f"Search statistics error: {e}")
         return {
@@ -545,10 +544,10 @@ async def index_document(
             )
             result = await session.execute(doc_query)
             doc = result.scalar_one_or_none()
-            
+
             if not doc:
                 return {"error": "Document not found"}
-            
+
             # Index document
             search_engine = get_search_engine()
             success = search_engine.index_document(
@@ -563,13 +562,13 @@ async def index_document(
                 file_type=doc.document_type or "unknown",
                 tags=[]
             )
-            
+
             return {
                 "success": success,
                 "document_id": document_id,
                 "message": "Document indexed successfully" if success else "Indexing failed"
             }
-            
+
     except Exception as e:
         logger.error(f"Document indexing error: {e}")
         return {
@@ -588,13 +587,13 @@ async def remove_from_index(
     try:
         search_engine = get_search_engine()
         success = search_engine.remove_document(document_id)
-        
+
         return {
             "success": success,
             "document_id": document_id,
             "message": "Document removed from index" if success else "Removal failed"
         }
-        
+
     except Exception as e:
         logger.error(f"Document removal error: {e}")
         return {
@@ -612,17 +611,17 @@ async def quick_search(
     Returns top 5 results across all categories.
     """
     full_results = await global_search(q=q, limit=3, user=user)
-    
+
     # Combine and sort all results
     all_results = (
-        full_results.documents + 
-        full_results.timeline + 
-        full_results.contacts + 
+        full_results.documents +
+        full_results.timeline +
+        full_results.contacts +
         full_results.law_library
     )
-    
+
     all_results.sort(key=lambda r: r.score, reverse=True)
-    
+
     return {
         "query": q,
         "results": [r.dict() for r in all_results[:5]],

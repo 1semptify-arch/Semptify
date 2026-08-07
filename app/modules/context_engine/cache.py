@@ -5,9 +5,8 @@ No hallucination: every fact must have source_url + source_name.
 """
 
 from datetime import timedelta
-from typing import List, Optional
 
-from sqlalchemy import select, and_, or_
+from sqlalchemy import and_, select
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
@@ -28,7 +27,7 @@ async def get_facts(
     jurisdiction: str = "MN",
     limit: int = 10,
     include_expired: bool = False,
-) -> List[ContextFact]:
+) -> list[ContextFact]:
     """Get cached facts for a subject + jurisdiction."""
     async with get_db_session() as db:
         stmt = select(ContextFact).where(
@@ -50,7 +49,7 @@ async def upsert_fact(
     claim: str,
     source_url: str,
     source_name: str,
-    citation: Optional[str] = None,
+    citation: str | None = None,
     ttl_days: int = DEFAULT_TTL_DAYS,
 ) -> ContextFact:
     """Insert or update a fact in the cache. No hallucination — source required."""

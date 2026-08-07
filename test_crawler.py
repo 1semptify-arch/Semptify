@@ -8,7 +8,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import defaultdict
 
 BASE_URL = "http://localhost:8000"
@@ -252,7 +252,7 @@ async def main():
     
     # Save detailed report
     report = {
-        'timestamp': datetime.now().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'base_url': BASE_URL,
         'pages_found': len(PAGES_FOUND),
         'broken_links': BROKEN_LINKS,

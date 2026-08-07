@@ -3,19 +3,22 @@ Enterprise Dashboard Router
 High-performance, real-time dashboard for multi-billion dollar law office operations.
 """
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
-from pydantic import BaseModel
 import asyncio
 import json
-from app.core.utc import utc_now
 import logging
+from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+
+from app.core.utc import utc_now
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_PREFS_STORE: Dict[str, Any] = {
+_PREFS_STORE: dict[str, Any] = {
     "theme": "dark",
     "widgets": ["stats", "activity", "progress", "documents"],
     "notifications_enabled": True,
@@ -26,7 +29,7 @@ _PREFS_STORE: Dict[str, Any] = {
 # WebSocket connection manager for real-time updates
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -45,7 +48,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 # In-memory store (replace with DB in production)
-IN_MEMORY_NOTIFICATIONS: List[Dict[str, Any]] = [
+IN_MEMORY_NOTIFICATIONS: list[dict[str, Any]] = [
     {"id": "notif_1", "message": "Welcome to the dashboard", "read": False, "timestamp": utc_now()},
     {"id": "notif_2", "message": "New case assigned", "read": False, "timestamp": utc_now()},
 ]
@@ -87,7 +90,7 @@ class DocumentItem(BaseModel):
     status: str
     date_added: datetime
     file_type: str
-    size: Optional[int] = None
+    size: int | None = None
 
 
 class QuickAction(BaseModel):
@@ -134,7 +137,7 @@ async def get_dashboard_stats():
     )
 
 
-@router.get("/api/dashboard/activity", response_model=List[ActivityItem])
+@router.get("/api/dashboard/activity", response_model=list[ActivityItem])
 async def get_recent_activity(limit: int = 10):
     """
     Get recent activity timeline.
@@ -187,7 +190,7 @@ async def get_recent_activity(limit: int = 10):
             color="#10b981"
         ),
     ]
-    
+
     return activities[:limit]
 
 
@@ -205,7 +208,7 @@ async def get_case_progress():
     )
 
 
-@router.get("/api/dashboard/recent-documents", response_model=List[DocumentItem])
+@router.get("/api/dashboard/recent-documents", response_model=list[DocumentItem])
 async def get_recent_documents(limit: int = 10):
     """
     Get recently uploaded/modified documents.
@@ -257,11 +260,11 @@ async def get_recent_documents(limit: int = 10):
             size=980000
         ),
     ]
-    
+
     return documents[:limit]
 
 
-@router.get("/api/dashboard/quick-actions", response_model=List[QuickAction])
+@router.get("/api/dashboard/quick-actions", response_model=list[QuickAction])
 async def get_quick_actions():
     """
     Get personalized quick actions based on case status.
@@ -305,11 +308,11 @@ async def get_quick_actions():
             priority=4
         ),
     ]
-    
+
     return actions
 
 
-@router.get("/api/dashboard/ai-insights", response_model=List[AIInsight])
+@router.get("/api/dashboard/ai-insights", response_model=list[AIInsight])
 async def get_ai_insights():
     """
     Get AI-powered insights and recommendations.
@@ -349,7 +352,7 @@ async def get_ai_insights():
             severity="low"
         ),
     ]
-    
+
     return insights
 
 
@@ -437,10 +440,10 @@ async def get_notifications(unread_only: bool = False):
             "priority": "low"
         },
     ]
-    
+
     if unread_only:
         notifications = [n for n in notifications if not n["read"]]
-    
+
     return {
         "notifications": notifications,
         "unread_count": len([n for n in notifications if not n["read"]])
@@ -470,12 +473,12 @@ async def websocket_dashboard(websocket: WebSocket):
     Pushes live updates for stats, activity, notifications, etc.
     """
     await manager.connect(websocket)
-    
+
     try:
         while True:
             # Send periodic updates every 30 seconds
             await asyncio.sleep(30)
-            
+
             # Send updated stats
             await websocket.send_json({
                 "type": "stats_update",
@@ -487,7 +490,7 @@ async def websocket_dashboard(websocket: WebSocket):
                     "timestamp": utc_now().isoformat()
                 }
             })
-            
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
@@ -507,7 +510,7 @@ async def global_search(q: str, limit: int = 20):
     """
     # Basic in-memory search with simulated results for development.
     # In production, integrate with a real search index (e.g., ElasticSearch, Postgres full-text search).
-    
+
     results = {
         "documents": [
             {
@@ -550,14 +553,14 @@ async def global_search(q: str, limit: int = 20):
             }
         ]
     }
-    
+
     # Flatten and sort by relevance
     all_results = []
     for category, items in results.items():
         all_results.extend(items)
-    
+
     all_results.sort(key=lambda x: x["relevance"], reverse=True)
-    
+
     return {
         "query": q,
         "total_results": len(all_results),

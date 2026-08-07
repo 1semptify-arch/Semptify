@@ -26,10 +26,10 @@ is amended. For now, last_verified dates are manually maintained and displayed
 on every card so users know the freshness of each link.
 """
 
-import re
 import logging
+import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Optional, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class LawSource:
     url_builder: Callable[[str], str]
     last_verified: str
     jurisdiction: str  # "federal", "state", "local"
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 def _mn_stat_url(citation: str) -> str:
@@ -185,7 +185,7 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
 ]
 
 
-def resolve_source(citation: str) -> Optional[LawSource]:
+def resolve_source(citation: str) -> LawSource | None:
     """Resolve a citation string to its LawSource, or None if no match."""
     if not citation:
         return None
@@ -195,7 +195,7 @@ def resolve_source(citation: str) -> Optional[LawSource]:
     return None
 
 
-def build_official_url(citation: str) -> Optional[str]:
+def build_official_url(citation: str) -> str | None:
     """Build the official URL for a citation, or None if no source matched."""
     source = resolve_source(citation)
     if source is None:

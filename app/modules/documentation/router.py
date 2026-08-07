@@ -6,18 +6,20 @@ Provides comprehensive API documentation and developer portal.
 """
 
 import logging
-from typing import Optional, Dict, Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, require_admin
 from app.core.api_documentation import (
+    generate_developer_portal,
+    generate_openapi_spec,
+    generate_postman_collection,
+    generate_redoc_html,
+    generate_swagger_ui,
     get_documentation_generator,
-    generate_openapi_spec, generate_postman_collection,
-    generate_swagger_ui, generate_redoc_html,
-    generate_developer_portal, get_documentation_summary
+    get_documentation_summary,
 )
+from app.core.security import require_admin
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -44,7 +46,7 @@ async def get_openapi_spec(admin: dict = Depends(require_admin)):
                 "Content-Disposition": "inline; filename=openapi.json"
             }
         )
-        
+
     except Exception as e:
         logger.error(f"OpenAPI spec generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate OpenAPI specification")
@@ -67,7 +69,7 @@ async def get_postman_collection(admin: dict = Depends(require_admin)):
                 "Content-Disposition": "inline; filename=semptify-api.postman_collection.json"
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Postman collection generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate Postman collection")
@@ -88,7 +90,7 @@ async def get_swagger_ui(admin: dict = Depends(require_admin)):
                 "Cache-Control": "public, max-age=3600"
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Swagger UI generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate Swagger UI")
@@ -109,7 +111,7 @@ async def get_redoc_ui(admin: dict = Depends(require_admin)):
                 "Cache-Control": "public, max-age=3600"
             }
         )
-        
+
     except Exception as e:
         logger.error(f"ReDoc UI generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate ReDoc UI")
@@ -130,7 +132,7 @@ async def get_developer_portal(admin: dict = Depends(require_admin)):
                 "Cache-Control": "public, max-age=1800"  # 30 minutes
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Developer portal generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate developer portal")
@@ -148,14 +150,14 @@ async def get_api_reference():
     """
     try:
         generator = get_documentation_generator()
-        
+
         # Get all modules and endpoints
         reference = {
             "api_version": generator.api_version,
             "base_url": generator.base_url,
             "modules": []
         }
-        
+
         for module in generator.modules.values():
             module_ref = {
                 "id": module.module_id,
@@ -165,7 +167,7 @@ async def get_api_reference():
                 "version": module.version,
                 "endpoints": []
             }
-            
+
             for endpoint in module.endpoints:
                 endpoint_ref = {
                     "path": endpoint.path,
@@ -179,9 +181,9 @@ async def get_api_reference():
                     "security": endpoint.security
                 }
                 module_ref["endpoints"].append(endpoint_ref)
-            
+
             reference["modules"].append(module_ref)
-        
+
         return {
             "reference": reference,
             "statistics": {
@@ -189,7 +191,7 @@ async def get_api_reference():
                 "total_endpoints": sum(len(m["endpoints"]) for m in reference["modules"])
             }
         }
-        
+
     except Exception as e:
         logger.error(f"API reference generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate API reference")
@@ -206,10 +208,10 @@ async def get_module_reference(
     try:
         generator = get_documentation_generator()
         module = generator.modules.get(module_id)
-        
+
         if not module:
             raise HTTPException(status_code=404, detail=f"Module not found: {module_id}")
-        
+
         return {
             "module": module.to_dict(),
             "endpoints": [ep.to_dict() for ep in module.endpoints],
@@ -218,7 +220,7 @@ async def get_module_reference(
                 "tags": list(set(tag for ep in module.endpoints for tag in ep.tags))
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -231,8 +233,8 @@ async def get_module_reference(
 
 @router.get("/examples")
 async def get_code_examples(
-    language: Optional[str] = Query(None, description="Filter by programming language"),
-    category: Optional[str] = Query(None, description="Filter by category")
+    language: str | None = Query(None, description="Filter by programming language"),
+    category: str | None = Query(None, description="Filter by category")
 ):
     """
     Get code examples for API usage.
@@ -241,7 +243,7 @@ async def get_code_examples(
     """
     try:
         generator = get_documentation_generator()
-        
+
         examples = []
         for example in generator.code_examples:
             # Apply filters
@@ -249,9 +251,9 @@ async def get_code_examples(
                 continue
             if category and category not in example.description.lower():
                 continue
-            
+
             examples.append(example.to_dict())
-        
+
         return {
             "examples": examples,
             "total": len(examples),
@@ -265,7 +267,7 @@ async def get_code_examples(
                 "category": category
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Code examples retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve code examples")
@@ -281,19 +283,19 @@ async def get_code_example(
     """
     try:
         generator = get_documentation_generator()
-        
+
         # Find example by ID
         example = None
         for ex in generator.code_examples:
             if ex.filename == example_id:
                 example = ex
                 break
-        
+
         if not example:
             raise HTTPException(status_code=404, detail=f"Code example not found: {example_id}")
-        
+
         return example.to_dict()
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -363,7 +365,7 @@ async def get_sdks():
                 ]
             }
         ]
-        
+
         tools = [
             {
                 "name": "semptify-cli",
@@ -394,7 +396,7 @@ async def get_sdks():
                 ]
             }
         ]
-        
+
         return {
             "sdks": sdks,
             "tools": tools,
@@ -406,7 +408,7 @@ async def get_sdks():
                 "alpha_releases": len([sdk for sdk in sdks if sdk["status"] == "alpha"])
             }
         }
-        
+
     except Exception as e:
         logger.error(f"SDKs retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve SDKs")
@@ -453,9 +455,9 @@ async def get_support_resources():
                 "rate_limits": "https://semptify.org/rate-limits"
             }
         }
-        
+
         return resources
-        
+
     except Exception as e:
         logger.error(f"Support resources retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve support resources")
@@ -566,7 +568,7 @@ async def get_changelog():
                 ]
             }
         ]
-        
+
         return {
             "changelog": changelog,
             "current_version": "1.2.0",
@@ -580,7 +582,7 @@ async def get_changelog():
                 ])
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Changelog retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve changelog")
@@ -598,7 +600,7 @@ async def get_documentation_statistics():
     """
     try:
         summary = get_documentation_summary()
-        
+
         # Add usage statistics (would be tracked in production)
         usage_stats = {
             "api_spec_downloads": 1250,  # Example data
@@ -608,7 +610,7 @@ async def get_documentation_statistics():
             "developer_portal_visits": 1890,
             "code_example_views": 1560
         }
-        
+
         return {
             "documentation": summary,
             "usage": usage_stats,
@@ -618,7 +620,7 @@ async def get_documentation_statistics():
                 "popular_examples": ["authentication", "document_upload", "search"]
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Documentation statistics retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve documentation statistics")

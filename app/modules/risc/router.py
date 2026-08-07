@@ -23,14 +23,12 @@ This endpoint must be registered in Google Cloud Console:
 
 import logging
 import time
-from typing import Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Request, Response, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from jose import JWTError, jwt
 
 from app.core.security import auth_gate
-from app.core.user_context import UserContext
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ _GOOGLE_RISC_ISSUER = "https://accounts.google.com"
 _GOOGLE_RISC_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
 
 # Cached JWKS (refreshed on demand)
-_jwks_cache: Optional[dict] = None
+_jwks_cache: dict | None = None
 _jwks_cache_at: float = 0.0
 _JWKS_TTL = 3600  # 1 hour
 
@@ -102,9 +100,10 @@ async def _revoke_user_session(google_subject: str) -> None:
     Looks up by storage_user_id (which stores the Google subject).
     """
     try:
+        from sqlalchemy import delete, select
+
         from app.core.database import get_session_factory
-        from app.models.models import User, StorageSession
-        from sqlalchemy import select, delete
+        from app.models.models import StorageSession, User
 
         factory = get_session_factory()
         async with factory() as db:

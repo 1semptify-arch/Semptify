@@ -5,17 +5,18 @@ These endpoints provide historical tracking of housing accountability patterns
 when ENABLE_PATTERN_PERSISTENCE=true is set in the environment.
 """
 
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Query
-from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, and_
+import logging
 from datetime import timedelta
 
-from app.core.security import get_current_user
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
+from app.core.security import get_current_user
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 # Import pattern record model and functions
@@ -24,7 +25,7 @@ try:
         PatternRecord,
         get_pattern_history,
         get_pattern_trends,
-        is_pattern_persistence_enabled
+        is_pattern_persistence_enabled,
     )
     PATTERN_PERSISTENCE_AVAILABLE = True
 except ImportError:
@@ -41,7 +42,7 @@ pattern_history_router = APIRouter(
 @pattern_history_router.get("/history")
 async def get_pattern_history_endpoint(
     limit: int = Query(50, ge=1, le=200, description="Maximum number of records to return"),
-    days: Optional[int] = Query(None, ge=1, le=365, description="Filter to last N days"),
+    days: int | None = Query(None, ge=1, le=365, description="Filter to last N days"),
     current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -58,19 +59,19 @@ async def get_pattern_history_endpoint(
             "records": [],
             "persistence_enabled": False
         })
-    
+
     try:
         # Get base history
         records = get_pattern_history(db, current_user.id, limit)
-        
+
         # Filter by days if specified
         if days and records:
             cutoff_date = utc_now() - timedelta(days=days)
             records = [r for r in records if r.created_at >= cutoff_date]
-        
+
         # Convert to dict format
         history_data = [record.to_dict() for record in records]
-        
+
         return JSONResponse(content={
             "success": True,
             "records": history_data,
@@ -78,7 +79,7 @@ async def get_pattern_history_endpoint(
             "total_count": len(history_data),
             "filter_days": days
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to get pattern history: {e}")
         logger.exception("Failed to retrieve pattern history")
@@ -104,17 +105,17 @@ async def get_pattern_trends_endpoint(
             "trends": {},
             "persistence_enabled": False
         })
-    
+
     try:
         trends = get_pattern_trends(db, current_user.id, days)
-        
+
         return JSONResponse(content={
             "success": True,
             "trends": trends,
             "persistence_enabled": True,
             "analysis_period_days": days
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to get pattern trends: {e}")
         logger.exception("Failed to analyze pattern trends")
@@ -134,7 +135,7 @@ async def get_pattern_record_detail(
     """
     if not PATTERN_PERSISTENCE_AVAILABLE or not is_pattern_persistence_enabled():
         raise HTTPException(status_code=404, detail="Pattern persistence is disabled")
-    
+
     try:
         result = await db.execute(
             select(PatternRecord)
@@ -144,15 +145,15 @@ async def get_pattern_record_detail(
             ))
         )
         record = result.scalar_one_or_none()
-        
+
         if not record:
             raise HTTPException(status_code=404, detail="Pattern record not found")
-        
+
         return JSONResponse(content={
             "success": True,
             "record": record.to_dict()
         })
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -164,7 +165,7 @@ async def get_pattern_record_detail(
 @pattern_history_router.post("/record/{record_id}/review")
 async def mark_pattern_record_reviewed(
     record_id: int,
-    notes: Optional[str] = None,
+    notes: str | None = None,
     current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -175,7 +176,7 @@ async def mark_pattern_record_reviewed(
     """
     if not PATTERN_PERSISTENCE_AVAILABLE or not is_pattern_persistence_enabled():
         raise HTTPException(status_code=404, detail="Pattern persistence is disabled")
-    
+
     try:
         result = await db.execute(
             select(PatternRecord)
@@ -185,23 +186,23 @@ async def mark_pattern_record_reviewed(
             ))
         )
         record = result.scalar_one_or_none()
-        
+
         if not record:
             raise HTTPException(status_code=404, detail="Pattern record not found")
-        
+
         # Update record
         record.reviewed = True
         if notes:
             record.notes = notes
-        
+
         await db.commit()
-        
+
         return JSONResponse(content={
             "success": True,
             "message": "Pattern record marked as reviewed",
             "record": record.to_dict()
         })
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -228,7 +229,7 @@ async def get_pattern_statistics(
             "stats": {},
             "persistence_enabled": False
         })
-    
+
     try:
         # Get total count
         total_result = await db.execute(
@@ -236,7 +237,7 @@ async def get_pattern_statistics(
             .where(PatternRecord.user_id == current_user.id)
         )
         total_count = len(total_result.scalars().all())
-        
+
         if total_count == 0:
             return JSONResponse(content={
                 "success": True,
@@ -249,14 +250,14 @@ async def get_pattern_statistics(
                 },
                 "persistence_enabled": True
             })
-        
+
         # Get risk level distribution
         risk_result = await db.execute(
             select(PatternRecord.risk_level)
             .where(PatternRecord.user_id == current_user.id)
         )
         risk_levels = [row[0] for row in risk_result.all()]
-        
+
         # Get average risk score
         avg_result = await db.execute(
             select(PatternRecord.risk_score)
@@ -264,17 +265,17 @@ async def get_pattern_statistics(
         )
         risk_scores = [row[0] for row in avg_result.all()]
         avg_risk = sum(risk_scores) / len(risk_scores) if risk_scores else 0
-        
+
         # Get recent analyses
         recent_records = get_pattern_history(db, current_user.id, 5)
         recent_data = [record.to_dict() for record in recent_records]
-        
+
         # Calculate most common risk level
         risk_counts = {}
         for level in risk_levels:
             risk_counts[level] = risk_counts.get(level, 0) + 1
         most_common = max(risk_counts.items(), key=lambda x: x[1])[0] if risk_counts else "none"
-        
+
         return JSONResponse(content={
             "success": True,
             "stats": {
@@ -286,7 +287,7 @@ async def get_pattern_statistics(
             },
             "persistence_enabled": True
         })
-        
+
     except Exception as e:
         logger.error(f"Failed to get pattern statistics: {e}")
         logger.exception("Failed to retrieve pattern statistics")

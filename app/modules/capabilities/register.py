@@ -6,7 +6,6 @@ Admins can grant/revoke modules and attach overlay modules to users.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="capabilities",
     group_name="capabilities_list",

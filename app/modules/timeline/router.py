@@ -26,30 +26,29 @@ Date Axes:
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Optional, List, Dict, Any, Literal
+from datetime import UTC, datetime, timedelta
 from enum import Enum
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.id_gen import make_id
+from app.core.capabilities import require_capability
 from app.core.database import get_db_session
-from app.core.security import require_user, StorageUser, green_access
+from app.core.id_gen import make_id
+from app.core.security import StorageUser, green_access
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
-    TimelineEvent as TimelineEventModel,
-    Document as DocumentModel,
     CalendarEvent as CalendarEventModel,
-    VaultItem,
+    Document as DocumentModel,
     EvictionTimelineEvent,
+    TimelineEvent as TimelineEventModel,
+    VaultItem,
 )
 from app.services.unified_overlay_manager import UnifiedOverlayManager
-from app.core.capabilities import require_capability
-
 
 router = APIRouter(
     tags=["Unified Timeline"],
@@ -97,9 +96,9 @@ class TimelineEventCreateRequest(BaseModel):
     """Request body for creating a manual timeline event."""
     event_type: str = Field("manual", description="Event type (notice, payment, maintenance, communication, court, manual)")
     title: str = Field(..., min_length=1, max_length=255, description="Event title")
-    description: Optional[str] = Field(None, description="Optional long-form description")
+    description: str | None = Field(None, description="Optional long-form description")
     event_date: str = Field(..., description="ISO date (YYYY-MM-DD) or datetime")
-    event_date_end: Optional[str] = Field(None, description="Optional end date for date ranges")
+    event_date_end: str | None = Field(None, description="Optional end date for date ranges")
     urgency: str = Field("normal", description="Urgency: critical, high, normal, low")
     is_deadline: bool = Field(False, description="Whether this event is a deadline")
     is_evidence: bool = Field(False, description="Whether this event is evidence")
@@ -110,9 +109,9 @@ class TimelineEventResponse(BaseModel):
     id: str
     event_type: str
     title: str
-    description: Optional[str]
+    description: str | None
     event_date: str
-    event_date_end: Optional[str]
+    event_date_end: str | None
     urgency: str
     is_deadline: bool
     is_evidence: bool
@@ -125,16 +124,16 @@ class TimelineViewRequest(BaseModel):
         default=DateAxis.EVENT_TIME,
         description="Which date field to sort and display by"
     )
-    start_date: Optional[str] = Field(
+    start_date: str | None = Field(
         None,
         description="ISO date or relative (e.g., '-30d', '-6m', '-1y')"
     )
-    end_date: Optional[str] = Field(
+    end_date: str | None = Field(
         None,
         description="ISO date or relative"
     )
-    item_types: List[ItemType] = Field(
-        default=[ItemType.DOCUMENT, ItemType.TIMELINE_EVENT, 
+    item_types: list[ItemType] = Field(
+        default=[ItemType.DOCUMENT, ItemType.TIMELINE_EVENT,
                  ItemType.CALENDAR_EVENT, ItemType.VAULT_ITEM],
         description="Which types of items to include"
     )
@@ -142,15 +141,15 @@ class TimelineViewRequest(BaseModel):
         False,
         description="Only show items marked as evidence"
     )
-    urgency_filter: Optional[List[Urgency]] = Field(
+    urgency_filter: list[Urgency] | None = Field(
         None,
         description="Filter by urgency levels"
     )
-    search_query: Optional[str] = Field(
+    search_query: str | None = Field(
         None,
         description="Search in titles and descriptions"
     )
-    incident_id: Optional[int] = Field(
+    incident_id: int | None = Field(
         None,
         description="Filter vault items by related incident_id"
     )
@@ -163,47 +162,47 @@ class TimelineItem(BaseModel):
     id: str
     item_type: ItemType
     title: str
-    description: Optional[str] = None
-    
+    description: str | None = None
+
     # Three timestamps (always populated)
     date_display: str  # The primary date based on date_axis
-    event_date: Optional[str]  # When it happened
-    record_date: Optional[str]  # When created
+    event_date: str | None  # When it happened
+    record_date: str | None  # When created
     entry_date: str  # When added to Semptify
-    
+
     # Classification
     is_evidence: bool = False
     is_deadline: bool = False
     urgency: Urgency = Urgency.NORMAL
-    item_subtype: Optional[str] = None  # document_type, event_type, etc.
-    
+    item_subtype: str | None = None  # document_type, event_type, etc.
+
     # UI hints
     icon: str = "file"  # Lucide icon name
     color: str = "gray"  # Tailwind color (red, amber, blue, gray, etc.)
     source: str = "unknown"  # upload, extraction, manual, calendar, vault
-    
+
     # Links
-    document_id: Optional[str] = None
-    overlay_id: Optional[str] = None
-    thumbnail_url: Optional[str] = None
-    
+    document_id: str | None = None
+    overlay_id: str | None = None
+    thumbnail_url: str | None = None
+
     # Additional metadata
-    tags: List[str] = []
-    metadata: Dict[str, Any] = {}
+    tags: list[str] = []
+    metadata: dict[str, Any] = {}
 
 
 class TimelineFacets(BaseModel):
     """Summary counts by category."""
-    by_type: Dict[str, int]
-    by_urgency: Dict[str, int]
-    by_month: Dict[str, int]  # YYYY-MM
+    by_type: dict[str, int]
+    by_urgency: dict[str, int]
+    by_month: dict[str, int]  # YYYY-MM
 
 
 class TimelineViewResponse(BaseModel):
     """Complete timeline view response."""
-    items: List[TimelineItem]
+    items: list[TimelineItem]
     total: int
-    date_range: Dict[str, str]  # {start, end}
+    date_range: dict[str, str]  # {start, end}
     date_axis: DateAxis
     facets: TimelineFacets
     has_more: bool
@@ -211,12 +210,12 @@ class TimelineViewResponse(BaseModel):
 
 class DateRangeInfo(BaseModel):
     """Information about available date ranges."""
-    earliest_event: Optional[str]
-    latest_event: Optional[str]
-    earliest_record: Optional[str]
-    latest_record: Optional[str]
-    earliest_entry: Optional[str]
-    latest_entry: Optional[str]
+    earliest_event: str | None
+    latest_event: str | None
+    earliest_record: str | None
+    latest_record: str | None
+    earliest_entry: str | None
+    latest_entry: str | None
 
 
 # =============================================================================
@@ -227,12 +226,12 @@ def _parse_relative_date(date_str: str, reference: datetime) -> datetime:
     """Parse a date string that might be relative (e.g., '-30d', '-6m')."""
     if not date_str:
         return reference
-    
+
     # Handle relative dates
     if date_str.startswith('-'):
         value = int(date_str[1:-1])
         unit = date_str[-1]
-        
+
         if unit == 'd':
             return reference - timedelta(days=value)
         elif unit == 'w':
@@ -241,37 +240,37 @@ def _parse_relative_date(date_str: str, reference: datetime) -> datetime:
             return reference - timedelta(days=value * 30)
         elif unit == 'y':
             return reference - timedelta(days=value * 365)
-    
+
     # Handle ISO dates
     try:
         return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
     except ValueError:
         # Try just date
         try:
-            return datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            return datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=UTC)
         except ValueError:
             raise HTTPException(status_code=422, detail=f"Invalid date format: {date_str}")
 
 
-def _format_date(dt: Optional[datetime]) -> Optional[str]:
+def _format_date(dt: datetime | None) -> str | None:
     """Format datetime to ISO string or None."""
     if not dt:
         return None
     return dt.isoformat()
 
 
-def _get_icon_and_color(item_type: ItemType, subtype: Optional[str], 
+def _get_icon_and_color(item_type: ItemType, subtype: str | None,
                         is_evidence: bool, urgency: Urgency) -> tuple[str, str]:
     """Get Lucide icon name and Tailwind color for an item."""
-    
+
     # Evidence always gets special treatment
     if is_evidence:
         return "shield", "red"
-    
+
     # Critical urgency
     if urgency == Urgency.CRITICAL:
         return "alert-circle", "red"
-    
+
     # Type-based icons
     icon_map = {
         ItemType.DOCUMENT: "file-text",
@@ -281,7 +280,7 @@ def _get_icon_and_color(item_type: ItemType, subtype: Optional[str],
         ItemType.RENT_PAYMENT: "credit-card",
         ItemType.CLOUD_EVENT: "cloud",
     }
-    
+
     # Subtype overrides
     if item_type == ItemType.DOCUMENT and subtype:
         subtype_lower = subtype.lower()
@@ -295,7 +294,7 @@ def _get_icon_and_color(item_type: ItemType, subtype: Optional[str],
             return "receipt", "green"
         elif 'legal' in subtype_lower or 'court' in subtype_lower:
             return "scale", "red"
-    
+
     if item_type == ItemType.TIMELINE_EVENT and subtype:
         subtype_lower = subtype.lower()
         if 'court' in subtype_lower:
@@ -304,25 +303,25 @@ def _get_icon_and_color(item_type: ItemType, subtype: Optional[str],
             return "bell", "amber"
         elif 'payment' in subtype_lower:
             return "dollar-sign", "green"
-    
+
     if item_type == ItemType.CALENDAR_EVENT and subtype:
         subtype_lower = subtype.lower()
         if 'hearing' in subtype_lower:
             return "gavel", "red"
         elif 'deadline' in subtype_lower:
             return "clock", "amber"
-    
+
     # Color based on urgency
     color_map = {
         Urgency.HIGH: "orange",
         Urgency.NORMAL: "gray",
         Urgency.LOW: "blue",
     }
-    
+
     return icon_map.get(item_type, "file"), color_map.get(urgency, "gray")
 
 
-def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "TimelineItem":
+def _cloud_event_to_item(cloud_event: dict[str, Any], date_axis: DateAxis) -> "TimelineItem":
     """Convert a cloud timeline event to a TimelineItem."""
     event_time_str = cloud_event.get("event_time") or cloud_event.get("date")
     event_time = None
@@ -332,7 +331,7 @@ def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "T
         except (ValueError, AttributeError):
             # Invalid date format, will use None
             pass
-    
+
     # Determine display date based on axis
     if date_axis == DateAxis.EVENT_TIME and event_time:
         date_display = _format_date(event_time)
@@ -349,26 +348,26 @@ def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "T
                 date_display = _format_date(event_time)
         else:
             date_display = _format_date(event_time)
-    
+
     item_type_str = cloud_event.get("item_type", "cloud_event")
     try:
         item_type = ItemType(item_type_str)
     except ValueError:
         item_type = ItemType.CLOUD_EVENT
-    
+
     urgency_str = cloud_event.get("urgency", "normal")
     try:
         urgency = Urgency(urgency_str)
     except ValueError:
         urgency = Urgency.NORMAL
-    
+
     icon, color = _get_icon_and_color(
         item_type,
         cloud_event.get("subtype"),
         cloud_event.get("is_evidence", False),
         urgency
     )
-    
+
     return TimelineItem(
         id=cloud_event.get("id") or cloud_event.get("event_id") or make_id("evt"),
         item_type=ItemType.CLOUD_EVENT,
@@ -392,7 +391,7 @@ def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "T
 # Data Loading Functions
 # =============================================================================
 
-async def _load_cloud_timeline_events(user: StorageUser) -> List[Dict[str, Any]]:
+async def _load_cloud_timeline_events(user: StorageUser) -> list[dict[str, Any]]:
     """Load timeline events from user's cloud storage (events.json)."""
     try:
         overlay_mgr = UnifiedOverlayManager(user)
@@ -410,46 +409,46 @@ async def _load_cloud_timeline_events(user: StorageUser) -> List[Dict[str, Any]]
 
 
 async def _load_db_documents(
-    session: AsyncSession, 
+    session: AsyncSession,
     user_id: str,
-    start_date: Optional[datetime],
-    end_date: Optional[datetime],
+    start_date: datetime | None,
+    end_date: datetime | None,
     date_axis: DateAxis
-) -> List[TimelineItem]:
+) -> list[TimelineItem]:
     """Load documents from database."""
     query = select(DocumentModel).where(DocumentModel.user_id == user_id)
-    
+
     # Date filtering (documents only have uploaded_at)
     if start_date:
         query = query.where(DocumentModel.uploaded_at >= start_date)
     if end_date:
         query = query.where(DocumentModel.uploaded_at <= end_date)
-    
+
     query = query.order_by(DocumentModel.uploaded_at.desc())
-    
+
     result = await session.execute(query)
     documents = result.scalars().all()
-    
+
     items = []
     for doc in documents:
         uploaded_at = doc.uploaded_at or utc_now()
-        
+
         # Documents don't have separate event/record times from DB
         # Could extract from metadata in future
         event_dt = None
         record_dt = None
-        
+
         # Choose display date based on axis
         if date_axis in (DateAxis.EVENT_TIME, DateAxis.RECORD_TIME):
             # For documents without extraction, use uploaded_at as fallback
             display_dt = uploaded_at
         else:
             display_dt = uploaded_at
-        
+
         icon, color = _get_icon_and_color(
             ItemType.DOCUMENT, doc.document_type, False, Urgency.NORMAL
         )
-        
+
         items.append(TimelineItem(
             id=doc.id,
             item_type=ItemType.DOCUMENT,
@@ -468,60 +467,60 @@ async def _load_db_documents(
             document_id=doc.id,
             tags=doc.tags.split(",") if doc.tags else [],
         ))
-    
+
     return items
 
 
 async def _load_db_timeline_events(
     session: AsyncSession,
     user_id: str,
-    start_date: Optional[datetime],
-    end_date: Optional[datetime],
+    start_date: datetime | None,
+    end_date: datetime | None,
     date_axis: DateAxis,
     evidence_only: bool
-) -> List[TimelineItem]:
+) -> list[TimelineItem]:
     """Load manual timeline events from database."""
     query = select(TimelineEventModel).where(TimelineEventModel.user_id == user_id)
-    
+
     # Filter by evidence
     if evidence_only:
         query = query.where(TimelineEventModel.is_evidence == True)
-    
+
     # Date filtering
     if date_axis == DateAxis.EVENT_TIME:
         filter_col = TimelineEventModel.event_date
     else:
         filter_col = TimelineEventModel.created_at
-    
+
     if start_date:
         query = query.where(filter_col >= start_date)
     if end_date:
         query = query.where(filter_col <= end_date)
-    
+
     query = query.order_by(filter_col.desc())
-    
+
     result = await session.execute(query)
     events = result.scalars().all()
-    
+
     items = []
     for evt in events:
         event_dt = evt.event_date
         entry_dt = evt.created_at or utc_now()
-        
+
         # Choose display date
         if date_axis == DateAxis.EVENT_TIME:
             display_dt = event_dt
         else:
             display_dt = entry_dt
-        
+
         urgency = Urgency(evt.urgency) if evt.urgency else Urgency.NORMAL
         if evt.is_deadline and urgency == Urgency.NORMAL:
             urgency = Urgency.HIGH
-        
+
         icon, color = _get_icon_and_color(
             ItemType.TIMELINE_EVENT, evt.event_type, evt.is_evidence, urgency
         )
-        
+
         items.append(TimelineItem(
             id=evt.id,
             item_type=ItemType.TIMELINE_EVENT,
@@ -545,18 +544,18 @@ async def _load_db_timeline_events(
                 "source_extraction_id": evt.source_extraction_id,
             }
         ))
-    
+
     return items
 
 
 async def _load_db_eviction_timeline_events(
     session: AsyncSession,
     user_id: str,
-    start_date: Optional[datetime],
-    end_date: Optional[datetime],
+    start_date: datetime | None,
+    end_date: datetime | None,
     date_axis: DateAxis,
     evidence_only: bool,
-) -> List[TimelineItem]:
+) -> list[TimelineItem]:
     """Load eviction timeline events into the unified timeline."""
     query = select(EvictionTimelineEvent).where(EvictionTimelineEvent.user_id == user_id)
 
@@ -648,46 +647,46 @@ async def _load_db_eviction_timeline_events(
 async def _load_db_calendar_events(
     session: AsyncSession,
     user_id: str,
-    start_date: Optional[datetime],
-    end_date: Optional[datetime],
+    start_date: datetime | None,
+    end_date: datetime | None,
     date_axis: DateAxis,
-) -> List[TimelineItem]:
+) -> list[TimelineItem]:
     """Load calendar events (deadlines, hearings)."""
     query = select(CalendarEventModel).where(CalendarEventModel.user_id == user_id)
-    
+
     # Date filtering
     if date_axis == DateAxis.EVENT_TIME:
         filter_col = CalendarEventModel.start_datetime
     else:
         filter_col = CalendarEventModel.created_at
-    
+
     if start_date:
         query = query.where(filter_col >= start_date)
     if end_date:
         query = query.where(filter_col <= end_date)
-    
+
     query = query.order_by(filter_col.desc())
-    
+
     result = await session.execute(query)
     events = result.scalars().all()
-    
+
     items = []
     for evt in events:
         event_dt = evt.start_datetime
         entry_dt = evt.created_at or utc_now()
-        
+
         # Choose display date
         if date_axis == DateAxis.EVENT_TIME:
             display_dt = event_dt
         else:
             display_dt = entry_dt
-        
+
         urgency = Urgency.CRITICAL if evt.is_critical else Urgency.HIGH
-        
+
         icon, color = _get_icon_and_color(
             ItemType.CALENDAR_EVENT, evt.event_type, False, urgency
         )
-        
+
         items.append(TimelineItem(
             id=evt.id,
             item_type=ItemType.CALENDAR_EVENT,
@@ -710,30 +709,30 @@ async def _load_db_calendar_events(
                 "reminder_days": evt.reminder_days,
             }
         ))
-    
+
     return items
 
 
 async def _load_db_vault_items(
     session: AsyncSession,
     user_id: str,
-    start_date: Optional[datetime],
-    end_date: Optional[datetime],
+    start_date: datetime | None,
+    end_date: datetime | None,
     date_axis: DateAxis,
     evidence_only: bool,
-    incident_id: Optional[int] = None,
-) -> List[TimelineItem]:
+    incident_id: int | None = None,
+) -> list[TimelineItem]:
     """Load vault items (evidence with three timestamps)."""
     query = select(VaultItem).where(VaultItem.user_id == user_id)
-    
+
     # Filter by incident
     if incident_id is not None:
         query = query.where(VaultItem.related_incident_id == incident_id)
-    
+
     # Filter by evidence
     if evidence_only:
         query = query.where(VaultItem.status == "verified")
-    
+
     # Date filtering based on axis
     if date_axis == DateAxis.EVENT_TIME:
         filter_col = VaultItem.event_time
@@ -741,23 +740,23 @@ async def _load_db_vault_items(
         filter_col = VaultItem.record_time
     else:
         filter_col = VaultItem.semptify_entry_time
-    
+
     if start_date:
         query = query.where(filter_col >= start_date)
     if end_date:
         query = query.where(filter_col <= end_date)
-    
+
     query = query.order_by(filter_col.desc())
-    
+
     result = await session.execute(query)
     items_db = result.scalars().all()
-    
+
     items = []
     for vi in items_db:
         event_dt = vi.event_time
         record_dt = vi.record_time
         entry_dt = vi.semptify_entry_time
-        
+
         # Choose display date
         if date_axis == DateAxis.EVENT_TIME:
             display_dt = event_dt
@@ -765,13 +764,13 @@ async def _load_db_vault_items(
             display_dt = record_dt
         else:
             display_dt = entry_dt
-        
+
         urgency = Urgency(vi.severity) if vi.severity else Urgency.NORMAL
-        
+
         icon, color = _get_icon_and_color(
             ItemType.VAULT_ITEM, vi.item_type, False, urgency
         )
-        
+
         items.append(TimelineItem(
             id=str(vi.item_id),
             item_type=ItemType.VAULT_ITEM,
@@ -791,7 +790,7 @@ async def _load_db_vault_items(
             tags=vi.tags or [],
             metadata=vi.item_metadata or {},
         ))
-    
+
     return items
 
 
@@ -823,14 +822,14 @@ async def get_unified_timeline(
     - Use ISO dates: `2025-01-01`
     - Or relative: `-30d`, `-6m`, `-1y`
     """
-    
+
     # Parse date range
     now = utc_now()
     start_date = _parse_relative_date(request.start_date, now - timedelta(days=365))
     end_date = _parse_relative_date(request.end_date, now)
-    
-    all_items: List[TimelineItem] = []
-    
+
+    all_items: list[TimelineItem] = []
+
     async with get_db_session() as session:
         # Load from each source
         if ItemType.DOCUMENT in request.item_types:
@@ -838,7 +837,7 @@ async def get_unified_timeline(
                 session, user.user_id, start_date, end_date, request.date_axis
             )
             all_items.extend(docs)
-        
+
         if ItemType.TIMELINE_EVENT in request.item_types:
             events = await _load_db_timeline_events(
                 session, user.user_id, start_date, end_date,
@@ -851,13 +850,13 @@ async def get_unified_timeline(
                 request.date_axis, request.evidence_only
             )
             all_items.extend(eviction_events)
-        
+
         if ItemType.CALENDAR_EVENT in request.item_types:
             cal_events = await _load_db_calendar_events(
                 session, user.user_id, start_date, end_date, request.date_axis
             )
             all_items.extend(cal_events)
-        
+
         if ItemType.VAULT_ITEM in request.item_types:
             vault_items = await _load_db_vault_items(
                 session, user.user_id, start_date, end_date,
@@ -865,19 +864,19 @@ async def get_unified_timeline(
                 request.incident_id
             )
             all_items.extend(vault_items)
-    
+
     # Merge cloud timeline events from user's cloud storage (events.json)
     if ItemType.CLOUD_EVENT in request.item_types:
         cloud_events = await _load_cloud_timeline_events(user)
         for ce in cloud_events:
             all_items.append(_cloud_event_to_item(ce, request.date_axis))
-    
+
     # Sort by display date (descending = newest first)
     all_items.sort(
         key=lambda x: x.date_display or "",
         reverse=True
     )
-    
+
     # Apply search filter
     if request.search_query:
         query_lower = request.search_query.lower()
@@ -887,31 +886,31 @@ async def get_unified_timeline(
             or (item.description and query_lower in item.description.lower())
             or any(query_lower in tag.lower() for tag in item.tags)
         ]
-    
+
     # Apply urgency filter
     if request.urgency_filter:
         allowed = [u.value for u in request.urgency_filter]
         all_items = [item for item in all_items if item.urgency.value in allowed]
-    
+
     # Pagination
     total = len(all_items)
     paginated = all_items[request.offset : request.offset + request.limit]
     has_more = (request.offset + request.limit) < total
-    
+
     # Calculate facets
-    by_type: Dict[str, int] = {}
-    by_urgency: Dict[str, int] = {}
-    by_month: Dict[str, int] = {}
-    
+    by_type: dict[str, int] = {}
+    by_urgency: dict[str, int] = {}
+    by_month: dict[str, int] = {}
+
     for item in all_items:
         by_type[item.item_type.value] = by_type.get(item.item_type.value, 0) + 1
         by_urgency[item.urgency.value] = by_urgency.get(item.urgency.value, 0) + 1
-        
+
         # Group by month
         if item.date_display and len(item.date_display) >= 7:
             month_key = item.date_display[:7]  # YYYY-MM
             by_month[month_key] = by_month.get(month_key, 0) + 1
-    
+
     return TimelineViewResponse(
         items=paginated,
         total=total,
@@ -947,7 +946,7 @@ async def get_date_range_info(
             ).where(DocumentModel.user_id == user.user_id)
         )
         doc_min, doc_max = doc_result.first() or (None, None)
-        
+
         # Timeline events
         evt_result = await session.execute(
             select(
@@ -956,7 +955,7 @@ async def get_date_range_info(
             ).where(TimelineEventModel.user_id == user.user_id)
         )
         evt_min, evt_max = evt_result.first() or (None, None)
-        
+
         # Vault items (all three timestamps)
         vault_result = await session.execute(
             select(
@@ -969,16 +968,16 @@ async def get_date_range_info(
             ).where(VaultItem.user_id == user.user_id)
         )
         vault_row = vault_result.first()
-        
+
         # Combine all
         all_event = [evt_min] + ([vault_row[0]] if vault_row else [])
         all_record = [vault_row[2] if vault_row else None]
         all_entry = [doc_min, evt_min] + ([vault_row[4]] if vault_row else [])
-        
+
         valid_event = [d for d in all_event if d]
         valid_record = [d for d in all_record if d]
         valid_entry = [d for d in all_entry if d]
-        
+
         return DateRangeInfo(
             earliest_event=_format_date(min(valid_event)) if valid_event else None,
             latest_event=_format_date(max(valid_event)) if valid_event else None,
@@ -999,13 +998,13 @@ def _parse_event_date(raw: str) -> datetime:
     try:
         dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.replace(tzinfo=UTC)
         return dt
     except ValueError:
         # Not ISO format, try YYYY-MM-DD fallback
         pass
     # Fallback: YYYY-MM-DD
-    return datetime.strptime(raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(raw, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 @router.post("/events", response_model=TimelineEventResponse, status_code=201)
@@ -1021,7 +1020,7 @@ async def create_timeline_event(
     database and appear on the unified timeline.
     """
     event_dt = _parse_event_date(body.event_date)
-    end_dt: Optional[datetime] = None
+    end_dt: datetime | None = None
     if body.event_date_end:
         end_dt = _parse_event_date(body.event_date_end)
         if end_dt < event_dt:

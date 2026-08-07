@@ -6,7 +6,6 @@ feedback and contact forms. Also tenant autofill for public forms.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="public_forms",
     group_name="public_forms_feedback",

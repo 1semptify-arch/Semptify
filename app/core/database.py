@@ -4,8 +4,9 @@ Async SQLAlchemy with SQLite (dev) / PostgreSQL (prod) support.
 Includes connection pooling configuration for production.
 """
 
-from typing import AsyncGenerator
 import logging
+from collections.abc import AsyncGenerator
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -15,7 +16,7 @@ try:
         create_async_engine,
     )
     from sqlalchemy.orm import DeclarativeBase
-    from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
+    from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
     AsyncSession = object
@@ -66,7 +67,7 @@ def get_engine():
             # PostgreSQL: use async-compatible connection pooling
             # Auto-detect localhost (no SSL) vs production (SSL required)
             is_localhost = "localhost" in settings.database_url or "127.0.0.1" in settings.database_url
-            
+
             pool_config = {
                 "poolclass": AsyncAdaptedQueuePool,
                 "pool_size": 5,  # Base connections
@@ -128,7 +129,6 @@ async def init_db():
     Initialize the database - create all tables.
     Call this on startup.
     """
-    import os
 
     # Tables that require explicit opt-in or a separate Alembic migration.
     # They are excluded from auto create_all to avoid permission errors on

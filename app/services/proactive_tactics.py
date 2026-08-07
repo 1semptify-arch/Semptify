@@ -10,11 +10,11 @@ Features:
 - Track evidence preparation checklist
 """
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, List, Dict, Any
-import logging
+
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -52,11 +52,11 @@ class TacticRecommendation:
     title: str
     urgency: UrgencyLevel
     reason: str
-    action_items: List[str]
-    deadline: Optional[datetime] = None
-    evidence_needed: List[str] = field(default_factory=list)
-    motion_template: Optional[str] = None
-    
+    action_items: list[str]
+    deadline: datetime | None = None
+    evidence_needed: list[str] = field(default_factory=list)
+    motion_template: str | None = None
+
     def to_dict(self) -> dict:
         return {
             "tactic_type": self.tactic_type.value,
@@ -77,8 +77,8 @@ class EvidenceItem:
     action: str
     category: str
     stored: bool = False
-    document_id: Optional[str] = None
-    notes: Optional[str] = None
+    document_id: str | None = None
+    notes: str | None = None
 
 
 @dataclass
@@ -97,21 +97,21 @@ class ProactiveTacticsEngine:
     Engine for generating proactive defense tactics.
     Analyzes case data and suggests appropriate motions/strategies.
     """
-    
+
     # Service period thresholds (Minnesota)
     MIN_SERVICE_DAYS = 7
-    
+
     # Retaliation proximity threshold
     RETALIATION_THRESHOLD_DAYS = 30
-    
+
     # Habitability tag threshold for rent escrow
     HABITABILITY_TAG_THRESHOLD = 3
     HABITABILITY_WINDOW_DAYS = 30
-    
+
     def __init__(self):
         self.evidence_checklist = self._build_evidence_checklist()
-    
-    def _build_evidence_checklist(self) -> List[EvidenceItem]:
+
+    def _build_evidence_checklist(self) -> list[EvidenceItem]:
         """Build the standard evidence preparation checklist."""
         return [
             EvidenceItem("Lease (all pages)", "Upload & hash certify", "core"),
@@ -124,18 +124,18 @@ class ProactiveTacticsEngine:
             EvidenceItem("Medical impact letters", "Collect if health affected", "hardship"),
             EvidenceItem("Hardship statements", "Prepare narrative", "hardship"),
         ]
-    
+
     def analyze_service_timeline(
         self,
         service_date: datetime,
         hearing_date: datetime,
-    ) -> Optional[TacticRecommendation]:
+    ) -> TacticRecommendation | None:
         """
         Check if service was less than 7 days before hearing.
         If so, recommend Motion to Dismiss.
         """
         days_between = (hearing_date - service_date).days
-        
+
         if days_between < self.MIN_SERVICE_DAYS:
             return TacticRecommendation(
                 tactic_type=TacticType.MOTION_DISMISS,
@@ -152,17 +152,17 @@ class ProactiveTacticsEngine:
                 motion_template="motion_dismiss_service",
             )
         return None
-    
+
     def analyze_habitability_issues(
         self,
-        timeline_events: List[Dict],
-        tags: Optional[List[str]] = None,
-    ) -> Optional[TacticRecommendation]:
+        timeline_events: list[dict],
+        tags: list[str] | None = None,
+    ) -> TacticRecommendation | None:
         """
         Auto-flag rent escrow when 3+ habitability tags within 30 days.
         """
         cutoff = utc_now() - timedelta(days=self.HABITABILITY_WINDOW_DAYS)
-        
+
         # Count habitability-related events in window
         habitability_events = []
         for event in timeline_events:
@@ -172,20 +172,20 @@ class ProactiveTacticsEngine:
                     event_date = datetime.fromisoformat(event_date.replace("Z", "+00:00"))
                 except ValueError:
                     continue
-            
+
             if event_date and event_date >= cutoff:
                 event_tags = event.get("tags", [])
                 event_type = event.get("event_type", "").lower()
-                
+
                 if "habitability" in event_tags or event_type in [
                     "repair_request", "condition_report", "inspection", "complaint"
                 ]:
                     habitability_events.append(event)
-        
+
         if len(habitability_events) >= self.HABITABILITY_TAG_THRESHOLD:
             # Determine severity
             severity = self._assess_condition_severity(habitability_events)
-            
+
             return TacticRecommendation(
                 tactic_type=TacticType.RENT_ESCROW,
                 title="Rent Escrow Motion - Multiple Habitability Issues",
@@ -206,34 +206,34 @@ class ProactiveTacticsEngine:
                 motion_template="motion_rent_escrow",
             )
         return None
-    
-    def _assess_condition_severity(self, events: List[Dict]) -> ConditionSeverity:
+
+    def _assess_condition_severity(self, events: list[dict]) -> ConditionSeverity:
         """Assess the severity of habitability conditions."""
         critical_keywords = ["heat", "sewage", "mold", "no water", "gas leak", "fire"]
         major_keywords = ["leak", "lock", "plumbing", "electrical", "roof", "pest"]
-        
+
         for event in events:
             description = (event.get("description", "") + " " + event.get("title", "")).lower()
-            
+
             if any(kw in description for kw in critical_keywords):
                 return ConditionSeverity.CRITICAL
-        
+
         for event in events:
             description = (event.get("description", "") + " " + event.get("title", "")).lower()
-            
+
             if any(kw in description for kw in major_keywords):
                 return ConditionSeverity.MAJOR
-        
+
         if len(events) >= 5:
             return ConditionSeverity.PATTERN
-        
+
         return ConditionSeverity.MODERATE
-    
+
     def analyze_retaliation(
         self,
-        protected_activities: List[Dict],
+        protected_activities: list[dict],
         eviction_filed_date: datetime,
-    ) -> Optional[TacticRecommendation]:
+    ) -> TacticRecommendation | None:
         """
         Suggest retaliation counterclaim if eviction filed <30 days after protected activity.
         
@@ -244,7 +244,7 @@ class ProactiveTacticsEngine:
         - Organizing with other tenants
         """
         flags = []
-        
+
         for activity in protected_activities:
             activity_date = activity.get("date")
             if isinstance(activity_date, str):
@@ -252,10 +252,10 @@ class ProactiveTacticsEngine:
                     activity_date = datetime.fromisoformat(activity_date.replace("Z", "+00:00"))
                 except ValueError:
                     continue
-            
+
             if activity_date:
                 days_until_filing = (eviction_filed_date - activity_date).days
-                
+
                 if 0 < days_until_filing <= self.RETALIATION_THRESHOLD_DAYS:
                     flags.append(RetaliationFlag(
                         protected_activity=activity.get("type", "Protected activity"),
@@ -265,10 +265,10 @@ class ProactiveTacticsEngine:
                         days_between=days_until_filing,
                         flagged=True,
                     ))
-        
+
         if flags:
             closest = min(flags, key=lambda f: f.days_between)
-            
+
             return TacticRecommendation(
                 tactic_type=TacticType.RETALIATION,
                 title="Retaliation Counterclaim",
@@ -288,39 +288,39 @@ class ProactiveTacticsEngine:
                 motion_template="counterclaim_retaliation",
             )
         return None
-    
+
     def analyze_continuance_triggers(
         self,
         hearing_date: datetime,
-        pending_inspection: Optional[datetime] = None,
+        pending_inspection: datetime | None = None,
         rental_assistance_pending: bool = False,
         recent_medical_event: bool = False,
         new_evidence_discovered: bool = False,
-    ) -> Optional[TacticRecommendation]:
+    ) -> TacticRecommendation | None:
         """
         Check if continuance should be requested.
         """
         reasons = []
         evidence = []
-        
+
         if pending_inspection and pending_inspection > utc_now():
             days_until = (pending_inspection - utc_now()).days
             if days_until <= 7:
                 reasons.append(f"Inspection scheduled in {days_until} days - need objective report")
                 evidence.append("Scheduled inspection confirmation")
-        
+
         if rental_assistance_pending:
             reasons.append("Awaiting rental assistance decision - funds may cure the issue")
             evidence.append("Rental assistance application receipt")
-        
+
         if recent_medical_event:
             reasons.append("Recent medical event - hardship and fairness concerns")
             evidence.append("Medical documentation (brief note sufficient)")
-        
+
         if new_evidence_discovered:
             reasons.append("Newly discovered evidence requires additional preparation")
             evidence.append("Description of new evidence")
-        
+
         if reasons:
             return TacticRecommendation(
                 tactic_type=TacticType.CONTINUANCE,
@@ -338,7 +338,7 @@ class ProactiveTacticsEngine:
                 motion_template="motion_continuance",
             )
         return None
-    
+
     def analyze_expungement_eligibility(
         self,
         case_outcome: str,
@@ -346,7 +346,7 @@ class ProactiveTacticsEngine:
         settlement_favorable: bool = False,
         hardship_documented: bool = False,
         procedural_defects: bool = False,
-    ) -> Optional[TacticRecommendation]:
+    ) -> TacticRecommendation | None:
         """
         Provide expungement prompt when case outcome is favorable.
         """
@@ -360,7 +360,7 @@ class ProactiveTacticsEngine:
                 factors.append("Hardship has been documented")
             if procedural_defects:
                 factors.append("Procedural defects were identified")
-            
+
             return TacticRecommendation(
                 tactic_type=TacticType.EXPUNGEMENT,
                 title="Expungement Motion",
@@ -381,19 +381,19 @@ class ProactiveTacticsEngine:
                 motion_template="motion_expungement",
             )
         return None
-    
+
     def run_decision_tree(
         self,
-        service_date: Optional[datetime] = None,
-        hearing_date: Optional[datetime] = None,
-        timeline_events: Optional[List[Dict]] = None,
-        protected_activities: Optional[List[Dict]] = None,
-        eviction_filed_date: Optional[datetime] = None,
+        service_date: datetime | None = None,
+        hearing_date: datetime | None = None,
+        timeline_events: list[dict] | None = None,
+        protected_activities: list[dict] | None = None,
+        eviction_filed_date: datetime | None = None,
         case_dismissed: bool = False,
         case_settled: bool = False,
-        pending_inspection: Optional[datetime] = None,
+        pending_inspection: datetime | None = None,
         rental_assistance_pending: bool = False,
-    ) -> List[TacticRecommendation]:
+    ) -> list[TacticRecommendation]:
         """
         Run the full decision tree and return all applicable tactics.
         
@@ -405,25 +405,25 @@ class ProactiveTacticsEngine:
         5. Case dismissed or settled? ▸ Expungement Motion
         """
         recommendations = []
-        
+
         # 1. Check service timeline
         if service_date and hearing_date:
             rec = self.analyze_service_timeline(service_date, hearing_date)
             if rec:
                 recommendations.append(rec)
-        
+
         # 2. Check habitability issues
         if timeline_events:
             rec = self.analyze_habitability_issues(timeline_events)
             if rec:
                 recommendations.append(rec)
-        
+
         # 3. Check retaliation
         if protected_activities and eviction_filed_date:
             rec = self.analyze_retaliation(protected_activities, eviction_filed_date)
             if rec:
                 recommendations.append(rec)
-        
+
         # 4. Check continuance triggers
         if hearing_date:
             rec = self.analyze_continuance_triggers(
@@ -433,7 +433,7 @@ class ProactiveTacticsEngine:
             )
             if rec:
                 recommendations.append(rec)
-        
+
         # 5. Check expungement eligibility
         if case_dismissed or case_settled:
             rec = self.analyze_expungement_eligibility(
@@ -443,7 +443,7 @@ class ProactiveTacticsEngine:
             )
             if rec:
                 recommendations.append(rec)
-        
+
         # Sort by urgency
         urgency_order = {
             UrgencyLevel.CRITICAL: 0,
@@ -452,24 +452,24 @@ class ProactiveTacticsEngine:
             UrgencyLevel.LOW: 3,
         }
         recommendations.sort(key=lambda r: urgency_order.get(r.urgency, 99))
-        
+
         return recommendations
-    
+
     def get_evidence_checklist(
         self,
-        stored_documents: Optional[List[Dict]] = None,
-    ) -> List[Dict]:
+        stored_documents: list[dict] | None = None,
+    ) -> list[dict]:
         """
         Get the evidence preparation checklist with storage status.
         """
         checklist = []
         stored_types = set()
-        
+
         if stored_documents:
             for doc in stored_documents:
                 doc_type = doc.get("doc_type", "").lower()
                 stored_types.add(doc_type)
-        
+
         type_mapping = {
             "lease": "Lease (all pages)",
             "payment": "Payment proofs (receipts, bank)",
@@ -478,7 +478,7 @@ class ProactiveTacticsEngine:
             "inspection": "City inspection reports",
             "medical": "Medical impact letters",
         }
-        
+
         for item in self.evidence_checklist:
             stored = any(
                 item.name.lower() in doc_type or doc_type in item.name.lower()
@@ -490,19 +490,19 @@ class ProactiveTacticsEngine:
                 "category": item.category,
                 "stored": stored,
             })
-        
+
         return checklist
-    
+
     def get_pre_hearing_timeline(
         self,
         hearing_date: datetime,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Generate pre-hearing tactical timeline.
         """
         now = utc_now()
         days_until = (hearing_date - now).days
-        
+
         actions = [
             {
                 "timing": "Immediately after service",
@@ -547,18 +547,18 @@ class ProactiveTacticsEngine:
                 "completed": False,
             },
         ]
-        
+
         # Mark past items
         for action in actions:
             if action["due"] < now:
                 action["overdue"] = True
             action["due"] = action["due"].isoformat()
-        
+
         return actions
 
 
 # Singleton instance
-_tactics_engine: Optional[ProactiveTacticsEngine] = None
+_tactics_engine: ProactiveTacticsEngine | None = None
 
 
 def get_tactics_engine() -> ProactiveTacticsEngine:

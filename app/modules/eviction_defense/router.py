@@ -10,18 +10,20 @@ depends on shared infrastructure (security, law_engine, form_data, document_hub)
 Now integrated with DocumentHub for document-informed defense recommendations.
 """
 
-from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Query, HTTPException, Depends
-from pydantic import BaseModel
-from datetime import datetime, date, timedelta
-from enum import Enum
-
-from app.core.security import require_user, StorageUser, yellow_access
-from app.services.law_engine import get_law_engine
-from app.services.form_data import get_form_data_service
-from app.core.document_hub import get_document_hub
-from app.core.utc import utc_now
 import logging
+from datetime import date, datetime, timedelta
+from enum import Enum
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+
+from app.core.document_hub import get_document_hub
+from app.core.security import StorageUser, yellow_access
+from app.core.utc import utc_now
+from app.services.form_data import get_form_data_service
+from app.services.law_engine import get_law_engine
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,10 +84,10 @@ class FormTemplate(BaseModel):
     description: str
     category: str
     stage: CaseStage
-    fields: List[Dict[str, Any]]
-    instructions: List[str]
-    filing_fee: Optional[float] = None
-    deadline_days: Optional[int] = None
+    fields: list[dict[str, Any]]
+    instructions: list[str]
+    filing_fee: float | None = None
+    deadline_days: int | None = None
 
 
 class Motion(BaseModel):
@@ -94,11 +96,11 @@ class Motion(BaseModel):
     title: str
     motion_type: MotionType
     description: str
-    when_to_use: List[str]
-    legal_basis: List[str]
+    when_to_use: list[str]
+    legal_basis: list[str]
     template_text: str
-    supporting_cases: List[str]
-    success_rate: Optional[str] = None
+    supporting_cases: list[str]
+    success_rate: str | None = None
 
 
 class Procedure(BaseModel):
@@ -106,10 +108,10 @@ class Procedure(BaseModel):
     id: str
     title: str
     category: str
-    steps: List[Dict[str, str]]
-    timeline: Optional[str] = None
-    tips: List[str]
-    warnings: List[str] = []
+    steps: list[dict[str, str]]
+    timeline: str | None = None
+    tips: list[str]
+    warnings: list[str] = []
 
 
 class CounterclaimTemplate(BaseModel):
@@ -117,9 +119,9 @@ class CounterclaimTemplate(BaseModel):
     id: str
     title: str
     legal_basis: str
-    elements: List[str]
-    damages: List[str]
-    evidence_needed: List[str]
+    elements: list[str]
+    damages: list[str]
+    evidence_needed: list[str]
     template_text: str
 
 
@@ -675,20 +677,20 @@ CASE_STATISTICS = {
 # Endpoints
 # =============================================================================
 
-@router.get("/forms", response_model=List[FormTemplate])
+@router.get("/forms", response_model=list[FormTemplate])
 async def list_forms(
-    category: Optional[str] = Query(None, description="Filter by category"),
-    stage: Optional[CaseStage] = Query(None, description="Filter by case stage")
+    category: str | None = Query(None, description="Filter by category"),
+    stage: CaseStage | None = Query(None, description="Filter by case stage")
 ):
     """List all available court forms."""
     forms = list(COURT_FORMS.values())
-    
+
     if category:
         forms = [f for f in forms if f.get("category") == category]
-    
+
     if stage:
         forms = [f for f in forms if f.get("stage") == stage]
-    
+
     return [FormTemplate(**form) for form in forms]
 
 
@@ -699,20 +701,20 @@ async def get_form(
     """Get a specific form by ID."""
     if form_id not in COURT_FORMS:
         raise HTTPException(status_code=404, detail="Form not found")
-    
+
     return FormTemplate(**COURT_FORMS[form_id])
 
 
-@router.get("/motions", response_model=List[Motion])
+@router.get("/motions", response_model=list[Motion])
 async def list_motions(
-    motion_type: Optional[MotionType] = Query(None, description="Filter by motion type")
+    motion_type: MotionType | None = Query(None, description="Filter by motion type")
 ):
     """List all available motions."""
     motions = list(MOTIONS.values())
-    
+
     if motion_type:
         motions = [m for m in motions if m.get("motion_type") == motion_type]
-    
+
     return [Motion(**motion) for motion in motions]
 
 
@@ -723,20 +725,20 @@ async def get_motion(
     """Get a specific motion by ID."""
     if motion_id not in MOTIONS:
         raise HTTPException(status_code=404, detail="Motion not found")
-    
+
     return Motion(**MOTIONS[motion_id])
 
 
-@router.get("/procedures", response_model=List[Procedure])
+@router.get("/procedures", response_model=list[Procedure])
 async def list_procedures(
-    category: Optional[str] = Query(None, description="Filter by category")
+    category: str | None = Query(None, description="Filter by category")
 ):
     """List all procedure guides."""
     procedures = list(PROCEDURES.values())
-    
+
     if category:
         procedures = [p for p in procedures if p.get("category") == category]
-    
+
     return [Procedure(**proc) for proc in procedures]
 
 
@@ -747,11 +749,11 @@ async def get_procedure(
     """Get a specific procedure guide."""
     if procedure_id not in PROCEDURES:
         raise HTTPException(status_code=404, detail="Procedure not found")
-    
+
     return Procedure(**PROCEDURES[procedure_id])
 
 
-@router.get("/counterclaims", response_model=List[CounterclaimTemplate])
+@router.get("/counterclaims", response_model=list[CounterclaimTemplate])
 async def list_counterclaims():
     """List all counterclaim templates."""
     return [CounterclaimTemplate(**cc) for cc in COUNTERCLAIMS.values()]
@@ -764,7 +766,7 @@ async def get_counterclaim(
     """Get a specific counterclaim template."""
     if claim_id not in COUNTERCLAIMS:
         raise HTTPException(status_code=404, detail="Counterclaim not found")
-    
+
     return CounterclaimTemplate(**COUNTERCLAIMS[claim_id])
 
 
@@ -839,7 +841,7 @@ async def calculate_deadlines(
 ):
     """Calculate all important deadlines based on service date."""
     service = request.service_date
-    
+
     deadlines = {
         "service_date": service.isoformat(),
         "answer_due": (service + timedelta(days=7)).isoformat(),
@@ -848,16 +850,16 @@ async def calculate_deadlines(
         "estimated_jury_trial": (service + timedelta(days=28)).isoformat(),
         "warnings": []
     }
-    
+
     # Check if deadlines are imminent
     today = date.today()
     answer_date = service + timedelta(days=7)
-    
+
     if today > answer_date:
         deadlines["warnings"].append("◆ ANSWER DEADLINE HAS PASSED - File immediately!")
     elif (answer_date - today).days <= 2:
         deadlines["warnings"].append("◆ Answer due in " + str((answer_date - today).days) + " days!")
-    
+
     return deadlines
 
 
@@ -922,7 +924,7 @@ async def get_case_checklist(
             ]
         }
     }
-    
+
     if stage not in checklists:
         raise HTTPException(status_code=404, detail="Checklist not found for this stage")
 
@@ -957,18 +959,18 @@ class StrategyInfo(BaseModel):
     title: str
     description: str
     strength: str
-    evidence_needed: List[str]
-    forms_to_file: List[str]
+    evidence_needed: list[str]
+    forms_to_file: list[str]
 
 
 class AnalysisResponse(BaseModel):
     """Complete case analysis response."""
     case_number: str
-    violations: List[ViolationInfo] = []
-    strategies: List[StrategyInfo] = []
-    recommended_forms: List[str] = []
+    violations: list[ViolationInfo] = []
+    strategies: list[StrategyInfo] = []
+    recommended_forms: list[str] = []
     urgency: str = "normal"
-    next_steps: List[str] = []
+    next_steps: list[str] = []
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
@@ -985,7 +987,7 @@ async def analyze_case(
     # Get form data service for this user
     form_service = get_form_data_service(user.user_id)
     await form_service.load()
-    
+
     case = form_service.form_data.case
     case_data = {
         "case_number": case.case_number,
@@ -995,29 +997,29 @@ async def analyze_case(
         "rent_claimed": case.rent_claimed,
         "monthly_rent": case.monthly_rent,
     }
-    
+
     violations = []
     strategies = []
     recommended_forms = []
-    
+
     # Find violations using law engine
     if request.include_violations:
         law_engine = get_law_engine()
         raw_violations = await law_engine.find_violations(case_data, user.user_id)
         violations = [ViolationInfo(**v) for v in raw_violations]
-        
+
         # Get defense strategies based on violations
         if request.include_strategies and raw_violations:
             raw_strategies = law_engine.get_defense_strategies(raw_violations)
             strategies = [StrategyInfo(**s) for s in raw_strategies]
-            
+
             # Collect recommended forms
             if request.include_forms:
                 for s in raw_strategies:
                     for form in s.get("forms_to_file", []):
                         if form not in recommended_forms:
                             recommended_forms.append(form)
-    
+
     # Determine urgency
     urgency = "normal"
     if case.hearing_date:
@@ -1032,7 +1034,7 @@ async def analyze_case(
                 urgency = "medium"
         except Exception:
             logger.warning("eviction_defense: skipped item due to exception", exc_info=True)
-    
+
     # Generate next steps
     next_steps = []
     if not case.case_number:
@@ -1047,7 +1049,7 @@ async def analyze_case(
         next_steps.append(f"Prepare {len(recommended_forms)} recommended forms")
     if not next_steps:
         next_steps.append("Your case analysis is complete - review your defense strategy")
-    
+
     return AnalysisResponse(
         case_number=case.case_number or "Not entered",
         violations=violations,
@@ -1065,9 +1067,9 @@ async def get_quick_status(user: StorageUser = Depends(yellow_access)):
     """
     form_service = get_form_data_service(user.user_id)
     await form_service.load()
-    
+
     summary = form_service.get_case_summary()
-    
+
     return {
         "case_number": summary["case_number"],
         "stage": summary["stage_display"],
@@ -1092,10 +1094,10 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
     """
     hub = get_document_hub()
     case_data = hub.get_case_data(user.user_id)
-    
+
     recommendations = []
     doc_types = case_data.documents_by_type
-    
+
     # Check for improper notice defense
     if case_data.notice_date:
         recommendations.append({
@@ -1105,7 +1107,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
             "evidence_needed": ["Copy of notice", "Proof of service date", "Calendar showing days count"],
             "statute": "Minn. Stat. § 504B.135",
         })
-    
+
     # Check for habitability defense
     if doc_types.get("repair_request") or doc_types.get("inspection_report"):
         recommendations.append({
@@ -1115,7 +1117,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
             "evidence_needed": doc_types.get("repair_request", []) + doc_types.get("inspection_report", []),
             "statute": "Minn. Stat. § 504B.161",
         })
-    
+
     # Check for retaliation defense
     if doc_types.get("letter") or doc_types.get("email_communication") or doc_types.get("complaint"):
         recommendations.append({
@@ -1125,7 +1127,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
             "evidence_needed": ["Complaint to landlord", "Complaint to city/inspector", "Timeline showing eviction within 90 days of complaint"],
             "statute": "Minn. Stat. § 504B.441",
         })
-    
+
     # Check for payment defense
     if doc_types.get("receipt") or doc_types.get("payment_record") or doc_types.get("bank_statement"):
         recommendations.append({
@@ -1135,7 +1137,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
             "evidence_needed": ["Receipts", "Bank statements showing payments", "Payment history"],
             "statute": "Common law defense",
         })
-    
+
     # Check for waiver defense
     if case_data.rent_amount and doc_types.get("receipt"):
         recommendations.append({
@@ -1145,7 +1147,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
             "evidence_needed": ["Rent receipts dated after alleged violation", "Any written acceptance of rent"],
             "statute": "Common law defense",
         })
-    
+
     return {
         "recommended_defenses": recommendations,
         "documents_analyzed": case_data.document_count,
@@ -1166,10 +1168,10 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_ac
     """
     hub = get_document_hub()
     case_data = hub.get_case_data(user.user_id)
-    
+
     recommendations = []
     doc_types = case_data.documents_by_type
-    
+
     # Security deposit counterclaim
     if case_data.deposit_amount:
         recommendations.append({
@@ -1181,7 +1183,7 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_ac
             "statute": "Minn. Stat. § 504B.178",
             "evidence_needed": ["Lease showing deposit amount", "Move-out condition photos", "Written demand for return"],
         })
-    
+
     # Habitability counterclaim
     if doc_types.get("repair_request") or doc_types.get("inspection_report") or doc_types.get("photo_evidence"):
         recommendations.append({
@@ -1193,7 +1195,7 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_ac
             "statute": "Minn. Stat. § 504B.161",
             "evidence_needed": ["Photos of conditions", "Repair requests sent to landlord", "Inspector reports"],
         })
-    
+
     # Harassment/self-help eviction
     if doc_types.get("letter") and case_data.urgency_level == "critical":
         recommendations.append({
@@ -1205,7 +1207,7 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_ac
             "statute": "Minn. Stat. § 504B.395",
             "evidence_needed": ["Harassing communications", "Timeline of harassment", "Witness statements"],
         })
-    
+
     return {
         "recommended_counterclaims": recommendations,
         "documents_analyzed": case_data.document_count,
@@ -1224,10 +1226,10 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
     """
     hub = get_document_hub()
     case_data = hub.get_case_data(user.user_id)
-    
+
     deadlines = []
     today = date.today()
-    
+
     # Answer deadline
     if case_data.answer_deadline:
         try:
@@ -1244,7 +1246,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
             })
         except (ValueError, TypeError):
             logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
-    
+
     # Hearing date
     if case_data.hearing_date:
         try:
@@ -1262,7 +1264,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
             })
         except (ValueError, TypeError):
             logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
-    
+
     # Add action items from documents
     for action in case_data.action_items:
         if action.get("deadline"):
@@ -1280,10 +1282,10 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
                 })
             except (ValueError, TypeError):
                 logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
-    
+
     # Sort by date
     deadlines.sort(key=lambda x: x.get("days_until", 999))
-    
+
     return {
         "deadlines": deadlines,
         "total_deadlines": len(deadlines),
@@ -1303,7 +1305,7 @@ async def get_full_document_analysis(user: StorageUser = Depends(yellow_access))
     hub = get_document_hub()
     case_data = hub.get_case_data(user.user_id)
     law_engine = get_law_engine()
-    
+
     # Get violations and strategies from law engine
     case_info = {
         "case_number": case_data.primary_case_number,
@@ -1313,10 +1315,10 @@ async def get_full_document_analysis(user: StorageUser = Depends(yellow_access))
         "property_address": case_data.property_address,
         "rent_amount": case_data.rent_amount,
     }
-    
+
     violations = await law_engine.find_violations(case_info, case_data.timeline_events)
     strategies = law_engine.get_defense_strategies(violations)
-    
+
     return {
         "case_summary": {
             "case_number": case_data.primary_case_number,

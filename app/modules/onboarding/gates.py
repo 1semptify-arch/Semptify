@@ -6,7 +6,6 @@ Each gate must be passed in order. A gate is never removed once set.
 """
 
 import logging
-from typing import Optional, Set
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +15,7 @@ from app.models.models import User
 logger = logging.getLogger(__name__)
 
 
-async def get_user_gates(db: AsyncSession, user_id: str) -> Set[str]:
+async def get_user_gates(db: AsyncSession, user_id: str) -> set[str]:
     """Read the set of completed gates for a user."""
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -60,7 +59,7 @@ async def get_first_incomplete_gate(
     db: AsyncSession,
     user_id: str,
     required_gates: list,
-) -> Optional[str]:
+) -> str | None:
     """
     Given an ordered list of required gates, return the first one
     that is NOT complete. Returns None if all gates are passed.

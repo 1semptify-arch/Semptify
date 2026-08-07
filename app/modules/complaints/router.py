@@ -5,23 +5,20 @@ Integrated with Location Service for state-specific agencies.
 NOW WITH DATABASE PERSISTENCE.
 """
 
-from fastapi import APIRouter, HTTPException, Query, Request, Depends
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
-from app.core.utc import utc_now
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.core.request_utils import get_request_user_id
 from app.core.security import get_optional_user_id, sanitize_user_input
-
+from app.core.utc import utc_now
 from app.services.complaint_wizard import (
-    complaint_wizard,
     AgencyType,
     ComplaintDraft,
+    complaint_wizard,
 )
-
 
 router = APIRouter(prefix="/api/complaints", tags=["complaints"])
 
@@ -38,17 +35,17 @@ class CreateDraftRequest(BaseModel):
 
 class UpdateDraftRequest(BaseModel):
     """Request to update a complaint draft."""
-    subject: Optional[str] = None
-    description: Optional[str] = None
-    incident_dates: Optional[list[str]] = None
-    damages_claimed: Optional[float] = None
-    relief_sought: Optional[str] = None
-    respondent_name: Optional[str] = None
-    respondent_company: Optional[str] = None
-    respondent_address: Optional[str] = None
-    respondent_phone: Optional[str] = None
-    timeline_included: Optional[bool] = None
-    notes: Optional[str] = None
+    subject: str | None = None
+    description: str | None = None
+    incident_dates: list[str] | None = None
+    damages_claimed: float | None = None
+    relief_sought: str | None = None
+    respondent_name: str | None = None
+    respondent_company: str | None = None
+    respondent_address: str | None = None
+    respondent_phone: str | None = None
+    timeline_included: bool | None = None
+    notes: str | None = None
 
 
 class AttachDocumentsRequest(BaseModel):
@@ -58,7 +55,7 @@ class AttachDocumentsRequest(BaseModel):
 
 class MarkFiledRequest(BaseModel):
     """Request to mark complaint as filed."""
-    confirmation_number: Optional[str] = None
+    confirmation_number: str | None = None
 
 
 class RecommendAgenciesRequest(BaseModel):
@@ -74,9 +71,9 @@ class AgencyResponse(BaseModel):
     description: str
     jurisdiction: str
     website: str
-    filing_url: Optional[str]
-    phone: Optional[str]
-    email: Optional[str]
+    filing_url: str | None
+    phone: str | None
+    email: str | None
     typical_response_days: int
     complaint_types: list[str]
     required_documents: list[str]
@@ -87,7 +84,7 @@ class AgencyResponse(BaseModel):
 # Helper: Get User ID from Request
 # =============================================================================
 
-def get_user_id_from_request(request: Request, user_id: Optional[str] = None) -> str:
+def get_user_id_from_request(request: Request, user_id: str | None = None) -> str:
     """Get user ID from authenticated context or the canonical cookie."""
     if user_id:
         return user_id
@@ -101,8 +98,8 @@ def get_user_id_from_request(request: Request, user_id: Optional[str] = None) ->
 @router.get("/agencies")
 async def list_agencies(
     request: Request,
-    agency_type: Optional[AgencyType] = None,
-    state: Optional[str] = Query(None, description="State code (e.g., MN). If not provided, uses user's location.")
+    agency_type: AgencyType | None = None,
+    state: str | None = Query(None, description="State code (e.g., MN). If not provided, uses user's location.")
 ) -> list[AgencyResponse]:
     """
     List available complaint agencies.
@@ -118,7 +115,7 @@ async def list_agencies(
         # Use location service to get user's state
         user_id = get_user_id_from_request(request)
         agencies = complaint_wizard.get_agencies_for_user(user_id)
-    
+
     return [
         AgencyResponse(
             id=a.id,
@@ -145,7 +142,7 @@ async def get_agency(agency_id: str) -> AgencyResponse:
     agency = complaint_wizard.get_agency(agency_id)
     if not agency:
         raise HTTPException(status_code=404, detail="Agency not found")
-    
+
     return AgencyResponse(
         id=agency.id,
         name=agency.name,
@@ -169,7 +166,7 @@ async def recommend_agencies(
 ) -> list[AgencyResponse]:
     """Get agency recommendations based on complaint keywords."""
     agencies = complaint_wizard.get_recommended_agencies(request.keywords)
-    
+
     return [
         AgencyResponse(
             id=a.id,
@@ -207,13 +204,13 @@ async def get_agency_checklist(agency_id: str) -> dict:
 async def create_draft(
     request_body: CreateDraftRequest,
     request: Request,
-    user_id: Optional[str] = Depends(get_optional_user_id),
+    user_id: str | None = Depends(get_optional_user_id),
     db: AsyncSession = Depends(get_db)
 ) -> ComplaintDraft:
     """Create a new complaint draft (persisted to database)."""
     # Get user_id from session or fallback
     uid = get_user_id_from_request(request, user_id)
-    
+
     # Verify agency exists
     agency = complaint_wizard.get_agency(request_body.agency_id)
     if not agency:
@@ -231,7 +228,7 @@ async def create_draft(
 @router.get("/drafts")
 async def list_drafts(
     request: Request,
-    user_id: Optional[str] = Depends(get_optional_user_id),
+    user_id: str | None = Depends(get_optional_user_id),
     db: AsyncSession = Depends(get_db)
 ) -> list[ComplaintDraft]:
     """List all drafts for a user (from database)."""
@@ -310,8 +307,8 @@ async def preview_complaint(
         "complaint_text": text,
         "attached_documents": len(draft.attached_document_ids),
         "ready_to_file": bool(
-            draft.subject and 
-            draft.description and 
+            draft.subject and
+            draft.description and
             draft.respondent_name
         )
     }
@@ -324,15 +321,15 @@ async def export_complaint(
     db: AsyncSession = Depends(get_db)
 ):
     """Export complaint as text, HTML, or attempt PDF."""
-    from fastapi.responses import PlainTextResponse, HTMLResponse
-    
+    from fastapi.responses import HTMLResponse, PlainTextResponse
+
     draft = await complaint_wizard.get_draft_db(db, draft_id)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft not found")
 
     text = complaint_wizard.generate_complaint_text(draft)
     agency = complaint_wizard.get_agency(draft.agency_id)
-    
+
     if format == "html":
         html_content = f"""
 <!DOCTYPE html>
@@ -355,7 +352,7 @@ async def export_complaint(
 </html>
 """
         return HTMLResponse(content=html_content)
-    
+
     # Default: plain text
     return PlainTextResponse(content=text, media_type="text/plain")
 
@@ -528,10 +525,10 @@ class SubmitComplaintRequest(BaseModel):
     agency_id: str
     complaint_type: str = "general"
     subject: str = ""
-    summary: Optional[str] = None
-    detailed_description: Optional[str] = None
-    target_type: Optional[str] = None
-    target_name: Optional[str] = None
+    summary: str | None = None
+    detailed_description: str | None = None
+    target_type: str | None = None
+    target_name: str | None = None
 
 
 @router.post("/submit")
@@ -547,7 +544,7 @@ async def submit_complaint(
 
     # Create a draft and mark it ready for submission
     draft_id = make_id("cmp")
-    
+
     return {
         "status": "submitted",
         "complaint_id": draft_id,

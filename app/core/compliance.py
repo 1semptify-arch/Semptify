@@ -5,7 +5,6 @@ Central compliance metadata and validation for Semptify modules and startup beha
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
 
 from app.core.config import Settings
 from app.core.security_config import get_security_settings
@@ -57,7 +56,7 @@ def _describe_component(path: Path, category: str) -> ModuleCompliance:
             f"Implements service logic for {display}. Must isolate sensitive data, limit retention, and avoid unnecessary PII processing."
         )
         evidence_role = (
-            f"Provides backend capabilities used by modules and routers, such as document processing or legal analysis."
+            "Provides backend capabilities used by modules and routers, such as document processing or legal analysis."
         )
         security_notes = (
             "Validate inputs, handle secrets safely, and ensure service outputs do not leak sensitive state."
@@ -77,11 +76,11 @@ def _describe_component(path: Path, category: str) -> ModuleCompliance:
     )
 
 
-def _discover_components(base_dir: Path, category: str) -> List[ModuleCompliance]:
+def _discover_components(base_dir: Path, category: str) -> list[ModuleCompliance]:
     if not base_dir.exists():
         return []
 
-    components: List[ModuleCompliance] = []
+    components: list[ModuleCompliance] = []
     for path in sorted(base_dir.rglob("*.py")):
         if path.name == "__init__.py":
             continue
@@ -89,7 +88,7 @@ def _discover_components(base_dir: Path, category: str) -> List[ModuleCompliance
     return components
 
 
-MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
+MODULE_COMPLIANCE_INVENTORY: list[ModuleCompliance] = [
     ModuleCompliance(
         name="eviction_defense",
         file_path="app/modules/eviction_defense/router.py",
@@ -156,7 +155,7 @@ MODULE_COMPLIANCE_INVENTORY: List[ModuleCompliance] = [
 ] + _discover_components(ROUTERS_DIR, "router") + _discover_components(SERVICES_DIR, "service")
 
 
-def get_module_compliance_map() -> Dict[str, ModuleCompliance]:
+def get_module_compliance_map() -> dict[str, ModuleCompliance]:
     return {module.name: module for module in MODULE_COMPLIANCE_INVENTORY}
 
 

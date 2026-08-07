@@ -6,25 +6,23 @@ API endpoints for the unified overlay system.
 All endpoints are stateless - overlays stored in user's cloud storage only.
 """
 
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Header, Cookie, Request
-from pydantic import BaseModel
+
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings, get_settings
 from app.core.database import get_db
-from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser, verify_function_token_for_operation, yellow_access
 from app.core.overlay_types import OverlayType
+from app.core.security import StorageUser, verify_function_token_for_operation, yellow_access
 from app.models.unified_overlay_models import (
     CreateOverlayRequest,
     CreateOverlayResponse,
-    GetOverlaysResponse,
-    UpdateOverlayRequest,
     DeleteOverlayResponse,
     DocumentViewResponse,
+    GetOverlaysResponse,
+    UpdateOverlayRequest,
 )
 from app.services.unified_overlay_manager import (
-    UnifiedOverlayManager,
     get_unified_overlay_manager,
 )
 
@@ -37,10 +35,10 @@ router = APIRouter(prefix="/api/unified-overlays", tags=["Unified Overlays"])
 
 async def require_overlay_access(
     request: Request,
-    document_id: Optional[str] = None,
-    function_token_header: Optional[str] = Header(None, alias="X-Function-Token"),
-    semptify_uid: Optional[str] = Cookie(None),
-) -> tuple[str, str, Optional[str]]:
+    document_id: str | None = None,
+    function_token_header: str | None = Header(None, alias="X-Function-Token"),
+    semptify_uid: str | None = Cookie(None),
+) -> tuple[str, str, str | None]:
     """
     Require both auth cookie identity and valid function token.
     
@@ -51,14 +49,14 @@ async def require_overlay_access(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication cookie required",
         )
-    
+
     token = function_token_header
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Function token required",
         )
-    
+
     action = "overlay:read" if request.method in {"GET", "HEAD", "OPTIONS"} else "overlay:write"
     token_result = verify_function_token_for_operation(
         semptify_uid,
@@ -67,7 +65,7 @@ async def require_overlay_access(
         document_id=document_id,
         refresh=False,
     )
-    
+
     if not token_result.get("valid"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -77,11 +75,11 @@ async def require_overlay_access(
                 "message": "Function token invalid or expired",
             },
         )
-    
+
     # Get role from user_id
     from app.core.user_id import get_role_from_user_id
     role = get_role_from_user_id(semptify_uid) or "user"
-    
+
     return semptify_uid, role, token
 
 
@@ -124,18 +122,18 @@ async def create_overlay(
         function_token_header=None,
         semptify_uid=user.user_id,
     )
-    
+
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     return await manager.create_overlay(request)
 
 
 @router.get("/list", response_model=GetOverlaysResponse)
 async def list_overlays(
-    document_id: Optional[str] = None,
-    overlay_type: Optional[OverlayType] = None,
-    category: Optional[str] = None,
+    document_id: str | None = None,
+    overlay_type: OverlayType | None = None,
+    category: str | None = None,
     include_ephemeral: bool = False,
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
@@ -152,7 +150,7 @@ async def list_overlays(
     """
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     return await manager.get_overlays(
         document_id=document_id,
         overlay_type=overlay_type,
@@ -172,15 +170,15 @@ async def get_overlay(
     """Get a specific overlay by ID."""
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     overlay = await manager.get_overlay(overlay_id)
     if not overlay:
         raise HTTPException(status_code=404, detail="Overlay not found")
-    
+
     # Verify ownership
     if overlay.created_by != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     return {
         "success": True,
         "overlay": overlay.dict(),
@@ -198,16 +196,16 @@ async def update_overlay(
     """Update an existing overlay."""
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     success = await manager.update_overlay(
         overlay_id,
         payload=request.payload,
         metadata=request.metadata,
     )
-    
+
     if not success:
         raise HTTPException(status_code=400, detail="Failed to update overlay")
-    
+
     return {
         "success": True,
         "overlay_id": overlay_id,
@@ -225,12 +223,12 @@ async def delete_overlay(
     """Delete an overlay."""
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     success = await manager.delete_overlay(overlay_id)
-    
+
     if not success:
         raise HTTPException(status_code=400, detail="Failed to delete overlay")
-    
+
     return DeleteOverlayResponse(
         success=True,
         overlay_id=overlay_id,
@@ -255,7 +253,7 @@ async def compose_document_view(
     """
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     return await manager.compose_document_view(
         document_id=document_id,
         overlay_ids=overlay_ids,
@@ -273,30 +271,30 @@ async def add_highlight(
     vault_path: str,
     range_data: dict,  # TextRange as dict
     color: str = "yellow",
-    note: Optional[str] = None,
+    note: str | None = None,
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> CreateOverlayResponse:
     """Convenience endpoint to add a highlight overlay."""
     from app.models.unified_overlay_models import HighlightPayload
-    
+
     payload = HighlightPayload(
         range=range_data,
         color=color,
         note=note,
     ).dict()
-    
+
     request = CreateOverlayRequest(
         overlay_type=OverlayType.HIGHLIGHT,
         document_id=document_id,
         vault_path=vault_path,
         payload=payload,
     )
-    
+
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     return await manager.create_overlay(request)
 
 
@@ -305,7 +303,7 @@ async def add_note(
     document_id: str,
     vault_path: str,
     content: str,
-    range_data: Optional[dict] = None,
+    range_data: dict | None = None,
     note_type: str = "user",
     priority: str = "normal",
     user: StorageUser = Depends(yellow_access),
@@ -314,22 +312,22 @@ async def add_note(
 ) -> CreateOverlayResponse:
     """Convenience endpoint to add a note overlay."""
     from app.models.unified_overlay_models import NotePayload, TextRange
-    
+
     payload = NotePayload(
         range=TextRange(**range_data) if range_data else None,
         content=content,
         note_type=note_type,
         priority=priority,
     ).dict()
-    
+
     request = CreateOverlayRequest(
         overlay_type=OverlayType.NOTE,
         document_id=document_id,
         vault_path=vault_path,
         payload=payload,
     )
-    
+
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
-    
+
     return await manager.create_overlay(request)

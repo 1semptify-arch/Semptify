@@ -5,12 +5,12 @@ Minnesota Rules of Civil Procedure (expedited eviction actions) plus
 Dakota County local rules and common objection/response patterns.
 """
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
-from datetime import datetime, timedelta
+
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,11 +86,11 @@ class MinnesotaEvictionRule:
     title: str
     statute: str
     summary: str
-    deadline_days: Optional[int] = None
+    deadline_days: int | None = None
     applies_to: list[ProcedurePhase] = field(default_factory=list)
-    tenant_action: Optional[str] = None
-    landlord_obligation: Optional[str] = None
-    consequence_if_violated: Optional[str] = None
+    tenant_action: str | None = None
+    landlord_obligation: str | None = None
+    consequence_if_violated: str | None = None
 
 
 @dataclass
@@ -124,7 +124,7 @@ class ProcedureStep:
     step_number: int
     title: str
     description: str
-    deadline: Optional[str] = None
+    deadline: str | None = None
     tenant_tasks: list[str] = field(default_factory=list)
     documents_needed: list[str] = field(default_factory=list)
     tips: list[str] = field(default_factory=list)
@@ -993,7 +993,7 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
     # PUBLIC API METHODS
     # -------------------------------------------------------------------------
 
-    def get_rule(self, rule_id: str) -> Optional[MinnesotaEvictionRule]:
+    def get_rule(self, rule_id: str) -> MinnesotaEvictionRule | None:
         """Get a specific rule by ID."""
         return self._rules.get(rule_id)
 
@@ -1005,7 +1005,7 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
         """Get rules applicable to a specific phase."""
         return [r for r in self._rules.values() if phase in r.applies_to]
 
-    def get_motion_template(self, motion_type: MotionType) -> Optional[MotionTemplate]:
+    def get_motion_template(self, motion_type: MotionType) -> MotionTemplate | None:
         """Get a motion template."""
         return self._motions.get(motion_type)
 
@@ -1013,7 +1013,7 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
         """Get all motion templates."""
         return list(self._motions.values())
 
-    def get_objection_response(self, objection_type: ObjectionType) -> Optional[ObjectionResponse]:
+    def get_objection_response(self, objection_type: ObjectionType) -> ObjectionResponse | None:
         """Get response for an objection type."""
         return self._objections.get(objection_type)
 
@@ -1021,7 +1021,7 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
         """Get all objection responses."""
         return list(self._objections.values())
 
-    def get_procedure_steps(self, phase: Optional[ProcedurePhase] = None) -> list[ProcedureStep]:
+    def get_procedure_steps(self, phase: ProcedurePhase | None = None) -> list[ProcedureStep]:
         """Get procedure steps, optionally filtered by phase."""
         if phase:
             return [s for s in self._procedures if s.phase == phase]
@@ -1031,11 +1031,11 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
         """Get all counterclaim types."""
         return list(self._counterclaims.values())
 
-    def get_counterclaim(self, code: str) -> Optional[CounterclaimType]:
+    def get_counterclaim(self, code: str) -> CounterclaimType | None:
         """Get specific counterclaim type."""
         return self._counterclaims.get(code)
 
-    def get_defense_strategies(self, category: Optional[DefenseCategory] = None) -> dict:
+    def get_defense_strategies(self, category: DefenseCategory | None = None) -> dict:
         """Get defense strategies, optionally filtered by category."""
         if category:
             return self._defenses.get(category, {})
@@ -1161,7 +1161,7 @@ Dated: _______________          _______________________________
 # SINGLETON INSTANCE
 # =============================================================================
 
-_procedures_engine: Optional[CourtProceduresEngine] = None
+_procedures_engine: CourtProceduresEngine | None = None
 
 
 def get_procedures_engine() -> CourtProceduresEngine:

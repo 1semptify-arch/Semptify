@@ -11,9 +11,10 @@ Attach to FastAPI app via:
     app.add_middleware(DevModeMiddleware)
 """
 
-import time
 import logging
-from typing import Callable, Optional
+import time
+from collections.abc import Callable
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import Message
@@ -42,8 +43,8 @@ class DevModeMiddleware(BaseHTTPMiddleware):
 
         # DEV MODE: strict logging path
         start_time = time.monotonic()
-        request_body: Optional[bytes] = None
-        response_body: Optional[bytes] = None
+        request_body: bytes | None = None
+        response_body: bytes | None = None
 
         # Capture request body
         if request.method in ("POST", "PUT", "PATCH"):
@@ -93,7 +94,7 @@ class DevModeMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    def _extract_module_name(self, path: str) -> Optional[str]:
+    def _extract_module_name(self, path: str) -> str | None:
         """Extract module name from URL path."""
         # /api/vault/... -> vault
         # /api/documents/... -> documents
@@ -118,7 +119,7 @@ class DevModeMiddleware(BaseHTTPMiddleware):
         except Exception:
             return False
 
-    async def _capture_body(self, request: Request) -> Optional[bytes]:
+    async def _capture_body(self, request: Request) -> bytes | None:
         """Capture request body without consuming it."""
         body = await request.body()
         # Re-populate the receive interface for downstream
@@ -127,7 +128,7 @@ class DevModeMiddleware(BaseHTTPMiddleware):
         request._receive = receive
         return body if body else None
 
-    async def _capture_response_body(self, response: Response) -> Optional[bytes]:
+    async def _capture_response_body(self, response: Response) -> bytes | None:
         """Capture response body content."""
         # For streaming responses, we can't easily capture without breaking
         # This is a best-effort for standard responses
@@ -135,7 +136,7 @@ class DevModeMiddleware(BaseHTTPMiddleware):
             return response.body
         return None
 
-    def _preview(self, data: Optional[bytes]) -> str:
+    def _preview(self, data: bytes | None) -> str:
         """Create truncated preview of body data."""
         if not data:
             return "<empty>"

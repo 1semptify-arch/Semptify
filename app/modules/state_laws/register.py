@@ -7,7 +7,6 @@ relevant laws, rights, and protections. This is facts-only, no opinions.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="state_laws",
     group_name="state_laws_list",

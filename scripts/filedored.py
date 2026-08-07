@@ -5,9 +5,9 @@ Purpose: Semptify Vault Post‑Processing + AI Classification (SWE 1.6 compatibl
 Tier: DEV (safe, optional)
 """
 
+import hashlib
 import os
 import shutil
-import hashlib
 from pathlib import Path
 
 # -----------------------------

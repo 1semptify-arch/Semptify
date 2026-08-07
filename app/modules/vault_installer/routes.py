@@ -6,13 +6,15 @@ No complex onboarding - just install and go.
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from .installer import install_vault_for_user, install_vault_folders_only
+
+from .installer import install_vault_for_user
 
 logger = logging.getLogger(__name__)
 
@@ -49,38 +51,38 @@ async def install_vault(
     
     No complex onboarding required - just install and go.
     """
-    logger.info(f"=== VAULT INSTALL START ===")
+    logger.info("=== VAULT INSTALL START ===")
     logger.info(f"Current user: {current_user}")
-    
+
     try:
         # Get user's storage tokens from database
         logger.info("Importing get_valid_session...")
         from app.modules.storage.router import get_valid_session
-        
+
         if current_user is None:
             logger.error("current_user is None - authentication required")
             raise HTTPException(status_code=401, detail="Authentication required - please complete OAuth first")
-        
+
         # UserContext is a dataclass - access user_id as attribute
         user_id = getattr(current_user, 'user_id', None)
         if not user_id:
             logger.error("No user_id in current_user!")
             raise HTTPException(status_code=401, detail="Authentication required")
-            
+
         logger.info(f"Getting session for user {user_id[:6]}***...")
         session = await get_valid_session(db, user_id, auto_refresh=True)
         logger.info(f"Session result: {'found' if session else 'NOT FOUND'}")
-        
+
         if not session:
             raise HTTPException(
                 status_code=400,
                 detail="No storage provider connected. Please connect storage first."
             )
-        
+
         provider = session.get("provider")
         access_token = session.get("access_token")
         logger.info(f"Provider: {provider}, Token exists: {'yes' if access_token else 'NO'}")
-        
+
         # Install the full vault structure and mark it active.
         logger.info("Calling install_vault_for_user...")
         result = await install_vault_for_user(
@@ -90,10 +92,10 @@ async def install_vault(
             access_token=access_token,
         )
         logger.info(f"install_vault_for_user result: success={result.get('success')}, folders={len(result.get('folders_created', []))}")
-        
+
         if result["success"]:
             # Mark vault_initialized — folders are confirmed created.
-            from app.modules.onboarding.gates import mark_gate, check_gate
+            from app.modules.onboarding.gates import mark_gate
             await mark_gate(db, user_id, "vault_initialized")
 
             # Mark document_uploaded if the user already has documents in vault
@@ -127,7 +129,7 @@ async def install_vault(
                     "details": result["errors"],
                 }
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -152,13 +154,13 @@ async def get_vault_status(
     try:
         from app.modules.onboarding.gates import check_gate
         from app.modules.storage.router import get_valid_session
-        
+
         user_id = current_user["user_id"]
         vault_initialized = await check_gate(db, user_id, "vault_initialized")
-        
+
         # Check storage connection via session
         session = await get_valid_session(db, user_id, auto_refresh=False)
-        
+
         return {
             "vault_installed": vault_initialized,
             "storage_connected": bool(session and session.get("provider")),
@@ -169,7 +171,7 @@ async def get_vault_status(
                 else "upload_documents"
             ),
         }
-        
+
     except Exception as e:
         logger.error(f"Status check error: {str(e)}")
         raise HTTPException(
@@ -196,7 +198,7 @@ async def quick_install(
             provider_name=provider,
             access_token=access_token,
         )
-        
+
         if result["success"]:
             return JSONResponse(
                 status_code=200,
@@ -217,7 +219,7 @@ async def quick_install(
                     "details": result["errors"],
                 }
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:

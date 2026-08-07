@@ -9,18 +9,25 @@ import asyncio
 import logging
 import os
 import tempfile
-from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
-from fastapi.responses import FileResponse, StreamingResponse
+from typing import Any
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from app.core.utc import utc_now
-from app.core.security import require_user, StorageUser, red_access
 from app.core.data_export_import import (
-    get_export_import_manager, ExportType, ExportFormat, ImportFormat,
-    create_export_request, process_export_request, get_export_request,
-    get_user_exports, cleanup_expired_exports, get_export_statistics
+    ExportFormat,
+    ExportType,
+    ImportFormat,
+    cleanup_expired_exports,
+    create_export_request,
+    get_export_request,
+    get_export_statistics,
+    get_user_exports,
+    process_export_request,
 )
+from app.core.security import StorageUser, red_access
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -33,7 +40,7 @@ class ExportRequestSchema(BaseModel):
     """Export request schema."""
     export_type: str = Field(..., description="Export type: all_data, documents_only, timeline_only, contacts_only, user_profile, audit_log")
     format: str = Field("json", description="Export format: json, csv, zip, pdf")
-    filters: Optional[Dict[str, Any]] = Field(None, description="Export filters")
+    filters: dict[str, Any] | None = Field(None, description="Export filters")
 
 class ExportResponse(BaseModel):
     """Export response schema."""
@@ -42,9 +49,9 @@ class ExportResponse(BaseModel):
     export_type: str
     format: str
     status: str
-    message: Optional[str] = None
-    download_url: Optional[str] = None
-    expires_at: Optional[str] = None
+    message: str | None = None
+    download_url: str | None = None
+    expires_at: str | None = None
 
 class ImportRequestSchema(BaseModel):
     """Import request schema."""
@@ -88,7 +95,7 @@ async def create_export_request_endpoint(
                 status_code=400,
                 detail=f"Invalid export type: {request.export_type}"
             )
-        
+
         # Validate format
         try:
             format_type = ExportFormat(request.format)
@@ -97,7 +104,7 @@ async def create_export_request_endpoint(
                 status_code=400,
                 detail=f"Invalid export format: {request.format}"
             )
-        
+
         # Create export request
         export_id = create_export_request(
             user_id=user.user_id,
@@ -105,7 +112,7 @@ async def create_export_request_endpoint(
             format=format_type,
             filters=request.filters or {}
         )
-        
+
         return ExportResponse(
             success=True,
             export_id=export_id,
@@ -115,7 +122,7 @@ async def create_export_request_endpoint(
             message="Export request created successfully",
             download_url=f"/export/download/{export_id}" if format_type != ExportFormat.ZIP else None
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -135,20 +142,20 @@ async def process_export_endpoint(
         export_request = get_export_request(export_id)
         if not export_request:
             raise HTTPException(status_code=404, detail="Export request not found")
-        
+
         # Check ownership
         if export_request["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         # Process export
         success = await process_export_request(export_id)
-        
+
         if not success:
             raise HTTPException(status_code=500, detail="Export processing failed")
-        
+
         # Get updated request
         updated_request = get_export_request(export_id)
-        
+
         return {
             "success": True,
             "export_id": export_id,
@@ -157,7 +164,7 @@ async def process_export_endpoint(
             "download_url": updated_request.get("download_url"),
             "expires_at": updated_request.get("expires_at")
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -177,13 +184,13 @@ async def get_export_status_endpoint(
         export_request = get_export_request(export_id)
         if not export_request:
             raise HTTPException(status_code=404, detail="Export request not found")
-        
+
         # Check ownership
         if export_request["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         return export_request
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -203,45 +210,45 @@ async def download_export_endpoint(
         export_request = get_export_request(export_id)
         if not export_request:
             raise HTTPException(status_code=404, detail="Export request not found")
-        
+
         # Check ownership
         if export_request["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         # Check if export is completed
         if export_request["status"] != "completed":
             raise HTTPException(status_code=400, detail="Export not ready for download")
-        
+
         # Check if file exists
         file_path = export_request.get("file_path")
         if not file_path or not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Export file not found")
-        
+
         # Check if export has expired
         if export_request.get("expires_at"):
-            from datetime import datetime, timezone
+            from datetime import datetime
             expires_at = datetime.fromisoformat(export_request["expires_at"])
             if utc_now() > expires_at:
                 raise HTTPException(status_code=410, detail="Export has expired")
-        
+
         # Determine filename and media type
         filename = f"{export_id}.{export_request['format']}"
-        
+
         media_types = {
             "json": "application/json",
             "csv": "text/csv",
             "zip": "application/zip",
             "pdf": "application/pdf"
         }
-        
+
         media_type = media_types.get(export_request["format"], "application/octet-stream")
-        
+
         return FileResponse(
             path=file_path,
             filename=filename,
             media_type=media_type
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -250,7 +257,7 @@ async def download_export_endpoint(
 
 @router.get("/exports")
 async def get_user_exports_endpoint(
-    status: Optional[str] = Query(None, description="Filter by status"),
+    status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(20, ge=1, le=100, description="Max exports to return"),
     offset: int = Query(0, ge=0, description="Exports offset"),
     user: StorageUser = Depends(red_access)
@@ -267,18 +274,18 @@ async def get_user_exports_endpoint(
     try:
         # Get user exports
         exports = get_user_exports(user.user_id)
-        
+
         # Filter by status if provided
         if status:
             exports = [exp for exp in exports if exp["status"] == status]
-        
+
         # Sort by creation time (newest first)
         exports.sort(key=lambda x: x["created_at"], reverse=True)
-        
+
         # Apply pagination
         total_exports = len(exports)
         paginated_exports = exports[offset:offset + limit]
-        
+
         return {
             "exports": paginated_exports,
             "total": total_exports,
@@ -287,7 +294,7 @@ async def get_user_exports_endpoint(
             "has_more": offset + limit < total_exports,
             "filters": {"status": status} if status else {}
         }
-        
+
     except Exception as e:
         logger.error(f"Get user exports failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get user exports")
@@ -305,25 +312,25 @@ async def delete_export_endpoint(
         export_request = get_export_request(export_id)
         if not export_request:
             raise HTTPException(status_code=404, detail="Export request not found")
-        
+
         # Check ownership
         if export_request["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         # Delete file if it exists
         file_path = export_request.get("file_path")
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
-        
+
         # Remove from active exports (this would be handled by the manager)
         # In a real implementation, this would remove from the manager's active_exports
-        
+
         return {
             "success": True,
             "export_id": export_id,
             "message": "Export deleted successfully"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -364,7 +371,7 @@ async def prepare_import_endpoint(
                 status_code=400,
                 detail=f"Invalid import type: {import_type}"
             )
-        
+
         # Validate format
         try:
             format_type = ImportFormat(format)
@@ -373,7 +380,7 @@ async def prepare_import_endpoint(
                 status_code=400,
                 detail=f"Invalid import format: {format}"
             )
-        
+
         # Create import request
         from app.core.data_export_import import create_import_request
         import_id = create_import_request(
@@ -382,7 +389,7 @@ async def prepare_import_endpoint(
             format=format_type,
             validation_required=validation_required
         )
-        
+
         return {
             "success": True,
             "import_id": import_id,
@@ -393,7 +400,7 @@ async def prepare_import_endpoint(
             "message": "Import request created successfully",
             "upload_url": f"/import/upload/{import_id}"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -413,28 +420,28 @@ async def upload_import_file_endpoint(
         # Validate file
         if not file.filename:
             raise HTTPException(status_code=400, detail="Filename is required")
-        
+
         # Check file size (max 100MB)
         max_size = 100 * 1024 * 1024
         file_content = await file.read()
-        
+
         if len(file_content) > max_size:
             raise HTTPException(
                 status_code=400,
                 detail="File too large. Maximum size is 100MB"
             )
-        
+
         # Save file to temporary location
         temp_dir = tempfile.mkdtemp()
         file_path = os.path.join(temp_dir, file.filename)
-        
+
         with open(file_path, 'wb') as f:
             f.write(file_content)
-        
+
         # Update import request with file path
         # In a real implementation, this would update the ImportRequest object
         # For now, return success
-        
+
         return {
             "success": True,
             "import_id": import_id,
@@ -444,7 +451,7 @@ async def upload_import_file_endpoint(
             "message": "File uploaded successfully",
             "next_step": "validate_and_process"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -467,10 +474,10 @@ async def process_import_endpoint(
         # 3. Apply merge strategy
         # 4. Import data into database
         # 5. Update import request status
-        
+
         # For now, simulate processing
         await asyncio.sleep(2)  # Simulate processing time
-        
+
         return {
             "success": True,
             "import_id": import_id,
@@ -485,7 +492,7 @@ async def process_import_endpoint(
                 "validation_errors": []
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Import processing failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to process import")
@@ -503,31 +510,31 @@ async def get_export_statistics_endpoint(
     """
     try:
         stats = get_export_statistics()
-        
+
         # Get user-specific statistics
         user_exports = get_user_exports(user.user_id)
-        
+
         user_stats = {
             "total_exports": len(user_exports),
             "completed_exports": len([
-                exp for exp in user_exports 
+                exp for exp in user_exports
                 if exp["status"] == "completed"
             ]),
             "failed_exports": len([
-                exp for exp in user_exports 
+                exp for exp in user_exports
                 if exp["status"] == "failed"
             ]),
             "pending_exports": len([
-                exp for exp in user_exports 
+                exp for exp in user_exports
                 if exp["status"] == "pending"
             ])
         }
-        
+
         return {
             "global_statistics": stats,
             "user_statistics": user_stats
         }
-        
+
     except Exception as e:
         logger.error(f"Get export statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
@@ -619,12 +626,12 @@ async def cleanup_exports_endpoint(
     try:
         # Clean up expired exports
         cleanup_expired_exports()
-        
+
         return {
             "success": True,
             "message": "Export cleanup completed"
         }
-        
+
     except Exception as e:
         logger.error(f"Export cleanup failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to cleanup exports")

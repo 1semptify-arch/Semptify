@@ -7,7 +7,6 @@ legal cases into a single tenancy case.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Case Management ---
 
 register_function_group(FunctionGroupContract(

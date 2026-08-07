@@ -25,7 +25,6 @@ from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -143,14 +142,14 @@ class MNDESValidationResult:
     """Result of MNDES compliance check for a single file."""
     is_mndes_compliant: bool
     file_extension: str
-    file_category: Optional[str] = None        # document, image, audio, video
+    file_category: str | None = None        # document, image, audio, video
     is_jury_room_eligible: bool = False
     conversion_required: bool = False          # Needs format conversion
     judge_exception_required: bool = False     # Requires presiding judge approval
     is_prohibited: bool = False                # Hard block — cannot be uploaded
     issues: list[MNDESIssueCode] = field(default_factory=list)
     issue_details: list[str] = field(default_factory=list)
-    recommended_action: Optional[str] = None
+    recommended_action: str | None = None
     file_types_version: str = MNDES_FILE_TYPES_VERSION
     order_reference: str = MNDES_ORDER_NUMBER
 
@@ -170,7 +169,7 @@ class MNDESFileValidator:
     def validate_for_mndes(
         self,
         filename: str,
-        file_size_bytes: Optional[int] = None,
+        file_size_bytes: int | None = None,
     ) -> MNDESValidationResult:
         """
         Validate a file for MNDES compliance.
@@ -286,7 +285,7 @@ class MNDESFileValidator:
     def validate_batch(
         self,
         filenames: list[str],
-        file_sizes: Optional[list[int]] = None,
+        file_sizes: list[int] | None = None,
     ) -> list[MNDESValidationResult]:
         """Validate multiple files for MNDES compliance."""
         sizes = file_sizes or [None] * len(filenames)
@@ -348,7 +347,7 @@ MNDES_CONVERSION_TARGETS: dict[str, dict] = {
 }
 
 
-def get_conversion_action(ext: str) -> Optional[dict]:
+def get_conversion_action(ext: str) -> dict | None:
     """
     Return the recommended conversion action for a non-compliant file extension.
 

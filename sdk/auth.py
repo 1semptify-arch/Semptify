@@ -4,7 +4,6 @@ Semptify SDK - Authentication Client
 Handles OAuth flow and user authentication.
 """
 
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
 from .base import BaseClient
@@ -15,9 +14,9 @@ class UserInfo:
     """User information."""
     user_id: str
     provider: str
-    email: Optional[str] = None
-    display_name: Optional[str] = None
-    avatar_url: Optional[str] = None
+    email: str | None = None
+    display_name: str | None = None
+    avatar_url: str | None = None
     role: str = "user"
 
 
@@ -32,8 +31,8 @@ class StorageProvider:
 
 class AuthClient(BaseClient):
     """Client for authentication operations."""
-    
-    def get_providers(self) -> List[StorageProvider]:
+
+    def get_providers(self) -> list[StorageProvider]:
         """
         Get available storage providers.
         
@@ -50,7 +49,7 @@ class AuthClient(BaseClient):
                 StorageProvider(id="onedrive", name="OneDrive", icon="microsoft"),
             ]
         return [StorageProvider(**p) for p in response.get("providers", [])]
-    
+
     def get_auth_url(self, provider: str) -> str:
         """
         Get the OAuth authorization URL for a provider.
@@ -65,7 +64,7 @@ class AuthClient(BaseClient):
         if response.status_code in [302, 307]:
             return response.headers.get("location", "")
         return self._handle_response(response).get("auth_url", "")
-    
+
     def complete_oauth(self, provider: str, code: str, state: str) -> UserInfo:
         """
         Complete OAuth flow with authorization code.
@@ -89,8 +88,8 @@ class AuthClient(BaseClient):
             email=response.get("email"),
             display_name=response.get("display_name"),
         )
-    
-    def get_current_user(self) -> Optional[UserInfo]:
+
+    def get_current_user(self) -> UserInfo | None:
         """
         Get the currently authenticated user.
         
@@ -109,7 +108,7 @@ class AuthClient(BaseClient):
             )
         except Exception:
             return None
-    
+
     def logout(self) -> bool:
         """
         Log out the current user.
@@ -123,7 +122,7 @@ class AuthClient(BaseClient):
             return True
         except Exception:
             return False
-    
+
     def validate_session(self) -> bool:
         """
         Validate the current session.
@@ -136,7 +135,7 @@ class AuthClient(BaseClient):
             return response.get("valid", False)
         except Exception:
             return False
-    
+
     def switch_role(self, role: str) -> UserInfo:
         """
         Switch the current user's role.

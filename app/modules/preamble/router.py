@@ -23,14 +23,13 @@ not content. Add content to the welcome page, not here.
 # All imports remain absolute since preamble is a CORE module.
 
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, Cookie, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
+from app.core.cookie_auth import verify_user_id
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
-from app.core.cookie_auth import verify_user_id
 from app.core.user_id import COOKIE_USER_ID
 
 logger = logging.getLogger(__name__)

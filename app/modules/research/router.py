@@ -13,14 +13,16 @@ Provides API access to landlord/property research including:
 """
 
 import io
-from fastapi import APIRouter, HTTPException, Query, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser, green_access
+from app.core.security import StorageUser, green_access
+
 from .service import get_research_service
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/research", tags=["Research Module"])
@@ -30,7 +32,7 @@ router = APIRouter(prefix="/api/research", tags=["Research Module"])
 class ResearchRequest(BaseModel):
     """Request to research a property"""
     property_id: str
-    user_id: Optional[str] = "anonymous"
+    user_id: str | None = "anonymous"
 
 
 class FraudFlagResponse(BaseModel):
@@ -43,15 +45,15 @@ class FraudFlagResponse(BaseModel):
 class ResearchSummary(BaseModel):
     """Summary of research findings"""
     property_id: str
-    owner_name: Optional[str]
-    site_address: Optional[str]
+    owner_name: str | None
+    site_address: str | None
     lien_count: int
     ucc_filing_count: int
     emergency_call_count: int
     news_mention_count: int
     bankruptcy_case_count: int
     fraud_flag_count: int
-    fraud_flags: List[FraudFlagResponse]
+    fraud_flags: list[FraudFlagResponse]
 
 
 # Health Check
@@ -83,7 +85,7 @@ async def research_property(
     Returns comprehensive profile with fraud flags.
     """
     service = get_research_service()
-    
+
     try:
         result = await service.collect_landlord_data(
             user_id=user.user_id,
@@ -92,7 +94,7 @@ async def research_property(
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         logger.exception("Research failed")
         raise HTTPException(status_code=500, detail="Research failed")
 
@@ -105,13 +107,13 @@ async def get_property_profile(
     """Get cached profile for a property (must run research first)"""
     service = get_research_service()
     profile = service.get_profile(property_id)
-    
+
     if not profile:
         raise HTTPException(
             status_code=404,
             detail=f"No profile found for {property_id}. Run POST /research/property/{property_id} first.",
         )
-    
+
     return profile.to_dict()
 
 
@@ -123,13 +125,13 @@ async def get_property_summary(
     """Get a summary of research findings for a property"""
     service = get_research_service()
     profile = service.get_profile(property_id)
-    
+
     if not profile:
         raise HTTPException(
             status_code=404,
             detail=f"No profile found for {property_id}. Run POST /research/property/{property_id} first.",
         )
-    
+
     return {
         "property_id": profile.property_id,
         "owner_name": profile.owner_name,
@@ -154,13 +156,13 @@ async def get_property_fraud_flags(
     """Get fraud flags for a property"""
     service = get_research_service()
     profile = service.get_profile(property_id)
-    
+
     if not profile:
         raise HTTPException(
             status_code=404,
             detail=f"No profile found for {property_id}. Run research first.",
         )
-    
+
     return {
         "property_id": property_id,
         "flags": [f.to_dict() for f in profile.fraud_flags],
@@ -184,13 +186,13 @@ async def download_evidence_zip(
     """
     service = get_research_service()
     zip_bytes = service.get_zip(property_id)
-    
+
     if not zip_bytes:
         raise HTTPException(
             status_code=404,
             detail=f"No evidence ZIP found for {property_id}. Run research first.",
         )
-    
+
     filename = f"{property_id}_evidence.zip"
     return StreamingResponse(
         io.BytesIO(zip_bytes),
@@ -207,23 +209,23 @@ async def get_checkpoint(
     """Get a research checkpoint by ID"""
     service = get_research_service()
     checkpoint = service.get_checkpoint(checkpoint_id)
-    
+
     if not checkpoint:
         raise HTTPException(status_code=404, detail="Checkpoint not found")
-    
+
     return checkpoint.to_dict()
 
 
 # Data Source Endpoints (for individual lookups)
 @router.get("/assessor")
 async def get_assessor_data_query(
-    property_id: Optional[str] = Query(None, description="Property ID to lookup"),
+    property_id: str | None = Query(None, description="Property ID to lookup"),
     user: StorageUser = Depends(green_access)
 ):
     """Get assessor data for a property (taxes, ownership)"""
     if not property_id:
         raise HTTPException(status_code=422, detail="property_id is required")
-    
+
     service = get_research_service()
     try:
         data = await service.fetch_assessor(property_id)
@@ -235,7 +237,7 @@ async def get_assessor_data_query(
 class AssessorRequest(BaseModel):
     """Request for assessor lookup"""
     property_id: str
-    county: Optional[str] = "hennepin"
+    county: str | None = "hennepin"
 
 
 @router.post("/assessor")
@@ -296,14 +298,14 @@ async def get_ucc_filings(
 
 @router.get("/dispatch")
 async def get_dispatch_calls(
-    property_id: Optional[str] = Query(None),
-    address: Optional[str] = Query(None),
+    property_id: str | None = Query(None),
+    address: str | None = Query(None),
     user: StorageUser = Depends(green_access),
 ):
     """Get emergency dispatch calls near a property"""
     if not property_id and not address:
         raise HTTPException(status_code=400, detail="Provide property_id or address")
-    
+
     service = get_research_service()
     try:
         data = await service.fetch_dispatch(property_id or "", address)
@@ -314,9 +316,9 @@ async def get_dispatch_calls(
 
 @router.get("/news")
 async def get_news_mentions(
-    entity_name: Optional[str] = Query(None),
-    address: Optional[str] = Query(None),
-    query: Optional[str] = Query(None, description="Search query (alias for entity_name)"),
+    entity_name: str | None = Query(None),
+    address: str | None = Query(None),
+    query: str | None = Query(None, description="Search query (alias for entity_name)"),
     user: StorageUser = Depends(green_access),
 ):
     """Search news for mentions of entity or address"""

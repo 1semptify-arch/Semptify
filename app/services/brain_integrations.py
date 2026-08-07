@@ -5,16 +5,10 @@ Connects all Semptify modules to the brain.
 """
 
 import logging
-from typing import Optional
 from datetime import datetime
-from app.core.utc import utc_now
 
-from app.services.positronic_brain import (
-    get_brain,
-    BrainEvent,
-    EventType,
-    ModuleType
-)
+from app.core.utc import utc_now
+from app.services.positronic_brain import BrainEvent, EventType, ModuleType, get_brain
 
 logger = logging.getLogger(__name__)
 
@@ -25,89 +19,89 @@ async def initialize_brain_connections():
     Call this during app startup.
     """
     brain = get_brain()
-    
+
     # Register all modules
     brain.register_module(
         ModuleType.DOCUMENTS,
         "Document Manager",
         capabilities=["upload", "analyze", "classify", "store"]
     )
-    
+
     brain.register_module(
         ModuleType.TIMELINE,
         "Timeline Engine",
         capabilities=["track_events", "build_history", "evidence_chain"]
     )
-    
+
     brain.register_module(
         ModuleType.CALENDAR,
         "Calendar & Deadlines",
         capabilities=["schedule", "reminders", "deadline_tracking"]
     )
-    
+
     brain.register_module(
         ModuleType.EVICTION,
         "Eviction Defense",
         capabilities=["answer", "counterclaim", "motions", "defenses"]
     )
-    
+
     brain.register_module(
         ModuleType.COPILOT,
         "AI Copilot",
         capabilities=["analyze", "suggest", "classify", "generate"]
     )
-    
+
     brain.register_module(
         ModuleType.VAULT,
         "Secure Vault",
         capabilities=["store", "certify", "retrieve", "audit"]
     )
-    
+
     brain.register_module(
         ModuleType.CONTEXT,
         "Context Engine",
         capabilities=["state", "intensity", "predictions"]
     )
-    
+
     brain.register_module(
         ModuleType.UI,
         "Adaptive UI",
         capabilities=["widgets", "suggestions", "display"]
     )
-    
+
     brain.register_module(
         ModuleType.FORMS,
         "Form Generator",
         capabilities=["generate", "fill", "validate", "submit"]
     )
-    
+
     brain.register_module(
         ModuleType.LAW_LIBRARY,
         "Law Library",
         capabilities=["search", "cite", "explain"]
     )
-    
+
     brain.register_module(
         ModuleType.ZOOM_COURT,
         "Zoom Court Helper",
         capabilities=["prepare", "checklist", "tips"]
     )
-    
+
     # Set up event handlers
     _setup_event_handlers(brain)
-    
+
     logger.info("○ Positronic Brain fully initialized with all modules")
-    
+
     return brain
 
 
 def _setup_event_handlers(brain):
     """Set up cross-module event handlers."""
-    
+
     # When document uploaded -> analyze and classify
     async def on_document_uploaded(event: BrainEvent):
         logger.info(f"○ Brain processing: {event.event_type.value}")
-        
+
         # Update shared state
         docs = brain.get_state("documents") or []
         docs.append({
@@ -116,9 +110,9 @@ def _setup_event_handlers(brain):
             **event.data
         })
         await brain.update_state("documents", docs, ModuleType.DOCUMENTS)
-    
+
     brain.subscribe(EventType.DOCUMENT_UPLOADED, on_document_uploaded)
-    
+
     # When document classified -> add to timeline if eviction-related
     async def on_document_classified(event: BrainEvent):
         doc_type = event.data.get("type", "")
@@ -132,9 +126,9 @@ def _setup_event_handlers(brain):
                 "date": utc_now().isoformat()
             })
             await brain.update_state("timeline", timeline, ModuleType.TIMELINE)
-    
+
     brain.subscribe(EventType.DOCUMENT_CLASSIFIED, on_document_classified)
-    
+
     # When defense identified -> update defenses list
     async def on_defense_identified(event: BrainEvent):
         defenses = brain.get_state("defenses") or []
@@ -143,13 +137,13 @@ def _setup_event_handlers(brain):
             if d not in defenses:
                 defenses.append(d)
         await brain.update_state("defenses", defenses, ModuleType.EVICTION)
-    
+
     brain.subscribe(EventType.DEFENSE_IDENTIFIED, on_defense_identified)
-    
+
     # When deadline approaching -> increase intensity
     async def on_deadline_approaching(event: BrainEvent):
         days_until = event.data.get("days_until", 30)
-        
+
         # Calculate intensity based on deadline proximity
         if days_until <= 1:
             intensity = 1.0
@@ -161,28 +155,28 @@ def _setup_event_handlers(brain):
             intensity = 0.5
         else:
             intensity = 0.3
-        
+
         current_intensity = brain.get_state("intensity") or 0
         if intensity > current_intensity:
             await brain.update_state("intensity", intensity, ModuleType.CALENDAR)
-            
+
             # Also emit intensity change event
             await brain.emit(BrainEvent(
                 event_type=EventType.INTENSITY_CHANGED,
                 source_module=ModuleType.CONTEXT,
                 data={"old": current_intensity, "new": intensity, "reason": "deadline"}
             ))
-    
+
     brain.subscribe(EventType.DEADLINE_APPROACHING, on_deadline_approaching)
-    
+
     # When context updated -> notify UI
     async def on_context_updated(event: BrainEvent):
         """Broadcast context updates to connected WebSocket clients."""
         try:
             from app.core.websocket_manager import (
-                get_websocket_manager,
                 NotificationType,
                 WebSocketMessage,
+                get_websocket_manager,
             )
 
             ws_manager = get_websocket_manager()
@@ -220,7 +214,7 @@ async def brain_document_uploaded(
 ):
     """Call this when a document is uploaded."""
     brain = get_brain()
-    
+
     await brain.emit(BrainEvent(
         event_type=EventType.DOCUMENT_UPLOADED,
         source_module=ModuleType.DOCUMENTS,
@@ -232,7 +226,7 @@ async def brain_document_uploaded(
         },
         user_id=user_id
     ))
-    
+
     # Trigger full document intake workflow
     await brain.trigger_workflow("document_intake", {
         "document_id": document_id,
@@ -252,7 +246,7 @@ async def brain_timeline_event(
 ):
     """Call this when a timeline event is created."""
     brain = get_brain()
-    
+
     await brain.emit(BrainEvent(
         event_type=EventType.TIMELINE_EVENT_ADDED,
         source_module=ModuleType.TIMELINE,
@@ -276,12 +270,11 @@ async def brain_calendar_event(
 ):
     """Call this when a calendar event is created."""
     brain = get_brain()
-    
+
     # Calculate days until
-    from datetime import datetime
     event_date = datetime.fromisoformat(start_datetime.replace("Z", ""))
     days_until = (event_date - utc_now()).days
-    
+
     if days_until <= 14:
         await brain.emit(BrainEvent(
             event_type=EventType.DEADLINE_APPROACHING,
@@ -295,7 +288,7 @@ async def brain_calendar_event(
             },
             user_id=user_id
         ))
-    
+
     if event_type == "hearing":
         await brain.emit(BrainEvent(
             event_type=EventType.HEARING_SCHEDULED,
@@ -317,7 +310,7 @@ async def brain_eviction_step_completed(
 ):
     """Call this when an eviction flow step is completed."""
     brain = get_brain()
-    
+
     await brain.emit(BrainEvent(
         event_type=EventType.EVICTION_STEP_COMPLETED,
         source_module=ModuleType.EVICTION,
@@ -338,7 +331,7 @@ async def brain_ai_analysis(
 ):
     """Call this when AI completes analysis."""
     brain = get_brain()
-    
+
     await brain.emit(BrainEvent(
         event_type=EventType.AI_ANALYSIS_COMPLETE,
         source_module=ModuleType.COPILOT,
@@ -349,7 +342,7 @@ async def brain_ai_analysis(
         },
         user_id=user_id
     ))
-    
+
     # If defenses found, emit defense event
     defenses = analysis.get("defenses", [])
     if defenses:
@@ -368,7 +361,7 @@ async def brain_form_generated(
 ):
     """Call this when a form is generated."""
     brain = get_brain()
-    
+
     await brain.emit(BrainEvent(
         event_type=EventType.FORM_GENERATED,
         source_module=ModuleType.FORMS,

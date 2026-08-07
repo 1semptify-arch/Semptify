@@ -3,8 +3,9 @@ Test the unified timeline API endpoint.
 Usage: python scripts/test_timeline_api.py
 """
 import asyncio
-import httpx
 import sys
+
+import httpx
 
 # API base URL
 BASE_URL = "http://localhost:8000"
@@ -13,7 +14,7 @@ BASE_URL = "http://localhost:8000"
 async def test_date_range_endpoint():
     """Test GET /api/timeline/date-range"""
     print("Testing GET /api/timeline/date-range...")
-    
+
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(f"{BASE_URL}/api/timeline/date-range")
@@ -34,13 +35,13 @@ async def test_date_range_endpoint():
 async def test_unified_timeline():
     """Test POST /api/timeline/unified"""
     print("\nTesting POST /api/timeline/unified...")
-    
+
     payload = {
         "date_axis": "event_time",
         "item_types": ["document", "timeline_event"],
         "limit": 10
     }
-    
+
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
@@ -73,22 +74,22 @@ async def main():
     print("=" * 60)
     print("Unified Timeline API Tests")
     print("=" * 60)
-    
+
     results = []
-    
+
     # Test 1: Date range endpoint
     results.append(("Date Range", await test_date_range_endpoint()))
-    
+
     # Test 2: Unified timeline endpoint
     results.append(("Unified Timeline", await test_unified_timeline()))
-    
+
     print("\n" + "=" * 60)
     print("Test Summary")
     print("=" * 60)
     for name, passed in results:
         status = "✅ PASS" if passed else "❌ FAIL"
         print(f"  {name}: {status}")
-    
+
     all_passed = all(passed for _, passed in results)
     sys.exit(0 if all_passed else 1)
 

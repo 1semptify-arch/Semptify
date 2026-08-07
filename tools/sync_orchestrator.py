@@ -112,44 +112,58 @@ def _load_previous_tasks() -> list[dict]:
     return []
 
 
-def preserve_manual_fields(previous_tasks: list[dict]) -> int:
-    """Carry forward human-edited fields from the previous task queue.
+def carry_forward_previous_tasks(previous_tasks: list[dict]) -> int:
+    """Carry forward previous tasks and their human-edited fields.
 
     sync_orchestrator regenerates task metadata from the workbook and doc
-    sources, which resets manually-set status/notes/assigned_agent timestamps.
-    This restores those fields for any task whose id still exists in the
-    freshly generated queue.
+    sources. If a source is empty or a task id changes, this prevents the
+    queue from being silently wiped. For any task whose id still exists in
+    the freshly generated queue, manual fields are restored. For any task
+    in the previous queue that is missing from the new queue, the whole
+    previous task is appended (these are reported as carried-forward so the
+    user knows the current source did not regenerate them).
     """
     if not previous_tasks:
-        return 0
-    prev_by_id = {t.get("id"): t for t in previous_tasks if t.get("id")}
-    if not prev_by_id:
         return 0
 
     try:
         tasks = json.loads(ORCHESTRATOR_TASKS.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
-        return 0
+        tasks = []
     if not isinstance(tasks, list):
-        return 0
+        tasks = []
 
+    current_by_id = {t.get("id"): t for t in tasks if t.get("id")}
     preserved = 0
+    carried = 0
     preserved_fields = ("status", "notes", "assigned_agent", "created_at", "updated_at")
-    for task in tasks:
-        prev = prev_by_id.get(task.get("id"))
-        if not prev:
+
+    for prev in previous_tasks:
+        prev_id = prev.get("id")
+        if not prev_id:
             continue
-        for field in preserved_fields:
-            if field in prev:
-                task[field] = prev[field]
-        preserved += 1
+        current = current_by_id.get(prev_id)
+        if current:
+            for field in preserved_fields:
+                if field in prev:
+                    current[field] = prev[field]
+            preserved += 1
+        else:
+            tasks.append(prev)
+            current_by_id[prev_id] = prev
+            carried += 1
 
     new_content = json.dumps(tasks, indent=2) + "\n"
     old_content = ORCHESTRATOR_TASKS.read_text(encoding="utf-8") if ORCHESTRATOR_TASKS.exists() else ""
     if new_content != old_content:
         ORCHESTRATOR_TASKS.write_text(new_content, encoding="utf-8", newline="\n")
-        print(f"-> preserved manual fields for {preserved} task(s) in {ORCHESTRATOR_TASKS.name}")
-    return preserved
+        print(
+            f"-> carried forward {carried} previous task(s), "
+            f"preserved fields for {preserved} task(s) in {ORCHESTRATOR_TASKS.name}"
+        )
+    else:
+        print(f"-> {ORCHESTRATOR_TASKS.name} already up to date ({len(tasks)} tasks)")
+    return carried + preserved
 
 
 def merge_tasks() -> int:
@@ -284,14 +298,18 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        previous_tasks = _load_previous_tasks()
         if not args.check:
-            previous_tasks = _load_previous_tasks()
             step_stub_detector()
             step_workbook_bridge()
             step_docs_todos()
             merge_tasks()
-            preserve_manual_fields(previous_tasks)
             step_sync_registry()
+            # Always carry-forward any tasks from the previous queue that the
+            # current sources did not regenerate. This prevents a transient
+            # empty workbook / stub list / docs_todos from wiping an existing
+            # queue.
+            carry_forward_previous_tasks(previous_tasks)
 
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()

@@ -22,11 +22,7 @@ def find_router_vars(tree: ast.Module) -> set[str]:
             value = node.value
             if isinstance(value, ast.Call):
                 func = value.func
-                if isinstance(func, ast.Name) and func.id == "APIRouter":
-                    for target in node.targets:
-                        if isinstance(target, ast.Name):
-                            router_vars.add(target.id)
-                elif isinstance(func, ast.Attribute) and func.attr == "APIRouter":
+                if isinstance(func, ast.Name) and func.id == "APIRouter" or isinstance(func, ast.Attribute) and func.attr == "APIRouter":
                     for target in node.targets:
                         if isinstance(target, ast.Name):
                             router_vars.add(target.id)

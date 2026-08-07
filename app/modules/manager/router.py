@@ -18,23 +18,22 @@ Routes:
 import csv
 import io
 import logging
-from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.core.capabilities import require_capability
 from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole
+from app.core.user_context import UserRole, get_role_from_user_id
 from app.core.utc import utc_now
-from app.core.capabilities import require_capability
 from app.models.models import (
+    Document,
+    RelationshipType,
+    TimelineEvent,
     User,
     UserRelationship,
-    RelationshipType,
-    Document,
-    TimelineEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -65,7 +64,7 @@ def _org_id_from(user_id: str) -> str:
     return user_id[:12]
 
 
-def _org_user_ids(db, org_id: str) -> List[str]:
+def _org_user_ids(db, org_id: str) -> list[str]:
     """Return all user_ids in this organization."""
     users = db.query(User).filter(User.id.like(f"{org_id}%")).all()
     return [u.id for u in users]
@@ -84,7 +83,7 @@ class CaseStatusRequest(BaseModel):
 
 
 class BulkExportRequest(BaseModel):
-    tenant_user_ids: List[str] = Field(..., min_length=1, max_length=100)
+    tenant_user_ids: list[str] = Field(..., min_length=1, max_length=100)
     format: str = Field(default="json", description="Export format: json or csv")
 
 

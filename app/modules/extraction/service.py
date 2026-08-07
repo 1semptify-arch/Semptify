@@ -9,13 +9,15 @@ This bridges the gap between:
 - Form generation (structured fields)
 """
 
-import re
-from app.core.utc import utc_now
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, List, Tuple
-from enum import Enum
 import logging
+import re
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+from typing import Any
+
+from app.core.utc import utc_now
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,10 +39,10 @@ class ExtractedField:
     confidence: FieldConfidence
     source: str = ""        # Which document/section it came from
     source_text: str = ""   # Original text it was extracted from
-    alternatives: List[Any] = field(default_factory=list)  # Other possible values
+    alternatives: list[Any] = field(default_factory=list)  # Other possible values
     needs_review: bool = False
     review_reason: str = ""
-    
+
     def to_dict(self) -> dict:
         return {
             "field_name": self.field_name,
@@ -55,7 +57,7 @@ class ExtractedField:
         }
 
 
-@dataclass 
+@dataclass
 class AddressComponents:
     """Parsed address components."""
     full_address: str = ""
@@ -64,7 +66,7 @@ class AddressComponents:
     city: str = ""
     state: str = ""
     zip_code: str = ""
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -72,13 +74,13 @@ class AddressComponents:
 @dataclass
 class FormFieldsExtraction:
     """Complete extraction result for form filling."""
-    
+
     # Case Information
     case_number: ExtractedField = None
     court_name: ExtractedField = None
     county: ExtractedField = None
     judicial_district: ExtractedField = None
-    
+
     # Tenant Information
     tenant_name: ExtractedField = None
     tenant_address: ExtractedField = None
@@ -87,7 +89,7 @@ class FormFieldsExtraction:
     tenant_zip: ExtractedField = None
     tenant_phone: ExtractedField = None
     tenant_email: ExtractedField = None
-    
+
     # Landlord Information
     landlord_name: ExtractedField = None
     landlord_address: ExtractedField = None
@@ -96,21 +98,21 @@ class FormFieldsExtraction:
     landlord_zip: ExtractedField = None
     landlord_phone: ExtractedField = None
     landlord_email: ExtractedField = None
-    
+
     # Property Information
     property_address: ExtractedField = None
     property_city: ExtractedField = None
     property_state: ExtractedField = None
     property_zip: ExtractedField = None
     unit_number: ExtractedField = None
-    
+
     # Lease Information
     lease_start_date: ExtractedField = None
     lease_end_date: ExtractedField = None
     monthly_rent: ExtractedField = None
     security_deposit: ExtractedField = None
     lease_type: ExtractedField = None
-    
+
     # Case Dates
     notice_date: ExtractedField = None
     notice_type: ExtractedField = None
@@ -119,19 +121,19 @@ class FormFieldsExtraction:
     answer_deadline: ExtractedField = None
     hearing_date: ExtractedField = None
     hearing_time: ExtractedField = None
-    
+
     # Amounts Claimed
     rent_claimed: ExtractedField = None
     late_fees_claimed: ExtractedField = None
     other_fees_claimed: ExtractedField = None
     total_claimed: ExtractedField = None
-    
+
     # Metadata
     extraction_date: str = ""
-    documents_processed: List[str] = field(default_factory=list)
+    documents_processed: list[str] = field(default_factory=list)
     overall_confidence: float = 0.0
     fields_needing_review: int = 0
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for API response."""
         result = {
@@ -149,30 +151,30 @@ class FormFieldsExtraction:
                 "fields_needing_review": self.fields_needing_review,
             }
         }
-        
+
         # Map fields to categories
         field_mapping = {
             "case": ["case_number", "court_name", "county", "judicial_district"],
-            "tenant": ["tenant_name", "tenant_address", "tenant_city", "tenant_state", 
+            "tenant": ["tenant_name", "tenant_address", "tenant_city", "tenant_state",
                       "tenant_zip", "tenant_phone", "tenant_email"],
             "landlord": ["landlord_name", "landlord_address", "landlord_city", "landlord_state",
                         "landlord_zip", "landlord_phone", "landlord_email"],
             "property": ["property_address", "property_city", "property_state", "property_zip", "unit_number"],
             "lease": ["lease_start_date", "lease_end_date", "monthly_rent", "security_deposit", "lease_type"],
-            "dates": ["notice_date", "notice_type", "summons_date", "service_date", 
+            "dates": ["notice_date", "notice_type", "summons_date", "service_date",
                      "answer_deadline", "hearing_date", "hearing_time"],
             "amounts": ["rent_claimed", "late_fees_claimed", "other_fees_claimed", "total_claimed"],
         }
-        
+
         for category, fields in field_mapping.items():
             for field_name in fields:
                 field_obj = getattr(self, field_name, None)
                 if field_obj:
                     result[category][field_name] = field_obj.to_dict()
-        
+
         return result
-    
-    def get_review_items(self) -> List[ExtractedField]:
+
+    def get_review_items(self) -> list[ExtractedField]:
         """Get all fields that need user review."""
         items = []
         for field_name in dir(self):
@@ -190,7 +192,7 @@ class FormFieldExtractor:
     
     Takes raw extraction results and produces structured form-ready data.
     """
-    
+
     # Case number patterns for different courts
     CASE_NUMBER_PATTERNS = [
         # Dakota County: 19AV-CV-25-0000
@@ -202,7 +204,7 @@ class FormFieldExtractor:
         # File number
         (r'File\s*(?:No\.?|Number|#)\s*:?\s*([A-Z0-9-]+)', "File Number"),
     ]
-    
+
     # Court patterns
     COURT_PATTERNS = [
         (r'(Dakota County)\s*(?:District)?\s*Court', "Dakota"),
@@ -211,7 +213,7 @@ class FormFieldExtractor:
         (r'(\w+\s+County)\s*(?:District)?\s*Court', "Generic"),
         (r'(First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth)\s+Judicial\s+District', "District"),
     ]
-    
+
     # Enhanced address pattern
     ADDRESS_PATTERN = re.compile(
         r'(\d+)\s+'  # Street number
@@ -223,7 +225,7 @@ class FormFieldExtractor:
         r'(?:\s*,?\s*(\d{5}(?:-\d{4})?))?',  # Optional zip
         re.IGNORECASE
     )
-    
+
     # Minnesota cities for better matching
     MN_CITIES = [
         "Minneapolis", "Saint Paul", "St. Paul", "Rochester", "Duluth", "Bloomington",
@@ -232,13 +234,13 @@ class FormFieldExtractor:
         "Edina", "Coon Rapids", "Hastings", "Farmington", "Rosemount", "Inver Grove Heights",
         "South St. Paul", "West St. Paul", "Mendota Heights", "Cottage Grove", "Oakdale",
     ]
-    
+
     def __init__(self):
         self.result = FormFieldsExtraction()
         self.raw_text = ""
         self.documents = []
-    
-    def extract_from_documents(self, documents: List[Dict[str, Any]]) -> FormFieldsExtraction:
+
+    def extract_from_documents(self, documents: list[dict[str, Any]]) -> FormFieldsExtraction:
         """
         Extract form fields from multiple documents.
         
@@ -251,16 +253,16 @@ class FormFieldExtractor:
         self.documents = documents
         self.result = FormFieldsExtraction()
         self.result.extraction_date = utc_now().isoformat()
-        
+
         # Combine all document text for analysis
         combined_text = ""
         for doc in documents:
             text = doc.get('text', '') or doc.get('full_text', '') or ''
             combined_text += f"\n\n--- {doc.get('filename', 'Unknown')} ---\n\n{text}"
             self.result.documents_processed.append(doc.get('filename', 'Unknown'))
-        
+
         self.raw_text = combined_text
-        
+
         # Extract each category
         self._extract_case_info()
         self._extract_parties()
@@ -268,16 +270,16 @@ class FormFieldExtractor:
         self._extract_lease_info()
         self._extract_dates()
         self._extract_amounts()
-        
+
         # Calculate overall confidence and review count
         self._calculate_confidence()
-        
+
         return self.result
-    
+
     def _extract_case_info(self):
         """Extract case number and court information."""
         text = self.raw_text
-        
+
         # Case number
         for pattern, source in self.CASE_NUMBER_PATTERNS:
             match = re.search(pattern, text)
@@ -291,7 +293,7 @@ class FormFieldExtractor:
                     source_text=match.group(0),
                 )
                 break
-        
+
         if not self.result.case_number:
             self.result.case_number = ExtractedField(
                 field_name="case_number",
@@ -301,7 +303,7 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="No case number found in documents",
             )
-        
+
         # Court and county
         for pattern, county_hint in self.COURT_PATTERNS:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -348,7 +350,7 @@ class FormFieldExtractor:
                         confidence=FieldConfidence.HIGH,
                     )
                 break
-        
+
         # Default to Dakota County if not found
         if not self.result.county:
             self.result.county = ExtractedField(
@@ -359,7 +361,7 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="County not found, defaulting to Dakota",
             )
-    
+
     def _extract_parties(self):
         """Extract tenant and landlord information."""
         text = self.raw_text
@@ -401,7 +403,7 @@ class FormFieldExtractor:
                         review_reason="Please verify tenant name is correct",
                     )
                     break
-        
+
         if not self.result.tenant_name:
             self.result.tenant_name = ExtractedField(
                 field_name="tenant_name",
@@ -411,7 +413,7 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="Tenant name not found",
             )
-        
+
         # Extract landlord name
         for pattern in landlord_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -429,7 +431,7 @@ class FormFieldExtractor:
                         review_reason="Please verify landlord name is correct",
                     )
                     break
-        
+
         if not self.result.landlord_name:
             self.result.landlord_name = ExtractedField(
                 field_name="landlord_name",
@@ -439,14 +441,14 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="Landlord name not found",
             )
-        
+
         # Extract contact info
         self._extract_contact_info()
-    
+
     def _extract_contact_info(self):
         """Extract phone numbers and emails."""
         text = self.raw_text
-        
+
         # Phone patterns
         phones = re.findall(r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text)
         if phones:
@@ -460,7 +462,7 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="Multiple phone numbers found, please verify",
             )
-        
+
         # Email patterns
         emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
         if emails:
@@ -473,19 +475,19 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="Multiple emails found, please verify",
             )
-    
+
     def _extract_property_info(self):
         """Extract property address and unit information."""
         text = self.raw_text
-        
+
         # Look for "premises" or "property" labeled addresses
         property_patterns = [
             r'(?:premises|property|rental unit|rental property|located at|property address)[:\s]+(\d+[^,\n]+)',
             r'(?:evict(?:ed|ion)?\s+from)[:\s]+(\d+[^,\n]+)',
         ]
-        
+
         addresses_found = []
-        
+
         for pattern in property_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
@@ -493,23 +495,23 @@ class FormFieldExtractor:
                 parsed = self._parse_address(addr_text)
                 if parsed.street:
                     addresses_found.append((parsed, match.group(0), "property_label"))
-        
+
         # Also find all addresses and try to identify property vs mailing
         all_addresses = re.findall(
             r'\d+\s+[\w\s]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Drive|Dr\.?|Lane|Ln\.?)[^,\n]*',
             text, re.IGNORECASE
         )
-        
+
         for addr_text in all_addresses:
             parsed = self._parse_address(addr_text)
             if parsed.street:
                 addresses_found.append((parsed, addr_text, "general"))
-        
+
         # Set property address
         if addresses_found:
             best_addr, source_text, source_type = addresses_found[0]
             confidence = FieldConfidence.HIGH if source_type == "property_label" else FieldConfidence.MEDIUM
-            
+
             self.result.property_address = ExtractedField(
                 field_name="property_address",
                 display_name="Property Address",
@@ -519,7 +521,7 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="Please verify this is the rental property address",
             )
-            
+
             if best_addr.unit:
                 self.result.unit_number = ExtractedField(
                     field_name="unit_number",
@@ -527,7 +529,7 @@ class FormFieldExtractor:
                     value=best_addr.unit,
                     confidence=FieldConfidence.HIGH,
                 )
-            
+
             if best_addr.city:
                 self.result.property_city = ExtractedField(
                     field_name="property_city",
@@ -535,7 +537,7 @@ class FormFieldExtractor:
                     value=best_addr.city,
                     confidence=FieldConfidence.MEDIUM,
                 )
-            
+
             if best_addr.state:
                 self.result.property_state = ExtractedField(
                     field_name="property_state",
@@ -550,7 +552,7 @@ class FormFieldExtractor:
                     value="MN",
                     confidence=FieldConfidence.LOW,
                 )
-            
+
             if best_addr.zip_code:
                 self.result.property_zip = ExtractedField(
                     field_name="property_zip",
@@ -558,7 +560,7 @@ class FormFieldExtractor:
                     value=best_addr.zip_code,
                     confidence=FieldConfidence.HIGH,
                 )
-            
+
             # Store alternatives
             if len(addresses_found) > 1:
                 alt_addrs = [a[0].full_address for a in addresses_found[1:4]]
@@ -572,23 +574,23 @@ class FormFieldExtractor:
                 needs_review=True,
                 review_reason="Property address not found",
             )
-    
+
     def _parse_address(self, text: str) -> AddressComponents:
         """Parse an address string into components."""
         result = AddressComponents(full_address=text.strip())
-        
+
         # Try to extract unit number
         unit_match = re.search(r'(?:Apt\.?|Unit|Suite|#|Apartment)\s*([A-Za-z0-9-]+)', text, re.IGNORECASE)
         if unit_match:
             result.unit = unit_match.group(1)
             text = text[:unit_match.start()] + text[unit_match.end():]
-        
+
         # Try to find city
         for city in self.MN_CITIES:
             if city.lower() in text.lower():
                 result.city = city
                 break
-        
+
         # Try to find state
         state_match = re.search(r'\b(MN|Minnesota|WI|Wisconsin|ND|North Dakota|SD|South Dakota|IA|Iowa)\b', text, re.IGNORECASE)
         if state_match:
@@ -596,36 +598,36 @@ class FormFieldExtractor:
             if state == "MINNESOTA":
                 state = "MN"
             result.state = state
-        
+
         # Try to find ZIP
         zip_match = re.search(r'\b(\d{5}(?:-\d{4})?)\b', text)
         if zip_match:
             result.zip_code = zip_match.group(1)
-        
+
         # Street is everything before city/state/zip
         street_text = text
         if result.city:
             idx = street_text.lower().find(result.city.lower())
             if idx > 0:
                 street_text = street_text[:idx]
-        
+
         # Clean up street
         street_text = re.sub(r'\s*,\s*$', '', street_text.strip())
         result.street = street_text
-        
+
         return result
-    
+
     def _extract_lease_info(self):
         """Extract lease information."""
         text = self.raw_text
-        
+
         # Monthly rent
         rent_patterns = [
             r'(?:monthly\s+)?rent[:\s]+\$?\s*([\d,]+(?:\.\d{2})?)',
             r'\$\s*([\d,]+(?:\.\d{2})?)\s*(?:per\s+month|monthly|/\s*month)',
             r'rent\s+(?:of|is|was)\s+\$?\s*([\d,]+(?:\.\d{2})?)',
         ]
-        
+
         for pattern in rent_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
@@ -641,13 +643,13 @@ class FormFieldExtractor:
                         review_reason="Please verify rent amount",
                     )
                     break
-        
+
         # Security deposit
         deposit_patterns = [
             r'security\s+deposit[:\s]+\$?\s*([\d,]+(?:\.\d{2})?)',
             r'\$\s*([\d,]+(?:\.\d{2})?)\s*(?:security\s+)?deposit',
         ]
-        
+
         for pattern in deposit_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
@@ -661,17 +663,17 @@ class FormFieldExtractor:
                         source_text=match.group(0),
                     )
                     break
-    
+
     def _extract_dates(self):
         """Extract important dates."""
         text = self.raw_text
-        
+
         # Date patterns
         date_patterns = [
             (r'(\d{1,2})[/-](\d{1,2})[/-](\d{4})', 'mdy'),
             (r'(\d{4})[/-](\d{1,2})[/-](\d{1,2})', 'ymd'),
         ]
-        
+
         month_names = {
             'january': 1, 'february': 2, 'march': 3, 'april': 4,
             'may': 5, 'june': 6, 'july': 7, 'august': 8,
@@ -679,10 +681,10 @@ class FormFieldExtractor:
             'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'jun': 6, 'jul': 7,
             'aug': 8, 'sep': 9, 'sept': 9, 'oct': 10, 'nov': 11, 'dec': 12,
         }
-        
+
         # Find all dates with context
         dates_found = []
-        
+
         # Pattern: Month DD, YYYY
         for match in re.finditer(
             r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})',
@@ -692,13 +694,13 @@ class FormFieldExtractor:
                 month = month_names[match.group(1).lower()]
                 day = int(match.group(2))
                 year = int(match.group(3))
-                dt = datetime(year, month, day)
-                
+                dt = datetime(year, month, day, tzinfo=UTC)
+
                 # Get context
                 start = max(0, match.start() - 80)
                 end = min(len(text), match.end() + 20)
                 context = text[start:end].lower()
-                
+
                 dates_found.append({
                     'date': dt,
                     'text': match.group(0),
@@ -706,7 +708,7 @@ class FormFieldExtractor:
                 })
             except (ValueError, KeyError):
                 continue
-        
+
         # Pattern: MM/DD/YYYY
         for match in re.finditer(r'(\d{1,2})[/-](\d{1,2})[/-](\d{4})', text):
             try:
@@ -714,12 +716,12 @@ class FormFieldExtractor:
                 day = int(match.group(2))
                 year = int(match.group(3))
                 if 1 <= month <= 12 and 1 <= day <= 31:
-                    dt = datetime(year, month, day)
-                    
+                    dt = datetime(year, month, day, tzinfo=UTC)
+
                     start = max(0, match.start() - 80)
                     end = min(len(text), match.end() + 20)
                     context = text[start:end].lower()
-                    
+
                     dates_found.append({
                         'date': dt,
                         'text': match.group(0),
@@ -727,13 +729,13 @@ class FormFieldExtractor:
                     })
             except ValueError:
                 continue
-        
+
         # Categorize dates by context
         for date_info in dates_found:
             context = date_info['context']
             dt = date_info['date']
             text_found = date_info['text']
-            
+
             if any(word in context for word in ['hearing', 'court date', 'appear', 'trial']):
                 if not self.result.hearing_date:
                     self.result.hearing_date = ExtractedField(
@@ -757,7 +759,7 @@ class FormFieldExtractor:
                             value=f"{hour:02d}:{minute:02d}",
                             confidence=FieldConfidence.HIGH,
                         )
-            
+
             elif any(word in context for word in ['summons', 'served', 'service']):
                 if not self.result.summons_date:
                     self.result.summons_date = ExtractedField(
@@ -767,7 +769,7 @@ class FormFieldExtractor:
                         confidence=FieldConfidence.MEDIUM,
                         source_text=text_found,
                     )
-            
+
             elif any(word in context for word in ['notice', 'vacate', 'quit', 'evict']):
                 if not self.result.notice_date:
                     self.result.notice_date = ExtractedField(
@@ -777,7 +779,7 @@ class FormFieldExtractor:
                         confidence=FieldConfidence.MEDIUM,
                         source_text=text_found,
                     )
-            
+
             elif any(word in context for word in ['answer', 'respond', 'deadline', 'due', 'must']):
                 if not self.result.answer_deadline:
                     self.result.answer_deadline = ExtractedField(
@@ -787,7 +789,7 @@ class FormFieldExtractor:
                         confidence=FieldConfidence.HIGH,
                         source_text=text_found,
                     )
-        
+
         # Calculate answer deadline if we have summons but no deadline
         if self.result.summons_date and not self.result.answer_deadline:
             try:
@@ -803,7 +805,7 @@ class FormFieldExtractor:
                 )
             except ValueError as e:
                 logger.warning(f"Calendar/deadline query failed: {e}")
-        
+
         # Notice type
         if '14' in text.lower() and 'day' in text.lower() and 'notice' in text.lower():
             self.result.notice_type = ExtractedField(
@@ -815,15 +817,15 @@ class FormFieldExtractor:
         elif '30' in text.lower() and 'day' in text.lower() and 'notice' in text.lower():
             self.result.notice_type = ExtractedField(
                 field_name="notice_type",
-                display_name="Notice Type", 
+                display_name="Notice Type",
                 value="30-day",
                 confidence=FieldConfidence.MEDIUM,
             )
-    
+
     def _extract_amounts(self):
         """Extract claimed amounts."""
         text = self.raw_text
-        
+
         # Amounts claimed
         claimed_patterns = [
             (r'(?:rent\s+)?(?:owed|due|owing|claimed)[:\s]+\$?\s*([\d,]+(?:\.\d{2})?)', 'rent_claimed'),
@@ -831,7 +833,7 @@ class FormFieldExtractor:
             (r'late\s+fees?[:\s]+\$?\s*([\d,]+(?:\.\d{2})?)', 'late_fees'),
             (r'total\s+(?:amount\s+)?(?:owed|due|claimed)[:\s]+\$?\s*([\d,]+(?:\.\d{2})?)', 'total'),
         ]
-        
+
         for pattern, field_type in claimed_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
@@ -861,13 +863,13 @@ class FormFieldExtractor:
                             confidence=FieldConfidence.MEDIUM,
                             source_text=match.group(0),
                         )
-    
+
     def _calculate_confidence(self):
         """Calculate overall confidence score and count review items."""
         total_fields = 0
         confident_fields = 0
         review_count = 0
-        
+
         confidence_scores = {
             FieldConfidence.HIGH: 1.0,
             FieldConfidence.MEDIUM: 0.75,
@@ -875,7 +877,7 @@ class FormFieldExtractor:
             FieldConfidence.GUESS: 0.25,
             FieldConfidence.EMPTY: 0.0,
         }
-        
+
         for field_name in dir(self.result):
             if field_name.startswith('_'):
                 continue
@@ -885,13 +887,13 @@ class FormFieldExtractor:
                 confident_fields += confidence_scores.get(field_obj.confidence, 0)
                 if field_obj.needs_review:
                     review_count += 1
-        
+
         self.result.overall_confidence = confident_fields / total_fields if total_fields > 0 else 0
         self.result.fields_needing_review = review_count
 
 
 # Singleton extractor
-_extractor_instance: Optional[FormFieldExtractor] = None
+_extractor_instance: FormFieldExtractor | None = None
 
 
 def get_form_field_extractor() -> FormFieldExtractor:

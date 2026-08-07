@@ -12,19 +12,18 @@ Coordinates all automated analyses for full auto mode:
 Runs automatically on document upload when auto mode is enabled.
 """
 
-import logging
 import asyncio
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+import logging
+from typing import Any
 
-from app.core.event_bus import event_bus, EventType
-from app.services.timeline_builder import TimelineBuilder
-from app.services.calendar_service import CalendarService
-from app.services.legal_analysis_engine import LegalAnalysisEngine
-from app.services.complaint_wizard import ComplaintWizardService
-from app.services.proactive_tactics import ProactiveTacticsEngine
-from app.services.auto_mode_summary_service import AutoModeSummaryService
+from app.core.event_bus import EventType, event_bus
 from app.core.utc import utc_now
+from app.services.auto_mode_summary_service import AutoModeSummaryService
+from app.services.calendar_service import CalendarService
+from app.services.complaint_wizard import ComplaintWizardService
+from app.services.legal_analysis_engine import LegalAnalysisEngine
+from app.services.proactive_tactics import ProactiveTacticsEngine
+from app.services.timeline_builder import TimelineBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -47,10 +46,10 @@ class AutoModeOrchestrator:
         doc_id: str,
         user_id: str,
         document_content: str,
-        document_metadata: Dict[str, Any],
+        document_metadata: dict[str, Any],
         db_session: Any = None,
         filename: str = "document"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run complete automated analysis on a document with full summary and recommendations.
         """
@@ -169,7 +168,7 @@ class AutoModeOrchestrator:
         """Check if auto mode is enabled for user."""
         return True
 
-    def _extract_complaint_keywords(self, text: str) -> List[str]:
+    def _extract_complaint_keywords(self, text: str) -> list[str]:
         """Extract keywords that might indicate complaint-worthy issues."""
         keywords = []
         text_lower = text.lower()

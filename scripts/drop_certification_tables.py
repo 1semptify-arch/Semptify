@@ -16,10 +16,12 @@ Safe to re-run — checks if table exists before dropping.
 """
 import asyncio
 import sys
+
 sys.path.insert(0, '.')
 
-from app.core.database import get_engine
 from sqlalchemy import text
+
+from app.core.database import get_engine
 
 
 async def drop_certification_tables():

@@ -7,7 +7,6 @@ basic graph statistics, and simple PNG/SVG visualization.
 
 import base64
 import io
-import json
 import math
 from collections import defaultdict, deque
 from dataclasses import dataclass, field

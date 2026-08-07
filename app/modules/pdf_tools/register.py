@@ -6,7 +6,6 @@ extraction, text extraction, split, merge, rotate, and thumbnails.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="pdf_tools",
     group_name="pdf_tools_test",

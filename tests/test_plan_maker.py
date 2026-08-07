@@ -9,20 +9,21 @@ Covers:
 """
 
 import json
-import pytest
+
 from fastapi.testclient import TestClient
-from app.main import app
+
 from app.core.cookie_auth import sign_user_id
+from app.main import app
 from app.services.plan_maker_service import (
-    create_plan,
-    add_entity,
-    add_evidence,
-    add_next_step,
-    mark_step_complete,
-    plan_from_dict,
     EntityRecord,
     EvidenceItem,
     NextStep,
+    add_entity,
+    add_evidence,
+    add_next_step,
+    create_plan,
+    mark_step_complete,
+    plan_from_dict,
 )
 
 client = TestClient(app)

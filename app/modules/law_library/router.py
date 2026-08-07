@@ -6,16 +6,15 @@ Minnesota Tenant Rights, Statutes, Case Law, and Court Rules.
 # Migrated from app/routers/law_library.py into the law_library SDK module.
 # All imports remain absolute since law_library is a CORE module.
 
+import logging
 import pathlib
-from typing import Optional, List
-from fastapi import APIRouter, Query, HTTPException, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from datetime import datetime
 
-from app.core.security import require_user, StorageUser, green_access
 from app.core.capabilities import require_capability
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -49,18 +48,18 @@ class LawReference(BaseModel):
     title: str
     citation: str
     category: str
-    subcategory: Optional[str] = None
+    subcategory: str | None = None
     full_text: str
     summary: str
-    key_points: List[str]
-    related_forms: List[str] = []
-    effective_date: Optional[str] = None
-    last_updated: Optional[str] = None
+    key_points: list[str]
+    related_forms: list[str] = []
+    effective_date: str | None = None
+    last_updated: str | None = None
     # Official source link (injected from law_source_registry)
-    official_url: Optional[str] = None
-    source_name: Optional[str] = None
-    last_verified: Optional[str] = None
-    jurisdiction: Optional[str] = None
+    official_url: str | None = None
+    source_name: str | None = None
+    last_verified: str | None = None
+    jurisdiction: str | None = None
 
 
 class CaseReference(BaseModel):
@@ -73,12 +72,12 @@ class CaseReference(BaseModel):
     summary: str
     holding: str
     relevance: str
-    key_quotes: List[str] = []
+    key_quotes: list[str] = []
     # Official source link (injected from law_source_registry)
-    official_url: Optional[str] = None
-    source_name: Optional[str] = None
-    last_verified: Optional[str] = None
-    jurisdiction: Optional[str] = None
+    official_url: str | None = None
+    source_name: str | None = None
+    last_verified: str | None = None
+    jurisdiction: str | None = None
 
 
 class CourtRule(BaseModel):
@@ -89,21 +88,21 @@ class CourtRule(BaseModel):
     category: str
     full_text: str
     summary: str
-    practical_tips: List[str] = []
+    practical_tips: list[str] = []
     # Official source link (injected from law_source_registry)
-    official_url: Optional[str] = None
-    source_name: Optional[str] = None
-    last_verified: Optional[str] = None
-    jurisdiction: Optional[str] = None
+    official_url: str | None = None
+    source_name: str | None = None
+    last_verified: str | None = None
+    jurisdiction: str | None = None
 
 
 class LibrarianResponse(BaseModel):
     """AI Librarian response to a query."""
     query: str
     answer: str
-    sources: List[dict]
-    related_topics: List[str]
-    suggested_actions: List[str]
+    sources: list[dict]
+    related_topics: list[str]
+    suggested_actions: list[str]
 
 
 # =============================================================================
@@ -1518,7 +1517,7 @@ CASE_LAW_DATABASE = [
 # =============================================================================
 # Inject official source URLs from the law_source_registry (SSOT)
 # =============================================================================
-from app.core.law_source_registry import enrich_law_entry, resolve_source, build_official_url
+from app.core.law_source_registry import build_official_url, enrich_law_entry, resolve_source
 
 for _law_id, _law_entry in ALL_LAWS.items():
     enrich_law_entry(_law_entry)
@@ -1544,21 +1543,21 @@ for _rule_id, _rule_entry in DAKOTA_COUNTY_RULES.items():
 
 @router.get("/statutes")
 async def list_statutes(
-    category: Optional[str] = Query(None, description="Filter by category"),
-    search: Optional[str] = Query(None, description="Search in title and summary")
+    category: str | None = Query(None, description="Filter by category"),
+    search: str | None = Query(None, description="Search in title and summary")
 ):
     """List all available statutes and laws including Federal and ADA."""
     laws = list(ALL_LAWS.values())
 
     if category:
         laws = [l for l in laws if l.get("category") == category]
-    
+
     if search:
         search_lower = search.lower()
-        laws = [l for l in laws if 
-                search_lower in l.get("title", "").lower() or 
+        laws = [l for l in laws if
+                search_lower in l.get("title", "").lower() or
                 search_lower in l.get("summary", "").lower()]
-    
+
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "last_verified": LAST_VERIFIED_DATE,
@@ -1579,17 +1578,17 @@ async def get_statute(
         "last_verified": LAST_VERIFIED_DATE,
         "statute": LawReference(**ALL_LAWS[statute_id])
     }
-    
+
 @router.get("/court-rules")
 async def list_court_rules(
-    category: Optional[str] = Query(None, description="Filter by category")
+    category: str | None = Query(None, description="Filter by category")
 ):
     """List all court rules for Dakota County."""
     rules = list(DAKOTA_COUNTY_RULES.values())
-    
+
     if category:
         rules = [r for r in rules if r.get("category") == category]
-    
+
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "note": "These are practical guidelines based on court rules. Always verify current procedures with the court clerk.",
@@ -1604,7 +1603,7 @@ async def get_court_rule(
     """Get a specific court rule."""
     if rule_id not in DAKOTA_COUNTY_RULES:
         raise HTTPException(status_code=404, detail="Court rule not found")
-    
+
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "note": "Practical guideline - verify current procedures with court clerk.",
@@ -1614,17 +1613,17 @@ async def get_court_rule(
 
 @router.get("/case-law")
 async def list_case_law(
-    search: Optional[str] = Query(None, description="Search in case name and summary")
+    search: str | None = Query(None, description="Search in case name and summary")
 ):
     """List relevant case law."""
     cases = CASE_LAW_DATABASE
-    
+
     if search:
         search_lower = search.lower()
-        cases = [c for c in cases if 
-                 search_lower in c.get("case_name", "").lower() or 
+        cases = [c for c in cases if
+                 search_lower in c.get("case_name", "").lower() or
                  search_lower in c.get("summary", "").lower()]
-    
+
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "cases": [CaseReference(**case) for case in cases]
@@ -1642,7 +1641,7 @@ async def get_case(
                 "disclaimer": LEGAL_DISCLAIMER,
                 "case": CaseReference(**case)
             }
-    
+
     raise HTTPException(status_code=404, detail="Case not found")
 
 
@@ -1765,8 +1764,8 @@ async def list_categories():
 class LibrarianQuery(BaseModel):
     """Query for the AI librarian."""
     question: str
-    context: Optional[str] = None
-    case_type: Optional[str] = "eviction"
+    context: str | None = None
+    case_type: str | None = "eviction"
 
 
 @router.post("/librarian/ask", response_model=LibrarianResponse)
@@ -1783,13 +1782,13 @@ async def ask_librarian(
     - Suggested next actions
     """
     question_lower = query.question.lower()
-    
+
     # Simple keyword-based response system (would be AI-powered in production)
     sources = []
     answer = ""
     related_topics = []
     suggested_actions = []
-    
+
     if "evict" in question_lower or "eviction" in question_lower:
         sources = [
             {"type": "statute", "id": "minn_stat_504b_321", "title": "Eviction Procedures"},
@@ -1814,7 +1813,7 @@ async def ask_librarian(
    - Right to request a jury trial
    - Right to raise defenses and counterclaims
    - Right to request expungement of records"""
-        
+
         related_topics = ["Defenses to Eviction", "Counterclaims", "Jury Trial Rights", "Expungement"]
         suggested_actions = [
             "File your Answer within 7 days",
@@ -1822,7 +1821,7 @@ async def ask_librarian(
             "Gather evidence of any landlord violations",
             "Document all communications"
         ]
-    
+
     elif "security deposit" in question_lower or "deposit" in question_lower:
         sources = [
             {"type": "statute", "id": "minn_stat_504b_375", "title": "Security Deposits"}
@@ -1841,7 +1840,7 @@ async def ask_librarian(
    - Attorney's fees
 
 5. **Interest**: For deposits over $2,000, you may be entitled to interest."""
-        
+
         related_topics = ["Small Claims Court", "Normal Wear and Tear", "Move-Out Inspection"]
         suggested_actions = [
             "Send written demand for deposit return",
@@ -1849,7 +1848,7 @@ async def ask_librarian(
             "Consider small claims court if not returned",
             "Keep copies of all correspondence"
         ]
-    
+
     elif "habitability" in question_lower or "repairs" in question_lower or "maintenance" in question_lower:
         sources = [
             {"type": "statute", "id": "minn_stat_504b_211", "title": "Habitability Requirements"}
@@ -1869,7 +1868,7 @@ async def ask_librarian(
    - **Report to Inspectors**: Contact city housing inspection
 
 3. **Documentation**: Always document issues with photos/video and written complaints."""
-        
+
         related_topics = ["Rent Escrow", "Code Violations", "Constructive Eviction"]
         suggested_actions = [
             "Document all maintenance issues with photos",
@@ -2261,7 +2260,7 @@ Please ask a specific question about any of these topics!"""
 
         related_topics = ["Eviction Defense", "Security Deposits", "Habitability", "Fair Housing", "ADA", "VAWA", "Tax Laws", "Real Estate", "Business Law"]
         suggested_actions = ["Ask a specific question about your situation"]
-    
+
     return LibrarianResponse(
         query=query.question,
         answer=answer,
@@ -2320,10 +2319,10 @@ async def get_quick_reference(
             ]
         }
     }
-    
+
     if topic not in quick_refs:
         raise HTTPException(status_code=404, detail="Quick reference not found")
-    
+
     return quick_refs[topic]
 
 

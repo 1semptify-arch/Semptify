@@ -10,7 +10,7 @@ Tests file structure, integration, and configuration without requiring server.
 import os
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 class VaultSystemValidator:
     """Validate vault system implementation"""
@@ -21,7 +21,7 @@ class VaultSystemValidator:
     def log_validation(self, test_name, success, message, details=None):
         """Log validation result"""
         status = "✅ PASS" if success else "❌ FAIL"
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
         
         result = {
             "test": test_name,
@@ -536,7 +536,7 @@ class VaultSystemValidator:
     def generate_report(self):
         """Generate validation report"""
         report = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_validations": len(self.validation_results),
             "passed_validations": len([r for r in self.validation_results if "PASS" in r["status"]]),
             "validation_results": self.validation_results

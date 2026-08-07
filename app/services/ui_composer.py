@@ -35,12 +35,12 @@ from __future__ import annotations
 
 import logging
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def _modal_data() -> Dict[str, Any]:
+def _modal_data() -> dict[str, Any]:
     """Shared data for the Add Record modal (pre-fills today's date)."""
     return {"today": date.today().isoformat()}
 
@@ -78,14 +78,14 @@ PILLAR_RECORD = "RECORD"
 PILLAR_KNOW = "KNOW"
 
 
-def _component(ctype: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _component(ctype: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build a component dict. Validates type against COMPONENT_TYPES."""
     if ctype not in COMPONENT_TYPES:
         raise ValueError(f"Unknown component type: {ctype}. Valid: {sorted(COMPONENT_TYPES)}")
     return {"type": ctype, "data": data or {}}
 
 
-def _get_user_context(user_id: str) -> Dict[str, Any]:
+def _get_user_context(user_id: str) -> dict[str, Any]:
     """Get user context from the Context Loop.
 
     Falls back to empty context if Context Loop is unavailable — the UI Composer
@@ -102,7 +102,7 @@ def _get_user_context(user_id: str) -> Dict[str, Any]:
         return {}
 
 
-def _get_resolved_modules(user_id: str, role: str = "tenant") -> List[str]:
+def _get_resolved_modules(user_id: str, role: str = "tenant") -> list[str]:
     """Get the list of module paths the user can see.
 
     Falls back to empty list if Module Resolver is unavailable.
@@ -117,7 +117,7 @@ def _get_resolved_modules(user_id: str, role: str = "tenant") -> List[str]:
         return []
 
 
-def _is_new_user(context: Dict[str, Any]) -> bool:
+def _is_new_user(context: dict[str, Any]) -> bool:
     """Heuristic: a user is 'new' if they have ≤1 document and no urgency."""
     doc_count = context.get("document_count", 0)
     intensity = context.get("intensity", 0)
@@ -127,8 +127,8 @@ def _is_new_user(context: Dict[str, Any]) -> bool:
 def compose_page(
     user_id: str,
     page_intent: str,
-    context: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Compose a page as a list of components.
 
     Args:
@@ -171,7 +171,7 @@ def compose_page(
     raise ValueError(f"Unhandled page intent: {page_intent}")
 
 
-def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_landing(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the landing page for a new or returning user.
 
     New user (≤1 doc, low intensity):
@@ -180,7 +180,7 @@ def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     Returning user:
         stat_badges + prompt_card + add_record_button
     """
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     if _is_new_user(ctx):
         components.append(_component("welcome_message", {
@@ -222,7 +222,7 @@ def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_timeline(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the RECORD pillar — timeline of everything.
 
     Components:
@@ -232,7 +232,7 @@ def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     For Phase 1A, we emit the structure with empty data — the router will
     enrich with real feed data when available.
     """
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     # Stat badges in timeline header
     components.append(_component("stat_badge", {
@@ -276,7 +276,7 @@ def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_library(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the KNOW pillar — library of verified facts.
 
     Components:
@@ -306,7 +306,7 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
         "timeline": "◆",
     }
 
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     selected_subject = ctx.get("subject")
     if selected_subject and selected_subject in ALL_SUBJECTS:
@@ -365,9 +365,9 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_documents(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_documents(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the documents page — document vault grid."""
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     components.append(_component("stat_badge", {
         "label": "Total documents",
@@ -402,9 +402,9 @@ def _compose_documents(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_tools(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_tools(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose the tools page — deadline tracker + letter generators."""
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     components.append(_component("prompt_card", {
         "title": "Deadlines",
@@ -429,9 +429,9 @@ def _compose_tools(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _compose_workflow_step(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _compose_workflow_step(user_id: str, ctx: dict[str, Any]) -> dict[str, Any]:
     """Compose a single workflow step view with a process indicator."""
-    components: List[Dict[str, Any]] = []
+    components: list[dict[str, Any]] = []
 
     workflow_id = ctx.get("workflow_id", "")
     step_label = ctx.get("step_label", "Working...")
@@ -452,7 +452,7 @@ def _compose_workflow_step(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def render_fragment(component_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+def render_fragment(component_type: str, data: dict[str, Any]) -> dict[str, Any]:
     """Render a single component as a fragment (for HTMX swaps).
 
     Returns the component dict — the router will render it via Jinja.
@@ -470,7 +470,7 @@ def render_fragment(component_type: str, data: Dict[str, Any]) -> Dict[str, Any]
     return _component(component_type, data)
 
 
-def get_process_status(workflow_id: str) -> Dict[str, Any]:
+def get_process_status(workflow_id: str) -> dict[str, Any]:
     """Get the current status of a workflow for the process indicator.
 
     Reads from the Positronic Mesh if available. Falls back to a

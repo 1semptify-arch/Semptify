@@ -4,10 +4,10 @@ Semptify SDK - Complaints Client
 Handles complaint filing, management, and tracking with regulatory agencies.
 """
 
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
+from typing import Any
 
 from .base import BaseClient
 
@@ -41,14 +41,14 @@ class Complaint:
     complaint_type: str
     status: str
     title: str
-    description: Optional[str] = None
-    agency: Optional[str] = None
-    agency_case_number: Optional[str] = None
-    filed_date: Optional[date] = None
-    last_updated: Optional[datetime] = None
-    violations: List[str] = None
-    documents: List[str] = None
-    
+    description: str | None = None
+    agency: str | None = None
+    agency_case_number: str | None = None
+    filed_date: date | None = None
+    last_updated: datetime | None = None
+    violations: list[str] = None
+    documents: list[str] = None
+
     def __post_init__(self):
         if self.violations is None:
             self.violations = []
@@ -63,8 +63,8 @@ class ComplaintTemplate:
     name: str
     description: str
     agency_type: str
-    required_fields: List[str]
-    optional_fields: List[str]
+    required_fields: list[str]
+    optional_fields: list[str]
     instructions: str
 
 
@@ -75,24 +75,24 @@ class Agency:
     name: str
     agency_type: str
     jurisdiction: str
-    contact_info: Dict[str, str]
-    filing_methods: List[str]
-    estimated_response_time: Optional[str] = None
+    contact_info: dict[str, str]
+    filing_methods: list[str]
+    estimated_response_time: str | None = None
 
 
 class ComplaintClient(BaseClient):
     """Client for complaint filing and management."""
-    
+
     def create(
         self,
         complaint_type: str,
         title: str,
         description: str,
-        violations: List[str],
-        agency: Optional[str] = None,
-        property_address: Optional[str] = None,
-        landlord_info: Optional[Dict[str, str]] = None,
-        incident_dates: Optional[List[str]] = None,
+        violations: list[str],
+        agency: str | None = None,
+        property_address: str | None = None,
+        landlord_info: dict[str, str] | None = None,
+        incident_dates: list[str] | None = None,
     ) -> Complaint:
         """
         Create a new complaint.
@@ -116,7 +116,7 @@ class ComplaintClient(BaseClient):
             "description": description,
             "violations": violations,
         }
-        
+
         if agency:
             data["agency"] = agency
         if property_address:
@@ -125,9 +125,9 @@ class ComplaintClient(BaseClient):
             data["landlord_info"] = landlord_info
         if incident_dates:
             data["incident_dates"] = incident_dates
-        
+
         response = self.post("/api/complaints", json=data)
-        
+
         return Complaint(
             id=response.get("id", ""),
             complaint_type=response.get("complaint_type", complaint_type),
@@ -137,7 +137,7 @@ class ComplaintClient(BaseClient):
             agency=response.get("agency"),
             violations=response.get("violations", violations),
         )
-    
+
     def get_complaint(self, complaint_id: str) -> Complaint:
         """
         Get a complaint by ID.
@@ -149,7 +149,7 @@ class ComplaintClient(BaseClient):
             Complaint details
         """
         response = self.get(f"/api/complaints/{complaint_id}")
-        
+
         return Complaint(
             id=response.get("id", complaint_id),
             complaint_type=response.get("complaint_type", ""),
@@ -162,13 +162,13 @@ class ComplaintClient(BaseClient):
             violations=response.get("violations", []),
             documents=response.get("documents", []),
         )
-    
+
     def list_complaints(
         self,
-        status: Optional[str] = None,
-        complaint_type: Optional[str] = None,
+        status: str | None = None,
+        complaint_type: str | None = None,
         limit: int = 50,
-    ) -> List[Complaint]:
+    ) -> list[Complaint]:
         """
         List complaints.
         
@@ -185,10 +185,10 @@ class ComplaintClient(BaseClient):
             params["status"] = status
         if complaint_type:
             params["complaint_type"] = complaint_type
-        
+
         response = self.get("/api/complaints", params=params)
         complaints = response if isinstance(response, list) else response.get("complaints", [])
-        
+
         return [
             Complaint(
                 id=c.get("id", ""),
@@ -200,14 +200,14 @@ class ComplaintClient(BaseClient):
             )
             for c in complaints
         ]
-    
+
     def update(
         self,
         complaint_id: str,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        violations: Optional[List[str]] = None,
-        status: Optional[str] = None,
+        title: str | None = None,
+        description: str | None = None,
+        violations: list[str] | None = None,
+        status: str | None = None,
     ) -> Complaint:
         """
         Update a complaint.
@@ -231,9 +231,9 @@ class ComplaintClient(BaseClient):
             data["violations"] = violations
         if status:
             data["status"] = status
-        
+
         response = self.patch(f"/api/complaints/{complaint_id}", json=data)
-        
+
         return Complaint(
             id=response.get("id", complaint_id),
             complaint_type=response.get("complaint_type", ""),
@@ -242,8 +242,8 @@ class ComplaintClient(BaseClient):
             description=response.get("description", description),
             violations=response.get("violations", violations or []),
         )
-    
-    def submit(self, complaint_id: str, agency: str) -> Dict[str, Any]:
+
+    def submit(self, complaint_id: str, agency: str) -> dict[str, Any]:
         """
         Submit a complaint to a regulatory agency.
         
@@ -258,7 +258,7 @@ class ComplaintClient(BaseClient):
             f"/api/complaints/{complaint_id}/submit",
             json={"agency": agency},
         )
-    
+
     def add_document(self, complaint_id: str, document_id: str) -> bool:
         """
         Add a document to a complaint.
@@ -275,12 +275,12 @@ class ComplaintClient(BaseClient):
             json={"document_id": document_id},
         )
         return True
-    
+
     def get_templates(
         self,
-        agency_type: Optional[str] = None,
-        complaint_type: Optional[str] = None,
-    ) -> List[ComplaintTemplate]:
+        agency_type: str | None = None,
+        complaint_type: str | None = None,
+    ) -> list[ComplaintTemplate]:
         """
         Get available complaint templates.
         
@@ -296,10 +296,10 @@ class ComplaintClient(BaseClient):
             params["agency_type"] = agency_type
         if complaint_type:
             params["complaint_type"] = complaint_type
-        
+
         response = self.get("/api/complaints/templates", params=params)
         templates = response if isinstance(response, list) else response.get("templates", [])
-        
+
         return [
             ComplaintTemplate(
                 id=t.get("id", ""),
@@ -312,12 +312,12 @@ class ComplaintClient(BaseClient):
             )
             for t in templates
         ]
-    
+
     def get_agencies(
         self,
-        jurisdiction: Optional[str] = None,
-        agency_type: Optional[str] = None,
-    ) -> List[Agency]:
+        jurisdiction: str | None = None,
+        agency_type: str | None = None,
+    ) -> list[Agency]:
         """
         Get list of regulatory agencies.
         
@@ -333,10 +333,10 @@ class ComplaintClient(BaseClient):
             params["jurisdiction"] = jurisdiction
         if agency_type:
             params["agency_type"] = agency_type
-        
+
         response = self.get("/api/complaints/agencies", params=params)
         agencies = response if isinstance(response, list) else response.get("agencies", [])
-        
+
         return [
             Agency(
                 id=a.get("id", ""),
@@ -349,7 +349,7 @@ class ComplaintClient(BaseClient):
             )
             for a in agencies
         ]
-    
+
     def delete_complaint(self, complaint_id: str) -> bool:
         """
         Delete a complaint.
@@ -362,7 +362,7 @@ class ComplaintClient(BaseClient):
         """
         self.delete(f"/api/complaints/{complaint_id}")
         return True
-    
+
     def generate_pdf(self, complaint_id: str) -> bytes:
         """
         Generate a PDF version of the complaint.
