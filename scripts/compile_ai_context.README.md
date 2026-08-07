@@ -54,7 +54,7 @@ Defined in `TARGET_DOCS` near the top of the script. Current list:
 | Path | Status |
 |------|--------|
 | `Semptify_AI_Orchestration_Blueprint.md` | merged |
-| `Semptify_Site_GUI_Framework.md` | **needs path fix** — actually lives at `DOCUMENTS/Semptify_Site_GUI_Framework.md` |
+| `docs/admin/Semptify_Site_GUI_Framework.md` | **needs path fix** — actually lives at `DOCUMENTS/Semptify_Site_GUI_Framework.md` |
 | `.devin/workflows/preflight.md` | merged |
 | `ACTIVE_CONTEXT.md` | merged |
 | `BUILD_STATE.md` | merged |

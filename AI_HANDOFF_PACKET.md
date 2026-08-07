@@ -203,7 +203,7 @@ No named roles beyond "you" exist yet. If the housing worker's office becomes re
 
 ---
 
-## SOURCE FILE: docs/Semptify_Site_GUI_Framework.md
+## SOURCE FILE: docs/admin/Semptify_Site_GUI_Framework.md
 
 # Semptify — Website & GUI Framework
 **Core Promise:** *Help tenants with tools and information to uphold tenant rights as a renter — in court if it goes that far, hopefully it won't.*
@@ -758,7 +758,7 @@ Focusing on the tenant-facing GUI. The `/gui/*` four-pillar navigation is in pla
 | # | Project | Design Doc | Status | Blocked By |
 |---|---------|------------|--------|------------|
 | 1 | **UPL guardrail wiring** — add `upl_risk_tier` to `ModuleEntry`, register 8 modules with tiers | `app/core/upl_guardrails.py` | ✅ Complete 2026-07-10 | — |
-| 2 | **GUI Phase 1 — Four-pillar interface** | `Semptify_Site_GUI_Framework.md` + `Semptify_Master_Inventory_LIVE.xlsx` | 🅿️ Next priority | — |
+| 2 | **GUI Phase 1 — Four-pillar interface** | `docs/admin/Semptify_Site_GUI_Framework.md` + `Semptify_Master_Inventory_LIVE.xlsx` | 🅿️ Next priority | — |
 | 3 | **Document Center planning** | `docs/planning/DOCUMENT_CENTER_PLAN.md` | 🅿️ Pending | — |
 | 4 | **Attorney Intake Packet** (parallel branch) | `feature/attorney-intake-packet` | 🅿️ In progress (uncommitted) | User review of scaffold |
 
@@ -766,7 +766,7 @@ Focusing on the tenant-facing GUI. The `/gui/*` four-pillar navigation is in pla
 All 13 retrofittable pages now use `SemptifyFeedback.*` directly. No `alert()` fallbacks remain. Helper is globally loaded via `feedback.js` in `base.html`.
 
 ### GUI Phase 1 — Four-Pillar Interface Model
-The user-facing GUI is now organized around the four-pillar model defined in `Semptify_Site_GUI_Framework.md`:
+The user-facing GUI is now organized around the four-pillar model defined in `docs/admin/Semptify_Site_GUI_Framework.md`:
 - **RECORD** — capture and organize evidence (Vault, Timeline, Document Center, Calendar, Journal, Comms Log, Rent Ledger, PDF Tools)
 - **KNOW** — facts only, no opinions (Library, State Laws, Context Engine, RISC, Court Case Lookup, Search)
 - **ACT** — lawful, guided action (Case Builder, Eviction Defense, Court Forms, Complaint Wizard, Plan Maker)
@@ -793,7 +793,7 @@ Design docs committed this session in `docs/planning/`:
 
 | Date | Decision | Reason |
 |------|----------|--------|
-| 2026-07-10 | ✅ Superseded 2026-06-28 GUI vision (Journal/Calendar/Timeline) with four-pillar model (RECORD/KNOW/ACT/GOVERN) | Framework formalized across a full planning session; GUI Screens 1-3 (nav shell, home, record) already shipped under new model. See `Semptify_Site_GUI_Framework.md` for the canonical pillar definitions. |
+| 2026-07-10 | ✅ Superseded 2026-06-28 GUI vision (Journal/Calendar/Timeline) with four-pillar model (RECORD/KNOW/ACT/GOVERN) | Framework formalized across a full planning session; GUI Screens 1-3 (nav shell, home, record) already shipped under new model. See `docs/admin/Semptify_Site_GUI_Framework.md` for the canonical pillar definitions. |
 | 2026-06-30 AM | ✅ Action Feedback helper retrofit complete | 13 pages retrofitted. All `alert()` fallbacks removed. `SemptifyFeedback` is globally loaded, so `if (window.SemptifyFeedback)` guards and `else { alert() }` branches were dead code. Also added success toast to journal save (was silently succeeding). |
 | 2026-06-29 PM | ✅ Repo cleanup — 108 obsolete docs archived | Reduce doc sprawl from 130+ to ~40 active docs. All obsolete docs moved to `archive/obsolete-2026-06-29/` with git history preserved. |
 | 2026-06-29 PM | ✅ Filedored overlay integration fixed | 3 callers now wire overlay_manager. Router signature bugs fixed. Commit `19d0860`. |
@@ -819,7 +819,7 @@ Design docs committed this session in `docs/planning/`:
 - **Status Audit**: `STATUS_AUDIT.md` — 2026-06-21 module snapshot
 - **Stub Audit**: `STUB_AUDIT.md` — 2026-06-19 TODO/stub inventory
 - **Action Feedback Audit**: `ACTION_FEEDBACK_AUDIT.md` — Phase 5b design
-- **GUI Framework**: `Semptify_Site_GUI_Framework.md` — canonical four-pillar model (RECORD/KNOW/ACT/GOVERN)
+- **GUI Framework**: `docs/admin/Semptify_Site_GUI_Framework.md` — canonical four-pillar model (RECORD/KNOW/ACT/GOVERN)
 - **Roadmap**: `ROADMAP_TO_PUBLIC_RELEASE.md`
 - **Blueprint**: `BLUEPRINT.md`
 - **System Manifest**: `SEMPTIFY_SYSTEM_MANIFEST.md` — module registry
@@ -1421,7 +1421,7 @@ All checks passed.
 - **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
 - **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
 - **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
-- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Manual**: `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
 - **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
@@ -3805,7 +3805,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **`app/templates/pages/admin.html`** — Added `admin_nav()` macro call with `ui_styles()`
 
 #### Interactive Admin Manual (COMPLETE)
-- **`docs/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
+- **`docs/admin/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
   - All admin pages (Dashboard, Function Browser, Contract Browser, Page Editor, Review Checklist)
   - Features, functions, settings, testing instructions per page
   - Troubleshooting guides with common issues and fixes
@@ -5854,7 +5854,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - All timestamp generation now uses Semptify standard
 
 2. **Enhanced Onboarding Flow with Vault Verification** — Complete end-to-end contracts
-   - Created comprehensive onboarding contracts document (`docs/onboarding-contracts.md`)
+   - Created comprehensive onboarding contracts document (`docs/admin/onboarding-contracts.md`)
    - Added vault verification APIs: `/api/vault/init`, `/api/vault/verify`
    - Enhanced onboarding completion validation with gate checks
    - Moved vault installation to dedicated vault-setup page with loading screen
@@ -6352,7 +6352,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - [x] **SSOT Fix** — `get_stage("onboarding_start")` → `get_onboarding_start()` (stage ID didn't exist)
 
 #### SSOT Documentation
-- [x] **`docs/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
+- [x] **`docs/admin/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
 
 #### Code Review
 - [x] **Verdict: APPROVE** — All changes clean, one SSOT violation caught and fixed during review

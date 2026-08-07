@@ -6,7 +6,7 @@ Automated markdown lint fixes across the repo. No logic changes.
 - Add language tags to fenced code blocks where inferrable.
 - Normalize table separator spacing and missing blank lines around blocks.
 - Add `.markdownlint-cli2.jsonc` config.
-- Resolve MD036/MD040 warnings in `Semptify_Site_GUI_Framework.md`.
+- Resolve MD036/MD040 warnings in `docs/admin/Semptify_Site_GUI_Framework.md`.
 - Remove one-off `fix_md_manual.py` script after the pass completed.
 
 **Scope:** 278 files changed, +10356 / -4431. Pure markdown formatting — whitespace, heading syntax, code fence language tags, table padding, blank lines around blocks. No source code, no templates, no config logic.
