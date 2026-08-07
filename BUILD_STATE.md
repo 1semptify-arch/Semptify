@@ -1846,7 +1846,7 @@ One or more checks failed — these are pre-existing issues in nested copies, no
   - Skip link as first focusable element.
   - `{% block container_class %}` so child pages can opt into `.gui-viewport-locked`.
   - Reduced-motion support.
-- Documented the convention in `Semptify_Site_GUI_Framework.md` section 10 (viewport-lock, function budget, Get help now, calm/alarm palette, plain language, accessibility).
+- Documented the convention in `docs/admin/Semptify_Site_GUI_Framework.md` section 10 (viewport-lock, function budget, Get help now, calm/alarm palette, plain language, accessibility).
 - Updated `ACTIVE_CONTEXT.md` to mark Task 1 complete.
 
 ### Known Working (4)
@@ -2278,11 +2278,11 @@ All checks passed.
 - **Added** `refreshFromFile()` and an explicit `lastLoadSource` tracker.
 - **Updated** `showHelpStatus()` to report whether the queue came from the project file, embedded JSON, or localStorage.
 - **Updated** the standalone UI instructions and Data-card hint to describe the file-first behavior.
-- **Updated** `docs/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
+- **Updated** `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` to match the new standalone loading behavior.
 
 ### Files Changed (3)
 - `tools/agent_orchestrator.html`
-- `docs/AGENT_ORCHESTRATOR_MANUAL.md`
+- `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md`
 - `BUILD_STATE.md` — this note
 
 ### Verification (47)
@@ -4305,7 +4305,7 @@ All checks passed.
 - **Admin UI**: `static/admin/agent_orchestrator.html` linked from the admin dashboard.
 - **Standalone UI**: `tools/agent_orchestrator.html` — no server needed, uses browser `localStorage`, works inside Windsurf preview.
 - **Workbook bridge**: `tools/workbook_bridge.py` reads `Semptify_Master_Inventory_LIVE_reviewed.xlsx` and produces `tools/agent_orchestrator_tasks.json` for import (155 stubs + 16 duplicates = 171 tasks).
-- **Manual**: `docs/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
+- **Manual**: `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` with quick-start, model heuristics, UI controls, and troubleshooting.
 - **Registration**: `app/core/product_manifest.py` and `app/main.py` updated so the module and admin page load automatically.
 - **Per-task preflight workflow**: `.devin/workflows/orchestrator_preflight.md` (and prompt mirror) — run preflight before every orchestrator dispatch.
 
@@ -6689,7 +6689,7 @@ Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check th
 - **`app/templates/pages/admin.html`** — Added `admin_nav()` macro call with `ui_styles()`
 
 #### Interactive Admin Manual (COMPLETE)
-- **`docs/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
+- **`docs/admin/ADMIN_MANUAL.md`** — Comprehensive admin documentation covering:
   - All admin pages (Dashboard, Function Browser, Contract Browser, Page Editor, Review Checklist)
   - Features, functions, settings, testing instructions per page
   - Troubleshooting guides with common issues and fixes
@@ -8738,7 +8738,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - All timestamp generation now uses Semptify standard
 
 2. **Enhanced Onboarding Flow with Vault Verification** — Complete end-to-end contracts
-   - Created comprehensive onboarding contracts document (`docs/onboarding-contracts.md`)
+   - Created comprehensive onboarding contracts document (`docs/admin/onboarding-contracts.md`)
    - Added vault verification APIs: `/api/vault/init`, `/api/vault/verify`
    - Enhanced onboarding completion validation with gate checks
    - Moved vault installation to dedicated vault-setup page with loading screen
@@ -9236,7 +9236,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 - [x] **SSOT Fix** — `get_stage("onboarding_start")` → `get_onboarding_start()` (stage ID didn't exist)
 
 #### SSOT Documentation
-- [x] **`docs/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
+- [x] **`docs/admin/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
 
 #### Code Review
 - [x] **Verdict: APPROVE** — All changes clean, one SSOT violation caught and fixed during review

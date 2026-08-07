@@ -176,7 +176,7 @@ These rules are baked into the prompt text so each agent sees them even when wor
 - `.pre-commit-config.yaml` — all local hooks now use `venv311/Scripts/python.exe` instead of bare `python`. Fixes Python 3.13 vs 3.11.9 mismatch that caused hook failures.
 - `.devin/workflows/orchestrator_preflight.md` — Step 3 rewritten. Port 8088 → 8000. Added `file://` option. Documented both UIs and the Import JSON button on admin.
 - `static/admin/agent_orchestrator.html` — added Data card with Import JSON, Export JSON, Clear all buttons. Added `importJson()`, `exportJson()`, `clearAll()` JS functions. Admin UI can now load `agent_orchestrator_tasks.json` via `/api/agent-orchestrator/batch`.
-- `docs/AGENT_ORCHESTRATOR_MANUAL.md` — this file. Full rewrite with 3-source pipeline, both UIs, troubleshooting, changelog.
+- `docs/admin/AGENT_ORCHESTRATOR_MANUAL.md` — this file. Full rewrite with 3-source pipeline, both UIs, troubleshooting, changelog.
 
 **Root causes fixed:**
 1. `sync_orchestrator.py` overwrote doc-sourced tasks because it only knew about workbook + stubs. Fix: added `docs_todos.json` as a third source with merge-by-id.

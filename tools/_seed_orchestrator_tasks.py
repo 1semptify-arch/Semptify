@@ -76,7 +76,7 @@ TASKS = [
     {
         "id": "todo-005",
         "title": "GUI Phase 1 - Four-pillar interface (Home/Record/Know/Act)",
-        "description": "Continue tenant-facing GUI. /gui/* four-pillar nav in place. know.html and act.html are real hubs. Next: integrate Calendar/Timeline, home-page dashboard cards. See Semptify_Site_GUI_Framework.md for canonical pillar definitions.",
+        "description": "Continue tenant-facing GUI. /gui/* four-pillar nav in place. know.html and act.html are real hubs. Next: integrate Calendar/Timeline, home-page dashboard cards. See docs/admin/Semptify_Site_GUI_Framework.md for canonical pillar definitions.",
         "category": "other",
         "target_model": "glm-5.2",
         "priority": "high",

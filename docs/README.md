@@ -102,21 +102,9 @@ building a parallel identity system.
 ## Current state (2026-08-06)
 
 - [x] Directory structure scaffolded.
-- [x] `doc-map.yaml` created with existing docs backfilled (mapped at their
-      current flat paths in `docs/`).
+- [x] `doc-map.yaml` created with existing docs mapped to code paths.
 - [x] ADR template + ADR 0001 (storage architecture split) created.
 - [x] Commit-tagged changelog hook — `tools/docs_changelog.py`.
 - [x] Staleness check script — `tools/docs_staleness_check.py` (21-day threshold).
 - [x] Recurring scheduler — `tools/recurring_scheduler.py` (runs staleness, changelog, and future OCR beta review on a weekly cadence).
-- [ ] Relocate existing flat docs into subdirs — follow-up (do NOT do this in
-      the same pass as the staleness mechanism; see Known Failure #17).
-
-## Follow-up: relocating existing flat docs
-
-Existing docs (`ADMIN_MANUAL.md`, `USER_GUIDE.md`, etc.) currently live flat in
-`docs/`. They are mapped in `doc-map.yaml` at those flat paths. The intended
-final layout is to move them into `admin/`, `user-guides/`, etc., but this must
-be a dedicated pass that updates every reference (template links, AGENTS.md
-pointers, etc.) and verifies the running app still resolves them — not a
-side effect of the staleness mechanism. A half-finished relocation committed
-overnight is worse than no relocation (Known Failure #17).
+- [x] Existing flat docs relocated into `admin/`, `user-guides/`, etc., with cross-references updated.

@@ -181,7 +181,7 @@ remain. Helper is globally loaded via `feedback.js` in `base.html`.
 
 ### GUI Phase 1 — Four-Pillar Interface Model
 The user-facing GUI is organized around the four-pillar model defined in
-`Semptify_Site_GUI_Framework.md`:
+`docs/admin/Semptify_Site_GUI_Framework.md`:
 - **RECORD** — capture and organize evidence (Vault, Timeline, Document Center, Calendar, Journal, Comms Log, Rent Ledger, PDF Tools)
 - **KNOW** — facts only, no opinions (Library, State Laws, Context Engine, RISC, Court Case Lookup, Search)
 - **ACT** — lawful, guided action (Case Builder, Eviction Defense, Court Forms, Complaint Wizard, Plan Maker)
@@ -218,7 +218,7 @@ to active priority, overriding the "no new features" rule for this scope only.
 |------|----------|--------|
 | 2026-07-26 | ✅ Log retention window set to 90 days rolling | Default recommended in `Semptify_TraumaInformed_UX_Admin_Spec.md`; balances operational troubleshooting needs against unbounded R2 storage growth. Task 4 admin/logging can now scope R2 lifecycle policy and async flush with a fixed window. |
 | 2026-07-25 | ✅ Master Handoff promoted to active priority (11 tasks: UX foundation, admin/logging, voice, i18n, media capture, contacts, redaction, import pipeline, resource directory) | User explicitly promoted `temp/Semptify_MASTER_HANDOFF.md` to active priority; recorded in this file. Anti-priority "no new features" temporarily lifted for this scope only. Three open decisions (retention, language list, redaction strategy) still need resolution before full scoping. |
-| 2026-07-10 | ✅ Superseded 2026-06-28 GUI vision (Journal/Calendar/Timeline) with four-pillar model (RECORD/KNOW/ACT/GOVERN) | Framework formalized across a full planning session; GUI Screens 1-3 (nav shell, home, record) already shipped under new model. See `Semptify_Site_GUI_Framework.md` for the canonical pillar definitions. |
+| 2026-07-10 | ✅ Superseded 2026-06-28 GUI vision (Journal/Calendar/Timeline) with four-pillar model (RECORD/KNOW/ACT/GOVERN) | Framework formalized across a full planning session; GUI Screens 1-3 (nav shell, home, record) already shipped under new model. See `docs/admin/Semptify_Site_GUI_Framework.md` for the canonical pillar definitions. |
 | 2026-06-30 AM | ✅ Action Feedback helper retrofit complete | 13 pages retrofitted. All `alert()` fallbacks removed. `SemptifyFeedback` is globally loaded, so `if (window.SemptifyFeedback)` guards and `else { alert() }` branches were dead code. Also added success toast to journal save (was silently succeeding). |
 | 2026-06-29 PM | ✅ Repo cleanup — 108 obsolete docs archived | Reduce doc sprawl from 130+ to ~40 active docs. All obsolete docs moved to `archive/obsolete-2026-06-29/` with git history preserved. |
 | 2026-06-29 PM | ✅ Filedored overlay integration fixed | 3 callers now wire overlay_manager. Router signature bugs fixed. Commit `19d0860`. |
@@ -244,7 +244,7 @@ to active priority, overriding the "no new features" rule for this scope only.
 - **Status Audit**: `STATUS_AUDIT.md` — 2026-06-21 module snapshot
 - **Stub Audit**: `STUB_AUDIT.md` — 2026-06-19 TODO/stub inventory
 - **Action Feedback Audit**: `ACTION_FEEDBACK_AUDIT.md` — Phase 5b design
-- **GUI Framework**: `Semptify_Site_GUI_Framework.md` — canonical four-pillar model (RECORD/KNOW/ACT/GOVERN)
+- **GUI Framework**: `docs/admin/Semptify_Site_GUI_Framework.md` — canonical four-pillar model (RECORD/KNOW/ACT/GOVERN)
 - **Roadmap**: `ROADMAP_TO_PUBLIC_RELEASE.md`
 - **Blueprint**: `BLUEPRINT.md`
 - **System Manifest**: `SEMPTIFY_SYSTEM_MANIFEST.md` — module registry
