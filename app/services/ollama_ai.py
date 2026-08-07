@@ -44,21 +44,11 @@ class OllamaAIService:
         self.model = getattr(settings, 'ollama_model', 'llama3.2')
         self._available: Optional[bool] = None
 
-    @property
-    def is_available(self) -> bool:
+    async def is_available(self) -> bool:
         """Check if Ollama is running."""
         if self._available is not None:
             return self._available
-        
-        try:
-            import httpx
-            with httpx.Client(timeout=2.0) as client:
-                r = client.get(f"{self.base_url}/api/tags")
-                self._available = r.status_code == 200
-        except Exception:
-            self._available = False
-        
-        return self._available
+        return await self.check_available()
 
     async def check_available(self) -> bool:
         """Async check if Ollama is running."""

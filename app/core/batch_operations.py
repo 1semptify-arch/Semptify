@@ -9,8 +9,9 @@ import logging
 import asyncio
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
+from app.core.websocket_manager import WebSocketMessage
 from typing import Dict, Any, List, Optional, Callable, Union
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, asdict
 from enum import Enum
 from collections import defaultdict
@@ -265,7 +266,7 @@ class BatchProcessor:
                         (avg_time * (total_ops - 1) + processing_time) / total_ops
                     )
             
-            logger.info(f"Completed batch operation {operation_id}")
+            logger.info(f"Completed batch operation {operation.operation_id}")
             
         except Exception as e:
             operation.status = BatchOperationStatus.FAILED

@@ -5,6 +5,7 @@ Data Export/Import API - GDPR Compliant Data Management
 Provides data export and import endpoints with GDPR compliance.
 """
 
+import asyncio
 import logging
 import os
 import tempfile

@@ -17,7 +17,9 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_db
 from app.core.security import require_user, StorageUser, red_access
 from .service import form_generator
 from app.core.event_bus import event_bus, EventType as BusEventType
@@ -109,6 +111,7 @@ async def list_defense_types():
 async def generate_form(
     request: FormGenerateRequest,
     user: StorageUser = Depends(red_access),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Generate a court form with auto-filled data.
@@ -186,12 +189,13 @@ async def generate_form(
         from app.core.overlay_types import OverlayType
         from app.models.unified_overlay_models import CreateOverlayRequest
         from app.services.unified_overlay_manager import UnifiedOverlayManager
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.auto_refresh import ensure_valid_token
         from app.services.storage import get_provider
         from app.core.user_id import get_provider_from_user_id
 
         provider_code = get_provider_from_user_id(user.user_id) or "google_drive"
-        token = await get_valid_token_for_user(user.user_id)
+        _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+        token = token_obj.access_token if token_obj else None
         if token:
             storage_provider = get_provider(provider_code, access_token=token)
             overlay_manager = UnifiedOverlayManager(storage_provider, user.user_id)

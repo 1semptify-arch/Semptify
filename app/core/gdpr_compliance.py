@@ -289,7 +289,7 @@ class GDPRComplianceManager:
                 if request.user_id in self.user_consents:
                     del self.user_consents[request.user_id]
                 
-                logger.info(f"Successfully processed GDPR deletion request {request_id}")
+                logger.info(f"Successfully processed GDPR deletion request {deletion_request_id}")
             
             return success
             
@@ -301,7 +301,7 @@ class GDPRComplianceManager:
         """Process data rectification request."""
         # This would typically require manual review
         # For now, just mark as completed with a note
-        logger.info(f"Rectification request {request_id} requires manual review")
+        logger.info(f"Rectification request {request.request_id} requires manual review")
         return True
     
     def _collect_user_data(self, user_id: str) -> Dict[str, Any]:

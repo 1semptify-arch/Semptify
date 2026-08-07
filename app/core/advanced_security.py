@@ -11,6 +11,7 @@ import pyotp
 import qrcode
 import io
 import base64
+from collections import defaultdict
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, asdict

@@ -18,7 +18,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.core.security import require_user, StorageUser, green_access
-from app.core.oauth_token_manager import get_valid_token_for_user
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -61,15 +60,21 @@ class ToolsSaveResponse(BaseModel):
 # Helpers
 # =============================================================================
 
-def _get_access_token(user: StorageUser) -> Optional[str]:
+async def _get_access_token(user: StorageUser) -> Optional[str]:
     """Resolve cloud storage access token for the authenticated user."""
     # Try user object first
     token = getattr(user, "access_token", None)
-    if token:
+    if token and token not in ("auto", "no-token"):
         return token
-    # Fall back to token manager
+    # Fall back to async token manager
     try:
-        return get_valid_token_for_user(user.user_id)
+        from app.core.auto_refresh import ensure_valid_token
+        from app.core.database import get_session_factory
+
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            return token_obj.access_token if token_obj else None
     except Exception:
         return None
 
@@ -92,7 +97,7 @@ async def _save_text_to_vault(
             message="Vault upload service is not available. Please try again later.",
         )
 
-    access_token = _get_access_token(user)
+    access_token = await _get_access_token(user)
     provider = "local"
     if user.user_id.startswith("G"):
         provider = "google_drive"

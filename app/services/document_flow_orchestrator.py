@@ -17,8 +17,9 @@ from pathlib import Path
 
 from app.core.event_bus import event_bus, EventType as BusEventType
 from app.services.auto_mode_orchestrator import AutoModeOrchestrator
-from app.services.document_intake import IntakeDocument
-from app.services.event_extractor import ExtractedEvent
+from app.services.document_intake import DocumentIntakeEngine, IntakeDocument
+from app.services.event_extractor import EventExtractor, ExtractedEvent
+from app.services.form_field_extractor import FormFieldExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class DocumentFlowOrchestrator:
     """
     
     def __init__(self):
-        self.intake_engine = IntakeEngine()
+        self.intake_engine = DocumentIntakeEngine()
         self.event_extractor = EventExtractor()
         self.form_extractor = FormFieldExtractor()
         self.auto_orchestrator = AutoModeOrchestrator()
