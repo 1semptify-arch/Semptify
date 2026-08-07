@@ -1,3 +1,45 @@
+## Session -- 2026-08-07 — Ship core/module/SDK updates and removed temp scaffolding
+
+### Overview
+
+Shipped a broad maintenance and routing pass across `app/core`, `app/modules`, `app/services`, `app/sdk`, and `app/models`. Removed three temporary scaffolding files. Core compile check passed; no Playwright run because no dev server was listening on port 8000.
+
+### Commits (in order)
+
+| Commit | Title | Files | Summary |
+|--------|-------|-------|---------|
+| `c24b4a86` | chore: ship session updates across core, modules, and SDK | 31 | Updates to core, module routers, services, SDK, models; removal of `OAUTH_STATE_FIX.py`, `_ll_part5.py`, `deploy_part1.py` |
+
+### What was shipped
+
+- **Core updates**: `advanced_security.py`, `batch_operations.py`, `data_deletion.py`, `gdpr_compliance.py`, `oauth_token_manager.py`, `offline_manager.py`.
+- **Main + models**: `main.py` routing/startup adjustments; `external_mappings.py` updates.
+- **Module routers**: `communication`, `core_system`, `court_forms`, `crawler`, `document_center`, `documents`, `export_import`, `filedored`, `intake`, `packet_builder/service.py`, `pdf_tools`, `tools_api`, `vault`, `voice`, `workflow`.
+- **Services & SDK**: `document_flow_orchestrator.py`, `duplicate_detection_service.py`, `eviction/case_builder.py`, `ollama_ai.py`, `sdk/generate_module.py`.
+- **Cleanup**: deleted `OAUTH_STATE_FIX.py`, `_ll_part5.py`, `deploy_part1.py`.
+
+### Verification
+
+- `python -m py_compile app/main.py app/core/navigation.py app/modules/vault/router.py app/modules/onboarding/router.py app/modules/documents/router.py app/services/vault_upload_service.py`: PASS
+- Playwright smoke suite: skipped (no server running on port 8000)
+
+### Known Working
+
+- Core files compile cleanly.
+- `main` branch pushed to origin with commit `c24b4a86`.
+
+### Known Broken / Pending
+
+- `app-semptify-fastapi` has unstaged changes in `tools/`, `legal_intel/`, `sdk/vault.py`, and `create_admin_module.py` that were not included in this ship (per workflow scope).
+- Playwright smoke tests not run; run them when a dev server is available.
+
+### Next Session
+
+- Decide whether to ship remaining `tools/`, `legal_intel/`, and root script changes.
+- Run full Playwright suite against a running server.
+
+---
+
 ## Session -- 2026-08-03 — Full 75-page Jinja2 conversion (4 commits, 65 new templates)
 
 ### Overview
