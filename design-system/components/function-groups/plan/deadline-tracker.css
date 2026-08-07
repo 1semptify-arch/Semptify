@@ -461,25 +461,25 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .deadline-controls {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .deadline-overview {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .deadline-item {
     flex-direction: column;
     gap: var(--space-sm);
   }
-  
+
   .deadline-item-actions {
     align-self: flex-end;
   }
-  
+
   .deadline-calendar-view {
     gap: var(--space-xs);
   }

@@ -1,7 +1,7 @@
 # PAGE AUDIT — Semptify GUI
 
-**Date:** 2026-06-22  
-**Auditor:** Cascade (AI) + User  
+**Date:** 2026-06-22
+**Auditor:** Cascade (AI) + User
 **Purpose:** Blueprint for GUI scaffolding redesign. Every page must justify its existence.
 
 ---

@@ -49,7 +49,7 @@ PILLAR_TO_SKELETON: dict[str, str] = {
 def skeleton_for(pillar: MajorPillar) -> str:
     """Return the skeleton name for a major_pillar. Raises on unknown."""
     if pillar not in PILLAR_TO_SKELETON:
-        raise ValueError(f"Unknown major_pillar '{pillar}'. " f"Must be one of {sorted(PILLAR_TO_SKELETON.keys())}")
+        raise ValueError(f"Unknown major_pillar '{pillar}'. Must be one of {sorted(PILLAR_TO_SKELETON.keys())}")
     return PILLAR_TO_SKELETON[pillar]
 
 

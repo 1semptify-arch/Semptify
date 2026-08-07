@@ -149,7 +149,9 @@ app/modules/your_module/
 ### Step 2 — Minimum required content for `router.py`
 ```python
 from fastapi import APIRouter
+
 router = APIRouter(prefix="/api/your_module", tags=["Your Module"])
+
 
 @router.get("/health")
 async def health():
@@ -162,6 +164,7 @@ from app.core.database import Base
 from sqlalchemy import Column, Integer, String
 # Use Base from Semptify — never create a new Base
 
+
 class YourModel(Base):
     __tablename__ = "your_module_table"
     id = Column(Integer, primary_key=True)
@@ -173,9 +176,9 @@ class YourModel(Base):
 _register(
     "app.modules.your_module.router",
     tags=("Your Module",),
-    tier=ProductTier.EXTENDED,   # or CORE, ADMIN, etc.
-    optional=True,               # ALWAYS True for new modules
-    log_message="Your Module loaded"
+    tier=ProductTier.EXTENDED,  # or CORE, ADMIN, etc.
+    optional=True,  # ALWAYS True for new modules
+    log_message="Your Module loaded",
 )
 ```
 

@@ -24,11 +24,11 @@
             </p>
         </div>
     </div>
-    
+
     <form action="/flows/answer?step=4&lang={{ lang }}" method="GET">
         <input type="hidden" name="step" value="4">
         <input type="hidden" name="lang" value="{{ lang }}">
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Describe the facts supporting your defense{% elif lang == 'es' %}Describa los hechos que apoyan su defensa{% elif lang == 'so' %}Sharax xaqiiqooyinka taageeraya difaacaaga{% else %}صف الحقائق التي تدعم دفاعك{% endif %}
@@ -38,7 +38,7 @@
 - 'I have photos showing mold in the bathroom dated...'
 - 'I paid rent on February 1 by check #1234...'{% elif lang == 'es' %}Sea específico. Incluya fechas, nombres y lo que sucedió...{% elif lang == 'so' %}Ahaaw gaar ah. Ku dar taariikhaha, magacyada, iyo waxa dhacay...{% else %}كن محددًا. اذكر التواريخ والأسماء وما حدث...{% endif %}"></textarea>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Do you have evidence to support your defense?{% elif lang == 'es' %}¿Tiene evidencia para apoyar su defensa?{% elif lang == 'so' %}Ma haysataa caddayn aad ku taageerto difaacaaga?{% else %}هل لديك أدلة تدعم دفاعك؟{% endif %}
@@ -66,7 +66,7 @@
                 </label>
             </div>
         </div>
-        
+
         <div class="flex justify-between mt-4">
             <a href="/flows/answer?step=2&lang={{ lang }}" class="btn btn-outline">
                 ← {{ strings.btn_back }}

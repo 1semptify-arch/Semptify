@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class MilestoneCategory(Enum):
     """Categories of milestones"""
+
     ONBOARDING = "onboarding"
     EVIDENCE_COLLECTION = "evidence_collection"
     DOCUMENT_ANALYSIS = "document_analysis"
@@ -32,6 +33,7 @@ class MilestoneCategory(Enum):
 
 class MilestoneStatus(Enum):
     """Status of a milestone"""
+
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -41,6 +43,7 @@ class MilestoneStatus(Enum):
 @dataclass
 class Milestone:
     """A single milestone in the user's journey"""
+
     id: str
     name: str
     description: str
@@ -59,13 +62,14 @@ class Milestone:
             "order": self.order,
             "required": self.required,
             "prerequisites": self.prerequisites,
-            "points": self.points
+            "points": self.points,
         }
 
 
 @dataclass
 class CompletedMilestone:
     """Record of a completed milestone"""
+
     milestone_id: str
     completed_at: datetime
     notes: str | None = None
@@ -76,13 +80,14 @@ class CompletedMilestone:
             "milestone_id": self.milestone_id,
             "completed_at": self.completed_at.isoformat(),
             "notes": self.notes,
-            "evidence_ids": self.evidence_ids
+            "evidence_ids": self.evidence_ids,
         }
 
 
 @dataclass
 class UserProgress:
     """Complete progress state for a user"""
+
     user_id: str
     case_type: str | None = None
     court_date: datetime | None = None
@@ -113,7 +118,7 @@ class UserProgress:
             "forms_generated": self.forms_generated,
             "tasks_completed": self.tasks_completed,
             "streak_days": self.streak_days,
-            "last_active": self.last_active.isoformat() if self.last_active else None
+            "last_active": self.last_active.isoformat() if self.last_active else None,
         }
 
 
@@ -143,7 +148,7 @@ class ProgressTracker:
             description="Tell us about your situation",
             category=MilestoneCategory.ONBOARDING,
             order=1,
-            points=15
+            points=15,
         )
 
         milestones["first_login"] = Milestone(
@@ -152,7 +157,7 @@ class ProgressTracker:
             description="Access your dashboard",
             category=MilestoneCategory.ONBOARDING,
             order=2,
-            points=5
+            points=5,
         )
 
         milestones["tour_complete"] = Milestone(
@@ -162,7 +167,7 @@ class ProgressTracker:
             category=MilestoneCategory.ONBOARDING,
             order=3,
             required=False,
-            points=10
+            points=10,
         )
 
         # Evidence Collection milestones
@@ -173,7 +178,7 @@ class ProgressTracker:
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=1,
             prerequisites=["intake_complete"],
-            points=25
+            points=25,
         )
 
         milestones["upload_lease"] = Milestone(
@@ -182,7 +187,7 @@ class ProgressTracker:
             description="Add your lease for violation detection",
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=2,
-            points=25
+            points=25,
         )
 
         milestones["upload_payment_proof"] = Milestone(
@@ -191,7 +196,7 @@ class ProgressTracker:
             description="Add proof of rent payments",
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=3,
-            points=20
+            points=20,
         )
 
         milestones["upload_maintenance"] = Milestone(
@@ -201,7 +206,7 @@ class ProgressTracker:
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=4,
             required=False,
-            points=20
+            points=20,
         )
 
         milestones["upload_photos"] = Milestone(
@@ -211,7 +216,7 @@ class ProgressTracker:
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=5,
             required=False,
-            points=20
+            points=20,
         )
 
         milestones["five_documents"] = Milestone(
@@ -221,7 +226,7 @@ class ProgressTracker:
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=6,
             required=False,
-            points=15
+            points=15,
         )
 
         milestones["ten_documents"] = Milestone(
@@ -231,7 +236,7 @@ class ProgressTracker:
             category=MilestoneCategory.EVIDENCE_COLLECTION,
             order=7,
             required=False,
-            points=25
+            points=25,
         )
 
         # Document Analysis milestones
@@ -241,7 +246,7 @@ class ProgressTracker:
             description="Let AI analyze a document",
             category=MilestoneCategory.DOCUMENT_ANALYSIS,
             order=1,
-            points=20
+            points=20,
         )
 
         milestones["violation_found"] = Milestone(
@@ -251,7 +256,7 @@ class ProgressTracker:
             category=MilestoneCategory.DOCUMENT_ANALYSIS,
             order=2,
             required=False,
-            points=30
+            points=30,
         )
 
         milestones["highlight_evidence"] = Milestone(
@@ -261,7 +266,7 @@ class ProgressTracker:
             category=MilestoneCategory.DOCUMENT_ANALYSIS,
             order=3,
             required=False,
-            points=15
+            points=15,
         )
 
         # Court Preparation milestones
@@ -271,7 +276,7 @@ class ProgressTracker:
             description="Add your hearing date to calendar",
             category=MilestoneCategory.COURT_PREPARATION,
             order=1,
-            points=15
+            points=15,
         )
 
         milestones["generate_packet"] = Milestone(
@@ -281,7 +286,7 @@ class ProgressTracker:
             category=MilestoneCategory.COURT_PREPARATION,
             order=2,
             prerequisites=["first_analysis"],
-            points=30
+            points=30,
         )
 
         milestones["review_briefcase"] = Milestone(
@@ -290,7 +295,7 @@ class ProgressTracker:
             description="Check your document organization",
             category=MilestoneCategory.COURT_PREPARATION,
             order=3,
-            points=10
+            points=10,
         )
 
         milestones["court_ready"] = Milestone(
@@ -300,7 +305,7 @@ class ProgressTracker:
             category=MilestoneCategory.COURT_PREPARATION,
             order=4,
             prerequisites=["upload_notice", "generate_packet"],
-            points=50
+            points=50,
         )
 
         # Learning milestones
@@ -311,7 +316,7 @@ class ProgressTracker:
             category=MilestoneCategory.LEARNING,
             order=1,
             required=False,
-            points=15
+            points=15,
         )
 
         milestones["court_basics"] = Milestone(
@@ -321,7 +326,7 @@ class ProgressTracker:
             category=MilestoneCategory.LEARNING,
             order=2,
             required=False,
-            points=20
+            points=20,
         )
 
         milestones["research_laws"] = Milestone(
@@ -331,7 +336,7 @@ class ProgressTracker:
             category=MilestoneCategory.LEARNING,
             order=3,
             required=False,
-            points=20
+            points=20,
         )
 
         # Legal Filings milestones
@@ -341,7 +346,7 @@ class ProgressTracker:
             description="Create your response to the complaint",
             category=MilestoneCategory.LEGAL_FILINGS,
             order=1,
-            points=35
+            points=35,
         )
 
         milestones["file_answer"] = Milestone(
@@ -351,7 +356,7 @@ class ProgressTracker:
             category=MilestoneCategory.LEGAL_FILINGS,
             order=2,
             prerequisites=["generate_answer"],
-            points=50
+            points=50,
         )
 
         milestones["file_complaint"] = Milestone(
@@ -361,7 +366,7 @@ class ProgressTracker:
             category=MilestoneCategory.LEGAL_FILINGS,
             order=3,
             required=False,
-            points=30
+            points=30,
         )
 
         return milestones
@@ -384,11 +389,7 @@ class ProgressTracker:
                 logger.error(f"Failed to load progress for {user_id}: {e}")
 
         # Create new progress
-        progress = UserProgress(
-            user_id=user_id,
-            journey_started=utc_now(),
-            last_active=utc_now()
-        )
+        progress = UserProgress(user_id=user_id, journey_started=utc_now(), last_active=utc_now())
         self._progress_cache[user_id] = progress
         return progress
 
@@ -400,7 +401,7 @@ class ProgressTracker:
                 milestone_id=v["milestone_id"],
                 completed_at=datetime.fromisoformat(v["completed_at"]),
                 notes=v.get("notes"),
-                evidence_ids=v.get("evidence_ids", [])
+                evidence_ids=v.get("evidence_ids", []),
             )
 
         return UserProgress(
@@ -416,7 +417,7 @@ class ProgressTracker:
             forms_generated=data.get("forms_generated", 0),
             tasks_completed=data.get("tasks_completed", 0),
             streak_days=data.get("streak_days", 0),
-            last_active=datetime.fromisoformat(data["last_active"]) if data.get("last_active") else None
+            last_active=datetime.fromisoformat(data["last_active"]) if data.get("last_active") else None,
         )
 
     def save_progress(self, user_id: str = "default") -> bool:
@@ -440,7 +441,7 @@ class ProgressTracker:
         milestone_id: str,
         user_id: str = "default",
         notes: str | None = None,
-        evidence_ids: list[str] | None = None
+        evidence_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """Mark a milestone as completed"""
         progress = self.get_progress(user_id)
@@ -452,25 +453,15 @@ class ProgressTracker:
         # Check prerequisites
         for prereq in milestone.prerequisites:
             if prereq not in progress.completed_milestones:
-                return {
-                    "success": False,
-                    "error": f"Prerequisite not met: {prereq}"
-                }
+                return {"success": False, "error": f"Prerequisite not met: {prereq}"}
 
         # Check if already completed
         if milestone_id in progress.completed_milestones:
-            return {
-                "success": True,
-                "already_completed": True,
-                "message": "Milestone was already completed"
-            }
+            return {"success": True, "already_completed": True, "message": "Milestone was already completed"}
 
         # Complete the milestone
         completed = CompletedMilestone(
-            milestone_id=milestone_id,
-            completed_at=utc_now(),
-            notes=notes,
-            evidence_ids=evidence_ids or []
+            milestone_id=milestone_id, completed_at=utc_now(), notes=notes, evidence_ids=evidence_ids or []
         )
         progress.completed_milestones[milestone_id] = completed
         progress.tasks_completed += 1
@@ -492,7 +483,7 @@ class ProgressTracker:
             "total_points": self.get_total_points(user_id),
             "case_readiness": self.get_case_readiness(user_id),
             "newly_unlocked": [m.to_dict() for m in unlocked],
-            "encouragement": self._get_completion_message(milestone)
+            "encouragement": self._get_completion_message(milestone),
         }
 
     def _update_streak(self, progress: UserProgress):
@@ -516,10 +507,7 @@ class ProgressTracker:
                 continue
 
             # Check if prerequisites are now met
-            prereqs_met = all(
-                p in progress.completed_milestones
-                for p in milestone.prerequisites
-            )
+            prereqs_met = all(p in progress.completed_milestones for p in milestone.prerequisites)
             if prereqs_met and milestone.prerequisites:
                 unlocked.append(milestone)
 
@@ -531,36 +519,37 @@ class ProgressTracker:
             MilestoneCategory.ONBOARDING: [
                 "Great start! You're taking control.",
                 "You've begun your journey. Every step matters.",
-                "Welcome aboard! Let's build your defense together."
+                "Welcome aboard! Let's build your defense together.",
             ],
             MilestoneCategory.EVIDENCE_COLLECTION: [
                 "Evidence secured! Your case grows stronger.",
                 "Every document is ammunition for your defense.",
-                "Nice work! The more evidence, the better your chances."
+                "Nice work! The more evidence, the better your chances.",
             ],
             MilestoneCategory.DOCUMENT_ANALYSIS: [
                 "Knowledge is power! Now you know what you're working with.",
                 "Our AI is on your side. Together we'll find every advantage.",
-                "Analysis complete. You're building a real strategy."
+                "Analysis complete. You're building a real strategy.",
             ],
             MilestoneCategory.COURT_PREPARATION: [
                 "You're getting ready for battle. This takes courage.",
                 "Preparation is half the victory. You're doing it right.",
-                "Looking professional and organized impresses judges."
+                "Looking professional and organized impresses judges.",
             ],
             MilestoneCategory.LEARNING: [
                 "Education arms you with the best weapon: knowledge.",
                 "The more you know, the less scary this becomes.",
-                "You're becoming an expert on your own rights."
+                "You're becoming an expert on your own rights.",
             ],
             MilestoneCategory.LEGAL_FILINGS: [
                 "This is a major step! You're officially fighting back.",
                 "Filing documents shows you mean business.",
-                "The wheels of justice are now turning in your favor."
-            ]
+                "The wheels of justice are now turning in your favor.",
+            ],
         }
 
         import random
+
         category_messages = messages.get(milestone.category, ["Great progress!"])
         return random.choice(category_messages)
 
@@ -578,10 +567,7 @@ class ProgressTracker:
         progress = self.get_progress(user_id)
 
         # Calculate max possible points from required milestones
-        max_points = sum(
-            m.points for m in self.milestones.values()
-            if m.required
-        )
+        max_points = sum(m.points for m in self.milestones.values() if m.required)
 
         # Calculate earned points from required milestones
         earned_points = sum(
@@ -617,7 +603,7 @@ class ProgressTracker:
             category_progress[cat.value] = {
                 "total": len(cat_milestones),
                 "completed": len(completed),
-                "percent": (len(completed) / len(cat_milestones) * 100) if cat_milestones else 0
+                "percent": (len(completed) / len(cat_milestones) * 100) if cat_milestones else 0,
             }
 
         return {
@@ -630,7 +616,7 @@ class ProgressTracker:
             "category_progress": category_progress,
             "documents_uploaded": progress.documents_uploaded,
             "violations_found": progress.violations_found,
-            "streak_days": progress.streak_days
+            "streak_days": progress.streak_days,
         }
 
     def get_next_milestones(self, user_id: str = "default", limit: int = 3) -> list[dict[str, Any]]:
@@ -646,10 +632,7 @@ class ProgressTracker:
                 continue
 
             # Check prerequisites
-            prereqs_met = all(
-                p in progress.completed_milestones
-                for p in milestone.prerequisites
-            )
+            prereqs_met = all(p in progress.completed_milestones for p in milestone.prerequisites)
             if not prereqs_met:
                 continue
 
@@ -666,10 +649,7 @@ class ProgressTracker:
 
         result = {}
         for cat in MilestoneCategory:
-            cat_milestones = sorted(
-                [m for m in self.milestones.values() if m.category == cat],
-                key=lambda m: m.order
-            )
+            cat_milestones = sorted([m for m in self.milestones.values() if m.category == cat], key=lambda m: m.order)
 
             result[cat.value] = []
             for milestone in cat_milestones:
@@ -683,17 +663,16 @@ class ProgressTracker:
                     status = MilestoneStatus.SKIPPED
 
                 # Check if available (prerequisites met)
-                prereqs_met = all(
-                    p in progress.completed_milestones
-                    for p in milestone.prerequisites
-                )
+                prereqs_met = all(p in progress.completed_milestones for p in milestone.prerequisites)
 
-                result[cat.value].append({
-                    **milestone.to_dict(),
-                    "status": status.value,
-                    "completed_at": completed_at.isoformat() if completed_at else None,
-                    "available": prereqs_met and status == MilestoneStatus.NOT_STARTED
-                })
+                result[cat.value].append(
+                    {
+                        **milestone.to_dict(),
+                        "status": status.value,
+                        "completed_at": completed_at.isoformat() if completed_at else None,
+                        "available": prereqs_met and status == MilestoneStatus.NOT_STARTED,
+                    }
+                )
 
         return result
 

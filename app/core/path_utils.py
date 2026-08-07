@@ -13,20 +13,20 @@ logger = logging.getLogger(__name__)
 def normalize_cloud_path(path: str | Path) -> str:
     """
     Normalize path for cloud storage APIs (Google Drive, Dropbox, OneDrive).
-    
+
     All cloud APIs expect forward slashes (/) as path separators.
     Removes leading/trailing slashes and ensures consistent format.
-    
+
     Args:
         path: Path to normalize (string or Path object)
-        
+
     Returns:
         Normalized path with forward slashes
-        
+
     Examples:
         >>> normalize_cloud_path("Semptify5.0\\Vault\\documents")
         'Semptify5.0/Vault/documents'
-        
+
         >>> normalize_cloud_path("/Semptify5.0/Vault/documents/")
         'Semptify5.0/Vault/documents'
     """
@@ -85,10 +85,10 @@ def ensure_cloud_path(path: str | Path) -> str:
     """
     Ensure path is in cloud format (forward slashes).
     Alias for normalize_cloud_path for semantic clarity.
-    
+
     Args:
         path: Path to ensure is cloud format
-        
+
     Returns:
         Cloud-formatted path
     """
@@ -99,10 +99,10 @@ def ensure_local_path(path: str | Path) -> str:
     """
     Ensure path is in local Windows format (backslashes).
     Alias for normalize_local_path for semantic clarity.
-    
+
     Args:
         path: Path to ensure is local format
-        
+
     Returns:
         Local-formatted path
     """
@@ -112,13 +112,13 @@ def ensure_local_path(path: str | Path) -> str:
 def split_cloud_path(path: str | Path) -> list[str]:
     """
     Split cloud path into components.
-    
+
     Args:
         path: Cloud-formatted path
-        
+
     Returns:
         List of path components
-        
+
     Examples:
         >>> split_cloud_path("Semptify5.0/Vault/documents")
         ['Semptify5.0', 'Vault', 'documents']
@@ -130,13 +130,13 @@ def split_cloud_path(path: str | Path) -> list[str]:
 def join_cloud_path(*parts: str | Path) -> str:
     """
     Join path components using cloud format (forward slashes).
-    
+
     Args:
         *parts: Path components to join
-        
+
     Returns:
         Joined cloud path
-        
+
     Examples:
         >>> join_cloud_path("Semptify5.0", "Vault", "documents")
         'Semptify5.0/Vault/documents'
@@ -148,13 +148,13 @@ def join_cloud_path(*parts: str | Path) -> str:
 def get_cloud_parent(path: str | Path) -> str:
     """
     Get parent directory of cloud path.
-    
+
     Args:
         path: Cloud-formatted path
-        
+
     Returns:
         Parent path (empty string if no parent)
-        
+
     Examples:
         >>> get_cloud_parent("Semptify5.0/Vault/documents")
         'Semptify5.0/Vault'
@@ -166,13 +166,13 @@ def get_cloud_parent(path: str | Path) -> str:
 def get_cloud_basename(path: str | Path) -> str:
     """
     Get basename (last component) of cloud path.
-    
+
     Args:
         path: Cloud-formatted path
-        
+
     Returns:
         Basename of path
-        
+
     Examples:
         >>> get_cloud_basename("Semptify5.0/Vault/documents")
         'documents'
@@ -184,10 +184,10 @@ def get_cloud_basename(path: str | Path) -> str:
 def is_cloud_path(path: str | Path) -> bool:
     """
     Check if path is already in cloud format.
-    
+
     Args:
         path: Path to check
-        
+
     Returns:
         True if path uses forward slashes, False otherwise
     """
@@ -199,10 +199,10 @@ def is_cloud_path(path: str | Path) -> bool:
 def is_local_path(path: str | Path) -> bool:
     """
     Check if path is in local Windows format.
-    
+
     Args:
         path: Path to check
-        
+
     Returns:
         True if path uses backslashes, False otherwise
     """
@@ -214,14 +214,14 @@ def is_local_path(path: str | Path) -> bool:
 def convert_path_format(path: str | Path, target_format: str = "cloud") -> str:
     """
     Convert path between cloud and local formats.
-    
+
     Args:
         path: Path to convert
         target_format: "cloud" or "local"
-        
+
     Returns:
         Converted path
-        
+
     Raises:
         ValueError: If target_format is not "cloud" or "local"
     """
@@ -237,13 +237,14 @@ def convert_path_format(path: str | Path, target_format: str = "cloud") -> str:
 # Path Validation
 # =============================================================================
 
+
 def validate_cloud_path(path: str | Path) -> bool:
     """
     Validate cloud path format.
-    
+
     Args:
         path: Path to validate
-        
+
     Returns:
         True if valid cloud path, False otherwise
     """
@@ -251,7 +252,7 @@ def validate_cloud_path(path: str | Path) -> bool:
         path = str(path)
 
     # Check for invalid characters (cloud APIs typically reject these)
-    invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+    invalid_chars = ["<", ">", ":", '"', "|", "?", "*"]
     path_str = normalize_cloud_path(path)
 
     return not any(char in path_str for char in invalid_chars)
@@ -260,10 +261,10 @@ def validate_cloud_path(path: str | Path) -> bool:
 def validate_local_path(path: str | Path) -> bool:
     """
     Validate local Windows path format.
-    
+
     Args:
         path: Path to validate
-        
+
     Returns:
         True if valid local path, False otherwise
     """
@@ -271,7 +272,7 @@ def validate_local_path(path: str | Path) -> bool:
         path = str(path)
 
     # Check for invalid Windows filename characters
-    invalid_chars = ['<', '>', ':', '"', '|', '?', '*']
+    invalid_chars = ["<", ">", ":", '"', "|", "?", "*"]
     path_str = normalize_local_path(path)
 
     # Split path and check each component

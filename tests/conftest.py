@@ -124,7 +124,9 @@ async def authenticated_client() -> AsyncGenerator[AsyncClient, None]:
         await session.commit()
 
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test", cookies={"semptify_uid": sign_user_id(test_uid)}) as ac:
+    async with AsyncClient(
+        transport=transport, base_url="http://test", cookies={"semptify_uid": sign_user_id(test_uid)}
+    ) as ac:
         # Also inject into memory cache for faster lookups
         from app.modules.storage.router import SESSIONS
 

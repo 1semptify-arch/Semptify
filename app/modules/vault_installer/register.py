@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def register_vault_installer(app: FastAPI):
     """
     Register the vault installer module.
-    
+
     This adds simple vault installation endpoints without complex onboarding.
     """
     router = create_router()

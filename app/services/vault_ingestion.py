@@ -71,9 +71,10 @@ register_function_group(
 class IngestionRequest:
     """
     Standardized ingestion request following the data contract.
-    
+
     All fields must be provided; use None for unknown values.
     """
+
     user_id: str
     item_type: str  # lease, notice, photo, email, audio, etc.
 
@@ -105,6 +106,7 @@ class IngestionRequest:
 @dataclass
 class IngestionResult:
     """Result of vault item ingestion."""
+
     success: bool
     item_id: int | None = None
     audit_log_id: int | None = None
@@ -114,13 +116,14 @@ class IngestionResult:
 
 class VaultIngestionError(Exception):
     """Raised when vault ingestion fails due to contract violations."""
+
     pass  # Empty exception class - custom error type
 
 
 class VaultIngestionService:
     """
     Service for ingesting evidence into the unified vault.
-    
+
     Enforces:
     - Data contract compliance
     - Three-timestamp model
@@ -134,7 +137,7 @@ class VaultIngestionService:
     def _validate_request(self, request: IngestionRequest) -> None:
         """
         Validate ingestion request against data contract.
-        
+
         Raises:
             VaultIngestionError: If request violates data contract.
         """
@@ -161,26 +164,22 @@ class VaultIngestionService:
             # Event time should generally not be after record time
             # (Record is when evidence was created, event is when it happened)
             if request.event_time > request.record_time:
-                errors.append(
-                    f"event_time ({request.event_time}) cannot be after "
-                    f"record_time ({request.record_time})"
-                )
+                errors.append(f"event_time ({request.event_time}) cannot be after record_time ({request.record_time})")
 
         if errors:
-            raise VaultIngestionError(
-                f"Data contract violations: {'; '.join(errors)}"
-            )
+            raise VaultIngestionError(f"Data contract violations: {'; '.join(errors)}")
 
     def _preserve_metadata(self, raw_metadata: dict[str, Any]) -> dict[str, Any]:
         """
         Preserve all metadata without flattening or discarding.
-        
+
         Rules:
         - Never discard metadata
         - Never flatten metadata
         - Preserve nested JSON
         - Convert unserializable values to strings
         """
+
         def make_serializable(obj: Any) -> Any:
             if isinstance(obj, dict):
                 return {k: make_serializable(v) for k, v in obj.items()}
@@ -205,11 +204,11 @@ class VaultIngestionService:
     ) -> IngestionResult:
         """
         Ingest a new vault item with full data contract enforcement.
-        
+
         Args:
             request: IngestionRequest with complete data contract fields
             action_context: Context for audit log (API endpoint, job name, etc.)
-        
+
         Returns:
             IngestionResult with item_id and audit_log_id on success
         """
@@ -228,32 +227,26 @@ class VaultIngestionService:
             # Create vault item
             vault_item = VaultItem(
                 user_id=request.user_id,
-
                 # Three timestamps (NON-NEGOTIABLE)
                 event_time=event_time,
                 record_time=record_time,
                 semptify_entry_time=semptify_entry_time,
-
                 # Classification
                 item_type=request.item_type,
                 folder=request.folder,
                 tags=request.tags or [],
-
                 # Relationships & Context
                 related_incident_id=request.related_incident_id,
                 source=request.source or "ingestion_service",
                 severity=request.severity or "normal",
                 status=request.status or "pending",
-
                 # Rich metadata
                 location_data=request.location_data,
                 metadata=preserved_metadata,
-
                 # Content
                 file_path=request.file_path,
                 title=request.title,
                 summary=request.summary,
-
                 # Timestamps
                 created_at=semptify_entry_time,
                 updated_at=semptify_entry_time,
@@ -316,13 +309,13 @@ class VaultIngestionService:
     ) -> IngestionResult:
         """
         Update existing vault item with audit logging.
-        
+
         Args:
             item_id: ID of item to update
             user_id: User performing the update
             updates: Dict of field updates
             action_context: Context for audit log
-        
+
         Returns:
             IngestionResult with updated item
         """
@@ -359,8 +352,12 @@ class VaultIngestionService:
 
             # Apply updates (protecting immutable fields)
             immutable_fields = {
-                'item_id', 'user_id', 'event_time', 'record_time',
-                'semptify_entry_time', 'created_at',
+                "item_id",
+                "user_id",
+                "event_time",
+                "record_time",
+                "semptify_entry_time",
+                "created_at",
             }
 
             for field, value in updates.items():
@@ -421,12 +418,12 @@ class VaultIngestionService:
     ) -> IngestionResult:
         """
         Delete vault item with audit logging (soft delete not implemented yet).
-        
+
         Args:
             item_id: ID of item to delete
             user_id: User performing the deletion
             action_context: Context for audit log
-        
+
         Returns:
             IngestionResult
         """
@@ -494,7 +491,7 @@ async def ingest_vault_item(
 ) -> IngestionResult:
     """
     Convenience function to ingest a vault item.
-    
+
     Example:
         result = await ingest_vault_item(
             db=db,

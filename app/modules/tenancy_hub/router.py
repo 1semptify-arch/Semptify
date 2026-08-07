@@ -5,7 +5,6 @@ Provides unified access to all tenancy documentation, with search,
 cross-referencing, and context-aware information retrieval.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -36,8 +35,10 @@ router = APIRouter(prefix="/api/tenancy", tags=["Tenancy Hub"])
 # REQUEST/RESPONSE MODELS
 # =============================================================================
 
+
 class CreateCaseRequest(BaseModel):
     case_name: str = ""
+
 
 class PartyRequest(BaseModel):
     role: str
@@ -50,6 +51,7 @@ class PartyRequest(BaseModel):
     email: str = ""
     company_name: str = ""
     relationship_notes: str = ""
+
 
 class PropertyRequest(BaseModel):
     street_address: str
@@ -65,6 +67,7 @@ class PropertyRequest(BaseModel):
     year_built: int = 0
     amenities: list[str] = []
     utilities_included: list[str] = []
+
 
 class LeaseRequest(BaseModel):
     lease_start: str
@@ -82,6 +85,7 @@ class LeaseRequest(BaseModel):
     tenant_pays: list[str] = []
     landlord_pays: list[str] = []
 
+
 class PaymentRequest(BaseModel):
     payment_date: str
     due_date: str = ""
@@ -95,6 +99,7 @@ class PaymentRequest(BaseModel):
     period_end: str = ""
     notes: str = ""
 
+
 class DocumentRequest(BaseModel):
     filename: str
     title: str = ""
@@ -107,6 +112,7 @@ class DocumentRequest(BaseModel):
     tags: list[str] = []
     storage_path: str = ""
     related_party_ids: list[str] = []
+
 
 class EventRequest(BaseModel):
     event_type: str
@@ -123,6 +129,7 @@ class EventRequest(BaseModel):
     court_name: str = ""
     notes: str = ""
 
+
 class IssueRequest(BaseModel):
     category: str
     severity: str = "medium"
@@ -133,6 +140,7 @@ class IssueRequest(BaseModel):
     is_habitability_issue: bool = False
     is_lease_violation: bool = False
     violates_statute: str = ""
+
 
 class LegalCaseRequest(BaseModel):
     case_number: str
@@ -152,6 +160,7 @@ class LegalCaseRequest(BaseModel):
     plaintiff_ids: list[str] = []
     defendant_ids: list[str] = []
 
+
 class SearchRequest(BaseModel):
     query: str
     entity_types: list[str] = []
@@ -161,19 +170,13 @@ class SearchRequest(BaseModel):
 # CASE MANAGEMENT ENDPOINTS
 # =============================================================================
 
+
 @router.post("/cases")
-async def create_case(
-    request: CreateCaseRequest,
-    user_id: str = Depends(get_user_id)
-):
+async def create_case(request: CreateCaseRequest, user_id: str = Depends(get_user_id)):
     """Create a new tenancy case."""
     service = get_tenancy_hub_service()
     case = service.create_case(user_id, request.case_name)
-    return {
-        "success": True,
-        "case_id": case.id,
-        "case": case.to_dict()
-    }
+    return {"success": True, "case_id": case.id, "case": case.to_dict()}
 
 
 @router.get("/cases")
@@ -181,11 +184,7 @@ async def list_cases(user_id: str = Depends(get_user_id)):
     """List all tenancy cases for a user."""
     service = get_tenancy_hub_service()
     cases = service.get_user_cases(user_id)
-    return {
-        "success": True,
-        "count": len(cases),
-        "cases": [c.to_dict() for c in cases]
-    }
+    return {"success": True, "count": len(cases), "cases": [c.to_dict() for c in cases]}
 
 
 @router.get("/cases/{case_id}")
@@ -195,10 +194,7 @@ async def get_case(case_id: str):
     case = service.get_case(case_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
-    return {
-        "success": True,
-        "case": case.to_dict()
-    }
+    return {"success": True, "case": case.to_dict()}
 
 
 @router.get("/cases/{case_id}/summary")
@@ -220,6 +216,7 @@ async def get_case_summary(case_id: str):
 # =============================================================================
 # PARTY ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/parties")
 async def add_party(case_id: str, request: PartyRequest):
@@ -264,16 +261,13 @@ async def list_parties(case_id: str, role: str | None = None):
     if role:
         parties = [p for p in parties if p.role.value == role]
 
-    return {
-        "success": True,
-        "count": len(parties),
-        "parties": [p.to_dict() for p in parties]
-    }
+    return {"success": True, "count": len(parties), "parties": [p.to_dict() for p in parties]}
 
 
 # =============================================================================
 # PROPERTY ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/property")
 async def set_property(case_id: str, request: PropertyRequest):
@@ -323,6 +317,7 @@ async def get_property(case_id: str):
 # =============================================================================
 # LEASE ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/lease")
 async def set_lease(case_id: str, request: LeaseRequest):
@@ -374,6 +369,7 @@ async def get_lease(case_id: str):
 # PAYMENT ENDPOINTS
 # =============================================================================
 
+
 @router.post("/cases/{case_id}/payments")
 async def add_payment(case_id: str, request: PaymentRequest):
     """Add a payment record to a tenancy case."""
@@ -402,11 +398,7 @@ async def add_payment(case_id: str, request: PaymentRequest):
 
 
 @router.get("/cases/{case_id}/payments")
-async def list_payments(
-    case_id: str,
-    payment_type: str | None = None,
-    status: str | None = None
-):
+async def list_payments(case_id: str, payment_type: str | None = None, status: str | None = None):
     """List all payments in a tenancy case."""
     service = get_tenancy_hub_service()
     case = service.get_case(case_id)
@@ -423,16 +415,13 @@ async def list_payments(
     # Sort by date
     payments.sort(key=lambda p: p.payment_date or "", reverse=True)
 
-    return {
-        "success": True,
-        "count": len(payments),
-        "payments": [p.to_dict() for p in payments]
-    }
+    return {"success": True, "count": len(payments), "payments": [p.to_dict() for p in payments]}
 
 
 # =============================================================================
 # DOCUMENT ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/documents")
 async def add_document(case_id: str, request: DocumentRequest):
@@ -467,10 +456,7 @@ async def add_document(case_id: str, request: DocumentRequest):
 
 
 @router.get("/cases/{case_id}/documents")
-async def list_documents(
-    case_id: str,
-    category: str | None = None
-):
+async def list_documents(case_id: str, category: str | None = None):
     """List all documents in a tenancy case."""
     service = get_tenancy_hub_service()
     case = service.get_case(case_id)
@@ -480,18 +466,19 @@ async def list_documents(
     docs = list(case.documents.values())
 
     if category:
-        docs = [d for d in docs if (d.category.value if isinstance(d.category, DocumentCategory) else d.category) == category]
+        docs = [
+            d
+            for d in docs
+            if (d.category.value if isinstance(d.category, DocumentCategory) else d.category) == category
+        ]
 
-    return {
-        "success": True,
-        "count": len(docs),
-        "documents": [d.to_dict() for d in docs]
-    }
+    return {"success": True, "count": len(docs), "documents": [d.to_dict() for d in docs]}
 
 
 # =============================================================================
 # EVENT/TIMELINE ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/events")
 async def add_event(case_id: str, request: EventRequest):
@@ -528,41 +515,27 @@ async def add_event(case_id: str, request: EventRequest):
 
 
 @router.get("/cases/{case_id}/timeline")
-async def get_timeline(
-    case_id: str,
-    start_date: str | None = None,
-    end_date: str | None = None
-):
+async def get_timeline(case_id: str, start_date: str | None = None, end_date: str | None = None):
     """Get the timeline of events for a tenancy case."""
     service = get_tenancy_hub_service()
     timeline = service.get_timeline(case_id, start_date, end_date)
 
-    return {
-        "success": True,
-        "count": len(timeline),
-        "timeline": timeline
-    }
+    return {"success": True, "count": len(timeline), "timeline": timeline}
 
 
 @router.get("/cases/{case_id}/deadlines")
-async def get_deadlines(
-    case_id: str,
-    include_completed: bool = False
-):
+async def get_deadlines(case_id: str, include_completed: bool = False):
     """Get all deadlines for a tenancy case."""
     service = get_tenancy_hub_service()
     deadlines = service.get_deadlines(case_id, include_completed)
 
-    return {
-        "success": True,
-        "count": len(deadlines),
-        "deadlines": deadlines
-    }
+    return {"success": True, "count": len(deadlines), "deadlines": deadlines}
 
 
 # =============================================================================
 # ISSUE ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/issues")
 async def add_issue(case_id: str, request: IssueRequest):
@@ -601,10 +574,7 @@ async def add_issue(case_id: str, request: IssueRequest):
 
 @router.get("/cases/{case_id}/issues")
 async def list_issues(
-    case_id: str,
-    status: str | None = None,
-    category: str | None = None,
-    severity: str | None = None
+    case_id: str, status: str | None = None, category: str | None = None, severity: str | None = None
 ):
     """List all issues in a tenancy case."""
     service = get_tenancy_hub_service()
@@ -617,20 +587,21 @@ async def list_issues(
     if status:
         issues = [i for i in issues if i.status == status]
     if category:
-        issues = [i for i in issues if (i.category.value if isinstance(i.category, IssueCategory) else i.category) == category]
+        issues = [
+            i for i in issues if (i.category.value if isinstance(i.category, IssueCategory) else i.category) == category
+        ]
     if severity:
-        issues = [i for i in issues if (i.severity.value if isinstance(i.severity, IssueSeverity) else i.severity) == severity]
+        issues = [
+            i for i in issues if (i.severity.value if isinstance(i.severity, IssueSeverity) else i.severity) == severity
+        ]
 
-    return {
-        "success": True,
-        "count": len(issues),
-        "issues": [i.to_dict() for i in issues]
-    }
+    return {"success": True, "count": len(issues), "issues": [i.to_dict() for i in issues]}
 
 
 # =============================================================================
 # LEGAL CASE ENDPOINTS
 # =============================================================================
+
 
 @router.post("/cases/{case_id}/legal-cases")
 async def add_legal_case(case_id: str, request: LegalCaseRequest):
@@ -675,24 +646,23 @@ async def list_legal_cases(case_id: str, status: str | None = None):
     legal_cases = list(case.legal_cases.values())
 
     if status:
-        legal_cases = [lc for lc in legal_cases if (lc.status.value if isinstance(lc.status, CaseStatus) else lc.status) == status]
+        legal_cases = [
+            lc for lc in legal_cases if (lc.status.value if isinstance(lc.status, CaseStatus) else lc.status) == status
+        ]
 
-    return {
-        "success": True,
-        "count": len(legal_cases),
-        "legal_cases": [lc.to_dict() for lc in legal_cases]
-    }
+    return {"success": True, "count": len(legal_cases), "legal_cases": [lc.to_dict() for lc in legal_cases]}
 
 
 # =============================================================================
 # SEARCH & CROSS-REFERENCE ENDPOINTS
 # =============================================================================
 
+
 @router.post("/cases/{case_id}/search")
 async def search_case(case_id: str, request: SearchRequest):
     """
     Search across all entities in a tenancy case.
-    
+
     entity_types can include: party, document, event, payment, issue, legal_case
     """
     service = get_tenancy_hub_service()
@@ -700,19 +670,14 @@ async def search_case(case_id: str, request: SearchRequest):
 
     total = sum(len(v) for v in results.values())
 
-    return {
-        "success": True,
-        "query": request.query,
-        "total_results": total,
-        "results": results
-    }
+    return {"success": True, "query": request.query, "total_results": total, "results": results}
 
 
 @router.get("/cases/{case_id}/cross-reference/{entity_type}/{entity_id}")
 async def get_cross_references(case_id: str, entity_type: str, entity_id: str):
     """
     Get all entities that reference the given entity.
-    
+
     entity_type: party, document, event, issue, legal_case
     """
     service = get_tenancy_hub_service()
@@ -725,7 +690,7 @@ async def get_cross_references(case_id: str, entity_type: str, entity_id: str):
         "entity_type": entity_type,
         "entity_id": entity_id,
         "total_references": total,
-        "references": refs
+        "references": refs,
     }
 
 
@@ -733,11 +698,12 @@ async def get_cross_references(case_id: str, entity_type: str, entity_id: str):
 # CONTEXT PACK ENDPOINTS
 # =============================================================================
 
+
 @router.get("/cases/{case_id}/context/{context_type}")
 async def get_context_pack(case_id: str, context_type: str):
     """
     Get a context-specific pack of information.
-    
+
     context_type options:
     - court_hearing: All info needed for a court hearing
     - repair_history: All issues and repairs
@@ -752,16 +718,13 @@ async def get_context_pack(case_id: str, context_type: str):
     if "error" in pack:
         raise HTTPException(status_code=400, detail=pack["error"])
 
-    return {
-        "success": True,
-        "context_type": context_type,
-        "pack": pack
-    }
+    return {"success": True, "context_type": context_type, "pack": pack}
 
 
 # =============================================================================
 # METADATA ENDPOINTS
 # =============================================================================
+
 
 @router.get("/enums")
 async def get_enums():
@@ -775,7 +738,7 @@ async def get_enums():
             "issue_categories": [e.value for e in IssueCategory],
             "issue_severities": [e.value for e in IssueSeverity],
             "case_statuses": [e.value for e in CaseStatus],
-        }
+        },
     }
 
 
@@ -788,32 +751,32 @@ async def get_context_types():
             {
                 "type": "court_hearing",
                 "description": "All info needed for a court hearing",
-                "includes": ["parties", "legal_cases", "key_documents", "timeline", "issues", "deadlines"]
+                "includes": ["parties", "legal_cases", "key_documents", "timeline", "issues", "deadlines"],
             },
             {
                 "type": "repair_history",
                 "description": "All issues and repairs",
-                "includes": ["issues", "repair_events", "photos", "communications"]
+                "includes": ["issues", "repair_events", "photos", "communications"],
             },
             {
                 "type": "payment_history",
                 "description": "All payment records",
-                "includes": ["lease_terms", "payments", "payment_events", "summary"]
+                "includes": ["lease_terms", "payments", "payment_events", "summary"],
             },
             {
                 "type": "communication_log",
                 "description": "All communications",
-                "includes": ["communications", "documents"]
+                "includes": ["communications", "documents"],
             },
             {
                 "type": "evidence_pack",
                 "description": "All evidence documents",
-                "includes": ["photos", "videos", "documents", "witness_statements"]
+                "includes": ["photos", "videos", "documents", "witness_statements"],
             },
             {
                 "type": "lease_summary",
                 "description": "Lease terms and amendments",
-                "includes": ["lease", "amendments", "lease_document", "amendment_documents"]
-            }
-        ]
+                "includes": ["lease", "amendments", "lease_document", "amendment_documents"],
+            },
+        ],
     }

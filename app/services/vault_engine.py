@@ -41,8 +41,10 @@ logger = logging.getLogger(__name__)
 # Access Control Types
 # =============================================================================
 
+
 class AccessLevel(str, Enum):
     """What you can do."""
+
     NONE = "none"
     READ = "read"
     WRITE = "write"
@@ -52,15 +54,17 @@ class AccessLevel(str, Enum):
 
 class ResourceScope(str, Enum):
     """Whose data is it?"""
-    OWN = "own"           # User's own data
-    SHARED = "shared"     # Explicitly shared with user
-    CASE = "case"         # Part of a case they're on
-    ORG = "org"           # Organization-wide (for managers)
-    SYSTEM = "system"     # System-level data
+
+    OWN = "own"  # User's own data
+    SHARED = "shared"  # Explicitly shared with user
+    CASE = "case"  # Part of a case they're on
+    ORG = "org"  # Organization-wide (for managers)
+    SYSTEM = "system"  # System-level data
 
 
 class ResourceType(str, Enum):
     """What kind of resource."""
+
     DOCUMENT = "document"
     TIMELINE_EVENT = "timeline_event"
     CALENDAR_EVENT = "calendar_event"
@@ -72,6 +76,7 @@ class ResourceType(str, Enum):
 
 class AuditAction(str, Enum):
     """What happened."""
+
     READ = "read"
     CREATE = "create"
     UPDATE = "update"
@@ -130,9 +135,11 @@ ACCESS_MATRIX: dict[str, dict[ResourceScope, set[AccessLevel]]] = {
 # Data Classes
 # =============================================================================
 
+
 @dataclass
 class AccessRequest:
     """Request to access vault data."""
+
     user_id: str
     resource_type: ResourceType
     resource_id: str
@@ -151,6 +158,7 @@ class AccessRequest:
 @dataclass
 class AccessResult:
     """Result of access check."""
+
     allowed: bool
     reason: str
     scope: ResourceScope | None = None
@@ -163,6 +171,7 @@ class AccessResult:
 @dataclass
 class AuditEntry:
     """Immutable audit log entry."""
+
     id: str
     timestamp: datetime
     user_id: str
@@ -190,6 +199,7 @@ class AuditEntry:
 @dataclass
 class VaultResource:
     """A resource in the vault with access metadata."""
+
     id: str
     type: ResourceType
     owner_id: str
@@ -197,8 +207,8 @@ class VaultResource:
 
     # Access control
     shared_with: list[str] = field(default_factory=list)  # User IDs
-    case_ids: list[str] = field(default_factory=list)      # Associated cases
-    org_id: str | None = None                            # Organization
+    case_ids: list[str] = field(default_factory=list)  # Associated cases
+    org_id: str | None = None  # Organization
 
     # The actual data
     data: Any = None
@@ -214,10 +224,11 @@ class VaultResource:
 # Vault Access Engine
 # =============================================================================
 
+
 class VaultAccessEngine:
     """
     THE GATEKEEPER.
-    
+
     Every vault operation goes through here:
     1. Check access rights
     2. Log the attempt
@@ -244,7 +255,7 @@ class VaultAccessEngine:
     def check_access(self, request: AccessRequest) -> AccessResult:
         """
         Check if user can perform action on resource.
-        
+
         This is the CORE security check. Every operation calls this.
         """
         # Get user role from user_id
@@ -261,9 +272,7 @@ class VaultAccessEngine:
             request.resource_owner = request.user_id
 
         # Check access matrix
-        allowed_levels = ACCESS_MATRIX.get(request.user_role, {}).get(
-            request.scope, set()
-        )
+        allowed_levels = ACCESS_MATRIX.get(request.user_role, {}).get(request.scope, set())
 
         # Admin level includes all permissions
         if AccessLevel.ADMIN in allowed_levels:
@@ -323,7 +332,7 @@ class VaultAccessEngine:
     ) -> tuple[bool, Any, AccessResult]:
         """
         Read a resource from the vault.
-        
+
         Returns: (success, data_or_error, access_result)
         """
         request = AccessRequest(
@@ -493,7 +502,12 @@ class VaultAccessEngine:
         except Exception as e:
             logger.warning(f"Failed to publish delete event: {e}")
 
-        return True, {"deleted": resource_id, "hard": hard_delete}, result    # =========================================================================
+        return (
+            True,
+            {"deleted": resource_id, "hard": hard_delete},
+            result,
+        )  # =========================================================================
+
     # Sharing
     # =========================================================================
 
@@ -586,21 +600,20 @@ class VaultAccessEngine:
                 continue
 
             # Check access
-            can_access = (
-                resource.owner_id == user_id or
-                (include_shared and user_id in resource.shared_with)
-            )
+            can_access = resource.owner_id == user_id or (include_shared and user_id in resource.shared_with)
 
             if can_access:
-                results.append({
-                    "id": resource.id,
-                    "type": resource.type.value,
-                    "owner_id": resource.owner_id,
-                    "is_owner": resource.owner_id == user_id,
-                    "is_shared": user_id in resource.shared_with,
-                    "created_at": resource.created_at.isoformat(),
-                    "tags": resource.tags,
-                })
+                results.append(
+                    {
+                        "id": resource.id,
+                        "type": resource.type.value,
+                        "owner_id": resource.owner_id,
+                        "is_owner": resource.owner_id == user_id,
+                        "is_shared": user_id in resource.shared_with,
+                        "created_at": resource.created_at.isoformat(),
+                        "tags": resource.tags,
+                    }
+                )
 
         return results
 
@@ -685,10 +698,7 @@ class VaultAccessEngine:
         resources = self._resources.values()
         return {
             "total_resources": len(self._resources),
-            "by_type": {
-                rt.value: len([r for r in resources if r.type == rt])
-                for rt in ResourceType
-            },
+            "by_type": {rt.value: len([r for r in resources if r.type == rt]) for rt in ResourceType},
             "deleted": len([r for r in resources if r.is_deleted]),
             "shared": len([r for r in resources if r.shared_with]),
             "audit_entries": len(self._audit_log),
@@ -714,18 +724,20 @@ def get_vault_engine() -> VaultAccessEngine:
 # Convenience Decorators
 # =============================================================================
 
+
 def require_vault_access(
     resource_type: ResourceType,
     action: AccessLevel,
 ):
     """
     Decorator to require vault access for an endpoint.
-    
+
     Usage:
         @require_vault_access(ResourceType.DOCUMENT, AccessLevel.READ)
         async def get_document(user_id: str, doc_id: str):
             ...
     """
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Extract user_id and resource_id from kwargs
@@ -736,12 +748,14 @@ def require_vault_access(
                 return {"error": "Missing user_id or resource_id"}
 
             engine = get_vault_engine()
-            result = engine.check_access(AccessRequest(
-                user_id=user_id,
-                resource_type=resource_type,
-                resource_id=resource_id,
-                action=action,
-            ))
+            result = engine.check_access(
+                AccessRequest(
+                    user_id=user_id,
+                    resource_type=resource_type,
+                    resource_id=resource_id,
+                    action=action,
+                )
+            )
 
             if not result.allowed:
                 return {"error": result.reason, "allowed": False}
@@ -749,4 +763,5 @@ def require_vault_access(
             return await func(*args, **kwargs)
 
         return wrapper
+
     return decorator

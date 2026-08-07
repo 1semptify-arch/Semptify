@@ -1,7 +1,7 @@
 # Semptify-FastAPI: Complete Module Report
 
-**Generated:** December 1, 2025  
-**Version:** 5.0  
+**Generated:** December 1, 2025
+**Version:** 5.0
 **Total Lines of Code:** ~450,000+ across all modules
 
 ---
@@ -242,8 +242,8 @@ Full document processing: Upload → Analyze → Classify → Store → Cross-re
 
 ## 📥 MODULE 5.5: DOCUMENT INTAKE ENGINE
 
-**File:** `app/services/document_intake.py` (~1,100 lines)  
-**Router:** `app/routers/intake.py` (~500 lines)  
+**File:** `app/services/document_intake.py` (~1,100 lines)
+**Router:** `app/routers/intake.py` (~500 lines)
 **Tests:** `tests/test_document_intake.py` (43 tests - ALL PASS)
 
 ### Purpose

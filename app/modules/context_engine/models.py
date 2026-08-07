@@ -41,9 +41,7 @@ class ContextFact(Base):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
 
-    __table_args__ = (
-        Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),
-    )
+    __table_args__ = (Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),)
 
 
 class TenantStory(Base):
@@ -67,8 +65,8 @@ class TenantStory(Base):
     moderated_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
     moderated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, onupdate=_naive_utc_now, nullable=False)
-
-    __table_args__ = (
-        Index("ix_tenant_stories_subject_pub", "subject", "is_published"),
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=_naive_utc_now, onupdate=_naive_utc_now, nullable=False
     )
+
+    __table_args__ = (Index("ix_tenant_stories_subject_pub", "subject", "is_published"),)

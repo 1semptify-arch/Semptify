@@ -87,6 +87,7 @@ async def _feature_flag_allowed(entry: ModuleEntry) -> bool:
         return True  # no flag required
     try:
         from app.core.features import Feature, features
+
         # feature_flag stores the Feature enum value string
         feature = Feature(entry.feature_flag)
         return await features.is_enabled(feature)
@@ -94,14 +95,16 @@ async def _feature_flag_allowed(entry: ModuleEntry) -> bool:
         # Unknown feature flag — log and allow (fail open for visibility)
         logger.warning(
             "ModuleResolver: module %s has unknown feature_flag '%s' — allowing",
-            entry.module_path, entry.feature_flag,
+            entry.module_path,
+            entry.feature_flag,
         )
         return True
     except Exception as e:
         # Feature flag system unavailable — fail closed for safety
         logger.error(
             "ModuleResolver: feature flag check failed for %s: %s — failing closed",
-            entry.module_path, e,
+            entry.module_path,
+            e,
         )
         return False
 
@@ -185,6 +188,7 @@ async def resolve_modules_for_user(
     """
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is not None:
             cache_key = _cache_key(user_id)
@@ -221,13 +225,15 @@ async def invalidate_user_cache(user_id: str) -> None:
     """
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is not None:
             await redis.delete(_cache_key(user_id))
     except Exception as e:
         logger.warning(
             "ModuleResolver: failed to invalidate cache for %s: %s",
-            user_id, e,
+            user_id,
+            e,
         )
 
 
@@ -241,6 +247,7 @@ async def invalidate_all_caches() -> None:
     """
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is not None:
             # Scan and delete all module_resolver:* keys
@@ -285,14 +292,16 @@ async def get_user_module_summary(
         tier_key = entry.tier.value
         if tier_key not in by_tier:
             by_tier[tier_key] = []
-        by_tier[tier_key].append({
-            "module_path": entry.module_path,
-            "lifecycle": entry.lifecycle,
-            "origin": entry.origin,
-            "allowed": allowed,
-            "visibility_label": entry.visibility_label,
-            "dev_notes": entry.dev_notes,
-        })
+        by_tier[tier_key].append(
+            {
+                "module_path": entry.module_path,
+                "lifecycle": entry.lifecycle,
+                "origin": entry.origin,
+                "allowed": allowed,
+                "visibility_label": entry.visibility_label,
+                "dev_notes": entry.dev_notes,
+            }
+        )
     return {
         "role": role,
         "jurisdiction": jurisdiction,

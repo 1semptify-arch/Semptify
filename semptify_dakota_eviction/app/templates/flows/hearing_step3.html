@@ -36,7 +36,7 @@
             <li>{% if lang == 'en' %}Get a good night's sleep{% elif lang == 'es' %}Duerma bien{% elif lang == 'so' %}Hurdo wanaagsan{% else %}احصل على نوم جيد{% endif %}</li>
         </ul>
     </div>
-    
+
     <div class="card">
         <h3>⏰ {% if lang == 'en' %}Day Of{% elif lang == 'es' %}El Día De{% elif lang == 'so' %}Maalinta{% else %}يوم الجلسة{% endif %}</h3>
         <ul style="margin-left: 1rem; line-height: 1.8;">
@@ -65,14 +65,14 @@ async function downloadHearingPrep() {
         checklist_items: JSON.parse(localStorage.getItem('checklist_items') || '[]'),
         documents_needed: JSON.parse(localStorage.getItem('documents_needed') || '[]')
     };
-    
+
     try {
         const response = await fetch('/flows/hearing/generate?lang={{ lang }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
-        
+
         if (response.ok) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);

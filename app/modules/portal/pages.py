@@ -22,18 +22,19 @@ class PortalPage:
 
     Immutable — SSOT for one public page.
     """
-    id: str                          # unique identifier (e.g. "about")
-    title: str                       # page title for <title> tag
-    path: str                        # URL path (e.g. "/about")
-    template: str                    # Jinja2 template path (e.g. "public/about.html")
-    description: str = ""            # meta description for SEO
-    keywords: str = ""               # meta keywords for SEO
-    og_title: str = ""               # OpenGraph title
-    og_description: str = ""         # OpenGraph description
-    in_sitemap: bool = True          # include in sitemap.xml
-    in_footer: bool = True           # include in footer links
-    footer_label: str = ""           # label for footer link (defaults to title)
-    order: int = 100                 # sort order in footer
+
+    id: str  # unique identifier (e.g. "about")
+    title: str  # page title for <title> tag
+    path: str  # URL path (e.g. "/about")
+    template: str  # Jinja2 template path (e.g. "public/about.html")
+    description: str = ""  # meta description for SEO
+    keywords: str = ""  # meta keywords for SEO
+    og_title: str = ""  # OpenGraph title
+    og_description: str = ""  # OpenGraph description
+    in_sitemap: bool = True  # include in sitemap.xml
+    in_footer: bool = True  # include in footer links
+    footer_label: str = ""  # label for footer link (defaults to title)
+    order: int = 100  # sort order in footer
 
 
 @dataclass

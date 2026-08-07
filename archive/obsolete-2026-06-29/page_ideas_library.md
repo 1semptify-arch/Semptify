@@ -592,7 +592,7 @@ README.md
 md
 # Tenant–Landlord Legal Library (gov-only)
 
-**Scope:** Residential rental property, lease contracts, tax law, and government funding programs.  
+**Scope:** Residential rental property, lease contracts, tax law, and government funding programs.
 **Constraint:** Only official `.gov` sources (federal, state, local).
 
 ## Structure

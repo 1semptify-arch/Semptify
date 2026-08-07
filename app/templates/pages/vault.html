@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/css/components/vault-portal.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
@@ -24,18 +24,18 @@
             padding: 2rem;
         }
         .container { max-width: 900px; margin: 0 auto; }
-        header { 
-            display: flex; 
-            justify-content: space-between; 
+        header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         h1 { font-size: 1.5rem; font-weight: 600; }
-        .status { 
-            background: #10b981; 
-            padding: 0.5rem 1rem; 
+        .status {
+            background: #10b981;
+            padding: 0.5rem 1rem;
             border-radius: 2rem;
             font-size: 0.875rem;
         }
@@ -82,9 +82,9 @@
         .doc-info { flex: 1; }
         .doc-name { font-weight: 500; }
         .doc-meta { font-size: 0.875rem; color: #64748b; }
-        #message { 
-            padding: 1rem; 
-            border-radius: 0.5rem; 
+        #message {
+            padding: 1rem;
+            border-radius: 0.5rem;
             margin-bottom: 1rem;
             display: none;
         }
@@ -309,11 +309,11 @@
         async function loadDocuments(accessToken) {
             try {
                 // Use /api/vault/all - reads from vault database (more reliable than certificates in cloud storage)
-                const res = await fetch('/api/vault/all', { 
-                    credentials: 'include' 
+                const res = await fetch('/api/vault/all', {
+                    credentials: 'include'
                 });
                 const data = await res.json();
-                
+
                 const list = document.getElementById('documents-list');
                 if (data.documents && data.documents.length > 0) {
                     document.getElementById('export-btn').style.display = 'inline-flex';
@@ -323,7 +323,7 @@
                             <div class="doc-info">
                                 <div class="doc-name">${doc.filename}</div>
                                 <div class="doc-meta">
-                                    ${formatSize(doc.file_size)} · 
+                                    ${formatSize(doc.file_size)} ·
                                     ${new Date(doc.uploaded_at).toLocaleDateString()}
                                 </div>
                             </div>
@@ -343,7 +343,7 @@
                     `;
                 }
             } catch (e) {
-                document.getElementById('documents-list').innerHTML = 
+                document.getElementById('documents-list').innerHTML =
                     '<p class="text-error text-center">Failed to load documents</p>';
             }
         }

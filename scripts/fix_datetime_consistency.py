@@ -13,53 +13,51 @@ from pathlib import Path
 
 def fix_datetime_in_file(file_path: Path) -> int:
     """Fix datetime inconsistencies in a single file.
-    
+
     Returns:
         Number of fixes made.
     """
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
         return 0
 
     # Check if utc_now is already imported
-    needs_import = 'from app.core.utc import utc_now' not in content
+    needs_import = "from app.core.utc import utc_now" not in content
 
     # Pattern to match datetime.now(timezone.utc)
-    pattern = r'datetime\.now\(timezone\.utc\)'
+    pattern = r"datetime\.now\(timezone\.utc\)"
     replacements = re.findall(pattern, content)
 
     if not replacements:
         return 0
 
     # Replace with utc_now()
-    content = re.sub(pattern, 'utc_now()', content)
+    content = re.sub(pattern, "utc_now()", content)
 
     # Add import if needed
     if needs_import:
         # Find the last import statement
-        import_pattern = r'(from\s+app\.\w+\s+import\s+.+|import\s+.+)'
+        import_pattern = r"(from\s+app\.\w+\s+import\s+.+|import\s+.+)"
         imports = re.findall(import_pattern, content)
 
         if imports:
             last_import = imports[-1]
             # Insert utc_now import after the last import
-            content = content.replace(
-                last_import,
-                f"{last_import}\nfrom app.core.utc import utc_now"
-            )
+            content = content.replace(last_import, f"{last_import}\nfrom app.core.utc import utc_now")
 
     # Write back
     try:
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
     except Exception as e:
         print(f"Error writing {file_path}: {e}")
         return 0
 
     return len(replacements)
+
 
 def main():
     """Main entry point."""
@@ -82,6 +80,7 @@ def main():
 
     print(f"\n✅ Fixed {total_fixes} instances across {files_fixed} files")
     print("🔧 All datetime.now(timezone.utc) replaced with utc_now()")
+
 
 if __name__ == "__main__":
     main()

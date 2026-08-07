@@ -49,31 +49,31 @@ class FileListResponse(BaseModel):
 
 def get_file_type(filename: str) -> str:
     """Determine file type from extension"""
-    if filename.endswith('.html'):
-        return 'html'
-    elif filename.endswith('.jinja'):
-        return 'jinja'
-    elif filename.endswith('.css'):
-        return 'css'
-    elif filename.endswith('.js'):
-        return 'javascript'
-    elif filename.endswith('.py'):
-        return 'python'
-    elif filename.endswith('.md'):
-        return 'markdown'
+    if filename.endswith(".html"):
+        return "html"
+    elif filename.endswith(".jinja"):
+        return "jinja"
+    elif filename.endswith(".css"):
+        return "css"
+    elif filename.endswith(".js"):
+        return "javascript"
+    elif filename.endswith(".py"):
+        return "python"
+    elif filename.endswith(".md"):
+        return "markdown"
     else:
-        return 'text'
+        return "text"
 
 
 def scan_directory(base_path: Path, rel_prefix: str = "") -> list[FileInfo]:
     """Recursively scan directory for editable files"""
     files = []
-    editable_extensions = {'.html', '.css', '.js', '.py', '.md', '.jinja', '.json'}
+    editable_extensions = {".html", ".css", ".js", ".py", ".md", ".jinja", ".json"}
 
     if not base_path.exists():
         return files
 
-    for item in base_path.rglob('*'):
+    for item in base_path.rglob("*"):
         if item.is_file() and item.suffix in editable_extensions:
             # Calculate relative path from project root
             rel_path = str(item.relative_to(Path.cwd()))
@@ -81,20 +81,22 @@ def scan_directory(base_path: Path, rel_prefix: str = "") -> list[FileInfo]:
             # Determine folder for grouping
             try:
                 folder = str(item.parent.relative_to(base_path))
-                if folder == '.':
-                    folder = 'Root'
+                if folder == ".":
+                    folder = "Root"
             except ValueError:
-                folder = 'Other'
+                folder = "Other"
 
             stat = item.stat()
-            files.append(FileInfo(
-                name=item.name,
-                path=rel_path,
-                folder=folder,
-                type=get_file_type(item.name),
-                size=stat.st_size,
-                modified=stat.st_mtime
-            ))
+            files.append(
+                FileInfo(
+                    name=item.name,
+                    path=rel_path,
+                    folder=folder,
+                    type=get_file_type(item.name),
+                    size=stat.st_size,
+                    modified=stat.st_mtime,
+                )
+            )
 
     # Sort by folder then name
     files.sort(key=lambda f: (f.folder, f.name))
@@ -110,10 +112,7 @@ async def list_files(
         static_files = scan_directory(STATIC_PATH)
         template_files = scan_directory(TEMPLATES_PATH)
 
-        return FileListResponse(
-            static=static_files,
-            templates=template_files
-        )
+        return FileListResponse(static=static_files, templates=template_files)
     except Exception:
         logger.exception("Error scanning files")
         raise HTTPException(status_code=500, detail="Error scanning files")
@@ -145,15 +144,11 @@ async def get_file(
 
         # Read file content
         try:
-            content = file_path.read_text(encoding='utf-8')
+            content = file_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             raise HTTPException(status_code=400, detail="File is not text-readable")
 
-        return FileContent(
-            path=path,
-            content=content,
-            type=get_file_type(file_path.name)
-        )
+        return FileContent(path=path, content=content, type=get_file_type(file_path.name))
 
     except HTTPException:
         raise
@@ -184,14 +179,14 @@ async def save_file(
             raise HTTPException(status_code=400, detail=f"Directory does not exist: {file_path.parent}")
 
         # Write file content
-        file_path.write_text(request.content, encoding='utf-8')
+        file_path.write_text(request.content, encoding="utf-8")
 
         return JSONResponse(
             content={
                 "success": True,
                 "message": f"Saved {request.path}",
                 "path": request.path,
-                "size": len(request.content)
+                "size": len(request.content),
             }
         )
 
@@ -212,7 +207,7 @@ async def preview_file(
         content = request.content
 
         # For Jinja2 templates, add base template wrapper for preview
-        if request.path.endswith('.jinja') or request.path.endswith('_ssot.html'):
+        if request.path.endswith(".jinja") or request.path.endswith("_ssot.html"):
             # Simple preview - just return the raw template
             # In production, you'd render with sample data
             preview_html = f"""
@@ -240,7 +235,7 @@ async def preview_file(
             return JSONResponse(content={"html": preview_html})
 
         # For static HTML, return as-is (with safety checks)
-        if request.path.endswith('.html'):
+        if request.path.endswith(".html"):
             return JSONResponse(content={"html": content})
 
         # For other files, wrap in preview
@@ -290,7 +285,7 @@ async def search_files(
                 try:
                     file_path = Path(file.path)
                     if file_path.exists() and file_path.stat().st_size < 1024 * 1024:  # Skip files > 1MB
-                        content = file_path.read_text(encoding='utf-8', errors='ignore')
+                        content = file_path.read_text(encoding="utf-8", errors="ignore")
                         if query in content.lower():
                             results.append(file)
                 except UnicodeDecodeError as e:

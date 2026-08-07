@@ -1,7 +1,7 @@
 # Semptify Privacy Policy
 
-**Effective Date:** December 7, 2025  
-**Last Updated:** December 7, 2025  
+**Effective Date:** December 7, 2025
+**Last Updated:** December 7, 2025
 **Version:** 1.0
 
 ---
@@ -275,4 +275,3 @@ If you have questions about this Privacy Policy:
 **Semptify is built for privacy. Your case data is YOUR data.**
 
 **100% Free. No Ads. No Tracking. Donations Welcome.**
-

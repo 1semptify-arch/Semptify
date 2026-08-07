@@ -22,6 +22,7 @@ try:
 
     from app.core.database import get_db_session
     from app.models.models import DocumentPipelineIndex
+
     HAS_DB_INDEX = True
 except Exception:
     HAS_DB_INDEX = False
@@ -34,6 +35,7 @@ try:
         IntelligenceResult,
         get_document_intelligence,
     )
+
     HAS_INTELLIGENCE = True
 except ImportError:
     HAS_INTELLIGENCE = False
@@ -41,6 +43,7 @@ except ImportError:
 # Import context loop for event emission
 try:
     from app.services.context_loop import EventType, context_loop
+
     HAS_CONTEXT_LOOP = True
 except ImportError:
     HAS_CONTEXT_LOOP = False
@@ -48,6 +51,7 @@ except ImportError:
 # Import module hub for routing documents to modules
 try:
     from app.core.module_hub import module_hub, route_document_to_module
+
     HAS_MODULE_HUB = True
 except ImportError:
     HAS_MODULE_HUB = False
@@ -60,6 +64,7 @@ try:
         process_document_for_case,
         should_create_case,
     )
+
     HAS_CASE_AUTO_CREATION = True
 except ImportError:
     HAS_CASE_AUTO_CREATION = False
@@ -67,6 +72,7 @@ except ImportError:
 
 class ProcessingStatus(str, Enum):
     """Document processing states."""
+
     PENDING = "pending"
     ANALYZING = "analyzing"
     CLASSIFIED = "classified"
@@ -77,6 +83,7 @@ class ProcessingStatus(str, Enum):
 @dataclass
 class TenancyDocument:
     """A document in a tenant's record."""
+
     id: str
     user_id: str
     filename: str
@@ -166,6 +173,7 @@ class DocumentPipeline:
         # eagerly load the authoritative index from PostgreSQL.
         try:
             import asyncio
+
             try:
                 asyncio.get_running_loop()
             except RuntimeError:
@@ -236,22 +244,18 @@ class DocumentPipeline:
                         row.user_id = doc.user_id
                         row.payload_json = payload_json
                     else:
-                        db.add(DocumentPipelineIndex(
-                            doc_id=doc.id,
-                            user_id=doc.user_id,
-                            payload_json=payload_json,
-                        ))
+                        db.add(
+                            DocumentPipelineIndex(
+                                doc_id=doc.id,
+                                user_id=doc.user_id,
+                                payload_json=payload_json,
+                            )
+                        )
                 await db.commit()
         except Exception as exc:
             logger.warning("PostgreSQL index save failed (local copy kept): %s", exc)
 
-    async def ingest(
-        self,
-        user_id: str,
-        filename: str,
-        content: bytes,
-        mime_type: str
-    ) -> TenancyDocument:
+    async def ingest(self, user_id: str, filename: str, content: bytes, mime_type: str) -> TenancyDocument:
         """
         Ingest a new document into the pipeline.
         Returns immediately with pending status, processing happens async.
@@ -287,7 +291,7 @@ class DocumentPipeline:
             file_size=len(content),
             storage_path=str(file_path),
             status=ProcessingStatus.PENDING,
-            uploaded_at=utc_now()
+            uploaded_at=utc_now(),
         )
 
         self._documents[doc_id] = doc
@@ -324,9 +328,7 @@ class DocumentPipeline:
 
             # Analyze with Azure AI
             result: ExtractedDocument = await self.azure_ai.analyze_document(
-                content=content,
-                filename=doc.filename,
-                mime_type=doc.mime_type
+                content=content, filename=doc.filename, mime_type=doc.mime_type
             )
 
             # Update document with results
@@ -495,13 +497,7 @@ class DocumentPipeline:
 
         return doc
 
-    async def ingest_and_process(
-        self,
-        user_id: str,
-        filename: str,
-        content: bytes,
-        mime_type: str
-    ) -> TenancyDocument:
+    async def ingest_and_process(self, user_id: str, filename: str, content: bytes, mime_type: str) -> TenancyDocument:
         """Convenience method: ingest and process in one call."""
         doc = await self.ingest(user_id, filename, content, mime_type)
         return await self.process(doc.id)
@@ -512,21 +508,11 @@ class DocumentPipeline:
 
     def get_user_documents(self, user_id: str) -> list[TenancyDocument]:
         """Get all documents for a user."""
-        return [
-            doc for doc in self._documents.values()
-            if doc.user_id == user_id
-        ]
+        return [doc for doc in self._documents.values() if doc.user_id == user_id]
 
-    def get_user_documents_by_type(
-        self,
-        user_id: str,
-        doc_type: DocumentType
-    ) -> list[TenancyDocument]:
+    def get_user_documents_by_type(self, user_id: str, doc_type: DocumentType) -> list[TenancyDocument]:
         """Get user documents filtered by type."""
-        return [
-            doc for doc in self._documents.values()
-            if doc.user_id == user_id and doc.doc_type == doc_type
-        ]
+        return [doc for doc in self._documents.values() if doc.user_id == user_id and doc.doc_type == doc_type]
 
     def get_timeline(self, user_id: str) -> list[dict]:
         """
@@ -537,26 +523,30 @@ class DocumentPipeline:
 
         for doc in self.get_user_documents(user_id):
             # Add document upload event
-            timeline.append({
-                "date": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
-                "type": "document_uploaded",
-                "doc_id": doc.id,
-                "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-                "title": doc.title or doc.filename,
-                "summary": doc.summary
-            })
+            timeline.append(
+                {
+                    "date": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
+                    "type": "document_uploaded",
+                    "doc_id": doc.id,
+                    "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+                    "title": doc.title or doc.filename,
+                    "summary": doc.summary,
+                }
+            )
 
             # Add key dates from document
             if doc.key_dates:
                 for date_info in doc.key_dates:
-                    timeline.append({
-                        "date": date_info.get("date"),
-                        "type": "document_date",
-                        "doc_id": doc.id,
-                        "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-                        "title": date_info.get("description", "Date"),
-                        "summary": f"From: {doc.title or doc.filename}"
-                    })
+                    timeline.append(
+                        {
+                            "date": date_info.get("date"),
+                            "type": "document_date",
+                            "doc_id": doc.id,
+                            "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+                            "title": date_info.get("description", "Date"),
+                            "summary": f"From: {doc.title or doc.filename}",
+                        }
+                    )
 
         # Sort by date
         timeline.sort(key=lambda x: x.get("date") or "")
@@ -580,12 +570,8 @@ class DocumentPipeline:
             "total_documents": len(docs),
             "by_type": by_type,
             "by_status": by_status,
-            "total_parties": len(set(
-                p.get("name", "")
-                for doc in docs
-                for p in (doc.key_parties or [])
-            )),
-            "date_range": self._get_date_range(docs)
+            "total_parties": len(set(p.get("name", "") for doc in docs for p in (doc.key_parties or []))),
+            "date_range": self._get_date_range(docs),
         }
 
     def _get_date_range(self, docs: list[TenancyDocument]) -> dict:
@@ -594,7 +580,7 @@ class DocumentPipeline:
         for doc in docs:
             if doc.uploaded_at:
                 all_dates.append(doc.uploaded_at)
-            for date_info in (doc.key_dates or []):
+            for date_info in doc.key_dates or []:
                 if date_info.get("date"):
                     try:
                         all_dates.append(datetime.fromisoformat(date_info["date"]))
@@ -605,15 +591,12 @@ class DocumentPipeline:
         if not all_dates:
             return {"earliest": None, "latest": None}
 
-        return {
-            "earliest": min(all_dates).isoformat(),
-            "latest": max(all_dates).isoformat()
-        }
+        return {"earliest": min(all_dates).isoformat(), "latest": max(all_dates).isoformat()}
 
     async def get_intelligence(self, doc_id: str) -> dict | None:
         """
         Get full document intelligence analysis.
-        
+
         This uses the world-class Document Intelligence Service to provide:
         - Multi-layered classification with reasoning
         - Entity extraction with contextual understanding
@@ -658,7 +641,7 @@ class DocumentPipeline:
     async def get_urgent_documents(self, user_id: str) -> list[dict]:
         """
         Get all urgent documents for a user.
-        
+
         Returns documents sorted by urgency level.
         """
         await self._ensure_db_index_loaded()
@@ -672,15 +655,17 @@ class DocumentPipeline:
                     await self.get_intelligence(doc.id)
 
                 if doc.urgency_level and doc.urgency_level in ["critical", "high"]:
-                    urgent_docs.append({
-                        "id": doc.id,
-                        "filename": doc.filename,
-                        "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
-                        "title": doc.title,
-                        "urgency_level": doc.urgency_level,
-                        "action_items": doc.action_items or [],
-                        "uploaded_at": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
-                    })
+                    urgent_docs.append(
+                        {
+                            "id": doc.id,
+                            "filename": doc.filename,
+                            "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+                            "title": doc.title,
+                            "urgency_level": doc.urgency_level,
+                            "action_items": doc.action_items or [],
+                            "uploaded_at": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
+                        }
+                    )
 
         # Sort by urgency (critical first)
         urgency_order = {"critical": 0, "high": 1, "medium": 2, "normal": 3, "low": 4}

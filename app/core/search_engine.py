@@ -18,23 +18,29 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class SearchType(Enum):
     """Search types."""
+
     FULL_TEXT = "full_text"
     METADATA = "metadata"
     CONTENT = "content"
     HYBRID = "hybrid"
 
+
 class SearchOperator(Enum):
     """Search operators."""
+
     AND = "and"
     OR = "or"
     NOT = "not"
     PHRASE = "phrase"
 
+
 @dataclass
 class DocumentIndex:
     """Document index entry."""
+
     document_id: str
     user_id: str
     title: str
@@ -55,12 +61,14 @@ class DocumentIndex:
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "file_type": self.file_type,
-            "tags": self.tags
+            "tags": self.tags,
         }
+
 
 @dataclass
 class SearchResult:
     """Search result with relevance score."""
+
     document: DocumentIndex
     score: float
     highlights: list[str]
@@ -71,12 +79,14 @@ class SearchResult:
             "document": self.document.to_dict(),
             "score": self.score,
             "highlights": self.highlights,
-            "match_type": self.match_type
+            "match_type": self.match_type,
         }
+
 
 @dataclass
 class SearchQuery:
     """Search query with filters."""
+
     query: str
     search_type: SearchType = SearchType.FULL_TEXT
     operator: SearchOperator = SearchOperator.AND
@@ -95,13 +105,11 @@ class SearchQuery:
             "user_id": self.user_id,
             "file_types": self.file_types,
             "tags": self.tags,
-            "date_range": [
-                self.date_range[0].isoformat(),
-                self.date_range[1].isoformat()
-            ] if self.date_range else None,
+            "date_range": [self.date_range[0].isoformat(), self.date_range[1].isoformat()] if self.date_range else None,
             "limit": self.limit,
-            "offset": self.offset
+            "offset": self.offset,
         }
+
 
 class TextProcessor:
     """Text processing for search indexing."""
@@ -109,41 +117,119 @@ class TextProcessor:
     def __init__(self):
         # Common stop words
         self.stop_words = {
-            'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
-            'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the',
-            'to', 'was', 'will', 'with', 'this', 'but', 'they', 'have',
-            'had', 'what', 'said', 'each', 'which', 'their', 'time', 'if',
-            'up', 'out', 'many', 'then', 'them', 'can', 'would', 'there',
-            'been', 'may', 'my', 'than', 'call', 'who', 'oil', 'sit', 'now',
-            'find', 'long', 'down', 'day', 'did', 'get', 'come', 'made',
-            'part', 'over', 'some', 'your'
+            "a",
+            "an",
+            "and",
+            "are",
+            "as",
+            "at",
+            "be",
+            "by",
+            "for",
+            "from",
+            "has",
+            "he",
+            "in",
+            "is",
+            "it",
+            "its",
+            "of",
+            "on",
+            "that",
+            "the",
+            "to",
+            "was",
+            "will",
+            "with",
+            "this",
+            "but",
+            "they",
+            "have",
+            "had",
+            "what",
+            "said",
+            "each",
+            "which",
+            "their",
+            "time",
+            "if",
+            "up",
+            "out",
+            "many",
+            "then",
+            "them",
+            "can",
+            "would",
+            "there",
+            "been",
+            "may",
+            "my",
+            "than",
+            "call",
+            "who",
+            "oil",
+            "sit",
+            "now",
+            "find",
+            "long",
+            "down",
+            "day",
+            "did",
+            "get",
+            "come",
+            "made",
+            "part",
+            "over",
+            "some",
+            "your",
         }
 
         # Housing-related terms to boost
         self.housing_terms = {
-            'lease', 'rent', 'tenant', 'landlord', 'eviction', 'housing',
-            'apartment', 'rental', 'property', 'agreement', 'contract',
-            'notice', 'court', 'judge', 'law', 'legal', 'rights', 'violation',
-            'maintenance', 'repair', 'deposit', 'security', 'utilities',
-            'mortgage', 'foreclosure', 'inspection', 'code'
+            "lease",
+            "rent",
+            "tenant",
+            "landlord",
+            "eviction",
+            "housing",
+            "apartment",
+            "rental",
+            "property",
+            "agreement",
+            "contract",
+            "notice",
+            "court",
+            "judge",
+            "law",
+            "legal",
+            "rights",
+            "violation",
+            "maintenance",
+            "repair",
+            "deposit",
+            "security",
+            "utilities",
+            "mortgage",
+            "foreclosure",
+            "inspection",
+            "code",
         }
 
     def tokenize(self, text: str) -> list[str]:
         """Tokenize text into words."""
         # Convert to lowercase and split on non-alphanumeric
-        tokens = re.findall(r'\b\w+\b', text.lower())
+        tokens = re.findall(r"\b\w+\b", text.lower())
 
         # Remove stop words and filter short tokens
-        tokens = [token for token in tokens
-                 if token not in self.stop_words and len(token) >= 2]
+        tokens = [token for token in tokens if token not in self.stop_words and len(token) >= 2]
 
         return tokens
 
     def normalize(self, text: str) -> str:
         """Normalize text for search."""
         # Remove special characters, normalize whitespace
-        text = re.sub(r'[^\w\s]', ' ', text.lower())
-        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r"[^\w\s]", " ", text.lower())
+        text = re.sub(r"\s+", " ", text).strip()
         return text
 
     def extract_keywords(self, text: str, max_keywords: int = 10) -> list[str]:
@@ -162,6 +248,7 @@ class TextProcessor:
         keywords = [token for token, freq in token_freq.most_common(max_keywords)]
 
         return keywords
+
 
 class InvertedIndex:
     """Inverted index for fast text search."""
@@ -255,10 +342,11 @@ class InvertedIndex:
 
         if query.operator == SearchOperator.AND:
             # All tokens must be present
-            matching_docs = set.intersection(*[
-                self.index.get(token, set()) for token in query_tokens
-                if token in self.index
-            ]) if query_tokens else set()
+            matching_docs = (
+                set.intersection(*[self.index.get(token, set()) for token in query_tokens if token in self.index])
+                if query_tokens
+                else set()
+            )
 
         elif query.operator == SearchOperator.OR:
             # Any token can be present
@@ -269,14 +357,13 @@ class InvertedIndex:
         elif query.operator == SearchOperator.NOT:
             # Exclude documents with certain tokens
             # This is simplified - real implementation would be more complex
-            exclude_tokens = [token for token in query_tokens if token.startswith('-')]
-            include_tokens = [token for token in query_tokens if not token.startswith('-')]
+            exclude_tokens = [token for token in query_tokens if token.startswith("-")]
+            include_tokens = [token for token in query_tokens if not token.startswith("-")]
 
             if include_tokens:
-                matching_docs = set.union(*[
-                    self.index.get(token, set()) for token in include_tokens
-                    if token in self.index
-                ])
+                matching_docs = set.union(
+                    *[self.index.get(token, set()) for token in include_tokens if token in self.index]
+                )
 
             for token in exclude_tokens:
                 clean_token = token[1:]  # Remove '-'
@@ -293,12 +380,9 @@ class InvertedIndex:
             score = self._calculate_relevance_score(doc, query_tokens, query)
             highlights = self._generate_highlights(doc, query_tokens)
 
-            results.append(SearchResult(
-                document=doc,
-                score=score,
-                highlights=highlights,
-                match_type=query.search_type.value
-            ))
+            results.append(
+                SearchResult(document=doc, score=score, highlights=highlights, match_type=query.search_type.value)
+            )
 
         # Sort by score
         results.sort(key=lambda x: x.score, reverse=True)
@@ -339,8 +423,7 @@ class InvertedIndex:
 
         return filtered_docs
 
-    def _calculate_relevance_score(self, doc: DocumentIndex, query_tokens: list[str],
-                                  query: SearchQuery) -> float:
+    def _calculate_relevance_score(self, doc: DocumentIndex, query_tokens: list[str], query: SearchQuery) -> float:
         """Calculate BM25 relevance score."""
         k1 = 1.2  # BM25 parameter
         b = 0.75  # BM25 parameter
@@ -359,9 +442,7 @@ class InvertedIndex:
             tf = self.word_counts[token].get(doc.document_id, 0)  # Term frequency
 
             # Normalize term frequency
-            normalized_tf = (tf * (k1 + 1)) / (
-                tf + k1 * (1 - b + b * (doc_length / self.avg_document_length))
-            )
+            normalized_tf = (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (doc_length / self.avg_document_length)))
 
             score += idf * normalized_tf
 
@@ -414,9 +495,10 @@ class InvertedIndex:
             "document_lengths": {
                 "min": min(self.document_lengths.values()) if self.document_lengths else 0,
                 "max": max(self.document_lengths.values()) if self.document_lengths else 0,
-                "avg": self.avg_document_length
-            }
+                "avg": self.avg_document_length,
+            },
         }
+
 
 class SearchEngine:
     """Advanced search engine with indexing."""
@@ -430,12 +512,19 @@ class SearchEngine:
             "total_searches": 0,
             "avg_search_time": 0.0,
             "popular_queries": Counter(),
-            "zero_result_queries": Counter()
+            "zero_result_queries": Counter(),
         }
 
-    def index_document(self, document_id: str, user_id: str, title: str,
-                      content: str, metadata: dict[str, Any], file_type: str,
-                      tags: list[str] = None) -> bool:
+    def index_document(
+        self,
+        document_id: str,
+        user_id: str,
+        title: str,
+        content: str,
+        metadata: dict[str, Any],
+        file_type: str,
+        tags: list[str] = None,
+    ) -> bool:
         """Index a document for search."""
         try:
             # Remove existing document if it exists
@@ -452,7 +541,7 @@ class SearchEngine:
                 created_at=utc_now(),
                 updated_at=utc_now(),
                 file_type=file_type,
-                tags=tags or []
+                tags=tags or [],
             )
 
             # Add to index
@@ -475,10 +564,18 @@ class SearchEngine:
             logger.error(f"Failed to remove document {document_id}: {e}")
             return False
 
-    def search(self, query: str, user_id: str = None, search_type: SearchType = SearchType.FULL_TEXT,
-               operator: SearchOperator = SearchOperator.AND, file_types: list[str] = None,
-               tags: list[str] = None, date_range: tuple[datetime, datetime] | None = None,
-               limit: int = 50, offset: int = 0) -> dict[str, Any]:
+    def search(
+        self,
+        query: str,
+        user_id: str = None,
+        search_type: SearchType = SearchType.FULL_TEXT,
+        operator: SearchOperator = SearchOperator.AND,
+        file_types: list[str] = None,
+        tags: list[str] = None,
+        date_range: tuple[datetime, datetime] | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
         """Perform search."""
         start_time = utc_now()
 
@@ -493,7 +590,7 @@ class SearchEngine:
                 tags=tags,
                 date_range=date_range,
                 limit=limit,
-                offset=offset
+                offset=offset,
             )
 
             # Perform search
@@ -503,9 +600,8 @@ class SearchEngine:
             search_time = (utc_now() - start_time).total_seconds()
             self.search_stats["total_searches"] += 1
             self.search_stats["avg_search_time"] = (
-                (self.search_stats["avg_search_time"] * (self.search_stats["total_searches"] - 1) + search_time) /
-                self.search_stats["total_searches"]
-            )
+                self.search_stats["avg_search_time"] * (self.search_stats["total_searches"] - 1) + search_time
+            ) / self.search_stats["total_searches"]
             self.search_stats["popular_queries"][query.lower()] += 1
 
             if not results:
@@ -516,17 +612,12 @@ class SearchEngine:
                 "total": len(results),
                 "query": search_query.to_dict(),
                 "search_time": search_time,
-                "statistics": self.get_search_statistics()
+                "statistics": self.get_search_statistics(),
             }
 
         except Exception as e:
             logger.error(f"Search failed: {e}")
-            return {
-                "results": [],
-                "total": 0,
-                "error": str(e),
-                "search_time": (utc_now() - start_time).total_seconds()
-            }
+            return {"results": [], "total": 0, "error": str(e), "search_time": (utc_now() - start_time).total_seconds()}
 
     def suggest_queries(self, partial_query: str, user_id: str = None, limit: int = 10) -> list[str]:
         """Suggest search queries based on partial input."""
@@ -543,10 +634,7 @@ class SearchEngine:
 
     def get_search_statistics(self) -> dict[str, Any]:
         """Get search statistics."""
-        return {
-            "search_stats": self.search_stats.copy(),
-            "index_stats": self.index.get_statistics()
-        }
+        return {"search_stats": self.search_stats.copy(), "index_stats": self.index.get_statistics()}
 
     def reindex_all_documents(self, documents: list[dict[str, Any]]) -> bool:
         """Reindex all documents."""
@@ -563,7 +651,7 @@ class SearchEngine:
                     content=doc_data["content"],
                     metadata=doc_data.get("metadata", {}),
                     file_type=doc_data["file_type"],
-                    tags=doc_data.get("tags", [])
+                    tags=doc_data.get("tags", []),
                 )
 
             logger.info(f"Reindexed {len(documents)} documents")
@@ -573,8 +661,10 @@ class SearchEngine:
             logger.error(f"Failed to reindex documents: {e}")
             return False
 
+
 # Global search engine instance
 _search_engine: SearchEngine | None = None
+
 
 def get_search_engine() -> SearchEngine:
     """Get the global search engine instance."""
@@ -585,29 +675,39 @@ def get_search_engine() -> SearchEngine:
 
     return _search_engine
 
+
 # Helper functions
-def index_document_for_search(document_id: str, user_id: str, title: str,
-                            content: str, metadata: dict[str, Any],
-                            file_type: str, tags: list[str] = None) -> bool:
+def index_document_for_search(
+    document_id: str,
+    user_id: str,
+    title: str,
+    content: str,
+    metadata: dict[str, Any],
+    file_type: str,
+    tags: list[str] = None,
+) -> bool:
     """Index a document for search."""
     engine = get_search_engine()
-    return engine.index_document(document_id, user_id, title, content,
-                               metadata, file_type, tags)
+    return engine.index_document(document_id, user_id, title, content, metadata, file_type, tags)
+
 
 def remove_from_search_index(document_id: str) -> bool:
     """Remove document from search index."""
     engine = get_search_engine()
     return engine.remove_document(document_id)
 
+
 def search_documents(query: str, user_id: str = None, **kwargs) -> dict[str, Any]:
     """Search documents."""
     engine = get_search_engine()
     return engine.search(query, user_id, **kwargs)
 
+
 def get_search_suggestions(partial_query: str, user_id: str = None, limit: int = 10) -> list[str]:
     """Get search suggestions."""
     engine = get_search_engine()
     return engine.suggest_queries(partial_query, user_id, limit)
+
 
 def get_search_statistics() -> dict[str, Any]:
     """Get search statistics."""

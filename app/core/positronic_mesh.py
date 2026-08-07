@@ -31,8 +31,10 @@ logger = logging.getLogger(__name__)
 # WORKFLOW DEFINITIONS
 # =============================================================================
 
+
 class WorkflowType(str, Enum):
     """Pre-defined cross-module workflows"""
+
     # Document-triggered workflows
     EVICTION_DEFENSE = "eviction_defense"  # Document ▸ Eviction ▸ Calendar ▸ Forms ▸ Copilot
     LEASE_ANALYSIS = "lease_analysis"  # Document ▸ Analysis ▸ Timeline ▸ Calendar
@@ -51,6 +53,7 @@ class WorkflowType(str, Enum):
 
 class WorkflowStage(str, Enum):
     """Stages a workflow goes through"""
+
     PENDING = "pending"
     INITIALIZING = "initializing"
     RUNNING = "running"
@@ -63,6 +66,7 @@ class WorkflowStage(str, Enum):
 @dataclass
 class WorkflowStep:
     """A single step in a workflow"""
+
     id: str
     module: str
     action: str
@@ -84,6 +88,7 @@ class WorkflowStep:
 @dataclass
 class Workflow:
     """A complete workflow spanning multiple modules"""
+
     id: str
     type: WorkflowType
     user_id: str
@@ -125,9 +130,11 @@ class Workflow:
 # MODULE ACTION HANDLERS
 # =============================================================================
 
+
 @dataclass
 class ModuleAction:
     """Defines an action a module can perform"""
+
     module: str
     action: str
     handler: Callable
@@ -141,10 +148,11 @@ class ModuleAction:
 # POSITRONIC MESH - THE NEURAL NETWORK
 # =============================================================================
 
+
 class PositronicMesh:
     """
     The Positronic Mesh - Central orchestration for all modules.
-    
+
     Think of this as the brain's neural pathways:
     - Modules are neurons
     - Workflows are neural pathways
@@ -403,7 +411,7 @@ class PositronicMesh:
                 params=step_def.get("params", {}),
                 requires_input=step_def.get("requires_input", False),
                 input_prompt=step_def.get("input_prompt"),
-                on_success=f"step_{i+1}" if i < len(template) - 1 else None,
+                on_success=f"step_{i + 1}" if i < len(template) - 1 else None,
             )
             steps.append(step)
 
@@ -428,11 +436,14 @@ class PositronicMesh:
         asyncio.create_task(self._execute_workflow(workflow))
 
         # Notify subscribers
-        await self._emit_event("workflow_started", {
-            "workflow_id": workflow_id,
-            "type": workflow_type.value,
-            "user_id": user_id,
-        })
+        await self._emit_event(
+            "workflow_started",
+            {
+                "workflow_id": workflow_id,
+                "type": workflow_type.value,
+                "user_id": user_id,
+            },
+        )
 
         return workflow
 
@@ -447,13 +458,16 @@ class PositronicMesh:
             # Check if step requires user input
             if step.requires_input and step.status == "pending":
                 workflow.stage = WorkflowStage.WAITING_INPUT
-                await self._emit_event("workflow_waiting_input", {
-                    "workflow_id": workflow.id,
-                    "step_id": step.id,
-                    "prompt": step.input_prompt,
-                    "module": step.module,
-                    "action": step.action,
-                })
+                await self._emit_event(
+                    "workflow_waiting_input",
+                    {
+                        "workflow_id": workflow.id,
+                        "step_id": step.id,
+                        "prompt": step.input_prompt,
+                        "module": step.module,
+                        "action": step.action,
+                    },
+                )
                 return  # Wait for input
 
             # Execute step
@@ -472,13 +486,16 @@ class PositronicMesh:
                     workflow.context.update(result)
 
                 # Emit step completion
-                await self._emit_event("workflow_step_completed", {
-                    "workflow_id": workflow.id,
-                    "step_id": step.id,
-                    "module": step.module,
-                    "action": step.action,
-                    "result_keys": list(result.keys()) if result else [],
-                })
+                await self._emit_event(
+                    "workflow_step_completed",
+                    {
+                        "workflow_id": workflow.id,
+                        "step_id": step.id,
+                        "module": step.module,
+                        "action": step.action,
+                        "result_keys": list(result.keys()) if result else [],
+                    },
+                )
 
                 # Move to next step
                 workflow.current_step_index += 1
@@ -501,11 +518,14 @@ class PositronicMesh:
                 else:
                     # No fallback, workflow failed
                     workflow.stage = WorkflowStage.FAILED
-                    await self._emit_event("workflow_failed", {
-                        "workflow_id": workflow.id,
-                        "step_id": step.id,
-                        "error": str(e),
-                    })
+                    await self._emit_event(
+                        "workflow_failed",
+                        {
+                            "workflow_id": workflow.id,
+                            "step_id": step.id,
+                            "error": str(e),
+                        },
+                    )
                     return
 
         # All steps completed
@@ -514,12 +534,15 @@ class PositronicMesh:
 
         logger.info(f"● Workflow {workflow.id} completed successfully")
 
-        await self._emit_event("workflow_completed", {
-            "workflow_id": workflow.id,
-            "type": workflow.type.value,
-            "user_id": workflow.user_id,
-            "context_keys": list(workflow.context.keys()),
-        })
+        await self._emit_event(
+            "workflow_completed",
+            {
+                "workflow_id": workflow.id,
+                "type": workflow.type.value,
+                "user_id": workflow.user_id,
+                "context_keys": list(workflow.context.keys()),
+            },
+        )
 
     async def _execute_step(self, workflow: Workflow, step: WorkflowStep) -> dict[str, Any]:
         """Execute a single workflow step"""
@@ -621,10 +644,7 @@ class PositronicMesh:
         workflows = [self.workflows[wid] for wid in workflow_ids if wid in self.workflows]
 
         if active_only:
-            workflows = [
-                w for w in workflows
-                if w.stage in [WorkflowStage.RUNNING, WorkflowStage.WAITING_INPUT]
-            ]
+            workflows = [w for w in workflows if w.stage in [WorkflowStage.RUNNING, WorkflowStage.WAITING_INPUT]]
 
         return workflows
 
@@ -668,11 +688,14 @@ class PositronicMesh:
 
         logger.info(f"◆ Invoked {module}.{action} for user {user_id[:8]}...")
 
-        await self._emit_event("module_invoked", {
-            "module": module,
-            "action": action,
-            "user_id": user_id,
-        })
+        await self._emit_event(
+            "module_invoked",
+            {
+                "module": module,
+                "action": action,
+                "user_id": user_id,
+            },
+        )
 
         return result or {}
 
@@ -712,8 +735,7 @@ class PositronicMesh:
     def get_mesh_status(self) -> dict[str, Any]:
         """Get the overall mesh status"""
         active_workflows = sum(
-            1 for w in self.workflows.values()
-            if w.stage in [WorkflowStage.RUNNING, WorkflowStage.WAITING_INPUT]
+            1 for w in self.workflows.values() if w.stage in [WorkflowStage.RUNNING, WorkflowStage.WAITING_INPUT]
         )
 
         mesh_config = get_mesh_config()
@@ -740,9 +762,7 @@ class PositronicMesh:
             {
                 "type": wt.value,
                 "steps": len(self.workflow_templates[wt]),
-                "modules_involved": list(set(
-                    step["module"] for step in self.workflow_templates[wt]
-                )),
+                "modules_involved": list(set(step["module"] for step in self.workflow_templates[wt])),
             }
             for wt in self.workflow_templates
         ]
@@ -755,6 +775,7 @@ positronic_mesh = PositronicMesh()
 # =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
+
 
 async def trigger_eviction_workflow(user_id: str, document_data: dict[str, Any]) -> Workflow:
     """Convenience function to start eviction defense workflow"""
@@ -804,13 +825,10 @@ async def sync_all_modules(user_id: str) -> Workflow:
 TELEMETRY_WORKFLOW_TRIGGERS: dict[str, WorkflowType] = {
     # Document upload ▸ Auto analysis
     "vault_upload_complete": WorkflowType.LEASE_ANALYSIS,
-
     # Eviction answer flow ▸ Full eviction defense
     "eviction_answer_load": WorkflowType.EVICTION_DEFENSE,
-
     # Crisis intake ▸ Emergency mode + escalation
     "crisis_intake_load": WorkflowType.EMERGENCY_MODE,
-
     # Court packet ▸ Court prep
     "court_packet_load": WorkflowType.COURT_PREP,
 }
@@ -823,12 +841,12 @@ def mesh_trigger_workflow(
 ) -> Workflow | None:
     """
     Trigger a mesh workflow from external systems (telemetry, webhooks, etc.)
-    
+
     Args:
         workflow_id: The workflow type identifier
         payload: Context data for the workflow
         user_id: Optional user identifier (extracted from payload if not provided)
-    
+
     Returns:
         Started Workflow or None if trigger failed
     """
@@ -853,7 +871,7 @@ def mesh_trigger_workflow(
         loop = asyncio.get_event_loop()
         if loop.is_running():
             # Schedule in background if event loop is running
-            future = asyncio.create_task(
+            asyncio.create_task(
                 positronic_mesh.start_workflow(
                     workflow_type,
                     user_id,

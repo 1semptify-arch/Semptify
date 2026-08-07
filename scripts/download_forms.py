@@ -49,7 +49,7 @@ async def download_form(client: httpx.AsyncClient, filename: str, url: str) -> b
         if response.status_code == 200:
             # Check if it's actually a PDF
             content_type = response.headers.get("content-type", "")
-            if "pdf" in content_type or response.content[:4] == b'%PDF':
+            if "pdf" in content_type or response.content[:4] == b"%PDF":
                 filepath.write_bytes(response.content)
                 print(f"  ✅ {filename} ({len(response.content) // 1024} KB)")
                 return True
@@ -76,9 +76,7 @@ async def main():
     failed = 0
 
     async with httpx.AsyncClient(
-        headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
     ) as client:
         for filename, url in FORM_URLS.items():
             if await download_form(client, filename, url):

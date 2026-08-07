@@ -20,6 +20,7 @@ if os.getenv("ENABLE_PATTERN_PERSISTENCE", "false").lower() == "true":
     from .pattern_history import pattern_history_router
 else:
     from fastapi import APIRouter as _APIRouter
+
     pattern_history_router = _APIRouter()
 
 __all__ = ["MANIFEST", "router", "pattern_history_router"]

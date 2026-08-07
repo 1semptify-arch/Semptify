@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DeferredAction:
     """Record of an action that was deferred."""
+
     module: str
     action: str
     user_id: str
@@ -66,7 +67,7 @@ class ActionDeferralQueue:
 
     async def retry_all(self, mesh) -> dict[str, Any]:
         """Retry all deferred actions through the mesh.
-        
+
         Returns summary of results.
         """
 
@@ -80,6 +81,7 @@ class ActionDeferralQueue:
             for action in pending:
                 # Only retry if we've switched to full mode
                 from app.core.mesh_config import get_mesh_config
+
                 if get_mesh_config().mode != "full":
                     results["still_deferred"].append(f"{action.module}.{action.action}")
                     continue

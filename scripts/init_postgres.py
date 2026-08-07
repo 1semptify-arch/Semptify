@@ -1,4 +1,5 @@
 """Initialize PostgreSQL database with all tables."""
+
 import asyncio
 import sys
 

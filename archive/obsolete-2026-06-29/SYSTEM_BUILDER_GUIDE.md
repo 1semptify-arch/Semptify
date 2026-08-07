@@ -297,11 +297,11 @@ router = APIRouter(prefix="/my-feature")
 async def my_feature_page(request: Request):
     # Get user from cookie
     user_id = request.cookies.get("semptify_uid")
-    
+
     # Guard: Use route_user() for redirect if needed
     if not user_id:
         return Redirect(url="/storage/providers")
-    
+
     return HTMLResponse(content="...")
 ```
 

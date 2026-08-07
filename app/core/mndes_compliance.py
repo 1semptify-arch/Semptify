@@ -50,44 +50,41 @@ MNDES_FILE_SIZE_LIMIT_GB = 100  # Per Dakota County Guidelines: 100 GB max
 
 MNDES_ACCEPTABLE_TYPES: dict[str, dict] = {
     # --- Documents ---
-    "pdf":  {"category": "document", "description": "PDF Document",              "jury_room_eligible": False},
-    "doc":  {"category": "document", "description": "Microsoft Word (legacy)",   "jury_room_eligible": False},
-    "docx": {"category": "document", "description": "Microsoft Word",            "jury_room_eligible": False},
-    "rtf":  {"category": "document", "description": "Rich Text Format",          "jury_room_eligible": False},
-    "txt":  {"category": "document", "description": "Plain Text",                "jury_room_eligible": False},
-    "xls":  {"category": "document", "description": "Microsoft Excel (legacy)",  "jury_room_eligible": False},
-    "xlsx": {"category": "document", "description": "Microsoft Excel",           "jury_room_eligible": False},
-    "ppt":  {"category": "document", "description": "PowerPoint (legacy)",       "jury_room_eligible": False},
-    "pptx": {"category": "document", "description": "PowerPoint",                "jury_room_eligible": False},
-
+    "pdf": {"category": "document", "description": "PDF Document", "jury_room_eligible": False},
+    "doc": {"category": "document", "description": "Microsoft Word (legacy)", "jury_room_eligible": False},
+    "docx": {"category": "document", "description": "Microsoft Word", "jury_room_eligible": False},
+    "rtf": {"category": "document", "description": "Rich Text Format", "jury_room_eligible": False},
+    "txt": {"category": "document", "description": "Plain Text", "jury_room_eligible": False},
+    "xls": {"category": "document", "description": "Microsoft Excel (legacy)", "jury_room_eligible": False},
+    "xlsx": {"category": "document", "description": "Microsoft Excel", "jury_room_eligible": False},
+    "ppt": {"category": "document", "description": "PowerPoint (legacy)", "jury_room_eligible": False},
+    "pptx": {"category": "document", "description": "PowerPoint", "jury_room_eligible": False},
     # --- Images ---
-    "jpg":  {"category": "image", "description": "JPEG Image",  "jury_room_eligible": False},
-    "jpeg": {"category": "image", "description": "JPEG Image",  "jury_room_eligible": False},
-    "png":  {"category": "image", "description": "PNG Image",   "jury_room_eligible": False},
-    "gif":  {"category": "image", "description": "GIF Image",   "jury_room_eligible": False},
-    "tif":  {"category": "image", "description": "TIFF Image",  "jury_room_eligible": False},
-    "tiff": {"category": "image", "description": "TIFF Image",  "jury_room_eligible": False},
-    "bmp":  {"category": "image", "description": "Bitmap Image","jury_room_eligible": False},
-
+    "jpg": {"category": "image", "description": "JPEG Image", "jury_room_eligible": False},
+    "jpeg": {"category": "image", "description": "JPEG Image", "jury_room_eligible": False},
+    "png": {"category": "image", "description": "PNG Image", "jury_room_eligible": False},
+    "gif": {"category": "image", "description": "GIF Image", "jury_room_eligible": False},
+    "tif": {"category": "image", "description": "TIFF Image", "jury_room_eligible": False},
+    "tiff": {"category": "image", "description": "TIFF Image", "jury_room_eligible": False},
+    "bmp": {"category": "image", "description": "Bitmap Image", "jury_room_eligible": False},
     # --- Audio (jury-room eligible per Order §2/§3) ---
-    "mp3":  {"category": "audio", "description": "MP3 Audio",  "jury_room_eligible": True},
-    "wav":  {"category": "audio", "description": "WAV Audio",  "jury_room_eligible": True},
-    "m4a":  {"category": "audio", "description": "M4A Audio",  "jury_room_eligible": True},
-    "wma":  {"category": "audio", "description": "WMA Audio",  "jury_room_eligible": True},
-    "aac":  {"category": "audio", "description": "AAC Audio",  "jury_room_eligible": True},
+    "mp3": {"category": "audio", "description": "MP3 Audio", "jury_room_eligible": True},
+    "wav": {"category": "audio", "description": "WAV Audio", "jury_room_eligible": True},
+    "m4a": {"category": "audio", "description": "M4A Audio", "jury_room_eligible": True},
+    "wma": {"category": "audio", "description": "WMA Audio", "jury_room_eligible": True},
+    "aac": {"category": "audio", "description": "AAC Audio", "jury_room_eligible": True},
     "aiff": {"category": "audio", "description": "AIFF Audio", "jury_room_eligible": True},
     "flac": {"category": "audio", "description": "FLAC Audio", "jury_room_eligible": True},
-
     # --- Video (jury-room eligible per Order §2/§3) ---
-    "mp4":  {"category": "video", "description": "MP4 Video",       "jury_room_eligible": True},
-    "mov":  {"category": "video", "description": "QuickTime Video",  "jury_room_eligible": True},
-    "avi":  {"category": "video", "description": "AVI Video",        "jury_room_eligible": True},
-    "wmv":  {"category": "video", "description": "WMV Video",        "jury_room_eligible": True},
-    "mkv":  {"category": "video", "description": "MKV Video",        "jury_room_eligible": True},
-    "flv":  {"category": "video", "description": "FLV Video",        "jury_room_eligible": True},
-    "mpeg": {"category": "video", "description": "MPEG Video",       "jury_room_eligible": True},
-    "mpg":  {"category": "video", "description": "MPG Video",        "jury_room_eligible": True},
-    "m4v":  {"category": "video", "description": "M4V Video",        "jury_room_eligible": True},
+    "mp4": {"category": "video", "description": "MP4 Video", "jury_room_eligible": True},
+    "mov": {"category": "video", "description": "QuickTime Video", "jury_room_eligible": True},
+    "avi": {"category": "video", "description": "AVI Video", "jury_room_eligible": True},
+    "wmv": {"category": "video", "description": "WMV Video", "jury_room_eligible": True},
+    "mkv": {"category": "video", "description": "MKV Video", "jury_room_eligible": True},
+    "flv": {"category": "video", "description": "FLV Video", "jury_room_eligible": True},
+    "mpeg": {"category": "video", "description": "MPEG Video", "jury_room_eligible": True},
+    "mpg": {"category": "video", "description": "MPG Video", "jury_room_eligible": True},
+    "m4v": {"category": "video", "description": "M4V Video", "jury_room_eligible": True},
 }
 
 # ============================================================================
@@ -95,22 +92,74 @@ MNDES_ACCEPTABLE_TYPES: dict[str, dict] = {
 # ============================================================================
 
 # Explicitly prohibited by MNDES order — must NOT be uploaded
-MNDES_PROHIBITED_TYPES: frozenset[str] = frozenset({
-    # Archives (Order: no zipped files)
-    "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "tgz",
-    # Executables / scripts — cybersecurity threat per Order §5
-    "exe", "bat", "cmd", "com", "pif", "scr", "vbs", "js", "jar",
-    "app", "deb", "pkg", "dmg", "iso", "img", "bin", "run",
-    "sh", "ps1", "py", "pl", "rb", "php", "asp", "jsp",
-    "msi", "msp", "mst", "cpl", "inf", "reg",
-})
+MNDES_PROHIBITED_TYPES: frozenset[str] = frozenset(
+    {
+        # Archives (Order: no zipped files)
+        "zip",
+        "rar",
+        "7z",
+        "tar",
+        "gz",
+        "bz2",
+        "xz",
+        "tgz",
+        # Executables / scripts — cybersecurity threat per Order §5
+        "exe",
+        "bat",
+        "cmd",
+        "com",
+        "pif",
+        "scr",
+        "vbs",
+        "js",
+        "jar",
+        "app",
+        "deb",
+        "pkg",
+        "dmg",
+        "iso",
+        "img",
+        "bin",
+        "run",
+        "sh",
+        "ps1",
+        "py",
+        "pl",
+        "rb",
+        "php",
+        "asp",
+        "jsp",
+        "msi",
+        "msp",
+        "mst",
+        "cpl",
+        "inf",
+        "reg",
+    }
+)
 
 # Proprietary formats that require player/codec — need judge exception per Order §6
-MNDES_PROPRIETARY_FORMATS: frozenset[str] = frozenset({
-    "mts", "m2ts", "vob", "ts", "mxf", "r3d", "braw",
-    "prproj", "aep", "fcp", "fcpx",
-    "3gp", "3g2", "asf", "rm", "rmvb", "divx",
-})
+MNDES_PROPRIETARY_FORMATS: frozenset[str] = frozenset(
+    {
+        "mts",
+        "m2ts",
+        "vob",
+        "ts",
+        "mxf",
+        "r3d",
+        "braw",
+        "prproj",
+        "aep",
+        "fcp",
+        "fcpx",
+        "3gp",
+        "3g2",
+        "asf",
+        "rm",
+        "rmvb",
+        "divx",
+    }
+)
 
 # Formats that cannot be digitized — must be physical exhibit per Dakota County Guidelines
 MNDES_PHYSICAL_ONLY_NOTE = (
@@ -123,30 +172,32 @@ MNDES_PHYSICAL_ONLY_NOTE = (
 # Compliance Result
 # ============================================================================
 
+
 class MNDESIssueCode(str, Enum):
-    PROHIBITED_TYPE       = "prohibited_type"         # Zip, exe, etc.
-    PROPRIETARY_FORMAT    = "proprietary_format"       # Needs judge exception
-    NOT_ON_APPROVED_LIST  = "not_on_approved_list"     # Unknown/unsupported type
-    FILE_TOO_LARGE        = "file_too_large"           # > 100 GB
-    COMBINED_EXHIBIT      = "combined_exhibit"         # Should be individual files
-    SEXUAL_CONTENT_FLAG   = "sexual_content_flag"      # User must attest
-    NO_CONTACT_ORDER      = "no_contact_order"         # OFP/HRO/DANCO — sharing restricted
-    SEALED_CASE           = "sealed_case"              # Cannot upload; contact court admin
-    CERTIFIED_COPY        = "certified_copy"           # Must be physical exhibit
-    MOTION_ATTACHMENT     = "motion_attachment"        # File eFS system, not MNDES
-    DISCOVERY_DOCUMENT    = "discovery_document"       # Alford packets — not for MNDES
+    PROHIBITED_TYPE = "prohibited_type"  # Zip, exe, etc.
+    PROPRIETARY_FORMAT = "proprietary_format"  # Needs judge exception
+    NOT_ON_APPROVED_LIST = "not_on_approved_list"  # Unknown/unsupported type
+    FILE_TOO_LARGE = "file_too_large"  # > 100 GB
+    COMBINED_EXHIBIT = "combined_exhibit"  # Should be individual files
+    SEXUAL_CONTENT_FLAG = "sexual_content_flag"  # User must attest
+    NO_CONTACT_ORDER = "no_contact_order"  # OFP/HRO/DANCO — sharing restricted
+    SEALED_CASE = "sealed_case"  # Cannot upload; contact court admin
+    CERTIFIED_COPY = "certified_copy"  # Must be physical exhibit
+    MOTION_ATTACHMENT = "motion_attachment"  # File eFS system, not MNDES
+    DISCOVERY_DOCUMENT = "discovery_document"  # Alford packets — not for MNDES
 
 
 @dataclass
 class MNDESValidationResult:
     """Result of MNDES compliance check for a single file."""
+
     is_mndes_compliant: bool
     file_extension: str
-    file_category: str | None = None        # document, image, audio, video
+    file_category: str | None = None  # document, image, audio, video
     is_jury_room_eligible: bool = False
-    conversion_required: bool = False          # Needs format conversion
-    judge_exception_required: bool = False     # Requires presiding judge approval
-    is_prohibited: bool = False                # Hard block — cannot be uploaded
+    conversion_required: bool = False  # Needs format conversion
+    judge_exception_required: bool = False  # Requires presiding judge approval
+    is_prohibited: bool = False  # Hard block — cannot be uploaded
     issues: list[MNDESIssueCode] = field(default_factory=list)
     issue_details: list[str] = field(default_factory=list)
     recommended_action: str | None = None
@@ -157,6 +208,7 @@ class MNDESValidationResult:
 # ============================================================================
 # Validator
 # ============================================================================
+
 
 class MNDESFileValidator:
     """
@@ -206,8 +258,7 @@ class MNDESFileValidator:
                 issues=issues,
                 issue_details=issue_details,
                 recommended_action=(
-                    "Convert to an MNDES-accepted format (e.g., PDF, JPG, MP4) "
-                    "or contact court administration."
+                    "Convert to an MNDES-accepted format (e.g., PDF, JPG, MP4) or contact court administration."
                 ),
             )
 
@@ -245,8 +296,7 @@ class MNDESFileValidator:
                 issues=issues,
                 issue_details=issue_details,
                 recommended_action=(
-                    "Convert to PDF, JPG, MP4, or MP3. "
-                    f"Contact MNDES support at {MNDES_SUPPORT_PHONE_METRO} if unsure."
+                    f"Convert to PDF, JPG, MP4, or MP3. Contact MNDES support at {MNDES_SUPPORT_PHONE_METRO} if unsure."
                 ),
             )
 
@@ -289,10 +339,7 @@ class MNDESFileValidator:
     ) -> list[MNDESValidationResult]:
         """Validate multiple files for MNDES compliance."""
         sizes = file_sizes or [None] * len(filenames)
-        return [
-            self.validate_for_mndes(fn, sz)
-            for fn, sz in zip(filenames, sizes)
-        ]
+        return [self.validate_for_mndes(fn, sz) for fn, sz in zip(filenames, sizes)]
 
     def get_accepted_extensions(self) -> list[str]:
         """Return sorted list of all MNDES-accepted file extensions."""
@@ -327,23 +374,29 @@ mndes_validator = MNDESFileValidator()
 
 MNDES_CONVERSION_TARGETS: dict[str, dict] = {
     # Semptify-accepted types not on MNDES list
-    "csv":   {"target": "xlsx", "instructions": "CSV is not on the MNDES approved list. Export as Excel (.xlsx) or save as PDF."},
+    "csv": {
+        "target": "xlsx",
+        "instructions": "CSV is not on the MNDES approved list. Export as Excel (.xlsx) or save as PDF.",
+    },
     # Proprietary video formats requiring judge exception per Order §6
-    "mts":   {"target": "mp4",  "instructions": "Convert using HandBrake or VLC (free). MP4 is fully MNDES-compliant."},
-    "m2ts":  {"target": "mp4",  "instructions": "Convert using HandBrake or VLC (free). MP4 is fully MNDES-compliant."},
-    "vob":   {"target": "mp4",  "instructions": "Convert using HandBrake (free). MP4 is fully MNDES-compliant."},
-    "ts":    {"target": "mp4",  "instructions": "Convert using VLC (free). MP4 is fully MNDES-compliant."},
-    "mxf":   {"target": "mp4",  "instructions": "Convert using FFmpeg or Adobe Media Encoder. Requires judge exception if unconverted."},
-    "3gp":   {"target": "mp4",  "instructions": "Convert using VLC or HandBrake (free). MP4 is fully MNDES-compliant."},
-    "3g2":   {"target": "mp4",  "instructions": "Convert using VLC or HandBrake (free). MP4 is fully MNDES-compliant."},
-    "asf":   {"target": "wmv",  "instructions": "Re-export as WMV or MP4 using VLC (free)."},
-    "rm":    {"target": "mp4",  "instructions": "Convert using VLC or FFmpeg (free). MP4 is fully MNDES-compliant."},
-    "rmvb":  {"target": "mp4",  "instructions": "Convert using VLC or FFmpeg (free). MP4 is fully MNDES-compliant."},
-    "divx":  {"target": "mp4",  "instructions": "Convert using HandBrake (free). MP4 is fully MNDES-compliant."},
-    "r3d":   {"target": "mp4",  "instructions": "Export from REDCINE-X or DaVinci Resolve to MP4."},
-    "braw":  {"target": "mp4",  "instructions": "Export from DaVinci Resolve to MP4."},
-    "prproj":{"target": "mp4",  "instructions": "Export the final sequence from Premiere Pro as MP4."},
-    "aep":   {"target": "mp4",  "instructions": "Export from After Effects as MP4 via Adobe Media Encoder."},
+    "mts": {"target": "mp4", "instructions": "Convert using HandBrake or VLC (free). MP4 is fully MNDES-compliant."},
+    "m2ts": {"target": "mp4", "instructions": "Convert using HandBrake or VLC (free). MP4 is fully MNDES-compliant."},
+    "vob": {"target": "mp4", "instructions": "Convert using HandBrake (free). MP4 is fully MNDES-compliant."},
+    "ts": {"target": "mp4", "instructions": "Convert using VLC (free). MP4 is fully MNDES-compliant."},
+    "mxf": {
+        "target": "mp4",
+        "instructions": "Convert using FFmpeg or Adobe Media Encoder. Requires judge exception if unconverted.",
+    },
+    "3gp": {"target": "mp4", "instructions": "Convert using VLC or HandBrake (free). MP4 is fully MNDES-compliant."},
+    "3g2": {"target": "mp4", "instructions": "Convert using VLC or HandBrake (free). MP4 is fully MNDES-compliant."},
+    "asf": {"target": "wmv", "instructions": "Re-export as WMV or MP4 using VLC (free)."},
+    "rm": {"target": "mp4", "instructions": "Convert using VLC or FFmpeg (free). MP4 is fully MNDES-compliant."},
+    "rmvb": {"target": "mp4", "instructions": "Convert using VLC or FFmpeg (free). MP4 is fully MNDES-compliant."},
+    "divx": {"target": "mp4", "instructions": "Convert using HandBrake (free). MP4 is fully MNDES-compliant."},
+    "r3d": {"target": "mp4", "instructions": "Export from REDCINE-X or DaVinci Resolve to MP4."},
+    "braw": {"target": "mp4", "instructions": "Export from DaVinci Resolve to MP4."},
+    "prproj": {"target": "mp4", "instructions": "Export the final sequence from Premiere Pro as MP4."},
+    "aep": {"target": "mp4", "instructions": "Export from After Effects as MP4 via Adobe Media Encoder."},
 }
 
 
@@ -365,8 +418,8 @@ def get_conversion_action(ext: str) -> dict | None:
         "from_format": clean_ext,
         "to_format": action["target"],
         "instructions": action["instructions"],
-        "converter_available": False,   # Future: True when in-app converter is built
-        "converter_endpoint": None,     # Future: "/api/mndes/convert" when built
+        "converter_available": False,  # Future: True when in-app converter is built
+        "converter_endpoint": None,  # Future: "/api/mndes/convert" when built
     }
 
 
@@ -413,11 +466,9 @@ MNDES_USER_WARNINGS = {
         "Contact court administration at 651-377-7180 to upload on your behalf."
     ),
     "certified_copy": (
-        "Certified copies that authenticate an original must be submitted as physical exhibits, "
-        "not uploaded to MNDES."
+        "Certified copies that authenticate an original must be submitted as physical exhibits, not uploaded to MNDES."
     ),
     "prehearing_not_public": (
-        "Exhibits in pre-hearing status are NOT publicly accessible unless admitted "
-        "as evidence in a public proceeding."
+        "Exhibits in pre-hearing status are NOT publicly accessible unless admitted as evidence in a public proceeding."
     ),
 }

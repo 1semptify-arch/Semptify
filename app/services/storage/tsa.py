@@ -53,12 +53,13 @@ class TSAResult:
     tsa_backed=False ▸ token_b64 is a base64-encoded HMAC-SHA256 fallback.
                         Self-signed — weaker legal standing.
     """
-    timestamp_iso: str        # UTC ISO 8601 timestamp used in the request
-    document_hash: str        # SHA-256 hex of the document
-    token_b64: str            # Base64-encoded token (TSA .tsr or HMAC fallback)
-    tsa_backed: bool          # True = RFC 3161, False = HMAC fallback
-    tsa_url: str | None    # TSA URL used (None for fallback)
-    error: str | None      # Set if fallback was triggered and why
+
+    timestamp_iso: str  # UTC ISO 8601 timestamp used in the request
+    document_hash: str  # SHA-256 hex of the document
+    token_b64: str  # Base64-encoded token (TSA .tsr or HMAC fallback)
+    tsa_backed: bool  # True = RFC 3161, False = HMAC fallback
+    tsa_url: str | None  # TSA URL used (None for fallback)
+    error: str | None  # Set if fallback was triggered and why
 
 
 def _build_tsr_request(hash_bytes: bytes) -> bytes:
@@ -95,7 +96,7 @@ def _build_tsr_request(hash_bytes: bytes) -> bytes:
 
     def der_integer(n: int) -> bytes:
         if n == 0:
-            return der_tlv(0x02, b'\x00')
+            return der_tlv(0x02, b"\x00")
         result = []
         while n > 0:
             result.append(n & 0xFF)
@@ -106,27 +107,39 @@ def _build_tsr_request(hash_bytes: bytes) -> bytes:
         return der_tlv(0x02, bytes(result))
 
     # SHA-256 OID: 2.16.840.1.101.3.4.2.1
-    sha256_oid = bytes([
-        0x30, 0x0d,                         # SEQUENCE (13 bytes)
-        0x06, 0x09,                         # OID (9 bytes)
-        0x60, 0x86, 0x48, 0x01, 0x65,       # 2.16.840.1.101.3.4.2.1
-        0x03, 0x04, 0x02, 0x01,
-        0x05, 0x00                          # NULL parameters
-    ])
+    sha256_oid = bytes(
+        [
+            0x30,
+            0x0D,  # SEQUENCE (13 bytes)
+            0x06,
+            0x09,  # OID (9 bytes)
+            0x60,
+            0x86,
+            0x48,
+            0x01,
+            0x65,  # 2.16.840.1.101.3.4.2.1
+            0x03,
+            0x04,
+            0x02,
+            0x01,
+            0x05,
+            0x00,  # NULL parameters
+        ]
+    )
 
-    hashed_message = der_tlv(0x04, hash_bytes)          # OCTET STRING
+    hashed_message = der_tlv(0x04, hash_bytes)  # OCTET STRING
     message_imprint = der_tlv(0x30, sha256_oid + hashed_message)  # SEQUENCE
 
-    version = der_integer(1)                             # version v1
+    version = der_integer(1)  # version v1
 
     nonce_bytes = _secrets.token_bytes(8)
-    nonce_int = int.from_bytes(nonce_bytes, 'big')
+    nonce_int = int.from_bytes(nonce_bytes, "big")
     nonce = der_integer(nonce_int)
 
-    cert_req = bytes([0x01, 0x01, 0xff])                 # BOOLEAN TRUE
+    cert_req = bytes([0x01, 0x01, 0xFF])  # BOOLEAN TRUE
 
     request_body = version + message_imprint + nonce + cert_req
-    return der_tlv(0x30, request_body)                   # outer SEQUENCE
+    return der_tlv(0x30, request_body)  # outer SEQUENCE
 
 
 async def stamp_document_hash(
@@ -146,6 +159,7 @@ async def stamp_document_hash(
         TSAResult with tsa_backed=True on success, or HMAC fallback on failure.
     """
     from app.core.config import get_settings
+
     settings = get_settings()
 
     url = tsa_url or settings.tsa_url
@@ -177,10 +191,7 @@ async def stamp_document_hash(
 
         token_b64 = base64.b64encode(tsr_bytes).decode()
 
-        logger.info(
-            "RFC 3161 timestamp obtained from %s for hash %s...",
-            url, document_hash[:16]
-        )
+        logger.info("RFC 3161 timestamp obtained from %s for hash %s...", url, document_hash[:16])
 
         return TSAResult(
             timestamp_iso=timestamp_iso,
@@ -193,9 +204,9 @@ async def stamp_document_hash(
 
     except Exception as exc:
         logger.warning(
-            "TSA request to %s failed (%s) — using HMAC fallback. "
-            "This timestamp will have weaker legal standing.",
-            url, exc,
+            "TSA request to %s failed (%s) — using HMAC fallback. This timestamp will have weaker legal standing.",
+            url,
+            exc,
         )
         return _hmac_fallback(document_hash, timestamp_iso, reason=str(exc))
 
@@ -208,6 +219,7 @@ def _hmac_fallback(document_hash: str, timestamp_iso: str, reason: str) -> TSARe
     import hmac as _hmac
 
     from app.core.config import get_settings
+
     secret = get_settings().secret_key
 
     combined = f"HMAC-FALLBACK:{timestamp_iso}:{document_hash}:{secret}"
@@ -221,6 +233,7 @@ def _hmac_fallback(document_hash: str, timestamp_iso: str, reason: str) -> TSARe
         "hmac": hmac_hex,
     }
     import json
+
     token_b64 = base64.b64encode(json.dumps(fallback_payload).encode()).decode()
 
     return TSAResult(
@@ -261,6 +274,7 @@ def verify_tsa_token(token_b64: str, document_hash: str) -> dict:
         payload = json.loads(raw.decode())
         if payload.get("type") == "hmac_fallback":
             from app.core.config import get_settings
+
             secret = get_settings().secret_key
             ts = payload["timestamp"]
             dh = payload["document_hash"]
@@ -274,7 +288,9 @@ def verify_tsa_token(token_b64: str, document_hash: str) -> dict:
                     "HMAC-SHA256 self-signed timestamp. "
                     "Tamper-evident but not independently verifiable by third parties. "
                     "Reason TSA was unavailable: " + payload.get("reason", "unknown")
-                ) if ok else "HMAC verification failed — token may be tampered.",
+                )
+                if ok
+                else "HMAC verification failed — token may be tampered.",
             }
     except (json.JSONDecodeError, UnicodeDecodeError):
         # Payload is not JSON, try DER binary format below
@@ -294,6 +310,7 @@ def verify_tsa_token(token_b64: str, document_hash: str) -> dict:
         "detail": (
             "RFC 3161 token — independently verifiable using TSA public certificate. "
             "Full cryptographic verification: openssl ts -verify -in token.tsr -data <document>"
-        ) if token_contains_hash else
-            "Document hash not found in TSA token — possible mismatch or corruption.",
+        )
+        if token_contains_hash
+        else "Document hash not found in TSA token — possible mismatch or corruption.",
     }

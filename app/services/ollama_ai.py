@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OllamaAnalysisResult:
     """Result from Ollama document analysis."""
+
     doc_type: str
     confidence: float
     title: str
@@ -40,8 +41,8 @@ class OllamaAIService:
 
     def __init__(self):
         settings = get_settings()
-        self.base_url = getattr(settings, 'ollama_base_url', 'http://localhost:11434')
-        self.model = getattr(settings, 'ollama_model', 'llama3.2')
+        self.base_url = getattr(settings, "ollama_base_url", "http://localhost:11434")
+        self.model = getattr(settings, "ollama_model", "llama3.2")
         self._available: bool | None = None
 
     async def is_available(self) -> bool:
@@ -61,20 +62,15 @@ class OllamaAIService:
             self._available = False
             return False
 
-    async def analyze_document(
-        self,
-        text: str,
-        filename: str,
-        doc_hint: str | None = None
-    ) -> OllamaAnalysisResult:
+    async def analyze_document(self, text: str, filename: str, doc_hint: str | None = None) -> OllamaAnalysisResult:
         """
         Analyze a document using local Ollama.
-        
+
         Args:
             text: The extracted text from the document
             filename: Original filename
             doc_hint: Optional hint about document type
-            
+
         Returns:
             OllamaAnalysisResult with classification and extracted data
         """
@@ -90,12 +86,7 @@ class OllamaAIService:
             logger.error(f"Ollama analysis failed: {e}")
             return self._fallback_analysis(text, filename)
 
-    def _build_analysis_prompt(
-        self,
-        text: str,
-        filename: str,
-        doc_hint: str | None = None
-    ) -> str:
+    def _build_analysis_prompt(self, text: str, filename: str, doc_hint: str | None = None) -> str:
         """Build the analysis prompt."""
 
         # Truncate for smaller local models
@@ -141,7 +132,7 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
             "options": {
                 "temperature": 0.1,
                 "num_predict": 1500,
-            }
+            },
         }
 
         async with httpx.AsyncClient(timeout=120.0) as client:  # Longer timeout for local
@@ -177,7 +168,7 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
             key_amounts=data.get("key_amounts", []),
             key_terms=data.get("key_terms", []),
             issues_detected=data.get("issues_detected", []),
-            analyzed_at=utc_now()
+            analyzed_at=utc_now(),
         )
 
     def _fallback_analysis(self, text: str, filename: str) -> OllamaAnalysisResult:
@@ -216,7 +207,7 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
             key_amounts=[],
             key_terms=[],
             issues_detected=[],
-            analyzed_at=utc_now()
+            analyzed_at=utc_now(),
         )
 
     async def quick_classify(self, text: str) -> tuple[str, float]:
@@ -242,7 +233,7 @@ Text (first 500 chars):
         if not await self.check_available():
             return "AI summary unavailable. Please review the document carefully."
 
-        prompt = f"""Summarize this {doc_type.replace('_', ' ')} for a tenant in 2-3 simple sentences.
+        prompt = f"""Summarize this {doc_type.replace("_", " ")} for a tenant in 2-3 simple sentences.
 Explain what it means and any action needed.
 
 Document:
@@ -253,12 +244,15 @@ Summary:"""
         try:
             url = f"{self.base_url}/api/generate"
             async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(url, json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"temperature": 0.3, "num_predict": 200}
-                })
+                response = await client.post(
+                    url,
+                    json={
+                        "model": self.model,
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": {"temperature": 0.3, "num_predict": 200},
+                    },
+                )
 
                 if response.status_code == 200:
                     return response.json().get("response", "").strip()

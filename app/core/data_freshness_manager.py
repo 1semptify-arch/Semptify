@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class FreshnessType(str, Enum):
     """Types of data freshness management."""
+
     LEGAL_CONTENT = "legal_content"
     COURT_DATA = "court_data"
     FORMS = "forms"
@@ -31,6 +32,7 @@ class FreshnessType(str, Enum):
 
 class FreshnessStatus(str, Enum):
     """Freshness status levels."""
+
     FRESH = "fresh"
     STALE = "stale"
     EXPIRED = "expired"
@@ -40,6 +42,7 @@ class FreshnessStatus(str, Enum):
 @dataclass
 class FreshnessRule:
     """Rule for data freshness."""
+
     rule_id: str
     data_type: FreshnessType
     max_age_hours: int
@@ -56,6 +59,7 @@ class FreshnessRule:
 @dataclass
 class FreshnessAlert:
     """Alert for data freshness issues."""
+
     alert_id: str
     rule_id: str
     data_type: FreshnessType
@@ -86,7 +90,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_legal_content",
                 priority=2,
-                metadata={"sources": ["state_statutes", "case_law"]}
+                metadata={"sources": ["state_statutes", "case_law"]},
             ),
             "court_data_001": FreshnessRule(
                 rule_id="court_data_001",
@@ -95,7 +99,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_court_data",
                 priority=3,
-                metadata={"jurisdictions": ["all"]}
+                metadata={"jurisdictions": ["all"]},
             ),
             "forms_001": FreshnessRule(
                 rule_id="forms_001",
@@ -104,7 +108,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_forms",
                 priority=4,
-                metadata={"types": ["court", "notice", "complaint"]}
+                metadata={"types": ["court", "notice", "complaint"]},
             ),
             "state_laws_001": FreshnessRule(
                 rule_id="state_laws_001",
@@ -113,7 +117,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_state_laws",
                 priority=2,
-                metadata={"scope": "tenant_rights"}
+                metadata={"scope": "tenant_rights"},
             ),
             "deadlines_001": FreshnessRule(
                 rule_id="deadlines_001",
@@ -122,7 +126,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_deadlines",
                 priority=1,
-                metadata={"critical": True}
+                metadata={"critical": True},
             ),
             "cache_001": FreshnessRule(
                 rule_id="cache_001",
@@ -131,7 +135,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_cache",
                 priority=5,
-                metadata={"types": ["legal", "forms", "search"]}
+                metadata={"types": ["legal", "forms", "search"]},
             ),
             "index_001": FreshnessRule(
                 rule_id="index_001",
@@ -140,7 +144,7 @@ class DataFreshnessManager:
                 refresh_enabled=True,
                 refresh_function="refresh_search_index",
                 priority=3,
-                metadata={"engines": ["vault", "legal", "timeline"]}
+                metadata={"engines": ["vault", "legal", "timeline"]},
             ),
         }
 
@@ -211,7 +215,7 @@ class DataFreshnessManager:
                     rule_id=rule_id,
                     data_type=rule.data_type,
                     severity="error",
-                    message=f"Failed to refresh {rule_id} after {rule.error_count} attempts: {str(e)}"
+                    message=f"Failed to refresh {rule_id} after {rule.error_count} attempts: {str(e)}",
                 )
 
             return False
@@ -230,10 +234,7 @@ class DataFreshnessManager:
         results = {}
 
         # Sort by priority (lower number = higher priority)
-        sorted_rules = sorted(
-            self.rules.values(),
-            key=lambda r: r.priority
-        )
+        sorted_rules = sorted(self.rules.values(), key=lambda r: r.priority)
 
         for rule in sorted_rules:
             if rule.priority > priority_cutoff:
@@ -245,8 +246,7 @@ class DataFreshnessManager:
 
         return results
 
-    def create_alert(self, rule_id: str, data_type: FreshnessType,
-                    severity: str, message: str):
+    def create_alert(self, rule_id: str, data_type: FreshnessType, severity: str, message: str):
         """Create a freshness alert."""
         alert = FreshnessAlert(
             alert_id=f"{rule_id}_{utc_now().timestamp()}",
@@ -254,14 +254,13 @@ class DataFreshnessManager:
             data_type=data_type,
             severity=severity,
             message=message,
-            created_at=utc_now()
+            created_at=utc_now(),
         )
 
         self.alerts.append(alert)
         logger.warning(f"Freshness alert created: {message}")
 
-    def get_alerts(self, severity: str | None = None,
-                   acknowledged: bool | None = None) -> list[FreshnessAlert]:
+    def get_alerts(self, severity: str | None = None, acknowledged: bool | None = None) -> list[FreshnessAlert]:
         """Get freshness alerts with optional filters."""
         alerts = self.alerts
 
@@ -293,11 +292,11 @@ class DataFreshnessManager:
                 "stale": 0,
                 "expired": 0,
                 "unknown": 0,
-                "active_alerts": 0
+                "active_alerts": 0,
             },
             "rules": {},
             "alerts": [],
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Check all rules
@@ -311,7 +310,7 @@ class DataFreshnessManager:
                 "priority": rule.priority,
                 "max_age_hours": rule.max_age_hours,
                 "last_refresh": rule.last_refresh.isoformat() if rule.last_refresh else None,
-                "error_count": rule.error_count
+                "error_count": rule.error_count,
             }
 
             report["rules"][rule_id] = rule_info
@@ -325,7 +324,7 @@ class DataFreshnessManager:
                 "rule_id": a.rule_id,
                 "severity": a.severity,
                 "message": a.message,
-                "created_at": a.created_at.isoformat()
+                "created_at": a.created_at.isoformat(),
             }
             for a in recent_alerts[:10]  # Last 10 alerts
         ]
@@ -379,11 +378,13 @@ async def refresh_legal_content(metadata: dict[str, Any]):
     # Implementation would fetch latest statutes, case law, etc.
     pass
 
+
 async def refresh_court_data(metadata: dict[str, Any]):
     """Refresh court data and procedures."""
     logger.info("Refreshing court data")
     # Implementation would fetch latest court procedures, forms, etc.
     pass
+
 
 async def refresh_forms(metadata: dict[str, Any]):
     """Refresh form templates and requirements."""
@@ -391,11 +392,13 @@ async def refresh_forms(metadata: dict[str, Any]):
     # Implementation would fetch latest court forms, notices, etc.
     pass
 
+
 async def refresh_state_laws(metadata: dict[str, Any]):
     """Refresh state-specific housing laws."""
     logger.info("Refreshing state laws")
     # Implementation would fetch latest state statutes and regulations
     pass
+
 
 async def refresh_deadlines(metadata: dict[str, Any]):
     """Refresh deadline calculations and requirements."""
@@ -403,11 +406,13 @@ async def refresh_deadlines(metadata: dict[str, Any]):
     # Implementation would update deadline logic based on current laws
     pass
 
+
 async def refresh_cache(metadata: dict[str, Any]):
     """Refresh system caches."""
     logger.info("Refreshing cache")
     # Implementation would clear and rebuild caches
     pass
+
 
 async def refresh_search_index(metadata: dict[str, Any]):
     """Refresh search indexes."""

@@ -315,10 +315,10 @@ function updateProgress() {
     const checkboxes = document.querySelectorAll('.task-checkbox');
     const checked = document.querySelectorAll('.task-checkbox:checked');
     const percent = Math.round((checked.length / checkboxes.length) * 100);
-    
+
     document.getElementById('progress-fill').style.width = percent + '%';
     document.getElementById('progress-text').textContent = percent + '% complete';
-    
+
     checkboxes.forEach(cb => {
         const item = cb.closest('.task-item');
         if (cb.checked) {

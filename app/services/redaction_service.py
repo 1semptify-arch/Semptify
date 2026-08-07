@@ -207,6 +207,7 @@ class RedactionService:
 # Allowlist loading from ThirdPartyContact table
 # =============================================================================
 
+
 async def build_allowlist_for_user(
     user_id: str,
     db: AsyncSession | None = None,
@@ -234,8 +235,7 @@ async def build_allowlist_for_user(
         )
         if case_record_id:
             stmt = stmt.where(
-                (ThirdPartyContact.case_record_id == case_record_id)
-                | (ThirdPartyContact.case_record_id.is_(None))
+                (ThirdPartyContact.case_record_id == case_record_id) | (ThirdPartyContact.case_record_id.is_(None))
             )
         result = await session.execute(stmt)
         contacts = result.scalars().all()
@@ -282,6 +282,7 @@ async def redact_text_for_user(
 # Utility helpers
 # =============================================================================
 
+
 def _digits_only(value: str) -> str:
     """Strip non-digit characters from a phone number."""
     return "".join(ch for ch in value if ch.isdigit())
@@ -316,11 +317,13 @@ def _name_variants(name: str) -> list[str]:
     variants = [name]
     if len(parts) == 2:
         first, last = parts
-        variants.extend([
-            f"{last}, {first}",
-            f"{first} {last}",
-            f"{last} {first}",
-        ])
+        variants.extend(
+            [
+                f"{last}, {first}",
+                f"{first} {last}",
+                f"{last} {first}",
+            ]
+        )
     return list(dict.fromkeys(variants))
 
 

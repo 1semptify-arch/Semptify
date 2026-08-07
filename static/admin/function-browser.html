@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="/css/admin-nav.css">
   <style>
     * { box-sizing: border-box; }
-    
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #0f172a;
@@ -16,7 +16,7 @@
       margin: 0;
       padding: 0;
     }
-    
+
     .browser-header {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       padding: 1.5rem 2rem;
@@ -25,7 +25,7 @@
       top: 0;
       z-index: 100;
     }
-    
+
     .browser-header h1 {
       margin: 0;
       font-size: 1.5rem;
@@ -33,13 +33,13 @@
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .browser-header p {
       margin: 0.5rem 0 0 0;
       color: #94a3b8;
       font-size: 0.9rem;
     }
-    
+
     .filters {
       display: flex;
       gap: 1rem;
@@ -48,19 +48,19 @@
       border-bottom: 1px solid #334155;
       flex-wrap: wrap;
     }
-    
+
     .filter-group {
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .filter-group label {
       font-size: 0.85rem;
       color: #94a3b8;
       font-weight: 500;
     }
-    
+
     .filter-btn {
       padding: 0.4rem 0.8rem;
       border: 1px solid #475569;
@@ -71,30 +71,30 @@
       font-size: 0.8rem;
       transition: all 0.2s;
     }
-    
+
     .filter-btn:hover, .filter-btn.active {
       background: #10b981;
       border-color: #10b981;
       color: white;
     }
-    
+
     .main-content {
       display: grid;
       grid-template-columns: 300px 1fr;
       min-height: calc(100vh - 140px);
     }
-    
+
     .sidebar {
       background: #1e293b;
       border-right: 1px solid #334155;
       padding: 1rem;
       overflow-y: auto;
     }
-    
+
     .nav-group {
       margin-bottom: 1.5rem;
     }
-    
+
     .nav-group h3 {
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -104,7 +104,7 @@
       padding-bottom: 0.5rem;
       border-bottom: 1px solid #334155;
     }
-    
+
     .nav-item {
       padding: 0.6rem 0.75rem;
       border-radius: 6px;
@@ -116,25 +116,25 @@
       transition: all 0.2s;
       margin-bottom: 0.25rem;
     }
-    
+
     .nav-item:hover {
       background: #334155;
     }
-    
+
     .nav-item.active {
       background: #10b981;
       color: white;
     }
-    
+
     .nav-icon {
       font-size: 1.1rem;
     }
-    
+
     .content-area {
       padding: 2rem;
       overflow-y: auto;
     }
-    
+
     .group-header {
       display: flex;
       align-items: center;
@@ -143,23 +143,23 @@
       padding-bottom: 1rem;
       border-bottom: 2px solid #334155;
     }
-    
+
     .group-header h2 {
       margin: 0;
       font-size: 1.75rem;
     }
-    
+
     .group-desc {
       color: #94a3b8;
       margin: 0;
     }
-    
+
     .function-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
       gap: 1rem;
     }
-    
+
     .function-card {
       background: #1e293b;
       border: 1px solid #334155;
@@ -167,12 +167,12 @@
       overflow: hidden;
       transition: all 0.2s;
     }
-    
+
     .function-card:hover {
       border-color: #10b981;
       transform: translateY(-2px);
     }
-    
+
     .function-header {
       padding: 1rem;
       background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
@@ -181,27 +181,27 @@
       align-items: center;
       justify-content: space-between;
     }
-    
+
     .function-title {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-    
+
     .function-icon {
       font-size: 1.5rem;
     }
-    
+
     .function-name {
       font-weight: 600;
       font-size: 1rem;
     }
-    
+
     .function-roles {
       display: flex;
       gap: 0.25rem;
     }
-    
+
     .role-badge {
       width: 24px;
       height: 24px;
@@ -212,39 +212,39 @@
       font-size: 0.7rem;
       font-weight: bold;
     }
-    
+
     .role-public { background: #1e3a5f; color: #60a5fa; }
     .role-tenant { background: #581c87; color: #c084fc; }
     .role-advocate { background: #14532d; color: #4ade80; }
     .role-legal { background: #7f1d1d; color: #fca5a5; }
     .role-manager { background: #451a03; color: #fdba74; }
-    
+
     .function-details {
       display: none;
       padding: 1rem;
       border-top: 1px solid #334155;
     }
-    
+
     .function-card.expanded .function-details {
       display: block;
     }
-    
+
     .function-card.expanded .expand-icon {
       transform: rotate(180deg);
     }
-    
+
     .expand-icon {
       transition: transform 0.2s;
     }
-    
+
     .detail-section {
       margin-bottom: 1rem;
     }
-    
+
     .detail-section:last-child {
       margin-bottom: 0;
     }
-    
+
     .detail-label {
       font-size: 0.75rem;
       text-transform: uppercase;
@@ -253,22 +253,22 @@
       margin-bottom: 0.5rem;
       font-weight: 600;
     }
-    
+
     .detail-content {
       font-size: 0.9rem;
       line-height: 1.5;
       color: #cbd5e1;
     }
-    
+
     .detail-content ul {
       margin: 0;
       padding-left: 1.5rem;
     }
-    
+
     .detail-content li {
       margin-bottom: 0.25rem;
     }
-    
+
     .setting-row {
       display: flex;
       align-items: center;
@@ -276,21 +276,21 @@
       padding: 0.5rem 0;
       border-bottom: 1px solid #334155;
     }
-    
+
     .setting-row:last-child {
       border-bottom: none;
     }
-    
+
     .setting-name {
       font-size: 0.85rem;
     }
-    
+
     .setting-control {
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .setting-input {
       background: #0f172a;
       border: 1px solid #475569;
@@ -299,7 +299,7 @@
       border-radius: 4px;
       font-size: 0.8rem;
     }
-    
+
     .page-link {
       display: inline-flex;
       align-items: center;
@@ -314,12 +314,12 @@
       margin-right: 0.5rem;
       margin-bottom: 0.5rem;
     }
-    
+
     .page-link:hover {
       background: #1e3a5f;
       border-color: #60a5fa;
     }
-    
+
     .input-spec {
       display: flex;
       align-items: center;
@@ -327,7 +327,7 @@
       padding: 0.4rem 0;
       font-size: 0.85rem;
     }
-    
+
     .input-type {
       background: #7c3aed;
       color: white;
@@ -336,26 +336,26 @@
       font-size: 0.7rem;
       font-weight: 600;
     }
-    
+
     .input-required {
       color: #ef4444;
       font-size: 0.7rem;
     }
-    
+
     .input-optional {
       color: #64748b;
       font-size: 0.7rem;
     }
-    
+
     @media (max-width: 768px) {
       .main-content {
         grid-template-columns: 1fr;
       }
-      
+
       .sidebar {
         display: none;
       }
-      
+
       .function-grid {
         grid-template-columns: 1fr;
       }
@@ -363,13 +363,13 @@
   </style>
 </head>
 <body>
-  
+
   <div class="browser-header">
     <div id="admin-nav-container" class="admin-nav--dark" style="margin-bottom: 1rem;"></div>
     <h1>▸ Semptify Function Browser</h1>
     <p>Interactive documentation - Click any function to see details, settings, and related pages</p>
   </div>
-  
+
   <div class="filters">
     <div class="filter-group">
       <label>View:</label>
@@ -388,7 +388,7 @@
       <button class="filter-btn" onclick="filterRole('manager')">Manager</button>
     </div>
   </div>
-  
+
   <div class="main-content">
     <aside class="sidebar">
       <div class="nav-group">
@@ -406,7 +406,7 @@
           Notifications
         </div>
       </div>
-      
+
       <div class="nav-group">
         <h3>○ Library Functions</h3>
         <div class="nav-item" onclick="showGroup('library')">
@@ -422,7 +422,7 @@
           Form Templates
         </div>
       </div>
-      
+
       <div class="nav-group">
         <h3>○ Office Functions</h3>
         <div class="nav-item" onclick="showGroup('office')">
@@ -438,7 +438,7 @@
           Timeline
         </div>
       </div>
-      
+
       <div class="nav-group">
         <h3>▸ Tool Functions</h3>
         <div class="nav-item" onclick="showGroup('tools')">
@@ -450,7 +450,7 @@
           Generators
         </div>
       </div>
-      
+
       <div class="nav-group">
         <h3>🆘 Help Functions</h3>
         <div class="nav-item" onclick="showGroup('help')">
@@ -463,12 +463,12 @@
         </div>
       </div>
     </aside>
-    
+
     <main class="content-area" id="content-area">
       <!-- Content loaded dynamically -->
     </main>
   </div>
-  
+
   <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 1rem; border-radius: 8px; margin: 1rem 2rem;">
     <strong>▸ Quick Links:</strong>
     <a href="/docs/navigation-structure.html" style="color: #10b981; margin-left: 1rem;">Where to place functions ▸</a>
@@ -827,12 +827,12 @@
         }
       ]
     };
-    
+
     // Render functions
     function showGroup(group) {
       const content = document.getElementById('content-area');
       const items = group === 'all' ? Object.values(functions).flat() : functions[group] || [];
-      
+
       const groupInfo = {
         home: { icon: '○', title: 'Home', desc: 'Dashboard, overview, quick actions' },
         library: { icon: '○', title: 'Library', desc: 'Research, law, rights, guides, resources' },
@@ -840,9 +840,9 @@
         tools: { icon: '▸', title: 'Tools', desc: 'Utilities, calculators, generators' },
         help: { icon: '🆘', title: 'Help', desc: 'Support, contacts, crisis resources, FAQ' }
       };
-      
+
       const info = group === 'all' ? { icon: '▸', title: 'All Functions', desc: 'Complete Semptify function browser' } : groupInfo[group];
-      
+
       content.innerHTML = `
         <div class="group-header">
           <span style="font-size: 2rem;">${info.icon}</span>
@@ -851,20 +851,20 @@
             <p class="group-desc">${info.desc}</p>
           </div>
         </div>
-        
+
         <div class="function-grid">
           ${items.map(fn => renderFunctionCard(fn)).join('')}
         </div>
       `;
     }
-    
+
     function renderFunctionCard(fn) {
       const roleBadges = fn.roles.map(role => {
         const roleClass = `role-${role}`;
         const roleLabel = role.charAt(0).toUpperCase();
         return `<span class="role-badge ${roleClass}" title="${role}">${roleLabel}</span>`;
       }).join('');
-      
+
       const inputsHtml = fn.inputs.map(input => `
         <div class="input-spec">
           <span class="input-type">${input.type}</span>
@@ -872,7 +872,7 @@
           ${input.required ? '<span class="input-required">required</span>' : '<span class="input-optional">optional</span>'}
         </div>
       `).join('');
-      
+
       const settingsHtml = fn.settings.map(setting => `
         <div class="setting-row">
           <span class="setting-name">${setting.name.replace(/_/g, ' ')}</span>
@@ -882,11 +882,11 @@
           </div>
         </div>
       `).join('');
-      
+
       const pagesHtml = fn.pages.map(page => `
         <a href="${page}" class="page-link" target="_blank">● ${page}</a>
       `).join('');
-      
+
       return `
         <div class="function-card" id="fn-${fn.id}" onclick="toggleFunction('${fn.id}')">
           <div class="function-header">
@@ -899,32 +899,32 @@
               <span class="expand-icon">▸</span>
             </div>
           </div>
-          
+
           <div class="function-details">
             <div class="detail-section">
               <div class="detail-label">Description</div>
               <div class="detail-content">${fn.description}</div>
             </div>
-            
+
             <div class="detail-section">
               <div class="detail-label">Context & Usage</div>
               <div class="detail-content">${fn.context}</div>
             </div>
-            
+
             <div class="detail-section">
               <div class="detail-label">Input Parameters</div>
               <div class="detail-content">
                 ${inputsHtml}
               </div>
             </div>
-            
+
             <div class="detail-section">
               <div class="detail-label">Settings & Defaults</div>
               <div class="detail-content">
                 ${settingsHtml}
               </div>
             </div>
-            
+
             <div class="detail-section">
               <div class="detail-label">Related Pages</div>
               <div class="detail-content">
@@ -936,16 +936,16 @@
         </div>
       `;
     }
-    
+
     function toggleFunction(id) {
       const card = document.getElementById(`fn-${id}`);
       card.classList.toggle('expanded');
     }
-    
+
     function filterRole(role) {
       const allFunctions = Object.values(functions).flat();
       const filtered = allFunctions.filter(fn => fn.roles.includes(role));
-      
+
       const content = document.getElementById('content-area');
       content.innerHTML = `
         <div class="group-header">
@@ -955,13 +955,13 @@
             <p class="group-desc">Functions available to ${role} role</p>
           </div>
         </div>
-        
+
         <div class="function-grid">
           ${filtered.map(fn => renderFunctionCard(fn)).join('')}
         </div>
       `;
     }
-    
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       showGroup('all');

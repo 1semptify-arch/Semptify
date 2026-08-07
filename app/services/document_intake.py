@@ -764,9 +764,11 @@ class IssueDetector:
                 r"(\d+)\s*day\s*notice",
                 r"notice\s*(?:of|to)\s*(\d+)\s*days?",
             ],
-            "check": lambda match, text: int(match.group(1)) < 14
-            if "non-payment" in text.lower() or "rent" in text.lower()
-            else int(match.group(1)) < 30,
+            "check": lambda match, text: (
+                int(match.group(1)) < 14
+                if "non-payment" in text.lower() or "rent" in text.lower()
+                else int(match.group(1)) < 30
+            ),
             "title": "Potentially Insufficient Notice Period",
             "description": "The notice period may be shorter than required by Minnesota law. Non-payment requires 14 days; other lease violations may require different periods.",
             "severity": IssueSeverity.HIGH,

@@ -2,7 +2,7 @@
 
 **Visual guide to how the metadata layer fits on top of Semptify's cloud vault.**
 
-> **Terminology**: The **Vault** = Cloud storage (`Semptify5.0/Vault/`).  
+> **Terminology**: The **Vault** = Cloud storage (`Semptify5.0/Vault/`).
 > The `vault_items` table is a **metadata index** that describes vault contents.
 
 ---
@@ -488,13 +488,14 @@ alembic/
 
 from app.services.vault_ingestion import ingest_vault_item
 
+
 async def handle_upload(file, user_id):
     # 1. Save to cloud (existing code)
     cloud_path = await save_to_cloud(file)
-    
+
     # 2. Extract metadata (existing code)
     extracted = await extract_metadata(file)
-    
+
     # 3. NEW: Ingest to ALL-IN-ONE vault
     result = await ingest_vault_item(
         db=db,
@@ -511,7 +512,7 @@ async def handle_upload(file, user_id):
         file_path=cloud_path,
         title=extracted.get("title"),
     )
-    
+
     return {"cloud_path": cloud_path, "vault_item_id": result.item_id}
 ```
 
@@ -538,7 +539,7 @@ from app.services.vault_search import search_vault
 async def get_timeline(user_id):
     # 1. Get cloud timeline (existing)
     cloud_events = await load_cloud_timeline(user_id)
-    
+
     # 2. NEW: Query vault for enriched data
     vault_results = await search_vault(
         db=db,
@@ -546,7 +547,7 @@ async def get_timeline(user_id):
         timeline_mode="event_time",
         limit=1000,
     )
-    
+
     # 3. Merge or choose primary source
     # Cloud = portable, user-controlled
     # Vault = fast queries, audit trail

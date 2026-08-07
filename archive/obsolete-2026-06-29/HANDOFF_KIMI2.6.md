@@ -194,10 +194,12 @@ These require real OAuth login in a browser:
 ```python
 # WRONG — creates naive datetime (no timezone)
 from datetime import datetime
+
 ts = datetime.now()
 
 # RIGHT — always timezone-aware UTC
 from app.core.utc import utc_now
+
 ts = utc_now()
 ```
 
@@ -218,6 +220,7 @@ session = AsyncSessionLocal()  # does not exist
 
 # RIGHT
 from app.core.database import get_db_session
+
 async with get_db_session() as session:
     result = await session.execute(...)
 ```
@@ -225,10 +228,13 @@ async with get_db_session() as session:
 ### 4. IDs — Use make_id()
 ```python
 # WRONG
-import uuid; id = str(uuid.uuid4())
+import uuid
+
+id = str(uuid.uuid4())
 
 # RIGHT
 from app.core.id_gen import make_id
+
 id = make_id("tevt")  # → "tevt_a1b2c3d4..."
 ```
 
@@ -273,16 +279,18 @@ Pattern:
 ```python
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-register_function_group(FunctionGroupContract(
-    module="<module>",
-    group_name="<group>",
-    title="<Title> (SSOT)",
-    description="CANONICAL ... What it does. What it does NOT do.",
-    inputs=("<required>", "<optional>?"),
-    outputs=("<output>",),
-    dependencies=("app.services.<module>",),
-    deterministic=True,
-))
+register_function_group(
+    FunctionGroupContract(
+        module="<module>",
+        group_name="<group>",
+        title="<Title> (SSOT)",
+        description="CANONICAL ... What it does. What it does NOT do.",
+        inputs=("<required>", "<optional>?"),
+        outputs=("<output>",),
+        dependencies=("app.services.<module>",),
+        deterministic=True,
+    )
+)
 ```
 
 ---
@@ -383,4 +391,3 @@ python -c "from app.core.module_contracts import registry; print(len(registry.gr
 
 *This file was written at end of session 2026-06-18 PM for handoff to the next AI agent.*
 *Ground truth is always BUILD_STATE.md + ACTIVE_CONTEXT.md. Read those first.*
-

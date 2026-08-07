@@ -1,7 +1,7 @@
 # Semptify v5.0 Production Deployment Guide
 
-**Location**: Main branch (1semptify-arch/Semptify5.0)  
-**Status**: READY FOR PRODUCTION DEPLOYMENT  
+**Location**: Main branch (1semptify-arch/Semptify5.0)
+**Status**: READY FOR PRODUCTION DEPLOYMENT
 **Tested**: April 10, 2026
 
 ---
@@ -53,18 +53,18 @@ curl http://localhost:8000/api/health
 ## What's Fixed in This Release
 
 ### Critical Blocker Resolution
-**Issue**: OAuth callbacks failing with `UndefinedColumnError: column users.completed_groups does not exist`  
-**Root Cause**: Schema migration created but not applied to production database  
+**Issue**: OAuth callbacks failing with `UndefinedColumnError: column users.completed_groups does not exist`
+**Root Cause**: Schema migration created but not applied to production database
 **Resolution**: Applied Alembic migration `81c36d8f2466` adding `completed_groups` column to users table
 
 ### Database Permissions
-**Issue**: Alembic upgrade failing with `InsufficientPrivilege`  
-**Root Cause**: Tables owned by postgres superuser, but app runs as semptify user  
+**Issue**: Alembic upgrade failing with `InsufficientPrivilege`
+**Root Cause**: Tables owned by postgres superuser, but app runs as semptify user
 **Resolution**: Transferred ownership of all 20 public schema tables to semptify user
 
 ### OAuth State Management
-**Issue**: In-memory state globals causing test failures and data loss on reload  
-**Root Cause**: Moved from globals to database-backed oauth_states table  
+**Issue**: In-memory state globals causing test failures and data loss on reload
+**Root Cause**: Moved from globals to database-backed oauth_states table
 **Transitional Feature**: Added backward-compatible fallback maps for graceful migration
 
 ---
@@ -74,7 +74,7 @@ curl http://localhost:8000/api/health
 ### Core Test Suite (PASSING)
 ```
 ✓ Health checks                    (test_health.py)
-✓ Basic API functionality          (test_basic.py)  
+✓ Basic API functionality          (test_basic.py)
 ✓ Role-based access control        (test_role_validation.py)
 ✓ OAuth flows & session mgmt       (test_storage.py - 30 tests)
 ✓ Document vault lifecycle         (test_vault_manager_sequence.py)
@@ -220,9 +220,9 @@ python -m alembic current
 
 # Check tables
 psql -U semptify -d semptify -c "
-  SELECT table_name, table_owner 
-  FROM information_schema.tables 
-  WHERE table_schema = 'public' 
+  SELECT table_name, table_owner
+  FROM information_schema.tables
+  WHERE table_schema = 'public'
   ORDER BY table_name;
 "
 # All rows should have table_owner = 'semptify'
@@ -298,7 +298,7 @@ curl -I http://localhost:8000/readyz
 
 # Database connectivity
 curl -X GET http://localhost:8000/api/storage/providers \
-  -H "Authorization: Bearer test-token" 
+  -H "Authorization: Bearer test-token"
 # Expected: 401 or valid response (confirms DB connection alive)
 
 # Run smoke tests
@@ -313,8 +313,8 @@ tail -f /var/log/semptify/app.log | jq .
 
 # Monitor database connections
 psql -U semptify -d semptify -c "
-  SELECT datname, count(*) as connections 
-  FROM pg_stat_activity 
+  SELECT datname, count(*) as connections
+  FROM pg_stat_activity
   GROUP BY datname;
 "
 
@@ -381,9 +381,9 @@ ALTER SYSTEM SET log_min_duration_statement = 500;  -- Log queries > 500ms
 SELECT pg_reload_conf();
 
 -- Create indexes for OAuth lookups
-CREATE INDEX idx_oauth_states_provider_expires 
+CREATE INDEX idx_oauth_states_provider_expires
   ON oauth_states(provider, expires_at);
-CREATE INDEX idx_users_provider_subject 
+CREATE INDEX idx_users_provider_subject
   ON users(primary_provider, storage_user_id);
 
 -- Analyze query plans
@@ -443,8 +443,8 @@ cat /etc/logrotate.d/semptify
 
 2. **Database Query Latency** (target: p99 < 500ms)
    ```sql
-   SELECT query, mean_time, calls 
-   FROM pg_stat_statements 
+   SELECT query, mean_time, calls
+   FROM pg_stat_statements
    ORDER BY mean_time DESC LIMIT 10;
    ```
 
@@ -505,17 +505,17 @@ cat /etc/logrotate.d/semptify
 
 ## Version Management
 
-**Current Production Version**: v5.0  
-**Branch**: main (1semptify-arch/Semptify5.0)  
-**Migration Version**: 81c36d8f2466  
-**Database Schema**: PostgreSQL 16  
-**Python**: 3.11+  
-**FastAPI**: Latest (async/await)  
+**Current Production Version**: v5.0
+**Branch**: main (1semptify-arch/Semptify5.0)
+**Migration Version**: 81c36d8f2466
+**Database Schema**: PostgreSQL 16
+**Python**: 3.11+
+**FastAPI**: Latest (async/await)
 
 ---
 
 **Deployment Authorization**:
 
-Signed by: [DevOps Lead]  
-Date: April 10, 2026  
+Signed by: [DevOps Lead]
+Date: April 10, 2026
 Approvals: [Security], [Backend Lead], [Ops Manager]

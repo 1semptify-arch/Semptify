@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AnalysisSummary:
     """Summary of all automated analyses."""
+
     doc_id: str
     filename: str
     analysis_timestamp: str
@@ -50,28 +51,28 @@ class AnalysisSummary:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'doc_id': self.doc_id,
-            'filename': self.filename,
-            'analysis_timestamp': self.analysis_timestamp,
-            'timeline_events': self.timeline_events_count,
-            'calendar_events': self.calendar_events_count,
-            'complaints': self.complaints_identified,
-            'rights': self.rights_count,
-            'missteps': self.missteps_count,
-            'tactics': self.tactics_recommended,
-            'summaries': {
-                'timeline': self.timeline_summary,
-                'calendar': self.calendar_summary,
-                'complaints': self.complaints_summary,
-                'rights': self.rights_summary,
-                'missteps': self.missteps_summary,
-                'tactics': self.tactics_summary,
+            "doc_id": self.doc_id,
+            "filename": self.filename,
+            "analysis_timestamp": self.analysis_timestamp,
+            "timeline_events": self.timeline_events_count,
+            "calendar_events": self.calendar_events_count,
+            "complaints": self.complaints_identified,
+            "rights": self.rights_count,
+            "missteps": self.missteps_count,
+            "tactics": self.tactics_recommended,
+            "summaries": {
+                "timeline": self.timeline_summary,
+                "calendar": self.calendar_summary,
+                "complaints": self.complaints_summary,
+                "rights": self.rights_summary,
+                "missteps": self.missteps_summary,
+                "tactics": self.tactics_summary,
             },
-            'progress': self.overall_progress,
-            'confidence': self.analysis_confidence,
-            'recommended_actions': self.recommended_actions,
-            'urgent_actions': self.urgent_actions,
-            'next_steps': self.next_steps,
+            "progress": self.overall_progress,
+            "confidence": self.analysis_confidence,
+            "recommended_actions": self.recommended_actions,
+            "urgent_actions": self.urgent_actions,
+            "next_steps": self.next_steps,
         }
 
 
@@ -80,73 +81,60 @@ class AutoModeSummaryService:
     Generates comprehensive summaries and actionable recommendations from analysis results.
     """
 
-    async def generate_summary(
-        self,
-        doc_id: str,
-        filename: str,
-        analysis_results: dict[str, Any]
-    ) -> AnalysisSummary:
+    async def generate_summary(self, doc_id: str, filename: str, analysis_results: dict[str, Any]) -> AnalysisSummary:
         """
         Generate comprehensive summary from analysis results.
         """
-        summary = AnalysisSummary(
-            doc_id=doc_id,
-            filename=filename,
-            analysis_timestamp=utc_now().isoformat()
-        )
+        summary = AnalysisSummary(doc_id=doc_id, filename=filename, analysis_timestamp=utc_now().isoformat())
 
         try:
             # Timeline Analysis
-            timeline_events = analysis_results.get('timeline_events', [])
+            timeline_events = analysis_results.get("timeline_events", [])
             summary.timeline_events_count = len(timeline_events)
             summary.timeline_summary = self._summarize_timeline(timeline_events)
 
             # Calendar Analysis
-            calendar_events = analysis_results.get('calendar_events', [])
+            calendar_events = analysis_results.get("calendar_events", [])
             summary.calendar_events_count = len(calendar_events)
             summary.calendar_summary = self._summarize_calendar(calendar_events)
 
             # Complaints Analysis
-            complaints = analysis_results.get('complaints', [])
+            complaints = analysis_results.get("complaints", [])
             summary.complaints_identified = len(complaints)
             summary.complaints_summary = self._summarize_complaints(complaints)
 
             # Rights Assessment
-            rights = analysis_results.get('rights_assessment', {})
-            summary.rights_count = len(rights.get('strengths', []))
+            rights = analysis_results.get("rights_assessment", {})
+            summary.rights_count = len(rights.get("strengths", []))
             summary.rights_summary = self._summarize_rights(rights)
 
             # Legal Missteps
-            missteps = analysis_results.get('legal_missteps', [])
+            missteps = analysis_results.get("legal_missteps", [])
             summary.missteps_count = len(missteps)
             summary.missteps_summary = self._summarize_missteps(missteps)
 
             # Tactics
-            tactics = analysis_results.get('proactive_tactics', [])
+            tactics = analysis_results.get("proactive_tactics", [])
             summary.tactics_recommended = len(tactics)
             summary.tactics_summary = self._summarize_tactics(tactics)
 
             # Generate Recommended Actions
-            summary.recommended_actions = await self._generate_recommended_actions(
-                analysis_results, summary
-            )
+            summary.recommended_actions = await self._generate_recommended_actions(analysis_results, summary)
 
             # Generate Urgent Actions
-            summary.urgent_actions = self._generate_urgent_actions(
-                analysis_results, summary
-            )
+            summary.urgent_actions = self._generate_urgent_actions(analysis_results, summary)
 
             # Generate Next Steps
-            summary.next_steps = self._generate_next_steps(
-                analysis_results, summary
-            )
+            summary.next_steps = self._generate_next_steps(analysis_results, summary)
 
             # Calculate Progress
             summary.overall_progress = self._calculate_progress(summary)
             summary.analysis_confidence = self._calculate_confidence(analysis_results)
 
-            logger.info(f"Generated summary for doc {doc_id}: {summary.timeline_events_count} timeline events, "
-                       f"{summary.complaints_identified} complaints, {summary.tactics_recommended} tactics")
+            logger.info(
+                f"Generated summary for doc {doc_id}: {summary.timeline_events_count} timeline events, "
+                f"{summary.complaints_identified} complaints, {summary.tactics_recommended} tactics"
+            )
 
         except Exception as e:
             logger.error(f"Error generating summary for {doc_id}: {e}")
@@ -161,7 +149,7 @@ class AutoModeSummaryService:
         # Group by event type
         by_type = {}
         for event in timeline_events:
-            event_type = event.get('event_type', 'other')
+            event_type = event.get("event_type", "other")
             if event_type not in by_type:
                 by_type[event_type] = []
             by_type[event_type].append(event)
@@ -172,12 +160,12 @@ class AutoModeSummaryService:
             parts.append(f"  • {event_type}: {len(events)} event(s)")
 
         # Find earliest and latest dates
-        dates = [e.get('event_date') for e in timeline_events if e.get('event_date')]
+        dates = [e.get("event_date") for e in timeline_events if e.get("event_date")]
         if dates:
             parts.append(f"  • Timeline span: {min(dates)} to {max(dates)}")
 
         # Identify deadlines
-        deadlines = [e for e in timeline_events if e.get('is_deadline')]
+        deadlines = [e for e in timeline_events if e.get("is_deadline")]
         if deadlines:
             parts.append(f"  • Critical deadlines: {len(deadlines)} identified")
 
@@ -191,7 +179,7 @@ class AutoModeSummaryService:
         # Group by type
         by_type = {}
         for event in calendar_events:
-            event_type = event.get('event_type', 'other')
+            event_type = event.get("event_type", "other")
             if event_type not in by_type:
                 by_type[event_type] = 0
             by_type[event_type] += 1
@@ -201,7 +189,7 @@ class AutoModeSummaryService:
             parts.append(f"  • {event_type}: {count} event(s)")
 
         # Find upcoming events
-        upcoming = [e for e in calendar_events if not e.get('end_date', e.get('start_date', ''))]
+        upcoming = [e for e in calendar_events if not e.get("end_date", e.get("start_date", ""))]
         if upcoming:
             parts.append(f"  • Upcoming events with reminders: {len(upcoming)}")
 
@@ -215,7 +203,7 @@ class AutoModeSummaryService:
         parts = [f"Identified {len(complaints)} potential complaints to file:"]
         agency_types = {}
         for complaint in complaints:
-            agency_type = complaint.get('type', 'unknown')
+            agency_type = complaint.get("type", "unknown")
             if agency_type not in agency_types:
                 agency_types[agency_type] = 0
             agency_types[agency_type] += 1
@@ -227,8 +215,8 @@ class AutoModeSummaryService:
 
     def _summarize_rights(self, rights: dict[str, Any]) -> str:
         """Generate rights assessment summary."""
-        strengths = rights.get('strengths', [])
-        weaknesses = rights.get('weaknesses', [])
+        strengths = rights.get("strengths", [])
+        weaknesses = rights.get("weaknesses", [])
 
         parts = []
         if strengths:
@@ -267,7 +255,7 @@ class AutoModeSummaryService:
 
         parts = [f"Recommended {len(tactics)} proactive defense tactics:"]
         for i, tactic in enumerate(tactics[:4], 1):  # Top 4
-            tactic_type = tactic.get('tactic_type', 'unknown')
+            tactic_type = tactic.get("tactic_type", "unknown")
             parts.append(f"  {i}. {tactic_type}: {tactic.get('reasoning', 'See details for more information')}")
         if len(tactics) > 4:
             parts.append(f"  ... and {len(tactics) - 4} more")
@@ -275,115 +263,123 @@ class AutoModeSummaryService:
         return "\n".join(parts)
 
     async def _generate_recommended_actions(
-        self,
-        analysis_results: dict[str, Any],
-        summary: AnalysisSummary
+        self, analysis_results: dict[str, Any], summary: AnalysisSummary
     ) -> list[dict[str, Any]]:
         """Generate list of recommended actions."""
         actions = []
 
         # Action 1: Review timeline
         if summary.timeline_events_count > 0:
-            actions.append({
-                'action_id': 'review_timeline',
-                'title': 'Review Extracted Timeline',
-                'description': f'{summary.timeline_events_count} events were extracted. Review to ensure accuracy.',
-                'priority': 'high' if summary.timeline_events_count > 5 else 'medium',
-                'estimated_time': '5-10 minutes',
-                'link': f'/timeline?doc_id={summary.doc_id}'
-            })
+            actions.append(
+                {
+                    "action_id": "review_timeline",
+                    "title": "Review Extracted Timeline",
+                    "description": f"{summary.timeline_events_count} events were extracted. Review to ensure accuracy.",
+                    "priority": "high" if summary.timeline_events_count > 5 else "medium",
+                    "estimated_time": "5-10 minutes",
+                    "link": f"/timeline?doc_id={summary.doc_id}",
+                }
+            )
 
         # Action 2: File complaints
         if summary.complaints_identified > 0:
-            actions.append({
-                'action_id': 'file_complaints',
-                'title': f'File {summary.complaints_identified} Complaint(s)',
-                'description': 'Regulatory agencies identified where you can file complaints.',
-                'priority': 'high',
-                'estimated_time': '20-30 minutes per complaint',
-                'link': f'/complaints?doc_id={summary.doc_id}'
-            })
+            actions.append(
+                {
+                    "action_id": "file_complaints",
+                    "title": f"File {summary.complaints_identified} Complaint(s)",
+                    "description": "Regulatory agencies identified where you can file complaints.",
+                    "priority": "high",
+                    "estimated_time": "20-30 minutes per complaint",
+                    "link": f"/complaints?doc_id={summary.doc_id}",
+                }
+            )
 
         # Action 3: Review legal rights
         if summary.rights_count > 0:
-            actions.append({
-                'action_id': 'review_rights',
-                'title': 'Review Your Legal Rights',
-                'description': 'Based on document analysis, review your rights and protections.',
-                'priority': 'high',
-                'estimated_time': '10-15 minutes',
-                'link': f'/legal-analysis?doc_id={summary.doc_id}'
-            })
+            actions.append(
+                {
+                    "action_id": "review_rights",
+                    "title": "Review Your Legal Rights",
+                    "description": "Based on document analysis, review your rights and protections.",
+                    "priority": "high",
+                    "estimated_time": "10-15 minutes",
+                    "link": f"/legal-analysis?doc_id={summary.doc_id}",
+                }
+            )
 
         # Action 4: Implement tactics
         if summary.tactics_recommended > 0:
-            actions.append({
-                'action_id': 'implement_tactics',
-                'title': f'Consider {summary.tactics_recommended} Defense Tactic(s)',
-                'description': 'Proactive strategies to strengthen your position.',
-                'priority': 'medium',
-                'estimated_time': '15-20 minutes',
-                'link': f'/tactics?doc_id={summary.doc_id}'
-            })
+            actions.append(
+                {
+                    "action_id": "implement_tactics",
+                    "title": f"Consider {summary.tactics_recommended} Defense Tactic(s)",
+                    "description": "Proactive strategies to strengthen your position.",
+                    "priority": "medium",
+                    "estimated_time": "15-20 minutes",
+                    "link": f"/tactics?doc_id={summary.doc_id}",
+                }
+            )
 
         # Action 5: Address missteps
         if summary.missteps_count > 0:
-            actions.append({
-                'action_id': 'address_missteps',
-                'title': f'Address {summary.missteps_count} Legal Misstep(s)',
-                'description': 'Procedural violations that could impact your case.',
-                'priority': 'critical',
-                'estimated_time': '15-30 minutes',
-                'link': f'/legal-missteps?doc_id={summary.doc_id}'
-            })
+            actions.append(
+                {
+                    "action_id": "address_missteps",
+                    "title": f"Address {summary.missteps_count} Legal Misstep(s)",
+                    "description": "Procedural violations that could impact your case.",
+                    "priority": "critical",
+                    "estimated_time": "15-30 minutes",
+                    "link": f"/legal-missteps?doc_id={summary.doc_id}",
+                }
+            )
 
         return actions
 
     def _generate_urgent_actions(
-        self,
-        analysis_results: dict[str, Any],
-        summary: AnalysisSummary
+        self, analysis_results: dict[str, Any], summary: AnalysisSummary
     ) -> list[dict[str, Any]]:
         """Generate list of urgent actions that need immediate attention."""
         urgent = []
 
         # Urgent: Legal missteps
         if summary.missteps_count > 0:
-            urgent.append({
-                'action': 'address_missteps',
-                'message': f'◆ {summary.missteps_count} legal procedural violation(s) detected',
-                'severity': 'critical',
-                'deadline': 'Immediate'
-            })
+            urgent.append(
+                {
+                    "action": "address_missteps",
+                    "message": f"◆ {summary.missteps_count} legal procedural violation(s) detected",
+                    "severity": "critical",
+                    "deadline": "Immediate",
+                }
+            )
 
         # Urgent: Critical deadlines
-        timeline_events = analysis_results.get('timeline_events', [])
-        deadlines = [e for e in timeline_events if e.get('is_deadline')]
-        urgent_deadlines = [d for d in deadlines if d.get('urgency') == 'critical']
+        timeline_events = analysis_results.get("timeline_events", [])
+        deadlines = [e for e in timeline_events if e.get("is_deadline")]
+        urgent_deadlines = [d for d in deadlines if d.get("urgency") == "critical"]
         if urgent_deadlines:
-            urgent.append({
-                'action': 'review_deadlines',
-                'message': f'◆ {len(urgent_deadlines)} critical deadline(s)',
-                'severity': 'critical',
-                'deadline': 'Within 24 hours'
-            })
+            urgent.append(
+                {
+                    "action": "review_deadlines",
+                    "message": f"◆ {len(urgent_deadlines)} critical deadline(s)",
+                    "severity": "critical",
+                    "deadline": "Within 24 hours",
+                }
+            )
 
         # Urgent: File complaints
         if summary.complaints_identified > 0:
-            urgent.append({
-                'action': 'file_complaints',
-                'message': f'● {summary.complaints_identified} complaint(s) ready to file',
-                'severity': 'high',
-                'deadline': 'Within 3 days'
-            })
+            urgent.append(
+                {
+                    "action": "file_complaints",
+                    "message": f"● {summary.complaints_identified} complaint(s) ready to file",
+                    "severity": "high",
+                    "deadline": "Within 3 days",
+                }
+            )
 
         return urgent
 
-    def _generate_next_steps(
-        self,
-        analysis_results: dict[str, Any],
-        summary: AnalysisSummary
-    ) -> list[str]:
+    def _generate_next_steps(self, analysis_results: dict[str, Any], summary: AnalysisSummary) -> list[str]:
         """Generate list of next steps."""
         steps = []
 
@@ -412,10 +408,10 @@ class AutoModeSummaryService:
             (1 if summary.timeline_events_count > 0 else 0, 15),  # Timeline: 15%
             (1 if summary.calendar_events_count > 0 else 0, 10),  # Calendar: 10%
             (1 if summary.complaints_identified > 0 else 0, 15),  # Complaints: 15%
-            (1 if summary.rights_count > 0 else 0, 15),           # Rights: 15%
-            (1 if summary.missteps_count >= 0 else 0, 15),        # Missteps check: 15%
-            (1 if summary.tactics_recommended > 0 else 0, 15),    # Tactics: 15%
-            (1, 5),                                                # Document processed: 5%
+            (1 if summary.rights_count > 0 else 0, 15),  # Rights: 15%
+            (1 if summary.missteps_count >= 0 else 0, 15),  # Missteps check: 15%
+            (1 if summary.tactics_recommended > 0 else 0, 15),  # Tactics: 15%
+            (1, 5),  # Document processed: 5%
         ]
 
         total = sum(factor * weight for factor, weight in completion_factors)
@@ -428,22 +424,24 @@ class AutoModeSummaryService:
         confidence = 0.5  # Start at baseline
 
         # Add confidence based on number of events found
-        timeline_count = len(analysis_results.get('timeline_events', []))
+        timeline_count = len(analysis_results.get("timeline_events", []))
         confidence += min(0.2, timeline_count * 0.05)  # Max +0.2 for timeline
 
         # Add confidence based on legal missteps found
-        missteps = analysis_results.get('legal_missteps', [])
+        missteps = analysis_results.get("legal_missteps", [])
         if missteps:
             confidence += 0.15
 
         # Add confidence based on multiple analysis types
-        analysis_types = sum([
-            1 if analysis_results.get('timeline_events') else 0,
-            1 if analysis_results.get('calendar_events') else 0,
-            1 if analysis_results.get('complaints') else 0,
-            1 if analysis_results.get('rights_assessment') else 0,
-            1 if analysis_results.get('proactive_tactics') else 0,
-        ])
+        analysis_types = sum(
+            [
+                1 if analysis_results.get("timeline_events") else 0,
+                1 if analysis_results.get("calendar_events") else 0,
+                1 if analysis_results.get("complaints") else 0,
+                1 if analysis_results.get("rights_assessment") else 0,
+                1 if analysis_results.get("proactive_tactics") else 0,
+            ]
+        )
         confidence += (analysis_types / 5) * 0.15  # Up to +0.15 for multiple analyses
 
         return min(1.0, confidence)

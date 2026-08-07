@@ -2,6 +2,7 @@
 Funding & Tax Credit Search Router
 Search for LIHTC, NMTC, HUD funding, tax credits, and financing by company, address, or broker
 """
+
 import logging
 from enum import Enum
 from typing import Any
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/api/funding", tags=["Funding & Tax Credit Search"])
 # =============================================================================
 # ENUMS AND MODELS
 # =============================================================================
+
 
 class FundingProgramType(str, Enum):
     LIHTC = "lihtc"  # Low-Income Housing Tax Credit
@@ -37,12 +39,14 @@ class FundingProgramType(str, Enum):
     STATE_HISTORIC = "state_historic"
     TAX_EXEMPT_BONDS = "tax_exempt_bonds"
 
+
 class SearchType(str, Enum):
     ADDRESS = "address"
     COMPANY = "company"
     BROKER = "broker"
     PROGRAM = "program"
     ALL = "all"
+
 
 class PropertySearchRequest(BaseModel):
     query: str
@@ -51,6 +55,7 @@ class PropertySearchRequest(BaseModel):
     state: str | None = "MN"
     city: str | None = None
     include_expired: bool = False
+
 
 class FundingRecord(BaseModel):
     id: str
@@ -100,6 +105,7 @@ class FundingRecord(BaseModel):
     source_url: str | None = None
     last_updated: str
 
+
 # =============================================================================
 # SAMPLE DATA (In production, this would come from database/external APIs)
 # =============================================================================
@@ -135,13 +141,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "15-year compliance period",
             "Extended use period of 30 years",
             "Annual income certifications required",
-            "Physical inspections every 3 years"
+            "Physical inspections every 3 years",
         ],
         "compliance_period": "15 years (extended: 30 years)",
         "annual_reporting_required": True,
         "data_source": "Minnesota Housing Finance Agency",
         "source_url": "https://www.mnhousing.gov",
-        "last_updated": "2024-12-01"
+        "last_updated": "2024-12-01",
     },
     {
         "id": "lihtc_mn_002",
@@ -172,13 +178,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "80% of units affordable at 60% AMI or below",
             "Tax-exempt bond financing required",
             "15-year compliance period",
-            "Income averaging allowed"
+            "Income averaging allowed",
         ],
         "compliance_period": "15 years",
         "annual_reporting_required": True,
         "data_source": "Minnesota Housing Finance Agency",
         "source_url": "https://www.mnhousing.gov",
-        "last_updated": "2024-11-15"
+        "last_updated": "2024-11-15",
     },
     {
         "id": "hud_pbv_001",
@@ -208,13 +214,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "20-year HAP contract",
             "HUD physical inspections annually",
             "Tenant income recertification annually",
-            "Fair Housing compliance required"
+            "Fair Housing compliance required",
         ],
         "compliance_period": "20 years (renewable)",
         "annual_reporting_required": True,
         "data_source": "HUD Multifamily Database",
         "source_url": "https://www.hud.gov/program_offices/housing/mfh",
-        "last_updated": "2024-12-01"
+        "last_updated": "2024-12-01",
     },
     {
         "id": "nmtc_mn_001",
@@ -245,13 +251,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "7-year compliance period",
             "40% of units affordable at 80% AMI",
             "Community impact reporting required",
-            "CDE allocation through Greater MN Housing Fund"
+            "CDE allocation through Greater MN Housing Fund",
         ],
         "compliance_period": "7 years",
         "annual_reporting_required": True,
         "data_source": "CDFI Fund",
         "source_url": "https://www.cdfifund.gov/programs-training/programs/new-markets-tax-credit",
-        "last_updated": "2024-10-15"
+        "last_updated": "2024-10-15",
     },
     {
         "id": "historic_mn_001",
@@ -280,13 +286,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "Certified rehabilitation by NPS",
             "Substantial rehabilitation test (QRE > adjusted basis)",
             "5-year recapture period",
-            "Secretary of Interior's Standards compliance"
+            "Secretary of Interior's Standards compliance",
         ],
         "compliance_period": "5 years (recapture period)",
         "annual_reporting_required": False,
         "data_source": "National Park Service",
         "source_url": "https://www.nps.gov/subjects/taxincentives",
-        "last_updated": "2024-09-01"
+        "last_updated": "2024-09-01",
     },
     {
         "id": "oz_mn_001",
@@ -314,13 +320,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "90% asset test (quarterly)",
             "Substantial improvement within 30 months",
             "Hold for 10+ years for maximum benefit",
-            "QOF certification with IRS Form 8996"
+            "QOF certification with IRS Form 8996",
         ],
         "compliance_period": "10 years (for full exclusion)",
         "annual_reporting_required": True,
         "data_source": "IRS / Treasury",
         "source_url": "https://www.irs.gov/credits-deductions/opportunity-zones",
-        "last_updated": "2024-11-01"
+        "last_updated": "2024-11-01",
     },
     {
         "id": "lihtc_dakota_001",
@@ -351,13 +357,13 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "Income averaging election",
             "15-year compliance period",
             "Dakota County preference for local residents",
-            "Accessibility requirements (5% mobility, 2% sensory)"
+            "Accessibility requirements (5% mobility, 2% sensory)",
         ],
         "compliance_period": "15 years (extended: 30 years)",
         "annual_reporting_required": True,
         "data_source": "Minnesota Housing Finance Agency",
         "source_url": "https://www.mnhousing.gov",
-        "last_updated": "2024-12-05"
+        "last_updated": "2024-12-05",
     },
     {
         "id": "section_179d_001",
@@ -384,14 +390,14 @@ SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
             "Certification by qualified professional",
             "Building treated as commercial for tax purposes",
             "IRA enhanced deduction up to $5/sq ft available",
-            "Prevailing wage requirements for full deduction"
+            "Prevailing wage requirements for full deduction",
         ],
         "compliance_period": "N/A (one-time deduction)",
         "annual_reporting_required": False,
         "data_source": "IRS",
         "source_url": "https://www.irs.gov/credits-deductions/energy-efficient-commercial-buildings-deduction",
-        "last_updated": "2024-06-01"
-    }
+        "last_updated": "2024-06-01",
+    },
 ]
 
 # =============================================================================
@@ -412,14 +418,17 @@ PROGRAM_INFO: dict[str, dict[str, Any]] = {
             "Annual tenant income certification",
             "Physical property standards",
             "Non-discrimination requirements",
-            "Extended use agreement recorded"
+            "Extended use agreement recorded",
         ],
         "mn_administrator": "Minnesota Housing Finance Agency",
         "application_deadlines": "Annual QAP cycle (typically February)",
         "resources": [
             {"name": "MHFA LIHTC Program", "url": "https://www.mnhousing.gov/sites/multifamily/lihtc"},
-            {"name": "Novogradac LIHTC Map", "url": "https://www.novoco.com/resource-centers/affordable-housing-tax-credits/lihtc-property-database"}
-        ]
+            {
+                "name": "Novogradac LIHTC Map",
+                "url": "https://www.novoco.com/resource-centers/affordable-housing-tax-credits/lihtc-property-database",
+            },
+        ],
     },
     "nmtc": {
         "name": "New Markets Tax Credit (NMTC)",
@@ -433,14 +442,17 @@ PROGRAM_INFO: dict[str, dict[str, Any]] = {
             "Investment through Community Development Entity (CDE)",
             "Qualified Low-Income Community Investment (QLICI)",
             "7-year compliance period",
-            "Community impact reporting"
+            "Community impact reporting",
         ],
         "mn_administrator": "Various CDEs (Greater MN Housing Fund, etc.)",
         "application_deadlines": "CDE allocation rounds (varies)",
         "resources": [
-            {"name": "CDFI Fund NMTC", "url": "https://www.cdfifund.gov/programs-training/programs/new-markets-tax-credit"},
-            {"name": "Novogradac NMTC Map", "url": "https://www.novoco.com/resource-centers/new-markets-tax-credits"}
-        ]
+            {
+                "name": "CDFI Fund NMTC",
+                "url": "https://www.cdfifund.gov/programs-training/programs/new-markets-tax-credit",
+            },
+            {"name": "Novogradac NMTC Map", "url": "https://www.novoco.com/resource-centers/new-markets-tax-credits"},
+        ],
     },
     "historic": {
         "name": "Federal Historic Rehabilitation Tax Credit",
@@ -454,13 +466,13 @@ PROGRAM_INFO: dict[str, dict[str, Any]] = {
             "Certified rehabilitation by NPS",
             "Substantial rehabilitation test",
             "Secretary of Interior's Standards compliance",
-            "Income-producing use"
+            "Income-producing use",
         ],
         "mn_administrator": "State Historic Preservation Office (SHPO)",
         "resources": [
             {"name": "NPS Tax Incentives", "url": "https://www.nps.gov/subjects/taxincentives"},
-            {"name": "MN SHPO", "url": "https://mn.gov/admin/shpo/"}
-        ]
+            {"name": "MN SHPO", "url": "https://mn.gov/admin/shpo/"},
+        ],
     },
     "opportunity_zone": {
         "name": "Qualified Opportunity Zone Investment",
@@ -473,12 +485,12 @@ PROGRAM_INFO: dict[str, dict[str, Any]] = {
             "Investment through Qualified Opportunity Fund (QOF)",
             "90% asset test quarterly",
             "Substantial improvement within 30 months",
-            "Located in designated OZ census tract"
+            "Located in designated OZ census tract",
         ],
         "resources": [
             {"name": "IRS Opportunity Zones", "url": "https://www.irs.gov/credits-deductions/opportunity-zones"},
-            {"name": "HUD OZ Map", "url": "https://opportunityzones.hud.gov/"}
-        ]
+            {"name": "HUD OZ Map", "url": "https://opportunityzones.hud.gov/"},
+        ],
     },
     "hud_pbv": {
         "name": "HUD Project-Based Vouchers",
@@ -492,12 +504,15 @@ PROGRAM_INFO: dict[str, dict[str, Any]] = {
             "HUD physical inspections",
             "Annual income recertification",
             "Fair Housing compliance",
-            "Tenant selection preferences allowed"
+            "Tenant selection preferences allowed",
         ],
         "mn_administrator": "Local Housing Authorities",
         "resources": [
-            {"name": "HUD PBV Program", "url": "https://www.hud.gov/program_offices/public_indian_housing/programs/hcv/project"}
-        ]
+            {
+                "name": "HUD PBV Program",
+                "url": "https://www.hud.gov/program_offices/public_indian_housing/programs/hcv/project",
+            }
+        ],
     },
     "section_179d": {
         "name": "Section 179D Energy Efficient Commercial Building Deduction",
@@ -509,17 +524,21 @@ PROGRAM_INFO: dict[str, dict[str, Any]] = {
             "25%+ energy savings vs baseline",
             "Certification by qualified professional",
             "Building treated as commercial",
-            "Prevailing wage for full deduction (IRA)"
+            "Prevailing wage for full deduction (IRA)",
         ],
         "resources": [
-            {"name": "IRS 179D", "url": "https://www.irs.gov/credits-deductions/energy-efficient-commercial-buildings-deduction"}
-        ]
-    }
+            {
+                "name": "IRS 179D",
+                "url": "https://www.irs.gov/credits-deductions/energy-efficient-commercial-buildings-deduction",
+            }
+        ],
+    },
 }
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def search_records(
     query: str,
@@ -527,7 +546,7 @@ def search_records(
     programs: list[str] | None = None,
     state: str | None = None,
     city: str | None = None,
-    include_expired: bool = False
+    include_expired: bool = False,
 ) -> list[dict[str, Any]]:
     """Search funding records by various criteria"""
     results = []
@@ -583,17 +602,17 @@ def search_records(
 
     return results
 
+
 # =============================================================================
 # ENDPOINTS
 # =============================================================================
 
+
 @router.get("/programs")
 async def list_funding_programs():
     """List all available funding programs with details"""
-    return {
-        "programs": PROGRAM_INFO,
-        "total": len(PROGRAM_INFO)
-    }
+    return {"programs": PROGRAM_INFO, "total": len(PROGRAM_INFO)}
+
 
 @router.get("/programs/{program_type}")
 async def get_program_details(program_type: FundingProgramType):
@@ -602,11 +621,9 @@ async def get_program_details(program_type: FundingProgramType):
         raise HTTPException(status_code=404, detail="Program not found")
     return PROGRAM_INFO[program_type.value]
 
+
 @router.post("/search")
-async def search_funding_records(
-    request: PropertySearchRequest,
-    user: StorageUser = Depends(green_access)
-):
+async def search_funding_records(request: PropertySearchRequest, user: StorageUser = Depends(green_access)):
     """
     Search for funding records by address, company, broker, or program.
     Returns matching records with full qualification details.
@@ -619,7 +636,7 @@ async def search_funding_records(
         programs=programs,
         state=request.state,
         city=request.city,
-        include_expired=request.include_expired
+        include_expired=request.include_expired,
     )
 
     return {
@@ -629,63 +646,61 @@ async def search_funding_records(
             "state": request.state,
             "city": request.city,
             "programs": programs,
-            "include_expired": request.include_expired
+            "include_expired": request.include_expired,
         },
         "results": results,
-        "total": len(results)
+        "total": len(results),
     }
+
 
 @router.get("/search/address")
 async def search_by_address(
     address: str = Query(..., description="Address or partial address to search"),
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """Search funding records by property address"""
     results = search_records(address, SearchType.ADDRESS, state=state)
     return {"query": address, "results": results, "total": len(results)}
 
+
 @router.get("/search/company")
 async def search_by_company(
     company: str = Query(..., description="Company or owner name to search"),
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """Search funding records by company/owner name"""
     results = search_records(company, SearchType.COMPANY, state=state)
     return {"query": company, "results": results, "total": len(results)}
 
+
 @router.get("/search/broker")
 async def search_by_broker(
     broker: str = Query(..., description="Broker name or company to search"),
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """Search funding records by broker/agent"""
     results = search_records(broker, SearchType.BROKER, state=state)
     return {"query": broker, "results": results, "total": len(results)}
 
+
 @router.get("/record/{record_id}")
-async def get_funding_record(
-    record_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def get_funding_record(record_id: str, user: StorageUser = Depends(green_access)):
     """Get detailed funding record by ID"""
     for record in SAMPLE_FUNDING_RECORDS:
         if record["id"] == record_id:
             # Add program info
             program_type = record.get("program_type")
             program_info = PROGRAM_INFO.get(program_type, {})
-            return {
-                "record": record,
-                "program_info": program_info
-            }
+            return {"record": record, "program_info": program_info}
     raise HTTPException(status_code=404, detail="Record not found")
+
 
 @router.get("/statistics")
 async def get_funding_statistics(
-    state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(green_access)
+    state: str = Query("MN", description="State filter"), user: StorageUser = Depends(green_access)
 ):
     """Get funding statistics by program type"""
     stats = {}
@@ -698,12 +713,7 @@ async def get_funding_statistics(
 
         program = record.get("program_type", "unknown")
         if program not in stats:
-            stats[program] = {
-                "count": 0,
-                "total_credit_amount": 0,
-                "total_units": 0,
-                "affordable_units": 0
-            }
+            stats[program] = {"count": 0, "total_credit_amount": 0, "total_units": 0, "affordable_units": 0}
 
         stats[program]["count"] += 1
         stats[program]["total_credit_amount"] += record.get("credit_amount", 0) or 0
@@ -719,9 +729,10 @@ async def get_funding_statistics(
         "totals": {
             "total_records": len([r for r in SAMPLE_FUNDING_RECORDS if r.get("state", "").upper() == state.upper()]),
             "total_credit_amount": total_credits,
-            "total_units": total_units
-        }
+            "total_units": total_units,
+        },
     }
+
 
 @router.get("/eligibility-check")
 async def check_eligibility(
@@ -731,7 +742,7 @@ async def check_eligibility(
     property_type: str = Query("multifamily", description="Property type"),
     total_units: int = Query(..., description="Total units"),
     target_ami: int = Query(60, description="Target AMI percentage"),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """
     Check potential eligibility for various funding programs based on property characteristics.
@@ -741,70 +752,72 @@ async def check_eligibility(
 
     # LIHTC eligibility
     if total_units >= 4 and target_ami <= 80:
-        eligible_programs.append({
-            "program": "lihtc",
-            "name": "Low-Income Housing Tax Credit",
-            "eligibility": "Likely Eligible" if target_ami <= 60 else "Potentially Eligible",
-            "notes": [
-                f"Property has {total_units} units (minimum 4 required)",
-                f"Target AMI of {target_ami}% meets income restrictions",
-                "9% credits are competitive; 4% credits are as-of-right with bonds"
-            ],
-            "next_steps": [
-                "Contact MHFA for QAP and application timeline",
-                "Engage tax credit consultant/syndicator",
-                "Prepare market study and development budget"
-            ]
-        })
+        eligible_programs.append(
+            {
+                "program": "lihtc",
+                "name": "Low-Income Housing Tax Credit",
+                "eligibility": "Likely Eligible" if target_ami <= 60 else "Potentially Eligible",
+                "notes": [
+                    f"Property has {total_units} units (minimum 4 required)",
+                    f"Target AMI of {target_ami}% meets income restrictions",
+                    "9% credits are competitive; 4% credits are as-of-right with bonds",
+                ],
+                "next_steps": [
+                    "Contact MHFA for QAP and application timeline",
+                    "Engage tax credit consultant/syndicator",
+                    "Prepare market study and development budget",
+                ],
+            }
+        )
 
     # NMTC eligibility (would need census tract check)
-    eligible_programs.append({
-        "program": "nmtc",
-        "name": "New Markets Tax Credit",
-        "eligibility": "Requires Census Tract Verification",
-        "notes": [
-            "Property must be in a qualified low-income census tract",
-            "Often requires affordable housing set-aside",
-            "Can layer with LIHTC"
-        ],
-        "next_steps": [
-            "Verify census tract eligibility on CDFI Fund mapper",
-            "Contact local CDE (Greater MN Housing Fund, etc.)"
-        ]
-    })
+    eligible_programs.append(
+        {
+            "program": "nmtc",
+            "name": "New Markets Tax Credit",
+            "eligibility": "Requires Census Tract Verification",
+            "notes": [
+                "Property must be in a qualified low-income census tract",
+                "Often requires affordable housing set-aside",
+                "Can layer with LIHTC",
+            ],
+            "next_steps": [
+                "Verify census tract eligibility on CDFI Fund mapper",
+                "Contact local CDE (Greater MN Housing Fund, etc.)",
+            ],
+        }
+    )
 
     # Opportunity Zone (would need tract check)
-    eligible_programs.append({
-        "program": "opportunity_zone",
-        "name": "Opportunity Zone Investment",
-        "eligibility": "Requires Census Tract Verification",
-        "notes": [
-            "Property must be in designated Opportunity Zone",
-            "Investor must have capital gains to invest",
-            "10-year hold for maximum tax benefit"
-        ],
-        "next_steps": [
-            "Verify OZ designation on HUD mapper",
-            "Structure investment through QOF"
-        ]
-    })
+    eligible_programs.append(
+        {
+            "program": "opportunity_zone",
+            "name": "Opportunity Zone Investment",
+            "eligibility": "Requires Census Tract Verification",
+            "notes": [
+                "Property must be in designated Opportunity Zone",
+                "Investor must have capital gains to invest",
+                "10-year hold for maximum tax benefit",
+            ],
+            "next_steps": ["Verify OZ designation on HUD mapper", "Structure investment through QOF"],
+        }
+    )
 
     # Energy incentives
     if property_type == "multifamily":
-        eligible_programs.append({
-            "program": "section_179d",
-            "name": "Section 179D Energy Deduction",
-            "eligibility": "Potentially Eligible",
-            "notes": [
-                "Multifamily properties may qualify if treated as commercial",
-                "Requires 25%+ energy savings certification",
-                "IRA enhanced deduction available with prevailing wage"
-            ],
-            "next_steps": [
-                "Engage energy consultant for modeling",
-                "Evaluate cost-benefit of efficiency upgrades"
-            ]
-        })
+        eligible_programs.append(
+            {
+                "program": "section_179d",
+                "name": "Section 179D Energy Deduction",
+                "eligibility": "Potentially Eligible",
+                "notes": [
+                    "Multifamily properties may qualify if treated as commercial",
+                    "Requires 25%+ energy savings certification",
+                    "IRA enhanced deduction available with prevailing wage",
+                ],
+                "next_steps": ["Engage energy consultant for modeling", "Evaluate cost-benefit of efficiency upgrades"],
+            }
+        )
 
     return {
         "property": {
@@ -812,11 +825,12 @@ async def check_eligibility(
             "city": city,
             "state": state,
             "total_units": total_units,
-            "target_ami": target_ami
+            "target_ami": target_ami,
         },
         "eligible_programs": eligible_programs,
-        "disclaimer": "This is a preliminary eligibility screening only. Actual eligibility requires formal application and review by program administrators."
+        "disclaimer": "This is a preliminary eligibility screening only. Actual eligibility requires formal application and review by program administrators.",
     }
+
 
 @router.get("/data-sources")
 async def list_data_sources():
@@ -827,74 +841,75 @@ async def list_data_sources():
                 "name": "HUD LIHTC Database",
                 "description": "Official database of all LIHTC properties nationwide",
                 "url": "https://lihtc.huduser.gov/",
-                "search_capabilities": ["address", "city", "state", "year"]
+                "search_capabilities": ["address", "city", "state", "year"],
             },
             {
                 "name": "CDFI Fund NMTC Awards",
                 "description": "New Markets Tax Credit allocations and projects",
                 "url": "https://www.cdfifund.gov/awards",
-                "search_capabilities": ["CDE", "state", "year"]
+                "search_capabilities": ["CDE", "state", "year"],
             },
             {
                 "name": "National Park Service Tax Credit Projects",
                 "description": "Historic rehabilitation tax credit certifications",
                 "url": "https://www.nps.gov/subjects/taxincentives/index.htm",
-                "search_capabilities": ["state", "project_name"]
+                "search_capabilities": ["state", "project_name"],
             },
             {
                 "name": "HUD Multifamily Properties",
                 "description": "Properties with HUD multifamily assistance",
                 "url": "https://www.hud.gov/program_offices/housing/mfh/exp/mfhdiscl",
-                "search_capabilities": ["address", "city", "state", "program"]
+                "search_capabilities": ["address", "city", "state", "program"],
             },
             {
                 "name": "Opportunity Zone Mapping",
                 "description": "Designated Qualified Opportunity Zones",
                 "url": "https://opportunityzones.hud.gov/",
-                "search_capabilities": ["address", "census_tract"]
-            }
+                "search_capabilities": ["address", "census_tract"],
+            },
         ],
         "state_sources_mn": [
             {
                 "name": "Minnesota Housing Finance Agency",
                 "description": "State LIHTC allocations and multifamily programs",
                 "url": "https://www.mnhousing.gov/sites/multifamily/lihtc",
-                "search_capabilities": ["property", "developer", "year"]
+                "search_capabilities": ["property", "developer", "year"],
             },
             {
                 "name": "MN SHPO Historic Properties",
                 "description": "State historic preservation listings",
                 "url": "https://mn.gov/admin/shpo/",
-                "search_capabilities": ["address", "city", "county"]
-            }
+                "search_capabilities": ["address", "city", "county"],
+            },
         ],
         "county_sources_dakota": [
             {
                 "name": "Dakota County Recorder",
                 "description": "Property records, deeds, financing documents",
                 "url": "https://www.co.dakota.mn.us/Government/RecorderSurveyor",
-                "search_capabilities": ["address", "owner", "document_type"]
+                "search_capabilities": ["address", "owner", "document_type"],
             },
             {
                 "name": "Dakota County Assessor",
                 "description": "Property tax and ownership records",
                 "url": "https://www.co.dakota.mn.us/Government/PropertyTaxes",
-                "search_capabilities": ["address", "PID", "owner"]
-            }
+                "search_capabilities": ["address", "PID", "owner"],
+            },
         ],
         "commercial_tools": [
             {
                 "name": "Novogradac LIHTC/NMTC Maps",
                 "description": "Interactive mapping tools for tax credit properties",
-                "url": "https://www.novoco.com/resource-centers"
+                "url": "https://www.novoco.com/resource-centers",
             },
             {
                 "name": "National Housing Conference Database",
                 "description": "Affordable housing property search",
-                "url": "https://www.nhc.org/"
-            }
-        ]
+                "url": "https://www.nhc.org/",
+            },
+        ],
     }
+
 
 @router.get("/health")
 async def funding_search_health():
@@ -903,5 +918,5 @@ async def funding_search_health():
         "status": "ok",
         "service": "funding_search",
         "records_loaded": len(SAMPLE_FUNDING_RECORDS),
-        "programs_available": len(PROGRAM_INFO)
+        "programs_available": len(PROGRAM_INFO),
     }

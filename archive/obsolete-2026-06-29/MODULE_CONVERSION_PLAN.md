@@ -107,7 +107,7 @@ For each module, perform these steps:
 1. **Create `app/modules/<module>/manifest.py`**
    ```python
    from app.sdk import ModuleManifest, ModuleCapability, ProductTier
-   
+
    MANIFEST = ModuleManifest(
        name="documents",
        display_name="Document System",
@@ -133,7 +133,7 @@ For each module, perform these steps:
    from .manifest import MANIFEST
    from .router import router
    from .service import DocumentService
-   
+
    __all__ = ["MANIFEST", "router", "DocumentService"]
    ```
 

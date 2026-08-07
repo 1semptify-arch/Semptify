@@ -12,7 +12,7 @@
 {% set auto_refresh = auto_refresh|default(false) %}
 {% set refresh_interval = refresh_interval or 60 %}
 
-<div class="plan-deadline-tracker role-{{ role }}" 
+<div class="plan-deadline-tracker role-{{ role }}"
      id="{{ component_id }}"
      data-function-group="{{ function_group }}"
      data-role="{{ role }}"
@@ -21,7 +21,7 @@
      data-show-overview="{{ show_overview|lower }}"
      data-auto-refresh="{{ auto_refresh|lower }}"
      data-refresh-interval="{{ refresh_interval }}">
-  
+
   <div class="deadline-header">
     <div class="deadline-header-left">
       <div class="deadline-icon">+</div>
@@ -30,7 +30,7 @@
         <div class="deadline-subtitle">Track urgent deadlines and court dates</div>
       </div>
     </div>
-    
+
     <div class="deadline-controls">
       <select class="deadline-filter" id="{{ component_id }}_filter">
         <option value="all">All Deadlines</option>
@@ -39,14 +39,14 @@
         <option value="this-week">This Week</option>
         <option value="upcoming">Upcoming</option>
       </select>
-      
+
       <div class="deadline-view-toggle">
         <button class="deadline-view-btn active" data-view="list">List</button>
         <button class="deadline-view-btn" data-view="calendar">Calendar</button>
       </div>
     </div>
   </div>
-  
+
   {% if show_overview %}
   <div class="deadline-overview" id="{{ component_id }}_overview">
     <div class="deadline-overview-item">
@@ -67,7 +67,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="deadline-content" id="{{ component_id }}_content">
     <div class="deadline-loading">
       <div class="deadline-loading-spinner"></div>
@@ -77,7 +77,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-view-mode="{{ view_mode }}"
@@ -100,58 +100,58 @@ document.addEventListener('DOMContentLoaded', function() {
     autoRefresh: configEl.dataset.autoRefresh === 'true',
     refreshInterval: parseInt(configEl.dataset.refreshInterval)
   };
-  
+
   // Get DOM elements
   const component = document.getElementById(config.componentId);
   const content = document.getElementById(config.componentId + '_content');
   const filter = document.getElementById(config.componentId + '_filter');
   const viewBtns = component.querySelectorAll('.deadline-view-btn');
-  
+
   // State
   let currentFilter = 'all';
   let currentView = config.viewMode;
   let deadlineData = null;
   let refreshTimer = null;
-  
+
   // Initialize
   initDeadlineTracker();
-  
+
   function initDeadlineTracker() {
     // Set up event listeners
     if (filter) {
       filter.addEventListener('change', handleFilterChange);
     }
-    
+
     viewBtns.forEach(btn => {
       btn.addEventListener('click', handleViewChange);
     });
-    
+
     // Load initial data
     loadDeadlineData();
-    
+
     // Set up auto-refresh
     if (config.autoRefresh) {
       startAutoRefresh();
     }
   }
-  
+
   function handleFilterChange(e) {
     currentFilter = e.target.value;
     renderDeadlines();
   }
-  
+
   function handleViewChange(e) {
     const view = e.target.dataset.view;
     currentView = view;
-    
+
     // Update button states
     viewBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.view === view);
     });
-    
+
     renderDeadlines();
   }
-  
+
   function loadDeadlineData() {
     // Show loading state
     content.innerHTML = `
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="deadline-loading-text">Loading deadlines...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       deadlineData = generateMockDeadlineData();
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
       renderDeadlines();
     }, 1000);
   }
-  
+
   function generateMockDeadlineData() {
     const now = new Date();
     const deadlines = [
@@ -245,13 +245,13 @@ document.addEventListener('DOMContentLoaded', function() {
         documents: ['health_inspection_report.pdf']
       }
     ];
-    
+
     return deadlines;
   }
-  
+
   function updateOverview() {
     if (!deadlineData || !config.showOverview) return;
-    
+
     const now = new Date();
     const stats = {
       overdue: 0,
@@ -259,10 +259,10 @@ document.addEventListener('DOMContentLoaded', function() {
       thisWeek: 0,
       upcoming: 0
     };
-    
+
     deadlineData.forEach(deadline => {
       const daysUntil = Math.ceil((deadline.deadline - now) / (1000 * 60 * 60 * 24));
-      
+
       if (daysUntil < 0) {
         stats.overdue++;
       } else if (daysUntil === 0) {
@@ -273,29 +273,29 @@ document.addEventListener('DOMContentLoaded', function() {
         stats.upcoming++;
       }
     });
-    
+
     // Update overview display
     const overdueEl = document.getElementById(config.componentId + '_overdue_count');
     const todayEl = document.getElementById(config.componentId + '_today_count');
     const weekEl = document.getElementById(config.componentId + '_week_count');
     const upcomingEl = document.getElementById(config.componentId + '_upcoming_count');
-    
+
     if (overdueEl) overdueEl.textContent = stats.overdue;
     if (todayEl) todayEl.textContent = stats.today;
     if (weekEl) weekEl.textContent = stats.thisWeek;
     if (upcomingEl) upcomingEl.textContent = stats.upcoming;
   }
-  
+
   function renderDeadlines() {
     if (!deadlineData) return;
-    
+
     // Filter deadlines
     let filteredDeadlines = deadlineData;
     if (currentFilter !== 'all') {
       filteredDeadlines = deadlineData.filter(deadline => {
         const now = new Date();
         const daysUntil = Math.ceil((deadline.deadline - now) / (1000 * 60 * 60 * 24));
-        
+
         switch(currentFilter) {
           case 'overdue': return daysUntil < 0;
           case 'today': return daysUntil === 0;
@@ -305,10 +305,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
-    
+
     // Sort by deadline (closest first)
     filteredDeadlines.sort((a, b) => a.deadline - b.deadline);
-    
+
     // Render based on view mode
     if (currentView === 'calendar') {
       renderCalendarView(filteredDeadlines);
@@ -316,23 +316,23 @@ document.addEventListener('DOMContentLoaded', function() {
       renderListView(filteredDeadlines);
     }
   }
-  
+
   function renderListView(deadlines) {
     if (deadlines.length === 0) {
       renderEmptyState();
       return;
     }
-    
+
     const html = `
       <div class="deadline-list">
         ${deadlines.map(deadline => createDeadlineItemHTML(deadline)).join('')}
       </div>
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function renderCalendarView(deadlines) {
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -341,37 +341,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     // Create calendar grid
     let calendarHTML = '<div class="deadline-calendar-view">';
-    
+
     // Day headers
     const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     dayHeaders.forEach(day => {
       calendarHTML += `<div class="deadline-calendar-day-header">${day}</div>`;
     });
-    
+
     // Empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
       calendarHTML += '<div class="deadline-calendar-day-cell"></div>';
     }
-    
+
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const cellDate = new Date(currentYear, currentMonth, day);
-      const dayDeadlines = deadlines.filter(d => 
+      const dayDeadlines = deadlines.filter(d =>
         d.deadline.toDateString() === cellDate.toDateString()
       );
-      
+
       const isToday = cellDate.toDateString() === now.toDateString();
       const hasDeadline = dayDeadlines.length > 0;
       const hasOverdue = dayDeadlines.some(d => d.status === 'overdue');
-      
+
       let classes = ['deadline-calendar-day-cell'];
       if (isToday) classes.push('today');
       if (hasDeadline) classes.push('has-deadline');
       if (hasOverdue) classes.push('overdue');
-      
+
       calendarHTML += `
         <div class="${classes.join(' ')}" data-date="${cellDate.toISOString()}">
           <div class="deadline-calendar-day-number">${day}</div>
@@ -379,23 +379,23 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     }
-    
+
     calendarHTML += '</div>';
-    
+
     // Add deadline list below calendar
     calendarHTML += '<div class="deadline-list">';
     calendarHTML += deadlines.map(deadline => createDeadlineItemHTML(deadline)).join('');
     calendarHTML += '</div>';
-    
+
     content.innerHTML = calendarHTML;
     attachEventListeners();
   }
-  
+
   function createDeadlineItemHTML(deadline) {
     const now = new Date();
     const daysUntil = Math.ceil((deadline.deadline - now) / (1000 * 60 * 60 * 24));
     let statusClass = '';
-    
+
     if (daysUntil < 0) {
       statusClass = 'overdue';
     } else if (daysUntil === 0) {
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (daysUntil <= 7) {
       statusClass = 'this-week';
     }
-    
+
     return `
       <div class="deadline-item ${statusClass}" data-deadline-id="${deadline.id}">
         <div class="deadline-item-calendar ${statusClass}">
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function renderEmptyState() {
     content.innerHTML = `
       <div class="deadline-empty">
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function attachEventListeners() {
     // Deadline item click handlers
     const deadlineElements = content.querySelectorAll('.deadline-item');
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
-    
+
     // Calendar cell click handlers
     const calendarCells = content.querySelectorAll('.deadline-calendar-day-cell[data-date]');
     calendarCells.forEach(cell => {
@@ -455,11 +455,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleDeadlineClick(deadlineEl) {
     const deadlineId = deadlineEl.dataset.deadlineId;
     const deadline = deadlineData.find(d => d.id === deadlineId);
-    
+
     if (deadline) {
       // Emit deadline selection event
       const deadlineEvent = new CustomEvent('plan-deadline-select', {
@@ -472,10 +472,10 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(deadlineEvent);
     }
   }
-  
+
   function handleCalendarClick(cellEl) {
     const date = new Date(cellEl.dataset.date);
-    
+
     // Emit calendar date selection event
     const calendarEvent = new CustomEvent('plan-calendar-select', {
       detail: {
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(calendarEvent);
   }
-  
+
   function viewDeadlineDetails(deadlineId) {
     const deadline = deadlineData.find(d => d.id === deadlineId);
     if (deadline) {
@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(detailsEvent);
     }
   }
-  
+
   function setReminder(deadlineId) {
     const deadline = deadlineData.find(d => d.id === deadlineId);
     if (deadline) {
@@ -516,28 +516,28 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(reminderEvent);
     }
   }
-  
+
   function startAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
     }
-    
+
     refreshTimer = setInterval(() => {
       loadDeadlineData();
     }, config.refreshInterval * 1000);
   }
-  
+
   function stopAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
       refreshTimer = null;
     }
   }
-  
+
   // Make action functions available globally
   window.viewDeadlineDetails = viewDeadlineDetails;
   window.setReminder = setReminder;
-  
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', stopAutoRefresh);
 });

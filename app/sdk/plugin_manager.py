@@ -14,14 +14,14 @@ Features:
 
 Usage:
     from app.sdk.plugin_manager import plugin_manager
-    
+
     # Load all plugins
     plugin_manager.discover_plugins()
     plugin_manager.load_all()
-    
+
     # Load specific plugin
     plugin_manager.load_plugin("my_plugin")
-    
+
     # Check plugin status
     status = plugin_manager.get_plugin_status("my_plugin")
 """
@@ -48,24 +48,28 @@ logger = logging.getLogger(__name__)
 # PLUGIN STATUS
 # =============================================================================
 
+
 class PluginStatus(str, Enum):
     """Status of a plugin"""
-    DISCOVERED = "discovered"    # Found but not loaded
-    LOADING = "loading"          # Currently loading
-    ACTIVE = "active"            # Loaded and running
-    DISABLED = "disabled"        # Manually disabled
-    ERROR = "error"              # Failed to load
+
+    DISCOVERED = "discovered"  # Found but not loaded
+    LOADING = "loading"  # Currently loading
+    ACTIVE = "active"  # Loaded and running
+    DISABLED = "disabled"  # Manually disabled
+    ERROR = "error"  # Failed to load
     INCOMPATIBLE = "incompatible"  # Version/dependency issue
-    UPDATING = "updating"        # Being updated
+    UPDATING = "updating"  # Being updated
 
 
 # =============================================================================
 # PLUGIN METADATA
 # =============================================================================
 
+
 @dataclass
 class PluginMetadata:
     """Metadata about a plugin"""
+
     name: str
     display_name: str
     description: str
@@ -92,7 +96,7 @@ class PluginMetadata:
     screenshots: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> 'PluginMetadata':
+    def from_dict(cls, data: dict[str, Any]) -> "PluginMetadata":
         return cls(
             name=data.get("name", "unknown"),
             display_name=data.get("display_name", data.get("name", "Unknown")),
@@ -135,9 +139,11 @@ class PluginMetadata:
 # PLUGIN INSTANCE
 # =============================================================================
 
+
 @dataclass
 class Plugin:
     """Represents a loaded plugin"""
+
     metadata: PluginMetadata
     path: Path
     status: PluginStatus = PluginStatus.DISCOVERED
@@ -163,10 +169,11 @@ class Plugin:
 # PLUGIN MANAGER
 # =============================================================================
 
+
 class PluginManager:
     """
     Central plugin manager for Semptify.
-    
+
     Handles discovery, loading, and lifecycle of plugins.
     """
 
@@ -189,8 +196,8 @@ class PluginManager:
 
         # Plugin directories
         self.plugin_dirs: list[Path] = [
-            Path("app/plugins"),      # Built-in plugins
-            Path("plugins"),          # User plugins
+            Path("app/plugins"),  # Built-in plugins
+            Path("plugins"),  # User plugins
             Path.home() / ".semptify" / "plugins",  # User home plugins
         ]
 
@@ -222,7 +229,7 @@ class PluginManager:
 
             # Each subdirectory is a potential plugin
             for item in plugin_dir.iterdir():
-                if item.is_dir() and not item.name.startswith(('_', '.')):
+                if item.is_dir() and not item.name.startswith(("_", ".")):
                     plugin = self._discover_plugin(item)
                     if plugin:
                         discovered.append(plugin)
@@ -241,7 +248,7 @@ class PluginManager:
             if init_file.exists():
                 metadata = PluginMetadata(
                     name=path.name,
-                    display_name=path.name.replace('_', ' ').title(),
+                    display_name=path.name.replace("_", " ").title(),
                     description=f"Plugin: {path.name}",
                     version="0.0.1",
                 )
@@ -325,7 +332,7 @@ class PluginManager:
             plugin.module = module
 
             # Get SDK instance if available
-            if hasattr(module, 'sdk'):
+            if hasattr(module, "sdk"):
                 plugin.sdk = module.sdk
 
             # Call init function
@@ -381,10 +388,7 @@ class PluginManager:
 
         try:
             # Load the module
-            spec = importlib.util.spec_from_file_location(
-                f"semptify_plugin_{plugin.metadata.name}",
-                module_path
-            )
+            spec = importlib.util.spec_from_file_location(f"semptify_plugin_{plugin.metadata.name}", module_path)
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
@@ -416,7 +420,7 @@ class PluginManager:
         """Check if required Python packages are installed"""
         for package in plugin.metadata.python_packages:
             try:
-                importlib.import_module(package.split('[')[0])  # Handle package[extra]
+                importlib.import_module(package.split("[")[0])  # Handle package[extra]
             except ImportError:
                 plugin.error = f"Missing Python package: {package}"
                 logger.error(f"Plugin {plugin.metadata.name} missing package: {package}")
@@ -462,7 +466,7 @@ class PluginManager:
 
         try:
             # Call cleanup if available
-            if plugin.module and hasattr(plugin.module, 'cleanup'):
+            if plugin.module and hasattr(plugin.module, "cleanup"):
                 plugin.module.cleanup()
 
             # Remove from sys.modules
@@ -565,7 +569,7 @@ class PluginManager:
             "init_function": "initialize",
         }
 
-        with open(plugin_dir / "plugin.json", 'w') as f:
+        with open(plugin_dir / "plugin.json", "w") as f:
             json.dump(metadata, f, indent=2)
 
         # Create main.py
@@ -629,16 +633,16 @@ def cleanup():
 __all__ = ["sdk", "module_definition", "initialize", "cleanup"]
 '''
 
-        with open(plugin_dir / "main.py", 'w') as f:
+        with open(plugin_dir / "main.py", "w") as f:
             f.write(main_code)
 
         # Create __init__.py
-        with open(plugin_dir / "__init__.py", 'w') as f:
+        with open(plugin_dir / "__init__.py", "w") as f:
             f.write(f'"""Plugin: {display_name}"""\n')
-            f.write('from .main import *\n')
+            f.write("from .main import *\n")
 
         # Create README
-        readme = f'''# {display_name}
+        readme = f"""# {display_name}
 
 {description}
 
@@ -664,9 +668,9 @@ Edit `plugin.json` to configure the plugin.
 ## License
 
 MIT
-'''
+"""
 
-        with open(plugin_dir / "README.md", 'w') as f:
+        with open(plugin_dir / "README.md", "w") as f:
             f.write(readme)
 
         logger.info(f"● Created plugin template: {plugin_dir}")
@@ -682,6 +686,7 @@ plugin_manager = PluginManager()
 # CLI INTERFACE
 # =============================================================================
 
+
 def main():
     import argparse
 
@@ -689,7 +694,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Commands")
 
     # List plugins
-    list_parser = subparsers.add_parser("list", help="List all plugins")
+    subparsers.add_parser("list", help="List all plugins")
 
     # Create plugin
     create_parser = subparsers.add_parser("create", help="Create new plugin")
@@ -718,7 +723,9 @@ def main():
         logger.info("-" * 60)
         for plugin in plugin_manager.plugins.values():
             status_icon = "●" if plugin.status == PluginStatus.ACTIVE else "○"
-            logger.info(f"{status_icon} {plugin.metadata.name:<20} v{plugin.metadata.version:<10} [{plugin.status.value}]")
+            logger.info(
+                f"{status_icon} {plugin.metadata.name:<20} v{plugin.metadata.version:<10} [{plugin.status.value}]"
+            )
             logger.info(f"   {plugin.metadata.description[:50]}")
 
     elif args.command == "create":

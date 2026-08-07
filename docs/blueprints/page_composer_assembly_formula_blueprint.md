@@ -190,17 +190,17 @@ The formula returns a `PageAssemblyResult`:
 
 ```python
 {
-  "page_config": PageConfig,           # for page_shell renderer
-  "components": List[ComponentDict],   # legacy UI Composer component list
-  "govern_report": dict,                # clamping, suppression, dropped blocks
-  "metadata": {
-    "subject": str | None,
-    "jurisdiction": str,
-    "major_pillar": str,
-    "blend": str,
-    "intensity": int,
-    "risk_tier": str,
-  }
+    "page_config": PageConfig,  # for page_shell renderer
+    "components": List[ComponentDict],  # legacy UI Composer component list
+    "govern_report": dict,  # clamping, suppression, dropped blocks
+    "metadata": {
+        "subject": str | None,
+        "jurisdiction": str,
+        "major_pillar": str,
+        "blend": str,
+        "intensity": int,
+        "risk_tier": str,
+    },
 }
 ```
 

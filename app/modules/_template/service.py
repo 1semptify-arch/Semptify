@@ -4,6 +4,7 @@ Module Template — Business Logic
 Keep routers thin — put business logic here. This service is async by default
 since most real services will do I/O (DB, vault, external API).
 """
+
 import logging
 
 logger = logging.getLogger(__name__)

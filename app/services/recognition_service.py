@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 class EnhancedDocumentProcessor:
     """
     Enhanced document processor using the recognition engine.
-    
+
     Provides backwards-compatible interface while leveraging
     the advanced recognition capabilities.
     """
@@ -49,17 +49,15 @@ class EnhancedDocumentProcessor:
         self.engine = DocumentRecognitionEngine(config or {})
         self.config = config or {}
 
-    async def process(self, text: str,
-                      filename: str | None = None,
-                      file_type: str | None = None) -> ExtractionResult:
+    async def process(self, text: str, filename: str | None = None, file_type: str | None = None) -> ExtractionResult:
         """
         Process document and return backwards-compatible ExtractionResult.
-        
+
         Args:
             text: Document text
             filename: Optional filename
             file_type: Optional file type
-            
+
         Returns:
             ExtractionResult compatible with existing intake system
         """
@@ -69,14 +67,12 @@ class EnhancedDocumentProcessor:
         # Convert to ExtractionResult
         return self._convert_to_extraction_result(result)
 
-    async def process_enhanced(self, text: str,
-                               filename: str | None = None,
-                               file_type: str | None = None) -> tuple[
-        ExtractionResult, RecognitionResult
-    ]:
+    async def process_enhanced(
+        self, text: str, filename: str | None = None, file_type: str | None = None
+    ) -> tuple[ExtractionResult, RecognitionResult]:
         """
         Process document and return both legacy and enhanced results.
-        
+
         Returns:
             Tuple of (ExtractionResult, RecognitionResult)
         """
@@ -127,7 +123,7 @@ class EnhancedDocumentProcessor:
                 "confidence_level": result.confidence.level.value,
                 "urgency": result.legal_analysis.urgency_level,
                 "risk_score": result.legal_analysis.risk_score,
-            }
+            },
         )
 
     def _map_document_type(self, doc_type: DocumentType) -> IntakeDocumentType:
@@ -174,8 +170,7 @@ class EnhancedDocumentProcessor:
         for entity in result.entities:
             if entity.entity_type == EntityType.DATE:
                 # Check if already in timeline
-                if not any(entry.date_text == entity.value
-                          for entry in result.relationships.timeline):
+                if not any(entry.date_text == entity.value for entry in result.relationships.timeline):
                     extracted = ExtractedDate(
                         date=None,  # May not be parsed
                         label=entity.value,
@@ -200,10 +195,7 @@ class EnhancedDocumentProcessor:
                 address = None
 
                 for related_id in entity.related_entities:
-                    related = next(
-                        (e for e in result.entities if e.id == related_id),
-                        None
-                    )
+                    related = next((e for e in result.entities if e.id == related_id), None)
                     if related:
                         if related.entity_type == EntityType.PHONE:
                             phone = related.value
@@ -336,7 +328,7 @@ class RecognitionServiceFactory:
     Factory for creating recognition service instances.
     """
 
-    _instance: Optional['EnhancedDocumentProcessor'] = None
+    _instance: Optional["EnhancedDocumentProcessor"] = None
 
     @classmethod
     def get_processor(cls, config: dict[str, Any] | None = None) -> EnhancedDocumentProcessor:
@@ -352,19 +344,18 @@ class RecognitionServiceFactory:
 
 
 # Convenience function
-async def analyze_document(text: str,
-                           filename: str | None = None,
-                           file_type: str | None = None,
-                           enhanced: bool = False) -> Any:
+async def analyze_document(
+    text: str, filename: str | None = None, file_type: str | None = None, enhanced: bool = False
+) -> Any:
     """
     Convenience function for document analysis.
-    
+
     Args:
         text: Document text
         filename: Optional filename
         file_type: Optional file type
         enhanced: If True, returns RecognitionResult; else ExtractionResult
-        
+
     Returns:
         ExtractionResult or RecognitionResult based on enhanced flag
     """
@@ -379,7 +370,7 @@ async def analyze_document(text: str,
 
 # Export for easy access
 __all__ = [
-    'EnhancedDocumentProcessor',
-    'RecognitionServiceFactory',
-    'analyze_document',
+    "EnhancedDocumentProcessor",
+    "RecognitionServiceFactory",
+    "analyze_document",
 ]

@@ -3,7 +3,7 @@ Document Flow Orchestrator
 ==========================
 Ties together the complete document processing pipeline:
 
-User uploads ▸ Vault stores ▸ Extractor processes ▸ 
+User uploads ▸ Vault stores ▸ Extractor processes ▸
 Timeline updates ▸ FormData updates ▸ Contacts updates ▸ UI refreshes
 
 This orchestrator connects all existing services into a seamless flow.
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class DocumentFlowOrchestrator:
     """
     Orchestrates the complete document flow from upload to UI refresh.
-    
+
     Pipeline stages:
     1. UPLOAD: Receive file, validate, store
     2. EXTRACT: OCR/text extraction, classify document type
@@ -49,12 +49,12 @@ class DocumentFlowOrchestrator:
     ) -> dict[str, Any]:
         """
         Complete document processing pipeline.
-        
+
         Args:
             doc_id: Document ID from intake upload
             user_id: User who owns the document
             db_session: Optional database session for persistence
-            
+
         Returns:
             Processing results with extracted data and created records
         """
@@ -112,9 +112,7 @@ class DocumentFlowOrchestrator:
 
             # Stage 6: Create contacts from parties
             if form_data and db_session:
-                contacts_created = await self._create_contacts_from_extraction(
-                    user_id, form_data, doc_id, db_session
-                )
+                contacts_created = await self._create_contacts_from_extraction(user_id, form_data, doc_id, db_session)
                 result["stages"]["contacts"] = {
                     "status": "success",
                     "created": contacts_created,
@@ -122,9 +120,7 @@ class DocumentFlowOrchestrator:
 
             # Stage 7: Create timeline events in DB
             if events and db_session:
-                timeline_created = await self._create_timeline_events(
-                    user_id, events, doc_id, db_session
-                )
+                timeline_created = await self._create_timeline_events(user_id, events, doc_id, db_session)
                 result["stages"]["timeline_create"] = {
                     "status": "success",
                     "created": timeline_created,
@@ -137,10 +133,7 @@ class DocumentFlowOrchestrator:
                 auto_results = await self.auto_orchestrator.run_full_auto_analysis(
                     doc_id, user_id, doc.content, doc.metadata, db_session
                 )
-                result["stages"]["auto_analysis"] = {
-                    "status": "success",
-                    "results": auto_results
-                }
+                result["stages"]["auto_analysis"] = {"status": "success", "results": auto_results}
 
             # Stage 10: Publish events for UI refresh
             await self._publish_completion_events(user_id, doc_id, result)
@@ -367,7 +360,7 @@ class DocumentFlowOrchestrator:
     def detect_document_type(self, filename: str, text: str) -> str:
         """
         Auto-detect document type from filename and content.
-        
+
         Document types:
         - summons: Court summons/complaint
         - lease: Rental agreement
@@ -393,8 +386,15 @@ class DocumentFlowOrchestrator:
                 return "lease"
 
         # Notice detection
-        notice_keywords = ["notice to quit", "pay or quit", "cure or quit", "notice to vacate",
-                          "notice of termination", "14-day notice", "3-day notice"]
+        notice_keywords = [
+            "notice to quit",
+            "pay or quit",
+            "cure or quit",
+            "notice to vacate",
+            "notice of termination",
+            "14-day notice",
+            "3-day notice",
+        ]
         if any(kw in filename_lower or kw in text_lower for kw in notice_keywords):
             return "notice"
 
@@ -416,7 +416,7 @@ class DocumentFlowOrchestrator:
             return "communication"
 
         # Evidence (photos, inspections)
-        if filename_lower.endswith(('.jpg', '.jpeg', '.png', '.gif', '.heic')):
+        if filename_lower.endswith((".jpg", ".jpeg", ".png", ".gif", ".heic")):
             return "evidence"
         if "inspection" in filename_lower or "inspection" in text_lower:
             return "evidence"
@@ -427,18 +427,40 @@ class DocumentFlowOrchestrator:
         """Get extraction configuration for document type."""
         configs = {
             "summons": {
-                "extract": ["case_number", "court_name", "filing_date", "hearing_date",
-                           "plaintiff_name", "defendant_name", "amount_claimed", "attorney_name"],
+                "extract": [
+                    "case_number",
+                    "court_name",
+                    "filing_date",
+                    "hearing_date",
+                    "plaintiff_name",
+                    "defendant_name",
+                    "amount_claimed",
+                    "attorney_name",
+                ],
                 "priority_fields": ["case_number", "hearing_date"],
             },
             "lease": {
-                "extract": ["lease_start", "lease_end", "rent_amount", "security_deposit",
-                           "landlord_name", "tenant_name", "property_address", "lease_terms"],
+                "extract": [
+                    "lease_start",
+                    "lease_end",
+                    "rent_amount",
+                    "security_deposit",
+                    "landlord_name",
+                    "tenant_name",
+                    "property_address",
+                    "lease_terms",
+                ],
                 "priority_fields": ["rent_amount", "lease_start", "lease_end"],
             },
             "notice": {
-                "extract": ["notice_type", "notice_date", "compliance_deadline", "amount_due",
-                           "cure_period", "vacate_date"],
+                "extract": [
+                    "notice_type",
+                    "notice_date",
+                    "compliance_deadline",
+                    "amount_due",
+                    "cure_period",
+                    "vacate_date",
+                ],
                 "priority_fields": ["notice_type", "compliance_deadline"],
             },
             "payment": {

@@ -21,8 +21,10 @@ from app.core.websocket_manager import WebSocketMessage
 
 logger = logging.getLogger(__name__)
 
+
 class BatchOperationType(Enum):
     """Batch operation types."""
+
     UPLOAD = "upload"
     DELETE = "delete"
     EXPORT = "export"
@@ -33,8 +35,10 @@ class BatchOperationType(Enum):
     ANALYZE = "analyze"
     PREVIEW = "preview"
 
+
 class BatchOperationStatus(Enum):
     """Batch operation status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -42,9 +46,11 @@ class BatchOperationStatus(Enum):
     CANCELLED = "cancelled"
     PAUSED = "paused"
 
+
 @dataclass
 class BatchItem:
     """Single item in batch operation."""
+
     item_id: str
     item_type: str
     data: dict[str, Any]
@@ -62,12 +68,14 @@ class BatchItem:
             "result": self.result,
             "error": self.error,
             "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
         }
+
 
 @dataclass
 class BatchOperation:
     """Batch operation with multiple items."""
+
     operation_id: str
     operation_type: BatchOperationType
     user_id: str
@@ -105,8 +113,9 @@ class BatchOperation:
             "failed_items": self.failed_items,
             "success_rate": (self.completed_items / self.total_items) if self.total_items > 0 else 0,
             "settings": self.settings,
-            "items": [item.to_dict() for item in self.items]
+            "items": [item.to_dict() for item in self.items],
         }
+
 
 class BatchProcessor:
     """Batch operations processor with progress tracking."""
@@ -125,7 +134,7 @@ class BatchProcessor:
             "completed_operations": 0,
             "failed_operations": 0,
             "total_items_processed": 0,
-            "average_processing_time": 0.0
+            "average_processing_time": 0.0,
         }
 
         # Shutdown flag
@@ -136,19 +145,20 @@ class BatchProcessor:
         self.handlers[operation_type] = handler
         logger.info(f"Registered handler for {operation_type.value}")
 
-    def create_batch_operation(self, operation_type: BatchOperationType, user_id: str,
-                           items: list[dict[str, Any]], settings: dict[str, Any] = None) -> str:
+    def create_batch_operation(
+        self,
+        operation_type: BatchOperationType,
+        user_id: str,
+        items: list[dict[str, Any]],
+        settings: dict[str, Any] = None,
+    ) -> str:
         """Create a new batch operation."""
         operation_id = make_id("batch")
 
         # Create batch items
         batch_items = []
         for i, item_data in enumerate(items):
-            batch_item = BatchItem(
-                item_id=make_id("item"),
-                item_type=item_data.get("type", "unknown"),
-                data=item_data
-            )
+            batch_item = BatchItem(item_id=make_id("item"), item_type=item_data.get("type", "unknown"), data=item_data)
             batch_items.append(batch_item)
 
         # Create batch operation
@@ -157,7 +167,7 @@ class BatchProcessor:
             operation_type=operation_type,
             user_id=user_id,
             items=batch_items,
-            settings=settings or {}
+            settings=settings or {},
         )
 
         self.operations[operation_id] = operation
@@ -207,7 +217,7 @@ class BatchProcessor:
                     break
 
                 # Get batch of items
-                batch_items = operation.items[i:i + batch_size]
+                batch_items = operation.items[i : i + batch_size]
 
                 # Process batch
                 batch_results = await handler(batch_items, operation.settings)
@@ -260,9 +270,7 @@ class BatchProcessor:
                     processing_time = (operation.completed_at - operation.started_at).total_seconds()
                     total_ops = self.stats["completed_operations"]
                     avg_time = self.stats["average_processing_time"]
-                    self.stats["average_processing_time"] = (
-                        (avg_time * (total_ops - 1) + processing_time) / total_ops
-                    )
+                    self.stats["average_processing_time"] = (avg_time * (total_ops - 1) + processing_time) / total_ops
 
             logger.info(f"Completed batch operation {operation.operation_id}")
 
@@ -296,17 +304,14 @@ class BatchProcessor:
                 "completed_items": operation.completed_items,
                 "failed_items": operation.failed_items,
                 "total_items": operation.total_items,
-                "timestamp": utc_now().isoformat()
+                "timestamp": utc_now().isoformat(),
             }
 
             await ws_manager.send_to_user(
                 operation.user_id,
                 WebSocketMessage(
-                    type="batch_operation_update",
-                    data=update_data,
-                    timestamp=utc_now(),
-                    user_id=operation.user_id
-                )
+                    type="batch_operation_update", data=update_data, timestamp=utc_now(), user_id=operation.user_id
+                ),
             )
 
         except Exception as e:
@@ -362,10 +367,9 @@ class BatchProcessor:
             "total_items_processed": self.stats["total_items_processed"],
             "average_processing_time": self.stats["average_processing_time"],
             "active_operations": len(self.active_operations),
-            "queued_operations": len([
-                op for op in self.operations.values()
-                if op.status == BatchOperationStatus.PENDING
-            ])
+            "queued_operations": len(
+                [op for op in self.operations.values() if op.status == BatchOperationStatus.PENDING]
+            ),
         }
 
     async def cleanup_old_operations(self, days_old: int = 30):
@@ -374,14 +378,18 @@ class BatchProcessor:
 
         operations_to_remove = []
         for operation_id, operation in self.operations.items():
-            if (operation.status in [BatchOperationStatus.COMPLETED, BatchOperationStatus.FAILED] and
-                operation.completed_at and operation.completed_at < cutoff_time):
+            if (
+                operation.status in [BatchOperationStatus.COMPLETED, BatchOperationStatus.FAILED]
+                and operation.completed_at
+                and operation.completed_at < cutoff_time
+            ):
                 operations_to_remove.append(operation_id)
 
         for operation_id in operations_to_remove:
             del self.operations[operation_id]
 
         logger.info(f"Cleaned up {len(operations_to_remove)} old operations")
+
 
 # Default batch operation handlers
 async def batch_upload_handler(items: list[BatchItem], settings: dict[str, Any]) -> list[dict[str, Any]]:
@@ -393,22 +401,21 @@ async def batch_upload_handler(items: list[BatchItem], settings: dict[str, Any])
             # Simulate upload processing
             await asyncio.sleep(0.1)  # Simulate processing time
 
-            results.append({
-                "success": True,
-                "item_id": item.item_id,
-                "data": {
-                    "uploaded_at": utc_now().isoformat(),
-                    "file_path": f"/uploads/{item.data.get('filename', 'unknown')}"
+            results.append(
+                {
+                    "success": True,
+                    "item_id": item.item_id,
+                    "data": {
+                        "uploaded_at": utc_now().isoformat(),
+                        "file_path": f"/uploads/{item.data.get('filename', 'unknown')}",
+                    },
                 }
-            })
+            )
         except Exception as e:
-            results.append({
-                "success": False,
-                "item_id": item.item_id,
-                "error": str(e)
-            })
+            results.append({"success": False, "item_id": item.item_id, "error": str(e)})
 
     return results
+
 
 async def batch_delete_handler(items: list[BatchItem], settings: dict[str, Any]) -> list[dict[str, Any]]:
     """Handle batch delete operation."""
@@ -419,22 +426,18 @@ async def batch_delete_handler(items: list[BatchItem], settings: dict[str, Any])
             # Simulate delete processing
             await asyncio.sleep(0.05)  # Simulate processing time
 
-            results.append({
-                "success": True,
-                "item_id": item.item_id,
-                "data": {
-                    "deleted_at": utc_now().isoformat(),
-                    "document_id": item.data.get("document_id")
+            results.append(
+                {
+                    "success": True,
+                    "item_id": item.item_id,
+                    "data": {"deleted_at": utc_now().isoformat(), "document_id": item.data.get("document_id")},
                 }
-            })
+            )
         except Exception as e:
-            results.append({
-                "success": False,
-                "item_id": item.item_id,
-                "error": str(e)
-            })
+            results.append({"success": False, "item_id": item.item_id, "error": str(e)})
 
     return results
+
 
 async def batch_export_handler(items: list[BatchItem], settings: dict[str, Any]) -> list[dict[str, Any]]:
     """Handle batch export operation."""
@@ -448,7 +451,7 @@ async def batch_export_handler(items: list[BatchItem], settings: dict[str, Any])
             # Create ZIP file
             zip_buffer = io.BytesIO()
 
-            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
                 for item in items:
                     # Add item to ZIP
                     file_data = item.data.get("content", "")
@@ -457,36 +460,32 @@ async def batch_export_handler(items: list[BatchItem], settings: dict[str, Any])
                     zip_file.writestr(filename, file_data)
 
             zip_buffer.seek(0)
-            zip_data = zip_buffer.getvalue()
+            zip_buffer.getvalue()
 
             # Store export data (in real system, would save to storage)
             export_id = make_id("exp")
 
             for item in items:
-                results.append({
-                    "success": True,
-                    "item_id": item.item_id,
-                    "data": {
-                        "export_id": export_id,
-                        "exported_at": utc_now().isoformat(),
-                        "format": "zip"
+                results.append(
+                    {
+                        "success": True,
+                        "item_id": item.item_id,
+                        "data": {"export_id": export_id, "exported_at": utc_now().isoformat(), "format": "zip"},
                     }
-                })
+                )
         else:
             raise ValueError(f"Unsupported export format: {export_format}")
 
     except Exception as e:
         for item in items:
-            results.append({
-                "success": False,
-                "item_id": item.item_id,
-                "error": str(e)
-            })
+            results.append({"success": False, "item_id": item.item_id, "error": str(e)})
 
     return results
 
+
 # Global batch processor instance
 _batch_processor: BatchProcessor | None = None
+
 
 def get_batch_processor() -> BatchProcessor:
     """Get the global batch processor instance."""
@@ -502,29 +501,35 @@ def get_batch_processor() -> BatchProcessor:
 
     return _batch_processor
 
+
 # Helper functions
-def create_batch_operation(operation_type: str, user_id: str, items: list[dict[str, Any]],
-                        settings: dict[str, Any] = None) -> str:
+def create_batch_operation(
+    operation_type: str, user_id: str, items: list[dict[str, Any]], settings: dict[str, Any] = None
+) -> str:
     """Create a new batch operation."""
     processor = get_batch_processor()
 
     op_type = BatchOperationType(operation_type)
     return processor.create_batch_operation(op_type, user_id, items, settings)
 
+
 async def start_batch_operation(operation_id: str) -> bool:
     """Start a batch operation."""
     processor = get_batch_processor()
     return await processor.start_batch_operation(operation_id)
+
 
 def cancel_batch_operation(operation_id: str) -> bool:
     """Cancel a batch operation."""
     processor = get_batch_processor()
     return processor.cancel_batch_operation(operation_id)
 
+
 def get_batch_operation(operation_id: str) -> dict[str, Any] | None:
     """Get batch operation details."""
     processor = get_batch_processor()
     return processor.get_batch_operation(operation_id)
+
 
 def get_user_batch_operations(user_id: str, status: str = None) -> list[dict[str, Any]]:
     """Get all operations for a user."""
@@ -532,6 +537,7 @@ def get_user_batch_operations(user_id: str, status: str = None) -> list[dict[str
 
     status_filter = BatchOperationStatus(status) if status else None
     return processor.get_user_operations(user_id, status_filter)
+
 
 def get_batch_statistics() -> dict[str, Any]:
     """Get batch operations statistics."""

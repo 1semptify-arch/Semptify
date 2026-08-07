@@ -49,7 +49,7 @@ try {
         "Content-Type" = "application/json"
         "Cookie" = "semptify_uid=INVALID_USER_ID"
     }
-    
+
     Invoke-WebRequest -Method POST -Uri "$BaseUrl/storage/role" `
         -Body $body -Headers $headers `
         -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop | Out-Null
@@ -75,7 +75,7 @@ try {
         "Content-Type" = "application/json"
         "Cookie" = "semptify_uid=GT1234567890"
     }
-    
+
     Invoke-WebRequest -Method POST -Uri "$BaseUrl/storage/role" `
         -Body $body2 -Headers $headers `
         -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop | Out-Null

@@ -10,6 +10,7 @@ from httpx import AsyncClient
 # Health Check Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_healthz(client: AsyncClient):
     """Test basic health check endpoint."""
@@ -41,13 +42,15 @@ async def test_healthz_response_format(client: AsyncClient):
 
     # Timestamp should be ISO format
     import re
-    iso_pattern = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
+
+    iso_pattern = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
     assert re.match(iso_pattern, data["timestamp"])
 
 
 # =============================================================================
 # Readiness Check Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_readyz(client: AsyncClient):
@@ -106,6 +109,7 @@ async def test_readyz_details(client: AsyncClient):
 # Metrics Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_metrics_prometheus(client: AsyncClient):
     """Test Prometheus metrics endpoint."""
@@ -153,6 +157,7 @@ async def test_metrics_contains_expected_fields(client: AsyncClient):
 # Error Response Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_404_error(client: AsyncClient):
     """Test 404 response for non-existent endpoint."""
@@ -171,6 +176,7 @@ async def test_method_not_allowed(client: AsyncClient):
 # =============================================================================
 # Performance Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_health_check_fast(client: AsyncClient):

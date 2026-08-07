@@ -22,14 +22,14 @@ def register_shutdown_handler(handler: Callable[[], Coroutine[Any, Any, None]] |
     """
     Register an async function to be called during graceful shutdown.
     If no handler provided, sets up default signal handlers.
-    
+
     Usage:
         # Register custom handler
         async def cleanup_my_service():
             await my_service.close()
-        
+
         register_shutdown_handler(cleanup_my_service)
-        
+
         # Or just set up signal handling
         register_shutdown_handler()
     """
@@ -83,15 +83,15 @@ async def run_shutdown_handlers() -> None:
 class GracefulShutdown:
     """
     Manages graceful shutdown for the application.
-    
+
     Usage in FastAPI lifespan:
         @asynccontextmanager
         async def lifespan(app: FastAPI):
             shutdown = GracefulShutdown()
             shutdown.setup_signal_handlers()
-            
+
             yield
-            
+
             await shutdown.shutdown()
     """
 
@@ -114,7 +114,7 @@ class GracefulShutdown:
 
     def _handle_signal(self, sig) -> None:
         """Handle shutdown signal."""
-        sig_name = sig.name if hasattr(sig, 'name') else str(sig)
+        sig_name = sig.name if hasattr(sig, "name") else str(sig)
         logger.info("Received signal %s, initiating graceful shutdown...", sig_name)
         self._shutdown_event.set()
 
@@ -138,10 +138,7 @@ class GracefulShutdown:
         logger.info("=" * 50)
 
         try:
-            await asyncio.wait_for(
-                run_shutdown_handlers(),
-                timeout=_shutdown_timeout
-            )
+            await asyncio.wait_for(run_shutdown_handlers(), timeout=_shutdown_timeout)
         except TimeoutError:
             logger.error("Shutdown timed out after %s seconds", _shutdown_timeout)
 
@@ -152,13 +149,13 @@ class GracefulShutdown:
 class BackgroundTaskManager:
     """
     Manages background tasks with graceful shutdown support.
-    
+
     Usage:
         task_manager = BackgroundTaskManager()
-        
+
         # Start a background task
         task_manager.create_task(my_async_function())
-        
+
         # On shutdown, all tasks will be cancelled gracefully
     """
 
@@ -182,11 +179,7 @@ class BackgroundTaskManager:
 
         try:
             # Wait for tasks to complete naturally
-            done, pending = await asyncio.wait(
-                self._tasks,
-                timeout=timeout,
-                return_when=asyncio.ALL_COMPLETED
-            )
+            done, pending = await asyncio.wait(self._tasks, timeout=timeout, return_when=asyncio.ALL_COMPLETED)
 
             if pending:
                 logger.warning("%d tasks did not complete in time, cancelling...", len(pending))

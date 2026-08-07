@@ -13,6 +13,7 @@ from httpx import AsyncClient
 # Document Upload Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_document_upload_happy_path(client: AsyncClient, test_user_id):
     """Test complete document upload happy path with vault storage."""
@@ -20,10 +21,7 @@ async def test_document_upload_happy_path(client: AsyncClient, test_user_id):
     file_content = b"%PDF-1.4 mock pdf content for testing"
     files = {"file": ("test_lease.pdf", BytesIO(file_content), "application/pdf")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files)
     assert response.status_code in [200, 201, 401, 503]  # gated or provider unavailable
     if response.status_code in [200, 201]:
         data = response.json()
@@ -44,16 +42,10 @@ async def test_vault_deduplication_by_sha256(client: AsyncClient, test_user_id):
     files2 = {"file": ("doc2.pdf", BytesIO(file_content), "application/pdf")}
 
     # First upload
-    response1 = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files1
-    )
+    response1 = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files1)
 
     # Second upload (same content, different filename)
-    response2 = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files2
-    )
+    response2 = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files2)
 
     if response1.status_code in [200, 201] and response2.status_code in [200, 201]:
         data1 = response1.json()
@@ -78,10 +70,7 @@ async def test_vault_certificate_record_creation(client: AsyncClient, test_user_
     file_content = b"Document for certificate testing"
     files = {"file": ("cert_test.pdf", BytesIO(file_content), "application/pdf")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files)
 
     if response.status_code in [200, 201]:
         data = response.json()
@@ -104,10 +93,7 @@ async def test_document_upload_large_file_rejection(client: AsyncClient, test_us
     large_content = b"x" * (60 * 1024 * 1024)  # 60MB
     files = {"file": ("large_file.pdf", BytesIO(large_content), "application/pdf")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files)
 
     # Should be rejected for size (400) or blocked by auth (401) before
     # the size check runs (test cookie has no persisted DB session).
@@ -124,10 +110,7 @@ async def test_document_upload_invalid_file_type(client: AsyncClient, test_user_
     exe_content = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff\x00\x00"  # Fake EXE header
     files = {"file": ("malware.exe", BytesIO(exe_content), "application/x-msdownload")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files)
 
     # Should be rejected for file type (400) or blocked by auth (401)
     # before the type check runs (test cookie has no persisted DB session).
@@ -144,10 +127,7 @@ async def test_document_upload_missing_filename(client: AsyncClient, test_user_i
     # Upload without filename in the file tuple
     files = {"file": (None, BytesIO(file_content), "application/pdf")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files)
 
     # Should be rejected (400) or blocked by auth (401) before the
     # filename check runs (test cookie has no persisted DB session).
@@ -164,8 +144,7 @@ async def test_document_upload_with_case_number(client: AsyncClient, test_user_i
     files = {"file": ("case_doc.pdf", BytesIO(file_content), "application/pdf")}
 
     response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}&case_number=CASE-2024-001",
-        files=files
+        f"/api/documents/upload/simple?user_id={test_user_id}&case_number=CASE-2024-001", files=files
     )
 
     if response.status_code in [200, 201]:
@@ -180,10 +159,7 @@ async def test_document_upload_processing_pipeline(client: AsyncClient, test_use
     file_content = b"Document for pipeline testing"
     files = {"file": ("pipeline_test.pdf", BytesIO(file_content), "application/pdf")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}", files=files)
 
     if response.status_code in [200, 201]:
         data = response.json()
@@ -204,10 +180,7 @@ async def test_document_upload_queue_mode(client: AsyncClient, test_user_id):
     file_content = b"%PDF-1.4 mock pdf content"
     files = {"file": ("test.pdf", BytesIO(file_content), "application/pdf")}
 
-    response = await client.post(
-        f"/api/documents/upload/simple?user_id={test_user_id}&process_now=false",
-        files=files
-    )
+    response = await client.post(f"/api/documents/upload/simple?user_id={test_user_id}&process_now=false", files=files)
     assert response.status_code in [200, 201, 401]
     if response.status_code in [200, 201]:
         data = response.json()
@@ -231,9 +204,12 @@ async def test_document_upload_missing_user_id(client: AsyncClient):
     # In open security mode, a user is auto-created, so upload succeeds
     # In strict mode, this would be 401/422
     assert response.status_code in [200, 201, 401, 422]
+
+
 # =============================================================================
 # Document Listing Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_document_list(client: AsyncClient, test_user_id):
@@ -248,18 +224,14 @@ async def test_document_list(client: AsyncClient, test_user_id):
 @pytest.mark.anyio
 async def test_document_list_filter_by_type(client: AsyncClient, test_user_id):
     """Test filtering documents by type."""
-    response = await client.get(
-        f"/api/documents/?user_id={test_user_id}&doc_type=lease"
-    )
+    response = await client.get(f"/api/documents/?user_id={test_user_id}&doc_type=lease")
     assert response.status_code in [200, 401]
 
 
 @pytest.mark.anyio
 async def test_document_list_filter_by_status(client: AsyncClient, test_user_id):
     """Test filtering documents by status."""
-    response = await client.get(
-        f"/api/documents/?user_id={test_user_id}&status=classified"
-    )
+    response = await client.get(f"/api/documents/?user_id={test_user_id}&status=classified")
     assert response.status_code in [200, 401]
 
 
@@ -267,10 +239,12 @@ async def test_document_list_filter_by_status(client: AsyncClient, test_user_id)
 # Document Details Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_document_get_nonexistent(client: AsyncClient, test_user_id):
     """Test getting a non-existent document."""
     from app.core.cookie_auth import sign_user_id
+
     response = await client.get(
         "/api/documents/nonexistent-id",
         cookies={"semptify_uid": sign_user_id(test_user_id)},
@@ -284,6 +258,7 @@ async def test_document_get_nonexistent(client: AsyncClient, test_user_id):
 async def test_document_reprocess_nonexistent(client: AsyncClient, test_user_id):
     """Test reprocessing a non-existent document."""
     from app.core.cookie_auth import sign_user_id
+
     response = await client.post(
         "/api/documents/nonexistent-id/reprocess",
         cookies={"semptify_uid": sign_user_id(test_user_id)},
@@ -296,6 +271,7 @@ async def test_document_reprocess_nonexistent(client: AsyncClient, test_user_id)
 # =============================================================================
 # Timeline & Summary Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_document_timeline(client: AsyncClient, test_user_id):
@@ -333,6 +309,7 @@ async def test_document_rights(client: AsyncClient, test_user_id):
 # Law Reference Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_laws_list(client: AsyncClient):
     """Test listing all law references."""
@@ -360,6 +337,7 @@ async def test_laws_get_nonexistent(client: AsyncClient):
 # Vault Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_vault_list_unauthenticated(client: AsyncClient):
     """Test vault list requires authentication - vault is backend only via API."""
@@ -378,7 +356,7 @@ async def test_vault_upload_requires_auth(client: AsyncClient):
         response = await client.post(
             "/api/vault/upload",
             files={"file": ("test.txt", BytesIO(file_content), "text/plain")},
-            data={"access_token": "fake_token"}
+            data={"access_token": "fake_token"},
         )
         # Vault is backend-only, upload via /api/documents/
         # Various error codes possible depending on security mode
@@ -407,16 +385,26 @@ async def test_vault_certificate_nonexistent(authenticated_client: AsyncClient):
 # Document Type Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
-@pytest.mark.parametrize("doc_type", [
-    "lease", "notice", "receipt", "court_filing", "communication",
-    "photo", "inspection", "repair_request", "insurance", "other"
-])
+@pytest.mark.parametrize(
+    "doc_type",
+    [
+        "lease",
+        "notice",
+        "receipt",
+        "court_filing",
+        "communication",
+        "photo",
+        "inspection",
+        "repair_request",
+        "insurance",
+        "other",
+    ],
+)
 async def test_document_filter_all_types(client: AsyncClient, test_user_id, doc_type):
     """Test filtering documents by all supported types."""
-    response = await client.get(
-        f"/api/documents/?user_id={test_user_id}&doc_type={doc_type}"
-    )
+    response = await client.get(f"/api/documents/?user_id={test_user_id}&doc_type={doc_type}")
     assert response.status_code in [200, 401]
 
 
@@ -424,13 +412,10 @@ async def test_document_filter_all_types(client: AsyncClient, test_user_id, doc_
 # Processing Status Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
-@pytest.mark.parametrize("status", [
-    "pending", "analyzing", "classified", "cross_referenced", "failed"
-])
+@pytest.mark.parametrize("status", ["pending", "analyzing", "classified", "cross_referenced", "failed"])
 async def test_document_filter_all_statuses(client: AsyncClient, test_user_id, status):
     """Test filtering documents by all processing statuses."""
-    response = await client.get(
-        f"/api/documents/?user_id={test_user_id}&status={status}"
-    )
+    response = await client.get(f"/api/documents/?user_id={test_user_id}&status={status}")
     assert response.status_code in [200, 401]

@@ -77,11 +77,11 @@ Edit `TARGET_DOCS` in `scripts/compile_ai_context.py`:
 ```python
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
-    "DOCUMENTS/Semptify_Site_GUI_Framework.md",   # fixed path
+    "DOCUMENTS/Semptify_Site_GUI_Framework.md",  # fixed path
     ".devin/workflows/preflight.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
-    "PROJECT_BIBLE.md",                            # new entry
+    "PROJECT_BIBLE.md",  # new entry
 ]
 ```
 

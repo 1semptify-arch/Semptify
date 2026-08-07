@@ -1,5 +1,5 @@
 # Semptify HTML Template Inventory & Merger Analysis
-**Generated:** May 22, 2026  
+**Generated:** May 22, 2026
 **Scope:** Complete analysis of ALL HTML/Jinja2 templates including untracked, backup, and archive files
 
 ---
@@ -24,7 +24,7 @@ This analysis reveals **100+ HTML files** across the codebase with significant d
 
 1. `app/templates/base.html` - Main Jinja2 base (614 lines) ⭐ CANONICAL
 2. `modules/core/templates/base.html` - Module base (83 lines)
-3. `static/templates/base.html` - Static template base (166 lines) 
+3. `static/templates/base.html` - Static template base (166 lines)
 4. `staticbac/` - 50+ legacy static files (ARCHIVE)
 
 ### Backup/Archive Files (staticbac/)
@@ -338,20 +338,20 @@ Per `app/core/navigation.py`, canonical paths are:
 
 ```python
 MAIN_NAV = [
-    "/home",      # → tenant_home.html
-    "/library",   # → library.html
-    "/office",    # → office.html
-    "/tools",     # → tools.html
-    "/help",      # → help.html
+    "/home",  # → tenant_home.html
+    "/library",  # → library.html
+    "/office",  # → office.html
+    "/tools",  # → tools.html
+    "/help",  # → help.html
 ]
 
 ONBOARDING_FLOW = [
-    "/",                      # → welcome.html
+    "/",  # → welcome.html
     "/onboarding/select-role.html",
     "/onboarding/providers",
-    "/storage/providers",     # Reconnect entry
+    "/storage/providers",  # Reconnect entry
     "/onboarding/vault-setup",
-    "/onboarding/complete",   # → dashboard
+    "/onboarding/complete",  # → dashboard
 ]
 ```
 
@@ -367,7 +367,7 @@ ONBOARDING_FLOW = [
 
 ### Phase 2: Merge Library Pages
 
-**Action:** 
+**Action:**
 1. Keep `app/templates/pages/library.html` as hub
 2. Move `static/library.html` content to API-driven components
 3. Keep `static/tenant/law-library.html` as deep reference at `/law-library`
@@ -572,7 +572,7 @@ find static/ -name "*.bak" -delete
 echo "Removing duplicate static HTML files..."
 # These have Jinja2 equivalents in app/templates/pages/
 rm -f static/welcome.html
-rm -f static/library.html  
+rm -f static/library.html
 rm -f static/office.html
 rm -f static/home.html
 

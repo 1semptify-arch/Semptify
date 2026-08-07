@@ -1,5 +1,14 @@
 ## Session -- 2026-08-07 — Ship core/module/SDK updates and removed temp scaffolding
 
+### Guardrail Engine Run — 2026-08-07T20:28:25+00:00
+
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **stub_check**: PASS — No stubs found.
+
+All checks passed.
+
 ### Overview
 
 Shipped a broad maintenance and routing pass across `app/core`, `app/modules`, `app/services`, `app/sdk`, and `app/models`. Removed three temporary scaffolding files. Core compile check passed; no Playwright run because no dev server was listening on port 8000.

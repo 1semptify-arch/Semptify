@@ -9,34 +9,34 @@
   --header-bg-end: #7f1d1d;
   --header-accent: #991b1b;
   --header-text: #fef2f2;
-  
+
   /* Footer - Dark red to burgundy */
   --footer-bg-start: #280505;
   --footer-bg-end: #450a0a;
   --footer-accent: #7f1d1d;
   --footer-text: #fecaca;
-  
+
   /* Body - White */
   --body-bg: #ffffff;
   --body-text: #450a0a;
-  
+
   /* Cards - Light pink */
   --card-bg: #fef2f2;
   --card-border: #fecaca;
   --card-text: #450a0a;
-  
+
   /* Text */
   --text-primary: #450a0a;
   --text-secondary: #991b1b;
   --text-muted: #dc2626;
-  
+
   /* Accents */
   --accent-primary: #ef4444;
   --accent-secondary: #f97316;
   --accent-success: #22c55e;
   --accent-warning: #f59e0b;
   --accent-error: #dc2626;
-  
+
   /* Interactive */
   --hover-bg: #fee2e2;
   --focus-ring: #ef4444;

@@ -1,10 +1,10 @@
 ================================================================================
                     SEMPTIFY CONTENT SNIPPETS
                     Available for Reuse Across Site
-                    
+
                     Last Updated: December 9, 2025
-                    
-                    HOW TO USE: Edit this file anytime to add, remove, or 
+
+                    HOW TO USE: Edit this file anytime to add, remove, or
                     modify content. Just add new items under the appropriate
                     section. Use these snippets anywhere in the app!
 ================================================================================
@@ -30,24 +30,24 @@ ABOUT / MISSION TEXT
 (Add new paragraphs below)
 ────────────────────────────────────────────────────────────────────────────────
 
-5. Inspired by the feeling behind Semper Fi, Semptify is a platform built to 
+5. Inspired by the feeling behind Semper Fi, Semptify is a platform built to
    reassure: it will be okay.
 
-6. Semptify is a tenant justice platform built on one promise: 
+6. Semptify is a tenant justice platform built on one promise:
    no one gets left behind.
 
-7. Our name draws inspiration from the U.S. Marine Corps motto "Semper Fidelis" 
-   — Latin for "Always Faithful." We honor that spirit of loyalty, solidarity, 
+7. Our name draws inspiration from the U.S. Marine Corps motto "Semper Fidelis"
+   — Latin for "Always Faithful." We honor that spirit of loyalty, solidarity,
    and protection.
 
-8. Semptify was created to carry forward the spirit of loyalty and resilience — 
+8. Semptify was created to carry forward the spirit of loyalty and resilience —
    always faithful to tenants, always faithful to community.
 
-9. We're here to help you with practical tools, clear suggestions, and organized 
+9. We're here to help you with practical tools, clear suggestions, and organized
    flows that make your situation easier to manage.
 
-10. Whether you're facing eviction, fraud, or confusion about your rights, 
-    Semptify gives you a way to take control, organize your case, and move 
+10. Whether you're facing eviction, fraud, or confusion about your rights,
+    Semptify gives you a way to take control, organize your case, and move
     forward with dignity and support.
 
 [ADD MORE MISSION TEXT HERE]

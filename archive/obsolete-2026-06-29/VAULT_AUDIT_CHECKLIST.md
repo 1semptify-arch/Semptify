@@ -83,7 +83,7 @@ G:\My Drive\
 
 ### Issue: Missing `.Semptify5.0` folder
 **Cause:** Hidden folder not visible, or auth system failed
-**Solution:** 
+**Solution:**
 1. Show hidden folders in Windows Explorer
 2. Check if OAuth completed successfully
 3. Look for error logs in vault creation
@@ -125,7 +125,7 @@ Please check and report:
 
 Based on what you find:
 - **Nothing exists**: Vault creation never started
-- **Partial structure**: Vault creation failed midway  
+- **Partial structure**: Vault creation failed midway
 - **All folders but no files**: Folder creation worked, file creation failed
 - **Everything exists**: Vault creation succeeded, issue is elsewhere
 

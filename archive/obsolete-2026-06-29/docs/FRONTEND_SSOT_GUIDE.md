@@ -1,7 +1,7 @@
 # Semptify 5.0 - Frontend SSOT Build-Out Guide
 
-**STATUS**: Single Source of Truth for all frontend development  
-**RULE**: Update this doc BEFORE/DURING any frontend changes  
+**STATUS**: Single Source of Truth for all frontend development
+**RULE**: Update this doc BEFORE/DURING any frontend changes
 **LAST UPDATED**: 2026-04-23
 
 **RELATED DOCUMENTS**:
@@ -120,7 +120,7 @@ staticbac/                       # BACKUP ONLY - DO NOT EDIT
 
 ### Next Tasks (See TASK_MASTER.md for full list)
 - 🔴 **HIGH**: Task 1 - Returning User Reconnect Flow
-- 🔴 **HIGH**: Task 2 - Advocate Validation Page  
+- 🔴 **HIGH**: Task 2 - Advocate Validation Page
 - 🔴 **HIGH**: Task 3 - Legal Validation Page
 - 🔴 **HIGH**: Task 4 - Storage Provider Selection Page
 - 🟡 **MEDIUM**: Task 5-7 - Consolidate Dashboard/Document/Timeline pages

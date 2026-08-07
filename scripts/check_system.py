@@ -7,6 +7,7 @@ from urllib.request import urlopen
 BASE = "http://localhost:8000"
 results = []
 
+
 def check(name, path):
     try:
         with urlopen(f"{BASE}{path}", timeout=5) as r:
@@ -22,6 +23,7 @@ def check(name, path):
     except Exception as e:
         print(f"❌ {path} - {name} ({e})")
         results.append(False)
+
 
 print("=" * 60)
 print("SEMPTIFY QUICK VALIDATION")

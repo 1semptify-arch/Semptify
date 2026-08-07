@@ -15,6 +15,7 @@ from .base import BaseClient
 @dataclass
 class Document:
     """Document information."""
+
     id: str
     filename: str
     original_filename: str
@@ -34,6 +35,7 @@ class Document:
 @dataclass
 class IntakeDocument:
     """Document intake information with extraction results."""
+
     id: str
     filename: str
     status: str
@@ -67,14 +69,14 @@ class DocumentClient(BaseClient):
     ) -> Document:
         """
         Upload a document.
-        
+
         Args:
             file: File path, Path object, or file-like object
             filename: Override filename (optional)
             document_type: Document type classification
             description: Document description
             tags: List of tags
-            
+
         Returns:
             Uploaded document information
         """
@@ -119,12 +121,12 @@ class DocumentClient(BaseClient):
     ) -> IntakeDocument:
         """
         Upload a document through the intake engine for automatic processing.
-        
+
         Args:
             file: File path, Path object, or file-like object
             filename: Override filename (optional)
             auto_process: Whether to automatically process the document
-            
+
         Returns:
             Intake document with extraction results
         """
@@ -158,10 +160,10 @@ class DocumentClient(BaseClient):
     def get_document(self, doc_id: str) -> Document:
         """
         Get a document by ID.
-        
+
         Args:
             doc_id: The document ID
-            
+
         Returns:
             Document information
         """
@@ -185,12 +187,12 @@ class DocumentClient(BaseClient):
     ) -> list[Document]:
         """
         List documents.
-        
+
         Args:
             document_type: Filter by document type
             limit: Maximum number of documents to return
             offset: Number of documents to skip
-            
+
         Returns:
             List of documents
         """
@@ -217,10 +219,10 @@ class DocumentClient(BaseClient):
     def delete_document(self, doc_id: str) -> bool:
         """
         Delete a document.
-        
+
         Args:
             doc_id: The document ID
-            
+
         Returns:
             True if deleted successfully
         """
@@ -230,11 +232,11 @@ class DocumentClient(BaseClient):
     def download(self, doc_id: str, output_path: str | Path | None = None) -> bytes:
         """
         Download a document.
-        
+
         Args:
             doc_id: The document ID
             output_path: Optional path to save the file
-            
+
         Returns:
             Document content as bytes
         """
@@ -250,10 +252,10 @@ class DocumentClient(BaseClient):
     def get_intake_status(self, doc_id: str) -> dict[str, Any]:
         """
         Get intake processing status for a document.
-        
+
         Args:
             doc_id: The document ID
-            
+
         Returns:
             Processing status information
         """
@@ -262,7 +264,7 @@ class DocumentClient(BaseClient):
     def get_critical_issues(self) -> list[dict[str, Any]]:
         """
         Get all critical issues from processed documents.
-        
+
         Returns:
             List of critical issues requiring attention
         """
@@ -272,10 +274,10 @@ class DocumentClient(BaseClient):
     def get_upcoming_deadlines(self, days: int = 14) -> list[dict[str, Any]]:
         """
         Get upcoming deadlines from processed documents.
-        
+
         Args:
             days: Number of days to look ahead
-            
+
         Returns:
             List of upcoming deadlines
         """

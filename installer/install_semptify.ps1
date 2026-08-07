@@ -1,29 +1,29 @@
 <#
 .SYNOPSIS
     Semptify 5.0 Windows Installer
-    
+
 .DESCRIPTION
     Automated installer for Semptify Tenant Rights Platform.
     Installs Python, PostgreSQL (optional), and all dependencies.
-    
+
 .PARAMETER InstallPath
     Installation directory (default: E:\master-repo\sources\app-semptify-fastapi)
-    
+
 .PARAMETER UsePostgreSQL
     Install and configure PostgreSQL (default: true)
-    
+
 .PARAMETER CreateShortcut
     Create desktop shortcut (default: true)
-    
+
 .PARAMETER InstallService
     Install as Windows service for auto-start (default: false)
-    
+
 .PARAMETER SkipPython
     Skip Python installation if already installed
-    
+
 .EXAMPLE
     .\install_semptify.ps1
-    
+
 .EXAMPLE
     .\install_semptify.ps1 -InstallPath "D:\Apps\Semptify" -InstallService
 #>
@@ -129,13 +129,13 @@ foreach ($path in $pythonPaths) {
 
 if (-not $pythonCmd -and -not $SkipPython) {
     Write-Step "Installing Python 3.12"
-    
+
     # Check for offline installer first
     $offlinePython = Join-Path $ScriptDir "python\python-3.12.0-amd64.exe"
     if (-not (Test-Path $offlinePython)) {
         $offlinePython = Join-Path $ScriptDir "..\python\python-3.12.0-amd64.exe"
     }
-    
+
     if (Test-Path $offlinePython) {
         Write-Info "Using offline Python installer"
         Start-Process -FilePath $offlinePython -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1", "Include_test=0" -Wait
@@ -150,10 +150,10 @@ if (-not $pythonCmd -and -not $SkipPython) {
             exit 1
         }
     }
-    
+
     # Refresh PATH
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-    
+
     # Find python again
     foreach ($path in $pythonPaths) {
         try {
@@ -164,7 +164,7 @@ if (-not $pythonCmd -and -not $SkipPython) {
             }
         } catch {}
     }
-    
+
     if ($pythonCmd) {
         Write-Success "Python installed successfully"
     } else {
@@ -183,12 +183,12 @@ if (-not $pythonCmd) {
 # ============================================================================
 if ($UsePostgreSQL) {
     Write-Step "Checking PostgreSQL installation"
-    
+
     $pgService = Get-Service postgresql* -ErrorAction SilentlyContinue
-    
+
     if ($pgService) {
         Write-Success "PostgreSQL is installed (Service: $($pgService.Name))"
-        
+
         if ($pgService.Status -ne "Running") {
             Write-Step "Starting PostgreSQL service"
             Start-Service $pgService.Name
@@ -196,17 +196,17 @@ if ($UsePostgreSQL) {
         }
     } else {
         Write-Step "Installing PostgreSQL 16"
-        
+
         # Check for offline installer first
         $offlinePostgres = Join-Path $ScriptDir "postgresql\postgresql-16-windows-x64.exe"
         if (-not (Test-Path $offlinePostgres)) {
             $offlinePostgres = Join-Path $ScriptDir "..\postgresql\postgresql-16-windows-x64.exe"
         }
-        
+
         if (Test-Path $offlinePostgres) {
             Write-Info "Using offline PostgreSQL installer"
             Write-Info "IMPORTANT: Set password to: $PostgresPassword"
-            
+
             # Run PostgreSQL installer with unattended options
             $pgArgs = @(
                 "--mode", "unattended",
@@ -215,9 +215,9 @@ if ($UsePostgreSQL) {
                 "--serverport", "5432",
                 "--servicename", "postgresql-x64-16"
             )
-            
+
             Start-Process -FilePath $offlinePostgres -ArgumentList $pgArgs -Wait
-            
+
             Start-Sleep -Seconds 5
             $pgService = Get-Service postgresql* -ErrorAction SilentlyContinue
             if ($pgService) {
@@ -227,9 +227,9 @@ if ($UsePostgreSQL) {
             # Try winget
             try {
                 winget install PostgreSQL.PostgreSQL.16 --accept-package-agreements --accept-source-agreements
-                
+
                 Start-Sleep -Seconds 5
-                
+
                 $pgService = Get-Service postgresql* -ErrorAction SilentlyContinue
                 if ($pgService) {
                     Write-Success "PostgreSQL installed successfully"
@@ -259,30 +259,30 @@ if ($IsSourceInstall) {
     # Clone or copy repository
     if (-not (Test-Path $InstallPath)) {
         Write-Step "Downloading Semptify from GitHub"
-        
+
         $gitAvailable = $null -ne (Get-Command git -ErrorAction SilentlyContinue)
-        
+
         if ($gitAvailable) {
             git clone https://github.com/1semptify-arch/Semptify5.0.git $InstallPath
         } else {
             # Download ZIP
             $zipUrl = "https://github.com/1semptify-arch/Semptify5.0/archive/refs/heads/main.zip"
             $zipPath = "$env:TEMP\semptify.zip"
-            
+
             Write-Step "Downloading from GitHub"
             Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
-            
+
             Write-Step "Extracting files"
             Expand-Archive -Path $zipPath -DestinationPath "$env:TEMP\semptify-extract" -Force
-            
+
             # Move to install path
             $extractedFolder = Get-ChildItem "$env:TEMP\semptify-extract" | Select-Object -First 1
             Move-Item $extractedFolder.FullName $InstallPath
-            
+
             Remove-Item $zipPath -Force
             Remove-Item "$env:TEMP\semptify-extract" -Recurse -Force
         }
-        
+
         Write-Success "Semptify downloaded to $InstallPath"
     } else {
         Write-Info "Using existing installation at $InstallPath"
@@ -340,12 +340,12 @@ if (-not (Test-Path $envFile)) {
 # Update database URL based on choice
 if ($UsePostgreSQL) {
     $dbUrl = "postgresql+asyncpg://postgres:$PostgresPassword@localhost:5432/semptify"
-    
+
     # Create database if PostgreSQL is available
     $psqlPath = "C:\Program Files\PostgreSQL\16\bin\psql.exe"
     if (Test-Path $psqlPath) {
         Write-Step "Creating PostgreSQL database"
-        
+
         $env:PGPASSWORD = $PostgresPassword
         try {
             & $psqlPath -U postgres -h 127.0.0.1 -c "CREATE DATABASE semptify;" 2>$null
@@ -383,7 +383,7 @@ try {
 # ============================================================================
 if ($CreateShortcut) {
     Write-Step "Creating desktop shortcut"
-    
+
     $WshShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\Semptify.lnk")
     $Shortcut.TargetPath = Join-Path $InstallPath "START.ps1"
@@ -391,7 +391,7 @@ if ($CreateShortcut) {
     $Shortcut.IconLocation = Join-Path $InstallPath "static\favicon.ico"
     $Shortcut.Description = "Semptify - Tenant Rights Protection Platform"
     $Shortcut.Save()
-    
+
     Write-Success "Desktop shortcut created"
 }
 
@@ -400,20 +400,20 @@ if ($CreateShortcut) {
 # ============================================================================
 if ($InstallService) {
     Write-Step "Installing Windows service"
-    
+
     # Check for NSSM
     $nssmPath = Get-Command nssm -ErrorAction SilentlyContinue
-    
+
     if (-not $nssmPath) {
         Write-Step "Installing NSSM (service manager)"
         winget install nssm --accept-package-agreements --accept-source-agreements
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
     }
-    
+
     # Remove existing service if present
     nssm stop Semptify 2>$null
     nssm remove Semptify confirm 2>$null
-    
+
     # Install service
     nssm install Semptify $venvPython
     nssm set Semptify AppParameters "-m uvicorn app.main:app --host 0.0.0.0 --port 8000"
@@ -423,13 +423,13 @@ if ($InstallService) {
     nssm set Semptify Start SERVICE_AUTO_START
     nssm set Semptify AppStdout (Join-Path $InstallPath "logs\service.log")
     nssm set Semptify AppStderr (Join-Path $InstallPath "logs\service-error.log")
-    
+
     # Create logs directory
     New-Item -ItemType Directory -Path (Join-Path $InstallPath "logs") -Force | Out-Null
-    
+
     # Start service
     nssm start Semptify
-    
+
     Write-Success "Windows service installed and started"
 }
 

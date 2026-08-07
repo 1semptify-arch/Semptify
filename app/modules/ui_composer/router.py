@@ -37,6 +37,7 @@ def _get_user_id_from_request(request: Request) -> str:
     """
     try:
         from app.core.cookie_auth import verify_user_id
+
         user_id_cookie = request.cookies.get("semptify_uid", "")
         if not user_id_cookie:
             return ""
@@ -77,6 +78,7 @@ async def compose_page_endpoint(
 
     # Render via the generic template
     from app.main import templates
+
     return templates.TemplateResponse(
         request,
         "generic_page.html",
@@ -116,6 +118,7 @@ async def render_fragment_endpoint(
 
     # Render just the component fragment
     from app.main import templates
+
     return templates.TemplateResponse(
         request,
         "components/component_fragment.html",
@@ -134,14 +137,18 @@ async def process_status_endpoint(
     """
     status = get_process_status(workflow_id)
 
-    fragment = render_fragment("process_indicator", {
-        "workflow_id": workflow_id,
-        "step_label": status["step_label"],
-        "state": status["state"],
-        "progress_pct": status["progress_pct"],
-    })
+    fragment = render_fragment(
+        "process_indicator",
+        {
+            "workflow_id": workflow_id,
+            "step_label": status["step_label"],
+            "state": status["state"],
+            "progress_pct": status["progress_pct"],
+        },
+    )
 
     from app.main import templates
+
     return templates.TemplateResponse(
         request,
         "components/component_fragment.html",

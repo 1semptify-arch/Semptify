@@ -31,14 +31,18 @@ logger = logging.getLogger(__name__)
 # PYDANTIC MODELS
 # =============================================================================
 
+
 class CrawlRequest(BaseModel):
     """Crawl request model"""
+
     fix_issues: bool = Field(False, description="Automatically fix found issues")
     verbose: bool = Field(False, description="Verbose output")
     target_path: str | None = Field(None, description="Specific path to crawl")
 
+
 class CrawlResponse(BaseModel):
     """Crawl response model"""
+
     success: bool = Field(..., description="Crawl success status")
     report_id: str = Field(..., description="Report ID for later retrieval")
     issues_found: int = Field(..., description="Number of issues found")
@@ -46,25 +50,32 @@ class CrawlResponse(BaseModel):
     duration_seconds: float = Field(..., description="Crawl duration")
     timestamp: str = Field(..., description="Crawl timestamp")
 
+
 class AnalysisRequest(BaseModel):
     """Analysis request model"""
+
     analysis_type: str = Field(..., description="Type of analysis to perform")
     target_path: str | None = Field(None, description="Target path for analysis")
     options: dict[str, Any] = Field(default_factory=dict, description="Analysis options")
 
+
 class AnalysisResponse(BaseModel):
     """Analysis response model"""
+
     success: bool = Field(..., description="Analysis success status")
     analysis_type: str = Field(..., description="Type of analysis performed")
     results: dict[str, Any] = Field(..., description="Analysis results")
     timestamp: str = Field(..., description="Analysis timestamp")
 
+
 class DevHealthResponse(BaseModel):
     """Development health response model"""
+
     status: str = Field(..., description="Health status")
     tools_available: list[str] = Field(..., description="Available development tools")
     last_crawl: str | None = Field(None, description="Last crawl timestamp")
     system_info: dict[str, Any] = Field(..., description="System information")
+
 
 # =============================================================================
 # ROUTER SETUP
@@ -80,27 +91,26 @@ router = APIRouter(
 # INTERNAL FUNCTIONS
 # =============================================================================
 
-async def run_crawler_tool(fix_issues: bool = False, verbose: bool = False, target_path: str | None = None) -> dict[str, Any]:
+
+async def run_crawler_tool(
+    fix_issues: bool = False, verbose: bool = False, target_path: str | None = None
+) -> dict[str, Any]:
     """Run the crawler tool and return results."""
     try:
         # Import crawler module
         import sys
+
         tools_path = Path(__file__).parent.parent.parent / "tools"
         sys.path.insert(0, str(tools_path))
 
         from app_crawler import AppCrawler
 
         # Initialize crawler
-        crawler = AppCrawler(
-            base_dir=target_path or Path(__file__).parent.parent.parent,
-            verbose=verbose
-        )
+        crawler = AppCrawler(base_dir=target_path or Path(__file__).parent.parent.parent, verbose=verbose)
 
         # Run crawl
         start_time = utc_now()
-        results = await asyncio.get_event_loop().run_in_executor(
-            None, crawler.crawl, fix_issues
-        )
+        results = await asyncio.get_event_loop().run_in_executor(None, crawler.crawl, fix_issues)
         end_time = utc_now()
 
         # Generate report
@@ -113,11 +123,11 @@ async def run_crawler_tool(fix_issues: bool = False, verbose: bool = False, targ
             "duration_seconds": (end_time - start_time).total_seconds(),
             "issues_found": len(results.get("issues", [])),
             "issues_fixed": len([i for i in results.get("issues", []) if i.get("fixed", False)]),
-            "results": results
+            "results": results,
         }
 
         # Save report
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(crawl_report, f, indent=2)
 
         return crawl_report
@@ -125,6 +135,7 @@ async def run_crawler_tool(fix_issues: bool = False, verbose: bool = False, targ
     except Exception as e:
         logger.error(f"Error running crawler: {e}")
         raise
+
 
 def get_available_tools() -> list[str]:
     """Get list of available development tools."""
@@ -138,6 +149,7 @@ def get_available_tools() -> list[str]:
 
     return tools
 
+
 def get_system_info() -> dict[str, Any]:
     """Get system information for development tools."""
     import platform
@@ -150,9 +162,11 @@ def get_system_info() -> dict[str, Any]:
         "app_directory": str(Path(__file__).parent.parent),
     }
 
+
 # =============================================================================
 # API ENDPOINTS
 # =============================================================================
+
 
 @router.post("/crawl", response_model=CrawlResponse)
 async def run_crawl(
@@ -171,9 +185,7 @@ async def run_crawl(
 
         # Run crawler
         results = await run_crawler_tool(
-            fix_issues=request.fix_issues,
-            verbose=request.verbose,
-            target_path=request.target_path
+            fix_issues=request.fix_issues, verbose=request.verbose, target_path=request.target_path
         )
 
         logger.info(f"Crawler completed by user {current_user.user_id}: {results['issues_found']} issues found")
@@ -192,6 +204,7 @@ async def run_crawl(
     except Exception as e:
         logger.error(f"Error running crawl: {e}")
         raise HTTPException(status_code=500, detail="Failed to run crawler")
+
 
 @router.get("/crawl/report")
 async def get_crawl_report(
@@ -229,6 +242,7 @@ async def get_crawl_report(
         logger.error(f"Error getting crawl report: {e}")
         raise HTTPException(status_code=500, detail="Failed to get crawl report")
 
+
 @router.post("/analyze", response_model=AnalysisResponse)
 async def run_analysis(
     request: AnalysisRequest,
@@ -262,6 +276,7 @@ async def run_analysis(
     except Exception as e:
         logger.error(f"Error running analysis: {e}")
         raise HTTPException(status_code=500, detail="Failed to run analysis")
+
 
 @router.get("/health", response_model=DevHealthResponse)
 async def dev_health():
@@ -298,6 +313,7 @@ async def dev_health():
             system_info={"error": str(e)},
         )
 
+
 @router.get("/metrics")
 async def get_dev_metrics(
     current_user: StorageUser = Depends(green_access),
@@ -310,11 +326,7 @@ async def get_dev_metrics(
 
         # Get crawl statistics
         reports = list(tools_path.glob("crawl_report_*.json"))
-        crawl_stats = {
-            "total_reports": len(reports),
-            "latest_report": None,
-            "issues_trend": []
-        }
+        crawl_stats = {"total_reports": len(reports), "latest_report": None, "issues_trend": []}
 
         if reports:
             reports.sort(key=lambda p: p.stat().st_mtime)
@@ -333,10 +345,12 @@ async def get_dev_metrics(
             for report_path in reports[-5:]:
                 with open(report_path) as f:
                     report = json.load(f)
-                crawl_stats["issues_trend"].append({
-                    "timestamp": report.get("timestamp"),
-                    "issues_found": report.get("issues_found", 0),
-                })
+                crawl_stats["issues_trend"].append(
+                    {
+                        "timestamp": report.get("timestamp"),
+                        "issues_found": report.get("issues_found", 0),
+                    }
+                )
 
         return {
             "crawl_statistics": crawl_stats,
@@ -349,9 +363,11 @@ async def get_dev_metrics(
         logger.error(f"Error getting dev metrics: {e}")
         raise HTTPException(status_code=500, detail="Failed to get dev metrics")
 
+
 # =============================================================================
 # ANALYSIS FUNCTIONS
 # =============================================================================
+
 
 async def analyze_application_structure(target_path: str | None = None) -> dict[str, Any]:
     """Analyze application structure."""
@@ -387,6 +403,7 @@ async def analyze_application_structure(target_path: str | None = None) -> dict[
 
     return structure
 
+
 async def analyze_dependencies(target_path: str | None = None) -> dict[str, Any]:
     """Analyze project dependencies."""
     base_path = Path(target_path) if target_path else Path(__file__).parent.parent.parent
@@ -408,7 +425,8 @@ async def analyze_dependencies(target_path: str | None = None) -> dict[str, Any]
     if pyproject_file.exists():
         try:
             import tomllib
-            with open(pyproject_file, 'rb') as f:
+
+            with open(pyproject_file, "rb") as f:
                 pyproject = tomllib.load(f)
                 dependencies["pyproject_toml"] = list(pyproject.get("project", {}).get("dependencies", []))
         except ImportError:
@@ -416,6 +434,7 @@ async def analyze_dependencies(target_path: str | None = None) -> dict[str, Any]
             dependencies["pyproject_toml"] = []
 
     return dependencies
+
 
 async def analyze_security(target_path: str | None = None) -> dict[str, Any]:
     """Analyze security aspects."""
@@ -426,23 +445,19 @@ async def analyze_security(target_path: str | None = None) -> dict[str, Any]:
     # Check for common security issues
     for py_file in base_path.rglob("*.py"):
         try:
-            with open(py_file, encoding='utf-8') as f:
+            with open(py_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Check for potential security issues
             if "eval(" in content:
-                security_issues.append({
-                    "file": str(py_file.relative_to(base_path)),
-                    "issue": "Use of eval() function",
-                    "severity": "high"
-                })
+                security_issues.append(
+                    {"file": str(py_file.relative_to(base_path)), "issue": "Use of eval() function", "severity": "high"}
+                )
 
             if "exec(" in content:
-                security_issues.append({
-                    "file": str(py_file.relative_to(base_path)),
-                    "issue": "Use of exec() function",
-                    "severity": "high"
-                })
+                security_issues.append(
+                    {"file": str(py_file.relative_to(base_path)), "issue": "Use of exec() function", "severity": "high"}
+                )
 
         except Exception:
             # Skip files that can't be read

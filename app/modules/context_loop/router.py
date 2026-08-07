@@ -5,7 +5,6 @@ Endpoints to interact with the Context Data Loop core.
 This is the nervous system of Semptify - everything flows through here.
 """
 
-
 from fastapi import APIRouter, Body, Depends, Header, Query
 
 from app.core.security import get_optional_user_id, sanitize_user_input
@@ -33,7 +32,7 @@ async def get_state(
 ):
     """
     Get complete state for a user.
-    
+
     This is the unified view of everything Semptify knows about this user:
     - Documents
     - Issues
@@ -51,7 +50,7 @@ async def get_intensity(
 ):
     """
     Get intensity report for a user.
-    
+
     Shows how urgent their situation is on a 0-100 scale,
     with breakdown of contributing factors.
     """
@@ -79,7 +78,7 @@ async def emit_event(
 ):
     """
     Emit an event into the context loop.
-    
+
     Events flow through the loop and update user state.
     """
     # Map string to EventType
@@ -109,7 +108,7 @@ async def process_document(
 ):
     """
     Process a document through the context loop.
-    
+
     This is called after a document is uploaded and analyzed.
     Updates user context with document info and any detected issues.
     """
@@ -127,7 +126,7 @@ async def process_document(
 
     # If we have analysis, emit analyzed event
     if analysis:
-        analyzed_event = context_loop.emit_event(
+        context_loop.emit_event(
             EventType.DOCUMENT_ANALYZED,
             uid,
             {
@@ -156,7 +155,7 @@ async def report_issue(
 ):
     """
     Report an issue through the context loop.
-    
+
     Issues are things like habitability problems, harassment, etc.
     """
     issue_data = {
@@ -180,9 +179,7 @@ async def report_issue(
         "issue": issue_data,
         "intensity": event.intensity,
         "severity": event.severity.value,
-        "recommended_actions": context_loop._get_recommended_actions(
-            context_loop.get_context(uid)
-        ),
+        "recommended_actions": context_loop._get_recommended_actions(context_loop.get_context(uid)),
     }
 
 
@@ -229,10 +226,10 @@ async def record_action(
 ):
     """
     Record that the user took an action.
-    
+
     This feeds into the learning system.
     """
-    event = context_loop.emit_event(
+    context_loop.emit_event(
         EventType.ACTION_TAKEN,
         uid,
         {
@@ -254,7 +251,7 @@ async def get_predictions(
 ):
     """
     Get predictions for what the user might need.
-    
+
     Based on their documents, issues, and phase.
     """
     context = context_loop.get_context(uid)

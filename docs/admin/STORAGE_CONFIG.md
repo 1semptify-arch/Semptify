@@ -110,23 +110,23 @@ All storage operations require a connected cloud provider:
 
 ```python
 # Connect storage (OAuth flow)
-GET /storage/auth/{provider}
-GET /storage/callback/{provider}
+GET / storage / auth / {provider}
+GET / storage / callback / {provider}
 
 # List connected providers
-GET /storage/providers
+GET / storage / providers
 
 # Upload document (requires connected storage)
-POST /vault/upload
+POST / vault / upload
 
 # List files in cloud storage
-GET /api/vault/list
+GET / api / vault / list
 
 # Download from cloud storage
-GET /api/vault/download/{file_id}
+GET / api / vault / download / {file_id}
 
 # Delete from cloud storage
-DELETE /api/vault/delete/{file_id}
+DELETE / api / vault / delete / {file_id}
 ```
 
 ## Error Messages
@@ -167,11 +167,11 @@ If you want to test without configuring cloud storage:
 
 To add local storage support or change configuration:
 
-**Contact:** Project Owner / Development Team  
-**Issue:** [No local storage provider available]  
+**Contact:** Project Owner / Development Team
+**Issue:** [No local storage provider available]
 **Workaround:** Use Google Drive (easiest setup)
 
 ---
 
-**Last Updated:** March 23, 2026  
+**Last Updated:** March 23, 2026
 **Status:** ✅ Cloud-only storage (by design)

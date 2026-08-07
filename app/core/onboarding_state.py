@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class OnboardingState:
     """Immutable snapshot of a user's gate completion state."""
+
     user_id: str
     storage_connected: bool
     vault_initialized: bool
@@ -56,9 +57,10 @@ class OnboardingState:
 
         try:
             from app.core.navigation import navigation
+
             gate_to_stage = {
                 "storage_connected": "storage_select",  # /onboarding/providers (new users)
-                "vault_initialized": "vault_setup",     # /onboarding/vault-setup
+                "vault_initialized": "vault_setup",  # /onboarding/vault-setup
             }
             stage_id = gate_to_stage.get(gate)
             if stage_id:
@@ -96,9 +98,8 @@ async def get_onboarding_state(
     """
     try:
         from app.models.models import User
-        result = await db.execute(
-            select(User.completed_groups).where(User.id == user_id)
-        )
+
+        result = await db.execute(select(User.completed_groups).where(User.id == user_id))
         row = result.scalar_one_or_none()
     except Exception as exc:
         logger.warning("get_onboarding_state DB error for user %s: %s", user_id[:6] + "***", exc)

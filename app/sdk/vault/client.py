@@ -33,9 +33,11 @@ logger = logging.getLogger("semptify.vault.sdk")
 # Result Types
 # ============================================================================
 
+
 @dataclass
 class FolderResult:
     """Result for a single folder creation/verification attempt."""
+
     path: str
     status: str  # "ok", "error", "skipped"
     detail: str = ""
@@ -44,6 +46,7 @@ class FolderResult:
 @dataclass
 class VaultResult:
     """Aggregate result for a vault operation."""
+
     folders: list[FolderResult] = field(default_factory=list)
 
     @property
@@ -64,16 +67,14 @@ class VaultResult:
             "total": len(self.folders),
             "ok_count": len(self.succeeded),
             "error_count": len(self.failed),
-            "folders": [
-                {"path": f.path, "status": f.status, "detail": f.detail}
-                for f in self.folders
-            ],
+            "folders": [{"path": f.path, "status": f.status, "detail": f.detail} for f in self.folders],
         }
 
 
 @dataclass
 class HealthResult:
     """Result of a vault health check."""
+
     healthy: bool
     folders_exist: list[str]
     folders_missing: list[str]
@@ -93,6 +94,7 @@ class HealthResult:
 # ============================================================================
 # VaultClient
 # ============================================================================
+
 
 class VaultClient:
     """
@@ -138,6 +140,7 @@ class VaultClient:
         """Get or create the storage provider instance."""
         if self._storage is None:
             from app.services.storage import get_provider
+
             self._storage = get_provider(
                 self._provider_name,
                 access_token=self._access_token,
@@ -165,18 +168,22 @@ class VaultClient:
                 if created:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
                 else:
-                    result.folders.append(FolderResult(
-                        path=folder_path,
-                        status="error",
-                        detail="create_folder returned False",
-                    ))
+                    result.folders.append(
+                        FolderResult(
+                            path=folder_path,
+                            status="error",
+                            detail="create_folder returned False",
+                        )
+                    )
             except Exception as exc:
                 logger.error("Folder creation failed for %s: %s", folder_path, exc)
-                result.folders.append(FolderResult(
-                    path=folder_path,
-                    status="error",
-                    detail=str(exc),
-                ))
+                result.folders.append(
+                    FolderResult(
+                        path=folder_path,
+                        status="error",
+                        detail=str(exc),
+                    )
+                )
 
             # Rate limit protection
             if self._inter_call_delay > 0:
@@ -204,17 +211,21 @@ class VaultClient:
                 if exists:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
                 else:
-                    result.folders.append(FolderResult(
+                    result.folders.append(
+                        FolderResult(
+                            path=folder_path,
+                            status="error",
+                            detail="folder not found",
+                        )
+                    )
+            except Exception as exc:
+                result.folders.append(
+                    FolderResult(
                         path=folder_path,
                         status="error",
-                        detail="folder not found",
-                    ))
-            except Exception as exc:
-                result.folders.append(FolderResult(
-                    path=folder_path,
-                    status="error",
-                    detail=str(exc),
-                ))
+                        detail=str(exc),
+                    )
+                )
 
         return result
 

@@ -40,6 +40,7 @@ router = APIRouter(prefix="/api/legal", tags=["Legal"])
 # Guards
 # =============================================================================
 
+
 def _require_legal(user_id: str) -> None:
     role = get_role_from_user_id(user_id)
     if role not in (UserRole.LEGAL, UserRole.ADVOCATE, UserRole.ADMIN):
@@ -52,6 +53,7 @@ def _require_legal(user_id: str) -> None:
 # =============================================================================
 # Request Models
 # =============================================================================
+
 
 class CreateMatterRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
@@ -84,7 +86,9 @@ class UpdateFilingStatusRequest(BaseModel):
 
 
 class AddDiscoveryRequest(BaseModel):
-    discovery_type: str = Field(..., description="interrogatories, requests_for_production, requests_for_admission, depositions")
+    discovery_type: str = Field(
+        ..., description="interrogatories, requests_for_production, requests_for_admission, depositions"
+    )
     served_date: date | None = None
     due_date: date | None = None
     notes: str | None = None
@@ -111,6 +115,7 @@ _VALID_DISCOVERY_STATUSES = {"pending", "served", "responded", "overdue"}
 # =============================================================================
 # Matter Endpoints
 # =============================================================================
+
 
 @router.get("/matters")
 async def list_matters(request: Request):
@@ -180,6 +185,7 @@ async def update_matter(matter_id: str, body: UpdateMatterRequest, request: Requ
 # Court Filings
 # =============================================================================
 
+
 @router.get("/matters/{matter_id}/filings")
 async def list_filings(matter_id: str, request: Request):
     """List all court filings for a matter."""
@@ -234,6 +240,7 @@ async def update_filing(matter_id: str, filing_id: str, body: UpdateFilingStatus
 # Discovery
 # =============================================================================
 
+
 @router.get("/matters/{matter_id}/discovery")
 async def list_discovery(matter_id: str, request: Request):
     """List all discovery records for a matter."""
@@ -287,6 +294,7 @@ async def update_discovery(matter_id: str, discovery_id: str, body: UpdateDiscov
 # Exhibits
 # =============================================================================
 
+
 @router.get("/matters/{matter_id}/exhibits")
 async def list_exhibits(matter_id: str, request: Request):
     """List all exhibits for a matter (numbered sequentially)."""
@@ -323,6 +331,7 @@ async def add_exhibit(matter_id: str, body: AddExhibitRequest, request: Request)
 # =============================================================================
 # Overlay
 # =============================================================================
+
 
 @router.get("/matters/{matter_id}/overlay")
 async def matter_overlay(matter_id: str, request: Request):

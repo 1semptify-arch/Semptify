@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class DocumentCategory(str, Enum):
     """Document categories for briefcase organization"""
+
     EVIDENCE = "evidence"
     COURT = "court"
     CORRESPONDENCE = "correspondence"
@@ -33,6 +34,7 @@ class DocumentCategory(str, Enum):
 @dataclass
 class DistributedDocument:
     """A document ready for distribution to all modules"""
+
     # Core identifiers
     document_id: str
     registry_id: str | None = None
@@ -159,7 +161,7 @@ class DistributedDocument:
                 "law_refs_count": len(self.law_references),
                 "urgency_level": self.urgency_level,
                 "requires_review": self.requires_review,
-            }
+            },
         }
 
     def to_form_data_format(self) -> dict[str, Any]:
@@ -232,7 +234,14 @@ class DistributedDocument:
         """Determine court packet category"""
         if self.doc_type in ["photo_evidence", "video_evidence"]:
             return "evidence_photos"
-        elif self.doc_type in ["court_summons", "court_complaint", "court_filing", "court_order", "eviction_notice", "notice_to_quit"]:
+        elif self.doc_type in [
+            "court_summons",
+            "court_complaint",
+            "court_filing",
+            "court_order",
+            "eviction_notice",
+            "notice_to_quit",
+        ]:
             return "legal_documents"
         elif self.doc_type in ["email_communication", "text_message", "letter"]:
             return "communications"
@@ -268,7 +277,7 @@ class DistributedDocument:
 class DocumentDistributor:
     """
     Central service for distributing processed documents to all Semptify modules.
-    
+
     When a document is uploaded and processed via unified upload, this service:
     1. Receives the processed document data
     2. Formats it for each consuming module
@@ -348,7 +357,7 @@ class DocumentDistributor:
     ) -> DistributedDocument:
         """
         Distribute a processed document to all Semptify modules.
-        
+
         This is the main entry point called after unified upload processing.
         """
         # Determine category from doc_type
@@ -406,15 +415,34 @@ class DocumentDistributor:
         if not doc_type:
             return DocumentCategory.OTHER
 
-        court_types = ["court_summons", "court_complaint", "court_filing", "court_order",
-                       "eviction_notice", "notice_to_quit", "motion", "affidavit"]
+        court_types = [
+            "court_summons",
+            "court_complaint",
+            "court_filing",
+            "court_order",
+            "eviction_notice",
+            "notice_to_quit",
+            "motion",
+            "affidavit",
+        ]
         evidence_types = ["photo_evidence", "video_evidence", "inspection_report"]
-        correspondence_types = ["email_communication", "text_message", "letter",
-                               "repair_request", "repair_response"]
-        financial_types = ["receipt", "payment_record", "bank_statement", "utility_bill",
-                          "rent_increase_notice", "late_fee_notice"]
-        lease_types = ["lease", "lease_amendment", "move_in_checklist", "move_out_checklist",
-                      "security_deposit_receipt", "security_deposit_itemization"]
+        correspondence_types = ["email_communication", "text_message", "letter", "repair_request", "repair_response"]
+        financial_types = [
+            "receipt",
+            "payment_record",
+            "bank_statement",
+            "utility_bill",
+            "rent_increase_notice",
+            "late_fee_notice",
+        ]
+        lease_types = [
+            "lease",
+            "lease_amendment",
+            "move_in_checklist",
+            "move_out_checklist",
+            "security_deposit_receipt",
+            "security_deposit_itemization",
+        ]
 
         if doc_type in court_types:
             return DocumentCategory.COURT
@@ -492,9 +520,7 @@ class DocumentDistributor:
         docs = self.get_user_documents(user_id)
         return [doc.to_court_packet_format() for doc in docs]
 
-    def get_documents_by_category(
-        self, user_id: str, category: DocumentCategory
-    ) -> list[DistributedDocument]:
+    def get_documents_by_category(self, user_id: str, category: DocumentCategory) -> list[DistributedDocument]:
         """Get documents by category"""
         docs = self.get_user_documents(user_id)
         return [doc for doc in docs if doc.category == category]

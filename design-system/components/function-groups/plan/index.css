@@ -260,29 +260,29 @@
   .plan-function-group.horizontal {
     flex-direction: column;
   }
-  
+
   .plan-function-group.grid {
     grid-template-columns: 1fr;
   }
-  
+
   .plan-function-group-actions {
     flex-direction: column;
   }
-  
+
   .plan-function-group-actions button {
     width: 100%;
   }
-  
+
   .plan-workflow-progress {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-sm);
   }
-  
+
   .plan-workflow-steps {
     width: 100%;
   }
-  
+
   .plan-workflow-connector {
     width: 2px;
     height: 20px;

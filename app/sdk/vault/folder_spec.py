@@ -71,26 +71,34 @@ BASE_VAULT = VaultFolderSpec()
 # Product specs — each product adds ONLY its own subfolders.
 # ============================================================================
 
-TENANT_VAULT = BASE_VAULT.extend([
-    VAULT_DOCUMENTS,
-    VAULT_CERTIFICATES,
-])
+TENANT_VAULT = BASE_VAULT.extend(
+    [
+        VAULT_DOCUMENTS,
+        VAULT_CERTIFICATES,
+    ]
+)
 
-ADVOCATE_VAULT = BASE_VAULT.extend([
-    VAULT_DOCUMENTS,
-    f"{VAULT_ROOT}/client_files",
-    f"{VAULT_ROOT}/case_notes",
-    f"{VAULT_ROOT}/legal_filings",
-])
+ADVOCATE_VAULT = BASE_VAULT.extend(
+    [
+        VAULT_DOCUMENTS,
+        f"{VAULT_ROOT}/client_files",
+        f"{VAULT_ROOT}/case_notes",
+        f"{VAULT_ROOT}/legal_filings",
+    ]
+)
 
-LEGAL_VAULT = BASE_VAULT.extend([
-    VAULT_DOCUMENTS,
-    f"{VAULT_ROOT}/court_exhibits",
-    f"{VAULT_ROOT}/case_files",
-    f"{VAULT_ROOT}/discovery",
-])
+LEGAL_VAULT = BASE_VAULT.extend(
+    [
+        VAULT_DOCUMENTS,
+        f"{VAULT_ROOT}/court_exhibits",
+        f"{VAULT_ROOT}/case_files",
+        f"{VAULT_ROOT}/discovery",
+    ]
+)
 
-RESEARCH_VAULT = BASE_VAULT.extend([
-    f"{VAULT_ROOT}/research",
-    f"{VAULT_ROOT}/dossiers",
-])
+RESEARCH_VAULT = BASE_VAULT.extend(
+    [
+        f"{VAULT_ROOT}/research",
+        f"{VAULT_ROOT}/dossiers",
+    ]
+)

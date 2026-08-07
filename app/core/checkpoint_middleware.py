@@ -28,7 +28,7 @@ USER_COOKIE = "semptify_uid"
 
 # Always exempt - never check checkpoint
 EXEMPT_PATHS = {
-    "/",          # Welcome page
+    "/",  # Welcome page
     "/preamble",  # Routing decision point — must always be reachable
     "/favicon.ico",
     "/robots.txt",
@@ -121,7 +121,7 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
 def set_checkpoint_cookie(response, max_age: int = CHECKPOINT_MAX_AGE):
     """
     Set checkpoint cookie - call this when user clicks button on welcome page.
-    
+
     Usage:
         from app.core.checkpoint_middleware import set_checkpoint_cookie
         set_checkpoint_cookie(response)
@@ -146,6 +146,7 @@ def clear_checkpoint_cookie(response):
 # FastAPI Dependencies for Route-Level Enforcement
 # =============================================================================
 
+
 async def require_checkpoint(request: Request):
     """
     Dependency for routes that absolutely require checkpoint.
@@ -155,10 +156,7 @@ async def require_checkpoint(request: Request):
     checkpoint = request.cookies.get(CHECKPOINT_COOKIE)
 
     if not user_id and checkpoint != CHECKPOINT_VALUE:
-        raise HTTPException(
-            status_code=403,
-            detail="Checkpoint required. Please visit welcome page first."
-        )
+        raise HTTPException(status_code=403, detail="Checkpoint required. Please visit welcome page first.")
 
 
 from fastapi import HTTPException

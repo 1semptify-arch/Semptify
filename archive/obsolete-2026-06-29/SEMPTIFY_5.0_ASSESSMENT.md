@@ -135,7 +135,7 @@ These pages NEED help but don't have it:
 ```
 Documents:
 ├── documents.html
-├── documents_v2.html  
+├── documents_v2.html
 ├── document_intake.html
 ├── vault.html
 ├── briefcase.html
@@ -193,7 +193,7 @@ Semptify users are likely:
 
                               ↓
                     Based on situation:
-                              
+
 ┌──────────────────┬──────────────────┬──────────────────┐
 │   EVICTION       │   MAINTENANCE    │   GENERAL        │
 ├──────────────────┼──────────────────┼──────────────────┤
@@ -214,7 +214,7 @@ Semptify users are likely:
 1. **Create Single Entry Point**
    - Rename `landing.html` to `index.html`
    - Add situation-based routing (eviction? maintenance? general?)
-   
+
 2. **Consolidate Navigation**
    - Update `shared-nav.js` to show only essential pages
    - Group features logically
@@ -230,7 +230,7 @@ Semptify users are likely:
 5. **Merge Document Pages**
    ```
    Current: 6 pages → Target: 1 unified document hub
-   
+
    briefcase.html (keep as base)
    ├── Upload (from document_intake)
    ├── Vault view (from vault)
@@ -241,7 +241,7 @@ Semptify users are likely:
 6. **Merge Timeline Pages**
    ```
    Current: 5 pages → Target: 1 unified timeline
-   
+
    timeline.html (keep as base)
    ├── Auto-build mode
    ├── Manual edit mode
@@ -251,7 +251,7 @@ Semptify users are likely:
 7. **Merge Dashboard Pages**
    ```
    Current: 4 pages → Target: 1 adaptive dashboard
-   
+
    dashboard.html
    ├── Crisis mode (if eviction detected)
    ├── Normal mode
@@ -328,7 +328,7 @@ Semptify users are likely:
 
 ### Git Commits Today
 1. `de1ba5e` - Help system integration
-2. `b50fa39` - Registry security fixes  
+2. `b50fa39` - Registry security fixes
 3. `94df9ac` - Unified entry point
 4. `643031a` - Simplified navigation (5 sections)
 5. `0a2b2d9` - Page consolidation (13 archived)
@@ -340,7 +340,7 @@ Semptify users are likely:
 ```
 Entry Point: / (root)
     └── dashboard.html (with onboarding modal)
-        
+
 Navigation (5 sections):
     🏠 Home → Dashboard, Crisis Help
     📄 Documents → Upload, Briefcase, Vault, PDF Tools
@@ -363,7 +363,7 @@ Redirects:
 Semptify 5.0 has **excellent functionality** and is now **significantly simplified**:
 
 ✅ **Security**: User data isolation verified, registry endpoints secured
-✅ **AI Optimization**: Smart fallback chain with free tier priority  
+✅ **AI Optimization**: Smart fallback chain with free tier priority
 ✅ **Help System**: 90% coverage achieved
 ✅ **Navigation**: Reduced from 8 to 5 sections
 ✅ **Pages**: 13 redundant pages archived

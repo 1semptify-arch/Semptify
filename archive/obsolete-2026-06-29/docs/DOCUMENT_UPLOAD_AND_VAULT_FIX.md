@@ -22,7 +22,7 @@ This document describes the comprehensive fix for the document upload-to-vault s
 
 ## The Solution (Complete Flow)
 
-### 1. **New Notarization Service** 
+### 1. **New Notarization Service**
 **File**: `app/services/document_notarization.py`
 
 Provides tamper-proof documentation of document receipt and storage.
@@ -370,39 +370,39 @@ Shows complete audit trail of document.
 class NotarizationRecord:
     # Identifiers
     notarization_id: str  # SEM-NOT-YYYYMMDD-XXXXXXXX
-    document_id: str      # Internal document reference
-    
+    document_id: str  # Internal document reference
+
     # User/Actor Info
-    user_id: str          # User who uploaded
-    username: str         # Human-readable name
-    
+    user_id: str  # User who uploaded
+    username: str  # Human-readable name
+
     # Content Verification
-    file_hash: str        # SHA-256 of file
-    file_size: int        # Original size
-    mime_type: str        # Content type
-    
+    file_hash: str  # SHA-256 of file
+    file_size: int  # Original size
+    mime_type: str  # Content type
+
     # Metadata
-    original_filename: str            # Original filename
-    document_type: Optional[str]      # lease, notice, photo, etc.
-    description: Optional[str]        # User description
-    tags: List[str]                   # User tags
-    
+    original_filename: str  # Original filename
+    document_type: Optional[str]  # lease, notice, photo, etc.
+    description: Optional[str]  # User description
+    tags: List[str]  # User tags
+
     # Location
-    storage_path: str                 # Path in vault
-    storage_provider: str             # google_drive, dropbox, onedrive
-    
+    storage_path: str  # Path in vault
+    storage_provider: str  # google_drive, dropbox, onedrive
+
     # Timestamps & Source
-    notarized_at: str                 # ISO 8601
-    notarized_by: str                 # "DocumentNotarizationService"
-    ip_address: Optional[str]         # Uploader IP
-    user_agent: Optional[str]         # Browser info
-    upload_method: str                # web, api, file_picker, etc.
-    upload_context: Optional[Dict]    # Additional context
-    
+    notarized_at: str  # ISO 8601
+    notarized_by: str  # "DocumentNotarizationService"
+    ip_address: Optional[str]  # Uploader IP
+    user_agent: Optional[str]  # Browser info
+    upload_method: str  # web, api, file_picker, etc.
+    upload_context: Optional[Dict]  # Additional context
+
     # Status & Integrity
-    status: str                       # notarized, verified, registered, processing
-    registry_id: Optional[str]        # Reference to Document Registry
-    certificate_hash: Optional[str]   # Hash of this record (for verification)
+    status: str  # notarized, verified, registered, processing
+    registry_id: Optional[str]  # Reference to Document Registry
+    certificate_hash: Optional[str]  # Hash of this record (for verification)
 ```
 
 ---
@@ -746,12 +746,12 @@ curl http://localhost:8000/api/intake/notarization/$NOTARIZATION_ID/chain-of-cus
 
 The enhanced document upload system now provides:
 
-✅ **Notarization**: Tamper-proof receipt with SHA-256 hashing  
-✅ **Registration**: Documented in system with full metadata  
-✅ **Persistence**: Stored in user's cloud vault or local fallback  
-✅ **Availability**: Indexed for system-wide access via vault_id  
-✅ **Processing**: Full orchestration pipeline triggered automatically  
-✅ **Audit Trail**: Complete chain of custody for legal compliance  
-✅ **Verification**: Public verification endpoints for document authenticity  
+✅ **Notarization**: Tamper-proof receipt with SHA-256 hashing
+✅ **Registration**: Documented in system with full metadata
+✅ **Persistence**: Stored in user's cloud vault or local fallback
+✅ **Availability**: Indexed for system-wide access via vault_id
+✅ **Processing**: Full orchestration pipeline triggered automatically
+✅ **Audit Trail**: Complete chain of custody for legal compliance
+✅ **Verification**: Public verification endpoints for document authenticity
 
 This satisfies the user's requirement: **"documents registered into system, saved to user storage, available for processing, with original preserved and notarization"**

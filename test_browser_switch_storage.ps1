@@ -1,4 +1,4 @@
-<# 
+<#
  Test: Browser Switch + Storage Connection Validation
  Purpose: Validate admin browser switch endpoint and storage connection health
 #>
@@ -22,7 +22,7 @@ function Test-Endpoint {
         [object]$Body = $null,
         [string]$TestName
     )
-    
+
     try {
         $params = @{
             Uri = $Uri
@@ -31,15 +31,15 @@ function Test-Endpoint {
             TimeoutSec = 10
             Headers = $Headers
         }
-        
+
         if ($Body) {
             $params["Body"] = ($Body | ConvertTo-Json -Depth 5)
             $params["ContentType"] = "application/json"
         }
-        
+
         $response = Invoke-WebRequest @params -ErrorAction Stop
         return @{ success = $true; status = $response.StatusCode; message = "OK"; body = $response.Content; name = $TestName }
-        
+
     } catch {
         if ($_.Exception.Response) {
             $status = [int]$_.Exception.Response.StatusCode

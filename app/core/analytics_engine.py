@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class AnalyticsEventType(Enum):
     """Types of analytics events."""
+
     # API Events
     API_REQUEST = "api_request"
     API_ERROR = "api_error"
@@ -58,6 +59,7 @@ class AnalyticsEventType(Enum):
 
 class TimePeriod(Enum):
     """Time periods for aggregation."""
+
     HOUR = "hour"
     DAY = "day"
     WEEK = "week"
@@ -67,6 +69,7 @@ class TimePeriod(Enum):
 @dataclass
 class AnalyticsEvent:
     """Analytics event data."""
+
     event_id: str
     event_type: AnalyticsEventType
     timestamp: datetime
@@ -89,13 +92,14 @@ class AnalyticsEvent:
             "method": self.method,
             "status_code": self.status_code,
             "duration_ms": self.duration_ms,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class AggregatedMetrics:
     """Aggregated analytics metrics."""
+
     period: str
     start_time: datetime
     end_time: datetime
@@ -120,7 +124,7 @@ class AggregatedMetrics:
             "error_rate": self.error_rate,
             "top_endpoints": self.top_endpoints,
             "feature_usage": self.feature_usage,
-            "document_metrics": self.document_metrics
+            "document_metrics": self.document_metrics,
         }
 
 
@@ -143,7 +147,7 @@ class AnalyticsEngine:
         method: str | None = None,
         status_code: int | None = None,
         duration_ms: float | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Track a new analytics event."""
         event_id = make_id("anl")
@@ -158,7 +162,7 @@ class AnalyticsEngine:
             method=method,
             status_code=status_code,
             duration_ms=duration_ms,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         # Add to buffer
@@ -182,7 +186,7 @@ class AnalyticsEngine:
 
             # Trim old events if exceeding max
             if len(self.events) > self.max_events:
-                self.events = self.events[-self.max_events:]
+                self.events = self.events[-self.max_events :]
 
     def track_api_request(
         self,
@@ -191,7 +195,7 @@ class AnalyticsEngine:
         user_id: str | None = None,
         status_code: int = 200,
         duration_ms: float = 0.0,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Track an API request."""
         return self.track_event(
@@ -201,22 +205,18 @@ class AnalyticsEngine:
             method=method,
             status_code=status_code,
             duration_ms=duration_ms,
-            metadata=metadata
+            metadata=metadata,
         )
 
     def track_user_action(
-        self,
-        action: str,
-        user_id: str,
-        session_id: str | None = None,
-        metadata: dict[str, Any] | None = None
+        self, action: str, user_id: str, session_id: str | None = None, metadata: dict[str, Any] | None = None
     ) -> str:
         """Track a user action."""
         return self.track_event(
             event_type=AnalyticsEventType.USER_ACTION,
             user_id=user_id,
             session_id=session_id,
-            metadata={"action": action, **(metadata or {})}
+            metadata={"action": action, **(metadata or {})},
         )
 
     def track_document_event(
@@ -225,24 +225,17 @@ class AnalyticsEngine:
         user_id: str,
         document_id: str | None = None,
         doc_type: str | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Track a document-related event."""
         return self.track_event(
             event_type=event_type,
             user_id=user_id,
-            metadata={
-                "document_id": document_id,
-                "doc_type": doc_type,
-                **(metadata or {})
-            }
+            metadata={"document_id": document_id, "doc_type": doc_type, **(metadata or {})},
         )
 
     async def aggregate_metrics(
-        self,
-        period: TimePeriod,
-        start_time: datetime | None = None,
-        end_time: datetime | None = None
+        self, period: TimePeriod, start_time: datetime | None = None, end_time: datetime | None = None
     ) -> AggregatedMetrics:
         """Aggregate metrics for a time period."""
         # Ensure buffer is flushed
@@ -260,10 +253,7 @@ class AnalyticsEngine:
             start_time = start_time or (end_time - timedelta(days=30))
 
         # Filter events in time range
-        filtered_events = [
-            e for e in self.events
-            if start_time <= e.timestamp <= end_time
-        ]
+        filtered_events = [e for e in self.events if start_time <= e.timestamp <= end_time]
 
         # Calculate metrics
         total_requests = len([e for e in filtered_events if e.event_type == AnalyticsEventType.API_REQUEST])
@@ -313,14 +303,11 @@ class AnalyticsEngine:
             error_rate=error_rate,
             top_endpoints=top_endpoints,
             feature_usage=dict(feature_usage),
-            document_metrics=dict(document_metrics)
+            document_metrics=dict(document_metrics),
         )
 
     def get_recent_events(
-        self,
-        event_type: AnalyticsEventType | None = None,
-        user_id: str | None = None,
-        limit: int = 100
+        self, event_type: AnalyticsEventType | None = None, user_id: str | None = None, limit: int = 100
     ) -> list[AnalyticsEvent]:
         """Get recent events with optional filtering."""
         events = self.events + self.event_buffer
@@ -345,7 +332,7 @@ class AnalyticsEngine:
         data = {
             "exported_at": utc_now().isoformat(),
             "total_events": len(events),
-            "events": [e.to_dict() for e in events]
+            "events": [e.to_dict() for e in events],
         }
 
         return json.dumps(data, indent=2, default=str)
@@ -359,25 +346,37 @@ class AnalyticsEngine:
         writer = csv.writer(output)
 
         # Header
-        writer.writerow([
-            "event_id", "event_type", "timestamp", "user_id", "session_id",
-            "endpoint", "method", "status_code", "duration_ms", "metadata"
-        ])
+        writer.writerow(
+            [
+                "event_id",
+                "event_type",
+                "timestamp",
+                "user_id",
+                "session_id",
+                "endpoint",
+                "method",
+                "status_code",
+                "duration_ms",
+                "metadata",
+            ]
+        )
 
         # Data
         for event in self.events + self.event_buffer:
-            writer.writerow([
-                event.event_id,
-                event.event_type.value,
-                event.timestamp.isoformat(),
-                event.user_id or "",
-                event.session_id or "",
-                event.endpoint or "",
-                event.method or "",
-                event.status_code or "",
-                event.duration_ms or "",
-                json.dumps(event.metadata)
-            ])
+            writer.writerow(
+                [
+                    event.event_id,
+                    event.event_type.value,
+                    event.timestamp.isoformat(),
+                    event.user_id or "",
+                    event.session_id or "",
+                    event.endpoint or "",
+                    event.method or "",
+                    event.status_code or "",
+                    event.duration_ms or "",
+                    json.dumps(event.metadata),
+                ]
+            )
 
         return output.getvalue()
 
@@ -392,10 +391,7 @@ class AnalyticsEngine:
             "unique_users_all_time": len(set(e.user_id for e in all_events if e.user_id)),
             "oldest_event": min((e.timestamp for e in all_events), default=None),
             "newest_event": max((e.timestamp for e in all_events), default=None),
-            "event_types": {
-                et.value: len([e for e in all_events if e.event_type == et])
-                for et in AnalyticsEventType
-            }
+            "event_types": {et.value: len([e for e in all_events if e.event_type == et]) for et in AnalyticsEventType},
         }
 
 

@@ -110,7 +110,7 @@ document.addEventListener('capture-upload', async (event) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(event.detail)
   });
-  
+
   const result = await response.json();
   if (result.success) {
     // Update UI accordingly
@@ -295,7 +295,7 @@ The validation script checks:
 ### Component Configuration
 
 ```html
-<div class="upload-zone" 
+<div class="upload-zone"
      data-component-id="upload_zone_123"
      data-role="tenant"
      data-auto-upload="true"

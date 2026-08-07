@@ -13,7 +13,7 @@
   <div class="onboarding-state" id="{{ component_id }}_state" style="display: none;">
     <div class="state-data" data-current-step="welcome" data-completed-steps="[]" data-start-time=""></div>
   </div>
-  
+
   <!-- Progress Bar -->
   {% if show_progress %}
   <div class="onboarding-progress" id="{{ component_id }}_progress">
@@ -52,12 +52,12 @@
     </div>
   </div>
   {% endif %}
-  
+
   <!-- Main Onboarding Container -->
   <div class="onboarding-container" id="{{ component_id }}_container">
     <!-- Content will be dynamically loaded here -->
   </div>
-  
+
   <!-- Navigation Controls -->
   <div class="onboarding-controls" id="{{ component_id }}_controls">
     <button class="control-btn secondary" id="{{ component_id }}_skip_btn" onclick="skipOnboarding()">
@@ -70,7 +70,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-auto-start="{{ auto_start|lower }}"
@@ -314,25 +314,25 @@
   .onboarding-progress {
     padding: 1rem;
   }
-  
+
   .progress-steps {
     gap: 0.5rem;
   }
-  
+
   .step-label {
     font-size: 0.625rem;
   }
-  
+
   .onboarding-container {
     padding: 1rem;
   }
-  
+
   .onboarding-controls {
     padding: 1rem;
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .control-btn {
     width: 100%;
   }
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     autoStart: configEl.dataset.autoStart === 'true',
     showProgress: configEl.dataset.showProgress === 'true'
   };
-  
+
   // Onboarding state
   let onboardingState = {
     currentStep: 'welcome',
@@ -358,37 +358,37 @@ document.addEventListener('DOMContentLoaded', function() {
     stepHistory: [],
     role: config.role
   };
-  
+
   // Step definitions
   const steps = [
     'welcome',
-    'role-selection', 
+    'role-selection',
     'capture-demo',
     'understand-demo',
     'plan-demo',
     'complete'
   ];
-  
+
   // Initialize onboarding
   initOnboarding();
-  
+
   function initOnboarding() {
     // Load saved state if exists
     loadOnboardingState();
-    
+
     // Auto-start if enabled
     if (config.autoStart && !onboardingState.startTime) {
       startOnboarding();
     }
-    
+
     // Initialize current step
     renderStep(onboardingState.currentStep);
     updateProgress();
-    
+
     // Setup event listeners
     setupEventListeners();
   }
-  
+
   function loadOnboardingState() {
     const savedState = localStorage.getItem(`onboarding_state_${config.role}`);
     if (savedState) {
@@ -401,12 +401,12 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   }
-  
+
   function saveOnboardingState() {
     localStorage.setItem(`onboarding_state_${config.role}`, JSON.stringify(onboardingState));
     console.log('Saved onboarding state:', onboardingState);
   }
-  
+
   function resetOnboardingState() {
     onboardingState = {
       currentStep: 'welcome',
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     saveOnboardingState();
   }
-  
+
   function startOnboarding() {
     onboardingState.startTime = new Date().toISOString();
     onboardingState.stepHistory = [{
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
       action: 'start'
     }];
     saveOnboardingState();
-    
+
     // Emit start event
     const startEvent = new CustomEvent('onboarding-start', {
       detail: {
@@ -437,15 +437,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(startEvent);
   }
-  
+
   function renderStep(stepName) {
     const container = document.getElementById(config.componentId + '_container');
     const nextBtn = document.getElementById(config.componentId + '_next_btn');
     const skipBtn = document.getElementById(config.componentId + '_skip_btn');
-    
+
     // Update button states
     updateButtonStates(stepName);
-    
+
     // Render step content
     switch(stepName) {
       case 'welcome':
@@ -469,11 +469,11 @@ document.addEventListener('DOMContentLoaded', function() {
       default:
         console.error('Unknown step:', stepName);
     }
-    
+
     // Update progress indicators
     updateProgressIndicators(stepName);
   }
-  
+
   function renderWelcomeStep(container) {
     container.innerHTML = `
       <div class="welcome-content">
@@ -482,15 +482,15 @@ document.addEventListener('DOMContentLoaded', function() {
           <h1 class="hero-title">Welcome to Semptify</h1>
           <p class="hero-subtitle">Your tenant rights protection starts here</p>
         </div>
-        
+
         <div class="welcome-intro">
           <h2 class="intro-title">Protect Your Housing Rights</h2>
           <p class="intro-text">
-            Semptify helps you understand and protect your tenant rights through smart case management, 
+            Semptify helps you understand and protect your tenant rights through smart case management,
             timeline tracking, and AI-powered legal insights.
           </p>
         </div>
-        
+
         <div class="welcome-features">
           <div class="feature-item">
             <div class="feature-icon">+</div>
@@ -517,13 +517,13 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function renderRoleSelectionStep(container) {
     container.innerHTML = `
       <div class="role-selection-content">
         <h2 class="selection-title">Select Your Role</h2>
         <p class="selection-subtitle">Choose the role that best describes you</p>
-        
+
         <div class="role-options">
           <div class="role-option ${onboardingState.role === 'tenant' ? 'selected' : ''}" data-role="tenant">
             <div class="role-icon">+</div>
@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `;
-    
+
     // Setup role selection listeners
     container.querySelectorAll('.role-option').forEach(option => {
       option.addEventListener('click', function() {
@@ -564,13 +564,13 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function renderCaptureDemoStep(container) {
     container.innerHTML = `
       <div class="demo-content">
         <h2 class="demo-title">Capture Information</h2>
         <p class="demo-subtitle">See how to add documents and information to your case</p>
-        
+
         <div class="demo-showcase">
           <div class="demo-component">
             <h3>Upload Zone</h3>
@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <p>Drop files here or click to browse</p>
             </div>
           </div>
-          
+
           <div class="demo-component">
             <h3>Quick Input</h3>
             <p>Add notes and information quickly</p>
@@ -593,13 +593,13 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function renderUnderstandDemoStep(container) {
     container.innerHTML = `
       <div class="demo-content">
         <h2 class="demo-title">Understand Your Rights</h2>
         <p class="demo-subtitle">AI-powered analysis helps you understand your situation</p>
-        
+
         <div class="demo-showcase">
           <div class="demo-component">
             <h3>Timeline View</h3>
@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
           </div>
-          
+
           <div class="demo-component">
             <h3>Rights Analysis</h3>
             <p>AI detects your tenant rights and risks</p>
@@ -640,13 +640,13 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function renderPlanDemoStep(container) {
     container.innerHTML = `
       <div class="demo-content">
         <h2 class="demo-title">Plan Your Actions</h2>
         <p class="demo-subtitle">Get prioritized action steps and track deadlines</p>
-        
+
         <div class="demo-showcase">
           <div class="demo-component">
             <h3>Next Steps</h3>
@@ -664,7 +664,7 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
           </div>
-          
+
           <div class="demo-component">
             <h3>Deadline Tracker</h3>
             <p>Never miss important dates</p>
@@ -685,25 +685,25 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function renderCompleteStep(container) {
     const roleNames = {
       'tenant': 'Tenant Dashboard',
       'advocate': 'Advocate Dashboard',
-      'legal': 'Legal Dashboard', 
+      'legal': 'Legal Dashboard',
       'admin': 'Admin Dashboard'
     };
-    
+
     const roleDescriptions = {
       'tenant': 'Access your case management tools, timeline, and action plans',
       'advocate': 'Manage your client cases, handoffs, and collaboration tools',
       'legal': 'Review cases, analyze documents, and provide legal guidance',
       'admin': 'Oversee system administration, user management, and metrics'
     };
-    
+
     const dashboardName = roleNames[onboardingState.role] || 'Dashboard';
     const dashboardDesc = roleDescriptions[onboardingState.role] || 'Your personalized workspace';
-    
+
     container.innerHTML = `
       <div class="complete-content">
         <div class="complete-hero">
@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <h1 class="complete-title">You're All Set!</h1>
           <p class="complete-subtitle">Your onboarding is complete. Your ${onboardingState.role} dashboard is ready.</p>
         </div>
-        
+
         <div class="complete-summary">
           <h2>What You've Learned</h2>
           <ul class="summary-list">
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <li>Using Semptify to protect your housing rights</li>
           </ul>
         </div>
-        
+
         <div class="role-destination">
           <h2>Your ${dashboardName}</h2>
           <p class="destination-description">${dashboardDesc}</p>
@@ -733,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
           </div>
         </div>
-        
+
         <div class="complete-actions">
           <button class="complete-action-btn primary" onclick="goToDashboard()">
             Go to ${dashboardName}
@@ -745,17 +745,17 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function selectRole(role) {
     onboardingState.role = role;
     saveOnboardingState();
-    
+
     // Update UI
     document.querySelectorAll('.role-option').forEach(option => {
       option.classList.remove('selected');
     });
     document.querySelector(`.role-option[data-role="${role}"]`).classList.add('selected');
-    
+
     // Emit role selection event
     const roleEvent = new CustomEvent('onboarding-role-select', {
       detail: {
@@ -765,21 +765,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(roleEvent);
   }
-  
+
   function nextStep() {
     const currentIndex = steps.indexOf(onboardingState.currentStep);
     const nextIndex = currentIndex + 1;
-    
+
     if (nextIndex >= steps.length) {
       completeOnboarding();
       return;
     }
-    
+
     // Mark current step as completed
     if (!onboardingState.completedSteps.includes(onboardingState.currentStep)) {
       onboardingState.completedSteps.push(onboardingState.currentStep);
     }
-    
+
     // Move to next step
     onboardingState.currentStep = steps[nextIndex];
     onboardingState.stepHistory.push({
@@ -787,11 +787,11 @@ document.addEventListener('DOMContentLoaded', function() {
       timestamp: new Date().toISOString(),
       action: 'next'
     });
-    
+
     saveOnboardingState();
     renderStep(onboardingState.currentStep);
     updateProgress();
-    
+
     // Emit step completion event
     const stepEvent = new CustomEvent('onboarding-step-complete', {
       detail: {
@@ -803,13 +803,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(stepEvent);
   }
-  
+
   function skipOnboarding() {
     if (confirm('Are you sure you want to skip the onboarding? You can always access it later from the dashboard.')) {
       completeOnboarding();
     }
   }
-  
+
   function completeOnboarding() {
     onboardingState.currentStep = 'complete';
     onboardingState.completedSteps = [...steps]; // Mark all as completed
@@ -818,11 +818,11 @@ document.addEventListener('DOMContentLoaded', function() {
       timestamp: new Date().toISOString(),
       action: 'complete'
     });
-    
+
     saveOnboardingState();
     renderStep('complete');
     updateProgress();
-    
+
     // Emit completion event
     const completeEvent = new CustomEvent('onboarding-complete', {
       detail: {
@@ -835,18 +835,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(completeEvent);
   }
-  
+
   function goToDashboard() {
     // Redirect to role-specific home page based on user role
     const roleRoutes = {
       'tenant': '/tenant/dashboard',
-      'advocate': '/advocate/dashboard', 
+      'advocate': '/advocate/dashboard',
       'legal': '/legal/dashboard',
       'admin': '/admin/dashboard'
     };
-    
+
     const targetRoute = roleRoutes[onboardingState.role] || '/dashboard';
-    
+
     // Emit navigation event with role-specific route
     const navEvent = new CustomEvent('onboarding-navigate-dashboard', {
       detail: {
@@ -857,11 +857,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     document.dispatchEvent(navEvent);
-    
+
     // Alternative: direct navigation (uncomment if needed)
     // window.location.href = targetRoute;
   }
-  
+
   function viewHelp() {
     // Emit help event
     const helpEvent = new CustomEvent('onboarding-view-help', {
@@ -872,31 +872,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(helpEvent);
   }
-  
+
   function updateProgress() {
     if (!config.showProgress) return;
-    
+
     const totalSteps = steps.length;
     const completedCount = onboardingState.completedSteps.length;
     const currentStepIndex = steps.indexOf(onboardingState.currentStep);
     const progressPercentage = Math.round(((completedCount + (currentStepIndex > 0 ? 1 : 0)) / totalSteps) * 100);
-    
+
     // Update progress bar
     const progressFill = document.getElementById(config.componentId + '_progress_fill');
     const percentageText = document.getElementById(config.componentId + '_percentage');
-    
+
     if (progressFill) progressFill.style.width = progressPercentage + '%';
     if (percentageText) percentageText.textContent = progressPercentage + '%';
   }
-  
+
   function updateProgressIndicators(currentStep) {
     if (!config.showProgress) return;
-    
+
     const currentIndex = steps.indexOf(currentStep);
-    
+
     document.querySelectorAll('.progress-step').forEach((step, index) => {
       step.classList.remove('active', 'completed');
-      
+
       if (index < currentIndex) {
         step.classList.add('completed');
       } else if (index === currentIndex) {
@@ -904,13 +904,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
+
   function updateButtonStates(step) {
     const nextBtn = document.getElementById(config.componentId + '_next_btn');
     const skipBtn = document.getElementById(config.componentId + '_skip_btn');
-    
+
     if (!nextBtn || !skipBtn) return;
-    
+
     // Update button text based on step
     switch(step) {
       case 'welcome':
@@ -927,34 +927,34 @@ document.addEventListener('DOMContentLoaded', function() {
         nextBtn.textContent = 'Next';
     }
   }
-  
+
   function setupEventListeners() {
     // Listen for component events
     document.addEventListener('onboarding-step-complete', handleStepComplete);
     document.addEventListener('onboarding-complete', handleOnboardingComplete);
   }
-  
+
   function handleStepComplete(event) {
     console.log('Step completed:', event.detail);
   }
-  
+
   function handleOnboardingComplete(event) {
     console.log('Onboarding completed:', event.detail);
   }
-  
+
   // Make functions available globally
   window.nextStep = nextStep;
   window.skipOnboarding = skipOnboarding;
   window.goToDashboard = goToDashboard;
   window.viewHelp = viewHelp;
-  
+
   // Add demo styles
   const demoStyles = `
     .welcome-content {
       text-align: center;
       padding: 2rem;
     }
-    
+
     .hero-icon {
       width: 80px;
       height: 80px;
@@ -967,27 +967,27 @@ document.addEventListener('DOMContentLoaded', function() {
       font-size: 40px;
       margin: 0 auto 2rem;
     }
-    
+
     .hero-title {
       font-size: 2.5rem;
       font-weight: 700;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .hero-subtitle {
       font-size: 1.25rem;
       color: #64748b;
       margin-bottom: 3rem;
     }
-    
+
     .intro-title {
       font-size: 2rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .intro-text {
       font-size: 1.125rem;
       color: #64748b;
@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
       max-width: 600px;
       margin: 0 auto 3rem;
     }
-    
+
     .welcome-features {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1003,14 +1003,14 @@ document.addEventListener('DOMContentLoaded', function() {
       max-width: 1000px;
       margin: 0 auto;
     }
-    
+
     .feature-item {
       display: flex;
       align-items: flex-start;
       gap: 1rem;
       text-align: left;
     }
-    
+
     .feature-icon {
       width: 48px;
       height: 48px;
@@ -1023,37 +1023,37 @@ document.addEventListener('DOMContentLoaded', function() {
       font-size: 24px;
       flex-shrink: 0;
     }
-    
+
     .feature-content h3 {
       font-size: 1.25rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 0.5rem;
     }
-    
+
     .feature-content p {
       color: #64748b;
       line-height: 1.5;
     }
-    
+
     .role-selection-content {
       text-align: center;
       padding: 2rem;
     }
-    
+
     .selection-title {
       font-size: 2rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .selection-subtitle {
       font-size: 1.125rem;
       color: #64748b;
       margin-bottom: 3rem;
     }
-    
+
     .role-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -1061,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
       max-width: 1000px;
       margin: 0 auto;
     }
-    
+
     .role-option {
       padding: 2rem;
       background: white;
@@ -1070,17 +1070,17 @@ document.addEventListener('DOMContentLoaded', function() {
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    
+
     .role-option:hover {
       border-color: #3b82f6;
       transform: translateY(-2px);
     }
-    
+
     .role-option.selected {
       border-color: #3b82f6;
       background: rgba(59, 130, 246, 0.05);
     }
-    
+
     .role-option .role-icon {
       width: 48px;
       height: 48px;
@@ -1093,37 +1093,37 @@ document.addEventListener('DOMContentLoaded', function() {
       font-size: 24px;
       margin: 0 auto 1rem;
     }
-    
+
     .role-option h3 {
       font-size: 1.25rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 0.5rem;
     }
-    
+
     .role-option p {
       color: #64748b;
       line-height: 1.5;
     }
-    
+
     .demo-content {
       text-align: center;
       padding: 2rem;
     }
-    
+
     .demo-title {
       font-size: 2rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .demo-subtitle {
       font-size: 1.125rem;
       color: #64748b;
       margin-bottom: 3rem;
     }
-    
+
     .demo-showcase {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1131,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', function() {
       max-width: 1000px;
       margin: 0 auto;
     }
-    
+
     .demo-component {
       background: white;
       border: 1px solid #e2e8f0;
@@ -1139,19 +1139,19 @@ document.addEventListener('DOMContentLoaded', function() {
       padding: 2rem;
       text-align: left;
     }
-    
+
     .demo-component h3 {
       font-size: 1.25rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 0.5rem;
     }
-    
+
     .demo-component p {
       color: #64748b;
       margin-bottom: 1.5rem;
     }
-    
+
     .demo-upload-area {
       border: 2px dashed #e2e8f0;
       border-radius: 8px;
@@ -1159,13 +1159,13 @@ document.addEventListener('DOMContentLoaded', function() {
       text-align: center;
       background: #f8fafc;
     }
-    
+
     .upload-icon {
       font-size: 48px;
       color: #3b82f6;
       margin-bottom: 1rem;
     }
-    
+
     .demo-input-area textarea {
       width: 100%;
       border: 1px solid #e2e8f0;
@@ -1175,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', function() {
       resize: vertical;
       margin-bottom: 1rem;
     }
-    
+
     .demo-btn {
       background: #3b82f6;
       color: white;
@@ -1185,17 +1185,17 @@ document.addEventListener('DOMContentLoaded', function() {
       font-weight: 500;
       cursor: pointer;
     }
-    
+
     .demo-timeline {
       border-left: 2px solid #e2e8f0;
       padding-left: 1.5rem;
     }
-    
+
     .timeline-event {
       position: relative;
       margin-bottom: 1.5rem;
     }
-    
+
     .event-dot {
       position: absolute;
       left: -2rem;
@@ -1206,63 +1206,63 @@ document.addEventListener('DOMContentLoaded', function() {
       background: #3b82f6;
       border: 2px solid white;
     }
-    
+
     .event-title {
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 0.25rem;
     }
-    
+
     .event-date {
       font-size: 0.875rem;
       color: #64748b;
     }
-    
+
     .demo-rights {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
-    
+
     .rights-item {
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-    
+
     .rights-status {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
     }
-    
+
     .rights-status.protected {
       background: #10b981;
     }
-    
+
     .rights-status.at-risk {
       background: #ef4444;
     }
-    
+
     .rights-text {
       font-weight: 500;
       color: #1e293b;
     }
-    
+
     .demo-next-steps {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
-    
+
     .next-step {
       padding: 1rem;
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
     }
-    
+
     .step-priority {
       font-size: 0.75rem;
       font-weight: 600;
@@ -1271,34 +1271,34 @@ document.addEventListener('DOMContentLoaded', function() {
       margin-bottom: 0.5rem;
       display: inline-block;
     }
-    
+
     .step-priority.urgent {
       background: #ef4444;
       color: white;
     }
-    
+
     .step-priority.high {
       background: #f59e0b;
       color: white;
     }
-    
+
     .step-title {
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 0.25rem;
     }
-    
+
     .step-deadline {
       font-size: 0.875rem;
       color: #64748b;
     }
-    
+
     .demo-deadlines {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
-    
+
     .deadline-item {
       display: flex;
       align-items: center;
@@ -1308,19 +1308,19 @@ document.addEventListener('DOMContentLoaded', function() {
       border: 1px solid #e2e8f0;
       border-radius: 8px;
     }
-    
+
     .deadline-date {
       font-weight: 600;
       color: #3b82f6;
       min-width: 60px;
     }
-    
+
     .deadline-title {
       flex: 1;
       font-weight: 500;
       color: #1e293b;
     }
-    
+
     .deadline-urgent {
       font-size: 0.75rem;
       font-weight: 600;
@@ -1329,16 +1329,16 @@ document.addEventListener('DOMContentLoaded', function() {
       background: #ef4444;
       color: white;
     }
-    
+
     .complete-content {
       text-align: center;
       padding: 2rem;
     }
-    
+
     .complete-hero {
       margin-bottom: 3rem;
     }
-    
+
     .complete-icon {
       width: 80px;
       height: 80px;
@@ -1351,14 +1351,14 @@ document.addEventListener('DOMContentLoaded', function() {
       font-size: 40px;
       margin: 0 auto 2rem;
     }
-    
+
     .complete-title {
       font-size: 2.5rem;
       font-weight: 700;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .complete-subtitle {
       font-size: 1.25rem;
       color: #64748b;
@@ -1366,55 +1366,55 @@ document.addEventListener('DOMContentLoaded', function() {
       max-width: 600px;
       margin: 0 auto;
     }
-    
+
     .complete-summary {
       text-align: left;
       max-width: 600px;
       margin: 0 auto 3rem;
     }
-    
+
     .complete-summary h2 {
       font-size: 1.5rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .summary-list {
       list-style: none;
       padding: 0;
     }
-    
+
     .summary-list li {
       padding: 0.75rem 0;
       border-bottom: 1px solid #e2e8f0;
       color: #64748b;
     }
-    
+
     .summary-list li:last-child {
       border-bottom: none;
     }
-    
+
     .role-destination {
       text-align: center;
       margin: 0 auto 3rem;
       max-width: 600px;
     }
-    
+
     .role-destination h2 {
       font-size: 1.5rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 1rem;
     }
-    
+
     .destination-description {
       font-size: 1rem;
       color: #64748b;
       line-height: 1.6;
       margin-bottom: 2rem;
     }
-    
+
     .destination-preview {
       display: flex;
       align-items: center;
@@ -1425,13 +1425,13 @@ document.addEventListener('DOMContentLoaded', function() {
       border-radius: 12px;
       transition: all 0.2s ease;
     }
-    
+
     .destination-preview:hover {
       border-color: #3b82f6;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
     }
-    
+
     .preview-icon {
       width: 48px;
       height: 48px;
@@ -1444,32 +1444,32 @@ document.addEventListener('DOMContentLoaded', function() {
       font-size: 24px;
       flex-shrink: 0;
     }
-    
+
     .preview-text {
       flex: 1;
       text-align: left;
     }
-    
+
     .preview-title {
       font-size: 1.125rem;
       font-weight: 600;
       color: #1e293b;
       margin-bottom: 0.25rem;
     }
-    
+
     .preview-route {
       font-size: 0.875rem;
       color: #64748b;
       font-family: 'Monaco', 'Menlo', monospace;
     }
-    
+
     .complete-actions {
       display: flex;
       gap: 1rem;
       justify-content: center;
       flex-wrap: wrap;
     }
-    
+
     .complete-action-btn {
       padding: 0.75rem 2rem;
       border: none;
@@ -1479,107 +1479,107 @@ document.addEventListener('DOMContentLoaded', function() {
       transition: all 0.2s ease;
       min-width: 150px;
     }
-    
+
     .complete-action-btn.primary {
       background: #3b82f6;
       color: white;
     }
-    
+
     .complete-action-btn.primary:hover {
       background: #1e40af;
       transform: translateY(-1px);
     }
-    
+
     .complete-action-btn.secondary {
       background: transparent;
       color: #3b82f6;
       border: 2px solid #3b82f6;
     }
-    
+
     .complete-action-btn.secondary:hover {
       background: rgba(59, 130, 246, 0.1);
     }
-    
+
     /* Role-specific destination preview colors */
     .role-advocate .destination-preview:hover {
       border-color: #7c3aed;
       box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
     }
-    
+
     .role-advocate .preview-icon {
       background: #7c3aed;
     }
-    
+
     .role-legal .destination-preview:hover {
       border-color: #10b981;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
     }
-    
+
     .role-legal .preview-icon {
       background: #10b981;
     }
-    
+
     .role-admin .destination-preview:hover {
       border-color: #ef4444;
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
     }
-    
+
     .role-admin .preview-icon {
       background: #ef4444;
     }
-    
+
     .role-advocate .complete-action-btn.primary {
       background: #7c3aed;
     }
-    
+
     .role-advocate .complete-action-btn.primary:hover {
       background: #5b21b6;
     }
-    
+
     .role-advocate .complete-action-btn.secondary {
       color: #7c3aed;
       border-color: #7c3aed;
     }
-    
+
     .role-advocate .complete-action-btn.secondary:hover {
       background: rgba(124, 58, 237, 0.1);
     }
-    
+
     .role-legal .complete-action-btn.primary {
       background: #10b981;
     }
-    
+
     .role-legal .complete-action-btn.primary:hover {
       background: #047857;
     }
-    
+
     .role-legal .complete-action-btn.secondary {
       color: #10b981;
       border-color: #10b981;
     }
-    
+
     .role-legal .complete-action-btn.secondary:hover {
       background: rgba(16, 185, 129, 0.1);
     }
-    
+
     .role-admin .complete-action-btn.primary {
       background: #ef4444;
     }
-    
+
     .role-admin .complete-action-btn.primary:hover {
       background: #b91c1c;
     }
-    
+
     .role-admin .complete-action-btn.secondary {
       color: #ef4444;
       border-color: #ef4444;
     }
-    
+
     .role-admin .complete-action-btn.secondary:hover {
       background: rgba(239, 68, 68, 0.1);
     }
   `;
-  
+
   // Add styles to page
   const styleSheet = document.createElement('style');
   styleSheet.textContent = demoStyles;

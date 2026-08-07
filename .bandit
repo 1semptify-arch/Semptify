@@ -1,0 +1,8 @@
+[bandit]
+# Skip known false-positive / acceptable-risk tests:
+# B104: hardcoded bind all interfaces (needed for Docker)
+# B102: exec used (legitimate tooling)
+# B314: XML element tree (legitimate XML parsing, no untrusted input)
+# B324: hashlib MD5 (used for non-crypto cache keys, filenames)
+# B608: hardcoded SQL expressions (false positives in non-SQL contexts)
+skips = B104,B102,B314,B324,B608

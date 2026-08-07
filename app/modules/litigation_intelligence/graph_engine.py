@@ -278,13 +278,9 @@ class GraphEngine:
         for node_id, (x, y) in positions.items():
             node = self._nodes[node_id]
             color = self._node_color(node.node_type)
-            svg.append(
-                f'<circle cx="{x:.1f}" cy="{y:.1f}" r="12" fill="{color}" stroke="#334155" stroke-width="2"/>'
-            )
+            svg.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="12" fill="{color}" stroke="#334155" stroke-width="2"/>')
             label = self._escape_xml(node.name or node_id)[:30]
-            svg.append(
-                f'<text x="{x + 16:.1f}" y="{y + 4:.1f}" font-size="12" fill="#334155">{label}</text>'
-            )
+            svg.append(f'<text x="{x + 16:.1f}" y="{y + 4:.1f}" font-size="12" fill="#334155">{label}</text>')
         svg.append("</svg>")
         return "\n".join(svg)
 
@@ -333,12 +329,7 @@ class GraphEngine:
     @staticmethod
     def _escape_xml(text: str) -> str:
         """Escape XML special characters."""
-        return (
-            text.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-        )
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
 def create_graph_engine() -> GraphEngine:

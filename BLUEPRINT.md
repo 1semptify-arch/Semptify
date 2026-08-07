@@ -120,7 +120,7 @@
   - [ ] Case info endpoint (case number, parties)
   - [ ] Storage config endpoint (cloud providers)
   - [ ] Completion status endpoint
-  
+
 - [ ] **1.2** Create Setup Wizard Frontend (`setup_wizard.html`)
   - [ ] Step 1: Welcome & Terms
   - [ ] Step 2: Your Information (name, contact)

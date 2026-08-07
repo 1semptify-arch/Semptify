@@ -31,12 +31,10 @@ module_definition = ModuleDefinition(
     description="Example plugin demonstrating the plugin system",
     version="1.0.0",
     category=ModuleCategory.UTILITY,
-
     handles_documents=[],
     accepts_packs=[PackType.USER_DATA],
     produces_packs=[PackType.CUSTOM],
     depends_on=[],
-
     has_ui=False,
     has_background_tasks=False,
     requires_auth=False,
@@ -53,6 +51,7 @@ sdk = ModuleSDK(module_definition)
 # =============================================================================
 # ACTIONS
 # =============================================================================
+
 
 @sdk.action(
     "greet",
@@ -146,6 +145,7 @@ async def get_state(
 # EVENT HANDLERS
 # =============================================================================
 
+
 @sdk.on_event("workflow_started")
 async def on_workflow_started(event_type: str, data: dict[str, Any]):
     """React to workflow start events"""
@@ -155,6 +155,7 @@ async def on_workflow_started(event_type: str, data: dict[str, Any]):
 # =============================================================================
 # INITIALIZATION
 # =============================================================================
+
 
 def initialize():
     """Initialize the plugin - called when plugin is loaded"""

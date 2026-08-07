@@ -1,10 +1,11 @@
 """
 Apply timeline migration manually (handles SQLite schema).
 """
+
 import asyncio
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 
 from sqlalchemy import text
 
@@ -15,16 +16,17 @@ async def apply_migration():
     engine = get_engine()
     async with engine.begin() as conn:
         # Check if view exists
-        result = await conn.execute(text(
-            "SELECT name FROM sqlite_master WHERE type='view' AND name='unified_timeline'"
-        ))
+        result = await conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='view' AND name='unified_timeline'")
+        )
         if result.fetchone():
-            print('⚠️  unified_timeline view already exists, skipping')
+            print("⚠️  unified_timeline view already exists, skipping")
         else:
             # Create unified timeline view (SQLite-compatible)
-            await conn.execute(text('''
+            await conn.execute(
+                text("""
                 CREATE VIEW unified_timeline AS
-                SELECT 
+                SELECT
                     d.id,
                     d.user_id,
                     'document' as item_type,
@@ -40,7 +42,7 @@ async def apply_migration():
                     'upload' as source
                 FROM documents d
                 UNION ALL
-                SELECT 
+                SELECT
                     te.id,
                     te.user_id,
                     'timeline_event' as item_type,
@@ -55,26 +57,29 @@ async def apply_migration():
                     NULL as tags,
                     'manual' as source
                 FROM timeline_events te;
-            '''))
-            print('✅ unified_timeline view created')
+            """)
+            )
+            print("✅ unified_timeline view created")
 
         # Check alembic_version table
-        result = await conn.execute(text(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version'"
-        ))
+        result = await conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version'")
+        )
         if not result.fetchone():
-            await conn.execute(text('CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)'))
-            print('✅ alembic_version table created')
+            await conn.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)"))
+            print("✅ alembic_version table created")
 
         # Mark migration as applied
-        await conn.execute(text('''
-            INSERT OR REPLACE INTO alembic_version (version_num) 
+        await conn.execute(
+            text("""
+            INSERT OR REPLACE INTO alembic_version (version_num)
             VALUES ('20250422_unified_timeline')
-        '''))
-        print('✅ Migration 20250422_unified_timeline marked as applied')
+        """)
+        )
+        print("✅ Migration 20250422_unified_timeline marked as applied")
 
-        print('\n🎉 Migration completed successfully!')
+        print("\n🎉 Migration completed successfully!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(apply_migration())

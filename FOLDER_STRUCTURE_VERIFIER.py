@@ -25,19 +25,14 @@ def check_vault_structure(base_path="G:\\My Drive"):
                     "token.enc.backup": "Token backup",
                     "device_keys.json": "Device registration",
                     "provisioning.json": "Installation state",
-                    "rehome.json": "Reconnection script"
+                    "rehome.json": "Reconnection script",
                 },
-                "vault": {
-                    "README.md": "Vault information",
-                    "manifest.json": "Vault metadata"
-                }
+                "vault": {"README.md": "Vault information", "manifest.json": "Vault metadata"},
             },
             "Vault": {
                 "documents": "Your uploaded documents",
                 "certificates": "Official certificates",
-                "timeline": {
-                    "events.json": "Timeline events data"
-                },
+                "timeline": {"events.json": "Timeline events data"},
                 "overlays": {
                     "registry.json": "Overlay index",
                     "documents": "Document overlays",
@@ -46,17 +41,13 @@ def check_vault_structure(base_path="G:\\My Drive"):
                     "redactions": "Redaction overlays",
                     "evidence": "Evidence overlays",
                     "legal": "Legal overlays",
-                    "timeline": "Timeline overlays"
-                }
-            }
+                    "timeline": "Timeline overlays",
+                },
+            },
         }
     }
 
-    results = {
-        "found": [],
-        "missing": [],
-        "errors": []
-    }
+    results = {"found": [], "missing": [], "errors": []}
 
     def check_structure(structure, current_path, prefix=""):
         """Recursively check expected structure."""
@@ -128,6 +119,7 @@ def check_vault_structure(base_path="G:\\My Drive"):
         print("\n❌ VAULT INCOMPLETE - Re-run vault creation")
 
     return results
+
 
 if __name__ == "__main__":
     check_vault_structure()

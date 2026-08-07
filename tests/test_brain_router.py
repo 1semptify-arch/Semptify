@@ -24,6 +24,7 @@ client = TestClient(app)
 # Status & Modules
 # =============================================================================
 
+
 class TestBrainStatus:
     def test_get_status(self):
         resp = client.get("/brain/status")
@@ -43,6 +44,7 @@ class TestBrainStatus:
 # =============================================================================
 # Shared State
 # =============================================================================
+
 
 class TestBrainState:
     def test_get_full_state(self):
@@ -72,6 +74,7 @@ class TestBrainState:
 # Events
 # =============================================================================
 
+
 class TestBrainEvents:
     def test_get_recent_events_default(self):
         resp = client.get("/brain/events")
@@ -88,29 +91,38 @@ class TestBrainEvents:
         assert len(events) <= 5
 
     def test_emit_event_invalid_type(self):
-        resp = client.post("/brain/events", json={
-            "event_type": "totally_fake_event_xyz",
-            "source_module": "documents",
-            "data": {},
-        })
+        resp = client.post(
+            "/brain/events",
+            json={
+                "event_type": "totally_fake_event_xyz",
+                "source_module": "documents",
+                "data": {},
+            },
+        )
         assert resp.status_code == 400
         assert "Invalid" in resp.json()["detail"]
 
     def test_emit_event_invalid_module(self):
-        resp = client.post("/brain/events", json={
-            "event_type": "document_uploaded",
-            "source_module": "totally_fake_module",
-            "data": {},
-        })
+        resp = client.post(
+            "/brain/events",
+            json={
+                "event_type": "document_uploaded",
+                "source_module": "totally_fake_module",
+                "data": {},
+            },
+        )
         assert resp.status_code == 400
         assert "Invalid" in resp.json()["detail"]
 
     def test_emit_valid_event(self):
-        resp = client.post("/brain/events", json={
-            "event_type": "document_uploaded",
-            "source_module": "documents",
-            "data": {"doc_id": "test-001"},
-        })
+        resp = client.post(
+            "/brain/events",
+            json={
+                "event_type": "document_uploaded",
+                "source_module": "documents",
+                "data": {"doc_id": "test-001"},
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["success"] is True
@@ -121,6 +133,7 @@ class TestBrainEvents:
 # Workflows
 # =============================================================================
 
+
 class TestBrainWorkflows:
     def test_list_workflows(self):
         resp = client.get("/brain/workflows")
@@ -130,10 +143,13 @@ class TestBrainWorkflows:
         assert "count" in data
 
     def test_trigger_and_get_workflow(self):
-        trigger_resp = client.post("/brain/workflow", json={
-            "workflow_name": "full_sync",
-            "data": {},
-        })
+        trigger_resp = client.post(
+            "/brain/workflow",
+            json={
+                "workflow_name": "full_sync",
+                "data": {},
+            },
+        )
         assert trigger_resp.status_code == 200
         data = trigger_resp.json()
         assert "workflow_id" in data
@@ -144,10 +160,13 @@ class TestBrainWorkflows:
         assert resp.status_code == 404
 
     def test_trigger_document_intake_workflow(self):
-        resp = client.post("/brain/workflow", json={
-            "workflow_name": "document_intake",
-            "data": {"document_id": "doc-test-001"},
-        })
+        resp = client.post(
+            "/brain/workflow",
+            json={
+                "workflow_name": "document_intake",
+                "data": {"document_id": "doc-test-001"},
+            },
+        )
         assert resp.status_code == 200
         assert "workflow_id" in resp.json()
 
@@ -156,6 +175,7 @@ class TestBrainWorkflows:
 # Think & Sync
 # =============================================================================
 
+
 class TestBrainThinkSync:
     def test_think_empty_context(self):
         resp = client.post("/brain/think", json={"context": {}})
@@ -163,12 +183,15 @@ class TestBrainThinkSync:
         assert isinstance(resp.json(), dict)
 
     def test_think_with_context(self):
-        resp = client.post("/brain/think", json={
-            "context": {
-                "user_id": "GUa8Km3xPq",
-                "current_page": "documents",
-            }
-        })
+        resp = client.post(
+            "/brain/think",
+            json={
+                "context": {
+                    "user_id": "GUa8Km3xPq",
+                    "current_page": "documents",
+                }
+            },
+        )
         assert resp.status_code == 200
 
     def test_sync_all(self):

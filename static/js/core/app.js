@@ -29,7 +29,7 @@ function resetVaultForm() {
   const docType = document.getElementById('vault-doc-type');
   const description = document.getElementById('vault-description');
   const timestamp = document.getElementById('vault-timestamp');
-  
+
   if (fileList) fileList.innerHTML = '';
   if (docType) docType.value = '';
   if (description) description.value = '';
@@ -141,30 +141,30 @@ document.addEventListener('DOMContentLoaded', function() {
   // Vault dropzone
   const dropzone = document.getElementById('vault-dropzone');
   const fileInput = document.getElementById('vault-file-input');
-  
+
   if (dropzone && fileInput) {
     dropzone.addEventListener('click', () => fileInput.click());
-    
+
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropzone.classList.add('dragover');
     });
-    
+
     dropzone.addEventListener('dragleave', () => {
       dropzone.classList.remove('dragover');
     });
-    
+
     dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropzone.classList.remove('dragover');
       handleVaultFiles(e.dataTransfer.files);
     });
-    
+
     fileInput.addEventListener('change', (e) => {
       handleVaultFiles(e.target.files);
     });
   }
-  
+
   // Escape key closes modal
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeVaultPortal();
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleVaultFiles(files) {
   const fileList = document.getElementById('vault-file-list');
   if (!fileList) return;
-  
+
   Array.from(files).forEach(file => {
     const item = document.createElement('div');
     item.className = 'vault-file-item';
@@ -196,7 +196,7 @@ function handleVaultFiles(files) {
 
 function detectDevice() {
   const width = window.innerWidth;
-  
+
   if (width < 481) return 'mobile';
   if (width < 769) return 'tablet';
   if (width < 1201) return 'desktop';
@@ -226,7 +226,7 @@ function toggleMobileNav() {
 
 document.addEventListener('DOMContentLoaded', function() {
   applyDeviceClass();
-  
+
   window.addEventListener('resize', () => {
     applyDeviceClass();
   });

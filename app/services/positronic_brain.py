@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class ModuleType(str, Enum):
     """Types of modules that can connect to the brain."""
+
     DOCUMENTS = "documents"
     TIMELINE = "timeline"
     CALENDAR = "calendar"
@@ -55,6 +56,7 @@ class ModuleType(str, Enum):
 
 class EventType(str, Enum):
     """Types of events that flow through the brain."""
+
     # Document events
     DOCUMENT_UPLOADED = "document.uploaded"
     DOCUMENT_ANALYZED = "document.analyzed"
@@ -123,6 +125,7 @@ class EventType(str, Enum):
 @dataclass
 class BrainEvent:
     """An event that flows through the positronic brain."""
+
     event_type: EventType
     source_module: ModuleType
     data: dict[str, Any]
@@ -137,13 +140,14 @@ class BrainEvent:
             "data": self.data,
             "timestamp": self.timestamp.isoformat(),
             "user_id": self.user_id,
-            "correlation_id": self.correlation_id
+            "correlation_id": self.correlation_id,
         }
 
 
 @dataclass
 class ModuleConnection:
     """A connected module in the brain network."""
+
     module_type: ModuleType
     name: str
     version: str = "1.0.0"
@@ -158,7 +162,7 @@ class ModuleConnection:
 class PositronicBrain:
     """
     ○ The Positronic Brain - Central Intelligence Hub
-    
+
     This is the neural core of Semptify that:
     1. Maintains awareness of all connected modules
     2. Routes events between modules
@@ -227,29 +231,26 @@ class PositronicBrain:
     # =========================================================================
 
     def register_module(
-        self,
-        module_type: ModuleType,
-        name: str,
-        capabilities: list[str] = None,
-        handler: Callable = None
+        self, module_type: ModuleType, name: str, capabilities: list[str] = None, handler: Callable = None
     ) -> ModuleConnection:
         """Register a module with the brain."""
         connection = ModuleConnection(
-            module_type=module_type,
-            name=name,
-            capabilities=capabilities or [],
-            handler=handler
+            module_type=module_type, name=name, capabilities=capabilities or [], handler=handler
         )
         self.modules[module_type] = connection
 
         logger.info(f"○ Module registered: {name} ({module_type.value})")
 
         # Emit registration event
-        asyncio.create_task(self.emit(BrainEvent(
-            event_type=EventType.MODULE_REGISTERED,
-            source_module=module_type,
-            data={"name": name, "capabilities": capabilities}
-        )))
+        asyncio.create_task(
+            self.emit(
+                BrainEvent(
+                    event_type=EventType.MODULE_REGISTERED,
+                    source_module=module_type,
+                    data={"name": name, "capabilities": capabilities},
+                )
+            )
+        )
 
         return connection
 
@@ -265,7 +266,7 @@ class PositronicBrain:
                 "name": m.name,
                 "capabilities": m.capabilities,
                 "active": m.is_active,
-                "connected_at": m.connected_at.isoformat()
+                "connected_at": m.connected_at.isoformat(),
             }
             for m in self.modules.values()
         ]
@@ -289,7 +290,7 @@ class PositronicBrain:
         # Store in history
         self.event_history.append(event)
         if len(self.event_history) > self.max_history:
-            self.event_history = self.event_history[-self.max_history:]
+            self.event_history = self.event_history[-self.max_history :]
 
         # Call all handlers for this event type
         handlers = self.event_handlers.get(event.event_type, [])
@@ -312,10 +313,7 @@ class PositronicBrain:
         if not self.websocket_clients:
             return
 
-        message = json.dumps({
-            "type": "brain_event",
-            "event": event.to_dict()
-        })
+        message = json.dumps({"type": "brain_event", "event": event.to_dict()})
 
         dead_clients = set()
         for client in self.websocket_clients:
@@ -343,15 +341,13 @@ class PositronicBrain:
         self.shared_state[key] = value
 
         # Emit state change event
-        await self.emit(BrainEvent(
-            event_type=EventType.CONTEXT_UPDATED,
-            source_module=source or ModuleType.CONTEXT,
-            data={
-                "key": key,
-                "old_value": old_value,
-                "new_value": value
-            }
-        ))
+        await self.emit(
+            BrainEvent(
+                event_type=EventType.CONTEXT_UPDATED,
+                source_module=source or ModuleType.CONTEXT,
+                data={"key": key, "old_value": old_value, "new_value": value},
+            )
+        )
 
     async def merge_state(self, updates: dict[str, Any], source: ModuleType = None):
         """Merge multiple state updates at once."""
@@ -363,11 +359,13 @@ class PositronicBrain:
             else:
                 self.shared_state[key] = value
 
-        await self.emit(BrainEvent(
-            event_type=EventType.BRAIN_SYNC,
-            source_module=source or ModuleType.CONTEXT,
-            data={"updates": list(updates.keys())}
-        ))
+        await self.emit(
+            BrainEvent(
+                event_type=EventType.BRAIN_SYNC,
+                source_module=source or ModuleType.CONTEXT,
+                data={"updates": list(updates.keys())},
+            )
+        )
 
     # =========================================================================
     # Cross-Module Workflows
@@ -376,6 +374,7 @@ class PositronicBrain:
     async def trigger_workflow(self, workflow_name: str, data: dict, user_id: str = None) -> str:
         """Trigger a cross-module workflow."""
         from app.core.id_gen import make_id
+
         workflow_id = make_id("wf")
 
         self.active_workflows[workflow_id] = {
@@ -383,7 +382,7 @@ class PositronicBrain:
             "status": "running",
             "started_at": utc_now().isoformat(),
             "data": data,
-            "steps_completed": []
+            "steps_completed": [],
         }
 
         # Execute workflow based on type
@@ -412,72 +411,84 @@ class PositronicBrain:
 
         try:
             # Step 1: Document uploaded event
-            await self.emit(BrainEvent(
-                event_type=EventType.DOCUMENT_UPLOADED,
-                source_module=ModuleType.DOCUMENTS,
-                data=data,
-                user_id=user_id,
-                correlation_id=workflow_id
-            ))
+            await self.emit(
+                BrainEvent(
+                    event_type=EventType.DOCUMENT_UPLOADED,
+                    source_module=ModuleType.DOCUMENTS,
+                    data=data,
+                    user_id=user_id,
+                    correlation_id=workflow_id,
+                )
+            )
             workflow["steps_completed"].append("document_uploaded")
 
             # Step 2: AI Analysis
-            await self.emit(BrainEvent(
-                event_type=EventType.AI_ANALYSIS_COMPLETE,
-                source_module=ModuleType.COPILOT,
-                data={"document_id": data.get("document_id"), "analysis": data.get("analysis", {})},
-                user_id=user_id,
-                correlation_id=workflow_id
-            ))
+            await self.emit(
+                BrainEvent(
+                    event_type=EventType.AI_ANALYSIS_COMPLETE,
+                    source_module=ModuleType.COPILOT,
+                    data={"document_id": data.get("document_id"), "analysis": data.get("analysis", {})},
+                    user_id=user_id,
+                    correlation_id=workflow_id,
+                )
+            )
             workflow["steps_completed"].append("ai_analyzed")
 
             # Step 3: Classification
             doc_type = data.get("document_type", "unknown")
-            await self.emit(BrainEvent(
-                event_type=EventType.DOCUMENT_CLASSIFIED,
-                source_module=ModuleType.DOCUMENTS,
-                data={"document_id": data.get("document_id"), "type": doc_type},
-                user_id=user_id,
-                correlation_id=workflow_id
-            ))
+            await self.emit(
+                BrainEvent(
+                    event_type=EventType.DOCUMENT_CLASSIFIED,
+                    source_module=ModuleType.DOCUMENTS,
+                    data={"document_id": data.get("document_id"), "type": doc_type},
+                    user_id=user_id,
+                    correlation_id=workflow_id,
+                )
+            )
             workflow["steps_completed"].append("classified")
 
             # Step 4: Add to timeline
             if doc_type in ["eviction_notice", "summons", "complaint", "court_order"]:
-                await self.emit(BrainEvent(
-                    event_type=EventType.TIMELINE_EVENT_ADDED,
-                    source_module=ModuleType.TIMELINE,
-                    data={
-                        "event_type": doc_type,
-                        "title": f"Received: {doc_type.replace('_', ' ').title()}",
-                        "document_id": data.get("document_id")
-                    },
-                    user_id=user_id,
-                    correlation_id=workflow_id
-                ))
+                await self.emit(
+                    BrainEvent(
+                        event_type=EventType.TIMELINE_EVENT_ADDED,
+                        source_module=ModuleType.TIMELINE,
+                        data={
+                            "event_type": doc_type,
+                            "title": f"Received: {doc_type.replace('_', ' ').title()}",
+                            "document_id": data.get("document_id"),
+                        },
+                        user_id=user_id,
+                        correlation_id=workflow_id,
+                    )
+                )
                 workflow["steps_completed"].append("timeline_updated")
 
             # Step 5: Check deadlines
             if data.get("dates"):
                 for date_info in data["dates"]:
-                    await self.emit(BrainEvent(
-                        event_type=EventType.DEADLINE_APPROACHING,
-                        source_module=ModuleType.CALENDAR,
-                        data=date_info,
-                        user_id=user_id,
-                        correlation_id=workflow_id
-                    ))
+                    await self.emit(
+                        BrainEvent(
+                            event_type=EventType.DEADLINE_APPROACHING,
+                            source_module=ModuleType.CALENDAR,
+                            data=date_info,
+                            user_id=user_id,
+                            correlation_id=workflow_id,
+                        )
+                    )
                 workflow["steps_completed"].append("deadlines_checked")
 
             # Step 6: Suggest defenses
             if data.get("defenses"):
-                await self.emit(BrainEvent(
-                    event_type=EventType.DEFENSE_IDENTIFIED,
-                    source_module=ModuleType.EVICTION,
-                    data={"defenses": data["defenses"]},
-                    user_id=user_id,
-                    correlation_id=workflow_id
-                ))
+                await self.emit(
+                    BrainEvent(
+                        event_type=EventType.DEFENSE_IDENTIFIED,
+                        source_module=ModuleType.EVICTION,
+                        data={"defenses": data["defenses"]},
+                        user_id=user_id,
+                        correlation_id=workflow_id,
+                    )
+                )
                 workflow["steps_completed"].append("defenses_suggested")
 
             workflow["status"] = "completed"
@@ -498,19 +509,20 @@ class PositronicBrain:
         """
         workflow = self.active_workflows[workflow_id]
 
-        await self.emit(BrainEvent(
-            event_type=EventType.EVICTION_FLOW_STARTED,
-            source_module=ModuleType.EVICTION,
-            data=data,
-            user_id=user_id,
-            correlation_id=workflow_id
-        ))
+        await self.emit(
+            BrainEvent(
+                event_type=EventType.EVICTION_FLOW_STARTED,
+                source_module=ModuleType.EVICTION,
+                data=data,
+                user_id=user_id,
+                correlation_id=workflow_id,
+            )
+        )
 
         # Sync state
-        await self.merge_state({
-            "case": data.get("case", {}),
-            "defenses": data.get("defenses", [])
-        }, ModuleType.EVICTION)
+        await self.merge_state(
+            {"case": data.get("case", {}), "defenses": data.get("defenses", [])}, ModuleType.EVICTION
+        )
 
         workflow["status"] = "completed"
 
@@ -528,17 +540,15 @@ class PositronicBrain:
             days_until = (event_date - now).days
 
             if 0 <= days_until <= 7:
-                await self.emit(BrainEvent(
-                    event_type=EventType.DEADLINE_APPROACHING,
-                    source_module=ModuleType.CALENDAR,
-                    data={
-                        "event": event,
-                        "days_until": days_until,
-                        "is_critical": days_until <= 3
-                    },
-                    user_id=user_id,
-                    correlation_id=workflow_id
-                ))
+                await self.emit(
+                    BrainEvent(
+                        event_type=EventType.DEADLINE_APPROACHING,
+                        source_module=ModuleType.CALENDAR,
+                        data={"event": event, "days_until": days_until, "is_critical": days_until <= 3},
+                        user_id=user_id,
+                        correlation_id=workflow_id,
+                    )
+                )
 
         workflow["status"] = "completed"
 
@@ -546,13 +556,15 @@ class PositronicBrain:
         """Synchronize all modules with current state."""
         workflow = self.active_workflows[workflow_id]
 
-        await self.emit(BrainEvent(
-            event_type=EventType.BRAIN_SYNC,
-            source_module=ModuleType.CONTEXT,
-            data={"full_state": self.shared_state},
-            user_id=user_id,
-            correlation_id=workflow_id
-        ))
+        await self.emit(
+            BrainEvent(
+                event_type=EventType.BRAIN_SYNC,
+                source_module=ModuleType.CONTEXT,
+                data={"full_state": self.shared_state},
+                user_id=user_id,
+                correlation_id=workflow_id,
+            )
+        )
 
         workflow["status"] = "completed"
 
@@ -570,7 +582,7 @@ class PositronicBrain:
             "active_workflows": len(self.active_workflows),
             "event_history_size": len(self.event_history),
             "state_keys": list(self.shared_state.keys()),
-            "intensity": self.shared_state.get("intensity", 0)
+            "intensity": self.shared_state.get("intensity", 0),
         }
 
     def get_recent_events(self, limit: int = 50) -> list[dict]:
@@ -586,35 +598,37 @@ class PositronicBrain:
 
         # Check for missing critical items
         if not self.shared_state.get("documents"):
-            suggestions.append({
-                "priority": "high",
-                "action": "upload_documents",
-                "message": "Upload your eviction documents to get started"
-            })
+            suggestions.append(
+                {
+                    "priority": "high",
+                    "action": "upload_documents",
+                    "message": "Upload your eviction documents to get started",
+                }
+            )
 
         # Check for approaching deadlines
         intensity = self.shared_state.get("intensity", 0)
         if intensity > 0.7:
-            suggestions.append({
-                "priority": "critical",
-                "action": "check_deadlines",
-                "message": "You have critical deadlines approaching!"
-            })
+            suggestions.append(
+                {
+                    "priority": "critical",
+                    "action": "check_deadlines",
+                    "message": "You have critical deadlines approaching!",
+                }
+            )
 
         # Suggest defenses if case data exists
         case = self.shared_state.get("case", {})
         if case and not self.shared_state.get("defenses"):
-            suggestions.append({
-                "priority": "medium",
-                "action": "analyze_defenses",
-                "message": "Let's identify your legal defenses"
-            })
+            suggestions.append(
+                {"priority": "medium", "action": "analyze_defenses", "message": "Let's identify your legal defenses"}
+            )
 
         return {
             "suggestions": suggestions,
             "intensity": intensity,
             "modules_ready": len(self.modules),
-            "context": context
+            "context": context,
         }
 
 

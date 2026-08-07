@@ -4,6 +4,7 @@ A digital briefcase for organizing legal documents, evidence, and case files
 
 ALL UPLOADS GO TO VAULT FIRST - briefcase references documents from vault.
 """
+
 # Migrated from app/routers/briefcase.py into the briefcase SDK module.
 # All imports remain absolute since briefcase is a CORE module.
 import base64
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 # Import vault upload service - ALL uploads go through here first
 try:
     from app.services.vault_upload_service import get_vault_service
+
     HAS_VAULT_SERVICE = True
 except ImportError:
     HAS_VAULT_SERVICE = False
@@ -42,7 +44,7 @@ briefcase_data = {
             "parent_id": None,
             "created_at": utc_now().isoformat(),
             "color": "#4ade80",
-            "icon": "briefcase"
+            "icon": "briefcase",
         },
         "extracted": {
             "id": "extracted",
@@ -51,7 +53,7 @@ briefcase_data = {
             "created_at": utc_now().isoformat(),
             "color": "#f59e0b",
             "icon": "file-export",
-            "system": True
+            "system": True,
         },
         "highlights": {
             "id": "highlights",
@@ -60,7 +62,7 @@ briefcase_data = {
             "created_at": utc_now().isoformat(),
             "color": "#ec4899",
             "icon": "highlighter",
-            "system": True
+            "system": True,
         },
         "evidence": {
             "id": "evidence",
@@ -69,7 +71,7 @@ briefcase_data = {
             "created_at": utc_now().isoformat(),
             "color": "#ef4444",
             "icon": "gavel",
-            "system": True
+            "system": True,
         },
         "converted": {
             "id": "converted",
@@ -78,7 +80,7 @@ briefcase_data = {
             "created_at": utc_now().isoformat(),
             "color": "#22c55e",
             "icon": "file-earmark-arrow-up",
-            "system": True
+            "system": True,
         },
         "court_packets": {
             "id": "court_packets",
@@ -87,14 +89,15 @@ briefcase_data = {
             "created_at": utc_now().isoformat(),
             "color": "#3b82f6",
             "icon": "folder-check",
-            "system": True
-        }
+            "system": True,
+        },
     },
     "documents": {},
     "extractions": {},  # Store extracted PDF pages
-    "highlights": {},   # Store highlights and notes
-    "tags": ["Important", "Evidence", "Lease", "Notice", "Court", "Correspondence", "Financial", "Photos"]
+    "highlights": {},  # Store highlights and notes
+    "tags": ["Important", "Evidence", "Lease", "Notice", "Court", "Correspondence", "Financial", "Photos"],
 }
+
 
 # Pydantic models
 class FolderCreate(BaseModel):
@@ -103,11 +106,13 @@ class FolderCreate(BaseModel):
     color: str | None = "#3b82f6"
     icon: str | None = "folder"
 
+
 class FolderUpdate(BaseModel):
     name: str | None = None
     color: str | None = None
     icon: str | None = None
     parent_id: str | None = None
+
 
 class DocumentUpdate(BaseModel):
     name: str | None = None
@@ -127,8 +132,8 @@ async def get_briefcase():
         "stats": {
             "total_folders": len(briefcase_data["folders"]),
             "total_documents": len(briefcase_data["documents"]),
-            "total_size": sum(d.get("size", 0) for d in briefcase_data["documents"].values())
-        }
+            "total_size": sum(d.get("size", 0) for d in briefcase_data["documents"].values()),
+        },
     }
 
 
@@ -149,12 +154,7 @@ async def get_folder_contents(folder_id: str):
     # Get breadcrumb path
     breadcrumb = get_breadcrumb(folder_id)
 
-    return {
-        "folder": folder,
-        "subfolders": subfolders,
-        "documents": documents,
-        "breadcrumb": breadcrumb
-    }
+    return {"folder": folder, "subfolders": subfolders, "documents": documents, "breadcrumb": breadcrumb}
 
 
 def get_breadcrumb(folder_id: str) -> list[dict]:
@@ -188,7 +188,7 @@ async def create_folder(folder: FolderCreate):
         "color": folder.color,
         "icon": folder.icon,
         "created_at": utc_now().isoformat(),
-        "updated_at": utc_now().isoformat()
+        "updated_at": utc_now().isoformat(),
     }
 
     briefcase_data["folders"][folder_id] = new_folder
@@ -257,7 +257,7 @@ async def delete_folder(folder_id: str, recursive: bool = False):
     if (subfolders or documents) and not recursive:
         raise HTTPException(
             status_code=400,
-            detail=f"Folder contains {len(subfolders)} folders and {len(documents)} documents. Use recursive=true to delete all."
+            detail=f"Folder contains {len(subfolders)} folders and {len(documents)} documents. Use recursive=true to delete all.",
         )
 
     # Recursive delete
@@ -299,7 +299,7 @@ async def upload_document(
 ):
     """
     Upload a document to the briefcase.
-    
+
     ALL DOCUMENTS GO TO VAULT FIRST, then referenced from briefcase.
     """
     # Get user_id from form or auth header
@@ -318,6 +318,7 @@ async def upload_document(
         try:
             from app.core.database import get_db
             from app.modules.storage.router import get_valid_session
+
             db = next(get_db())
             session = await get_valid_session(db, user_id)
             if session and session.get("access_token"):
@@ -384,7 +385,7 @@ async def upload_document(
         "updated_at": utc_now().isoformat(),
         # Keep a local fallback copy so briefcase download still works
         # when vault retrieval requires additional auth context.
-        "content": base64.b64encode(content).decode('utf-8'),
+        "content": base64.b64encode(content).decode("utf-8"),
         "in_vault": bool(vault_id),
     }
 
@@ -400,16 +401,34 @@ def get_file_type(ext: str) -> str:
     """Determine file type category from extension"""
     types = {
         ".pdf": "pdf",
-        ".doc": "word", ".docx": "word",
-        ".xls": "excel", ".xlsx": "excel",
-        ".ppt": "powerpoint", ".pptx": "powerpoint",
-        ".txt": "text", ".md": "text", ".rtf": "text",
-        ".jpg": "image", ".jpeg": "image", ".png": "image", ".gif": "image", ".webp": "image",
-        ".mp3": "audio", ".wav": "audio", ".m4a": "audio",
-        ".mp4": "video", ".mov": "video", ".avi": "video",
-        ".zip": "archive", ".rar": "archive", ".7z": "archive",
-        ".html": "web", ".htm": "web",
-        ".json": "data", ".xml": "data", ".csv": "data"
+        ".doc": "word",
+        ".docx": "word",
+        ".xls": "excel",
+        ".xlsx": "excel",
+        ".ppt": "powerpoint",
+        ".pptx": "powerpoint",
+        ".txt": "text",
+        ".md": "text",
+        ".rtf": "text",
+        ".jpg": "image",
+        ".jpeg": "image",
+        ".png": "image",
+        ".gif": "image",
+        ".webp": "image",
+        ".mp3": "audio",
+        ".wav": "audio",
+        ".m4a": "audio",
+        ".mp4": "video",
+        ".mov": "video",
+        ".avi": "video",
+        ".zip": "archive",
+        ".rar": "archive",
+        ".7z": "archive",
+        ".html": "web",
+        ".htm": "web",
+        ".json": "data",
+        ".xml": "data",
+        ".csv": "data",
     }
     return types.get(ext, "other")
 
@@ -432,7 +451,7 @@ async def download_document(
 ):
     """
     Download a document.
-    
+
     If document is in vault, retrieves from vault storage.
     """
     if doc_id not in briefcase_data["documents"]:
@@ -462,7 +481,7 @@ async def download_document(
     return StreamingResponse(
         io.BytesIO(content),
         media_type=doc.get("mime_type", "application/octet-stream"),
-        headers={"Content-Disposition": f"attachment; filename={doc['name']}"}
+        headers={"Content-Disposition": f"attachment; filename={doc['name']}"},
     )
 
 
@@ -479,7 +498,7 @@ async def preview_document(doc_id: str):
         "name": doc["name"],
         "type": doc["type"],
         "mime_type": doc.get("mime_type"),
-        "content": f"data:{doc.get('mime_type', 'application/octet-stream')};base64,{doc['content']}"
+        "content": f"data:{doc.get('mime_type', 'application/octet-stream')};base64,{doc['content']}",
     }
 
 
@@ -565,7 +584,7 @@ async def search_documents(
     folder_id: str | None = None,
     tags: str | None = None,
     file_type: str | None = None,
-    starred: bool | None = None
+    starred: bool | None = None,
 ):
     """Search documents"""
     results = []
@@ -620,10 +639,7 @@ async def get_recent_documents(limit: int = 10):
     docs = list(briefcase_data["documents"].values())
     docs.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
 
-    recent = [
-        {k: v for k, v in doc.items() if k != "content"}
-        for doc in docs[:limit]
-    ]
+    recent = [{k: v for k, v in doc.items() if k != "content"} for doc in docs[:limit]]
     return {"documents": recent, "count": len(recent)}
 
 
@@ -655,7 +671,7 @@ async def export_folder(folder_id: str = Form(default="root")):
     # Create ZIP in memory
     zip_buffer = io.BytesIO()
 
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         export_folder_to_zip(zip_file, folder_id, "")
 
     zip_buffer.seek(0)
@@ -664,7 +680,7 @@ async def export_folder(folder_id: str = Form(default="root")):
     return StreamingResponse(
         zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": f"attachment; filename={folder_name}.zip"}
+        headers={"Content-Disposition": f"attachment; filename={folder_name}.zip"},
     )
 
 
@@ -687,8 +703,10 @@ def export_folder_to_zip(zip_file: zipfile.ZipFile, folder_id: str, path: str):
 
 # ============ Converted Document Storage ============
 
+
 class ConvertedDocumentSave(BaseModel):
     """Model for saving converted documents to briefcase"""
+
     file_url: str
     filename: str
     folder_id: str = "converted"
@@ -711,7 +729,7 @@ async def save_converted_document(data: ConvertedDocumentSave):
         file_content = None
 
         # Check various possible paths where the converted file might be
-        clean_path = data.file_url.lstrip('/')
+        clean_path = data.file_url.lstrip("/")
         possible_paths = [
             Path(clean_path),
             Path(f"data/documents/{data.filename}"),
@@ -722,7 +740,7 @@ async def save_converted_document(data: ConvertedDocumentSave):
 
         for path in possible_paths:
             if path.exists():
-                with open(path, 'rb') as f:
+                with open(path, "rb") as f:
                     file_content = f.read()
                 logger.info("Found converted file at: %s", path)
                 break
@@ -735,9 +753,9 @@ async def save_converted_document(data: ConvertedDocumentSave):
 
         # Determine MIME type
         mime_types = {
-            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'html': 'text/html',
-            'pdf': 'application/pdf'
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "html": "text/html",
+            "pdf": "application/pdf",
         }
 
         doc_entry = {
@@ -745,14 +763,14 @@ async def save_converted_document(data: ConvertedDocumentSave):
             "name": data.filename,
             "original_name": data.original_name or data.filename,
             "folder_id": data.folder_id,
-            "type": mime_types.get(data.doc_type, 'application/octet-stream'),
+            "type": mime_types.get(data.doc_type, "application/octet-stream"),
             "size": len(file_content),
-            "content": base64.b64encode(file_content).decode('utf-8'),
+            "content": base64.b64encode(file_content).decode("utf-8"),
             "created_at": utc_now().isoformat(),
             "tags": ["Converted"],
             "starred": False,
             "notes": f"Converted from {data.original_name or 'markdown'} on {utc_now().strftime('%Y-%m-%d %H:%M')}",
-            "source": "document_converter"
+            "source": "document_converter",
         }
 
         briefcase_data["documents"][doc_id] = doc_entry
@@ -764,7 +782,7 @@ async def save_converted_document(data: ConvertedDocumentSave):
             "document_id": doc_id,
             "folder_id": data.folder_id,
             "filename": data.filename,
-            "message": f"Document saved to {briefcase_data['folders'][data.folder_id]['name']}"
+            "message": f"Document saved to {briefcase_data['folders'][data.folder_id]['name']}",
         }
 
     except HTTPException:
@@ -806,18 +824,19 @@ async def get_briefcase_stats():
         "tag_distribution": tag_counts,
         "folder_sizes": folder_sizes,
         "extractions_count": len(briefcase_data.get("extractions", {})),
-        "highlights_count": len(briefcase_data.get("highlights", {}))
+        "highlights_count": len(briefcase_data.get("highlights", {})),
     }
 
 
 # ============ Extracted Pages Storage ============
+
 
 @router.post("/extraction")
 async def save_extraction(
     pdf_name: str = Form(...),
     pages: str = Form(...),  # JSON array of page numbers
     extracted_data: UploadFile = File(None),  # Optional: the actual extracted PDF
-    notes: str = Form("")
+    notes: str = Form(""),
 ):
     """Save extracted pages from PDF tools."""
     extraction_id = make_id("ext")
@@ -830,7 +849,7 @@ async def save_extraction(
         "page_count": len(page_list),
         "notes": notes,
         "created_at": utc_now().isoformat(),
-        "folder_id": "extracted"
+        "folder_id": "extracted",
     }
 
     # Save extracted PDF file if provided
@@ -901,13 +920,12 @@ async def download_extraction(extraction_id: str):
         raise HTTPException(status_code=404, detail="File not found on disk")
 
     return FileResponse(
-        file_path,
-        media_type="application/pdf",
-        filename=f"extracted_{extraction['pdf_name']}_pages.pdf"
+        file_path, media_type="application/pdf", filename=f"extracted_{extraction['pdf_name']}_pages.pdf"
     )
 
 
 # ============ Highlights & Notes Storage ============
+
 
 @router.post("/highlight")
 async def save_highlight(
@@ -917,7 +935,7 @@ async def save_highlight(
     color_name: str = Form(""),
     text: str = Form(""),
     note: str = Form(""),
-    coords: str = Form(None)  # JSON with x, y, width, height
+    coords: str = Form(None),  # JSON with x, y, width, height
 ):
     """Save a highlight/annotation from PDF tools."""
     highlight_id = make_id("hlt")
@@ -932,7 +950,7 @@ async def save_highlight(
         "note": note,
         "coords": json.loads(coords) if coords else None,
         "created_at": utc_now().isoformat(),
-        "folder_id": "highlights"
+        "folder_id": "highlights",
     }
 
     briefcase_data["highlights"][highlight_id] = highlight
@@ -960,7 +978,7 @@ async def save_highlights_batch(request: Request):
             "note": h.get("note", ""),
             "coords": h.get("coords"),
             "created_at": utc_now().isoformat(),
-            "folder_id": "highlights"
+            "folder_id": "highlights",
         }
         briefcase_data["highlights"][highlight_id] = highlight
         saved.append(highlight)
@@ -1017,11 +1035,7 @@ async def get_highlights_grouped_by_color():
 # ============ Document Annotation API (Footnote Indexing) ============
 
 # In-memory annotation storage (in production, use database)
-annotation_data = {
-    "annotations": {},
-    "global_counter": 0,
-    "category_counters": {}
-}
+annotation_data = {"annotations": {}, "global_counter": 0, "category_counters": {}}
 
 
 class AnnotationCreate(BaseModel):
@@ -1081,7 +1095,7 @@ async def create_annotation(annotation: AnnotationCreate):
         "confidence": annotation.confidence,
         "linked_event_id": annotation.linked_event_id,
         "created_at": utc_now().isoformat(),
-        "updated_at": utc_now().isoformat()
+        "updated_at": utc_now().isoformat(),
     }
 
     annotation_data["annotations"][annotation_id] = new_annotation
@@ -1091,9 +1105,7 @@ async def create_annotation(annotation: AnnotationCreate):
 
 @router.get("/annotations")
 async def list_annotations(
-    document_id: str | None = None,
-    extraction_code: str | None = None,
-    page_number: int | None = None
+    document_id: str | None = None, extraction_code: str | None = None, page_number: int | None = None
 ):
     """List annotations with optional filters."""
     annotations = list(annotation_data["annotations"].values())
@@ -1112,7 +1124,7 @@ async def list_annotations(
         "annotations": annotations,
         "count": len(annotations),
         "global_counter": annotation_data["global_counter"],
-        "category_counters": annotation_data["category_counters"]
+        "category_counters": annotation_data["category_counters"],
     }
 
 
@@ -1153,10 +1165,7 @@ async def delete_annotation(annotation_id: str):
 
 
 @router.post("/annotation/{annotation_id}/link-event")
-async def link_annotation_to_event(
-    annotation_id: str,
-    event_id: str = Form(...)
-):
+async def link_annotation_to_event(annotation_id: str, event_id: str = Form(...)):
     """Link an annotation to a timeline event."""
     if annotation_id not in annotation_data["annotations"]:
         raise HTTPException(status_code=404, detail="Annotation not found")
@@ -1171,10 +1180,7 @@ async def link_annotation_to_event(
 @router.get("/annotations/by-document/{document_id}")
 async def get_annotations_by_document(document_id: str):
     """Get all annotations for a document, grouped by extraction code."""
-    annotations = [
-        a for a in annotation_data["annotations"].values()
-        if a["document_id"] == document_id
-    ]
+    annotations = [a for a in annotation_data["annotations"].values() if a["document_id"] == document_id]
 
     # Group by extraction code
     grouped = {}
@@ -1188,32 +1194,21 @@ async def get_annotations_by_document(document_id: str):
     for code in grouped:
         grouped[code].sort(key=lambda x: x["category_number"])
 
-    return {
-        "document_id": document_id,
-        "groups": grouped,
-        "total_count": len(annotations)
-    }
+    return {"document_id": document_id, "groups": grouped, "total_count": len(annotations)}
 
 
 @router.post("/annotations/reset-counters")
 async def reset_annotation_counters(document_id: str | None = Form(None)):
     """
-    Reset annotation counters. 
+    Reset annotation counters.
     If document_id is provided, only reset for that document.
     Otherwise reset all counters (use carefully).
     """
     if document_id:
         # Recalculate counters for document
-        doc_annotations = [
-            a for a in annotation_data["annotations"].values()
-            if a["document_id"] == document_id
-        ]
+        doc_annotations = [a for a in annotation_data["annotations"].values() if a["document_id"] == document_id]
         # Return current state without full reset
-        return {
-            "success": True,
-            "document_id": document_id,
-            "annotation_count": len(doc_annotations)
-        }
+        return {"success": True, "document_id": document_id, "annotation_count": len(doc_annotations)}
     else:
         # Full reset (admin operation)
         annotation_data["global_counter"] = 0
@@ -1229,6 +1224,7 @@ async def reset_annotation_counters(document_id: str | None = Form(None)):
 
 
 # ============ Extraction Code Reference ============
+
 
 @router.get("/extraction-codes")
 async def get_extraction_codes():
@@ -1247,7 +1243,7 @@ async def get_extraction_codes():
         "VL": {"name": "Violation/Issue", "color": "#f43f5e", "icon": "◆", "category": "violation"},
         "ED": {"name": "Evidence Markers", "color": "#14b8a6", "icon": "▸", "category": "evidence"},
         "QT": {"name": "Quoted Text", "color": "#a855f7", "icon": "○", "category": "quote"},
-        "TL": {"name": "Timeline Key Dates", "color": "#0ea5e9", "icon": "◆", "category": "timeline"}
+        "TL": {"name": "Timeline Key Dates", "color": "#0ea5e9", "icon": "◆", "category": "timeline"},
     }
     return {"codes": codes}
 
@@ -1270,6 +1266,6 @@ async def get_event_statuses():
         "pending": {"description": "Awaiting action/decision", "examples": "Pending ruling"},
         "resolved": {"description": "Issue resolved", "examples": "Complaint resolved"},
         "escalated": {"description": "Issue escalated", "examples": "Appeal filed"},
-        "used": {"description": "Evidence used in proceeding", "examples": "Document entered as exhibit"}
+        "used": {"description": "Evidence used in proceeding", "examples": "Document entered as exhibit"},
     }
     return {"statuses": statuses}

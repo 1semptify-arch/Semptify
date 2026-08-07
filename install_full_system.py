@@ -11,6 +11,7 @@ import sys
 SEMPtIFY_PATH = r"E:\master-repo\sources\app-semptify-fastapi"
 BACKEND_PATH = r"E:\master-repo\sources\REPOs\backend"
 
+
 def run_command(cmd, cwd=None):
     """Run shell command and print output"""
     print(f"Running: {cmd}")
@@ -21,12 +22,14 @@ def run_command(cmd, cwd=None):
         print("✓ Success")
     return result.returncode == 0
 
+
 def install_dependencies():
     """Install Python dependencies"""
     print("\n[1/5] Installing dependencies...")
     if os.path.exists(os.path.join(BACKEND_PATH, "requirements.txt")):
         run_command(f"pip install -r {BACKEND_PATH}\\requirements.txt")
     print("✓ Dependencies installed")
+
 
 def setup_backend():
     """Setup backend environment"""
@@ -36,6 +39,7 @@ def setup_backend():
         run_command(f"{BACKEND_PATH}\\venv\\Scripts\\pip.exe install -r {BACKEND_PATH}\\requirements.txt")
     print("✓ Backend configured")
 
+
 def setup_admin_module():
     """Create admin console module"""
     print("\n[3/5] Setting up admin module...")
@@ -44,10 +48,11 @@ def setup_admin_module():
         subprocess.run([sys.executable, admin_script], cwd=SEMPtIFY_PATH)
     print("✓ Admin module created")
 
+
 def create_launcher():
     """Create system launcher"""
     print("\n[4/5] Creating launcher...")
-    launcher_content = f'''@echo off
+    launcher_content = f"""@echo off
 echo ============================================
 echo   Semptify Advocacy Platform Launcher
 echo ============================================
@@ -84,16 +89,17 @@ pause >nul
 
 taskkill /FI "WINDOWTITLE eq Local AI Backend" /F >nul 2>&1
 echo Services stopped.
-'''
+"""
     launcher_path = os.path.join(SEMPtIFY_PATH, "launch_semptify.bat")
-    with open(launcher_path, 'w') as f:
+    with open(launcher_path, "w") as f:
         f.write(launcher_content)
     print(f"✓ Launcher created: {launcher_path}")
+
 
 def create_readme():
     """Create setup documentation"""
     print("\n[5/5] Creating documentation...")
-    readme = f'''# Semptify Advocacy Platform - Installation Complete
+    readme = f"""# Semptify Advocacy Platform - Installation Complete
 
 ## What's Installed
 
@@ -135,11 +141,12 @@ This system helps expose:
 - Systemic landlord abuse
 
 All processing can happen locally for privacy.
-'''
+"""
     readme_path = os.path.join(SEMPtIFY_PATH, "SETUP_COMPLETE.md")
-    with open(readme_path, 'w') as f:
+    with open(readme_path, "w") as f:
         f.write(readme)
     print(f"✓ Documentation: {readme_path}")
+
 
 def main():
     print("=" * 60)
@@ -161,6 +168,7 @@ def main():
     print("2. Open: http://127.0.0.1:8001")
     print(f"3. Read: {SEMPtIFY_PATH}\\SETUP_COMPLETE.md")
     print()
+
 
 if __name__ == "__main__":
     main()

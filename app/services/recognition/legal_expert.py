@@ -41,6 +41,7 @@ from .models import (
 
 class IssueType(Enum):
     """Types of legal issues that can be detected"""
+
     IMPROPER_NOTICE_PERIOD = "improper_notice_period"
     NOTICE_NOT_SERVED_PROPERLY = "notice_not_served_properly"
     ILLEGAL_LATE_FEE = "illegal_late_fee"
@@ -60,6 +61,7 @@ class IssueType(Enum):
 @dataclass
 class MinnesotaStatute:
     """Minnesota statute reference"""
+
     section: str
     title: str
     summary: str
@@ -72,6 +74,7 @@ class MinnesotaStatute:
 @dataclass
 class NoticeRequirement:
     """Notice period requirements by situation"""
+
     notice_type: str
     days_required: int
     statute: str
@@ -82,7 +85,7 @@ class NoticeRequirement:
 class MinnesotaTenantLawExpert:
     """
     Expert system for Minnesota tenant law.
-    
+
     Provides:
     - Legal issue detection specific to MN law
     - Notice period compliance checking
@@ -522,17 +525,17 @@ class MinnesotaTenantLawExpert:
             },
         }
 
-    async def analyze(self, text: str, entities: list[ExtractedEntity],
-                      document_type: DocumentType,
-                      timeline: list[TimelineEntry]) -> tuple[
+    async def analyze(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType, timeline: list[TimelineEntry]
+    ) -> tuple[
         list[LegalIssue],
         list[str],  # applicable statutes
         list[str],  # defense options
-        ReasoningChain
+        ReasoningChain,
     ]:
         """
         Perform legal analysis on document.
-        
+
         Returns:
             Tuple of (issues, applicable_statutes, defense_options, reasoning_chain)
         """
@@ -541,7 +544,7 @@ class MinnesotaTenantLawExpert:
             ReasoningType.LEGAL_RULE,
             "Beginning Minnesota tenant law analysis",
             {"document_type": document_type.value},
-            {}
+            {},
         )
 
         issues = []
@@ -553,9 +556,13 @@ class MinnesotaTenantLawExpert:
         issues.extend(detected_issues)
 
         # Step 2: Check notice compliance if applicable
-        if document_type in [DocumentType.EVICTION_NOTICE, DocumentType.NOTICE_TO_QUIT,
-                            DocumentType.NOTICE_TO_VACATE, DocumentType.FOURTEEN_DAY_NOTICE,
-                            DocumentType.THIRTY_DAY_NOTICE]:
+        if document_type in [
+            DocumentType.EVICTION_NOTICE,
+            DocumentType.NOTICE_TO_QUIT,
+            DocumentType.NOTICE_TO_VACATE,
+            DocumentType.FOURTEEN_DAY_NOTICE,
+            DocumentType.THIRTY_DAY_NOTICE,
+        ]:
             notice_issues, notice_statutes = await self._check_notice_compliance(
                 text, entities, document_type, timeline, reasoning
             )
@@ -581,9 +588,9 @@ class MinnesotaTenantLawExpert:
 
         return issues, list(applicable_statutes), defense_options, reasoning
 
-    async def _detect_issues(self, text: str, entities: list[ExtractedEntity],
-                             document_type: DocumentType,
-                             reasoning: ReasoningChain) -> list[LegalIssue]:
+    async def _detect_issues(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType, reasoning: ReasoningChain
+    ) -> list[LegalIssue]:
         """Detect legal issues using patterns"""
         issues = []
 
@@ -603,7 +610,9 @@ class MinnesotaTenantLawExpert:
                         description=f"Found in text: '{match.group()}'",
                         severity=pattern_def["severity"],
                         mn_statute=pattern_def.get("statute"),
-                        legal_basis=[f"Minn. Stat. § {pattern_def.get('statute')}"] if pattern_def.get("statute") else [],
+                        legal_basis=[f"Minn. Stat. § {pattern_def.get('statute')}"]
+                        if pattern_def.get("statute")
+                        else [],
                         supporting_text=context,
                         text_location=(match.start(), match.end()),
                         confidence=0.85,
@@ -625,15 +634,19 @@ class MinnesotaTenantLawExpert:
             f"Detected {len(issues)} potential legal issues",
             {},
             {"issue_types": list(set(i.issue_type for i in issues))},
-            confidence_impact=len(issues) * 2
+            confidence_impact=len(issues) * 2,
         )
 
         return issues
 
-    async def _check_notice_compliance(self, text: str, entities: list[ExtractedEntity],
-                                       document_type: DocumentType,
-                                       timeline: list[TimelineEntry],
-                                       reasoning: ReasoningChain) -> tuple[list[LegalIssue], set[str]]:
+    async def _check_notice_compliance(
+        self,
+        text: str,
+        entities: list[ExtractedEntity],
+        document_type: DocumentType,
+        timeline: list[TimelineEntry],
+        reasoning: ReasoningChain,
+    ) -> tuple[list[LegalIssue], set[str]]:
         """Check if notice complies with Minnesota requirements"""
         issues = []
         statutes = set()
@@ -673,8 +686,10 @@ class MinnesotaTenantLawExpert:
                         confidence=0.9,
                         reasoning=f"Stated {stated_days} days vs required {required_days} days",
                         defense_available=True,
-                        defense_strategies=["Challenge notice as insufficient",
-                                           "Request dismissal for improper notice"],
+                        defense_strategies=[
+                            "Challenge notice as insufficient",
+                            "Request dismissal for improper notice",
+                        ],
                         recommended_actions=[
                             f"Note that proper notice should be {required_days} days",
                             "Consider challenging the notice in court",
@@ -711,9 +726,9 @@ class MinnesotaTenantLawExpert:
 
         return issues, statutes
 
-    async def _identify_defenses(self, text: str, entities: list[ExtractedEntity],
-                                 document_type: DocumentType,
-                                 reasoning: ReasoningChain) -> list[str]:
+    async def _identify_defenses(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType, reasoning: ReasoningChain
+    ) -> list[str]:
         """Identify potential legal defenses"""
         defenses = []
 
@@ -739,14 +754,14 @@ class MinnesotaTenantLawExpert:
             f"Identified {len(defenses)} potential defenses",
             {},
             {"defenses": defenses},
-            confidence_impact=len(defenses) * 3
+            confidence_impact=len(defenses) * 3,
         )
 
         return list(set(defenses))
 
-    async def _calculate_urgency(self, issues: list[LegalIssue],
-                                 timeline: list[TimelineEntry],
-                                 reasoning: ReasoningChain):
+    async def _calculate_urgency(
+        self, issues: list[LegalIssue], timeline: list[TimelineEntry], reasoning: ReasoningChain
+    ):
         """Calculate urgency based on deadlines and issue severity"""
         today = date.today()
 

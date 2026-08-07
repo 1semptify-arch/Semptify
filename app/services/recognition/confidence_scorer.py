@@ -29,6 +29,7 @@ from .models import (
 @dataclass
 class ConfidenceFactor:
     """A factor that contributes to confidence"""
+
     name: str
     weight: float
     score: float  # 0-100
@@ -40,7 +41,7 @@ class ConfidenceFactor:
 class ConfidenceScorer:
     """
     Multi-dimensional confidence scoring.
-    
+
     Evaluates:
     - Text quality and completeness
     - Entity extraction reliability
@@ -89,19 +90,19 @@ class ConfidenceScorer:
             },
         }
 
-    async def score(self,
-                    context: DocumentContext,
-                    entities: list[ExtractedEntity],
-                    document_type: DocumentType,
-                    relationships: RelationshipMap,
-                    issues: list[LegalIssue],
-                    timeline: list[TimelineEntry],
-                    reasoning_chains: list[ReasoningChain]) -> tuple[
-        ConfidenceMetrics, ReasoningChain
-    ]:
+    async def score(
+        self,
+        context: DocumentContext,
+        entities: list[ExtractedEntity],
+        document_type: DocumentType,
+        relationships: RelationshipMap,
+        issues: list[LegalIssue],
+        timeline: list[TimelineEntry],
+        reasoning_chains: list[ReasoningChain],
+    ) -> tuple[ConfidenceMetrics, ReasoningChain]:
         """
         Calculate comprehensive confidence metrics.
-        
+
         Returns:
             Tuple of (ConfidenceMetrics, ReasoningChain)
         """
@@ -113,7 +114,7 @@ class ConfidenceScorer:
                 "entity_count": len(entities),
                 "issue_count": len(issues),
             },
-            {}
+            {},
         )
 
         metrics = ConfidenceMetrics()
@@ -132,15 +133,11 @@ class ConfidenceScorer:
         factors.append(entity_factor)
         metrics.entity_extraction_confidence = entity_factor.score
 
-        doctype_factor = self._score_document_type(
-            document_type, context, entities, reasoning
-        )
+        doctype_factor = self._score_document_type(document_type, context, entities, reasoning)
         factors.append(doctype_factor)
         metrics.document_type_confidence = doctype_factor.score
 
-        relationship_factor = self._score_relationships(
-            relationships, entities, reasoning
-        )
+        relationship_factor = self._score_relationships(relationships, entities, reasoning)
         factors.append(relationship_factor)
         metrics.relationship_confidence = relationship_factor.score
 
@@ -164,7 +161,7 @@ class ConfidenceScorer:
         self._identify_uncertainty(metrics, factors, context, entities)
 
         # Add completeness assessment
-        metrics.text_completeness = context.text_completeness if hasattr(context, 'text_completeness') else 100.0
+        metrics.text_completeness = context.text_completeness if hasattr(context, "text_completeness") else 100.0
 
         reasoning.add_step(
             ReasoningType.STATISTICAL,
@@ -175,7 +172,7 @@ class ConfidenceScorer:
                 "level": metrics.level.value,
                 "factors": {f.name: f.score for f in factors},
             },
-            confidence_impact=0
+            confidence_impact=0,
         )
 
         reasoning.completed_at = utc_now()
@@ -183,15 +180,14 @@ class ConfidenceScorer:
 
         return metrics, reasoning
 
-    def _score_text_quality(self, context: DocumentContext,
-                            reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_text_quality(self, context: DocumentContext, reasoning: ReasoningChain) -> ConfidenceFactor:
         """Score the quality of extracted text"""
         score = 100.0
         positive = []
         negative = []
 
         # Check OCR quality
-        if hasattr(context, 'ocr_quality'):
+        if hasattr(context, "ocr_quality"):
             if context.ocr_quality < 60:
                 score -= 30
                 negative.append("Low OCR quality detected")
@@ -231,7 +227,7 @@ class ConfidenceScorer:
             ReasoningType.STATISTICAL,
             f"Text quality score: {max(0, score):.1f}",
             {},
-            {"score": score, "positive": positive, "negative": negative}
+            {"score": score, "positive": positive, "negative": negative},
         )
 
         return ConfidenceFactor(
@@ -243,8 +239,7 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_structural_clarity(self, context: DocumentContext,
-                                   reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_structural_clarity(self, context: DocumentContext, reasoning: ReasoningChain) -> ConfidenceFactor:
         """Score how clear the document structure is"""
         score = 50.0  # Start at neutral
         positive = []
@@ -296,7 +291,7 @@ class ConfidenceScorer:
             ReasoningType.STRUCTURAL_ANALYSIS,
             f"Structural clarity score: {max(0, min(100, score)):.1f}",
             {},
-            {"positive": positive, "negative": negative}
+            {"positive": positive, "negative": negative},
         )
 
         return ConfidenceFactor(
@@ -308,8 +303,7 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_entity_extraction(self, entities: list[ExtractedEntity],
-                                  reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_entity_extraction(self, entities: list[ExtractedEntity], reasoning: ReasoningChain) -> ConfidenceFactor:
         """Score the quality of entity extraction"""
         score = 0.0
         positive = []
@@ -353,9 +347,9 @@ class ConfidenceScorer:
         # Check for key entity types
         entity_types = set(e.entity_type for e in entities)
 
-        key_types_found = sum(1 for t in [EntityType.PERSON, EntityType.ADDRESS,
-                                          EntityType.DATE, EntityType.MONEY]
-                             if t in entity_types)
+        key_types_found = sum(
+            1 for t in [EntityType.PERSON, EntityType.ADDRESS, EntityType.DATE, EntityType.MONEY] if t in entity_types
+        )
 
         if key_types_found >= 3:
             score += 10
@@ -376,7 +370,7 @@ class ConfidenceScorer:
             ReasoningType.STATISTICAL,
             f"Entity extraction score: {max(0, min(100, score)):.1f}",
             {"entity_count": entity_count, "avg_confidence": avg_confidence},
-            {"types_found": [t.value for t in entity_types]}
+            {"types_found": [t.value for t in entity_types]},
         )
 
         return ConfidenceFactor(
@@ -388,10 +382,13 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_document_type(self, document_type: DocumentType,
-                              context: DocumentContext,
-                              entities: list[ExtractedEntity],
-                              reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_document_type(
+        self,
+        document_type: DocumentType,
+        context: DocumentContext,
+        entities: list[ExtractedEntity],
+        reasoning: ReasoningChain,
+    ) -> ConfidenceFactor:
         """Score confidence in document type classification"""
         score = 50.0  # Start at neutral
         positive = []
@@ -404,8 +401,12 @@ class ConfidenceScorer:
             positive.append(f"Classified as {document_type.value}")
 
         # Check for supporting structural evidence
-        if document_type in [DocumentType.SUMMONS, DocumentType.COMPLAINT,
-                            DocumentType.COURT_ORDER, DocumentType.JUDGMENT]:
+        if document_type in [
+            DocumentType.SUMMONS,
+            DocumentType.COMPLAINT,
+            DocumentType.COURT_ORDER,
+            DocumentType.JUDGMENT,
+        ]:
             if context.has_case_caption:
                 score += 25
                 positive.append("Has case caption supporting court document classification")
@@ -413,8 +414,11 @@ class ConfidenceScorer:
                 score -= 15
                 negative.append("Court document but no case caption found")
 
-        elif document_type in [DocumentType.EVICTION_NOTICE, DocumentType.NOTICE_TO_QUIT,
-                               DocumentType.NOTICE_TO_VACATE]:
+        elif document_type in [
+            DocumentType.EVICTION_NOTICE,
+            DocumentType.NOTICE_TO_QUIT,
+            DocumentType.NOTICE_TO_VACATE,
+        ]:
             if context.has_date_line and context.has_signature_block:
                 score += 20
                 positive.append("Has date and signature supporting notice classification")
@@ -436,10 +440,13 @@ class ConfidenceScorer:
         # Cross-check with document flow type
         flow_type = context.document_flow_type
         compatible_flows = {
-            "letter": [DocumentType.LANDLORD_LETTER, DocumentType.TENANT_LETTER,
-                      DocumentType.EVICTION_NOTICE, DocumentType.RENT_INCREASE_NOTICE],
-            "legal_filing": [DocumentType.SUMMONS, DocumentType.COMPLAINT,
-                           DocumentType.MOTION, DocumentType.AFFIDAVIT],
+            "letter": [
+                DocumentType.LANDLORD_LETTER,
+                DocumentType.TENANT_LETTER,
+                DocumentType.EVICTION_NOTICE,
+                DocumentType.RENT_INCREASE_NOTICE,
+            ],
+            "legal_filing": [DocumentType.SUMMONS, DocumentType.COMPLAINT, DocumentType.MOTION, DocumentType.AFFIDAVIT],
             "form": [DocumentType.LEASE, DocumentType.HUD_FORM],
             "contract": [DocumentType.LEASE, DocumentType.LEASE_AMENDMENT],
         }
@@ -456,7 +463,7 @@ class ConfidenceScorer:
             ReasoningType.SEMANTIC_ANALYSIS,
             f"Document type confidence: {max(0, min(100, score)):.1f}",
             {"type": document_type.value, "flow": flow_type},
-            {}
+            {},
         )
 
         return ConfidenceFactor(
@@ -468,9 +475,9 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_relationships(self, relationships: RelationshipMap,
-                              entities: list[ExtractedEntity],
-                              reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_relationships(
+        self, relationships: RelationshipMap, entities: list[ExtractedEntity], reasoning: ReasoningChain
+    ) -> ConfidenceFactor:
         """Score the quality of relationship mapping"""
         score = 50.0
         positive = []
@@ -483,8 +490,7 @@ class ConfidenceScorer:
 
             # Check if tenant-landlord relationship exists
             has_tenant_landlord = any(
-                r.relationship_type == "landlord_tenant"
-                for r in relationships.party_relationships
+                r.relationship_type == "landlord_tenant" for r in relationships.party_relationships
             )
             if has_tenant_landlord:
                 score += 15
@@ -528,7 +534,7 @@ class ConfidenceScorer:
             {
                 "party_relationships": len(relationships.party_relationships),
                 "amount_relationships": len(relationships.amount_relationships),
-            }
+            },
         )
 
         return ConfidenceFactor(
@@ -540,9 +546,9 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_legal_analysis(self, issues: list[LegalIssue],
-                               entities: list[ExtractedEntity],
-                               reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_legal_analysis(
+        self, issues: list[LegalIssue], entities: list[ExtractedEntity], reasoning: ReasoningChain
+    ) -> ConfidenceFactor:
         """Score the quality of legal analysis"""
         score = 60.0  # Start above neutral (legal analysis is specialized)
         positive = []
@@ -591,7 +597,7 @@ class ConfidenceScorer:
             ReasoningType.LEGAL_RULE,
             f"Legal analysis score: {max(0, min(100, score)):.1f}",
             {"issue_count": len(issues)},
-            {"critical_count": len(critical) if issues else 0}
+            {"critical_count": len(critical) if issues else 0},
         )
 
         return ConfidenceFactor(
@@ -603,8 +609,7 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_temporal_consistency(self, timeline: list[TimelineEntry],
-                                     reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_temporal_consistency(self, timeline: list[TimelineEntry], reasoning: ReasoningChain) -> ConfidenceFactor:
         """Score the consistency of temporal data"""
         score = 50.0
         positive = []
@@ -632,11 +637,11 @@ class ConfidenceScorer:
         dates = [t.event_date for t in timeline if t.event_date]
         if dates:
             from datetime import date, timedelta
+
             today = date.today()
 
             # Check if dates are within reasonable range (2 years past, 1 year future)
-            in_range = sum(1 for d in dates
-                          if today - timedelta(days=730) <= d <= today + timedelta(days=365))
+            in_range = sum(1 for d in dates if today - timedelta(days=730) <= d <= today + timedelta(days=365))
 
             if in_range == len(dates):
                 score += 15
@@ -661,7 +666,7 @@ class ConfidenceScorer:
             ReasoningType.TEMPORAL_LOGIC,
             f"Temporal consistency score: {max(0, min(100, score)):.1f}",
             {"timeline_entries": len(timeline)},
-            {"valid_dates": valid_dates}
+            {"valid_dates": valid_dates},
         )
 
         return ConfidenceFactor(
@@ -673,8 +678,7 @@ class ConfidenceScorer:
             negative_signals=negative,
         )
 
-    def _score_reasoning_agreement(self, chains: list[ReasoningChain],
-                                    reasoning: ReasoningChain) -> ConfidenceFactor:
+    def _score_reasoning_agreement(self, chains: list[ReasoningChain], reasoning: ReasoningChain) -> ConfidenceFactor:
         """Score how well multiple reasoning passes agree"""
         score = 70.0  # Start optimistic
         positive = []
@@ -710,7 +714,7 @@ class ConfidenceScorer:
             ReasoningType.STATISTICAL,
             f"Reasoning agreement score: {max(0, min(100, score)):.1f}",
             {"passes": len(chains)},
-            {"confirmed": total_confirmed, "revised": total_revised}
+            {"confirmed": total_confirmed, "revised": total_revised},
         )
 
         return ConfidenceFactor(
@@ -731,10 +735,13 @@ class ConfidenceScorer:
             return weighted_sum / total_weight
         return 50.0
 
-    def _identify_uncertainty(self, metrics: ConfidenceMetrics,
-                              factors: list[ConfidenceFactor],
-                              context: DocumentContext,
-                              entities: list[ExtractedEntity]):
+    def _identify_uncertainty(
+        self,
+        metrics: ConfidenceMetrics,
+        factors: list[ConfidenceFactor],
+        context: DocumentContext,
+        entities: list[ExtractedEntity],
+    ):
         """Identify sources of uncertainty"""
         # Collect negative signals from low-scoring factors
         for factor in factors:

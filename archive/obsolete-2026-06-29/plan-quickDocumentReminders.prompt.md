@@ -126,32 +126,32 @@ document.head.appendChild(fabStyle);
 (function() {
   const REMINDER_KEY = 'semptify_reminder_dismissed';
   const LAST_DOC_KEY = 'semptify_last_document';
-  
+
   function shouldShowReminder() {
     const lastDoc = localStorage.getItem(LAST_DOC_KEY);
     const dismissed = localStorage.getItem(REMINDER_KEY);
     const now = new Date();
     const thisMonth = `${now.getFullYear()}-${now.getMonth()}`;
-    
+
     // Don't show if dismissed this month
     if (dismissed === thisMonth) return false;
-    
+
     // Show if never documented or >30 days ago
     if (!lastDoc) return true;
     const daysSince = (now - new Date(lastDoc)) / (1000 * 60 * 60 * 24);
     return daysSince > 30;
   }
-  
+
   function getReminderMessage() {
     const day = new Date().getDate();
     if (day <= 5) return "🧾 Time to save this month's rent receipt!";
     if (day >= 13 && day <= 17) return "🔧 Any maintenance issues to document?";
     return "📄 Keep your case file growing - document something today!";
   }
-  
+
   function showReminder() {
     if (!shouldShowReminder()) return;
-    
+
     // Use existing toast system if available
     if (window.showToast) {
       window.showToast(getReminderMessage(), 'info', 10000, {
@@ -163,12 +163,12 @@ document.head.appendChild(fabStyle);
       });
     }
   }
-  
+
   // Mark document uploaded (call from document_intake.html on success)
   window.markDocumentUploaded = function() {
     localStorage.setItem(LAST_DOC_KEY, new Date().toISOString());
   };
-  
+
   // Show reminder after page loads
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(showReminder, 2000));

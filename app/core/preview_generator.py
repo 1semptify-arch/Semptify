@@ -22,6 +22,7 @@ from app.core.utc import utc_now
 
 try:
     import magic as _magic
+
     _MAGIC_AVAILABLE = True
 except ImportError:
     _magic = None
@@ -29,15 +30,19 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class PreviewType(Enum):
     """Preview generation types."""
+
     THUMBNAIL = "thumbnail"
     PREVIEW = "preview"
     FULL_TEXT = "full_text"
     METADATA = "metadata"
 
+
 class SupportedFormat(Enum):
     """Supported document formats."""
+
     PDF = "pdf"
     IMAGE = "image"
     TEXT = "text"
@@ -45,9 +50,11 @@ class SupportedFormat(Enum):
     EXCEL = "excel"
     POWERPOINT = "powerpoint"
 
+
 @dataclass
 class PreviewConfig:
     """Preview generation configuration."""
+
     thumbnail_size: tuple[int, int] = (200, 300)
     preview_size: tuple[int, int] = (800, 1200)
     quality: int = 85
@@ -58,9 +65,11 @@ class PreviewConfig:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
+
 @dataclass
 class PreviewResult:
     """Preview generation result."""
+
     document_id: str
     preview_type: PreviewType
     content: str | bytes | dict[str, Any]
@@ -78,8 +87,9 @@ class PreviewResult:
             "size_bytes": self.size_bytes,
             "generated_at": self.generated_at.isoformat(),
             "cache_key": self.cache_key,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
+
 
 class PreviewGenerator:
     """Document preview and thumbnail generator."""
@@ -116,7 +126,7 @@ class PreviewGenerator:
             "thumbnails_generated": 0,
             "cache_hits": 0,
             "cache_misses": 0,
-            "errors": 0
+            "errors": 0,
         }
 
     def detect_format(self, file_path: str) -> SupportedFormat | None:
@@ -126,14 +136,14 @@ class PreviewGenerator:
                 mime_type = _magic.from_file(file_path, mime=True)
             else:
                 import mimetypes
+
                 mime_type, _ = mimetypes.guess_type(file_path)
             return self.mime_types.get(mime_type)
         except Exception as e:
             logger.error(f"Format detection failed: {e}")
             return None
 
-    def generate_cache_key(self, document_id: str, preview_type: PreviewType,
-                          file_path: str = None) -> str:
+    def generate_cache_key(self, document_id: str, preview_type: PreviewType, file_path: str = None) -> str:
         """Generate cache key for preview."""
         key_data = f"{document_id}:{preview_type.value}"
 
@@ -144,8 +154,7 @@ class PreviewGenerator:
 
         return hashlib.md5(key_data.encode()).hexdigest()
 
-    async def generate_thumbnail(self, document_id: str, file_path: str,
-                               page_number: int = 1) -> PreviewResult | None:
+    async def generate_thumbnail(self, document_id: str, file_path: str, page_number: int = 1) -> PreviewResult | None:
         """Generate thumbnail for document."""
         try:
             cache_key = self.generate_cache_key(document_id, PreviewType.THUMBNAIL, file_path)
@@ -181,11 +190,7 @@ class PreviewGenerator:
                 size_bytes=len(thumbnail_data) if isinstance(thumbnail_data, bytes) else 0,
                 generated_at=utc_now(),
                 cache_key=cache_key,
-                metadata={
-                    "page_number": page_number,
-                    "size": self.config.thumbnail_size,
-                    "format": doc_format.value
-                }
+                metadata={"page_number": page_number, "size": self.config.thumbnail_size, "format": doc_format.value},
             )
 
             # Cache result
@@ -200,8 +205,7 @@ class PreviewGenerator:
             logger.error(f"Thumbnail generation failed for {document_id}: {e}")
             return None
 
-    async def generate_preview(self, document_id: str, file_path: str,
-                              max_pages: int = None) -> PreviewResult | None:
+    async def generate_preview(self, document_id: str, file_path: str, max_pages: int = None) -> PreviewResult | None:
         """Generate full preview for document."""
         try:
             cache_key = self.generate_cache_key(document_id, PreviewType.PREVIEW, file_path)
@@ -239,11 +243,7 @@ class PreviewGenerator:
                 size_bytes=len(str(preview_data).encode()),
                 generated_at=utc_now(),
                 cache_key=cache_key,
-                metadata={
-                    "max_pages": max_pages,
-                    "format": doc_format.value,
-                    "size": self.config.preview_size
-                }
+                metadata={"max_pages": max_pages, "format": doc_format.value, "size": self.config.preview_size},
             )
 
             # Cache result
@@ -293,8 +293,8 @@ class PreviewGenerator:
         try:
             with Image.open(file_path) as img:
                 # Convert to RGB if necessary
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
 
                 # Resize to thumbnail size
                 img.thumbnail(self.config.thumbnail_size, Image.Resampling.LANCZOS)
@@ -313,13 +313,13 @@ class PreviewGenerator:
         """Generate thumbnail from text file."""
         try:
             # Read first few lines of text
-            with open(file_path, encoding='utf-8', errors='ignore') as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()[:10]
-                text = ''.join(lines)
+                "".join(lines)
 
             # Create image with text
             width, height = self.config.thumbnail_size
-            img = Image.new('RGB', (width, height), color='white')
+            img = Image.new("RGB", (width, height), color="white")
             draw = ImageDraw.Draw(img)
 
             # Try to use a default font
@@ -336,7 +336,7 @@ class PreviewGenerator:
 
                 # Truncate long lines
                 display_line = line[:50] + "..." if len(line) > 50 else line
-                draw.text((10, y_offset), display_line, fill='black', font=font)
+                draw.text((10, y_offset), display_line, fill="black", font=font)
                 y_offset += 15
 
             # Convert to bytes
@@ -353,7 +353,7 @@ class PreviewGenerator:
         """Generate generic thumbnail for unsupported formats."""
         try:
             width, height = self.config.thumbnail_size
-            img = Image.new('RGB', (width, height), color='#f0f0f0')
+            img = Image.new("RGB", (width, height), color="#f0f0f0")
             draw = ImageDraw.Draw(img)
 
             # Try to use a default font
@@ -371,7 +371,7 @@ class PreviewGenerator:
             x = (width - text_width) // 2
             y = (height - text_height) // 2
 
-            draw.text((x, y), format_text, fill='#666666', font=font)
+            draw.text((x, y), format_text, fill="#666666", font=font)
 
             # Convert to bytes
             img_buffer = io.BytesIO()
@@ -393,14 +393,14 @@ class PreviewGenerator:
                 "pages": [],
                 "metadata": {
                     "page_count": len(doc),
-                    "title": doc.metadata.get('title', ''),
-                    "author": doc.metadata.get('author', ''),
-                    "subject": doc.metadata.get('subject', ''),
-                    "creator": doc.metadata.get('creator', ''),
-                    "producer": doc.metadata.get('producer', ''),
-                    "creation_date": doc.metadata.get('creationDate', ''),
-                    "modification_date": doc.metadata.get('modDate', '')
-                }
+                    "title": doc.metadata.get("title", ""),
+                    "author": doc.metadata.get("author", ""),
+                    "subject": doc.metadata.get("subject", ""),
+                    "creator": doc.metadata.get("creator", ""),
+                    "producer": doc.metadata.get("producer", ""),
+                    "creation_date": doc.metadata.get("creationDate", ""),
+                    "modification_date": doc.metadata.get("modDate", ""),
+                },
             }
 
             # Generate preview for each page
@@ -422,15 +422,14 @@ class PreviewGenerator:
                 img.save(img_buffer, format=self.config.format, quality=self.config.quality)
                 img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
 
-                preview_data["pages"].append({
-                    "page_number": page_num + 1,
-                    "text": text[:self.config.max_text_length],
-                    "image": f"data:image/{self.config.format.lower()};base64,{img_base64}",
-                    "dimensions": {
-                        "width": pix.width,
-                        "height": pix.height
+                preview_data["pages"].append(
+                    {
+                        "page_number": page_num + 1,
+                        "text": text[: self.config.max_text_length],
+                        "image": f"data:image/{self.config.format.lower()};base64,{img_base64}",
+                        "dimensions": {"width": pix.width, "height": pix.height},
                     }
-                })
+                )
 
             doc.close()
             return preview_data
@@ -444,8 +443,8 @@ class PreviewGenerator:
         try:
             with Image.open(file_path) as img:
                 # Convert to RGB if necessary
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
 
                 # Get image info
                 preview_data = {
@@ -453,11 +452,7 @@ class PreviewGenerator:
                     "format": img.format,
                     "mode": img.mode,
                     "size": img.size,
-                    "metadata": {
-                        "width": img.width,
-                        "height": img.height,
-                        "format": img.format
-                    }
+                    "metadata": {"width": img.width, "height": img.height, "format": img.format},
                 }
 
                 # Generate preview image
@@ -480,7 +475,7 @@ class PreviewGenerator:
     async def _generate_text_preview(self, file_path: str) -> dict[str, Any]:
         """Generate preview from text file."""
         try:
-            with open(file_path, encoding='utf-8', errors='ignore') as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read(self.config.max_text_length)
 
             preview_data = {
@@ -489,8 +484,8 @@ class PreviewGenerator:
                 "metadata": {
                     "encoding": "utf-8",
                     "length": len(content),
-                    "truncated": len(content) == self.config.max_text_length
-                }
+                    "truncated": len(content) == self.config.max_text_length,
+                },
             }
 
             return preview_data
@@ -512,9 +507,9 @@ class PreviewGenerator:
                     "file_size": file_size,
                     "file_size_human": self._format_file_size(file_size),
                     "modified_time": file_mtime.isoformat(),
-                    "supported": False
+                    "supported": False,
                 },
-                "message": f"Preview not available for {doc_format.value} files"
+                "message": f"Preview not available for {doc_format.value} files",
             }
 
             return preview_data
@@ -525,7 +520,7 @@ class PreviewGenerator:
 
     def _format_file_size(self, size_bytes: int) -> str:
         """Format file size in human readable format."""
-        for unit in ['B', 'KB', 'MB', 'GB']:
+        for unit in ["B", "KB", "MB", "GB"]:
             if size_bytes < 1024.0:
                 return f"{size_bytes:.1f} {unit}"
             size_bytes /= 1024.0
@@ -545,8 +540,7 @@ class PreviewGenerator:
         """Clear preview cache."""
         if document_id:
             # Clear specific document previews
-            keys_to_remove = [key for key, result in self.preview_cache.items()
-                            if result.document_id == document_id]
+            keys_to_remove = [key for key, result in self.preview_cache.items() if result.document_id == document_id]
             for key in keys_to_remove:
                 del self.preview_cache[key]
         else:
@@ -563,13 +557,16 @@ class PreviewGenerator:
             "cache_misses": self.stats["cache_misses"],
             "cache_hit_rate": (
                 self.stats["cache_hits"] / (self.stats["cache_hits"] + self.stats["cache_misses"])
-                if (self.stats["cache_hits"] + self.stats["cache_misses"]) > 0 else 0
+                if (self.stats["cache_hits"] + self.stats["cache_misses"]) > 0
+                else 0
             ),
-            "errors": self.stats["errors"]
+            "errors": self.stats["errors"],
         }
+
 
 # Global preview generator instance
 _preview_generator: PreviewGenerator | None = None
+
 
 def get_preview_generator() -> PreviewGenerator:
     """Get the global preview generator instance."""
@@ -580,26 +577,31 @@ def get_preview_generator() -> PreviewGenerator:
 
     return _preview_generator
 
+
 # Helper functions
 async def generate_document_thumbnail(document_id: str, file_path: str, page_number: int = 1) -> PreviewResult | None:
     """Generate thumbnail for document."""
     generator = get_preview_generator()
     return await generator.generate_thumbnail(document_id, file_path, page_number)
 
+
 async def generate_document_preview(document_id: str, file_path: str, max_pages: int = None) -> PreviewResult | None:
     """Generate preview for document."""
     generator = get_preview_generator()
     return await generator.generate_preview(document_id, file_path, max_pages)
+
 
 def get_cached_preview(document_id: str, preview_type: PreviewType) -> PreviewResult | None:
     """Get cached preview."""
     generator = get_preview_generator()
     return generator.get_preview(document_id, preview_type)
 
+
 def clear_preview_cache(document_id: str = None):
     """Clear preview cache."""
     generator = get_preview_generator()
     generator.clear_cache(document_id)
+
 
 def get_preview_statistics() -> dict[str, Any]:
     """Get preview generation statistics."""

@@ -103,6 +103,7 @@ class RedisSessionBackend(SessionBackend):
 
     def __init__(self, redis_url: str = None, prefix: str = "semptify:session:"):
         import os
+
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379")
         self.prefix = prefix
         self._client = None
@@ -112,11 +113,8 @@ class RedisSessionBackend(SessionBackend):
         if self._client is None:
             try:
                 import redis.asyncio as aioredis
-                self._client = aioredis.from_url(
-                    self.redis_url,
-                    encoding="utf-8",
-                    decode_responses=True
-                )
+
+                self._client = aioredis.from_url(self.redis_url, encoding="utf-8", decode_responses=True)
             except ImportError:
                 logger.error("redis package not installed. Run: pip install redis")
                 raise
@@ -198,11 +196,11 @@ def get_session_backend() -> SessionBackend:
 def configure_session_backend(redis_url: str | None = None):
     """
     Configure the session backend.
-    
+
     Call this during application startup:
         import os
         configure_session_backend(os.getenv("REDIS_URL", "redis://localhost:6379"))
-    
+
     Args:
         redis_url: Redis connection URL. If None, uses in-memory storage.
     """

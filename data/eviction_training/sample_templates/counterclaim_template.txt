@@ -4,13 +4,13 @@ MINNESOTA DISTRICT COURT
 {plaintiff_name},                                  Case No.: {case_number}
                     Plaintiff,
         vs.                                        COUNTERCLAIM
-                                                   
+
 {defendant_name},
                     Defendant/Counterclaimant.
 
 COUNTERCLAIM
 
-Defendant/Counterclaimant {defendant_name} brings this Counterclaim against 
+Defendant/Counterclaimant {defendant_name} brings this Counterclaim against
 Plaintiff/Counterdefendant and states:
 
 PARTIES AND JURISDICTION
@@ -19,15 +19,15 @@ PARTIES AND JURISDICTION
 
 2. Counterdefendant is the landlord of said property.
 
-3. This Court has jurisdiction over this counterclaim pursuant to 
+3. This Court has jurisdiction over this counterclaim pursuant to
    Minnesota Statute § 504B.
 
 FACTS
 
-4. On or about {lease_date}, Counterclaimant entered into a lease agreement 
+4. On or about {lease_date}, Counterclaimant entered into a lease agreement
    with Counterdefendant for the premises.
 
-5. Counterdefendant has breached the lease and violated Minnesota Statute 
+5. Counterdefendant has breached the lease and violated Minnesota Statute
    § 504B.161 by failing to:
    a. [Specific violation 1]
    b. [Specific violation 2]

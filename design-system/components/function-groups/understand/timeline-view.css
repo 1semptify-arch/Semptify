@@ -360,21 +360,21 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .timeline-controls {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .timeline-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .timeline-event {
     flex-direction: column;
     gap: var(--space-sm);
   }
-  
+
   .timeline-event-actions {
     align-self: flex-end;
   }

@@ -12,6 +12,7 @@ Usage (on Render shell or locally with server running):
     python scripts/run_render_tests.py
     python scripts/run_render_tests.py --base-url https://semptify.org
 """
+
 import argparse
 import json
 import sys
@@ -90,9 +91,10 @@ def run_law_library_tests(base):
         links = data.get("links", data) if isinstance(data, dict) else data
         if isinstance(links, list):
             record("links returned", "PASS", f"{len(links)} links")
-            https_count = sum(1 for l in links if isinstance(l, dict) and str(l.get("official_url", "")).startswith("https://"))
-            record("all URLs are https", "PASS" if https_count == len(links) else "FAIL",
-                   f"{https_count}/{len(links)}")
+            https_count = sum(
+                1 for l in links if isinstance(l, dict) and str(l.get("official_url", "")).startswith("https://")
+            )
+            record("all URLs are https", "PASS" if https_count == len(links) else "FAIL", f"{https_count}/{len(links)}")
         else:
             record("links returned", "FAIL", "not a list")
     except json.JSONDecodeError as e:

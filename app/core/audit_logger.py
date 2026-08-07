@@ -17,8 +17,10 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class AuditEventType(Enum):
     """Types of audit events."""
+
     DOCUMENT_UPLOAD = "document_upload"
     DOCUMENT_DOWNLOAD = "document_download"
     DOCUMENT_VIEW = "document_view"
@@ -33,16 +35,20 @@ class AuditEventType(Enum):
     STORAGE_ACCESS = "storage_access"
     SYSTEM_ERROR = "system_error"
 
+
 class AuditSeverity(Enum):
     """Severity levels for audit events."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
+
 @dataclass
 class AuditEvent:
     """Audit event record."""
+
     event_type: AuditEventType
     user_id: str | None
     timestamp: datetime
@@ -70,8 +76,9 @@ class AuditEvent:
             "action": self.action,
             "details": self.details,
             "success": self.success,
-            "error_message": self.error_message
+            "error_message": self.error_message,
         }
+
 
 class AuditLogger:
     """Centralized audit logging system."""
@@ -93,7 +100,7 @@ class AuditLogger:
         handler.setLevel(logging.INFO)
 
         # Create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
 
         # Add handler to logger
@@ -106,7 +113,7 @@ class AuditLogger:
 
         # Trim memory if needed
         if len(self.events) > self.max_events:
-            self.events = self.events[-self.max_events:]
+            self.events = self.events[-self.max_events :]
 
         # Log to file
         log_message = json.dumps(event.to_dict())
@@ -120,9 +127,18 @@ class AuditLogger:
         else:
             self.logger.info(log_message)
 
-    def document_uploaded(self, user_id: str, document_id: str, filename: str,
-                         file_size: int, file_type: str, ip_address: str,
-                         user_agent: str, success: bool = True, error: str = None):
+    def document_uploaded(
+        self,
+        user_id: str,
+        document_id: str,
+        filename: str,
+        file_size: int,
+        file_type: str,
+        ip_address: str,
+        user_agent: str,
+        success: bool = True,
+        error: str = None,
+    ):
         """Log document upload event."""
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_UPLOAD,
@@ -134,18 +150,22 @@ class AuditLogger:
             resource_id=document_id,
             resource_type="document",
             action="upload",
-            details={
-                "filename": filename,
-                "file_size": file_size,
-                "file_type": file_type
-            },
+            details={"filename": filename, "file_size": file_size, "file_type": file_type},
             success=success,
-            error_message=error
+            error_message=error,
         )
         self.log_event(event)
 
-    def document_downloaded(self, user_id: str, document_id: str, filename: str,
-                           ip_address: str, user_agent: str, success: bool = True, error: str = None):
+    def document_downloaded(
+        self,
+        user_id: str,
+        document_id: str,
+        filename: str,
+        ip_address: str,
+        user_agent: str,
+        success: bool = True,
+        error: str = None,
+    ):
         """Log document download event."""
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_DOWNLOAD,
@@ -157,16 +177,13 @@ class AuditLogger:
             resource_id=document_id,
             resource_type="document",
             action="download",
-            details={
-                "filename": filename
-            },
+            details={"filename": filename},
             success=success,
-            error_message=error
+            error_message=error,
         )
         self.log_event(event)
 
-    def document_viewed(self, user_id: str, document_id: str, filename: str,
-                       ip_address: str, user_agent: str):
+    def document_viewed(self, user_id: str, document_id: str, filename: str, ip_address: str, user_agent: str):
         """Log document view event."""
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_VIEW,
@@ -178,15 +195,21 @@ class AuditLogger:
             resource_id=document_id,
             resource_type="document",
             action="view",
-            details={
-                "filename": filename
-            },
-            success=True
+            details={"filename": filename},
+            success=True,
         )
         self.log_event(event)
 
-    def document_deleted(self, user_id: str, document_id: str, filename: str,
-                        ip_address: str, user_agent: str, success: bool = True, error: str = None):
+    def document_deleted(
+        self,
+        user_id: str,
+        document_id: str,
+        filename: str,
+        ip_address: str,
+        user_agent: str,
+        success: bool = True,
+        error: str = None,
+    ):
         """Log document deletion event."""
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_DELETE,
@@ -198,16 +221,15 @@ class AuditLogger:
             resource_id=document_id,
             resource_type="document",
             action="delete",
-            details={
-                "filename": filename
-            },
+            details={"filename": filename},
             success=success,
-            error_message=error
+            error_message=error,
         )
         self.log_event(event)
 
-    def file_validation_failed(self, user_id: str, filename: str, error_message: str,
-                               security_risk: str, ip_address: str, user_agent: str):
+    def file_validation_failed(
+        self, user_id: str, filename: str, error_message: str, security_risk: str, ip_address: str, user_agent: str
+    ):
         """Log file validation failure."""
         event = AuditEvent(
             event_type=AuditEventType.FILE_VALIDATION_FAILURE,
@@ -219,18 +241,21 @@ class AuditLogger:
             resource_id=None,
             resource_type="file",
             action="validation_failed",
-            details={
-                "filename": filename,
-                "security_risk": security_risk,
-                "validation_error": error_message
-            },
+            details={"filename": filename, "security_risk": security_risk, "validation_error": error_message},
             success=False,
-            error_message=error_message
+            error_message=error_message,
         )
         self.log_event(event)
 
-    def security_violation(self, user_id: str, violation_type: str, details: dict[str, Any],
-                          ip_address: str, user_agent: str, severity: AuditSeverity = AuditSeverity.HIGH):
+    def security_violation(
+        self,
+        user_id: str,
+        violation_type: str,
+        details: dict[str, Any],
+        ip_address: str,
+        user_agent: str,
+        severity: AuditSeverity = AuditSeverity.HIGH,
+    ):
         """Log security violation."""
         event = AuditEvent(
             event_type=AuditEventType.SECURITY_VIOLATION,
@@ -242,16 +267,14 @@ class AuditLogger:
             resource_id=None,
             resource_type="security",
             action="violation",
-            details={
-                "violation_type": violation_type,
-                **details
-            },
-            success=False
+            details={"violation_type": violation_type, **details},
+            success=False,
         )
         self.log_event(event)
 
-    def user_login(self, user_id: str, provider: str, ip_address: str, user_agent: str,
-                   success: bool = True, error: str = None):
+    def user_login(
+        self, user_id: str, provider: str, ip_address: str, user_agent: str, success: bool = True, error: str = None
+    ):
         """Log user login event."""
         event = AuditEvent(
             event_type=AuditEventType.USER_LOGIN,
@@ -263,11 +286,9 @@ class AuditLogger:
             resource_id=None,
             resource_type="user",
             action="login",
-            details={
-                "provider": provider
-            },
+            details={"provider": provider},
             success=success,
-            error_message=error
+            error_message=error,
         )
         self.log_event(event)
 
@@ -284,7 +305,7 @@ class AuditLogger:
             resource_type="user",
             action="logout",
             details={},
-            success=True
+            success=True,
         )
         self.log_event(event)
 
@@ -300,11 +321,9 @@ class AuditLogger:
             resource_id=None,
             resource_type="token",
             action="refresh",
-            details={
-                "provider": provider
-            },
+            details={"provider": provider},
             success=success,
-            error_message=error
+            error_message=error,
         )
         self.log_event(event)
 
@@ -320,12 +339,9 @@ class AuditLogger:
             resource_id=None,
             resource_type="system",
             action="error",
-            details={
-                "error_message": error_message,
-                **context
-            },
+            details={"error_message": error_message, **context},
             success=False,
-            error_message=error_message
+            error_message=error_message,
         )
         self.log_event(event)
 
@@ -339,15 +355,12 @@ class AuditLogger:
         doc_events = [event for event in self.events if event.resource_id == document_id]
         return doc_events[-limit:]
 
-    def get_security_events(self, severity: AuditSeverity | None = None,
-                           limit: int = 100) -> list[AuditEvent]:
+    def get_security_events(self, severity: AuditSeverity | None = None, limit: int = 100) -> list[AuditEvent]:
         """Get security events."""
-        security_events = [event for event in self.events
-                          if event.event_type == AuditEventType.SECURITY_VIOLATION]
+        security_events = [event for event in self.events if event.event_type == AuditEventType.SECURITY_VIOLATION]
 
         if severity:
-            security_events = [event for event in security_events
-                              if event.severity == severity]
+            security_events = [event for event in security_events if event.severity == severity]
 
         return security_events[-limit:]
 
@@ -356,8 +369,9 @@ class AuditLogger:
         typed_events = [event for event in self.events if event.event_type == event_type]
         return typed_events[-limit:]
 
-    def export_events(self, start_time: datetime | None = None,
-                     end_time: datetime | None = None) -> list[dict[str, Any]]:
+    def export_events(
+        self, start_time: datetime | None = None, end_time: datetime | None = None
+    ) -> list[dict[str, Any]]:
         """Export events for compliance reporting."""
         events = self.events
 
@@ -400,38 +414,49 @@ class AuditLogger:
             "success_rate": success_rate,
             "time_range": {
                 "earliest": min([event.timestamp for event in events]).isoformat() if events else None,
-                "latest": max([event.timestamp for event in events]).isoformat() if events else None
-            }
+                "latest": max([event.timestamp for event in events]).isoformat() if events else None,
+            },
         }
+
 
 # Global audit logger instance
 audit_logger = AuditLogger()
+
 
 def get_audit_logger() -> AuditLogger:
     """Get the global audit logger instance."""
     return audit_logger
 
-# Helper functions for common audit operations
-def log_document_upload(user_id: str, document_id: str, filename: str,
-                      file_size: int, file_type: str, ip_address: str,
-                      user_agent: str, success: bool = True, error: str = None):
-    """Log document upload."""
-    audit_logger.document_uploaded(user_id, document_id, filename, file_size,
-                                 file_type, ip_address, user_agent, success, error)
 
-def log_document_access(user_id: str, document_id: str, filename: str,
-                       action: str, ip_address: str, user_agent: str):
+# Helper functions for common audit operations
+def log_document_upload(
+    user_id: str,
+    document_id: str,
+    filename: str,
+    file_size: int,
+    file_type: str,
+    ip_address: str,
+    user_agent: str,
+    success: bool = True,
+    error: str = None,
+):
+    """Log document upload."""
+    audit_logger.document_uploaded(
+        user_id, document_id, filename, file_size, file_type, ip_address, user_agent, success, error
+    )
+
+
+def log_document_access(user_id: str, document_id: str, filename: str, action: str, ip_address: str, user_agent: str):
     """Log document access (view/download)."""
     if action == "download":
-        audit_logger.document_downloaded(user_id, document_id, filename,
-                                        ip_address, user_agent)
+        audit_logger.document_downloaded(user_id, document_id, filename, ip_address, user_agent)
     else:
-        audit_logger.document_viewed(user_id, document_id, filename,
-                                   ip_address, user_agent)
+        audit_logger.document_viewed(user_id, document_id, filename, ip_address, user_agent)
 
-def log_security_event(user_id: str, event_type: str, details: dict[str, Any],
-                      ip_address: str, user_agent: str, severity: str = "high"):
+
+def log_security_event(
+    user_id: str, event_type: str, details: dict[str, Any], ip_address: str, user_agent: str, severity: str = "high"
+):
     """Log security event."""
     severity_enum = AuditSeverity[severity.upper()]
-    audit_logger.security_violation(user_id, event_type, details,
-                                   ip_address, user_agent, severity_enum)
+    audit_logger.security_violation(user_id, event_type, details, ip_address, user_agent, severity_enum)

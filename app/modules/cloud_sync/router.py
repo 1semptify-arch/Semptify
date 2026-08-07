@@ -32,8 +32,10 @@ router = APIRouter(prefix="/api/sync", tags=["Cloud Sync"])
 # Request/Response Models
 # =============================================================================
 
+
 class ProfileUpdate(BaseModel):
     """Profile update request."""
+
     display_name: str | None = None
     theme: str | None = None
     language: str | None = None
@@ -43,6 +45,7 @@ class ProfileUpdate(BaseModel):
 
 class CaseUpdate(BaseModel):
     """Case update request."""
+
     case_number: str | None = None
     tenant_name: str | None = None
     tenant_address: str | None = None
@@ -62,6 +65,7 @@ class CaseUpdate(BaseModel):
 
 class TimelineEventCreate(BaseModel):
     """Create timeline event."""
+
     event_type: str
     title: str
     description: str | None = None
@@ -71,6 +75,7 @@ class TimelineEventCreate(BaseModel):
 
 class CalendarEventCreate(BaseModel):
     """Create calendar event."""
+
     title: str
     event_type: str
     start_datetime: str
@@ -81,11 +86,13 @@ class CalendarEventCreate(BaseModel):
 
 class ImportRequest(BaseModel):
     """Import data request."""
+
     data: dict
 
 
 class SyncResponse(BaseModel):
     """Sync status response."""
+
     status: str
     user_id: str
     synced_at: str | None = None
@@ -98,6 +105,7 @@ class SyncResponse(BaseModel):
 # =============================================================================
 # Storage Client Helper
 # =============================================================================
+
 
 class MockStorageClient:
     """Mock storage client for open/demo mode."""
@@ -134,11 +142,13 @@ class MockStorageClient:
     async def file_exists(self, path: str) -> bool:
         """Check if file exists."""
         return path in self._data
+
+
 async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Settings):
     """
     Get the appropriate storage client for the user's provider.
     This creates a client based on their OAuth tokens.
-    
+
     NOTE: Even in open mode, we use REAL storage if user has connected.
     Mock storage is only used as fallback when no real connection exists.
     """
@@ -151,7 +161,7 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
     if not session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No valid storage session. Please reconnect your cloud storage."
+            detail="No valid storage session. Please reconnect your cloud storage.",
         )
 
     provider = session.get("provider")
@@ -159,18 +169,18 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
 
     if provider == "google_drive":
         from app.services.storage.google_drive import GoogleDriveProvider
+
         return GoogleDriveProvider(access_token)
     elif provider == "dropbox":
         from app.services.storage.dropbox import DropboxProvider
+
         return DropboxProvider(access_token)
     elif provider == "onedrive":
         from app.services.storage.onedrive import OneDriveProvider
+
         return OneDriveProvider(access_token)
     else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unknown storage provider: {provider}"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown storage provider: {provider}")
 
 
 async def get_sync_service(
@@ -180,15 +190,18 @@ async def get_sync_service(
 ) -> UserCloudSync:
     """
     Get UserCloudSync service for current user.
-    
+
     NOTE: This is a regular async function, NOT a FastAPI dependency.
     Endpoints must resolve user, db, and settings via Depends() and pass them.
     """
     storage = await get_storage_client(user, db, settings)
     return UserCloudSync(storage, user.user_id)
+
+
 # =============================================================================
 # Sync Endpoints
 # =============================================================================
+
 
 @router.get("/status", response_model=SyncResponse)
 async def get_sync_status(
@@ -202,7 +215,7 @@ async def get_sync_status(
     Returns the current sync state and summary of stored data.
     """
     try:
-        sync = await get_sync_service(user, db, settings)        # Try to load cached data
+        sync = await get_sync_service(user, db, settings)  # Try to load cached data
         summary = QuickSyncData.from_sync(sync)
 
         return SyncResponse(
@@ -226,6 +239,8 @@ async def get_sync_status(
             user_id=user.user_id,
             message=f"Sync service unavailable: {str(e)}",
         )
+
+
 @router.post("/full", response_model=SyncResponse)
 async def full_sync(
     background_tasks: BackgroundTasks,
@@ -267,6 +282,7 @@ async def full_sync(
 # Profile Endpoints
 # =============================================================================
 
+
 @router.get("/profile")
 async def get_profile(
     user: StorageUser = Depends(yellow_access),
@@ -307,6 +323,7 @@ async def update_profile(
 # Case Endpoints
 # =============================================================================
 
+
 @router.get("/case")
 async def get_case(
     user: StorageUser = Depends(yellow_access),
@@ -346,6 +363,7 @@ async def update_case(
 # =============================================================================
 # Timeline Endpoints (Cloud-backed)
 # =============================================================================
+
 
 @router.get("/timeline")
 async def get_timeline(
@@ -392,6 +410,7 @@ async def add_timeline_event(
 # =============================================================================
 # Calendar Endpoints (Cloud-backed)
 # =============================================================================
+
 
 @router.get("/calendar")
 async def get_calendar(
@@ -442,6 +461,7 @@ async def add_calendar_event(
 # Export/Import Endpoints
 # =============================================================================
 
+
 @router.get("/export")
 async def export_all_data(
     user: StorageUser = Depends(yellow_access),
@@ -476,15 +496,13 @@ async def import_all_data(
     if success:
         return {"status": "imported", "message": "Data imported successfully"}
     else:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to import data"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to import data")
 
 
 # =============================================================================
 # Document Endpoints
 # =============================================================================
+
 
 @router.get("/documents")
 async def get_documents(
@@ -506,12 +524,7 @@ async def get_documents(
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
         docs = vault_index.get("documents", [])
-        return {
-            "documents": docs,
-            "count": len(docs),
-            "source": "vault",
-            "user_id": user.user_id
-        }
+        return {"documents": docs, "count": len(docs), "source": "vault", "user_id": user.user_id}
     except Exception as e:
         logger.warning(f"Vault document index load failed, falling back to legacy: {e}")
 
@@ -550,7 +563,7 @@ async def get_vault_index(
             "index": {"documents": [], "version": "1.0"},
             "document_count": 0,
             "user_id": user.user_id,
-            "message": "No vault index found - upload documents to create one"
+            "message": "No vault index found - upload documents to create one",
         }
 
 
@@ -627,6 +640,7 @@ async def get_vault_document_content(
         storage_path = doc_info.get("storage_path", f"{vault_folder}/{document_id}")
         provider_id = doc_info.get("provider_file_id") or doc_info.get("cloud_id")
         from app.services.storage.utils import download_prefer_id
+
         content = await download_prefer_id(sync.storage, storage_path, provider_file_id=provider_id)
 
         return Response(
@@ -636,7 +650,7 @@ async def get_vault_document_content(
                 "Content-Disposition": f'attachment; filename="{doc_info.get("original_filename", "document")}"',
                 "X-Document-ID": document_id,
                 "X-SHA256": doc_info.get("sha256", ""),
-            }
+            },
         )
 
     except HTTPException:
@@ -690,10 +704,7 @@ async def update_vault_document(
 
         vault_index["last_updated"] = utc_now().isoformat()
 
-        await sync.storage.upload_file(
-            f"{vault_folder}/index.json",
-            json.dumps(vault_index, indent=2).encode("utf-8")
-        )
+        await sync.storage.upload_file(f"{vault_folder}/index.json", json.dumps(vault_index, indent=2).encode("utf-8"))
 
         return {"success": True, "document_id": document_id, "message": "Document updated"}
 
@@ -717,7 +728,7 @@ async def upload_document_to_cloud(
 ):
     """
     ● Upload document directly to user's VAULT in cloud storage.
-    
+
     All uploads go to .semptify/vault/ with document ID and user ID.
     This is the single source of truth for all documents.
     """
@@ -737,8 +748,7 @@ async def upload_document_to_cloud(
     max_size = settings.max_upload_size_mb * 1024 * 1024
     if file_size > max_size:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB"
         )
 
     # Generate document ID and compute hash
@@ -752,8 +762,10 @@ async def upload_document_to_cloud(
     # Detect mime type
     mime_types = {
         "pdf": "application/pdf",
-        "jpg": "image/jpeg", "jpeg": "image/jpeg",
-        "png": "image/png", "gif": "image/gif",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
         "doc": "application/msword",
         "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "txt": "text/plain",
@@ -782,8 +794,7 @@ async def upload_document_to_cloud(
         await sync.storage.upload_file(storage_path, content)
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload to vault: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to upload to vault: {str(e)}"
         )
 
     # Create certificate
@@ -825,30 +836,29 @@ async def upload_document_to_cloud(
             vault_index = {"documents": [], "version": "1.0"}
 
         # Add document to index
-        vault_index["documents"].append({
-            "document_id": document_id,
-            "user_id": user.user_id,
-            "filename": safe_filename,
-            "original_filename": filename,
-            "file_size": file_size,
-            "mime_type": mime_type,
-            "sha256": sha256_hash,
-            "document_type": document_type or "other",
-            "tags": tag_list,
-            "folder": folder,
-            "storage_path": storage_path,
-            "certificate_id": certificate_id,
-            "uploaded_at": utc_now().isoformat(),
-            "processed": False,
-            "registered": False,
-        })
+        vault_index["documents"].append(
+            {
+                "document_id": document_id,
+                "user_id": user.user_id,
+                "filename": safe_filename,
+                "original_filename": filename,
+                "file_size": file_size,
+                "mime_type": mime_type,
+                "sha256": sha256_hash,
+                "document_type": document_type or "other",
+                "tags": tag_list,
+                "folder": folder,
+                "storage_path": storage_path,
+                "certificate_id": certificate_id,
+                "uploaded_at": utc_now().isoformat(),
+                "processed": False,
+                "registered": False,
+            }
+        )
         vault_index["last_updated"] = utc_now().isoformat()
 
         # Save updated index
-        await sync.storage.upload_file(
-            f"{index_folder}/index.json",
-            json.dumps(vault_index, indent=2).encode("utf-8")
-        )
+        await sync.storage.upload_file(f"{index_folder}/index.json", json.dumps(vault_index, indent=2).encode("utf-8"))
     except Exception as e:
         logger.warning(f"Failed to update vault index: {e}")
 
@@ -866,13 +876,14 @@ async def upload_document_to_cloud(
         "storage_path": storage_path,
         "folder": folder,
         "user_id": user.user_id,
-        "message": "Document uploaded to vault"
+        "message": "Document uploaded to vault",
     }
 
 
 # =============================================================================
 # Quick Connect Check
 # =============================================================================
+
 
 @router.get("/check")
 async def check_storage_connection(
@@ -892,7 +903,7 @@ async def check_storage_connection(
         return {
             "connected": connected,
             "user_id": user.user_id,
-            "provider": getattr(sync.storage, 'provider_name', 'unknown'),
+            "provider": getattr(sync.storage, "provider_name", "unknown"),
             "message": "Storage connected" if connected else "Storage not accessible",
         }
     except HTTPException as e:

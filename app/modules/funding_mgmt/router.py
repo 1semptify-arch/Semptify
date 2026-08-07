@@ -14,7 +14,7 @@ from .models import ApplicationStatus, FundingApplication, FundingSource
 router = APIRouter(
     prefix="/admin/funding",
     tags=["funding_management"],
-    dependencies=[Depends(require_admin), Depends(require_capability("admin_funding"))]
+    dependencies=[Depends(require_admin), Depends(require_capability("admin_funding"))],
 )
 
 
@@ -35,17 +35,16 @@ async def funding_dashboard(request: Request):
 
             # Count pending applications
             result = await session.execute(
-                select(func.count()).select_from(FundingApplication)
-                .where(FundingApplication.status.in_([
-                    ApplicationStatus.SUBMITTED,
-                    ApplicationStatus.UNDER_REVIEW
-                ]))
+                select(func.count())
+                .select_from(FundingApplication)
+                .where(FundingApplication.status.in_([ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW]))
             )
             pending_apps = result.scalar() or 0
 
             # Count awarded applications
             result = await session.execute(
-                select(func.count()).select_from(FundingApplication)
+                select(func.count())
+                .select_from(FundingApplication)
                 .where(FundingApplication.status == ApplicationStatus.AWARDED)
             )
             secured = result.scalar() or 0
@@ -93,7 +92,7 @@ async def funding_dashboard(request: Request):
                 <h1>● Semptify Funding Management</h1>
                 <p>Admin tool for tracking funding sources, applications, and budgets</p>
             </div>
-            
+
             <div class="nav">
                 <a href="/admin/funding/">◆ Dashboard</a>
                 <a href="/admin/funding/sources">● Funding Sources</a>
@@ -101,7 +100,7 @@ async def funding_dashboard(request: Request):
                 <a href="/admin/funding/budget">● Budget</a>
                 <a href="/admin/funding/prospectus">● ID System Prospectus</a>
             </div>
-            
+
             <div class="grid">
                 <div class="card">
                     <h3>● Active Prospects</h3>
@@ -109,21 +108,21 @@ async def funding_dashboard(request: Request):
                     <p>Potential funding sources identified and active</p>
                     <a href="/admin/funding/sources" class="btn">Manage Sources</a>
                 </div>
-                
+
                 <div class="card">
                     <h3>◆ Pending Applications</h3>
                     <div class="stat">{pending_apps}</div>
                     <p>Applications submitted or currently under review</p>
                     <a href="/admin/funding/applications" class="btn">Track Applications</a>
                 </div>
-                
+
                 <div class="card">
                     <h3>● Secured Awards</h3>
                     <div class="stat">{secured}</div>
                     <p>Successfully funded applications</p>
                     <a href="/admin/funding/applications?status=awarded" class="btn">View Awards</a>
                 </div>
-                
+
                 <div class="card">
                     <h3>◆ Secured ID System</h3>
                     <div class="stat" style="font-size: 1.5em; color: #3498db;">PLANNED</div>
@@ -131,7 +130,7 @@ async def funding_dashboard(request: Request):
                     <a href="/admin/funding/prospectus" class="btn">View Prospectus</a>
                 </div>
             </div>
-            
+
             <div class="card" style="margin-top: 20px;">
                 <h3>▸ Priority Actions</h3>
                 <ul>
@@ -181,25 +180,25 @@ async def funding_prospectus(request: Request):
             <div class="nav">
                 <a href="/admin/funding/">▸ Back to Funding Dashboard</a>
             </div>
-            
+
             <div class="header">
                 <h1>◆ Semptify Secured ID System</h1>
                 <h2>Funding Prospectus</h2>
                 <p><strong>Semptify — Tenant Rights Advocate Organization</strong></p>
             </div>
-            
+
             <h2>Executive Summary</h2>
-            <p>Semptify has designed a cryptographic identity and document verification system 
-            ("Semptify Secured ID") that will implement upon funding. This system protects 
-            tenant privacy while establishing provable document authenticity—a critical need 
+            <p>Semptify has designed a cryptographic identity and document verification system
+            ("Semptify Secured ID") that will implement upon funding. This system protects
+            tenant privacy while establishing provable document authenticity—a critical need
             for housing court proceedings.</p>
-            
+
             <div class="highlight">
-                <strong>Mission Alignment:</strong> We advocate for tenants exercising their 
-                lawful rights—not tenants breaking the law. Our technology serves lawful 
+                <strong>Mission Alignment:</strong> We advocate for tenants exercising their
+                lawful rights—not tenants breaking the law. Our technology serves lawful
                 documentation and rights protection.
             </div>
-            
+
             <h2>Current State (Demonstration Prototype)</h2>
             <p><strong>Implemented:</strong></p>
             <ul>
@@ -208,9 +207,9 @@ async def funding_prospectus(request: Request):
                 <li>● Stateless design with no centralized data harvesting</li>
                 <li>● Demonstration-grade identifiers suitable for beta testing</li>
             </ul>
-            
+
             <h2>Post-Funding Implementation</h2>
-            
+
             <h3>Technical Components</h3>
             <p><strong>1. Cryptographically Signed Identifiers</strong></p>
             <ul>
@@ -218,21 +217,21 @@ async def funding_prospectus(request: Request):
                 <li>Tamper-proof binding between document and timestamp</li>
                 <li>Clone-resistant server authentication</li>
             </ul>
-            
+
             <p><strong>2. Document Integrity Verification ("Vault Witness")</strong></p>
             <ul>
                 <li>SHA-256 content hashing at upload</li>
                 <li>RFC 3161 trusted timestamp integration (court-admissible)</li>
                 <li>Immutable provenance chain</li>
             </ul>
-            
+
             <p><strong>3. Privacy-Preserving Architecture</strong></p>
             <ul>
                 <li>Salt-based ID generation</li>
                 <li>No global lookup table—resolution only within tenant's vault</li>
                 <li>User anonymity preserved even if document ID leaks</li>
             </ul>
-            
+
             <h2>Security Guarantees</h2>
             <table>
                 <tr>
@@ -256,7 +255,7 @@ async def funding_prospectus(request: Request):
                     <td>Cryptographic timestamps establish chronological order</td>
                 </tr>
             </table>
-            
+
             <h2>Budget Estimate</h2>
             <table>
                 <tr>
@@ -284,18 +283,18 @@ async def funding_prospectus(request: Request):
                     <td><strong>4-6 months</strong></td>
                 </tr>
             </table>
-            
+
             <div class="highlight">
-                <strong>Differentiation:</strong> Unlike commercial tenant screening tools 
-                (which centralize data and create privacy risks), Semptify Secured ID keeps 
-                tenant data in tenant-controlled storage, proves authenticity without exposing 
+                <strong>Differentiation:</strong> Unlike commercial tenant screening tools
+                (which centralize data and create privacy risks), Semptify Secured ID keeps
+                tenant data in tenant-controlled storage, proves authenticity without exposing
                 content, and respects tenant privacy as a first-class design constraint.
             </div>
-            
+
             <h2>Contact</h2>
-            <p>For funding inquiries or partnership discussions, contact the Semptify 
+            <p>For funding inquiries or partnership discussions, contact the Semptify
             administrative team.</p>
-            
+
             <hr style="margin: 40px 0;">
             <p style="text-align: center; color: #666;">
                 <strong>Semptify Project — Tenant Rights Advocate Organization</strong><br>

@@ -32,6 +32,7 @@ ALLOWED_ROLES = {"tenant", "advocate", "legal", "admin", "manager", "user"}
 # OAuth State Management
 # ============================================================================
 
+
 async def create_oauth_state(
     db: AsyncSession,
     provider: str,
@@ -44,8 +45,9 @@ async def create_oauth_state(
 
     Returns the state string to include in the OAuth redirect URL.
     """
-    logger.info("create_oauth_state: provider=%s role=%s callback=%s force_fresh=%s",
-                provider, role, callback_url, force_fresh)
+    logger.info(
+        "create_oauth_state: provider=%s role=%s callback=%s force_fresh=%s", provider, role, callback_url, force_fresh
+    )
 
     now = utc_now()
     max_retries = 5
@@ -82,7 +84,9 @@ async def create_oauth_state(
         except Exception as exc:
             await db.rollback()
             if "duplicate key" in str(exc).lower() or "unique constraint" in str(exc).lower():
-                logger.warning("create_oauth_state: duplicate key error, retrying (attempt %d/%d)", attempt + 1, max_retries)
+                logger.warning(
+                    "create_oauth_state: duplicate key error, retrying (attempt %d/%d)", attempt + 1, max_retries
+                )
                 continue
             else:
                 logger.error("create_oauth_state: database error: %s", exc)
@@ -130,11 +134,20 @@ async def consume_oauth_state(db: AsyncSession, state: str) -> dict:
 # OAuth Initiation
 # ============================================================================
 
-def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callback_url: str, force_fresh: bool = False) -> str:
+
+def build_oauth_url(
+    config: OnboardingConfig, provider: str, state: str, callback_url: str, force_fresh: bool = False
+) -> str:
     """
     Build the provider-specific OAuth authorization URL.
     """
-    logger.info("build_oauth_url: provider=%s state=%s callback=%s force_fresh=%s", provider, state[:12] + "***", callback_url, force_fresh)
+    logger.info(
+        "build_oauth_url: provider=%s state=%s callback=%s force_fresh=%s",
+        provider,
+        state[:12] + "***",
+        callback_url,
+        force_fresh,
+    )
 
     try:
         settings = get_settings()
@@ -193,6 +206,7 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
 # Token Exchange
 # ============================================================================
 
+
 async def exchange_code_for_tokens(
     provider: str,
     code: str,
@@ -215,27 +229,37 @@ async def exchange_code_for_tokens(
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         if provider == "google_drive":
-            response = await client.post(token_url, data={
-                "code": code,
-                "client_id": settings.google_drive_client_id,
-                "client_secret": settings.google_drive_client_secret,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            })
+            response = await client.post(
+                token_url,
+                data={
+                    "code": code,
+                    "client_id": settings.google_drive_client_id,
+                    "client_secret": settings.google_drive_client_secret,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
         elif provider == "dropbox":
-            response = await client.post(token_url, data={
-                "code": code,
-                "grant_type": "authorization_code",
-                "redirect_uri": redirect_uri,
-            }, auth=(settings.dropbox_app_key, settings.dropbox_app_secret))
+            response = await client.post(
+                token_url,
+                data={
+                    "code": code,
+                    "grant_type": "authorization_code",
+                    "redirect_uri": redirect_uri,
+                },
+                auth=(settings.dropbox_app_key, settings.dropbox_app_secret),
+            )
         elif provider == "onedrive":
-            response = await client.post(token_url, data={
-                "code": code,
-                "client_id": settings.onedrive_client_id,
-                "client_secret": settings.onedrive_client_secret,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            })
+            response = await client.post(
+                token_url,
+                data={
+                    "code": code,
+                    "client_id": settings.onedrive_client_id,
+                    "client_secret": settings.onedrive_client_secret,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
         else:
             raise ValueError(f"Provider not implemented: {provider}")
 
@@ -248,7 +272,9 @@ async def exchange_code_for_tokens(
             if response.text:
                 provider_error = response.text[:200]
 
-        logger.error("Token exchange failed: provider=%s status=%s error=%s", provider, response.status_code, provider_error)
+        logger.error(
+            "Token exchange failed: provider=%s status=%s error=%s", provider, response.status_code, provider_error
+        )
         raise RuntimeError(f"Token exchange failed ({provider}): {provider_error}")
 
     return response.json()
@@ -257,6 +283,7 @@ async def exchange_code_for_tokens(
 # ============================================================================
 # Identity Verification
 # ============================================================================
+
 
 async def fetch_provider_identity(provider: str, access_token: str) -> dict:
     """
@@ -285,7 +312,12 @@ async def fetch_provider_identity(provider: str, access_token: str) -> dict:
                 response = await client.get(url, headers={"Authorization": f"Bearer {access_token}"})
 
         if response.status_code != 200:
-            logger.error("Identity verification failed: provider=%s status=%s body=%s", provider, response.status_code, response.text[:200])
+            logger.error(
+                "Identity verification failed: provider=%s status=%s body=%s",
+                provider,
+                response.status_code,
+                response.text[:200],
+            )
             raise RuntimeError(f"OAuth identity verification failed ({provider}): HTTP {response.status_code}")
 
         payload = response.json()
@@ -322,6 +354,7 @@ async def fetch_provider_identity(provider: str, access_token: str) -> dict:
 # User Matching / Creation
 # ============================================================================
 
+
 async def find_or_create_user(
     db: AsyncSession,
     provider: str,
@@ -335,10 +368,12 @@ async def find_or_create_user(
     Returns (user_id: str, is_new: bool).
     """
     result = await db.execute(
-        select(User).where(
+        select(User)
+        .where(
             User.primary_provider == provider,
             User.storage_user_id == provider_subject,
-        ).order_by(User.created_at.desc())  # Get most recent user first
+        )
+        .order_by(User.created_at.desc())  # Get most recent user first
     )
     existing_row = result.first()  # Use first() to handle multiple results
     existing = existing_row[0] if existing_row else None  # Extract User model from Row
@@ -362,7 +397,7 @@ async def find_or_create_user(
 
     # Create User row
     # Strip HMAC signature for database storage (User.id is VARCHAR(24))
-    db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+    db_user_id = user_id.split(".")[0] if "." in user_id else user_id
     new_user = User(
         id=db_user_id,
         primary_provider=provider,
@@ -378,6 +413,7 @@ async def find_or_create_user(
 # ============================================================================
 # Session Persistence
 # ============================================================================
+
 
 async def save_session(
     db: AsyncSession,
@@ -405,12 +441,15 @@ async def save_session(
     )
 
     # Cache in-memory so vault_init (called seconds later) can find it
-    token_manager.store_token(user_id, OAuthToken(
-        access_token=access_token,
-        refresh_token=refresh_token or None,
-        expires_at=expires_at,
-        provider=provider,
-    ))
+    token_manager.store_token(
+        user_id,
+        OAuthToken(
+            access_token=access_token,
+            refresh_token=refresh_token or None,
+            expires_at=expires_at,
+            provider=provider,
+        ),
+    )
 
     logger.info("Session saved for user %s (provider=%s)", user_id[:6] + "***", provider)
 
@@ -418,6 +457,7 @@ async def save_session(
 # ============================================================================
 # Complete Onboarding Callback Handler
 # ============================================================================
+
 
 async def handle_onboarding_callback(
     db: AsyncSession,
@@ -472,11 +512,14 @@ async def handle_onboarding_callback(
     # 7. Determine routing — check actual gate state
     # New users go to vault-setup; returning users who already completed vault go to /home.
     from app.modules.onboarding.gates import check_gate as _check_gate
+
     vault_initialized = await _check_gate(db, user_id, "vault_initialized")
 
     logger.info(
         "Onboarding callback complete: user=%s new=%s vault_initialized=%s",
-        user_id[:6] + "***", is_new, vault_initialized,
+        user_id[:6] + "***",
+        is_new,
+        vault_initialized,
     )
 
     return {

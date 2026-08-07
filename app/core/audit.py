@@ -5,7 +5,7 @@ Tracks sensitive operations for compliance, security, and debugging.
 
 Usage:
     from app.core.audit import audit_log, AuditAction
-    
+
     # Log an action
     await audit_log(
         action=AuditAction.DOCUMENT_ACCESS,
@@ -14,7 +14,7 @@ Usage:
         resource_id="doc456",
         details={"filename": "lease.pdf"}
     )
-    
+
     # Decorator for automatic logging
     @audit_logged(AuditAction.DOCUMENT_DELETE)
     async def delete_document(doc_id: str, user_id: str):
@@ -144,7 +144,7 @@ class AuditEntry:
 class AuditLogger:
     """
     Manages audit logging with multiple backends.
-    
+
     Backends:
     - File: JSON lines file (default)
     - Database: SQLAlchemy table (optional)
@@ -237,6 +237,7 @@ class AuditLogger:
         """Send audit entry to external webhook."""
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 await client.post(
                     self._webhook_url,
@@ -265,7 +266,7 @@ class AuditLogger:
     ) -> list[dict[str, Any]]:
         """
         Query audit logs from files.
-        
+
         Note: For production, use database backend for efficient querying.
         """
         results = []
@@ -323,7 +324,7 @@ async def audit_log(
 ) -> None:
     """
     Log an audit event.
-    
+
     Usage:
         await audit_log(
             action=AuditAction.DOCUMENT_UPLOAD,
@@ -355,18 +356,23 @@ def audit_logged(
 ):
     """
     Decorator to automatically log function execution.
-    
+
     Usage:
         @audit_logged(AuditAction.DOCUMENT_DELETE, resource_type="document")
         async def delete_document(doc_id: str, user_id: str):
             ...
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
             # Extract IDs if extractors provided
             user_id = extract_user_id(*args, **kwargs) if extract_user_id else kwargs.get("user_id")
-            resource_id = extract_resource_id(*args, **kwargs) if extract_resource_id else kwargs.get("resource_id", kwargs.get("doc_id"))
+            resource_id = (
+                extract_resource_id(*args, **kwargs)
+                if extract_resource_id
+                else kwargs.get("resource_id", kwargs.get("doc_id"))
+            )
 
             success = True
             error_msg = None
@@ -437,7 +443,9 @@ async def audit_document_access(user_id: str, doc_id: str, action: str = "view",
     )
 
 
-async def audit_security_event(event_type: AuditAction, ip_address: str | None = None, details: dict | None = None) -> None:
+async def audit_security_event(
+    event_type: AuditAction, ip_address: str | None = None, details: dict | None = None
+) -> None:
     """Log security event."""
     await audit_log(
         action=event_type,

@@ -23,6 +23,7 @@ from app.core.vault_paths import VAULT_TIMELINE, VAULT_TIMELINE_EVENTS_FILE, VAU
 
 class EventType(Enum):
     """Types of timeline events."""
+
     NOTICE_RECEIVED = "notice_received"
     NOTICE_SENT = "notice_sent"
     COURT_DATE = "court_date"
@@ -39,6 +40,7 @@ class EventType(Enum):
 @dataclass
 class TimelineEvent:
     """A single event on the timeline."""
+
     event_id: str
     date: str  # ISO format date
     event_type: str
@@ -57,43 +59,77 @@ class TimelineEvent:
 class TimelineExtractor:
     """
     Extracts timeline events from documents using overlays.
-    
+
     Uses regex patterns to find dates and contextual text.
     More sophisticated extraction can be added later (OCR, LLM, etc.)
     """
 
     # Date patterns (MM/DD/YYYY, MM-DD-YYYY, Month DD, YYYY, etc.)
     DATE_PATTERNS = [
-        r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b',  # 01/15/2024, 01-15-24
-        r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b',
-        r'\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b',
+        r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b",  # 01/15/2024, 01-15-24
+        r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b",
+        r"\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b",
     ]
 
     # Event type keywords
     EVENT_KEYWORDS = {
         EventType.NOTICE_RECEIVED: [
-            "notice", "received", "served", "delivered", "post", "posted",
-            "14 day", "30 day", "3 day", "eviction notice", "pay or quit"
+            "notice",
+            "received",
+            "served",
+            "delivered",
+            "post",
+            "posted",
+            "14 day",
+            "30 day",
+            "3 day",
+            "eviction notice",
+            "pay or quit",
         ],
         EventType.COURT_DATE: [
-            "court", "hearing", "trial", "unlawful detainer", "ud",
-            "small claims", "filing", "lawsuit", "summons"
+            "court",
+            "hearing",
+            "trial",
+            "unlawful detainer",
+            "ud",
+            "small claims",
+            "filing",
+            "lawsuit",
+            "summons",
         ],
         EventType.DEADLINE: [
-            "deadline", "due", "must pay", "must respond", "expiration",
-            "expires", "last day", "final date"
+            "deadline",
+            "due",
+            "must pay",
+            "must respond",
+            "expiration",
+            "expires",
+            "last day",
+            "final date",
         ],
-        EventType.PAYMENT: [
-            "rent", "payment", "paid", "deposit", "security deposit",
-            "late fee", "penalty"
-        ],
+        EventType.PAYMENT: ["rent", "payment", "paid", "deposit", "security deposit", "late fee", "penalty"],
         EventType.REPAIR_REQUEST: [
-            "repair", "maintenance", "fix", "broken", "leak", "heat",
-            "plumbing", "electrical", "request", "complaint"
+            "repair",
+            "maintenance",
+            "fix",
+            "broken",
+            "leak",
+            "heat",
+            "plumbing",
+            "electrical",
+            "request",
+            "complaint",
         ],
         EventType.COMMUNICATION: [
-            "email", "letter", "text", "message", "call", "conversation",
-            "spoke", "discussed", "informed"
+            "email",
+            "letter",
+            "text",
+            "message",
+            "call",
+            "conversation",
+            "spoke",
+            "discussed",
+            "informed",
         ],
     }
 
@@ -103,11 +139,11 @@ class TimelineExtractor:
     async def extract_from_document(self, overlay_id: str, original_id: str) -> list[TimelineEvent]:
         """
         Extract timeline events from a document overlay.
-        
+
         Args:
             overlay_id: ID of the overlay to process
             original_id: ID of the original document (for reference)
-        
+
         Returns:
             List of TimelineEvent objects
         """
@@ -128,8 +164,8 @@ class TimelineExtractor:
 
         # Extract dates with context
         for date_match in self._find_dates(content_text):
-            date_str = date_match['date']
-            context = date_match['context']
+            date_str = date_match["date"]
+            context = date_match["context"]
 
             # Determine event type from context
             event_type = self._classify_event_type(context)
@@ -145,7 +181,7 @@ class TimelineExtractor:
                 source_overlay_id=overlay_id,
                 extracted_at=utc_now().isoformat(),
                 confidence=0.7,  # Regex-based = moderate confidence
-                verified=False
+                verified=False,
             )
             events.append(event)
 
@@ -160,7 +196,7 @@ class TimelineExtractor:
     def _find_dates(self, text: str) -> list[dict[str, str]]:
         """Find dates in text with surrounding context."""
         dates = []
-        lines = text.split('\n')
+        lines = text.split("\n")
 
         for i, line in enumerate(lines):
             for pattern in self.DATE_PATTERNS:
@@ -168,20 +204,17 @@ class TimelineExtractor:
                     # Get context (this line + 1 before + 1 after)
                     context_lines = []
                     if i > 0:
-                        context_lines.append(lines[i-1])
+                        context_lines.append(lines[i - 1])
                     context_lines.append(line)
                     if i < len(lines) - 1:
-                        context_lines.append(lines[i+1])
+                        context_lines.append(lines[i + 1])
 
-                    context = ' '.join(context_lines)
+                    context = " ".join(context_lines)
 
                     # Normalize date to ISO format
                     date_str = self._normalize_date(match.group())
                     if date_str:
-                        dates.append({
-                            'date': date_str,
-                            'context': context.strip()
-                        })
+                        dates.append({"date": date_str, "context": context.strip()})
 
         return dates
 
@@ -191,16 +224,16 @@ class TimelineExtractor:
 
         # Try formats in order of specificity
         for fmt in (
-            "%B %d, %Y",   # January 15, 2024
-            "%b %d, %Y",   # Jan 15, 2024
-            "%B %d %Y",    # January 15 2024
-            "%b %d %Y",    # Jan 15 2024
-            "%m/%d/%Y",    # 01/15/2024
-            "%m-%d-%Y",    # 01-15-2024
-            "%Y-%m-%d",    # 2024-01-15  (already ISO)
-            "%d/%m/%Y",    # 15/01/2024
-            "%B %Y",       # January 2024  (day unknown ▸ 1st)
-            "%b %Y",       # Jan 2024
+            "%B %d, %Y",  # January 15, 2024
+            "%b %d, %Y",  # Jan 15, 2024
+            "%B %d %Y",  # January 15 2024
+            "%b %d %Y",  # Jan 15 2024
+            "%m/%d/%Y",  # 01/15/2024
+            "%m-%d-%Y",  # 01-15-2024
+            "%Y-%m-%d",  # 2024-01-15  (already ISO)
+            "%d/%m/%Y",  # 15/01/2024
+            "%B %Y",  # January 2024  (day unknown ▸ 1st)
+            "%b %Y",  # Jan 2024
         ):
             try:
                 return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
@@ -210,9 +243,11 @@ class TimelineExtractor:
 
         # Month name + day without year — inject current year
         m = re.match(
-            r'^(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|'
-            r'Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)'
-            r'\s+\d{1,2}$', s, re.IGNORECASE
+            r"^(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
+            r"Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+            r"\s+\d{1,2}$",
+            s,
+            re.IGNORECASE,
         )
         if m:
             year = utc_now().year
@@ -269,7 +304,7 @@ class TimelineExtractor:
                     page_text = page.extract_text()
                     if page_text:
                         text_parts.append(page_text)
-                return '\n'.join(text_parts)
+                return "\n".join(text_parts)
         except Exception:
             # Fallback: try PyPDF2
             try:
@@ -280,17 +315,17 @@ class TimelineExtractor:
                 reader = PyPDF2.PdfReader(io.BytesIO(content_bytes))
                 text_parts = []
                 for page in reader.pages:
-                    text_parts.append(page.extract_text() or '')
-                return '\n'.join(text_parts)
+                    text_parts.append(page.extract_text() or "")
+                return "\n".join(text_parts)
             except Exception:
                 # If all extraction fails, return empty
-                return ''
+                return ""
 
 
 class TimelineStore:
     """
     Stores timeline events in user's cloud storage.
-    
+
     Location: Semptify5.0/Vault/timeline/
     """
 
@@ -307,13 +342,13 @@ class TimelineStore:
         existing = await self._load_events()
 
         # Merge new events (avoid duplicates by event_id)
-        existing_ids = {e['event_id'] for e in existing}
+        existing_ids = {e["event_id"] for e in existing}
         for event in events:
             if event.event_id not in existing_ids:
                 existing.append(event.to_dict())
 
         # Sort by date
-        existing.sort(key=lambda x: x['date'])
+        existing.sort(key=lambda x: x["date"])
 
         # Save back to storage
         await self._save_events(existing)
@@ -328,7 +363,7 @@ class TimelineStore:
             # Read events.json from user's timeline folder using download_file
             content = await self.storage.download_file(self.EVENTS_FILE)
             if content:
-                return json.loads(content.decode('utf-8'))
+                return json.loads(content.decode("utf-8"))
             return []
         except Exception:
             # File doesn't exist or can't read - return empty
@@ -346,7 +381,7 @@ class TimelineStore:
             # Write events.json using upload_file
             events_json = json.dumps(events, indent=2)
             await self.storage.upload_file(
-                file_content=events_json.encode('utf-8'),
+                file_content=events_json.encode("utf-8"),
                 destination_path=self.TIMELINE_FOLDER,
                 filename=VAULT_TIMELINE_EVENTS_FILENAME,
                 mime_type="application/json",
@@ -354,6 +389,7 @@ class TimelineStore:
         except Exception as e:
             # Log but don't fail - timeline extraction is secondary to document storage
             import logging
+
             logging.getLogger(__name__).warning(f"Failed to save timeline events: {e}")
 
 
@@ -361,11 +397,11 @@ class TimelineStore:
 # Convenience Functions
 # =============================================================================
 
-async def extract_timeline_from_upload(document_id: str, overlay_id: str,
-                                       provider: str, access_token: str):
+
+async def extract_timeline_from_upload(document_id: str, overlay_id: str, provider: str, access_token: str):
     """
     Extract timeline from a newly uploaded document.
-    
+
     Usage:
         events = await extract_timeline_from_upload(
             document_id="doc_123",

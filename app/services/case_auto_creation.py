@@ -13,7 +13,7 @@ When a document like a summons, complaint, or court filing is uploaded:
 
 Supported document types that trigger case creation:
 - COURT_SUMMONS
-- COURT_COMPLAINT  
+- COURT_COMPLAINT
 - COURT_FILING
 - EVICTION_NOTICE
 - NOTICE_TO_QUIT
@@ -68,16 +68,17 @@ def is_case_relevant_document(doc_type: str) -> bool:
 # CASE LOOKUP FUNCTIONS
 # =============================================================================
 
+
 def get_user_cases_dir(user_id: str) -> str:
     """Get the directory where user's cases are stored."""
-    safe_user_id = "".join(c for c in user_id if c.isalnum() or c in '_-')
+    safe_user_id = "".join(c for c in user_id if c.isalnum() or c in "_-")
     return os.path.join(os.getcwd(), "data", "cases", safe_user_id)
 
 
 def find_case_by_case_number(user_id: str, case_number: str) -> tuple[str, dict[str, Any]] | None:
     """
     Find an existing case by case number for a user.
-    
+
     Returns tuple of (file_path, case_data) if found, None otherwise.
     """
     if not case_number:
@@ -128,13 +129,13 @@ def normalize_case_number(case_number: str) -> str:
     """Normalize case number for comparison (remove dashes, spaces, lowercase)."""
     if not case_number:
         return ""
-    return re.sub(r'[-\s]', '', case_number.upper())
+    return re.sub(r"[-\s]", "", case_number.upper())
 
 
 def find_case_by_reference_in_text(user_id: str, text: str) -> tuple[str, dict[str, Any]] | None:
     """
     Search document text for any case number that matches an existing case.
-    
+
     This allows documents that reference a case number (even if not the primary
     case document) to be attached to the correct case.
     """
@@ -158,7 +159,7 @@ def find_case_by_reference_in_text(user_id: str, text: str) -> tuple[str, dict[s
 
         if normalized_case and normalized_case in text_normalized:
             data_dir = get_user_cases_dir(user_id)
-            safe_case_id = case_number.replace('-', '_').replace(' ', '_').replace('/', '_').replace('\\', '_')
+            safe_case_id = case_number.replace("-", "_").replace(" ", "_").replace("/", "_").replace("\\", "_")
             file_path = os.path.join(data_dir, f"{safe_case_id}.json")
             logger.info(f"Found case reference in document text: {case_number}")
             return (file_path, case_data)
@@ -166,7 +167,7 @@ def find_case_by_reference_in_text(user_id: str, text: str) -> tuple[str, dict[s
         # Also try partial matching for case numbers in text
         if case_number and case_number in text:
             data_dir = get_user_cases_dir(user_id)
-            safe_case_id = case_number.replace('-', '_').replace(' ', '_').replace('/', '_').replace('\\', '_')
+            safe_case_id = case_number.replace("-", "_").replace(" ", "_").replace("/", "_").replace("\\", "_")
             file_path = os.path.join(data_dir, f"{safe_case_id}.json")
             logger.info(f"Found case reference in document text: {case_number}")
             return (file_path, case_data)
@@ -177,7 +178,7 @@ def find_case_by_reference_in_text(user_id: str, text: str) -> tuple[str, dict[s
 def extract_case_number(text: str) -> str | None:
     """
     Extract case number from document text.
-    
+
     Common formats:
     - 27-CV-24-12345
     - Case No. 27-CV-24-12345
@@ -186,12 +187,12 @@ def extract_case_number(text: str) -> str | None:
     """
     patterns = [
         # Minnesota format: County-Type-Year-Number
-        r'(?:Case|File|Docket)\s*(?:No\.?|Number|#)?:?\s*(\d{2}[-\s]?[A-Z]{2}[-\s]?\d{2}[-\s]?\d+)',
-        r'(\d{2}[-]?[A-Z]{2}[-]?\d{2}[-]?\d{4,})',
+        r"(?:Case|File|Docket)\s*(?:No\.?|Number|#)?:?\s*(\d{2}[-\s]?[A-Z]{2}[-\s]?\d{2}[-\s]?\d+)",
+        r"(\d{2}[-]?[A-Z]{2}[-]?\d{2}[-]?\d{4,})",
         # Year-Type-Number format
-        r'(\d{4}[-]?[A-Z]{2}[-]?\d+)',
+        r"(\d{4}[-]?[A-Z]{2}[-]?\d+)",
         # Generic case number
-        r'(?:Case|File|Docket)\s*(?:No\.?|Number|#)?:?\s*([A-Z0-9][-A-Z0-9]+)',
+        r"(?:Case|File|Docket)\s*(?:No\.?|Number|#)?:?\s*([A-Z0-9][-A-Z0-9]+)",
     ]
 
     for pattern in patterns:
@@ -205,10 +206,10 @@ def extract_case_number(text: str) -> str | None:
 def extract_court_name(text: str) -> str | None:
     """Extract court name from document text."""
     patterns = [
-        r'((?:\w+\s+)?County\s+District\s+Court)',
-        r'(District\s+Court[^,\n]*)',
-        r'STATE OF MINNESOTA[^,\n]*DISTRICT COURT[^,\n]*(\w+\s+COUNTY)',
-        r'(\w+\s+County\s+(?:Housing|District)\s+Court)',
+        r"((?:\w+\s+)?County\s+District\s+Court)",
+        r"(District\s+Court[^,\n]*)",
+        r"STATE OF MINNESOTA[^,\n]*DISTRICT COURT[^,\n]*(\w+\s+COUNTY)",
+        r"(\w+\s+County\s+(?:Housing|District)\s+Court)",
     ]
 
     for pattern in patterns:
@@ -217,7 +218,7 @@ def extract_court_name(text: str) -> str | None:
             return match.group(1).strip()
 
     # Default for Minnesota
-    if 'minnesota' in text.lower() or 'mn' in text.lower():
+    if "minnesota" in text.lower() or "mn" in text.lower():
         return "Minnesota District Court"
 
     return None
@@ -228,13 +229,13 @@ def extract_hearing_date(key_dates: list) -> str | None:
     if not key_dates:
         return None
 
-    hearing_keywords = ['hearing', 'court date', 'appear', 'trial', 'conference']
+    hearing_keywords = ["hearing", "court date", "appear", "trial", "conference"]
 
     for date_info in key_dates:
         if isinstance(date_info, dict):
-            desc = date_info.get('description', '').lower()
+            desc = date_info.get("description", "").lower()
             if any(kw in desc for kw in hearing_keywords):
-                return date_info.get('date')
+                return date_info.get("date")
 
     return None
 
@@ -244,13 +245,13 @@ def extract_answer_deadline(key_dates: list) -> str | None:
     if not key_dates:
         return None
 
-    answer_keywords = ['answer', 'respond', 'response due', 'deadline']
+    answer_keywords = ["answer", "respond", "response due", "deadline"]
 
     for date_info in key_dates:
         if isinstance(date_info, dict):
-            desc = date_info.get('description', '').lower()
+            desc = date_info.get("description", "").lower()
             if any(kw in desc for kw in answer_keywords):
-                return date_info.get('date')
+                return date_info.get("date")
 
     return None
 
@@ -258,8 +259,8 @@ def extract_answer_deadline(key_dates: list) -> str | None:
 def extract_parties(key_parties: list) -> dict[str, dict[str, Any]]:
     """Extract plaintiff and defendant from key parties list."""
     result = {
-        'plaintiff': {'name': None, 'address': None, 'phone': None},
-        'defendant': {'name': None, 'address': None, 'phone': None},
+        "plaintiff": {"name": None, "address": None, "phone": None},
+        "defendant": {"name": None, "address": None, "phone": None},
     }
 
     if not key_parties:
@@ -267,19 +268,19 @@ def extract_parties(key_parties: list) -> dict[str, dict[str, Any]]:
 
     for party_info in key_parties:
         if isinstance(party_info, dict):
-            role = party_info.get('role', '').lower()
-            name = party_info.get('name')
-            address = party_info.get('address')
-            phone = party_info.get('phone')
+            role = party_info.get("role", "").lower()
+            name = party_info.get("name")
+            address = party_info.get("address")
+            phone = party_info.get("phone")
 
-            if 'plaintiff' in role or 'landlord' in role or 'petitioner' in role:
-                result['plaintiff']['name'] = name
-                result['plaintiff']['address'] = address
-                result['plaintiff']['phone'] = phone
-            elif 'defendant' in role or 'tenant' in role or 'respondent' in role:
-                result['defendant']['name'] = name
-                result['defendant']['address'] = address
-                result['defendant']['phone'] = phone
+            if "plaintiff" in role or "landlord" in role or "petitioner" in role:
+                result["plaintiff"]["name"] = name
+                result["plaintiff"]["address"] = address
+                result["plaintiff"]["phone"] = phone
+            elif "defendant" in role or "tenant" in role or "respondent" in role:
+                result["defendant"]["name"] = name
+                result["defendant"]["address"] = address
+                result["defendant"]["phone"] = phone
 
     return result
 
@@ -288,8 +289,8 @@ def extract_property_address(text: str, key_parties: list = None) -> str | None:
     """Extract property address from document text."""
     # Try to find address patterns
     patterns = [
-        r'(?:property|premises|address|located at)[:\s]+([0-9]+[^,\n]+(?:,\s*[A-Z]{2}\s*\d{5})?)',
-        r'(\d+\s+\w+(?:\s+\w+)*\s+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Dr|Drive|Ln|Lane|Way|Ct|Court)[,.\s]+\w+[,.\s]+MN\s*\d{5})',
+        r"(?:property|premises|address|located at)[:\s]+([0-9]+[^,\n]+(?:,\s*[A-Z]{2}\s*\d{5})?)",
+        r"(\d+\s+\w+(?:\s+\w+)*\s+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Dr|Drive|Ln|Lane|Way|Ct|Court)[,.\s]+\w+[,.\s]+MN\s*\d{5})",
     ]
 
     for pattern in patterns:
@@ -301,10 +302,10 @@ def extract_property_address(text: str, key_parties: list = None) -> str | None:
     if key_parties:
         for party_info in key_parties:
             if isinstance(party_info, dict):
-                role = party_info.get('role', '').lower()
-                if 'defendant' in role or 'tenant' in role:
-                    if party_info.get('address'):
-                        return party_info['address']
+                role = party_info.get("role", "").lower()
+                if "defendant" in role or "tenant" in role:
+                    if party_info.get("address"):
+                        return party_info["address"]
 
     return None
 
@@ -314,14 +315,14 @@ def extract_rent_amount(key_amounts: list) -> float | None:
     if not key_amounts:
         return None
 
-    rent_keywords = ['rent', 'monthly', 'lease payment']
+    rent_keywords = ["rent", "monthly", "lease payment"]
 
     for amount_info in key_amounts:
         if isinstance(amount_info, dict):
-            desc = amount_info.get('description', '').lower()
+            desc = amount_info.get("description", "").lower()
             if any(kw in desc for kw in rent_keywords):
                 try:
-                    return float(amount_info.get('amount', 0))
+                    return float(amount_info.get("amount", 0))
                 except (ValueError, TypeError):
                     pass
 
@@ -340,7 +341,7 @@ async def create_case_from_document(
 ) -> dict[str, Any] | None:
     """
     Create a case management entry from an uploaded court document.
-    
+
     Returns the created case data or None if creation failed.
     """
     if not should_create_case(doc_type):
@@ -379,17 +380,17 @@ async def create_case_from_document(
         "rent_amount": rent_amount or 0,
         "security_deposit": 0,
         "plaintiff": {
-            "name": parties['plaintiff']['name'] or "Unknown Plaintiff",
+            "name": parties["plaintiff"]["name"] or "Unknown Plaintiff",
             "role": "plaintiff",
-            "address": parties['plaintiff']['address'],
-            "phone": parties['plaintiff']['phone'],
+            "address": parties["plaintiff"]["address"],
+            "phone": parties["plaintiff"]["phone"],
         },
         "defendant": {
-            "name": parties['defendant']['name'] or "Unknown Defendant",
+            "name": parties["defendant"]["name"] or "Unknown Defendant",
             "role": "defendant",
             "is_pro_se": True,
-            "address": parties['defendant']['address'],
-            "phone": parties['defendant']['phone'],
+            "address": parties["defendant"]["address"],
+            "phone": parties["defendant"]["phone"],
         },
         "hearing_date": hearing_date,
         "answer_due": answer_deadline,
@@ -429,35 +430,39 @@ async def create_case_from_document(
 
     # Add deadline for answer if found
     if answer_deadline:
-        case_data["deadlines"].append({
-            "id": f"ddl_answer_{utc_now().strftime('%Y%m%d%H%M%S')}",
-            "title": "File Answer",
-            "deadline": answer_deadline,
-            "description": "Deadline to file answer to complaint",
-            "priority": "critical",
-            "completed": False,
-        })
+        case_data["deadlines"].append(
+            {
+                "id": f"ddl_answer_{utc_now().strftime('%Y%m%d%H%M%S')}",
+                "title": "File Answer",
+                "deadline": answer_deadline,
+                "description": "Deadline to file answer to complaint",
+                "priority": "critical",
+                "completed": False,
+            }
+        )
 
     # Add deadline for hearing if found
     if hearing_date:
-        case_data["deadlines"].append({
-            "id": f"ddl_hearing_{utc_now().strftime('%Y%m%d%H%M%S')}",
-            "title": "Court Hearing",
-            "deadline": hearing_date,
-            "description": "Court hearing date",
-            "priority": "critical",
-            "completed": False,
-        })
+        case_data["deadlines"].append(
+            {
+                "id": f"ddl_hearing_{utc_now().strftime('%Y%m%d%H%M%S')}",
+                "title": "Court Hearing",
+                "deadline": hearing_date,
+                "description": "Court hearing date",
+                "priority": "critical",
+                "completed": False,
+            }
+        )
 
     # Save case to file system (same pattern as case_builder router)
     try:
         data_dir = get_user_cases_dir(user_id)
         os.makedirs(data_dir, exist_ok=True)
 
-        safe_case_id = case_number.replace('-', '_').replace(' ', '_').replace('/', '_').replace('\\', '_')
+        safe_case_id = case_number.replace("-", "_").replace(" ", "_").replace("/", "_").replace("\\", "_")
         file_path = os.path.join(data_dir, f"{safe_case_id}.json")
 
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(case_data, f, indent=2, default=str)
 
         logger.info(f"● Auto-created case {case_number} from document {filename}")
@@ -480,16 +485,16 @@ def get_case_creation_summary(case_data: dict[str, Any]) -> str:
         f"   Court: {case_data.get('court', 'Unknown')}",
     ]
 
-    if case_data.get('plaintiff', {}).get('name'):
+    if case_data.get("plaintiff", {}).get("name"):
         lines.append(f"   Plaintiff: {case_data['plaintiff']['name']}")
 
-    if case_data.get('property_address'):
+    if case_data.get("property_address"):
         lines.append(f"   Property: {case_data['property_address']}")
 
-    if case_data.get('hearing_date'):
+    if case_data.get("hearing_date"):
         lines.append(f"   Hearing: {case_data['hearing_date']}")
 
-    if case_data.get('answer_due'):
+    if case_data.get("answer_due"):
         lines.append(f"   Answer Due: {case_data['answer_due']}")
 
     return "\n".join(lines)
@@ -498,6 +503,7 @@ def get_case_creation_summary(case_data: dict[str, Any]) -> str:
 # =============================================================================
 # DOCUMENT ADDITION TO EXISTING CASE
 # =============================================================================
+
 
 async def add_document_to_case(
     file_path: str,
@@ -512,13 +518,13 @@ async def add_document_to_case(
 ) -> dict[str, Any]:
     """
     Add a document to an existing case.
-    
+
     Updates the case with:
     - New evidence entry
     - Timeline event
     - Any new deadlines found
     - Triggers re-evaluation flag
-    
+
     Returns updated case data.
     """
     case_number = case_data.get("case_number", "Unknown")
@@ -572,24 +578,28 @@ async def add_document_to_case(
         existing_deadlines = [d.get("deadline") for d in case_data["deadlines"]]
 
         if hearing_date and hearing_date not in existing_deadlines:
-            case_data["deadlines"].append({
-                "id": f"ddl_hearing_{utc_now().strftime('%Y%m%d%H%M%S')}",
-                "title": f"Hearing (from {filename})",
-                "deadline": hearing_date,
-                "description": f"Extracted from document: {filename}",
-                "priority": "critical",
-                "completed": False,
-            })
+            case_data["deadlines"].append(
+                {
+                    "id": f"ddl_hearing_{utc_now().strftime('%Y%m%d%H%M%S')}",
+                    "title": f"Hearing (from {filename})",
+                    "deadline": hearing_date,
+                    "description": f"Extracted from document: {filename}",
+                    "priority": "critical",
+                    "completed": False,
+                }
+            )
 
         if answer_deadline and answer_deadline not in existing_deadlines:
-            case_data["deadlines"].append({
-                "id": f"ddl_answer_{utc_now().strftime('%Y%m%d%H%M%S')}",
-                "title": f"Answer Deadline (from {filename})",
-                "deadline": answer_deadline,
-                "description": f"Extracted from document: {filename}",
-                "priority": "critical",
-                "completed": False,
-            })
+            case_data["deadlines"].append(
+                {
+                    "id": f"ddl_answer_{utc_now().strftime('%Y%m%d%H%M%S')}",
+                    "title": f"Answer Deadline (from {filename})",
+                    "deadline": answer_deadline,
+                    "description": f"Extracted from document: {filename}",
+                    "priority": "critical",
+                    "completed": False,
+                }
+            )
 
     # Mark case for re-evaluation
     case_data["needs_evaluation"] = True
@@ -599,13 +609,11 @@ async def add_document_to_case(
     # Add note about document addition
     if "notes" not in case_data:
         case_data["notes"] = []
-    case_data["notes"].append(
-        f"[{utc_now().strftime('%Y-%m-%d %H:%M')}] Document auto-added: {filename}"
-    )
+    case_data["notes"].append(f"[{utc_now().strftime('%Y-%m-%d %H:%M')}] Document auto-added: {filename}")
 
     # Save updated case
     try:
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(case_data, f, indent=2, default=str)
 
         logger.info(f"● Added document '{filename}' to case {case_number}")
@@ -621,8 +629,8 @@ def get_document_added_summary(case_data: dict[str, Any], filename: str) -> str:
     if not case_data:
         return ""
 
-    case_number = case_data.get('case_number', 'Unknown')
-    evidence_count = len(case_data.get('evidence', []))
+    case_number = case_data.get("case_number", "Unknown")
+    evidence_count = len(case_data.get("evidence", []))
 
     lines = [
         "● Document Added to Existing Case",
@@ -639,6 +647,7 @@ def get_document_added_summary(case_data: dict[str, Any], filename: str) -> str:
 # MAIN PROCESSING FUNCTION
 # =============================================================================
 
+
 async def process_document_for_case(
     user_id: str,
     document_id: str,
@@ -651,11 +660,11 @@ async def process_document_for_case(
 ) -> dict[str, Any] | None:
     """
     Main entry point for case-aware document processing.
-    
+
     1. Checks if document references an existing case number
     2. If yes: Adds document to that case and triggers re-evaluation
     3. If no: Creates a new case if document type warrants it
-    
+
     Returns:
         - Updated case data if document added to existing case
         - New case data if case created
@@ -740,7 +749,7 @@ async def process_document_for_case(
 async def trigger_case_evaluation(user_id: str, case_number: str, trigger_document_id: str = None):
     """
     Trigger case evaluation after document addition.
-    
+
     This notifies the legal analysis engine to re-evaluate the case
     based on the new evidence.
     """
@@ -780,15 +789,17 @@ async def trigger_case_evaluation(user_id: str, case_number: str, trigger_docume
         # Notify the Positronic Brain for intelligence processing
         from app.services.positronic_brain import BrainEvent, brain
 
-        brain.process_event(BrainEvent(
-            event_type="case_evaluation",
-            user_id=user_id,
-            data={
-                "case_number": case_number,
-                "trigger": "document_added",
-                "document_id": trigger_document_id,
-            },
-            source="case_auto_creation",
-        ))
+        brain.process_event(
+            BrainEvent(
+                event_type="case_evaluation",
+                user_id=user_id,
+                data={
+                    "case_number": case_number,
+                    "trigger": "document_added",
+                    "document_id": trigger_document_id,
+                },
+                source="case_auto_creation",
+            )
+        )
     except (ImportError, Exception) as e:
         logger.debug(f"Positronic brain notification skipped: {e}")

@@ -537,8 +537,8 @@
         }
 
         const userList = data.users.map(user => `
-          <div style="padding:0.5rem;border-bottom:1px solid #f0f0f0;cursor:pointer" 
-               onmouseover="this.style.background='#f9fafb'" 
+          <div style="padding:0.5rem;border-bottom:1px solid #f0f0f0;cursor:pointer"
+               onmouseover="this.style.background='#f9fafb'"
                onmouseout="this.style.background='none'"
                onclick="viewUser('${user.user_id}')">
             <div style="font-weight:600">${user.user_id || 'Unknown'}</div>
@@ -559,7 +559,7 @@
     // View user details
     async function viewUser(userId) {
       const resultsDiv = document.getElementById('user-search-results');
-      
+
       try {
         const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users/${userId}`), {
           credentials: 'include',
@@ -571,9 +571,9 @@
         }
 
         const user = await response.json();
-        
+
         // Build sessions list
-        const sessionsHtml = user.sessions && user.sessions.length > 0 
+        const sessionsHtml = user.sessions && user.sessions.length > 0
           ? user.sessions.map(s => `
               <div style="padding:0.4rem;background:#f8fafc;border-radius:4px;margin-bottom:0.25rem;font-size:0.7rem">
                 <strong>${s.role}</strong> via ${s.provider}
@@ -581,12 +581,12 @@
               </div>
             `).join('')
           : '<p style="font-size:0.7rem;color:#888">No sessions found</p>';
-        
+
         // Build action buttons
         const canImpersonate = user.admin_actions_available?.includes('impersonate');
         const canResetGates = user.admin_actions_available?.includes('reset_gates');
         const canViewVault = user.admin_actions_available?.includes('view_vault');
-        
+
         resultsDiv.innerHTML = `
           <div style="padding:0.75rem;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd">
             <div style="font-weight:700;margin-bottom:0.5rem">User Details</div>
@@ -596,34 +596,34 @@
               <strong>Current Role:</strong> ${user.current_role || 'N/A'}<br>
               <strong>Sessions:</strong> ${user.active_sessions || 0} active / ${user.total_sessions || 0} total
             </div>
-            
+
             <div style="margin-bottom:0.75rem">
               <div style="font-weight:600;font-size:0.7rem;margin-bottom:0.25rem;color:#64748b">SESSIONS</div>
               <div style="max-height:100px;overflow-y:auto">
                 ${sessionsHtml}
               </div>
             </div>
-            
+
             <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
               ${canImpersonate ? `
-                <button onclick="event.stopPropagation();impersonateUser('${userId}')" 
+                <button onclick="event.stopPropagation();impersonateUser('${userId}')"
                         style="padding:0.3rem 0.6rem;background:#f59e0b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
                   ● Impersonate
                 </button>
               ` : ''}
               ${canResetGates ? `
-                <button onclick="event.stopPropagation();resetUserGates('${userId}')" 
+                <button onclick="event.stopPropagation();resetUserGates('${userId}')"
                         style="padding:0.3rem 0.6rem;background:#ef4444;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
                   ▸ Reset Gates
                 </button>
               ` : ''}
               ${canViewVault ? `
-                <button onclick="event.stopPropagation();viewVaultSummary('${userId}')" 
+                <button onclick="event.stopPropagation();viewVaultSummary('${userId}')"
                         style="padding:0.3rem 0.6rem;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
                   ● Vault
                 </button>
               ` : ''}
-              <button onclick="event.stopPropagation();searchUsers()" 
+              <button onclick="event.stopPropagation();searchUsers()"
                       style="padding:0.3rem 0.6rem;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
                 ▸ Back
               </button>
@@ -653,7 +653,7 @@
         }
 
         const result = await response.json();
-        
+
         if (result.status === 'impersonation_ready') {
           const msg = `Impersonation ready for ${result.target_user}\n\n` +
                       `Role: ${result.target_role}\n` +
@@ -661,7 +661,7 @@
                       `Token: ${result.impersonation_token}\n\n` +
                       `${result.warning}\n\n` +
                       `Proceed to ${result.landing_page}?`;
-          
+
           if (confirm(msg)) {
             window.location.href = result.landing_page || '/home.html';
           }
@@ -681,11 +681,11 @@
         `Options: storage_connected, vault_initialized`,
         'storage_connected,vault_initialized'
       );
-      
+
       if (!gates) return;
-      
+
       const gatesList = gates.split(',').map(g => g.trim()).filter(g => g);
-      
+
       if (!confirm(`Reset these gates for ${userId}?\n\n${gatesList.join('\n')}\n\nUser will need to re-complete these steps.`)) {
         return;
       }
@@ -694,7 +694,7 @@
         const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users/${userId}/reset-gates`), {
           method: 'POST',
           credentials: 'include',
-          headers: { 
+          headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           },
@@ -725,13 +725,13 @@
         }
 
         const result = await response.json();
-        
+
         const msg = `Vault Summary for ${result.user_id}\n\n` +
                     `Provider: ${result.provider}\n` +
                     `Documents: ${result.document_count}\n` +
                     `Storage Used: ${result.storage_used_mb} MB\n\n` +
                     `${result.note || ''}`;
-        
+
         SemptifyFeedback.success(`Vault summary retrieved. Storage: ${result.storage_used_mb} MB` + (result.note ? '. ' + result.note : ''));
       } catch (error) {
         SemptifyFeedback.error('Vault summary failed.', { detail: error.message });
@@ -742,12 +742,12 @@
     async function loadAuditLog(limit = 20) {
       const auditDiv = document.getElementById('audit-log-results');
       const loadingDiv = document.getElementById('audit-log-loading');
-      
+
       if (!auditDiv) return;
-      
+
       loadingDiv.style.display = 'block';
       auditDiv.innerHTML = '';
-      
+
       try {
         const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/audit?limit=${limit}`), {
           credentials: 'include',
@@ -759,12 +759,12 @@
         }
 
         const data = await response.json();
-        
+
         if (!data.entries || data.entries.length === 0) {
           auditDiv.innerHTML = '<p style="color:#888;font-size:0.8rem">No audit entries found</p>';
           return;
         }
-        
+
         const entriesHtml = data.entries.map(entry => {
           const timestamp = new Date(entry.timestamp).toLocaleString();
           return `
@@ -774,15 +774,15 @@
                 <span style="color:#888">${timestamp}</span>
               </div>
               <div style="color:#555">
-                Admin: ${entry.admin_user_id?.substring(0, 8)}... | 
+                Admin: ${entry.admin_user_id?.substring(0, 8)}... |
                 Target: ${entry.target_user?.substring(0, 8)}...
               </div>
             </div>
           `;
         }).join('');
-        
+
         auditDiv.innerHTML = entriesHtml;
-        
+
       } catch (error) {
         auditDiv.innerHTML = `<p style="color:#dc2626;font-size:0.8rem">Error loading audit log: ${error.message}</p>`;
       } finally {
@@ -801,7 +801,7 @@
         if (!response.ok) return;
 
         const data = await response.json();
-        
+
         // Count users by role
         const roleCounts = {
           'tenant': 0,
@@ -809,7 +809,7 @@
           'legal': 0,
           'admin': 0
         };
-        
+
         const total = data.users?.length || 0;
         data.users?.forEach(user => {
           const role = (user.role || '').toLowerCase();
@@ -817,7 +817,7 @@
             roleCounts[role]++;
           }
         });
-        
+
         // Update UI
         const updateRole = (roleId, count) => {
           const el = document.getElementById(roleId);
@@ -828,11 +828,11 @@
             metaEl.textContent = `${pct}% of users`;
           }
         };
-        
+
         updateRole('role-tenant', roleCounts.tenant);
         updateRole('role-advocate', roleCounts.advocate);
         updateRole('role-legal', roleCounts.legal);
-        
+
       } catch (error) {
         console.log('User breakdown load failed:', error.message);
       }
@@ -849,15 +849,15 @@
         if (!response.ok) return;
 
         const data = await response.json();
-        
+
         const activityDiv = document.getElementById('recent-activity');
         if (!activityDiv) return;
-        
+
         if (!data.entries || data.entries.length === 0) {
           activityDiv.innerHTML = '<p style="color:#888;font-size:0.85rem">No recent activity</p>';
           return;
         }
-        
+
         const iconMap = {
           'impersonate_start': '●',
           'impersonate_stop': '○',
@@ -868,12 +868,12 @@
           'set_feature_flag': '▸',
           'set_system_setting': '▸'
         };
-        
+
         const entriesHtml = data.entries.map(entry => {
           const timestamp = new Date(entry.timestamp).toLocaleString();
           const timeAgo = getTimeAgo(new Date(entry.timestamp));
           const icon = iconMap[entry.action] || '●';
-          
+
           return `
             <div class="activity-item">
               <span class="activity-icon">${icon}</span>
@@ -882,9 +882,9 @@
             </div>
           `;
         }).join('');
-        
+
         activityDiv.innerHTML = entriesHtml;
-        
+
       } catch (error) {
         console.log('Recent activity load failed:', error.message);
         const activityDiv = document.getElementById('recent-activity');
@@ -897,7 +897,7 @@
     // Helper: Get time ago string
     function getTimeAgo(date) {
       const seconds = Math.floor((new Date() - date) / 1000);
-      
+
       if (seconds < 60) return `${seconds}s ago`;
       if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
       if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -915,15 +915,15 @@
         if (!response.ok) return; // Silently fail - dashboard works without live metrics
 
         const data = await response.json();
-        
+
         console.log('System status loaded:', data);
-        
+
         // Update hero stats
         const heroStats = document.getElementById('hero-stats');
         if (heroStats && data.sessions) {
           heroStats.innerHTML = `<strong>${data.sessions.unique_users || 0} users</strong>, <strong>${data.sessions.active || 0} active sessions</strong>, <strong>${data.modules?.total_active || 0} active modules</strong>, <strong>operational</strong>.`;
         }
-        
+
         // Update platform metrics
         if (data.sessions) {
           document.getElementById('metric-total-users').textContent = data.sessions.total_in_memory || '0';
@@ -933,18 +933,18 @@
           document.getElementById('metric-unique-users').textContent = data.sessions.unique_users || '0';
           document.getElementById('metric-unique-users-meta').textContent = 'Unique user IDs';
         }
-        
+
         if (data.modules) {
           document.getElementById('metric-modules').textContent = data.modules.total_active || '0';
           document.getElementById('metric-modules-meta').textContent = `${data.modules.runtime_disabled || 0} disabled`;
         }
-        
+
         // Update security metrics
         if (data.metrics) {
           document.getElementById('metric-requests').textContent = data.metrics.requests_total || '0';
           document.getElementById('metric-rate-limits').textContent = data.metrics.rate_limited_total || '0';
         }
-        
+
         // Update the "Today" stats with real session data
         if (data.sessions) {
           const statRows = document.querySelectorAll('.stat-row .stat-val');
@@ -957,7 +957,7 @@
             statRows[4].textContent = (data.sessions.active || 0) + ' sessions';
           }
         }
-        
+
         // Update metrics in console
         if (data.metrics) {
           console.log('System metrics:', data.metrics);
@@ -980,7 +980,7 @@
           const enabledCount = tiersData.tiers.filter(t => t.enabled).length;
           document.getElementById('config-tiers').textContent = `${enabledCount}/${tiersData.tiers.length}`;
         }
-        
+
         // Load modules count
         const modulesResponse = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/modules`), {
           credentials: 'include',
@@ -992,7 +992,7 @@
           const disabled = modulesData.runtime_disabled?.length || 0;
           document.getElementById('config-modules').textContent = `${total - disabled}/${total}`;
         }
-        
+
         // Load feature flags count
         const flagsResponse = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/feature-flags`), {
           credentials: 'include',
@@ -1016,12 +1016,12 @@
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
-        
+
         if (!response.ok) throw new Error('Failed to load modules');
-        
+
         const data = await response.json();
         const modules = data.installed_modules || [];
-        
+
         // Group by tier
         const byTier = {};
         modules.forEach(m => {
@@ -1029,38 +1029,38 @@
           if (!byTier[tier]) byTier[tier] = [];
           byTier[tier].push(m);
         });
-        
+
         // Build HTML
         let html = '<div style="max-height:400px;overflow-y:auto">';
-        
+
         Object.entries(byTier).forEach(([tier, tierModules]) => {
           html += `<div style="margin-bottom:1rem"><h4 style="margin:0 0 0.5rem 0;text-transform:uppercase;font-size:0.75rem;color:#64748b">${tier}</h4>`;
-          
+
           tierModules.forEach(m => {
             const name = m.manifest?.name || 'unknown';
             const displayName = m.manifest?.display_name || name;
             const enabled = m.runtime_enabled !== false;
             const tierEnabled = m.tier_enabled !== false;
-            
+
             html += `
               <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:${enabled && tierEnabled ? '#f0fdf4' : '#fef2f2'};border-radius:4px;margin-bottom:0.25rem">
                 <div>
                   <div style="font-weight:600;font-size:0.85rem">${displayName}</div>
                   <div style="font-size:0.7rem;color:#666">${name}</div>
                 </div>
-                <button onclick="toggleModule('${name}', ${enabled})" 
+                <button onclick="toggleModule('${name}', ${enabled})"
                         style="padding:0.2rem 0.5rem;background:${enabled ? '#ef4444' : '#22c55e'};color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.7rem">
                   ${enabled ? 'Disable' : 'Enable'}
                 </button>
               </div>
             `;
           });
-          
+
           html += '</div>';
         });
-        
+
         html += '</div>';
-        
+
         // Show in modal-like alert (simple approach)
         const modal = document.createElement('div');
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
@@ -1075,7 +1075,7 @@
         `;
         modal.className = 'modal';
         document.body.appendChild(modal);
-        
+
       } catch (error) {
         SemptifyFeedback.error('Failed to load modules.', { detail: error.message });
       }
@@ -1086,16 +1086,16 @@
       if (!confirm(`${currentlyEnabled ? 'Disable' : 'Enable'} module ${moduleName}?\n\nThis takes effect immediately for routing.`)) {
         return;
       }
-      
+
       try {
         const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/modules/${moduleName}/toggle`), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
-        
+
         if (!response.ok) throw new Error('Toggle failed');
-        
+
         const result = await response.json();
         SemptifyFeedback.success(`Module ${result.module} is now ${result.status}.`);
 
@@ -1115,7 +1115,7 @@
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
-        
+
         if (retentionResponse.ok) {
           const data = await retentionResponse.json();
           document.getElementById('analytics-users').textContent = data.total_users || '0';
@@ -1138,14 +1138,14 @@
           fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/signup-funnel?days=30`), { credentials: 'include', headers: { 'Accept': 'application/json' } }),
           fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/retention`), { credentials: 'include', headers: { 'Accept': 'application/json' } })
         ]);
-        
+
         const overviewData = overview.ok ? await overview.json() : null;
         const funnelData = funnel.ok ? await funnel.json() : null;
         const retentionData = retention.ok ? await retention.json() : null;
-        
+
         // Build HTML
         let html = '<div style="max-height:500px;overflow-y:auto;font-size:0.85rem">';
-        
+
         // Overview section
         if (overviewData) {
           html += `<h4 style="margin:1rem 0 0.5rem;color:#3b82f6">Overview (Last ${overviewData.period_days} days)</h4>`;
@@ -1155,7 +1155,7 @@
           html += `<div style="background:#fffbeb;padding:0.5rem;border-radius:4px"><div style="font-size:1.5rem;font-weight:700;color:#f59e0b">${overviewData.events?.total_tracked || 0}</div><div style="font-size:0.75rem;color:#666">Events Tracked</div></div>`;
           html += `</div>`;
         }
-        
+
         // Retention section
         if (retentionData) {
           html += `<h4 style="margin:1rem 0 0.5rem;color:#22c55e">User Retention</h4>`;
@@ -1166,12 +1166,12 @@
           html += `<div style="background:#fffbeb;padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:#f59e0b">${retentionData.retention_rate_30d}%</div><div style="font-size:0.7rem;color:#666">30-day Retention</div></div>`;
           html += `</div>`;
         }
-        
+
         // Funnel section
         if (funnelData) {
           html += `<h4 style="margin:1rem 0 0.5rem;color:#f59e0b">Signup Funnel</h4>`;
           html += `<p style="margin:0 0 0.5rem;font-size:0.8rem;color:#666">New sessions: ${funnelData.total_new_sessions || 0}</p>`;
-          
+
           if (funnelData.by_role && Object.keys(funnelData.by_role).length > 0) {
             html += `<div style="margin-bottom:0.5rem"><strong>By Role:</strong></div>`;
             html += `<div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-bottom:1rem">`;
@@ -1180,7 +1180,7 @@
             }
             html += `</div>`;
           }
-          
+
           if (funnelData.by_provider && Object.keys(funnelData.by_provider).length > 0) {
             html += `<div style="margin-bottom:0.5rem"><strong>By Provider:</strong></div>`;
             html += `<div style="display:flex;flex-wrap:wrap;gap:0.25rem">`;
@@ -1190,9 +1190,9 @@
             html += `</div>`;
           }
         }
-        
+
         html += '</div>';
-        
+
         // Show modal
         const modal = document.createElement('div');
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
@@ -1207,7 +1207,7 @@
         `;
         modal.className = 'modal';
         document.body.appendChild(modal);
-        
+
       } catch (error) {
         SemptifyFeedback.error('Failed to load analytics.', { detail: error.message });
       }
@@ -1673,7 +1673,7 @@ Please fix this issue in the admin dashboard.
           }
         });
       }
-      
+
       // Auth check first — if it fails, redirect to login and skip all data loads
       checkAdminAuth().then(authed => {
         if (!authed) return;

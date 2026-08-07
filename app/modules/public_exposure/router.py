@@ -27,6 +27,7 @@ router = APIRouter(prefix="/api/exposure", tags=["Public Exposure"])
 # Request Models
 class GeneratePressReleaseRequest(BaseModel):
     """Request to generate a press release"""
+
     property_address: str
     violations: list[str]
     contact_info: dict[str, str]
@@ -40,6 +41,7 @@ class GeneratePressReleaseRequest(BaseModel):
 
 class GenerateMediaKitRequest(BaseModel):
     """Request to generate a media kit"""
+
     press_release_id: str
     timeline_events: list[dict[str, str]]
     evidence_docs: list[str]
@@ -49,6 +51,7 @@ class GenerateMediaKitRequest(BaseModel):
 # Response Models
 class PressReleaseResponse(BaseModel):
     """Press release response"""
+
     id: str
     headline: str
     subheadline: str | None
@@ -65,6 +68,7 @@ class PressReleaseResponse(BaseModel):
 
 class MediaKitResponse(BaseModel):
     """Media kit response"""
+
     id: str
     press_release: dict[str, Any]
     fact_sheet: dict[str, Any]
@@ -83,13 +87,10 @@ async def exposure_health_check():
 
 
 @router.post("/press-release", response_model=PressReleaseResponse)
-async def generate_press_release(
-    request: GeneratePressReleaseRequest,
-    user: StorageUser = Depends(green_access)
-):
+async def generate_press_release(request: GeneratePressReleaseRequest, user: StorageUser = Depends(green_access)):
     """
     Generate a professional press release for tenant rights violations.
-    
+
     Supports multiple languages:
     - en: English
     - es: Spanish
@@ -117,10 +118,7 @@ async def generate_press_release(
 
 
 @router.get("/press-release/{release_id}")
-async def get_press_release(
-    release_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def get_press_release(release_id: str, user: StorageUser = Depends(green_access)):
     """Get a press release by ID"""
     service = get_public_exposure_service()
     release = service.get_press_release(release_id)
@@ -132,10 +130,7 @@ async def get_press_release(
 
 
 @router.get("/press-release/{release_id}/text")
-async def get_press_release_text(
-    release_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def get_press_release_text(release_id: str, user: StorageUser = Depends(green_access)):
     """Get a press release as formatted text (ready to send)"""
     service = get_public_exposure_service()
     release = service.get_press_release(release_id)
@@ -147,13 +142,10 @@ async def get_press_release_text(
 
 
 @router.post("/media-kit", response_model=MediaKitResponse)
-async def generate_media_kit(
-    request: GenerateMediaKitRequest,
-    user: StorageUser = Depends(green_access)
-):
+async def generate_media_kit(request: GenerateMediaKitRequest, user: StorageUser = Depends(green_access)):
     """
     Generate a complete media kit for a campaign.
-    
+
     Includes:
     - Press release
     - Fact sheet
@@ -184,10 +176,7 @@ async def generate_media_kit(
 
 
 @router.get("/media-kit/{kit_id}")
-async def get_media_kit(
-    kit_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def get_media_kit(kit_id: str, user: StorageUser = Depends(green_access)):
     """Get a media kit by ID"""
     service = get_public_exposure_service()
     kit = service.get_media_kit(kit_id)
@@ -201,11 +190,11 @@ async def get_media_kit(
 @router.get("/media-outlets")
 async def list_media_outlets(
     outlet_type: str | None = Query(None, description="Filter by outlet type"),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """
     List Minnesota media outlets for outreach.
-    
+
     Outlet types:
     - local_news
     - investigative
@@ -223,7 +212,7 @@ async def list_media_outlets(
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid outlet type: {outlet_type}. Valid types: {[t.value for t in MediaOutlet]}"
+                detail=f"Invalid outlet type: {outlet_type}. Valid types: {[t.value for t in MediaOutlet]}",
             )
     else:
         outlets = service.get_mn_media_outlets()
@@ -232,9 +221,7 @@ async def list_media_outlets(
 
 
 @router.get("/languages")
-async def list_supported_languages(
-    user: StorageUser = Depends(green_access)
-):
+async def list_supported_languages(user: StorageUser = Depends(green_access)):
     """List supported languages for press releases"""
     return {
         "languages": [
@@ -247,16 +234,9 @@ async def list_supported_languages(
 
 
 @router.get("/release-types")
-async def list_release_types(
-    user: StorageUser = Depends(green_access)
-):
+async def list_release_types(user: StorageUser = Depends(green_access)):
     """List available press release types"""
-    return {
-        "types": [
-            {"type": rt.value, "name": rt.name.replace("_", " ").title()}
-            for rt in ReleaseType
-        ]
-    }
+    return {"types": [{"type": rt.value, "name": rt.name.replace("_", " ").title()} for rt in ReleaseType]}
 
 
 @router.post("/generate-social-posts")
@@ -264,7 +244,7 @@ async def generate_social_posts(
     headline: str = Query(..., description="The headline or main topic"),
     link: str | None = Query(None, description="Link to include"),
     hashtags: list[str] | None = Query(default=["TenantRights", "HousingJustice"]),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """Generate social media posts for different platforms"""
     hashtag_str = " ".join(f"#{h}" for h in hashtags) if hashtags else ""

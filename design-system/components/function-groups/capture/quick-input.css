@@ -268,11 +268,11 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .quick-input-actions {
     flex-direction: column;
   }
-  
+
   .quick-input-button {
     width: 100%;
     text-align: center;

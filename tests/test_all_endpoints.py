@@ -12,19 +12,18 @@ import requests
 BASE_URL = "http://localhost:8000"
 
 # Test results tracking
-results = {
-    "passed": [],
-    "failed": [],
-    "skipped": []
-}
+results = {"passed": [], "failed": [], "skipped": []}
+
 
 def get(path: str) -> requests.Response:
     """GET request helper"""
     return requests.get(f"{BASE_URL}{path}", timeout=10)
 
+
 def post(path: str, data: dict[str, Any] = None) -> requests.Response:
     """POST request helper"""
     return requests.post(f"{BASE_URL}{path}", json=data or {}, timeout=10)
+
 
 def test(name: str, request_func: Callable, expected_codes: list = None):
     """Run a test and record result"""
@@ -45,6 +44,7 @@ def test(name: str, request_func: Callable, expected_codes: list = None):
     except Exception as e:
         results["failed"].append((name, str(e)))
         print(f"  ❌ {name} - {str(e)[:50]}")
+
 
 # =============================================================================
 # RUN TESTS
@@ -102,9 +102,15 @@ if __name__ == "__main__":
     # Timestamp is GET, returns current timestamp proof format
     test("Integrity Timestamp", lambda: get("/storage/integrity/timestamp"))
     # Hash needs base64 content
-    test("Integrity Hash", lambda: post("/storage/integrity/hash", {
-        "content": "dGVzdCBkYXRh"  # base64 encoded "test data"
-    }))
+    test(
+        "Integrity Hash",
+        lambda: post(
+            "/storage/integrity/hash",
+            {
+                "content": "dGVzdCBkYXRh"  # base64 encoded "test data"
+            },
+        ),
+    )
 
     # =============================================================================
     # CERTIFICATES
@@ -114,13 +120,20 @@ if __name__ == "__main__":
 
     # Certificate endpoints need auth headers - test with X-User-Id
     def gen_cert():
-        return requests.post(f"{BASE_URL}/storage/certificate/generate",
+        return requests.post(
+            f"{BASE_URL}/storage/certificate/generate",
             json={"document_name": "Test Document", "document_hash": "abc123def456"},
-            headers={"X-User-Id": "test-user"}, timeout=10)
+            headers={"X-User-Id": "test-user"},
+            timeout=10,
+        )
+
     def gen_html():
-        return requests.post(f"{BASE_URL}/storage/certificate/html",
+        return requests.post(
+            f"{BASE_URL}/storage/certificate/html",
             json={"document_name": "Test Document", "document_hash": "abc123def456"},
-            headers={"X-User-Id": "test-user"}, timeout=10)
+            headers={"X-User-Id": "test-user"},
+            timeout=10,
+        )
 
     test("Certificate Generate", gen_cert)
     test("Certificate HTML", gen_html)
@@ -134,8 +147,8 @@ if __name__ == "__main__":
 
     # Vault list endpoint - GET /api/vault/
     def vault_list():
-        return requests.get(f"{BASE_URL}/api/vault/",
-            headers={"X-User-Id": "test-user"}, timeout=10)
+        return requests.get(f"{BASE_URL}/api/vault/", headers={"X-User-Id": "test-user"}, timeout=10)
+
     test("Vault Document List", vault_list)
 
     # =============================================================================
@@ -308,14 +321,14 @@ if __name__ == "__main__":
     print(f"❌ Failed: {len(results['failed'])}")
     print(f"⏭️ Skipped: {len(results['skipped'])}")
 
-    total = len(results['passed']) + len(results['failed'])
+    total = len(results["passed"]) + len(results["failed"])
     if total > 0:
-        success_rate = (len(results['passed']) / total) * 100
+        success_rate = (len(results["passed"]) / total) * 100
         print(f"\n📈 Success Rate: {success_rate:.1f}%")
 
-    if results['failed']:
+    if results["failed"]:
         print("\n❌ FAILED TESTS:")
-        for name, reason in results['failed']:
+        for name, reason in results["failed"]:
             print(f"   - {name}: {reason}")
 
     print("\n" + "=" * 60)

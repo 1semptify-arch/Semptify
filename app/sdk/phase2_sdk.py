@@ -16,9 +16,11 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class SDKConfig:
     """SDK configuration for Phase 2 features."""
+
     api_base_url: str
     api_key: str
     timeout: int = 30
@@ -26,6 +28,7 @@ class SDKConfig:
     enable_websockets: bool = True
     enable_2fa: bool = True
     cache_enabled: bool = True
+
 
 class Phase2SDK:
     """Phase 2 SDK for advanced housing rights platform features."""
@@ -44,7 +47,7 @@ class Phase2SDK:
             response = await client.post(
                 f"{self.config.api_base_url}/api/auth/login",
                 json={"email": email, "password": password},
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
 
             if response.status_code == 200:
@@ -52,25 +55,17 @@ class Phase2SDK:
 
                 # Check if 2FA is required
                 if data.get("requires_2fa") and self.config.enable_2fa:
-                    return {
-                        "success": False,
-                        "requires_2fa": True,
-                        "message": "Two-factor authentication required"
-                    }
+                    return {"success": False, "requires_2fa": True, "message": "Two-factor authentication required"}
 
                 self.session = data.get("token")
                 return {
                     "success": True,
                     "token": self.session,
                     "user": data.get("user"),
-                    "message": "Authentication successful"
+                    "message": "Authentication successful",
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "Authentication failed",
-                    "status_code": response.status_code
-                }
+                return {"success": False, "error": "Authentication failed", "status_code": response.status_code}
 
     async def setup_2fa(self, method: str = "totp") -> dict[str, Any]:
         """Setup two-factor authentication."""
@@ -80,10 +75,7 @@ class Phase2SDK:
             response = await client.post(
                 f"{self.config.api_base_url}/api/security/2fa/setup",
                 json={"method": method},
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.session}"
-                }
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.session}"},
             )
 
             if response.status_code == 200:
@@ -92,19 +84,14 @@ class Phase2SDK:
                     "success": True,
                     "qr_code": data.get("qr_code"),
                     "backup_codes": data.get("backup_codes"),
-                    "message": "2FA setup successful"
+                    "message": "2FA setup successful",
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "2FA setup failed",
-                    "status_code": response.status_code
-                }
+                return {"success": False, "error": "2FA setup failed", "status_code": response.status_code}
 
-    async def generate_document_preview(self, document_id: str,
-                                  preview_type: str = "preview",
-                                  page_number: int = 1,
-                                  max_pages: int = 10) -> dict[str, Any]:
+    async def generate_document_preview(
+        self, document_id: str, preview_type: str = "preview", page_number: int = 1, max_pages: int = 10
+    ) -> dict[str, Any]:
         """Generate document preview."""
         import httpx
 
@@ -115,12 +102,9 @@ class Phase2SDK:
                     "document_id": document_id,
                     "preview_type": preview_type,
                     "page_number": page_number,
-                    "max_pages": max_pages
+                    "max_pages": max_pages,
                 },
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.session}"
-                }
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.session}"},
             )
 
             if response.status_code == 200:
@@ -129,33 +113,22 @@ class Phase2SDK:
                     "success": True,
                     "preview_url": data.get("preview_url"),
                     "metadata": data.get("metadata"),
-                    "message": "Preview generated successfully"
+                    "message": "Preview generated successfully",
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "Preview generation failed",
-                    "status_code": response.status_code
-                }
+                return {"success": False, "error": "Preview generation failed", "status_code": response.status_code}
 
-    async def create_batch_operation(self, operation_type: str,
-                                items: list[dict[str, Any]],
-                                settings: dict[str, Any] = None) -> dict[str, Any]:
+    async def create_batch_operation(
+        self, operation_type: str, items: list[dict[str, Any]], settings: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Create batch operation for document management."""
         import httpx
 
         async with httpx.AsyncClient(timeout=self.config.timeout) as client:
             response = await client.post(
                 f"{self.config.api_base_url}/api/batch/create",
-                json={
-                    "operation_type": operation_type,
-                    "items": items,
-                    "settings": settings or {}
-                },
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.session}"
-                }
+                json={"operation_type": operation_type, "items": items, "settings": settings or {}},
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.session}"},
             )
 
             if response.status_code == 200:
@@ -165,33 +138,26 @@ class Phase2SDK:
                     "operation_id": data.get("operation_id"),
                     "status": data.get("status"),
                     "total_items": data.get("total_items"),
-                    "message": "Batch operation created"
+                    "message": "Batch operation created",
                 }
             else:
                 return {
                     "success": False,
                     "error": "Batch operation creation failed",
-                    "status_code": response.status_code
+                    "status_code": response.status_code,
                 }
 
-    async def export_user_data(self, export_type: str = "all_data",
-                           format: str = "json",
-                           filters: dict[str, Any] = None) -> dict[str, Any]:
+    async def export_user_data(
+        self, export_type: str = "all_data", format: str = "json", filters: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Export user data with GDPR compliance."""
         import httpx
 
         async with httpx.AsyncClient(timeout=self.config.timeout) as client:
             response = await client.post(
                 f"{self.config.api_base_url}/api/export-import/export/request",
-                json={
-                    "export_type": export_type,
-                    "format": format,
-                    "filters": filters or {}
-                },
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.session}"
-                }
+                json={"export_type": export_type, "format": format, "filters": filters or {}},
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.session}"},
             )
 
             if response.status_code == 200:
@@ -201,33 +167,22 @@ class Phase2SDK:
                     "export_id": data.get("export_id"),
                     "download_url": data.get("download_url"),
                     "expires_at": data.get("expires_at"),
-                    "message": "Export request created"
+                    "message": "Export request created",
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "Export request failed",
-                    "status_code": response.status_code
-                }
+                return {"success": False, "error": "Export request failed", "status_code": response.status_code}
 
-    async def run_automated_tests(self, suite_id: str,
-                               test_filter: str = None,
-                               environment: dict[str, Any] = None) -> dict[str, Any]:
+    async def run_automated_tests(
+        self, suite_id: str, test_filter: str = None, environment: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Run automated tests."""
         import httpx
 
         async with httpx.AsyncClient(timeout=self.config.timeout) as client:
             response = await client.post(
                 f"{self.config.api_base_url}/api/testing/run",
-                json={
-                    "suite_id": suite_id,
-                    "test_filter": test_filter,
-                    "environment": environment or {}
-                },
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.session}"
-                }
+                json={"suite_id": suite_id, "test_filter": test_filter, "environment": environment or {}},
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.session}"},
             )
 
             if response.status_code == 200:
@@ -236,14 +191,10 @@ class Phase2SDK:
                     "success": True,
                     "run_id": data.get("run_id"),
                     "status": data.get("status"),
-                    "message": "Test run started"
+                    "message": "Test run started",
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "Test run failed",
-                    "status_code": response.status_code
-                }
+                return {"success": False, "error": "Test run failed", "status_code": response.status_code}
 
     async def connect_websocket(self, channels: list[str] = None) -> bool:
         """Connect to WebSocket for real-time updates."""
@@ -255,17 +206,11 @@ class Phase2SDK:
 
             ws_url = f"{self.config.api_base_url.replace('http', 'ws')}/ws/events"
 
-            self.websocket = await websockets.connect(
-                ws_url,
-                extra_headers={"Authorization": f"Bearer {self.session}"}
-            )
+            self.websocket = await websockets.connect(ws_url, extra_headers={"Authorization": f"Bearer {self.session}"})
 
             # Subscribe to channels
             if channels:
-                subscribe_message = {
-                    "type": "subscribe",
-                    "channels": channels
-                }
+                subscribe_message = {"type": "subscribe", "channels": channels}
                 await self.websocket.send(json.dumps(subscribe_message))
 
             logger.info(f"Connected to WebSocket: {ws_url}")
@@ -300,10 +245,9 @@ class Phase2SDK:
         except Exception as e:
             logger.error(f"WebSocket listening error: {e}")
 
-    async def search_documents(self, query: str,
-                          filters: dict[str, Any] = None,
-                          sort_by: str = "relevance",
-                          limit: int = 20) -> dict[str, Any]:
+    async def search_documents(
+        self, query: str, filters: dict[str, Any] = None, sort_by: str = "relevance", limit: int = 20
+    ) -> dict[str, Any]:
         """Advanced search with BM25 scoring."""
         import httpx
 
@@ -314,9 +258,9 @@ class Phase2SDK:
                     "q": query,
                     "filters": json.dumps(filters) if filters else None,
                     "sort_by": sort_by,
-                    "limit": limit
+                    "limit": limit,
                 },
-                headers={"Authorization": f"Bearer {self.session}"}
+                headers={"Authorization": f"Bearer {self.session}"},
             )
 
             if response.status_code == 200:
@@ -326,14 +270,10 @@ class Phase2SDK:
                     "results": data.get("results", []),
                     "total": data.get("total", 0),
                     "search_time": data.get("search_time"),
-                    "message": "Search completed successfully"
+                    "message": "Search completed successfully",
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "Search failed",
-                    "status_code": response.status_code
-                }
+                return {"success": False, "error": "Search failed", "status_code": response.status_code}
 
     async def get_documentation(self, format: str = "openapi") -> dict[str, Any]:
         """Get API documentation."""
@@ -343,36 +283,32 @@ class Phase2SDK:
             "openapi": "/api/docs/openapi.json",
             "postman": "/api/docs/postman",
             "swagger": "/api/docs/swagger",
-            "redoc": "/api/docs/redoc"
+            "redoc": "/api/docs/redoc",
         }
 
         endpoint = format_endpoints.get(format, "/api/docs/openapi.json")
 
         async with httpx.AsyncClient(timeout=self.config.timeout) as client:
             response = await client.get(
-                f"{self.config.api_base_url}{endpoint}",
-                headers={"Authorization": f"Bearer {self.session}"}
+                f"{self.config.api_base_url}{endpoint}", headers={"Authorization": f"Bearer {self.session}"}
             )
 
             if response.status_code == 200:
                 if format == "openapi":
-                    return {
-                        "success": True,
-                        "spec": response.json(),
-                        "message": "OpenAPI specification retrieved"
-                    }
+                    return {"success": True, "spec": response.json(), "message": "OpenAPI specification retrieved"}
                 else:
                     return {
                         "success": True,
                         "documentation_url": f"{self.config.api_base_url}{endpoint}",
-                        "message": f"{format.upper()} documentation retrieved"
+                        "message": f"{format.upper()} documentation retrieved",
                     }
             else:
                 return {
                     "success": False,
                     "error": "Documentation retrieval failed",
-                    "status_code": response.status_code
+                    "status_code": response.status_code,
                 }
+
 
 class HousingRightsSDK(Phase2SDK):
     """Specialized SDK for housing rights applications."""
@@ -381,14 +317,15 @@ class HousingRightsSDK(Phase2SDK):
         super().__init__(config)
         self.housing_context = {}
 
-    async def process_evidence_document(self, document_id: str,
-                                   evidence_type: str = "lease_violation") -> dict[str, Any]:
+    async def process_evidence_document(
+        self, document_id: str, evidence_type: str = "lease_violation"
+    ) -> dict[str, Any]:
         """Process housing evidence document with legal context."""
         # Generate preview with housing-specific metadata
         preview_result = await self.generate_document_preview(
             document_id=document_id,
             preview_type="preview",
-            max_pages=5  # Limit for legal documents
+            max_pages=5,  # Limit for legal documents
         )
 
         if preview_result["success"]:
@@ -398,7 +335,7 @@ class HousingRightsSDK(Phase2SDK):
                 "legal_categories": self._get_legal_categories(evidence_type),
                 "urgency": self._assess_urgency(evidence_type),
                 "jurisdiction": "minnesota",  # Default jurisdiction
-                "processed_at": utc_now().isoformat()
+                "processed_at": utc_now().isoformat(),
             }
 
             preview_result["housing_metadata"] = housing_metadata
@@ -414,7 +351,7 @@ class HousingRightsSDK(Phase2SDK):
             "maintenance_issue": ["habitability", "repair_requests", "rent_withholding", "code_compliance"],
             "discrimination": ["fair_housing", "disability_rights", "familial_status"],
             "security_deposit": ["return_conditions", "itemized_deductions", "interest_requirements"],
-            "court_filing": ["eviction_defense", "small_claims", "evidence_submission"]
+            "court_filing": ["eviction_defense", "small_claims", "evidence_submission"],
         }
 
         return categories.get(evidence_type, ["general"])
@@ -427,7 +364,7 @@ class HousingRightsSDK(Phase2SDK):
             "lease_violation": "high",
             "maintenance_issue": "medium",
             "discrimination": "high",
-            "security_deposit": "low"
+            "security_deposit": "low",
         }
 
         return urgency_map.get(evidence_type, "medium")
@@ -441,7 +378,7 @@ class HousingRightsSDK(Phase2SDK):
                 return {
                     "success": False,
                     "error": f"Missing required field: {field}",
-                    "message": "Legal case requires all required fields"
+                    "message": "Legal case requires all required fields",
                 }
 
         # Add housing rights metadata
@@ -449,19 +386,16 @@ class HousingRightsSDK(Phase2SDK):
             "case_category": self._get_case_category(case_data.get("case_type")),
             "tenant_protections": self._get_tenant_protections(case_data.get("case_type")),
             "landlord_obligations": self._get_landlord_obligations(case_data.get("case_type")),
-            "created_at": utc_now().isoformat()
+            "created_at": utc_now().isoformat(),
         }
 
         # Create batch operation for case processing
-        batch_items = [{
-            "type": "legal_case",
-            "data": case_data
-        }]
+        batch_items = [{"type": "legal_case", "data": case_data}]
 
         return await self.create_batch_operation(
             operation_type="legal_case_processing",
             items=batch_items,
-            settings={"priority": "high", "housing_rights": True}
+            settings={"priority": "high", "housing_rights": True},
         )
 
     def _get_case_category(self, case_type: str) -> str:
@@ -471,7 +405,7 @@ class HousingRightsSDK(Phase2SDK):
             "lease_violation": "contract_dispute",
             "maintenance": "habitability_issue",
             "discrimination": "fair_housing_violation",
-            "security_deposit": "financial_dispute"
+            "security_deposit": "financial_dispute",
         }
 
         return category_map.get(case_type, "general_housing")
@@ -483,7 +417,7 @@ class HousingRightsSDK(Phase2SDK):
             "lease_violation": ["implied_warranty", "quiet_enjoyment", "repair_deductions"],
             "maintenance": ["habitability_standards", "repair_timeline", "rent_withholding_rights"],
             "discrimination": ["protected_classes", "reasonable_accommodation", "retaliation_protection"],
-            "security_deposit": ["return_deadline", "itemized_statement", "interest_protection"]
+            "security_deposit": ["return_deadline", "itemized_statement", "interest_protection"],
         }
 
         return protections.get(case_type, ["general_protection"])
@@ -495,29 +429,24 @@ class HousingRightsSDK(Phase2SDK):
             "lease_violation": ["maintain_property", "respect_privacy", "perform_repairs"],
             "maintenance": ["timely_repairs", "habitability_compliance", "health_safety"],
             "discrimination": ["equal_treatment", "accommodation_request", "no_retaliation"],
-            "security_deposit": ["proper_handling", "itemized_accounting", "timely_return"]
+            "security_deposit": ["proper_handling", "itemized_accounting", "timely_return"],
         }
 
         return obligations.get(case_type, ["general_obligation"])
 
+
 # Factory functions
 def create_sdk(api_base_url: str, api_key: str, **kwargs) -> Phase2SDK:
     """Create Phase 2 SDK instance."""
-    config = SDKConfig(
-        api_base_url=api_base_url,
-        api_key=api_key,
-        **kwargs
-    )
+    config = SDKConfig(api_base_url=api_base_url, api_key=api_key, **kwargs)
     return Phase2SDK(config)
+
 
 def create_housing_sdk(api_base_url: str, api_key: str, **kwargs) -> HousingRightsSDK:
     """Create Housing Rights SDK instance."""
-    config = SDKConfig(
-        api_base_url=api_base_url,
-        api_key=api_key,
-        **kwargs
-    )
+    config = SDKConfig(api_base_url=api_base_url, api_key=api_key, **kwargs)
     return HousingRightsSDK(config)
+
 
 # Example usage
 async def example_usage():
@@ -525,10 +454,7 @@ async def example_usage():
 
     # Initialize SDK
     sdk = create_sdk(
-        api_base_url="https://api.semptify.org",
-        api_key="your-api-key",
-        enable_websockets=True,
-        enable_2fa=True
+        api_base_url="https://api.semptify.org", api_key="your-api-key", enable_websockets=True, enable_2fa=True
     )
 
     # Authenticate with 2FA
@@ -553,8 +479,8 @@ async def example_usage():
             operation_type="upload",
             items=[
                 {"type": "document", "data": {"filename": "lease.pdf"}},
-                {"type": "document", "data": {"filename": "notice.pdf"}}
-            ]
+                {"type": "document", "data": {"filename": "notice.pdf"}},
+            ],
         )
         if batch_result["success"]:
             logger.info(f"Batch operation ID: {batch_result['operation_id']}")
@@ -571,6 +497,7 @@ async def example_usage():
 
     else:
         logger.error(f"Authentication failed: {auth_result['error']}")
+
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

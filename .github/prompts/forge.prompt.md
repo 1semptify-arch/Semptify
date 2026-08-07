@@ -35,10 +35,15 @@ dev_only → preview → experimental → beta → stable
 
 1. **Register the module** in `app/core/product_manifest.py`:
    ```python
-   _register("app.modules.<name>.router", tags=("<Name>",), tier=ProductTier.DEV,
-             lifecycle="dev_only", requires_role=("admin",),
-             dev_notes="What this module does.",
-             log_message="<Name> router connected")
+   _register(
+       "app.modules.<name>.router",
+       tags=("<Name>",),
+       tier=ProductTier.DEV,
+       lifecycle="dev_only",
+       requires_role=("admin",),
+       dev_notes="What this module does.",
+       log_message="<Name> router connected",
+   )
    ```
 
 2. **Create the module** at `app/modules/<name>/`:
@@ -50,6 +55,7 @@ dev_only → preview → experimental → beta → stable
 3. **Register contracts** in `register.py` for SSOT compliance:
    ```python
    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
    register_function_group(FunctionGroupContract(...))
    ```
 

@@ -25,7 +25,7 @@ async def _on_document_added(event: Any) -> None:
         user_id: str = data.get("user_id") or getattr(event, "user_id", None)
         vault_id: str = data.get("vault_id") or data.get("doc_id") or ""
         filename: str = data.get("filename") or data.get("original_filename") or "Uploaded document"
-        doc_type: str = data.get("document_type") or "document"
+        data.get("document_type") or "document"
 
         if not user_id:
             logger.warning("_on_document_added: no user_id in event data, skipping")

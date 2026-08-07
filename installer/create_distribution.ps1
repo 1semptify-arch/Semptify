@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
     Creates a distributable Semptify 5.0 Windows package
-    
+
 .DESCRIPTION
     Packages Semptify source code into a ZIP file for distribution
-    
+
 .PARAMETER OutputPath
     Where to save the distribution package (default: desktop)
-    
+
 .PARAMETER IncludeDemoData
     Include sample data files (default: false)
 #>
@@ -177,7 +177,7 @@ $emptyDirs = @(
 foreach ($dir in $emptyDirs) {
     $dirPath = Join-Path $packageDir $dir
     New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
-    
+
     # Add .gitkeep
     New-Item -ItemType File -Path (Join-Path $dirPath ".gitkeep") -Force | Out-Null
 }

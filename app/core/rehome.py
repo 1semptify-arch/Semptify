@@ -17,32 +17,24 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
     """
     Generate Rehome.html - the reconnection script users click to sync new devices.
     This file is stored in user's cloud storage root Semptify5.0 folder.
-    
+
     Args:
         user_id: User ID (GU2L3wyfBy format)
         provider: Storage provider (google_drive, dropbox, onedrive)
         base_url: Semptify base URL for redirect
-    
+
     Returns:
         HTML content for Rehome.html
     """
     _, role, _ = parse_user_id(user_id)
 
-    provider_names = {
-        "google_drive": "Google Drive",
-        "dropbox": "Dropbox",
-        "onedrive": "OneDrive"
-    }
+    provider_names = {"google_drive": "Google Drive", "dropbox": "Dropbox", "onedrive": "OneDrive"}
     provider_display = provider_names.get(provider, provider)
 
-    provider_icons = {
-        "google_drive": "◆",
-        "dropbox": "●",
-        "onedrive": "○"
-    }
+    provider_icons = {"google_drive": "◆", "dropbox": "●", "onedrive": "○"}
     provider_icon = provider_icons.get(provider, "●")
 
-    return f'''<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -136,10 +128,10 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
         async function reconnect() {{
             const btn = document.querySelector('.btn');
             const spinner = document.getElementById('spinner');
-            
+
             btn.style.display = 'none';
             spinner.style.display = 'block';
-            
+
             try {{
                 const response = await fetch('{base_url}/storage/rehome', {{
                     method: 'POST',
@@ -148,7 +140,7 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
                     }},
                     body: JSON.stringify({{ user_id: '{user_id}', provider: '{provider}' }}),
                 }});
-                
+
                 if (response.ok) {{
                     window.location.href = '{base_url}/tenant/home';
                 }} else {{
@@ -163,4 +155,4 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
         }}
     </script>
 </body>
-</html>'''
+</html>"""

@@ -30,6 +30,7 @@ router = APIRouter()
 # REQUEST/RESPONSE MODELS
 # =============================================================================
 
+
 class StartWorkflowRequest(BaseModel):
     workflow_type: str
     initial_context: dict[str, Any] = {}
@@ -61,6 +62,7 @@ class WorkflowResponse(BaseModel):
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def get_user_id(semptify_uid: str | None) -> str:
     """Get user ID from cookie or return anonymous"""
     return semptify_uid or "anonymous"
@@ -69,6 +71,7 @@ def get_user_id(semptify_uid: str | None) -> str:
 # =============================================================================
 # MESH STATUS ENDPOINTS
 # =============================================================================
+
 
 @router.get("/mesh/status")
 async def get_mesh_status():
@@ -102,6 +105,7 @@ async def get_connected_modules():
 # WORKFLOW MANAGEMENT ENDPOINTS
 # =============================================================================
 
+
 @router.post("/mesh/workflow/start")
 async def start_workflow(
     request: StartWorkflowRequest,
@@ -115,8 +119,7 @@ async def start_workflow(
         workflow_type = WorkflowType(request.workflow_type)
     except ValueError:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid workflow type. Available: {[wt.value for wt in WorkflowType]}"
+            status_code=400, detail=f"Invalid workflow type. Available: {[wt.value for wt in WorkflowType]}"
         )
 
     # Start the workflow
@@ -215,6 +218,7 @@ async def get_user_workflows(
 # QUICK ACTION ENDPOINTS
 # =============================================================================
 
+
 @router.post("/mesh/quick/eviction")
 async def quick_start_eviction(
     document_data: dict[str, Any] = {},
@@ -290,6 +294,7 @@ async def quick_sync_modules(
 # DIRECT MODULE INVOCATION
 # =============================================================================
 
+
 @router.post("/mesh/invoke")
 async def invoke_module_action(
     request: InvokeModuleRequest,
@@ -325,10 +330,7 @@ async def get_module_actions(module_name: str):
     actions = positronic_mesh.get_module_actions(module_name)
 
     if not actions:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Module '{module_name}' not found or has no registered actions"
-        )
+        raise HTTPException(status_code=404, detail=f"Module '{module_name}' not found or has no registered actions")
 
     return {
         "module": module_name,

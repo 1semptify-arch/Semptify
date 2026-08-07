@@ -11,6 +11,7 @@ The context object passed to every external SDK client. It carries:
 External modules receive this context from the external_loader and pass
 it to each SDK client call. The context is immutable.
 """
+
 from dataclasses import dataclass
 
 from app.sdk.external.permissions import PermissionSet

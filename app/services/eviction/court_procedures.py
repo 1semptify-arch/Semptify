@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 # ENUMS - Motion Types, Objection Types, Procedure Phases
 # =============================================================================
 
+
 class MotionType(str, Enum):
     """Common motions in eviction defense."""
+
     DISMISS_IMPROPER_SERVICE = "dismiss_improper_service"
     DISMISS_DEFECTIVE_NOTICE = "dismiss_defective_notice"
     DISMISS_WRONG_VENUE = "dismiss_wrong_venue"
@@ -36,6 +38,7 @@ class MotionType(str, Enum):
 
 class ObjectionType(str, Enum):
     """Common objections raised by landlords and how to counter them."""
+
     HEARSAY = "hearsay"
     RELEVANCE = "relevance"
     FOUNDATION = "foundation"
@@ -51,6 +54,7 @@ class ObjectionType(str, Enum):
 
 class ProcedurePhase(str, Enum):
     """Phases of an eviction proceeding."""
+
     PRE_FILING = "pre_filing"
     SUMMONS_SERVICE = "summons_service"
     ANSWER_PERIOD = "answer_period"
@@ -64,6 +68,7 @@ class ProcedurePhase(str, Enum):
 
 class DefenseCategory(str, Enum):
     """Categories of eviction defenses under Minnesota law."""
+
     PROCEDURAL = "procedural"
     HABITABILITY = "habitability"
     RETALIATION = "retaliation"
@@ -79,9 +84,11 @@ class DefenseCategory(str, Enum):
 # DATA CLASSES - Structured Court Data
 # =============================================================================
 
+
 @dataclass
 class MinnesotaEvictionRule:
     """A specific rule governing Minnesota eviction proceedings."""
+
     rule_id: str
     title: str
     statute: str
@@ -96,6 +103,7 @@ class MinnesotaEvictionRule:
 @dataclass
 class MotionTemplate:
     """Template for generating court motions."""
+
     motion_type: MotionType
     title: str
     legal_basis: list[str]
@@ -109,6 +117,7 @@ class MotionTemplate:
 @dataclass
 class ObjectionResponse:
     """How to respond when landlord raises an objection."""
+
     objection_type: ObjectionType
     definition: str
     when_valid: str
@@ -120,6 +129,7 @@ class ObjectionResponse:
 @dataclass
 class ProcedureStep:
     """A step in the eviction court procedure."""
+
     phase: ProcedurePhase
     step_number: int
     title: str
@@ -133,6 +143,7 @@ class ProcedureStep:
 @dataclass
 class CounterclaimType:
     """Types of counterclaims available to tenants."""
+
     code: str
     title: str
     legal_basis: str
@@ -145,6 +156,7 @@ class CounterclaimType:
 # =============================================================================
 # COURT PROCEDURES ENGINE
 # =============================================================================
+
 
 class CourtProceduresEngine:
     """
@@ -178,7 +190,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.PRE_FILING],
             tenant_action="Pay rent in full within 14 days to cure the default",
             landlord_obligation="Provide written notice specifying amount due and deadline",
-            consequence_if_violated="Case may be dismissed for improper notice"
+            consequence_if_violated="Case may be dismissed for improper notice",
         )
 
         rules["notice_lease_violation"] = MinnesotaEvictionRule(
@@ -190,7 +202,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.PRE_FILING],
             tenant_action="Cure the violation if curable within notice period",
             landlord_obligation="Specify the exact violation and give reasonable time to cure if curable",
-            consequence_if_violated="Case may be dismissed; tenant may have affirmative defense"
+            consequence_if_violated="Case may be dismissed; tenant may have affirmative defense",
         )
 
         rules["service_requirements"] = MinnesotaEvictionRule(
@@ -202,7 +214,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.SUMMONS_SERVICE],
             tenant_action="Verify proper service; challenge if defective",
             landlord_obligation="Serve via personal service, substituted service, or posting with mailing",
-            consequence_if_violated="Case must be dismissed; landlord must re-serve"
+            consequence_if_violated="Case must be dismissed; landlord must re-serve",
         )
 
         rules["answer_deadline"] = MinnesotaEvictionRule(
@@ -214,7 +226,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.ANSWER_PERIOD],
             tenant_action="File written Answer with counterclaims before hearing for strongest defense",
             landlord_obligation="N/A",
-            consequence_if_violated="Tenant may still defend at hearing but loses some procedural advantages"
+            consequence_if_violated="Tenant may still defend at hearing but loses some procedural advantages",
         )
 
         rules["writ_of_recovery"] = MinnesotaEvictionRule(
@@ -226,7 +238,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.EXECUTION],
             tenant_action="Request 7-day stay; move out or appeal within that time",
             landlord_obligation="Cannot execute writ during stay period",
-            consequence_if_violated="Wrongful eviction; tenant may sue for damages"
+            consequence_if_violated="Wrongful eviction; tenant may sue for damages",
         )
 
         rules["rent_escrow"] = MinnesotaEvictionRule(
@@ -238,7 +250,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.PRE_FILING, ProcedurePhase.HEARING],
             tenant_action="File rent escrow petition; deposit rent with court",
             landlord_obligation="Make repairs or rent is released to tenant/applied to repairs",
-            consequence_if_violated="N/A - this is a tenant remedy"
+            consequence_if_violated="N/A - this is a tenant remedy",
         )
 
         rules["expungement"] = MinnesotaEvictionRule(
@@ -250,7 +262,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.POST_HEARING],
             tenant_action="File motion for expungement; demonstrate grounds",
             landlord_obligation="N/A",
-            consequence_if_violated="N/A"
+            consequence_if_violated="N/A",
         )
 
         rules["retaliation_protection"] = MinnesotaEvictionRule(
@@ -262,7 +274,7 @@ class CourtProceduresEngine:
             applies_to=[ProcedurePhase.HEARING],
             tenant_action="Raise retaliation defense if eviction follows protected activity within 90 days",
             landlord_obligation="Must have legitimate, non-retaliatory reason for eviction",
-            consequence_if_violated="Case dismissed; tenant may recover damages"
+            consequence_if_violated="Case dismissed; tenant may recover damages",
         )
 
         return rules
@@ -281,12 +293,12 @@ class CourtProceduresEngine:
             legal_basis=[
                 "Minn. Stat. § 504B.331",
                 "Minn. R. Civ. P. 4.03",
-                "Due Process Clause, U.S. Const. Amend. XIV"
+                "Due Process Clause, U.S. Const. Amend. XIV",
             ],
             required_facts=[
                 "Date and method of attempted service",
                 "Why service was defective (wrong person, insufficient time, improper posting)",
-                "Tenant's actual knowledge (or lack thereof) of the hearing"
+                "Tenant's actual knowledge (or lack thereof) of the hearing",
             ],
             template_text="""MOTION TO DISMISS FOR IMPROPER SERVICE
 
@@ -304,17 +316,17 @@ WHEREFORE, Defendant requests that this action be dismissed without prejudice.""
             supporting_evidence=[
                 "Affidavit of Service (showing defect)",
                 "Calendar showing fewer than 7 days",
-                "Testimony about who received service"
+                "Testimony about who received service",
             ],
             success_factors=[
                 "Clear documentation of service defect",
                 "Raise at earliest opportunity",
-                "Landlord cannot cure defect mid-hearing"
+                "Landlord cannot cure defect mid-hearing",
             ],
             common_responses=[
                 "Landlord may claim substantial compliance",
-                "Landlord may request continuance to re-serve"
-            ]
+                "Landlord may request continuance to re-serve",
+            ],
         )
 
         motions[MotionType.DISMISS_DEFECTIVE_NOTICE] = MotionTemplate(
@@ -323,12 +335,12 @@ WHEREFORE, Defendant requests that this action be dismissed without prejudice.""
             legal_basis=[
                 "Minn. Stat. § 504B.135 (14-day notice)",
                 "Minn. Stat. § 504B.285 (lease termination)",
-                "Lease agreement terms"
+                "Lease agreement terms",
             ],
             required_facts=[
                 "Date notice was given (or not given)",
                 "Content of notice (or deficiencies)",
-                "Whether notice complied with statute and lease"
+                "Whether notice complied with statute and lease",
             ],
             template_text="""MOTION TO DISMISS FOR DEFECTIVE NOTICE
 
@@ -346,17 +358,17 @@ WHEREFORE, Defendant requests dismissal without prejudice.""",
             supporting_evidence=[
                 "Copy of defective notice (or absence of notice)",
                 "Lease agreement showing notice requirements",
-                "Timeline showing insufficient notice period"
+                "Timeline showing insufficient notice period",
             ],
             success_factors=[
                 "Specific identification of defect",
                 "Landlord cannot cure notice defect at hearing",
-                "Even one-day shortage is grounds for dismissal"
+                "Even one-day shortage is grounds for dismissal",
             ],
             common_responses=[
                 "Landlord may claim tenant had actual notice",
-                "Landlord may argue substantial compliance"
-            ]
+                "Landlord may argue substantial compliance",
+            ],
         )
 
         motions[MotionType.CONTINUANCE] = MotionTemplate(
@@ -365,12 +377,12 @@ WHEREFORE, Defendant requests dismissal without prejudice.""",
             legal_basis=[
                 "Minn. R. Civ. P. 6.02",
                 "Due Process - right to prepare defense",
-                "Court's inherent authority"
+                "Court's inherent authority",
             ],
             required_facts=[
                 "Reason continuance is needed",
                 "How much time is requested",
-                "Prejudice to tenant without continuance"
+                "Prejudice to tenant without continuance",
             ],
             template_text="""MOTION FOR CONTINUANCE
 
@@ -390,31 +402,27 @@ WHEREFORE, Defendant requests that this hearing be continued to [DATE or "a date
             supporting_evidence=[
                 "Documentation of need (medical records, work schedule, etc.)",
                 "Proof of diligent efforts to prepare",
-                "Rent payment or offer to escrow"
+                "Rent payment or offer to escrow",
             ],
             success_factors=[
                 "Request as early as possible",
                 "Offer to pay rent into escrow",
-                "Show specific reason, not just 'need more time'"
+                "Show specific reason, not just 'need more time'",
             ],
             common_responses=[
                 "Landlord will argue delay causes economic harm",
-                "Court may grant short continuance with conditions"
-            ]
+                "Court may grant short continuance with conditions",
+            ],
         )
 
         motions[MotionType.STAY_OF_EXECUTION] = MotionTemplate(
             motion_type=MotionType.STAY_OF_EXECUTION,
             title="Motion for Stay of Execution of Writ",
-            legal_basis=[
-                "Minn. Stat. § 504B.365",
-                "Court's equitable authority",
-                "Hardship considerations"
-            ],
+            legal_basis=["Minn. Stat. § 504B.365", "Court's equitable authority", "Hardship considerations"],
             required_facts=[
                 "Judgment has been entered against tenant",
                 "Specific hardship requiring additional time",
-                "Plan for vacating or appealing"
+                "Plan for vacating or appealing",
             ],
             template_text="""MOTION FOR STAY OF EXECUTION
 
@@ -434,31 +442,27 @@ WHEREFORE, Defendant requests a stay of execution for [TIME PERIOD].""",
             supporting_evidence=[
                 "Documentation of hardship",
                 "Proof of efforts to find new housing",
-                "Notice of appeal (if applicable)"
+                "Notice of appeal (if applicable)",
             ],
             success_factors=[
                 "Request within 24 hours of judgment",
                 "Demonstrate specific hardship",
-                "Have a concrete plan"
+                "Have a concrete plan",
             ],
             common_responses=[
                 "Landlord will argue tenant had time to prepare",
-                "Court will likely grant 7-day statutory stay"
-            ]
+                "Court will likely grant 7-day statutory stay",
+            ],
         )
 
         motions[MotionType.EXPUNGEMENT] = MotionTemplate(
             motion_type=MotionType.EXPUNGEMENT,
             title="Motion for Expungement of Eviction Record",
-            legal_basis=[
-                "Minn. Stat. § 484.014",
-                "Court's inherent authority",
-                "Privacy interests"
-            ],
+            legal_basis=["Minn. Stat. § 484.014", "Court's inherent authority", "Privacy interests"],
             required_facts=[
                 "Case outcome (dismissal, tenant prevailed, or other grounds)",
                 "Why expungement is appropriate",
-                "Harm from continued public record"
+                "Harm from continued public record",
             ],
             template_text="""MOTION FOR EXPUNGEMENT
 
@@ -476,17 +480,17 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
             supporting_evidence=[
                 "Case disposition showing grounds for expungement",
                 "Evidence of harm from record",
-                "Settlement agreement (if applicable)"
+                "Settlement agreement (if applicable)",
             ],
             success_factors=[
                 "Clear grounds under statute",
                 "Demonstrate concrete harm",
-                "No outstanding judgment against tenant"
+                "No outstanding judgment against tenant",
             ],
             common_responses=[
                 "Landlord may argue public interest in records",
-                "Court has discretion even when grounds exist"
-            ]
+                "Court has discretion even when grounds exist",
+            ],
         )
 
         return motions
@@ -508,10 +512,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Statement by party-opponent (landlord's own words)",
                 "Present sense impression or excited utterance",
                 "Business records exception (with proper foundation)",
-                "Statement against interest"
+                "Statement against interest",
             ],
             example_response="Your Honor, this is not hearsay. I'm not offering this to prove [X is true], but to show that I was on notice of the condition. Alternatively, this is a statement by the landlord, a party-opponent, which is excluded from hearsay under Rule 801(d)(2).",
-            supporting_rule="Minn. R. Evid. 801, 803, 804"
+            supporting_rule="Minn. R. Evid. 801, 803, 804",
         )
 
         objections[ObjectionType.RELEVANCE] = ObjectionResponse(
@@ -522,10 +526,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Explain the logical connection to an issue in the case",
                 "Connect to an element of defense or counterclaim",
                 "Show it affects credibility of a witness",
-                "Demonstrate it provides context"
+                "Demonstrate it provides context",
             ],
             example_response="Your Honor, this evidence is relevant because it goes directly to my defense of [habitability/retaliation/etc.]. It shows that [explain connection]. The landlord's [action/inaction] is directly at issue here.",
-            supporting_rule="Minn. R. Evid. 401, 402"
+            supporting_rule="Minn. R. Evid. 401, 402",
         )
 
         objections[ObjectionType.FOUNDATION] = ObjectionResponse(
@@ -536,10 +540,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Testify to personal knowledge of the document/photo",
                 "Identify when and where you created/received it",
                 "For photos: state when taken, what it depicts, that it accurately shows the condition",
-                "For documents: identify your signature or the landlord's"
+                "For documents: identify your signature or the landlord's",
             ],
             example_response="Your Honor, I can lay foundation. I took this photo on [date] at [location]. It accurately depicts the condition of [describe]. I recognize this document because I received it from the landlord on [date].",
-            supporting_rule="Minn. R. Evid. 901, 902"
+            supporting_rule="Minn. R. Evid. 901, 902",
         )
 
         objections[ObjectionType.BEST_EVIDENCE] = ObjectionResponse(
@@ -550,10 +554,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Produce the original document",
                 "Explain why original is unavailable (lost, destroyed, in opponent's possession)",
                 "Show copy is accurate and reliable",
-                "For electronic records: print is admissible as original"
+                "For electronic records: print is admissible as original",
             ],
             example_response="Your Honor, I have the original here. [Or] The original is in the landlord's possession and they have not produced it despite my request. This copy accurately reflects the original.",
-            supporting_rule="Minn. R. Evid. 1001-1004"
+            supporting_rule="Minn. R. Evid. 1001-1004",
         )
 
         objections[ObjectionType.LEADING_QUESTION] = ObjectionResponse(
@@ -563,10 +567,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
             how_to_overcome=[
                 "Rephrase as open-ended question",
                 "Ask 'what,' 'when,' 'where,' 'how' instead",
-                "Note: leading is allowed on cross-examination of adverse party"
+                "Note: leading is allowed on cross-examination of adverse party",
             ],
             example_response="I'll rephrase, Your Honor. [Instead of 'The apartment had mold, didn't it?' ask 'What conditions did you observe in the apartment?']",
-            supporting_rule="Minn. R. Evid. 611(c)"
+            supporting_rule="Minn. R. Evid. 611(c)",
         )
 
         objections[ObjectionType.SPECULATION] = ObjectionResponse(
@@ -576,10 +580,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
             how_to_overcome=[
                 "Clarify the basis for your knowledge",
                 "Testify only to what you personally observed",
-                "If making an inference, explain the facts supporting it"
+                "If making an inference, explain the facts supporting it",
             ],
             example_response="Your Honor, I'm not speculating. I personally observed [X]. Based on what I saw, heard, and experienced, I know [Y].",
-            supporting_rule="Minn. R. Evid. 602"
+            supporting_rule="Minn. R. Evid. 602",
         )
 
         objections[ObjectionType.PAROL_EVIDENCE] = ObjectionResponse(
@@ -591,10 +595,10 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Evidence of fraud, mistake, or duress",
                 "Subsequent modification (oral modification may be allowed)",
                 "Collateral agreement on separate matter",
-                "Evidence of implied warranty of habitability (cannot be waived)"
+                "Evidence of implied warranty of habitability (cannot be waived)",
             ],
             example_response="Your Honor, I'm not trying to contradict the lease. I'm showing that the landlord's oral representation was fraudulent, OR that this evidence relates to the implied warranty of habitability which cannot be waived by lease terms.",
-            supporting_rule="Common law; Minn. Stat. § 504B.161 (habitability cannot be waived)"
+            supporting_rule="Common law; Minn. Stat. § 504B.161 (habitability cannot be waived)",
         )
 
         return objections
@@ -608,135 +612,142 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
         steps = []
 
         # Pre-Filing Phase
-        steps.append(ProcedureStep(
-            phase=ProcedurePhase.PRE_FILING,
-            step_number=1,
-            title="Notice Period",
-            description="Landlord must provide proper written notice before filing eviction. For non-payment, this is 14 days.",
-            deadline="14 days (non-payment) or per lease (other violations)",
-            tenant_tasks=[
-                "Review notice carefully for defects",
-                "Note the date you received it",
-                "Check if amount claimed is accurate",
-                "Consider paying to cure if possible",
-                "Document any landlord violations"
-            ],
-            documents_needed=[
-                "Copy of notice received",
-                "Lease agreement",
-                "Rent payment records",
-                "Photos of any habitability issues"
-            ],
-            tips=[
-                "Defective notice = grounds for dismissal",
-                "14 days means 14 FULL days, not including service day",
-                "Even if you owe rent, you may have defenses"
-            ]
-        ))
+        steps.append(
+            ProcedureStep(
+                phase=ProcedurePhase.PRE_FILING,
+                step_number=1,
+                title="Notice Period",
+                description="Landlord must provide proper written notice before filing eviction. For non-payment, this is 14 days.",
+                deadline="14 days (non-payment) or per lease (other violations)",
+                tenant_tasks=[
+                    "Review notice carefully for defects",
+                    "Note the date you received it",
+                    "Check if amount claimed is accurate",
+                    "Consider paying to cure if possible",
+                    "Document any landlord violations",
+                ],
+                documents_needed=[
+                    "Copy of notice received",
+                    "Lease agreement",
+                    "Rent payment records",
+                    "Photos of any habitability issues",
+                ],
+                tips=[
+                    "Defective notice = grounds for dismissal",
+                    "14 days means 14 FULL days, not including service day",
+                    "Even if you owe rent, you may have defenses",
+                ],
+            )
+        )
 
         # Service Phase
-        steps.append(ProcedureStep(
-            phase=ProcedurePhase.SUMMONS_SERVICE,
-            step_number=2,
-            title="Service of Summons",
-            description="Landlord must serve you with Summons and Complaint at least 7 days before hearing.",
-            deadline="At least 7 days before hearing",
-            tenant_tasks=[
-                "Note exact date and method of service",
-                "Check if 7 full days before hearing",
-                "Verify your name and address are correct",
-                "Read the Complaint carefully"
-            ],
-            documents_needed=[
-                "Summons and Complaint",
-                "Note of when/how served"
-            ],
-            tips=[
-                "Improper service = case dismissed",
-                "Posting service requires mailing too",
-                "Service on wrong person may be defective"
-            ]
-        ))
+        steps.append(
+            ProcedureStep(
+                phase=ProcedurePhase.SUMMONS_SERVICE,
+                step_number=2,
+                title="Service of Summons",
+                description="Landlord must serve you with Summons and Complaint at least 7 days before hearing.",
+                deadline="At least 7 days before hearing",
+                tenant_tasks=[
+                    "Note exact date and method of service",
+                    "Check if 7 full days before hearing",
+                    "Verify your name and address are correct",
+                    "Read the Complaint carefully",
+                ],
+                documents_needed=["Summons and Complaint", "Note of when/how served"],
+                tips=[
+                    "Improper service = case dismissed",
+                    "Posting service requires mailing too",
+                    "Service on wrong person may be defective",
+                ],
+            )
+        )
 
         # Answer Phase
-        steps.append(ProcedureStep(
-            phase=ProcedurePhase.ANSWER_PERIOD,
-            step_number=3,
-            title="File Your Answer",
-            description="File written Answer with defenses and counterclaims before hearing.",
-            deadline="Before hearing (no strict deadline, but earlier is better)",
-            tenant_tasks=[
-                "Complete Answer form",
-                "List all defenses",
-                "Include counterclaims if applicable",
-                "File with court clerk",
-                "Serve copy on landlord"
-            ],
-            documents_needed=[
-                "Answer & Counterclaim form",
-                "Evidence supporting defenses",
-                "Filing fee (or fee waiver if qualified)"
-            ],
-            tips=[
-                "You can defend at hearing without written Answer, but it's stronger with one",
-                "Counterclaims can offset rent owed",
-                "Fee waiver available for low-income tenants"
-            ]
-        ))
+        steps.append(
+            ProcedureStep(
+                phase=ProcedurePhase.ANSWER_PERIOD,
+                step_number=3,
+                title="File Your Answer",
+                description="File written Answer with defenses and counterclaims before hearing.",
+                deadline="Before hearing (no strict deadline, but earlier is better)",
+                tenant_tasks=[
+                    "Complete Answer form",
+                    "List all defenses",
+                    "Include counterclaims if applicable",
+                    "File with court clerk",
+                    "Serve copy on landlord",
+                ],
+                documents_needed=[
+                    "Answer & Counterclaim form",
+                    "Evidence supporting defenses",
+                    "Filing fee (or fee waiver if qualified)",
+                ],
+                tips=[
+                    "You can defend at hearing without written Answer, but it's stronger with one",
+                    "Counterclaims can offset rent owed",
+                    "Fee waiver available for low-income tenants",
+                ],
+            )
+        )
 
         # Hearing Phase
-        steps.append(ProcedureStep(
-            phase=ProcedurePhase.HEARING,
-            step_number=4,
-            title="The Hearing",
-            description="Present your case to the judge. Landlord goes first, then you present defenses.",
-            deadline="Appear on scheduled date and time",
-            tenant_tasks=[
-                "Arrive 15 minutes early",
-                "Bring all documents and evidence",
-                "Dress appropriately",
-                "Be respectful to the judge",
-                "Present your defenses clearly"
-            ],
-            documents_needed=[
-                "All evidence (photos, receipts, communications)",
-                "Witness list",
-                "Copies for court and landlord",
-                "Your Answer (if filed)"
-            ],
-            tips=[
-                "Listen carefully - don't interrupt",
-                "Address the judge as 'Your Honor'",
-                "Stick to relevant facts",
-                "Object to improper evidence",
-                "Ask for clarification if confused"
-            ]
-        ))
+        steps.append(
+            ProcedureStep(
+                phase=ProcedurePhase.HEARING,
+                step_number=4,
+                title="The Hearing",
+                description="Present your case to the judge. Landlord goes first, then you present defenses.",
+                deadline="Appear on scheduled date and time",
+                tenant_tasks=[
+                    "Arrive 15 minutes early",
+                    "Bring all documents and evidence",
+                    "Dress appropriately",
+                    "Be respectful to the judge",
+                    "Present your defenses clearly",
+                ],
+                documents_needed=[
+                    "All evidence (photos, receipts, communications)",
+                    "Witness list",
+                    "Copies for court and landlord",
+                    "Your Answer (if filed)",
+                ],
+                tips=[
+                    "Listen carefully - don't interrupt",
+                    "Address the judge as 'Your Honor'",
+                    "Stick to relevant facts",
+                    "Object to improper evidence",
+                    "Ask for clarification if confused",
+                ],
+            )
+        )
 
         # Post-Hearing Phase
-        steps.append(ProcedureStep(
-            phase=ProcedurePhase.POST_HEARING,
-            step_number=5,
-            title="After the Hearing",
-            description="Judge issues decision. If you lose, you have limited time to appeal or vacate.",
-            deadline="24 hours to request 7-day stay; 15 days to appeal",
-            tenant_tasks=[
-                "Request 7-day stay if you lose",
-                "Consider appeal if grounds exist",
-                "Begin moving if staying not viable",
-                "Request expungement if you win or case dismissed"
-            ],
-            documents_needed=[
-                "Court order/judgment",
-                "Notice of appeal (if appealing)",
-                "Motion for expungement (if applicable)"
-            ],
-            tips=[
-                "7-day stay is almost always granted - ask for it",
-                "Appeal must be filed within 15 days",
-                "Expungement protects your rental history"
-            ]
-        ))
+        steps.append(
+            ProcedureStep(
+                phase=ProcedurePhase.POST_HEARING,
+                step_number=5,
+                title="After the Hearing",
+                description="Judge issues decision. If you lose, you have limited time to appeal or vacate.",
+                deadline="24 hours to request 7-day stay; 15 days to appeal",
+                tenant_tasks=[
+                    "Request 7-day stay if you lose",
+                    "Consider appeal if grounds exist",
+                    "Begin moving if staying not viable",
+                    "Request expungement if you win or case dismissed",
+                ],
+                documents_needed=[
+                    "Court order/judgment",
+                    "Notice of appeal (if appealing)",
+                    "Motion for expungement (if applicable)",
+                ],
+                tips=[
+                    "7-day stay is almost always granted - ask for it",
+                    "Appeal must be filed within 15 days",
+                    "Expungement protects your rental history",
+                ],
+            )
+        )
 
         return steps
 
@@ -757,14 +768,14 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Premises had defects affecting habitability",
                 "Tenant notified landlord of defects",
                 "Landlord failed to repair in reasonable time",
-                "Tenant suffered damages"
+                "Tenant suffered damages",
             ],
             damages_available=[
                 "Rent abatement (reduction for diminished value)",
                 "Cost of repairs tenant made",
                 "Moving expenses if forced to leave",
                 "Storage costs",
-                "Consequential damages"
+                "Consequential damages",
             ],
             evidence_needed=[
                 "Photos/videos of conditions",
@@ -772,9 +783,9 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Repair requests",
                 "Inspector reports",
                 "Medical records if health affected",
-                "Receipts for repairs made"
+                "Receipts for repairs made",
             ],
-            statute_of_limitations="6 years for contract claims"
+            statute_of_limitations="6 years for contract claims",
         )
 
         counterclaims["retaliation"] = CounterclaimType(
@@ -785,21 +796,16 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Tenant engaged in protected activity",
                 "Landlord took adverse action within 90 days",
                 "Causal connection between activity and eviction",
-                "Landlord's stated reason is pretextual"
+                "Landlord's stated reason is pretextual",
             ],
-            damages_available=[
-                "Dismissal of eviction",
-                "Actual damages",
-                "Civil penalty up to $500",
-                "Attorney fees"
-            ],
+            damages_available=["Dismissal of eviction", "Actual damages", "Civil penalty up to $500", "Attorney fees"],
             evidence_needed=[
                 "Documentation of protected activity (complaint, organizing, etc.)",
                 "Timeline showing proximity",
                 "Landlord's knowledge of protected activity",
-                "Evidence landlord's reason is pretextual"
+                "Evidence landlord's reason is pretextual",
             ],
-            statute_of_limitations="90-day presumption period"
+            statute_of_limitations="90-day presumption period",
         )
 
         counterclaims["security_deposit"] = CounterclaimType(
@@ -810,20 +816,20 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Tenant paid security deposit",
                 "Tenancy ended",
                 "Landlord failed to return deposit within 21 days",
-                "Or landlord made improper deductions"
+                "Or landlord made improper deductions",
             ],
             damages_available=[
                 "Return of deposit",
                 "Bad faith penalty (up to $500 in punitive damages)",
-                "Interest on deposit"
+                "Interest on deposit",
             ],
             evidence_needed=[
                 "Receipt for deposit",
                 "Move-out inspection",
                 "Photos of unit condition",
-                "Landlord's itemization (or lack thereof)"
+                "Landlord's itemization (or lack thereof)",
             ],
-            statute_of_limitations="6 years"
+            statute_of_limitations="6 years",
         )
 
         counterclaims["lockout"] = CounterclaimType(
@@ -834,22 +840,22 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Landlord locked out tenant",
                 "Or removed tenant's property",
                 "Or shut off utilities",
-                "Without court order"
+                "Without court order",
             ],
             damages_available=[
                 "Actual damages",
                 "Up to $500 civil penalty per violation",
                 "Restoration of possession",
-                "Attorney fees"
+                "Attorney fees",
             ],
             evidence_needed=[
                 "Photos of changed locks",
                 "Utility shutoff records",
                 "Photos of removed property",
                 "Police report",
-                "Witness statements"
+                "Witness statements",
             ],
-            statute_of_limitations="6 years"
+            statute_of_limitations="6 years",
         )
 
         counterclaims["housing_code"] = CounterclaimType(
@@ -860,21 +866,11 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                 "Premises violated housing codes",
                 "Tenant notified landlord",
                 "Landlord failed to correct",
-                "Tenant suffered damages"
+                "Tenant suffered damages",
             ],
-            damages_available=[
-                "Rent abatement",
-                "Cost of alternative housing",
-                "Medical expenses",
-                "Moving costs"
-            ],
-            evidence_needed=[
-                "City inspection reports",
-                "Photos of violations",
-                "Repair requests",
-                "Medical records"
-            ],
-            statute_of_limitations="6 years"
+            damages_available=["Rent abatement", "Cost of alternative housing", "Medical expenses", "Moving costs"],
+            evidence_needed=["City inspection reports", "Photos of violations", "Repair requests", "Medical records"],
+            statute_of_limitations="6 years",
         )
 
         return counterclaims
@@ -895,27 +891,27 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                     "code": "improper_notice",
                     "title": "Improper or Insufficient Notice",
                     "how_to_raise": "Motion to Dismiss or affirmative defense",
-                    "what_to_show": "Notice was not given, too short, or defective in content"
+                    "what_to_show": "Notice was not given, too short, or defective in content",
                 },
                 {
                     "code": "improper_service",
                     "title": "Improper Service of Summons",
                     "how_to_raise": "Motion to Dismiss",
-                    "what_to_show": "Service was not made properly or with enough time"
+                    "what_to_show": "Service was not made properly or with enough time",
                 },
                 {
                     "code": "wrong_venue",
                     "title": "Wrong Venue",
                     "how_to_raise": "Motion to Dismiss or Transfer",
-                    "what_to_show": "Case filed in wrong county"
+                    "what_to_show": "Case filed in wrong county",
                 },
                 {
                     "code": "lack_standing",
                     "title": "Lack of Standing",
                     "how_to_raise": "Motion to Dismiss",
-                    "what_to_show": "Plaintiff is not the owner or authorized agent"
-                }
-            ]
+                    "what_to_show": "Plaintiff is not the owner or authorized agent",
+                },
+            ],
         }
 
         defenses[DefenseCategory.HABITABILITY] = {
@@ -926,15 +922,15 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                     "code": "warranty_habitability",
                     "title": "Breach of Implied Warranty of Habitability",
                     "how_to_raise": "Affirmative defense and counterclaim",
-                    "what_to_show": "Serious defects affecting health/safety; landlord knew; failed to repair"
+                    "what_to_show": "Serious defects affecting health/safety; landlord knew; failed to repair",
                 },
                 {
                     "code": "rent_escrow",
                     "title": "Rent Escrow",
                     "how_to_raise": "File rent escrow petition",
-                    "what_to_show": "Deposit rent with court due to landlord's failure to repair"
-                }
-            ]
+                    "what_to_show": "Deposit rent with court due to landlord's failure to repair",
+                },
+            ],
         }
 
         defenses[DefenseCategory.RETALIATION] = {
@@ -945,21 +941,21 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                     "code": "retaliation_complaint",
                     "title": "Retaliation for Complaint",
                     "how_to_raise": "Affirmative defense",
-                    "what_to_show": "Filed complaint with city/reported code violations within 90 days before eviction"
+                    "what_to_show": "Filed complaint with city/reported code violations within 90 days before eviction",
                 },
                 {
                     "code": "retaliation_organizing",
                     "title": "Retaliation for Organizing",
                     "how_to_raise": "Affirmative defense",
-                    "what_to_show": "Joined tenant organization or advocated for tenant rights"
+                    "what_to_show": "Joined tenant organization or advocated for tenant rights",
                 },
                 {
                     "code": "retaliation_legal_action",
                     "title": "Retaliation for Legal Action",
                     "how_to_raise": "Affirmative defense",
-                    "what_to_show": "Took legal action against landlord (rent escrow, etc.)"
-                }
-            ]
+                    "what_to_show": "Took legal action against landlord (rent escrow, etc.)",
+                },
+            ],
         }
 
         defenses[DefenseCategory.PAYMENT] = {
@@ -970,21 +966,21 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
                     "code": "payment_made",
                     "title": "Payment Made",
                     "how_to_raise": "Deny amount owed; produce receipts",
-                    "what_to_show": "Tenant paid rent; landlord's records are wrong"
+                    "what_to_show": "Tenant paid rent; landlord's records are wrong",
                 },
                 {
                     "code": "waiver",
                     "title": "Waiver by Accepting Rent",
                     "how_to_raise": "Affirmative defense",
-                    "what_to_show": "Landlord accepted rent after alleged breach"
+                    "what_to_show": "Landlord accepted rent after alleged breach",
                 },
                 {
                     "code": "accord_satisfaction",
                     "title": "Accord and Satisfaction",
                     "how_to_raise": "Affirmative defense",
-                    "what_to_show": "Parties agreed to different amount; landlord accepted"
-                }
-            ]
+                    "what_to_show": "Parties agreed to different amount; landlord accepted",
+                },
+            ],
         }
 
         return defenses
@@ -1041,13 +1037,7 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
             return self._defenses.get(category, {})
         return self._defenses
 
-    def generate_motion(
-        self,
-        motion_type: MotionType,
-        tenant_name: str,
-        case_number: str,
-        facts: dict
-    ) -> str:
+    def generate_motion(self, motion_type: MotionType, tenant_name: str, case_number: str, facts: dict) -> str:
         """Generate a motion document with tenant's specific facts."""
         template = self._motions.get(motion_type)
         if not template:
@@ -1057,7 +1047,7 @@ WHEREFORE, Defendant requests that the Court order expungement of all records in
         motion = f"""STATE OF MINNESOTA                    DISTRICT COURT
 COUNTY OF DAKOTA                      FIRST JUDICIAL DISTRICT
 
-{facts.get('landlord_name', '[LANDLORD NAME]')},
+{facts.get("landlord_name", "[LANDLORD NAME]")},
     Plaintiff,                        Case No.: {case_number}
 
 vs.
@@ -1071,15 +1061,15 @@ vs.
 
 {template.template_text}
 
-Dated: {utc_now().strftime('%B %d, %Y')}
+Dated: {utc_now().strftime("%B %d, %Y")}
 
                                     Respectfully submitted,
 
                                     _______________________________
                                     {tenant_name}
                                     Defendant, Pro Se
-                                    {facts.get('tenant_address', '[ADDRESS]')}
-                                    {facts.get('tenant_phone', '[PHONE]')}
+                                    {facts.get("tenant_address", "[ADDRESS]")}
+                                    {facts.get("tenant_phone", "[PHONE]")}
 
 ================================================================================
 LEGAL BASIS
@@ -1115,7 +1105,7 @@ Dated: _______________          _______________________________
                 "Prepare questions for landlord's witnesses",
                 "Know your defenses and the law supporting them",
                 "Plan transportation - arrive 15 min early",
-                "Dress professionally"
+                "Dress professionally",
             ],
             "bring_to_court": [
                 "Photo ID",
@@ -1126,7 +1116,7 @@ Dated: _______________          _______________________________
                 "Motions (if any)",
                 "Witness contact info",
                 "Notepad and pen",
-                "Calculator (for rent calculations)"
+                "Calculator (for rent calculations)",
             ],
             "during_hearing": [
                 "Stand when judge enters",
@@ -1137,7 +1127,7 @@ Dated: _______________          _______________________________
                 "Object to improper evidence",
                 "Take notes",
                 "Ask to clarify anything you don't understand",
-                "Stay calm - don't argue with landlord"
+                "Stay calm - don't argue with landlord",
             ],
             "what_to_say": [
                 "State your defenses clearly",
@@ -1145,15 +1135,15 @@ Dated: _______________          _______________________________
                 "Use dates and specifics",
                 "If you don't know, say 'I don't know'",
                 "Don't guess or speculate",
-                "End with a clear request (dismissal, counterclaim damages, etc.)"
+                "End with a clear request (dismissal, counterclaim damages, etc.)",
             ],
             "after_hearing": [
                 "Request stay of execution if you lose",
                 "Ask about appeal process",
                 "Get copy of any orders",
                 "Note deadline for any required actions",
-                "Consider expungement if eligible"
-            ]
+                "Consider expungement if eligible",
+            ],
         }
 
 

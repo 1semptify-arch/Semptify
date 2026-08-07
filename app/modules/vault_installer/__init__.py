@@ -15,4 +15,10 @@ from .routes import create_router
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["VaultInstaller", "install_vault_for_user", "install_vault_folders_only", "create_router", "register_vault_installer"]
+__all__ = [
+    "VaultInstaller",
+    "install_vault_for_user",
+    "install_vault_folders_only",
+    "create_router",
+    "register_vault_installer",
+]

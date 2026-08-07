@@ -53,6 +53,7 @@ TEST_USERS = {
 # DATA CLASSES
 # =============================================================================
 
+
 class TestStatus(Enum):
     PASSED = "passed"
     FAILED = "failed"
@@ -62,6 +63,7 @@ class TestStatus(Enum):
 @dataclass
 class TestResult:
     """Single test result."""
+
     name: str
     status: TestStatus
     role: str
@@ -85,6 +87,7 @@ class TestResult:
 @dataclass
 class TestReport:
     """Complete test run report."""
+
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     results: list[TestResult] = field(default_factory=list)
     config: dict[str, Any] = field(default_factory=dict)
@@ -126,6 +129,7 @@ class TestReport:
 # =============================================================================
 # TEST BOT CLASS
 # =============================================================================
+
 
 class SemptifyGUITestBot:
     """Main test bot that simulates users through Playwright."""
@@ -380,9 +384,9 @@ class SemptifyGUITestBot:
     async def test_responsive_layout(self, page: Page, role: str):
         """Test that page is responsive at different viewports."""
         viewports = [
-            {"width": 375, "height": 667},   # Mobile
+            {"width": 375, "height": 667},  # Mobile
             {"width": 768, "height": 1024},  # Tablet
-            {"width": 1280, "height": 900}, # Desktop
+            {"width": 1280, "height": 900},  # Desktop
         ]
 
         for viewport in viewports:
@@ -560,9 +564,9 @@ class SemptifyGUITestBot:
 
         try:
             for role in roles:
-                print(f"\n{'='*70}")
+                print(f"\n{'=' * 70}")
                 print(f"Testing Role: {role.upper()}")
-                print(f"{'='*70}")
+                print(f"{'=' * 70}")
 
                 page = await self.new_page()
 
@@ -614,7 +618,7 @@ class SemptifyGUITestBot:
         print(f"  JSON: {json_path}")
         print(f"  HTML: {html_path}")
 
-        if summary['failed'] > 0:
+        if summary["failed"] > 0:
             print("\nFailed Tests:")
             for r in self.report.results:
                 if r.status == TestStatus.FAILED:
@@ -637,7 +641,9 @@ class SemptifyGUITestBot:
             }[r.status]
 
             screenshot_link = f'<a href="file://{r.screenshot_path}">Screenshot</a>' if r.screenshot_path else "-"
-            error_detail = f'<pre style="color: #dc3545; font-size: 12px;">{r.error_message}</pre>' if r.error_message else "-"
+            error_detail = (
+                f'<pre style="color: #dc3545; font-size: 12px;">{r.error_message}</pre>' if r.error_message else "-"
+            )
 
             results_html += f"""
             <tr style="border-bottom: 1px solid #ddd;">
@@ -647,7 +653,7 @@ class SemptifyGUITestBot:
                 <td style="padding: 10px;">{r.duration_ms:.0f}ms</td>
                 <td style="padding: 10px;">{screenshot_link}</td>
             </tr>
-            {f'<tr><td colspan="5" style="padding: 10px; background: #f8f9fa;">{error_detail}</td></tr>' if r.error_message else ''}
+            {f'<tr><td colspan="5" style="padding: 10px; background: #f8f9fa;">{error_detail}</td></tr>' if r.error_message else ""}
             """
 
         return f"""
@@ -676,26 +682,26 @@ class SemptifyGUITestBot:
     <div class="container">
         <h1>🧪 Semptify GUI Test Report</h1>
         <div class="timestamp">Generated: {self.report.timestamp}</div>
-        
+
         <div class="summary">
             <div class="summary-card">
                 <h3>TOTAL</h3>
-                <div class="number total">{summary['total']}</div>
+                <div class="number total">{summary["total"]}</div>
             </div>
             <div class="summary-card">
                 <h3>PASSED</h3>
-                <div class="number passed">{summary['passed']}</div>
+                <div class="number passed">{summary["passed"]}</div>
             </div>
             <div class="summary-card">
                 <h3>FAILED</h3>
-                <div class="number failed">{summary['failed']}</div>
+                <div class="number failed">{summary["failed"]}</div>
             </div>
             <div class="summary-card">
                 <h3>PASS RATE</h3>
-                <div class="number total">{summary['pass_rate']}%</div>
+                <div class="number total">{summary["pass_rate"]}%</div>
             </div>
         </div>
-        
+
         <h2>Detailed Results</h2>
         <table>
             <thead>
@@ -721,37 +727,23 @@ class SemptifyGUITestBot:
 # CLI ENTRY POINT
 # =============================================================================
 
+
 async def main():
     global BASE_URL
 
-    parser = argparse.ArgumentParser(
-        description="Semptify GUI Test Bot - Artificial User Testing with Playwright"
-    )
+    parser = argparse.ArgumentParser(description="Semptify GUI Test Bot - Artificial User Testing with Playwright")
+    parser.add_argument("--headed", action="store_true", help="Run with visible browser window (for debugging)")
     parser.add_argument(
-        "--headed",
-        action="store_true",
-        help="Run with visible browser window (for debugging)"
-    )
-    parser.add_argument(
-        "--slow",
-        type=int,
-        default=0,
-        metavar="MS",
-        help="Slow motion delay in milliseconds (e.g., --slow 500)"
+        "--slow", type=int, default=0, metavar="MS", help="Slow motion delay in milliseconds (e.g., --slow 500)"
     )
     parser.add_argument(
         "--role",
         type=str,
         default="all",
         choices=["all", "tenant", "advocate", "manager", "legal", "admin"],
-        help="Which user role to test"
+        help="Which user role to test",
     )
-    parser.add_argument(
-        "--url",
-        type=str,
-        default=BASE_URL,
-        help=f"Base URL to test (default: {BASE_URL})"
-    )
+    parser.add_argument("--url", type=str, default=BASE_URL, help=f"Base URL to test (default: {BASE_URL})")
 
     args = parser.parse_args()
 

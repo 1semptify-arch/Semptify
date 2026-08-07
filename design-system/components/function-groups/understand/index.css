@@ -191,15 +191,15 @@
   .understand-function-group.horizontal {
     flex-direction: column;
   }
-  
+
   .understand-function-group.grid {
     grid-template-columns: 1fr;
   }
-  
+
   .understand-function-group-actions {
     flex-direction: column;
   }
-  
+
   .understand-function-group-actions button {
     width: 100%;
   }

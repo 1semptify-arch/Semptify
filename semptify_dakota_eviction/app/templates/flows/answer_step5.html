@@ -22,7 +22,7 @@
     <p class="card-description">
         {% if lang == 'en' %}Download your Answer to Eviction document and filing instructions.{% elif lang == 'es' %}Descargue su documento de Respuesta al Desalojo e instrucciones.{% elif lang == 'so' %}Soo deji dukumentigaaga Jawaabta Ka-saarista iyo tilmaamaha.{% else %}قم بتحميل مستند الرد على الإخلاء والتعليمات.{% endif %}
     </p>
-    
+
     <div class="mt-4">
         <button onclick="downloadAnswer()" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
             📥 {{ strings.btn_download }}
@@ -35,7 +35,7 @@
     <h2 style="margin-bottom: 1rem;">
         {% if lang == 'en' %}📋 Next Steps{% elif lang == 'es' %}📋 Próximos Pasos{% elif lang == 'so' %}📋 Tallaabada Xigta{% else %}📋 الخطوات التالية{% endif %}
     </h2>
-    
+
     <ol style="margin-left: 1.5rem; line-height: 2;">
         <li>
             <strong>{% if lang == 'en' %}Print 3 copies{% elif lang == 'es' %}Imprima 3 copias{% elif lang == 'so' %}Daabac 3 nuqul{% else %}اطبع 3 نسخ{% endif %}</strong>
@@ -104,7 +104,7 @@ async function downloadAnswer() {
         defenses: JSON.parse(localStorage.getItem('defenses') || '[]'),
         defense_details: localStorage.getItem('defense_details') || ''
     };
-    
+
     try {
         const response = await fetch('/flows/answer/generate?lang={{ lang }}', {
             method: 'POST',
@@ -113,7 +113,7 @@ async function downloadAnswer() {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (response.ok) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);

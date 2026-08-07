@@ -1821,3 +1821,14 @@
   last_result:
     health_check: 3 route(s), no exposure issues
     test_suite: 1 passed in 0.56s
+- id: page_router
+  display_name: Unified Pages
+  category: core
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.page_router.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified

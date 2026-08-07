@@ -199,7 +199,7 @@
 
 {% block content %}
 <div class="inbox-container">
-    
+
     <div class="inbox-header">
         <h1>
             ● Inbox
@@ -209,7 +209,7 @@
         </h1>
         <button class="btn-secondary" onclick="markAllRead()">Mark all read</button>
     </div>
-    
+
     {% if notifications %}
     <!-- Tabs -->
     <div class="inbox-tabs">
@@ -218,7 +218,7 @@
         <button class="tab-btn" data-tab="urgent">Urgent <span class="count">{{ urgent_count }}</span></button>
         <button class="tab-btn" data-tab="system">System <span class="count">{{ system_count }}</span></button>
     </div>
-    
+
     <!-- Notifications -->
     <div class="notification-list">
         {% for notification in notifications %}
@@ -251,7 +251,7 @@
         </div>
         {% endfor %}
     </div>
-    
+
     {% else %}
     <!-- Empty -->
     <div class="empty-inbox">
@@ -260,7 +260,7 @@
         <p>We'll notify you about deadlines, document uploads, and important updates here.</p>
     </div>
     {% endif %}
-    
+
 </div>
 {% endblock %}
 
@@ -274,16 +274,16 @@ tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
+
         const tab = btn.dataset.tab;
-        
+
         notifItems.forEach(item => {
             let show = false;
             if (tab === 'all') show = true;
             else if (tab === 'unread') show = item.dataset.read === 'False';
             else if (tab === 'urgent') show = item.dataset.priority === 'urgent';
             else if (tab === 'system') show = item.classList.contains('system');
-            
+
             item.style.display = show ? 'flex' : 'none';
         });
     });
@@ -318,7 +318,7 @@ async function markAllRead() {
 notifItems.forEach(item => {
     item.addEventListener('click', async (e) => {
         if (e.target.closest('button') || e.target.closest('a')) return;
-        
+
         const id = item.dataset.id;
         if (item.dataset.read === 'False') {
             try {

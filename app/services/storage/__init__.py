@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 def get_provider(provider_name: str, **kwargs) -> StorageProvider:
     """
     Factory function to get a storage provider by name.
-    
+
     Args:
         provider_name: One of 'google_drive', 'dropbox', 'onedrive', 'r2'
         **kwargs: Provider-specific configuration
-    
+
     Returns:
         StorageProvider instance
     """

@@ -10,7 +10,7 @@ This is the **complete, natural progression** user experience. No more jumping a
 
 ### **PHASE 1: WELCOME & ONBOARDING** (Steps 1-5)
 
-#### **Step 1: Welcome Screen** 
+#### **Step 1: Welcome Screen**
 - **User sees:** Beautiful welcome with "Let's Get Started" button
 - **Purpose:** Make them feel safe and confident
 - **Action:** Click to begin their journey
@@ -64,7 +64,7 @@ This is the **complete, natural progression** user experience. No more jumping a
 These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 
 #### **🔓 STEP 1: Upload Documents** (UNLOCKED)
-**Why first?** 
+**Why first?**
 - You can't build without materials
 - Documents are the foundation
 - Everything else references them
@@ -75,7 +75,7 @@ These steps **UNLOCK IN SEQUENCE**. You CANNOT skip ahead.
 - System categorizes automatically
 - Documents appear in vault
 
-**Natural Flow:** 
+**Natural Flow:**
 🧦 **SOCKS** - You need the raw materials before anything else
 
 ---

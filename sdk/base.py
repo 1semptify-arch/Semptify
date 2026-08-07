@@ -31,7 +31,7 @@ class BaseClient:
     ):
         """
         Initialize the base client.
-        
+
         Args:
             base_url: The Semptify API base URL
             timeout: Request timeout in seconds
@@ -96,13 +96,13 @@ class BaseClient:
     def _handle_response(self, response: httpx.Response) -> dict[str, Any]:
         """
         Handle HTTP response and raise appropriate exceptions.
-        
+
         Args:
             response: The HTTP response
-            
+
         Returns:
             Parsed JSON response data
-            
+
         Raises:
             SemptifyError: On API errors
         """

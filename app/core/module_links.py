@@ -17,23 +17,24 @@ logger = logging.getLogger(__name__)
 
 class ModuleType(Enum):
     """Types of backend modules."""
-    DOCUMENT = auto()      # Document storage, vault, overlays
-    CASE = auto()          # Case management, timelines
-    CALENDAR = auto()      # Deadlines, hearings
-    FORMS = auto()         # Form generation, PDF
-    COURT = auto()         # Court integration, Zoom
-    COPILOT = auto()       # AI assistance
-    STORAGE = auto()       # OAuth, external storage
+
+    DOCUMENT = auto()  # Document storage, vault, overlays
+    CASE = auto()  # Case management, timelines
+    CALENDAR = auto()  # Deadlines, hearings
+    FORMS = auto()  # Form generation, PDF
+    COURT = auto()  # Court integration, Zoom
+    COPILOT = auto()  # AI assistance
+    STORAGE = auto()  # OAuth, external storage
     NOTIFICATION = auto()  # Alerts, reminders
-    IDENTITY = auto()      # Auth, user management
-    RESEARCH = auto()      # Legal research, statutes
+    IDENTITY = auto()  # Auth, user management
+    RESEARCH = auto()  # Legal research, statutes
 
 
 @dataclass
 class ModuleLink:
     """
     Declares a page's connection to a backend module.
-    
+
     Usage:
         link = ModuleLink(
             module_id="document_vault",
@@ -43,6 +44,7 @@ class ModuleLink:
             fallback_behavior="show upload disabled message",
         )
     """
+
     module_id: str
     module_type: ModuleType
     connection_point: str  # API endpoint, event channel, etc.
@@ -434,7 +436,7 @@ def get_modules_by_type(module_type: ModuleType) -> list[str]:
 def check_page_dependencies(page_id: str, available_modules: set[str]) -> dict[str, str]:
     """
     Check if a page's dependencies are satisfied.
-    
+
     Returns dict of {module_id: status} where status is:
         'ok', 'fallback', or 'blocked'
     """
@@ -443,11 +445,11 @@ def check_page_dependencies(page_id: str, available_modules: set[str]) -> dict[s
 
     for link in links:
         if link.module_id in available_modules:
-            results[link.module_id] = 'ok'
+            results[link.module_id] = "ok"
         elif link.required:
-            results[link.module_id] = 'blocked'
+            results[link.module_id] = "blocked"
         else:
-            results[link.module_id] = 'fallback'
+            results[link.module_id] = "fallback"
 
     return results
 

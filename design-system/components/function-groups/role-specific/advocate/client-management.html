@@ -32,7 +32,7 @@
       </div>
     </div>
   </div>
-  
+
   <div class="client-filters">
     <div class="filter-group">
       <label class="filter-label">Status:</label>
@@ -59,7 +59,7 @@
       <input type="text" class="filter-input" id="{{ component_id }}_search_input" placeholder="Search clients...">
     </div>
   </div>
-  
+
   <div class="client-stats">
     <div class="stat-item">
       <div class="stat-value" id="{{ component_id }}_total_clients">0</div>
@@ -78,7 +78,7 @@
       <div class="stat-label">New</div>
     </div>
   </div>
-  
+
   <div class="client-list-container">
     <div class="list-header">
       <div class="list-title">Client List</div>
@@ -91,7 +91,7 @@
       <div class="client-loading">Loading client list...</div>
     </div>
   </div>
-  
+
   {% if show_handoff %}
   <div class="handoff-section">
     <div class="handoff-header">
@@ -105,7 +105,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   {% if show_collaboration %}
   <div class="collaboration-section">
     <div class="collaboration-header">
@@ -122,7 +122,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-handoff="{{ show_handoff|lower }}"
@@ -564,31 +564,31 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .header-actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .client-filters {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .filter-group {
     width: 100%;
   }
-  
+
   .filter-select, .filter-input {
     width: 100%;
   }
-  
+
   .client-item {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-sm);
   }
-  
+
   .client-actions {
     align-self: flex-end;
   }
@@ -607,48 +607,48 @@ document.addEventListener('DOMContentLoaded', function() {
     autoRefresh: configEl.dataset.autoRefresh === 'true',
     refreshInterval: parseInt(configEl.dataset.refreshInterval)
   };
-  
+
   // State
   let clientData = null;
   let filteredClients = null;
   let refreshTimer = null;
-  
+
   // Initialize client management
   initClientManagement();
-  
+
   function initClientManagement() {
     loadClientData();
     setupEventListeners();
-    
+
     if (config.autoRefresh) {
       startAutoRefresh();
     }
   }
-  
+
   function loadClientData() {
     // Show loading state
     const clientListEl = document.getElementById(config.componentId + '_client_list');
     if (clientListEl) {
       clientListEl.innerHTML = '<div class="client-loading">Loading client list...</div>';
     }
-    
+
     // Simulate API call
     setTimeout(() => {
       clientData = generateMockClientData();
       filteredClients = clientData.clients;
       updateClientStats();
       renderClientList();
-      
+
       if (config.showHandoff) {
         updateHandoffList();
       }
-      
+
       if (config.showCollaboration) {
         updateCollaborationList();
       }
     }, 1000);
   }
-  
+
   function generateMockClientData() {
     return {
       clients: [
@@ -733,46 +733,46 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     };
   }
-  
+
   function updateClientStats() {
     if (!clientData || !clientData.clients) return;
-    
+
     const stats = {
       total: clientData.clients.length,
       active: clientData.clients.filter(c => c.status === 'active').length,
       urgent: clientData.clients.filter(c => c.urgency === 'high').length,
       new: clientData.clients.filter(c => c.status === 'new').length
     };
-    
+
     const totalEl = document.getElementById(config.componentId + '_total_clients');
     const activeEl = document.getElementById(config.componentId + '_active_cases');
     const urgentEl = document.getElementById(config.componentId + '_urgent_cases');
     const newEl = document.getElementById(config.componentId + '_new_cases');
-    
+
     if (totalEl) totalEl.textContent = stats.total;
     if (activeEl) activeEl.textContent = stats.active;
     if (urgentEl) urgentEl.textContent = stats.urgent;
     if (newEl) newEl.textContent = stats.new;
   }
-  
+
   function renderClientList() {
     const clientListEl = document.getElementById(config.componentId + '_client_list');
     if (!clientListEl) return;
-    
+
     if (filteredClients.length === 0) {
       clientListEl.innerHTML = '<div class="client-loading">No clients found</div>';
       return;
     }
-    
+
     const html = filteredClients.map(client => createClientItemHTML(client)).join('');
     clientListEl.innerHTML = html;
     attachClientEventListeners();
   }
-  
+
   function createClientItemHTML(client) {
     const initials = client.name.split(' ').map(n => n[0]).join('');
     const deadlineText = client.deadline ? `Deadline: ${client.deadline.toLocaleDateString()}` : '';
-    
+
     return `
       <div class="client-item" data-client-id="${client.id}">
         <div class="client-avatar">${initials}</div>
@@ -794,11 +794,11 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function updateHandoffList() {
     const handoffListEl = document.getElementById(config.componentId + '_handoff_list');
     if (!handoffListEl) return;
-    
+
     const html = clientData.handoffs.map(handoff => `
       <div class="handoff-item" data-handoff-id="${handoff.id}">
         <div class="handoff-icon"></div>
@@ -809,14 +809,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     handoffListEl.innerHTML = html;
   }
-  
+
   function updateCollaborationList() {
     const collaborationListEl = document.getElementById(config.componentId + '_collaboration_list');
     if (!collaborationListEl) return;
-    
+
     const html = clientData.collaborations.map(collab => `
       <div class="collaboration-item" data-collaboration-id="${collab.id}">
         <div class="collaboration-icon"></div>
@@ -827,28 +827,28 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     collaborationListEl.innerHTML = html;
   }
-  
+
   function setupEventListeners() {
     // Filter listeners
     const statusFilter = document.getElementById(config.componentId + '_status_filter');
     const typeFilter = document.getElementById(config.componentId + '_type_filter');
     const searchInput = document.getElementById(config.componentId + '_search_input');
-    
+
     if (statusFilter) {
       statusFilter.addEventListener('change', applyFilters);
     }
-    
+
     if (typeFilter) {
       typeFilter.addEventListener('change', applyFilters);
     }
-    
+
     if (searchInput) {
       searchInput.addEventListener('input', applyFilters);
     }
-    
+
     // Listen for function group events
     document.addEventListener('capture-upload', handleCaptureEvent);
     document.addEventListener('capture-quick-input', handleCaptureEvent);
@@ -856,39 +856,39 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('understand-timeline-select', handleUnderstandEvent);
     document.addEventListener('plan-action-select', handlePlanEvent);
   }
-  
+
   function applyFilters() {
     if (!clientData || !clientData.clients) return;
-    
+
     const statusFilter = document.getElementById(config.componentId + '_status_filter');
     const typeFilter = document.getElementById(config.componentId + '_type_filter');
     const searchInput = document.getElementById(config.componentId + '_search_input');
-    
+
     let filtered = clientData.clients;
-    
+
     // Apply status filter
     if (statusFilter && statusFilter.value !== 'all') {
       filtered = filtered.filter(client => client.status === statusFilter.value);
     }
-    
+
     // Apply type filter
     if (typeFilter && typeFilter.value !== 'all') {
       filtered = filtered.filter(client => client.caseType.toLowerCase().includes(typeFilter.value.toLowerCase()));
     }
-    
+
     // Apply search filter
     if (searchInput && searchInput.value.trim()) {
       const searchTerm = searchInput.value.toLowerCase();
-      filtered = filtered.filter(client => 
+      filtered = filtered.filter(client =>
         client.name.toLowerCase().includes(searchTerm) ||
         client.caseType.toLowerCase().includes(searchTerm)
       );
     }
-    
+
     filteredClients = filtered;
     renderClientList();
   }
-  
+
   function attachClientEventListeners() {
     const clientItems = document.querySelectorAll('.client-item');
     clientItems.forEach(item => {
@@ -899,11 +899,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleClientClick(clientEl) {
     const clientId = clientEl.dataset.clientId;
     const client = clientData.clients.find(c => c.id === clientId);
-    
+
     if (client) {
       // Emit client selection event
       const clientEvent = new CustomEvent('advocate-client-select', {
@@ -916,22 +916,22 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(clientEvent);
     }
   }
-  
+
   function handleCaptureEvent(event) {
     console.log('Advocate client management - Capture event:', event.detail);
     loadClientData(); // Refresh data
   }
-  
+
   function handleUnderstandEvent(event) {
     console.log('Advocate client management - Understand event:', event.detail);
     loadClientData(); // Refresh data
   }
-  
+
   function handlePlanEvent(event) {
     console.log('Advocate client management - Plan event:', event.detail);
     loadClientData(); // Refresh data
   }
-  
+
   // Action handlers
   function addNewClient() {
     const event = new CustomEvent('advocate-add-client', {
@@ -939,25 +939,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(event);
   }
-  
+
   function importClients() {
     const event = new CustomEvent('advocate-import-clients', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function exportClientList() {
     const event = new CustomEvent('advocate-export-clients', {
       detail: { clients: filteredClients, componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function refreshClientList() {
     loadClientData();
   }
-  
+
   function viewClientCase(clientId) {
     const client = clientData.clients.find(c => c.id === clientId);
     if (client) {
@@ -967,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(event);
     }
   }
-  
+
   function editClient(clientId) {
     const client = clientData.clients.find(c => c.id === clientId);
     if (client) {
@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(event);
     }
   }
-  
+
   function handoffClient(clientId) {
     const client = clientData.clients.find(c => c.id === clientId);
     if (client) {
@@ -987,38 +987,38 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(event);
     }
   }
-  
+
   function createHandoff() {
     const event = new CustomEvent('advocate-create-handoff', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function startCollaboration() {
     const event = new CustomEvent('advocate-start-collaboration', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function startAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
     }
-    
+
     refreshTimer = setInterval(() => {
       loadClientData();
     }, config.refreshInterval * 1000);
   }
-  
+
   function stopAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
       refreshTimer = null;
     }
   }
-  
+
   // Make action handlers available globally
   window.addNewClient = addNewClient;
   window.importClients = importClients;
@@ -1029,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', function() {
   window.handoffClient = handoffClient;
   window.createHandoff = createHandoff;
   window.startCollaboration = startCollaboration;
-  
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', stopAutoRefresh);
 });

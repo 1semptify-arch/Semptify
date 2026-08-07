@@ -98,7 +98,7 @@ Switch language by adding `?lang=XX` to any URL:
 
 - `?lang=en` - English (default)
 - `?lang=es` - Español
-- `?lang=so` - Soomaali  
+- `?lang=so` - Soomaali
 - `?lang=ar` - العربية (RTL supported)
 
 ## Court Forms Included

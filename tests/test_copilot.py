@@ -10,6 +10,7 @@ from httpx import AsyncClient
 # Copilot Status Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_copilot_status(client: AsyncClient):
     """Test AI copilot status endpoint."""
@@ -39,12 +40,11 @@ async def test_copilot_status_shows_provider(client: AsyncClient):
 # Copilot Query Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_copilot_query_unauthenticated(client: AsyncClient):
     """Test copilot query requires authentication."""
-    response = await client.post("/api/copilot/", json={
-        "message": "What are my tenant rights?"
-    })
+    response = await client.post("/api/copilot/", json={"message": "What are my tenant rights?"})
     # In open mode, should work; otherwise 401
     assert response.status_code in [200, 401, 404, 503]
 
@@ -52,9 +52,9 @@ async def test_copilot_query_unauthenticated(client: AsyncClient):
 @pytest.mark.anyio
 async def test_copilot_query_authenticated(authenticated_client: AsyncClient, mock_openai):
     """Test copilot query with authentication and mocked AI."""
-    response = await authenticated_client.post("/api/copilot/", json={
-        "message": "What are my tenant rights in Minnesota?"
-    })
+    response = await authenticated_client.post(
+        "/api/copilot/", json={"message": "What are my tenant rights in Minnesota?"}
+    )
     # May succeed or fail based on AI availability
     assert response.status_code in [200, 401, 404, 503]
     if response.status_code == 200:
@@ -65,10 +65,10 @@ async def test_copilot_query_authenticated(authenticated_client: AsyncClient, mo
 @pytest.mark.anyio
 async def test_copilot_query_with_context(authenticated_client: AsyncClient):
     """Test copilot query with document context."""
-    response = await authenticated_client.post("/api/copilot/", json={
-        "message": "Is this notice legal?",
-        "context": "14-day notice for non-payment dated November 20, 2025"
-    })
+    response = await authenticated_client.post(
+        "/api/copilot/",
+        json={"message": "Is this notice legal?", "context": "14-day notice for non-payment dated November 20, 2025"},
+    )
     assert response.status_code in [200, 401, 404, 503]
 
 
@@ -83,12 +83,11 @@ async def test_copilot_query_missing_question(authenticated_client: AsyncClient)
 # Document Analysis Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_copilot_analyze_document(authenticated_client: AsyncClient):
     """Test document analysis endpoint."""
-    response = await authenticated_client.post(
-        "/api/copilot/analyze-document?document_id=test-doc-123"
-    )
+    response = await authenticated_client.post("/api/copilot/analyze-document?document_id=test-doc-123")
     # May be implemented or return not_implemented, or 404 for doc not found
     assert response.status_code in [200, 404, 501, 503]
 
@@ -96,6 +95,7 @@ async def test_copilot_analyze_document(authenticated_client: AsyncClient):
 # =============================================================================
 # Context Loop Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_context_loop_state(client: AsyncClient, test_user_id):
@@ -121,11 +121,14 @@ async def test_context_loop_intensity(client: AsyncClient, test_user_id):
 @pytest.mark.anyio
 async def test_context_loop_emit_event(client: AsyncClient, test_user_id):
     """Test emitting an event to context loop."""
-    response = await client.post("/api/core/event", json={
-        "user_id": test_user_id,
-        "event_type": "DOCUMENT_UPLOADED",
-        "data": {"filename": "test.pdf", "doc_type": "notice"}
-    })
+    response = await client.post(
+        "/api/core/event",
+        json={
+            "user_id": test_user_id,
+            "event_type": "DOCUMENT_UPLOADED",
+            "data": {"filename": "test.pdf", "doc_type": "notice"},
+        },
+    )
     assert response.status_code in [200, 201, 404]
 
 
@@ -149,29 +152,37 @@ async def test_context_loop_health(client: AsyncClient):
 @pytest.mark.anyio
 async def test_context_loop_add_deadline(client: AsyncClient, test_user_id):
     """Test adding deadline to context loop."""
-    response = await client.post("/api/core/deadline", json={
-        "deadline_type": "Answer Due",
-        "date": "2025-12-05T17:00:00",
-        "description": "Answer must be filed by this date",
-    }, headers={"X-User-ID": test_user_id})
+    response = await client.post(
+        "/api/core/deadline",
+        json={
+            "deadline_type": "Answer Due",
+            "date": "2025-12-05T17:00:00",
+            "description": "Answer must be filed by this date",
+        },
+        headers={"X-User-ID": test_user_id},
+    )
     assert response.status_code in [200, 201, 404]
 
 
 @pytest.mark.anyio
 async def test_context_loop_report_issue(client: AsyncClient, test_user_id):
     """Test reporting an issue to context loop."""
-    response = await client.post("/api/core/issue", json={
-        "user_id": test_user_id,
-        "issue_type": "eviction_notice",
-        "description": "Received 14-day notice",
-        "urgency": "high",
-    })
+    response = await client.post(
+        "/api/core/issue",
+        json={
+            "user_id": test_user_id,
+            "issue_type": "eviction_notice",
+            "description": "Received 14-day notice",
+            "urgency": "high",
+        },
+    )
     assert response.status_code in [200, 201, 404]
 
 
 # =============================================================================
 # Adaptive UI Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_adaptive_ui_widgets(client: AsyncClient, test_user_id):
@@ -193,9 +204,7 @@ async def test_adaptive_ui_context(client: AsyncClient, test_user_id):
 @pytest.mark.anyio
 async def test_adaptive_ui_dismiss_widget(client: AsyncClient, test_user_id):
     """Test dismissing a widget."""
-    response = await client.post(
-        f"/api/ui/dismiss/test-widget-123?user_id={test_user_id}"
-    )
+    response = await client.post(f"/api/ui/dismiss/test-widget-123?user_id={test_user_id}")
     assert response.status_code in [200, 404]
 
 
@@ -203,8 +212,7 @@ async def test_adaptive_ui_dismiss_widget(client: AsyncClient, test_user_id):
 async def test_adaptive_ui_record_action(client: AsyncClient, test_user_id):
     """Test recording user action."""
     response = await client.post(
-        f"/api/ui/action/document_uploaded?user_id={test_user_id}",
-        json={"document_type": "notice"}
+        f"/api/ui/action/document_uploaded?user_id={test_user_id}", json={"document_type": "notice"}
     )
     assert response.status_code in [200, 201, 404]
 
@@ -213,7 +221,6 @@ async def test_adaptive_ui_record_action(client: AsyncClient, test_user_id):
 async def test_adaptive_ui_update_context(client: AsyncClient, test_user_id):
     """Test updating user context."""
     response = await client.post(
-        f"/api/ui/context/update?user_id={test_user_id}",
-        json={"phase": "eviction", "jurisdiction": "dakota_county"}
+        f"/api/ui/context/update?user_id={test_user_id}", json={"phase": "eviction", "jurisdiction": "dakota_county"}
     )
     assert response.status_code in [200, 201, 404]

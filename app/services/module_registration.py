@@ -28,10 +28,11 @@ logger = logging.getLogger(__name__)
 # EVICTION DEFENSE MODULE HANDLERS
 # =============================================================================
 
+
 async def on_eviction_pack_received(pack: InfoPack):
     """
     Handle info pack received by Eviction Defense module.
-    
+
     When an eviction notice, court summons, or related document is uploaded,
     this function receives the extracted data and initializes the case.
     """
@@ -40,6 +41,7 @@ async def on_eviction_pack_received(pack: InfoPack):
     # Get the case builder service
     try:
         from app.services.eviction.case_builder import get_case_builder
+
         case_builder = get_case_builder()
 
         # Initialize or update the eviction case with the pack data
@@ -75,14 +77,17 @@ async def on_eviction_pack_received(pack: InfoPack):
 
         # Link the source document
         if pack.source_document_id:
-            case.documents.append({
-                "id": pack.source_document_id,
-                "type": pack.data.get("document_type"),
-                "added_at": pack.created_at.isoformat(),
-            })
+            case.documents.append(
+                {
+                    "id": pack.source_document_id,
+                    "type": pack.data.get("document_type"),
+                    "added_at": pack.created_at.isoformat(),
+                }
+            )
 
         # Calculate deadlines based on document type
         from datetime import datetime, timedelta
+
         if pack.pack_type == PackType.COURT_CASE and pack.data.get("hearing_date"):
             # Answer is typically due before hearing
             hearing = datetime.fromisoformat(pack.data["hearing_date"])
@@ -122,6 +127,7 @@ async def on_eviction_update_received(update: ModuleUpdate):
             # Add to case timeline
             try:
                 from app.services.eviction.case_builder import get_case_builder
+
                 case_builder = get_case_builder()
                 case = case_builder.get_case(update.user_id)
                 if case:
@@ -134,6 +140,7 @@ async def on_eviction_update_received(update: ModuleUpdate):
 # TIMELINE MODULE HANDLERS
 # =============================================================================
 
+
 async def on_timeline_pack_received(pack: InfoPack):
     """Handle info pack received by Timeline module"""
     logger.info(f"● Timeline received pack: {pack.pack_type.value}")
@@ -141,7 +148,8 @@ async def on_timeline_pack_received(pack: InfoPack):
     # Add events to timeline
     try:
         from app.services.document_pipeline import get_document_pipeline
-        pipeline = get_document_pipeline()
+
+        get_document_pipeline()
 
         # The timeline is built from document analysis
         # This pack might contain additional dates to add
@@ -158,6 +166,7 @@ async def on_timeline_update_received(update: ModuleUpdate):
 # =============================================================================
 # CALENDAR MODULE HANDLERS
 # =============================================================================
+
 
 async def on_calendar_pack_received(pack: InfoPack):
     """Handle info pack received by Calendar module"""
@@ -191,6 +200,7 @@ async def on_calendar_update_received(update: ModuleUpdate):
 # DOCUMENT/VAULT MODULE HANDLERS
 # =============================================================================
 
+
 async def on_documents_pack_received(pack: InfoPack):
     """Handle info pack received by Documents module"""
     logger.info(f"● Documents received pack: {pack.pack_type.value}")
@@ -204,6 +214,7 @@ async def on_documents_update_received(update: ModuleUpdate):
 # =============================================================================
 # REGISTRATION FUNCTION
 # =============================================================================
+
 
 def register_all_modules():
     """
@@ -453,6 +464,7 @@ def register_all_modules():
 # STARTUP HOOK
 # =============================================================================
 
+
 async def initialize_module_hub():
     """
     Initialize the module hub during application startup.
@@ -464,5 +476,5 @@ async def initialize_module_hub():
     status = module_hub.get_hub_status()
     logger.info("▸ Module Hub Status:")
     logger.info(f"   Modules: {status['modules_registered']}")
-    for module in status['modules']:
+    for module in status["modules"]:
         logger.info(f"   - {module['name']} ({module['type']})")

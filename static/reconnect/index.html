@@ -306,7 +306,7 @@
     <!-- Info -->
     <div class="info-box">
       <p>
-        <strong>Semptify doesn't have accounts.</strong> 
+        <strong>Semptify doesn't have accounts.</strong>
         Your data lives in your own storage. We don't track or store personal information.
       </p>
     </div>
@@ -383,12 +383,12 @@
         </ul>
       </div>
     </div>
-    
+
     <div class="footer-disclaimer">
-      <strong>Important:</strong> Semptify is an organizational tool, not legal advice. 
+      <strong>Important:</strong> Semptify is an organizational tool, not legal advice.
       Always consult a qualified attorney for legal guidance.
     </div>
-    
+
     <div class="footer-bottom">
       <p>© 2024-2026 Semptify</p>
       <p class="footer-meta">No Cost, Always • No Ads • Open Source</p>
@@ -421,13 +421,13 @@
     providerBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const provider = btn.dataset.provider;
-        
+
         // Visual feedback
         providerBtns.forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        
+
         showProgress('Connecting to ' + btn.querySelector('span').textContent + '...');
-        
+
         // Redirect to OAuth - provider will identify user
         const oauthUrl = '/storage/auth/' + provider + '?return_to=/storage/reconnect';
         setTimeout(() => {

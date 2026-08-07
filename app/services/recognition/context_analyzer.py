@@ -19,6 +19,7 @@ from .models import DocumentContext, DocumentSection, ReasoningChain, ReasoningT
 @dataclass
 class StructuralPattern:
     """A recognized structural pattern"""
+
     name: str
     pattern: str
     found: bool = False
@@ -30,7 +31,7 @@ class StructuralPattern:
 class ContextAnalyzer:
     """
     Analyzes document context, structure, and quality.
-    
+
     Responsibilities:
     - Detect document structure (headers, footers, sections)
     - Identify document flow type (letter, form, legal filing, etc.)
@@ -122,11 +123,10 @@ class ContextAnalyzer:
             ],
         }
 
-    def analyze(self, text: str, filename: str = None,
-                file_type: str = None) -> tuple[DocumentContext, ReasoningChain]:
+    def analyze(self, text: str, filename: str = None, file_type: str = None) -> tuple[DocumentContext, ReasoningChain]:
         """
         Perform full context analysis on document text.
-        
+
         Returns:
             Tuple of (DocumentContext, ReasoningChain)
         """
@@ -140,10 +140,7 @@ class ContextAnalyzer:
 
         # Step 1: Basic text statistics
         reasoning.add_step(
-            ReasoningType.STRUCTURAL_ANALYSIS,
-            "Computing basic text statistics",
-            {"text_length": len(text)},
-            {}
+            ReasoningType.STRUCTURAL_ANALYSIS, "Computing basic text statistics", {"text_length": len(text)}, {}
         )
         context = self._compute_text_stats(text, context)
 
@@ -152,17 +149,12 @@ class ContextAnalyzer:
             ReasoningType.PATTERN_MATCH,
             "Detecting structural elements (letterhead, date, address, etc.)",
             {"patterns_checked": list(self.structural_patterns.keys())},
-            {}
+            {},
         )
         context = self._detect_structural_elements(text, context)
 
         # Step 3: Identify sections
-        reasoning.add_step(
-            ReasoningType.STRUCTURAL_ANALYSIS,
-            "Identifying document sections and hierarchy",
-            {},
-            {}
-        )
+        reasoning.add_step(ReasoningType.STRUCTURAL_ANALYSIS, "Identifying document sections and hierarchy", {}, {})
         context = self._identify_sections(text, context)
 
         # Step 4: Determine document flow type
@@ -170,25 +162,17 @@ class ContextAnalyzer:
             ReasoningType.SEMANTIC_ANALYSIS,
             "Determining document flow type",
             {"elements_found": self._summarize_elements(context)},
-            {}
+            {},
         )
         context = self._determine_flow_type(context)
 
         # Step 5: Assess text quality
-        reasoning.add_step(
-            ReasoningType.STATISTICAL,
-            "Assessing text quality and OCR accuracy",
-            {},
-            {}
-        )
+        reasoning.add_step(ReasoningType.STATISTICAL, "Assessing text quality and OCR accuracy", {}, {})
         context = self._assess_quality(text, context)
 
         # Step 6: Detect special characteristics
         reasoning.add_step(
-            ReasoningType.PATTERN_MATCH,
-            "Detecting special characteristics (scanned, signatures, etc.)",
-            {},
-            {}
+            ReasoningType.PATTERN_MATCH, "Detecting special characteristics (scanned, signatures, etc.)", {}, {}
         )
         context = self._detect_special_characteristics(text, context)
 
@@ -203,7 +187,7 @@ class ContextAnalyzer:
         context.total_words = len(text.split())
 
         # Count sentences (approximate)
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         context.total_sentences = len([s for s in sentences if s.strip()])
 
         # Estimate page count (rough: ~3000 chars per page)
@@ -214,9 +198,9 @@ class ContextAnalyzer:
 
     def _detect_structural_elements(self, text: str, context: DocumentContext) -> DocumentContext:
         """Detect structural elements in the document"""
-        text_lines = text.split('\n')
-        header_region = '\n'.join(text_lines[:min(20, len(text_lines))])
-        footer_region = '\n'.join(text_lines[max(0, len(text_lines)-10):])
+        text_lines = text.split("\n")
+        header_region = "\n".join(text_lines[: min(20, len(text_lines))])
+        footer_region = "\n".join(text_lines[max(0, len(text_lines) - 10) :])
 
         # Check for letterhead (typically in first 10 lines)
         for pattern in self.structural_patterns["letterhead"]:
@@ -273,24 +257,28 @@ class ContextAnalyzer:
         # Find numbered sections
         numbered_matches = list(self.section_patterns["numbered_section"].finditer(text))
         for i, match in enumerate(numbered_matches):
-            end_pos = numbered_matches[i+1].start() if i+1 < len(numbered_matches) else len(text)
-            sections.append(DocumentSection(
-                section_type="numbered",
-                content=text[match.start():min(end_pos, match.start()+500)],
-                start_position=match.start(),
-                end_position=end_pos,
-            ))
+            end_pos = numbered_matches[i + 1].start() if i + 1 < len(numbered_matches) else len(text)
+            sections.append(
+                DocumentSection(
+                    section_type="numbered",
+                    content=text[match.start() : min(end_pos, match.start() + 500)],
+                    start_position=match.start(),
+                    end_position=end_pos,
+                )
+            )
 
         # Find capitalized headers
         for match in self.section_patterns["capitalized_header"].finditer(text):
             header_text = match.group().strip()
             if len(header_text) > 3 and not any(c.isdigit() for c in header_text):
-                sections.append(DocumentSection(
-                    section_type="header",
-                    title=header_text,
-                    start_position=match.start(),
-                    end_position=match.end(),
-                ))
+                sections.append(
+                    DocumentSection(
+                        section_type="header",
+                        title=header_text,
+                        start_position=match.start(),
+                        end_position=match.end(),
+                    )
+                )
 
         # Identify key sections by content
         section_keywords = {
@@ -304,19 +292,21 @@ class ContextAnalyzer:
 
         for section_name, keywords in section_keywords.items():
             for keyword in keywords:
-                matches = list(re.finditer(rf'\b{keyword}\b', text, re.IGNORECASE))
+                matches = list(re.finditer(rf"\b{keyword}\b", text, re.IGNORECASE))
                 if matches:
                     # Mark regions around keyword matches as relevant sections
                     for match in matches[:3]:  # Limit to first 3 occurrences
                         start = max(0, match.start() - 100)
                         end = min(len(text), match.end() + 500)
-                        sections.append(DocumentSection(
-                            section_type=section_name,
-                            content=text[start:end],
-                            start_position=start,
-                            end_position=end,
-                            importance_score=0.5
-                        ))
+                        sections.append(
+                            DocumentSection(
+                                section_type=section_name,
+                                content=text[start:end],
+                                start_position=start,
+                                end_position=end,
+                                importance_score=0.5,
+                            )
+                        )
 
         context.sections = sections
         return context
@@ -501,15 +491,10 @@ class ContextAnalyzer:
             "case_caption": context.has_case_caption,
         }
 
-    def get_key_sections(self, context: DocumentContext,
-                         max_sections: int = 5) -> list[DocumentSection]:
+    def get_key_sections(self, context: DocumentContext, max_sections: int = 5) -> list[DocumentSection]:
         """Get the most important sections for analysis"""
         # Sort by importance score
-        sorted_sections = sorted(
-            context.sections,
-            key=lambda s: s.importance_score,
-            reverse=True
-        )
+        sorted_sections = sorted(context.sections, key=lambda s: s.importance_score, reverse=True)
         return sorted_sections[:max_sections]
 
     def extract_header_info(self, text: str) -> dict[str, Any]:
@@ -523,8 +508,8 @@ class ContextAnalyzer:
         }
 
         # Look in first 30 lines
-        lines = text.split('\n')[:30]
-        header_text = '\n'.join(lines)
+        lines = text.split("\n")[:30]
+        header_text = "\n".join(lines)
 
         # Extract date
         date_patterns = [

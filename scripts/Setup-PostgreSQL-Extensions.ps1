@@ -30,7 +30,7 @@ function Run-PostgresQuery {
         [string]$Host = $pgHost,
         [string]$Port = $pgPort
     )
-    
+
     & $psqlPath -h $Host -p $Port -U $User -d $Database -c $Query 2>&1
     return $LASTEXITCODE -eq 0
 }
@@ -78,7 +78,7 @@ $extensions = @(
 
 foreach ($ext in $extensions) {
     $extCheck = & $psqlPath -h $pgHost -p $pgPort -U $pgUser -d $semptifyDb -t -c "SELECT 1 FROM pg_extension WHERE extname = '$ext'" 2>$null
-    
+
     if ($extCheck -match '1') {
         Write-Host "    [OK] $ext (already installed)" -ForegroundColor Green
     } else {

@@ -10,6 +10,7 @@ from httpx import AsyncClient
 # Document Workflow Integration Tests
 # =============================================================================
 
+
 class TestDocumentWorkflow:
     """Integration tests for document processing workflow."""
 
@@ -31,6 +32,7 @@ class TestDocumentWorkflow:
 # =============================================================================
 # Legal Tools Integration Tests
 # =============================================================================
+
 
 class TestLegalToolsIntegration:
     """Integration tests for legal tools working together."""
@@ -62,6 +64,7 @@ class TestLegalToolsIntegration:
 # AI Integration Tests
 # =============================================================================
 
+
 class TestAIIntegration:
     """Integration tests for AI-powered features."""
 
@@ -88,6 +91,7 @@ class TestAIIntegration:
 # Module Hub Integration Tests
 # =============================================================================
 
+
 class TestModuleHubIntegration:
     """Integration tests for module hub coordination."""
 
@@ -113,6 +117,7 @@ class TestModuleHubIntegration:
 # =============================================================================
 # Authentication Flow Integration Tests
 # =============================================================================
+
 
 class TestAuthenticationFlows:
     """Integration tests for authentication workflows."""
@@ -142,6 +147,7 @@ class TestAuthenticationFlows:
 # Location-Based Integration Tests
 # =============================================================================
 
+
 class TestLocationIntegration:
     """Integration tests for location-aware features."""
 
@@ -161,6 +167,7 @@ class TestLocationIntegration:
 # =============================================================================
 # Data Export Integration Tests
 # =============================================================================
+
 
 class TestDataExportIntegration:
     """Integration tests for data export functionality."""
@@ -182,6 +189,7 @@ class TestDataExportIntegration:
 # Health & Monitoring Integration Tests
 # =============================================================================
 
+
 class TestHealthMonitoringIntegration:
     """Integration tests for health and monitoring."""
 
@@ -201,6 +209,7 @@ class TestHealthMonitoringIntegration:
     async def test_livez_quick_response(self, client: AsyncClient):
         """Test liveness probe is fast."""
         import time
+
         start = time.time()
         response = await client.get("/livez")
         elapsed = time.time() - start
@@ -217,6 +226,7 @@ class TestHealthMonitoringIntegration:
 # =============================================================================
 # Research Module Integration Tests
 # =============================================================================
+
 
 class TestResearchIntegration:
     """Integration tests for research capabilities."""
@@ -244,6 +254,7 @@ class TestResearchIntegration:
 # WebSocket Integration Tests (Basic)
 # =============================================================================
 
+
 class TestWebSocketBasic:
     """Basic WebSocket endpoint tests."""
 
@@ -259,6 +270,7 @@ class TestWebSocketBasic:
 # =============================================================================
 # Cross-Module Workflow Tests
 # =============================================================================
+
 
 class TestCrossModuleWorkflows:
     """Tests for workflows spanning multiple modules."""

@@ -1,6 +1,7 @@
 """
 Tests for the Research module - Landlord/property research and investigation.
 """
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -9,6 +10,7 @@ from app.main import app
 # ============================================================================
 # HEALTH ENDPOINT
 # ============================================================================
+
 
 class TestResearchHealth:
     """Test research service health."""
@@ -27,6 +29,7 @@ class TestResearchHealth:
 # ============================================================================
 # DATA SOURCES
 # ============================================================================
+
 
 class TestDataSources:
     """Test data source listing."""
@@ -96,6 +99,7 @@ class TestDataSources:
 # PROPERTY LOOKUP
 # ============================================================================
 
+
 class TestPropertyLookup:
     """Test property lookup functionality."""
 
@@ -111,16 +115,14 @@ class TestPropertyLookup:
     async def test_property_post_lookup(self):
         """Test property lookup via POST."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.post(
-                "/api/research/property",
-                json={"property_id": "TEST123"}
-            )
+            response = await client.post("/api/research/property", json={"property_id": "TEST123"})
             assert response.status_code in [200, 201, 404, 422]
 
 
 # ============================================================================
 # ASSESSOR DATA
 # ============================================================================
+
 
 class TestAssessorData:
     """Test county assessor data retrieval."""
@@ -138,8 +140,7 @@ class TestAssessorData:
         """Test assessor lookup via POST."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/research/assessor",
-                json={"property_id": "TEST123", "county": "hennepin"}
+                "/api/research/assessor", json={"property_id": "TEST123", "county": "hennepin"}
             )
             assert response.status_code in [200, 201, 401, 404, 422]
 
@@ -147,6 +148,7 @@ class TestAssessorData:
 # ============================================================================
 # RECORDER DATA
 # ============================================================================
+
 
 class TestRecorderData:
     """Test county recorder data retrieval."""
@@ -163,6 +165,7 @@ class TestRecorderData:
 # UCC FILINGS
 # ============================================================================
 
+
 class TestUCCFilings:
     """Test UCC filing data retrieval."""
 
@@ -177,6 +180,7 @@ class TestUCCFilings:
 # ============================================================================
 # DISPATCH/911 DATA
 # ============================================================================
+
 
 class TestDispatchData:
     """Test 911 dispatch data retrieval."""
@@ -193,6 +197,7 @@ class TestDispatchData:
 # NEWS SEARCH
 # ============================================================================
 
+
 class TestNewsSearch:
     """Test news search functionality."""
 
@@ -207,6 +212,7 @@ class TestNewsSearch:
 # ============================================================================
 # SOS BUSINESS SEARCH
 # ============================================================================
+
 
 class TestSOSSearch:
     """Test Secretary of State business search."""
@@ -223,6 +229,7 @@ class TestSOSSearch:
 # BANKRUPTCY SEARCH
 # ============================================================================
 
+
 class TestBankruptcySearch:
     """Test bankruptcy court search."""
 
@@ -237,6 +244,7 @@ class TestBankruptcySearch:
 # ============================================================================
 # INSURANCE LOOKUP
 # ============================================================================
+
 
 class TestInsuranceLookup:
     """Test insurance information lookup."""
@@ -253,6 +261,7 @@ class TestInsuranceLookup:
 # FRAUD FLAGS
 # ============================================================================
 
+
 class TestFraudFlags:
     """Test fraud flag detection."""
 
@@ -267,6 +276,7 @@ class TestFraudFlags:
 # ============================================================================
 # RESEARCH SUMMARY
 # ============================================================================
+
 
 class TestResearchSummary:
     """Test research summary generation."""
@@ -283,6 +293,7 @@ class TestResearchSummary:
 # CHECKPOINTING
 # ============================================================================
 
+
 class TestCheckpointing:
     """Test research checkpointing."""
 
@@ -292,10 +303,7 @@ class TestCheckpointing:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/research/checkpoint",
-                json={
-                    "property_id": "TEST123",
-                    "data": {"assessor": "done", "recorder": "pending"}
-                }
+                json={"property_id": "TEST123", "data": {"assessor": "done", "recorder": "pending"}},
             )
             assert response.status_code in [200, 201, 404, 422]
 
@@ -311,6 +319,7 @@ class TestCheckpointing:
 # DOWNLOAD/EXPORT
 # ============================================================================
 
+
 class TestDownloadExport:
     """Test research data download/export."""
 
@@ -325,6 +334,7 @@ class TestDownloadExport:
 # ============================================================================
 # SERVICE INTEGRATION
 # ============================================================================
+
 
 class TestServiceIntegration:
     """Test research service integration."""
@@ -357,6 +367,7 @@ class TestServiceIntegration:
 # ============================================================================
 # ERROR HANDLING
 # ============================================================================
+
 
 class TestErrorHandling:
     """Test research service error handling."""

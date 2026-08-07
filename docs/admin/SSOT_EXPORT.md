@@ -1,6 +1,6 @@
 # Semptify 5.0 — Single Source of Truth (SSOT) Architecture Export
 
-**Generated:** April 20, 2026  
+**Generated:** April 20, 2026
 **Purpose:** Consolidated reference for all canonical sources of truth in the system
 
 ---
@@ -202,6 +202,7 @@ Environment-based conditional security flag:
 
 ```python
 import os
+
 is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
 
 response.set_cookie(
@@ -224,7 +225,7 @@ response.set_cookie(
 **Files Fixed:**
 - `app/main.py` `_guard_role_page` calls for tenant routes:
   - `/tenant/` → changed `{"user"}` to `{"tenant"}`
-  - `/tenant/{subpage}` → changed `{"user"}` to `{"tenant"}`  
+  - `/tenant/{subpage}` → changed `{"user"}` to `{"tenant"}`
   - `/tenant/home/` → changed `{"user"}` to `{"tenant"}`
 
 **Rule:** Page guard allowed_roles must match the role string encoded in user IDs (via `get_role_from_user_id`).
@@ -235,6 +236,7 @@ response.set_cookie(
 ```python
 # Correct pattern for cookie security
 import os
+
 is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
 response.set_cookie(
     key="semptify_session",
@@ -413,9 +415,10 @@ def register_function_group(contract: FunctionGroupContract) -> FunctionGroupCon
 
 ```python
 class StorageState(str, Enum):
-    NEED_CONNECT = "need_connect"           # not authenticated yet
-    ALREADY_CONNECTED = "already_connected" # OAuth token valid
-    REVIEW_ONLY = "review_only"             # no storage, read-only mode
+    NEED_CONNECT = "need_connect"  # not authenticated yet
+    ALREADY_CONNECTED = "already_connected"  # OAuth token valid
+    REVIEW_ONLY = "review_only"  # no storage, read-only mode
+
 
 class ProcessState(str, Enum):
     NOT_STARTED = "not_started"
@@ -423,12 +426,13 @@ class ProcessState(str, Enum):
     COMPLETE = "complete"
     BLOCKED = "blocked"
 
+
 class ProcessCode(str, Enum):
-    A = "A"      # Welcome
-    B1 = "B1"    # Document Upload Wizard
-    B2 = "B2"    # Quick Case Triage (Tenant path)
-    B3 = "B3"    # Filing & Packet Preparation
-    B4 = "B4"    # Professional Review Workspace
+    A = "A"  # Welcome
+    B1 = "B1"  # Document Upload Wizard
+    B2 = "B2"  # Quick Case Triage (Tenant path)
+    B3 = "B3"  # Filing & Packet Preparation
+    B4 = "B4"  # Professional Review Workspace
 ```
 
 ### Route Mappings
@@ -455,6 +459,7 @@ ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
 @dataclass
 class WorkflowState:
     """Represents everything the engine needs to make a routing decision."""
+
     role: UserRole
     storage_state: StorageState
     process_state: ProcessState = ProcessState.NOT_STARTED
@@ -470,6 +475,7 @@ class WorkflowState:
 @dataclass
 class WorkflowDecision:
     """The engine's deterministic answer for a given WorkflowState."""
+
     next_process: ProcessCode
     next_route: str
     allowed_actions: list[str]
@@ -618,11 +624,7 @@ result = contract_registry.validate()
 from app.core.workflow_engine import route_user
 
 # Single source of truth for redirects
-redirect_url = route_user(
-    user_id=request.cookies.get("se_user"),
-    documents_present=True,
-    has_active_case=False
-)
+redirect_url = route_user(user_id=request.cookies.get("se_user"), documents_present=True, has_active_case=False)
 return RedirectResponse(redirect_url)
 ```
 

@@ -512,7 +512,7 @@ If not, use the summary PDF/TXT and manually transfer into the official form.
         for root, dirs, files in os.walk(ws):
             for name in files:
                 p = Path(root) / name
-                if p == zip_path: 
+                if p == zip_path:
                     continue
                 arc = str(p.relative_to(ws))
                 z.write(p, arcname=arc)

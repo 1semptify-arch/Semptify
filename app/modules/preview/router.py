@@ -36,15 +36,19 @@ router = APIRouter()
 # Schemas
 # =============================================================================
 
+
 class PreviewRequest(BaseModel):
     """Preview generation request."""
+
     document_id: str = Field(..., description="Document ID")
     preview_type: str = Field("preview", description="Preview type: thumbnail, preview")
     page_number: int = Field(1, ge=1, description="Page number for PDF thumbnails")
     max_pages: int = Field(10, ge=1, le=50, description="Max pages for preview")
 
+
 class PreviewResponse(BaseModel):
     """Preview generation response."""
+
     success: bool
     document_id: str
     preview_type: str
@@ -52,18 +56,17 @@ class PreviewResponse(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     message: str | None = None
 
+
 # =============================================================================
 # Preview Endpoints
 # =============================================================================
 
+
 @router.post("/generate")
-async def generate_preview_endpoint(
-    request: PreviewRequest,
-    user: StorageUser = Depends(green_access)
-):
+async def generate_preview_endpoint(request: PreviewRequest, user: StorageUser = Depends(green_access)):
     """
     Generate preview or thumbnail for a document.
-    
+
     Supports:
     - PDF documents (multi-page)
     - Images (JPEG, PNG, GIF, BMP, TIFF)
@@ -74,8 +77,7 @@ async def generate_preview_endpoint(
         # Get document from database
         async with get_db_session() as session:
             doc_query = select(DocumentModel).where(
-                DocumentModel.id == request.document_id,
-                DocumentModel.user_id == user.user_id
+                DocumentModel.id == request.document_id, DocumentModel.user_id == user.user_id
             )
             result = await session.execute(doc_query)
             doc = result.scalar_one_or_none()
@@ -98,22 +100,16 @@ async def generate_preview_endpoint(
                     preview_type=request.preview_type,
                     preview_url=f"/preview/serve/{cached_preview.cache_key}",
                     metadata=cached_preview.metadata,
-                    message="Preview retrieved from cache"
+                    message="Preview retrieved from cache",
                 )
 
             # Generate preview
             if preview_type == PreviewType.THUMBNAIL:
                 preview_result = await generate_document_thumbnail(
-                    request.document_id,
-                    doc.file_path,
-                    request.page_number
+                    request.document_id, doc.file_path, request.page_number
                 )
             else:
-                preview_result = await generate_document_preview(
-                    request.document_id,
-                    doc.file_path,
-                    request.max_pages
-                )
+                preview_result = await generate_document_preview(request.document_id, doc.file_path, request.max_pages)
 
             if not preview_result:
                 raise HTTPException(status_code=500, detail="Preview generation failed")
@@ -124,7 +120,7 @@ async def generate_preview_endpoint(
                 preview_type=request.preview_type,
                 preview_url=f"/preview/serve/{preview_result.cache_key}",
                 metadata=preview_result.metadata,
-                message="Preview generated successfully"
+                message="Preview generated successfully",
             )
 
     except HTTPException:
@@ -133,11 +129,12 @@ async def generate_preview_endpoint(
         logger.error(f"Preview generation error: {e}")
         raise HTTPException(status_code=500, detail="Preview generation failed")
 
+
 @router.get("/serve/{cache_key}")
 async def serve_preview(cache_key: str):
     """
     Serve generated preview content.
-    
+
     Returns the actual preview data (image or JSON).
     """
     try:
@@ -163,8 +160,8 @@ async def serve_preview(cache_key: str):
                     media_type=media_type,
                     headers={
                         "Cache-Control": "public, max-age=3600",
-                        "Content-Disposition": f"inline; filename=thumbnail_{preview_result.document_id}.{preview_result.format.lower()}"
-                    }
+                        "Content-Disposition": f"inline; filename=thumbnail_{preview_result.document_id}.{preview_result.format.lower()}",
+                    },
                 )
 
         elif preview_result.preview_type == PreviewType.PREVIEW:
@@ -172,9 +169,7 @@ async def serve_preview(cache_key: str):
             return Response(
                 content=str(preview_result.content),
                 media_type="application/json",
-                headers={
-                    "Cache-Control": "public, max-age=3600"
-                }
+                headers={"Cache-Control": "public, max-age=3600"},
             )
 
         else:
@@ -186,21 +181,18 @@ async def serve_preview(cache_key: str):
         logger.error(f"Preview serving error: {e}")
         raise HTTPException(status_code=500, detail="Failed to serve preview")
 
+
 @router.get("/{document_id}/text")
-async def get_text_preview(
-    document_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def get_text_preview(document_id: str, user: StorageUser = Depends(green_access)):
     """
     Get text preview for a document.
-    
+
     Returns extracted text content for text-based documents.
     """
     try:
         async with get_db_session() as session:
             doc_query = select(DocumentModel).where(
-                DocumentModel.id == document_id,
-                DocumentModel.user_id == user.user_id
+                DocumentModel.id == document_id, DocumentModel.user_id == user.user_id
             )
             result = await session.execute(doc_query)
             doc = result.scalar_one_or_none()
@@ -213,17 +205,15 @@ async def get_text_preview(
                 return Response(
                     content=doc.extracted_text[:10000],  # Limit to 10k chars
                     media_type="text/plain",
-                    headers={"Cache-Control": "public, max-age=3600"}
+                    headers={"Cache-Control": "public, max-age=3600"},
                 )
 
             # Try to read text file directly
             if doc.file_path and os.path.exists(doc.file_path):
-                with open(doc.file_path, encoding='utf-8', errors='ignore') as f:
+                with open(doc.file_path, encoding="utf-8", errors="ignore") as f:
                     content = f.read(10000)
                     return Response(
-                        content=content,
-                        media_type="text/plain",
-                        headers={"Cache-Control": "public, max-age=3600"}
+                        content=content, media_type="text/plain", headers={"Cache-Control": "public, max-age=3600"}
                     )
 
             raise HTTPException(status_code=404, detail="Text content not available")
@@ -236,10 +226,7 @@ async def get_text_preview(
 
 
 @router.get("/info/{document_id}")
-async def get_preview_info(
-    document_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def get_preview_info(document_id: str, user: StorageUser = Depends(green_access)):
     """
     Get information about available previews for a document.
     """
@@ -247,8 +234,7 @@ async def get_preview_info(
         # Verify document ownership
         async with get_db_session() as session:
             doc_query = select(DocumentModel).where(
-                DocumentModel.id == document_id,
-                DocumentModel.user_id == user.user_id
+                DocumentModel.id == document_id, DocumentModel.user_id == user.user_id
             )
             result = await session.execute(doc_query)
             doc = result.scalar_one_or_none()
@@ -256,7 +242,7 @@ async def get_preview_info(
             if not doc:
                 raise HTTPException(status_code=404, detail="Document not found")
 
-        generator = get_preview_generator()
+        get_preview_generator()
 
         # Check available previews
         thumbnail = get_cached_preview(document_id, PreviewType.THUMBNAIL)
@@ -269,21 +255,21 @@ async def get_preview_info(
                     "available": thumbnail is not None,
                     "cache_key": thumbnail.cache_key if thumbnail else None,
                     "url": f"/preview/serve/{thumbnail.cache_key}" if thumbnail else None,
-                    "metadata": thumbnail.metadata if thumbnail else None
+                    "metadata": thumbnail.metadata if thumbnail else None,
                 },
                 "preview": {
                     "available": preview is not None,
                     "cache_key": preview.cache_key if preview else None,
                     "url": f"/preview/serve/{preview.cache_key}" if preview else None,
-                    "metadata": preview.metadata if preview else None
-                }
+                    "metadata": preview.metadata if preview else None,
+                },
             },
             "document_info": {
                 "filename": doc.filename,
                 "file_type": doc.document_type,
                 "file_size": doc.file_size,
-                "created_at": doc.created_at.isoformat() if doc.created_at else None
-            }
+                "created_at": doc.created_at.isoformat() if doc.created_at else None,
+            },
         }
 
     except HTTPException:
@@ -292,11 +278,9 @@ async def get_preview_info(
         logger.error(f"Preview info error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get preview info")
 
+
 @router.delete("/cache/{document_id}")
-async def clear_document_cache(
-    document_id: str,
-    user: StorageUser = Depends(green_access)
-):
+async def clear_document_cache(document_id: str, user: StorageUser = Depends(green_access)):
     """
     Clear cached previews for a document.
     """
@@ -304,8 +288,7 @@ async def clear_document_cache(
         # Verify document ownership
         async with get_db_session() as session:
             doc_query = select(DocumentModel).where(
-                DocumentModel.id == document_id,
-                DocumentModel.user_id == user.user_id
+                DocumentModel.id == document_id, DocumentModel.user_id == user.user_id
             )
             result = await session.execute(doc_query)
             doc = result.scalar_one_or_none()
@@ -316,11 +299,7 @@ async def clear_document_cache(
         # Clear cache
         clear_preview_cache(document_id)
 
-        return {
-            "success": True,
-            "document_id": document_id,
-            "message": "Preview cache cleared successfully"
-        }
+        return {"success": True, "document_id": document_id, "message": "Preview cache cleared successfully"}
 
     except HTTPException:
         raise
@@ -328,10 +307,9 @@ async def clear_document_cache(
         logger.error(f"Cache clear error: {e}")
         raise HTTPException(status_code=500, detail="Failed to clear cache")
 
+
 @router.get("/statistics")
-async def get_preview_stats(
-    user: StorageUser = Depends(green_access)
-):
+async def get_preview_stats(user: StorageUser = Depends(green_access)):
     """
     Get preview generation statistics.
     """
@@ -343,11 +321,12 @@ async def get_preview_stats(
         logger.error(f"Preview statistics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
 
+
 @router.post("/batch")
 async def batch_generate_previews(
     document_ids: list[str],
     preview_type: str = Query("thumbnail", description="Preview type: thumbnail, preview"),
-    user: StorageUser = Depends(green_access)
+    user: StorageUser = Depends(green_access),
 ):
     """
     Generate previews for multiple documents.
@@ -360,26 +339,19 @@ async def batch_generate_previews(
                 # Get document from database
                 async with get_db_session() as session:
                     doc_query = select(DocumentModel).where(
-                        DocumentModel.id == document_id,
-                        DocumentModel.user_id == user.user_id
+                        DocumentModel.id == document_id, DocumentModel.user_id == user.user_id
                     )
                     result = await session.execute(doc_query)
                     doc = result.scalar_one_or_none()
 
                     if not doc:
-                        results.append({
-                            "document_id": document_id,
-                            "success": False,
-                            "error": "Document not found"
-                        })
+                        results.append({"document_id": document_id, "success": False, "error": "Document not found"})
                         continue
 
                     if not doc.file_path or not os.path.exists(doc.file_path):
-                        results.append({
-                            "document_id": document_id,
-                            "success": False,
-                            "error": "Document file not found"
-                        })
+                        results.append(
+                            {"document_id": document_id, "success": False, "error": "Document file not found"}
+                        )
                         continue
 
                     # Determine preview type
@@ -392,42 +364,40 @@ async def batch_generate_previews(
                         preview_result = await generate_document_preview(document_id, doc.file_path)
 
                     if preview_result:
-                        results.append({
-                            "document_id": document_id,
-                            "success": True,
-                            "preview_url": f"/preview/serve/{preview_result.cache_key}",
-                            "metadata": preview_result.metadata
-                        })
+                        results.append(
+                            {
+                                "document_id": document_id,
+                                "success": True,
+                                "preview_url": f"/preview/serve/{preview_result.cache_key}",
+                                "metadata": preview_result.metadata,
+                            }
+                        )
                     else:
-                        results.append({
-                            "document_id": document_id,
-                            "success": False,
-                            "error": "Preview generation failed"
-                        })
+                        results.append(
+                            {"document_id": document_id, "success": False, "error": "Preview generation failed"}
+                        )
 
             except Exception as e:
                 logger.error(f"Batch preview error for {document_id}: {e}")
-                results.append({
-                    "document_id": document_id,
-                    "success": False,
-                    "error": str(e)
-                })
+                results.append({"document_id": document_id, "success": False, "error": str(e)})
 
         return {
             "success": True,
             "total_documents": len(document_ids),
             "successful": len([r for r in results if r["success"]]),
             "failed": len([r for r in results if not r["success"]]),
-            "results": results
+            "results": results,
         }
 
     except Exception as e:
         logger.error(f"Batch preview generation error: {e}")
         raise HTTPException(status_code=500, detail="Batch preview generation failed")
 
+
 # =============================================================================
 # Utility Endpoints
 # =============================================================================
+
 
 @router.get("/supported-formats")
 async def get_supported_formats():
@@ -439,20 +409,14 @@ async def get_supported_formats():
 
         formats = []
         for mime_type, format_enum in generator.mime_types.items():
-            formats.append({
-                "mime_type": mime_type,
-                "format": format_enum.value,
-                "supported": True
-            })
+            formats.append({"mime_type": mime_type, "format": format_enum.value, "supported": True})
 
-        return {
-            "supported_formats": formats,
-            "total_supported": len(formats)
-        }
+        return {"supported_formats": formats, "total_supported": len(formats)}
 
     except Exception as e:
         logger.error(f"Supported formats error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get supported formats")
+
 
 @router.delete("/cache")
 async def clear_all_cache(user: StorageUser = Depends(green_access)):
@@ -463,10 +427,7 @@ async def clear_all_cache(user: StorageUser = Depends(green_access)):
         # For now, clear all cache (in production, this might be admin-only)
         clear_preview_cache()
 
-        return {
-            "success": True,
-            "message": "All preview cache cleared"
-        }
+        return {"success": True, "message": "All preview cache cleared"}
 
     except Exception as e:
         logger.error(f"Cache clear error: {e}")

@@ -546,7 +546,7 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 - **New flows**: Use `navigation.register_stage(FlowStage(...))` to expand SSOT
 - **Deprecating old paths**: Use `navigation.deprecate_path("/old", "/new")` for graceful evolution
 
-**Philosophy:** 
+**Philosophy:**
 - A rule that cannot evolve is a prison
 - A rule that is never enforced is a suggestion
 - Good rules have escape hatches with TTLs (time-to-live)
@@ -555,7 +555,7 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 **When breaking SSOT:**
 1. Document WHY in code
 2. Use escape_hatch with expiration
-3. After the experiment, either: 
+3. After the experiment, either:
    - Kill it (remove the code)
    - Formalize it (register as proper FlowStage)
    - Deprecate it (old path → new canonical)
@@ -835,7 +835,7 @@ This document was created during a session that:
 
 **Visual guide to how the metadata layer fits on top of Semptify's cloud vault.**
 
-> **Terminology**: The **Vault** = Cloud storage (`Semptify5.0/Vault/`).  
+> **Terminology**: The **Vault** = Cloud storage (`Semptify5.0/Vault/`).
 > The `vault_items` table is a **metadata index** that describes vault contents.
 
 ---
@@ -1324,10 +1324,10 @@ from app.services.vault_ingestion import ingest_vault_item
 async def handle_upload(file, user_id):
     # 1. Save to cloud (existing code)
     cloud_path = await save_to_cloud(file)
-    
+
     # 2. Extract metadata (existing code)
     extracted = await extract_metadata(file)
-    
+
     # 3. NEW: Ingest to ALL-IN-ONE vault
     result = await ingest_vault_item(
         db=db,
@@ -1344,7 +1344,7 @@ async def handle_upload(file, user_id):
         file_path=cloud_path,
         title=extracted.get("title"),
     )
-    
+
     return {"cloud_path": cloud_path, "vault_item_id": result.item_id}
 ```
 
@@ -1371,7 +1371,7 @@ from app.services.vault_search import search_vault
 async def get_timeline(user_id):
     # 1. Get cloud timeline (existing)
     cloud_events = await load_cloud_timeline(user_id)
-    
+
     # 2. NEW: Query vault for enriched data
     vault_results = await search_vault(
         db=db,
@@ -1379,7 +1379,7 @@ async def get_timeline(user_id):
         timeline_mode="event_time",
         limit=1000,
     )
-    
+
     # 3. Merge or choose primary source
     # Cloud = portable, user-controlled
     # Vault = fast queries, audit trail
@@ -2138,7 +2138,7 @@ This architecture provides a solid foundation for a production-ready, scalable, 
     </style>
 </head>
 <body>
-    
+
     <header class="header">
         <h1>📓 Semptify</h1>
         <p class="tagline">The Tenant's Journal</p>
@@ -2152,15 +2152,15 @@ This architecture provides a solid foundation for a production-ready, scalable, 
             <h2 class="section-title">What is Semptify?</h2>
 
             <p>
-                Semptify is your personal tenant journal — a place to document your rental life, understand 
-                your rights <em>and</em> responsibilities, and stay organized. Think of it as a diary for 
+                Semptify is your personal tenant journal — a place to document your rental life, understand
+                your rights <em>and</em> responsibilities, and stay organized. Think of it as a diary for
                 your tenancy: recording what happens, when it happens, and keeping everything in one place.
             </p>
 
             <p>
-                We believe that most problems between tenants and landlords can be avoided with knowledge 
-                and preparation. By understanding what's expected of you — and what you can expect from 
-                your landlord — you can navigate your tenancy with confidence and hopefully avoid 
+                We believe that most problems between tenants and landlords can be avoided with knowledge
+                and preparation. By understanding what's expected of you — and what you can expect from
+                your landlord — you can navigate your tenancy with confidence and hopefully avoid
                 conflicts before they start.
             </p>
 
@@ -2177,9 +2177,9 @@ This architecture provides a solid foundation for a production-ready, scalable, 
             <h2 class="section-title">🚦 It's a Two-Way Street</h2>
 
             <p>
-                Here's something important: being a good tenant isn't just about knowing your rights — 
-                it's also about knowing your responsibilities. A successful tenancy requires effort from 
-                both sides. We're not here to help anyone be difficult or find loopholes. We're here 
+                Here's something important: being a good tenant isn't just about knowing your rights —
+                it's also about knowing your responsibilities. A successful tenancy requires effort from
+                both sides. We're not here to help anyone be difficult or find loopholes. We're here
                 to help people be <em>good</em> tenants.
             </p>
 
@@ -2207,7 +2207,7 @@ This architecture provides a solid foundation for a production-ready, scalable, 
             </div>
 
             <p>
-                The world has enough conflict. Be respectful. Don't be the problem. If everyone — tenants 
+                The world has enough conflict. Be respectful. Don't be the problem. If everyone — tenants
                 and landlords alike — did what they're supposed to do, most housing disputes would never happen.
             </p>
         </section>
@@ -2227,28 +2227,28 @@ This architecture provides a solid foundation for a production-ready, scalable, 
                 <div class="belief-item">
                     <span class="belief-icon">🧠</span>
                     <span class="belief-text">
-                        <strong>Knowledge prevents problems.</strong> Understanding your rights AND 
+                        <strong>Knowledge prevents problems.</strong> Understanding your rights AND
                         responsibilities means fewer misunderstandings and fewer conflicts.
                     </span>
                 </div>
                 <div class="belief-item">
                     <span class="belief-icon">📋</span>
                     <span class="belief-text">
-                        <strong>Documentation protects everyone.</strong> When there's a record, there's 
+                        <strong>Documentation protects everyone.</strong> When there's a record, there's
                         less room for "he said, she said." Good records protect good tenants AND good landlords.
                     </span>
                 </div>
                 <div class="belief-item">
                     <span class="belief-icon">🕊️</span>
                     <span class="belief-text">
-                        <strong>Prevention beats confrontation.</strong> The goal is to avoid fights, 
+                        <strong>Prevention beats confrontation.</strong> The goal is to avoid fights,
                         not win them. But if a fight comes to you, you'll be ready.
                     </span>
                 </div>
                 <div class="belief-item">
                     <span class="belief-icon">⚖️</span>
                     <span class="belief-text">
-                        <strong>Right is right.</strong> We stand for what's fair — whether that means 
+                        <strong>Right is right.</strong> We stand for what's fair — whether that means
                         calling out a bad landlord OR a bad tenant. The truth is the truth.
                     </span>
                 </div>
@@ -2260,33 +2260,33 @@ This architecture provides a solid foundation for a production-ready, scalable, 
             <h2 class="section-title">What Semptify Does</h2>
 
             <p>
-                <strong>📓 Your Tenant Journal</strong> — Log rent payments, maintenance requests, 
-                communications with your landlord, and anything important that happens during your tenancy. 
+                <strong>📓 Your Tenant Journal</strong> — Log rent payments, maintenance requests,
+                communications with your landlord, and anything important that happens during your tenancy.
                 Build a timeline of your rental life.
             </p>
 
             <p>
-                <strong>📚 Know Your Rights & Responsibilities</strong> — Access plain-language guides 
-                to tenant law in your state. Understand what your landlord must do, and what you must do. 
+                <strong>📚 Know Your Rights & Responsibilities</strong> — Access plain-language guides
+                to tenant law in your state. Understand what your landlord must do, and what you must do.
                 Both matter equally.
             </p>
 
             <p>
-                <strong>📁 Document Storage</strong> — Keep your lease, move-in photos, receipts, and 
-                communications organized in your own cloud storage. We never store your documents on 
+                <strong>📁 Document Storage</strong> — Keep your lease, move-in photos, receipts, and
+                communications organized in your own cloud storage. We never store your documents on
                 our servers — they stay in your control.
             </p>
 
             <p>
-                <strong>🛠️ Be Prepared (Just in Case)</strong> — If something does go wrong, Semptify 
-                has tools to help you respond: template letters, deadline trackers, and educational 
+                <strong>🛠️ Be Prepared (Just in Case)</strong> — If something does go wrong, Semptify
+                has tools to help you respond: template letters, deadline trackers, and educational
                 resources about court procedures. We hope you never need them.
             </p>
 
             <div class="highlight">
                 <p>
-                    Our goal is that your Semptify journal sits quietly, never needed for anything 
-                    more than your own peace of mind. But if the day comes when you need it, 
+                    Our goal is that your Semptify journal sits quietly, never needed for anything
+                    more than your own peace of mind. But if the day comes when you need it,
                     everything will be there.
                 </p>
             </div>
@@ -2297,20 +2297,20 @@ This architecture provides a solid foundation for a production-ready, scalable, 
             <h2 class="section-title">We're Not Lawyers</h2>
 
             <p>
-                Semptify is an organizational tool and educational resource — not a law firm. We can't 
-                give you legal advice or tell you what to do in your specific situation. The information 
+                Semptify is an organizational tool and educational resource — not a law firm. We can't
+                give you legal advice or tell you what to do in your specific situation. The information
                 here is general and may not apply to you.
             </p>
 
             <p>
-                If you're facing a serious legal situation, please talk to an actual attorney. Many areas 
-                have free legal aid services for tenants. That's not us passing the buck — it's us being 
+                If you're facing a serious legal situation, please talk to an actual attorney. Many areas
+                have free legal aid services for tenants. That's not us passing the buck — it's us being
                 honest about what we are and aren't.
             </p>
 
             <div class="legal-note">
                 <p>
-                    ⚖️ For legal advice about your specific situation, contact a licensed attorney 
+                    ⚖️ For legal advice about your specific situation, contact a licensed attorney
                     or your local legal aid society.
                 </p>
             </div>
@@ -2321,21 +2321,21 @@ This architecture provides a solid foundation for a production-ready, scalable, 
             <h2 class="section-title">A Word About Bad Landlords</h2>
 
             <p>
-                Yes, bad landlords exist. Landlords who ignore repairs, who illegally enter your home, 
-                who retaliate when you complain, who try to keep security deposits they have no right to. 
-                When that happens, tenants deserve to know their options and have the documentation to 
+                Yes, bad landlords exist. Landlords who ignore repairs, who illegally enter your home,
+                who retaliate when you complain, who try to keep security deposits they have no right to.
+                When that happens, tenants deserve to know their options and have the documentation to
                 prove what happened.
             </p>
 
             <p>
-                But we're not interested in fighting for the sake of fighting. We're not trying to "get" 
-                anyone. We're trying to help good people document the truth and understand their options. 
+                But we're not interested in fighting for the sake of fighting. We're not trying to "get"
+                anyone. We're trying to help good people document the truth and understand their options.
                 If that documentation exposes wrongdoing, so be it. The truth should speak for itself.
             </p>
 
             <p>
-                Semptify doesn't draw attention to itself. We draw attention to what's right. If you're 
-                a tenant doing what you're supposed to do and your landlord isn't, your journal will 
+                Semptify doesn't draw attention to itself. We draw attention to what's right. If you're
+                a tenant doing what you're supposed to do and your landlord isn't, your journal will
                 reflect that. If it's the other way around... well, that will be clear too.
             </p>
         </section>
@@ -2345,12 +2345,12 @@ This architecture provides a solid foundation for a production-ready, scalable, 
     <!-- CTA - Single entry point: backend routes returning users automatically -->
     <div class="cta" style="border-top: 2px solid var(--primary); margin-top: 0; padding: 3rem 2rem; background: var(--paper);">
         <p style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--primary); font-weight: 500;">Ready to protect your rights?</p>
-        
+
         <a href="/preamble" class="cta-button" style="width: 100%; max-width: 320px; text-align: center; font-family: inherit; margin: 0 auto; display: block; text-decoration: none;">
             <div>📓 Get Started →</div>
             <div style="font-size: 0.9rem; opacity: 0.9;">New or returning — we'll route you right</div>
         </a>
-        
+
         <p class="cta-subtext" style="margin-top: 1.5rem; font-size: 0.9rem;">
             Free to use. Your documents stay in your control.
         </p>
@@ -2389,14 +2389,14 @@ This architecture provides a solid foundation for a production-ready, scalable, 
 
         // SSOT Navigation cache
         let navSSOT = null;
-        
+
         // Set checkpoint cookie - validates user acknowledged terms/privacy
         function setCheckpointCookie() {
             const maxAge = 365 * 24 * 60 * 60; // 1 year
             const secure = window.location.protocol === 'https:' ? '; secure' : '';
             document.cookie = `semptify_checkpoint=acknowledged; path=/; max-age=${maxAge}; samesite=lax${secure}`;
         }
-        
+
         // Fetch navigation from SSOT API (requires checkpoint cookie to pass middleware)
         async function loadNavigation() {
             if (navSSOT) return navSSOT;
@@ -2425,38 +2425,38 @@ This architecture provides a solid foundation for a production-ready, scalable, 
                 return null;
             }
         }
-        
+
         // Enter app - SSOT compliant: set cookie, fetch path from API, then navigate
         async function enterApp() {
             // CRITICAL: Set cookie FIRST so SSOT API request passes middleware
             setCheckpointCookie();
-            
+
             // Small delay to ensure cookie is set before fetch
             await new Promise(r => setTimeout(r, 50));
-            
+
             // Get onboarding start path from SSOT
             const nav = await loadNavigation();
-            
+
             // Get the next stage ID, then lookup its path
             const welcomeStage = nav?.onboarding_flow?.welcome;
             const nextStageId = welcomeStage?.next;
             const nextStage = nextStageId ? nav?.onboarding_flow?.[nextStageId] : null;
             const startPath = nextStage?.path || '/onboarding/start';
-            
+
             if (!nextStage?.path) {
                 reportSSOTViolation('SSOT: welcome.next="' + nextStageId + '" but no path found. Using fallback: ' + startPath);
             }
-            
+
             window.location.href = startPath;
         }
-        
+
         // Check if we came from a gate redirect and show message
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('gate') === 'checkpoint_required') {
             const returnTo = urlParams.get('return_to') || '';
             console.log('Gate: Redirected to welcome. Return path:', returnTo);
         }
-        
+
         // Prevent bfcache issues - reload if restored from cache
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
@@ -2630,7 +2630,7 @@ This architecture provides a solid foundation for a production-ready, scalable, 
     <!-- ── THE CAUSE ──────────────────────────────────────────────── -->
     <h2>Why This Exists</h2>
     <p>
-      Every year, hundreds of thousands of people face eviction, uninhabitable conditions, illegal rent increases, and landlord retaliation. 
+      Every year, hundreds of thousands of people face eviction, uninhabitable conditions, illegal rent increases, and landlord retaliation.
       The legal system can help them — but only if they can organize their evidence, meet their deadlines, communicate clearly, and show up with the right documents.
     </p>
     <p>
@@ -2794,9 +2794,9 @@ This architecture provides a solid foundation for a production-ready, scalable, 
     <div class="orgs-section">
       <h2>Organisations &amp; Government Agencies</h2>
       <div class="orgs-note">
-        These organisations are listed because they provide real help to people facing housing problems. 
-        <strong>None of them pay to be listed here. None of them are partners in a commercial sense. 
-        We do not promote, endorse, or receive anything from them.</strong> 
+        These organisations are listed because they provide real help to people facing housing problems.
+        <strong>None of them pay to be listed here. None of them are partners in a commercial sense.
+        We do not promote, endorse, or receive anything from them.</strong>
         We list them because knowing they exist can help someone in a difficult situation.
       </div>
 
@@ -2898,9 +2898,9 @@ This architecture provides a solid foundation for a production-ready, scalable, 
     <!-- ── TEAM NOTE ───────────────────────────────────────────── -->
     <div class="team-note">
       <strong>Semptify is a labor of conviction.</strong>
-      This platform was built by people who believe that technology should serve those who need it most — not those who can pay the most. 
-      We have no investors, no growth team, and no engagement metrics to hit. 
-      We measure success by whether someone was able to protect their housing because of what we built. 
+      This platform was built by people who believe that technology should serve those who need it most — not those who can pay the most.
+      We have no investors, no growth team, and no engagement metrics to hit.
+      We measure success by whether someone was able to protect their housing because of what we built.
       We are sustained by grants, donations, and the effort of people who believe housing justice matters.
       If that resonates with you, we would be grateful for your support — and even more grateful if you use the tool and share it with someone who needs it.
     </div>
@@ -3146,7 +3146,3 @@ The project is not finished. But the foundation is solid, the rules are written,
 ---
 
 *This document was written on June 23, 2026, grounded in `PROJECT_BIBLE.md`, `AGENTS.md`, `BUILD_GUIDE_SSOT.md`, `GOVERNING_SYSTEM_SSOT.md`, `BUILD_STATE.md`, `ACTIVE_CONTEXT.md`, the work session logs, and the handoff documents. It is a non-technical reflection. For technical detail, read the canonical docs.*
-
-
-
-

@@ -1,4 +1,4 @@
-﻿from app.core.semptify_internal_sdk import (
+from app.core.semptify_internal_sdk import (
     ModuleCapability,
     ModuleManifest,
     ProductTier,

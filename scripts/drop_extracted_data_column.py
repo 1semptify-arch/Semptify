@@ -20,10 +20,11 @@ Usage:
 
 Safe to re-run — checks if column exists before dropping.
 """
+
 import asyncio
 import sys
 
-sys.path.insert(0, '.')
+sys.path.insert(0, ".")
 
 from sqlalchemy import text
 
@@ -34,10 +35,12 @@ async def drop_extracted_data_column():
     engine = get_engine()
     async with engine.begin() as conn:
         # Check if column exists (PostgreSQL)
-        result = await conn.execute(text(
-            "SELECT column_name FROM information_schema.columns "
-            "WHERE table_name='vault_index' AND column_name='extracted_data_json'"
-        ))
+        result = await conn.execute(
+            text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name='vault_index' AND column_name='extracted_data_json'"
+            )
+        )
         if result.fetchone():
             print("Dropping vault_index.extracted_data_json column...")
             await conn.execute(text("ALTER TABLE vault_index DROP COLUMN extracted_data_json"))

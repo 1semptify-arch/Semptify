@@ -24,6 +24,7 @@ router = APIRouter(prefix="/api/actions", tags=["Smart Actions"])
 
 class CaseContext(BaseModel):
     """Context about the user's case"""
+
     has_court_date: bool = False
     court_date: str | None = None
     has_lease: bool = False
@@ -33,7 +34,6 @@ class CaseContext(BaseModel):
     case_type: str | None = None
     urgency_level: str | None = None
     documents_count: int = 0
-
 
 
 @router.get("/plan")
@@ -47,7 +47,7 @@ async def get_action_plan(
 ):
     """
     Get a personalized action plan based on current emotional state and case context.
-    
+
     This endpoint combines the emotion engine state with case context to generate
     the most appropriate next actions for the user.
     """
@@ -60,13 +60,13 @@ async def get_action_plan(
         "has_lease": has_lease,
         "has_payment_records": has_payment_records,
         "maintenance_issues": maintenance_issues,
-        "has_notice": has_notice
+        "has_notice": has_notice,
     }
 
     # Generate action plan
     plan = action_router.generate_action_plan(
         emotional_state=emotional_state.to_dict() if hasattr(emotional_state, "to_dict") else dict(emotional_state),
-        case_context=case_context
+        case_context=case_context,
     )
 
     return plan.to_dict()
@@ -87,10 +87,7 @@ async def get_action_plan_with_context(
     case_context = context.dict()
 
     # Generate action plan
-    plan = action_router.generate_action_plan(
-           emotional_state=emotional_state.to_dict(),
-        case_context=case_context
-    )
+    plan = action_router.generate_action_plan(emotional_state=emotional_state.to_dict(), case_context=case_context)
 
     return plan.to_dict()
 
@@ -104,7 +101,7 @@ async def get_quick_wins():
     quick_wins = action_router.get_quick_wins({})
     return {
         "quick_wins": [a.to_dict() for a in quick_wins],
-        "message": "These are small actions that can help build momentum."
+        "message": "These are small actions that can help build momentum.",
     }
 
 
@@ -112,22 +109,16 @@ async def get_quick_wins():
 async def get_actions_by_category(category: str):
     """
     Get all actions in a specific category.
-    
+
     Categories: legal_deadline, evidence_collection, document_preparation,
     court_preparation, communication, self_care, learning, organization
     """
     try:
         cat = ActionCategory(category)
         actions = action_router.get_actions_by_category(cat)
-        return {
-            "category": category,
-            "actions": [a.to_dict() for a in actions]
-        }
+        return {"category": category, "actions": [a.to_dict() for a in actions]}
     except ValueError:
-        return {
-            "error": f"Unknown category: {category}",
-            "valid_categories": [c.value for c in ActionCategory]
-        }
+        return {"error": f"Unknown category: {category}", "valid_categories": [c.value for c in ActionCategory]}
 
 
 @router.get("/all")
@@ -138,7 +129,7 @@ async def get_all_actions():
     return {
         "actions": [a.to_dict() for a in action_router.action_library.values()],
         "categories": [c.value for c in ActionCategory],
-        "priorities": [p.value for p in ActionPriority]
+        "priorities": [p.value for p in ActionPriority],
     }
 
 
@@ -157,7 +148,7 @@ async def get_current_capacity(user: StorageUser = Depends(yellow_access)):
         "limited": "You have some capacity. Let's focus on 2-3 manageable tasks.",
         "moderate": "You're in a good place to tackle a normal workload.",
         "high": "You have strong capacity right now. Great time for challenging tasks.",
-        "peak": "You're at peak capacity! This is the time for your most important work."
+        "peak": "You're at peak capacity! This is the time for your most important work.",
     }
 
     return {
@@ -170,8 +161,8 @@ async def get_current_capacity(user: StorageUser = Depends(yellow_access)):
             "limited": "Prioritize urgent items, skip non-essentials",
             "moderate": "Work through your planned tasks",
             "high": "Great time for complex tasks or learning",
-            "peak": "Tackle challenging work and make big progress"
-        }.get(capacity.value, "")
+            "peak": "Tackle challenging work and make big progress",
+        }.get(capacity.value, ""),
     }
 
 
@@ -182,7 +173,7 @@ async def get_self_care_suggestions():
     """
     return {
         "self_care_actions": [a.to_dict() for a in action_router.self_care_actions],
-        "message": "Self-care isn't optional - it's fuel for your fight."
+        "message": "Self-care isn't optional - it's fuel for your fight.",
     }
 
 
@@ -199,10 +190,7 @@ async def get_encouragement(user: StorageUser = Depends(yellow_access)):
     messages = action_router.encouragements.get(mode, action_router.encouragements["guided"])
     message = random.choice(messages)
 
-    return {
-        "mode": mode,
-        "message": message
-    }
+    return {"mode": mode, "message": message}
 
 
 @router.get("/next")
@@ -219,23 +207,20 @@ async def get_next_action():
         "has_lease": False,
         "has_payment_records": False,
         "maintenance_issues": False,
-        "has_notice": False
+        "has_notice": False,
     }
 
-    plan = action_router.generate_action_plan(
-        emotional_state=emotional_state,
-        case_context=case_context
-    )
+    plan = action_router.generate_action_plan(emotional_state=emotional_state, case_context=case_context)
 
     if plan.primary_action:
         return {
             "action": plan.primary_action.to_dict(),
             "encouragement": plan.encouragement_message,
-            "self_care": plan.self_care_reminder.to_dict() if plan.self_care_reminder else None
+            "self_care": plan.self_care_reminder.to_dict() if plan.self_care_reminder else None,
         }
     else:
         return {
             "action": None,
             "message": "No actions needed right now. Take a moment to rest.",
-            "encouragement": "You're doing great. Sometimes the best action is to pause."
+            "encouragement": "You're doing great. Sometimes the best action is to pause.",
         }

@@ -30,13 +30,15 @@ logger = logging.getLogger(__name__)
 
 class PreviewType(str, Enum):
     """Types of previews."""
+
     THUMBNAIL = "thumbnail"  # Small image (200x200)
-    PREVIEW = "preview"        # Medium image (800x600)
-    FULL = "full"             # Full resolution
+    PREVIEW = "preview"  # Medium image (800x600)
+    FULL = "full"  # Full resolution
 
 
 class FileCategory(str, Enum):
     """Document category for preview handling."""
+
     PDF = "pdf"
     IMAGE = "image"
     DOCX = "docx"
@@ -48,6 +50,7 @@ class FileCategory(str, Enum):
 @dataclass
 class PreviewResult:
     """Result of preview generation."""
+
     success: bool
     preview_id: str
     preview_type: PreviewType
@@ -63,6 +66,7 @@ class PreviewResult:
 @dataclass
 class PreviewMetadata:
     """Metadata about a preview."""
+
     preview_id: str
     document_id: str
     document_hash: str
@@ -78,7 +82,7 @@ class PreviewMetadata:
 class PreviewService:
     """
     Service for generating document previews and thumbnails.
-    
+
     Features:
     - PDF to image conversion (first page)
     - Image resizing with aspect ratio preservation
@@ -101,25 +105,25 @@ class PreviewService:
         name_lower = filename.lower()
 
         if mime_type:
-            if 'pdf' in mime_type:
+            if "pdf" in mime_type:
                 return FileCategory.PDF
-            if 'image' in mime_type:
+            if "image" in mime_type:
                 return FileCategory.IMAGE
-            if 'word' in mime_type or 'docx' in mime_type:
+            if "word" in mime_type or "docx" in mime_type:
                 return FileCategory.DOCX
-            if 'text' in mime_type:
+            if "text" in mime_type:
                 return FileCategory.TXT
 
         # Fallback to extension
-        if name_lower.endswith('.pdf'):
+        if name_lower.endswith(".pdf"):
             return FileCategory.PDF
-        if any(name_lower.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']):
+        if any(name_lower.endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"]):
             return FileCategory.IMAGE
-        if name_lower.endswith('.docx'):
+        if name_lower.endswith(".docx"):
             return FileCategory.DOCX
-        if name_lower.endswith('.doc'):
+        if name_lower.endswith(".doc"):
             return FileCategory.DOC
-        if name_lower.endswith('.txt'):
+        if name_lower.endswith(".txt"):
             return FileCategory.TXT
 
         return FileCategory.UNKNOWN
@@ -133,21 +137,17 @@ class PreviewService:
         return self.CACHE_DIR / f"{document_id}_{preview_type.value}.png"
 
     async def generate_thumbnail(
-        self,
-        document_id: str,
-        filename: str,
-        document_data: bytes,
-        mime_type: str | None = None
+        self, document_id: str, filename: str, document_data: bytes, mime_type: str | None = None
     ) -> PreviewResult:
         """
         Generate thumbnail for a document.
-        
+
         Args:
             document_id: Document identifier
             filename: Original filename
             document_data: Raw document bytes
             mime_type: Optional MIME type hint
-            
+
         Returns:
             PreviewResult with thumbnail data
         """
@@ -167,7 +167,7 @@ class PreviewService:
                     data=cached_data,
                     width=self.THUMBNAIL_SIZE[0],
                     height=self.THUMBNAIL_SIZE[1],
-                    cached=True
+                    cached=True,
                 )
             except Exception as e:
                 logger.warning(f"Cache read failed: {e}")
@@ -188,34 +188,26 @@ class PreviewService:
                     preview_id="",
                     preview_type=PreviewType.THUMBNAIL,
                     mime_type="",
-                    error_message=f"Unsupported file type: {category}"
+                    error_message=f"Unsupported file type: {category}",
                 )
         except Exception as e:
             logger.error(f"Thumbnail generation failed: {e}")
             return PreviewResult(
-                success=False,
-                preview_id="",
-                preview_type=PreviewType.THUMBNAIL,
-                mime_type="",
-                error_message=str(e)
+                success=False, preview_id="", preview_type=PreviewType.THUMBNAIL, mime_type="", error_message=str(e)
             )
 
     async def generate_preview(
-        self,
-        document_id: str,
-        filename: str,
-        document_data: bytes,
-        mime_type: str | None = None
+        self, document_id: str, filename: str, document_data: bytes, mime_type: str | None = None
     ) -> PreviewResult:
         """
         Generate medium-sized preview for a document.
-        
+
         Args:
             document_id: Document identifier
             filename: Original filename
             document_data: Raw document bytes
             mime_type: Optional MIME type hint
-            
+
         Returns:
             PreviewResult with preview data
         """
@@ -235,7 +227,7 @@ class PreviewService:
                     data=cached_data,
                     width=self.PREVIEW_SIZE[0],
                     height=self.PREVIEW_SIZE[1],
-                    cached=True
+                    cached=True,
                 )
             except Exception as e:
                 logger.warning(f"Cache read failed: {e}")
@@ -255,24 +247,15 @@ class PreviewService:
                     preview_id="",
                     preview_type=PreviewType.PREVIEW,
                     mime_type="",
-                    error_message=f"Unsupported file type: {category}"
+                    error_message=f"Unsupported file type: {category}",
                 )
         except Exception as e:
             logger.error(f"Preview generation failed: {e}")
             return PreviewResult(
-                success=False,
-                preview_id="",
-                preview_type=PreviewType.PREVIEW,
-                mime_type="",
-                error_message=str(e)
+                success=False, preview_id="", preview_type=PreviewType.PREVIEW, mime_type="", error_message=str(e)
             )
 
-    async def _generate_pdf_thumbnail(
-        self,
-        document_id: str,
-        pdf_data: bytes,
-        cache_path: Path
-    ) -> PreviewResult:
+    async def _generate_pdf_thumbnail(self, document_id: str, pdf_data: bytes, cache_path: Path) -> PreviewResult:
         """Generate thumbnail from PDF first page."""
         try:
             from pdf2image import convert_from_bytes
@@ -286,7 +269,7 @@ class PreviewService:
                     preview_id="",
                     preview_type=PreviewType.THUMBNAIL,
                     mime_type="",
-                    error_message="PDF has no pages"
+                    error_message="PDF has no pages",
                 )
 
             # Resize to thumbnail
@@ -295,7 +278,7 @@ class PreviewService:
 
             # Save to bytes
             buffer = io.BytesIO()
-            img.save(buffer, format='PNG')
+            img.save(buffer, format="PNG")
             data = buffer.getvalue()
 
             # Cache
@@ -308,7 +291,7 @@ class PreviewService:
                 mime_type="image/png",
                 data=data,
                 width=img.width,
-                height=img.height
+                height=img.height,
             )
 
         except ImportError:
@@ -318,12 +301,7 @@ class PreviewService:
             logger.error(f"PDF thumbnail error: {e}")
             return await self._generate_placeholder_thumbnail("PDF", cache_path)
 
-    async def _generate_pdf_preview(
-        self,
-        document_id: str,
-        pdf_data: bytes,
-        cache_path: Path
-    ) -> PreviewResult:
+    async def _generate_pdf_preview(self, document_id: str, pdf_data: bytes, cache_path: Path) -> PreviewResult:
         """Generate preview from PDF first page."""
         try:
             from pdf2image import convert_from_bytes
@@ -336,14 +314,14 @@ class PreviewService:
                     preview_id="",
                     preview_type=PreviewType.PREVIEW,
                     mime_type="",
-                    error_message="PDF has no pages"
+                    error_message="PDF has no pages",
                 )
 
             img = images[0]
             img.thumbnail(self.PREVIEW_SIZE)
 
             buffer = io.BytesIO()
-            img.save(buffer, format='PNG')
+            img.save(buffer, format="PNG")
             data = buffer.getvalue()
 
             cache_path.write_bytes(data)
@@ -355,7 +333,7 @@ class PreviewService:
                 mime_type="image/png",
                 data=data,
                 width=img.width,
-                height=img.height
+                height=img.height,
             )
 
         except ImportError:
@@ -364,12 +342,7 @@ class PreviewService:
             logger.error(f"PDF preview error: {e}")
             return await self._generate_placeholder_preview("PDF", cache_path)
 
-    async def _generate_image_thumbnail(
-        self,
-        document_id: str,
-        image_data: bytes,
-        cache_path: Path
-    ) -> PreviewResult:
+    async def _generate_image_thumbnail(self, document_id: str, image_data: bytes, cache_path: Path) -> PreviewResult:
         """Generate thumbnail from image."""
         try:
             from PIL import Image
@@ -378,11 +351,11 @@ class PreviewService:
             img.thumbnail(self.THUMBNAIL_SIZE)
 
             # Convert to RGB if necessary
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
 
             buffer = io.BytesIO()
-            img.save(buffer, format='PNG')
+            img.save(buffer, format="PNG")
             data = buffer.getvalue()
 
             cache_path.write_bytes(data)
@@ -394,19 +367,14 @@ class PreviewService:
                 mime_type="image/png",
                 data=data,
                 width=img.width,
-                height=img.height
+                height=img.height,
             )
 
         except Exception as e:
             logger.error(f"Image thumbnail error: {e}")
             return await self._generate_placeholder_thumbnail("IMG", cache_path)
 
-    async def _generate_image_preview(
-        self,
-        document_id: str,
-        image_data: bytes,
-        cache_path: Path
-    ) -> PreviewResult:
+    async def _generate_image_preview(self, document_id: str, image_data: bytes, cache_path: Path) -> PreviewResult:
         """Generate preview from image."""
         try:
             from PIL import Image
@@ -414,11 +382,11 @@ class PreviewService:
             img = Image.open(io.BytesIO(image_data))
             img.thumbnail(self.PREVIEW_SIZE)
 
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
 
             buffer = io.BytesIO()
-            img.save(buffer, format='PNG')
+            img.save(buffer, format="PNG")
             data = buffer.getvalue()
 
             cache_path.write_bytes(data)
@@ -430,7 +398,7 @@ class PreviewService:
                 mime_type="image/png",
                 data=data,
                 width=img.width,
-                height=img.height
+                height=img.height,
             )
 
         except Exception as e:
@@ -438,34 +406,21 @@ class PreviewService:
             return await self._generate_placeholder_preview("IMG", cache_path)
 
     async def _generate_docx_thumbnail(
-        self,
-        document_id: str,
-        docx_data: bytes,
-        filename: str,
-        cache_path: Path
+        self, document_id: str, docx_data: bytes, filename: str, cache_path: Path
     ) -> PreviewResult:
         """Generate thumbnail for DOCX (placeholder with icon)."""
         return await self._generate_placeholder_thumbnail("DOCX", cache_path)
 
-    async def _generate_text_thumbnail(
-        self,
-        document_id: str,
-        text_data: bytes,
-        cache_path: Path
-    ) -> PreviewResult:
+    async def _generate_text_thumbnail(self, document_id: str, text_data: bytes, cache_path: Path) -> PreviewResult:
         """Generate thumbnail for text file (placeholder with icon)."""
         return await self._generate_placeholder_thumbnail("TXT", cache_path)
 
     async def _generate_text_preview(
-        self,
-        document_id: str,
-        document_data: bytes,
-        filename: str,
-        cache_path: Path
+        self, document_id: str, document_data: bytes, filename: str, cache_path: Path
     ) -> PreviewResult:
         """Generate text preview for documents."""
         try:
-            text = document_data.decode('utf-8', errors='ignore')
+            text = document_data.decode("utf-8", errors="ignore")
 
             # Extract first 5000 characters
             preview_text = text[:5000]
@@ -479,17 +434,13 @@ class PreviewService:
                 mime_type="text/plain",
                 text_content=preview_text,
                 width=0,
-                height=0
+                height=0,
             )
 
         except Exception as e:
             logger.error(f"Text preview error: {e}")
             return PreviewResult(
-                success=False,
-                preview_id="",
-                preview_type=PreviewType.PREVIEW,
-                mime_type="",
-                error_message=str(e)
+                success=False, preview_id="", preview_type=PreviewType.PREVIEW, mime_type="", error_message=str(e)
             )
 
     async def _generate_placeholder_thumbnail(self, label: str, cache_path: Path) -> PreviewResult:
@@ -498,11 +449,11 @@ class PreviewService:
             from PIL import Image, ImageDraw, ImageFont
 
             # Create placeholder image
-            img = Image.new('RGB', self.THUMBNAIL_SIZE, color='#f0f0f0')
+            img = Image.new("RGB", self.THUMBNAIL_SIZE, color="#f0f0f0")
             draw = ImageDraw.Draw(img)
 
             # Draw border
-            draw.rectangle([0, 0, self.THUMBNAIL_SIZE[0]-1, self.THUMBNAIL_SIZE[1]-1], outline='#cccccc')
+            draw.rectangle([0, 0, self.THUMBNAIL_SIZE[0] - 1, self.THUMBNAIL_SIZE[1] - 1], outline="#cccccc")
 
             # Draw label
             try:
@@ -517,10 +468,10 @@ class PreviewService:
             x = (self.THUMBNAIL_SIZE[0] - text_width) // 2
             y = (self.THUMBNAIL_SIZE[1] - text_height) // 2
 
-            draw.text((x, y), label, fill='#666666', font=font)
+            draw.text((x, y), label, fill="#666666", font=font)
 
             buffer = io.BytesIO()
-            img.save(buffer, format='PNG')
+            img.save(buffer, format="PNG")
             data = buffer.getvalue()
 
             cache_path.write_bytes(data)
@@ -532,7 +483,7 @@ class PreviewService:
                 mime_type="image/png",
                 data=data,
                 width=self.THUMBNAIL_SIZE[0],
-                height=self.THUMBNAIL_SIZE[1]
+                height=self.THUMBNAIL_SIZE[1],
             )
 
         except Exception as e:
@@ -542,7 +493,7 @@ class PreviewService:
                 preview_id="",
                 preview_type=PreviewType.THUMBNAIL,
                 mime_type="",
-                error_message="Failed to generate placeholder"
+                error_message="Failed to generate placeholder",
             )
 
     async def _generate_placeholder_preview(self, label: str, cache_path: Path) -> PreviewResult:

@@ -124,18 +124,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Start Server
         run: python -m app.main &
-        
+
       - name: Install Playwright
         run: |
           npm install -g playwright
           npx playwright install chromium
-          
+
       - name: Run E2E Tests
         run: cd tests/e2e && ./run_e2e_tests.sh --ci
-        
+
       - name: Upload Screenshots
         uses: actions/upload-artifact@v3
         with:
@@ -152,15 +152,15 @@ const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch({ headless: false });
   const page = await browser.newPage();
-  
+
   await page.goto('http://localhost:8000/static/welcome.html');
-  
+
   // Click the "Get Started" button
   await page.click('button:has-text("Get Started")');
-  
+
   // Wait for navigation
   await page.waitForURL('**/onboarding/**');
-  
+
   console.log('Navigation successful!');
   await browser.close();
 })();
@@ -220,7 +220,7 @@ npx playwright install chromium
 async function testMyFeature(browser) {
   const context = await browser.newContext();
   const page = await context.newPage();
-  
+
   try {
     await page.goto(`${BASE_URL}/my-route`);
     // ... test logic

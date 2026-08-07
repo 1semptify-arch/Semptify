@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 class RefreshResult:
     """Result of a token refresh attempt."""
+
     SUCCESS = "success"
     NO_REFRESH_TOKEN = "no_refresh_token"
     REFRESH_FAILED = "refresh_failed"
@@ -34,13 +35,10 @@ class RefreshResult:
     PROVIDER_ERROR = "provider_error"
 
 
-async def ensure_valid_token(
-    user_id: str,
-    db: AsyncSession | None = None
-) -> tuple[bool, OAuthToken | None, str]:
+async def ensure_valid_token(user_id: str, db: AsyncSession | None = None) -> tuple[bool, OAuthToken | None, str]:
     """
     Ensure the user has a valid access token, refreshing if needed.
-    
+
     Returns:
         (is_valid, token, status_code)
         - is_valid: True if token is valid (fresh or refreshed)
@@ -67,6 +65,7 @@ def _derive_key(user_id: str) -> bytes:
     import hashlib
 
     from app.core.config import get_settings
+
     settings = get_settings()
     secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
     combined = f"{secret_key}:{user_id}".encode()
@@ -86,7 +85,7 @@ def _encrypt_string(value: str, user_id: str) -> str:
     plaintext = json.dumps({"v": value}).encode()
     aesgcm = AESGCM(key)
     encrypted = aesgcm.encrypt(nonce, plaintext, None)
-    return base64.b64encode(nonce + encrypted).decode('utf-8')
+    return base64.b64encode(nonce + encrypted).decode("utf-8")
 
 
 def _decrypt_string(encrypted: str, user_id: str) -> str:
@@ -97,7 +96,7 @@ def _decrypt_string(encrypted: str, user_id: str) -> str:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
     key = _derive_key(user_id)
-    encrypted_bytes = base64.b64decode(encrypted.encode('utf-8'))
+    encrypted_bytes = base64.b64decode(encrypted.encode("utf-8"))
     nonce = encrypted_bytes[:12]
     ciphertext = encrypted_bytes[12:]
     aesgcm = AESGCM(key)
@@ -106,10 +105,7 @@ def _decrypt_string(encrypted: str, user_id: str) -> str:
     return data["v"]
 
 
-async def _refresh_from_db(
-    user_id: str,
-    db: AsyncSession
-) -> tuple[bool, OAuthToken | None, str]:
+async def _refresh_from_db(user_id: str, db: AsyncSession) -> tuple[bool, OAuthToken | None, str]:
     """
     Load refresh token from DB and attempt async refresh.
 
@@ -180,6 +176,7 @@ async def _refresh_from_db(
         # which imports _encrypt_string/_decrypt_string from this module.
         try:
             from app.modules.storage.router import refresh_access_token
+
             new_token_data = await refresh_access_token(db, user_id, provider, refresh_token)
         except Exception as e:
             logger.error(f"Async token refresh raised for user {user_id[:6]}***: {e}", exc_info=True)
@@ -208,15 +205,13 @@ async def _refresh_from_db(
 
 
 async def get_valid_token_or_redirect(
-    user_id: str,
-    return_to: str,
-    db: AsyncSession | None = None
+    user_id: str, return_to: str, db: AsyncSession | None = None
 ) -> tuple[OAuthToken | None, str | None]:
     """
     Get a valid token, or return the redirect URL for full reauth.
-    
+
     This is the main entry point for storage middleware.
-    
+
     Returns:
         (token, redirect_url)
         - If token is valid: (token, None)

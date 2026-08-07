@@ -72,6 +72,7 @@ logger = logging.getLogger(__name__)
 # PRODUCT TIERS
 # =============================================================================
 
+
 class ProductTier(str, Enum):
     """Semptify product tiers. Each tier is a bounded context."""
 
@@ -102,22 +103,26 @@ class ProductTier(str, Enum):
 # MODULE CAPABILITIES
 # =============================================================================
 
+
 class ModuleCapability(str, Enum):
     """Capabilities a module can declare."""
-    ROUTER = "router"           # Provides FastAPI routes
-    CONTRACT = "contract"       # Declares function-group contracts
-    MESH = "mesh"               # Integrates with Positronic Mesh
-    DOCUMENT = "document"       # Handles document processing
-    WIDGET = "widget"           # Provides UI widgets
-    BACKGROUND = "background"   # Has background tasks
+
+    ROUTER = "router"  # Provides FastAPI routes
+    CONTRACT = "contract"  # Declares function-group contracts
+    MESH = "mesh"  # Integrates with Positronic Mesh
+    DOCUMENT = "document"  # Handles document processing
+    WIDGET = "widget"  # Provides UI widgets
+    BACKGROUND = "background"  # Has background tasks
 
 
 # =============================================================================
 # MODULE TYPES (for Module Hub)
 # =============================================================================
 
+
 class ModuleType(str, Enum):
     """All registered module types"""
+
     EVICTION_DEFENSE = "eviction_defense"
     TIMELINE = "timeline"
     CALENDAR = "calendar"
@@ -143,8 +148,10 @@ class ModuleType(str, Enum):
 # DOCUMENT CATEGORIES
 # =============================================================================
 
+
 class DocumentCategory(str, Enum):
     """Document categories that trigger module routing"""
+
     EVICTION_NOTICE = "eviction_notice"
     LEASE = "lease"
     RENT_RECEIPT = "rent_receipt"
@@ -167,8 +174,10 @@ class DocumentCategory(str, Enum):
 # PACK TYPES
 # =============================================================================
 
+
 class PackType(str, Enum):
     """Types of info packs"""
+
     EVICTION_CASE = "eviction_case"
     LEASE_INFO = "lease_info"
     PAYMENT_HISTORY = "payment_history"
@@ -193,8 +202,10 @@ class PackType(str, Enum):
 # REQUEST TYPES
 # =============================================================================
 
+
 class RequestType(str, Enum):
     """Types of data requests modules can make"""
+
     GET_USER_DOCUMENTS = "get_user_documents"
     GET_DOCUMENT_BY_TYPE = "get_document_by_type"
     GET_TIMELINE_EVENTS = "get_timeline_events"
@@ -211,6 +222,7 @@ class RequestType(str, Enum):
 # =============================================================================
 # FUNCTION GROUP CONTRACTS
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class FunctionGroupContract:
@@ -306,6 +318,7 @@ def register_function_group(contract: FunctionGroupContract) -> FunctionGroupCon
 # PRODUCT MANIFEST - MODULE ENTRY
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class ModuleEntry:
     """Immutable declaration of a FastAPI router module.
@@ -331,9 +344,7 @@ class ModuleEntry:
     def __post_init__(self) -> None:
         # Tags must be non-empty for OpenAPI discoverability
         if not self.tags:
-            object.__setattr__(
-                self, "tags", (self._default_tag(),)
-            )
+            object.__setattr__(self, "tags", (self._default_tag(),))
 
     def _default_tag(self) -> str:
         """Derive a tag from the module name if none provided."""
@@ -350,6 +361,7 @@ class ModuleEntry:
 # =============================================================================
 # MANIFEST REGISTRY
 # =============================================================================
+
 
 class _ManifestRegistry:
     """In-memory registry of all declared module entries."""
@@ -432,9 +444,7 @@ def _load_router(entry: ModuleEntry):
                 exc,
             )
             return None
-        raise RuntimeError(
-            f"Required router failed to load: {entry.qualified_name}"
-        ) from exc
+        raise RuntimeError(f"Required router failed to load: {entry.qualified_name}") from exc
 
 
 def register_tiers(app: FastAPI, *tiers: ProductTier) -> dict:
@@ -490,6 +500,7 @@ def register_all_tiers(app: FastAPI) -> dict:
 # =============================================================================
 # MODULE SDK - MANIFEST
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class ModuleManifest:
@@ -560,6 +571,7 @@ class ModuleManifest:
 @dataclass
 class InstalledModule:
     """Runtime representation of a module that has been registered."""
+
     manifest: ModuleManifest
     router: Any = None
     initialized: bool = False
@@ -593,9 +605,7 @@ class ModuleRegistry:
             return
         self._initialized = True
         self._modules: dict[str, InstalledModule] = {}
-        self._tier_index: dict[ProductTier, list[str]] = {
-            t: [] for t in ProductTier.all()
-        }
+        self._tier_index: dict[ProductTier, list[str]] = {t: [] for t in ProductTier.all()}
 
     def install(self, module: InstalledModule) -> None:
         self._modules[module.manifest.name] = module
@@ -610,17 +620,10 @@ class ModuleRegistry:
         return self._modules.get(name)
 
     def list_by_tier(self, tier: ProductTier) -> list[InstalledModule]:
-        return [
-            self._modules[n]
-            for n in self._tier_index.get(tier, [])
-            if n in self._modules
-        ]
+        return [self._modules[n] for n in self._tier_index.get(tier, []) if n in self._modules]
 
     def list_by_capability(self, capability: ModuleCapability) -> list[InstalledModule]:
-        return [
-            m for m in self._modules.values()
-            if capability in m.manifest.capabilities
-        ]
+        return [m for m in self._modules.values() if capability in m.manifest.capabilities]
 
     def all(self) -> list[InstalledModule]:
         return list(self._modules.values())
@@ -631,15 +634,19 @@ class ModuleRegistry:
         for module in self._modules.values():
             m = module.manifest
             if ModuleCapability.ROUTER in m.capabilities and not m.router_module:
-                violations.append({
-                    "module": m.name,
-                    "reason": "declares ROUTER but router_module is empty",
-                })
+                violations.append(
+                    {
+                        "module": m.name,
+                        "reason": "declares ROUTER but router_module is empty",
+                    }
+                )
             if ModuleCapability.CONTRACT in m.capabilities and not m.contracts:
-                violations.append({
-                    "module": m.name,
-                    "reason": "declares CONTRACT but contracts is empty",
-                })
+                violations.append(
+                    {
+                        "module": m.name,
+                        "reason": "declares CONTRACT but contracts is empty",
+                    }
+                )
         return {
             "valid": len(violations) == 0,
             "total": len(self._modules),
@@ -805,14 +812,8 @@ def get_module_status() -> dict[str, Any]:
     validation = registry.validate()
     return {
         "installed_modules": [m.to_dict() for m in registry.all()],
-        "by_tier": {
-            t.value: [m.manifest.name for m in registry.list_by_tier(t)]
-            for t in ProductTier.all()
-        },
-        "by_capability": {
-            c.value: [m.manifest.name for m in registry.list_by_capability(c)]
-            for c in ModuleCapability
-        },
+        "by_tier": {t.value: [m.manifest.name for m in registry.list_by_tier(t)] for t in ProductTier.all()},
+        "by_capability": {c.value: [m.manifest.name for m in registry.list_by_capability(c)] for c in ModuleCapability},
         "validation": validation,
     }
 
@@ -821,14 +822,16 @@ def get_module_status() -> dict[str, Any]:
 # MODULE HUB - DATA STRUCTURES
 # =============================================================================
 
+
 @dataclass
 class InfoPack:
     """
     An Info Pack - Pre-filled data bundle sent to modules.
-    
+
     Created when document intake recognizes a document type
     and needs to initialize a module with relevant data.
     """
+
     id: str
     pack_type: PackType
     user_id: str
@@ -884,9 +887,10 @@ class InfoPack:
 class DataRequest:
     """
     A data request from a module to the hub.
-    
+
     Modules use this to request data they need from the central system.
     """
+
     id: str
     request_type: RequestType
     requesting_module: ModuleType
@@ -922,10 +926,11 @@ class DataRequest:
 class ModuleUpdate:
     """
     An update from a module back to the hub.
-    
+
     Modules send these when they have new data to share
     with other modules or the main application.
     """
+
     id: str
     source_module: ModuleType
     user_id: str
@@ -958,6 +963,7 @@ class ModuleUpdate:
 @dataclass
 class RegisteredModule:
     """A registered module in the hub"""
+
     module_type: ModuleType
     name: str
     description: str
@@ -989,11 +995,17 @@ DOCUMENT_ROUTING = {
         "pack_type": PackType.EVICTION_CASE,
         "priority": "critical",
         "auto_extract": [
-            "landlord_name", "tenant_name", "property_address",
-            "notice_date", "deadline_date", "reason", "amount_claimed"
+            "landlord_name",
+            "tenant_name",
+            "property_address",
+            "notice_date",
+            "deadline_date",
+            "reason",
+            "amount_claimed",
         ],
         "user_required": [
-            "county", "case_number"  # Often not on notice
+            "county",
+            "case_number",  # Often not on notice
         ],
     },
     DocumentCategory.COURT_SUMMONS: {
@@ -1001,8 +1013,13 @@ DOCUMENT_ROUTING = {
         "pack_type": PackType.COURT_CASE,
         "priority": "critical",
         "auto_extract": [
-            "case_number", "hearing_date", "hearing_time", "court_location",
-            "judge_name", "plaintiff", "defendant"
+            "case_number",
+            "hearing_date",
+            "hearing_time",
+            "court_location",
+            "judge_name",
+            "plaintiff",
+            "defendant",
         ],
         "user_required": [],
     },
@@ -1010,18 +1027,14 @@ DOCUMENT_ROUTING = {
         "target_module": ModuleType.EVICTION_DEFENSE,
         "pack_type": PackType.EVICTION_CASE,
         "priority": "critical",
-        "auto_extract": [
-            "landlord_name", "notice_date", "quit_date", "reason"
-        ],
+        "auto_extract": ["landlord_name", "notice_date", "quit_date", "reason"],
         "user_required": ["property_address"],
     },
     DocumentCategory.PAY_OR_QUIT: {
         "target_module": ModuleType.EVICTION_DEFENSE,
         "pack_type": PackType.EVICTION_CASE,
         "priority": "high",
-        "auto_extract": [
-            "amount_due", "due_date", "landlord_name"
-        ],
+        "auto_extract": ["amount_due", "due_date", "landlord_name"],
         "user_required": ["property_address"],
     },
     DocumentCategory.LEASE: {
@@ -1029,8 +1042,13 @@ DOCUMENT_ROUTING = {
         "pack_type": PackType.LEASE_INFO,
         "priority": "medium",
         "auto_extract": [
-            "landlord_name", "tenant_name", "property_address",
-            "lease_start", "lease_end", "rent_amount", "security_deposit"
+            "landlord_name",
+            "tenant_name",
+            "property_address",
+            "lease_start",
+            "lease_end",
+            "rent_amount",
+            "security_deposit",
         ],
         "user_required": [],
     },
@@ -1038,18 +1056,14 @@ DOCUMENT_ROUTING = {
         "target_module": ModuleType.TIMELINE,
         "pack_type": PackType.PAYMENT_HISTORY,
         "priority": "medium",
-        "auto_extract": [
-            "payment_date", "amount", "payment_method", "landlord_name"
-        ],
+        "auto_extract": ["payment_date", "amount", "payment_method", "landlord_name"],
         "user_required": [],
     },
     DocumentCategory.REPAIR_REQUEST: {
         "target_module": ModuleType.DOCUMENTS,
         "pack_type": PackType.REPAIR_ISSUE,
         "priority": "high",
-        "auto_extract": [
-            "request_date", "issue_description", "landlord_name"
-        ],
+        "auto_extract": ["request_date", "issue_description", "landlord_name"],
         "user_required": [],
     },
 }
@@ -1058,6 +1072,7 @@ DOCUMENT_ROUTING = {
 # =============================================================================
 # MODULE HUB - MAIN CLASS
 # =============================================================================
+
 
 class ModuleHub:
     """
@@ -1141,7 +1156,7 @@ class ModuleHub:
     ) -> InfoPack | None:
         """
         Route a document to the appropriate module.
-        
+
         Called by document pipeline after classification.
         Creates an Info Pack and sends it to the target module.
         """
@@ -1185,10 +1200,7 @@ class ModuleHub:
             user_id=user_id,
         )
 
-        logger.info(
-            f"● Document routed: {doc_category.value} ▸ "
-            f"{routing['target_module'].value} (pack: {pack.id})"
-        )
+        logger.info(f"● Document routed: {doc_category.value} ▸ {routing['target_module'].value} (pack: {pack.id})")
 
         return pack
 
@@ -1233,10 +1245,7 @@ class ModuleHub:
         }
 
         # Add any additional context from user store
-        context_fields = [
-            "landlord_name", "tenant_name", "property_address",
-            "lease_start", "lease_end", "rent_amount"
-        ]
+        context_fields = ["landlord_name", "tenant_name", "property_address", "lease_start", "lease_end", "rent_amount"]
         for field in context_fields:
             if field not in pack_data and field in user_store:
                 pack_data[field] = user_store[field]
@@ -1306,7 +1315,7 @@ class ModuleHub:
     ) -> DataRequest:
         """
         Handle a data request from a module.
-        
+
         Modules call this to get data they need from the hub.
         """
         request = DataRequest(
@@ -1345,7 +1354,7 @@ class ModuleHub:
 
     async def _process_request(self, request: DataRequest) -> dict[str, Any]:
         """Process a data request and return response data"""
-        user_store = self._get_user_store(request.user_id)
+        self._get_user_store(request.user_id)
         params = request.params
 
         handlers = {
@@ -1372,6 +1381,7 @@ class ModuleHub:
         """Get all documents for a user"""
         try:
             from app.services.document_pipeline import get_document_pipeline
+
             pipeline = get_document_pipeline()
             docs = pipeline.get_user_documents(user_id)
             return {
@@ -1387,6 +1397,7 @@ class ModuleHub:
         try:
             from app.services.azure_ai import DocumentType
             from app.services.document_pipeline import get_document_pipeline
+
             pipeline = get_document_pipeline()
             docs = pipeline.get_user_documents_by_type(user_id, DocumentType(doc_type))
             return {
@@ -1400,6 +1411,7 @@ class ModuleHub:
         """Get timeline events for a user"""
         try:
             from app.services.document_pipeline import get_document_pipeline
+
             pipeline = get_document_pipeline()
             timeline = pipeline.get_timeline(user_id)
             return {
@@ -1422,8 +1434,14 @@ class ModuleHub:
         """Get eviction case info for a user"""
         user_store = self._get_user_store(user_id)
         case_fields = [
-            "case_number", "hearing_date", "hearing_time", "court_location",
-            "judge_name", "answer_deadline", "case_type", "filing_date"
+            "case_number",
+            "hearing_date",
+            "hearing_time",
+            "court_location",
+            "judge_name",
+            "answer_deadline",
+            "case_type",
+            "filing_date",
         ]
         case_info = {k: user_store.get(k) for k in case_fields if k in user_store}
         return case_info
@@ -1432,8 +1450,13 @@ class ModuleHub:
         """Get lease information for a user"""
         user_store = self._get_user_store(user_id)
         lease_fields = [
-            "lease_start", "lease_end", "rent_amount", "security_deposit",
-            "landlord_name", "property_address", "lease_terms"
+            "lease_start",
+            "lease_end",
+            "rent_amount",
+            "security_deposit",
+            "landlord_name",
+            "property_address",
+            "lease_terms",
         ]
         lease_data = {k: user_store.get(k) for k in lease_fields if k in user_store}
         return lease_data
@@ -1448,19 +1471,13 @@ class ModuleHub:
     async def _get_landlord_info(self, user_id: str, params: dict) -> dict:
         """Get landlord information"""
         user_store = self._get_user_store(user_id)
-        landlord_fields = [
-            "landlord_name", "landlord_address", "landlord_phone",
-            "landlord_email", "property_manager"
-        ]
+        landlord_fields = ["landlord_name", "landlord_address", "landlord_phone", "landlord_email", "property_manager"]
         return {k: user_store.get(k) for k in landlord_fields if k in user_store}
 
     async def _get_property_info(self, user_id: str, params: dict) -> dict:
         """Get property information"""
         user_store = self._get_user_store(user_id)
-        property_fields = [
-            "property_address", "unit_number", "property_type",
-            "move_in_date", "move_out_date"
-        ]
+        property_fields = ["property_address", "unit_number", "property_type", "move_in_date", "move_out_date"]
         return {k: user_store.get(k) for k in property_fields if k in user_store}
 
     async def _get_applicable_laws(self, user_id: str, params: dict) -> dict:
@@ -1468,6 +1485,7 @@ class ModuleHub:
         user_store = self._get_user_store(user_id)
         try:
             from app.services.law_engine import get_law_engine
+
             law_engine = get_law_engine()
             return law_engine.get_applicable_laws(user_store)
         except Exception as e:
@@ -1492,7 +1510,7 @@ class ModuleHub:
     ) -> ModuleUpdate:
         """
         Send an update from a module to the hub.
-        
+
         Modules call this when they have new data to share.
         """
         update = ModuleUpdate(
@@ -1568,13 +1586,15 @@ class ModuleHub:
 
     def _log_comm(self, comm_type: str, module: str, details: dict, user_id: str):
         """Log a communication event"""
-        self._comm_log.append({
-            "timestamp": utc_now().isoformat(),
-            "type": comm_type,
-            "module": module,
-            "details": details,
-            "user_id": user_id,
-        })
+        self._comm_log.append(
+            {
+                "timestamp": utc_now().isoformat(),
+                "type": comm_type,
+                "module": module,
+                "details": details,
+                "user_id": user_id,
+            }
+        )
 
     def get_comm_log(self, user_id: str = None, limit: int = 100) -> list[dict]:
         """Get communication log"""
@@ -1634,28 +1654,21 @@ module_hub = ModuleHub()
 __all__ = [
     # Product Tiers
     "ProductTier",
-
     # Module Capabilities
     "ModuleCapability",
-
     # Module Types
     "ModuleType",
-
     # Document Categories
     "DocumentCategory",
-
     # Pack Types
     "PackType",
-
     # Request Types
     "RequestType",
-
     # Contracts
     "FunctionGroupContract",
     "ModuleContractRegistry",
     "contract_registry",
     "register_function_group",
-
     # Product Manifest
     "ModuleEntry",
     "_ManifestRegistry",
@@ -1664,7 +1677,6 @@ __all__ = [
     "_load_router",
     "register_tiers",
     "register_all_tiers",
-
     # Module SDK
     "ModuleManifest",
     "InstalledModule",
@@ -1673,7 +1685,6 @@ __all__ = [
     "register_module",
     "register_tier_modules",
     "get_module_status",
-
     # Module Hub
     "InfoPack",
     "DataRequest",

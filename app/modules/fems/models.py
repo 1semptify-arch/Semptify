@@ -60,6 +60,7 @@ class FemsPhoneNumber(Base):
 
 class FemsDocumentPhone(Base):
     """Many-to-many link between documents and phone numbers."""
+
     __tablename__ = "fems_document_phones"
 
     id = Column(Integer, primary_key=True, index=True)

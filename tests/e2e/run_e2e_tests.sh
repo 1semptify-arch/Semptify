@@ -2,7 +2,7 @@
 #
 # Semptify E2E Test Runner
 # ========================
-# 
+#
 # Usage:
 #   ./run_e2e_tests.sh              # Run all tests
 #   ./run_e2e_tests.sh --quick      # Run quick smoke test only

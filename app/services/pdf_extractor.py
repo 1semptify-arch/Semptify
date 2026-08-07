@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ExtractionResult:
     """Result of PDF text extraction."""
+
     text: str
     page_count: int
     method_used: str
@@ -49,6 +50,7 @@ class PDFExtractor:
 
         try:
             import pdfplumber
+
             self.has_pdfplumber = True
         except ImportError:
             # pdfplumber not installed, will use other methods
@@ -56,6 +58,7 @@ class PDFExtractor:
 
         try:
             import fitz  # PyMuPDF
+
             self.has_pymupdf = True
         except ImportError:
             # PyMuPDF not installed, will use other methods
@@ -63,26 +66,24 @@ class PDFExtractor:
 
         try:
             import PyPDF2
+
             self.has_pypdf2 = True
         except ImportError:
             # PyPDF2 not installed, will use other methods
             pass
 
-        logger.info(f"PDF methods: pdfplumber={self.has_pdfplumber}, "
-                   f"pymupdf={self.has_pymupdf}, pypdf2={self.has_pypdf2}")
+        logger.info(
+            f"PDF methods: pdfplumber={self.has_pdfplumber}, pymupdf={self.has_pymupdf}, pypdf2={self.has_pypdf2}"
+        )
 
-    def extract(
-        self,
-        content: bytes | Path | str,
-        prefer_ocr: bool = False
-    ) -> ExtractionResult:
+    def extract(self, content: bytes | Path | str, prefer_ocr: bool = False) -> ExtractionResult:
         """
         Extract text from a PDF file.
-        
+
         Args:
             content: PDF bytes, file path, or path string
             prefer_ocr: If True, use OCR even for text PDFs
-            
+
         Returns:
             ExtractionResult with extracted text
         """
@@ -123,7 +124,7 @@ class PDFExtractor:
             method_used="none",
             has_images=True,
             confidence=0.0,
-            metadata={"needs_ocr": True}
+            metadata={"needs_ocr": True},
         )
 
     def _extract_pdfplumber(self, content: bytes) -> ExtractionResult | None:
@@ -162,7 +163,7 @@ class PDFExtractor:
                 page_count=page_count,
                 method_used="pdfplumber",
                 has_images=has_images,
-                confidence=0.95 if len(full_text) > 100 else 0.7
+                confidence=0.95 if len(full_text) > 100 else 0.7,
             )
 
         except Exception as e:
@@ -198,7 +199,7 @@ class PDFExtractor:
                 page_count=page_count,
                 method_used="pymupdf",
                 has_images=has_images,
-                confidence=0.9 if len(full_text) > 100 else 0.6
+                confidence=0.9 if len(full_text) > 100 else 0.6,
             )
 
         except Exception as e:
@@ -226,7 +227,7 @@ class PDFExtractor:
                 page_count=page_count,
                 method_used="pypdf2",
                 has_images=False,  # PyPDF2 doesn't easily detect images
-                confidence=0.8 if len(full_text) > 100 else 0.5
+                confidence=0.8 if len(full_text) > 100 else 0.5,
             )
 
         except Exception as e:
@@ -238,6 +239,7 @@ class PDFExtractor:
         try:
             if self.has_pymupdf:
                 import fitz
+
                 doc = fitz.open(stream=content, filetype="pdf")
                 count = len(doc)
                 doc.close()
@@ -248,6 +250,7 @@ class PDFExtractor:
         try:
             if self.has_pypdf2:
                 import PyPDF2
+
                 reader = PyPDF2.PdfReader(io.BytesIO(content))
                 return len(reader.pages)
         except Exception:
@@ -256,20 +259,17 @@ class PDFExtractor:
         return 0
 
     def extract_with_ocr(
-        self,
-        content: bytes,
-        azure_endpoint: str | None = None,
-        azure_key: str | None = None
+        self, content: bytes, azure_endpoint: str | None = None, azure_key: str | None = None
     ) -> ExtractionResult:
         """
         Extract text from a scanned PDF using OCR.
         Uses Azure Document Intelligence if configured, otherwise attempts local OCR.
-        
+
         Args:
             content: PDF file bytes
             azure_endpoint: Azure Document Intelligence endpoint
             azure_key: Azure API key
-            
+
         Returns:
             ExtractionResult with OCR-extracted text
         """
@@ -296,12 +296,7 @@ class PDFExtractor:
         result.metadata["ocr_failed"] = True
         return result
 
-    def _azure_ocr(
-        self,
-        content: bytes,
-        endpoint: str,
-        key: str
-    ) -> ExtractionResult | None:
+    def _azure_ocr(self, content: bytes, endpoint: str, key: str) -> ExtractionResult | None:
         """Use Azure Document Intelligence for OCR."""
         # Early return if no valid credentials
         if not endpoint or not key:
@@ -334,10 +329,7 @@ class PDFExtractor:
 
                         for _ in range(30):
                             await asyncio.sleep(1)
-                            result = await client.get(
-                                operation_url,
-                                headers={"Ocp-Apim-Subscription-Key": key}
-                            )
+                            result = await client.get(operation_url, headers={"Ocp-Apim-Subscription-Key": key})
                             data = result.json()
 
                             if data.get("status") == "succeeded":
@@ -352,7 +344,7 @@ class PDFExtractor:
                                     method_used="azure_ocr",
                                     has_images=True,
                                     confidence=0.95,
-                                    metadata={"ocr_provider": "azure"}
+                                    metadata={"ocr_provider": "azure"},
                                 )
                             elif data.get("status") == "failed":
                                 return None
@@ -367,7 +359,7 @@ class PDFExtractor:
                             method_used="azure_ocr",
                             has_images=True,
                             confidence=0.95,
-                            metadata={"ocr_provider": "azure"}
+                            metadata={"ocr_provider": "azure"},
                         )
 
                 return None
@@ -378,9 +370,10 @@ class PDFExtractor:
         try:
             # Check if we're in an existing event loop
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # We're in an async context - create task properly
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     future = pool.submit(asyncio.run, do_ocr())
                     return future.result(timeout=120)
@@ -411,6 +404,7 @@ class PDFExtractor:
             try:
                 import pytesseract
                 from PIL import Image
+
                 has_tesseract = True
             except ImportError:
                 has_tesseract = False
@@ -441,7 +435,7 @@ class PDFExtractor:
                     method_used="local_ocr" if has_tesseract else "pymupdf",
                     has_images=True,
                     confidence=0.8 if has_tesseract else 0.6,
-                    metadata={"ocr_provider": "tesseract" if has_tesseract else "none"}
+                    metadata={"ocr_provider": "tesseract" if has_tesseract else "none"},
                 )
 
             return None
@@ -467,10 +461,10 @@ def get_pdf_extractor() -> PDFExtractor:
 def extract_pdf_text(content: bytes | Path | str) -> str:
     """
     Quick function to extract text from a PDF.
-    
+
     Args:
         content: PDF bytes or file path
-        
+
     Returns:
         Extracted text string
     """

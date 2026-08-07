@@ -2,7 +2,7 @@
 Tone & Direction Analyzer
 ==========================
 
-Analyzes the tone (threatening, demanding, etc.) and direction 
+Analyzes the tone (threatening, demanding, etc.) and direction
 (where this is headed) of legal documents.
 
 Courtroom-accurate interpretation of document intent.
@@ -18,47 +18,50 @@ logger = logging.getLogger(__name__)
 
 class DocumentTone(str, Enum):
     """The overall tone/mood of the document"""
-    THREATENING = "threatening"      # Implying harm/consequences
-    DEMANDING = "demanding"          # Requiring action
-    URGENT = "urgent"                # Time-sensitive, immediate
-    WARNING = "warning"              # Cautionary, heads-up
+
+    THREATENING = "threatening"  # Implying harm/consequences
+    DEMANDING = "demanding"  # Requiring action
+    URGENT = "urgent"  # Time-sensitive, immediate
+    WARNING = "warning"  # Cautionary, heads-up
     INFORMATIONAL = "informational"  # Just providing info
-    FORMAL_LEGAL = "formal_legal"    # Standard legal language
-    FRIENDLY = "friendly"            # Cordial, cooperative
-    NEUTRAL = "neutral"              # No strong tone
-    HOSTILE = "hostile"              # Aggressive, adversarial
-    CONCILIATORY = "conciliatory"    # Seeking resolution
+    FORMAL_LEGAL = "formal_legal"  # Standard legal language
+    FRIENDLY = "friendly"  # Cordial, cooperative
+    NEUTRAL = "neutral"  # No strong tone
+    HOSTILE = "hostile"  # Aggressive, adversarial
+    CONCILIATORY = "conciliatory"  # Seeking resolution
 
 
 class ProcessDirection(str, Enum):
     """Where this document is heading in the legal process"""
+
     # Pre-litigation
-    INITIAL_CONTACT = "initial_contact"           # First communication
-    DEMAND = "demand"                              # Demanding action
-    FINAL_WARNING = "final_warning"               # Last chance before legal
+    INITIAL_CONTACT = "initial_contact"  # First communication
+    DEMAND = "demand"  # Demanding action
+    FINAL_WARNING = "final_warning"  # Last chance before legal
 
     # Eviction process stages
-    EVICTION_START = "eviction_start"             # Beginning eviction
+    EVICTION_START = "eviction_start"  # Beginning eviction
     COURT_FILING_IMMINENT = "court_filing_imminent"  # About to file
-    COURT_FILED = "court_filed"                   # Already in court
-    HEARING_SCHEDULED = "hearing_scheduled"       # Court date set
-    JUDGMENT_ENTERED = "judgment_entered"         # Court decided
-    ENFORCEMENT = "enforcement"                   # Sheriff removal
+    COURT_FILED = "court_filed"  # Already in court
+    HEARING_SCHEDULED = "hearing_scheduled"  # Court date set
+    JUDGMENT_ENTERED = "judgment_entered"  # Court decided
+    ENFORCEMENT = "enforcement"  # Sheriff removal
 
     # Resolution paths
-    NEGOTIATION = "negotiation"                   # Working out deal
-    SETTLEMENT = "settlement"                     # Agreeing to terms
-    COMPLIANCE_REQUEST = "compliance_request"    # Asking to fix issue
+    NEGOTIATION = "negotiation"  # Working out deal
+    SETTLEMENT = "settlement"  # Agreeing to terms
+    COMPLIANCE_REQUEST = "compliance_request"  # Asking to fix issue
 
     # Administrative
-    ROUTINE = "routine"                           # Normal business
-    RECORD_KEEPING = "record_keeping"            # Documentation only
+    ROUTINE = "routine"  # Normal business
+    RECORD_KEEPING = "record_keeping"  # Documentation only
 
     UNKNOWN = "unknown"
 
 
 class CommunicationFlow(str, Enum):
     """Who is communicating to whom"""
+
     LANDLORD_TO_TENANT = "landlord_to_tenant"
     TENANT_TO_LANDLORD = "tenant_to_landlord"
     COURT_TO_TENANT = "court_to_tenant"
@@ -79,6 +82,7 @@ class CommunicationFlow(str, Enum):
 @dataclass
 class PartyInfo:
     """Information about a party in the communication"""
+
     name: str = ""
     role: str = ""  # landlord, tenant, attorney, court, etc.
     organization: str = ""
@@ -91,6 +95,7 @@ class PartyInfo:
 @dataclass
 class ToneIndicator:
     """Evidence of a particular tone"""
+
     phrase: str
     tone: DocumentTone
     weight: float  # How strongly this indicates the tone
@@ -101,6 +106,7 @@ class ToneIndicator:
 @dataclass
 class DirectionIndicator:
     """Evidence of process direction"""
+
     phrase: str
     direction: ProcessDirection
     weight: float
@@ -111,6 +117,7 @@ class DirectionIndicator:
 @dataclass
 class ToneAnalysisResult:
     """Complete tone and direction analysis"""
+
     # Primary classifications
     primary_tone: DocumentTone = DocumentTone.NEUTRAL
     primary_direction: ProcessDirection = ProcessDirection.UNKNOWN
@@ -171,8 +178,7 @@ class ToneAnalysisResult:
             },
             "indicators": {
                 "tone": [
-                    {"phrase": t.phrase, "tone": t.tone.value, "weight": t.weight}
-                    for t in self.tone_indicators[:10]
+                    {"phrase": t.phrase, "tone": t.tone.value, "weight": t.weight} for t in self.tone_indicators[:10]
                 ],
                 "direction": [
                     {"phrase": d.phrase, "direction": d.direction.value, "next_step": d.implies_next_step}
@@ -190,7 +196,7 @@ class ToneAnalysisResult:
 class ToneAnalyzer:
     """
     Analyzes document tone and direction.
-    
+
     Uses pattern matching against known legal language to determine:
     1. How the document "feels" (threatening, demanding, etc.)
     2. Where in the legal process this sits
@@ -207,10 +213,16 @@ class ToneAnalyzer:
         return {
             DocumentTone.THREATENING: [
                 {"pattern": r"(?i)will\s+(?:be\s+)?(?:forced|compelled)\s+to", "weight": 0.9},
-                {"pattern": r"(?i)legal\s+(?:action|proceedings)\s+will\s+(?:be\s+)?(?:taken|commenced|initiated)", "weight": 0.95},
+                {
+                    "pattern": r"(?i)legal\s+(?:action|proceedings)\s+will\s+(?:be\s+)?(?:taken|commenced|initiated)",
+                    "weight": 0.95,
+                },
                 {"pattern": r"(?i)you\s+will\s+(?:be\s+)?(?:evicted|removed|sued)", "weight": 0.95},
                 {"pattern": r"(?i)sheriff\s+will", "weight": 0.9},
-                {"pattern": r"(?i)failure\s+to\s+(?:comply|respond|pay).*(?:will\s+result|shall\s+result)", "weight": 0.85},
+                {
+                    "pattern": r"(?i)failure\s+to\s+(?:comply|respond|pay).*(?:will\s+result|shall\s+result)",
+                    "weight": 0.85,
+                },
                 {"pattern": r"(?i)judgment\s+(?:will|shall)\s+be\s+entered\s+against", "weight": 0.9},
                 {"pattern": r"(?i)(?:full\s+)?consequences", "weight": 0.7},
                 {"pattern": r"(?i)held\s+(?:liable|responsible|accountable)", "weight": 0.8},
@@ -249,10 +261,16 @@ class ToneAnalyzer:
             DocumentTone.INFORMATIONAL: [
                 {"pattern": r"(?i)(?:for\s+your\s+)?(?:information|records|reference)", "weight": 0.8},
                 {"pattern": r"(?i)(?:please\s+)?(?:note|be\s+aware)\s+that", "weight": 0.7},
-                {"pattern": r"(?i)this\s+(?:letter|notice)\s+(?:is\s+)?(?:to\s+)?(?:inform|notify|advise)", "weight": 0.85},
+                {
+                    "pattern": r"(?i)this\s+(?:letter|notice)\s+(?:is\s+)?(?:to\s+)?(?:inform|notify|advise)",
+                    "weight": 0.85,
+                },
                 {"pattern": r"(?i)(?:enclosed|attached)\s+(?:please\s+find|is|are)", "weight": 0.75},
                 {"pattern": r"(?i)(?:as\s+(?:a\s+)?(?:reminder|follow[\s-]?up))", "weight": 0.7},
-                {"pattern": r"(?i)(?:we\s+)?(?:wanted\s+to|would\s+like\s+to)\s+(?:let\s+you\s+know|inform)", "weight": 0.7},
+                {
+                    "pattern": r"(?i)(?:we\s+)?(?:wanted\s+to|would\s+like\s+to)\s+(?:let\s+you\s+know|inform)",
+                    "weight": 0.7,
+                },
             ],
             DocumentTone.FORMAL_LEGAL: [
                 {"pattern": r"(?i)(?:hereby|herein|hereto|thereof|therein|whereas)", "weight": 0.9},
@@ -294,57 +312,202 @@ class ToneAnalyzer:
         """Build patterns that indicate process direction"""
         return {
             ProcessDirection.EVICTION_START: [
-                {"pattern": r"(?i)(?:14|fourteen)[\s-]?day\s+notice", "weight": 0.95, "next": "Court filing if not resolved", "days": 14},
+                {
+                    "pattern": r"(?i)(?:14|fourteen)[\s-]?day\s+notice",
+                    "weight": 0.95,
+                    "next": "Court filing if not resolved",
+                    "days": 14,
+                },
                 {"pattern": r"(?i)notice\s+to\s+(?:quit|vacate)", "weight": 0.9, "next": "Eviction filing", "days": 14},
-                {"pattern": r"(?i)(?:first|initial)\s+notice", "weight": 0.8, "next": "Further notices or court", "days": 14},
-                {"pattern": r"(?i)pay\s+(?:rent\s+)?or\s+(?:quit|vacate)", "weight": 0.95, "next": "Court filing", "days": 14},
+                {
+                    "pattern": r"(?i)(?:first|initial)\s+notice",
+                    "weight": 0.8,
+                    "next": "Further notices or court",
+                    "days": 14,
+                },
+                {
+                    "pattern": r"(?i)pay\s+(?:rent\s+)?or\s+(?:quit|vacate)",
+                    "weight": 0.95,
+                    "next": "Court filing",
+                    "days": 14,
+                },
             ],
             ProcessDirection.FINAL_WARNING: [
-                {"pattern": r"(?i)(?:final|last)\s+(?:notice|warning|chance)", "weight": 0.95, "next": "Immediate legal action", "days": 3},
-                {"pattern": r"(?i)(?:this\s+is\s+)?(?:your\s+)?last\s+opportunity", "weight": 0.9, "next": "Filing with court", "days": 3},
-                {"pattern": r"(?i)(?:no\s+)?further\s+(?:notice|warning)s?\s+will\s+be\s+(?:given|sent)", "weight": 0.95, "next": "Court action", "days": 1},
+                {
+                    "pattern": r"(?i)(?:final|last)\s+(?:notice|warning|chance)",
+                    "weight": 0.95,
+                    "next": "Immediate legal action",
+                    "days": 3,
+                },
+                {
+                    "pattern": r"(?i)(?:this\s+is\s+)?(?:your\s+)?last\s+opportunity",
+                    "weight": 0.9,
+                    "next": "Filing with court",
+                    "days": 3,
+                },
+                {
+                    "pattern": r"(?i)(?:no\s+)?further\s+(?:notice|warning)s?\s+will\s+be\s+(?:given|sent)",
+                    "weight": 0.95,
+                    "next": "Court action",
+                    "days": 1,
+                },
             ],
             ProcessDirection.COURT_FILING_IMMINENT: [
-                {"pattern": r"(?i)(?:will|shall)\s+(?:file|commence|initiate)\s+(?:legal|court|eviction)", "weight": 0.9, "next": "Summons", "days": 7},
-                {"pattern": r"(?i)(?:intend|plan)\s+to\s+(?:file|sue|take.*court)", "weight": 0.85, "next": "Court filing", "days": 7},
-                {"pattern": r"(?i)(?:attorney|lawyer)\s+(?:has\s+been\s+)?(?:instructed|retained)", "weight": 0.8, "next": "Legal action", "days": 14},
+                {
+                    "pattern": r"(?i)(?:will|shall)\s+(?:file|commence|initiate)\s+(?:legal|court|eviction)",
+                    "weight": 0.9,
+                    "next": "Summons",
+                    "days": 7,
+                },
+                {
+                    "pattern": r"(?i)(?:intend|plan)\s+to\s+(?:file|sue|take.*court)",
+                    "weight": 0.85,
+                    "next": "Court filing",
+                    "days": 7,
+                },
+                {
+                    "pattern": r"(?i)(?:attorney|lawyer)\s+(?:has\s+been\s+)?(?:instructed|retained)",
+                    "weight": 0.8,
+                    "next": "Legal action",
+                    "days": 14,
+                },
             ],
             ProcessDirection.COURT_FILED: [
                 {"pattern": r"(?i)case\s+(?:no\.?|number|#)", "weight": 0.95, "next": "Court hearing", "days": 14},
-                {"pattern": r"(?i)(?:summons|complaint)\s+(?:is\s+)?(?:attached|enclosed|served)", "weight": 0.95, "next": "Answer deadline", "days": 7},
-                {"pattern": r"(?i)you\s+(?:are|have)\s+(?:been\s+)?(?:sued|served)", "weight": 0.95, "next": "Must respond", "days": 7},
+                {
+                    "pattern": r"(?i)(?:summons|complaint)\s+(?:is\s+)?(?:attached|enclosed|served)",
+                    "weight": 0.95,
+                    "next": "Answer deadline",
+                    "days": 7,
+                },
+                {
+                    "pattern": r"(?i)you\s+(?:are|have)\s+(?:been\s+)?(?:sued|served)",
+                    "weight": 0.95,
+                    "next": "Must respond",
+                    "days": 7,
+                },
                 {"pattern": r"(?i)(?:district|housing)\s+court", "weight": 0.8, "next": "Court appearance", "days": 14},
             ],
             ProcessDirection.HEARING_SCHEDULED: [
-                {"pattern": r"(?i)(?:hearing|trial|court\s+date)\s+(?:is\s+)?(?:set|scheduled)", "weight": 0.95, "next": "Appear in court", "days": 7},
-                {"pattern": r"(?i)(?:appear|attendance)\s+(?:is\s+)?(?:required|mandatory)", "weight": 0.9, "next": "Court appearance", "days": 7},
-                {"pattern": r"(?i)(?:courtroom|location|address).*(?:date|time)", "weight": 0.8, "next": "Hearing", "days": 14},
+                {
+                    "pattern": r"(?i)(?:hearing|trial|court\s+date)\s+(?:is\s+)?(?:set|scheduled)",
+                    "weight": 0.95,
+                    "next": "Appear in court",
+                    "days": 7,
+                },
+                {
+                    "pattern": r"(?i)(?:appear|attendance)\s+(?:is\s+)?(?:required|mandatory)",
+                    "weight": 0.9,
+                    "next": "Court appearance",
+                    "days": 7,
+                },
+                {
+                    "pattern": r"(?i)(?:courtroom|location|address).*(?:date|time)",
+                    "weight": 0.8,
+                    "next": "Hearing",
+                    "days": 14,
+                },
             ],
             ProcessDirection.JUDGMENT_ENTERED: [
-                {"pattern": r"(?i)judgment\s+(?:has\s+been\s+)?(?:entered|issued|granted)", "weight": 0.95, "next": "Writ of recovery", "days": 7},
-                {"pattern": r"(?i)(?:court|judge)\s+(?:has\s+)?(?:ruled|ordered|decided)", "weight": 0.9, "next": "Compliance required", "days": 7},
+                {
+                    "pattern": r"(?i)judgment\s+(?:has\s+been\s+)?(?:entered|issued|granted)",
+                    "weight": 0.95,
+                    "next": "Writ of recovery",
+                    "days": 7,
+                },
+                {
+                    "pattern": r"(?i)(?:court|judge)\s+(?:has\s+)?(?:ruled|ordered|decided)",
+                    "weight": 0.9,
+                    "next": "Compliance required",
+                    "days": 7,
+                },
                 {"pattern": r"(?i)(?:default|summary)\s+judgment", "weight": 0.95, "next": "Enforcement", "days": 7},
             ],
             ProcessDirection.ENFORCEMENT: [
-                {"pattern": r"(?i)writ\s+of\s+(?:recovery|restitution)", "weight": 0.95, "next": "Sheriff removal", "days": 3},
-                {"pattern": r"(?i)sheriff\s+(?:will|shall|is\s+authorized)", "weight": 0.95, "next": "Physical removal", "days": 3},
-                {"pattern": r"(?i)(?:remove|removal|evict)\s+(?:you|tenant|defendant)", "weight": 0.9, "next": "Lockout", "days": 3},
-                {"pattern": r"(?i)(?:vacate|leave)\s+(?:the\s+)?(?:premises|property)\s+(?:by|before)", "weight": 0.9, "next": "Removal", "days": 3},
+                {
+                    "pattern": r"(?i)writ\s+of\s+(?:recovery|restitution)",
+                    "weight": 0.95,
+                    "next": "Sheriff removal",
+                    "days": 3,
+                },
+                {
+                    "pattern": r"(?i)sheriff\s+(?:will|shall|is\s+authorized)",
+                    "weight": 0.95,
+                    "next": "Physical removal",
+                    "days": 3,
+                },
+                {
+                    "pattern": r"(?i)(?:remove|removal|evict)\s+(?:you|tenant|defendant)",
+                    "weight": 0.9,
+                    "next": "Lockout",
+                    "days": 3,
+                },
+                {
+                    "pattern": r"(?i)(?:vacate|leave)\s+(?:the\s+)?(?:premises|property)\s+(?:by|before)",
+                    "weight": 0.9,
+                    "next": "Removal",
+                    "days": 3,
+                },
             ],
             ProcessDirection.NEGOTIATION: [
-                {"pattern": r"(?i)(?:willing\s+to|open\s+to)\s+(?:discuss|negotiate|work)", "weight": 0.85, "next": "Agreement possible", "days": None},
-                {"pattern": r"(?i)(?:payment\s+plan|payment\s+arrangement|installment)", "weight": 0.9, "next": "Structured payment", "days": None},
-                {"pattern": r"(?i)(?:contact|call|reach\s+out).*(?:discuss|arrange|work\s+out)", "weight": 0.8, "next": "Conversation", "days": None},
+                {
+                    "pattern": r"(?i)(?:willing\s+to|open\s+to)\s+(?:discuss|negotiate|work)",
+                    "weight": 0.85,
+                    "next": "Agreement possible",
+                    "days": None,
+                },
+                {
+                    "pattern": r"(?i)(?:payment\s+plan|payment\s+arrangement|installment)",
+                    "weight": 0.9,
+                    "next": "Structured payment",
+                    "days": None,
+                },
+                {
+                    "pattern": r"(?i)(?:contact|call|reach\s+out).*(?:discuss|arrange|work\s+out)",
+                    "weight": 0.8,
+                    "next": "Conversation",
+                    "days": None,
+                },
             ],
             ProcessDirection.SETTLEMENT: [
-                {"pattern": r"(?i)(?:settlement|stipulation)\s+(?:agreement|offer)", "weight": 0.95, "next": "Sign agreement", "days": None},
-                {"pattern": r"(?i)(?:agreed|agree)\s+to\s+(?:the\s+following|terms)", "weight": 0.9, "next": "Compliance", "days": None},
-                {"pattern": r"(?i)(?:in\s+exchange\s+for|condition(?:al|ed)\s+(?:on|upon))", "weight": 0.85, "next": "Meet conditions", "days": None},
+                {
+                    "pattern": r"(?i)(?:settlement|stipulation)\s+(?:agreement|offer)",
+                    "weight": 0.95,
+                    "next": "Sign agreement",
+                    "days": None,
+                },
+                {
+                    "pattern": r"(?i)(?:agreed|agree)\s+to\s+(?:the\s+following|terms)",
+                    "weight": 0.9,
+                    "next": "Compliance",
+                    "days": None,
+                },
+                {
+                    "pattern": r"(?i)(?:in\s+exchange\s+for|condition(?:al|ed)\s+(?:on|upon))",
+                    "weight": 0.85,
+                    "next": "Meet conditions",
+                    "days": None,
+                },
             ],
             ProcessDirection.ROUTINE: [
-                {"pattern": r"(?i)(?:annual|monthly|regular)\s+(?:notice|inspection|statement)", "weight": 0.8, "next": "Normal business", "days": None},
-                {"pattern": r"(?i)(?:renewal|renew(?:ing)?)\s+(?:your\s+)?lease", "weight": 0.85, "next": "Sign renewal", "days": 30},
-                {"pattern": r"(?i)(?:thank\s+you\s+for\s+your\s+payment|received\s+your\s+(?:rent|payment))", "weight": 0.9, "next": "None needed", "days": None},
+                {
+                    "pattern": r"(?i)(?:annual|monthly|regular)\s+(?:notice|inspection|statement)",
+                    "weight": 0.8,
+                    "next": "Normal business",
+                    "days": None,
+                },
+                {
+                    "pattern": r"(?i)(?:renewal|renew(?:ing)?)\s+(?:your\s+)?lease",
+                    "weight": 0.85,
+                    "next": "Sign renewal",
+                    "days": 30,
+                },
+                {
+                    "pattern": r"(?i)(?:thank\s+you\s+for\s+your\s+payment|received\s+your\s+(?:rent|payment))",
+                    "weight": 0.9,
+                    "next": "None needed",
+                    "days": None,
+                },
             ],
         }
 
@@ -392,11 +555,11 @@ class ToneAnalyzer:
     def analyze(self, text: str, document_type: str | None = None) -> ToneAnalysisResult:
         """
         Perform full tone and direction analysis.
-        
+
         Args:
             text: Document text to analyze
             document_type: Optional document type hint
-            
+
         Returns:
             ToneAnalysisResult with complete analysis
         """
@@ -438,9 +601,7 @@ class ToneAnalyzer:
 
         # Calculate urgency
         result.urgency_score = self._calculate_urgency(
-            result.primary_tone,
-            result.primary_direction,
-            result.days_to_respond
+            result.primary_tone, result.primary_direction, result.days_to_respond
         )
 
         return result
@@ -461,13 +622,15 @@ class ToneAnalyzer:
                     end = min(len(text), match.end() + 30)
                     context = text[start:end].strip()
 
-                    indicators.append(ToneIndicator(
-                        phrase=match.group(),
-                        tone=tone,
-                        weight=pattern_info["weight"],
-                        position=(match.start(), match.end()),
-                        context=context,
-                    ))
+                    indicators.append(
+                        ToneIndicator(
+                            phrase=match.group(),
+                            tone=tone,
+                            weight=pattern_info["weight"],
+                            position=(match.start(), match.end()),
+                            context=context,
+                        )
+                    )
 
         # Normalize scores
         max_score = max(scores.values()) if scores.values() else 1.0
@@ -490,13 +653,15 @@ class ToneAnalyzer:
                 for match in matches:
                     scores[direction] += pattern_info["weight"]
 
-                    indicators.append(DirectionIndicator(
-                        phrase=match.group(),
-                        direction=direction,
-                        weight=pattern_info["weight"],
-                        implies_next_step=pattern_info.get("next", ""),
-                        days_until_escalation=pattern_info.get("days"),
-                    ))
+                    indicators.append(
+                        DirectionIndicator(
+                            phrase=match.group(),
+                            direction=direction,
+                            weight=pattern_info["weight"],
+                            implies_next_step=pattern_info.get("next", ""),
+                            days_until_escalation=pattern_info.get("days"),
+                        )
+                    )
 
         # Normalize scores
         max_score = max(scores.values()) if scores.values() else 1.0
@@ -575,7 +740,7 @@ class ToneAnalyzer:
     def _extract_parties(self, text: str) -> tuple[PartyInfo, PartyInfo, CommunicationFlow]:
         """
         Extract WHO sent this document and WHO received it.
-        
+
         Returns:
             (sender, recipient, communication_flow)
         """
@@ -653,14 +818,10 @@ class ToneAnalyzer:
         dear_match = re.search(dear_pattern, text)
 
         # Tenant indicators
-        tenant_indicators = [
-            "tenant", "renter", "lessee", "occupant", "resident"
-        ]
+        tenant_indicators = ["tenant", "renter", "lessee", "occupant", "resident"]
 
         # Landlord as recipient indicators
-        landlord_recipient_indicators = [
-            "landlord", "lessor", "property owner", "management"
-        ]
+        landlord_recipient_indicators = ["landlord", "lessor", "property owner", "management"]
 
         # ========================================
         # DETERMINE SENDER
@@ -754,7 +915,14 @@ class ToneAnalyzer:
                 recipient.role = "Landlord"
             else:
                 # Guess based on sender
-                if sender.role in ["Landlord", "Attorney", "Court", "Sheriff", "City/Municipality", "Collection Agency"]:
+                if sender.role in [
+                    "Landlord",
+                    "Attorney",
+                    "Court",
+                    "Sheriff",
+                    "City/Municipality",
+                    "Collection Agency",
+                ]:
                     recipient.role = "Tenant"
                 elif sender.role == "Tenant":
                     recipient.role = "Landlord"
@@ -854,8 +1022,7 @@ class ToneAnalyzer:
                     return name.title()
         return ""
 
-    def _calculate_urgency(self, tone: DocumentTone, direction: ProcessDirection,
-                          days_to_respond: int | None) -> float:
+    def _calculate_urgency(self, tone: DocumentTone, direction: ProcessDirection, days_to_respond: int | None) -> float:
         """Calculate urgency score (0-100)"""
         score = 0.0
 
@@ -899,6 +1066,7 @@ class ToneAnalyzer:
 
 # Singleton
 _analyzer = None
+
 
 def get_tone_analyzer() -> ToneAnalyzer:
     """Get or create singleton analyzer"""

@@ -64,22 +64,25 @@ logger = logging.getLogger(__name__)
 # MODULE CATEGORIES
 # =============================================================================
 
+
 class ModuleCategory(str, Enum):
     """Categories for organizing modules"""
-    DOCUMENT = "document"          # Document processing
-    LEGAL = "legal"                # Legal analysis/forms
-    CALENDAR = "calendar"          # Scheduling/deadlines
+
+    DOCUMENT = "document"  # Document processing
+    LEGAL = "legal"  # Legal analysis/forms
+    CALENDAR = "calendar"  # Scheduling/deadlines
     COMMUNICATION = "communication"  # User communication
-    ANALYSIS = "analysis"          # Data analysis
-    STORAGE = "storage"            # File/data storage
-    UI = "ui"                      # User interface
-    UTILITY = "utility"            # General utilities
-    AI = "ai"                      # AI/ML features
-    INTEGRATION = "integration"    # External integrations
+    ANALYSIS = "analysis"  # Data analysis
+    STORAGE = "storage"  # File/data storage
+    UI = "ui"  # User interface
+    UTILITY = "utility"  # General utilities
+    AI = "ai"  # AI/ML features
+    INTEGRATION = "integration"  # External integrations
 
 
 class DocumentType(str, Enum):
     """Document types a module can handle"""
+
     EVICTION_NOTICE = "eviction_notice"
     LEASE = "lease"
     COURT_FILING = "court_filing"
@@ -93,6 +96,7 @@ class DocumentType(str, Enum):
 
 class PackType(str, Enum):
     """Info pack types for module communication"""
+
     EVICTION_DATA = "eviction_data"
     LEASE_DATA = "lease_data"
     DEADLINE_DATA = "deadline_data"
@@ -107,9 +111,11 @@ class PackType(str, Enum):
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class ActionDefinition:
     """Defines an action a module can perform"""
+
     name: str
     handler: Callable
     description: str = ""
@@ -124,9 +130,10 @@ class ActionDefinition:
 @dataclass
 class ModuleDefinition:
     """Defines a module's identity and capabilities"""
-    name: str                      # Unique identifier (snake_case)
-    display_name: str              # Human-readable name
-    description: str               # What this module does
+
+    name: str  # Unique identifier (snake_case)
+    display_name: str  # Human-readable name
+    description: str  # What this module does
     version: str = "1.0.0"
     category: ModuleCategory = ModuleCategory.UTILITY
 
@@ -165,6 +172,7 @@ class ModuleDefinition:
 @dataclass
 class InfoPack:
     """Data package for inter-module communication"""
+
     id: str
     pack_type: PackType
     source_module: str
@@ -191,6 +199,7 @@ class InfoPack:
 @dataclass
 class ModuleRequest:
     """Request from one module to another"""
+
     id: str
     from_module: str
     to_module: str
@@ -206,10 +215,11 @@ class ModuleRequest:
 # MODULE SDK - THE MAIN CLASS NEW MODULES USE
 # =============================================================================
 
+
 class ModuleSDK:
     """
     SDK for integrating a module with the Semptify Positronic Mesh.
-    
+
     This is the ONLY thing new modules need to import to integrate
     with the entire Semptify ecosystem.
     """
@@ -240,18 +250,21 @@ class ModuleSDK:
     ):
         """
         Decorator to register an action handler.
-        
+
         Usage:
             @sdk.action("my_action", produces=["output_key"])
             async def my_action(user_id, params, context):
                 return {"output_key": "value"}
         """
+
         def decorator(func: Callable):
             # Wrap sync functions to be async
             if not asyncio.iscoroutinefunction(func):
+
                 @wraps(func)
                 async def async_wrapper(*args, **kwargs):
                     return func(*args, **kwargs)
+
                 handler = async_wrapper
             else:
                 handler = func
@@ -294,17 +307,19 @@ class ModuleSDK:
     def on_event(self, event_type: str):
         """
         Decorator to handle mesh events.
-        
+
         Usage:
             @sdk.on_event("workflow_started")
             async def handle_workflow(event_type, data):
                 logger.info(f"Workflow started: {data}")
         """
+
         def decorator(func: Callable):
             if event_type not in self.event_handlers:
                 self.event_handlers[event_type] = []
             self.event_handlers[event_type].append(func)
             return func
+
         return decorator
 
     # =========================================================================
@@ -372,6 +387,7 @@ class ModuleSDK:
         """Trigger a workflow from this module"""
         if self._mesh:
             from app.core.positronic_mesh import WorkflowType
+
             try:
                 wf_type = WorkflowType(workflow_type)
                 return await self._mesh.start_workflow(
@@ -474,10 +490,11 @@ class ModuleSDK:
 # BASE MODULE CLASS (Alternative approach using inheritance)
 # =============================================================================
 
+
 class BaseModule(ABC):
     """
     Abstract base class for modules preferring inheritance over SDK.
-    
+
     Usage:
         class MyModule(BaseModule):
             def __init__(self):
@@ -486,10 +503,10 @@ class BaseModule(ABC):
                     display_name="My Module",
                     description="Does things",
                 )
-            
+
             def register_actions(self):
                 self.sdk.register_action("do_thing", self.do_thing)
-            
+
             async def do_thing(self, user_id, params, context):
                 return {"result": "done"}
     """
@@ -532,6 +549,7 @@ class BaseModule(ABC):
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def create_module(
     name: str,
     display_name: str,
@@ -543,7 +561,7 @@ def create_module(
 ) -> ModuleSDK:
     """
     Quick helper to create a module SDK instance.
-    
+
     Usage:
         sdk = create_module(
             "my_module",
@@ -567,6 +585,7 @@ def create_module(
 # =============================================================================
 # MODULE TEMPLATE GENERATOR
 # =============================================================================
+
 
 def generate_module_template(
     module_name: str,
@@ -612,30 +631,30 @@ module_definition = ModuleDefinition(
     description="{description}",
     version="1.0.0",
     category=ModuleCategory.UTILITY,  # Change as needed
-    
+
     # Document types this module can process
     handles_documents=[
         # DocumentType.LEASE,
         # DocumentType.EVICTION_NOTICE,
     ],
-    
+
     # Info pack types this module accepts
     accepts_packs=[
         # PackType.EVICTION_DATA,
         # PackType.USER_DATA,
     ],
-    
+
     # Info pack types this module produces
     produces_packs=[
         # PackType.ANALYSIS_RESULT,
     ],
-    
+
     # Other modules this depends on
     depends_on=[
         # "documents",
         # "calendar",
     ],
-    
+
     has_ui=False,
     has_background_tasks=False,
     requires_auth=True,
@@ -666,22 +685,22 @@ async def example_action(
 ) -> Dict[str, Any]:
     """
     Example action handler.
-    
+
     Args:
         user_id: The user making the request
         params: Parameters passed to this action
         context: Shared workflow context
-    
+
     Returns:
         Dictionary with output data (keys should match 'produces')
     """
     logger.info(f"{{module_definition.name}}: Processing for user {{user_id[:8]}}...")
-    
+
     input_data = params.get("input_data", "")
-    
+
     # Your logic here
     result = f"Processed: {{input_data}}"
-    
+
     return {{
         "output_data": result,
         "processed_at": "now",
@@ -739,6 +758,7 @@ __all__ = ["sdk", "module_definition", "initialize"]
 
     if output_dir:
         import os
+
         os.makedirs(output_dir, exist_ok=True)
         filepath = os.path.join(output_dir, f"{module_name}.py")
         with open(filepath, "w") as f:

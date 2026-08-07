@@ -30,8 +30,10 @@ router = APIRouter()
 # Schemas
 # =============================================================================
 
+
 class TacticResponse(BaseModel):
     """A recommended tactic."""
+
     tactic_type: str
     title: str
     urgency: str
@@ -44,6 +46,7 @@ class TacticResponse(BaseModel):
 
 class DecisionTreeRequest(BaseModel):
     """Request for decision tree analysis."""
+
     service_date: str | None = Field(None, description="Date tenant was served (ISO format)")
     hearing_date: str | None = Field(None, description="Scheduled hearing date (ISO format)")
     eviction_filed_date: str | None = Field(None, description="Date eviction was filed")
@@ -55,6 +58,7 @@ class DecisionTreeRequest(BaseModel):
 
 class DecisionTreeResponse(BaseModel):
     """Response with all applicable tactics."""
+
     recommendations: list[TacticResponse]
     total: int
     critical_count: int
@@ -63,6 +67,7 @@ class DecisionTreeResponse(BaseModel):
 
 class EvidenceChecklistResponse(BaseModel):
     """Evidence preparation checklist."""
+
     items: list[dict]
     stored_count: int
     total_count: int
@@ -71,6 +76,7 @@ class EvidenceChecklistResponse(BaseModel):
 
 class PreHearingTimelineResponse(BaseModel):
     """Pre-hearing action timeline."""
+
     hearing_date: str
     days_until_hearing: int
     actions: list[dict]
@@ -79,15 +85,16 @@ class PreHearingTimelineResponse(BaseModel):
 
 class HabitabilityAnalysisRequest(BaseModel):
     """Request to analyze habitability issues."""
+
     # Events will be pulled from user's timeline
 
 
 class RetaliationAnalysisRequest(BaseModel):
     """Request to analyze potential retaliation."""
+
     eviction_filed_date: str = Field(..., description="Date eviction was filed (ISO format)")
     protected_activities: list[dict] = Field(
-        default_factory=list,
-        description="List of protected activities with 'type' and 'date' fields"
+        default_factory=list, description="List of protected activities with 'type' and 'date' fields"
     )
 
 
@@ -95,13 +102,14 @@ class RetaliationAnalysisRequest(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/recommendations", response_model=DecisionTreeResponse)
 async def get_recommendations(
     user: dict = Depends(green_access),
 ):
     """
     Get AI-powered defense recommendations based on case data.
-    
+
     Analyzes:
     - Service timeline for dismissal opportunities
     - Habitability issues for rent escrow
@@ -111,7 +119,7 @@ async def get_recommendations(
     """
     from app.services.form_data import get_form_data_service
 
-    user_id = getattr(user, 'user_id', 'open-mode-user')
+    user_id = getattr(user, "user_id", "open-mode-user")
     form_data_svc = get_form_data_service(user_id)
     case_summary = form_data_svc.get_case_summary()
 
@@ -160,7 +168,7 @@ async def analyze_case(
 ):
     """
     Analyze case data and return tactical recommendations.
-    
+
     Decision Tree:
     1. Was service <7 days? ▸ Motion to Dismiss
     2. ≥3 serious habitability issues? ▸ Rent Escrow Motion
@@ -170,7 +178,7 @@ async def analyze_case(
     """
     from app.services.form_data import get_form_data_service
 
-    user_id = getattr(user, 'user_id', 'open-mode-user')
+    user_id = getattr(user, "user_id", "open-mode-user")
     form_data_svc = get_form_data_service(user_id)
 
     engine = get_tactics_engine()
@@ -239,12 +247,12 @@ async def get_evidence_checklist(
 ):
     """
     Get the evidence preparation checklist with storage status.
-    
+
     Checks which items have been uploaded to Semptify vault.
     """
     from app.services.document_pipeline import get_document_pipeline
 
-    user_id = getattr(user, 'user_id', 'open-mode-user')
+    user_id = getattr(user, "user_id", "open-mode-user")
     engine = get_tactics_engine()
     pipeline = get_document_pipeline()
 
@@ -273,7 +281,7 @@ async def get_pre_hearing_timeline(
 ):
     """
     Get the pre-hearing tactical action timeline.
-    
+
     Shows what to do at each stage leading up to the hearing.
     """
     engine = get_tactics_engine()
@@ -302,7 +310,7 @@ async def check_retaliation(
 ):
     """
     Check for potential retaliation based on protected activities.
-    
+
     Analyzes proximity between protected activities and eviction filing.
     Flags if filing occurred within 30 days of protected activity.
     """
@@ -336,12 +344,12 @@ async def check_habitability(
 ):
     """
     Check habitability issues from timeline for rent escrow eligibility.
-    
+
     Auto-flags rent escrow when 3+ habitability tags within 30 days.
     """
     from app.services.form_data import get_form_data_service
 
-    user_id = getattr(user, 'user_id', 'open-mode-user')
+    user_id = getattr(user, "user_id", "open-mode-user")
     form_data_svc = get_form_data_service(user_id)
     engine = get_tactics_engine()
 
@@ -373,7 +381,7 @@ async def check_service_timeline(
 ):
     """
     Check if service timeline supports a Motion to Dismiss.
-    
+
     Minnesota requires at least 7 days between service and hearing.
     """
     engine = get_tactics_engine()

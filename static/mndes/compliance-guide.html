@@ -546,7 +546,7 @@
     const section = document.getElementById('role-' + role);
     if (section) section.classList.add('visible');
     document.querySelectorAll('.role-tab').forEach(t => {
-      if (t.textContent.toLowerCase().includes(role) || 
+      if (t.textContent.toLowerCase().includes(role) ||
           (role === 'tenant' && t.textContent.toLowerCase().includes('tenant')) ||
           (role === 'advocate' && t.textContent.toLowerCase().includes('advocate')) ||
           (role === 'legal' && t.textContent.toLowerCase().includes('legal')) ||

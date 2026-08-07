@@ -231,15 +231,15 @@
   .tenant-dashboard {
     padding: var(--space-md);
   }
-  
+
   .tenant-welcome {
     padding: var(--space-lg);
   }
-  
+
   .tenant-case-summary {
     padding: var(--space-md);
   }
-  
+
   .tenant-emergency-actions {
     padding: var(--space-md);
   }
@@ -252,11 +252,11 @@
     --tenant-welcome-bg: linear-gradient(135deg, var(--color-tenant-primary), var(--color-tenant-primary-dark));
     --tenant-emergency-bg: rgba(239, 68, 68, 0.2);
   }
-  
+
   .tenant-welcome::before {
     background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
   }
-  
+
   .tenant-emergency-actions {
     background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
   }
@@ -287,11 +287,11 @@
   .tenant-welcome::before {
     animation: none;
   }
-  
+
   .tenant-emergency-actions::before {
     animation: none;
   }
-  
+
   .role-tenant * {
     transition: none;
   }

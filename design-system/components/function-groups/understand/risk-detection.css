@@ -446,15 +446,15 @@
   .risk-overview {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .risk-levels {
     flex-direction: column;
   }
-  
+
   .risk-actions {
     flex-direction: column;
   }
-  
+
   .risk-action-btn {
     width: 100%;
   }

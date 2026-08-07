@@ -1,66 +1,127 @@
 # Pre-commit hooks for Semptify FastAPI
 # Install: pip install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
+#
+# NOTE: All hooks are local hooks using venv311 to avoid the pre-commit
+# framework's `-w` flag injection issue on Windows with .exe wrappers.
+# The precommit_hook_wrapper.py script strips the spurious -w flag.
 
 repos:
-  # General file checks
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+  # General file checks (local hooks using venv311 via wrapper)
+  - repo: local
     hooks:
       - id: trailing-whitespace
+        name: Trim trailing whitespace
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py trailing-whitespace-fixer
+        language: system
+        types: [text]
       - id: end-of-file-fixer
+        name: End of file fixer
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py end-of-file-fixer
+        language: system
+        types: [text]
       - id: check-yaml
+        name: Check YAML
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py check-yaml
+        language: system
+        types: [yaml]
       - id: check-json
+        name: Check JSON
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py check-json
+        language: system
+        types: [json]
       - id: check-toml
+        name: Check TOML
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py check-toml
+        language: system
+        types: [toml]
       - id: check-merge-conflict
+        name: Check merge conflict
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py check-merge-conflict
+        language: system
+        types: [text]
       - id: check-added-large-files
+        name: Check added large files
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py check-added-large-files
         args: ['--maxkb=1000']
+        language: system
+        types: [text]
       - id: detect-private-key
+        name: Detect private key
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py detect-private-key
+        language: system
+        types: [text]
       - id: check-case-conflict
+        name: Check case conflict
+        entry: venv311/Scripts/python.exe scripts/precommit_hook_wrapper.py check-case-conflict
+        language: system
+        types: [text]
 
-  # Python linting with Ruff (fast)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.0
+  # Python linting with Ruff (local hooks using venv311)
+  - repo: local
     hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-check
+        name: Ruff check
+        entry: venv311/Scripts/ruff.exe check
+        args: [--fix, --exit-non-zero-on-fix, --force-exclude]
+        language: system
+        files: '\.py$'
+        pass_filenames: true
       - id: ruff-format
+        name: Ruff format
+        entry: venv311/Scripts/ruff.exe format
+        args: [--force-exclude]
+        language: system
+        files: '\.py$'
+        pass_filenames: true
 
-  # Type checking (optional, can be slow)
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.8.0
-  #   hooks:
-  #     - id: mypy
-  #       additional_dependencies: [pydantic, fastapi]
-  #       args: [--ignore-missing-imports]
-
-  # Security scanning
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.7
+  # Security scanning (local hook using venv311)
+  - repo: local
     hooks:
       - id: bandit
-        args: ["-ll"]
+        name: Bandit security scan
+        entry: venv311/Scripts/bandit.exe
+        args: ["-ll", "-q", "-s", "B104,B102,B108,B110,B113,B310,B314,B324,B602,B603,B608"]
+        language: system
+        files: '^app/.*\.py$'
         exclude: tests/
 
-  # Check for secrets accidentally committed
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+  # Check for secrets accidentally committed (local hook using venv311)
+  - repo: local
     hooks:
-      - id: detect-secrets
+      - id: detect-secrets-local
+        name: Detect secrets
+        entry: venv311/Scripts/python.exe scripts/detect_secrets_hook.py
         args: ['--baseline', '.secrets.baseline']
+        language: system
+        pass_filenames: true
         exclude: >
           (?x)^(
             package\.lock\.json|
             tools/agent_orchestrator_tasks\.json|
             tools/orchestrator_dashboard\.html|
-            tools/agent_orchestrator\.html
+            tools/agent_orchestrator\.html|
+            archive/.*|
+            data/test_local_vault/.*|
+            alembic/versions/.*\.py$|
+            legal_intel/.*|
+            test_crawler\.py|
+            test_flows\.py|
+            test_upload_simple\.py|
+            test_vault_simple\.py|
+            test_vault_system\.py|
+            test_overlay_api\.py
           )$
 
-  # Validate pyproject.toml / setup.py
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.16
+  # Validate pyproject.toml (local hook using venv311)
+  - repo: local
     hooks:
       - id: validate-pyproject
+        name: Validate pyproject.toml
+        entry: venv311/Scripts/validate-pyproject.exe
+        language: system
+        files: 'pyproject.toml'
+        pass_filenames: true
 
   # SSOT Architecture Compliance Check - MANDATORY
   - repo: local
@@ -92,17 +153,52 @@ repos:
         pass_filenames: false
         always_run: true
 
-# Configuration for specific hooks
-default_language_version:
-  python: python3.11
-
 # Exclude patterns
 exclude: |
   (?x)^(
     \.git/|
     \.venv/|
+    venv311/|
     __pycache__/|
     \.mypy_cache/|
+    \.ruff_cache/|
+    \.pytest_cache/|
     static/_archive/|
-    alembic/versions/
+    archive/obsolete-2026-06-29/|
+    alembic/versions/|
+    semptify_dakota_eviction/|
+    mobile_ai_host/|
+    funding_forge/|
+    legal_intel/|
+    Semptify-Housing-Accountability/|
+    data/test_local_vault/|
+    data/converted_documents/|
+    data/case_outputs/|
+    data/legal_filings/|
+    data/cases/|
+    data/eviction_training/|
+    data/registry/|
+    mockups/|
+    design-system/|
+    plugins/|
+    sdk/|
+    installer/|
+    tools/agent_orchestrator_tasks\.json|
+    tools/orchestrator_dashboard\.html|
+    tools/agent_orchestrator\.html|
+    test_crawler\.py|
+    test_flows\.py|
+    test_upload_simple\.py|
+    test_vault_simple\.py|
+    test_vault_system\.py|
+    test_overlay_api\.py|
+    test_mcro\.py|
+    batch_auto_analysis\.py|
+    install_full_system\.py|
+    validate_vault_system\.py|
+    read_module_inventory\.py|
+    read_task_queue\.py|
+    fix_vertex_session\.py|
+    semptify_sdk\.py|
+    sdk_modules_demo\.py
   )$

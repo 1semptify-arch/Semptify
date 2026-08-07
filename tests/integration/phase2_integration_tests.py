@@ -24,10 +24,12 @@ try:
     from app.core.data_export_import import get_export_import_manager
     from app.core.preview_generator import get_preview_generator
     from app.core.testing_framework import get_test_framework
+
     PHASE2_AVAILABLE = True
 except ImportError as e:
     PHASE2_AVAILABLE = False
     print(f"Phase 2 modules not available: {e}")
+
 
 @pytest.mark.asyncio
 @pytest.mark.integration
@@ -53,7 +55,7 @@ class TestPhase2Integration:
             provider="google_drive",
             email="test@example.com",
             access_token="test-token",
-            refresh_token="test-refresh"
+            refresh_token="test-refresh",
         )
 
     @pytest.fixture
@@ -90,12 +92,8 @@ class TestPhase2Integration:
         # Test preview generation endpoint
         response = test_client.post(
             "/api/preview/generate",
-            json={
-                "document_id": "test-doc-123",
-                "preview_type": "thumbnail",
-                "page_number": 1
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"document_id": "test-doc-123", "preview_type": "thumbnail", "page_number": 1},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 404], "Preview endpoint should respond"
@@ -113,10 +111,10 @@ class TestPhase2Integration:
                 "operation_type": "upload",
                 "items": [
                     {"type": "document", "data": {"filename": "test.pdf"}},
-                    {"type": "document", "data": {"filename": "test2.pdf"}}
-                ]
+                    {"type": "document", "data": {"filename": "test2.pdf"}},
+                ],
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 422], "Batch creation endpoint should respond"
@@ -130,11 +128,8 @@ class TestPhase2Integration:
         # Test export request
         response = test_client.post(
             "/api/export-import/export/request",
-            json={
-                "export_type": "documents_only",
-                "format": "json"
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"export_type": "documents_only", "format": "json"},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 422], "Export endpoint should respond"
@@ -148,11 +143,8 @@ class TestPhase2Integration:
         # Test 2FA setup
         response = test_client.post(
             "/api/security/2fa/setup",
-            json={
-                "method": "totp",
-                "user_email": "test@example.com"
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"method": "totp", "user_email": "test@example.com"},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 400], "2FA setup endpoint should respond"
@@ -170,9 +162,9 @@ class TestPhase2Integration:
                 "suite_id": "integration-test-suite",
                 "name": "Integration Test Suite",
                 "description": "Tests for Phase 2 integration",
-                "tags": ["integration", "phase2"]
+                "tags": ["integration", "phase2"],
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 422], "Test suite creation should respond"
@@ -200,7 +192,7 @@ class TestPhase2Integration:
             "/api/export-import/export/request",
             "/api/security/2fa/setup",
             "/api/testing/suites",
-            "/api/docs/openapi.json"
+            "/api/docs/openapi.json",
         ]
 
         for endpoint in phase2_endpoints:
@@ -213,12 +205,8 @@ class TestPhase2Integration:
         # Test document preview for housing documents
         response = test_client.post(
             "/api/preview/generate",
-            json={
-                "document_id": "lease-agreement-123",
-                "preview_type": "preview",
-                "max_pages": 5
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"document_id": "lease-agreement-123", "preview_type": "preview", "max_pages": 5},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         # Should handle housing document types
@@ -231,10 +219,10 @@ class TestPhase2Integration:
                 "operation_type": "upload",
                 "items": [
                     {"type": "evidence", "data": {"category": "lease_violation"}},
-                    {"type": "evidence", "data": {"category": "maintenance_issue"}}
-                ]
+                    {"type": "evidence", "data": {"category": "maintenance_issue"}},
+                ],
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 422], "Should handle evidence batch operations"
@@ -246,11 +234,9 @@ class TestPhase2Integration:
             "/api/batch/create",
             json={
                 "operation_type": "upload",
-                "items": [
-                    {"type": "document", "data": {"filename": "lease.pdf", "generate_preview": True}}
-                ]
+                "items": [{"type": "document", "data": {"filename": "lease.pdf", "generate_preview": True}}],
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 422], "Batch operations should integrate with preview"
@@ -258,12 +244,8 @@ class TestPhase2Integration:
         # Test that export can include preview data
         response = test_client.post(
             "/api/export-import/export/request",
-            json={
-                "export_type": "all_data",
-                "format": "zip",
-                "include_previews": True
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"export_type": "all_data", "format": "zip", "include_previews": True},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 422], "Export should integrate with preview system"
@@ -279,11 +261,8 @@ class TestPhase2Integration:
         for i in range(5):
             response = test_client.post(
                 "/api/preview/generate",
-                json={
-                    "document_id": f"test-doc-{i}",
-                    "preview_type": "thumbnail"
-                },
-                headers={"Authorization": "Bearer test-token"}
+                json={"document_id": f"test-doc-{i}", "preview_type": "thumbnail"},
+                headers={"Authorization": "Bearer test-token"},
             )
             tasks.append(response)
 
@@ -303,9 +282,9 @@ class TestPhase2Integration:
             "/api/preview/generate",
             json={
                 "document_id": "",  # Invalid empty ID
-                "preview_type": "thumbnail"
+                "preview_type": "thumbnail",
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code == 422, "Should handle invalid preview requests"
@@ -315,9 +294,9 @@ class TestPhase2Integration:
             "/api/batch/create",
             json={
                 "operation_type": "invalid_operation",  # Invalid operation
-                "items": []
+                "items": [],
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code == 422, "Should handle invalid batch operations"
@@ -327,12 +306,13 @@ class TestPhase2Integration:
             "/api/security/2fa/setup",
             json={
                 "method": "invalid_method",  # Invalid 2FA method
-                "user_email": "test@example.com"
+                "user_email": "test@example.com",
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code == 400, "Should handle invalid security requests"
+
 
 @pytest.mark.asyncio
 @pytest.mark.performance
@@ -348,12 +328,8 @@ class TestPhase2Performance:
 
         response = test_client.post(
             "/api/preview/generate",
-            json={
-                "document_id": "test-doc-large",
-                "preview_type": "preview",
-                "max_pages": 10
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"document_id": "test-doc-large", "preview_type": "preview", "max_pages": 10},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         end_time = time.time()
@@ -373,9 +349,9 @@ class TestPhase2Performance:
             "/api/batch/create",
             json={
                 "operation_type": "upload",
-                "items": [{"type": "document", "data": {"filename": f"test-{i}.pdf"}} for i in range(50)]
+                "items": [{"type": "document", "data": {"filename": f"test-{i}.pdf"}} for i in range(50)],
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         end_time = time.time()
@@ -395,9 +371,9 @@ class TestPhase2Performance:
             "/api/security/2fa/verify",
             json={
                 "code": "123456",  # Test code
-                "method": "totp"
+                "method": "totp",
             },
-            headers={"Authorization": "Bearer test-token"}
+            headers={"Authorization": "Bearer test-token"},
         )
 
         end_time = time.time()
@@ -405,6 +381,7 @@ class TestPhase2Performance:
 
         assert response.status_code in [200, 400], "2FA verification should work"
         assert duration < 2.0, "2FA verification should complete within 2 seconds"
+
 
 @pytest.mark.asyncio
 @pytest.mark.security
@@ -416,10 +393,7 @@ class TestPhase2Security:
         # Test unauthorized access
         response = test_client.post(
             "/api/preview/generate",
-            json={
-                "document_id": "test-doc-123",
-                "preview_type": "thumbnail"
-            }
+            json={"document_id": "test-doc-123", "preview_type": "thumbnail"},
             # No authorization header
         )
 
@@ -428,11 +402,8 @@ class TestPhase2Security:
         # Test invalid token
         response = test_client.post(
             "/api/preview/generate",
-            json={
-                "document_id": "test-doc-123",
-                "preview_type": "thumbnail"
-            },
-            headers={"Authorization": "Bearer invalid-token"}
+            json={"document_id": "test-doc-123", "preview_type": "thumbnail"},
+            headers={"Authorization": "Bearer invalid-token"},
         )
 
         assert response.status_code == 401, "Preview should reject invalid tokens"
@@ -444,8 +415,8 @@ class TestPhase2Security:
             "/api/batch/create",
             json={
                 "operation_type": "delete",  # Dangerous operation
-                "items": [{"type": "document", "data": {"document_id": "all"}}]
-            }
+                "items": [{"type": "document", "data": {"document_id": "all"}}],
+            },
             # No authorization header
         )
 
@@ -457,9 +428,9 @@ class TestPhase2Security:
                 "/api/batch/create",
                 json={
                     "operation_type": "upload",
-                    "items": [{"type": "document", "data": {"filename": f"test-{i}.pdf"}}]
+                    "items": [{"type": "document", "data": {"filename": f"test-{i}.pdf"}}],
                 },
-                headers={"Authorization": "Bearer test-token"}
+                headers={"Authorization": "Bearer test-token"},
             )
 
             # Should be rate limited after several requests
@@ -473,8 +444,8 @@ class TestPhase2Security:
             "/api/export-import/export/request",
             json={
                 "export_type": "all_data",  # Sensitive operation
-                "format": "json"
-            }
+                "format": "json",
+            },
             # No authorization header
         )
 
@@ -483,11 +454,8 @@ class TestPhase2Security:
         # Test export rate limiting
         response = test_client.post(
             "/api/export-import/export/request",
-            json={
-                "export_type": "documents_only",
-                "format": "json"
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"export_type": "documents_only", "format": "json"},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 429], "Export should be rate limited"
@@ -497,25 +465,19 @@ class TestPhase2Security:
         # Test 2FA setup security
         response = test_client.post(
             "/api/security/2fa/setup",
-            json={
-                "method": "totp",
-                "user_email": "test@example.com"
-            },
-            headers={"Authorization": "Bearer test-token"}
+            json={"method": "totp", "user_email": "test@example.com"},
+            headers={"Authorization": "Bearer test-token"},
         )
 
         assert response.status_code in [200, 400], "2FA setup should work"
 
         # Test session management
         response = test_client.post(
-            "/api/security/session/create",
-            json={
-                "require_2fa": False
-            },
-            headers={"Authorization": "Bearer test-token"}
+            "/api/security/session/create", json={"require_2fa": False}, headers={"Authorization": "Bearer test-token"}
         )
 
         assert response.status_code in [200, 401], "Session creation should work"
+
 
 # Test configuration and fixtures
 @pytest.fixture(scope="session")
@@ -525,6 +487,7 @@ def event_loop():
     yield loop
     loop.close()
 
+
 @pytest.fixture(scope="session")
 def test_config():
     """Test configuration for Phase 2 modules."""
@@ -532,24 +495,25 @@ def test_config():
         "preview": {
             "max_file_size": 50 * 1024 * 1024,  # 50MB
             "supported_formats": ["pdf", "jpg", "png", "txt", "docx"],
-            "cache_ttl": 3600  # 1 hour
+            "cache_ttl": 3600,  # 1 hour
         },
         "batch": {
             "max_items_per_batch": 100,
             "max_concurrent_operations": 5,
-            "timeout_seconds": 300  # 5 minutes
+            "timeout_seconds": 300,  # 5 minutes
         },
         "security": {
             "2fa_enabled": True,
             "session_timeout": 3600,  # 1 hour
-            "max_sessions_per_user": 5
+            "max_sessions_per_user": 5,
         },
         "export_import": {
             "max_export_size": 100 * 1024 * 1024,  # 100MB
             "supported_formats": ["json", "csv", "zip"],
-            "retention_days": 7
-        }
+            "retention_days": 7,
+        },
     }
+
 
 # Integration test runner
 async def run_phase2_integration_tests():
@@ -558,12 +522,21 @@ async def run_phase2_integration_tests():
     import sys
 
     try:
-        result = subprocess.run([
-            sys.executable, "-m", "pytest",
-            "tests/integration/phase2_integration_tests.py",
-            "-v", "--tb=short",
-            "-m", "integration"
-        ], capture_output=True, text=True, cwd=".")
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/integration/phase2_integration_tests.py",
+                "-v",
+                "--tb=short",
+                "-m",
+                "integration",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=".",
+        )
 
         print(f"Integration tests completed with return code: {result.returncode}")
         print(f"Output: {result.stdout}")
@@ -575,6 +548,7 @@ async def run_phase2_integration_tests():
     except Exception as e:
         print(f"Failed to run integration tests: {e}")
         return False
+
 
 if __name__ == "__main__":
     # Run integration tests when executed directly

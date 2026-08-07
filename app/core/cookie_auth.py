@@ -63,9 +63,7 @@ def verify_user_id(cookie_value: str | None) -> str | None:
         logger.warning("cookie_auth: empty user_id or signature")
         return None
 
-    expected_sig = hmac.new(
-        _get_secret(), user_id.encode("utf-8"), hashlib.sha256
-    ).hexdigest()  # noqa: S324
+    expected_sig = hmac.new(_get_secret(), user_id.encode("utf-8"), hashlib.sha256).hexdigest()  # noqa: S324
 
     if not hmac.compare_digest(expected_sig, provided_sig):
         logger.warning(
@@ -83,6 +81,7 @@ def extract_user_id(request) -> str | None:
     Returns raw user_id or None.
     """
     from app.core.user_id import COOKIE_USER_ID
+
     _raw = request.cookies.get(COOKIE_USER_ID)
     raw = str(_raw) if _raw is not None else None
     return verify_user_id(raw)
@@ -110,6 +109,7 @@ def set_auth_cookie(
         secure:    True in production (HTTPS), False for localhost HTTP
     """
     from app.core.user_id import COOKIE_USER_ID
+
     response.set_cookie(
         key=COOKIE_USER_ID,
         value=sign_user_id(user_id),
@@ -124,6 +124,7 @@ def set_auth_cookie(
 def clear_auth_cookie(response):
     """Clear the authentication cookie."""
     from app.core.user_id import COOKIE_USER_ID
+
     response.delete_cookie(
         key=COOKIE_USER_ID,
         path="/",

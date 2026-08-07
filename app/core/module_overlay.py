@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ModuleStatus(str, Enum):
     """Canonical module lifecycle states."""
+
     UNKNOWN = "unknown"
     ACTIVE = "active"
     BETA = "beta"
@@ -33,6 +34,7 @@ class ModuleStatus(str, Enum):
 @dataclass
 class ModuleInfo:
     """In-memory representation of a module registry row."""
+
     name: str
     display_name: str
     description: str
@@ -67,12 +69,15 @@ class ModuleOverlayManager:
             from sqlalchemy import text
 
             from app.core.database import get_session_factory
+
             async with get_session_factory()() as session:
-                result = await session.execute(text(
-                    "SELECT name, display_name, description, status, is_enabled, "
-                    "dev_mode, version, route_prefix, depends_on, notes "
-                    "FROM module_registry"
-                ))
+                result = await session.execute(
+                    text(
+                        "SELECT name, display_name, description, status, is_enabled, "
+                        "dev_mode, version, route_prefix, depends_on, notes "
+                        "FROM module_registry"
+                    )
+                )
                 rows = result.fetchall()
             self._cache = {}
             for r in rows:
@@ -154,11 +159,15 @@ class ModuleOverlayManager:
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            result = await session.execute(text(
-                "UPDATE module_registry SET is_enabled = :enabled, updated_by = :by, updated_at = NOW() "
-                "WHERE name = :name RETURNING id"
-            ), {"name": name, "enabled": enabled, "by": updated_by})
+            result = await session.execute(
+                text(
+                    "UPDATE module_registry SET is_enabled = :enabled, updated_by = :by, updated_at = NOW() "
+                    "WHERE name = :name RETURNING id"
+                ),
+                {"name": name, "enabled": enabled, "by": updated_by},
+            )
             row = result.fetchone()
             if not row:
                 logger.warning("set_module_enabled: %s not found", name)
@@ -175,11 +184,15 @@ class ModuleOverlayManager:
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            result = await session.execute(text(
-                "UPDATE module_registry SET dev_mode = :dev_mode, updated_by = :by, updated_at = NOW() "
-                "WHERE name = :name RETURNING id"
-            ), {"name": name, "dev_mode": dev_mode, "by": updated_by})
+            result = await session.execute(
+                text(
+                    "UPDATE module_registry SET dev_mode = :dev_mode, updated_by = :by, updated_at = NOW() "
+                    "WHERE name = :name RETURNING id"
+                ),
+                {"name": name, "dev_mode": dev_mode, "by": updated_by},
+            )
             row = result.fetchone()
             if not row:
                 logger.warning("set_dev_mode: %s not found", name)
@@ -195,11 +208,15 @@ class ModuleOverlayManager:
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            result = await session.execute(text(
-                "UPDATE module_registry SET status = :status, updated_by = :by, updated_at = NOW() "
-                "WHERE name = :name RETURNING id"
-            ), {"name": name, "status": status, "by": updated_by})
+            result = await session.execute(
+                text(
+                    "UPDATE module_registry SET status = :status, updated_by = :by, updated_at = NOW() "
+                    "WHERE name = :name RETURNING id"
+                ),
+                {"name": name, "status": status, "by": updated_by},
+            )
             row = result.fetchone()
             if not row:
                 return False

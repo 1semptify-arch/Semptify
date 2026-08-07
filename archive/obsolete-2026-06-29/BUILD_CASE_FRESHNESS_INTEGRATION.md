@@ -1,7 +1,7 @@
 # Build Your Case + Data Freshness Integration
 ## Legal Accuracy & Deadline Compliance System
 
-**Date:** June 14, 2026  
+**Date:** June 14, 2026
 **Priority:** High - Critical for Legal Defense Validity
 
 ---
@@ -52,37 +52,25 @@ class FreshCaseBuilder:
     def validate_legal_defenses(self, case: Case) -> ValidationResult:
         """Validate that all legal defenses are based on current law."""
         validation_result = ValidationResult()
-        
+
         # Check each defense's legal basis
         for defense in case.defenses:
             # Verify statute freshness
-            statute_freshness = data_freshness_manager.check_freshness(
-                f"statute_{defense.statute_id}"
-            )
-            
+            statute_freshness = data_freshness_manager.check_freshness(f"statute_{defense.statute_id}")
+
             if statute_freshness != FreshnessStatus.FRESH:
-                validation_result.add_warning(
-                    f"Statute {defense.statute_id} may be outdated",
-                    severity="high"
-                )
-                
+                validation_result.add_warning(f"Statute {defense.statute_id} may be outdated", severity="high")
+
                 # Trigger refresh if critical
                 if defense.critical:
-                    data_freshness_manager.refresh_data(
-                        f"statute_{defense.statute_id}"
-                    )
-            
+                    data_freshness_manager.refresh_data(f"statute_{defense.statute_id}")
+
             # Verify case law freshness
-            case_law_freshness = data_freshness_manager.check_freshness(
-                f"case_law_{defense.jurisdiction}"
-            )
-            
+            case_law_freshness = data_freshness_manager.check_freshness(f"case_law_{defense.jurisdiction}")
+
             if case_law_freshness != FreshnessStatus.FRESH:
-                validation_result.add_warning(
-                    f"Case law for {defense.jurisdiction} may be outdated",
-                    severity="medium"
-                )
-        
+                validation_result.add_warning(f"Case law for {defense.jurisdiction} may be outdated", severity="medium")
+
         return validation_result
 ```
 
@@ -103,16 +91,12 @@ class FreshDeadlineCalculator:
     def calculate_answer_deadline(self, case: Case) -> DeadlineResult:
         """Calculate answer deadline using current court rules."""
         # Get current court rules
-        court_rules_freshness = data_freshness_manager.check_freshness(
-            f"court_rules_{case.court}_{case.jurisdiction}"
-        )
-        
+        court_rules_freshness = data_freshness_manager.check_freshness(f"court_rules_{case.court}_{case.jurisdiction}")
+
         if court_rules_freshness != FreshnessStatus.FRESH:
             # Refresh court rules immediately
-            data_freshness_manager.refresh_data(
-                f"court_rules_{case.court}_{case.jurisdiction}"
-            )
-            
+            data_freshness_manager.refresh_data(f"court_rules_{case.court}_{case.jurisdiction}")
+
             # Log the refresh
             accountability_planner.log_audit_event(
                 user_id=case.user_id,
@@ -122,20 +106,20 @@ class FreshDeadlineCalculator:
                     "action": "refreshed_court_rules",
                     "court": case.court,
                     "jurisdiction": case.jurisdiction,
-                    "reason": "stale_deadline_rules"
+                    "reason": "stale_deadline_rules",
                 },
-                success=True
+                success=True,
             )
-        
+
         # Get fresh rules and calculate deadline
         current_rules = self.get_court_rules(case.court, case.jurisdiction)
         deadline = self.calculate_deadline(case.hearing_date, current_rules)
-        
+
         return DeadlineResult(
             deadline=deadline,
             rules_version=current_rules.version,
             freshness_status=court_rules_freshness,
-            confidence="high" if court_rules_freshness == FreshnessStatus.FRESH else "medium"
+            confidence="high" if court_rules_freshness == FreshnessStatus.FRESH else "medium",
         )
 ```
 
@@ -156,27 +140,23 @@ class FreshFormValidator:
     def validate_form_requirements(self, form_type: str, jurisdiction: str) -> FormValidation:
         """Validate form against current requirements."""
         # Check form specification freshness
-        form_spec_freshness = data_freshness_manager.check_freshness(
-            f"form_spec_{form_type}_{jurisdiction}"
-        )
-        
+        form_spec_freshness = data_freshness_manager.check_freshness(f"form_spec_{form_type}_{jurisdiction}")
+
         if form_spec_freshness != FreshnessStatus.FRESH:
             # Refresh form specifications
-            data_freshness_manager.refresh_data(
-                f"form_spec_{form_type}_{jurisdiction}"
-            )
-        
+            data_freshness_manager.refresh_data(f"form_spec_{form_type}_{jurisdiction}")
+
         # Get current requirements
         current_specs = self.get_form_specifications(form_type, jurisdiction)
-        
+
         return FormValidation(
             valid=True,
             requirements=current_specs,
             freshness_status=form_spec_freshness,
             last_updated=current_specs.updated_at,
-            warnings=[] if form_spec_freshness == FreshnessStatus.FRESH else [
-                "Form specifications may be outdated - verify with court"
-            ]
+            warnings=[]
+            if form_spec_freshness == FreshnessStatus.FRESH
+            else ["Form specifications may be outdated - verify with court"],
         )
 ```
 
@@ -197,24 +177,20 @@ class FreshEvidenceValidator:
     def validate_evidence_standards(self, evidence: Evidence, jurisdiction: str) -> EvidenceValidation:
         """Validate evidence against current rules of evidence."""
         # Check evidence rules freshness
-        evidence_rules_freshness = data_freshness_manager.check_freshness(
-            f"evidence_rules_{jurisdiction}"
-        )
-        
+        evidence_rules_freshness = data_freshness_manager.check_freshness(f"evidence_rules_{jurisdiction}")
+
         if evidence_rules_freshness != FreshnessStatus.FRESH:
             # Refresh evidence rules
-            data_freshness_manager.refresh_data(
-                f"evidence_rules_{jurisdiction}"
-            )
-        
+            data_freshness_manager.refresh_data(f"evidence_rules_{jurisdiction}")
+
         # Get current evidence rules
         current_rules = self.get_evidence_rules(jurisdiction)
-        
+
         return EvidenceValidation(
             admissible=self.check_admissibility(evidence, current_rules),
             requirements=current_rules,
             freshness_status=evidence_rules_freshness,
-            recommendations=self.get_recommendations(evidence, current_rules)
+            recommendations=self.get_recommendations(evidence, current_rules),
         )
 ```
 
@@ -273,39 +249,27 @@ class FreshEvidenceValidator:
 # Add freshness validation endpoints
 @router.post("/cases/{case_id}/validate-freshness")
 async def validate_case_freshness(
-    case_id: str,
-    background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(require_user)
+    case_id: str, background_tasks: BackgroundTasks, user: StorageUser = Depends(require_user)
 ):
     """Validate case data freshness and refresh if needed."""
     # Get case data
     case = await get_case(case_id, user.user_id)
-    
+
     # Validate all freshness aspects
     validation_result = FreshCaseBuilder().validate_legal_defenses(case)
     deadline_result = FreshDeadlineCalculator().calculate_answer_deadline(case)
-    form_result = FreshFormValidator().validate_form_requirements(
-        case.form_type, case.jurisdiction
-    )
-    
+    form_result = FreshFormValidator().validate_form_requirements(case.form_type, case.jurisdiction)
+
     # Queue background refresh for any stale data
     if validation_result.has_warnings:
-        background_tasks.add_task(
-            refresh_case_legal_data,
-            case_id,
-            validation_result.stale_items
-        )
-    
+        background_tasks.add_task(refresh_case_legal_data, case_id, validation_result.stale_items)
+
     return {
         "case_id": case_id,
         "validation": validation_result.to_dict(),
         "deadlines": deadline_result.to_dict(),
         "forms": form_result.to_dict(),
-        "overall_valid": all([
-            validation_result.valid,
-            deadline_result.confidence == "high",
-            form_result.valid
-        ])
+        "overall_valid": all([validation_result.valid, deadline_result.confidence == "high", form_result.valid]),
     }
 ```
 
@@ -317,26 +281,23 @@ class FreshCaseGenerator:
         """Generate case with freshness validation."""
         # Create base case
         case = await self.create_base_case(case_request, user)
-        
+
         # Validate freshness before finalizing
         validation = await self.validate_case_freshness(case)
-        
+
         if not validation.overall_valid:
             # Log the validation issues
             accountability_planner.log_audit_event(
                 user_id=user.user_id,
                 action=AuditAction.SYSTEM_CHANGE,
                 resource=f"case_generation:{case.id}",
-                details={
-                    "validation_issues": validation.issues,
-                    "auto_refresh_triggered": True
-                },
-                success=True
+                details={"validation_issues": validation.issues, "auto_refresh_triggered": True},
+                success=True,
             )
-            
+
             # Add warnings to case
             case.warnings = validation.warnings
-        
+
         return case
 ```
 

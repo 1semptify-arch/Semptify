@@ -28,7 +28,7 @@
   - EventBus singleton class
   - `publish(event_type, data)` method
   - `subscribe(event_type, callback)` method
-  - Event types: `document_added`, `timeline_updated`, `deadline_approaching`, `form_filled`, `defense_generated`       
+  - Event types: `document_added`, `timeline_updated`, `deadline_approaching`, `form_filled`, `defense_generated`
 
 - [x] **2.2** Integrate EventBus into services:
   - [x] `form_data.py` → publishes `form_data_updated`
@@ -76,7 +76,7 @@
   - Next steps list
 
 - [x] **4.2** Add WebSocket connection for live updates
-- [x] **4.3** Add drag-drop document upload  
+- [x] **4.3** Add drag-drop document upload
 - [x] **4.4** Add toast notifications for events
 - [x] **4.5** Add keyboard shortcuts (Ctrl+U upload, Ctrl+D defense, Ctrl+K help, Ctrl+N notes, Ctrl+Z zoom, Ctrl+/ chat, Esc close)
 
@@ -116,7 +116,7 @@
 
 - [x] **6.1** Upload Pipeline:
   ```
-  User uploads → Vault stores → Extractor processes → 
+  User uploads → Vault stores → Extractor processes →
   Timeline updates → FormData updates → UI refreshes
   ```
   - `/api/intake/upload/auto` - Complete pipeline in one call
@@ -199,19 +199,19 @@
   - App icons (72-512px)
   - Shortcuts to Command Center, Upload, Answer form
   - Display: standalone mode
-  
+
 - [x] **9.2** Responsive CSS for all pages
   - design-system.css: breakpoints at 640px, 768px, 1024px, 1280px
   - layouts.css: mobile-first responsive grid
   - responsive.css: utility classes
   - shared-nav.css: collapsible mobile nav
-  
+
 - [x] **9.3** Offline mode for key data (sw.js)
   - Static asset caching
   - API response caching
   - Network-first + cache fallback
   - Background sync support
-  
+
 - [x] **9.4** Push notifications for deadlines (sw.js)
   - Push event handler
   - Notification click actions
@@ -291,7 +291,7 @@
 ## 🎯 SUCCESS CRITERIA
 
 - [x] Launch app → Setup wizard appears (first run) ✅ VERIFIED
-- [x] Complete setup → Command center appears ✅ VERIFIED  
+- [x] Complete setup → Command center appears ✅ VERIFIED
 - [x] Upload document → Auto-extracts data ✅ UPLOAD WORKING, VAULT STORAGE CONFIRMED
 - [x] View timeline → Shows all events from docs
 - [x] View calendar → Shows deadlines
@@ -306,7 +306,7 @@
 
 **BASELINE ACHIEVED!** ✅ All core systems operational:
 - ✅ Server running and responding
-- ✅ Setup wizard functional  
+- ✅ Setup wizard functional
 - ✅ EventBus implemented and ready
 - ✅ VaultEngine wired for document flow
 - ✅ Command Center accessible

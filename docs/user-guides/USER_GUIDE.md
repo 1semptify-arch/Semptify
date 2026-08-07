@@ -1,6 +1,6 @@
 # Semptify 5.0 User Guide
 
-> **Your Tenant Rights Protection Platform**  
+> **Your Tenant Rights Protection Platform**
 > Help tenants with tools and information to uphold tenant rights as a renter, in court if it goes that far - hopefully it won't.
 
 ---

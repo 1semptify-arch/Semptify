@@ -12,6 +12,7 @@ Usage:
     .\\venv311\\Scripts\\Activate.ps1
     python scripts\\run_all_tests.py
 """
+
 import asyncio
 import importlib
 import sys
@@ -43,6 +44,7 @@ def record(category, name, status, detail=""):
 # =============================================================================
 # CATEGORY 1: STATIC ANALYSIS TESTS (no DB, no server)
 # =============================================================================
+
 
 def run_static_tests():
     print("\n" + "=" * 70)
@@ -82,11 +84,26 @@ def run_static_tests():
     try:
         m = importlib.import_module("tests.test_workspace_stage_model_js")
         test_fns = [
-            ("test_workspace_stage_model_calls_required_workflow_endpoints", m.test_workspace_stage_model_calls_required_workflow_endpoints),
-            ("test_workspace_stage_model_has_failure_fallback_path", m.test_workspace_stage_model_has_failure_fallback_path),
-            ("test_workspace_stage_model_handles_malformed_stage_cards_payload", m.test_workspace_stage_model_handles_malformed_stage_cards_payload),
-            ("test_workspace_stage_model_handles_malformed_alert_payload", m.test_workspace_stage_model_handles_malformed_alert_payload),
-            ("test_workspace_stage_model_builds_safe_next_step_request_defaults", m.test_workspace_stage_model_builds_safe_next_step_request_defaults),
+            (
+                "test_workspace_stage_model_calls_required_workflow_endpoints",
+                m.test_workspace_stage_model_calls_required_workflow_endpoints,
+            ),
+            (
+                "test_workspace_stage_model_has_failure_fallback_path",
+                m.test_workspace_stage_model_has_failure_fallback_path,
+            ),
+            (
+                "test_workspace_stage_model_handles_malformed_stage_cards_payload",
+                m.test_workspace_stage_model_handles_malformed_stage_cards_payload,
+            ),
+            (
+                "test_workspace_stage_model_handles_malformed_alert_payload",
+                m.test_workspace_stage_model_handles_malformed_alert_payload,
+            ),
+            (
+                "test_workspace_stage_model_builds_safe_next_step_request_defaults",
+                m.test_workspace_stage_model_builds_safe_next_step_request_defaults,
+            ),
         ]
         for name, fn in test_fns:
             try:
@@ -103,6 +120,7 @@ def run_static_tests():
 # =============================================================================
 # CATEGORY 2: E2E DOCUMENT PIPELINE (local vault + Neon DB)
 # =============================================================================
+
 
 async def run_e2e_tests():
     print("\n" + "=" * 70)
@@ -130,19 +148,22 @@ async def run_e2e_tests():
         from app.core.database import get_db_session, init_db
         from app.core.utc import utc_now
         from app.models.models import User
+
         await init_db()
         async with get_db_session() as session:
             existing = await session.execute(select(User).where(User.id == "testuser"))
             if existing.scalar_one_or_none() is None:
-                session.add(User(
-                    id="testuser",
-                    primary_provider="local",
-                    storage_user_id="local_test_user",
-                    default_role="user",
-                    intensity_level="low",
-                    created_at=utc_now(),
-                    updated_at=utc_now(),
-                ))
+                session.add(
+                    User(
+                        id="testuser",
+                        primary_provider="local",
+                        storage_user_id="local_test_user",
+                        default_role="user",
+                        intensity_level="low",
+                        created_at=utc_now(),
+                        updated_at=utc_now(),
+                    )
+                )
                 await session.commit()
         m = importlib.import_module("tests.integration.test_vault_local")
         await m.run()
@@ -154,6 +175,7 @@ async def run_e2e_tests():
 # =============================================================================
 # CATEGORY 3: PYTEST WITH FIXTURES (needs ASGI client + SQLite — broken by ARRAY)
 # =============================================================================
+
 
 def report_pytest_skipped():
     print("\n" + "=" * 70)
@@ -203,7 +225,7 @@ def report_pytest_skipped():
     ]
 
     print(f"  {'File':<40} {'Count':<15} {'Description'}")
-    print(f"  {'-'*40} {'-'*15} {'-'*40}")
+    print(f"  {'-' * 40} {'-' * 15} {'-' * 40}")
     for fname, count, desc in pytest_tests:
         print(f"  {fname:<40} {count:<15} {desc}")
     print(f"\n  Total: {len(pytest_tests)} test files need a running server (Render or local uvicorn)")
@@ -214,6 +236,7 @@ def report_pytest_skipped():
 # =============================================================================
 # FINAL REPORT
 # =============================================================================
+
 
 def final_report():
     print("\n" + "=" * 70)

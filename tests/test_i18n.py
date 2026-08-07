@@ -22,9 +22,7 @@ def _make_i18n(tmp_path, catalog):
     locales_dir = tmp_path / "translations"
     locales_dir.mkdir()
     for locale, data in catalog.items():
-        (locales_dir / f"{locale}.json").write_text(
-            json.dumps(data, ensure_ascii=False), encoding="utf-8"
-        )
+        (locales_dir / f"{locale}.json").write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return I18n(locales_dir=locales_dir)
 
 
@@ -37,26 +35,35 @@ def test_supported_locales_includes_priority_languages():
 
 
 def test_loads_english_catalog(tmp_path):
-    i18n = _make_i18n(tmp_path, {
-        "en": {"welcome.cta": "Get Started", "nav.record": "Record"},
-    })
+    i18n = _make_i18n(
+        tmp_path,
+        {
+            "en": {"welcome.cta": "Get Started", "nav.record": "Record"},
+        },
+    )
     assert i18n.translate("welcome.cta") == "Get Started"
     assert i18n.translate("nav.record") == "Record"
 
 
 def test_falls_back_to_english_for_missing_key(tmp_path):
-    i18n = _make_i18n(tmp_path, {
-        "en": {"welcome.cta": "Get Started"},
-        "es": {"_meta": {"locale": "es", "status": "stub"}},
-    })
+    i18n = _make_i18n(
+        tmp_path,
+        {
+            "en": {"welcome.cta": "Get Started"},
+            "es": {"_meta": {"locale": "es", "status": "stub"}},
+        },
+    )
     assert i18n.translate("welcome.cta", locale="es") == "Get Started"
 
 
 def test_uses_spanish_translation_when_available(tmp_path):
-    i18n = _make_i18n(tmp_path, {
-        "en": {"welcome.cta": "Get Started"},
-        "es": {"welcome.cta": "Comenzar"},
-    })
+    i18n = _make_i18n(
+        tmp_path,
+        {
+            "en": {"welcome.cta": "Get Started"},
+            "es": {"welcome.cta": "Comenzar"},
+        },
+    )
     assert i18n.translate("welcome.cta", locale="es") == "Comenzar"
 
 
@@ -79,28 +86,37 @@ def test_unsupported_locale_defaults_to_english(tmp_path):
 
 
 def test_translate_with_format_kwargs(tmp_path):
-    i18n = _make_i18n(tmp_path, {
-        "en": {"greeting": "Hello, {name}!"},
-    })
+    i18n = _make_i18n(
+        tmp_path,
+        {
+            "en": {"greeting": "Hello, {name}!"},
+        },
+    )
     assert i18n.translate("greeting", name="Ada") == "Hello, Ada!"
 
 
 def test_ntranslate_singular_and_plural(tmp_path):
-    i18n = _make_i18n(tmp_path, {
-        "en": {
-            "items.one": "One item",
-            "items.other": "{count} items",
+    i18n = _make_i18n(
+        tmp_path,
+        {
+            "en": {
+                "items.one": "One item",
+                "items.other": "{count} items",
+            },
         },
-    })
+    )
     assert i18n.ntranslate("items.one", "items.other", 1, count=1) == "One item"
     assert i18n.ntranslate("items.one", "items.other", 5, count=5) == "5 items"
 
 
 def test_jinja2_global_reads_request_locale(tmp_path):
-    i18n = _make_i18n(tmp_path, {
-        "en": {"welcome.cta": "Get Started"},
-        "es": {"welcome.cta": "Comenzar"},
-    })
+    i18n = _make_i18n(
+        tmp_path,
+        {
+            "en": {"welcome.cta": "Get Started"},
+            "es": {"welcome.cta": "Comenzar"},
+        },
+    )
     request = _FakeRequest(cookies={"semptify_locale": "es"})
     context = {"request": request}
     assert _jinja2_gettext(context, "welcome.cta") == "Comenzar"
@@ -110,9 +126,7 @@ def test_module_level_helpers_use_singleton(tmp_path):
     I18n._instance = None
     locales_dir = tmp_path / "translations"
     locales_dir.mkdir()
-    (locales_dir / "en.json").write_text(
-        json.dumps({"welcome.cta": "Get Started"}), encoding="utf-8"
-    )
+    (locales_dir / "en.json").write_text(json.dumps({"welcome.cta": "Get Started"}), encoding="utf-8")
     I18n(locales_dir=locales_dir)
     assert gettext("welcome.cta") == "Get Started"
     assert get_locale() == "en"

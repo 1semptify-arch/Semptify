@@ -3,7 +3,6 @@ Semptify 5.0 - Crawler API Router
 Provides API endpoints for ethical web crawling of public data.
 """
 
-
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
@@ -21,14 +20,17 @@ router = APIRouter(prefix="/api/crawler", tags=["Crawler"])
 # Response Models
 # =============================================================================
 
+
 class CrawlRequest(BaseModel):
     """Request to crawl a URL."""
+
     url: str
     use_cache: bool = True
 
 
 class CrawlResponse(BaseModel):
     """Response from crawl operation."""
+
     url: str
     success: bool
     status_code: int | None = None
@@ -41,6 +43,7 @@ class CrawlResponse(BaseModel):
 
 class SearchRequest(BaseModel):
     """Request to search public data."""
+
     query: str
     sources: list[str] | None = None  # Filter to specific sources
     limit: int = 20
@@ -48,6 +51,7 @@ class SearchRequest(BaseModel):
 
 class SearchResultResponse(BaseModel):
     """A single search result."""
+
     title: str
     url: str
     snippet: str
@@ -58,6 +62,7 @@ class SearchResultResponse(BaseModel):
 
 class SearchResponse(BaseModel):
     """Response from search operation."""
+
     query: str
     total_results: int
     results: list[SearchResultResponse]
@@ -65,6 +70,7 @@ class SearchResponse(BaseModel):
 
 class SourceInfo(BaseModel):
     """Information about a data source."""
+
     id: str
     name: str
     base_url: str
@@ -74,6 +80,7 @@ class SourceInfo(BaseModel):
 
 class StatuteResponse(BaseModel):
     """Response for statute lookup."""
+
     chapter: str
     section: str | None = None
     url: str
@@ -87,11 +94,12 @@ class StatuteResponse(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/sources")
 async def list_sources() -> list[SourceInfo]:
     """
     List all available data sources.
-    
+
     These are public government and legal aid websites that can be searched.
     """
     return [
@@ -126,12 +134,12 @@ async def get_source(source_id: str) -> SourceInfo:
 async def crawl_url(request: CrawlRequest) -> CrawlResponse:
     """
     Crawl a single URL.
-    
+
     The crawler will:
     - Check robots.txt compliance
     - Rate limit requests
     - Cache results for 24 hours
-    
+
     Only URLs from allowed domains are permitted.
     """
     crawler = get_crawler()
@@ -143,7 +151,7 @@ async def crawl_url(request: CrawlRequest) -> CrawlResponse:
     if not url_allowed:
         raise HTTPException(
             status_code=400,
-            detail="URL not from allowed public data source. Use /api/crawler/sources to see allowed sources."
+            detail="URL not from allowed public data source. Use /api/crawler/sources to see allowed sources.",
         )
 
     result = await crawler.crawl(request.url, use_cache=request.use_cache)
@@ -168,7 +176,7 @@ async def search(
 ) -> SearchResponse:
     """
     Search public data sources for tenant-relevant information.
-    
+
     Searches Minnesota government websites, legal resources, and public records.
     """
     crawler = get_crawler()
@@ -185,14 +193,16 @@ async def search(
 
             results = []
             if result.success:
-                results.append(SearchResult(
-                    title=result.title or f"Search: {query}",
-                    url=result.url,
-                    snippet=result.text[:500] if result.text else "",
-                    source=source_info["name"],
-                    source_type=source_info["type"],
-                    relevance_score=0.8,
-                ))
+                results.append(
+                    SearchResult(
+                        title=result.title or f"Search: {query}",
+                        url=result.url,
+                        snippet=result.text[:500] if result.text else "",
+                        source=source_info["name"],
+                        source_type=source_info["type"],
+                        relevance_score=0.8,
+                    )
+                )
         else:
             results = []
     else:
@@ -221,7 +231,7 @@ async def search_statutes(
 ) -> SearchResponse:
     """
     Search Minnesota Statutes.
-    
+
     You can search by:
     - Chapter number (e.g., "504B")
     - Section (e.g., "504B.111")
@@ -253,7 +263,7 @@ async def search_business(
 ) -> SearchResponse:
     """
     Search Minnesota business registry.
-    
+
     Useful for finding:
     - Property management companies
     - Landlord LLCs
@@ -286,7 +296,7 @@ async def search_property(
 ) -> SearchResponse:
     """
     Search county property records.
-    
+
     Supported counties:
     - Hennepin (Minneapolis)
     - Ramsey (St. Paul)
@@ -318,7 +328,7 @@ async def search_legal_aid(
 ) -> SearchResponse:
     """
     Search legal aid resources.
-    
+
     Searches:
     - LawHelp Minnesota
     - HOME Line tenant resources
@@ -350,7 +360,7 @@ async def get_statute(
 ) -> StatuteResponse:
     """
     Get a specific Minnesota statute.
-    
+
     Examples:
     - /api/crawler/statute/504B ▸ Chapter 504B (Landlord-Tenant)
     - /api/crawler/statute/504B?section=111 ▸ Security Deposit statute
@@ -373,7 +383,7 @@ async def get_statute(
 async def get_tenant_rights_statutes() -> list[StatuteResponse]:
     """
     Get all key Minnesota tenant rights statutes.
-    
+
     This is a convenience endpoint that returns the most important
     statutes for tenant defense, including:
     - Security deposits
@@ -403,7 +413,7 @@ async def get_tenant_rights_statutes() -> list[StatuteResponse]:
 async def get_ethics_policy() -> dict:
     """
     Get the crawler's ethics policy.
-    
+
     Explains what data is crawled and how.
     """
     return {
@@ -430,7 +440,7 @@ async def get_ethics_policy() -> dict:
 async def clear_cache() -> dict:
     """
     Clear the crawler cache.
-    
+
     Use this if you need fresh data (e.g., statute was recently updated).
     """
     import shutil

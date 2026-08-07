@@ -34,6 +34,7 @@ class CaseStage(str, Enum):
 @dataclass
 class PartyInfo:
     """Party information (tenant or landlord)"""
+
     name: str = ""
     address: str = ""
     city: str = ""
@@ -48,6 +49,7 @@ class PartyInfo:
 @dataclass
 class CaseInfo:
     """Core case information"""
+
     case_number: str = ""
     court_name: str = "Dakota County District Court"
     court_address: str = "1560 Highway 55, Hastings, MN 55033"
@@ -101,6 +103,7 @@ class CaseInfo:
 @dataclass
 class FormData:
     """Complete form data package for all court forms"""
+
     case: CaseInfo = field(default_factory=CaseInfo)
 
     # Document references
@@ -181,9 +184,11 @@ class FormDataService:
     async def _load_from_timeline(self):
         """Load timeline events"""
         async with get_db_session() as session:
-            query = select(TimelineEvent).where(
-                TimelineEvent.user_id == self.user_id
-            ).order_by(TimelineEvent.event_date.desc())
+            query = (
+                select(TimelineEvent)
+                .where(TimelineEvent.user_id == self.user_id)
+                .order_by(TimelineEvent.event_date.desc())
+            )
             result = await session.execute(query)
             events = result.scalars().all()
 
@@ -202,9 +207,9 @@ class FormDataService:
         """Extract case information from documents and timeline"""
         # Look for case number patterns
         case_patterns = [
-            r'(\d{2}[A-Z]{2}-CV-\d{2}-\d+)',  # 19AV-CV-25-0000
-            r'(\d{2}-CV-[A-Z]{2}-\d{2}-\d+)',  # 27-CV-HC-24-5847
-            r'Case\s*(?:No\.?|Number|#)?\s*:?\s*([A-Z0-9-]+)',
+            r"(\d{2}[A-Z]{2}-CV-\d{2}-\d+)",  # 19AV-CV-25-0000
+            r"(\d{2}-CV-[A-Z]{2}-\d{2}-\d+)",  # 27-CV-HC-24-5847
+            r"Case\s*(?:No\.?|Number|#)?\s*:?\s*([A-Z0-9-]+)",
         ]
 
         for doc in self.form_data.documents:
@@ -217,7 +222,7 @@ class FormDataService:
 
         # Extract dates from timeline
         for event in self.form_data.timeline_events:
-            event_type = event.get("type", "")
+            event.get("type", "")
             event_date = event.get("date", "")
             title = event.get("title", "").lower()
 
@@ -251,11 +256,13 @@ class FormDataService:
 
     async def _extract_notice_data(self, doc: Document):
         """Extract data from notice documents"""
-        self.form_data.extracted_dates.append({
-            "source": doc.original_filename,
-            "type": "notice_date",
-            "date": doc.uploaded_at.strftime("%Y-%m-%d") if doc.uploaded_at else "",
-        })
+        self.form_data.extracted_dates.append(
+            {
+                "source": doc.original_filename,
+                "type": "notice_date",
+                "date": doc.uploaded_at.strftime("%Y-%m-%d") if doc.uploaded_at else "",
+            }
+        )
 
         # Try to determine notice type from filename
         filename = (doc.original_filename or doc.filename).lower()
@@ -268,14 +275,14 @@ class FormDataService:
 
     async def _extract_lease_data(self, doc: Document):
         """Extract data from lease documents"""
-        filename = (doc.original_filename or doc.filename or "").lower()
+        (doc.original_filename or doc.filename or "").lower()
         text = (doc.extracted_text or "").lower()
 
         # Monthly rent — look for "$X/month", "rent: $X", "monthly rent of $X"
         rent_patterns = [
-            r'monthly\s+rent\s+(?:of\s+)?\$?([\d,]+(?:\.\d{2})?)',
-            r'rent\s*(?:amount\s*)?(?:is\s*)?\$?([\d,]+(?:\.\d{2})?)\s*(?:per\s*month|/\s*month|monthly)',
-            r'\$\s*([\d,]+(?:\.\d{2})?)\s*(?:per\s*month|/\s*month)',
+            r"monthly\s+rent\s+(?:of\s+)?\$?([\d,]+(?:\.\d{2})?)",
+            r"rent\s*(?:amount\s*)?(?:is\s*)?\$?([\d,]+(?:\.\d{2})?)\s*(?:per\s*month|/\s*month|monthly)",
+            r"\$\s*([\d,]+(?:\.\d{2})?)\s*(?:per\s*month|/\s*month)",
         ]
         for pattern in rent_patterns:
             m = re.search(pattern, text)
@@ -290,8 +297,8 @@ class FormDataService:
 
         # Security deposit
         deposit_patterns = [
-            r'security\s+deposit\s+(?:of\s+)?\$?([\d,]+(?:\.\d{2})?)',
-            r'deposit\s*(?:amount\s*)?(?:is\s*)?\$?([\d,]+(?:\.\d{2})?)',
+            r"security\s+deposit\s+(?:of\s+)?\$?([\d,]+(?:\.\d{2})?)",
+            r"deposit\s*(?:amount\s*)?(?:is\s*)?\$?([\d,]+(?:\.\d{2})?)",
         ]
         for pattern in deposit_patterns:
             m = re.search(pattern, text)
@@ -306,20 +313,20 @@ class FormDataService:
 
         # Lease start date — "commencing", "beginning", "start date", "effective"
         start_patterns = [
-            r'(?:commenc(?:ing|es?)|beginning|start(?:ing)?\s+date|effective\s+(?:date\s+)?(?:of\s+)?(?:this\s+)?(?:lease\s+)?(?:on\s+)?)'
-            r'\s*(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})',
-            r'lease\s+(?:term\s+)?(?:begins?|starts?)\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})',
+            r"(?:commenc(?:ing|es?)|beginning|start(?:ing)?\s+date|effective\s+(?:date\s+)?(?:of\s+)?(?:this\s+)?(?:lease\s+)?(?:on\s+)?)"
+            r"\s*(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})",
+            r"lease\s+(?:term\s+)?(?:begins?|starts?)\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})",
         ]
         for pattern in start_patterns:
             m = re.search(pattern, text)
             if m:
                 try:
-                    parsed = datetime.strptime(m.group(1).strip().rstrip(','), "%B %d %Y")
+                    parsed = datetime.strptime(m.group(1).strip().rstrip(","), "%B %d %Y")
                     self.form_data.case.lease_start_date = parsed.strftime("%Y-%m-%d")
                     break
                 except ValueError:
                     try:
-                        parsed = datetime.strptime(m.group(1).strip().rstrip(','), "%B %d, %Y")
+                        parsed = datetime.strptime(m.group(1).strip().rstrip(","), "%B %d, %Y")
                         self.form_data.case.lease_start_date = parsed.strftime("%Y-%m-%d")
                         break
                     except ValueError:
@@ -327,19 +334,19 @@ class FormDataService:
 
         # Lease end date — "terminating", "ending", "expir"
         end_patterns = [
-            r'(?:terminat(?:ing|es?)|ending|expir(?:ing|es?|ation\s+date))\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})',
-            r'lease\s+(?:term\s+)?(?:ends?|terminates?|expires?)\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})',
+            r"(?:terminat(?:ing|es?)|ending|expir(?:ing|es?|ation\s+date))\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})",
+            r"lease\s+(?:term\s+)?(?:ends?|terminates?|expires?)\s+(?:on\s+)?(\w+\s+\d{1,2},?\s+\d{4})",
         ]
         for pattern in end_patterns:
             m = re.search(pattern, text)
             if m:
                 try:
-                    parsed = datetime.strptime(m.group(1).strip().rstrip(','), "%B %d %Y")
+                    parsed = datetime.strptime(m.group(1).strip().rstrip(","), "%B %d %Y")
                     self.form_data.case.lease_end_date = parsed.strftime("%Y-%m-%d")
                     break
                 except ValueError:
                     try:
-                        parsed = datetime.strptime(m.group(1).strip().rstrip(','), "%B %d, %Y")
+                        parsed = datetime.strptime(m.group(1).strip().rstrip(","), "%B %d, %Y")
                         self.form_data.case.lease_end_date = parsed.strftime("%Y-%m-%d")
                         break
                     except ValueError:
@@ -348,19 +355,22 @@ class FormDataService:
         # Lease type — fixed-term vs month-to-month
         if "month-to-month" in text or "month to month" in text or "monthly tenancy" in text:
             self.form_data.case.lease_type = "month-to-month"
-        elif re.search(r'(?:fixed[- ]term|one[- ]year|two[- ]year|\d+[- ]month\s+lease)', text):
+        elif re.search(r"(?:fixed[- ]term|one[- ]year|two[- ]year|\d+[- ]month\s+lease)", text):
             self.form_data.case.lease_type = "fixed-term"
 
         # Unit number — "unit #X", "apt X", "apartment X", "unit X"
         if not self.form_data.case.unit_number:
-            unit_m = re.search(r'(?:unit|apt\.?|apartment)\s*#?\s*([A-Za-z0-9\-]+)', text)
+            unit_m = re.search(r"(?:unit|apt\.?|apartment)\s*#?\s*([A-Za-z0-9\-]+)", text)
             if unit_m:
                 self.form_data.case.unit_number = unit_m.group(1).strip()
 
         # Property address from lease header (first address-like pattern in text)
         if not self.form_data.case.property_address:
-            addr_m = re.search(r'(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
-                               text, re.IGNORECASE)
+            addr_m = re.search(
+                r"(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)",
+                text,
+                re.IGNORECASE,
+            )
             if addr_m:
                 self.form_data.case.property_address = addr_m.group(1).strip().title()
 

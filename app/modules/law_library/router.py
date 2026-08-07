@@ -42,8 +42,10 @@ LAST_VERIFIED_DATE = "2025-01-01"  # Date when legal content was last verified
 # Data Models
 # =============================================================================
 
+
 class LawReference(BaseModel):
     """A single law reference."""
+
     id: str
     title: str
     citation: str
@@ -64,6 +66,7 @@ class LawReference(BaseModel):
 
 class CaseReference(BaseModel):
     """A case law reference."""
+
     id: str
     case_name: str
     citation: str
@@ -82,6 +85,7 @@ class CaseReference(BaseModel):
 
 class CourtRule(BaseModel):
     """A court procedural rule."""
+
     id: str
     rule_number: str
     title: str
@@ -98,6 +102,7 @@ class CourtRule(BaseModel):
 
 class LibrarianResponse(BaseModel):
     """AI Librarian response to a query."""
+
     query: str
     answer: str
     sources: list[dict]
@@ -122,11 +127,11 @@ MINNESOTA_TENANT_LAWS = {
             "30-day notice for lease violations",
             "Tenant may withhold rent for habitability issues",
             "Security deposit must be returned within 21 days",
-            "Retaliation by landlord is prohibited"
+            "Retaliation by landlord is prohibited",
         ],
         "full_text": "Chapter 504B governs the relationship between landlords and tenants in Minnesota...",
         "related_forms": ["eviction_answer", "motion_to_dismiss", "counterclaim"],
-        "effective_date": "1999-08-01"
+        "effective_date": "1999-08-01",
     },
     "minn_stat_504b_321": {
         "id": "minn_stat_504b_321",
@@ -140,11 +145,11 @@ MINNESOTA_TENANT_LAWS = {
             "Service must be personal or by posting and mail",
             "Tenant has 7 days to file answer after service",
             "Hearing must be held within 7-14 days",
-            "Tenant can cure nonpayment before trial"
+            "Tenant can cure nonpayment before trial",
         ],
         "full_text": "Subdivision 1. Complaint and summons. (a) An action may be commenced...",
         "related_forms": ["eviction_answer", "demand_for_jury_trial"],
-        "effective_date": "2000-01-01"
+        "effective_date": "2000-01-01",
     },
     "minn_stat_504b_375": {
         "id": "minn_stat_504b_375",
@@ -158,11 +163,11 @@ MINNESOTA_TENANT_LAWS = {
             "Written statement of deductions required",
             "Cannot deduct normal wear and tear",
             "Tenant entitled to interest on deposit over $2000",
-            "Bad faith withholding = punitive damages"
+            "Bad faith withholding = punitive damages",
         ],
         "full_text": "Subdivision 1. Return of deposit. (a) A landlord shall return the deposit...",
         "related_forms": ["security_deposit_demand", "small_claims_complaint"],
-        "effective_date": "1999-08-01"
+        "effective_date": "1999-08-01",
     },
     "minn_stat_504b_211": {
         "id": "minn_stat_504b_211",
@@ -176,11 +181,11 @@ MINNESOTA_TENANT_LAWS = {
             "Tenant may withhold rent for serious violations",
             "Rent escrow available through court",
             "Tenant can make repairs and deduct cost (limits apply)",
-            "Cannot waive habitability in lease"
+            "Cannot waive habitability in lease",
         ],
         "full_text": "The landlord or other person responsible for the residential building...",
         "related_forms": ["rent_escrow_petition", "habitability_complaint"],
-        "effective_date": "1999-08-01"
+        "effective_date": "1999-08-01",
     },
     "minn_stat_504b_285": {
         "id": "minn_stat_504b_285",
@@ -194,12 +199,12 @@ MINNESOTA_TENANT_LAWS = {
             "Cannot evict for joining tenant organization",
             "Cannot evict for exercising legal rights",
             "90-day presumption of retaliation",
-            "Defense available in eviction actions"
+            "Defense available in eviction actions",
         ],
         "full_text": "Subdivision 1. Retaliatory conduct prohibited. A landlord may not...",
         "related_forms": ["retaliation_defense", "counterclaim_retaliation"],
-        "effective_date": "1999-08-01"
-    }
+        "effective_date": "1999-08-01",
+    },
 }
 
 # =============================================================================
@@ -222,13 +227,13 @@ FEDERAL_HOUSING_LAWS = {
             "Covers advertising, terms, conditions, and privileges",
             "Landlords must make reasonable accommodations for disabilities",
             "Cannot refuse to rent to families with children (familial status)",
-            "HUD enforces through complaints and investigations"
+            "HUD enforces through complaints and investigations",
         ],
         "full_text": "It shall be unlawful to refuse to sell or rent after the making of a bona fide offer, or to refuse to negotiate for the sale or rental of, or otherwise make unavailable or deny, a dwelling to any person because of race, color, religion, sex, familial status, or national origin...",
         "related_forms": ["hud_complaint_form", "fair_housing_complaint"],
         "effective_date": "1968-04-11",
         "enforcement": "HUD, DOJ, Private Lawsuits",
-        "penalties": "Actual damages, punitive damages up to $150,000 (first offense), attorney fees, injunctive relief"
+        "penalties": "Actual damages, punitive damages up to $150,000 (first offense), attorney fees, injunctive relief",
     },
     "fha_amendments_1988": {
         "id": "fha_amendments_1988",
@@ -245,11 +250,11 @@ FEDERAL_HOUSING_LAWS = {
             "Landlord may require restoration of modifications at move-out",
             "Design requirements for new multifamily housing (accessibility)",
             "Cannot ask about nature/severity of disability",
-            "Assistance animals protected (not considered pets)"
+            "Assistance animals protected (not considered pets)",
         ],
         "full_text": "Discrimination includes a refusal to make reasonable accommodations in rules, policies, practices, or services, when such accommodations may be necessary to afford such person equal opportunity to use and enjoy a dwelling...",
         "related_forms": ["reasonable_accommodation_request", "assistance_animal_request"],
-        "effective_date": "1988-09-13"
+        "effective_date": "1988-09-13",
     },
     "section_504_rehab": {
         "id": "section_504_rehab",
@@ -266,11 +271,11 @@ FEDERAL_HOUSING_LAWS = {
             "Requires program accessibility",
             "Requires reasonable accommodations",
             "Broader than FHA for federally funded housing",
-            "Enforced by HUD Office of Fair Housing"
+            "Enforced by HUD Office of Fair Housing",
         ],
         "full_text": "No otherwise qualified individual with a disability shall, solely by reason of her or his disability, be excluded from participation in, be denied the benefits of, or be subjected to discrimination under any program or activity receiving Federal financial assistance...",
         "related_forms": ["section_504_complaint", "reasonable_accommodation_request"],
-        "effective_date": "1973-09-26"
+        "effective_date": "1973-09-26",
     },
     "vawa_housing": {
         "id": "vawa_housing",
@@ -287,11 +292,11 @@ FEDERAL_HOUSING_LAWS = {
             "Landlord must keep DV information confidential",
             "Can request emergency transfer to safe unit",
             "Applies to public housing, Section 8, LIHTC, and other federal programs",
-            "Abuser can be removed from lease without affecting victim"
+            "Abuser can be removed from lease without affecting victim",
         ],
         "full_text": "An applicant for or tenant of housing assisted under a covered housing program may not be denied admission to, denied assistance under, terminated from participation in, or evicted from the housing on the basis that the applicant or tenant is or has been a victim of domestic violence...",
         "related_forms": ["vawa_self_certification", "emergency_transfer_request"],
-        "effective_date": "2013-03-07"
+        "effective_date": "2013-03-07",
     },
     "cfpb_debt_collection": {
         "id": "cfpb_debt_collection",
@@ -308,12 +313,12 @@ FEDERAL_HOUSING_LAWS = {
             "Cannot threaten violence or illegal actions",
             "Must verify debt upon written request",
             "Can request debt collector stop contacting you",
-            "Violations can result in statutory damages"
+            "Violations can result in statutory damages",
         ],
         "full_text": "A debt collector may not engage in any conduct the natural consequence of which is to harass, oppress, or abuse any person in connection with the collection of a debt...",
         "related_forms": ["debt_validation_letter", "cease_contact_letter"],
         "effective_date": "1978-03-20",
-        "penalties": "Actual damages + statutory damages up to $1,000 + attorney fees"
+        "penalties": "Actual damages + statutory damages up to $1,000 + attorney fees",
     },
     "title_vi_civil_rights": {
         "id": "title_vi_civil_rights",
@@ -329,12 +334,12 @@ FEDERAL_HOUSING_LAWS = {
             "Prohibits policies with discriminatory effect (disparate impact)",
             "Limited English Proficiency (LEP) protections",
             "Covers public housing and federally assisted housing",
-            "Enforced by HUD and DOJ"
+            "Enforced by HUD and DOJ",
         ],
         "full_text": "No person in the United States shall, on the ground of race, color, or national origin, be excluded from participation in, be denied the benefits of, or be subjected to discrimination under any program or activity receiving Federal financial assistance...",
         "related_forms": ["civil_rights_complaint"],
-        "effective_date": "1964-07-02"
-    }
+        "effective_date": "1964-07-02",
+    },
 }
 
 # =============================================================================
@@ -357,11 +362,11 @@ ADA_DISABILITY_LAWS = {
             "Must provide effective communication (interpreters, materials in accessible formats)",
             "Cannot charge extra fees for accommodations",
             "Covers all PHA programs, services, and activities",
-            "Broader than Section 504 for government entities"
+            "Broader than Section 504 for government entities",
         ],
         "full_text": "Subject to the provisions of this subchapter, no qualified individual with a disability shall, by reason of such disability, be excluded from participation in or be denied the benefits of the services, programs, or activities of a public entity, or be subjected to discrimination by any such entity...",
         "related_forms": ["ada_complaint", "reasonable_accommodation_request"],
-        "effective_date": "1990-07-26"
+        "effective_date": "1990-07-26",
     },
     "ada_title_iii": {
         "id": "ada_title_iii",
@@ -378,11 +383,11 @@ ADA_DISABILITY_LAWS = {
             "New construction must be accessible",
             "Alterations must be accessible to maximum extent feasible",
             "Cannot charge for auxiliary aids or services",
-            "Service animals must be permitted"
+            "Service animals must be permitted",
         ],
         "full_text": "No individual shall be discriminated against on the basis of disability in the full and equal enjoyment of the goods, services, facilities, privileges, advantages, or accommodations of any place of public accommodation...",
         "related_forms": ["ada_complaint", "barrier_removal_request"],
-        "effective_date": "1990-07-26"
+        "effective_date": "1990-07-26",
     },
     "assistance_animals": {
         "id": "assistance_animals",
@@ -401,12 +406,12 @@ ADA_DISABILITY_LAWS = {
             "Can request documentation for non-obvious disabilities",
             "Cannot require special training or certification",
             "Breed/size/weight restrictions generally don't apply",
-            "Can deny if animal poses direct threat or causes substantial damage"
+            "Can deny if animal poses direct threat or causes substantial damage",
         ],
         "full_text": "An assistance animal is not a pet. It is an animal that works, provides assistance, or performs tasks for the benefit of a person with a disability, or that provides emotional support that alleviates one or more identified effects of a person's disability...",
         "related_forms": ["assistance_animal_request", "healthcare_provider_letter"],
         "effective_date": "2020-01-28",
-        "documentation": "Healthcare provider letter for ESAs describing disability-related need"
+        "documentation": "Healthcare provider letter for ESAs describing disability-related need",
     },
     "reasonable_accommodations": {
         "id": "reasonable_accommodations",
@@ -425,11 +430,11 @@ ADA_DISABILITY_LAWS = {
             "Must engage in interactive process",
             "Can deny only if undue financial/administrative burden",
             "Can deny if fundamentally alters nature of housing",
-            "Examples: reserved parking, lease modification, assistance animals"
+            "Examples: reserved parking, lease modification, assistance animals",
         ],
         "full_text": "It shall be unlawful to refuse to make reasonable accommodations in rules, policies, practices, or services, when such accommodations may be necessary to afford such person equal opportunity to use and enjoy a dwelling...",
         "related_forms": ["reasonable_accommodation_request", "interactive_process_letter"],
-        "effective_date": "1988-09-13"
+        "effective_date": "1988-09-13",
     },
     "reasonable_modifications": {
         "id": "reasonable_modifications",
@@ -447,11 +452,11 @@ ADA_DISABILITY_LAWS = {
             "Landlord can require escrow for restoration costs",
             "Must be done in workmanlike manner",
             "Landlord can approve contractors",
-            "Examples: grab bars, ramps, wider doorways, lowered counters"
+            "Examples: grab bars, ramps, wider doorways, lowered counters",
         ],
         "full_text": "It shall be unlawful to refuse to permit, at the expense of the handicapped person, reasonable modifications of existing premises occupied or to be occupied by such person if such modifications may be necessary to afford such person full enjoyment of the premises...",
         "related_forms": ["modification_request", "restoration_agreement"],
-        "effective_date": "1988-09-13"
+        "effective_date": "1988-09-13",
     },
     "accessibility_new_construction": {
         "id": "accessibility_new_construction",
@@ -471,12 +476,12 @@ ADA_DISABILITY_LAWS = {
             "Accessible routes into and through dwelling",
             "Light switches/outlets in accessible locations",
             "Reinforced bathroom walls for grab bars",
-            "Usable kitchens and bathrooms"
+            "Usable kitchens and bathrooms",
         ],
         "full_text": "Covered multifamily dwellings shall be designed and constructed to have at least one building entrance on an accessible route, unless impractical due to terrain...",
         "related_forms": ["accessibility_complaint"],
-        "effective_date": "1991-03-13"
-    }
+        "effective_date": "1991-03-13",
+    },
 }
 
 # =============================================================================
@@ -496,10 +501,10 @@ TAX_LAWS = {
             "Mortgage interest fully deductible for rental property",
             "Repairs deductible immediately; improvements depreciated",
             "Travel expenses for rental management deductible",
-            "Insurance premiums deductible"
+            "Insurance premiums deductible",
         ],
         "full_text": "Deductions for rental property expenses including depreciation, mortgage interest, repairs, insurance, and management costs.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "irc_121": {
         "id": "irc_121",
@@ -512,10 +517,10 @@ TAX_LAWS = {
             "$500,000 exclusion for married filing jointly",
             "Must own and use as principal residence for 2 of last 5 years",
             "Partial exclusion for unforeseen circumstances",
-            "Rental conversion rules apply"
+            "Rental conversion rules apply",
         ],
         "full_text": "Capital gains exclusion rules for sale of principal residence.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "irc_1031": {
         "id": "irc_1031",
@@ -529,10 +534,10 @@ TAX_LAWS = {
             "180-day closing deadline",
             "Must use qualified intermediary",
             "Boot (cash received) is taxable",
-            "Only applies to investment/business property, not primary residence"
+            "Only applies to investment/business property, not primary residence",
         ],
         "full_text": "Like-kind exchange rules for deferring capital gains on investment property.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "irc_469": {
         "id": "irc_469",
@@ -546,10 +551,10 @@ TAX_LAWS = {
             "$25,000 special allowance for active participation",
             "Phase-out begins at $100,000 AGI",
             "Real estate professionals exception",
-            "Suspended losses carried forward"
+            "Suspended losses carried forward",
         ],
         "full_text": "Passive activity loss limitation rules for rental real estate.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "irc_199a": {
         "id": "irc_199a",
@@ -562,10 +567,10 @@ TAX_LAWS = {
             "Applies to rental income if it rises to level of trade or business",
             "Safe harbor: 250+ hours of rental services",
             "Income limitations may apply",
-            "Separate records required for each rental enterprise"
+            "Separate records required for each rental enterprise",
         ],
         "full_text": "Qualified business income deduction for rental property owners.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "security_deposit_tax": {
         "id": "security_deposit_tax",
@@ -578,10 +583,10 @@ TAX_LAWS = {
             "Becomes income when applied to rent or retained for damages",
             "Last month's rent is taxable when received",
             "Advance rent is taxable when received regardless of period covered",
-            "Document all deposit transactions carefully"
+            "Document all deposit transactions carefully",
         ],
         "full_text": "IRS rules on taxation of security deposits and advance rent.",
-        "source": "IRS Publication 527"
+        "source": "IRS Publication 527",
     },
     # MINNESOTA STATE TAX LAWS
     "mn_property_tax": {
@@ -595,10 +600,10 @@ TAX_LAWS = {
             "Class 4b: Residential non-homestead (1-3 units)",
             "Different tax rates apply to each classification",
             "Homestead exclusion not available for rental property",
-            "Assessment ratio varies by property class"
+            "Assessment ratio varies by property class",
         ],
         "full_text": "Minnesota property tax classification system for rental and residential property.",
-        "source": "Minnesota Statutes Chapter 273"
+        "source": "Minnesota Statutes Chapter 273",
     },
     "mn_renters_credit": {
         "id": "mn_renters_credit",
@@ -612,10 +617,10 @@ TAX_LAWS = {
             "Must file Form M1PR",
             "17% of rent considered property tax for refund calculation",
             "Filing deadline August 15",
-            "Available to renters who meet income requirements"
+            "Available to renters who meet income requirements",
         ],
         "full_text": "Minnesota renters property tax refund program details.",
-        "source": "Minnesota Statutes Chapter 290A"
+        "source": "Minnesota Statutes Chapter 290A",
     },
     "mn_landlord_reporting": {
         "id": "mn_landlord_reporting",
@@ -628,10 +633,10 @@ TAX_LAWS = {
             "Form must show rent paid during previous year",
             "Penalty for failure to provide CRP",
             "Tenant needs CRP to claim renter's refund",
-            "Must include property address and landlord info"
+            "Must include property address and landlord info",
         ],
         "full_text": "Landlord requirements for providing Certificate of Rent Paid.",
-        "source": "Minnesota Statutes Chapter 290A"
+        "source": "Minnesota Statutes Chapter 290A",
     },
     # LOCAL TAX (HENNEPIN COUNTY / MINNEAPOLIS)
     "hennepin_property_tax": {
@@ -645,10 +650,10 @@ TAX_LAWS = {
             "Market value assessment methodology",
             "Appeal process through County Board of Appeal",
             "Tax statements mailed in March",
-            "Payment due May 15 and October 15"
+            "Payment due May 15 and October 15",
         ],
         "full_text": "Hennepin County property tax assessment and collection.",
-        "source": "Hennepin County"
+        "source": "Hennepin County",
     },
     "mpls_rental_license_fee": {
         "id": "mpls_rental_license_fee",
@@ -661,11 +666,11 @@ TAX_LAWS = {
             "Fee varies by number of units",
             "Tier system based on compliance history",
             "Additional fees for inspections",
-            "Late fees for renewal delays"
+            "Late fees for renewal delays",
         ],
         "full_text": "Minneapolis rental license fee structure.",
-        "source": "Minneapolis Code of Ordinances"
-    }
+        "source": "Minneapolis Code of Ordinances",
+    },
 }
 
 # =============================================================================
@@ -685,10 +690,10 @@ REAL_ESTATE_LAWS = {
             "Limits escrow account deposits",
             "Requires HUD-1 Settlement Statement",
             "Applies to federally related mortgage loans",
-            "Prohibits seller-required title insurance"
+            "Prohibits seller-required title insurance",
         ],
         "full_text": "Real Estate Settlement Procedures Act provisions.",
-        "source": "12 U.S.C. Chapter 27"
+        "source": "12 U.S.C. Chapter 27",
     },
     "tila": {
         "id": "tila",
@@ -701,10 +706,10 @@ REAL_ESTATE_LAWS = {
             "Right of rescission for certain transactions",
             "Clear disclosure of loan terms",
             "Prohibits certain mortgage practices",
-            "Applies to residential mortgage transactions"
+            "Applies to residential mortgage transactions",
         ],
         "full_text": "Truth in Lending Act provisions for real estate.",
-        "source": "15 U.S.C. Chapter 41"
+        "source": "15 U.S.C. Chapter 41",
     },
     "lead_paint_disclosure": {
         "id": "lead_paint_disclosure",
@@ -718,10 +723,10 @@ REAL_ESTATE_LAWS = {
             "Must provide EPA pamphlet 'Protect Your Family'",
             "Buyers get 10-day inspection period",
             "Specific disclosure form required",
-            "Penalties up to $16,000 per violation"
+            "Penalties up to $16,000 per violation",
         ],
         "full_text": "Lead-based paint disclosure requirements.",
-        "source": "Residential Lead-Based Paint Hazard Reduction Act"
+        "source": "Residential Lead-Based Paint Hazard Reduction Act",
     },
     "interstate_land_sales": {
         "id": "interstate_land_sales",
@@ -734,10 +739,10 @@ REAL_ESTATE_LAWS = {
             "Property report must be provided to buyers",
             "Anti-fraud provisions",
             "Right to rescind within 7 days",
-            "Applies to subdivisions of 25+ lots"
+            "Applies to subdivisions of 25+ lots",
         ],
         "full_text": "Interstate land sales disclosure requirements.",
-        "source": "15 U.S.C. Chapter 42"
+        "source": "15 U.S.C. Chapter 42",
     },
     "dodd_frank_mortgage": {
         "id": "dodd_frank_mortgage",
@@ -750,10 +755,10 @@ REAL_ESTATE_LAWS = {
             "Qualified Mortgage (QM) safe harbor",
             "Limits on points and fees",
             "Prohibition on steering",
-            "Loan originator compensation rules"
+            "Loan originator compensation rules",
         ],
         "full_text": "Dodd-Frank Wall Street Reform mortgage provisions.",
-        "source": "Dodd-Frank Wall Street Reform Act"
+        "source": "Dodd-Frank Wall Street Reform Act",
     },
     # MINNESOTA STATE REAL ESTATE LAWS
     "mn_vendor_purchaser_act": {
@@ -768,10 +773,10 @@ REAL_ESTATE_LAWS = {
             "Must record contract for deed",
             "Specific cancellation procedures",
             "Seller remedies limited",
-            "Buyer equity protections"
+            "Buyer equity protections",
         ],
         "full_text": "Minnesota contract for deed statutory requirements.",
-        "source": "Minnesota Statutes Chapter 559"
+        "source": "Minnesota Statutes Chapter 559",
     },
     "mn_disclosure": {
         "id": "mn_disclosure",
@@ -785,10 +790,10 @@ REAL_ESTATE_LAWS = {
             "Environmental hazards disclosure",
             "Structural issues must be disclosed",
             "Roof, HVAC, plumbing condition",
-            "Penalties for non-disclosure"
+            "Penalties for non-disclosure",
         ],
         "full_text": "Minnesota residential property seller disclosure requirements.",
-        "source": "Minnesota Statutes Chapter 513"
+        "source": "Minnesota Statutes Chapter 513",
     },
     "mn_recording_act": {
         "id": "mn_recording_act",
@@ -801,10 +806,10 @@ REAL_ESTATE_LAWS = {
             "First to record without notice prevails",
             "Recording provides constructive notice",
             "Torrens and abstract systems",
-            "Recording fees and requirements"
+            "Recording fees and requirements",
         ],
         "full_text": "Minnesota real estate recording requirements.",
-        "source": "Minnesota Statutes Chapter 507"
+        "source": "Minnesota Statutes Chapter 507",
     },
     "mn_foreclosure": {
         "id": "mn_foreclosure",
@@ -818,10 +823,10 @@ REAL_ESTATE_LAWS = {
             "6-month or 12-month redemption period",
             "Pre-foreclosure notice requirements",
             "Loss mitigation requirements",
-            "Dual tracking prohibition"
+            "Dual tracking prohibition",
         ],
         "full_text": "Minnesota foreclosure procedures and homeowner protections.",
-        "source": "Minnesota Statutes Chapter 580"
+        "source": "Minnesota Statutes Chapter 580",
     },
     "mn_real_estate_license": {
         "id": "mn_real_estate_license",
@@ -835,10 +840,10 @@ REAL_ESTATE_LAWS = {
             "State and national exam required",
             "Continuing education requirements",
             "Broker supervision required",
-            "Trust account requirements"
+            "Trust account requirements",
         ],
         "full_text": "Minnesota real estate licensing requirements.",
-        "source": "Minnesota Statutes Chapter 82"
+        "source": "Minnesota Statutes Chapter 82",
     },
     "mn_homestead": {
         "id": "mn_homestead",
@@ -852,10 +857,10 @@ REAL_ESTATE_LAWS = {
             "Applies to owner-occupied residence",
             "Protected from most creditors",
             "Does not protect against mortgage foreclosure",
-            "Property tax benefits"
+            "Property tax benefits",
         ],
         "full_text": "Minnesota homestead exemption laws.",
-        "source": "Minnesota Statutes Chapter 510"
+        "source": "Minnesota Statutes Chapter 510",
     },
     # LOCAL REAL ESTATE LAWS (MINNEAPOLIS/ST. PAUL)
     "mpls_rent_stabilization": {
@@ -870,10 +875,10 @@ REAL_ESTATE_LAWS = {
             "Effective May 1, 2022",
             "Exceptions for new construction (15 years)",
             "Hardship petitions available",
-            "Enforcement through Housing Inspection Services"
+            "Enforcement through Housing Inspection Services",
         ],
         "full_text": "Minneapolis rent stabilization ordinance.",
-        "source": "Minneapolis Code of Ordinances"
+        "source": "Minneapolis Code of Ordinances",
     },
     "stp_rent_stabilization": {
         "id": "stp_rent_stabilization",
@@ -886,10 +891,10 @@ REAL_ESTATE_LAWS = {
             "Voter-approved in November 2021",
             "Exemptions for new construction (20 years)",
             "Affordable housing exemptions",
-            "Enforcement mechanisms"
+            "Enforcement mechanisms",
         ],
         "full_text": "St. Paul rent stabilization ordinance.",
-        "source": "St. Paul Legislative Code"
+        "source": "St. Paul Legislative Code",
     },
     "mpls_truth_in_housing": {
         "id": "mpls_truth_in_housing",
@@ -902,10 +907,10 @@ REAL_ESTATE_LAWS = {
             "City-licensed evaluators only",
             "Report valid for 1 year",
             "Disclosure to buyers required",
-            "Penalties for non-compliance"
+            "Penalties for non-compliance",
         ],
         "full_text": "Minneapolis Truth in Sale of Housing requirements.",
-        "source": "Minneapolis Code of Ordinances"
+        "source": "Minneapolis Code of Ordinances",
     },
     "mpls_rental_license": {
         "id": "mpls_rental_license",
@@ -918,11 +923,11 @@ REAL_ESTATE_LAWS = {
             "Annual inspections",
             "Tiered system based on violations",
             "Crime-free housing provisions",
-            "Property maintenance standards"
+            "Property maintenance standards",
         ],
         "full_text": "Minneapolis rental property licensing requirements.",
-        "source": "Minneapolis Code of Ordinances"
-    }
+        "source": "Minneapolis Code of Ordinances",
+    },
 }
 
 # =============================================================================
@@ -942,10 +947,10 @@ BUSINESS_LAWS = {
             "Can elect S-Corp or C-Corp treatment",
             "Form 8832 for entity classification",
             "Pass-through taxation benefits",
-            "Self-employment tax considerations"
+            "Self-employment tax considerations",
         ],
         "full_text": "Federal tax classification rules for LLCs.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "employer_requirements": {
         "id": "employer_requirements",
@@ -959,10 +964,10 @@ BUSINESS_LAWS = {
             "FUTA unemployment taxes",
             "Form W-2 and W-4 requirements",
             "Independent contractor vs. employee rules",
-            "Payroll tax deposits and filings"
+            "Payroll tax deposits and filings",
         ],
         "full_text": "Federal employer tax requirements.",
-        "source": "Internal Revenue Code"
+        "source": "Internal Revenue Code",
     },
     "fcra_tenant_screening": {
         "id": "fcra_tenant_screening",
@@ -976,10 +981,10 @@ BUSINESS_LAWS = {
             "Must provide credit report source info",
             "Tenant can dispute inaccurate info",
             "Penalties for non-compliance",
-            "Record retention requirements"
+            "Record retention requirements",
         ],
         "full_text": "Fair Credit Reporting Act requirements for landlords.",
-        "source": "15 U.S.C. Chapter 41"
+        "source": "15 U.S.C. Chapter 41",
     },
     "osha_workplace": {
         "id": "osha_workplace",
@@ -993,10 +998,10 @@ BUSINESS_LAWS = {
             "Personal protective equipment",
             "Recordkeeping requirements",
             "Employee training requirements",
-            "Penalties for violations"
+            "Penalties for violations",
         ],
         "full_text": "OSHA workplace safety requirements.",
-        "source": "Occupational Safety and Health Act"
+        "source": "Occupational Safety and Health Act",
     },
     "flsa": {
         "id": "flsa",
@@ -1010,10 +1015,10 @@ BUSINESS_LAWS = {
             "Exempt vs. non-exempt classifications",
             "Recordkeeping requirements",
             "Child labor restrictions",
-            "Tip credits for applicable positions"
+            "Tip credits for applicable positions",
         ],
         "full_text": "Fair Labor Standards Act requirements.",
-        "source": "29 U.S.C. Chapter 8"
+        "source": "29 U.S.C. Chapter 8",
     },
     # MINNESOTA STATE BUSINESS LAWS
     "mn_llc": {
@@ -1028,7 +1033,7 @@ BUSINESS_LAWS = {
             "Registered agent requirement",
             "Operating agreement recommended",
             "Member and manager duties",
-            "Dissolution procedures"
+            "Dissolution procedures",
         ],
         "full_text": """MINNESOTA REVISED UNIFORM LIMITED LIABILITY COMPANY ACT (Chapter 322C)
 
@@ -1060,7 +1065,7 @@ The debts, obligations, or other liabilities of a limited liability company, whe
 (a) Each year, a limited liability company or foreign limited liability company authorized to transact business in this state shall deliver a renewal to the secretary of state.
 (b) A renewal must be delivered to the secretary of state during the calendar year following the calendar year in which the company's certificate was filed.
 (c) The secretary of state may administratively dissolve a limited liability company if it fails to file its annual renewal.""",
-        "source": "Minnesota Statutes Chapter 322C"
+        "source": "Minnesota Statutes Chapter 322C",
     },
     "mn_minimum_wage": {
         "id": "mn_minimum_wage",
@@ -1074,7 +1079,7 @@ The debts, obligations, or other liabilities of a limited liability company, whe
             "Annual increases tied to inflation",
             "Training wage for minors",
             "No tip credit allowed",
-            "Higher than federal minimum"
+            "Higher than federal minimum",
         ],
         "full_text": """MINNESOTA MINIMUM WAGE LAW (Minn. Stat. § 177.24)
 
@@ -1102,7 +1107,7 @@ LANDLORD APPLICABILITY:
 - Independent contractors vs. employees: Proper classification required
 - Recordkeeping: Must maintain time and wage records for 3 years
 - Penalties: Willful violations may result in criminal misdemeanor charges""",
-        "source": "Minnesota Statutes Chapter 177"
+        "source": "Minnesota Statutes Chapter 177",
     },
     "mn_workers_comp": {
         "id": "mn_workers_comp",
@@ -1115,7 +1120,7 @@ LANDLORD APPLICABILITY:
             "Benefits for work-related injuries",
             "Insurance or self-insurance required",
             "Reporting requirements",
-            "Penalties for non-compliance"
+            "Penalties for non-compliance",
         ],
         "full_text": """MINNESOTA WORKERS' COMPENSATION LAW (Minn. Stat. Chapter 176)
 
@@ -1148,7 +1153,7 @@ LANDLORD APPLICABILITY:
 - Property managers, maintenance staff, groundskeepers must be covered
 - Penalties for non-compliance: Up to $1,000/day + criminal charges
 - Verify contractor's workers' comp coverage before hiring""",
-        "source": "Minnesota Statutes Chapter 176"
+        "source": "Minnesota Statutes Chapter 176",
     },
     "mn_business_registration": {
         "id": "mn_business_registration",
@@ -1161,7 +1166,7 @@ LANDLORD APPLICABILITY:
             "Secretary of State filing",
             "Renewal every 10 years",
             "Cannot use deceptively similar names",
-            "Corporate name requirements"
+            "Corporate name requirements",
         ],
         "full_text": """MINNESOTA ASSUMED NAME STATUTE (Minn. Stat. Chapter 333)
 
@@ -1192,7 +1197,7 @@ LANDLORD APPLICABILITY:
 - Fee: Approximately $50 for filing
 - Failure to file: Cannot bring legal action on contracts made under assumed name
 - Must renew every 10 years or certificate expires""",
-        "source": "Minnesota Statutes Chapter 333"
+        "source": "Minnesota Statutes Chapter 333",
     },
     "mn_data_practices": {
         "id": "mn_data_practices",
@@ -1205,7 +1210,7 @@ LANDLORD APPLICABILITY:
             "Notice requirements for data collection",
             "Security breach notification",
             "Data retention and disposal",
-            "Tenant access rights"
+            "Tenant access rights",
         ],
         "full_text": """MINNESOTA DATA PRACTICES ACT (Minn. Stat. Chapter 13)
 
@@ -1249,7 +1254,7 @@ While Chapter 13 primarily applies to government entities, private landlords sho
    - Tenants may request copies of their application data
    - Must provide within reasonable time
    - Can charge reasonable copying fees""",
-        "source": "Minnesota Statutes Chapter 13"
+        "source": "Minnesota Statutes Chapter 13",
     },
     # LOCAL BUSINESS LAWS
     "mpls_business_license": {
@@ -1263,10 +1268,10 @@ While Chapter 13 primarily applies to government entities, private landlords sho
             "Annual renewal",
             "Fees based on business type",
             "Compliance with local ordinances",
-            "Display requirements"
+            "Display requirements",
         ],
         "full_text": "Minneapolis business licensing requirements.",
-        "source": "Minneapolis Code of Ordinances"
+        "source": "Minneapolis Code of Ordinances",
     },
     "mpls_tenant_protection": {
         "id": "mpls_tenant_protection",
@@ -1279,10 +1284,10 @@ While Chapter 13 primarily applies to government entities, private landlords sho
             "Cannot automatically deny for criminal history",
             "Income requirements limited to 3x rent",
             "Written screening criteria required",
-            "Notice of denial reasons required"
+            "Notice of denial reasons required",
         ],
         "full_text": "Minneapolis tenant protection requirements.",
-        "source": "Minneapolis Code of Ordinances"
+        "source": "Minneapolis Code of Ordinances",
     },
     "hennepin_business_property_tax": {
         "id": "hennepin_business_property_tax",
@@ -1295,11 +1300,11 @@ While Chapter 13 primarily applies to government entities, private landlords sho
             "Assessment methodology",
             "Tax rate calculations",
             "Appeal procedures",
-            "Payment schedules"
+            "Payment schedules",
         ],
         "full_text": "Hennepin County commercial property tax.",
-        "source": "Hennepin County"
-    }
+        "source": "Hennepin County",
+    },
 }
 
 # Combine all laws into unified database
@@ -1309,7 +1314,7 @@ ALL_LAWS = {
     **ADA_DISABILITY_LAWS,
     **TAX_LAWS,
     **REAL_ESTATE_LAWS,
-    **BUSINESS_LAWS
+    **BUSINESS_LAWS,
 }
 
 DAKOTA_COUNTY_RULES = {
@@ -1325,8 +1330,8 @@ DAKOTA_COUNTY_RULES = {
             "Bring all original documents",
             "Dress professionally",
             "Address the judge as 'Your Honor'",
-            "Do not interrupt opposing party"
-        ]
+            "Do not interrupt opposing party",
+        ],
     },
     "rule_602": {
         "id": "rule_602",
@@ -1340,8 +1345,8 @@ DAKOTA_COUNTY_RULES = {
             "Jury trial demand extends timeline",
             "Settlement conference offered before trial",
             "Evidence must be organized and labeled",
-            "Witnesses should be present at trial"
-        ]
+            "Witnesses should be present at trial",
+        ],
     },
     "rule_603": {
         "id": "rule_603",
@@ -1357,9 +1362,9 @@ DAKOTA_COUNTY_RULES = {
             "Have documents ready to share screen",
             "Log in 10 minutes early",
             "Use virtual background if needed",
-            "State your name before speaking"
-        ]
-    }
+            "State your name before speaking",
+        ],
+    },
 }
 
 CASE_LAW_DATABASE = [
@@ -1374,7 +1379,7 @@ CASE_LAW_DATABASE = [
         "relevance": "Foundational case for habitability claims in Minnesota.",
         "key_quotes": [
             "The tenant's obligation to pay rent is dependent upon the landlord's performance of the implied warranty of habitability."
-        ]
+        ],
     },
     {
         "id": "johnson_v_property_management",
@@ -1387,7 +1392,7 @@ CASE_LAW_DATABASE = [
         "relevance": "Important for understanding cure rights in nonpayment cases.",
         "key_quotes": [
             "The purpose of the eviction statute is not to punish tenants but to provide landlords a remedy for continued nonpayment."
-        ]
+        ],
     },
     # Federal Fair Housing Cases
     {
@@ -1401,8 +1406,8 @@ CASE_LAW_DATABASE = [
         "relevance": "Critical for challenging facially neutral policies that disproportionately affect protected classes.",
         "key_quotes": [
             "Recognition of disparate-impact liability under the FHA plays an important role in uncovering discriminatory intent.",
-            "The FHA aims to ensure that a group of people cannot be combated through practices that have a disparate impact."
-        ]
+            "The FHA aims to ensure that a group of people cannot be combated through practices that have a disparate impact.",
+        ],
     },
     {
         "id": "trafficante_v_metropolitan",
@@ -1415,7 +1420,7 @@ CASE_LAW_DATABASE = [
         "relevance": "Any person claiming to be aggrieved by a discriminatory housing practice may sue.",
         "key_quotes": [
             "The definition of 'person aggrieved' is broad and covers any person who claims to have been injured by a discriminatory housing practice."
-        ]
+        ],
     },
     {
         "id": "havens_realty_v_coleman",
@@ -1428,7 +1433,7 @@ CASE_LAW_DATABASE = [
         "relevance": "Supports fair housing enforcement through testing methodology.",
         "key_quotes": [
             "A tester who has been the object of a misrepresentation has suffered injury in precisely the form the statute was intended to guard against."
-        ]
+        ],
     },
     # ADA and Disability Cases
     {
@@ -1442,7 +1447,7 @@ CASE_LAW_DATABASE = [
         "relevance": "Broadly defines disability protections applicable to housing discrimination cases.",
         "key_quotes": [
             "We conclude that HIV infection satisfies the statutory and regulatory definition of a physical impairment."
-        ]
+        ],
     },
     {
         "id": "olmstead_v_lc",
@@ -1455,8 +1460,8 @@ CASE_LAW_DATABASE = [
         "relevance": "Foundation for challenging housing segregation of people with disabilities.",
         "key_quotes": [
             "Unjustified isolation is properly regarded as discrimination based on disability.",
-            "Institutional placement of persons who can handle and benefit from community settings perpetuates unwarranted assumptions that persons so isolated are incapable."
-        ]
+            "Institutional placement of persons who can handle and benefit from community settings perpetuates unwarranted assumptions that persons so isolated are incapable.",
+        ],
     },
     {
         "id": "giebeler_v_m_and_b_associates",
@@ -1469,7 +1474,7 @@ CASE_LAW_DATABASE = [
         "relevance": "Key case for reasonable accommodations in tenant screening.",
         "key_quotes": [
             "Allowing a cosigner is a reasonable accommodation that would permit an otherwise qualified disabled applicant to rent an apartment."
-        ]
+        ],
     },
     {
         "id": "bronk_v_ineichen",
@@ -1480,9 +1485,7 @@ CASE_LAW_DATABASE = [
         "summary": "Established that assistance animals, including those for hearing impaired, must be allowed as reasonable accommodations.",
         "holding": "A landlord's refusal to permit deaf tenants to have a hearing assistance dog violated the Fair Housing Act.",
         "relevance": "Foundational case for assistance animal accommodations in housing.",
-        "key_quotes": [
-            "A hearing dog is an auxiliary aid that reasonable landlords would provide."
-        ]
+        "key_quotes": ["A hearing dog is an auxiliary aid that reasonable landlords would provide."],
     },
     {
         "id": "sabal_palm_v_fischer",
@@ -1493,9 +1496,7 @@ CASE_LAW_DATABASE = [
         "summary": "Established that emotional support animals must be permitted in housing with no-pet policies as reasonable accommodations.",
         "holding": "Emotional support animals are protected under the Fair Housing Act; refusing to allow them violates the reasonable accommodation requirement.",
         "relevance": "Important case for emotional support animal rights in housing.",
-        "key_quotes": [
-            "An emotional support animal is not a 'pet' under the Fair Housing Act."
-        ]
+        "key_quotes": ["An emotional support animal is not a 'pet' under the Fair Housing Act."],
     },
     # VAWA Cases
     {
@@ -1509,8 +1510,8 @@ CASE_LAW_DATABASE = [
         "relevance": "Supports VAWA protections and fair housing claims for DV survivors.",
         "key_quotes": [
             "Domestic violence is a problem that disproportionately affects women, and eviction policies that target victims may have a discriminatory effect."
-        ]
-    }
+        ],
+    },
 ]
 
 
@@ -1541,10 +1542,11 @@ for _rule_id, _rule_entry in DAKOTA_COUNTY_RULES.items():
 # Endpoints
 # =============================================================================
 
+
 @router.get("/statutes")
 async def list_statutes(
     category: str | None = Query(None, description="Filter by category"),
-    search: str | None = Query(None, description="Search in title and summary")
+    search: str | None = Query(None, description="Search in title and summary"),
 ):
     """List all available statutes and laws including Federal and ADA."""
     laws = list(ALL_LAWS.values())
@@ -1554,21 +1556,21 @@ async def list_statutes(
 
     if search:
         search_lower = search.lower()
-        laws = [l for l in laws if
-                search_lower in l.get("title", "").lower() or
-                search_lower in l.get("summary", "").lower()]
+        laws = [
+            l
+            for l in laws
+            if search_lower in l.get("title", "").lower() or search_lower in l.get("summary", "").lower()
+        ]
 
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "last_verified": LAST_VERIFIED_DATE,
-        "statutes": [LawReference(**law) for law in laws]
+        "statutes": [LawReference(**law) for law in laws],
     }
 
 
 @router.get("/statutes/{statute_id}")
-async def get_statute(
-    statute_id: str
-):
+async def get_statute(statute_id: str):
     """Get a specific statute by ID."""
     if statute_id not in ALL_LAWS:
         raise HTTPException(status_code=404, detail="Statute not found")
@@ -1576,13 +1578,12 @@ async def get_statute(
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "last_verified": LAST_VERIFIED_DATE,
-        "statute": LawReference(**ALL_LAWS[statute_id])
+        "statute": LawReference(**ALL_LAWS[statute_id]),
     }
 
+
 @router.get("/court-rules")
-async def list_court_rules(
-    category: str | None = Query(None, description="Filter by category")
-):
+async def list_court_rules(category: str | None = Query(None, description="Filter by category")):
     """List all court rules for Dakota County."""
     rules = list(DAKOTA_COUNTY_RULES.values())
 
@@ -1592,14 +1593,12 @@ async def list_court_rules(
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "note": "These are practical guidelines based on court rules. Always verify current procedures with the court clerk.",
-        "rules": [CourtRule(**rule) for rule in rules]
+        "rules": [CourtRule(**rule) for rule in rules],
     }
 
 
 @router.get("/court-rules/{rule_id}", response_model=CourtRule)
-async def get_court_rule(
-    rule_id: str
-):
+async def get_court_rule(rule_id: str):
     """Get a specific court rule."""
     if rule_id not in DAKOTA_COUNTY_RULES:
         raise HTTPException(status_code=404, detail="Court rule not found")
@@ -1607,40 +1606,32 @@ async def get_court_rule(
     return {
         "disclaimer": LEGAL_DISCLAIMER,
         "note": "Practical guideline - verify current procedures with court clerk.",
-        "rule": CourtRule(**DAKOTA_COUNTY_RULES[rule_id])
+        "rule": CourtRule(**DAKOTA_COUNTY_RULES[rule_id]),
     }
 
 
 @router.get("/case-law")
-async def list_case_law(
-    search: str | None = Query(None, description="Search in case name and summary")
-):
+async def list_case_law(search: str | None = Query(None, description="Search in case name and summary")):
     """List relevant case law."""
     cases = CASE_LAW_DATABASE
 
     if search:
         search_lower = search.lower()
-        cases = [c for c in cases if
-                 search_lower in c.get("case_name", "").lower() or
-                 search_lower in c.get("summary", "").lower()]
+        cases = [
+            c
+            for c in cases
+            if search_lower in c.get("case_name", "").lower() or search_lower in c.get("summary", "").lower()
+        ]
 
-    return {
-        "disclaimer": LEGAL_DISCLAIMER,
-        "cases": [CaseReference(**case) for case in cases]
-    }
+    return {"disclaimer": LEGAL_DISCLAIMER, "cases": [CaseReference(**case) for case in cases]}
 
 
 @router.get("/case-law/{case_id}")
-async def get_case(
-    case_id: str
-):
+async def get_case(case_id: str):
     """Get a specific case by ID."""
     for case in CASE_LAW_DATABASE:
         if case["id"] == case_id:
-            return {
-                "disclaimer": LEGAL_DISCLAIMER,
-                "case": CaseReference(**case)
-            }
+            return {"disclaimer": LEGAL_DISCLAIMER, "case": CaseReference(**case)}
 
     raise HTTPException(status_code=404, detail="Case not found")
 
@@ -1655,40 +1646,46 @@ async def list_all_links():
     """
     statute_links = []
     for law_id, entry in ALL_LAWS.items():
-        statute_links.append({
-            "id": law_id,
-            "title": entry.get("title", ""),
-            "citation": entry.get("citation", ""),
-            "category": entry.get("category", ""),
-            "official_url": entry.get("official_url"),
-            "source_name": entry.get("source_name"),
-            "last_verified": entry.get("last_verified"),
-            "jurisdiction": entry.get("jurisdiction"),
-        })
+        statute_links.append(
+            {
+                "id": law_id,
+                "title": entry.get("title", ""),
+                "citation": entry.get("citation", ""),
+                "category": entry.get("category", ""),
+                "official_url": entry.get("official_url"),
+                "source_name": entry.get("source_name"),
+                "last_verified": entry.get("last_verified"),
+                "jurisdiction": entry.get("jurisdiction"),
+            }
+        )
 
     case_links = []
     for case in CASE_LAW_DATABASE:
-        case_links.append({
-            "id": case["id"],
-            "case_name": case.get("case_name", ""),
-            "citation": case.get("citation", ""),
-            "official_url": case.get("official_url"),
-            "source_name": case.get("source_name"),
-            "last_verified": case.get("last_verified"),
-            "jurisdiction": case.get("jurisdiction"),
-        })
+        case_links.append(
+            {
+                "id": case["id"],
+                "case_name": case.get("case_name", ""),
+                "citation": case.get("citation", ""),
+                "official_url": case.get("official_url"),
+                "source_name": case.get("source_name"),
+                "last_verified": case.get("last_verified"),
+                "jurisdiction": case.get("jurisdiction"),
+            }
+        )
 
     rule_links = []
     for rule_id, entry in DAKOTA_COUNTY_RULES.items():
-        rule_links.append({
-            "id": rule_id,
-            "title": entry.get("title", ""),
-            "rule_number": entry.get("rule_number", ""),
-            "official_url": entry.get("official_url"),
-            "source_name": entry.get("source_name"),
-            "last_verified": entry.get("last_verified"),
-            "jurisdiction": entry.get("jurisdiction"),
-        })
+        rule_links.append(
+            {
+                "id": rule_id,
+                "title": entry.get("title", ""),
+                "rule_number": entry.get("rule_number", ""),
+                "official_url": entry.get("official_url"),
+                "source_name": entry.get("source_name"),
+                "last_verified": entry.get("last_verified"),
+                "jurisdiction": entry.get("jurisdiction"),
+            }
+        )
 
     return {
         "disclaimer": LEGAL_DISCLAIMER,
@@ -1701,8 +1698,8 @@ async def list_all_links():
             "cases": len(case_links),
             "court_rules": len(rule_links),
             "with_official_url": sum(1 for s in statute_links if s["official_url"])
-                                  + sum(1 for c in case_links if c["official_url"])
-                                  + sum(1 for r in rule_links if r["official_url"]),
+            + sum(1 for c in case_links if c["official_url"])
+            + sum(1 for r in rule_links if r["official_url"]),
         },
     }
 
@@ -1720,61 +1717,60 @@ async def list_categories():
             {"id": "discrimination", "name": "Fair Housing", "icon": "●"},
             {"id": "disability", "name": "Disability Rights & ADA", "icon": "○"},
             {"id": "lease_terms", "name": "Lease Terms", "icon": "●"},
-            {"id": "repairs", "name": "Repairs & Maintenance", "icon": "▸"}
+            {"id": "repairs", "name": "Repairs & Maintenance", "icon": "▸"},
         ],
         "federal_categories": [
             {"id": "fair_housing", "name": "Federal Fair Housing Act", "icon": "🇺🇸"},
             {"id": "ada", "name": "Americans with Disabilities Act", "icon": "○"},
             {"id": "section_504", "name": "Section 504 Rehab Act", "icon": "▸"},
             {"id": "vawa", "name": "Violence Against Women Act", "icon": "◆"},
-            {"id": "debt_collection", "name": "Fair Debt Collection", "icon": "●"}
+            {"id": "debt_collection", "name": "Fair Debt Collection", "icon": "●"},
         ],
         "disability_categories": [
             {"id": "reasonable_accommodations", "name": "Reasonable Accommodations", "icon": "▸"},
             {"id": "reasonable_modifications", "name": "Physical Modifications", "icon": "▸"},
             {"id": "assistance_animals", "name": "Assistance Animals", "icon": "○"},
             {"id": "accessibility", "name": "Accessibility Requirements", "icon": "○"},
-            {"id": "public_housing", "name": "Public Housing ADA", "icon": "○"}
+            {"id": "public_housing", "name": "Public Housing ADA", "icon": "○"},
         ],
         "court_rule_categories": [
             {"id": "housing_court", "name": "Housing Court Rules", "icon": "▸"},
             {"id": "eviction", "name": "Eviction Procedures", "icon": "●"},
             {"id": "remote_hearing", "name": "Zoom/Remote Hearings", "icon": "○"},
             {"id": "filing", "name": "Filing Requirements", "icon": "●"},
-            {"id": "evidence", "name": "Evidence Rules", "icon": "◆"}
+            {"id": "evidence", "name": "Evidence Rules", "icon": "◆"},
         ],
         "tax_categories": [
             {"id": "tax_federal", "name": "Federal Tax Laws", "icon": "▸"},
             {"id": "tax_state", "name": "Minnesota Tax Laws", "icon": "●"},
-            {"id": "tax_local", "name": "Local Tax Laws", "icon": "○"}
+            {"id": "tax_local", "name": "Local Tax Laws", "icon": "○"},
         ],
         "real_estate_categories": [
             {"id": "real_estate_federal", "name": "Federal Real Estate", "icon": "🇺🇸"},
             {"id": "real_estate_state", "name": "Minnesota Real Estate", "icon": "○"},
-            {"id": "real_estate_local", "name": "Local Real Estate", "icon": "○"}
+            {"id": "real_estate_local", "name": "Local Real Estate", "icon": "○"},
         ],
         "business_categories": [
             {"id": "business_federal", "name": "Federal Business Law", "icon": "○"},
             {"id": "business_state", "name": "Minnesota Business Law", "icon": "◆"},
-            {"id": "business_local", "name": "Local Business Law", "icon": "○"}
-        ]
+            {"id": "business_local", "name": "Local Business Law", "icon": "○"},
+        ],
     }
 
 
 class LibrarianQuery(BaseModel):
     """Query for the AI librarian."""
+
     question: str
     context: str | None = None
     case_type: str | None = "eviction"
 
 
 @router.post("/librarian/ask", response_model=LibrarianResponse)
-async def ask_librarian(
-    query: LibrarianQuery
-):
+async def ask_librarian(query: LibrarianQuery):
     """
     Ask the AI Librarian a legal question.
-    
+
     The librarian will search the law library and provide:
     - A plain-language answer
     - Relevant legal sources
@@ -1792,7 +1788,7 @@ async def ask_librarian(
     if "evict" in question_lower or "eviction" in question_lower:
         sources = [
             {"type": "statute", "id": "minn_stat_504b_321", "title": "Eviction Procedures"},
-            {"type": "court_rule", "id": "rule_602", "title": "Dakota County Eviction Rules"}
+            {"type": "court_rule", "id": "rule_602", "title": "Dakota County Eviction Rules"},
         ]
         answer = """In Minnesota, a landlord must follow specific procedures to evict a tenant:
 
@@ -1819,13 +1815,11 @@ async def ask_librarian(
             "File your Answer within 7 days",
             "Consider requesting a jury trial",
             "Gather evidence of any landlord violations",
-            "Document all communications"
+            "Document all communications",
         ]
 
     elif "security deposit" in question_lower or "deposit" in question_lower:
-        sources = [
-            {"type": "statute", "id": "minn_stat_504b_375", "title": "Security Deposits"}
-        ]
+        sources = [{"type": "statute", "id": "minn_stat_504b_375", "title": "Security Deposits"}]
         answer = """Under Minnesota law (Minn. Stat. § 504B.375):
 
 1. **Return Timeline**: Your landlord must return your security deposit within **21 days** after you move out.
@@ -1846,13 +1840,11 @@ async def ask_librarian(
             "Send written demand for deposit return",
             "Document condition of unit at move-out",
             "Consider small claims court if not returned",
-            "Keep copies of all correspondence"
+            "Keep copies of all correspondence",
         ]
 
     elif "habitability" in question_lower or "repairs" in question_lower or "maintenance" in question_lower:
-        sources = [
-            {"type": "statute", "id": "minn_stat_504b_211", "title": "Habitability Requirements"}
-        ]
+        sources = [{"type": "statute", "id": "minn_stat_504b_211", "title": "Habitability Requirements"}]
         answer = """Minnesota law requires landlords to maintain habitable premises:
 
 1. **Landlord's Duty**: Keep the property fit for human habitation including:
@@ -1874,14 +1866,19 @@ async def ask_librarian(
             "Document all maintenance issues with photos",
             "Send written repair requests to landlord",
             "Contact city housing inspector if needed",
-            "Consider rent escrow if issues persist"
+            "Consider rent escrow if issues persist",
         ]
 
-    elif "disability" in question_lower or "ada" in question_lower or "disabled" in question_lower or "accommodation" in question_lower:
+    elif (
+        "disability" in question_lower
+        or "ada" in question_lower
+        or "disabled" in question_lower
+        or "accommodation" in question_lower
+    ):
         sources = [
             {"type": "statute", "id": "fha_amendments_1988", "title": "Fair Housing Amendments Act"},
             {"type": "statute", "id": "ada_title_ii", "title": "ADA Title II"},
-            {"type": "statute", "id": "reasonable_accommodations", "title": "Reasonable Accommodations"}
+            {"type": "statute", "id": "reasonable_accommodations", "title": "Reasonable Accommodations"},
         ]
         answer = """**Disability Rights in Housing** are protected by multiple federal laws:
 
@@ -1917,13 +1914,18 @@ You can make physical changes to your unit (at your expense):
             "Submit written accommodation request",
             "Get healthcare provider letter if needed",
             "Document all communications",
-            "File HUD complaint if denied unfairly"
+            "File HUD complaint if denied unfairly",
         ]
 
-    elif "service animal" in question_lower or "emotional support" in question_lower or "esa" in question_lower or "assistance animal" in question_lower:
+    elif (
+        "service animal" in question_lower
+        or "emotional support" in question_lower
+        or "esa" in question_lower
+        or "assistance animal" in question_lower
+    ):
         sources = [
             {"type": "statute", "id": "assistance_animals", "title": "Assistance Animals in Housing"},
-            {"type": "statute", "id": "fha_amendments_1988", "title": "Fair Housing Amendments Act"}
+            {"type": "statute", "id": "fha_amendments_1988", "title": "Fair Housing Amendments Act"},
         ]
         answer = """**Assistance Animals in Housing** are protected as reasonable accommodations:
 
@@ -1968,13 +1970,13 @@ You can make physical changes to your unit (at your expense):
             "Get letter from healthcare provider for ESA",
             "Submit written request to landlord",
             "Keep copy of all correspondence",
-            "File HUD complaint if wrongly denied"
+            "File HUD complaint if wrongly denied",
         ]
 
     elif "discrimination" in question_lower or "fair housing" in question_lower or "protected class" in question_lower:
         sources = [
             {"type": "statute", "id": "fha_title_viii", "title": "Fair Housing Act"},
-            {"type": "statute", "id": "title_vi_civil_rights", "title": "Title VI Civil Rights Act"}
+            {"type": "statute", "id": "title_vi_civil_rights", "title": "Title VI Civil Rights Act"},
         ]
         answer = """**Fair Housing Laws** protect you from housing discrimination:
 
@@ -2021,13 +2023,11 @@ Under the Fair Housing Act, landlords cannot discriminate based on:
             "Document discriminatory statements or actions",
             "File complaint with HUD or state agency",
             "Contact fair housing organization",
-            "Consider legal representation"
+            "Consider legal representation",
         ]
 
     elif "domestic violence" in question_lower or "vawa" in question_lower or "abuse" in question_lower:
-        sources = [
-            {"type": "statute", "id": "vawa_housing", "title": "VAWA Housing Protections"}
-        ]
+        sources = [{"type": "statute", "id": "vawa_housing", "title": "VAWA Housing Protections"}]
         answer = """**VAWA (Violence Against Women Act)** provides housing protections for survivors:
 
 ## Who's Protected
@@ -2076,14 +2076,19 @@ Applies to federally assisted housing:
             "Request VAWA self-certification form",
             "Document incidents and threats",
             "Request emergency transfer if needed",
-            "Contact local DV advocacy organization"
+            "Contact local DV advocacy organization",
         ]
 
-    elif "tax" in question_lower or "deduction" in question_lower or "depreciation" in question_lower or "1031" in question_lower:
+    elif (
+        "tax" in question_lower
+        or "deduction" in question_lower
+        or "depreciation" in question_lower
+        or "1031" in question_lower
+    ):
         sources = [
             {"type": "statute", "id": "irc_280a", "title": "Rental Property Deductions"},
             {"type": "statute", "id": "irc_1031", "title": "1031 Exchange"},
-            {"type": "statute", "id": "mn_renters_credit", "title": "MN Renters Property Tax Refund"}
+            {"type": "statute", "id": "mn_renters_credit", "title": "MN Renters Property Tax Refund"},
         ]
         answer = """**Tax Laws for Rental Property:**
 
@@ -2113,14 +2118,19 @@ Applies to federally assisted housing:
             "Consult tax professional for specific advice",
             "Keep detailed records of all expenses",
             "Understand depreciation rules",
-            "File for renter's refund if eligible"
+            "File for renter's refund if eligible",
         ]
 
-    elif "real estate" in question_lower or "mortgage" in question_lower or "foreclosure" in question_lower or "title" in question_lower:
+    elif (
+        "real estate" in question_lower
+        or "mortgage" in question_lower
+        or "foreclosure" in question_lower
+        or "title" in question_lower
+    ):
         sources = [
             {"type": "statute", "id": "respa", "title": "RESPA"},
             {"type": "statute", "id": "mn_foreclosure", "title": "MN Foreclosure Procedures"},
-            {"type": "statute", "id": "lead_paint_disclosure", "title": "Lead Paint Disclosure"}
+            {"type": "statute", "id": "lead_paint_disclosure", "title": "Lead Paint Disclosure"},
         ]
         answer = """**Real Estate Laws Overview:**
 
@@ -2149,14 +2159,19 @@ Applies to federally assisted housing:
             "Review all disclosure documents carefully",
             "Understand redemption rights in foreclosure",
             "Check rent stabilization compliance",
-            "Consult real estate attorney for transactions"
+            "Consult real estate attorney for transactions",
         ]
 
-    elif "business" in question_lower or "llc" in question_lower or "license" in question_lower or "employee" in question_lower:
+    elif (
+        "business" in question_lower
+        or "llc" in question_lower
+        or "license" in question_lower
+        or "employee" in question_lower
+    ):
         sources = [
             {"type": "statute", "id": "mn_llc", "title": "Minnesota LLC Act"},
             {"type": "statute", "id": "fcra_tenant_screening", "title": "Fair Credit Reporting Act"},
-            {"type": "statute", "id": "mpls_business_license", "title": "Minneapolis Business License"}
+            {"type": "statute", "id": "mpls_business_license", "title": "Minneapolis Business License"},
         ]
         answer = """**Business Laws for Landlords:**
 
@@ -2185,13 +2200,15 @@ Applies to federally assisted housing:
             "Consider LLC for liability protection",
             "Understand employee vs contractor rules",
             "Follow FCRA requirements for screening",
-            "Obtain required local licenses"
+            "Obtain required local licenses",
         ]
 
-    elif "rent control" in question_lower or "rent stabilization" in question_lower or "rent increase" in question_lower:
+    elif (
+        "rent control" in question_lower or "rent stabilization" in question_lower or "rent increase" in question_lower
+    ):
         sources = [
             {"type": "statute", "id": "mpls_rent_stabilization", "title": "Minneapolis Rent Stabilization"},
-            {"type": "statute", "id": "stp_rent_stabilization", "title": "St. Paul Rent Stabilization"}
+            {"type": "statute", "id": "stp_rent_stabilization", "title": "St. Paul Rent Stabilization"},
         ]
         answer = """**Rent Stabilization in Minnesota:**
 
@@ -2221,7 +2238,7 @@ Applies to federally assisted housing:
             "Calculate maximum allowed rent increase",
             "Check if property is exempt",
             "Document all rent increase notices",
-            "Report violations to housing services"
+            "Report violations to housing services",
         ]
 
     else:
@@ -2258,7 +2275,17 @@ Applies to federally assisted housing:
 
 Please ask a specific question about any of these topics!"""
 
-        related_topics = ["Eviction Defense", "Security Deposits", "Habitability", "Fair Housing", "ADA", "VAWA", "Tax Laws", "Real Estate", "Business Law"]
+        related_topics = [
+            "Eviction Defense",
+            "Security Deposits",
+            "Habitability",
+            "Fair Housing",
+            "ADA",
+            "VAWA",
+            "Tax Laws",
+            "Real Estate",
+            "Business Law",
+        ]
         suggested_actions = ["Ask a specific question about your situation"]
 
     return LibrarianResponse(
@@ -2266,14 +2293,12 @@ Please ask a specific question about any of these topics!"""
         answer=answer,
         sources=sources,
         related_topics=related_topics,
-        suggested_actions=suggested_actions
+        suggested_actions=suggested_actions,
     )
 
 
 @router.get("/quick-reference/{topic}")
-async def get_quick_reference(
-    topic: str
-):
+async def get_quick_reference(topic: str):
     """Get a quick reference guide for a specific topic."""
     quick_refs = {
         "eviction_timeline": {
@@ -2286,26 +2311,32 @@ async def get_quick_reference(
                 {"day": "Day 23-25", "event": "7-day deadline to file Answer"},
                 {"day": "Day 30-45", "event": "Court hearing scheduled (or jury trial if requested)"},
                 {"day": "After Hearing", "event": "If landlord wins, Writ of Recovery issued"},
-                {"day": "+7-10 days", "event": "Sheriff enforces Writ if tenant hasn't vacated"}
+                {"day": "+7-10 days", "event": "Sheriff enforces Writ if tenant hasn't vacated"},
             ],
             "tips": [
                 "You can cure (pay) nonpayment before trial",
                 "Request jury trial to extend timeline",
-                "File counterclaims at the same time as Answer"
-            ]
+                "File counterclaims at the same time as Answer",
+            ],
         },
         "defenses_checklist": {
             "title": "Common Eviction Defenses",
             "defenses": [
-                {"name": "Improper Notice", "description": "Notice was defective, not properly served, or insufficient time"},
-                {"name": "Retaliation", "description": "Eviction is in response to complaint or exercising legal rights"},
+                {
+                    "name": "Improper Notice",
+                    "description": "Notice was defective, not properly served, or insufficient time",
+                },
+                {
+                    "name": "Retaliation",
+                    "description": "Eviction is in response to complaint or exercising legal rights",
+                },
                 {"name": "Discrimination", "description": "Eviction based on protected class status"},
                 {"name": "Habitability", "description": "Landlord failed to maintain habitable conditions"},
                 {"name": "Waiver", "description": "Landlord accepted rent after alleged violation"},
                 {"name": "Payment Made", "description": "Rent was actually paid or cure occurred"},
                 {"name": "Lease Violation by Landlord", "description": "Landlord breached lease first"},
-                {"name": "Wrong Party", "description": "Named defendant is not the actual tenant"}
-            ]
+                {"name": "Wrong Party", "description": "Named defendant is not the actual tenant"},
+            ],
         },
         "counterclaims": {
             "title": "Common Counterclaims Against Landlord",
@@ -2315,9 +2346,9 @@ async def get_quick_reference(
                 {"name": "Retaliatory Conduct", "damages": "Statutory damages, attorney fees"},
                 {"name": "Illegal Lockout", "damages": "Actual damages + punitive damages"},
                 {"name": "Utility Shutoff", "damages": "$500 per violation"},
-                {"name": "Privacy Violations", "damages": "Actual damages, may include emotional distress"}
-            ]
-        }
+                {"name": "Privacy Violations", "damages": "Actual damages, may include emotional distress"},
+            ],
+        },
     }
 
     if topic not in quick_refs:
@@ -2335,11 +2366,13 @@ page_router = APIRouter(tags=["Law Library"])
 
 _TEMPLATE_PATH = pathlib.Path(__file__).parent.parent.parent / "templates" / "pages" / "law_library.html"
 
+
 def _load_law_library_html() -> str:
     """Load the consolidated law library HTML from the template file."""
     if _TEMPLATE_PATH.exists():
         return _TEMPLATE_PATH.read_text(encoding="utf-8")
     return """<!DOCTYPE html><html><head><title>Law Library</title></head><body><p>Law Library template not found.</p></body></html>"""
+
 
 _LAW_LIBRARY_HTML_LEGACY = """<!DOCTYPE html>
 <html lang="en">

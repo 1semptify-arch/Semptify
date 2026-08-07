@@ -16,6 +16,7 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class RateLimiter:
     """Simple in-memory rate limiter"""
 
@@ -30,10 +31,7 @@ class RateLimiter:
         cutoff = now - timedelta(seconds=self.period)
 
         # Clean old requests
-        self.clients[client_id] = [
-            req_time for req_time in self.clients[client_id]
-            if req_time > cutoff
-        ]
+        self.clients[client_id] = [req_time for req_time in self.clients[client_id] if req_time > cutoff]
 
         # Check rate limit
         if len(self.clients[client_id]) >= self.requests:
@@ -42,6 +40,7 @@ class RateLimiter:
         # Add current request
         self.clients[client_id].append(now)
         return True
+
 
 class SecurityHeaders:
     """Security headers middleware"""
@@ -79,6 +78,7 @@ class SecurityHeaders:
 
         return response
 
+
 async def secure_middleware(request: Request, call_next: Callable):
     """Main security middleware"""
 
@@ -89,8 +89,7 @@ async def secure_middleware(request: Request, call_next: Callable):
             if request.client.host not in ["127.0.0.1", "localhost"]:
                 logger.warning(f"Non-HTTPS request from {request.client.host}")
                 return JSONResponse(
-                    status_code=403,
-                    content={"error": "HTTPS required", "message": "Secure connection required"}
+                    status_code=403, content={"error": "HTTPS required", "message": "Secure connection required"}
                 )
 
     # Rate limiting
@@ -100,8 +99,7 @@ async def secure_middleware(request: Request, call_next: Callable):
         if not request.app.state.rate_limiter.is_allowed(client_id):
             logger.warning(f"Rate limit exceeded for {client_id}")
             return JSONResponse(
-                status_code=429,
-                content={"error": "Rate limit exceeded", "message": "Too many requests"}
+                status_code=429, content={"error": "Rate limit exceeded", "message": "Too many requests"}
             )
 
     # IP Whitelist check
@@ -110,8 +108,7 @@ async def secure_middleware(request: Request, call_next: Callable):
         if client_ip not in request.app.state.security_settings.IP_WHITELIST:
             logger.warning(f"IP not whitelisted: {client_ip}")
             return JSONResponse(
-                status_code=403,
-                content={"error": "Access denied", "message": "IP address not whitelisted"}
+                status_code=403, content={"error": "Access denied", "message": "IP address not whitelisted"}
             )
 
     # Check request size
@@ -121,8 +118,7 @@ async def secure_middleware(request: Request, call_next: Callable):
             if content_length > request.app.state.security_settings.MAX_REQUEST_SIZE:
                 logger.warning(f"Request too large: {content_length} bytes")
                 return JSONResponse(
-                    status_code=413,
-                    content={"error": "Payload too large", "message": "Request exceeds size limit"}
+                    status_code=413, content={"error": "Payload too large", "message": "Request exceeds size limit"}
                 )
         except ValueError:
             pass
@@ -134,6 +130,7 @@ async def secure_middleware(request: Request, call_next: Callable):
         response = await call_next(request)
     except Exception as e:
         import traceback
+
         error_msg = str(e)
         traceback_str = traceback.format_exc()
         logger.error(f"Request error: {error_msg}")
@@ -145,8 +142,8 @@ async def secure_middleware(request: Request, call_next: Callable):
                 "error": "Internal server error",
                 "message": error_msg,
                 "type": type(e).__name__,
-                "traceback": traceback_str
-            }
+                "traceback": traceback_str,
+            },
         )
 
     # Calculate elapsed time
@@ -157,9 +154,6 @@ async def secure_middleware(request: Request, call_next: Callable):
     response = SecurityHeaders.add_headers(response)
 
     # Log request
-    logger.info(
-        f"{request.method} {request.url.path} "
-        f"- Status: {response.status_code} - Time: {elapsed:.3f}s"
-    )
+    logger.info(f"{request.method} {request.url.path} - Status: {response.status_code} - Time: {elapsed:.3f}s")
 
     return response

@@ -560,7 +560,7 @@
             </div>
         </div>
         <div class="footer-disclaimer">
-            <strong>Important:</strong> Semptify is an organizational tool, not legal advice. 
+            <strong>Important:</strong> Semptify is an organizational tool, not legal advice.
             Always consult a qualified attorney for legal guidance.
         </div>
         <div class="footer-bottom">
@@ -591,7 +591,7 @@
 
         // SSOT navigation cache
         let navSSOT = null;
-        
+
         async function loadNavigation() {
             if (navSSOT) return navSSOT;
             try {
@@ -603,7 +603,7 @@
                 return null;
             }
         }
-        
+
         async function continueToStorage() {
             if (!selectedRole) {
                 alert("Please select a role to continue");
@@ -629,7 +629,7 @@
             const card = document.querySelector(`[data-role="${preselect}"]`);
             if (card) selectRole(card);
         }
-        
+
         // Prevent bfcache issues - force page reload if restored from cache
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {

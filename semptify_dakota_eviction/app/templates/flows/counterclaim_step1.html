@@ -24,7 +24,7 @@
             </p>
         </div>
     </div>
-    
+
     <div class="alert alert-success">
         <div class="alert-icon">💡</div>
         <div>
@@ -40,39 +40,39 @@
             {% endif %}
         </div>
     </div>
-    
+
     <form action="/flows/counterclaim?step=2&lang={{ lang }}" method="GET">
         <input type="hidden" name="step" value="2">
         <input type="hidden" name="lang" value="{{ lang }}">
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Your Full Name{% elif lang == 'es' %}Su Nombre Completo{% elif lang == 'so' %}Magacaaga Buuxa{% else %}اسمك الكامل{% endif %}
             </label>
             <input type="text" name="tenant_name" class="form-input" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Landlord/Property Manager Name{% elif lang == 'es' %}Nombre del Arrendador{% elif lang == 'so' %}Magaca Mulkiilaha{% else %}اسم المالك{% endif %}
             </label>
             <input type="text" name="landlord_name" class="form-input" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Case Number{% elif lang == 'es' %}Número de Caso{% elif lang == 'so' %}Lambarka Kiiska{% else %}رقم القضية{% endif %}
             </label>
             <input type="text" name="case_number" class="form-input">
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Rental Property Address{% elif lang == 'es' %}Dirección de la Propiedad{% elif lang == 'so' %}Cinwaanka Guriga Kirada{% else %}عنوان العقار{% endif %}
             </label>
             <input type="text" name="address" class="form-input" required>
         </div>
-        
+
         <div class="flex justify-between mt-4">
             <a href="/?lang={{ lang }}" class="btn btn-outline">← {{ strings.btn_back }}</a>
             <button type="submit" class="btn btn-primary">{{ strings.btn_next }} →</button>

@@ -35,6 +35,7 @@ MATTERS_DIR.mkdir(parents=True, exist_ok=True)
 # Pydantic Models
 # =============================================================================
 
+
 class Matter(BaseModel):
     matter_id: str
     title: str
@@ -89,6 +90,7 @@ class Exhibit(BaseModel):
 # Helpers
 # =============================================================================
 
+
 def _matter_file(matter_id: str) -> Path:
     return MATTERS_DIR / f"matter_{matter_id}.json"
 
@@ -132,6 +134,7 @@ def _write_json(path: Path, data) -> None:
 # =============================================================================
 # Matter Operations
 # =============================================================================
+
 
 def create_matter(
     title: str,
@@ -191,6 +194,7 @@ def update_matter(matter_id: str, **updates) -> Matter:
 # Court Filings
 # =============================================================================
 
+
 def list_filings(matter_id: str) -> list[CourtFiling]:
     data = _read_json(_filings_file(matter_id), [])
     return [CourtFiling.model_validate(d) for d in data]
@@ -235,6 +239,7 @@ def update_filing_status(matter_id: str, filing_id: str, status: str) -> CourtFi
 # =============================================================================
 # Discovery
 # =============================================================================
+
 
 def list_discovery(matter_id: str) -> list[DiscoveryRecord]:
     data = _read_json(_discovery_file(matter_id), [])
@@ -286,6 +291,7 @@ def update_discovery_status(
 # Exhibits
 # =============================================================================
 
+
 def list_exhibits(matter_id: str) -> list[Exhibit]:
     data = _read_json(_exhibits_file(matter_id), [])
     return [Exhibit.model_validate(d) for d in data]
@@ -301,7 +307,7 @@ def add_exhibit(
 ) -> Exhibit:
     _ = load_matter(matter_id)
     existing = list_exhibits(matter_id)
-    next_num = (max((e.exhibit_number for e in existing), default=0) + 1)
+    next_num = max((e.exhibit_number for e in existing), default=0) + 1
     ex = Exhibit(
         exhibit_id=_gen_id("x_"),
         matter_id=matter_id,
@@ -321,6 +327,7 @@ def add_exhibit(
 # =============================================================================
 # Overlay Integration
 # =============================================================================
+
 
 def matter_overlay_payload(matter_id: str) -> dict:
     """Return a combined overlay payload for a matter (filings + discovery + exhibits)."""

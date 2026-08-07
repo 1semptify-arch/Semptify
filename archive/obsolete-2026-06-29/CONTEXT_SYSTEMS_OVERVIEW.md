@@ -1,7 +1,7 @@
 # Semptify Context Systems Overview
 ## How Context is Handled Across the Platform
 
-**Date:** June 14, 2026  
+**Date:** June 14, 2026
 **Purpose:** Document all context engines and their integration points
 
 ---
@@ -70,19 +70,19 @@ class UserContext:
     user_id: str
     phase: str = "active"
     intensity_score: float = 0.0
-    
+
     # Documents and evidence
     documents: list = field(default_factory=list)
     document_types: set = field(default_factory=set)
-    
+
     # Issues and deadlines
     active_issues: list = field(default_factory=list)
     deadlines: list = field(default_factory=list)
-    
+
     # Laws and rights
     applicable_laws: list = field(default_factory=list)
     rights_at_risk: list = field(default_factory=list)
-    
+
     # History and predictions
     events: list = field(default_factory=list)
     actions_taken: list = field(default_factory=list)
@@ -116,13 +116,13 @@ class UserContext:
 #### **1. User Roles**
 ```python
 class UserRole(str, Enum):
-    ADMIN = "admin"            # System admin: full access
-    MANAGER = "manager"        # Case manager: multi-client coordination
-    TENANT = "tenant"          # Tenant: standard housing case user
-    USER = "user"              # Legacy alias for tenant (deprecated)
-    ADVOCATE = "advocate"      # Tenant advocate: help multiple users
-    LEGAL = "legal"            # Legal role: attorneys, clerks, court staff
-    JUDGE = "judge"            # Judge: judicial officer overseeing cases
+    ADMIN = "admin"  # System admin: full access
+    MANAGER = "manager"  # Case manager: multi-client coordination
+    TENANT = "tenant"  # Tenant: standard housing case user
+    USER = "user"  # Legacy alias for tenant (deprecated)
+    ADVOCATE = "advocate"  # Tenant advocate: help multiple users
+    LEGAL = "legal"  # Legal role: attorneys, clerks, court staff
+    JUDGE = "judge"  # Judge: judicial officer overseeing cases
 ```
 
 #### **2. Storage Providers**
@@ -173,6 +173,7 @@ class VaultSummary:
     documents: List[Dict[str, Any]] = field(default_factory=list)
     storage_used_mb: float = 0.0
 
+
 @dataclass
 class TimelineSummary:
     total_events: int = 0
@@ -180,6 +181,7 @@ class TimelineSummary:
     has_events: bool = False
     events: List[Dict[str, Any]] = field(default_factory=list)
     next_hearing: Optional[Dict[str, Any]] = None
+
 
 @dataclass
 class DeadlineSummary:
@@ -198,7 +200,7 @@ class TenantBriefcase:
     vault: VaultSummary
     timeline: TimelineSummary
     deadlines: DeadlineSummary
-    
+
     # Quick access properties
     @property
     def needs_attention(self) -> bool
@@ -274,13 +276,13 @@ class FreshContextEvent(ContextEvent):
         super().__init__(**kwargs)
         # Check data freshness before processing
         self.freshness_status = self.check_freshness()
-    
+
     def check_freshness(self) -> Dict[str, FreshnessStatus]:
         """Check freshness of all referenced data."""
         return {
             "legal_basis": data_freshness_manager.check_freshness(f"legal_{self.data.get('law_id')}"),
             "court_rules": data_freshness_manager.check_freshness(f"court_{self.data.get('court')}"),
-            "form_requirements": data_freshness_manager.check_freshness(f"form_{self.data.get('form_type')}")
+            "form_requirements": data_freshness_manager.check_freshness(f"form_{self.data.get('form_type')}"),
         }
 ```
 
@@ -291,21 +293,21 @@ class FreshUserContext(UserContext):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.data_freshness = self.calculate_context_freshness()
-    
+
     def calculate_context_freshness(self) -> float:
         """Calculate overall freshness score for user context."""
         freshness_scores = []
-        
+
         # Check legal content freshness
         for law in self.applicable_laws:
             freshness = data_freshness_manager.check_freshness(f"statute_{law['id']}")
             freshness_scores.append(100 if freshness == FreshnessStatus.FRESH else 0)
-        
+
         # Check deadline rules freshness
         for deadline in self.deadlines:
             freshness = data_freshness_manager.check_freshness(f"deadline_rules_{deadline['jurisdiction']}")
             freshness_scores.append(100 if freshness == FreshnessStatus.FRESH else 0)
-        
+
         return sum(freshness_scores) / len(freshness_scores) if freshness_scores else 0
 ```
 
@@ -316,13 +318,19 @@ class FreshTenantBriefcase(TenantBriefcase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.freshness_indicators = self.get_freshness_indicators()
-    
+
     def get_freshness_indicators(self) -> Dict[str, str]:
         """Get freshness indicators for briefcase data."""
         return {
-            "legal_content": "fresh" if data_freshness_manager.check_freshness("legal_content") == FreshnessStatus.FRESH else "stale",
-            "court_forms": "fresh" if data_freshness_manager.check_freshness("court_forms") == FreshnessStatus.FRESH else "stale",
-            "deadline_rules": "fresh" if data_freshness_manager.check_freshness("deadline_rules") == FreshnessStatus.FRESH else "stale"
+            "legal_content": "fresh"
+            if data_freshness_manager.check_freshness("legal_content") == FreshnessStatus.FRESH
+            else "stale",
+            "court_forms": "fresh"
+            if data_freshness_manager.check_freshness("court_forms") == FreshnessStatus.FRESH
+            else "stale",
+            "deadline_rules": "fresh"
+            if data_freshness_manager.check_freshness("deadline_rules") == FreshnessStatus.FRESH
+            else "stale",
         }
 ```
 

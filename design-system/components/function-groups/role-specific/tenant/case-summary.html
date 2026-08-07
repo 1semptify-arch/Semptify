@@ -23,7 +23,7 @@
       <div class="case-urgency" id="{{ component_id }}_urgency">Loading...</div>
     </div>
   </div>
-  
+
   <div class="case-content">
     <!-- Key Metrics -->
     <div class="case-metrics">
@@ -44,7 +44,7 @@
         <div class="metric-label">Rights Protected</div>
       </div>
     </div>
-    
+
     <!-- Recent Activity -->
     <div class="recent-activity">
       <div class="activity-header">
@@ -57,7 +57,7 @@
         <div class="activity-loading">Loading recent activity...</div>
       </div>
     </div>
-    
+
     {% if show_timeline %}
     <!-- Timeline Preview -->
     <div class="timeline-preview">
@@ -72,7 +72,7 @@
       </div>
     </div>
     {% endif %}
-    
+
     {% if show_actions %}
     <!-- Quick Actions -->
     <div class="quick-actions">
@@ -103,7 +103,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-compact-view="{{ compact_view|lower }}"
@@ -424,17 +424,17 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .case-status {
     flex-direction: row;
     align-items: center;
     gap: var(--space-sm);
   }
-  
+
   .case-metrics {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -452,15 +452,15 @@ document.addEventListener('DOMContentLoaded', function() {
     showTimeline: configEl.dataset.showTimeline === 'true',
     showActions: configEl.dataset.showActions === 'true'
   };
-  
+
   // Initialize case summary
   initCaseSummary();
-  
+
   function initCaseSummary() {
     loadCaseData();
     setupEventListeners();
   }
-  
+
   function loadCaseData() {
     // Simulate loading case data
     setTimeout(() => {
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         ]
       };
-      
+
       updateCaseDisplay(caseData);
       updateMetrics(caseData.metrics);
       updateRecentActivity(caseData.recentActivity);
@@ -517,34 +517,34 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 800);
   }
-  
+
   function updateCaseDisplay(caseData) {
     const stageEl = document.getElementById(config.componentId + '_stage');
     const urgencyEl = document.getElementById(config.componentId + '_urgency');
-    
+
     if (stageEl) stageEl.textContent = caseData.stage;
     if (urgencyEl) {
       urgencyEl.textContent = caseData.urgency;
       urgencyEl.className = `case-urgency ${caseData.urgency.toLowerCase()}`;
     }
   }
-  
+
   function updateMetrics(metrics) {
     const documentsEl = document.getElementById(config.componentId + '_documents');
     const timelineEl = document.getElementById(config.componentId + '_timeline');
     const deadlinesEl = document.getElementById(config.componentId + '_deadlines');
     const rightsEl = document.getElementById(config.componentId + '_rights');
-    
+
     if (documentsEl) documentsEl.textContent = metrics.documents;
     if (timelineEl) timelineEl.textContent = metrics.timeline;
     if (deadlinesEl) deadlinesEl.textContent = metrics.deadlines;
     if (rightsEl) rightsEl.textContent = metrics.rights;
   }
-  
+
   function updateRecentActivity(activities) {
     const activityListEl = document.getElementById(config.componentId + '_activity');
     if (!activityListEl) return;
-    
+
     const html = activities.map(activity => `
       <div class="activity-item" data-activity-id="${activity.id}">
         <div class="activity-icon"></div>
@@ -555,14 +555,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     activityListEl.innerHTML = html;
   }
-  
+
   function updateTimelinePreview(timeline) {
     const timelineListEl = document.getElementById(config.componentId + '_timeline_preview');
     if (!timelineListEl) return;
-    
+
     const html = timeline.map(event => `
       <div class="timeline-item" data-timeline-id="${event.id}">
         <div class="timeline-icon"></div>
@@ -573,10 +573,10 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     timelineListEl.innerHTML = html;
   }
-  
+
   function setupEventListeners() {
     // Listen for function group events
     document.addEventListener('capture-upload', handleCaptureEvent);
@@ -585,22 +585,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('understand-timeline-select', handleUnderstandEvent);
     document.addEventListener('plan-action-select', handlePlanEvent);
   }
-  
+
   function handleCaptureEvent(event) {
     console.log('Tenant case summary - Capture event:', event.detail);
     loadCaseData(); // Refresh data
   }
-  
+
   function handleUnderstandEvent(event) {
     console.log('Tenant case summary - Understand event:', event.detail);
     loadCaseData(); // Refresh data
   }
-  
+
   function handlePlanEvent(event) {
     console.log('Tenant case summary - Plan event:', event.detail);
     loadCaseData(); // Refresh data
   }
-  
+
   // Action handlers
   function uploadDocument() {
     const event = new CustomEvent('tenant-upload-document', {
@@ -608,42 +608,42 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(event);
   }
-  
+
   function addNote() {
     const event = new CustomEvent('tenant-add-note', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function recordVoice() {
     const event = new CustomEvent('tenant-record-voice', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function viewTimeline() {
     const event = new CustomEvent('tenant-view-timeline', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function viewFullActivity() {
     const event = new CustomEvent('tenant-view-activity', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function viewFullTimeline() {
     const event = new CustomEvent('tenant-view-full-timeline', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   // Make action handlers available globally
   window.uploadDocument = uploadDocument;
   window.addNote = addNote;

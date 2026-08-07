@@ -30,12 +30,17 @@ async def get_facts(
 ) -> list[ContextFact]:
     """Get cached facts for a subject + jurisdiction."""
     async with get_db_session() as db:
-        stmt = select(ContextFact).where(
-            and_(
-                ContextFact.subject == subject,
-                ContextFact.jurisdiction == jurisdiction,
+        stmt = (
+            select(ContextFact)
+            .where(
+                and_(
+                    ContextFact.subject == subject,
+                    ContextFact.jurisdiction == jurisdiction,
+                )
             )
-        ).order_by(ContextFact.created_at.desc()).limit(limit)
+            .order_by(ContextFact.created_at.desc())
+            .limit(limit)
+        )
         result = await db.execute(stmt)
         rows = result.scalars().all()
         if include_expired:

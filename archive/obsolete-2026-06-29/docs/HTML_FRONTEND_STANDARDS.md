@@ -40,7 +40,7 @@ staticbac/                    # BACKUP - Old reference files
 
 ### 1. Welcome Page (`static/public/welcome.html`)
 **Purpose**: Entry point for all users
-**Flow**: 
+**Flow**:
 - New User → `/onboarding/role-select`
 - Returning User → `/storage/reconnect`
 
@@ -140,9 +140,9 @@ staticbac/                    # BACKUP - Old reference files
         <a href="/" class="back-link">← Back</a>
         <span class="step-indicator">Step X of Y</span>
     </div>
-    
+
     <!-- Content -->
-    
+
     <script>
         // JavaScript logic
     </script>

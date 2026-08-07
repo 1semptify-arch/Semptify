@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 class AuthStatusResponse(BaseModel):
     """Response model for auth status check."""
+
     authenticated: bool
     user_id: str | None = None
     provider: str | None = None
@@ -31,7 +32,7 @@ async def get_auth_status(
 ):
     """
     Get current authentication status.
-    
+
     Returns user info if authenticated, or unauthenticated status if not.
     This endpoint is used by the frontend to check if the user is logged in.
     """
@@ -62,7 +63,7 @@ async def get_auth_status(
 async def auth_register_info():
     """
     Auth registration endpoint info.
-    
+
     Returns information about registration. Actual registration
     is handled by the onboarding module.
     """

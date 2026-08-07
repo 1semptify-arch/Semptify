@@ -229,16 +229,12 @@ export SEMPTIFY_2FA_REQUIRED=true
 # app/core/performance_monitor.py
 PERFORMANCE_CONFIG = {
     "enable_alerting": True,
-    "alert_thresholds": {
-        "response_time_ms": 1000,
-        "error_rate_percent": 1.0,
-        "memory_usage_percent": 80.0
-    },
+    "alert_thresholds": {"response_time_ms": 1000, "error_rate_percent": 1.0, "memory_usage_percent": 80.0},
     "housing_rights_priorities": {
         "legal_documents": "critical",
         "court_deadlines": "critical",
-        "evidence_uploads": "high"
-    }
+        "evidence_uploads": "high",
+    },
 }
 ```
 
@@ -249,7 +245,7 @@ SECURITY_CONFIG = {
     "2fa_required": True,
     "session_timeout_minutes": 60,
     "max_sessions_per_user": 3,
-    "housing_rights_data_protection": "enhanced"
+    "housing_rights_data_protection": "enhanced",
 }
 ```
 
@@ -351,11 +347,12 @@ GET  /api/docs/
 
 #### Module Import Failures
 **Problem**: Module not found during import
-**Solution**: 
+**Solution**:
 ```python
 # Check module availability
 try:
     from app.core.preview_generator import get_preview_generator
+
     print("Preview generator available")
 except ImportError as e:
     print(f"Missing dependency: {e}")
@@ -367,6 +364,7 @@ except ImportError as e:
 ```python
 # Check performance metrics
 from app.core.performance_monitor import get_performance_monitor
+
 monitor = get_performance_monitor()
 metrics = monitor.get_current_metrics()
 print(f"Current response time: {metrics['avg_response_time']}ms")
@@ -378,6 +376,7 @@ print(f"Current response time: {metrics['avg_response_time']}ms")
 ```python
 # Verify security configuration
 from app.core.advanced_security import get_advanced_security_manager
+
 security = get_advanced_security_manager()
 status = security.get_security_status("user_id")
 print(f"2FA enabled: {status['two_factor_enabled']}")
@@ -388,19 +387,19 @@ print(f"2FA enabled: {status['two_factor_enabled']}")
 ### Health Checks
 ```python
 # Comprehensive health check
-GET /health/phase2
+GET / health / phase2
 ```
 
 ### Performance Metrics
 ```python
 # Phase 2 specific metrics
-GET /health/metrics/phase2
+GET / health / metrics / phase2
 ```
 
 ### Security Status
 ```python
 # Security module status
-GET /health/security/phase2
+GET / health / security / phase2
 ```
 
 ## 🎯 Housing Rights Impact Assessment
@@ -462,6 +461,6 @@ GET /health/security/phase2
 
 ---
 
-**Last Updated**: April 17, 2026  
-**Version**: 5.0 Phase 2 Complete  
+**Last Updated**: April 17, 2026
+**Version**: 5.0 Phase 2 Complete
 **Status**: Production Ready with Full Housing Rights Mission Alignment

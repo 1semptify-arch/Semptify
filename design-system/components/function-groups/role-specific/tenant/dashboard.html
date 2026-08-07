@@ -25,7 +25,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   {% if show_emergency %}
   <div class="tenant-emergency" id="{{ component_id }}_emergency">
     <div class="emergency-header">
@@ -40,7 +40,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="tenant-workspace">
     <div class="workspace-grid">
       <!-- Capture Section -->
@@ -57,7 +57,7 @@
           {% include "design-system/components/function-groups/capture/quick-input.html" with context %}
         </div>
       </div>
-      
+
       <!-- Understand Section -->
       <div class="workspace-section understand-section">
         <div class="section-header">
@@ -71,7 +71,7 @@
           {% include "design-system/components/function-groups/understand/timeline-view.html" with context %}
         </div>
       </div>
-      
+
       <!-- Plan Section -->
       <div class="workspace-section plan-section">
         <div class="section-header">
@@ -88,7 +88,7 @@
       </div>
     </div>
   </div>
-  
+
   {% if show_progress %}
   <div class="tenant-progress" id="{{ component_id }}_progress">
     <div class="progress-header">
@@ -110,7 +110,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-welcome="{{ show_welcome|lower }}"
@@ -363,22 +363,22 @@
   .workspace-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .welcome-header {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .welcome-status {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .progress-stages {
     flex-wrap: wrap;
     gap: var(--space-xs);
   }
-  
+
   .progress-stage {
     min-width: auto;
     flex: 1;
@@ -397,18 +397,18 @@ document.addEventListener('DOMContentLoaded', function() {
     showEmergency: configEl.dataset.showEmergency === 'true',
     showProgress: configEl.dataset.showProgress === 'true'
   };
-  
+
   // Initialize tenant dashboard
   initTenantDashboard();
-  
+
   function initTenantDashboard() {
     // Load case data
     loadCaseData();
-    
+
     // Set up event listeners for function group components
     setupEventListeners();
   }
-  
+
   function loadCaseData() {
     // Simulate loading case data
     setTimeout(() => {
@@ -433,30 +433,30 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         ]
       };
-      
+
       updateCaseDisplay(caseData);
       updateEmergencyActions(caseData.emergencyItems);
       updateProgress(caseData);
     }, 1000);
   }
-  
+
   function updateCaseDisplay(caseData) {
     const stageEl = document.getElementById(config.componentId + '_case_stage');
     const urgencyEl = document.getElementById(config.componentId + '_urgency');
-    
+
     if (stageEl) stageEl.textContent = `Stage: ${caseData.stage}`;
     if (urgencyEl) {
       urgencyEl.textContent = `Urgency: ${caseData.urgency}`;
       urgencyEl.style.color = caseData.urgency === 'High' ? 'var(--color-error)' : 'var(--color-warning)';
     }
   }
-  
+
   function updateEmergencyActions(emergencyItems) {
     if (!config.showEmergency) return;
-    
+
     const emergencyActionsEl = document.getElementById(config.componentId + '_emergency_actions');
     if (!emergencyActionsEl) return;
-    
+
     const html = emergencyItems.map(item => `
       <div class="emergency-item" data-emergency-id="${item.id}">
         <div class="emergency-item-title">${item.title}</div>
@@ -467,20 +467,20 @@ document.addEventListener('DOMContentLoaded', function() {
         </button>
       </div>
     `).join('');
-    
+
     emergencyActionsEl.innerHTML = html;
   }
-  
+
   function updateProgress(caseData) {
     if (!config.showProgress) return;
-    
+
     const statsEl = document.getElementById(config.componentId + '_progress_stats');
     const fillEl = document.getElementById(config.componentId + '_progress_fill');
     const stagesEl = document.getElementById(config.componentId + '_progress_stages');
-    
+
     if (statsEl) statsEl.textContent = `${caseData.progress}% Complete`;
     if (fillEl) fillEl.style.width = `${caseData.progress}%`;
-    
+
     // Update stage indicators
     if (stagesEl) {
       const stages = stagesEl.querySelectorAll('.progress-stage');
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   }
-  
+
   function setupEventListeners() {
     // Listen for function group events
     document.addEventListener('capture-upload', handleCaptureEvent);
@@ -504,25 +504,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('plan-action-select', handlePlanEvent);
     document.addEventListener('plan-deadline-select', handlePlanEvent);
   }
-  
+
   function handleCaptureEvent(event) {
     console.log('Tenant dashboard - Capture event:', event.detail);
     // Update progress or refresh data as needed
     loadCaseData();
   }
-  
+
   function handleUnderstandEvent(event) {
     console.log('Tenant dashboard - Understand event:', event.detail);
     // Update understanding or refresh data as needed
     loadCaseData();
   }
-  
+
   function handlePlanEvent(event) {
     console.log('Tenant dashboard - Plan event:', event.detail);
     // Update progress or refresh data as needed
     loadCaseData();
   }
-  
+
   function handleEmergencyAction(emergencyId) {
     console.log('Tenant dashboard - Emergency action:', emergencyId);
     // Emit emergency action event
@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(emergencyEvent);
   }
-  
+
   // Make emergency action handler available globally
   window.handleEmergencyAction = handleEmergencyAction;
 });

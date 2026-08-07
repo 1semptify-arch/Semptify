@@ -30,47 +30,36 @@ logger = logging.getLogger(__name__)
 module_definition = ModuleDefinition(
     # Unique identifier (snake_case, no spaces)
     name="payment_tracking",
-
     # Human-readable name
     display_name="Payment Tracking",
-
     # Description of what this module does
     description="Tracks rent payments and generates payment history for court",
-
     # Version following semver
     version="1.0.0",
-
     # Category for organization
     category=ModuleCategory.DOCUMENT,
-
     # What document types can this module process?
     handles_documents=[
         DocumentType.PAYMENT_RECORD,
     ],
-
     # What info packs can this module receive?
     accepts_packs=[
         PackType.EVICTION_DATA,  # Receives eviction info
-        PackType.LEASE_DATA,     # Receives lease info
+        PackType.LEASE_DATA,  # Receives lease info
     ],
-
     # What info packs does this module produce?
     produces_packs=[
-        PackType.CASE_DATA,      # Produces payment history for case
+        PackType.CASE_DATA,  # Produces payment history for case
     ],
-
     # What other modules does this depend on?
     depends_on=[
         "documents",  # Needs document storage
-        "calendar",   # Needs deadline calculations
+        "calendar",  # Needs deadline calculations
     ],
-
     # Does this module have a UI component?
     has_ui=True,
-
     # Does it run background tasks?
     has_background_tasks=False,
-
     # Does it require user authentication?
     requires_auth=True,
 )
@@ -86,6 +75,7 @@ sdk = ModuleSDK(module_definition)
 # =============================================================================
 # STEP 3: DEFINE YOUR ACTIONS
 # =============================================================================
+
 
 @sdk.action(
     "record_payment",
@@ -172,8 +162,8 @@ async def analyze_payment_pattern(
     logger.info(f"▸ Analyzing payment patterns for user {user_id[:8]}...")
 
     # Get context from workflow
-    rent_amount = context.get("rent_amount", 0)
-    eviction_date = context.get("eviction_date", "")
+    context.get("rent_amount", 0)
+    context.get("eviction_date", "")
 
     # Get payment history (we can call our own action!)
     history_result = await get_payment_history(user_id, {}, context)
@@ -192,18 +182,22 @@ async def analyze_payment_pattern(
     defense_points = []
 
     if analysis["consistent_payer"]:
-        defense_points.append({
-            "type": "payment_history",
-            "strength": "strong",
-            "description": "Consistent payment history demonstrates good faith",
-        })
+        defense_points.append(
+            {
+                "type": "payment_history",
+                "strength": "strong",
+                "description": "Consistent payment history demonstrates good faith",
+            }
+        )
 
     if analysis["on_time_percentage"] > 80:
-        defense_points.append({
-            "type": "timeliness",
-            "strength": "medium",
-            "description": f"Payments were on-time {analysis['on_time_percentage']}% of the time",
-        })
+        defense_points.append(
+            {
+                "type": "timeliness",
+                "strength": "medium",
+                "description": f"Payments were on-time {analysis['on_time_percentage']}% of the time",
+            }
+        )
 
     return {
         "payment_analysis": analysis,
@@ -263,6 +257,7 @@ async def get_state(
 # STEP 4: EVENT HANDLERS (Optional)
 # =============================================================================
 
+
 @sdk.on_event("workflow_started")
 async def on_workflow_started(event_type: str, data: dict[str, Any]):
     """React when a workflow starts"""
@@ -283,6 +278,7 @@ async def on_document_uploaded(event_type: str, data: dict[str, Any]):
 # =============================================================================
 # STEP 5: INITIALIZATION FUNCTION
 # =============================================================================
+
 
 def initialize():
     """
@@ -318,6 +314,7 @@ from fastapi import APIRouter, Cookie
 
 router = APIRouter()
 
+
 @router.get("/payments")
 async def api_get_payments(
     semptify_uid: str | None = Cookie(default=None),
@@ -326,6 +323,7 @@ async def api_get_payments(
     user_id = semptify_uid or "anonymous"
     result = await get_payment_history(user_id, {}, {})
     return result
+
 
 @router.post("/payments")
 async def api_record_payment(

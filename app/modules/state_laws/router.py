@@ -32,7 +32,7 @@ def _load_state_laws():
     global _state_laws_cache
     if _state_laws_cache is None:
         try:
-            with open(DATA_PATH, encoding='utf-8') as f:
+            with open(DATA_PATH, encoding="utf-8") as f:
                 _state_laws_cache = json.load(f)
         except FileNotFoundError:
             raise HTTPException(status_code=500, detail="State laws data file not found")
@@ -43,6 +43,7 @@ def _load_state_laws():
 
 class StateBasic(BaseModel):
     """Basic state info for listing."""
+
     code: str = Field(..., description="Two-letter state code")
     name: str = Field(..., description="Full state name")
     status: str = Field(..., description="Data completeness: 'complete' or 'stub'")
@@ -50,6 +51,7 @@ class StateBasic(BaseModel):
 
 class StateDetails(BaseModel):
     """Full state housing law details."""
+
     code: str
     name: str
     nickname: str | None = None
@@ -74,25 +76,27 @@ class StateDetails(BaseModel):
 async def list_states():
     """
     List all states with basic information.
-    
+
     Returns:
         List of states with code, name, and data completeness status.
     """
     data = _load_state_laws()
     states = []
     for code, info in data.get("states", {}).items():
-        states.append({
-            "code": code,
-            "name": info.get("name"),
-            "status": info.get("status", "stub"),
-            "has_complete_data": info.get("status") == "complete"
-        })
+        states.append(
+            {
+                "code": code,
+                "name": info.get("name"),
+                "status": info.get("status", "stub"),
+                "has_complete_data": info.get("status") == "complete",
+            }
+        )
 
     return {
         "count": len(states),
         "complete_count": sum(1 for s in states if s["has_complete_data"]),
         "stub_count": sum(1 for s in states if not s["has_complete_data"]),
-        "states": sorted(states, key=lambda x: x["name"])
+        "states": sorted(states, key=lambda x: x["name"]),
     }
 
 
@@ -100,10 +104,10 @@ async def list_states():
 async def get_state(state_code: str):
     """
     Get detailed housing law information for a specific state.
-    
+
     Args:
         state_code: Two-letter state code (e.g., 'MN', 'CA')
-    
+
     Returns:
         Complete state housing law details or stub information.
     """
@@ -120,19 +124,19 @@ async def get_state(state_code: str):
 async def find_nearby_states(
     lat: float = Query(..., description="Latitude"),
     lon: float = Query(..., description="Longitude"),
-    limit: int = Query(5, ge=1, le=10, description="Number of nearby states to return")
+    limit: int = Query(5, ge=1, le=10, description="Number of nearby states to return"),
 ):
     """
     Find states geographically nearest to the provided coordinates.
-    
+
     This is a simplified implementation that returns likely nearby states
     based on US geography. For production, would use proper geocoding.
-    
+
     Args:
         lat: Latitude coordinate
-        lon: Longitude  
+        lon: Longitude
         limit: Maximum states to return
-    
+
     Returns:
         List of nearby state codes sorted by estimated proximity.
     """
@@ -172,40 +176,34 @@ async def find_nearby_states(
         lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
         dlat = lat2 - lat1
         dlon = lon2 - lon1
-        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
         c = 2 * math.asin(math.sqrt(a))
         return R * c
 
     distances = []
     for code, centroid in state_centroids.items():
         dist = haversine_distance(lat, lon, centroid["lat"], centroid["lon"])
-        distances.append({
-            "code": code,
-            "name": centroid["name"],
-            "distance_miles": round(dist, 1)
-        })
+        distances.append({"code": code, "name": centroid["name"], "distance_miles": round(dist, 1)})
 
     distances.sort(key=lambda x: x["distance_miles"])
 
-    return {
-        "query": {"latitude": lat, "longitude": lon},
-        "nearby_states": distances[:limit]
-    }
+    return {"query": {"latitude": lat, "longitude": lon}, "nearby_states": distances[:limit]}
 
 
 @router.get("/detect/location")
 async def detect_user_state(request: Request):
     """
     Detect user's likely state based on IP geolocation.
-    
+
     Uses ip-api.com free service for IP geolocation.
     Falls back to MN if detection fails.
-    
+
     Returns:
         Detected or default state information.
     """
     try:
         import httpx
+
         client_ip = request.client.host if request.client else "127.0.0.1"
 
         # Skip localhost for dev
@@ -216,7 +214,7 @@ async def detect_user_state(request: Request):
                 "state_name": "Minnesota",
                 "confidence": "medium",
                 "message": "Local development detected. Defaulting to Minnesota.",
-                "manual_selection_url": "/library.html#state-selector"
+                "manual_selection_url": "/library.html#state-selector",
             }
 
         async with httpx.AsyncClient(timeout=3.0) as http_client:
@@ -231,7 +229,7 @@ async def detect_user_state(request: Request):
                     "state_name": state_name,
                     "confidence": "high",
                     "message": "Detected location based on your IP address.",
-                    "manual_selection_url": "/library.html#state-selector"
+                    "manual_selection_url": "/library.html#state-selector",
                 }
     except Exception as e:
         logger.warning(f"IP geolocation failed: {e}")
@@ -243,5 +241,5 @@ async def detect_user_state(request: Request):
         "state_name": "Minnesota",
         "confidence": "medium",
         "message": "Could not detect location. Defaulting to Minnesota.",
-        "manual_selection_url": "/library.html#state-selector"
+        "manual_selection_url": "/library.html#state-selector",
     }

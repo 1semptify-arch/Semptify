@@ -37,8 +37,10 @@ router = APIRouter(prefix="/api/forms", tags=["Court Forms"])
 # Request/Response Models
 # =============================================================================
 
+
 class FormGenerateRequest(BaseModel):
     """Request to generate a court form."""
+
     form_type: str  # answer_to_complaint, motion_to_dismiss, etc.
     case_data: dict | None = None  # Override/supplement auto-filled data
     defenses: list[str] | None = None  # Defense types to include
@@ -47,6 +49,7 @@ class FormGenerateRequest(BaseModel):
 
 class FormResponse(BaseModel):
     """Response with generated form."""
+
     form_type: str
     title: str
     description: str
@@ -58,6 +61,7 @@ class FormResponse(BaseModel):
 
 class FormTypeInfo(BaseModel):
     """Information about a form type."""
+
     type: str
     title: str
     description: str
@@ -65,6 +69,7 @@ class FormTypeInfo(BaseModel):
 
 class DefenseInfo(BaseModel):
     """Information about a defense type."""
+
     type: str
     title: str
     statute: str
@@ -74,11 +79,12 @@ class DefenseInfo(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/types", response_model=list[FormTypeInfo])
 async def list_form_types():
     """
     List all available court form types.
-    
+
     Returns list of forms that can be generated:
     - answer_to_complaint: Answer to Eviction Complaint
     - motion_to_dismiss: Motion to Dismiss
@@ -93,7 +99,7 @@ async def list_form_types():
 async def list_defense_types():
     """
     List all available defense types for Answer forms.
-    
+
     Returns defenses with their legal citations:
     - improper_notice: Notice defects
     - retaliation: Retaliatory eviction
@@ -133,6 +139,7 @@ async def generate_form(
     case_data = {}
     try:
         from app.modules.public_forms.router import load_tenant_autofill
+
         vault_data = await load_tenant_autofill(user.user_id)
         if vault_data.get("tenant_name"):
             case_data["defendant_name"] = vault_data["tenant_name"]
@@ -151,6 +158,7 @@ async def generate_form(
     # Layer 2: FormDataHub — case number, hearing date, extracted document data
     try:
         from app.services.form_data import get_form_data_service
+
         form_service = get_form_data_service(user.user_id)
         if form_service:
             await form_service.load()
@@ -182,7 +190,8 @@ async def generate_form(
     content = result["content"]
     if isinstance(content, bytes):
         import base64
-        content = base64.b64encode(content).decode('utf-8')
+
+        content = base64.b64encode(content).decode("utf-8")
 
     # Create FORM_FILL overlay in user's vault
     try:
@@ -235,12 +244,15 @@ async def generate_form(
 
     # Publish event to brain/event bus (non-blocking)
     try:
-        await event_bus.publish(BusEventType.COURT_FORM_GENERATED, {
-            "user_id": user.user_id,
-            "form_type": result["form_type"],
-            "title": result["title"],
-            "generated_at": result["generated_at"],
-        })
+        await event_bus.publish(
+            BusEventType.COURT_FORM_GENERATED,
+            {
+                "user_id": user.user_id,
+                "form_type": result["form_type"],
+                "title": result["title"],
+                "generated_at": result["generated_at"],
+            },
+        )
     except Exception as e:
         logger.warning(f"Optional form data service enrichment failed: {e}")
         pass  # Event publishing is optional
@@ -264,18 +276,19 @@ async def generate_form_html(
 ):
     """
     Generate a court form and return HTML directly.
-    
+
     Useful for preview in browser or embedding in UI.
-    
+
     Query params:
     - defenses: Comma-separated list of defense types
-    
+
     Example: /api/forms/generate/answer_to_complaint?defenses=improper_notice,habitability
     """
     # Layer 1: Cloud vault
     case_data = {}
     try:
         from app.modules.public_forms.router import load_tenant_autofill
+
         vault_data = await load_tenant_autofill(user.user_id)
         if vault_data.get("tenant_name"):
             case_data["defendant_name"] = vault_data["tenant_name"]
@@ -293,6 +306,7 @@ async def generate_form_html(
     # Layer 2: FormDataHub — case number, hearing date, document extraction
     try:
         from app.services.form_data import get_form_data_service
+
         form_service = get_form_data_service(user.user_id)
         if form_service:
             await form_service.load()
@@ -330,13 +344,14 @@ async def download_form_pdf(
 ):
     """
     Generate and download a court form as PDF.
-    
+
     Returns PDF file for download/printing.
     """
     # Layer 1: Cloud vault
     case_data = {}
     try:
         from app.modules.public_forms.router import load_tenant_autofill
+
         vault_data = await load_tenant_autofill(user.user_id)
         if vault_data.get("tenant_name"):
             case_data["defendant_name"] = vault_data["tenant_name"]
@@ -354,6 +369,7 @@ async def download_form_pdf(
     # Layer 2: FormDataHub — case number, hearing date
     try:
         from app.services.form_data import get_form_data_service
+
         form_service = get_form_data_service(user.user_id)
         if form_service:
             await form_service.load()
@@ -390,14 +406,10 @@ async def download_form_pdf(
         # Fallback to HTML
         media_type = "text/html"
         filename = f"{form_type}_{utc_now().strftime('%Y%m%d')}.html"
-        content = content.encode('utf-8')
+        content = content.encode("utf-8")
 
     return Response(
-        content=content,
-        media_type=media_type,
-        headers={
-            "Content-Disposition": f"attachment; filename={filename}"
-        }
+        content=content, media_type=media_type, headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 
@@ -408,17 +420,14 @@ async def preview_form(
 ):
     """
     Preview form data mapping without generating full form.
-    
+
     Shows which fields will be populated and from where.
     Useful for debugging data flow.
     """
     from .service import FORM_MAPPINGS
 
     if request.form_type not in FORM_MAPPINGS:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown form type. Available: {list(FORM_MAPPINGS.keys())}"
-        )
+        raise HTTPException(status_code=400, detail=f"Unknown form type. Available: {list(FORM_MAPPINGS.keys())}")
 
     mapping = FORM_MAPPINGS[request.form_type]
 
@@ -426,6 +435,7 @@ async def preview_form(
     case_data = {}
     try:
         from app.modules.public_forms.router import load_tenant_autofill
+
         vault_data = await load_tenant_autofill(user.user_id)
         if vault_data.get("tenant_name"):
             case_data["defendant_name"] = vault_data["tenant_name"]
@@ -443,6 +453,7 @@ async def preview_form(
     # Layer 2: FormDataHub
     try:
         from app.services.form_data import get_form_data_service
+
         form_service = get_form_data_service(user.user_id)
         if form_service:
             await form_service.load()
@@ -494,18 +505,19 @@ async def quick_generate_answer(
 ):
     """
     Quick endpoint to generate Answer to Eviction Complaint.
-    
+
     Query params:
     - case_number: Override case number
-    - defendant_name: Override defendant name  
+    - defendant_name: Override defendant name
     - defenses: Comma-separated defense types (default: improper_notice)
-    
+
     Returns HTML form ready for printing.
     """
     # Layer 1: Cloud vault
     case_data = {}
     try:
         from app.modules.public_forms.router import load_tenant_autofill
+
         vault_data = await load_tenant_autofill(user.user_id)
         if vault_data.get("tenant_name"):
             case_data["defendant_name"] = vault_data["tenant_name"]
@@ -523,6 +535,7 @@ async def quick_generate_answer(
     # Layer 2: FormDataHub
     try:
         from app.services.form_data import get_form_data_service
+
         form_service = get_form_data_service(user.user_id)
         if form_service:
             await form_service.load()
@@ -556,6 +569,7 @@ async def quick_generate_answer(
 # Document Hub Integration - Auto-fill forms from uploaded documents
 # =============================================================================
 
+
 @router.get("/autofill/{form_type}")
 async def get_autofill_data(
     form_type: str,
@@ -563,10 +577,10 @@ async def get_autofill_data(
 ):
     """
     Get auto-fill data for a form type from uploaded documents.
-    
+
     Returns field values extracted from documents that can be used
     to pre-populate the specified form type.
-    
+
     Supported form_types:
     - HOU301: Answer to Eviction Complaint
     - HOU302: Motion to Dismiss
@@ -596,11 +610,11 @@ async def generate_form_from_documents(
 ):
     """
     Generate a court form using data extracted from uploaded documents.
-    
+
     This combines data from:
     1. DocumentHub (extracted from uploaded documents)
     2. FormDataHub (user-entered form data)
-    
+
     Document-extracted data takes priority for critical fields like
     case number, hearing date, and party names.
     """
@@ -608,6 +622,7 @@ async def generate_form_from_documents(
     form_data = {}
     try:
         from app.modules.public_forms.router import load_tenant_autofill
+
         vault_data = await load_tenant_autofill(user.user_id)
         if vault_data.get("tenant_name"):
             form_data["defendant_name"] = vault_data["tenant_name"]
@@ -651,6 +666,7 @@ async def generate_form_from_documents(
     # Layer 3: FormDataHub — fill any remaining gaps
     try:
         from app.services.form_data import get_form_data_service
+
         form_service = get_form_data_service(user.user_id)
         if form_service:
             await form_service.load()
@@ -686,7 +702,8 @@ async def generate_form_from_documents(
     content = result["content"]
     if isinstance(content, bytes):
         import base64
-        content = base64.b64encode(content).decode('utf-8')
+
+        content = base64.b64encode(content).decode("utf-8")
 
     return FormResponse(
         form_type=result["form_type"],
@@ -705,7 +722,7 @@ async def preview_document_data(
 ):
     """
     Preview all data extracted from documents that can be used for forms.
-    
+
     This shows:
     - All extracted fields with their values
     - Which forms each field applies to
@@ -761,45 +778,49 @@ async def preview_document_data(
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="court_forms",
-        group_name="form_generate",
-        title="Court Form Generation (SSOT)",
-        description=(
-            "CANONICAL form generation via POST /api/court-forms/generate. "
-            "Creates FORM_FILL overlay in user's vault with filled form data. "
-            "Uses oauth_token_manager + services.storage.get_provider pattern (NOT storage_factory). "
-            "Required CreateOverlayRequest fields: overlay_type, document_id, vault_path, payload, metadata."
-        ),
-        inputs=("form_type", "case_data", "defenses", "output_format", "user_id"),
-        outputs=("content", "form_type", "fields_used", "overlay_id"),
-        dependencies=(
-            "app.modules.court_forms.router",
-            "app.services.unified_overlay_manager.UnifiedOverlayManager",
-            "app.core.overlay_types.OverlayType.FORM_FILL",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="court_forms",
+            group_name="form_generate",
+            title="Court Form Generation (SSOT)",
+            description=(
+                "CANONICAL form generation via POST /api/court-forms/generate. "
+                "Creates FORM_FILL overlay in user's vault with filled form data. "
+                "Uses oauth_token_manager + services.storage.get_provider pattern (NOT storage_factory). "
+                "Required CreateOverlayRequest fields: overlay_type, document_id, vault_path, payload, metadata."
+            ),
+            inputs=("form_type", "case_data", "defenses", "output_format", "user_id"),
+            outputs=("content", "form_type", "fields_used", "overlay_id"),
+            dependencies=(
+                "app.modules.court_forms.router",
+                "app.services.unified_overlay_manager.UnifiedOverlayManager",
+                "app.core.overlay_types.OverlayType.FORM_FILL",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="court_forms",
-        group_name="form_autofill",
-        title="Form Auto-fill from Documents (SSOT)",
-        description=(
-            "CANONICAL auto-fill via GET /api/court-forms/autofill/{form_type}. "
-            "Extracts data from uploaded documents to pre-fill court forms. "
-            "Returns field mappings for form pre-population."
-        ),
-        inputs=("form_type", "user_id"),
-        outputs=("form_autofills", "case_data"),
-        dependencies=(
-            "app.modules.court_forms.router",
-            "app.services.document_intake",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="court_forms",
+            group_name="form_autofill",
+            title="Form Auto-fill from Documents (SSOT)",
+            description=(
+                "CANONICAL auto-fill via GET /api/court-forms/autofill/{form_type}. "
+                "Extracts data from uploaded documents to pre-fill court forms. "
+                "Returns field mappings for form pre-population."
+            ),
+            inputs=("form_type", "user_id"),
+            outputs=("form_autofills", "case_data"),
+            dependencies=(
+                "app.modules.court_forms.router",
+                "app.services.document_intake",
+            ),
+            deterministic=True,
+        )
+    )
 
 except Exception as exc:
     import logging
-    logging.getLogger(__name__).warning("court_forms contract registration failed: %s", exc)
 
+    logging.getLogger(__name__).warning("court_forms contract registration failed: %s", exc)

@@ -6,7 +6,6 @@ API endpoints for the unified overlay system.
 All endpoints are stateless - overlays stored in user's cloud storage only.
 """
 
-
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +32,7 @@ router = APIRouter(prefix="/api/unified-overlays", tags=["Unified Overlays"])
 # Authentication Helper
 # =============================================================================
 
+
 async def require_overlay_access(
     request: Request,
     document_id: str | None = None,
@@ -41,7 +41,7 @@ async def require_overlay_access(
 ) -> tuple[str, str, str | None]:
     """
     Require both auth cookie identity and valid function token.
-    
+
     Returns: (user_id, role, token)
     """
     if not semptify_uid:
@@ -78,6 +78,7 @@ async def require_overlay_access(
 
     # Get role from user_id
     from app.core.user_id import get_role_from_user_id
+
     role = get_role_from_user_id(semptify_uid) or "user"
 
     return semptify_uid, role, token
@@ -86,12 +87,14 @@ async def require_overlay_access(
 async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Settings):
     """Get cloud storage client for overlay operations."""
     from app.modules.cloud_sync.router import get_storage_client as get_cloud_storage
+
     return await get_cloud_storage(user, db, settings)
 
 
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("/health")
 async def health_check() -> dict:
@@ -112,7 +115,7 @@ async def create_overlay(
 ) -> CreateOverlayResponse:
     """
     Create a new overlay for a document.
-    
+
     The overlay is stored in user's cloud storage, not on Semptify servers.
     """
     # Verify user has access to the document
@@ -141,7 +144,7 @@ async def list_overlays(
 ) -> GetOverlaysResponse:
     """
     List overlays for the authenticated user.
-    
+
     Filters:
     - document_id: Filter by specific document
     - overlay_type: Filter by overlay type
@@ -247,7 +250,7 @@ async def compose_document_view(
 ) -> DocumentViewResponse:
     """
     Compose a view of a document with overlays applied.
-    
+
     This returns a view specification - no file is created.
     The view can be rendered on-demand with watermarks if needed.
     """
@@ -264,6 +267,7 @@ async def compose_document_view(
 # =============================================================================
 # Type-Specific Convenience Endpoints
 # =============================================================================
+
 
 @router.post("/annotations/highlight")
 async def add_highlight(

@@ -8,6 +8,7 @@ Pages that already have dedicated route handlers in main.py or other modules
 are skipped — this router only registers routes for pages that aren't already
 served elsewhere.
 """
+
 from .router import router
 
 __all__ = ["router"]

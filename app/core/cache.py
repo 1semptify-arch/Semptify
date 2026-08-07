@@ -6,16 +6,16 @@ and in-memory fallback (development).
 
 Usage:
     from app.core.cache import cache
-    
+
     # Simple get/set
     await cache.set("key", {"data": "value"}, ttl=300)
     data = await cache.get("key")
-    
+
     # Decorator for function caching
     @cached(ttl=60, key_prefix="user")
     async def get_user(user_id: str):
         return await db.fetch_user(user_id)
-    
+
     # Cache invalidation
     await cache.delete("key")
     await cache.clear_prefix("user:")
@@ -130,6 +130,7 @@ class RedisCache:
 
         try:
             import redis.asyncio as redis
+
             self._redis = redis.from_url(
                 self._redis_url,
                 encoding="utf-8",
@@ -262,6 +263,7 @@ class CacheManager:
             return
 
         from app.core.config import get_settings
+
         settings = get_settings()
 
         if settings.redis_url:
@@ -327,22 +329,23 @@ def cached(
 ):
     """
     Decorator to cache function results.
-    
+
     Args:
         ttl: Time to live in seconds (default: 300)
         key_prefix: Custom prefix for cache key (default: function name)
         key_builder: Custom function to build cache key
-    
+
     Usage:
         @cached(ttl=60)
         async def get_user(user_id: str):
             return await db.fetch_user(user_id)
-        
+
         # With custom key
         @cached(ttl=120, key_prefix="user_profile")
         async def get_profile(user_id: str, include_details: bool = False):
             return await fetch_profile(user_id, include_details)
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         prefix = key_prefix or func.__name__
 
@@ -381,12 +384,13 @@ def cached(
 def cache_invalidate(key_prefix: str):
     """
     Decorator to invalidate cache after function execution.
-    
+
     Usage:
         @cache_invalidate("user")
         async def update_user(user_id: str, data: dict):
             return await db.update_user(user_id, data)
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:

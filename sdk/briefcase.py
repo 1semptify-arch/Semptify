@@ -13,6 +13,7 @@ from .base import BaseClient
 @dataclass
 class BriefcaseItem:
     """Item in a briefcase."""
+
     id: str
     item_type: str  # document, note, link, evidence
     title: str
@@ -31,6 +32,7 @@ class BriefcaseItem:
 @dataclass
 class Briefcase:
     """Briefcase for organizing case materials."""
+
     id: str
     name: str
     description: str | None = None
@@ -49,6 +51,7 @@ class Briefcase:
 @dataclass
 class BriefcaseExport:
     """Briefcase export information."""
+
     export_id: str
     format: str
     status: str
@@ -67,12 +70,12 @@ class BriefcaseClient(BaseClient):
     ) -> Briefcase:
         """
         Create a new briefcase.
-        
+
         Args:
             name: Briefcase name
             description: Description of the briefcase
             case_type: Type of case (habitability, discrimination, etc.)
-            
+
         Returns:
             Created briefcase
         """
@@ -95,10 +98,10 @@ class BriefcaseClient(BaseClient):
     def get_briefcase(self, briefcase_id: str) -> Briefcase:
         """
         Get a briefcase by ID.
-        
+
         Args:
             briefcase_id: The briefcase ID
-            
+
         Returns:
             Briefcase details
         """
@@ -122,12 +125,12 @@ class BriefcaseClient(BaseClient):
     ) -> list[Briefcase]:
         """
         List briefcases.
-        
+
         Args:
             status: Filter by status
             case_type: Filter by case type
             limit: Maximum number to return
-            
+
         Returns:
             List of briefcases
         """
@@ -161,13 +164,13 @@ class BriefcaseClient(BaseClient):
     ) -> Briefcase:
         """
         Update a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             name: Updated name
             description: Updated description
             status: Updated status
-            
+
         Returns:
             Updated briefcase
         """
@@ -191,10 +194,10 @@ class BriefcaseClient(BaseClient):
     def delete_briefcase(self, briefcase_id: str) -> bool:
         """
         Delete a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
-            
+
         Returns:
             True if deleted successfully
         """
@@ -211,14 +214,14 @@ class BriefcaseClient(BaseClient):
     ) -> BriefcaseItem:
         """
         Add a document to a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             document_id: Document ID to add
             title: Custom title for the item
             description: Description of the item
             tags: Tags for organization
-            
+
         Returns:
             Created briefcase item
         """
@@ -250,13 +253,13 @@ class BriefcaseClient(BaseClient):
     ) -> BriefcaseItem:
         """
         Add a note to a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             title: Note title
             content: Note content
             tags: Tags for organization
-            
+
         Returns:
             Created briefcase item
         """
@@ -288,14 +291,14 @@ class BriefcaseClient(BaseClient):
     ) -> BriefcaseItem:
         """
         Add a link/reference to a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             title: Link title
             url: URL
             description: Description
             tags: Tags for organization
-            
+
         Returns:
             Created briefcase item
         """
@@ -328,12 +331,12 @@ class BriefcaseClient(BaseClient):
     ) -> list[BriefcaseItem]:
         """
         Get items in a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             item_type: Filter by item type
             tags: Filter by tags
-            
+
         Returns:
             List of briefcase items
         """
@@ -363,11 +366,11 @@ class BriefcaseClient(BaseClient):
     def remove_item(self, briefcase_id: str, item_id: str) -> bool:
         """
         Remove an item from a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             item_id: Item ID to remove
-            
+
         Returns:
             True if removed successfully
         """
@@ -382,12 +385,12 @@ class BriefcaseClient(BaseClient):
     ) -> BriefcaseExport:
         """
         Export a briefcase.
-        
+
         Args:
             briefcase_id: The briefcase ID
             format: Export format (pdf, zip, docx)
             include_documents: Include full documents in export
-            
+
         Returns:
             Export information with download URL
         """
@@ -411,12 +414,12 @@ class BriefcaseClient(BaseClient):
     ) -> bool:
         """
         Share a briefcase with another user.
-        
+
         Args:
             briefcase_id: The briefcase ID
             email: Email of user to share with
             permission: Permission level (view, edit)
-            
+
         Returns:
             True if shared successfully
         """

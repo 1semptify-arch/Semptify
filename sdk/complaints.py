@@ -14,6 +14,7 @@ from .base import BaseClient
 
 class ComplaintStatus(str, Enum):
     """Complaint status values."""
+
     DRAFT = "draft"
     SUBMITTED = "submitted"
     ACKNOWLEDGED = "acknowledged"
@@ -26,6 +27,7 @@ class ComplaintStatus(str, Enum):
 
 class AgencyType(str, Enum):
     """Regulatory agency types."""
+
     HUD = "hud"
     STATE_HOUSING = "state_housing"
     LOCAL_CODE = "local_code"
@@ -37,6 +39,7 @@ class AgencyType(str, Enum):
 @dataclass
 class Complaint:
     """Complaint information."""
+
     id: str
     complaint_type: str
     status: str
@@ -59,6 +62,7 @@ class Complaint:
 @dataclass
 class ComplaintTemplate:
     """Complaint template information."""
+
     id: str
     name: str
     description: str
@@ -71,6 +75,7 @@ class ComplaintTemplate:
 @dataclass
 class Agency:
     """Regulatory agency information."""
+
     id: str
     name: str
     agency_type: str
@@ -96,7 +101,7 @@ class ComplaintClient(BaseClient):
     ) -> Complaint:
         """
         Create a new complaint.
-        
+
         Args:
             complaint_type: Type of complaint (habitability, discrimination, retaliation, etc.)
             title: Complaint title
@@ -106,7 +111,7 @@ class ComplaintClient(BaseClient):
             property_address: Property address
             landlord_info: Landlord contact information
             incident_dates: Dates of incidents
-            
+
         Returns:
             Created complaint
         """
@@ -141,10 +146,10 @@ class ComplaintClient(BaseClient):
     def get_complaint(self, complaint_id: str) -> Complaint:
         """
         Get a complaint by ID.
-        
+
         Args:
             complaint_id: The complaint ID
-            
+
         Returns:
             Complaint details
         """
@@ -171,12 +176,12 @@ class ComplaintClient(BaseClient):
     ) -> list[Complaint]:
         """
         List complaints.
-        
+
         Args:
             status: Filter by status
             complaint_type: Filter by type
             limit: Maximum number to return
-            
+
         Returns:
             List of complaints
         """
@@ -211,14 +216,14 @@ class ComplaintClient(BaseClient):
     ) -> Complaint:
         """
         Update a complaint.
-        
+
         Args:
             complaint_id: The complaint ID
             title: Updated title
             description: Updated description
             violations: Updated violations list
             status: Updated status
-            
+
         Returns:
             Updated complaint
         """
@@ -246,11 +251,11 @@ class ComplaintClient(BaseClient):
     def submit(self, complaint_id: str, agency: str) -> dict[str, Any]:
         """
         Submit a complaint to a regulatory agency.
-        
+
         Args:
             complaint_id: The complaint ID
             agency: Target agency identifier
-            
+
         Returns:
             Submission confirmation with tracking info
         """
@@ -262,11 +267,11 @@ class ComplaintClient(BaseClient):
     def add_document(self, complaint_id: str, document_id: str) -> bool:
         """
         Add a document to a complaint.
-        
+
         Args:
             complaint_id: The complaint ID
             document_id: Document ID to attach
-            
+
         Returns:
             True if added successfully
         """
@@ -283,11 +288,11 @@ class ComplaintClient(BaseClient):
     ) -> list[ComplaintTemplate]:
         """
         Get available complaint templates.
-        
+
         Args:
             agency_type: Filter by agency type
             complaint_type: Filter by complaint type
-            
+
         Returns:
             List of complaint templates
         """
@@ -320,11 +325,11 @@ class ComplaintClient(BaseClient):
     ) -> list[Agency]:
         """
         Get list of regulatory agencies.
-        
+
         Args:
             jurisdiction: Filter by jurisdiction
             agency_type: Filter by agency type
-            
+
         Returns:
             List of agencies
         """
@@ -353,10 +358,10 @@ class ComplaintClient(BaseClient):
     def delete_complaint(self, complaint_id: str) -> bool:
         """
         Delete a complaint.
-        
+
         Args:
             complaint_id: The complaint ID
-            
+
         Returns:
             True if deleted successfully
         """
@@ -366,10 +371,10 @@ class ComplaintClient(BaseClient):
     def generate_pdf(self, complaint_id: str) -> bytes:
         """
         Generate a PDF version of the complaint.
-        
+
         Args:
             complaint_id: The complaint ID
-            
+
         Returns:
             PDF content as bytes
         """

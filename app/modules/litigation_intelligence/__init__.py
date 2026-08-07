@@ -20,12 +20,12 @@ from .storage_layer import LitigationStorageLayer
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    'CourtScraperPack',
-    'EntityNormalizer',
-    'LitigationIntelligenceEngine',
-    'GraphEngine',
-    'LitigationStorageLayer',
-    'ReportingLayer',
-    'GUIButlerIntegration',
-    'LitigationScheduler'
+    "CourtScraperPack",
+    "EntityNormalizer",
+    "LitigationIntelligenceEngine",
+    "GraphEngine",
+    "LitigationStorageLayer",
+    "ReportingLayer",
+    "GUIButlerIntegration",
+    "LitigationScheduler",
 ]

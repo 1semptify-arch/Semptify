@@ -1,7 +1,9 @@
 # app/models.py
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, DateTime
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from .db import Base
+
 
 class Attorney(Base):
     __tablename__ = "attorneys"
@@ -17,6 +19,7 @@ class Attorney(Base):
 
     cases = relationship("Case", back_populates="attorney")
 
+
 class Entity(Base):
     __tablename__ = "entities"
     id = Column(Integer, primary_key=True, index=True)
@@ -27,6 +30,7 @@ class Entity(Base):
     address = Column(String)
 
     cases = relationship("Case", back_populates="entity")
+
 
 class Case(Base):
     __tablename__ = "cases"
@@ -45,6 +49,7 @@ class Case(Base):
     entity = relationship("Entity", back_populates="cases")
     dockets = relationship("Docket", back_populates="case")
 
+
 class Docket(Base):
     __tablename__ = "dockets"
     id = Column(Integer, primary_key=True, index=True)
@@ -56,12 +61,14 @@ class Docket(Base):
 
     case = relationship("Case", back_populates="dockets")
 
+
 class Relationship(Base):
     __tablename__ = "relationships"
     id = Column(Integer, primary_key=True, index=True)
     entity_id = Column(Integer, ForeignKey("entities.id"))
     related_entity_id = Column(Integer, ForeignKey("entities.id"))
     relationship_type = Column(String)
+
 
 class SearchCache(Base):
     __tablename__ = "search_cache"

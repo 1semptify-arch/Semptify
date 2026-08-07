@@ -119,13 +119,12 @@ async def _revoke_user_session(google_subject: str) -> None:
                 return
 
             # Delete all sessions for this user
-            await db.execute(
-                delete(StorageSession).where(StorageSession.user_id == user.id)
-            )
+            await db.execute(delete(StorageSession).where(StorageSession.user_id == user.id))
             await db.commit()
 
             # Evict from token cache
             from app.core.oauth_token_manager import token_manager
+
             token_manager.revoke(user.id)
 
             logger.warning(
@@ -154,6 +153,7 @@ async def risc_webhook(request: Request) -> Response:
 
     # Audience must match our app's client ID
     from app.core.config import get_settings
+
     settings = get_settings()
     audience = settings.google_drive_client_id
 
@@ -164,13 +164,12 @@ async def risc_webhook(request: Request) -> Response:
     payload = await _verify_risc_token(token, audience)
 
     # Extract subject and events
-    subject_identifier = payload.get("sub") or (
-        payload.get("subject", {}).get("sub")
-    )
+    subject_identifier = payload.get("sub") or (payload.get("subject", {}).get("sub"))
     events = payload.get("events", {})
 
-    logger.info("RISC event received: subject=%s events=%s",
-                (subject_identifier or "?")[:8] + "***", list(events.keys()))
+    logger.info(
+        "RISC event received: subject=%s events=%s", (subject_identifier or "?")[:8] + "***", list(events.keys())
+    )
 
     # Handle each event type
     # https://developers.google.com/identity/protocols/risc#supported_event_types

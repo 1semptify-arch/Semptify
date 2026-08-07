@@ -57,6 +57,7 @@ from app.services.storage import get_provider
 # Import vault upload service - central document storage
 try:
     from app.services.vault_upload_service import VaultDocument, get_vault_service
+
     HAS_VAULT_SERVICE = True
 except ImportError:
     HAS_VAULT_SERVICE = False
@@ -65,6 +66,7 @@ except ImportError:
 try:
     from app.core.job_processor import submit_document_analysis_job, submit_thumbnail_generation_job
     from app.core.preview_generator import generate_document_preview, generate_document_thumbnail
+
     HAS_PREVIEW_GENERATOR = True
 except ImportError:
     HAS_PREVIEW_GENERATOR = False
@@ -73,17 +75,17 @@ logger = logging.getLogger(__name__)
 
 from app.core.capabilities import require_capability
 
-router = APIRouter(
-    dependencies=[Depends(require_capability("app.modules.vault.router"))]
-)
+router = APIRouter(dependencies=[Depends(require_capability("app.modules.vault.router"))])
 
 
 # =============================================================================
 # Schemas
 # =============================================================================
 
+
 class DocumentMetadata(BaseModel):
     """Document metadata for upload."""
+
     document_type: str | None = Field(None, description="Type: lease, notice, photo, receipt, other")
     description: str | None = Field(None, description="Description of the document")
     tags: str | None = Field(None, description="Comma-separated tags")
@@ -92,6 +94,7 @@ class DocumentMetadata(BaseModel):
 
 class DocumentResponse(BaseModel):
     """Response after document upload."""
+
     id: str
     filename: str
     original_filename: str
@@ -110,6 +113,7 @@ class DocumentResponse(BaseModel):
 
 class DocumentListResponse(BaseModel):
     """List of documents."""
+
     documents: list[DocumentResponse]
     total: int
     storage_provider: str
@@ -117,6 +121,7 @@ class DocumentListResponse(BaseModel):
 
 class CertificateResponse(BaseModel):
     """Document certification details."""
+
     document_id: str
     sha256_hash: str
     certified_at: str
@@ -131,10 +136,10 @@ class CertificateResponse(BaseModel):
 # =============================================================================
 
 
-
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def compute_sha256(file_content: bytes) -> str:
     """Compute SHA-256 hash of file content."""
@@ -156,6 +161,7 @@ async def ensure_vault_folders(storage, provider_name: str) -> None:
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post(
     "/upload",
@@ -263,7 +269,11 @@ async def upload_document(
         mime_type=vault_doc.mime_type,
         sha256_hash=vault_doc.sha256_hash,
         certificate_id=vault_doc.certificate_id or "",
-        uploaded_at=(vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, "isoformat") else vault_doc.uploaded_at) if vault_doc.uploaded_at else utc_now().isoformat(),
+        uploaded_at=(
+            vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, "isoformat") else vault_doc.uploaded_at
+        )
+        if vault_doc.uploaded_at
+        else utc_now().isoformat(),
         document_type=vault_doc.document_type,
         storage_provider=provider_name,
         storage_path=vault_doc.storage_path or "",
@@ -292,7 +302,7 @@ async def copy_from_sync_to_vault(
 ):
     """
     Copy a document from sync storage (Semptify5.0/Vault/documents/) to vault.
-    
+
     This is used when the original File object is no longer available (e.g., after page refresh)
     but the document was already uploaded to cloud storage via the sync endpoint.
     """
@@ -337,8 +347,7 @@ async def copy_from_sync_to_vault(
                 content = await storage.download_file(f"{VAULT_DOCUMENTS}/{file_id}")
         except Exception:
             raise HTTPException(
-                status_code=404,
-                detail=f"Could not find document in cloud storage. Path tried: {sync_path}"
+                status_code=404, detail=f"Could not find document in cloud storage. Path tried: {sync_path}"
             )
 
     if not content:
@@ -431,26 +440,30 @@ async def copy_from_sync_to_vault(
         from app.core.overlay_types import OverlayType
         from app.models.unified_overlay_models import CreateOverlayRequest
         from app.services.unified_overlay_manager import UnifiedOverlayManager
+
         overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
-        overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
-            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
-            document_id=document_id,
-            vault_path=storage_path,
-            payload={
-                "original_filename": filename,
-                "mime_type": mime_type,
-                "file_size_bytes": file_size,
-                "content_hash": sha256_hash,
-                "storage_provider": user.provider,
-                "source_path": sync_path,
-            },
-        ))
+        overlay_resp = await overlay_mgr.create_overlay(
+            CreateOverlayRequest(
+                overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+                document_id=document_id,
+                vault_path=storage_path,
+                payload={
+                    "original_filename": filename,
+                    "mime_type": mime_type,
+                    "file_size_bytes": file_size,
+                    "content_hash": sha256_hash,
+                    "storage_provider": user.provider,
+                    "source_path": sync_path,
+                },
+            )
+        )
         if overlay_resp.success:
             overlay_id = overlay_resp.overlay_id
         certificate["overlay_id"] = overlay_id
 
         try:
             from app.services.timeline_extraction import extract_timeline_from_upload
+
             provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
             timeline_events = await extract_timeline_from_upload(
                 document_id=document_id,
@@ -555,7 +568,7 @@ async def list_documents(
 ):
     """
     List all documents in the user's cloud storage vault.
-    
+
     Reads certificates from .semptify/vault/certificates/ in user's storage.
     """
     if not access_token:
@@ -587,19 +600,21 @@ async def list_documents(
             if document_type and cert.get("document_type") != document_type:
                 continue
 
-            documents.append(DocumentResponse(
-                id=cert.get("document_id", ""),
-                filename=f"{cert.get('document_id', '')}.{cert.get('original_filename', '').rsplit('.', 1)[-1]}",
-                original_filename=cert.get("original_filename", ""),
-                file_size=cert.get("file_size", 0),
-                mime_type=cert.get("mime_type", "application/octet-stream"),
-                sha256_hash=cert.get("sha256", ""),
-                certificate_id=cert.get("certificate_id", ""),
-                uploaded_at=cert.get("certified_at", ""),
-                document_type=cert.get("document_type"),
-                storage_provider=cert.get("storage_provider", user.provider),
-                storage_path=cert.get("storage_path", ""),
-            ))
+            documents.append(
+                DocumentResponse(
+                    id=cert.get("document_id", ""),
+                    filename=f"{cert.get('document_id', '')}.{cert.get('original_filename', '').rsplit('.', 1)[-1]}",
+                    original_filename=cert.get("original_filename", ""),
+                    file_size=cert.get("file_size", 0),
+                    mime_type=cert.get("mime_type", "application/octet-stream"),
+                    sha256_hash=cert.get("sha256", ""),
+                    certificate_id=cert.get("certificate_id", ""),
+                    uploaded_at=cert.get("certified_at", ""),
+                    document_type=cert.get("document_type"),
+                    storage_provider=cert.get("storage_provider", user.provider),
+                    storage_path=cert.get("storage_path", ""),
+                )
+            )
         except Exception:
             continue
 
@@ -622,7 +637,7 @@ async def download_document(
 ):
     """
     Download a document from the user's cloud storage vault.
-    
+
     Returns the file content and original filename.
     """
     if not access_token:
@@ -666,12 +681,11 @@ async def download_document(
         file_content = await storage.download_file(storage_path)
 
     from fastapi.responses import Response
+
     return Response(
         content=file_content,
         media_type=target_cert.get("mime_type", "application/octet-stream"),
-        headers={
-            "Content-Disposition": f'attachment; filename="{target_cert.get("original_filename", "document")}"'
-        },
+        headers={"Content-Disposition": f'attachment; filename="{target_cert.get("original_filename", "document")}"'},
     )
 
 
@@ -753,8 +767,10 @@ async def delete_document(
 # Vault Service Endpoints - For modules to access documents
 # =============================================================================
 
+
 class VaultDocumentSummary(BaseModel):
     """Summary of a vault document."""
+
     vault_id: str
     filename: str
     document_type: str | None = None
@@ -768,6 +784,7 @@ class VaultDocumentSummary(BaseModel):
 
 class VaultListResponse(BaseModel):
     """List of vault documents."""
+
     documents: list[VaultDocumentSummary]
     total: int
 
@@ -779,7 +796,7 @@ async def list_all_vault_documents(
 ):
     """
     List ALL documents in user's vault.
-    
+
     This endpoint is for modules to discover available documents.
     Documents can be accessed by their vault_id.
     """
@@ -814,7 +831,7 @@ async def get_vault_document_metadata(
 ):
     """
     Get metadata for a vault document by vault_id.
-    
+
     Modules use this to get document details before processing.
     """
     if not HAS_VAULT_SERVICE:
@@ -837,7 +854,7 @@ async def get_vault_document_content(
 ):
     """
     Get document content from vault.
-    
+
     Modules call this to read document bytes for processing.
     Returns raw file content.
     """
@@ -856,13 +873,14 @@ async def get_vault_document_content(
         raise HTTPException(status_code=404, detail="Document content not available")
 
     from fastapi.responses import Response
+
     return Response(
         content=content,
         media_type=doc.mime_type,
         headers={
             "Content-Disposition": f"attachment; filename={doc.filename}",
             "X-Vault-ID": vault_id,
-        }
+        },
     )
 
 
@@ -876,7 +894,7 @@ async def mark_vault_document_processed(
 ):
     """
     Mark a vault document as processed by a module.
-    
+
     Modules call this after processing to update vault metadata.
     Creates unified overlay records in user's cloud storage.
     """
@@ -889,7 +907,7 @@ async def mark_vault_document_processed(
     if not doc or doc.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    storage_provider = user.provider if hasattr(user, 'provider') else 'google_drive'
+    storage_provider = user.provider if hasattr(user, "provider") else "google_drive"
 
     await vault_service.mark_processed(
         vault_id,
@@ -908,9 +926,11 @@ async def mark_vault_document_processed(
 
     return {"success": True, "vault_id": vault_id, "processed": True}
 
+
 # ============================================================================
 # Persistent Vault Sidebar Endpoints
 # ============================================================================
+
 
 @router.get("/sidebar/files")
 async def get_sidebar_files(
@@ -927,29 +947,28 @@ async def get_sidebar_files(
     files = []
     for doc in documents:
         uploaded_at = doc.uploaded_at if isinstance(doc.uploaded_at, str) else doc.uploaded_at.isoformat()
-        files.append({
-            "id": doc.vault_id,
-            "name": doc.filename,
-            "size": doc.file_size,
-            "type": doc.mime_type,
-            "category": _get_file_category(doc.filename),
-            "uploaded_at": uploaded_at,
-            "provider": doc.storage_provider,
-            "user_id": doc.user_id,
-            "path": doc.storage_path,
-            "tags": doc.tags or [],
-            "metadata": {
-                "source": "vault_upload",
-                "original_filename": doc.filename,
-                "upload_timestamp": uploaded_at
+        files.append(
+            {
+                "id": doc.vault_id,
+                "name": doc.filename,
+                "size": doc.file_size,
+                "type": doc.mime_type,
+                "category": _get_file_category(doc.filename),
+                "uploaded_at": uploaded_at,
+                "provider": doc.storage_provider,
+                "user_id": doc.user_id,
+                "path": doc.storage_path,
+                "tags": doc.tags or [],
+                "metadata": {
+                    "source": "vault_upload",
+                    "original_filename": doc.filename,
+                    "upload_timestamp": uploaded_at,
+                },
             }
-        })
+        )
 
-    return JSONResponse({
-        "success": True,
-        "message": f"Retrieved {len(files)} files for sidebar",
-        "files": files
-    })
+    return JSONResponse({"success": True, "message": f"Retrieved {len(files)} files for sidebar", "files": files})
+
 
 @router.post("/sidebar/upload")
 async def sidebar_upload(
@@ -966,7 +985,7 @@ async def sidebar_upload(
     try:
         # Parse metadata
         metadata_dict = json.loads(metadata)
-        source = metadata_dict.get('source', 'vault_sidebar')
+        source = metadata_dict.get("source", "vault_sidebar")
 
         # Process uploaded files
         uploaded_files = []
@@ -979,29 +998,33 @@ async def sidebar_upload(
 
                 # Validate file
                 from app.core.file_validator import validate_upload_file
+
                 validation_result = validate_upload_file(file_content, uploaded_file.filename, uploaded_file.size)
 
                 if not validation_result.is_valid:
                     # Log validation failure
                     from app.core.audit_logger import log_security_event
+
                     log_security_event(
                         user_id=user.user_id,
                         event_type="file_validation_failure",
                         details={
                             "filename": uploaded_file.filename,
                             "validation_error": validation_result.error_message,
-                            "security_risk": validation_result.security_risk
+                            "security_risk": validation_result.security_risk,
                         },
-                        ip_address=request.client.host if hasattr(request, 'client') else "unknown",
-                        user_agent=request.headers.get("user-agent", "unknown")
+                        ip_address=request.client.host if hasattr(request, "client") else "unknown",
+                        user_agent=request.headers.get("user-agent", "unknown"),
                     )
 
-                    upload_errors.append({
-                        "filename": uploaded_file.filename,
-                        "error": validation_result.error_message,
-                        "security_risk": validation_result.security_risk,
-                        "recommended_action": validation_result.recommended_action
-                    })
+                    upload_errors.append(
+                        {
+                            "filename": uploaded_file.filename,
+                            "error": validation_result.error_message,
+                            "security_risk": validation_result.security_risk,
+                            "recommended_action": validation_result.recommended_action,
+                        }
+                    )
                     continue
 
                 # Route through certified upload path so SHA-256, cert,
@@ -1091,19 +1114,22 @@ async def sidebar_upload(
                     from app.core.overlay_types import OverlayType
                     from app.models.unified_overlay_models import CreateOverlayRequest
                     from app.services.unified_overlay_manager import UnifiedOverlayManager
+
                     overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
-                    overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
-                        overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
-                        document_id=document_id,
-                        vault_path=storage_path,
-                        payload={
-                            "original_filename": uploaded_file.filename,
-                            "mime_type": uploaded_file.content_type or "application/octet-stream",
-                            "file_size_bytes": len(file_content),
-                            "content_hash": sha256_hash,
-                            "storage_provider": user.provider,
-                        },
-                    ))
+                    overlay_resp = await overlay_mgr.create_overlay(
+                        CreateOverlayRequest(
+                            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+                            document_id=document_id,
+                            vault_path=storage_path,
+                            payload={
+                                "original_filename": uploaded_file.filename,
+                                "mime_type": uploaded_file.content_type or "application/octet-stream",
+                                "file_size_bytes": len(file_content),
+                                "content_hash": sha256_hash,
+                                "storage_provider": user.provider,
+                            },
+                        )
+                    )
                     if overlay_resp.success:
                         overlay_id = overlay_resp.overlay_id
                     certificate["overlay_id"] = overlay_id
@@ -1111,6 +1137,7 @@ async def sidebar_upload(
                     # Timeline extraction using resolved real_token (NOT access_token_val)
                     try:
                         from app.services.timeline_extraction import extract_timeline_from_upload
+
                         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
                         timeline_events = await extract_timeline_from_upload(
                             document_id=document_id,
@@ -1125,7 +1152,7 @@ async def sidebar_upload(
                     logger.warning(f"Overlay creation failed for {document_id}: {e}")
 
                 # Issue function token
-                function_token = issue_function_access_token(
+                issue_function_access_token(
                     user.user_id,
                     context={
                         "provider": user.provider,
@@ -1139,6 +1166,7 @@ async def sidebar_upload(
 
                 # Log successful upload
                 from app.core.audit_logger import log_document_upload
+
                 log_document_upload(
                     user_id=user.user_id,
                     document_id=vault_id,
@@ -1146,41 +1174,44 @@ async def sidebar_upload(
                     file_size=len(file_content),
                     file_type=validation_result.file_type,
                     ip_address=request.client.host if request.client else "unknown",
-                    user_agent=request.headers.get("user-agent", "unknown")
+                    user_agent=request.headers.get("user-agent", "unknown"),
                 )
 
                 # Build file entry from inline upload results
                 uploaded_at = certificate["certified_at"]
                 mime_type = uploaded_file.content_type or "application/octet-stream"
 
-                uploaded_files.append({
-                    "id": vault_id,
-                    "name": uploaded_file.filename,
-                    "size": len(file_content),
-                    "type": mime_type,
-                    "category": _get_file_category(uploaded_file.filename),
-                    "uploaded_at": uploaded_at,
-                    "certificate_id": certificate_id,
-                    "sha256": sha256_hash,
-                    "user_id": user.user_id,
-                    "path": storage_path,
-                    "tags": [],
-                    "metadata": {
-                        "source": source,
-                        "original_filename": uploaded_file.filename,
-                        "upload_timestamp": uploaded_at,
+                uploaded_files.append(
+                    {
+                        "id": vault_id,
+                        "name": uploaded_file.filename,
+                        "size": len(file_content),
+                        "type": mime_type,
+                        "category": _get_file_category(uploaded_file.filename),
+                        "uploaded_at": uploaded_at,
+                        "certificate_id": certificate_id,
+                        "sha256": sha256_hash,
+                        "user_id": user.user_id,
+                        "path": storage_path,
+                        "tags": [],
+                        "metadata": {
+                            "source": source,
+                            "original_filename": uploaded_file.filename,
+                            "upload_timestamp": uploaded_at,
+                        },
                     }
-                })
+                )
 
                 logger.info(f"Vault sidebar upload (certified): {vault_id} for user {user.user_id}")
 
             except Exception as e:
                 import traceback
+
                 error_detail = {
                     "filename": uploaded_file.filename,
                     "error_type": type(e).__name__,
                     "error_message": str(e),
-                    "traceback": traceback.format_exc()[:2000]  # Truncated for response size
+                    "traceback": traceback.format_exc()[:2000],  # Truncated for response size
                 }
                 upload_errors.append(error_detail)
                 logger.error(f"Vault sidebar upload error for {uploaded_file.filename}: {error_detail}")
@@ -1189,7 +1220,7 @@ async def sidebar_upload(
         response_data = {
             "success": True,
             "message": f"Uploaded {len(uploaded_files)} files to vault",
-            "files": uploaded_files
+            "files": uploaded_files,
         }
 
         if upload_errors:
@@ -1207,27 +1238,25 @@ async def sidebar_upload(
                         "message": auth_errors[0].get("error_message", "Storage session expired"),
                         "redirect_url": "/storage/reconnect?return_to=/vault",
                         "needs_reconnect": True,
-                    }
+                    },
                 )
 
         return JSONResponse(response_data)
 
     except json.JSONDecodeError:
-        return JSONResponse({
-            "success": False,
-            "message": "Invalid metadata format",
-            "files": []
-        })
+        return JSONResponse({"success": False, "message": "Invalid metadata format", "files": []})
     except Exception as e:
         import traceback
+
         error_detail = {
             "error_type": type(e).__name__,
             "error_message": str(e),
             "traceback": traceback.format_exc()[:3000],  # Truncated for proxy limits
-            "endpoint": "sidebar_upload"
+            "endpoint": "sidebar_upload",
         }
         logger.error(f"Error in vault sidebar upload: {error_detail}")
         raise HTTPException(status_code=500, detail=error_detail)
+
 
 @router.get("/sidebar/stats")
 async def get_sidebar_stats(
@@ -1245,28 +1274,31 @@ async def get_sidebar_stats(
 
     # Count by category
     categories = {
-        'all': total_files,
-        'documents': len([doc for doc in documents if _get_file_category(doc.filename) == 'documents']),
-        'images': len([doc for doc in documents if _get_file_category(doc.filename) == 'images']),
-        'audio': len([doc for doc in documents if _get_file_category(doc.filename) == 'audio']),
-        'video': len([doc for doc in documents if _get_file_category(doc.filename) == 'video'])
+        "all": total_files,
+        "documents": len([doc for doc in documents if _get_file_category(doc.filename) == "documents"]),
+        "images": len([doc for doc in documents if _get_file_category(doc.filename) == "images"]),
+        "audio": len([doc for doc in documents if _get_file_category(doc.filename) == "audio"]),
+        "video": len([doc for doc in documents if _get_file_category(doc.filename) == "video"]),
     }
 
     # Calculate storage usage (assuming 1GB limit)
     storage_limit = 1024 * 1024 * 1024  # 1GB in bytes
     storage_used = (total_size / storage_limit) * 100
 
-    return JSONResponse({
-        "success": True,
-        "message": "Vault statistics retrieved",
-        "stats": {
-            "total_files": total_files,
-            "total_size": total_size,
-            "categories": categories,
-            "storage_used": storage_used,
-            "storage_limit": storage_limit
+    return JSONResponse(
+        {
+            "success": True,
+            "message": "Vault statistics retrieved",
+            "stats": {
+                "total_files": total_files,
+                "total_size": total_size,
+                "categories": categories,
+                "storage_used": storage_used,
+                "storage_limit": storage_limit,
+            },
         }
-    })
+    )
+
 
 @router.get("/sidebar/search")
 async def sidebar_search(
@@ -1278,70 +1310,68 @@ async def sidebar_search(
         raise HTTPException(status_code=404, detail="Vault service not available")
 
     if not query.strip():
-        return JSONResponse({
-            "success": False,
-            "message": "Search query required",
-            "files": []
-        })
+        return JSONResponse({"success": False, "message": "Search query required", "files": []})
 
     vault_service = get_vault_service()
     documents = await vault_service.get_user_documents(user.user_id)
     query_lower = query.lower()
 
     filtered_docs = [
-        doc for doc in documents
-        if query_lower in doc.filename.lower() or
-           any(query_lower in tag.lower() for tag in (doc.tags or []))
+        doc
+        for doc in documents
+        if query_lower in doc.filename.lower() or any(query_lower in tag.lower() for tag in (doc.tags or []))
     ]
 
     # Convert to sidebar format
     filtered_files = []
     for doc in filtered_docs:
         uploaded_at = doc.uploaded_at if isinstance(doc.uploaded_at, str) else doc.uploaded_at.isoformat()
-        filtered_files.append({
-            "id": doc.vault_id,
-            "name": doc.filename,
-            "size": doc.file_size,
-            "type": doc.mime_type,
-            "category": _get_file_category(doc.filename),
-            "uploaded_at": uploaded_at,
-            "provider": doc.storage_provider,
-            "user_id": doc.user_id,
-            "path": doc.storage_path,
-            "tags": doc.tags or [],
-            "metadata": {
-                "source": "vault_upload",
-                "original_filename": doc.filename,
-                "upload_timestamp": uploaded_at
+        filtered_files.append(
+            {
+                "id": doc.vault_id,
+                "name": doc.filename,
+                "size": doc.file_size,
+                "type": doc.mime_type,
+                "category": _get_file_category(doc.filename),
+                "uploaded_at": uploaded_at,
+                "provider": doc.storage_provider,
+                "user_id": doc.user_id,
+                "path": doc.storage_path,
+                "tags": doc.tags or [],
+                "metadata": {
+                    "source": "vault_upload",
+                    "original_filename": doc.filename,
+                    "upload_timestamp": uploaded_at,
+                },
             }
-        })
+        )
 
-    return JSONResponse({
-        "success": True,
-        "message": f"Found {len(filtered_files)} files matching '{query}'",
-        "files": filtered_files
-    })
+    return JSONResponse(
+        {"success": True, "message": f"Found {len(filtered_files)} files matching '{query}'", "files": filtered_files}
+    )
+
 
 def _get_file_category(filename: str) -> str:
     """Determine file category from filename"""
     from pathlib import Path
+
     extension = Path(filename).suffix.lower()
 
-    document_extensions = {'.pdf', '.doc', '.docx', '.txt', '.rtf'}
-    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'}
-    audio_extensions = {'.mp3', '.wav', '.m4a', '.aac', '.flac'}
-    video_extensions = {'.mp4', '.avi', '.mov', '.wmv', '.flv'}
+    document_extensions = {".pdf", ".doc", ".docx", ".txt", ".rtf"}
+    image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg"}
+    audio_extensions = {".mp3", ".wav", ".m4a", ".aac", ".flac"}
+    video_extensions = {".mp4", ".avi", ".mov", ".wmv", ".flv"}
 
     if extension in document_extensions:
-        return 'documents'
+        return "documents"
     elif extension in image_extensions:
-        return 'images'
+        return "images"
     elif extension in audio_extensions:
-        return 'audio'
+        return "audio"
     elif extension in video_extensions:
-        return 'video'
+        return "video"
     else:
-        return 'other'
+        return "other"
 
 
 # =============================================================================
@@ -1363,8 +1393,10 @@ def _get_file_category(filename: str) -> str:
 # Incident Endpoints (migrated from vault_all_in_one.router)
 # =============================================================================
 
+
 class IncidentCreateRequest(BaseModel):
     """Request model for creating an incident."""
+
     title: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
     start_date: datetime | None = None
@@ -1376,6 +1408,7 @@ class IncidentCreateRequest(BaseModel):
 
 class IncidentResponse(BaseModel):
     """Response model for an incident."""
+
     incident_id: int
     user_id: str
     title: str
@@ -1443,9 +1476,7 @@ async def list_incidents(
     response_incidents = []
     for incident in incidents:
         count_result = await db.execute(
-            select(func.count())
-            .select_from(VaultItem)
-            .where(VaultItem.related_incident_id == incident.incident_id)
+            select(func.count()).select_from(VaultItem).where(VaultItem.related_incident_id == incident.incident_id)
         )
         item_count = count_result.scalar() or 0
 
@@ -1475,9 +1506,7 @@ async def get_incident(
         raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
 
     count_result = await db.execute(
-        select(func.count())
-        .select_from(VaultItem)
-        .where(VaultItem.related_incident_id == incident_id)
+        select(func.count()).select_from(VaultItem).where(VaultItem.related_incident_id == incident_id)
     )
     item_count = count_result.scalar() or 0
 
@@ -1516,6 +1545,7 @@ async def get_incident_items(
 # =============================================================================
 # Export — "Export my case" (download all vault documents as a ZIP)
 # =============================================================================
+
 
 @router.get("/export")
 async def export_vault_zip(
@@ -1602,7 +1632,9 @@ async def export_vault_zip(
             if safe_name in used_names:
                 used_names[safe_name] += 1
                 base, dot, ext = safe_name.rpartition(".")
-                safe_name = f"{base}_{used_names[safe_name]}{dot}{ext}" if dot else f"{safe_name}_{used_names[safe_name]}"
+                safe_name = (
+                    f"{base}_{used_names[safe_name]}{dot}{ext}" if dot else f"{safe_name}_{used_names[safe_name]}"
+                )
             else:
                 used_names[safe_name] = 0
 
@@ -1623,34 +1655,41 @@ async def export_vault_zip(
 
             if file_bytes:
                 zf.writestr(safe_name, file_bytes)
-                manifest.append({
-                    "filename": safe_name,
-                    "original_filename": original_name,
-                    "document_id": doc_id,
-                    "mime_type": mime_type,
-                    "uploaded_at": uploaded_at,
-                    "file_size": file_size if file_size else len(file_bytes),
-                    "status": "included",
-                })
+                manifest.append(
+                    {
+                        "filename": safe_name,
+                        "original_filename": original_name,
+                        "document_id": doc_id,
+                        "mime_type": mime_type,
+                        "uploaded_at": uploaded_at,
+                        "file_size": file_size if file_size else len(file_bytes),
+                        "status": "included",
+                    }
+                )
             else:
-                manifest.append({
-                    "filename": safe_name,
-                    "original_filename": original_name,
-                    "document_id": doc_id,
-                    "mime_type": mime_type,
-                    "uploaded_at": uploaded_at,
-                    "file_size": file_size,
-                    "status": "failed_to_download",
-                })
+                manifest.append(
+                    {
+                        "filename": safe_name,
+                        "original_filename": original_name,
+                        "document_id": doc_id,
+                        "mime_type": mime_type,
+                        "uploaded_at": uploaded_at,
+                        "file_size": file_size,
+                        "status": "failed_to_download",
+                    }
+                )
 
-        manifest_bytes = json.dumps({
-            "exported_at": utc_now().isoformat(),
-            "user_id": user.user_id,
-            "total_documents": len(certificates),
-            "included": sum(1 for m in manifest if m["status"] == "included"),
-            "failed": sum(1 for m in manifest if m["status"] == "failed_to_download"),
-            "documents": manifest,
-        }, indent=2).encode("utf-8")
+        manifest_bytes = json.dumps(
+            {
+                "exported_at": utc_now().isoformat(),
+                "user_id": user.user_id,
+                "total_documents": len(certificates),
+                "included": sum(1 for m in manifest if m["status"] == "included"),
+                "failed": sum(1 for m in manifest if m["status"] == "failed_to_download"),
+                "documents": manifest,
+            },
+            indent=2,
+        ).encode("utf-8")
         zf.writestr("manifest.json", manifest_bytes)
 
     buf.seek(0)
@@ -1660,7 +1699,7 @@ async def export_vault_zip(
         chunk_size = 64 * 1024
         offset = 0
         while offset < len(zip_bytes):
-            chunk = zip_bytes[offset:offset + chunk_size]
+            chunk = zip_bytes[offset : offset + chunk_size]
             offset += chunk_size
             yield chunk
 

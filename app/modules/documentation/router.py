@@ -28,11 +28,12 @@ router = APIRouter()
 # Documentation Endpoints
 # =============================================================================
 
+
 @router.get("/openapi.json")
 async def get_openapi_spec(admin: dict = Depends(require_admin)):
     """
     Get OpenAPI 3.0 specification.
-    
+
     Returns the complete API specification in JSON format.
     Admin access only.
     """
@@ -41,21 +42,19 @@ async def get_openapi_spec(admin: dict = Depends(require_admin)):
         return JSONResponse(
             content=spec,
             media_type="application/json",
-            headers={
-                "Cache-Control": "public, max-age=3600",
-                "Content-Disposition": "inline; filename=openapi.json"
-            }
+            headers={"Cache-Control": "public, max-age=3600", "Content-Disposition": "inline; filename=openapi.json"},
         )
 
     except Exception as e:
         logger.error(f"OpenAPI spec generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate OpenAPI specification")
 
+
 @router.get("/postman")
 async def get_postman_collection(admin: dict = Depends(require_admin)):
     """
     Get Postman collection.
-    
+
     Returns a complete Postman collection for API testing.
     Admin access only.
     """
@@ -66,61 +65,54 @@ async def get_postman_collection(admin: dict = Depends(require_admin)):
             media_type="application/json",
             headers={
                 "Cache-Control": "public, max-age=3600",
-                "Content-Disposition": "inline; filename=semptify-api.postman_collection.json"
-            }
+                "Content-Disposition": "inline; filename=semptify-api.postman_collection.json",
+            },
         )
 
     except Exception as e:
         logger.error(f"Postman collection generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate Postman collection")
 
+
 @router.get("/swagger", response_class=HTMLResponse)
 async def get_swagger_ui(admin: dict = Depends(require_admin)):
     """
     Get Swagger UI documentation.
-    
+
     Interactive API documentation with testing capabilities.
     Admin access only.
     """
     try:
         swagger_html = generate_swagger_ui()
-        return HTMLResponse(
-            content=swagger_html,
-            headers={
-                "Cache-Control": "public, max-age=3600"
-            }
-        )
+        return HTMLResponse(content=swagger_html, headers={"Cache-Control": "public, max-age=3600"})
 
     except Exception as e:
         logger.error(f"Swagger UI generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate Swagger UI")
 
+
 @router.get("/redoc", response_class=HTMLResponse)
 async def get_redoc_ui(admin: dict = Depends(require_admin)):
     """
     Get ReDoc documentation.
-    
+
     Clean, modern API documentation interface.
     Admin access only.
     """
     try:
         redoc_html = generate_redoc_html()
-        return HTMLResponse(
-            content=redoc_html,
-            headers={
-                "Cache-Control": "public, max-age=3600"
-            }
-        )
+        return HTMLResponse(content=redoc_html, headers={"Cache-Control": "public, max-age=3600"})
 
     except Exception as e:
         logger.error(f"ReDoc UI generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate ReDoc UI")
 
+
 @router.get("/", response_class=HTMLResponse)
 async def get_developer_portal(admin: dict = Depends(require_admin)):
     """
     Get developer portal.
-    
+
     Comprehensive developer portal with documentation, examples, and tools.
     Admin access only.
     """
@@ -130,33 +122,31 @@ async def get_developer_portal(admin: dict = Depends(require_admin)):
             content=portal_html,
             headers={
                 "Cache-Control": "public, max-age=1800"  # 30 minutes
-            }
+            },
         )
 
     except Exception as e:
         logger.error(f"Developer portal generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate developer portal")
 
+
 # =============================================================================
 # API Reference Endpoints
 # =============================================================================
+
 
 @router.get("/reference")
 async def get_api_reference():
     """
     Get API reference documentation.
-    
+
     Returns structured API reference for all endpoints.
     """
     try:
         generator = get_documentation_generator()
 
         # Get all modules and endpoints
-        reference = {
-            "api_version": generator.api_version,
-            "base_url": generator.base_url,
-            "modules": []
-        }
+        reference = {"api_version": generator.api_version, "base_url": generator.base_url, "modules": []}
 
         for module in generator.modules.values():
             module_ref = {
@@ -165,7 +155,7 @@ async def get_api_reference():
                 "description": module.description,
                 "base_path": module.base_path,
                 "version": module.version,
-                "endpoints": []
+                "endpoints": [],
             }
 
             for endpoint in module.endpoints:
@@ -178,7 +168,7 @@ async def get_api_reference():
                     "request_body": endpoint.request_body,
                     "responses": endpoint.responses,
                     "tags": endpoint.tags,
-                    "security": endpoint.security
+                    "security": endpoint.security,
                 }
                 module_ref["endpoints"].append(endpoint_ref)
 
@@ -188,21 +178,20 @@ async def get_api_reference():
             "reference": reference,
             "statistics": {
                 "total_modules": len(reference["modules"]),
-                "total_endpoints": sum(len(m["endpoints"]) for m in reference["modules"])
-            }
+                "total_endpoints": sum(len(m["endpoints"]) for m in reference["modules"]),
+            },
         }
 
     except Exception as e:
         logger.error(f"API reference generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate API reference")
 
+
 @router.get("/reference/{module_id}")
-async def get_module_reference(
-    module_id: str
-):
+async def get_module_reference(module_id: str):
     """
     Get specific module reference documentation.
-    
+
     Returns detailed documentation for a specific API module.
     """
     try:
@@ -217,8 +206,8 @@ async def get_module_reference(
             "endpoints": [ep.to_dict() for ep in module.endpoints],
             "statistics": {
                 "endpoint_count": len(module.endpoints),
-                "tags": list(set(tag for ep in module.endpoints for tag in ep.tags))
-            }
+                "tags": list(set(tag for ep in module.endpoints for tag in ep.tags)),
+            },
         }
 
     except HTTPException:
@@ -227,18 +216,20 @@ async def get_module_reference(
         logger.error(f"Module reference generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate module reference")
 
+
 # =============================================================================
 # Code Examples Endpoints
 # =============================================================================
 
+
 @router.get("/examples")
 async def get_code_examples(
     language: str | None = Query(None, description="Filter by programming language"),
-    category: str | None = Query(None, description="Filter by category")
+    category: str | None = Query(None, description="Filter by category"),
 ):
     """
     Get code examples for API usage.
-    
+
     Returns code examples in multiple programming languages.
     """
     try:
@@ -259,26 +250,27 @@ async def get_code_examples(
             "total": len(examples),
             "languages": list(set(ex.language for ex in examples)),
             "categories": [
-                "authentication", "documents", "search", "batch_operations",
-                "export_import", "security", "testing"
+                "authentication",
+                "documents",
+                "search",
+                "batch_operations",
+                "export_import",
+                "security",
+                "testing",
             ],
-            "filters": {
-                "language": language,
-                "category": category
-            }
+            "filters": {"language": language, "category": category},
         }
 
     except Exception as e:
         logger.error(f"Code examples retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve code examples")
 
+
 @router.get("/examples/{example_id}")
-async def get_code_example(
-    example_id: str
-):
+async def get_code_example(example_id: str):
     """
     Get specific code example.
-    
+
     Returns detailed code example with explanation.
     """
     try:
@@ -302,15 +294,17 @@ async def get_code_example(
         logger.error(f"Code example retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve code example")
 
+
 # =============================================================================
 # SDK and Tools Endpoints
 # =============================================================================
+
 
 @router.get("/sdks")
 async def get_sdks():
     """
     Get available SDKs and tools.
-    
+
     Returns information about official SDKs and development tools.
     """
     try:
@@ -329,8 +323,8 @@ async def get_sdks():
                     "Document Management",
                     "Search",
                     "Batch Operations",
-                    "Real-time Notifications"
-                ]
+                    "Real-time Notifications",
+                ],
             },
             {
                 "language": "JavaScript",
@@ -341,12 +335,7 @@ async def get_sdks():
                 "repository": "https://github.com/semptify/javascript-sdk",
                 "documentation": "https://docs.semptify.org/javascript-sdk",
                 "status": "beta",
-                "features": [
-                    "Authentication",
-                    "Document Management",
-                    "Search",
-                    "Real-time Notifications"
-                ]
+                "features": ["Authentication", "Document Management", "Search", "Real-time Notifications"],
             },
             {
                 "language": "Node.js",
@@ -357,13 +346,8 @@ async def get_sdks():
                 "repository": "https://github.com/semptify/node-sdk",
                 "documentation": "https://docs.semptify.org/node-sdk",
                 "status": "alpha",
-                "features": [
-                    "Authentication",
-                    "Document Management",
-                    "Search",
-                    "Batch Operations"
-                ]
-            }
+                "features": ["Authentication", "Document Management", "Search", "Batch Operations"],
+            },
         ]
 
         tools = [
@@ -379,8 +363,8 @@ async def get_sdks():
                     "Document Upload/Download",
                     "Search",
                     "Batch Operations",
-                    "Configuration Management"
-                ]
+                    "Configuration Management",
+                ],
             },
             {
                 "name": "semptify-vscode",
@@ -388,13 +372,8 @@ async def get_sdks():
                 "description": "VS Code extension for Semptify development",
                 "marketplace_url": "https://marketplace.visualstudio.com/items?itemName=semptify.vscode",
                 "status": "beta",
-                "features": [
-                    "API Documentation",
-                    "Code Completion",
-                    "Request Testing",
-                    "Authentication Helper"
-                ]
-            }
+                "features": ["API Documentation", "Code Completion", "Request Testing", "Authentication Helper"],
+            },
         ]
 
         return {
@@ -405,23 +384,25 @@ async def get_sdks():
                 "total_tools": len(tools),
                 "stable_releases": len([sdk for sdk in sdks if sdk["status"] == "stable"]),
                 "beta_releases": len([sdk for sdk in sdks if sdk["status"] == "beta"]),
-                "alpha_releases": len([sdk for sdk in sdks if sdk["status"] == "alpha"])
-            }
+                "alpha_releases": len([sdk for sdk in sdks if sdk["status"] == "alpha"]),
+            },
         }
 
     except Exception as e:
         logger.error(f"SDKs retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve SDKs")
 
+
 # =============================================================================
 # Support and Resources Endpoints
 # =============================================================================
+
 
 @router.get("/support")
 async def get_support_resources():
     """
     Get support resources and links.
-    
+
     Returns comprehensive support resources for developers.
     """
     try:
@@ -430,30 +411,30 @@ async def get_support_resources():
                 "api_reference": "https://docs.semptify.org/api",
                 "guides": "https://docs.semptify.org/guides",
                 "tutorials": "https://docs.semptify.org/tutorials",
-                "faq": "https://docs.semptify.org/faq"
+                "faq": "https://docs.semptify.org/faq",
             },
             "community": {
                 "github": "https://github.com/semptify/api",
                 "discord": "https://discord.gg/semptify",
                 "stackoverflow": "https://stackoverflow.com/questions/tagged/semptify",
-                "reddit": "https://reddit.com/r/semptify"
+                "reddit": "https://reddit.com/r/semptify",
             },
             "support": {
                 "email": "api-support@semptify.org",
                 "helpdesk": "https://support.semptify.org",
-                "status_page": "https://status.semptify.org"
+                "status_page": "https://status.semptify.org",
             },
             "tools": {
                 "api_testing": "https://api-test.semptify.org",
                 "webhooks": "https://webhooks.semptify.org",
-                "monitoring": "https://monitoring.semptify.org"
+                "monitoring": "https://monitoring.semptify.org",
             },
             "legal": {
                 "terms_of_service": "https://semptify.org/terms",
                 "privacy_policy": "https://semptify.org/privacy",
                 "api_terms": "https://semptify.org/api-terms",
-                "rate_limits": "https://semptify.org/rate-limits"
-            }
+                "rate_limits": "https://semptify.org/rate-limits",
+            },
         }
 
         return resources
@@ -462,11 +443,12 @@ async def get_support_resources():
         logger.error(f"Support resources retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve support resources")
 
+
 @router.get("/changelog")
 async def get_changelog():
     """
     Get API changelog and version history.
-    
+
     Returns detailed changelog for API versions.
     """
     try:
@@ -481,39 +463,39 @@ async def get_changelog():
                         "type": "added",
                         "category": "security",
                         "description": "Two-factor authentication (2FA) support",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "performance",
                         "description": "Advanced caching and rate limiting",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "search",
                         "description": "Full-text search with BM25 scoring",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "documents",
                         "description": "Document preview and thumbnail generation",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "batch",
                         "description": "Batch operations for document management",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "testing",
                         "description": "Automated testing and CI/CD pipeline",
-                        "breaking": False
-                    }
-                ]
+                        "breaking": False,
+                    },
+                ],
             },
             {
                 "version": "1.1.0",
@@ -525,21 +507,21 @@ async def get_changelog():
                         "type": "added",
                         "category": "search",
                         "description": "Advanced search with indexing",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "notifications",
                         "description": "Real-time WebSocket notifications",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "improved",
                         "category": "performance",
                         "description": "Database connection pooling and caching",
-                        "breaking": False
-                    }
-                ]
+                        "breaking": False,
+                    },
+                ],
             },
             {
                 "version": "1.0.0",
@@ -547,26 +529,21 @@ async def get_changelog():
                 "status": "stable",
                 "description": "Initial release",
                 "changes": [
-                    {
-                        "type": "added",
-                        "category": "core",
-                        "description": "Basic API functionality",
-                        "breaking": False
-                    },
+                    {"type": "added", "category": "core", "description": "Basic API functionality", "breaking": False},
                     {
                         "type": "added",
                         "category": "authentication",
                         "description": "User authentication and authorization",
-                        "breaking": False
+                        "breaking": False,
                     },
                     {
                         "type": "added",
                         "category": "documents",
                         "description": "Document management endpoints",
-                        "breaking": False
-                    }
-                ]
-            }
+                        "breaking": False,
+                    },
+                ],
+            },
         ]
 
         return {
@@ -575,27 +552,27 @@ async def get_changelog():
             "statistics": {
                 "total_versions": len(changelog),
                 "stable_versions": len([v for v in changelog if v["status"] == "stable"]),
-                "breaking_changes": len([
-                    change for version in changelog
-                    for change in version["changes"]
-                    if change["breaking"]
-                ])
-            }
+                "breaking_changes": len(
+                    [change for version in changelog for change in version["changes"] if change["breaking"]]
+                ),
+            },
         }
 
     except Exception as e:
         logger.error(f"Changelog retrieval failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve changelog")
 
+
 # =============================================================================
 # Statistics and Monitoring Endpoints
 # =============================================================================
+
 
 @router.get("/statistics")
 async def get_documentation_statistics():
     """
     Get documentation statistics and usage metrics.
-    
+
     Returns statistics about API documentation and developer portal usage.
     """
     try:
@@ -608,7 +585,7 @@ async def get_documentation_statistics():
             "swagger_ui_visits": 3420,
             "redoc_visits": 2150,
             "developer_portal_visits": 1890,
-            "code_example_views": 1560
+            "code_example_views": 1560,
         }
 
         return {
@@ -617,8 +594,8 @@ async def get_documentation_statistics():
             "trends": {
                 "most_viewed_modules": ["documents", "authentication", "search"],
                 "most_downloaded_sdks": ["python", "javascript"],
-                "popular_examples": ["authentication", "document_upload", "search"]
-            }
+                "popular_examples": ["authentication", "document_upload", "search"],
+            },
         }
 
     except Exception as e:

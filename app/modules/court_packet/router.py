@@ -21,12 +21,7 @@ router = APIRouter(prefix="/api/court-packet", tags=["Court Packet"])
 try:
     from app.routers.briefcase import briefcase_data
 except ImportError:
-    briefcase_data = {
-        "folders": {},
-        "documents": {},
-        "extractions": {},
-        "highlights": {}
-    }
+    briefcase_data = {"folders": {}, "documents": {}, "extractions": {}, "highlights": {}}
 
 
 # Import security for authentication
@@ -34,6 +29,7 @@ try:
     from fastapi import Depends
 
     from app.core.security import StorageUser, require_user, yellow_access
+
     HAS_AUTH = True
 except ImportError:
     HAS_AUTH = False
@@ -43,6 +39,7 @@ def _get_processed_documents(user_id: str) -> list[dict[str, Any]]:
     """Get processed documents from the unified upload pipeline."""
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
         return distributor.get_court_packet_documents(user_id)
     except Exception:
@@ -53,7 +50,7 @@ def _get_processed_documents(user_id: str) -> list[dict[str, Any]]:
 async def get_packet_status(request: Request) -> dict[str, Any]:
     """
     Get current court packet status and contents summary.
-    
+
     Includes documents from:
     - Briefcase manual uploads
     - Unified upload pipeline (automatically categorized)
@@ -69,17 +66,10 @@ async def get_packet_status(request: Request) -> dict[str, Any]:
     processed_docs = _get_processed_documents(user_id)
 
     # Categorize documents
-    categories = {
-        "evidence_photos": 0,
-        "legal_documents": 0,
-        "communications": 0,
-        "financial": 0,
-        "other": 0
-    }
+    categories = {"evidence_photos": 0, "legal_documents": 0, "communications": 0, "financial": 0, "other": 0}
 
     starred_docs = []
     all_timeline_events = []
-    all_action_items = []
 
     # Process briefcase documents
     for doc_id, doc in briefcase_data.get("documents", {}).items():
@@ -90,11 +80,7 @@ async def get_packet_status(request: Request) -> dict[str, Any]:
             categories["other"] += 1
 
         if doc.get("starred"):
-            starred_docs.append({
-                "id": doc_id,
-                "name": doc.get("name"),
-                "type": doc.get("type")
-            })
+            starred_docs.append({"id": doc_id, "name": doc.get("name"), "type": doc.get("type")})
 
     # Process unified upload documents
     for doc in processed_docs:
@@ -105,13 +91,15 @@ async def get_packet_status(request: Request) -> dict[str, Any]:
             categories["other"] += 1
 
         if doc.get("starred"):
-            starred_docs.append({
-                "id": doc.get("id"),
-                "name": doc.get("name"),
-                "type": doc.get("type"),
-                "doc_type": doc.get("doc_type"),
-                "registry_id": doc.get("registry_id"),
-            })
+            starred_docs.append(
+                {
+                    "id": doc.get("id"),
+                    "name": doc.get("name"),
+                    "type": doc.get("type"),
+                    "doc_type": doc.get("doc_type"),
+                    "registry_id": doc.get("registry_id"),
+                }
+            )
 
         # Collect timeline events and action items
         all_timeline_events.extend(doc.get("timeline_events", []))
@@ -129,8 +117,8 @@ async def get_packet_status(request: Request) -> dict[str, Any]:
             "categories": categories,
             "starred_documents": starred_docs,
             "timeline_events_count": len(all_timeline_events),
-            "ready_for_export": total_doc_count > 0 or extraction_count > 0
-        }
+            "ready_for_export": total_doc_count > 0 or extraction_count > 0,
+        },
     }
 
 
@@ -138,7 +126,7 @@ async def get_packet_status(request: Request) -> dict[str, Any]:
 async def get_packet_documents(request: Request) -> dict[str, Any]:
     """
     Get all documents available for court packet.
-    
+
     Returns documents from both:
     - Briefcase (manual uploads)
     - Unified upload pipeline (auto-processed)
@@ -165,7 +153,7 @@ async def get_packet_documents(request: Request) -> dict[str, Any]:
 async def get_packet_evidence(request: Request) -> dict[str, Any]:
     """
     Get all evidence documents for court packet.
-    
+
     Filters to documents categorized as evidence from unified upload.
     """
     user_id = get_request_user_id(request)
@@ -201,7 +189,7 @@ async def get_packet_legal_docs(request: Request) -> dict[str, Any]:
 async def get_packet_timeline(request: Request) -> dict[str, Any]:
     """
     Get aggregated timeline events from all processed documents.
-    
+
     Useful for creating a chronological summary for court.
     """
     user_id = get_request_user_id(request)
@@ -237,30 +225,90 @@ async def get_packet_checklist(request: Request) -> dict[str, Any]:
         {
             "category": "Essential Documents",
             "items": [
-                {"name": "Eviction Notice/Complaint", "required": True, "help": "The document that started this case", "doc_types": ["eviction_notice", "notice_to_quit", "court_complaint"]},
-                {"name": "Your Answer/Response", "required": True, "help": "Your written response to the complaint", "doc_types": ["court_filing", "motion"]},
-                {"name": "Lease Agreement", "required": True, "help": "Your rental contract", "doc_types": ["lease", "lease_amendment"]},
-                {"name": "Proof of Service", "required": False, "help": "If you served any documents", "doc_types": ["court_filing"]}
-            ]
+                {
+                    "name": "Eviction Notice/Complaint",
+                    "required": True,
+                    "help": "The document that started this case",
+                    "doc_types": ["eviction_notice", "notice_to_quit", "court_complaint"],
+                },
+                {
+                    "name": "Your Answer/Response",
+                    "required": True,
+                    "help": "Your written response to the complaint",
+                    "doc_types": ["court_filing", "motion"],
+                },
+                {
+                    "name": "Lease Agreement",
+                    "required": True,
+                    "help": "Your rental contract",
+                    "doc_types": ["lease", "lease_amendment"],
+                },
+                {
+                    "name": "Proof of Service",
+                    "required": False,
+                    "help": "If you served any documents",
+                    "doc_types": ["court_filing"],
+                },
+            ],
         },
         {
             "category": "Evidence",
             "items": [
-                {"name": "Photos of Property Conditions", "required": False, "help": "Mold, damage, repairs needed", "doc_types": ["photo_evidence", "video_evidence"]},
-                {"name": "Communication Records", "required": False, "help": "Texts, emails, letters with landlord", "doc_types": ["email_communication", "text_message", "letter"]},
-                {"name": "Payment Records", "required": False, "help": "Receipts, bank statements, money orders", "doc_types": ["receipt", "payment_record", "bank_statement"]},
-                {"name": "Witness Statements", "required": False, "help": "Written statements from witnesses", "doc_types": ["affidavit"]}
-            ]
+                {
+                    "name": "Photos of Property Conditions",
+                    "required": False,
+                    "help": "Mold, damage, repairs needed",
+                    "doc_types": ["photo_evidence", "video_evidence"],
+                },
+                {
+                    "name": "Communication Records",
+                    "required": False,
+                    "help": "Texts, emails, letters with landlord",
+                    "doc_types": ["email_communication", "text_message", "letter"],
+                },
+                {
+                    "name": "Payment Records",
+                    "required": False,
+                    "help": "Receipts, bank statements, money orders",
+                    "doc_types": ["receipt", "payment_record", "bank_statement"],
+                },
+                {
+                    "name": "Witness Statements",
+                    "required": False,
+                    "help": "Written statements from witnesses",
+                    "doc_types": ["affidavit"],
+                },
+            ],
         },
         {
             "category": "Supporting Documents",
             "items": [
-                {"name": "Timeline of Events", "required": False, "help": "Chronological summary of what happened", "doc_types": []},
-                {"name": "Relevant Laws/Statutes", "required": False, "help": "Laws that support your case", "doc_types": []},
-                {"name": "Inspection Reports", "required": False, "help": "City/county inspection reports", "doc_types": ["inspection_report"]},
-                {"name": "Medical Records", "required": False, "help": "If health was affected by conditions", "doc_types": []}
-            ]
-        }
+                {
+                    "name": "Timeline of Events",
+                    "required": False,
+                    "help": "Chronological summary of what happened",
+                    "doc_types": [],
+                },
+                {
+                    "name": "Relevant Laws/Statutes",
+                    "required": False,
+                    "help": "Laws that support your case",
+                    "doc_types": [],
+                },
+                {
+                    "name": "Inspection Reports",
+                    "required": False,
+                    "help": "City/county inspection reports",
+                    "doc_types": ["inspection_report"],
+                },
+                {
+                    "name": "Medical Records",
+                    "required": False,
+                    "help": "If health was affected by conditions",
+                    "doc_types": [],
+                },
+            ],
+        },
     ]
 
     # Get processed documents
@@ -308,8 +356,8 @@ async def get_packet_checklist(request: Request) -> dict[str, Any]:
         "completion": {
             "required_items": total_required,
             "has_required": has_required,
-            "percentage": round((has_required / total_required * 100) if total_required > 0 else 0)
-        }
+            "percentage": round((has_required / total_required * 100) if total_required > 0 else 0),
+        },
     }
 
 
@@ -319,18 +367,18 @@ async def generate_court_packet(
     include_highlights: bool = True,
     include_extractions: bool = True,
     include_index: bool = True,
-    format: str = "zip"  # zip or pdf
+    format: str = "zip",  # zip or pdf
 ) -> dict[str, Any]:
     """
     Generate a court-ready document packet.
-    
+
     Returns a downloadable ZIP file containing:
     - All starred/selected documents
     - Evidence index
     - Highlighted annotations summary
     - Extracted pages
     """
-    user_id = get_request_user_id(request)
+    get_request_user_id(request)
 
     try:
         # Get all items
@@ -339,16 +387,12 @@ async def generate_court_packet(
         highlights = briefcase_data.get("highlights", {}) if include_highlights else {}
 
         if not docs and not extractions:
-            return {
-                "success": False,
-                "error": "No documents to export. Add documents to your Briefcase first."
-            }
+            return {"success": False, "error": "No documents to export. Add documents to your Briefcase first."}
 
         # Create ZIP in memory
         zip_buffer = io.BytesIO()
 
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
             # 1. Create Evidence Index
             if include_index:
                 index_content = generate_evidence_index(docs, extractions, highlights)
@@ -359,26 +403,26 @@ async def generate_court_packet(
             for doc_id, doc in docs.items():
                 # In real app, would include actual file content
                 # For now, create placeholder with metadata
-                doc_info = f"""Document: {doc.get('name', 'Unknown')}
-Type: {doc.get('type', 'Unknown')}
-Category: {doc.get('category', 'General')}
-Date Added: {doc.get('created_at', 'Unknown')}
-Starred: {'Yes' if doc.get('starred') else 'No'}
+                doc_info = f"""Document: {doc.get("name", "Unknown")}
+Type: {doc.get("type", "Unknown")}
+Category: {doc.get("category", "General")}
+Date Added: {doc.get("created_at", "Unknown")}
+Starred: {"Yes" if doc.get("starred") else "No"}
 
 Notes:
-{doc.get('notes', 'No notes')}
+{doc.get("notes", "No notes")}
 """
-                safe_name = doc.get('name', doc_id).replace('/', '_').replace('\\', '_')
+                safe_name = doc.get("name", doc_id).replace("/", "_").replace("\\", "_")
                 zf.writestr(f"{doc_folder}{safe_name}_info.txt", doc_info)
 
             # 3. Add extractions
             if extractions:
                 extract_folder = "02_Extracted_Pages/"
                 for ext_id, ext in extractions.items():
-                    ext_info = f"""Extraction: {ext.get('filename', 'Unknown')}
-Source PDF: {ext.get('source_pdf', 'Unknown')}
-Pages: {ext.get('pages', 'Unknown')}
-Extracted: {ext.get('created_at', 'Unknown')}
+                    ext_info = f"""Extraction: {ext.get("filename", "Unknown")}
+Source PDF: {ext.get("source_pdf", "Unknown")}
+Pages: {ext.get("pages", "Unknown")}
+Extracted: {ext.get("created_at", "Unknown")}
 """
                     zf.writestr(f"{extract_folder}{ext_id}_info.txt", ext_info)
 
@@ -405,18 +449,15 @@ Extracted: {ext.get('created_at', 'Unknown')}
                 "documents": len(docs),
                 "extractions": len(extractions),
                 "highlights": len(highlights),
-                "includes_index": include_index
+                "includes_index": include_index,
             },
             "download_url": f"/api/court-packet/download/{packet_id}",
-            "message": "Court packet generated successfully!"
+            "message": "Court packet generated successfully!",
         }
 
     except Exception as e:
         logger.error(f"Error generating court packet: {e}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        return {"success": False, "error": str(e)}
 
 
 def generate_evidence_index(docs: dict, extractions: dict, highlights: dict) -> str:
@@ -435,16 +476,18 @@ def generate_evidence_index(docs: dict, extractions: dict, highlights: dict) -> 
         lines.append(f"{i}. {doc.get('name', 'Unknown')}")
         lines.append(f"   Type: {doc.get('type', 'Unknown')}")
         lines.append(f"   Category: {doc.get('category', 'General')}")
-        if doc.get('starred'):
+        if doc.get("starred"):
             lines.append("   ◆ STARRED - Key Evidence")
         lines.append("")
 
     if extractions:
-        lines.extend([
-            "",
-            "EXTRACTED PAGES",
-            "-" * 40,
-        ])
+        lines.extend(
+            [
+                "",
+                "EXTRACTED PAGES",
+                "-" * 40,
+            ]
+        )
         for i, (ext_id, ext) in enumerate(extractions.items(), 1):
             lines.append(f"{i}. {ext.get('filename', 'Unknown')}")
             lines.append(f"   From: {ext.get('source_pdf', 'Unknown')}")
@@ -452,18 +495,22 @@ def generate_evidence_index(docs: dict, extractions: dict, highlights: dict) -> 
             lines.append("")
 
     if highlights:
-        lines.extend([
-            "",
-            f"ANNOTATIONS: {len(highlights)} highlighted items",
-            "(See HIGHLIGHTS_SUMMARY.txt for details)",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                f"ANNOTATIONS: {len(highlights)} highlighted items",
+                "(See HIGHLIGHTS_SUMMARY.txt for details)",
+                "",
+            ]
+        )
 
-    lines.extend([
-        "=" * 60,
-        "END OF INDEX",
-        "=" * 60,
-    ])
+    lines.extend(
+        [
+            "=" * 60,
+            "END OF INDEX",
+            "=" * 60,
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -486,7 +533,7 @@ def generate_highlights_summary(highlights: dict) -> str:
         "blue": "◆ NAMES",
         "pink": "● MONEY/AMOUNTS",
         "orange": "◆ DEADLINES",
-        "red": "◆ VIOLATIONS"
+        "red": "◆ VIOLATIONS",
     }
 
     for h_id, h in highlights.items():
@@ -501,7 +548,7 @@ def generate_highlights_summary(highlights: dict) -> str:
         lines.append("-" * 40)
         for item in items:
             lines.append(f"• {item.get('text', 'No text')}")
-            if item.get('note'):
+            if item.get("note"):
                 lines.append(f"  Note: {item.get('note')}")
             lines.append(f"  Source: {item.get('pdf_name', 'Unknown')} (Page {item.get('page', '?')})")
             lines.append("")
@@ -517,7 +564,7 @@ def generate_cover_sheet(docs: dict, extractions: dict, highlights: dict) -> str
 ╚══════════════════════════════════════════════════════════════╝
 
 Prepared by: Semptify Legal Defense Assistant
-Generated: {utc_now().strftime('%Y-%m-%d %H:%M UTC')}
+Generated: {utc_now().strftime("%Y-%m-%d %H:%M UTC")}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -568,20 +615,15 @@ async def preview_packet(request: Request) -> dict[str, Any]:
                 "name": doc.get("name"),
                 "type": doc.get("type"),
                 "starred": doc.get("starred", False),
-                "category": doc.get("category", "general")
+                "category": doc.get("category", "general"),
             }
             for doc_id, doc in docs.items()
         ],
         "extractions": [
-            {
-                "id": ext_id,
-                "filename": ext.get("filename"),
-                "source": ext.get("source_pdf"),
-                "pages": ext.get("pages")
-            }
+            {"id": ext_id, "filename": ext.get("filename"), "source": ext.get("source_pdf"), "pages": ext.get("pages")}
             for ext_id, ext in extractions.items()
         ],
-        "highlights_by_color": {}
+        "highlights_by_color": {},
     }
 
     # Group highlights by color
@@ -589,15 +631,13 @@ async def preview_packet(request: Request) -> dict[str, Any]:
         color = h.get("color", "yellow")
         if color not in preview["highlights_by_color"]:
             preview["highlights_by_color"][color] = []
-        preview["highlights_by_color"][color].append({
-            "id": h_id,
-            "text": h.get("text", "")[:100],  # Truncate
-            "pdf": h.get("pdf_name"),
-            "page": h.get("page")
-        })
+        preview["highlights_by_color"][color].append(
+            {
+                "id": h_id,
+                "text": h.get("text", "")[:100],  # Truncate
+                "pdf": h.get("pdf_name"),
+                "page": h.get("page"),
+            }
+        )
 
-    return {
-        "success": True,
-        "preview": preview,
-        "total_items": len(docs) + len(extractions) + len(highlights)
-    }
+    return {"success": True, "preview": preview, "total_items": len(docs) + len(extractions) + len(highlights)}

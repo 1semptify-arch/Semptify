@@ -25,10 +25,11 @@ logger = logging.getLogger(__name__)
 
 class EventPriority(Enum):
     """Priority levels for telemetry events."""
-    CRITICAL = auto()   # User action affecting legal rights
-    HIGH = auto()       # Important workflow step
-    MEDIUM = auto()     # Standard interaction
-    LOW = auto()        # Diagnostic/debug
+
+    CRITICAL = auto()  # User action affecting legal rights
+    HIGH = auto()  # Important workflow step
+    MEDIUM = auto()  # Standard interaction
+    LOW = auto()  # Diagnostic/debug
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,7 @@ class TelemetryEvent:
     Immutable telemetry event structure.
     All events include: timestamp, page_id, event_type, session_id, metadata.
     """
+
     event_type: str
     page_id: str
     session_id: str
@@ -75,7 +77,6 @@ EVENT_PRIORITIES: dict[str, EventPriority] = {
     "answer_downloaded": EventPriority.CRITICAL,
     "defense_selected": EventPriority.CRITICAL,
     "packet_downloaded": EventPriority.CRITICAL,
-
     # High: Important workflow steps
     "dashboard_load": EventPriority.HIGH,
     "document_upload_started": EventPriority.HIGH,
@@ -105,7 +106,6 @@ EVENT_PRIORITIES: dict[str, EventPriority] = {
     "motion_drafted": EventPriority.HIGH,
     "motion_filed": EventPriority.HIGH,
     "analysis_memo_generated": EventPriority.HIGH,
-
     # Medium: Standard interactions
     "tenant_dashboard_load": EventPriority.MEDIUM,
     "quick_action_clicked": EventPriority.MEDIUM,
@@ -129,7 +129,6 @@ EVENT_PRIORITIES: dict[str, EventPriority] = {
     "case_action_completed": EventPriority.MEDIUM,
     "legal_aid_resource_opened": EventPriority.MEDIUM,
     "storage_status_set": EventPriority.MEDIUM,
-
     # Low: Diagnostic / Navigation
     "storage_setup_load": EventPriority.LOW,
     "documents_page_load": EventPriority.LOW,
@@ -170,7 +169,7 @@ EVENT_PRIORITIES: dict[str, EventPriority] = {
 class TelemetryEmitter:
     """
     Central event emitter for page telemetry.
-    
+
     Features:
     - Async-safe emission
     - Batching for performance
@@ -211,7 +210,7 @@ class TelemetryEmitter:
     ) -> TelemetryEvent | None:
         """
         Emit a telemetry event.
-        
+
         Returns the event if emitted, None if filtered/disabled.
         """
         if not self._enabled or self._privacy_mode:
@@ -265,10 +264,7 @@ class TelemetryEmitter:
         """Return current buffer statistics."""
         return {
             "buffered": len(self._buffer),
-            "by_priority": {
-                p.name: sum(1 for e in self._buffer if e.priority == p)
-                for p in EventPriority
-            }
+            "by_priority": {p.name: sum(1 for e in self._buffer if e.priority == p) for p in EventPriority},
         }
 
 
@@ -280,6 +276,7 @@ EMITTER = TelemetryEmitter()
 # HANDLERS
 # =============================================================================
 
+
 def console_handler(event: TelemetryEvent) -> None:
     """Log telemetry to console (development)."""
     emoji = {
@@ -290,8 +287,7 @@ def console_handler(event: TelemetryEvent) -> None:
     }.get(event.priority, "◆")
 
     logger.info(
-        f"{emoji} [{event.priority.name}] {event.event_type} "
-        f"on {event.page_id} (session: {event.session_id[:8]}...)"
+        f"{emoji} [{event.priority.name}] {event.event_type} on {event.page_id} (session: {event.session_id[:8]}...)"
     )
 
 
@@ -322,8 +318,8 @@ def mesh_handler(event: TelemetryEvent) -> None:
                     "trigger_event": event.event_type,
                     "page_id": event.page_id,
                     "session_id": event.session_id,
-                    **event.metadata
-                }
+                    **event.metadata,
+                },
             )
     except ImportError:
         pass  # Mesh not available
@@ -337,10 +333,11 @@ EMITTER.add_handler(console_handler)
 # PAGE-LEVEL API
 # =============================================================================
 
+
 class PageTelemetry:
     """
     Per-page telemetry interface.
-    
+
     Usage:
         telemetry = PageTelemetry("dashboard", session_id)
         telemetry.emit("quick_action_clicked", {"action": "view_deadlines"})
@@ -391,6 +388,7 @@ class PageTelemetry:
 # VALIDATION
 # =============================================================================
 
+
 def validate_event_types() -> dict[str, list[str]]:
     """
     Validate that all event types in PageContracts have priority mappings.
@@ -401,16 +399,14 @@ def validate_event_types() -> dict[str, list[str]]:
     except ImportError:
         # Handle standalone execution
         import sys
+
         sys.path.insert(0, r"c:\Semptify\Semptify-FastAPI")
         from app.core.page_contracts import PAGE_CONTRACTS
 
     missing: dict[str, list[str]] = {}
 
     for page_id, contract in PAGE_CONTRACTS.items():
-        page_missing = [
-            event for event in contract.telemetry_events
-            if event not in EVENT_PRIORITIES
-        ]
+        page_missing = [event for event in contract.telemetry_events if event not in EVENT_PRIORITIES]
         if page_missing:
             missing[page_id] = page_missing
 

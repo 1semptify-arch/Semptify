@@ -36,6 +36,7 @@ router = APIRouter(prefix="/hub", tags=["Module Hub"])
 # HELPER FUNCTION
 # =============================================================================
 
+
 def get_user_id_from_request(semptify_uid: str | None = None) -> str:
     """Extract user ID from cookie or generate anonymous one"""
     if semptify_uid:
@@ -48,8 +49,10 @@ def get_user_id_from_request(semptify_uid: str | None = None) -> str:
 # PYDANTIC MODELS
 # =============================================================================
 
+
 class DataRequestBody(BaseModel):
     """Request body for data requests"""
+
     request_type: str
     requesting_module: str
     params: dict[str, Any] | None = None
@@ -57,11 +60,13 @@ class DataRequestBody(BaseModel):
 
 class CompletePackBody(BaseModel):
     """Request body for completing an info pack"""
+
     user_provided_data: dict[str, Any]
 
 
 class ModuleInfo(BaseModel):
     """Module information response"""
+
     type: str
     name: str
     active: bool
@@ -71,6 +76,7 @@ class ModuleInfo(BaseModel):
 
 class HubStatus(BaseModel):
     """Hub status response"""
+
     modules_registered: int
     modules: list[ModuleInfo]
     users_tracked: int
@@ -83,6 +89,7 @@ class HubStatus(BaseModel):
 # =============================================================================
 # ENDPOINTS
 # =============================================================================
+
 
 @router.get("/status")
 async def get_hub_status():
@@ -218,16 +225,14 @@ async def make_data_request(
         request_type = RequestType(body.request_type)
     except ValueError:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid request type. Valid types: {[r.value for r in RequestType]}"
+            status_code=400, detail=f"Invalid request type. Valid types: {[r.value for r in RequestType]}"
         )
 
     try:
         module_type = ModuleType(body.requesting_module)
     except ValueError:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid module type. Valid types: {[m.value for m in ModuleType]}"
+            status_code=400, detail=f"Invalid module type. Valid types: {[m.value for m in ModuleType]}"
         )
 
     request = await module_hub.request_data(
@@ -269,6 +274,7 @@ async def get_comm_log(
 # =============================================================================
 # CONVENIENCE ENDPOINTS FOR SPECIFIC DATA TYPES
 # =============================================================================
+
 
 @router.get("/case-info")
 async def get_case_info(
@@ -370,27 +376,26 @@ async def get_user_context(
 # MESH RESOURCE MODE CONTROLS
 # =============================================================================
 
+
 @router.get("/mesh/status")
 async def get_mesh_status():
     """Get current Positronic Mesh status including mode and deferrals."""
     from app.core.positronic_mesh import positronic_mesh
+
     return positronic_mesh.get_mesh_status()
 
 
 @router.post("/mesh/mode")
 async def set_mesh_mode(mode: str):
     """Switch mesh operating mode ('lean' or 'full').
-    
+
     - lean: Critical actions only, non-critical deferred
     - full: All registered actions enabled
     """
     from app.core.mesh_config import set_mesh_mode
 
     if mode not in ("lean", "full"):
-        raise HTTPException(
-            status_code=400,
-            detail="Mode must be 'lean' or 'full'"
-        )
+        raise HTTPException(status_code=400, detail="Mode must be 'lean' or 'full'")
 
     config = set_mesh_mode(mode)
     return {
@@ -404,6 +409,7 @@ async def set_mesh_mode(mode: str):
 async def get_deferral_status():
     """Get status of deferred actions queue."""
     from app.core.mesh_deferral import deferral_queue
+
     return deferral_queue.get_status()
 
 

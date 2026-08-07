@@ -34,7 +34,7 @@
       </div>
     </div>
   </div>
-  
+
   {% if show_case_review %}
   <div class="case-review">
     <div class="review-header">
@@ -48,7 +48,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   {% if show_document_review %}
   <div class="document-review">
     <div class="document-header">
@@ -62,7 +62,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="legal-actions">
     <div class="actions-header">
       <div class="actions-title">Quick Legal Actions</div>
@@ -89,7 +89,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-case-review="{{ show_case_review|lower }}"
@@ -366,12 +366,12 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .header-stats {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -388,15 +388,15 @@ document.addEventListener('DOMContentLoaded', function() {
     showCaseReview: configEl.dataset.showCaseReview === 'true',
     showDocumentReview: configEl.dataset.showDocumentReview === 'true'
   };
-  
+
   // Initialize legal dashboard
   initLegalDashboard();
-  
+
   function initLegalDashboard() {
     loadLegalData();
     setupEventListeners();
   }
-  
+
   function loadLegalData() {
     // Simulate loading legal data
     setTimeout(() => {
@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         ]
       };
-      
+
       updateHeaderStats(legalData.stats);
       if (config.showCaseReview) {
         updateCaseList(legalData.cases);
@@ -449,21 +449,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 1000);
   }
-  
+
   function updateHeaderStats(stats) {
     const pendingEl = document.getElementById(config.componentId + '_pending_cases');
     const urgentEl = document.getElementById(config.componentId + '_urgent_cases');
     const documentsEl = document.getElementById(config.componentId + '_documents');
-    
+
     if (pendingEl) pendingEl.textContent = stats.pendingCases;
     if (urgentEl) urgentEl.textContent = stats.urgentCases;
     if (documentsEl) documentsEl.textContent = stats.documents;
   }
-  
+
   function updateCaseList(cases) {
     const caseListEl = document.getElementById(config.componentId + '_case_list');
     if (!caseListEl) return;
-    
+
     const html = cases.map(case_ => `
       <div class="case-item ${case_.status}" data-case-id="${case_.id}">
         <div class="item-icon">L</div>
@@ -477,14 +477,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="item-status ${case_.status}">${case_.status}</div>
       </div>
     `).join('');
-    
+
     caseListEl.innerHTML = html;
   }
-  
+
   function updateDocumentList(documents) {
     const documentListEl = document.getElementById(config.componentId + '_document_list');
     if (!documentListEl) return;
-    
+
     const html = documents.map(doc => `
       <div class="document-item ${doc.status}" data-document-id="${doc.id}">
         <div class="item-icon">D</div>
@@ -498,10 +498,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="item-status ${doc.status}">${doc.status}</div>
       </div>
     `).join('');
-    
+
     documentListEl.innerHTML = html;
   }
-  
+
   function setupEventListeners() {
     // Listen for function group events
     document.addEventListener('capture-upload', handleCaptureEvent);
@@ -510,22 +510,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('understand-timeline-select', handleUnderstandEvent);
     document.addEventListener('plan-action-select', handlePlanEvent);
   }
-  
+
   function handleCaptureEvent(event) {
     console.log('Legal dashboard - Capture event:', event.detail);
     loadLegalData(); // Refresh data
   }
-  
+
   function handleUnderstandEvent(event) {
     console.log('Legal dashboard - Understand event:', event.detail);
     loadLegalData(); // Refresh data
   }
-  
+
   function handlePlanEvent(event) {
     console.log('Legal dashboard - Plan event:', event.detail);
     loadLegalData(); // Refresh data
   }
-  
+
   // Action handlers
   function viewAllCases() {
     const event = new CustomEvent('legal-view-all-cases', {
@@ -533,42 +533,42 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(event);
   }
-  
+
   function reviewAllDocuments() {
     const event = new CustomEvent('legal-review-all-documents', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function startCaseReview() {
     const event = new CustomEvent('legal-start-case-review', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function reviewDocuments() {
     const event = new CustomEvent('legal-review-documents', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function generateLegalReport() {
     const event = new CustomEvent('legal-generate-report', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function scheduleConsultation() {
     const event = new CustomEvent('legal-schedule-consultation', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   // Make action handlers available globally
   window.viewAllCases = viewAllCases;
   window.reviewAllDocuments = reviewAllDocuments;

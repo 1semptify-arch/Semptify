@@ -43,13 +43,13 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 
 ### Admin Dashboard (`/admin/dashboard.html`)
 - **URL**: `http://localhost:8000/admin/dashboard.html`
-- **What works**: 
+- **What works**:
   - UI loads, navigation works
   - 🔍 **User Search widget** — Calls `/admin-console/api/users`
   - 👤 **User Details view** — Click user to view details
   - 🔄 **Impersonate button** — Starts impersonation session
   - 📊 **System metrics** — Auto-loads on page open
-- **What's missing**: 
+- **What's missing**:
   - Real database query (currently placeholder)
   - Real impersonation tokens (currently placeholder)
   - Activity feed (Phase 2)
@@ -175,7 +175,7 @@ def admin_panel():
 Add to `app/modules/admin_console/router.py`:
 ```python
 @router.get("/admin/api/users")
-async def list_users(db: Session = Depends(get_db), admin = Depends(require_admin)):
+async def list_users(db: Session = Depends(get_db), admin=Depends(require_admin)):
     users = db.query(User).limit(100).all()
     return {"users": users}
 ```

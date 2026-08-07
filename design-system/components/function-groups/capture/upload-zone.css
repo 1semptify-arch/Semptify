@@ -164,17 +164,17 @@
   .capture-upload-zone {
     padding: var(--space-xl);
   }
-  
+
   .upload-icon {
     width: 40px;
     height: 40px;
     font-size: 20px;
   }
-  
+
   .upload-text h3 {
     font-size: var(--font-size-base);
   }
-  
+
   .upload-text p {
     font-size: var(--font-size-xs);
   }

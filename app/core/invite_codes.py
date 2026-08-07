@@ -21,20 +21,20 @@ logger = logging.getLogger(__name__)
 
 # Alphabet for readable codes (no ambiguous characters)
 CODE_ALPHABET = string.ascii_uppercase + string.digits
-CODE_ALPHABET = CODE_ALPHABET.replace('0', '').replace('O', '').replace('1', '').replace('I', '')
+CODE_ALPHABET = CODE_ALPHABET.replace("0", "").replace("O", "").replace("1", "").replace("I", "")
 
 
 def generate_code(length: int = 8) -> str:
     """
     Generate a random, readable invite code.
-    
+
     Args:
         length: Code length (default 8: XXXX-XXXX format)
-        
+
     Returns:
         Random code like "ABCD-1234"
     """
-    raw = ''.join(secrets.choice(CODE_ALPHABET) for _ in range(length))
+    raw = "".join(secrets.choice(CODE_ALPHABET) for _ in range(length))
     # Format with hyphen in middle for readability
     if length >= 6:
         mid = length // 2
@@ -54,7 +54,7 @@ def create_invite_code(
 ) -> InviteCode:
     """
     Create a new invite code.
-    
+
     Args:
         created_by: User ID of the manager/admin creating the code
         role: Role to grant (advocate, legal, admin)
@@ -64,7 +64,7 @@ def create_invite_code(
         expires_days: Days until expiration (None = never)
         description: Optional note about this code
         custom_code: Optional specific code (otherwise auto-generated)
-        
+
     Returns:
         Created InviteCode object (not yet committed)
     """
@@ -92,19 +92,19 @@ def create_invite_code(
 def validate_invite_code(code: str, db_session) -> tuple[bool, str, InviteCode | None]:
     """
     Validate an invite code.
-    
+
     Args:
         code: The invite code to validate
         db_session: SQLAlchemy session
-        
+
     Returns:
         Tuple of (is_valid: bool, message: str, invite_code: InviteCode or None)
     """
     # Normalize code
-    code = code.upper().strip().replace('-', '')
+    code = code.upper().strip().replace("-", "")
 
     # Re-add hyphen format for lookup
-    if len(code) >= 6 and '-' not in code:
+    if len(code) >= 6 and "-" not in code:
         mid = len(code) // 2
         formatted_code = f"{code[:mid]}-{code[mid:]}"
     else:
@@ -127,19 +127,15 @@ def validate_invite_code(code: str, db_session) -> tuple[bool, str, InviteCode |
     return True, "Valid invite code", invite
 
 
-def redeem_invite_code(
-    code: str,
-    user_id: str,
-    db_session
-) -> tuple[bool, str, InviteCode | None]:
+def redeem_invite_code(code: str, user_id: str, db_session) -> tuple[bool, str, InviteCode | None]:
     """
     Redeem an invite code for a user.
-    
+
     Args:
         code: The invite code to redeem
         user_id: User ID redeeming the code
         db_session: SQLAlchemy session
-        
+
     Returns:
         Tuple of (success: bool, message: str, invite_code: InviteCode or None)
     """
@@ -167,19 +163,15 @@ def redeem_invite_code(
     return True, f"Invite code redeemed successfully. Role granted: {invite.role}", invite
 
 
-def get_organization_codes(
-    organization_id: str,
-    db_session,
-    include_inactive: bool = False
-) -> list[InviteCode]:
+def get_organization_codes(organization_id: str, db_session, include_inactive: bool = False) -> list[InviteCode]:
     """
     Get all invite codes for an organization.
-    
+
     Args:
         organization_id: Organization to lookup
         db_session: SQLAlchemy session
         include_inactive: Whether to include deactivated/expired codes
-        
+
     Returns:
         List of InviteCode objects
     """
@@ -194,11 +186,11 @@ def get_organization_codes(
 def deactivate_invite_code(code: str, db_session) -> bool:
     """
     Deactivate an invite code.
-    
+
     Args:
         code: Code to deactivate
         db_session: SQLAlchemy session
-        
+
     Returns:
         True if deactivated, False if not found
     """
@@ -216,11 +208,11 @@ def deactivate_invite_code(code: str, db_session) -> bool:
 def get_code_stats(code: str, db_session) -> dict | None:
     """
     Get statistics about an invite code.
-    
+
     Args:
         code: Code to get stats for
         db_session: SQLAlchemy session
-        
+
     Returns:
         Dict with code stats or None if not found
     """

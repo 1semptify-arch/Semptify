@@ -24,25 +24,25 @@
             </p>
         </div>
     </div>
-    
+
     <form action="/flows/counterclaim?step=4&lang={{ lang }}" method="GET">
         <input type="hidden" name="step" value="4">
         <input type="hidden" name="lang" value="{{ lang }}">
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}Describe what happened{% elif lang == 'es' %}Describa lo que pasó{% elif lang == 'so' %}Sharax waxa dhacay{% else %}صف ما حدث{% endif %}
             </label>
             <textarea name="claim_details" class="form-input" style="min-height: 150px;" required placeholder="{% if lang == 'en' %}Be specific with dates and details...{% elif lang == 'es' %}Sea específico con fechas y detalles...{% elif lang == 'so' %}Ka gaar ah taariikhaha iyo faahfaahinta...{% else %}كن محددًا بالتواريخ والتفاصيل...{% endif %}"></textarea>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">
                 {% if lang == 'en' %}How much money are you owed?{% elif lang == 'es' %}¿Cuánto dinero le deben?{% elif lang == 'so' %}Immisa lacag ayaa lagu leeyahay?{% else %}كم من المال مستحق لك؟{% endif %}
             </label>
             <input type="text" name="damages_requested" class="form-input" placeholder="{% if lang == 'en' %}e.g., $500 for repairs, $1000 for deposit{% elif lang == 'es' %}ej., $500 por reparaciones{% elif lang == 'so' %}tusaale, $500 dayactir{% else %}مثال: 500$ للإصلاحات{% endif %}">
         </div>
-        
+
         <div class="flex justify-between mt-4">
             <a href="/flows/counterclaim?step=2&lang={{ lang }}" class="btn btn-outline">← {{ strings.btn_back }}</a>
             <button type="submit" class="btn btn-primary">{{ strings.btn_next }} →</button>

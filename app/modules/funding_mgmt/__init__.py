@@ -15,4 +15,5 @@ def register_funding_module(app):
     app.include_router(router)
     return True
 
+
 __all__ = ["router", "register_funding_module"]

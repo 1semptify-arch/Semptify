@@ -20,27 +20,27 @@ from .vault import VaultClient
 class SemptifyClient:
     """
     Main Semptify SDK client.
-    
+
     Provides unified access to all Semptify API services.
-    
+
     Example:
         ```python
         from sdk import SemptifyClient
-        
+
         # Initialize client
         client = SemptifyClient("http://localhost:8000")
-        
+
         # Authenticate via OAuth
         auth_url = client.auth.get_auth_url("google")
         # ... user completes OAuth flow ...
         client.auth.complete_oauth("google", code)
-        
+
         # Upload a document
         doc = client.documents.upload("lease.pdf")
-        
+
         # Get AI analysis
         analysis = client.copilot.analyze_case()
-        
+
         # Check deadlines
         deadlines = client.timeline.get_deadlines()
         ```
@@ -55,7 +55,7 @@ class SemptifyClient:
     ):
         """
         Initialize the Semptify client.
-        
+
         Args:
             base_url: Base URL of the Semptify API
             api_key: Optional API key for authentication
@@ -187,11 +187,11 @@ class SemptifyClient:
     def login(self, provider: str, code: str) -> UserInfo:
         """
         Complete OAuth login.
-        
+
         Args:
             provider: OAuth provider (google, dropbox, onedrive)
             code: OAuth authorization code
-            
+
         Returns:
             Authenticated user information
         """
@@ -202,7 +202,7 @@ class SemptifyClient:
     def logout(self) -> bool:
         """
         Logout the current user.
-        
+
         Returns:
             True if logout successful
         """
@@ -214,7 +214,7 @@ class SemptifyClient:
     def validate_session(self) -> bool:
         """
         Validate the current session.
-        
+
         Returns:
             True if session is valid
         """
@@ -228,7 +228,7 @@ class SemptifyClient:
     def health_check(self) -> dict[str, Any]:
         """
         Check API health status.
-        
+
         Returns:
             Health status information
         """
@@ -238,7 +238,7 @@ class SemptifyClient:
     async def ahealth_check(self) -> dict[str, Any]:
         """
         Check API health status (async).
-        
+
         Returns:
             Health status information
         """
@@ -252,6 +252,7 @@ class SemptifyClient:
             self._client = None
         if self._async_client:
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():

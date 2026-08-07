@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class EventType(str, Enum):
     """Types of events that flow through the loop."""
+
     DOCUMENT_UPLOADED = "document_uploaded"
     DOCUMENT_ANALYZED = "document_analyzed"
     DEADLINE_APPROACHING = "deadline_approaching"
@@ -46,16 +47,18 @@ class EventType(str, Enum):
 
 class Severity(str, Enum):
     """How serious is this?"""
-    CRITICAL = "critical"    # Legal deadline, court date, eviction
-    HIGH = "high"            # Needs attention soon
-    MEDIUM = "medium"        # Should address
-    LOW = "low"              # Nice to know
-    INFO = "info"            # Just information
+
+    CRITICAL = "critical"  # Legal deadline, court date, eviction
+    HIGH = "high"  # Needs attention soon
+    MEDIUM = "medium"  # Should address
+    LOW = "low"  # Nice to know
+    INFO = "info"  # Just information
 
 
 @dataclass
 class ContextEvent:
     """A single event in the context data loop."""
+
     id: str
     type: EventType
     timestamp: datetime
@@ -83,6 +86,7 @@ class ContextEvent:
 @dataclass
 class UserContext:
     """Complete context for a user - everything we know."""
+
     user_id: str
 
     # Current state
@@ -123,7 +127,7 @@ class UserContext:
             "document_types": list(self.document_types),
             "active_issues": self.active_issues,
             "deadlines": [
-                d if isinstance(d, dict) else {"date": d.isoformat() if hasattr(d, 'isoformat') else str(d)}
+                d if isinstance(d, dict) else {"date": d.isoformat() if hasattr(d, "isoformat") else str(d)}
                 for d in self.deadlines
             ],
             "applicable_laws_count": len(self.applicable_laws),
@@ -137,14 +141,14 @@ class UserContext:
 class IntensityEngine:
     """
     The Intensity Engine - Calculates HOW URGENT everything is.
-    
+
     Intensity is on a 0-100 scale:
     - 0-20: Low priority, informational
     - 21-40: Medium priority, should address soon
     - 41-60: High priority, needs attention
     - 61-80: Urgent, act now
     - 81-100: Critical, emergency situation
-    
+
     Factors that increase intensity:
     - Approaching deadlines
     - Legal consequences (eviction, court)
@@ -168,7 +172,6 @@ class IntensityEngine:
         "repair_request": 40,
         "photo_evidence": 20,
         "communication": 25,
-
         # Issues
         "eviction_threat": 85,
         "habitability_issue": 55,
@@ -178,14 +181,13 @@ class IntensityEngine:
         "deposit_dispute": 50,
         "rent_dispute": 55,
         "repair_ignored": 45,
-
         # General
         "unknown": 30,
     }
 
     # Deadline multipliers (how much urgency increases as deadline approaches)
     DEADLINE_MULTIPLIERS = {
-        "past_due": 1.5,      # Already passed - critical
+        "past_due": 1.5,  # Already passed - critical
         "today": 1.4,
         "1_day": 1.35,
         "3_days": 1.25,
@@ -208,7 +210,7 @@ class IntensityEngine:
     ) -> tuple[float, Severity, list[str]]:
         """
         Calculate intensity for an event.
-        
+
         Returns: (intensity_score, severity, contributing_factors)
         """
         factors = []
@@ -314,10 +316,12 @@ class IntensityEngine:
         if user_id not in self.intensity_history:
             self.intensity_history[user_id] = []
 
-        self.intensity_history[user_id].append({
-            "timestamp": utc_now().isoformat(),
-            "intensity": intensity,
-        })
+        self.intensity_history[user_id].append(
+            {
+                "timestamp": utc_now().isoformat(),
+                "intensity": intensity,
+            }
+        )
 
         # Keep last 100 readings
         if len(self.intensity_history[user_id]) > 100:
@@ -411,8 +415,8 @@ class IntensityEngine:
         # Create minimal context
         context = UserContext(
             user_id=user_id,
-            provider=session.provider if hasattr(session, 'provider') else None,
-            role=session.role if hasattr(session, 'role') else "user",
+            provider=session.provider if hasattr(session, "provider") else None,
+            role=session.role if hasattr(session, "role") else "user",
         )
 
         # Calculate current intensity
@@ -422,10 +426,12 @@ class IntensityEngine:
         if user_id not in self.intensity_history:
             self.intensity_history[user_id] = []
 
-        self.intensity_history[user_id].append({
-            "timestamp": utc_now().isoformat(),
-            "intensity": intensity,
-        })
+        self.intensity_history[user_id].append(
+            {
+                "timestamp": utc_now().isoformat(),
+                "intensity": intensity,
+            }
+        )
 
         # Keep only last 100 entries
         self.intensity_history[user_id] = self.intensity_history[user_id][-100:]
@@ -444,7 +450,7 @@ class ContextDataLoop:
     The Core Processing Loop - Everything flows through here.
 
     INPUT ▸ PROCESS ▸ INTENSITY ▸ OUTPUT ▸ LEARN
-    
+
     Subscribes to EventBus events and orchestrates responses.
     """
 
@@ -480,11 +486,13 @@ class ContextDataLoop:
             return
 
         context = self.get_context(user_id)
-        context.documents.append({
-            "id": event.data.get("resource_id"),
-            "type": event.data.get("resource_type"),
-            "added_at": event.timestamp.isoformat(),
-        })
+        context.documents.append(
+            {
+                "id": event.data.get("resource_id"),
+                "type": event.data.get("resource_type"),
+                "added_at": event.timestamp.isoformat(),
+            }
+        )
 
         # Trigger document processing
         logger.info(f"● Document added for {user_id}, triggering processing")
@@ -501,7 +509,7 @@ class ContextDataLoop:
         if not user_id:
             return
 
-        context = self.get_context(user_id)
+        self.get_context(user_id)
         # Update context with processed info
         logger.info(f"● Document processed for {user_id}")
 
@@ -539,7 +547,9 @@ class ContextDataLoop:
                                 "document_id": doc_id,
                                 "count": len(events),
                                 "events": [e.to_dict() for e in events],
-                                "has_deadlines": any(e.event_type in ["deadline", "court_date", "hearing"] for e in events)
+                                "has_deadlines": any(
+                                    e.event_type in ["deadline", "court_date", "hearing"] for e in events
+                                ),
                             },
                             source="context_loop",
                             user_id=user_id,
@@ -554,7 +564,7 @@ class ContextDataLoop:
         if not user_id:
             return
 
-        context = self.get_context(user_id)
+        self.get_context(user_id)
         extracted = event.data
 
         # Add to timeline
@@ -627,9 +637,7 @@ class ContextDataLoop:
         source: str = "",
     ) -> ContextEvent:
         """Emit an event into the loop."""
-        event_id = hashlib.sha256(
-            f"{event_type}{user_id}{utc_now().isoformat()}".encode()
-        ).hexdigest()[:16]
+        event_id = hashlib.sha256(f"{event_type}{user_id}{utc_now().isoformat()}".encode()).hexdigest()[:16]
 
         context = self.get_context(user_id)
 
@@ -638,9 +646,7 @@ class ContextDataLoop:
         deadline = data.get("deadline")
         if deadline and isinstance(deadline, str):
             deadline = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
-        intensity, severity, factors = self.intensity_engine.calculate_intensity(
-            event_key, context, deadline
-        )
+        intensity, severity, factors = self.intensity_engine.calculate_intensity(event_key, context, deadline)
 
         event = ContextEvent(
             id=event_id,
@@ -654,7 +660,7 @@ class ContextDataLoop:
         )
 
         # Add to queue
-        self.event_queue.append(event)        # Process immediately
+        self.event_queue.append(event)  # Process immediately
         self._process_event(event)
 
         return event
@@ -721,13 +727,15 @@ class ContextDataLoop:
         doc_data = event.data
         doc_type = doc_data.get("type", "unknown")
 
-        context.documents.append({
-            "id": doc_data.get("id", event.id),
-            "type": doc_type,
-            "filename": doc_data.get("filename"),
-            "uploaded_at": event.timestamp.isoformat(),
-            "intensity": event.intensity,
-        })
+        context.documents.append(
+            {
+                "id": doc_data.get("id", event.id),
+                "type": doc_type,
+                "filename": doc_data.get("filename"),
+                "uploaded_at": event.timestamp.isoformat(),
+                "intensity": event.intensity,
+            }
+        )
 
         context.document_types.add(doc_type)
 
@@ -785,17 +793,17 @@ class ContextDataLoop:
             context.deadlines.append(deadline)
 
         # Sort by date
-        context.deadlines.sort(
-            key=lambda d: d.get("date", "9999-12-31") if isinstance(d, dict) else str(d)
-        )
+        context.deadlines.sort(key=lambda d: d.get("date", "9999-12-31") if isinstance(d, dict) else str(d))
 
     def _handle_action_taken(self, event: ContextEvent, context: UserContext):
         """Handle user action."""
         action = event.data
-        context.actions_taken.append({
-            **action,
-            "timestamp": event.timestamp.isoformat(),
-        })
+        context.actions_taken.append(
+            {
+                **action,
+                "timestamp": event.timestamp.isoformat(),
+            }
+        )
 
     def _handle_law_matched(self, event: ContextEvent, context: UserContext):
         """Handle law match event."""
@@ -811,7 +819,8 @@ class ContextDataLoop:
         """Update tenancy phase based on current state."""
         # Phase determination logic
         high_intensity_issues = [
-            i for i in context.active_issues
+            i
+            for i in context.active_issues
             if isinstance(i, dict) and i.get("type") in ["eviction_threat", "notice_to_quit", "eviction_notice"]
         ]
 
@@ -832,37 +841,45 @@ class ContextDataLoop:
 
         # Based on document types
         if "lease" in context.document_types and "photo_evidence" not in context.document_types:
-            predictions.append({
-                "type": "document_needed",
-                "item": "move_in_photos",
-                "reason": "Protect your security deposit",
-                "priority": "medium",
-            })
+            predictions.append(
+                {
+                    "type": "document_needed",
+                    "item": "move_in_photos",
+                    "reason": "Protect your security deposit",
+                    "priority": "medium",
+                }
+            )
 
         if "repair_request" in context.document_types:
-            predictions.append({
-                "type": "action_needed",
-                "item": "repair_followup",
-                "reason": "Follow up in writing creates legal protection",
-                "priority": "high",
-            })
+            predictions.append(
+                {
+                    "type": "action_needed",
+                    "item": "repair_followup",
+                    "reason": "Follow up in writing creates legal protection",
+                    "priority": "high",
+                }
+            )
 
         # Based on phase
         if context.phase == "eviction":
-            predictions.append({
-                "type": "resource_needed",
-                "item": "legal_aid",
-                "reason": "Free legal help is available for eviction cases",
-                "priority": "critical",
-            })
+            predictions.append(
+                {
+                    "type": "resource_needed",
+                    "item": "legal_aid",
+                    "reason": "Free legal help is available for eviction cases",
+                    "priority": "critical",
+                }
+            )
 
         if context.phase == "post_tenancy":
-            predictions.append({
-                "type": "action_needed",
-                "item": "deposit_demand_letter",
-                "reason": "Formal demand starts the legal clock",
-                "priority": "high",
-            })
+            predictions.append(
+                {
+                    "type": "action_needed",
+                    "item": "deposit_demand_letter",
+                    "reason": "Formal demand starts the legal clock",
+                    "priority": "high",
+                }
+            )
 
         # Based on deadlines
         for deadline in context.deadlines:
@@ -879,12 +896,14 @@ class ContextDataLoop:
                         dl_date = dl_date.replace(tzinfo=UTC)
                     days_left = (dl_date - utc_now()).days
                     if 0 < days_left <= 7:
-                        predictions.append({
-                            "type": "deadline_warning",
-                            "item": deadline.get("type", "deadline"),
-                            "reason": f"Due in {days_left} days",
-                            "priority": "critical" if days_left <= 3 else "high",
-                        })
+                        predictions.append(
+                            {
+                                "type": "deadline_warning",
+                                "item": deadline.get("type", "deadline"),
+                                "reason": f"Due in {days_left} days",
+                                "priority": "critical" if days_left <= 3 else "high",
+                            }
+                        )
 
         context.predicted_needs = predictions
 
@@ -922,41 +941,49 @@ class ContextDataLoop:
 
         # High intensity = urgent actions
         if context.intensity_score >= 80:
-            actions.append({
-                "action": "seek_legal_help",
-                "label": "Get Legal Help Now",
-                "reason": "Your situation is urgent",
-                "priority": "critical",
-            })
+            actions.append(
+                {
+                    "action": "seek_legal_help",
+                    "label": "Get Legal Help Now",
+                    "reason": "Your situation is urgent",
+                    "priority": "critical",
+                }
+            )
 
         # Missing essential documents
         essential = ["lease", "rent_receipt", "photo_evidence"]
         missing = [d for d in essential if d not in context.document_types]
         if missing:
-            actions.append({
-                "action": "upload_document",
-                "label": f"Upload: {missing[0].replace('_', ' ').title()}",
-                "reason": "Essential for your protection",
-                "priority": "high",
-            })
+            actions.append(
+                {
+                    "action": "upload_document",
+                    "label": f"Upload: {missing[0].replace('_', ' ').title()}",
+                    "reason": "Essential for your protection",
+                    "priority": "high",
+                }
+            )
 
         # Active issues need documentation
         if context.active_issues and "photo_evidence" not in context.document_types:
-            actions.append({
-                "action": "document_issue",
-                "label": "Document Current Issues",
-                "reason": "Photos and records strengthen your case",
-                "priority": "high",
-            })
+            actions.append(
+                {
+                    "action": "document_issue",
+                    "label": "Document Current Issues",
+                    "reason": "Photos and records strengthen your case",
+                    "priority": "high",
+                }
+            )
 
         # Predictions become actions
         for pred in context.predicted_needs[:3]:
-            actions.append({
-                "action": pred.get("item", "take_action"),
-                "label": pred.get("item", "").replace("_", " ").title(),
-                "reason": pred.get("reason", ""),
-                "priority": pred.get("priority", "medium"),
-            })
+            actions.append(
+                {
+                    "action": pred.get("item", "take_action"),
+                    "label": pred.get("item", "").replace("_", " ").title(),
+                    "reason": pred.get("reason", ""),
+                    "priority": pred.get("priority", "medium"),
+                }
+            )
 
         return actions[:5]  # Top 5 actions
 
@@ -969,15 +996,15 @@ class ContextDataLoop:
         issue_intensities = []
         for issue in context.active_issues:
             issue_type = issue.get("type", "unknown") if isinstance(issue, dict) else str(issue)
-            intensity, severity, factors = self.intensity_engine.calculate_intensity(
-                issue_type, context
+            intensity, severity, factors = self.intensity_engine.calculate_intensity(issue_type, context)
+            issue_intensities.append(
+                {
+                    "item": issue_type,
+                    "intensity": intensity,
+                    "severity": severity.value,
+                    "factors": factors,
+                }
             )
-            issue_intensities.append({
-                "item": issue_type,
-                "intensity": intensity,
-                "severity": severity.value,
-                "factors": factors,
-            })
 
         return {
             "user_id": user_id,
@@ -1037,6 +1064,7 @@ intensity_engine = context_loop.intensity_engine
 # Event Bus Wire-up
 # =============================================================================
 
+
 def subscribe_context_loop_events():
     """
     Subscribe Context Loop to Event Bus events.
@@ -1045,38 +1073,20 @@ def subscribe_context_loop_events():
     from app.core.event_bus import EventType as BusEventType, subscribe_async_to_event
 
     # Subscribe to document events
-    subscribe_async_to_event(
-        BusEventType.DOCUMENT_ADDED,
-        _on_document_added
-    )
+    subscribe_async_to_event(BusEventType.DOCUMENT_ADDED, _on_document_added)
 
-    subscribe_async_to_event(
-        BusEventType.DOCUMENT_PROCESSED,
-        _on_document_processed
-    )
+    subscribe_async_to_event(BusEventType.DOCUMENT_PROCESSED, _on_document_processed)
 
     # Subscribe to timeline events
-    subscribe_async_to_event(
-        BusEventType.TIMELINE_UPDATED,
-        _on_timeline_updated
-    )
+    subscribe_async_to_event(BusEventType.TIMELINE_UPDATED, _on_timeline_updated)
 
     # Subscribe to deadline events
-    subscribe_async_to_event(
-        BusEventType.DEADLINE_ADDED,
-        _on_deadline_added
-    )
+    subscribe_async_to_event(BusEventType.DEADLINE_ADDED, _on_deadline_added)
 
-    subscribe_async_to_event(
-        BusEventType.DEADLINE_APPROACHING,
-        _on_deadline_approaching
-    )
+    subscribe_async_to_event(BusEventType.DEADLINE_APPROACHING, _on_deadline_approaching)
 
     # Subscribe to defense/violation events
-    subscribe_async_to_event(
-        BusEventType.VIOLATION_FOUND,
-        _on_violation_found
-    )
+    subscribe_async_to_event(BusEventType.VIOLATION_FOUND, _on_violation_found)
 
     logger.info("Context Loop subscribed to %d event types", 6)
 
@@ -1117,22 +1127,26 @@ async def _on_deadline_approaching(event):
     """Handle deadline approaching event."""
     logger.warning(f"Context Loop: Deadline approaching for {event.user_id}!")
     # Trigger intensity spike
-    await context_loop.process_input({
-        "type": EventType.INTENSITY_SPIKE,
-        "reason": "deadline_approaching",
-        "user_id": event.user_id,
-        "data": event.data,
-    })
+    await context_loop.process_input(
+        {
+            "type": EventType.INTENSITY_SPIKE,
+            "reason": "deadline_approaching",
+            "user_id": event.user_id,
+            "data": event.data,
+        }
+    )
 
 
 async def _on_violation_found(event):
     """Handle violation found event."""
     logger.info(f"Context Loop: Violation found for {event.user_id}")
     # Process as issue detected
-    await context_loop.process_input({
-        "type": EventType.ISSUE_DETECTED,
-        "issue_type": "violation",
-        "violation": event.data.get("violation"),
-        "law_ref": event.data.get("law_ref"),
-        "user_id": event.user_id,
-    })
+    await context_loop.process_input(
+        {
+            "type": EventType.ISSUE_DETECTED,
+            "issue_type": "violation",
+            "violation": event.data.get("violation"),
+            "law_ref": event.data.get("law_ref"),
+            "user_id": event.user_id,
+        }
+    )

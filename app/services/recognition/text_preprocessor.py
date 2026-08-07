@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PreprocessingResult:
     """Result of text preprocessing"""
+
     original_text: str
     cleaned_text: str
     corrections_made: list[dict] = field(default_factory=list)
@@ -37,7 +38,7 @@ class PreprocessingResult:
 class TextPreprocessor:
     """
     Preprocesses document text for accurate recognition.
-    
+
     Pipeline:
     1. OCR error correction (character substitution)
     2. Whitespace normalization
@@ -52,62 +53,59 @@ class TextPreprocessor:
         # Character substitution patterns
         self.char_substitutions = [
             # Common OCR confusions
-            (r'(?<=[a-z])l(?=[a-z])', 'i'),  # l->i in middle of words (fiIe -> file)
-            (r'\bl(?=\d)', '1'),  # l at start of number -> 1
-            (r'(?<=\d)l', '1'),  # l after digit -> 1
-            (r'(?<=\d)O', '0'),  # O after digit -> 0
-            (r'O(?=\d)', '0'),  # O before digit -> 0
-            (r'\brn(?=[a-z])', 'm'),  # rn at word start -> m
-            (r'(?<=[a-z])rn(?=[a-z])', 'm'),  # rn in middle -> m
+            (r"(?<=[a-z])l(?=[a-z])", "i"),  # l->i in middle of words (fiIe -> file)
+            (r"\bl(?=\d)", "1"),  # l at start of number -> 1
+            (r"(?<=\d)l", "1"),  # l after digit -> 1
+            (r"(?<=\d)O", "0"),  # O after digit -> 0
+            (r"O(?=\d)", "0"),  # O before digit -> 0
+            (r"\brn(?=[a-z])", "m"),  # rn at word start -> m
+            (r"(?<=[a-z])rn(?=[a-z])", "m"),  # rn in middle -> m
         ]
 
         # Whitespace patterns
         self.whitespace_patterns = [
-            (r'\r\n', '\n'),  # Normalize line endings
-            (r'\r', '\n'),
-            (r'[ \t]+', ' '),  # Collapse horizontal whitespace
-            (r'\n{3,}', '\n\n'),  # Max 2 consecutive newlines
-            (r'^\s+', ''),  # Remove leading whitespace
-            (r'\s+$', ''),  # Remove trailing whitespace
+            (r"\r\n", "\n"),  # Normalize line endings
+            (r"\r", "\n"),
+            (r"[ \t]+", " "),  # Collapse horizontal whitespace
+            (r"\n{3,}", "\n\n"),  # Max 2 consecutive newlines
+            (r"^\s+", ""),  # Remove leading whitespace
+            (r"\s+$", ""),  # Remove trailing whitespace
         ]
 
         # Legal terminology standardization
         self.terminology_standards = {
             # Notice types
-            r'(?i)\b14\s*-?\s*day\s+notice\b': '14-DAY NOTICE',
-            r'(?i)\bfourteen\s*\(?\s*14\s*\)?\s*day\s+notice\b': '14-DAY NOTICE',
-            r'(?i)\bnotice\s+to\s+(?:quit|vacate)\b': 'NOTICE TO QUIT',
-
+            r"(?i)\b14\s*-?\s*day\s+notice\b": "14-DAY NOTICE",
+            r"(?i)\bfourteen\s*\(?\s*14\s*\)?\s*day\s+notice\b": "14-DAY NOTICE",
+            r"(?i)\bnotice\s+to\s+(?:quit|vacate)\b": "NOTICE TO QUIT",
             # Court terms
-            r'(?i)\bdistrict\s+court\b': 'District Court',
-            r'(?i)\bhousing\s+court\b': 'Housing Court',
-
+            r"(?i)\bdistrict\s+court\b": "District Court",
+            r"(?i)\bhousing\s+court\b": "Housing Court",
             # Parties
-            r'(?i)\bplaintiff\s*\(?s?\)?\b': 'Plaintiff',
-            r'(?i)\bdefendant\s*\(?s?\)?\b': 'Defendant',
-            r'(?i)\bpetitioner\b': 'Petitioner',
-            r'(?i)\brespondent\b': 'Respondent',
-
+            r"(?i)\bplaintiff\s*\(?s?\)?\b": "Plaintiff",
+            r"(?i)\bdefendant\s*\(?s?\)?\b": "Defendant",
+            r"(?i)\bpetitioner\b": "Petitioner",
+            r"(?i)\brespondent\b": "Respondent",
             # Actions
-            r'(?i)\bvs?\.?\s+': 'v. ',  # Standardize vs/v./versus
-            r'(?i)\bversus\s+': 'v. ',
+            r"(?i)\bvs?\.?\s+": "v. ",  # Standardize vs/v./versus
+            r"(?i)\bversus\s+": "v. ",
         }
 
         # Section header patterns (to preserve structure)
         self.section_patterns = [
-            r'^[A-Z][A-Z\s]{3,}[:\.]?\s*$',  # ALL CAPS HEADER
-            r'^\d+\.\s+[A-Z]',  # 1. Numbered section
-            r'^[IVXLC]+\.\s+',  # Roman numeral section
-            r'^[A-Z]\.\s+',  # A. Letter section
+            r"^[A-Z][A-Z\s]{3,}[:\.]?\s*$",  # ALL CAPS HEADER
+            r"^\d+\.\s+[A-Z]",  # 1. Numbered section
+            r"^[IVXLC]+\.\s+",  # Roman numeral section
+            r"^[A-Z]\.\s+",  # A. Letter section
         ]
 
     def preprocess(self, text: str) -> PreprocessingResult:
         """
         Full preprocessing pipeline.
-        
+
         Args:
             text: Raw OCR text
-            
+
         Returns:
             PreprocessingResult with cleaned text and metadata
         """
@@ -143,7 +141,7 @@ class TextPreprocessor:
 
         # Metadata
         result.cleaned_text = cleaned
-        result.line_count = len(cleaned.split('\n'))
+        result.line_count = len(cleaned.split("\n"))
         result.word_count = len(cleaned.split())
         result.has_structured_sections = self._has_structure(cleaned)
 
@@ -156,28 +154,29 @@ class TextPreprocessor:
 
         # Also normalize within lines
         lines = []
-        for line in text.split('\n'):
+        for line in text.split("\n"):
             # Remove multiple spaces but preserve intentional indentation
-            line = re.sub(r'(?<=\S)[ \t]{2,}(?=\S)', ' ', line)
+            line = re.sub(r"(?<=\S)[ \t]{2,}(?=\S)", " ", line)
             lines.append(line.rstrip())
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def _correct_ocr_errors(self, text: str) -> tuple[str, list[dict]]:
         """Apply character-level OCR corrections"""
         corrections = []
-        original = text
 
         for pattern, replacement in self.char_substitutions:
             matches = list(re.finditer(pattern, text))
             if matches:
                 for match in matches:
-                    corrections.append({
-                        "type": "ocr_char",
-                        "original": match.group(),
-                        "corrected": replacement,
-                        "position": match.start(),
-                    })
+                    corrections.append(
+                        {
+                            "type": "ocr_char",
+                            "original": match.group(),
+                            "corrected": replacement,
+                            "position": match.start(),
+                        }
+                    )
                 text = re.sub(pattern, replacement, text)
 
         return text, corrections
@@ -191,12 +190,14 @@ class TextPreprocessor:
             if matches:
                 for match in matches:
                     if match.group() != replacement:
-                        corrections.append({
-                            "type": "terminology",
-                            "original": match.group(),
-                            "corrected": replacement,
-                            "position": match.start(),
-                        })
+                        corrections.append(
+                            {
+                                "type": "terminology",
+                                "original": match.group(),
+                                "corrected": replacement,
+                                "position": match.start(),
+                            }
+                        )
                 text = re.sub(pattern, replacement, text)
 
         return text, corrections
@@ -206,37 +207,37 @@ class TextPreprocessor:
         warnings = []
 
         # Check for valid dollar amounts
-        dollar_pattern = r'\$\s*([\d,]+(?:\.\d{0,2})?)'
+        dollar_pattern = r"\$\s*([\d,]+(?:\.\d{0,2})?)"
         for match in re.finditer(dollar_pattern, text):
             amount_str = match.group(1)
             # Check for incomplete decimals
-            if '.' in amount_str:
-                decimal_part = amount_str.split('.')[1]
+            if "." in amount_str:
+                decimal_part = amount_str.split(".")[1]
                 if len(decimal_part) == 1:
                     warnings.append(f"Incomplete dollar amount: ${amount_str} (single decimal digit)")
 
         # Check for valid dates
-        date_pattern = r'(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{2,4}'
+        date_pattern = r"(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{2,4}"
         dates = re.findall(date_pattern, text, re.IGNORECASE)
         for date in dates:
             # Check for 2-digit years
-            if re.search(r',?\s+\d{2}$', date):
+            if re.search(r",?\s+\d{2}$", date):
                 warnings.append(f"Ambiguous 2-digit year in date: {date}")
 
         # Check for potential phone number OCR errors
-        phone_pattern = r'\(\d{3}\)\s*\d{3}[-.\s]?\d{4}'
+        phone_pattern = r"\(\d{3}\)\s*\d{3}[-.\s]?\d{4}"
         phones = re.findall(phone_pattern, text)
         # 612, 651, 763, 952 are Minnesota area codes
         for phone in phones:
-            area_code = re.search(r'\((\d{3})\)', phone)
+            area_code = re.search(r"\((\d{3})\)", phone)
             if area_code:
                 ac = area_code.group(1)
-                if ac not in ['612', '651', '763', '952', '218', '320', '507', '800', '888', '877']:
+                if ac not in ["612", "651", "763", "952", "218", "320", "507", "800", "888", "877"]:
                     warnings.append(f"Unusual area code (possible OCR error): {phone}")
 
         # Check for missing case numbers in court documents
-        if re.search(r'(?i)district\s+court|housing\s+court|summons|complaint', text):
-            if not re.search(r'(?i)case\s*(?:no\.?|number|#)', text):
+        if re.search(r"(?i)district\s+court|housing\s+court|summons|complaint", text):
+            if not re.search(r"(?i)case\s*(?:no\.?|number|#)", text):
                 warnings.append("Court document may be missing case number")
 
         return warnings
@@ -244,23 +245,23 @@ class TextPreprocessor:
     def _calculate_quality_score(self, cleaned: str, original: str) -> float:
         """
         Calculate text quality score (0-100).
-        
+
         Higher score = cleaner, more reliable text.
         """
         score = 100.0
 
         # Check for OCR garbage characters
-        garbage_chars = len(re.findall(r'[^\x00-\x7F]', cleaned))
+        garbage_chars = len(re.findall(r"[^\x00-\x7F]", cleaned))
         if garbage_chars > 0:
             score -= min(20, garbage_chars * 2)
 
         # Check for unusual character sequences
-        unusual = len(re.findall(r'(?:[^aeiouAEIOU\s]{7,})|(?:[aeiouAEIOU]{5,})', cleaned))
+        unusual = len(re.findall(r"(?:[^aeiouAEIOU\s]{7,})|(?:[aeiouAEIOU]{5,})", cleaned))
         if unusual > 0:
             score -= min(15, unusual * 5)
 
         # Check word-like patterns (good indicator)
-        word_like = len(re.findall(r'\b[a-zA-Z]{2,15}\b', cleaned))
+        word_like = len(re.findall(r"\b[a-zA-Z]{2,15}\b", cleaned))
         total_tokens = len(cleaned.split())
         if total_tokens > 0:
             word_ratio = word_like / total_tokens
@@ -269,8 +270,16 @@ class TextPreprocessor:
 
         # Check for common legal terms (boosts confidence)
         legal_terms = [
-            'notice', 'tenant', 'landlord', 'rent', 'lease',
-            'court', 'eviction', 'property', 'premises', 'deposit'
+            "notice",
+            "tenant",
+            "landlord",
+            "rent",
+            "lease",
+            "court",
+            "eviction",
+            "property",
+            "premises",
+            "deposit",
         ]
         found_terms = sum(1 for term in legal_terms if term.lower() in cleaned.lower())
         score += min(10, found_terms * 2)
@@ -280,14 +289,14 @@ class TextPreprocessor:
             score -= 10
 
         # Penalty for no recognizable structure
-        if not re.search(r'\n', cleaned):
+        if not re.search(r"\n", cleaned):
             score -= 10
 
         return max(0, min(100, score))
 
     def _has_structure(self, text: str) -> bool:
         """Check if text has recognizable structure"""
-        lines = text.split('\n')
+        lines = text.split("\n")
 
         # Check for headers
         for line in lines[:20]:  # Check first 20 lines
@@ -296,11 +305,11 @@ class TextPreprocessor:
                     return True
 
         # Check for numbered lists
-        if re.search(r'^\s*\d+[.)]\s', text, re.MULTILINE):
+        if re.search(r"^\s*\d+[.)]\s", text, re.MULTILINE):
             return True
 
         # Check for address blocks
-        if re.search(r'\d+\s+[A-Za-z]+\s+(?:Street|St|Avenue|Ave|Road|Rd)', text):
+        if re.search(r"\d+\s+[A-Za-z]+\s+(?:Street|St|Avenue|Ave|Road|Rd)", text):
             return True
 
         return False
@@ -311,14 +320,15 @@ class TextPreprocessor:
         Use full preprocess() for accuracy-critical operations.
         """
         # Just whitespace normalization
-        text = re.sub(r'\r\n|\r', '\n', text)
-        text = re.sub(r'[ \t]+', ' ', text)
-        text = re.sub(r'\n{3,}', '\n\n', text)
+        text = re.sub(r"\r\n|\r", "\n", text)
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
         return text.strip()
 
 
 # Singleton instance
 _preprocessor = None
+
 
 def get_preprocessor() -> TextPreprocessor:
     """Get or create singleton preprocessor instance"""

@@ -111,15 +111,15 @@
   .capture-function-group.horizontal {
     flex-direction: column;
   }
-  
+
   .capture-function-group.grid {
     grid-template-columns: 1fr;
   }
-  
+
   .capture-function-group-actions {
     flex-direction: column;
   }
-  
+
   .capture-function-group-actions button {
     width: 100%;
   }

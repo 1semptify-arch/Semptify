@@ -67,6 +67,7 @@ LEGAL_CATEGORIES = [
 # UTILITIES
 # -----------------------------
 
+
 def ensure_dir(base: Path, rel: str) -> Path:
     target = base / rel
     target.mkdir(parents=True, exist_ok=True)
@@ -85,6 +86,7 @@ def file_hash(path: Path, algo: str = HASH_ALGO) -> str:
 # OCR LAYER
 # -----------------------------
 
+
 def ocr_extract_text(path: Path) -> str | None:
     try:
         import pytesseract
@@ -96,6 +98,7 @@ def ocr_extract_text(path: Path) -> str | None:
 
         if path.suffix.lower() == ".pdf":
             import subprocess
+
             temp_txt = path.with_suffix(".txt")
             subprocess.run(["ocrmypdf", "--sidecar", str(temp_txt), str(path), str(path)], check=False)
             if temp_txt.exists():
@@ -118,6 +121,7 @@ def ocr_save(base: Path, file_path: Path, text: str) -> Path:
 # AI CLASSIFICATION HOOK
 # -----------------------------
 
+
 def ai_classify_document(path: Path, ocr_text: str | None = None) -> str:
     return "unknown"
 
@@ -130,6 +134,7 @@ def ai_route(base: Path, file_path: Path, label: str) -> Path:
 # -----------------------------
 # LEGAL CATEGORY INFERENCE
 # -----------------------------
+
 
 def infer_legal_category_from_text(text: str) -> str:
     t = text.lower()
@@ -165,7 +170,9 @@ def legal_category_route(base: Path, file_path: Path, category: str) -> Path:
     return target / file_path.name
 
 
-def infer_and_route_legal_category(base: Path, file_path: Path, ocr_text: str | None, ai_label: str | None = None) -> Path | None:
+def infer_and_route_legal_category(
+    base: Path, file_path: Path, ocr_text: str | None, ai_label: str | None = None
+) -> Path | None:
     if not ocr_text:
         return None
 
@@ -189,6 +196,7 @@ def infer_and_route_legal_category(base: Path, file_path: Path, ocr_text: str | 
 # -----------------------------
 # TIMELINE EVENT GENERATION
 # -----------------------------
+
 
 def generate_timeline_event(file_path: Path, category: str, ocr_text: str | None) -> dict:
     """
@@ -214,7 +222,7 @@ def save_timeline_event(base: Path, event: dict) -> Path:
 
     timeline_dir = ensure_dir(base, TIMELINE_FOLDER)
     safe_name = event["file_name"].replace(" ", "_")
-    out = timeline_dir / f"{event['timestamp'].replace(':','-')}_{safe_name}.json"
+    out = timeline_dir / f"{event['timestamp'].replace(':', '-')}_{safe_name}.json"
 
     out.write_text(json.dumps(event, indent=2), encoding="utf-8")
     return out
@@ -223,6 +231,7 @@ def save_timeline_event(base: Path, event: dict) -> Path:
 # -----------------------------
 # MAIN VAULT POST‑PROCESSOR
 # -----------------------------
+
 
 def filedored_run(
     root_path: str,
@@ -335,9 +344,7 @@ def filedored_run(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Semptify Vault Post‑Processor (ALL FEATURES + Legal + Timeline)"
-    )
+    parser = argparse.ArgumentParser(description="Semptify Vault Post‑Processor (ALL FEATURES + Legal + Timeline)")
     parser.add_argument("root", help="Path to vault folder")
     parser.add_argument("--no-ai", action="store_true")
     parser.add_argument("--no-ocr", action="store_true")

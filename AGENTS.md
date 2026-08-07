@@ -185,16 +185,18 @@ This is non-negotiable. The contract is the SSOT for:
 ```python
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-register_function_group(FunctionGroupContract(
-    module="<module_name>",
-    group_name="<function_name>",
-    title="<Human Title> (SSOT)",
-    description="CANONICAL ... What it does. What it does NOT do.",
-    inputs=("<required>", "<optional>?"),
-    outputs=("<output>",),
-    dependencies=("app.services.<module>",),
-    deterministic=True,
-))
+register_function_group(
+    FunctionGroupContract(
+        module="<module_name>",
+        group_name="<function_name>",
+        title="<Human Title> (SSOT)",
+        description="CANONICAL ... What it does. What it does NOT do.",
+        inputs=("<required>", "<optional>?"),
+        outputs=("<output>",),
+        dependencies=("app.services.<module>",),
+        deterministic=True,
+    )
+)
 ```
 
 **Before writing code that calls another service's API, check the contract registry first.** If no contract exists, ask the user — do not invent the API.

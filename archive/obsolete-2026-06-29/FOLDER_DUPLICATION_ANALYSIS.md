@@ -11,12 +11,12 @@ You're seeing **multiple folder creations** in Google Drive because **3 differen
 ```python
 # Creates these folders:
 self.additional_folders = [
-    VAULT_TIMELINE,           # "Semptify5.0/Vault/timeline"
-    VAULT_OVERLAYS,           # "Semptify5.0/Vault/overlays"
+    VAULT_TIMELINE,  # "Semptify5.0/Vault/timeline"
+    VAULT_OVERLAYS,  # "Semptify5.0/Vault/overlays"
     f"{VAULT_OVERLAYS}/evidence",  # "Semptify5.0/Vault/overlays/evidence"
-    f"{VAULT_OVERLAYS}/legal",     # "Semptify5.0/Vault/overlays/legal"
+    f"{VAULT_OVERLAYS}/legal",  # "Semptify5.0/Vault/overlays/legal"
     f"{VAULT_OVERLAYS}/timeline",  # "Semptify5.0/Vault/overlays/timeline"
-    AUTH_FOLDER,              # ".Semptify5.0/auth"
+    AUTH_FOLDER,  # ".Semptify5.0/auth"
 ]
 ```
 
@@ -24,12 +24,12 @@ self.additional_folders = [
 ```python
 # Creates these folders:
 folders = [
-    SEMPTIFY_ROOT,            # "Semptify5.0"
-    AUTH_FOLDER,              # ".Semptify5.0/auth"
-    VAULT_FOLDER,             # ".Semptify5.0/vault"
-    VAULT_ROOT,               # "Semptify5.0/Vault"
-    VAULT_DOCUMENTS,          # "Semptify5.0/Vault/documents"
-    VAULT_CERTIFICATES,       # "Semptify5.0/Vault/certificates"
+    SEMPTIFY_ROOT,  # "Semptify5.0"
+    AUTH_FOLDER,  # ".Semptify5.0/auth"
+    VAULT_FOLDER,  # ".Semptify5.0/vault"
+    VAULT_ROOT,  # "Semptify5.0/Vault"
+    VAULT_DOCUMENTS,  # "Semptify5.0/Vault/documents"
+    VAULT_CERTIFICATES,  # "Semptify5.0/Vault/certificates"
 ]
 ```
 
@@ -50,10 +50,10 @@ await storage.create_folder(self.CERTS_FOLDER)
 "Semptify5.0/Vault/documents"  # ✅ Correct for cloud APIs
 
 # Windows local paths: Backward slashes \
-"G:\\My Drive\\Semptify5.0"   # ✅ Correct for Windows
+"G:\\My Drive\\Semptify5.0"  # ✅ Correct for Windows
 
 # Mixed usage in code:
-VAULT_ROOT = f"{SEMPTIFY_ROOT}/Vault"      # Forward slash
+VAULT_ROOT = f"{SEMPTIFY_ROOT}/Vault"  # Forward slash
 VAULT_FOLDER = f".{SEMPTIFY_ROOT}/vault"  # Forward slash
 ```
 
@@ -61,8 +61,8 @@ VAULT_FOLDER = f".{SEMPTIFY_ROOT}/vault"  # Forward slash
 ```python
 # Different ways to reference same folder:
 SEMPTIFY_ROOT = "Semptify5.0"
-VAULT_ROOT = f"{SEMPTIFY_ROOT}/Vault"        # "Semptify5.0/Vault"
-VAULT_FOLDER = f".{SEMPTIFY_ROOT}/vault"     # ".Semptify5.0/vault"
+VAULT_ROOT = f"{SEMPTIFY_ROOT}/Vault"  # "Semptify5.0/Vault"
+VAULT_FOLDER = f".{SEMPTIFY_ROOT}/vault"  # ".Semptify5.0/vault"
 ```
 
 ## 🎯 **File System Format Issue (What You Asked About)**
@@ -99,7 +99,7 @@ Code mixes these formats, causing:
 ### **Detection Failure:**
 ```python
 # System A creates: "Semptify5.0/Vault/documents"
-# System B checks for: "Semptify5.0\\Vault\\documents" 
+# System B checks for: "Semptify5.0\\Vault\\documents"
 # Result: "Folder doesn't exist" → Creates duplicate!
 ```
 
@@ -120,6 +120,7 @@ Code mixes these formats, causing:
 def normalize_cloud_path(path: str) -> str:
     """Normalize path for cloud storage APIs."""
     return path.replace("\\", "/").strip("/")
+
 
 def normalize_local_path(path: str) -> str:
     """Normalize path for Windows local storage."""

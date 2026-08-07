@@ -33,19 +33,15 @@ class TestStep1Welcome:
         resp = httpx.get(f"{BASE_URL}/static/welcome.html", follow_redirects=True)
         assert resp.status_code == 200, f"Welcome page failed: {resp.status_code}"
 
-        soup = BeautifulSoup(resp.text, 'html.parser')
+        soup = BeautifulSoup(resp.text, "html.parser")
 
         # Should have "Get Started" or similar primary CTA
-        cta_found = any(
-            keyword in resp.text.lower()
-            for keyword in ['get started', 'begin', 'start', 'enter']
-        )
+        cta_found = any(keyword in resp.text.lower() for keyword in ["get started", "begin", "start", "enter"])
         assert cta_found, "Welcome page missing primary CTA (Get Started/Begin/Start)"
 
         # Should mention tenant/journal/document theme
         theme_found = any(
-            keyword in resp.text.lower()
-            for keyword in ['tenant', 'journal', 'document', 'rights', 'housing']
+            keyword in resp.text.lower() for keyword in ["tenant", "journal", "document", "rights", "housing"]
         )
         assert theme_found, "Welcome page missing tenant/journal theme"
 
@@ -54,8 +50,9 @@ class TestStep1Welcome:
         resp = httpx.get(f"{BASE_URL}/tenant/home", follow_redirects=True)
         # Should redirect to welcome or storage, not show home
         final_url = str(resp.url)
-        assert '/tenant/home' not in final_url or resp.status_code != 200, \
+        assert "/tenant/home" not in final_url or resp.status_code != 200, (
             "Tenant home accessible without storage setup - BYPASS VULNERABILITY"
+        )
 
 
 class TestStep2RoleSelect:
@@ -69,12 +66,11 @@ class TestStep2RoleSelect:
     def test_tenant_role_available(self):
         """Tenant role must be available as primary option"""
         resp = httpx.get(f"{BASE_URL}/onboarding/select-role.html", follow_redirects=True)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+        soup = BeautifulSoup(resp.text, "html.parser")
 
         # Look for tenant option
         tenant_found = any(
-            keyword in resp.text.lower()
-            for keyword in ['tenant', 'renter', 'resident', 'i am a tenant']
+            keyword in resp.text.lower() for keyword in ["tenant", "renter", "resident", "i am a tenant"]
         )
         assert tenant_found, "Tenant role not found in role selection"
 
@@ -98,31 +94,30 @@ class TestStep3StorageMandatory:
     def test_no_skip_button_exists(self):
         """CRITICAL: No skip, bypass, or 'do later' button should exist"""
         resp = httpx.get(f"{BASE_URL}/onboarding/storage-select.html", follow_redirects=True)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+        soup = BeautifulSoup(resp.text, "html.parser")
 
         # Check for skip-related text in buttons/links
-        skip_keywords = ['skip', 'bypass', 'do later', 'remind me', 'not now', 'cancel', 'continue without']
+        skip_keywords = ["skip", "bypass", "do later", "remind me", "not now", "cancel", "continue without"]
 
         # Check buttons
-        buttons = soup.find_all('button')
+        buttons = soup.find_all("button")
         for btn in buttons:
             btn_text = btn.get_text().lower()
             for keyword in skip_keywords:
-                assert keyword not in btn_text, \
+                assert keyword not in btn_text, (
                     f"SKIP BUTTON FOUND: '{btn_text}' contains '{keyword}' - Storage must be MANDATORY"
+                )
 
         # Check links
-        links = soup.find_all('a')
+        links = soup.find_all("a")
         for link in links:
             link_text = link.get_text().lower()
-            href = link.get('href', '').lower()
+            href = link.get("href", "").lower()
             for keyword in skip_keywords:
-                assert keyword not in link_text, \
-                    f"SKIP LINK FOUND: '{link_text}' contains '{keyword}'"
+                assert keyword not in link_text, f"SKIP LINK FOUND: '{link_text}' contains '{keyword}'"
                 # Also check href doesn't bypass storage
-                if keyword in ['skip', 'bypass']:
-                    assert keyword not in href, \
-                        f"SKIP HREF FOUND: '{href}' contains '{keyword}'"
+                if keyword in ["skip", "bypass"]:
+                    assert keyword not in href, f"SKIP HREF FOUND: '{href}' contains '{keyword}'"
 
     def test_storage_connect_buttons_present(self):
         """Should have storage provider connection buttons"""
@@ -130,8 +125,17 @@ class TestStep3StorageMandatory:
 
         # Look for common storage provider names or connect buttons
         storage_indicators = [
-            'google', 'drive', 'dropbox', 'onedrive', 'box', 'connect',
-            'oauth', 'sign in', 'authenticate', 'storage', 'cloud'
+            "google",
+            "drive",
+            "dropbox",
+            "onedrive",
+            "box",
+            "connect",
+            "oauth",
+            "sign in",
+            "authenticate",
+            "storage",
+            "cloud",
         ]
 
         found_storage = any(indicator in resp.text.lower() for indicator in storage_indicators)
@@ -144,12 +148,13 @@ class TestStep3StorageMandatory:
         final_url = str(resp.url)
 
         # Should NOT end up at tenant/home
-        if '/tenant/home' in final_url and resp.status_code == 200:
+        if "/tenant/home" in final_url and resp.status_code == 200:
             pytest.fail("CRITICAL: Tenant home accessible WITHOUT storage! Flow bypass possible.")
 
         # Should redirect to storage setup or welcome
-        assert any(x in final_url for x in ['/storage', '/onboarding', '/welcome']), \
+        assert any(x in final_url for x in ["/storage", "/onboarding", "/welcome"]), (
             f"Unauthorized access to /tenant/home should redirect to storage, got: {final_url}"
+        )
 
 
 class TestStep4TenantHome:
@@ -185,8 +190,7 @@ class TestCompleteFlowIntegration:
             assert resp.status_code == 200, f"API health check failed: {resp.status_code}"
 
             data = resp.json()
-            assert 'status' in data or 'healthy' in str(data).lower(), \
-                "Health endpoint missing expected fields"
+            assert "status" in data or "healthy" in str(data).lower(), "Health endpoint missing expected fields"
         except Exception as e:
             pytest.fail(f"API not responding: {e}")
 

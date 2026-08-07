@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class AIServiceType(str, Enum):
     """Types of AI services in the crib."""
+
     DOCUMENT_CLASSIFIER = "document_classifier"
     LEGAL_ANALYZER = "legal_analyzer"
     TIMELINE_EXTRACTOR = "timeline_extractor"
@@ -30,6 +31,7 @@ class AIServiceType(str, Enum):
 
 class AIProvider(str, Enum):
     """AI service providers."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     LOCAL_LLM = "local_llm"
@@ -41,6 +43,7 @@ class AIProvider(str, Enum):
 
 class AIServiceConfig(BaseModel):
     """Configuration for an AI service."""
+
     service_type: AIServiceType
     provider: AIProvider
     enabled: bool = True
@@ -56,6 +59,7 @@ class AIServiceConfig(BaseModel):
 
 class AIServiceMetrics(BaseModel):
     """Metrics for an AI service."""
+
     service_type: AIServiceType
     provider: AIProvider
     requests_total: int = 0
@@ -129,10 +133,7 @@ class AIToolCrib:
 
         for service_type, config in default_configs.items():
             self.services[service_type] = config
-            self.metrics[service_type] = AIServiceMetrics(
-                service_type=service_type,
-                provider=config.provider
-            )
+            self.metrics[service_type] = AIServiceMetrics(service_type=service_type, provider=config.provider)
 
     def get_service(self, service_type: AIServiceType) -> AIServiceConfig | None:
         """Get configuration for an AI service."""
@@ -150,8 +151,7 @@ class AIToolCrib:
             self.services[service_type].enabled = False
             logger.info(f"Disabled AI service: {service_type}")
 
-    def update_metrics(self, service_type: AIServiceType, success: bool,
-                      response_time: float, cost: float = 0.0):
+    def update_metrics(self, service_type: AIServiceType, success: bool, response_time: float, cost: float = 0.0):
         """Update metrics for an AI service."""
         if service_type not in self.metrics:
             return
@@ -186,7 +186,7 @@ class AIToolCrib:
         status = {
             "total_services": len(self.services),
             "enabled_services": sum(1 for s in self.services.values() if s.enabled),
-            "services": {}
+            "services": {},
         }
 
         for service_type, config in self.services.items():
@@ -207,10 +207,7 @@ class AIToolCrib:
         """Get cost report for AI services."""
         # This would typically query a database for historical metrics
         # For now, return current total costs
-        return {
-            service_type.value: metrics.total_cost
-            for service_type, metrics in self.metrics.items()
-        }
+        return {service_type.value: metrics.total_cost for service_type, metrics in self.metrics.items()}
 
 
 # Global instance

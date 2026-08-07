@@ -14,6 +14,7 @@ from .base import BaseClient
 @dataclass
 class TimelineEvent:
     """Timeline event information."""
+
     id: str
     event_type: str
     title: str
@@ -28,6 +29,7 @@ class TimelineEvent:
 @dataclass
 class Deadline:
     """Deadline information."""
+
     id: str
     title: str
     deadline_date: date
@@ -42,6 +44,7 @@ class Deadline:
 @dataclass
 class StatuteInfo:
     """Statute of limitations information."""
+
     statute_name: str
     jurisdiction: str
     limitation_period: str
@@ -67,7 +70,7 @@ class TimelineClient(BaseClient):
     ) -> TimelineEvent:
         """
         Add a new event to the timeline.
-        
+
         Args:
             event_type: Type of event (e.g., "notice_received", "payment_due")
             title: Event title
@@ -76,7 +79,7 @@ class TimelineClient(BaseClient):
             importance: Importance level (low, normal, high, critical)
             document_id: Associated document ID
             metadata: Additional event metadata
-            
+
         Returns:
             Created timeline event
         """
@@ -116,13 +119,13 @@ class TimelineClient(BaseClient):
     ) -> list[TimelineEvent]:
         """
         Get timeline events.
-        
+
         Args:
             start_date: Filter events from this date
             end_date: Filter events until this date
             event_type: Filter by event type
             limit: Maximum events to return
-            
+
         Returns:
             List of timeline events
         """
@@ -159,12 +162,12 @@ class TimelineClient(BaseClient):
     ) -> list[Deadline]:
         """
         Get upcoming deadlines.
-        
+
         Args:
             status: Filter by status (pending, completed, missed)
             priority: Filter by priority
             days_ahead: Number of days to look ahead
-            
+
         Returns:
             List of deadlines
         """
@@ -201,13 +204,13 @@ class TimelineClient(BaseClient):
     ) -> StatuteInfo:
         """
         Calculate statute of limitations for a specific violation.
-        
+
         Args:
             violation_type: Type of violation (e.g., "habitability", "retaliation")
             jurisdiction: Jurisdiction (e.g., "california")
             incident_date: Date the violation occurred
             discovered_date: Date the violation was discovered (for discovery rule)
-            
+
         Returns:
             Statute of limitations information
         """
@@ -238,10 +241,10 @@ class TimelineClient(BaseClient):
     ) -> list[StatuteInfo]:
         """
         Get all statute of limitations deadlines.
-        
+
         Args:
             jurisdiction: Filter by jurisdiction
-            
+
         Returns:
             List of statute deadline information
         """
@@ -269,7 +272,7 @@ class TimelineClient(BaseClient):
     def get_timeline_summary(self) -> dict[str, Any]:
         """
         Get a summary of the timeline with key events and deadlines.
-        
+
         Returns:
             Timeline summary with statistics and highlights
         """
@@ -278,10 +281,10 @@ class TimelineClient(BaseClient):
     def delete_event(self, event_id: str) -> bool:
         """
         Delete a timeline event.
-        
+
         Args:
             event_id: The event ID
-            
+
         Returns:
             True if deleted successfully
         """

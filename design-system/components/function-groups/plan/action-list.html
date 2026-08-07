@@ -12,7 +12,7 @@
 {% set auto_refresh = auto_refresh|default(false) %}
 {% set refresh_interval = refresh_interval or 30 %}
 
-<div class="plan-action-list role-{{ role }}" 
+<div class="plan-action-list role-{{ role }}"
      id="{{ component_id }}"
      data-function-group="{{ function_group }}"
      data-role="{{ role }}"
@@ -21,7 +21,7 @@
      data-show-completed="{{ show_completed|lower }}"
      data-auto-refresh="{{ auto_refresh|lower }}"
      data-refresh-interval="{{ refresh_interval }}">
-  
+
   <div class="action-list-header">
     <div class="action-list-header-left">
       <div class="action-list-icon">+</div>
@@ -30,7 +30,7 @@
         <div class="action-list-subtitle">Prioritized actions and next steps for your case</div>
       </div>
     </div>
-    
+
     {% if show_filters %}
     <div class="action-list-controls">
       <select class="action-list-filter" id="{{ component_id }}_filter">
@@ -39,7 +39,7 @@
         <option value="in_progress">In Progress</option>
         <option value="completed">Completed</option>
       </select>
-      
+
       <select class="action-list-sort" id="{{ component_id }}_sort">
         <option value="priority">Priority</option>
         <option value="deadline">Deadline</option>
@@ -48,7 +48,7 @@
     </div>
     {% endif %}
   </div>
-  
+
   {% if show_progress %}
   <div class="action-list-progress" id="{{ component_id }}_progress">
     <div class="action-list-progress-header">
@@ -60,7 +60,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="action-list-content" id="{{ component_id }}_content">
     <div class="action-list-loading">
       <div class="action-list-loading-spinner"></div>
@@ -70,7 +70,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-progress="{{ show_progress|lower }}"
@@ -93,51 +93,51 @@ document.addEventListener('DOMContentLoaded', function() {
     autoRefresh: configEl.dataset.autoRefresh === 'true',
     refreshInterval: parseInt(configEl.dataset.refreshInterval)
   };
-  
+
   // Get DOM elements
   const component = document.getElementById(config.componentId);
   const content = document.getElementById(config.componentId + '_content');
   const filter = document.getElementById(config.componentId + '_filter');
   const sort = document.getElementById(config.componentId + '_sort');
-  
+
   // State
   let currentFilter = 'all';
   let currentSort = 'priority';
   let actionData = null;
   let refreshTimer = null;
-  
+
   // Initialize
   initActionList();
-  
+
   function initActionList() {
     // Set up event listeners
     if (filter) {
       filter.addEventListener('change', handleFilterChange);
     }
-    
+
     if (sort) {
       sort.addEventListener('change', handleSortChange);
     }
-    
+
     // Load initial data
     loadActionData();
-    
+
     // Set up auto-refresh
     if (config.autoRefresh) {
       startAutoRefresh();
     }
   }
-  
+
   function handleFilterChange(e) {
     currentFilter = e.target.value;
     renderActionList();
   }
-  
+
   function handleSortChange(e) {
     currentSort = e.target.value;
     renderActionList();
   }
-  
+
   function loadActionData() {
     // Show loading state
     content.innerHTML = `
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="action-list-loading-text">Loading action plan...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       actionData = generateMockActionData();
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
       renderActionList();
     }, 1000);
   }
-  
+
   function generateMockActionData() {
     const now = new Date();
     const actions = [
@@ -255,34 +255,34 @@ document.addEventListener('DOMContentLoaded', function() {
         resources: ['demand_letter_template.docx']
       }
     ];
-    
+
     return actions;
   }
-  
+
   function updateProgress() {
     if (!actionData || !config.showProgress) return;
-    
+
     const total = actionData.length;
     const completed = actionData.filter(action => action.status === 'completed').length;
     const percentage = total > 0 ? (completed / total) * 100 : 0;
-    
+
     // Update progress display
     const statsEl = document.getElementById(config.componentId + '_progress_stats');
     const fillEl = document.getElementById(config.componentId + '_progress_fill');
-    
+
     if (statsEl) statsEl.textContent = `${completed} of ${total} completed`;
     if (fillEl) fillEl.style.width = `${percentage}%`;
   }
-  
+
   function renderActionList() {
     if (!actionData) return;
-    
+
     // Filter actions
     let filteredActions = actionData;
     if (currentFilter !== 'all') {
       filteredActions = actionData.filter(action => action.status === currentFilter);
     }
-    
+
     // Sort actions
     filteredActions.sort((a, b) => {
       if (currentSort === 'priority') {
@@ -295,18 +295,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       return 0;
     });
-    
+
     // Group by priority
     const groupedActions = groupActionsByPriority(filteredActions);
-    
+
     const html = `
       ${Object.entries(groupedActions).map(([priority, actions]) => createPriorityGroupHTML(priority, actions)).join('')}
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function groupActionsByPriority(actions) {
     const groups = {
       urgent: [],
@@ -314,24 +314,24 @@ document.addEventListener('DOMContentLoaded', function() {
       medium: [],
       low: []
     };
-    
+
     actions.forEach(action => {
       groups[action.priority].push(action);
     });
-    
+
     return groups;
   }
-  
+
   function createPriorityGroupHTML(priority, actions) {
     if (actions.length === 0) return '';
-    
+
     const priorityLabels = {
       urgent: 'Urgent Actions',
       high: 'High Priority',
       medium: 'Medium Priority',
       low: 'Low Priority'
     };
-    
+
     return `
       <div class="action-list-priority">
         <div class="action-list-priority-header">
@@ -345,11 +345,11 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function createActionItemHTML(action) {
     const isCompleted = action.status === 'completed';
     const deadlineClass = getDeadlineClass(action.deadline);
-    
+
     return `
       <div class="action-list-item ${isCompleted ? 'completed' : ''}" data-action-id="${action.id}">
         <div class="action-list-item-checkbox ${isCompleted ? 'checked' : ''}" onclick="toggleActionComplete('${action.id}')">
@@ -373,16 +373,16 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function getDeadlineClass(deadline) {
     const now = new Date();
     const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
-    
+
     if (daysUntil <= 3) return 'urgent';
     if (daysUntil <= 7) return 'soon';
     return 'upcoming';
   }
-  
+
   function attachEventListeners() {
     // Action item click handlers (excluding checkbox and action buttons)
     const actionElements = content.querySelectorAll('.action-list-item');
@@ -394,11 +394,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleActionClick(actionEl) {
     const actionId = actionEl.dataset.actionId;
     const action = actionData.find(a => a.id === actionId);
-    
+
     if (action) {
       // Emit action selection event
       const actionEvent = new CustomEvent('plan-action-select', {
@@ -411,14 +411,14 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(actionEvent);
     }
   }
-  
+
   function toggleActionComplete(actionId) {
     const action = actionData.find(a => a.id === actionId);
     if (action) {
       action.status = action.status === 'completed' ? 'pending' : 'completed';
       updateProgress();
       renderActionList();
-      
+
       // Emit action completion event
       const completeEvent = new CustomEvent('plan-action-complete', {
         detail: {
@@ -430,7 +430,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(completeEvent);
     }
   }
-  
+
   function viewActionDetails(actionId) {
     const action = actionData.find(a => a.id === actionId);
     if (action) {
@@ -445,13 +445,13 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(detailsEvent);
     }
   }
-  
+
   function startAction(actionId) {
     const action = actionData.find(a => a.id === actionId);
     if (action) {
       action.status = 'in_progress';
       renderActionList();
-      
+
       // Emit action start event
       const startEvent = new CustomEvent('plan-action-start', {
         detail: {
@@ -463,29 +463,29 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(startEvent);
     }
   }
-  
+
   function startAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
     }
-    
+
     refreshTimer = setInterval(() => {
       loadActionData();
     }, config.refreshInterval * 1000);
   }
-  
+
   function stopAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
       refreshTimer = null;
     }
   }
-  
+
   // Make action functions available globally
   window.toggleActionComplete = toggleActionComplete;
   window.viewActionDetails = viewActionDetails;
   window.startAction = startAction;
-  
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', stopAutoRefresh);
 });

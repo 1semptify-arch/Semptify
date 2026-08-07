@@ -1,12 +1,12 @@
 /**
  * Comprehensive SSOT Audit - Checks all pages for violations
- * 
+ *
  * This audit verifies:
  * 1. All 5 base navigation links present on every page
  * 2. No hardcoded URLs that bypass SSOT registry
  * 3. Text/content adheres to Semptify standards
  * 4. Template compliance across all pages
- * 
+ *
  * Run: node tests/e2e/comprehensive_ssot_audit.js
  */
 
@@ -91,25 +91,25 @@ function logPass(page, message) {
  */
 async function auditNavigation(page, pagePath) {
   const fullUrl = pagePath.startsWith('http') ? pagePath : `${BASE_URL}${pagePath}`;
-  
+
   try {
     await page.goto(fullUrl, { waitUntil: 'networkidle', timeout: 10000 });
     await page.waitForTimeout(500);
-    
+
     // Check header navigation
     const headerNav = await page.locator('nav.core-nav').count();
     if (headerNav === 0) {
       logViolation(pagePath, 'NAVIGATION', 'Missing nav.core-nav element', 'error');
       return false;
     }
-    
+
     // Check all 5 links in header
     let allLinksPresent = true;
     for (const link of BASE_NAV_LINKS) {
       const linkLocator = page.locator(`nav.core-nav a[href="${link.path}"]`);
       const count = await linkLocator.count();
       const visible = count > 0 ? await linkLocator.isVisible().catch(() => false) : false;
-      
+
       if (count === 0) {
         logViolation(pagePath, 'NAVIGATION', `Missing ${link.name} link in header`, 'error');
         allLinksPresent = false;
@@ -117,7 +117,7 @@ async function auditNavigation(page, pagePath) {
         logViolation(pagePath, 'NAVIGATION', `${link.name} link not visible in header`, 'warning');
       }
     }
-    
+
     // Check mobile drawer
     const drawer = await page.locator('nav.nav-drawer').count();
     if (drawer === 0) {
@@ -133,7 +133,7 @@ async function auditNavigation(page, pagePath) {
         }
       }
     }
-    
+
     if (allLinksPresent) {
       logPass(pagePath, 'All 5 navigation links present in header and drawer');
       auditResults.navigationOk++;
@@ -142,7 +142,7 @@ async function auditNavigation(page, pagePath) {
       auditResults.navigationFail++;
       return false;
     }
-    
+
   } catch (error) {
     logViolation(pagePath, 'LOAD_ERROR', `Failed to load page: ${error.message}`, 'error');
     auditResults.navigationFail++;
@@ -155,7 +155,7 @@ async function auditNavigation(page, pagePath) {
  */
 async function auditSSOTViolations(page, pagePath) {
   const html = await page.content();
-  
+
   // Check for old hardcoded paths
   for (const check of VIOLATION_PATTERNS.oldPaths) {
     const matches = html.match(check.pattern);
@@ -163,7 +163,7 @@ async function auditSSOTViolations(page, pagePath) {
       logViolation(pagePath, 'SSOT_OLD_PATH', `${check.message} (${matches.length} occurrences)`, 'error');
     }
   }
-  
+
   // Check for JavaScript hardcoded navigation
   for (const check of VIOLATION_PATTERNS.ssot) {
     const matches = html.match(check.pattern);
@@ -171,7 +171,7 @@ async function auditSSOTViolations(page, pagePath) {
       logViolation(pagePath, 'SSOT_BYPASS', `${check.message} (${matches.length} occurrences)`, 'error');
     }
   }
-  
+
   // Check for placeholder content
   for (const check of VIOLATION_PATTERNS.content) {
     const matches = html.match(check.pattern);
@@ -187,11 +187,11 @@ async function auditSSOTViolations(page, pagePath) {
 async function auditActiveState(page, pagePath) {
   const currentPath = pagePath.replace(/\/$/, '/home.html'); // Normalize root
   const expectedLink = BASE_NAV_LINKS.find(l => l.path === currentPath || pagePath.includes(l.path));
-  
+
   if (expectedLink) {
     const activeLink = page.locator('nav.core-nav a.active');
     const count = await activeLink.count();
-    
+
     if (count === 0) {
       logViolation(pagePath, 'ACTIVE_STATE', `No active link for current page (${expectedLink.name})`, 'warning');
     } else {
@@ -212,21 +212,21 @@ async function auditNavigationWorks(page, fromPage, toLink) {
   try {
     await page.goto(`${BASE_URL}${fromPage}`, { waitUntil: 'networkidle', timeout: 10000 });
     await page.waitForTimeout(500);
-    
+
     const navLink = page.locator(`nav.core-nav a[href="${toLink.path}"]`);
     const visible = await navLink.isVisible().catch(() => false);
-    
+
     if (!visible) {
       logViolation(fromPage, 'NAV_FUNCTION', `Cannot click ${toLink.name} - not visible`, 'error');
       return false;
     }
-    
+
     await navLink.click();
     await page.waitForTimeout(1000);
-    
+
     const url = page.url();
     const expectedUrl = `${BASE_URL}${toLink.path}`;
-    
+
     if (url === expectedUrl) {
       logPass(fromPage, `Navigation to ${toLink.name} works correctly`);
       return true;
@@ -251,51 +251,51 @@ async function runComprehensiveAudit() {
   console.log(`Pages to audit: ${PAGES_TO_AUDIT.length}`);
   console.log(`Base nav links required: ${BASE_NAV_LINKS.length}`);
   console.log('');
-  
+
   const browser = await chromium.launch({ headless: true });
-  
+
   try {
     // Phase 1: Audit each page for navigation presence
     console.log('━'.repeat(70));
     console.log('PHASE 1: Navigation Presence Audit');
     console.log('━'.repeat(70));
-    
+
     for (const pagePath of PAGES_TO_AUDIT) {
       const context = await browser.newContext();
       const page = await context.newPage();
-      
+
       auditResults.pagesAudited++;
       await auditNavigation(page, pagePath);
       await auditSSOTViolations(page, pagePath);
       await auditActiveState(page, pagePath);
-      
+
       await context.close();
     }
-    
+
     // Phase 2: Test navigation functionality (sample)
     console.log('\n' + '━'.repeat(70));
     console.log('PHASE 2: Navigation Functionality Audit (Sample)');
     console.log('━'.repeat(70));
-    
+
     const sampleTests = [
       { from: '/home.html', to: BASE_NAV_LINKS[1] }, // Home -> Library
       { from: '/library.html', to: BASE_NAV_LINKS[2] }, // Library -> Office
       { from: '/office.html', to: BASE_NAV_LINKS[3] }, // Office -> Tools
     ];
-    
+
     for (const test of sampleTests) {
       const context = await browser.newContext();
       const page = await context.newPage();
-      
+
       await auditNavigationWorks(page, test.from, test.to);
-      
+
       await context.close();
     }
-    
+
   } finally {
     await browser.close();
   }
-  
+
   // Print summary
   console.log('\n' + '='.repeat(70));
   console.log('📊 AUDIT SUMMARY');
@@ -304,7 +304,7 @@ async function runComprehensiveAudit() {
   console.log(`Navigation OK: ${auditResults.navigationOk} ✅`);
   console.log(`Navigation Failed: ${auditResults.navigationFail} ❌`);
   console.log(`Total Violations: ${auditResults.violationsFound}`);
-  
+
   if (auditResults.violationsFound > 0) {
     console.log('\n❌ VIOLATIONS BY CATEGORY:');
     const byCategory = {};
@@ -314,7 +314,7 @@ async function runComprehensiveAudit() {
     for (const [cat, count] of Object.entries(byCategory)) {
       console.log(`  ${cat}: ${count}`);
     }
-    
+
     console.log('\n❌ ALL VIOLATIONS:');
     for (const v of auditResults.violations) {
       const icon = v.severity === 'error' ? '❌' : '⚠️';
@@ -323,12 +323,12 @@ async function runComprehensiveAudit() {
   } else {
     console.log('\n✅ NO VIOLATIONS FOUND - All pages comply with SSOT standards!');
   }
-  
+
   // Save report
   const reportPath = path.join(__dirname, 'audit-report.json');
   fs.writeFileSync(reportPath, JSON.stringify(auditResults, null, 2));
   console.log(`\n📄 Full report saved to: ${reportPath}`);
-  
+
   console.log('');
   process.exit(auditResults.violationsFound > 0 ? 1 : 0);
 }

@@ -7,6 +7,7 @@ vault.read and vault.write permissions.
 This is a thin wrapper around the internal VaultClient that injects the
 external module's context for audit logging and permission checks.
 """
+
 import logging
 
 from app.sdk.external.context import ExternalModuleContext
@@ -42,7 +43,9 @@ class VaultClient:
         self._ctx.require_permission(Permission.VAULT_READ.value, "list_files")
         logger.info(
             "ExternalVault: module=%s vendor=%s list_files path=%s",
-            self._ctx.module_name, self._ctx.vendor, folder_path,
+            self._ctx.module_name,
+            self._ctx.vendor,
+            folder_path,
         )
         return await self._client.list_files(folder_path)
 
@@ -51,7 +54,8 @@ class VaultClient:
         self._ctx.require_permission(Permission.VAULT_READ.value, "read_file")
         logger.info(
             "ExternalVault: module=%s read_file path=%s",
-            self._ctx.module_name, file_path,
+            self._ctx.module_name,
+            file_path,
         )
         return await self._client.read_file(file_path)
 
@@ -60,7 +64,9 @@ class VaultClient:
         self._ctx.require_permission(Permission.VAULT_WRITE.value, "upload_file")
         logger.info(
             "ExternalVault: module=%s upload_file path=%s size=%d",
-            self._ctx.module_name, file_path, len(content),
+            self._ctx.module_name,
+            file_path,
+            len(content),
         )
         return await self._client.upload_file(file_path, content)
 
@@ -69,6 +75,7 @@ class VaultClient:
         self._ctx.require_permission(Permission.VAULT_WRITE.value, "delete_file")
         logger.info(
             "ExternalVault: module=%s delete_file path=%s",
-            self._ctx.module_name, file_path,
+            self._ctx.module_name,
+            file_path,
         )
         return await self._client.delete_file(file_path)

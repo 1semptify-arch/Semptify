@@ -1,6 +1,6 @@
 # Semptify Current State Map
-**Generated:** May 3, 2026  
-**Focus:** Tenant Role Only | Jinja2 + Static Hybrid  
+**Generated:** May 3, 2026
+**Focus:** Tenant Role Only | Jinja2 + Static Hybrid
 **Status:** Onboarding/Reconnect Broken - In Repair
 
 ---
@@ -204,7 +204,7 @@ public_exposure_router = None  # Bad actor reporting
 
 # NON-CORE (Advocate/Legal Roles - Future)
 advocate_router = None
-legal_router = None  
+legal_router = None
 manager_router = None
 communication_router = None
 document_delivery_router = None
@@ -264,11 +264,7 @@ async def welcome_page(request: Request):
     """Serve welcome page via Jinja2 with SSOT context."""
     return templates.TemplateResponse(
         "pages/welcome.html",
-        {
-            "request": request,
-            "navigation": navigation.to_dict(),
-            "entry_point": "/onboarding/start"
-        }
+        {"request": request, "navigation": navigation.to_dict(), "entry_point": "/onboarding/start"},
     )
 ```
 
@@ -285,6 +281,7 @@ async def welcome_page(request: Request):
 def get_current_user_id(request: Request) -> Optional[str]:
     """Extract user ID from request cookies."""
     from app.core.user_id import parse_user_id, COOKIE_USER_ID
+
     cookie = request.cookies.get(COOKIE_USER_ID)
     if not cookie:
         return None
@@ -311,7 +308,7 @@ async def tenant_home(request: Request, user_id: str = Depends(get_current_user_
     """Tenant home/dashboard - requires auth."""
     if not user_id:
         return RedirectResponse(url="/onboarding/start")
-    
+
     return templates.TemplateResponse(
         "pages/tenant_home.html",
         {
@@ -319,22 +316,23 @@ async def tenant_home(request: Request, user_id: str = Depends(get_current_user_
             "user_id": user_id,
             "navigation": navigation.to_dict(),
             # Add stats, documents count, etc. from DB
-        }
+        },
     )
+
 
 @router.get("/tenant/vault")
 async def tenant_vault(request: Request, user_id: str = Depends(get_current_user_id)):
     """Tenant vault view."""
     if not user_id:
         return RedirectResponse(url="/onboarding/start")
-    
+
     return templates.TemplateResponse(
         "pages/vault.html",
         {
             "request": request,
             "user_id": user_id,
             "navigation": navigation.to_dict(),
-        }
+        },
     )
 ```
 

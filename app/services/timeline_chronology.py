@@ -33,9 +33,7 @@ register_function_group(
             "events",
             "db_session",
         ),
-        outputs=(
-            "chronology_items",
-        ),
+        outputs=("chronology_items",),
         dependencies=(
             VAULT_TIMELINE_EVENTS_FILE,
             "documents",
@@ -113,11 +111,11 @@ async def build_timeline_chronology(
         docs = (
             await db.execute(
                 text("""
-                    SELECT id, uploaded_at, original_filename 
-                    FROM documents 
+                    SELECT id, uploaded_at, original_filename
+                    FROM documents
                     WHERE id = ANY(:doc_ids)
                 """),
-                {"doc_ids": list(source_doc_ids)}
+                {"doc_ids": list(source_doc_ids)},
             )
         ).all()
         for doc_id, uploaded_at, original_filename in docs:

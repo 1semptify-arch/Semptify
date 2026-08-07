@@ -96,9 +96,7 @@ async def send_feedback_email(
     """Forward a user feedback submission to the support inbox."""
     source = f"<p><strong>Page:</strong> {page}</p>" if page else ""
     user_line = (
-        f"<p><strong>From:</strong> {user_email}</p>"
-        if user_email
-        else "<p><strong>From:</strong> anonymous</p>"
+        f"<p><strong>From:</strong> {user_email}</p>" if user_email else "<p><strong>From:</strong> anonymous</p>"
     )
     html = f"""
     <h2>Semptify User Feedback</h2>

@@ -23,16 +23,18 @@ logger = logging.getLogger(__name__)
 
 class MessageType(str, Enum):
     """Types of messages in the communication system."""
-    TEXT = "text"                    # Plain text message
-    DOCUMENT = "document"            # Document reference with message
+
+    TEXT = "text"  # Plain text message
+    DOCUMENT = "document"  # Document reference with message
     SIGNATURE_REQUEST = "signature_request"  # Request for signature
     SIGNATURE_RESPONSE = "signature_response"  # Signature completed
-    SYSTEM = "system"                # System-generated notification
-    CASE_UPDATE = "case_update"       # Case status update
+    SYSTEM = "system"  # System-generated notification
+    CASE_UPDATE = "case_update"  # Case status update
 
 
 class ParticipantRole(str, Enum):
     """Roles of conversation participants."""
+
     TENANT = "tenant"
     ADVOCATE = "advocate"
     MANAGER = "manager"
@@ -43,6 +45,7 @@ class ParticipantRole(str, Enum):
 
 class ConversationStatus(str, Enum):
     """Status of a conversation."""
+
     ACTIVE = "active"
     ARCHIVED = "archived"
     BLOCKED = "blocked"
@@ -50,15 +53,17 @@ class ConversationStatus(str, Enum):
 
 class MessageStatus(str, Enum):
     """Status of a message."""
-    PENDING = "pending"              # Not yet sent (draft)
-    SENT = "sent"                    # Sent, not read
-    DELIVERED = "delivered"          # Delivered to recipient
-    READ = "read"                    # Read by recipient
-    FAILED = "failed"                # Failed to send
+
+    PENDING = "pending"  # Not yet sent (draft)
+    SENT = "sent"  # Sent, not read
+    DELIVERED = "delivered"  # Delivered to recipient
+    READ = "read"  # Read by recipient
+    FAILED = "failed"  # Failed to send
 
 
 class Participant(BaseModel):
     """A participant in a conversation."""
+
     user_id: str
     role: ParticipantRole
     name: str
@@ -70,6 +75,7 @@ class Participant(BaseModel):
 
 class MessageAttachment(BaseModel):
     """An attachment to a message (document, image, etc.)."""
+
     attachment_id: str = Field(default_factory=lambda: make_id("att"))
     filename: str
     document_id: str | None = None  # Reference to vault document
@@ -80,18 +86,20 @@ class MessageAttachment(BaseModel):
 
 class DocumentSignatureRequest(BaseModel):
     """Embedded signature request within a message."""
+
     request_id: str = Field(default_factory=lambda: make_id("sigreq"))
-    document_id: str                 # Document to sign
+    document_id: str  # Document to sign
     document_name: str
-    signature_type: str = "typed"    # typed, drawn, digital
+    signature_type: str = "typed"  # typed, drawn, digital
     required: bool = True
     signed_at: datetime | None = None
     signature_data: dict[str, Any] | None = None  # Signature image, metadata
-    signed_by: str | None = None   # User ID who signed
+    signed_by: str | None = None  # User ID who signed
 
 
 class Message(BaseModel):
     """A message in a conversation."""
+
     message_id: str = Field(default_factory=lambda: make_id("msg"))
     conversation_id: str
 
@@ -102,7 +110,7 @@ class Message(BaseModel):
 
     # Message content
     message_type: MessageType = MessageType.TEXT
-    content: str                     # Message text content
+    content: str  # Message text content
 
     # Attachments and references
     attachments: list[MessageAttachment] = Field(default_factory=list)
@@ -118,26 +126,26 @@ class Message(BaseModel):
 
     # Threading (for replies)
     reply_to_message_id: str | None = None
-    thread_count: int = 0            # Number of replies to this message
+    thread_count: int = 0  # Number of replies to this message
 
-    @field_serializer('created_at', 'sent_at', 'read_at', when_used='json')
+    @field_serializer("created_at", "sent_at", "read_at", when_used="json")
     def serialize_dt(self, v: datetime | None) -> str | None:
         return v.isoformat() if v else None
 
 
-
 class Conversation(BaseModel):
     """A conversation between participants."""
+
     conversation_id: str = Field(default_factory=lambda: make_id("conv"))
 
     # Conversation metadata
     title: str | None = None
-    topic: str | None = None       # Subject/topic of conversation
-    case_id: str | None = None    # Associated case (if any)
+    topic: str | None = None  # Subject/topic of conversation
+    case_id: str | None = None  # Associated case (if any)
 
     # Participants
     participants: list[Participant] = Field(default_factory=list)
-    created_by: str                   # User ID who created conversation
+    created_by: str  # User ID who created conversation
 
     # Status
     status: ConversationStatus = ConversationStatus.ACTIVE
@@ -152,6 +160,7 @@ class Conversation(BaseModel):
 
 class ConversationSummary(BaseModel):
     """Summary view of a conversation for listing."""
+
     conversation_id: str
     title: str | None
     topic: str | None
@@ -164,6 +173,7 @@ class ConversationSummary(BaseModel):
 
 class ConversationListResponse(BaseModel):
     """Response with list of conversations."""
+
     conversations: list[ConversationSummary]
     total_count: int
     unread_total: int
@@ -171,6 +181,7 @@ class ConversationListResponse(BaseModel):
 
 class MessageThreadResponse(BaseModel):
     """Response with messages in a conversation."""
+
     conversation: Conversation
     messages: list[Message]
     has_more: bool = False
@@ -179,6 +190,7 @@ class MessageThreadResponse(BaseModel):
 
 class SendMessageRequest(BaseModel):
     """Request to send a message."""
+
     conversation_id: str | None = None  # Create new if not provided
     recipient_ids: list[str] = Field(default_factory=list)  # For new conversations
     content: str
@@ -191,6 +203,7 @@ class SendMessageRequest(BaseModel):
 
 class SendMessageResponse(BaseModel):
     """Response after sending a message."""
+
     success: bool
     message_id: str | None = None
     conversation_id: str | None = None
@@ -200,15 +213,17 @@ class SendMessageResponse(BaseModel):
 
 class CreateConversationRequest(BaseModel):
     """Request to create a new conversation."""
+
     title: str | None = None
     topic: str | None = None
-    recipient_ids: list[str]               # Initial participants (besides creator)
+    recipient_ids: list[str]  # Initial participants (besides creator)
     case_id: str | None = None
     initial_message: str | None = None
 
 
 class CreateConversationResponse(BaseModel):
     """Response after creating a conversation."""
+
     success: bool
     conversation_id: str | None = None
     created_at: datetime | None = None
@@ -217,6 +232,7 @@ class CreateConversationResponse(BaseModel):
 
 class MarkReadRequest(BaseModel):
     """Request to mark messages as read."""
+
     message_ids: list[str] = Field(default_factory=list)
     # Or mark all in conversation as read
     conversation_id: str | None = None
@@ -225,6 +241,7 @@ class MarkReadRequest(BaseModel):
 
 class TypingIndicator(BaseModel):
     """Typing indicator for real-time presence."""
+
     conversation_id: str
     user_id: str
     is_typing: bool
@@ -233,21 +250,24 @@ class TypingIndicator(BaseModel):
 
 class DocumentFillRequest(BaseModel):
     """Request for tenant to fill out a document form."""
+
     delivery_id: str
-    field_values: dict[str, Any]         # Form field values
-    completed: bool = False              # Is form complete?
+    field_values: dict[str, Any]  # Form field values
+    completed: bool = False  # Is form complete?
 
 
 class DocumentFillResponse(BaseModel):
     """Response after filling a document."""
+
     success: bool
-    document_id: str | None = None    # New document ID in vault
+    document_id: str | None = None  # New document ID in vault
     filled_at: datetime | None = None
     error: str | None = None
 
 
 class CommunicationPreferences(BaseModel):
     """User preferences for communication."""
+
     user_id: str
     email_notifications: bool = True
     sms_notifications: bool = False

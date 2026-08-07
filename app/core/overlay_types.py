@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class OverlayType(str, Enum):
     """
     All overlay types for the unified overlay system.
-    
+
     Design principle: Each type is a distinct mutation layer on top of
     immutable vault documents. Originals never change; overlays provide all
     mutable behavior.

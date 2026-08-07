@@ -66,9 +66,7 @@ def _category_paths(doc_map: list[dict]) -> dict[str, set[str]]:
     return mapping
 
 
-def _match_category(
-    category_paths: dict[str, set[str]], touched_files: set[str]
-) -> set[str]:
+def _match_category(category_paths: dict[str, set[str]], touched_files: set[str]) -> set[str]:
     """Return which categories have any path overlap with touched files."""
     matched: set[str] = set()
     touched = {Path(f) for f in touched_files}
@@ -115,7 +113,7 @@ def _get_commits(since: datetime.datetime | None = None) -> list[dict]:
         if len(parts) < 3:
             continue
         commit_hash, iso, subject = parts[0], parts[1], parts[2]
-        files = set(lines[1:])
+        set(lines[1:])
         commits.append(
             {
                 "hash": commit_hash[:12],
@@ -131,7 +129,7 @@ def _parse_category_prefix(subject: str) -> tuple[str | None, str]:
     """Return (category, rest_of_subject) if the subject starts with a known prefix."""
     for cat in CATEGORIES:
         if subject.startswith(f"{cat}:"):
-            return cat, subject[len(f"{cat}:"):].strip()
+            return cat, subject[len(f"{cat}:") :].strip()
     return None, subject
 
 
@@ -150,18 +148,14 @@ def _append_to_changelog(cat: str, lines: list[str]) -> None:
 
 
 def _format_entry(commit: dict, cleaned_subject: str, files: list[str]) -> str:
-    date_str = commit["date"].astimezone(datetime.UTC).strftime(
-        "%Y-%m-%d %H:%M"
-    )
+    date_str = commit["date"].astimezone(datetime.UTC).strftime("%Y-%m-%d %H:%M")
     file_list = ", ".join(sorted(files))[:120]
     if len(", ".join(sorted(files))) > 120:
         file_list += "…"
     return f"- {date_str} [{commit['hash']}] {cleaned_subject} | {file_list}"
 
 
-def _relevant_files_for_category(
-    cat: str, commit_files: set[str], category_paths: dict[str, set[str]]
-) -> list[str]:
+def _relevant_files_for_category(cat: str, commit_files: set[str], category_paths: dict[str, set[str]]) -> list[str]:
     matched: set[str] = set()
     for f in commit_files:
         fp = Path(f)
@@ -172,9 +166,7 @@ def _relevant_files_for_category(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Append categorized commit summaries to docs/CHANGELOG-{category}.md."
-    )
+    parser = argparse.ArgumentParser(description="Append categorized commit summaries to docs/CHANGELOG-{category}.md.")
     parser.add_argument(
         "--since",
         help="Process commits since this ISO datetime (default: since last changelog entry).",
@@ -222,10 +214,7 @@ def main() -> int:
             print(f"CHANGELOG-{cat}.md: +{len(lines)} entries")
 
     total = sum(len(v) for v in added.values())
-    print(
-        f"Appended {total} changelog entries across "
-        f"{len([v for v in added.values() if v])} categories."
-    )
+    print(f"Appended {total} changelog entries across {len([v for v in added.values() if v])} categories.")
     return 0
 
 

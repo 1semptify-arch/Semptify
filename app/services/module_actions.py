@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 # DOCUMENTS MODULE ACTIONS
 # =============================================================================
 
+
 async def documents_extract_eviction_data(
     user_id: str,
     _params: dict[str, Any],
@@ -94,8 +95,7 @@ async def documents_gather_evidence(
     documents = user_data.get("documents", [])
 
     evidence_docs = [
-        doc for doc in documents
-        if doc.get("category") in ["payment_proof", "communication", "photos", "receipts"]
+        doc for doc in documents if doc.get("category") in ["payment_proof", "communication", "photos", "receipts"]
     ]
 
     return {
@@ -123,6 +123,7 @@ async def documents_get_state(
 # =============================================================================
 # CALENDAR MODULE ACTIONS
 # =============================================================================
+
 
 async def calendar_calculate_deadlines(
     user_id: str,
@@ -198,22 +199,26 @@ async def calendar_set_lease_reminders(
 
     # Rent due reminder
     rent_due_day = terms.get("rent_due_day", 1)
-    reminders.append({
-        "type": "recurring",
-        "day": rent_due_day,
-        "event": "Rent Due",
-        "reminder_days_before": 3,
-    })
+    reminders.append(
+        {
+            "type": "recurring",
+            "day": rent_due_day,
+            "event": "Rent Due",
+            "reminder_days_before": 3,
+        }
+    )
 
     # Lease end reminder
     lease_end = lease_dates.get("end", "")
     if lease_end:
-        reminders.append({
-            "type": "one-time",
-            "date": lease_end,
-            "event": "Lease Ends",
-            "reminder_days_before": 60,  # 60 days notice typically required
-        })
+        reminders.append(
+            {
+                "type": "one-time",
+                "date": lease_end,
+                "event": "Lease Ends",
+                "reminder_days_before": 60,  # 60 days notice typically required
+            }
+        )
 
     return {"reminders": reminders}
 
@@ -236,13 +241,14 @@ async def calendar_get_state(
 # PROCESS DETECTION MODULE ACTIONS (for automatic routing)
 # =============================================================================
 
+
 async def process_detect_current_process(
     user_id: str,
     _params: dict[str, Any],
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Detect which process the user should be in based on their state.
-    
+
     This action analyzes available data and returns the appropriate process
     for automatic routing via the mesh workflow system.
     """
@@ -287,6 +293,7 @@ async def process_detect_current_process(
 # =============================================================================
 # EVICTION DEFENSE MODULE ACTIONS
 # =============================================================================
+
 
 async def eviction_analyze_defenses(
     user_id: str,
@@ -412,6 +419,7 @@ async def eviction_get_state(
 # FORMS MODULE ACTIONS
 # =============================================================================
 
+
 async def forms_prepare_answer_form(
     user_id: str,
     _params: dict[str, Any],
@@ -460,6 +468,7 @@ async def forms_prepare_court_packet(
 # COPILOT MODULE ACTIONS
 # =============================================================================
 
+
 async def copilot_generate_guidance(
     user_id: str,
     _params: dict[str, Any],
@@ -474,30 +483,38 @@ async def copilot_generate_guidance(
     next_steps = []
 
     if days_until_answer <= 3:
-        next_steps.append({
-            "priority": "critical",
-            "action": "File your Answer TODAY",
-            "description": "Your answer deadline is very close. Submit immediately.",
-        })
+        next_steps.append(
+            {
+                "priority": "critical",
+                "action": "File your Answer TODAY",
+                "description": "Your answer deadline is very close. Submit immediately.",
+            }
+        )
     else:
-        next_steps.append({
-            "priority": "high",
-            "action": "Review and complete your Answer form",
-            "description": f"You have {days_until_answer} days to file your answer.",
-        })
+        next_steps.append(
+            {
+                "priority": "high",
+                "action": "Review and complete your Answer form",
+                "description": f"You have {days_until_answer} days to file your answer.",
+            }
+        )
 
     if defenses:
-        next_steps.append({
-            "priority": "medium",
-            "action": "Gather evidence for your defenses",
-            "description": f"You have {len(defenses)} potential defenses to document.",
-        })
+        next_steps.append(
+            {
+                "priority": "medium",
+                "action": "Gather evidence for your defenses",
+                "description": f"You have {len(defenses)} potential defenses to document.",
+            }
+        )
 
-    next_steps.append({
-        "priority": "medium",
-        "action": "Consider legal assistance",
-        "description": "Free legal aid may be available in your area.",
-    })
+    next_steps.append(
+        {
+            "priority": "medium",
+            "action": "Consider legal assistance",
+            "description": "Free legal aid may be available in your area.",
+        }
+    )
 
     return {
         "next_steps": next_steps,
@@ -554,6 +571,7 @@ async def copilot_generate_talking_points(
 # LAW LIBRARY MODULE ACTIONS
 # =============================================================================
 
+
 async def law_library_check_lease_violations(
     user_id: str,
     _params: dict[str, Any],
@@ -570,10 +588,12 @@ async def law_library_check_lease_violations(
     late_fee = terms.get("late_fee", 0)
     rent = context.get("rent_amount", 1000)
     if late_fee > rent * 0.05:
-        violations.append({
-            "issue": "Excessive late fee",
-            "description": f"Late fee of ${late_fee} may exceed legal limit",
-        })
+        violations.append(
+            {
+                "issue": "Excessive late fee",
+                "description": f"Late fee of ${late_fee} may exceed legal limit",
+            }
+        )
 
     tenant_rights = [
         "Right to habitable premises",
@@ -591,6 +611,7 @@ async def law_library_check_lease_violations(
 # =============================================================================
 # TIMELINE MODULE ACTIONS
 # =============================================================================
+
 
 async def timeline_create_lease_timeline(
     user_id: str,
@@ -631,7 +652,7 @@ async def timeline_extract_from_document(
     context: dict[str, Any],
 ) -> dict[str, Any]:
     """Extract timeline events from a document via the mesh.
-    
+
     This action wraps the standalone timeline extraction service
     to make it available as a mesh-orchestrated step.
     """
@@ -690,6 +711,7 @@ async def timeline_get_state(
 # ZOOM COURT MODULE ACTIONS
 # =============================================================================
 
+
 async def zoom_court_prepare_virtual_hearing(
     user_id: str,
     _params: dict[str, Any],
@@ -721,6 +743,7 @@ async def zoom_court_prepare_virtual_hearing(
 # CONTEXT MODULE ACTIONS
 # =============================================================================
 
+
 async def context_merge_states(
     user_id: str,
     _params: dict[str, Any],
@@ -743,6 +766,7 @@ async def context_merge_states(
 # =============================================================================
 # UI MODULE ACTIONS
 # =============================================================================
+
 
 async def ui_update_dashboard(
     user_id: str,
@@ -792,168 +816,179 @@ async def ui_refresh(
 # REGISTRATION FUNCTION
 # =============================================================================
 
+
 def register_all_actions():
     """Register all module actions with the Positronic Mesh"""
     logger.info("○ Registering module actions with Positronic Mesh...")
 
     # Documents module
     positronic_mesh.register_action(
-        "documents", "extract_eviction_data", documents_extract_eviction_data,
+        "documents",
+        "extract_eviction_data",
+        documents_extract_eviction_data,
         "Extract eviction data from document",
-        produces=["eviction_date", "landlord", "reason", "court_info"]
+        produces=["eviction_date", "landlord", "reason", "court_info"],
     )
     positronic_mesh.register_action(
-        "documents", "extract_lease_terms", documents_extract_lease_terms,
+        "documents",
+        "extract_lease_terms",
+        documents_extract_lease_terms,
         "Extract lease terms from document",
-        produces=["rent_amount", "lease_dates", "terms", "landlord_info"]
+        produces=["rent_amount", "lease_dates", "terms", "landlord_info"],
     )
     positronic_mesh.register_action(
-        "documents", "gather_evidence", documents_gather_evidence,
+        "documents",
+        "gather_evidence",
+        documents_gather_evidence,
         "Gather evidence documents",
-        produces=["evidence_documents"]
+        produces=["evidence_documents"],
     )
     positronic_mesh.register_action(
-        "documents", "get_state", documents_get_state,
-        "Get documents state",
-        produces=["documents_state"]
+        "documents", "get_state", documents_get_state, "Get documents state", produces=["documents_state"]
     )
 
     # Calendar module
     positronic_mesh.register_action(
-        "calendar", "calculate_deadlines", calendar_calculate_deadlines,
+        "calendar",
+        "calculate_deadlines",
+        calendar_calculate_deadlines,
         "Calculate deadlines from eviction data",
-        produces=["answer_deadline", "hearing_date", "critical_dates"]
+        produces=["answer_deadline", "hearing_date", "critical_dates"],
     )
     positronic_mesh.register_action(
-        "calendar", "set_lease_reminders", calendar_set_lease_reminders,
+        "calendar",
+        "set_lease_reminders",
+        calendar_set_lease_reminders,
         "Set reminders based on lease",
-        produces=["reminders"]
+        produces=["reminders"],
     )
     positronic_mesh.register_action(
-        "calendar", "get_state", calendar_get_state,
-        "Get calendar state",
-        produces=["calendar_state"]
+        "calendar", "get_state", calendar_get_state, "Get calendar state", produces=["calendar_state"]
     )
     positronic_mesh.register_action(
-        "calendar", "get_urgent_deadlines", calendar_calculate_deadlines,
+        "calendar",
+        "get_urgent_deadlines",
+        calendar_calculate_deadlines,
         "Get urgent deadlines",
-        produces=["urgent_deadlines"]
+        produces=["urgent_deadlines"],
     )
 
     # Process detection module (for automatic routing)
     positronic_mesh.register_action(
-        "process_detection", "detect_current_process", process_detect_current_process,
+        "process_detection",
+        "detect_current_process",
+        process_detect_current_process,
         "Detect user's current process for automatic routing",
-        produces=["detected_process", "process_urgency", "routing_destination"]
+        produces=["detected_process", "process_urgency", "routing_destination"],
     )
 
     # Eviction defense module
     positronic_mesh.register_action(
-        "eviction_defense", "analyze_defenses", eviction_analyze_defenses,
+        "eviction_defense",
+        "analyze_defenses",
+        eviction_analyze_defenses,
         "Analyze available defenses",
-        produces=["available_defenses", "recommended_strategy"]
+        produces=["available_defenses", "recommended_strategy"],
     )
     positronic_mesh.register_action(
-        "eviction_defense", "compile_case_info", eviction_compile_case_info,
+        "eviction_defense",
+        "compile_case_info",
+        eviction_compile_case_info,
         "Compile case information",
-        produces=["case_summary", "evidence_list"]
+        produces=["case_summary", "evidence_list"],
     )
     positronic_mesh.register_action(
-        "eviction_defense", "get_state", eviction_get_state,
-        "Get eviction defense state",
-        produces=["eviction_state"]
+        "eviction_defense", "get_state", eviction_get_state, "Get eviction defense state", produces=["eviction_state"]
     )
 
     # Forms module
     positronic_mesh.register_action(
-        "forms", "prepare_answer_form", forms_prepare_answer_form,
-        "Prepare Answer form",
-        produces=["answer_form_draft"]
+        "forms", "prepare_answer_form", forms_prepare_answer_form, "Prepare Answer form", produces=["answer_form_draft"]
     )
     positronic_mesh.register_action(
-        "forms", "prepare_court_packet", forms_prepare_court_packet,
-        "Prepare court packet",
-        produces=["court_packet"]
+        "forms", "prepare_court_packet", forms_prepare_court_packet, "Prepare court packet", produces=["court_packet"]
     )
 
     # Copilot module
     positronic_mesh.register_action(
-        "copilot", "generate_guidance", copilot_generate_guidance,
+        "copilot",
+        "generate_guidance",
+        copilot_generate_guidance,
         "Generate guidance and next steps",
-        produces=["next_steps", "recommendations"]
+        produces=["next_steps", "recommendations"],
     )
     positronic_mesh.register_action(
-        "copilot", "explain_deadline", copilot_explain_deadline,
+        "copilot",
+        "explain_deadline",
+        copilot_explain_deadline,
         "Explain a deadline",
-        produces=["deadline_explanation", "required_actions"]
+        produces=["deadline_explanation", "required_actions"],
     )
     positronic_mesh.register_action(
-        "copilot", "generate_talking_points", copilot_generate_talking_points,
+        "copilot",
+        "generate_talking_points",
+        copilot_generate_talking_points,
         "Generate talking points for court",
-        produces=["talking_points", "objection_responses"]
+        produces=["talking_points", "objection_responses"],
     )
 
     # Law library module
     positronic_mesh.register_action(
-        "law_library", "check_lease_violations", law_library_check_lease_violations,
+        "law_library",
+        "check_lease_violations",
+        law_library_check_lease_violations,
         "Check lease for violations",
-        produces=["violations", "tenant_rights"]
+        produces=["violations", "tenant_rights"],
     )
 
     # Timeline module
     positronic_mesh.register_action(
-        "timeline", "create_lease_timeline", timeline_create_lease_timeline,
+        "timeline",
+        "create_lease_timeline",
+        timeline_create_lease_timeline,
         "Create lease timeline",
-        produces=["lease_events"]
+        produces=["lease_events"],
     )
     positronic_mesh.register_action(
-        "timeline", "build_case_timeline", timeline_build_case_timeline,
+        "timeline",
+        "build_case_timeline",
+        timeline_build_case_timeline,
         "Build case timeline",
-        produces=["case_timeline"]
+        produces=["case_timeline"],
     )
     positronic_mesh.register_action(
-        "timeline", "extract_from_document", timeline_extract_from_document,
+        "timeline",
+        "extract_from_document",
+        timeline_extract_from_document,
         "Extract timeline events from document",
-        produces=["timeline_extracted", "events_count", "events"]
+        produces=["timeline_extracted", "events_count", "events"],
     )
     positronic_mesh.register_action(
-        "timeline", "get_state", timeline_get_state,
-        "Get timeline state",
-        produces=["timeline_state"]
+        "timeline", "get_state", timeline_get_state, "Get timeline state", produces=["timeline_state"]
     )
 
     # Zoom court module
     positronic_mesh.register_action(
-        "zoom_court", "prepare_virtual_hearing", zoom_court_prepare_virtual_hearing,
+        "zoom_court",
+        "prepare_virtual_hearing",
+        zoom_court_prepare_virtual_hearing,
         "Prepare for virtual hearing",
-        produces=["hearing_prep"]
+        produces=["hearing_prep"],
     )
 
     # Context module
     positronic_mesh.register_action(
-        "context", "merge_states", context_merge_states,
-        "Merge all module states",
-        produces=["unified_context"]
+        "context", "merge_states", context_merge_states, "Merge all module states", produces=["unified_context"]
     )
 
     # UI module
     positronic_mesh.register_action(
-        "ui", "update_dashboard", ui_update_dashboard,
-        "Update the dashboard",
-        produces=["ui_state"]
+        "ui", "update_dashboard", ui_update_dashboard, "Update the dashboard", produces=["ui_state"]
     )
-    positronic_mesh.register_action(
-        "ui", "show_alert", ui_show_alert,
-        "Show an alert",
-        produces=["alert_shown"]
-    )
-    positronic_mesh.register_action(
-        "ui", "refresh", ui_refresh,
-        "Refresh the UI",
-        produces=["ui_refreshed"]
-    )
+    positronic_mesh.register_action("ui", "show_alert", ui_show_alert, "Show an alert", produces=["alert_shown"])
+    positronic_mesh.register_action("ui", "refresh", ui_refresh, "Refresh the UI", produces=["ui_refreshed"])
 
     status = positronic_mesh.get_mesh_status()
-    logger.info("● Registered %s actions across %s modules", status['total_actions'], status['modules_connected'])
+    logger.info("● Registered %s actions across %s modules", status["total_actions"], status["modules_connected"])
 
     return status

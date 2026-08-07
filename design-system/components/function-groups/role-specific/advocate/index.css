@@ -290,11 +290,11 @@
   .advocate-dashboard {
     padding: var(--space-md);
   }
-  
+
   .advocate-header {
     padding: var(--space-lg);
   }
-  
+
   .advocate-client-management {
     padding: var(--space-md);
   }
@@ -307,7 +307,7 @@
     --advocate-header-bg: linear-gradient(135deg, var(--color-advocate-primary), var(--color-advocate-primary-dark));
     --advocate-emergency-bg: rgba(239, 68, 68, 0.2);
   }
-  
+
   .advocate-header::before {
     background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
   }
@@ -338,7 +338,7 @@
   .advocate-header::before {
     animation: none;
   }
-  
+
   .role-advocate * {
     transition: none;
   }

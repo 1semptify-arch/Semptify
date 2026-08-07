@@ -18,19 +18,20 @@ logger = logging.getLogger(__name__)
 
 class ActionType(Enum):
     """Types of actions available."""
-    NAVIGATE = auto()      # Go to another page
-    TRIGGER = auto()       # Trigger a workflow
-    OPEN = auto()          # Open modal/panel
-    DOWNLOAD = auto()      # Download file
-    SHARE = auto()         # Share content
-    EXTERNAL = auto()      # External link
+
+    NAVIGATE = auto()  # Go to another page
+    TRIGGER = auto()  # Trigger a workflow
+    OPEN = auto()  # Open modal/panel
+    DOWNLOAD = auto()  # Download file
+    SHARE = auto()  # Share content
+    EXTERNAL = auto()  # External link
 
 
 @dataclass
 class QuickAction:
     """
     Definition of a quick action button/link.
-    
+
     Usage:
         action = QuickAction(
             action_id="view_deadlines",
@@ -41,6 +42,7 @@ class QuickAction:
             telemetry_event="quick_action_clicked",
         )
     """
+
     action_id: str
     label: str
     icon: str | None = None

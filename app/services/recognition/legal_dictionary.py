@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class LegalPhraseCategory(str, Enum):
     """Categories of legal phrases"""
+
     # Document Headers/Titles
     DOCUMENT_HEADER = "document_header"
 
@@ -53,6 +54,7 @@ class LegalPhraseCategory(str, Enum):
 @dataclass
 class LegalPhrase:
     """A recognized legal phrase with metadata"""
+
     canonical: str  # The standard form
     variations: list[str]  # All accepted variations
     category: LegalPhraseCategory
@@ -66,7 +68,7 @@ class LegalPhrase:
 class MinnesotaLegalDictionary:
     """
     Comprehensive dictionary of Minnesota tenant law terms and phrases.
-    
+
     This provides word-for-word accuracy for legal document recognition.
     """
 
@@ -410,7 +412,7 @@ class MinnesotaLegalDictionary:
     def _build_document_type_patterns(self) -> dict[str, list[tuple[str, float]]]:
         """
         Build document type identification patterns.
-        
+
         Returns dict mapping document type to list of (pattern, weight) tuples.
         Higher weight = stronger indicator.
         """
@@ -423,7 +425,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)NOTICE\s+TO\s+(?:QUIT|VACATE)", 5.0),
                 (r"(?i)MINN\.?\s*STAT\.?\s*§?\s*504B\.135", 10.0),
             ],
-
             # Court Summons
             "SUMMONS": [
                 (r"(?i)^SUMMONS", 10.0),
@@ -434,7 +435,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)YOU\s+ARE\s+BEING\s+SUED", 10.0),
                 (r"(?i)YOU\s+MUST\s+(?:REPLY|RESPOND|ANSWER)", 8.0),
             ],
-
             # Complaint
             "COMPLAINT": [
                 (r"(?i)COMPLAINT\s+FOR\s+(?:EVICTION|RECOVERY)", 10.0),
@@ -442,7 +442,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)PLAINTIFF\s+(?:v\.?|vs\.?|versus)", 8.0),
                 (r"(?i)DEFENDANT", 5.0),
             ],
-
             # Lease Agreement
             "LEASE_AGREEMENT": [
                 (r"(?i)RESIDENTIAL\s+LEASE\s+AGREEMENT", 10.0),
@@ -453,7 +452,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)TERM\s+OF\s+(?:LEASE|TENANCY)", 5.0),
                 (r"(?i)SECURITY\s+DEPOSIT", 4.0),
             ],
-
             # Rent Receipt
             "RENT_RECEIPT": [
                 (r"(?i)RENT\s+RECEIPT", 10.0),
@@ -461,7 +459,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)RECEIVED\s+FROM", 6.0),
                 (r"(?i)FOR\s+RENT\s+(?:FOR|OF)", 7.0),
             ],
-
             # Security Deposit
             "SECURITY_DEPOSIT_STATEMENT": [
                 (r"(?i)SECURITY\s+DEPOSIT\s+(?:ITEMIZATION|STATEMENT|ACCOUNTING)", 10.0),
@@ -469,7 +466,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)ITEMIZED\s+DEDUCTIONS?", 8.0),
                 (r"(?i)MOVE[- ]?OUT\s+(?:INSPECTION|DATE)", 6.0),
             ],
-
             # Repair Request
             "REPAIR_REQUEST": [
                 (r"(?i)NOTICE\s+OF\s+REPAIR\s+REQUEST", 10.0),
@@ -478,7 +474,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)MINN\.?\s*STAT\.?\s*§?\s*504B\.185", 10.0),
                 (r"(?i)COVENANT\s+OF\s+HABITABILITY", 8.0),
             ],
-
             # Rent Increase Notice
             "RENT_INCREASE": [
                 (r"(?i)NOTICE\s+OF\s+RENT\s+INCREASE", 10.0),
@@ -486,7 +481,6 @@ class MinnesotaLegalDictionary:
                 (r"(?i)NEW\s+(?:RENT|RENTAL)\s+(?:AMOUNT|RATE)", 7.0),
                 (r"(?i)CURRENT\s+RENT.*NEW\s+RENT", 8.0),
             ],
-
             # Writ of Recovery
             "WRIT_OF_RECOVERY": [
                 (r"(?i)WRIT\s+OF\s+(?:RECOVERY|RESTITUTION)", 10.0),
@@ -564,7 +558,7 @@ class MinnesotaLegalDictionary:
     def _build_ocr_corrections(self) -> dict[str, str]:
         """
         Build OCR error correction dictionary.
-        
+
         Common OCR mistakes when reading legal documents.
         """
         return {
@@ -586,14 +580,12 @@ class MinnesotaLegalDictionary:
             "wliere": "where",
             "wliy": "why",
             "liow": "how",
-
             # m/n/rn confusion
             "rn": "m",
             "tenn": "term",
             "arnount": "amount",
             "payrnent": "payment",
             "judgrnent": "judgment",
-
             # l/1/I confusion
             "1ease": "lease",
             "1andlord": "landlord",
@@ -602,11 +594,9 @@ class MinnesotaLegalDictionary:
             "I0": "10",
             "I4": "14",
             "I5": "15",
-
             # 0/O confusion
             "0rder": "Order",
             "0wner": "Owner",
-
             # Common phrase corrections
             "PAY RENT 0R QUIT": "PAY RENT OR QUIT",
             "N0TICE": "NOTICE",
@@ -672,10 +662,10 @@ class MinnesotaLegalDictionary:
     def correct_ocr_text(self, text: str) -> str:
         """
         Apply OCR corrections to text.
-        
+
         Args:
             text: Raw OCR text
-            
+
         Returns:
             Corrected text
         """
@@ -683,7 +673,7 @@ class MinnesotaLegalDictionary:
 
         for wrong, right in self.ocr_corrections.items():
             # Word boundary matching for safety
-            pattern = r'\b' + re.escape(wrong) + r'\b'
+            pattern = r"\b" + re.escape(wrong) + r"\b"
             corrected = re.sub(pattern, right, corrected)
 
         return corrected
@@ -691,28 +681,30 @@ class MinnesotaLegalDictionary:
     def identify_phrases(self, text: str) -> list[dict]:
         """
         Identify all legal phrases in text.
-        
+
         Returns list of found phrases with positions and metadata.
         """
         found = []
-        text_lower = text.lower()
+        text.lower()
 
         for key, phrase in self.phrases.items():
             # Check canonical form
             pattern = re.escape(phrase.canonical)
             matches = list(re.finditer(pattern, text, re.IGNORECASE))
             for match in matches:
-                found.append({
-                    "phrase_key": key,
-                    "matched_text": match.group(),
-                    "canonical": phrase.canonical,
-                    "category": phrase.category.value,
-                    "severity": phrase.severity,
-                    "statute": phrase.statute,
-                    "meaning": phrase.meaning,
-                    "position": (match.start(), match.end()),
-                    "confidence": 1.0,
-                })
+                found.append(
+                    {
+                        "phrase_key": key,
+                        "matched_text": match.group(),
+                        "canonical": phrase.canonical,
+                        "category": phrase.category.value,
+                        "severity": phrase.severity,
+                        "statute": phrase.statute,
+                        "meaning": phrase.meaning,
+                        "position": (match.start(), match.end()),
+                        "confidence": 1.0,
+                    }
+                )
 
             # Check variations if canonical not found
             if not matches:
@@ -720,17 +712,19 @@ class MinnesotaLegalDictionary:
                     pattern = re.escape(variation)
                     matches = list(re.finditer(pattern, text, re.IGNORECASE))
                     for match in matches:
-                        found.append({
-                            "phrase_key": key,
-                            "matched_text": match.group(),
-                            "canonical": phrase.canonical,
-                            "category": phrase.category.value,
-                            "severity": phrase.severity,
-                            "statute": phrase.statute,
-                            "meaning": phrase.meaning,
-                            "position": (match.start(), match.end()),
-                            "confidence": 0.95,
-                        })
+                        found.append(
+                            {
+                                "phrase_key": key,
+                                "matched_text": match.group(),
+                                "canonical": phrase.canonical,
+                                "category": phrase.category.value,
+                                "severity": phrase.severity,
+                                "statute": phrase.statute,
+                                "meaning": phrase.meaning,
+                                "position": (match.start(), match.end()),
+                                "confidence": 0.95,
+                            }
+                        )
                     if matches:
                         break  # Found a match, don't need other variations
 
@@ -739,7 +733,7 @@ class MinnesotaLegalDictionary:
     def identify_document_type(self, text: str) -> tuple[str, float, list[str]]:
         """
         Identify document type with confidence score.
-        
+
         Returns:
             Tuple of (document_type, confidence, matched_patterns)
         """
@@ -775,14 +769,16 @@ class MinnesotaLegalDictionary:
         for statute_num, info in self.statutory_references.items():
             matches = list(re.finditer(info["pattern"], text))
             for match in matches:
-                found.append({
-                    "statute": statute_num,
-                    "full_citation": f"Minn. Stat. § {statute_num}",
-                    "title": info["title"],
-                    "summary": info["summary"],
-                    "position": (match.start(), match.end()),
-                    "matched_text": match.group(),
-                })
+                found.append(
+                    {
+                        "statute": statute_num,
+                        "full_citation": f"Minn. Stat. § {statute_num}",
+                        "title": info["title"],
+                        "summary": info["summary"],
+                        "position": (match.start(), match.end()),
+                        "matched_text": match.group(),
+                    }
+                )
 
         return found
 
@@ -803,12 +799,14 @@ class MinnesotaLegalDictionary:
                     except Exception:
                         valid = False
 
-                matches.append({
-                    "value": value,
-                    "position": (match.start(), match.end()),
-                    "full_match": match.group(),
-                    "valid": valid,
-                })
+                matches.append(
+                    {
+                        "value": value,
+                        "position": (match.start(), match.end()),
+                        "full_match": match.group(),
+                        "valid": valid,
+                    }
+                )
 
             if matches:
                 results[num_type] = matches
@@ -833,6 +831,7 @@ class MinnesotaLegalDictionary:
 
 # Singleton instance
 _dictionary = None
+
 
 def get_legal_dictionary() -> MinnesotaLegalDictionary:
     """Get or create singleton dictionary instance"""

@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Downloads PostgreSQL and Python installers for offline distribution
-    
+
 .DESCRIPTION
     Downloads the required installers to bundle with Semptify for fully offline installation
 #>
@@ -43,17 +43,17 @@ foreach ($download in $downloads) {
     Write-Host "[*] Downloading $($download.Name)..." -ForegroundColor Yellow
     Write-Host "    URL: $($download.URL)" -ForegroundColor Gray
     Write-Host "    To:  $($download.Output)" -ForegroundColor Gray
-    
+
     if (Test-Path $download.Output) {
         Write-Host "    [SKIP] Already exists" -ForegroundColor Cyan
         continue
     }
-    
+
     try {
         $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -Uri $download.URL -OutFile $download.Output -UseBasicParsing
         $ProgressPreference = 'Continue'
-        
+
         $size = [math]::Round((Get-Item $download.Output).Length / 1MB, 2)
         Write-Host "    [OK] Downloaded ($size MB)" -ForegroundColor Green
     } catch {

@@ -1,7 +1,7 @@
 # Semptify Partner & Developer Integration Guide
 
-> **Version:** 1.0 — June 2026  
-> **Audience:** External developers, partner organisations, and anyone building on or integrating with Semptify.  
+> **Version:** 1.0 — June 2026
+> **Audience:** External developers, partner organisations, and anyone building on or integrating with Semptify.
 > **Status:** Authoritative. If code and this document conflict, fix the code.
 
 ---
@@ -128,7 +128,7 @@ app/modules/your_module/
 _register(
     "app.modules.your_module.router",
     tags=("Your Module",),
-    tier=ProductTier.EXTENDED,   # pick the right tier
+    tier=ProductTier.EXTENDED,  # pick the right tier
     optional=True,
 )
 ```
@@ -198,22 +198,26 @@ module_definition = ModuleDefinition(
 
 sdk = ModuleSDK(module_definition)
 
+
 @sdk.action("your_action", produces=["result"])
 async def your_action(user_id: str, params: dict, context: dict):
     return {"result": "done"}
 
+
 def initialize():
     sdk.initialize()
 
+
 def cleanup():
     pass
+
 
 __all__ = ["sdk", "module_definition", "initialize", "cleanup"]
 ```
 
 **Plugin discovery directories** (checked in order):
 1. `app/plugins/` — built-in plugins
-2. `plugins/` — repo-level user plugins  
+2. `plugins/` — repo-level user plugins
 3. `~/.semptify/plugins/` — user home plugins
 
 ---
@@ -298,13 +302,13 @@ better code than partially-written code that doesn't follow the conventions.
 # Required pattern — all authenticated routes
 from app.core.security import require_user  # or yellow_access, require_role
 
+
 @router.get("/api/your-module/{id}", tags=["Your Module"])
 async def get_thing(
     id: str,
-    current_user = Depends(require_user),
+    current_user=Depends(require_user),
     db: AsyncSession = Depends(get_db),
-) -> YourResponseModel:
-    ...
+) -> YourResponseModel: ...
 ```
 
 - Every route must have a `tags` value matching your module's registered tag.
@@ -316,7 +320,7 @@ async def get_thing(
 
 **Never do this:**
 ```python
-return RedirectResponse(url="/onboarding/step2")   # ❌ hardcoded
+return RedirectResponse(url="/onboarding/step2")  # ❌ hardcoded
 ```
 ```javascript
 window.location.href = "/onboarding/step2";        // ❌ hardcoded
@@ -328,8 +332,9 @@ window.location.href = "/onboarding/step2";        // ❌ hardcoded
 **Always do this:**
 ```python
 from app.core.navigation import navigation
+
 stage = navigation.get_stage("vault_setup")
-return RedirectResponse(url=stage.path)            # ✅ SSOT
+return RedirectResponse(url=stage.path)  # ✅ SSOT
 ```
 ```javascript
 // In static files — fetch the navigation API first

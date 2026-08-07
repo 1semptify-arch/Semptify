@@ -46,8 +46,10 @@ router = APIRouter(prefix="/api/recognition", tags=["Document Recognition"])
 # Request/Response Models
 # =============================================================================
 
+
 class AnalyzeTextRequest(BaseModel):
     """Request to analyze document text."""
+
     text: str = Field(..., min_length=10, description="Document text to analyze")
     filename: str | None = Field(None, description="Original filename for context")
     include_handwriting: bool = Field(True, description="Include handwriting/forgery analysis")
@@ -55,17 +57,20 @@ class AnalyzeTextRequest(BaseModel):
 
 class QuickClassifyRequest(BaseModel):
     """Request for quick document classification."""
+
     text: str = Field(..., min_length=10, description="Document text to classify")
 
 
 class HandwritingAnalyzeRequest(BaseModel):
     """Request for handwriting/forgery analysis."""
+
     text: str = Field(..., min_length=10, description="Document text to analyze")
     document_type: str | None = Field(None, description="Document type for context")
 
 
 class SignatureCompareRequest(BaseModel):
     """Request to compare signatures."""
+
     text: str = Field(..., min_length=10, description="Document text with signature")
     reference_name: str = Field(..., description="Name of expected signer")
     reference_signatures: list[dict[str, Any]] | None = Field(
@@ -75,9 +80,9 @@ class SignatureCompareRequest(BaseModel):
 
 class BatchAnalyzeRequest(BaseModel):
     """Request to analyze multiple documents."""
+
     documents: list[dict[str, str]] = Field(
-        ...,
-        description="List of documents with 'text' and optional 'filename' keys"
+        ..., description="List of documents with 'text' and optional 'filename' keys"
     )
 
 
@@ -133,6 +138,7 @@ class HandwritingResponse(BaseModel):
 
 class PartyResponse(BaseModel):
     """Party information (sender or recipient)."""
+
     name: str = ""
     role: str = ""  # landlord, tenant, court, attorney, etc.
     organization: str = ""
@@ -141,6 +147,7 @@ class PartyResponse(BaseModel):
 
 class ToneResponse(BaseModel):
     """Document tone and direction analysis."""
+
     # WHO sent it and WHO received it
     sender: PartyResponse
     recipient: PartyResponse
@@ -167,6 +174,7 @@ class ToneResponse(BaseModel):
 
 class RecognitionResponse(BaseModel):
     """Full recognition analysis response."""
+
     analysis_id: str
     document_type: str
     document_category: str
@@ -229,65 +237,64 @@ def get_handwriting_analyzer() -> HandwritingAnalyzer:
 # Brain Mesh Integration
 # =============================================================================
 
-async def emit_analysis_event(
-    brain: PositronicBrain,
-    result: RecognitionResult,
-    user_id: str | None = None
-):
+
+async def emit_analysis_event(brain: PositronicBrain, result: RecognitionResult, user_id: str | None = None):
     """Emit analysis complete event to Brain Mesh."""
     try:
-        await brain.emit(BrainEvent(
-            event_type=EventType.DOCUMENT_ANALYZED,
-            source_module=ModuleType.DOCUMENTS,
-            data={
-                "analysis_id": result.analysis_id,
-                "document_type": result.document_type.value,
-                "confidence": result.confidence.overall_score,
-                "entities_found": len(result.entities),
-                "issues_found": len(result.legal_analysis.issues),
-                "urgency": result.legal_analysis.urgency_level,
-            },
-            user_id=user_id
-        ))
+        await brain.emit(
+            BrainEvent(
+                event_type=EventType.DOCUMENT_ANALYZED,
+                source_module=ModuleType.DOCUMENTS,
+                data={
+                    "analysis_id": result.analysis_id,
+                    "document_type": result.document_type.value,
+                    "confidence": result.confidence.overall_score,
+                    "entities_found": len(result.entities),
+                    "issues_found": len(result.legal_analysis.issues),
+                    "urgency": result.legal_analysis.urgency_level,
+                },
+                user_id=user_id,
+            )
+        )
 
         # If critical issues, emit defense event
         critical_issues = result.get_critical_issues()
         if critical_issues:
-            await brain.emit(BrainEvent(
-                event_type=EventType.DEFENSE_IDENTIFIED,
-                source_module=ModuleType.DOCUMENTS,
-                data={
-                    "analysis_id": result.analysis_id,
-                    "critical_issues": len(critical_issues),
-                    "defense_options": result.legal_analysis.defense_options,
-                },
-                user_id=user_id
-            ))
+            await brain.emit(
+                BrainEvent(
+                    event_type=EventType.DEFENSE_IDENTIFIED,
+                    source_module=ModuleType.DOCUMENTS,
+                    data={
+                        "analysis_id": result.analysis_id,
+                        "critical_issues": len(critical_issues),
+                        "defense_options": result.legal_analysis.defense_options,
+                    },
+                    user_id=user_id,
+                )
+            )
     except Exception as e:
         logger.warning(f"Could not emit Brain event: {e}")
 
 
-async def emit_forgery_event(
-    brain: PositronicBrain,
-    result: HandwritingAnalysisResult,
-    user_id: str | None = None
-):
+async def emit_forgery_event(brain: PositronicBrain, result: HandwritingAnalysisResult, user_id: str | None = None):
     """Emit forgery detection event to Brain Mesh."""
     try:
         if result.overall_risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]:
-            await brain.emit(BrainEvent(
-                event_type=EventType.ERROR_OCCURRED,  # Use error for critical alerts
-                source_module=ModuleType.DOCUMENTS,
-                data={
-                    "alert_type": "forgery_detected",
-                    "analysis_id": result.analysis_id,
-                    "risk_level": result.overall_risk_level.value,
-                    "risk_score": result.forgery_risk_score,
-                    "indicators": len(result.forgery_indicators),
-                    "requires_review": result.requires_expert_review,
-                },
-                user_id=user_id
-            ))
+            await brain.emit(
+                BrainEvent(
+                    event_type=EventType.ERROR_OCCURRED,  # Use error for critical alerts
+                    source_module=ModuleType.DOCUMENTS,
+                    data={
+                        "alert_type": "forgery_detected",
+                        "analysis_id": result.analysis_id,
+                        "risk_level": result.overall_risk_level.value,
+                        "risk_score": result.forgery_risk_score,
+                        "indicators": len(result.forgery_indicators),
+                        "requires_review": result.requires_expert_review,
+                    },
+                    user_id=user_id,
+                )
+            )
     except Exception as e:
         logger.warning(f"Could not emit forgery event: {e}")
 
@@ -296,10 +303,9 @@ async def emit_forgery_event(
 # Helper Functions
 # =============================================================================
 
+
 def result_to_response(
-    result: RecognitionResult,
-    processing_time_ms: float,
-    handwriting_result: HandwritingAnalysisResult | None = None
+    result: RecognitionResult, processing_time_ms: float, handwriting_result: HandwritingAnalysisResult | None = None
 ) -> RecognitionResponse:
     """Convert RecognitionResult to API response."""
 
@@ -320,7 +326,7 @@ def result_to_response(
                         "complexity": s.estimated_complexity,
                         "has_flourish": s.has_flourish,
                         "legible": s.is_legible,
-                    }
+                    },
                 )
                 for s in handwriting_result.signatures
             ],
@@ -424,6 +430,7 @@ def result_to_response(
 # API Endpoints - Document Recognition
 # =============================================================================
 
+
 @router.post("/analyze", response_model=RecognitionResponse)
 async def analyze_text(
     request: AnalyzeTextRequest,
@@ -432,7 +439,7 @@ async def analyze_text(
 ):
     """
     ▸ Analyze document text with the recognition engine.
-    
+
     Performs multi-pass analysis including:
     - Context-aware document structure analysis
     - Entity extraction (parties, dates, amounts, addresses)
@@ -440,7 +447,7 @@ async def analyze_text(
     - Relationship mapping between entities
     - Confidence scoring with uncertainty identification
     - Handwriting/signature analysis and forgery detection
-    
+
     Returns comprehensive analysis with legal insights.
     """
     engine = get_engine()
@@ -498,25 +505,24 @@ async def analyze_file(
 ):
     """
     ● Analyze an uploaded document file.
-    
+
     Supports:
     - PDF files (text extraction)
     - Images (PNG, JPG, GIF) - OCR text extraction
     - Word documents (.doc, .docx)
     - Text files (.txt, .rtf)
-    
+
     Returns comprehensive analysis with legal insights.
     """
     engine = get_engine()
     brain = get_brain()
 
     # Validate file type
-    allowed_extensions = {'.pdf', '.png', '.jpg', '.jpeg', '.gif', '.txt', '.doc', '.docx', '.rtf'}
-    file_ext = os.path.splitext(file.filename or '')[1].lower()
+    allowed_extensions = {".pdf", ".png", ".jpg", ".jpeg", ".gif", ".txt", ".doc", ".docx", ".rtf"}
+    file_ext = os.path.splitext(file.filename or "")[1].lower()
     if file_ext not in allowed_extensions:
         raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file type: {file_ext}. Allowed: {', '.join(allowed_extensions)}"
+            status_code=400, detail=f"Unsupported file type: {file_ext}. Allowed: {', '.join(allowed_extensions)}"
         )
 
     # Read file content
@@ -530,62 +536,63 @@ async def analyze_file(
         # Extract text based on file type
         text = ""
 
-        if file_ext == '.txt':
+        if file_ext == ".txt":
             # Plain text
-            text = content.decode('utf-8', errors='ignore')
+            text = content.decode("utf-8", errors="ignore")
 
-        elif file_ext == '.rtf':
+        elif file_ext == ".rtf":
             # RTF - basic text extraction
-            text = content.decode('utf-8', errors='ignore')
+            text = content.decode("utf-8", errors="ignore")
             # Strip RTF formatting (basic)
             import re
-            text = re.sub(r'\\[a-z]+\d*\s?', '', text)
-            text = re.sub(r'[{}]', '', text)
 
-        elif file_ext == '.pdf':
+            text = re.sub(r"\\[a-z]+\d*\s?", "", text)
+            text = re.sub(r"[{}]", "", text)
+
+        elif file_ext == ".pdf":
             # PDF text extraction
             try:
                 import fitz  # PyMuPDF
+
                 with fitz.open(stream=content, filetype="pdf") as doc:
                     text = "\n".join(page.get_text() for page in doc)
             except ImportError:
                 # Fallback: try pdfplumber
                 try:
                     import pdfplumber
-                    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+
+                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                         tmp.write(content)
                         tmp_path = tmp.name
                     try:
                         with pdfplumber.open(tmp_path) as pdf:
-                            text = "\n".join(page.extract_text() or '' for page in pdf.pages)
+                            text = "\n".join(page.extract_text() or "" for page in pdf.pages)
                     finally:
                         os.unlink(tmp_path)
                 except ImportError:
                     raise HTTPException(
-                        status_code=500,
-                        detail="PDF processing not available. Install PyMuPDF or pdfplumber."
+                        status_code=500, detail="PDF processing not available. Install PyMuPDF or pdfplumber."
                     )
 
-        elif file_ext in {'.png', '.jpg', '.jpeg', '.gif'}:
+        elif file_ext in {".png", ".jpg", ".jpeg", ".gif"}:
             # Image OCR
             try:
                 import pytesseract
                 from PIL import Image
+
                 img = Image.open(io.BytesIO(content))
                 text = pytesseract.image_to_string(img)
             except ImportError:
-                raise HTTPException(
-                    status_code=500,
-                    detail="Image OCR not available. Install pytesseract and Pillow."
-                )
+                raise HTTPException(status_code=500, detail="Image OCR not available. Install pytesseract and Pillow.")
             except Exception:
                 logger.exception("OCR failed")
                 raise HTTPException(status_code=500, detail="OCR failed")
 
-        elif file_ext in {'.doc', '.docx'}:
+        elif file_ext in {".doc", ".docx"}:
             # Word document
             try:
                 import docx
+
                 with tempfile.NamedTemporaryFile(suffix=file_ext, delete=False) as tmp:
                     tmp.write(content)
                     tmp_path = tmp.name
@@ -596,14 +603,13 @@ async def analyze_file(
                     os.unlink(tmp_path)
             except ImportError:
                 raise HTTPException(
-                    status_code=500,
-                    detail="Word document processing not available. Install python-docx."
+                    status_code=500, detail="Word document processing not available. Install python-docx."
                 )
 
         if not text or len(text.strip()) < 10:
             raise HTTPException(
                 status_code=400,
-                detail="Could not extract enough text from document. Try a different file or paste text directly."
+                detail="Could not extract enough text from document. Try a different file or paste text directly.",
             )
 
         # Run document analysis
@@ -654,7 +660,7 @@ async def quick_classify(
 ):
     """
     ◆ Quick document classification without full analysis.
-    
+
     Fast classification for upload sorting and initial triage.
     """
     engine = get_engine()
@@ -679,6 +685,7 @@ async def quick_classify(
 # API Endpoints - Handwriting & Forgery Detection
 # =============================================================================
 
+
 @router.post("/handwriting/analyze", response_model=HandwritingResponse)
 async def analyze_handwriting_endpoint(
     request: HandwritingAnalyzeRequest,
@@ -687,7 +694,7 @@ async def analyze_handwriting_endpoint(
 ):
     """
     ▸ Analyze document for handwriting and detect forgery.
-    
+
     Performs comprehensive handwriting analysis including:
     - Signature extraction and profiling
     - Handwritten dates, amounts, initials detection
@@ -695,7 +702,7 @@ async def analyze_handwriting_endpoint(
     - Date manipulation detection
     - Amount alteration detection
     - Minnesota-specific notice backdating detection
-    
+
     Returns risk assessment and recommendations.
     """
     analyzer = get_handwriting_analyzer()
@@ -729,7 +736,7 @@ async def analyze_handwriting_endpoint(
                         "complexity": s.estimated_complexity,
                         "has_flourish": s.has_flourish,
                         "legible": s.is_legible,
-                    }
+                    },
                 )
                 for s in result.signatures
             ],
@@ -767,7 +774,7 @@ async def verify_signature(
 ):
     """
     ● Verify signature against known reference.
-    
+
     Compares signatures found in document against expected signer.
     Returns verification status and discrepancy details.
     """
@@ -783,25 +790,31 @@ async def verify_signature(
         mismatches = []
 
         for sig in result.signatures:
-            name_match = request.reference_name.lower() in sig.signer_name.lower() or \
-                        sig.signer_name.lower() in request.reference_name.lower()
+            name_match = (
+                request.reference_name.lower() in sig.signer_name.lower()
+                or sig.signer_name.lower() in request.reference_name.lower()
+            )
 
             if name_match and sig.confidence >= 0.6:
                 verified = True
-                matches.append({
-                    "signature_id": sig.id,
-                    "signer_name": sig.signer_name,
-                    "location": sig.location_in_doc,
-                    "confidence": sig.confidence,
-                    "status": "verified" if sig.confidence >= 0.8 else "probable_match",
-                })
+                matches.append(
+                    {
+                        "signature_id": sig.id,
+                        "signer_name": sig.signer_name,
+                        "location": sig.location_in_doc,
+                        "confidence": sig.confidence,
+                        "status": "verified" if sig.confidence >= 0.8 else "probable_match",
+                    }
+                )
             elif sig.signer_name != "Unknown Signer":
-                mismatches.append({
-                    "signature_id": sig.id,
-                    "found_name": sig.signer_name,
-                    "expected_name": request.reference_name,
-                    "location": sig.location_in_doc,
-                })
+                mismatches.append(
+                    {
+                        "signature_id": sig.id,
+                        "found_name": sig.signer_name,
+                        "expected_name": request.reference_name,
+                        "location": sig.location_in_doc,
+                    }
+                )
 
         return {
             "verified": verified,
@@ -833,14 +846,8 @@ async def get_forgery_types():
             }
             for ft in ForgeryType
         ],
-        "risk_levels": [
-            {"value": rl.value, "name": rl.name}
-            for rl in RiskLevel
-        ],
-        "signature_statuses": [
-            {"value": ss.value, "name": ss.name}
-            for ss in SignatureStatus
-        ],
+        "risk_levels": [{"value": rl.value, "name": rl.name} for rl in RiskLevel],
+        "signature_statuses": [{"value": ss.value, "name": ss.name} for ss in SignatureStatus],
     }
 
 
@@ -865,6 +872,7 @@ def _get_forgery_description(ft: ForgeryType) -> str:
 # =============================================================================
 # API Endpoints - Batch & Reference
 # =============================================================================
+
 
 @router.post("/batch", response_model=BatchAnalyzeResponse)
 async def batch_analyze(

@@ -136,13 +136,13 @@ DOCUMENTS = [
         "description": "Original lease agreement signed June 2023",
         "extracted_text": f"""RESIDENTIAL LEASE AGREEMENT
 
-PARTIES: This lease is between {CASE_DATA['landlord_name']} ("Landlord") and {CASE_DATA['tenant_name']} ("Tenant").
+PARTIES: This lease is between {CASE_DATA["landlord_name"]} ("Landlord") and {CASE_DATA["tenant_name"]} ("Tenant").
 
-PROPERTY: {CASE_DATA['property_address']}
+PROPERTY: {CASE_DATA["property_address"]}
 
 TERM: 12 months beginning June 1, 2023
 
-RENT: ${CASE_DATA['monthly_rent']}/month, due on the 1st
+RENT: ${CASE_DATA["monthly_rent"]}/month, due on the 1st
 
 LANDLORD OBLIGATIONS:
 - Maintain premises in habitable condition
@@ -209,7 +209,7 @@ DEFECTS IN THIS NOTICE:
 COUNTY OF HENNEPIN
 DISTRICT COURT - HOUSING COURT
 
-Case No: {CASE_DATA['case_number']}
+Case No: {CASE_DATA["case_number"]}
 
 ABC Property Management,
     Plaintiff,
@@ -237,10 +237,10 @@ WHEREFORE, Plaintiff requests:
         "document_type": "legal",
         "description": "Answer with affirmative defenses filed by tenant",
         "extracted_text": f"""STATE OF MINNESOTA
-COUNTY OF HENNEPIN  
+COUNTY OF HENNEPIN
 DISTRICT COURT - HOUSING COURT
 
-Case No: {CASE_DATA['case_number']}
+Case No: {CASE_DATA["case_number"]}
 
 DEFENDANT'S ANSWER AND AFFIRMATIVE DEFENSES
 
