@@ -232,6 +232,8 @@ openapi_check.json
 compatibility_system.json
 trusted_domains.json
 invite_codes.json
+docs/STALENESS-REPORT.md
+tools/.recurring_scheduler_state.json
 
 # Duplicate / outdated requirements
 requirements_clean.txt
