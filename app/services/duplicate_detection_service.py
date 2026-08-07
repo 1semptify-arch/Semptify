@@ -27,12 +27,16 @@ async def detect_duplicates(
     """
     if overlay_manager is None:
         from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.database import get_session_factory
+        from app.core.auto_refresh import ensure_valid_token
         from app.services.storage import get_provider
         from app.core.user_id import get_provider_from_user_id
-        
+
         provider_code = get_provider_from_user_id(user_id) or "google_drive"
-        token = await get_valid_token_for_user(user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            token = token_obj.access_token if token_obj else None
         if not token:
             return {"is_duplicate": False, "error": "No storage token found"}
         
@@ -132,12 +136,16 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
     """
     if overlay_manager is None:
         from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.database import get_session_factory
+        from app.core.auto_refresh import ensure_valid_token
         from app.services.storage import get_provider
         from app.core.user_id import get_provider_from_user_id
-        
+
         provider_code = get_provider_from_user_id(user_id) or "google_drive"
-        token = await get_valid_token_for_user(user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            token = token_obj.access_token if token_obj else None
         if not token:
             return []
         

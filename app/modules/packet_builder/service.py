@@ -52,13 +52,17 @@ def _overlay_to_dict(overlay: Any) -> dict[str, Any]:
 async def _get_overlay_manager(user_id: str) -> Any:
     """Build an overlay manager for the user, or None if storage is unavailable."""
     try:
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.database import get_session_factory
+        from app.core.auto_refresh import ensure_valid_token
         from app.core.user_id import get_provider_from_user_id
         from app.services.storage import get_provider
     except ImportError:
         return None
 
-    token = get_valid_token_for_user(user_id)
+    factory = get_session_factory()
+    async with factory() as db:
+        _, token_obj, _ = await ensure_valid_token(user_id, db)
+        token = token_obj.access_token if token_obj else None
     provider_code = get_provider_from_user_id(user_id)
     if not token or not provider_code or provider_code.lower() == "local":
         return None
@@ -309,9 +313,13 @@ async def _get_document_bytes(user_id: str, doc: Any) -> bytes | None:
     vault_service = get_vault_service()
     token: str | None = None
     try:
-        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.database import get_session_factory
+        from app.core.auto_refresh import ensure_valid_token
 
-        token = get_valid_token_for_user(user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            token = token_obj.access_token if token_obj else None
     except Exception as exc:
         logger.debug("No token for document download: %s", exc)
 

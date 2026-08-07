@@ -8,8 +8,11 @@ API endpoints for the Semptify communication system:
 - In-browser document filling and signing
 """
 
+import logging
 from typing import Optional, List
 from app.core.id_gen import make_id
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, Form, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 

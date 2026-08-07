@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from .service import (
     get_crawler,
     MN_SOURCES,
+    SearchResult,
     SourceType,
 )
 

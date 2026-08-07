@@ -6,12 +6,11 @@ PDF Tools Router - Read, View, and Extract pages from PDFs
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, JSONResponse
 from typing import List, Optional
-import pymupdf  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF
 import io
 import base64
 import os
 import tempfile
-from datetime import datetime
 from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ pdf_cache = {}
 @router.get("/test")
 async def test_pdf_tools():
     """Test endpoint to verify PDF tools are working."""
-    return {"status": "PDF tools available", "pymupdf_version": pymupdf.__version__}
+    return {"status": "PDF tools available", "pymupdf_version": fitz.__version__}
 
 @router.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):

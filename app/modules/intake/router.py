@@ -507,7 +507,7 @@ async def upload_and_process(
     Token resolution fallback chain (matches vault/router.py pattern):
     1. Form field access_token (if provided and not "auto")
     2. user.access_token from session (if user available)
-    3. get_valid_token_for_user(user_id, db) — refreshes expired tokens
+    3. ensure_valid_token(user_id, db) — refreshes expired tokens
     """
     engine = get_intake_engine()
 
@@ -531,9 +531,10 @@ async def upload_and_process(
         real_token = getattr(user, "access_token", None) if user else None
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
+            from app.core.auto_refresh import ensure_valid_token
 
-            real_token = await get_valid_token_for_user(user_id, db)
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            real_token = token_obj.access_token if token_obj else None
         except Exception as e:
             logger.warning("Token resolution failed for user %s: %s", user_id, e)
             real_token = None

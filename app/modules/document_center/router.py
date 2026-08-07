@@ -40,6 +40,7 @@ import secrets
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response
 
+from app.core.auto_refresh import ensure_valid_token
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_db_session
 from app.core.id_gen import make_id
@@ -90,11 +91,13 @@ async def _fetch_real_overlays(doc, user_id: str) -> list:
         return []  # local storage has no overlay system
 
     try:
-        from app.core.oauth_token_manager import get_valid_token_for_user
         from app.services.storage import get_provider
         from app.services.unified_overlay_manager import get_unified_overlay_manager
 
-        access_token = get_valid_token_for_user(user_id)
+        access_token = None
+        async with get_db_session() as db:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            access_token = token_obj.access_token if token_obj else None
         if not access_token:
             return []
 
@@ -697,9 +700,9 @@ async def dc_view_document(vault_id: str, request: Request):
 
         access_token: str | None = None
         if doc.storage_provider != "local":
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            access_token = get_valid_token_for_user(user_id)
+            async with get_db_session() as db:
+                _, token_obj, _ = await ensure_valid_token(user_id, db)
+                access_token = token_obj.access_token if token_obj else None
             if not access_token:
                 return JSONResponse(
                     status_code=503,
@@ -775,9 +778,9 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
         # Best-effort OAuth token for overlay creation — DB update succeeds regardless
         access_token: str | None = None
         if doc.storage_provider != "local":
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            access_token = get_valid_token_for_user(user_id)
+            async with get_db_session() as db:
+                _, token_obj, _ = await ensure_valid_token(user_id, db)
+                access_token = token_obj.access_token if token_obj else None
 
         if document_type:
             updated_doc = await vault_service.update_document_type(
@@ -1111,9 +1114,9 @@ async def dc_shared_document_content(share_token: str, request: Request):
 
         access_token: str | None = None
         if doc.storage_provider != "local":
-            from app.core.oauth_token_manager import get_valid_token_for_user
-
-            access_token = get_valid_token_for_user(doc.user_id)
+            async with get_db_session() as db:
+                _, token_obj, _ = await ensure_valid_token(doc.user_id, db)
+                access_token = token_obj.access_token if token_obj else None
             if not access_token:
                 return JSONResponse(
                     status_code=503,

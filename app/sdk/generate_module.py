@@ -13,9 +13,13 @@ Or with options:
 """
 
 import argparse
+import logging
 import os
 import sys
-from datetime import datetime
+
+from app.core.utc import utc_now
+
+logger = logging.getLogger(__name__)
 
 
 TEMPLATE = '''"""

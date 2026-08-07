@@ -38,7 +38,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.id_gen import make_id
-from app.models.models import Incident
+from app.models.models import Incident, VaultItem
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.request_utils import raise_for_storage_error
@@ -184,6 +184,7 @@ async def upload_document(
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload a document to the user's cloud storage vault.
@@ -224,8 +225,11 @@ async def upload_document(
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-            real_token = get_valid_token_for_user(user.user_id) or real_token
+            from app.core.auto_refresh import ensure_valid_token
+
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            if token_obj:
+                real_token = token_obj.access_token
         except ImportError:
             # Token manager unavailable, will use provided token
             pass
@@ -297,6 +301,7 @@ async def copy_from_sync_to_vault(
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Copy a document from sync storage (Semptify5.0/Vault/documents/) to vault.
@@ -310,8 +315,11 @@ async def copy_from_sync_to_vault(
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-            real_token = get_valid_token_for_user(user.user_id) or real_token
+            from app.core.auto_refresh import ensure_valid_token
+
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            if token_obj:
+                real_token = token_obj.access_token
         except ImportError:
             # Token manager unavailable, will use provided token
             pass
@@ -442,7 +450,7 @@ async def copy_from_sync_to_vault(
             document_id=document_id,
             vault_path=storage_path,
             payload={
-                "original_filename": original_filename,
+                "original_filename": filename,
                 "mime_type": mime_type,
                 "file_size_bytes": file_size,
                 "content_hash": sha256_hash,
@@ -483,7 +491,7 @@ async def copy_from_sync_to_vault(
             "filename": filename,
             "mime_type": mime_type,
             "document_type": document_type,
-            "overlay_id": overlay.overlay_id if overlay else None,
+            "overlay_id": overlay_id,
             "timeline_events_count": certificate.get("timeline_events_extracted", 0),
             "source": "copy-from-sync",
         }
@@ -961,6 +969,7 @@ async def sidebar_upload(
     files: List[UploadFile] = File(...),
     metadata: str = Form(...),
     user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle upload from vault sidebar"""
     if not HAS_VAULT_SERVICE:
@@ -1018,8 +1027,11 @@ async def sidebar_upload(
                     real_token = getattr(user, "access_token", None)
                 if not real_token or real_token in ("auto", "no-token"):
                     try:
-                        from app.core.oauth_token_manager import get_valid_token_for_user
-                        real_token = get_valid_token_for_user(user.user_id) or real_token
+                        from app.core.auto_refresh import ensure_valid_token
+
+                        _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                        if token_obj:
+                            real_token = token_obj.access_token
                     except ImportError:
                         pass
                 if not real_token or real_token in ("auto", "no-token"):
@@ -1521,6 +1533,7 @@ async def get_incident_items(
 async def export_vault_zip(
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Export all vault documents as a single ZIP archive.
@@ -1537,8 +1550,11 @@ async def export_vault_zip(
     real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token", None):
         try:
-            from app.core.oauth_token_manager import get_valid_token_for_user
-            real_token = get_valid_token_for_user(user.user_id) or real_token
+            from app.core.auto_refresh import ensure_valid_token
+
+            _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+            if token_obj:
+                real_token = token_obj.access_token
         except ImportError:
             # Token manager unavailable, will use provided token
             pass

@@ -426,6 +426,10 @@ class EvictionCaseBuilder:
         )
         
         import re as _re
+        result = await session.execute(
+            select(Document).where(Document.user_id == user.id)
+        )
+        documents = result.scalars().all()
         for doc in documents:
             doc_type = (doc.document_type or "").lower()
             text = (getattr(doc, "extracted_text", None) or "").lower()

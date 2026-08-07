@@ -1503,7 +1503,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if not vault_id or not user_id:
                 return
             try:
-                from app.core.oauth_token_manager import get_valid_token_for_user
+                from app.core.auto_refresh import ensure_valid_token
+                from app.core.database import get_session_factory
                 from app.core.user_id import get_provider_from_user_id
                 from app.services.filedored_service import ensure_filedored_folders
                 from app.services.storage import get_provider as _get_storage_provider
@@ -1516,7 +1517,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 access_token = None
                 if doc:
                     try:
-                        access_token = get_valid_token_for_user(user_id)
+                        factory = get_session_factory()
+                        async with factory() as db:
+                            _, token_obj, _ = await ensure_valid_token(user_id, db)
+                            access_token = token_obj.access_token if token_obj else None
                         if access_token:
                             content = await vault_svc.get_document_content(vault_id, access_token=access_token) or b""
                     except Exception:  # noqa: S110
@@ -4283,9 +4287,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         real_token = user.access_token
         if not real_token or real_token in ("auto", "no-token"):
             try:
-                from app.core.oauth_token_manager import get_valid_token_for_user
+                from app.core.auto_refresh import ensure_valid_token
+                from app.core.database import get_session_factory
 
-                real_token = get_valid_token_for_user(user.user_id)
+                factory = get_session_factory()
+                async with factory() as db:
+                    _, token_obj, _ = await ensure_valid_token(user.user_id, db)
+                    real_token = token_obj.access_token if token_obj else None
             except Exception as exc:
                 logger.warning("Could not load token for media capture: %s", exc)
                 real_token = None
