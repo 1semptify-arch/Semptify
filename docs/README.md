@@ -48,7 +48,7 @@ files touched.
 This produces a running, categorized log automatically. No one has to remember
 to write it by hand.
 
-> **Status:** hook not yet implemented. Tracked follow-up.
+> **Status:** implemented in `tools/docs_changelog.py`. Run it directly or via `tools/recurring_scheduler.py --run docs-changelog`.
 
 ### 3. Scheduled staleness check
 
@@ -65,8 +65,8 @@ changes to the docs. A designated agent triages the report, drafts update
 tasks, and pings Brad only for Tier-A-adjacent content per existing sign-off
 rules. A flagged item still goes through normal review before anything changes.
 
-> **Status:** staleness script not yet implemented. Tracked follow-up.
-> Threshold: 21 days (decided 2026-08-06).
+> **Status:** implemented in `tools/docs_staleness_check.py` (21-day threshold).
+> Run it directly or via `tools/recurring_scheduler.py --run docs-staleness`.
 
 ### 4. ADRs for foundational decisions
 
@@ -105,8 +105,9 @@ building a parallel identity system.
 - [x] `doc-map.yaml` created with existing docs backfilled (mapped at their
       current flat paths in `docs/`).
 - [x] ADR template + ADR 0001 (storage architecture split) created.
-- [ ] Commit-tagged changelog hook — follow-up.
-- [ ] Staleness check script — follow-up.
+- [x] Commit-tagged changelog hook — `tools/docs_changelog.py`.
+- [x] Staleness check script — `tools/docs_staleness_check.py` (21-day threshold).
+- [x] Recurring scheduler — `tools/recurring_scheduler.py` (runs staleness, changelog, and future OCR beta review on a weekly cadence).
 - [ ] Relocate existing flat docs into subdirs — follow-up (do NOT do this in
       the same pass as the staleness mechanism; see Known Failure #17).
 
