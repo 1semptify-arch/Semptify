@@ -1,8 +1,10 @@
 """Check which tiers and modules actually load cleanly."""
-from app.core.product_manifest import ProductTier, register_tiers
+import logging
+import sys
+
 from fastapi import FastAPI
 
-import logging, sys
+from app.core.product_manifest import ProductTier, register_tiers
 
 # Capture skipped/error logs
 failures = []

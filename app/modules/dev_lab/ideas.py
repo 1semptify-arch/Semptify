@@ -13,7 +13,6 @@ Endpoints:
 Ideas are stored in the `dev_ideas` PostgreSQL table.
 """
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
@@ -22,7 +21,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.utc import utc_now
-from app.core.upl_guardrails import UPLRiskTier
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +100,8 @@ async def ensure_ideas_schema(db: AsyncSession) -> None:
 async def list_ideas(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    status_filter: Optional[str] = None,
-    origin_filter: Optional[str] = None,
+    status_filter: str | None = None,
+    origin_filter: str | None = None,
     _admin=Depends(_stealth_admin),
 ) -> dict:
     """List all submitted ideas, optionally filtered by status or origin."""
@@ -293,7 +291,7 @@ async def promote_idea(
 
     action_desc = {
         "scaffold": f"Copy app/modules/_template/ to app/modules/{body.module_name}/ and register in product_manifest.py with lifecycle='dev_only'",
-        "sdk_template": f"Generate external SDK template package for developer (app/sdk/external/_template/)",
+        "sdk_template": "Generate external SDK template package for developer (app/sdk/external/_template/)",
     }
 
     logger.info("DevIdeas: idea %d '%s' promoted to module '%s' (action=%s)", idea_id, row.name, body.module_name, body.action)

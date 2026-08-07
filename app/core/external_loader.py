@@ -25,9 +25,9 @@ import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from app.sdk.external.permissions import PermissionSet, ALL_PERMISSIONS
+from app.sdk.external.permissions import PermissionSet
 
 logger = logging.getLogger(__name__)
 
@@ -98,14 +98,14 @@ class ExternalModuleManifest:
     lifecycle: str
     requires_role: tuple
     requires_jurisdiction: tuple
-    requires_gate: Optional[str]
+    requires_gate: str | None
     permissions: PermissionSet
     dependencies: tuple
     entry_point: str  # e.g. "router.py:router"
     content_hash: str  # e.g. "sha256:..."
-    homepage: Optional[str] = None
-    support: Optional[str] = None
-    license: Optional[str] = None
+    homepage: str | None = None
+    support: str | None = None
+    license: str | None = None
 
     @property
     def module_path(self) -> str:
@@ -122,7 +122,7 @@ class ExternalModuleManifest:
         return self.entry_point.split(":")[0]
 
 
-def parse_manifest(data: Dict[str, Any]) -> ExternalModuleManifest:
+def parse_manifest(data: dict[str, Any]) -> ExternalModuleManifest:
     """Parse and validate a manifest dict."""
     required_fields = (
         "name", "vendor", "version", "description", "lifecycle",
@@ -211,7 +211,7 @@ class _ImportGuard:
     def __init__(self, module_name: str, vendor: str):
         self.module_name = module_name
         self.vendor = vendor
-        self.violations: List[str] = []
+        self.violations: list[str] = []
 
     def find_spec(self, fullname, path=None, target=None):
         # Check if this is a forbidden import
@@ -244,7 +244,7 @@ class LoadedExternalModule:
     manifest: ExternalModuleManifest
     module_dir: Path
     router: Any
-    import_violations: List[str]
+    import_violations: list[str]
 
 
 def load_external_module(module_dir: Path) -> LoadedExternalModule:
@@ -335,7 +335,7 @@ def load_external_module(module_dir: Path) -> LoadedExternalModule:
             sys.meta_path.remove(guard)
 
 
-def list_external_modules(base_dir: Path) -> List[Dict[str, Any]]:
+def list_external_modules(base_dir: Path) -> list[dict[str, Any]]:
     """List all external modules found under base_dir.
 
     Expected structure: base_dir/<vendor>/<name>/semptify.module.json

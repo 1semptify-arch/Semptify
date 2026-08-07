@@ -1,7 +1,5 @@
 """Duplicate Detection Service — Cross-vault duplicate identification via overlays."""
 import logging
-from typing import Dict, List, Optional
-from datetime import datetime, timezone
 
 from app.core.overlay_types import OverlayType
 from app.core.utc import utc_now
@@ -26,11 +24,11 @@ async def detect_duplicates(
         - duplicate_count: int (total duplicates for this hash)
     """
     if overlay_manager is None:
-        from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.core.database import get_session_factory
         from app.core.auto_refresh import ensure_valid_token
-        from app.services.storage import get_provider
+        from app.core.database import get_session_factory
         from app.core.user_id import get_provider_from_user_id
+        from app.services.storage import get_provider
+        from app.services.unified_overlay_manager import get_unified_overlay_manager
 
         provider_code = get_provider_from_user_id(user_id) or "google_drive"
         factory = get_session_factory()
@@ -39,7 +37,7 @@ async def detect_duplicates(
             token = token_obj.access_token if token_obj else None
         if not token:
             return {"is_duplicate": False, "error": "No storage token found"}
-        
+
         storage_provider = get_provider(provider_code, access_token=token)
         overlay_manager = await get_unified_overlay_manager(storage_provider, user_id)
 
@@ -49,14 +47,14 @@ async def detect_duplicates(
             overlay_type=OverlayType.DUPLICATE_DETECTION
         )
         existing_overlays = existing_response.overlays if existing_response.success else []
-        
+
         # Check if any overlay has the same hash
         for overlay in existing_overlays:
             if overlay.payload.get("sha256_hash") == sha256_hash:
                 # Found a duplicate
                 original_vault_id = overlay.payload.get("original_vault_id")
                 duplicate_count = overlay.payload.get("duplicate_count", 1)
-                
+
                 # Create new duplicate overlay linking to original
                 duplicate_overlay = CreateOverlayRequest(
                     overlay_type=OverlayType.DUPLICATE_DETECTION,
@@ -72,27 +70,27 @@ async def detect_duplicates(
                         "detected_at": utc_now().isoformat(),
                     },
                 )
-                
+
                 await overlay_manager.create_overlay(duplicate_overlay)
-                
+
                 # Update original overlay with new count via real update_overlay method
                 original_overlay_data = overlay.payload.copy()
                 original_overlay_data["duplicate_count"] = duplicate_count + 1
                 original_overlay_data["last_duplicate_detected"] = utc_now().isoformat()
-                
+
                 await overlay_manager.update_overlay(
                     overlay_id=overlay.overlay_id,
                     payload=original_overlay_data,
                 )
-                
+
                 logger.info(f"Duplicate detected: {vault_id} matches {original_vault_id}")
-                
+
                 return {
                     "is_duplicate": True,
                     "original_vault_id": original_vault_id,
                     "duplicate_count": duplicate_count + 1,
                 }
-        
+
         # No duplicate found - create original record
         original_overlay = CreateOverlayRequest(
             overlay_type=OverlayType.DUPLICATE_DETECTION,
@@ -107,15 +105,15 @@ async def detect_duplicates(
                 "created_at": utc_now().isoformat(),
             },
         )
-        
+
         await overlay_manager.create_overlay(original_overlay)
-        
+
         return {
             "is_duplicate": False,
             "original_vault_id": vault_id,
             "duplicate_count": 1,
         }
-        
+
     except Exception as e:
         logger.error("Duplicate detection failed for %s: %s", vault_id, e)
         return {
@@ -124,7 +122,7 @@ async def detect_duplicates(
         }
 
 
-async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
+async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
     """
     Get all duplicate groups for a user.
     
@@ -135,11 +133,11 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
         - duplicates: list of duplicate vault_ids
     """
     if overlay_manager is None:
-        from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.core.database import get_session_factory
         from app.core.auto_refresh import ensure_valid_token
-        from app.services.storage import get_provider
+        from app.core.database import get_session_factory
         from app.core.user_id import get_provider_from_user_id
+        from app.services.storage import get_provider
+        from app.services.unified_overlay_manager import get_unified_overlay_manager
 
         provider_code = get_provider_from_user_id(user_id) or "google_drive"
         factory = get_session_factory()
@@ -148,20 +146,20 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
             token = token_obj.access_token if token_obj else None
         if not token:
             return []
-        
+
         storage_provider = get_provider(provider_code, access_token=token)
         overlay_manager = await get_unified_overlay_manager(storage_provider, user_id)
-    
+
     try:
         # Get all duplicate detection overlays
         overlays_response = await overlay_manager.get_overlays(
             overlay_type=OverlayType.DUPLICATE_DETECTION
         )
         overlays = overlays_response.overlays if overlays_response.success else []
-        
+
         # Group by hash
-        hash_groups: Dict[str, List[dict]] = {}
-        
+        hash_groups: dict[str, list[dict]] = {}
+
         for overlay in overlays:
             hash_val = overlay.payload.get("sha256_hash")
             if hash_val:
@@ -173,14 +171,14 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
                     "is_duplicate": overlay.payload.get("is_duplicate", False),
                     "created_at": overlay.payload.get("created_at"),
                 })
-        
+
         # Build duplicate groups list
         duplicate_groups = []
         for hash_val, documents in hash_groups.items():
             if len(documents) > 1:  # Only include actual duplicates
                 original = next((d for d in documents if not d.get("is_duplicate")), documents[0])
                 duplicates = [d for d in documents if d.get("is_duplicate")]
-                
+
                 duplicate_groups.append({
                     "sha256_hash": hash_val,
                     "original_vault_id": original["vault_id"],
@@ -188,9 +186,9 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
                     "duplicate_count": len(documents),
                     "duplicates": duplicates,
                 })
-        
+
         return duplicate_groups
-        
+
     except Exception as e:
         logger.error("Failed to get duplicates for user %s: %s", user_id, e)
         return []

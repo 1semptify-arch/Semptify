@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import List, Dict, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from ..models import Case, Docket, Entity, Attorney
 from ..schemas import PatternSummary
 
@@ -134,7 +134,7 @@ async def compute_attorney_patterns(db: AsyncSession, attorney_id: int) -> Patte
                     days_to_motion = (first_motion_date - filing_date).days
                     if days_to_motion >= 0:
                         motion_timings.append(days_to_motion)
-                except:
+                except Exception:
                     pass
     
     # Calculate averages

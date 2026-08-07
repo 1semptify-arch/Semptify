@@ -4,11 +4,10 @@ Generates calendar events from timeline and documents
 """
 
 import logging
-import asyncio
-from datetime import datetime, timedelta, date
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from datetime import date, datetime, timedelta
 from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class CalendarEvent:
     description: str
     start_date: date
     event_type: CalendarEventType
-    reminders: List[int] = None  # reminders in minutes before event
+    reminders: list[int] = None  # reminders in minutes before event
 
     def __post_init__(self):
         if self.reminders is None:
@@ -48,8 +47,8 @@ class CalendarService:
 
     async def generate_events_from_timeline(
         self,
-        timeline_events: List[Dict[str, Any]]
-    ) -> List[CalendarEvent]:
+        timeline_events: list[dict[str, Any]]
+    ) -> list[CalendarEvent]:
         """
         Generate calendar events from timeline events
         """
@@ -77,7 +76,7 @@ class CalendarService:
 
         return events
 
-    def _extract_date(self, event_data: Dict[str, Any]) -> Optional[date]:
+    def _extract_date(self, event_data: dict[str, Any]) -> date | None:
         """Extract date from event data"""
         date_formats = ['date', 'event_date', 'start_date', 'deadline', 'due_date']
 
@@ -98,9 +97,9 @@ class CalendarService:
 
     def _create_calendar_event(
         self,
-        event_data: Dict[str, Any],
+        event_data: dict[str, Any],
         event_date: date
-    ) -> Optional[CalendarEvent]:
+    ) -> CalendarEvent | None:
         """Create a calendar event from event data"""
         title = event_data.get('title', event_data.get('description', 'Event'))
         description = event_data.get('description', event_data.get('title', ''))
@@ -141,9 +140,9 @@ class CalendarService:
 
     async def get_upcoming_events(
         self,
-        events: List[CalendarEvent],
+        events: list[CalendarEvent],
         days_ahead: int = 30
-    ) -> List[CalendarEvent]:
+    ) -> list[CalendarEvent]:
         """Get upcoming events within specified days."""
         now = date.today()
         cutoff = now + timedelta(days=days_ahead)

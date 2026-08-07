@@ -6,14 +6,13 @@ Handles offline/online state detection and user notifications.
 """
 
 import logging
-from typing import Optional, Callable
-from fastapi import Request
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
 class OfflineManager:
     """Manages offline/online state detection and user notifications."""
-    
+
     def __init__(self):
         self.is_online = True
         self.callbacks = {
@@ -24,12 +23,12 @@ class OfflineManager:
         self.check_interval = 30000  # 30 seconds
         self.max_retries = 3
         self.retry_count = 0
-        
+
     def add_callback(self, event_type: str, callback: Callable):
         """Add callback for offline/online events."""
         if event_type in self.callbacks:
             self.callbacks[event_type].append(callback)
-    
+
     def remove_callback(self, event_type: str, callback: Callable):
         """Remove callback for offline/online events."""
         if event_type in self.callbacks:
@@ -37,7 +36,7 @@ class OfflineManager:
                 self.callbacks[event_type].remove(callback)
             except ValueError:
                 pass
-    
+
     def _trigger_callbacks(self, event_type: str, data: dict = None):
         """Trigger all callbacks for an event type."""
         for callback in self.callbacks.get(event_type, []):
@@ -48,7 +47,7 @@ class OfflineManager:
                     callback()
             except Exception as e:
                 logger.error(f"Offline callback error: {e}")
-    
+
     async def check_connectivity(self) -> bool:
         """Check if we have network connectivity."""
         try:
@@ -60,7 +59,7 @@ class OfflineManager:
         except Exception as e:
             logger.debug(f"Connectivity check failed: {e}")
             return False
-    
+
     def get_offline_html(self) -> str:
         """Generate HTML for offline indicator."""
         return """
@@ -110,7 +109,7 @@ class OfflineManager:
         }
         </style>
         """
-    
+
     def get_online_html(self) -> str:
         """Generate HTML for online indicator."""
         return """
@@ -138,7 +137,7 @@ class OfflineManager:
             </div>
         </div>
         """
-    
+
     def get_javascript(self) -> str:
         """Generate JavaScript for offline detection."""
         return """

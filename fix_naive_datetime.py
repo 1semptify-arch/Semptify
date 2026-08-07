@@ -47,11 +47,11 @@ def fix_file(path: Path) -> bool:
 
     if not has_utc_import and import_idx is not None:
         lines.insert(import_idx + 1, 'from app.core.utc import utc_now')
-        print(f"  Added: from app.core.utc import utc_now")
+        print("  Added: from app.core.utc import utc_now")
 
     path.write_text('\n'.join(lines), encoding='utf-8')
     FIXED += len(changes)
-    print(f"  FIXED ✓")
+    print("  FIXED ✓")
     return True
 
 print("Scanning app/ for naive datetime.now() calls...")

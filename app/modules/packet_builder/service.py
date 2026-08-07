@@ -52,8 +52,8 @@ def _overlay_to_dict(overlay: Any) -> dict[str, Any]:
 async def _get_overlay_manager(user_id: str) -> Any:
     """Build an overlay manager for the user, or None if storage is unavailable."""
     try:
-        from app.core.database import get_session_factory
         from app.core.auto_refresh import ensure_valid_token
+        from app.core.database import get_session_factory
         from app.core.user_id import get_provider_from_user_id
         from app.services.storage import get_provider
     except ImportError:
@@ -313,8 +313,8 @@ async def _get_document_bytes(user_id: str, doc: Any) -> bytes | None:
     vault_service = get_vault_service()
     token: str | None = None
     try:
-        from app.core.database import get_session_factory
         from app.core.auto_refresh import ensure_valid_token
+        from app.core.database import get_session_factory
 
         factory = get_session_factory()
         async with factory() as db:

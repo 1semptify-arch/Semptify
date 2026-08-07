@@ -9,25 +9,31 @@ API endpoints for the Semptify communication system:
 """
 
 import logging
-from typing import Optional, List
+
 from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, Depends, HTTPException, Form, status, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings, get_settings
 from app.core.database import get_db
-from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser, yellow_access
+from app.core.security import StorageUser, yellow_access
 from app.core.user_id import get_role_from_user_id
 from app.models.communication_models import (
-    ConversationListResponse, MessageThreadResponse,
-    SendMessageRequest, SendMessageResponse,
-    CreateConversationRequest, CreateConversationResponse,
-    MarkReadRequest, ParticipantRole, DocumentFillResponse,
-    MessageAttachment
+    ConversationListResponse,
+    CreateConversationRequest,
+    CreateConversationResponse,
+    DocumentFillResponse,
+    MarkReadRequest,
+    MessageAttachment,
+    MessageThreadResponse,
+    ParticipantRole,
+    SendMessageRequest,
+    SendMessageResponse,
 )
 from app.models.document_delivery_models import SignDocumentRequest
+
 from .service import get_communication_service
 
 router = APIRouter(prefix="/api/communications", tags=["Communications"])
@@ -111,16 +117,16 @@ async def create_conversation(
     """
     storage = await get_storage_client(user, db, settings)
     service = await get_communication_service(storage, user.user_id)
-    
+
     role = _get_participant_role(_get_user_role(user))
-    
+
     return await service.create_conversation(request, role, user.user_id)
 
 
 @router.get("/conversations/{conversation_id}", response_model=MessageThreadResponse)
 async def get_conversation(
     conversation_id: str,
-    before_message_id: Optional[str] = None,
+    before_message_id: str | None = None,
     limit: int = 50,
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
@@ -135,10 +141,10 @@ async def get_conversation(
     """
     if limit > 100:
         limit = 100
-    
+
     storage = await get_storage_client(user, db, settings)
     service = await get_communication_service(storage, user.user_id)
-    
+
     return await service.get_conversation_messages(
         conversation_id,
         before_message_id=before_message_id,
@@ -155,9 +161,9 @@ async def send_message(
     conversation_id: str,
     content: str = Form(..., description="Message content"),
     message_type: str = Form("text", description="Message type: text, document, etc."),
-    referenced_document_id: Optional[str] = Form(None, description="Referenced document ID"),
-    referenced_delivery_id: Optional[str] = Form(None, description="Referenced delivery ID"),
-    reply_to_message_id: Optional[str] = Form(None, description="Reply to message ID"),
+    referenced_document_id: str | None = Form(None, description="Referenced document ID"),
+    referenced_delivery_id: str | None = Form(None, description="Referenced delivery ID"),
+    reply_to_message_id: str | None = Form(None, description="Reply to message ID"),
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
@@ -170,9 +176,9 @@ async def send_message(
     """
     storage = await get_storage_client(user, db, settings)
     service = await get_communication_service(storage, user.user_id)
-    
+
     role = _get_participant_role(_get_user_role(user))
-    
+
     request = SendMessageRequest(
         conversation_id=conversation_id,
         content=content,
@@ -181,7 +187,7 @@ async def send_message(
         referenced_delivery_id=referenced_delivery_id,
         reply_to_message_id=reply_to_message_id
     )
-    
+
     return await service.send_message(request, role, user.user_id)
 
 
@@ -197,11 +203,11 @@ async def mark_message_read(
     """Mark a specific message as read."""
     storage = await get_storage_client(user, db, settings)
     service = await get_communication_service(storage, user.user_id)
-    
+
     success = await service.mark_messages_read(
         MarkReadRequest(message_ids=[message_id])
     )
-    
+
     return {"success": success, "message_id": message_id}
 
 
@@ -216,11 +222,11 @@ async def mark_conversation_read(
     """Mark all messages in a conversation as read."""
     storage = await get_storage_client(user, db, settings)
     service = await get_communication_service(storage, user.user_id)
-    
+
     success = await service.mark_messages_read(
         MarkReadRequest(conversation_id=conversation_id, mark_all=True)
     )
-    
+
     return {"success": success, "conversation_id": conversation_id}
 
 
@@ -247,36 +253,36 @@ async def reject_document(
     
     The rejection is permanent - the document cannot be re-signed.
     """
-    from app.services.document_delivery_service import get_document_delivery_service
     from app.models.document_delivery_models import RejectDocumentRequest
-    
+    from app.services.document_delivery_service import get_document_delivery_service
+
     storage = await get_storage_client(user, db, settings)
-    
+
     # First, reject via document delivery service
     delivery_service = await get_document_delivery_service(storage, user.user_id)
     reject_request = RejectDocumentRequest(reason=reason)
-    
+
     delivery_result = await delivery_service.reject_document(
         delivery_id=delivery_id,
         request=reject_request
     )
-    
+
     if not delivery_result.success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=delivery_result.message or "Failed to reject document"
         )
-    
+
     # Also create a communication record of the rejection
     comm_service = await get_communication_service(storage, user.user_id)
-    
+
     # Save rejection record as communication overlay
     await comm_service._save_rejection_record(
         delivery_id=delivery_id,
         reason=reason,
         rejected_at=delivery_result.rejected_at
     )
-    
+
     return {
         "success": True,
         "delivery_id": delivery_id,
@@ -292,9 +298,9 @@ async def fill_and_sign_document(
     signature_type: str = Form("typed", description="Signature type: typed, drawn, digital"),
     signature_value: str = Form(..., description="The signature value"),
     agree_to_terms: bool = Form(True, description="Must be True to sign"),
-    field_1: Optional[str] = Form(None, description="Form field 1"),
-    field_2: Optional[str] = Form(None, description="Form field 2"),
-    field_3: Optional[str] = Form(None, description="Form field 3"),
+    field_1: str | None = Form(None, description="Form field 1"),
+    field_2: str | None = Form(None, description="Form field 2"),
+    field_3: str | None = Form(None, description="Form field 3"),
     access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
@@ -313,9 +319,9 @@ async def fill_and_sign_document(
     """
     storage = await get_storage_client(user, db, settings)
     service = await get_communication_service(storage, user.user_id)
-    
+
     role = _get_participant_role(_get_user_role(user))
-    
+
     # Build field values from form fields
     field_values = {}
     if field_1:
@@ -324,14 +330,14 @@ async def fill_and_sign_document(
         field_values["field_2"] = field_2
     if field_3:
         field_values["field_3"] = field_3
-    
+
     # Build signature request
     signature_request = SignDocumentRequest(
         signature_type=signature_type,
         signature_value=signature_value,
         agree_to_terms=agree_to_terms
     )
-    
+
     return await service.fill_and_sign_document(
         delivery_id=delivery_id,
         field_values=field_values,
@@ -358,15 +364,15 @@ async def upload_attachment(
     try:
         # Read file content
         content = await file.read()
-        
+
         # Generate unique filename
         safe_filename = f"{make_id('att')}_{file.filename}"
-        
+
         # Upload to storage
         storage = await get_storage_client(user, db, settings)
         from app.services.vault_upload_service import VaultUploadService
         upload_service = VaultUploadService(storage)
-        
+
         # Create document in vault
         result = await upload_service.upload(
             user_id=user.user_id,
@@ -377,20 +383,20 @@ async def upload_attachment(
             document_type="attachment",
             access_token=access_token
         )
-        
+
         if not result.success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to upload attachment"
             )
-        
+
         attachment = MessageAttachment(
             filename=file.filename,
             document_id=result.vault_id,
             file_size=len(content),
             mime_type=file.content_type
         )
-        
+
         return {
             "success": True,
             "attachment_id": attachment.attachment_id,
@@ -398,7 +404,7 @@ async def upload_attachment(
             "filename": file.filename,
             "file_size": len(content)
         }
-        
+
     except Exception as e:
         logger.error(f"Upload attachment failed: {e}", exc_info=True)
         raise HTTPException(
@@ -427,40 +433,40 @@ async def get_delivery_conversation(
     """
     storage = await get_storage_client(user, db, settings)
     comm_service = await get_communication_service(storage, user.user_id)
-    
+
     # Get delivery details to find participants
     from app.services.document_delivery_service import get_delivery_service
     delivery_service = await get_delivery_service(storage, user.user_id)
-    
+
     delivery_detail = await delivery_service.get_delivery_detail(delivery_id)
     if not delivery_detail:
         raise HTTPException(status_code=404, detail="Delivery not found")
-    
+
     delivery = delivery_detail.delivery
-    
+
     # Check if user is part of this delivery
     if delivery.recipient_id != user.user_id and delivery.sender_id != user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this delivery"
         )
-    
+
     # Look for existing conversation about this delivery
     conversations = await comm_service.get_conversations()
-    
+
     for conv in conversations.conversations:
         # Check if conversation is about this delivery
         # This would need a reference field in conversation metadata
         pass  # Implementation depends on metadata structure
-    
+
     # If no conversation exists, create one
     participant_ids = [delivery.sender_id, delivery.recipient_id]
     participant_ids = list(set(participant_ids))  # Remove duplicates
     if user.user_id in participant_ids:
         participant_ids.remove(user.user_id)
-    
+
     role = _get_participant_role(_get_user_role(user))
-    
+
     conv_response = await comm_service.create_conversation(
         CreateConversationRequest(
             title=f"Document: {delivery.document_filename}",
@@ -470,13 +476,13 @@ async def get_delivery_conversation(
         role,
         user.user_id
     )
-    
+
     if not conv_response.success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create conversation"
         )
-    
+
     return {
         "success": True,
         "conversation_id": conv_response.conversation_id,

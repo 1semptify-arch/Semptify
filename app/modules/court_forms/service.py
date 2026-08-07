@@ -16,9 +16,10 @@ Features:
 
 import io
 import logging
-from datetime import datetime, date
-from typing import Optional, Dict, Any, List
+from datetime import date, datetime
 from pathlib import Path
+from typing import Any
+
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -162,17 +163,17 @@ specified in the notice. {details}.""",
 
 class CourtFormGenerator:
     """Generates Minnesota court forms with auto-filled data."""
-    
+
     def __init__(self):
         self.templates_dir = Path(__file__).parent.parent / "templates" / "forms"
-        
+
     async def generate_form(
         self,
         form_type: str,
-        case_data: Dict[str, Any],
-        defenses: Optional[List[str]] = None,
+        case_data: dict[str, Any],
+        defenses: list[str] | None = None,
         output_format: str = "pdf",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate a court form with case data.
         
@@ -190,16 +191,16 @@ class CourtFormGenerator:
                 "error": f"Unknown form type: {form_type}",
                 "available_forms": list(FORM_MAPPINGS.keys()),
             }
-        
+
         mapping = FORM_MAPPINGS[form_type]
-        
+
         # Map case data to form fields
         form_data = self._map_fields(case_data, mapping["fields"])
-        
+
         # Add defenses if applicable
         if defenses and form_type in ["answer_to_complaint", "counterclaim"]:
             form_data["defenses_text"] = self._format_defenses(defenses, case_data)
-        
+
         # Generate form content
         if output_format == "html":
             content = self._generate_html(form_type, form_data, mapping)
@@ -207,7 +208,7 @@ class CourtFormGenerator:
             content = await self._generate_pdf(form_type, form_data, mapping)
         else:
             content = self._generate_text(form_type, form_data, mapping)
-        
+
         return {
             "form_type": form_type,
             "title": mapping["title"],
@@ -217,22 +218,22 @@ class CourtFormGenerator:
             "fields_used": list(form_data.keys()),
             "generated_at": utc_now().isoformat(),
         }
-    
+
     def _map_fields(
         self,
-        case_data: Dict[str, Any],
-        field_mapping: Dict[str, List[str]],
-    ) -> Dict[str, Any]:
+        case_data: dict[str, Any],
+        field_mapping: dict[str, list[str]],
+    ) -> dict[str, Any]:
         """Map case data to form fields using field mapping."""
         form_data = {}
-        
+
         for form_field, source_fields in field_mapping.items():
             value = None
             for source in source_fields:
                 if source in case_data and case_data[source]:
                     value = case_data[source]
                     break
-            
+
             if value is not None:
                 # Format dates
                 if isinstance(value, (datetime, date)):
@@ -240,17 +241,17 @@ class CourtFormGenerator:
                 form_data[form_field] = value
             else:
                 form_data[form_field] = f"[{form_field.upper()}]"
-        
+
         return form_data
-    
+
     def _format_defenses(
         self,
-        defense_types: List[str],
-        case_data: Dict[str, Any],
+        defense_types: list[str],
+        case_data: dict[str, Any],
     ) -> str:
         """Format defense paragraphs."""
         defense_paragraphs = []
-        
+
         for i, defense_type in enumerate(defense_types, 1):
             if defense_type in DEFENSE_TEMPLATES:
                 template = DEFENSE_TEMPLATES[defense_type]
@@ -261,14 +262,14 @@ class CourtFormGenerator:
                 )
             else:
                 defense_paragraphs.append(f"{i}. {defense_type}")
-        
+
         return "\n\n".join(defense_paragraphs)
-    
+
     def _generate_html(
         self,
         form_type: str,
-        form_data: Dict[str, Any],
-        mapping: Dict[str, Any],
+        form_data: dict[str, Any],
+        mapping: dict[str, Any],
     ) -> str:
         """Generate HTML version of form."""
         if form_type == "answer_to_complaint":
@@ -281,8 +282,8 @@ class CourtFormGenerator:
             return self._counterclaim_html(form_data)
         else:
             return self._generic_form_html(form_type, form_data, mapping)
-    
-    def _answer_html(self, data: Dict[str, Any]) -> str:
+
+    def _answer_html(self, data: dict[str, Any]) -> str:
         """Generate Answer to Eviction Complaint HTML."""
         return f"""<!DOCTYPE html>
 <html>
@@ -359,8 +360,8 @@ class CourtFormGenerator:
     </div>
 </body>
 </html>"""
-    
-    def _motion_dismiss_html(self, data: Dict[str, Any]) -> str:
+
+    def _motion_dismiss_html(self, data: dict[str, Any]) -> str:
         """Generate Motion to Dismiss HTML."""
         return f"""<!DOCTYPE html>
 <html>
@@ -424,8 +425,8 @@ class CourtFormGenerator:
     </div>
 </body>
 </html>"""
-    
-    def _continuance_html(self, data: Dict[str, Any]) -> str:
+
+    def _continuance_html(self, data: dict[str, Any]) -> str:
         """Generate Motion for Continuance HTML."""
         return f"""<!DOCTYPE html>
 <html>
@@ -466,8 +467,8 @@ class CourtFormGenerator:
     </div>
 </body>
 </html>"""
-    
-    def _counterclaim_html(self, data: Dict[str, Any]) -> str:
+
+    def _counterclaim_html(self, data: dict[str, Any]) -> str:
         """Generate Counterclaim HTML."""
         return f"""<!DOCTYPE html>
 <html>
@@ -518,18 +519,18 @@ class CourtFormGenerator:
     </div>
 </body>
 </html>"""
-    
+
     def _generic_form_html(
         self,
         form_type: str,
-        data: Dict[str, Any],
-        mapping: Dict[str, Any],
+        data: dict[str, Any],
+        mapping: dict[str, Any],
     ) -> str:
         """Generate generic form HTML."""
         fields_html = ""
         for field, value in data.items():
             fields_html += f"<p><strong>{field.replace('_', ' ').title()}:</strong> {value}</p>\n"
-        
+
         return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -545,17 +546,17 @@ class CourtFormGenerator:
     {fields_html}
 </body>
 </html>"""
-    
+
     async def _generate_pdf(
         self,
         form_type: str,
-        form_data: Dict[str, Any],
-        mapping: Dict[str, Any],
+        form_data: dict[str, Any],
+        mapping: dict[str, Any],
     ) -> bytes:
         """Generate PDF version of form."""
         # Generate HTML first
         html = self._generate_html(form_type, form_data, mapping)
-        
+
         # Try to convert to PDF
         try:
             from weasyprint import HTML
@@ -563,7 +564,7 @@ class CourtFormGenerator:
             return pdf_bytes
         except ImportError:
             pass
-        
+
         try:
             from xhtml2pdf import pisa
             result = io.BytesIO()
@@ -571,16 +572,16 @@ class CourtFormGenerator:
             return result.getvalue()
         except ImportError:
             pass
-        
+
         # Return HTML as fallback
         logger.warning("PDF generation libraries not available, returning HTML")
         return html.encode('utf-8')
-    
+
     def _generate_text(
         self,
         form_type: str,
-        form_data: Dict[str, Any],
-        mapping: Dict[str, Any],
+        form_data: dict[str, Any],
+        mapping: dict[str, Any],
     ) -> str:
         """Generate plain text version of form."""
         lines = [
@@ -589,14 +590,14 @@ class CourtFormGenerator:
             f"{'=' * 60}",
             "",
         ]
-        
+
         for field, value in form_data.items():
             label = field.replace('_', ' ').title()
             lines.append(f"{label}: {value}")
-        
+
         return "\n".join(lines)
-    
-    def get_available_forms(self) -> List[Dict[str, str]]:
+
+    def get_available_forms(self) -> list[dict[str, str]]:
         """Get list of available form types."""
         return [
             {
@@ -606,8 +607,8 @@ class CourtFormGenerator:
             }
             for form_type, mapping in FORM_MAPPINGS.items()
         ]
-    
-    def get_available_defenses(self) -> List[Dict[str, str]]:
+
+    def get_available_defenses(self) -> list[dict[str, str]]:
         """Get list of available defense types."""
         return [
             {

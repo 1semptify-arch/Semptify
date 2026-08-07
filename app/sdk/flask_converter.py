@@ -14,15 +14,14 @@ Or programmatically:
     result = converter.convert_file("old_flask_app.py", "new_module_name")
 """
 
-import ast
-import re
-import os
-import sys
 import argparse
+import ast
 import logging
+import os
+import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
+from typing import Any
+
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -36,36 +35,36 @@ logger = logging.getLogger(__name__)
 class FlaskRoute:
     """Represents a Flask route/endpoint"""
     path: str
-    methods: List[str]
+    methods: list[str]
     function_name: str
     function_body: str
-    decorators: List[str]
-    docstring: Optional[str] = None
-    parameters: List[str] = field(default_factory=list)
+    decorators: list[str]
+    docstring: str | None = None
+    parameters: list[str] = field(default_factory=list)
     has_request_data: bool = False
     has_session: bool = False
     has_file_upload: bool = False
     returns_json: bool = False
     returns_template: bool = False
-    
+
 
 @dataclass
 class FlaskBlueprint:
     """Represents a Flask blueprint"""
     name: str
     url_prefix: str
-    routes: List[FlaskRoute] = field(default_factory=list)
+    routes: list[FlaskRoute] = field(default_factory=list)
 
 
-@dataclass 
+@dataclass
 class FlaskAnalysis:
     """Results of analyzing a Flask file"""
     app_name: str
-    blueprints: List[FlaskBlueprint]
-    routes: List[FlaskRoute]  # Direct app routes
-    imports: List[str]
-    models: List[str]
-    config_vars: Dict[str, Any]
+    blueprints: list[FlaskBlueprint]
+    routes: list[FlaskRoute]  # Direct app routes
+    imports: list[str]
+    models: list[str]
+    config_vars: dict[str, Any]
     has_database: bool = False
     has_authentication: bool = False
     has_file_handling: bool = False
@@ -78,23 +77,23 @@ class FlaskAnalysis:
 
 class FlaskAnalyzer(ast.NodeVisitor):
     """Analyzes Flask code to extract routes, blueprints, etc."""
-    
+
     def __init__(self, source_code: str):
         self.source_code = source_code
         self.source_lines = source_code.split('\n')
-        self.routes: List[FlaskRoute] = []
-        self.blueprints: List[FlaskBlueprint] = []
-        self.imports: List[str] = []
-        self.models: List[str] = []
-        self.config_vars: Dict[str, Any] = {}
+        self.routes: list[FlaskRoute] = []
+        self.blueprints: list[FlaskBlueprint] = []
+        self.imports: list[str] = []
+        self.models: list[str] = []
+        self.config_vars: dict[str, Any] = {}
         self.app_name = "app"
         self.current_blueprint = None
-        
+
     def analyze(self) -> FlaskAnalysis:
         """Run the analysis"""
         tree = ast.parse(self.source_code)
         self.visit(tree)
-        
+
         return FlaskAnalysis(
             app_name=self.app_name,
             blueprints=self.blueprints,
@@ -107,25 +106,25 @@ class FlaskAnalyzer(ast.NodeVisitor):
             has_file_handling="FileStorage" in self.source_code or "request.files" in self.source_code,
             original_code=self.source_code,
         )
-    
+
     def visit_Import(self, node: ast.Import):
         for alias in node.names:
             self.imports.append(alias.name)
         self.generic_visit(node)
-    
+
     def visit_ImportFrom(self, node: ast.ImportFrom):
         module = node.module or ""
         for alias in node.names:
             self.imports.append(f"{module}.{alias.name}")
         self.generic_visit(node)
-    
+
     def visit_Assign(self, node: ast.Assign):
         # Detect Flask app creation
         if isinstance(node.value, ast.Call):
             if hasattr(node.value.func, 'id') and node.value.func.id == 'Flask':
                 if node.targets and isinstance(node.targets[0], ast.Name):
                     self.app_name = node.targets[0].id
-            
+
             # Detect Blueprint creation
             if hasattr(node.value.func, 'id') and node.value.func.id == 'Blueprint':
                 if node.targets and isinstance(node.targets[0], ast.Name):
@@ -139,34 +138,34 @@ class FlaskAnalyzer(ast.NodeVisitor):
                         name=bp_name,
                         url_prefix=url_prefix,
                     ))
-        
+
         self.generic_visit(node)
-    
+
     def visit_FunctionDef(self, node: ast.FunctionDef):
         # Check for route decorators
         for decorator in node.decorator_list:
             route_info = self._extract_route_info(decorator)
             if route_info:
                 path, methods, is_blueprint = route_info
-                
+
                 # Get function body
                 func_start = node.lineno - 1
                 func_end = node.end_lineno if hasattr(node, 'end_lineno') else func_start + 20
                 func_body = '\n'.join(self.source_lines[func_start:func_end])
-                
+
                 # Get docstring
                 docstring = ast.get_docstring(node)
-                
+
                 # Analyze function body for patterns
                 has_request_data = 'request.json' in func_body or 'request.form' in func_body
                 has_session = 'session[' in func_body or 'session.' in func_body
                 has_file_upload = 'request.files' in func_body
                 returns_json = 'jsonify' in func_body or 'return {' in func_body
                 returns_template = 'render_template' in func_body
-                
+
                 # Get parameters
                 params = [arg.arg for arg in node.args.args if arg.arg != 'self']
-                
+
                 route = FlaskRoute(
                     path=path,
                     methods=methods,
@@ -181,32 +180,32 @@ class FlaskAnalyzer(ast.NodeVisitor):
                     returns_json=returns_json,
                     returns_template=returns_template,
                 )
-                
+
                 if is_blueprint and self.blueprints:
                     self.blueprints[-1].routes.append(route)
                 else:
                     self.routes.append(route)
-        
+
         self.generic_visit(node)
-    
-    def _extract_route_info(self, decorator: ast.expr) -> Optional[Tuple[str, List[str], bool]]:
+
+    def _extract_route_info(self, decorator: ast.expr) -> tuple[str, list[str], bool] | None:
         """Extract route path and methods from decorator"""
         if isinstance(decorator, ast.Call):
             # Check if it's a route decorator
             func = decorator.func
             is_blueprint = False
-            
+
             # @app.route(...) or @blueprint.route(...)
             if isinstance(func, ast.Attribute) and func.attr == 'route':
                 if isinstance(func.value, ast.Name):
                     is_blueprint = func.value.id != self.app_name
-                
+
                 # Get path
                 path = "/"
                 if decorator.args:
                     if isinstance(decorator.args[0], ast.Constant):
                         path = decorator.args[0].value
-                
+
                 # Get methods
                 methods = ["GET"]
                 for keyword in decorator.keywords:
@@ -216,9 +215,9 @@ class FlaskAnalyzer(ast.NodeVisitor):
                                 elt.value if isinstance(elt, ast.Constant) else str(elt)
                                 for elt in keyword.value.elts
                             ]
-                
+
                 return (path, methods, is_blueprint)
-        
+
         return None
 
 
@@ -228,12 +227,12 @@ class FlaskAnalyzer(ast.NodeVisitor):
 
 class FastAPIGenerator:
     """Generates FastAPI module code from Flask analysis"""
-    
+
     def __init__(self, analysis: FlaskAnalysis, module_name: str, display_name: str):
         self.analysis = analysis
         self.module_name = module_name
         self.display_name = display_name
-    
+
     def generate(self) -> str:
         """Generate complete FastAPI module"""
         sections = [
@@ -248,9 +247,9 @@ class FastAPIGenerator:
             self._generate_router(),
             self._generate_exports(),
         ]
-        
+
         return '\n\n'.join(filter(None, sections))
-    
+
     def _generate_header(self) -> str:
         return f'''"""
 {self.display_name} Module
@@ -262,7 +261,7 @@ Converted: {utc_now().isoformat()}
 
 This module integrates with the Semptify Positronic Mesh.
 """'''
-    
+
     def _generate_imports(self) -> str:
         imports = [
             'import logging',
@@ -282,19 +281,19 @@ This module integrates with the Semptify Positronic Mesh.
             ')',
             'from app.core.utc import utc_now',
         ]
-        
+
         # Add database imports if needed
         if self.analysis.has_database:
             imports.append('')
             imports.append('# Database imports (adjust as needed)')
             imports.append('# from app.core.database import get_db')
             imports.append('# from sqlalchemy.orm import Session')
-        
+
         imports.append('')
-        imports.append(f'logger = logging.getLogger(__name__)')
-        
+        imports.append('logger = logging.getLogger(__name__)')
+
         return '\n'.join(imports)
-    
+
     def _generate_module_definition(self) -> str:
         # Determine category
         category = "UTILITY"
@@ -302,10 +301,10 @@ This module integrates with the Semptify Positronic Mesh.
             category = "STORAGE"
         if self.analysis.has_authentication:
             category = "COMMUNICATION"
-        if any("document" in r.path.lower() or "file" in r.path.lower() 
+        if any("document" in r.path.lower() or "file" in r.path.lower()
                for r in self.analysis.routes):
             category = "DOCUMENT"
-        
+
         return f'''
 # =============================================================================
 # MODULE DEFINITION
@@ -338,7 +337,7 @@ module_definition = ModuleDefinition(
     has_background_tasks=False,
     requires_auth={str(self.analysis.has_authentication)},
 )'''
-    
+
     def _generate_sdk_instance(self) -> str:
         return '''
 # =============================================================================
@@ -346,11 +345,11 @@ module_definition = ModuleDefinition(
 # =============================================================================
 
 sdk = ModuleSDK(module_definition)'''
-    
+
     def _generate_pydantic_models(self) -> str:
         """Generate Pydantic models from Flask routes"""
         models = []
-        
+
         for route in self.analysis.routes:
             if route.has_request_data and "POST" in route.methods:
                 model_name = self._to_pascal_case(route.function_name) + "Request"
@@ -359,22 +358,22 @@ class {model_name}(BaseModel):
     """Request model for {route.function_name}"""
     data: Dict[str, Any] = {{}}
     # TODO: Add specific fields based on your Flask request.json/form structure''')
-        
+
         if models:
             return '\n# =============================================================================\n# PYDANTIC MODELS\n# =============================================================================' + '\n'.join(models)
         return ''
-    
+
     def _generate_actions(self) -> str:
         """Generate SDK actions from Flask routes"""
         actions = ['''
 # =============================================================================
 # SDK ACTIONS (Converted from Flask routes)
 # =============================================================================''']
-        
+
         for route in self.analysis.routes:
             action = self._convert_route_to_action(route)
             actions.append(action)
-        
+
         # Add get_state action
         actions.append(f'''
 @sdk.action(
@@ -395,17 +394,17 @@ async def get_state(
             "timestamp": utc_now().isoformat(),
         }}
     }}''')
-        
+
         return '\n'.join(actions)
-    
+
     def _convert_route_to_action(self, route: FlaskRoute) -> str:
         """Convert a Flask route to an SDK action"""
         action_name = route.function_name
         description = route.docstring or f"Converted from Flask {route.path}"
-        
+
         # Clean up description
         description = description.replace('"', '\\"').split('\n')[0][:100]
-        
+
         # Build action body
         body_lines = [
             f'    logger.info(f"{{module_definition.name}}: {action_name} for user {{user_id[:8]}}...")',
@@ -414,17 +413,17 @@ async def get_state(
             '    # Original Flask route: ' + route.path,
             '    # Methods: ' + ', '.join(route.methods),
         ]
-        
+
         if route.has_request_data:
             body_lines.append('    # Note: Original used request.json or request.form')
             body_lines.append('    data = params.get("data", {})')
-        
+
         if route.has_session:
             body_lines.append('    # Note: Original used Flask session - use user_id for user context')
-        
+
         if route.has_file_upload:
             body_lines.append('    # Note: Original had file uploads - handle via separate endpoint')
-        
+
         body_lines.append('')
         body_lines.append('    result = {')
         body_lines.append(f'        "action": "{action_name}",')
@@ -433,9 +432,9 @@ async def get_state(
         body_lines.append('    }')
         body_lines.append('')
         body_lines.append('    return {"result": result}')
-        
+
         body = '\n'.join(body_lines)
-        
+
         return f'''
 @sdk.action(
     "{action_name}",
@@ -452,7 +451,7 @@ async def {action_name}(
     Methods: {', '.join(route.methods)}
     """
 {body}'''
-    
+
     def _generate_event_handlers(self) -> str:
         return '''
 # =============================================================================
@@ -463,7 +462,7 @@ async def {action_name}(
 async def on_workflow_started(event_type: str, data: Dict[str, Any]):
     """React when workflows start"""
     logger.debug(f"{module_definition.name}: Workflow started - {data.get('workflow_id')}")'''
-    
+
     def _generate_init_function(self) -> str:
         return '''
 # =============================================================================
@@ -474,7 +473,7 @@ def initialize():
     """Initialize this module - call from main.py on startup"""
     sdk.initialize()
     logger.info(f"● {module_definition.display_name} module ready")'''
-    
+
     def _generate_router(self) -> str:
         """Generate FastAPI router from Flask routes"""
         router_code = ['''
@@ -485,69 +484,67 @@ def initialize():
 from app.core.security import get_current_user
 
 router = APIRouter()''']
-        
+
         # Direct app routes
         for route in self.analysis.routes:
             endpoint = self._convert_route_to_endpoint(route)
             router_code.append(endpoint)
-        
+
         # Blueprint routes (with url_prefix)
         for bp in self.analysis.blueprints:
             for route in bp.routes:
                 endpoint = self._convert_route_to_endpoint(route, bp.url_prefix)
                 router_code.append(endpoint)
-        
+
         return '\n'.join(router_code)
-    
+
     def _convert_route_to_endpoint(self, route: FlaskRoute, url_prefix: str = "") -> str:
         """Convert Flask route to FastAPI endpoint"""
         # Convert Flask path params to FastAPI style
         path = route.path
         path = re.sub(r'<(\w+):(\w+)>', r'{\2}', path)  # <type:name> -> {name}
         path = re.sub(r'<(\w+)>', r'{\1}', path)  # <name> -> {name}
-        
+
         # Prepend blueprint url_prefix
         if url_prefix:
             prefix = url_prefix.rstrip('/')
             path = prefix + path
-        
+
         method = route.methods[0].lower()
         func_name = f"api_{route.function_name}"
-        
+
         # Build parameters using Semptify auth
         params = ['current_user = Depends(get_current_user)']
-        
+
         # Add path parameters
         path_params = re.findall(r'\{(\w+)\}', path)
         for param in path_params:
             params.insert(0, f'{param}: str')
-        
+
         # Add body for POST/PUT
         if method in ['post', 'put', 'patch']:
             if route.has_request_data:
                 model_name = self._to_pascal_case(route.function_name) + "Request"
                 params.insert(0, f'request: {model_name}')
-        
+
         params_str = ',\n    '.join(params)
-        
+
         # Build body
         body_lines = [
             '    user_id = current_user.user_id if current_user else "anonymous"',
         ]
-        
+
         if method in ['post', 'put', 'patch'] and route.has_request_data:
-            body_lines.append('    result = await {}(user_id, {{"data": request.model_dump()}}, {{}})'.format(
-                route.function_name
-            ))
+            body_lines.append(f'    result = await {route.function_name}(user_id, {{"data": request.model_dump()}}, {{}})')
         else:
-            body_lines.append('    result = await {}(user_id, {{}}, {{}})'.format(route.function_name))
-        
+            body_lines.append(f'    result = await {route.function_name}(user_id, {{}}, {{}})')
+
         body_lines.append('    return result')
         body = '\n'.join(body_lines)
-        
+
         docstring = route.docstring or f"API endpoint converted from Flask {route.path}"
         docstring = docstring.split('\n')[0][:80]
-        
+
         return f'''
 
 @router.{method}("{path}")
@@ -556,9 +553,9 @@ async def {func_name}(
 ):
     """{docstring}"""
 {body}'''
-    
+
     def _generate_exports(self) -> str:
-        return f'''
+        return '''
 # =============================================================================
 # EXPORTS
 # =============================================================================
@@ -569,7 +566,7 @@ __all__ = [
     "initialize",
     "router",
 ]'''
-    
+
     def _to_pascal_case(self, snake_str: str) -> str:
         """Convert snake_case to PascalCase"""
         components = snake_str.split('_')
@@ -590,7 +587,7 @@ class FlaskConverter:
         # or
         result = converter.convert_code(flask_code_string, "my_module")
     """
-    
+
     def convert_file(
         self,
         flask_file: str,
@@ -599,18 +596,18 @@ class FlaskConverter:
         output_dir: str = None,
     ) -> str:
         """Convert a Flask file to a FastAPI module"""
-        with open(flask_file, 'r', encoding='utf-8') as f:
+        with open(flask_file, encoding='utf-8') as f:
             flask_code = f.read()
-        
+
         display_name = display_name or self._generate_display_name(module_name)
-        
+
         result = self.convert_code(flask_code, module_name, display_name)
-        
+
         if output_dir:
             self._write_output(result, module_name, output_dir)
-        
+
         return result
-    
+
     def convert_code(
         self,
         flask_code: str,
@@ -619,35 +616,35 @@ class FlaskConverter:
     ) -> str:
         """Convert Flask code string to FastAPI module"""
         display_name = display_name or self._generate_display_name(module_name)
-        
+
         # Analyze Flask code
         analyzer = FlaskAnalyzer(flask_code)
         analysis = analyzer.analyze()
-        
+
         logger.info(f"◆ Analyzed Flask app: {analysis.app_name}")
         logger.info(f"   Routes: {len(analysis.routes)}")
         logger.info(f"   Blueprints: {len(analysis.blueprints)}")
-        
+
         # Generate FastAPI module
         generator = FastAPIGenerator(analysis, module_name, display_name)
         fastapi_code = generator.generate()
-        
+
         return fastapi_code
-    
+
     def _generate_display_name(self, module_name: str) -> str:
         """Generate display name from module name"""
         return ' '.join(word.title() for word in module_name.split('_'))
-    
+
     def _write_output(self, code: str, module_name: str, output_dir: str):
         """Write generated code to file"""
         os.makedirs(output_dir, exist_ok=True)
         filepath = os.path.join(output_dir, f"{module_name}.py")
-        
+
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(code)
-        
+
         logger.info(f"● Generated module: {filepath}")
-        
+
         print(f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║  ● Flask to FastAPI Conversion Complete!                    ║
@@ -679,7 +676,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Convert Flask app/blueprint to Semptify FastAPI module"
     )
-    
+
     parser.add_argument(
         "flask_file",
         help="Path to Flask Python file to convert"
@@ -709,9 +706,9 @@ def main():
         action="store_true",
         help="Only analyze the Flask file, don't generate",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Determine module name
     if args.module_name:
         module_name = args.module_name
@@ -720,17 +717,17 @@ def main():
         basename = os.path.basename(args.flask_file)
         module_name = os.path.splitext(basename)[0]
         module_name = re.sub(r'[^a-z0-9_]', '_', module_name.lower())
-    
+
     converter = FlaskConverter()
-    
+
     if args.analyze_only:
         # Just analyze
-        with open(args.flask_file, 'r', encoding='utf-8') as f:
+        with open(args.flask_file, encoding='utf-8') as f:
             flask_code = f.read()
-        
+
         analyzer = FlaskAnalyzer(flask_code)
         analysis = analyzer.analyze()
-        
+
         print(f"""
 Flask Analysis Report
 =====================
@@ -745,12 +742,12 @@ Routes Found:
 """)
         for route in analysis.routes:
             logger.info(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
-        
+
         for bp in analysis.blueprints:
             logger.info(f"Blueprint: {bp.name} (prefix: {bp.url_prefix})")
             for route in bp.routes:
                 logger.info(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
-    
+
     elif args.print_only:
         result = converter.convert_file(
             args.flask_file,
@@ -758,7 +755,7 @@ Routes Found:
             args.display_name,
         )
         logger.info(result)
-    
+
     else:
         converter.convert_file(
             args.flask_file,

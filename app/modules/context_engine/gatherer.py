@@ -6,11 +6,10 @@ Every fact must have a source URL — no hallucination.
 
 import logging
 import re
-from typing import List, Optional
 
 from app.modules.context_engine.cache import upsert_fact
 from app.modules.context_engine.models import ContextFact
-from app.modules.context_engine.taxonomy import Subject, SUBJECT_TO_FREE_API
+from app.modules.context_engine.taxonomy import SUBJECT_TO_FREE_API, Subject
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ DEFAULT_SUBJECT_STATUTES = {
 }
 
 
-def _resolve_statute_section(subject: str, query: Optional[str]) -> Optional[str]:
+def _resolve_statute_section(subject: str, query: str | None) -> str | None:
     """Return a MN statute section usable by Statutes.get_statute."""
     if query and re.match(r"^\d+[A-Z]?(\.\d+[\w.]*)?$", query.strip(), re.IGNORECASE):
         return query.strip()
@@ -40,8 +39,8 @@ def _resolve_statute_section(subject: str, query: Optional[str]) -> Optional[str
 async def gather_for_subject(
     subject: str,
     jurisdiction: str = "MN",
-    query: Optional[str] = None,
-) -> List[ContextFact]:
+    query: str | None = None,
+) -> list[ContextFact]:
     """Gather fresh facts for a subject from external sources.
 
     Returns list of newly cached facts. No hallucination — every fact has a source URL.
@@ -58,7 +57,7 @@ async def gather_for_subject(
         return []
 
     registry = free_api_pack.APIRegistry()
-    facts: List[ContextFact] = []
+    facts: list[ContextFact] = []
 
     try:
         if api_name == "mn_statute_search":

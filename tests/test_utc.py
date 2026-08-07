@@ -43,7 +43,7 @@ class TestUtcNowIso:
 
 class TestToUtc:
     def test_naive_assumes_utc(self):
-        naive = datetime(2025, 6, 1, 12, 0, 0)
+        naive = datetime(2025, 6, 1, 12, 0, 0)  # noqa: DTZ001
         result = to_utc(naive)
         assert result.tzinfo == UTC
         assert result.year == 2025

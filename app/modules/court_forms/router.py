@@ -12,20 +12,20 @@ Integrates with FormDataHub and DocumentHub for auto-filling.
 """
 
 import logging
-from datetime import datetime
-from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Response, Query
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import require_user, StorageUser, red_access
-from .service import form_generator
-from app.core.event_bus import event_bus, EventType as BusEventType
 from app.core.document_hub import get_document_hub
+from app.core.event_bus import EventType as BusEventType, event_bus
+from app.core.security import StorageUser, red_access
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_ROOT
+
+from .service import form_generator
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +40,8 @@ router = APIRouter(prefix="/api/forms", tags=["Court Forms"])
 class FormGenerateRequest(BaseModel):
     """Request to generate a court form."""
     form_type: str  # answer_to_complaint, motion_to_dismiss, etc.
-    case_data: Optional[dict] = None  # Override/supplement auto-filled data
-    defenses: Optional[List[str]] = None  # Defense types to include
+    case_data: dict | None = None  # Override/supplement auto-filled data
+    defenses: list[str] | None = None  # Defense types to include
     output_format: str = "html"  # html, pdf, text
 
 
@@ -52,7 +52,7 @@ class FormResponse(BaseModel):
     description: str
     format: str
     content: str  # HTML/text content or base64 PDF
-    fields_used: List[str]
+    fields_used: list[str]
     generated_at: str
 
 
@@ -74,7 +74,7 @@ class DefenseInfo(BaseModel):
 # Endpoints
 # =============================================================================
 
-@router.get("/types", response_model=List[FormTypeInfo])
+@router.get("/types", response_model=list[FormTypeInfo])
 async def list_form_types():
     """
     List all available court form types.
@@ -89,7 +89,7 @@ async def list_form_types():
     return form_generator.get_available_forms()
 
 
-@router.get("/defenses", response_model=List[DefenseInfo])
+@router.get("/defenses", response_model=list[DefenseInfo])
 async def list_defense_types():
     """
     List all available defense types for Answer forms.
@@ -186,12 +186,12 @@ async def generate_form(
 
     # Create FORM_FILL overlay in user's vault
     try:
-        from app.core.overlay_types import OverlayType
-        from app.models.unified_overlay_models import CreateOverlayRequest
-        from app.services.unified_overlay_manager import UnifiedOverlayManager
         from app.core.auto_refresh import ensure_valid_token
-        from app.services.storage import get_provider
+        from app.core.overlay_types import OverlayType
         from app.core.user_id import get_provider_from_user_id
+        from app.models.unified_overlay_models import CreateOverlayRequest
+        from app.services.storage import get_provider
+        from app.services.unified_overlay_manager import UnifiedOverlayManager
 
         provider_code = get_provider_from_user_id(user.user_id) or "google_drive"
         _, token_obj, _ = await ensure_valid_token(user.user_id, db)
@@ -259,7 +259,7 @@ async def generate_form(
 @router.get("/generate/{form_type}", response_class=HTMLResponse)
 async def generate_form_html(
     form_type: str,
-    defenses: Optional[str] = None,  # Comma-separated defense types
+    defenses: str | None = None,  # Comma-separated defense types
     user: StorageUser = Depends(red_access),
 ):
     """
@@ -315,17 +315,17 @@ async def generate_form_html(
         defenses=defense_list,
         output_format="html",
     )
-    
+
     if "error" in result:
         return HTMLResponse(f"<h1>Error</h1><p>{result['error']}</p>", status_code=400)
-    
+
     return HTMLResponse(result["content"])
 
 
 @router.get("/download/{form_type}")
 async def download_form_pdf(
     form_type: str,
-    defenses: Optional[str] = None,
+    defenses: str | None = None,
     user: StorageUser = Depends(red_access),
 ):
     """
@@ -376,12 +376,12 @@ async def download_form_pdf(
         defenses=defense_list,
         output_format="pdf",
     )
-    
+
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
-    
+
     content = result["content"]
-    
+
     # Determine content type
     if isinstance(content, bytes):
         media_type = "application/pdf"
@@ -391,7 +391,7 @@ async def download_form_pdf(
         media_type = "text/html"
         filename = f"{form_type}_{utc_now().strftime('%Y%m%d')}.html"
         content = content.encode('utf-8')
-    
+
     return Response(
         content=content,
         media_type=media_type,
@@ -413,15 +413,15 @@ async def preview_form(
     Useful for debugging data flow.
     """
     from .service import FORM_MAPPINGS
-    
+
     if request.form_type not in FORM_MAPPINGS:
         raise HTTPException(
             status_code=400,
             detail=f"Unknown form type. Available: {list(FORM_MAPPINGS.keys())}"
         )
-    
+
     mapping = FORM_MAPPINGS[request.form_type]
-    
+
     # Layer 1: Cloud vault
     case_data = {}
     try:
@@ -466,14 +466,14 @@ async def preview_form(
                 value = case_data[src]
                 source = src
                 break
-        
+
         field_preview[form_field] = {
             "value": value,
             "source": source,
             "possible_sources": source_fields,
             "populated": value is not None,
         }
-    
+
     return {
         "form_type": request.form_type,
         "title": mapping["title"],
@@ -487,8 +487,8 @@ async def preview_form(
 
 @router.get("/quick-answer")
 async def quick_generate_answer(
-    case_number: Optional[str] = None,
-    defendant_name: Optional[str] = None,
+    case_number: str | None = None,
+    defendant_name: str | None = None,
     defenses: str = "improper_notice",
     user: StorageUser = Depends(red_access),
 ):
@@ -539,16 +539,16 @@ async def quick_generate_answer(
         case_data["defendant_name"] = defendant_name
 
     case_data.setdefault("defendant_name", user.user_id)
-    
+
     defense_list = defenses.split(",") if defenses else ["improper_notice"]
-    
+
     result = await form_generator.generate_form(
         form_type="answer_to_complaint",
         case_data=case_data,
         defenses=defense_list,
         output_format="html",
     )
-    
+
     return HTMLResponse(result["content"])
 
 
@@ -577,7 +577,7 @@ async def get_autofill_data(
     hub = get_document_hub()
     autofill = hub.get_form_autofill(user.user_id, form_type)
     case_data = hub.get_case_data(user.user_id)
-    
+
     return {
         "form_type": form_type,
         "autofill_data": autofill,
@@ -590,7 +590,7 @@ async def get_autofill_data(
 @router.post("/generate-from-documents")
 async def generate_form_from_documents(
     form_type: str = Query(..., description="Form type: answer_to_complaint, motion_to_dismiss, etc."),
-    defenses: Optional[str] = Query(None, description="Comma-separated defense types"),
+    defenses: str | None = Query(None, description="Comma-separated defense types"),
     output_format: str = Query("html", description="Output format: html, pdf, text"),
     user: StorageUser = Depends(red_access),
 ):
@@ -631,7 +631,7 @@ async def generate_form_from_documents(
     for key, value in doc_autofill.items():
         if key not in form_data or not form_data[key]:
             form_data[key] = value
-    
+
     # Add additional extracted data
     form_data["case_number"] = case_data.primary_case_number or form_data.get("case_number")
     form_data["hearing_date"] = case_data.hearing_date or form_data.get("hearing_date")
@@ -644,10 +644,10 @@ async def generate_form_from_documents(
     form_data["deposit_amount"] = case_data.deposit_amount or form_data.get("deposit_amount")
     form_data["total_claimed"] = case_data.total_claimed or form_data.get("total_claimed")
     form_data["answer_deadline"] = case_data.answer_deadline or form_data.get("answer_deadline")
-    
+
     # Add matched statutes for legal references
     form_data["applicable_statutes"] = case_data.matched_statutes
-    
+
     # Layer 3: FormDataHub — fill any remaining gaps
     try:
         from app.services.form_data import get_form_data_service
@@ -660,17 +660,17 @@ async def generate_form_from_documents(
                     form_data[key] = value
     except Exception as e:
         logger.warning(f"Could not load FormDataHub: {e}")
-    
+
     # Set defendant name from user if still empty
     form_data.setdefault("defendant_name", user.user_id)
-    
+
     # Parse defenses
     defense_list = defenses.split(",") if defenses else None
-    
+
     # Auto-suggest defenses based on documents if not specified
     if not defense_list and doc_autofill.get("suggested_defenses"):
         defense_list = doc_autofill["suggested_defenses"]
-    
+
     # Generate the form
     result = await form_generator.generate_form(
         form_type=form_type,
@@ -678,16 +678,16 @@ async def generate_form_from_documents(
         defenses=defense_list,
         output_format=output_format,
     )
-    
+
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
-    
+
     # Convert bytes to base64 for PDF
     content = result["content"]
     if isinstance(content, bytes):
         import base64
         content = base64.b64encode(content).decode('utf-8')
-    
+
     return FormResponse(
         form_type=result["form_type"],
         title=result["title"],
@@ -714,7 +714,7 @@ async def preview_document_data(
     """
     hub = get_document_hub()
     case_data = hub.get_case_data(user.user_id)
-    
+
     # Get autofill for each form type
     form_autofills = {
         "HOU301_answer": hub.get_form_autofill(user.user_id, "HOU301"),
@@ -723,7 +723,7 @@ async def preview_document_data(
         "HOU304_counterclaim": hub.get_form_autofill(user.user_id, "HOU304"),
         "GENERAL": hub.get_form_autofill(user.user_id, "GENERAL"),
     }
-    
+
     return {
         "documents_analyzed": case_data.document_count,
         "documents_by_type": case_data.documents_by_type,

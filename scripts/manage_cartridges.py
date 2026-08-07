@@ -14,9 +14,9 @@ Usage:
 
 import argparse
 import json
-from pathlib import Path
 import sys
-from typing import Dict, Any, List
+from pathlib import Path
+from typing import Any
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -29,7 +29,7 @@ class CartridgeManager:
         self.compatibility_data = self._load_compatibility_data()
         self.inventory_data = self._load_inventory_data()
 
-    def _load_compatibility_data(self) -> Dict[str, Any]:
+    def _load_compatibility_data(self) -> dict[str, Any]:
         """Load the compatibility system data."""
         if not COMPATIBILITY_FILE.exists():
             print(f"Error: {COMPATIBILITY_FILE} not found")
@@ -41,7 +41,7 @@ class CartridgeManager:
             print(f"Error loading compatibility data: {e}")
             return {}
 
-    def _load_inventory_data(self) -> List[Dict[str, str]]:
+    def _load_inventory_data(self) -> list[dict[str, str]]:
         """Load the module compliance inventory."""
         if not MODULE_INVENTORY.exists():
             print(f"Warning: {MODULE_INVENTORY} not found")
@@ -138,7 +138,7 @@ class CartridgeManager:
         print(f"✅ Updated {module_name} with cartridge {cartridge_file}")
         return True
 
-    def _validate_cartridge_structure(self, cartridge: Dict[str, Any]) -> bool:
+    def _validate_cartridge_structure(self, cartridge: dict[str, Any]) -> bool:
         """Validate cartridge JSON structure."""
         required_fields = ['version', 'status', 'dependencies', 'preset_parameters', 'compatibility_matrix']
         for field in required_fields:

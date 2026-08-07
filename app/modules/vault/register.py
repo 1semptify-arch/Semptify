@@ -8,7 +8,6 @@ for the Page Composer and module orchestration system.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Document Storage & Retrieval ---
 
 register_function_group(FunctionGroupContract(

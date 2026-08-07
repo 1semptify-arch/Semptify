@@ -8,11 +8,12 @@ This module provides active defense against SSOT violations:
 
 Principle: Bypass attempts fail loudly, not silently.
 """
-import re
 import logging
+import re
+from collections.abc import Callable
 from functools import wraps
-from typing import Set, Callable, Any
-from fastapi import Request, HTTPException
+
+from fastapi import Request
 from fastapi.responses import RedirectResponse
 
 from app.core.navigation import navigation
@@ -20,18 +21,18 @@ from app.core.navigation import navigation
 logger = logging.getLogger(__name__)
 
 # Canonical paths from SSOT — these are the ONLY valid destinations
-SSOT_CANONICAL_PATHS: Set[str] = set()
+SSOT_CANONICAL_PATHS: set[str] = set()
 
 
 def _build_canonical_set():
     """Build set of all SSOT-approved paths."""
     global SSOT_CANONICAL_PATHS
     paths = set()
-    
+
     # Onboarding flow paths
     for stage in navigation.ONBOARDING_FLOW.values():
         paths.add(stage.path)
-    
+
     # Main nav paths
     for item in navigation.MAIN_NAV:
         paths.add(item.path)
@@ -45,7 +46,7 @@ def _build_canonical_set():
     paths.add(navigation.get_onboarding_start())
     paths.add(navigation.get_reconnect_flow())
     paths.add("/home")
-    
+
     SSOT_CANONICAL_PATHS = paths
     return paths
 
@@ -112,7 +113,7 @@ def ssot_redirect(path: str, context: str = "", strict: bool = False) -> Redirec
     """
     # Use evolution system - paths can grow and change
     resolved = navigation.resolve_path(path)
-    
+
     if resolved != path:
         # Path was deprecated or escaped - log the transformation
         logger.info(f"SSOT Evolution: '{path}' resolved to '{resolved}' in {context}")
@@ -123,7 +124,7 @@ def ssot_redirect(path: str, context: str = "", strict: bool = False) -> Redirec
                       f"Consider adding to registry via register_stage().")
         if strict:
             raise SSOTViolation(f"Strict mode: Non-canonical path '{path}' blocked in {context}")
-    
+
     return RedirectResponse(url=path, status_code=302)
 
 
@@ -136,7 +137,7 @@ def ssot_middleware_guard(request: Request) -> None:
     """
     # Check if this request is part of a redirect chain
     referer = request.headers.get("referer", "")
-    
+
     # Log non-SSOT referers for audit
     if referer and not any(p in referer for p in SSOT_CANONICAL_PATHS):
         if "/api/" not in str(request.url):  # Skip API calls
@@ -160,7 +161,7 @@ def enforce_ssot_paths(func: Callable) -> Callable:
     @wraps(func)
     async def wrapper(*args, **kwargs):
         result = await func(*args, **kwargs)
-        
+
         if isinstance(result, RedirectResponse):
             location = result.headers.get("location", "")
             if location and not is_ssot_path(location):
@@ -169,9 +170,9 @@ def enforce_ssot_paths(func: Callable) -> Callable:
                     f"Redirect to non-canonical path '{location}'. "
                     f"Use navigation registry instead."
                 )
-        
+
         return result
-    
+
     return wrapper
 
 
@@ -184,7 +185,7 @@ def audit_hardcoded_urls(func: Callable) -> Callable:
     @wraps(func)
     async def wrapper(*args, **kwargs):
         result = await func(*args, **kwargs)
-        
+
         if isinstance(result, str) and len(result) > 100:
             # Check for hardcoded URLs in HTML/JS
             if detect_hardcoded_url(result):
@@ -192,7 +193,7 @@ def audit_hardcoded_urls(func: Callable) -> Callable:
                     f"SSOT AUDIT: {func.__name__} may contain hardcoded URLs. "
                     f"Review for SSOT compliance."
                 )
-        
+
         return result
-    
+
     return wrapper

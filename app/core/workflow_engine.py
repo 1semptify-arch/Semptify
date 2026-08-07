@@ -19,12 +19,13 @@ Process codes:
     B4  — Professional Review Workspace / Hearing Readiness
 """
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
-from app.core.user_context import UserRole, get_role_definition
+
 from app.core.navigation import navigation
-import logging
+from app.core.user_context import UserRole, get_role_definition
+
 logger = logging.getLogger(__name__)
 
 
@@ -118,7 +119,7 @@ class WorkflowDecision:
     allowed_actions: list[str]              # actions available from current state
     blocked_actions: list[str]              # actions present but locked
     deterministic_reason: str              # plain-English routing explanation
-    block_reason: Optional[str] = None      # why the user is blocked (if applicable)
+    block_reason: str | None = None      # why the user is blocked (if applicable)
     warnings: list[str] = field(default_factory=list)
 
 
@@ -275,8 +276,8 @@ def evaluate(state: WorkflowState) -> WorkflowDecision:
 
 
 async def route_user(
-    user_id: Optional[str],
-    documents_present: Optional[bool] = None,
+    user_id: str | None,
+    documents_present: bool | None = None,
     has_active_case: bool = False,
 ) -> str:
     """
@@ -338,7 +339,7 @@ def evaluate_from_params(
     storage_state: str,
     documents_present: bool = False,
     has_active_case: bool = False,
-    permissions: Optional[frozenset[str]] = None,
+    permissions: frozenset[str] | None = None,
 ) -> WorkflowDecision:
     """
     Convenience wrapper that accepts raw string values (from query params / cookies).

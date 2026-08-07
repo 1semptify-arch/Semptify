@@ -11,12 +11,13 @@ Provides:
 - Organization-wide activity feed
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional, List, Dict, Any
+import logging
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from app.core.utc import utc_now
-from app.models.models import User, InviteCode, Document
-import logging
+from app.models.models import Document, InviteCode, User
+
 logger = logging.getLogger(__name__)
 
 # A user is considered "online" if their last activity is within this window.
@@ -26,7 +27,7 @@ ONLINE_THRESHOLD_MINUTES = 15
 def get_dashboard_stats(
     organization_id: str,
     db_session
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get high-level statistics for manager dashboard.
     
@@ -41,19 +42,19 @@ def get_dashboard_stats(
     org_users = db_session.query(User).filter(
         User.id.like(f"{organization_id}%")
     ).all()
-    
+
     user_ids = [u.id for u in org_users]
-    
+
     # Count cases (users with documents are considered active cases)
     total_cases = len(org_users)
-    
+
     # New cases this week
     week_ago = utc_now() - timedelta(days=7)
     new_cases = db_session.query(User).filter(
         User.id.like(f"{organization_id}%"),
         User.created_at >= week_ago
     ).count()
-    
+
     # Pending signatures (documents that need signature)
     # This is a placeholder - in production, query signature tracking table
     pending_docs = db_session.query(Document).filter(
@@ -61,14 +62,14 @@ def get_dashboard_stats(
         Document.requires_signature == True,
         Document.signature_received == False
     ).count() if hasattr(Document, 'requires_signature') else 0
-    
+
     # Urgent (overdue) items
     urgent_items = db_session.query(Document).filter(
         Document.user_id.in_(user_ids),
         Document.due_date < utc_now(),
         Document.completed == False
     ).count() if hasattr(Document, 'due_date') else 0
-    
+
     return {
         "total_cases": total_cases,
         "new_cases_this_week": new_cases,
@@ -84,7 +85,7 @@ def get_recent_cases(
     organization_id: str,
     db_session,
     limit: int = 10
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get recent cases for the organization.
     
@@ -99,14 +100,14 @@ def get_recent_cases(
     users = db_session.query(User).filter(
         User.id.like(f"{organization_id}%")
     ).order_by(User.created_at.desc()).limit(limit).all()
-    
+
     cases = []
     for user in users:
         # Get latest document count as a proxy for activity
         doc_count = db_session.query(Document).filter(
             Document.user_id == user.id
         ).count()
-        
+
         cases.append({
             "tenant_name": f"Tenant {user.id[:8]}",
             "property": "Property on file",  # Address lives in tenant's cloud vault, not the DB (privacy design)
@@ -114,14 +115,14 @@ def get_recent_cases(
             "status": "active" if doc_count > 0 else "pending",
             "last_activity": user.updated_at.isoformat() if user.updated_at else None,
         })
-    
+
     return cases
 
 
 def get_staff_list(
     organization_id: str,
     db_session
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get staff members for the organization.
     
@@ -137,7 +138,7 @@ def get_staff_list(
         InviteCode.organization_id == organization_id,
         InviteCode.used_by.isnot(None)
     ).all()
-    
+
     staff = []
     for code in redeemed_codes:
         if code.used_by:
@@ -155,7 +156,7 @@ def get_staff_list(
     return staff
 
 
-def _last_seen_for_user(user) -> Optional[datetime]:
+def _last_seen_for_user(user) -> datetime | None:
     """Return the most recent activity timestamp for a user."""
     candidates = [user.last_login, user.updated_at]
     valid = [c for c in candidates if c is not None]
@@ -164,14 +165,14 @@ def _last_seen_for_user(user) -> Optional[datetime]:
     return max(valid)
 
 
-def _presence_status(last_seen: Optional[datetime]) -> str:
+def _presence_status(last_seen: datetime | None) -> str:
     """Determine online/offline status from the last activity timestamp."""
     if last_seen is None:
         return "offline"
 
     # Ensure the comparison uses timezone-aware datetimes.
     if last_seen.tzinfo is None:
-        last_seen = last_seen.replace(tzinfo=timezone.utc)
+        last_seen = last_seen.replace(tzinfo=UTC)
 
     threshold = utc_now() - timedelta(minutes=ONLINE_THRESHOLD_MINUTES)
     return "online" if last_seen >= threshold else "offline"
@@ -180,7 +181,7 @@ def _presence_status(last_seen: Optional[datetime]) -> str:
 def get_pending_signatures(
     organization_id: str,
     db_session
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get documents pending signature for organization cases.
     
@@ -195,20 +196,20 @@ def get_pending_signatures(
     org_users = db_session.query(User).filter(
         User.id.like(f"{organization_id}%")
     ).all()
-    
+
     user_ids = [u.id for u in org_users]
-    
+
     # Query pending documents
     # This is a placeholder - in production, query actual signature tracking
     pending = []
-    
+
     if hasattr(Document, 'requires_signature'):
         docs = db_session.query(Document).filter(
             Document.user_id.in_(user_ids),
             Document.requires_signature == True,
             Document.signature_received == False
         ).order_by(Document.created_at.desc()).limit(10).all()
-        
+
         for doc in docs:
             user = db_session.query(User).filter_by(id=doc.user_id).first()
             pending.append({
@@ -217,7 +218,7 @@ def get_pending_signatures(
                 "due_date": doc.due_date.isoformat() if hasattr(doc, 'due_date') and doc.due_date else None,
                 "sent_date": doc.created_at.isoformat() if doc.created_at else None,
             })
-    
+
     return pending
 
 
@@ -225,7 +226,7 @@ def get_recent_activity(
     organization_id: str,
     db_session,
     limit: int = 20
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get recent activity feed for the organization.
     
@@ -240,16 +241,16 @@ def get_recent_activity(
     org_users = db_session.query(User).filter(
         User.id.like(f"{organization_id}%")
     ).all()
-    
+
     user_ids = [u.id for u in org_users]
-    
+
     activities = []
-    
+
     # Recent document uploads
     recent_docs = db_session.query(Document).filter(
         Document.user_id.in_(user_ids)
     ).order_by(Document.created_at.desc()).limit(limit).all()
-    
+
     for doc in recent_docs:
         user = db_session.query(User).filter_by(id=doc.user_id).first()
         activities.append({
@@ -258,14 +259,14 @@ def get_recent_activity(
             "time": format_time_ago(doc.created_at),
             "timestamp": doc.created_at.isoformat() if doc.created_at else None,
         })
-    
+
     # Sort by timestamp and limit
     activities.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-    
+
     return activities[:limit]
 
 
-def format_time_ago(dt: Optional[datetime]) -> str:
+def format_time_ago(dt: datetime | None) -> str:
     """
     Format a datetime as a human-readable 'time ago' string.
     
@@ -277,10 +278,10 @@ def format_time_ago(dt: Optional[datetime]) -> str:
     """
     if not dt:
         return "Unknown"
-    
+
     now = utc_now()
     diff = now - dt
-    
+
     if diff < timedelta(minutes=1):
         return "Just now"
     elif diff < timedelta(hours=1):
@@ -299,7 +300,7 @@ def format_time_ago(dt: Optional[datetime]) -> str:
 def get_organization_info(
     manager_user_id: str,
     db_session
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get organization info for a manager.
     
@@ -311,10 +312,10 @@ def get_organization_info(
         Organization info dictionary
     """
     manager = db_session.query(User).filter_by(id=manager_user_id).first()
-    
+
     # Use first part of user ID as organization ID
     org_id = manager_user_id[:12]
-    
+
     return {
         "id": org_id,
         "name": f"Organization {manager_user_id[:8]}" if manager else "Unknown Organization",

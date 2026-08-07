@@ -7,7 +7,6 @@ within conversations — reject, fill-and-sign, attachments.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="communication",
     group_name="communication_list_conversations",

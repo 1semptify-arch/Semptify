@@ -7,9 +7,10 @@ Following SSOT Architecture:
 - Static files consume via /api/navigation endpoint
 - Jinja2 templates inject via context processor
 """
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, ClassVar
 import logging
+from dataclasses import dataclass
+from typing import ClassVar
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +31,7 @@ class FlowStage:
     id: str
     name: str
     path: str
-    next_stage: Optional[str] = None
+    next_stage: str | None = None
     requires_checkpoint: bool = True
 
 
@@ -46,19 +47,19 @@ class NavigationRegistry:
     not prison bars. Use register_stage() for expansion, add_escape_hatch() 
     for experimentation.
     """
-    
+
     # --- Path Cache (auto-built from registry) ---
-    _CANONICAL_PATHS: ClassVar[Set[str]] = set()
-    
+    _CANONICAL_PATHS: ClassVar[set[str]] = set()
+
     @classmethod
-    def _build_canonical_set(cls) -> Set[str]:
+    def _build_canonical_set(cls) -> set[str]:
         """Build set of all SSOT-approved paths. Called automatically."""
         paths = set()
-        
+
         # Onboarding flow paths
         for stage in cls.ONBOARDING_FLOW.values():
             paths.add(stage.path)
-        
+
         # Main nav paths
         for item in cls.MAIN_NAV:
             paths.add(item.path)
@@ -72,12 +73,12 @@ class NavigationRegistry:
         paths.add(cls.get_onboarding_start())
         paths.add(cls.get_reconnect_flow())
         paths.add("/home")
-        
+
         cls._CANONICAL_PATHS = paths
         return paths
-    
+
     # --- Onboarding Flow (SSOT) ---
-    ONBOARDING_FLOW: ClassVar[Dict[str, FlowStage]] = {
+    ONBOARDING_FLOW: ClassVar[dict[str, FlowStage]] = {
         "preamble": FlowStage(
             id="preamble",
             name="Preamble",
@@ -193,9 +194,9 @@ class NavigationRegistry:
             requires_checkpoint=False
         ),
     }
-    
+
     # --- Court Integration Paths (SSOT) ---
-    COURT_FLOW: ClassVar[Dict[str, FlowStage]] = {
+    COURT_FLOW: ClassVar[dict[str, FlowStage]] = {
         "mndes_guide": FlowStage(
             id="mndes_guide",
             name="MNDES Submission Guide",
@@ -228,7 +229,7 @@ class NavigationRegistry:
 
     # --- Admin Flow (SSOT) ---
     # Elevation-required admin routes. Kept separate from public navigation.
-    ADMIN_FLOW: ClassVar[Dict[str, FlowStage]] = {
+    ADMIN_FLOW: ClassVar[dict[str, FlowStage]] = {
         "admin_hub": FlowStage(
             id="admin_hub",
             name="Admin Hub",
@@ -319,34 +320,34 @@ class NavigationRegistry:
     # The 5 base navigation links present on EVERY page:
     # Home, Library, Office, Tools, Help
     # All paths are RENDERED routes (auth + gates) — never .html static files.
-    MAIN_NAV: ClassVar[List[NavItem]] = [
+    MAIN_NAV: ClassVar[list[NavItem]] = [
         NavItem(name="Home", path="/home", icon="○", order=0, requires=""),
         NavItem(name="Library", path="/library", icon="○", order=1, requires=""),
         NavItem(name="Office", path="/office", icon="○", order=2, requires=""),
         NavItem(name="Tools", path="/tools", icon="▸", order=3, requires=""),
         NavItem(name="Help", path="/help", icon="🆘", order=4, requires=""),
     ]
-    
+
     # --- Utility Methods ---
     @classmethod
     def get_onboarding_start(cls) -> str:
         """Entry point for all users — SSOT. Preamble determines new vs returning."""
         return "/preamble"
-    
+
     @classmethod
     def get_reconnect_flow(cls) -> str:
         """Entry point for returning users — SSOT."""
         return "/storage/reconnect"
-    
+
     @classmethod
-    def get_stage(cls, stage_id: str) -> Optional[FlowStage]:
+    def get_stage(cls, stage_id: str) -> FlowStage | None:
         """Get flow stage by ID — searches all registries (onboarding + court + admin)."""
         return (
             cls.ONBOARDING_FLOW.get(stage_id)
             or cls.COURT_FLOW.get(stage_id)
             or cls.ADMIN_FLOW.get(stage_id)
         )
-    
+
     @classmethod
     def get_next_path(cls, current_stage_id: str) -> str:
         """Determine next path in flow — SSOT transition logic."""
@@ -355,12 +356,12 @@ class NavigationRegistry:
             return "/"  # Welcome page is the safe fallback
         next_stage = cls.get_stage(stage.next_stage)
         return next_stage.path if next_stage else "/"
-    
+
     # --- Evolution Mechanisms (SSOT must breathe) ---
-    
-    _DEPRECATED_PATHS: ClassVar[Dict[str, str]] = {}  # old_path -> new_path
-    _ESCAPE_HATCHES: ClassVar[Set[str]] = set()  # Temporarily allowed non-SSOT paths
-    
+
+    _DEPRECATED_PATHS: ClassVar[dict[str, str]] = {}  # old_path -> new_path
+    _ESCAPE_HATCHES: ClassVar[set[str]] = set()  # Temporarily allowed non-SSOT paths
+
     @classmethod
     def register_stage(cls, stage: FlowStage) -> None:
         """
@@ -371,7 +372,7 @@ class NavigationRegistry:
         cls.ONBOARDING_FLOW[stage.id] = stage
         # Invalidate cache
         cls._build_canonical_set()
-    
+
     @classmethod
     def deprecate_path(cls, old_path: str, new_path: str) -> None:
         """
@@ -380,7 +381,7 @@ class NavigationRegistry:
         Evolution without breakage - old paths redirect to new SSOT paths.
         """
         cls._DEPRECATED_PATHS[old_path] = new_path
-    
+
     @classmethod
     def resolve_path(cls, path: str) -> str:
         """
@@ -391,17 +392,17 @@ class NavigationRegistry:
         # Check deprecated
         if path in cls._DEPRECATED_PATHS:
             return cls._DEPRECATED_PATHS[path]
-        
+
         # Check if it's a valid SSOT path
         if not cls._CANONICAL_PATHS:
             cls._build_canonical_set()
-        
+
         if path in cls._CANONICAL_PATHS or path in cls._ESCAPE_HATCHES:
             return path
-            
+
         # Unknown path - allow but warn (growth needs experimentation)
         return path
-    
+
     @classmethod
     def add_escape_hatch(cls, path: str, reason: str, ttl_days: int = 7) -> None:
         """
@@ -416,13 +417,13 @@ class NavigationRegistry:
         """
         cls._ESCAPE_HATCHES.add(path)
         # In production, you'd log this with timestamp for TTL enforcement
-    
+
     @classmethod
     def to_dict(cls) -> dict:
         """Export complete navigation state for API consumption."""
         if not cls._CANONICAL_PATHS:
             cls._build_canonical_set()
-            
+
         return {
             "onboarding_flow": {
                 k: {

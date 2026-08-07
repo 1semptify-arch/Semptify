@@ -9,55 +9,55 @@ Integrated with ○ Positronic Brain for real-time event communication.
 # Migrated from app/routers/legal_analysis.py into the legal_analysis SDK module.
 # All imports remain absolute since legal_analysis is a CORE module.
 
-from fastapi import APIRouter, HTTPException, Query, Body, Depends
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
-from datetime import datetime
 import logging
+from typing import Any
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from pydantic import BaseModel
 
 from app.core.security import auth_gate
 
 # Import legal analysis engine with fallback
 try:
     from ..services.legal_analysis_engine import (
-        get_legal_analysis_engine,
-        EvidenceType,
-        DocumentLegalStatus,
-        CredibilityLevel,
         ConsistencyStatus,
+        CredibilityLevel,
+        DocumentLegalStatus,
+        EvidenceType,
         LegalMeritLevel,
         NoticeComplianceStatus,
+        get_legal_analysis_engine,
     )
 except ImportError:
     # Services module not available - create stubs
     def get_legal_analysis_engine():
         return None
-    
+
     class EvidenceType:
         DOCUMENT = "document"
         TESTIMONY = "testimony"
         PHOTOGRAPH = "photograph"
-    
+
     class DocumentLegalStatus:
         VALID = "valid"
         QUESTIONABLE = "questionable"
         INVALID = "invalid"
-    
+
     class CredibilityLevel:
         HIGH = "high"
         MEDIUM = "medium"
         LOW = "low"
-    
+
     class ConsistencyStatus:
         CONSISTENT = "consistent"
         INCONSISTENT = "inconsistent"
         UNKNOWN = "unknown"
-    
+
     class LegalMeritLevel:
         STRONG = "strong"
         MODERATE = "moderate"
         WEAK = "weak"
-    
+
     class NoticeComplianceStatus:
         COMPLIANT = "compliant"
         NON_COMPLIANT = "non_compliant"
@@ -72,7 +72,7 @@ except ImportError:
     get_tenancy_hub_service = None
 
 try:
-    from ..services.positronic_brain import get_brain, PositronicBrain, BrainEvent, EventType, ModuleType
+    from ..services.positronic_brain import BrainEvent, EventType, ModuleType, PositronicBrain, get_brain
     BRAIN_AVAILABLE = True
 except ImportError:
     BRAIN_AVAILABLE = False
@@ -92,22 +92,22 @@ router = APIRouter(
 # =============================================================================
 
 class DocumentAnalysisRequest(BaseModel):
-    document: Dict[str, Any]
+    document: dict[str, Any]
 
 class ConsistencyCheckRequest(BaseModel):
-    items: List[Dict[str, Any]]
-    fields_to_check: List[str] = []
+    items: list[dict[str, Any]]
+    fields_to_check: list[str] = []
 
 class CorroborationRequest(BaseModel):
     claim: str
-    evidence_items: List[Dict[str, Any]]
+    evidence_items: list[dict[str, Any]]
 
 class TimelineAnalysisRequest(BaseModel):
-    events: List[Dict[str, Any]]
+    events: list[dict[str, Any]]
     eviction_type: str = "non_payment"
 
 class MeritAssessmentRequest(BaseModel):
-    case_data: Dict[str, Any]
+    case_data: dict[str, Any]
     perspective: str = "defendant"  # defendant (tenant) or plaintiff (landlord)
 
 
@@ -129,7 +129,7 @@ async def classify_evidence(request: DocumentAnalysisRequest):
     """
     engine = get_legal_analysis_engine()
     classification = engine.classify_evidence(request.document)
-    
+
     return {
         "success": True,
         "classification": classification.to_dict(),
@@ -143,12 +143,12 @@ async def classify_evidence(request: DocumentAnalysisRequest):
 
 
 @router.post("/classify-evidence/batch")
-async def classify_evidence_batch(documents: List[Dict[str, Any]]):
+async def classify_evidence_batch(documents: list[dict[str, Any]]):
     """
     Classify multiple documents at once.
     """
     engine = get_legal_analysis_engine()
-    
+
     results = []
     for doc in documents:
         classification = engine.classify_evidence(doc)
@@ -157,13 +157,13 @@ async def classify_evidence_batch(documents: List[Dict[str, Any]]):
             "title": doc.get("title", doc.get("filename", "unknown")),
             "classification": classification.to_dict(),
         })
-    
+
     # Summary statistics
     total = len(results)
     binding = sum(1 for r in results if r["classification"]["legal_status"] == "legally_binding")
     hearsay = sum(1 for r in results if r["classification"]["evidence_type"] == "hearsay")
     strong = sum(1 for r in results if r["classification"]["weight"] >= 0.7)
-    
+
     return {
         "success": True,
         "count": total,
@@ -194,15 +194,15 @@ async def check_consistency(request: ConsistencyCheckRequest):
     - Case numbers
     """
     engine = get_legal_analysis_engine()
-    
+
     fields = request.fields_to_check if request.fields_to_check else None
     checks = engine.check_consistency(request.items, fields)
-    
+
     # Group by severity
     consistent = [c for c in checks if c.status == ConsistencyStatus.CONSISTENT]
     minor = [c for c in checks if c.status == ConsistencyStatus.MINOR_DISCREPANCY]
     major = [c for c in checks if c.status == ConsistencyStatus.MAJOR_CONTRADICTION]
-    
+
     return {
         "success": True,
         "total_checks": len(checks),
@@ -215,18 +215,18 @@ async def check_consistency(request: ConsistencyCheckRequest):
     }
 
 
-def _generate_consistency_summary(checks: List) -> str:
+def _generate_consistency_summary(checks: list) -> str:
     """Generate a human-readable consistency summary."""
     major = [c for c in checks if c.status == ConsistencyStatus.MAJOR_CONTRADICTION]
-    
+
     if not major:
         return "All checked items are consistent. No contradictions found."
-    
+
     critical = [c for c in major if c.significance == "critical"]
     if critical:
         fields = set(c.field_checked for c in critical)
         return f"CRITICAL: Found {len(critical)} major contradiction(s) in: {', '.join(fields)}. This may undermine the case."
-    
+
     return f"Found {len(major)} inconsistency(ies) that should be reviewed."
 
 
@@ -246,7 +246,7 @@ async def analyze_corroboration(request: CorroborationRequest):
     """
     engine = get_legal_analysis_engine()
     analysis = engine.analyze_corroboration(request.claim, request.evidence_items)
-    
+
     return {
         "success": True,
         "claim": request.claim,
@@ -255,7 +255,7 @@ async def analyze_corroboration(request: CorroborationRequest):
     }
 
 
-def _get_corroboration_verdict(strength: float) -> Dict[str, Any]:
+def _get_corroboration_verdict(strength: float) -> dict[str, Any]:
     """Get a verdict based on corroboration strength."""
     if strength >= 0.8:
         return {
@@ -285,14 +285,14 @@ def _get_corroboration_verdict(strength: float) -> Dict[str, Any]:
 
 @router.post("/analyze-corroboration/multi")
 async def analyze_multiple_claims(
-    claims: List[str] = Body(...),
-    evidence_items: List[Dict[str, Any]] = Body(...)
+    claims: list[str] = Body(...),
+    evidence_items: list[dict[str, Any]] = Body(...)
 ):
     """
     Analyze corroboration for multiple claims at once.
     """
     engine = get_legal_analysis_engine()
-    
+
     results = []
     for claim in claims:
         analysis = engine.analyze_corroboration(claim, evidence_items)
@@ -303,10 +303,10 @@ async def analyze_multiple_claims(
             "contradicting_count": len(analysis.contradicting_evidence),
             "verdict": _get_corroboration_verdict(analysis.corroboration_strength)["level"],
         })
-    
+
     # Sort by strength
     results.sort(key=lambda x: x["strength"], reverse=True)
-    
+
     return {
         "success": True,
         "count": len(results),
@@ -334,7 +334,7 @@ async def analyze_timeline(request: TimelineAnalysisRequest):
     """
     engine = get_legal_analysis_engine()
     analysis = engine.analyze_timeline(request.events, request.eviction_type)
-    
+
     return {
         "success": True,
         "eviction_type": request.eviction_type,
@@ -344,10 +344,10 @@ async def analyze_timeline(request: TimelineAnalysisRequest):
     }
 
 
-def _get_compliance_issues(analysis) -> List[Dict[str, Any]]:
+def _get_compliance_issues(analysis) -> list[dict[str, Any]]:
     """Extract compliance issues from timeline analysis."""
     issues = []
-    
+
     if analysis.notice_compliance == NoticeComplianceStatus.NON_COMPLIANT:
         issues.append({
             "type": "notice",
@@ -362,7 +362,7 @@ def _get_compliance_issues(analysis) -> List[Dict[str, Any]]:
             "description": "Notice period was insufficient",
             "impact": "May be grounds for dismissal",
         })
-    
+
     for issue in analysis.sequence_issues:
         issues.append({
             "type": "procedure",
@@ -370,7 +370,7 @@ def _get_compliance_issues(analysis) -> List[Dict[str, Any]]:
             "description": issue,
             "impact": "Procedural defense may apply",
         })
-    
+
     for deadline in analysis.missed_deadlines:
         issues.append({
             "type": "deadline",
@@ -378,14 +378,14 @@ def _get_compliance_issues(analysis) -> List[Dict[str, Any]]:
             "description": f"Missed deadline: {deadline['title']}",
             "impact": "May affect case progression",
         })
-    
+
     return issues
 
 
-def _get_defense_opportunities(analysis) -> List[Dict[str, Any]]:
+def _get_defense_opportunities(analysis) -> list[dict[str, Any]]:
     """Identify defense opportunities from timeline issues."""
     opportunities = []
-    
+
     if analysis.notice_compliance != NoticeComplianceStatus.COMPLIANT:
         opportunities.append({
             "defense": "Improper Notice",
@@ -393,7 +393,7 @@ def _get_defense_opportunities(analysis) -> List[Dict[str, Any]]:
             "statute": "Minn. Stat. § 504B.135",
             "strength": "strong" if analysis.notice_compliance == NoticeComplianceStatus.NON_COMPLIANT else "moderate",
         })
-    
+
     for issue in analysis.sequence_issues:
         if "without proper notice" in issue.lower():
             opportunities.append({
@@ -402,7 +402,7 @@ def _get_defense_opportunities(analysis) -> List[Dict[str, Any]]:
                 "statute": "Minn. Stat. § 504B.321",
                 "strength": "moderate",
             })
-    
+
     return opportunities
 
 
@@ -427,7 +427,7 @@ async def assess_legal_merit(request: MeritAssessmentRequest):
     """
     engine = get_legal_analysis_engine()
     assessment = engine.assess_legal_merit(request.case_data, request.perspective)
-    
+
     return {
         "success": True,
         "perspective": request.perspective,
@@ -436,10 +436,10 @@ async def assess_legal_merit(request: MeritAssessmentRequest):
     }
 
 
-def _generate_action_items(assessment) -> List[Dict[str, Any]]:
+def _generate_action_items(assessment) -> list[dict[str, Any]]:
     """Generate prioritized action items from assessment."""
     items = []
-    
+
     # Critical issues first
     for issue in assessment.critical_issues:
         items.append({
@@ -447,7 +447,7 @@ def _generate_action_items(assessment) -> List[Dict[str, Any]]:
             "action": f"Address: {issue}",
             "deadline": "immediate",
         })
-    
+
     # Then recommendations
     for rec in assessment.recommendations:
         items.append({
@@ -455,7 +455,7 @@ def _generate_action_items(assessment) -> List[Dict[str, Any]]:
             "action": rec,
             "deadline": "before hearing",
         })
-    
+
     # Address weaknesses
     for weakness in assessment.weaknesses[:3]:  # Top 3 weaknesses
         items.append({
@@ -463,7 +463,7 @@ def _generate_action_items(assessment) -> List[Dict[str, Any]]:
             "action": f"Improve: {weakness}",
             "deadline": "when possible",
         })
-    
+
     return items
 
 
@@ -481,7 +481,7 @@ async def assess_merit_from_case(
             status_code=503,
             detail="Tenancy hub service not available in Core build. Enable Extended features."
         )
-    
+
     hub_service = get_tenancy_hub_service()
     case = hub_service.get_case(case_id)
 
@@ -526,7 +526,7 @@ async def assess_merit_from_case(
 # =============================================================================
 
 @router.post("/analyze-hearsay")
-async def analyze_hearsay(documents: List[Dict[str, Any]]):
+async def analyze_hearsay(documents: list[dict[str, Any]]):
     """
     Analyze documents for hearsay content.
     
@@ -536,23 +536,23 @@ async def analyze_hearsay(documents: List[Dict[str, Any]]):
     - Potentially inadmissible content
     """
     engine = get_legal_analysis_engine()
-    
+
     results = {
         "direct_evidence": [],
         "hearsay": [],
         "needs_review": [],
     }
-    
+
     for doc in documents:
         classification = engine.classify_evidence(doc)
-        
+
         entry = {
             "id": doc.get("id"),
             "title": doc.get("title", doc.get("filename")),
             "evidence_type": classification.evidence_type.value,
             "weight": classification.weight,
         }
-        
+
         if classification.evidence_type == EvidenceType.HEARSAY:
             entry["issue"] = "Contains hearsay - may be inadmissible"
             entry["recommendation"] = "Obtain direct evidence or witness testimony"
@@ -563,7 +563,7 @@ async def analyze_hearsay(documents: List[Dict[str, Any]]):
         else:
             entry["status"] = "Review for admissibility"
             results["needs_review"].append(entry)
-    
+
     return {
         "success": True,
         "summary": {
@@ -583,22 +583,22 @@ async def analyze_hearsay(documents: List[Dict[str, Any]]):
 # =============================================================================
 
 @router.post("/analyze-binding-status")
-async def analyze_binding_status(documents: List[Dict[str, Any]]):
+async def analyze_binding_status(documents: list[dict[str, Any]]):
     """
     Analyze which documents are legally binding.
     """
     engine = get_legal_analysis_engine()
-    
+
     results = {
         "binding": [],
         "potentially_binding": [],
         "informational": [],
         "issues": [],
     }
-    
+
     for doc in documents:
         classification = engine.classify_evidence(doc)
-        
+
         entry = {
             "id": doc.get("id"),
             "title": doc.get("title", doc.get("filename")),
@@ -606,21 +606,21 @@ async def analyze_binding_status(documents: List[Dict[str, Any]]):
             "legal_status": classification.legal_status.value,
             "authentication_required": classification.authentication_required,
         }
-        
+
         if classification.legal_status == DocumentLegalStatus.LEGALLY_BINDING:
             results["binding"].append(entry)
         elif classification.legal_status == DocumentLegalStatus.POTENTIALLY_BINDING:
             results["potentially_binding"].append(entry)
         elif classification.legal_status == DocumentLegalStatus.INFORMATIONAL:
             results["informational"].append(entry)
-        
+
         if classification.admissibility_issues:
             for issue in classification.admissibility_issues:
                 results["issues"].append({
                     "document": entry["title"],
                     "issue": issue,
                 })
-    
+
     return {
         "success": True,
         "summary": {
@@ -649,7 +649,7 @@ async def quick_case_check(case_id: str):
             status_code=503,
             detail="Tenancy hub service not available in Core build. Enable Extended features."
         )
-    
+
     hub_service = get_tenancy_hub_service()
     case = hub_service.get_case(case_id)
 
@@ -701,24 +701,24 @@ async def quick_case_check(case_id: str):
         "overall_status": overall,
         "checks": checks,
     }
-def _check_evidence_status(case_data: Dict[str, Any], engine) -> Dict[str, Any]:
+def _check_evidence_status(case_data: dict[str, Any], engine) -> dict[str, Any]:
     """Check evidence quality status."""
     documents = list(case_data.get("documents", {}).values())
-    
+
     if not documents:
         return {"status": "red", "message": "No documents uploaded", "count": 0}
-    
+
     # Classify all documents
     hearsay_count = 0
     strong_count = 0
-    
+
     for doc in documents:
         classification = engine.classify_evidence(doc)
         if classification.evidence_type == EvidenceType.HEARSAY:
             hearsay_count += 1
         if classification.weight >= 0.7:
             strong_count += 1
-    
+
     if strong_count == 0:
         return {"status": "red", "message": "No strong evidence", "count": len(documents)}
     elif hearsay_count > len(documents) / 2:
@@ -727,18 +727,18 @@ def _check_evidence_status(case_data: Dict[str, Any], engine) -> Dict[str, Any]:
         return {"status": "green", "message": f"{strong_count} strong evidence items", "count": len(documents)}
 
 
-def _check_consistency_status(case_data: Dict[str, Any], engine) -> Dict[str, Any]:
+def _check_consistency_status(case_data: dict[str, Any], engine) -> dict[str, Any]:
     """Check consistency status."""
     documents = list(case_data.get("documents", {}).values())
     events = list(case_data.get("events", {}).values())
     all_items = documents + events
-    
+
     if len(all_items) < 2:
         return {"status": "yellow", "message": "Not enough items to check", "contradictions": 0}
-    
+
     checks = engine.check_consistency(all_items)
     contradictions = [c for c in checks if c.status == ConsistencyStatus.MAJOR_CONTRADICTION]
-    
+
     if any(c.significance == "critical" for c in contradictions):
         return {"status": "red", "message": "Critical contradictions found", "contradictions": len(contradictions)}
     elif contradictions:
@@ -747,17 +747,17 @@ def _check_consistency_status(case_data: Dict[str, Any], engine) -> Dict[str, An
         return {"status": "green", "message": "All items consistent", "contradictions": 0}
 
 
-def _check_timeline_status(case_data: Dict[str, Any], engine) -> Dict[str, Any]:
+def _check_timeline_status(case_data: dict[str, Any], engine) -> dict[str, Any]:
     """Check timeline compliance status."""
     events = list(case_data.get("events", {}).values())
-    
+
     if not events:
         return {"status": "yellow", "message": "No timeline events", "issues": 0}
-    
+
     analysis = engine.analyze_timeline(events)
-    
+
     issues = len(analysis.sequence_issues) + len(analysis.missed_deadlines)
-    
+
     if analysis.notice_compliance == NoticeComplianceStatus.NON_COMPLIANT:
         return {"status": "green", "message": "Notice defect found (defense opportunity)", "issues": issues}
     elif analysis.missed_deadlines:
@@ -768,16 +768,16 @@ def _check_timeline_status(case_data: Dict[str, Any], engine) -> Dict[str, Any]:
         return {"status": "green", "message": "Timeline compliant", "issues": 0}
 
 
-def _check_documentation_status(case_data: Dict[str, Any]) -> Dict[str, Any]:
+def _check_documentation_status(case_data: dict[str, Any]) -> dict[str, Any]:
     """Check documentation completeness."""
     has_tenant = case_data.get("tenant") is not None
     has_landlord = case_data.get("landlord") is not None
     has_property = case_data.get("property") is not None
     has_lease = case_data.get("lease") is not None
     has_legal_case = len(case_data.get("legal_cases", {})) > 0
-    
+
     complete = sum([has_tenant, has_landlord, has_property, has_lease])
-    
+
     missing = []
     if not has_tenant:
         missing.append("tenant")
@@ -787,7 +787,7 @@ def _check_documentation_status(case_data: Dict[str, Any]) -> Dict[str, Any]:
         missing.append("property")
     if not has_lease:
         missing.append("lease")
-    
+
     if complete == 4:
         return {"status": "green", "message": "Core documentation complete", "missing": []}
     elif complete >= 2:

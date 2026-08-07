@@ -25,10 +25,12 @@ import asyncio
 import hashlib
 import json
 import logging
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from app.core.utc import utc_now
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -37,36 +39,36 @@ T = TypeVar("T")
 
 class InMemoryCache:
     """Simple in-memory cache for development/testing."""
-    
+
     def __init__(self):
         self._cache: dict[str, tuple[Any, datetime | None]] = {}
         self._lock = asyncio.Lock()
-    
+
     async def get(self, key: str) -> Any | None:
         """Get value from cache."""
         async with self._lock:
             if key not in self._cache:
                 return None
-            
+
             value, expires_at = self._cache[key]
-            
+
             # Check expiration
             if expires_at and utc_now() > expires_at:
                 del self._cache[key]
                 return None
-            
+
             return value
-    
+
     async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set value in cache with optional TTL (seconds)."""
         async with self._lock:
             expires_at = None
             if ttl:
                 expires_at = utc_now() + timedelta(seconds=ttl)
-            
+
             self._cache[key] = (value, expires_at)
             return True
-    
+
     async def delete(self, key: str) -> bool:
         """Delete key from cache."""
         async with self._lock:
@@ -74,11 +76,11 @@ class InMemoryCache:
                 del self._cache[key]
                 return True
             return False
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists and is not expired."""
         return await self.get(key) is not None
-    
+
     async def clear_prefix(self, prefix: str) -> int:
         """Delete all keys with given prefix."""
         async with self._lock:
@@ -86,25 +88,25 @@ class InMemoryCache:
             for key in keys_to_delete:
                 del self._cache[key]
             return len(keys_to_delete)
-    
+
     async def clear_all(self) -> None:
         """Clear entire cache."""
         async with self._lock:
             self._cache.clear()
-    
+
     async def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         async with self._lock:
             now = utc_now()
             valid_count = 0
             expired_count = 0
-            
+
             for _, (_, expires_at) in self._cache.items():
                 if expires_at is None or now <= expires_at:
                     valid_count += 1
                 else:
                     expired_count += 1
-            
+
             return {
                 "backend": "memory",
                 "total_keys": len(self._cache),
@@ -115,17 +117,17 @@ class InMemoryCache:
 
 class RedisCache:
     """Redis-backed cache for production."""
-    
+
     def __init__(self, redis_url: str):
         self._redis_url = redis_url
         self._redis = None
         self._connected = False
-    
+
     async def _ensure_connected(self) -> bool:
         """Ensure Redis connection is established."""
         if self._connected and self._redis:
             return True
-        
+
         try:
             import redis.asyncio as redis
             self._redis = redis.from_url(
@@ -144,12 +146,12 @@ class RedisCache:
         except Exception as e:
             logger.warning("Redis connection failed: %s", e)
             return False
-    
+
     async def get(self, key: str) -> Any | None:
         """Get value from Redis."""
         if not await self._ensure_connected():
             return None
-        
+
         try:
             value = await self._redis.get(key)
             if value:
@@ -158,12 +160,12 @@ class RedisCache:
         except Exception as e:
             logger.error("Redis GET error: %s", e)
             return None
-    
+
     async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set value in Redis with optional TTL."""
         if not await self._ensure_connected():
             return False
-        
+
         try:
             serialized = json.dumps(value, default=str)
             if ttl:
@@ -174,35 +176,35 @@ class RedisCache:
         except Exception as e:
             logger.error("Redis SET error: %s", e)
             return False
-    
+
     async def delete(self, key: str) -> bool:
         """Delete key from Redis."""
         if not await self._ensure_connected():
             return False
-        
+
         try:
             result = await self._redis.delete(key)
             return result > 0
         except Exception as e:
             logger.error("Redis DELETE error: %s", e)
             return False
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists in Redis."""
         if not await self._ensure_connected():
             return False
-        
+
         try:
             return await self._redis.exists(key) > 0
         except Exception as e:
             logger.error("Redis EXISTS error: %s", e)
             return False
-    
+
     async def clear_prefix(self, prefix: str) -> int:
         """Delete all keys with given prefix."""
         if not await self._ensure_connected():
             return 0
-        
+
         try:
             cursor = 0
             deleted = 0
@@ -216,22 +218,22 @@ class RedisCache:
         except Exception as e:
             logger.error("Redis CLEAR_PREFIX error: %s", e)
             return 0
-    
+
     async def clear_all(self) -> None:
         """Clear entire cache (use with caution)."""
         if not await self._ensure_connected():
             return
-        
+
         try:
             await self._redis.flushdb()
         except Exception as e:
             logger.error("Redis FLUSHDB error: %s", e)
-    
+
     async def get_stats(self) -> dict[str, Any]:
         """Get Redis statistics."""
         if not await self._ensure_connected():
             return {"backend": "redis", "connected": False}
-        
+
         try:
             info = await self._redis.info("memory")
             return {
@@ -249,19 +251,19 @@ class CacheManager:
     Unified cache manager with automatic backend selection.
     Uses Redis if available, falls back to in-memory cache.
     """
-    
+
     def __init__(self):
         self._backend: InMemoryCache | RedisCache | None = None
         self._initialized = False
-    
+
     async def _ensure_initialized(self) -> None:
         """Initialize cache backend based on settings."""
         if self._initialized:
             return
-        
+
         from app.core.config import get_settings
         settings = get_settings()
-        
+
         if settings.redis_url:
             redis_cache = RedisCache(settings.redis_url)
             if await redis_cache._ensure_connected():
@@ -273,34 +275,34 @@ class CacheManager:
         else:
             self._backend = InMemoryCache()
             logger.info("Cache initialized with in-memory backend")
-        
+
         self._initialized = True
-    
+
     async def get(self, key: str) -> Any | None:
         """Get cached value."""
         await self._ensure_initialized()
         return await self._backend.get(key)
-    
+
     async def set(self, key: str, value: Any, ttl: int | None = 300) -> bool:
         """Set cached value (default TTL: 5 minutes)."""
         await self._ensure_initialized()
         return await self._backend.set(key, value, ttl)
-    
+
     async def delete(self, key: str) -> bool:
         """Delete cached value."""
         await self._ensure_initialized()
         return await self._backend.delete(key)
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists."""
         await self._ensure_initialized()
         return await self._backend.exists(key)
-    
+
     async def clear_prefix(self, prefix: str) -> int:
         """Clear all keys with prefix."""
         await self._ensure_initialized()
         return await self._backend.clear_prefix(prefix)
-    
+
     async def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         await self._ensure_initialized()
@@ -343,7 +345,7 @@ def cached(
     """
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         prefix = key_prefix or func.__name__
-        
+
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
             # Build cache key
@@ -351,28 +353,28 @@ def cached(
                 cache_key = key_builder(*args, **kwargs)
             else:
                 cache_key = _make_cache_key(prefix, args, kwargs)
-            
+
             # Try to get from cache
             cached_value = await cache.get(cache_key)
             if cached_value is not None:
                 logger.debug("Cache HIT: %s", cache_key)
                 return cached_value
-            
+
             # Execute function and cache result
             logger.debug("Cache MISS: %s", cache_key)
             result = await func(*args, **kwargs)
-            
+
             if result is not None:
                 await cache.set(cache_key, result, ttl)
-            
+
             return result
-        
+
         # Add cache control methods
         wrapper.cache_clear = lambda: cache.clear_prefix(f"{prefix}:")
         wrapper.cache_key = lambda *a, **kw: _make_cache_key(prefix, a, kw)
-        
+
         return wrapper
-    
+
     return decorator
 
 
@@ -389,14 +391,14 @@ def cache_invalidate(key_prefix: str):
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
             result = await func(*args, **kwargs)
-            
+
             # Invalidate cache after successful execution
             deleted = await cache.clear_prefix(f"{key_prefix}:")
             if deleted:
                 logger.debug("Cache invalidated: %s (%d keys)", key_prefix, deleted)
-            
+
             return result
-        
+
         return wrapper
-    
+
     return decorator

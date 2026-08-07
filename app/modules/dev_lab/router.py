@@ -15,27 +15,22 @@ All endpoints require admin auth (dev_lab is admin-only by design).
 """
 import importlib
 import logging
-import os
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.product_manifest import MANIFEST, ModuleEntry
-from app.core.module_overrides import set_override
 from app.core.module_resolver import invalidate_all_caches
+from app.core.product_manifest import MANIFEST
 from app.core.utc import utc_now
 from app.modules.dev_lab.maturity import (
-    MATURITY_CHECKLIST,
     LIFECYCLE_ORDER,
+    MATURITY_CHECKLIST,
+    can_promote,
     get_checklist,
     get_next_lifecycle,
-    can_promote,
 )
 
 logger = logging.getLogger(__name__)
@@ -65,7 +60,7 @@ class PromoteRequest(BaseModel):
 
 class RunTestsRequest(BaseModel):
     """Request to run a module's test suite."""
-    test_path: Optional[str] = Field(
+    test_path: str | None = Field(
         default=None,
         description="Specific test path (defaults to module's tests/ directory)",
     )

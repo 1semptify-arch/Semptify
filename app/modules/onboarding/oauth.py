@@ -8,22 +8,18 @@ Reconnect (returning users refreshing tokens) is NOT handled here.
 
 import logging
 import secrets
-from datetime import timedelta, timezone
-from typing import Optional
+from datetime import timedelta
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.core.utc import utc_now
+from app.core.oauth_token_manager import OAuthToken, token_manager
 from app.core.user_id import generate_user_id
-from app.core.cookie_auth import set_auth_cookie
-from app.core.oauth_token_manager import token_manager, OAuthToken
-from app.models.models import User, OAuthState
-
+from app.core.utc import utc_now
+from app.models.models import OAuthState, User
 from app.modules.onboarding.config import OnboardingConfig
 from app.modules.onboarding.gates import mark_gate
 
@@ -139,14 +135,14 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
     Build the provider-specific OAuth authorization URL.
     """
     logger.info("build_oauth_url: provider=%s state=%s callback=%s force_fresh=%s", provider, state[:12] + "***", callback_url, force_fresh)
-    
+
     try:
         settings = get_settings()
         logger.info("build_oauth_url: settings loaded successfully")
     except Exception as e:
         logger.error("build_oauth_url: failed to load settings: %s", e)
         raise
-    
+
     try:
         oauth_config = config.get_oauth_config(provider)
         logger.info("build_oauth_url: oauth_config loaded for provider=%s", provider)
@@ -350,11 +346,11 @@ async def find_or_create_user(
     # Check for fresh session parameter to bypass existing user lookup
     # Handle missing force_fresh field gracefully until migration runs
     force_fresh = state_data.get("force_fresh", False)
-    
+
     if existing and not force_fresh:
         logger.info("Matched existing user %s by provider subject", existing.id[:6] + "***")
         return existing.id, False
-    
+
     if existing and force_fresh:
         logger.info("Force fresh: bypassing existing user %s for new ID generation", existing.id[:6] + "***")
         # Don't return existing user - continue to create new user below

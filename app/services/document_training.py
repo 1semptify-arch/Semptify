@@ -5,13 +5,14 @@ Allows the system to learn from user corrections and improve over time.
 """
 
 import json
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,23 +20,23 @@ logger = logging.getLogger(__name__)
 class TrainingExample:
     """A single training example from user feedback."""
     id: str = field(default_factory=lambda: make_id("trn"))
-    
+
     # Document info
     document_text: str = ""
     document_filename: str = ""
     document_hash: str = ""  # To prevent duplicates
-    
+
     # System's prediction
     predicted_type: str = ""
     predicted_confidence: float = 0.0
-    
+
     # User's correction
     correct_type: str = ""
     user_notes: str = ""
-    
+
     # Extracted patterns (for learning)
     key_phrases_found: list[str] = field(default_factory=list)
-    
+
     # Metadata
     user_id: str = ""
     county: str = "Dakota"
@@ -54,42 +55,42 @@ class DocumentTrainingService:
     5. Periodically: analyze patterns from corrections
     6. Update keyword weights based on what works
     """
-    
+
     def __init__(self, storage_path: str = "data/training"):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.examples_file = self.storage_path / "training_examples.json"
         self.learned_patterns_file = self.storage_path / "learned_patterns.json"
-        
+
         # Load existing data
         self.examples: list[TrainingExample] = self._load_examples()
         self.learned_patterns: dict = self._load_learned_patterns()
-    
+
     def _load_examples(self) -> list[TrainingExample]:
         """Load existing training examples."""
         if self.examples_file.exists():
             try:
-                with open(self.examples_file, "r") as f:
+                with open(self.examples_file) as f:
                     data = json.load(f)
                     return [TrainingExample(**ex) for ex in data]
-            except IOError:
+            except OSError:
                 pass
         return []
-    
+
     def _load_learned_patterns(self) -> dict:
         """Load learned patterns."""
         if self.learned_patterns_file.exists():
             try:
-                with open(self.learned_patterns_file, "r") as f:
+                with open(self.learned_patterns_file) as f:
                     return json.load(f)
-            except IOError:
+            except OSError:
                 pass
         return {
             "boosted_keywords": {},  # keyword -> doc_type -> weight_boost
             "new_patterns": {},  # doc_type -> [new patterns]
             "suppressed_patterns": {},  # patterns that cause false positives
         }
-    
+
     def _save_examples(self):
         """Save training examples."""
         data = []
@@ -99,16 +100,16 @@ class DocumentTrainingService:
             data.append(d)
         with open(self.examples_file, "w") as f:
             json.dump(data, f, indent=2)
-    
+
     def _save_learned_patterns(self):
         """Save learned patterns."""
         with open(self.learned_patterns_file, "w") as f:
             json.dump(self.learned_patterns, f, indent=2)
-    
+
     # =========================================================================
     # Training API
     # =========================================================================
-    
+
     def record_correction(
         self,
         document_text: str,
@@ -128,7 +129,7 @@ class DocumentTrainingService:
         """
         import hashlib
         doc_hash = hashlib.md5(document_text.encode()).hexdigest()
-        
+
         # Check for duplicates
         for ex in self.examples:
             if ex.document_hash == doc_hash:
@@ -137,10 +138,10 @@ class DocumentTrainingService:
                 ex.user_notes = user_notes
                 self._save_examples()
                 return ex
-        
+
         # Extract key phrases for learning
         key_phrases = self._extract_key_phrases(document_text)
-        
+
         example = TrainingExample(
             document_text=document_text[:5000],  # Limit size
             document_filename=document_filename,
@@ -153,15 +154,15 @@ class DocumentTrainingService:
             user_id=user_id,
             county=county,
         )
-        
+
         self.examples.append(example)
         self._save_examples()
-        
+
         # Immediately learn from this correction
         self._learn_from_correction(example)
-        
+
         return example
-    
+
     def record_confirmation(
         self,
         document_text: str,
@@ -176,24 +177,24 @@ class DocumentTrainingService:
         This helps reinforce correct patterns.
         """
         key_phrases = self._extract_key_phrases(document_text)
-        
+
         # Boost the patterns that led to correct prediction
         for phrase in key_phrases:
             phrase_lower = phrase.lower()
             if phrase_lower not in self.learned_patterns["boosted_keywords"]:
                 self.learned_patterns["boosted_keywords"][phrase_lower] = {}
-            
+
             current = self.learned_patterns["boosted_keywords"][phrase_lower].get(predicted_type, 0)
             self.learned_patterns["boosted_keywords"][phrase_lower][predicted_type] = current + 0.1
-        
+
         self._save_learned_patterns()
-    
+
     def _extract_key_phrases(self, text: str, max_phrases: int = 20) -> list[str]:
         """Extract potential key phrases from document text."""
         import re
-        
+
         phrases = []
-        
+
         # Legal document patterns
         patterns = [
             r"(?:notice\s+(?:to|of)\s+\w+)",
@@ -209,14 +210,14 @@ class DocumentTrainingService:
             r"(?:security\s+deposit)",
             r"(?:lease\s+(?:agreement|violation|termination))",
         ]
-        
+
         text_lower = text.lower()
         for pattern in patterns:
             matches = re.findall(pattern, text_lower, re.IGNORECASE)
             phrases.extend(matches[:3])  # Limit per pattern
-        
+
         return list(set(phrases))[:max_phrases]
-    
+
     def _learn_from_correction(self, example: TrainingExample):
         """
         Immediately learn from a correction.
@@ -230,30 +231,30 @@ class DocumentTrainingService:
             phrase_lower = phrase.lower()
             if phrase_lower not in self.learned_patterns["suppressed_patterns"]:
                 self.learned_patterns["suppressed_patterns"][phrase_lower] = {}
-            
+
             # Reduce weight for the wrong type
             current = self.learned_patterns["suppressed_patterns"][phrase_lower].get(
                 example.predicted_type, 0
             )
             self.learned_patterns["suppressed_patterns"][phrase_lower][example.predicted_type] = current + 0.2
-        
+
         # Boost patterns for correct type
         for phrase in example.key_phrases_found:
             phrase_lower = phrase.lower()
             if phrase_lower not in self.learned_patterns["boosted_keywords"]:
                 self.learned_patterns["boosted_keywords"][phrase_lower] = {}
-            
+
             current = self.learned_patterns["boosted_keywords"][phrase_lower].get(
                 example.correct_type, 0
             )
             self.learned_patterns["boosted_keywords"][phrase_lower][example.correct_type] = current + 0.3
-        
+
         self._save_learned_patterns()
-    
+
     # =========================================================================
     # Analysis & Reporting
     # =========================================================================
-    
+
     def get_training_stats(self) -> dict:
         """Get statistics about training data."""
         if not self.examples:
@@ -262,19 +263,19 @@ class DocumentTrainingService:
                 "accuracy_rate": 0,
                 "common_mistakes": [],
             }
-        
+
         total = len(self.examples)
         correct = sum(1 for ex in self.examples if ex.predicted_type == ex.correct_type)
-        
+
         # Find common mistakes
         mistakes = {}
         for ex in self.examples:
             if ex.predicted_type != ex.correct_type:
                 key = f"{ex.predicted_type} ▸ {ex.correct_type}"
                 mistakes[key] = mistakes.get(key, 0) + 1
-        
+
         common_mistakes = sorted(mistakes.items(), key=lambda x: -x[1])[:10]
-        
+
         return {
             "total_examples": total,
             "accuracy_rate": correct / total if total > 0 else 0,
@@ -284,7 +285,7 @@ class DocumentTrainingService:
             "learned_patterns_count": len(self.learned_patterns.get("boosted_keywords", {})),
             "suppressed_patterns_count": len(self.learned_patterns.get("suppressed_patterns", {})),
         }
-    
+
     def get_weight_adjustments(self) -> dict:
         """
         Get keyword weight adjustments from learning.
@@ -292,25 +293,25 @@ class DocumentTrainingService:
         This can be applied to the recognition engine to improve accuracy.
         """
         adjustments = {}
-        
+
         # Combine boosted and suppressed
         for keyword, type_boosts in self.learned_patterns.get("boosted_keywords", {}).items():
             if keyword not in adjustments:
                 adjustments[keyword] = {}
             for doc_type, boost in type_boosts.items():
                 adjustments[keyword][doc_type] = adjustments[keyword].get(doc_type, 0) + boost
-        
+
         for keyword, type_suppresses in self.learned_patterns.get("suppressed_patterns", {}).items():
             if keyword not in adjustments:
                 adjustments[keyword] = {}
             for doc_type, suppress in type_suppresses.items():
                 adjustments[keyword][doc_type] = adjustments[keyword].get(doc_type, 0) - suppress
-        
+
         return adjustments
 
 
 # Singleton instance
-_training_service: Optional[DocumentTrainingService] = None
+_training_service: DocumentTrainingService | None = None
 
 
 def get_training_service() -> DocumentTrainingService:

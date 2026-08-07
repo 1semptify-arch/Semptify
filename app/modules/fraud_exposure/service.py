@@ -10,11 +10,12 @@ Analyzes landlord fraud patterns including:
 """
 
 import logging
-from app.core.utc import utc_now
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +48,12 @@ class FraudFinding:
     severity: SeverityLevel
     rule: str
     description: str
-    evidence: List[str] = field(default_factory=list)
-    affected_parties: List[str] = field(default_factory=list)
-    potential_damages: Optional[float] = None
-    reporting_agencies: List[str] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    evidence: list[str] = field(default_factory=list)
+    affected_parties: list[str] = field(default_factory=list)
+    potential_damages: float | None = None
+    reporting_agencies: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "fraud_type": self.fraud_type.value,
@@ -71,14 +72,14 @@ class FraudReport:
     """Complete fraud analysis report"""
     id: str
     landlord_id: str
-    property_address: Optional[str]
-    findings: List[FraudFinding]
+    property_address: str | None
+    findings: list[FraudFinding]
     total_potential_damages: float
     risk_score: int  # 0-100
     created_at: datetime
-    recommendations: List[str] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    recommendations: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "landlord_id": self.landlord_id,
@@ -153,21 +154,21 @@ FRAUD_RULES = {
 
 class FraudExposureService:
     """Service for analyzing landlord fraud patterns"""
-    
+
     def __init__(self):
-        self._reports: Dict[str, FraudReport] = {}
+        self._reports: dict[str, FraudReport] = {}
         logger.info("▸ Fraud Exposure Service initialized")
-    
+
     async def analyze_fraud(
         self,
         landlord_id: str,
-        case_docs: List[Dict[str, Any]],
-        subsidies: List[Dict[str, Any]],
-        lenders: List[Dict[str, Any]],
-        property_address: Optional[str] = None,
-        code_violations: List[Dict[str, Any]] = None,
-        rent_history: List[Dict[str, Any]] = None,
-        complaint_history: List[Dict[str, Any]] = None,
+        case_docs: list[dict[str, Any]],
+        subsidies: list[dict[str, Any]],
+        lenders: list[dict[str, Any]],
+        property_address: str | None = None,
+        code_violations: list[dict[str, Any]] = None,
+        rent_history: list[dict[str, Any]] = None,
+        complaint_history: list[dict[str, Any]] = None,
     ) -> FraudReport:
         """
         Analyze case for potential fraud patterns.
@@ -185,9 +186,9 @@ class FraudExposureService:
         Returns:
             FraudReport with findings
         """
-        findings: List[FraudFinding] = []
+        findings: list[FraudFinding] = []
         finding_id = 0
-        
+
         # Check document fraud
         for doc in case_docs:
             if doc.get("signature_status") == "missing":
@@ -202,11 +203,11 @@ class FraudExposureService:
                     evidence=[f"Document: {doc.get('name', 'Unknown')} missing signature"],
                     reporting_agencies=rule["reporting_agencies"],
                 ))
-        
+
         # Check subsidy fraud
         for subsidy in subsidies:
             subsidy_type = subsidy.get("type", "").lower()
-            
+
             if "section 8" in subsidy_type or "section8" in subsidy_type:
                 # Check for overcharges
                 if subsidy.get("rent_charged", 0) > subsidy.get("fmr_limit", float('inf')):
@@ -223,7 +224,7 @@ class FraudExposureService:
                         potential_damages=overcharge * 12 * 3,  # Triple damages for 1 year
                         reporting_agencies=rule["reporting_agencies"],
                     ))
-            
+
             if "lihtc" in subsidy_type:
                 if subsidy.get("income_violation"):
                     finding_id += 1
@@ -237,11 +238,11 @@ class FraudExposureService:
                         evidence=[subsidy.get("violation_details", "Income limit exceeded")],
                         reporting_agencies=rule["reporting_agencies"],
                     ))
-        
+
         # Check lender fraud
         for lender in lenders:
             lender_type = lender.get("type", "").lower()
-            
+
             if "fha" in lender_type:
                 if lender.get("maintenance_issues"):
                     finding_id += 1
@@ -255,7 +256,7 @@ class FraudExposureService:
                         evidence=lender.get("maintenance_issues", []),
                         reporting_agencies=rule["reporting_agencies"],
                     ))
-        
+
         # Check code violations
         if code_violations:
             unresolved = [v for v in code_violations if not v.get("resolved")]
@@ -272,7 +273,7 @@ class FraudExposureService:
                     evidence=[f"{len(unresolved)} unresolved code violations"],
                     reporting_agencies=rule["reporting_agencies"],
                 ))
-        
+
         # Check for retaliation
         if complaint_history:
             for complaint in complaint_history:
@@ -292,10 +293,10 @@ class FraudExposureService:
                             evidence=[f"Eviction filed {complaint.get('days_to_eviction')} days after complaint"],
                             reporting_agencies=rule["reporting_agencies"],
                         ))
-        
+
         # Calculate totals
         total_damages = sum(f.potential_damages or 0 for f in findings)
-        
+
         # Calculate risk score (0-100)
         risk_score = min(100, len(findings) * 15 + sum(
             30 if f.severity == SeverityLevel.CRITICAL else
@@ -303,10 +304,10 @@ class FraudExposureService:
             10 if f.severity == SeverityLevel.MEDIUM else 5
             for f in findings
         ))
-        
+
         # Generate recommendations
         recommendations = self._generate_recommendations(findings)
-        
+
         # Create report
         report_id = f"fr_{utc_now().strftime('%Y%m%d%H%M%S')}_{landlord_id[:8]}"
         report = FraudReport(
@@ -319,51 +320,51 @@ class FraudExposureService:
             created_at=utc_now(),
             recommendations=recommendations,
         )
-        
+
         self._reports[report_id] = report
         logger.info(f"▸ Fraud analysis complete: {len(findings)} findings, risk score {risk_score}")
-        
+
         return report
-    
-    def _generate_recommendations(self, findings: List[FraudFinding]) -> List[str]:
+
+    def _generate_recommendations(self, findings: list[FraudFinding]) -> list[str]:
         """Generate recommendations based on findings"""
         recommendations = []
-        
+
         fraud_types = set(f.fraud_type for f in findings)
         agencies = set()
         for f in findings:
             agencies.update(f.reporting_agencies)
-        
+
         if FraudType.SUBSIDY_FRAUD in fraud_types:
             recommendations.append("File complaint with HUD Office of Inspector General")
             recommendations.append("Contact local Housing Authority fraud hotline")
-        
+
         if FraudType.DOCUMENT_FRAUD in fraud_types:
             recommendations.append("Request certified copies of all lease documents")
             recommendations.append("Consider reporting to MN Attorney General Consumer Division")
-        
+
         if FraudType.HABITABILITY_FRAUD in fraud_types:
             recommendations.append("Request rent escrow through the court")
             recommendations.append("Document all habitability issues with photos/video")
-        
+
         if FraudType.RETALIATION in fraud_types:
             recommendations.append("Raise retaliation as affirmative defense in eviction")
             recommendations.append("File complaint with MN Attorney General")
-        
+
         if agencies:
             recommendations.append(f"Consider filing complaints with: {', '.join(sorted(agencies))}")
-        
+
         return recommendations
-    
-    def get_report(self, report_id: str) -> Optional[FraudReport]:
+
+    def get_report(self, report_id: str) -> FraudReport | None:
         """Get a fraud report by ID"""
         return self._reports.get(report_id)
-    
-    def get_reports_for_landlord(self, landlord_id: str) -> List[FraudReport]:
+
+    def get_reports_for_landlord(self, landlord_id: str) -> list[FraudReport]:
         """Get all reports for a landlord"""
         return [r for r in self._reports.values() if r.landlord_id == landlord_id]
 
-    def check_habitability_fraud(self, violations: List[Any]) -> Dict[str, Any]:
+    def check_habitability_fraud(self, violations: list[Any]) -> dict[str, Any]:
         """Check for habitability fraud based on violations"""
         findings = []
         for violation in violations:
@@ -376,7 +377,7 @@ class FraudExposureService:
                 "description": desc,
                 "severity": "high" if "health" in desc.lower() or "safety" in desc.lower() else "medium"
             })
-        
+
         return {
             "fraud_detected": len(findings) > 0,
             "findings": findings,
@@ -388,13 +389,13 @@ class FraudExposureService:
             ] if findings else []
         }
 
-    def check_hud_subsidy_fraud(self, subsidy_info: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def check_hud_subsidy_fraud(self, subsidy_info: dict[str, Any] | None) -> dict[str, Any]:
         """Check for HUD/Section 8 subsidy fraud"""
         if not subsidy_info:
             return {"fraud_detected": False, "findings": [], "risk_level": "low"}
-        
+
         findings = []
-        
+
         # Check rent overcharge
         rent_charged = subsidy_info.get("rent_charged", 0)
         fmr_limit = subsidy_info.get("fmr_limit", 0)
@@ -405,7 +406,7 @@ class FraudExposureService:
                 "severity": "critical",
                 "potential_damages": (rent_charged - fmr_limit) * 12 * 3
             })
-        
+
         # Check inspection failures
         if subsidy_info.get("failed_inspection"):
             findings.append({
@@ -413,7 +414,7 @@ class FraudExposureService:
                 "description": "Collecting subsidy while failing HQS inspection",
                 "severity": "high"
             })
-        
+
         return {
             "fraud_detected": len(findings) > 0,
             "findings": findings,
@@ -426,14 +427,14 @@ class FraudExposureService:
             ] if findings else []
         }
 
-    def check_mortgage_fraud(self, lender_info: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def check_mortgage_fraud(self, lender_info: dict[str, Any] | None) -> dict[str, Any]:
         """Check for mortgage/lender fraud"""
         if not lender_info:
             return {"fraud_detected": False, "findings": [], "risk_level": "low"}
-        
+
         findings = []
         lender_type = lender_info.get("type", "").lower()
-        
+
         # FHA violations
         if "fha" in lender_type:
             if lender_info.get("maintenance_issues"):
@@ -443,7 +444,7 @@ class FraudExposureService:
                     "severity": "high",
                     "issues": lender_info.get("maintenance_issues", [])
                 })
-        
+
         # Fannie Mae violations
         if "fannie" in lender_type or "freddie" in lender_type:
             if lender_info.get("code_violations"):
@@ -452,7 +453,7 @@ class FraudExposureService:
                     "description": "GSE-backed property with unresolved code violations",
                     "severity": "high"
                 })
-        
+
         return {
             "fraud_detected": len(findings) > 0,
             "findings": findings,
@@ -462,13 +463,13 @@ class FraudExposureService:
 
     def check_security_deposit_fraud(
         self,
-        deposit_amount: Optional[float],
-        rent_amount: Optional[float],
-        deductions: Optional[List[Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+        deposit_amount: float | None,
+        rent_amount: float | None,
+        deductions: list[dict[str, Any]] | None = None
+    ) -> dict[str, Any]:
         """Check for security deposit fraud"""
         findings = []
-        
+
         # Check if deposit exceeds legal limit (1 month in MN)
         if deposit_amount and rent_amount and deposit_amount > rent_amount:
             findings.append({
@@ -477,7 +478,7 @@ class FraudExposureService:
                 "severity": "medium",
                 "statute": "Minn. Stat. § 504B.178"
             })
-        
+
         # Check deductions
         if deductions:
             total_deductions = sum(d.get("amount", 0) for d in deductions)
@@ -487,7 +488,7 @@ class FraudExposureService:
                     "description": f"Deductions ${total_deductions} exceed deposit ${deposit_amount}",
                     "severity": "high"
                 })
-            
+
             # Check for normal wear and tear charges
             wear_tear_keywords = ["paint", "carpet wear", "normal", "cleaning"]
             for d in deductions:
@@ -498,7 +499,7 @@ class FraudExposureService:
                         "description": f"Potentially improper deduction for normal wear: {d.get('description')}",
                         "severity": "medium"
                     })
-        
+
         return {
             "fraud_detected": len(findings) > 0,
             "findings": findings,
@@ -513,8 +514,8 @@ class FraudExposureService:
     def get_statute_of_limitations(
         self,
         fraud_type: str,
-        discovery_date: Optional[str] = None
-    ) -> Dict[str, Any]:
+        discovery_date: str | None = None
+    ) -> dict[str, Any]:
         """Get statute of limitations info for fraud type"""
         sol_info = {
             "habitability": {
@@ -548,25 +549,25 @@ class FraudExposureService:
                 "notes": "File with HUD FHEO within 1 year"
             }
         }
-        
+
         fraud_key = fraud_type.lower().replace("_fraud", "").replace("fraud_", "")
         info = sol_info.get(fraud_key, {
             "civil_action": "6 years (general)",
             "notes": "Consult attorney for specific fraud type"
         })
-        
+
         result = {
             "fraud_type": fraud_type,
             "limitations": info,
             "discovery_date": discovery_date
         }
-        
+
         if discovery_date:
             result["note"] = "Statute may be tolled until date of discovery for fraud claims"
-        
+
         return result
 
-    def get_whistleblower_protections(self, fraud_type: Optional[str] = None) -> Dict[str, Any]:
+    def get_whistleblower_protections(self, fraud_type: str | None = None) -> dict[str, Any]:
         """Get whistleblower protection information"""
         protections = {
             "federal": {
@@ -601,7 +602,7 @@ class FraudExposureService:
                 "Consider consulting Legal Aid before reporting"
             ]
         }
-        
+
         if fraud_type:
             fraud_key = fraud_type.lower()
             if "hud" in fraud_key or "section" in fraud_key:
@@ -610,10 +611,10 @@ class FraudExposureService:
                 protections["recommended_agency"] = "HUD FHEO or MN Dept of Human Rights"
             else:
                 protections["recommended_agency"] = "MN Attorney General Consumer Division"
-        
+
         return protections
 
-    def get_all_patterns(self) -> List[Dict[str, Any]]:
+    def get_all_patterns(self) -> list[dict[str, Any]]:
         """Get all fraud detection patterns/rules"""
         patterns = []
         for rule_name, rule_data in FRAUD_RULES.items():
@@ -626,7 +627,7 @@ class FraudExposureService:
             })
         return patterns
 
-    def get_reporting_agencies(self) -> List[Dict[str, Any]]:
+    def get_reporting_agencies(self) -> list[dict[str, Any]]:
         """Get list of agencies for reporting fraud"""
         return [
             {
@@ -692,7 +693,7 @@ class FraudExposureService:
 
 
 # Global instance
-_fraud_service: Optional[FraudExposureService] = None
+_fraud_service: FraudExposureService | None = None
 
 
 def get_fraud_service() -> FraudExposureService:

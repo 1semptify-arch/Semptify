@@ -7,9 +7,9 @@ All errors return JSON with standard structure.
 
 import logging
 import traceback
-from typing import Any, Optional
+from typing import Any
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -44,7 +44,7 @@ class ErrorResponse(BaseModel):
 
 class SemptifyError(Exception):
     """Base exception for Semptify-specific errors."""
-    
+
     def __init__(
         self,
         message: str,
@@ -61,7 +61,7 @@ class SemptifyError(Exception):
 
 class NotFoundError(SemptifyError):
     """Resource not found."""
-    
+
     def __init__(self, resource: str, identifier: Any = None):
         message = f"{resource} not found"
         if identifier:
@@ -75,7 +75,7 @@ class NotFoundError(SemptifyError):
 
 class AuthenticationError(SemptifyError):
     """Authentication failed."""
-    
+
     def __init__(self, message: str = "Authentication required"):
         super().__init__(
             message=message,
@@ -86,7 +86,7 @@ class AuthenticationError(SemptifyError):
 
 class AuthorizationError(SemptifyError):
     """Authorization failed (authenticated but not permitted)."""
-    
+
     def __init__(self, message: str = "Permission denied"):
         super().__init__(
             message=message,
@@ -97,7 +97,7 @@ class AuthorizationError(SemptifyError):
 
 class ValidationError(SemptifyError):
     """Custom validation error."""
-    
+
     def __init__(self, message: str, details: list[dict] | None = None):
         super().__init__(
             message=message,
@@ -109,7 +109,7 @@ class ValidationError(SemptifyError):
 
 class ConflictError(SemptifyError):
     """Resource conflict (e.g., duplicate)."""
-    
+
     def __init__(self, message: str = "Resource conflict"):
         super().__init__(
             message=message,
@@ -120,7 +120,7 @@ class ConflictError(SemptifyError):
 
 class RateLimitError(SemptifyError):
     """Rate limit exceeded."""
-    
+
     def __init__(self, retry_after: int = 60):
         super().__init__(
             message=f"Rate limit exceeded. Retry after {retry_after} seconds.",
@@ -132,7 +132,7 @@ class RateLimitError(SemptifyError):
 
 class ServiceUnavailableError(SemptifyError):
     """External service unavailable."""
-    
+
     def __init__(self, service: str = "External service"):
         super().__init__(
             message=f"{service} is temporarily unavailable",
@@ -143,7 +143,7 @@ class ServiceUnavailableError(SemptifyError):
 
 class AIProviderError(SemptifyError):
     """AI provider error."""
-    
+
     def __init__(self, provider: str, message: str = "AI service error"):
         super().__init__(
             message=f"{provider}: {message}",
@@ -154,7 +154,7 @@ class AIProviderError(SemptifyError):
 
 class StorageError(SemptifyError):
     """Storage provider error."""
-    
+
     def __init__(self, provider: str = "Storage", message: str = "Storage operation failed"):
         super().__init__(
             message=f"{provider}: {message}",
@@ -167,7 +167,7 @@ class StorageError(SemptifyError):
 # Exception Handlers
 # =============================================================================
 
-def get_request_id(request: Request) -> Optional[str]:
+def get_request_id(request: Request) -> str | None:
     """Extract request ID from request."""
     return request.headers.get("X-Request-Id")
 
@@ -180,7 +180,7 @@ async def semptify_error_handler(request: Request, exc: SemptifyError) -> JSONRe
         exc.message,
         extra={"error_code": exc.error_code, "path": request.url.path}
     )
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -208,9 +208,9 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
         502: "bad_gateway",
         503: "service_unavailable",
     }
-    
+
     error_code = error_codes.get(exc.status_code, "error")
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -230,13 +230,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "msg": error.get("msg", ""),
             "type": error.get("type", ""),
         })
-    
+
     logger.info(
         "Validation error on %s: %d issues",
         request.url.path,
         len(details),
     )
-    
+
     return JSONResponse(
         status_code=422,
         content={
@@ -262,7 +262,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             "traceback": traceback.format_exc(),
         }
     )
-    
+
     # Don't expose internal details in production
     return JSONResponse(
         status_code=500,

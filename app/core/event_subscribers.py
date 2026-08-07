@@ -32,8 +32,8 @@ async def _on_document_added(event: Any) -> None:
             return
 
         from app.core.database import get_db_session
-        from app.core.utc import utc_now
         from app.core.id_gen import make_id
+        from app.core.utc import utc_now
         from app.models.models import TimelineEvent
 
         async with get_db_session() as session:
@@ -64,7 +64,7 @@ def register_all_subscribers() -> None:
     Register all async event subscribers.
     Call this once during application startup (Stage 5).
     """
-    from app.core.event_bus import subscribe_async_to_event, EventType
+    from app.core.event_bus import EventType, subscribe_async_to_event
 
     subscribe_async_to_event(EventType.DOCUMENT_ADDED, _on_document_added)
     logger.info("Event subscribers registered: DOCUMENT_ADDED ▸ timeline")

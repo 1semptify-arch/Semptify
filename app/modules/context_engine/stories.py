@@ -4,14 +4,12 @@ Story frame: `avoided_court` is the hero — documentation is the win.
 Stories are anonymized + moderated before publishing.
 """
 
-from typing import List, Optional
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from app.core.database import get_db_session
 from app.core.utc import utc_now
 from app.modules.context_engine.models import TenantStory
-
 
 VALID_OUTCOMES = {"avoided_court", "won_court", "settled", "lost_court", "ongoing"}
 
@@ -22,7 +20,7 @@ async def submit_story(
     body: str,
     jurisdiction: str = "MN",
     outcome: str = "avoided_court",
-    submitted_by: Optional[str] = None,
+    submitted_by: str | None = None,
 ) -> TenantStory:
     """Submit a new tenant story for moderation. Anonymized by default."""
     if outcome not in VALID_OUTCOMES:
@@ -49,8 +47,8 @@ async def moderate_story(
     story_id: int,
     moderated_by: str,
     publish: bool,
-    title: Optional[str] = None,
-    body: Optional[str] = None,
+    title: str | None = None,
+    body: str | None = None,
 ) -> TenantStory:
     """Moderate a story — optionally edit, then mark moderated + publish/unpublish."""
     async with get_db_session() as db:
@@ -74,10 +72,10 @@ async def moderate_story(
 
 
 async def get_published_stories(
-    subject: Optional[str] = None,
+    subject: str | None = None,
     jurisdiction: str = "MN",
     limit: int = 10,
-) -> List[TenantStory]:
+) -> list[TenantStory]:
     """Get published, moderated stories for a subject."""
     async with get_db_session() as db:
         conditions = [
@@ -94,7 +92,7 @@ async def get_published_stories(
         return list(result.scalars().all())
 
 
-async def get_pending_stories(limit: int = 50) -> List[TenantStory]:
+async def get_pending_stories(limit: int = 50) -> list[TenantStory]:
     """Get stories pending moderation."""
     async with get_db_session() as db:
         stmt = select(TenantStory).where(
@@ -104,7 +102,7 @@ async def get_pending_stories(limit: int = 50) -> List[TenantStory]:
         return list(result.scalars().all())
 
 
-async def get_story(story_id: int) -> Optional[TenantStory]:
+async def get_story(story_id: int) -> TenantStory | None:
     async with get_db_session() as db:
         result = await db.execute(
             select(TenantStory).where(TenantStory.id == story_id)

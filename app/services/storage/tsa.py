@@ -36,10 +36,7 @@ Usage:
 import base64
 import hashlib
 import logging
-import struct
-import os
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +57,8 @@ class TSAResult:
     document_hash: str        # SHA-256 hex of the document
     token_b64: str            # Base64-encoded token (TSA .tsr or HMAC fallback)
     tsa_backed: bool          # True = RFC 3161, False = HMAC fallback
-    tsa_url: Optional[str]    # TSA URL used (None for fallback)
-    error: Optional[str]      # Set if fallback was triggered and why
+    tsa_url: str | None    # TSA URL used (None for fallback)
+    error: str | None      # Set if fallback was triggered and why
 
 
 def _build_tsr_request(hash_bytes: bytes) -> bytes:
@@ -135,7 +132,7 @@ def _build_tsr_request(hash_bytes: bytes) -> bytes:
 async def stamp_document_hash(
     document_hash: str,
     timestamp_iso: str,
-    tsa_url: Optional[str] = None,
+    tsa_url: str | None = None,
 ) -> TSAResult:
     """
     Send a SHA-256 document hash to a TSA and get back a signed timestamp token.
@@ -209,6 +206,7 @@ def _hmac_fallback(document_hash: str, timestamp_iso: str, reason: str) -> TSARe
     Clearly marked so it can be distinguished from a real TSA token.
     """
     import hmac as _hmac
+
     from app.core.config import get_settings
     secret = get_settings().secret_key
 
@@ -250,7 +248,8 @@ def verify_tsa_token(token_b64: str, document_hash: str) -> dict:
         method:   "rfc3161" | "hmac_fallback"
         detail:   human-readable explanation
     """
-    import json, hmac as _hmac
+    import hmac as _hmac
+    import json
 
     try:
         raw = base64.b64decode(token_b64)

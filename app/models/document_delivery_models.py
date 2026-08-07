@@ -11,12 +11,14 @@ Three delivery types:
 Documents appear as PENDING in tenant vault. Never become tenant-owned automatically.
 """
 
+import logging
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+
 from pydantic import BaseModel, Field
+
 from app.core.id_gen import make_id
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,57 +47,57 @@ class DocumentDelivery(BaseModel):
     """
     # Identity
     delivery_id: str = Field(default_factory=lambda: make_id("del"))
-    
+
     # Sender (who is sending)
     sender_id: str  # User ID of sender
     sender_role: str  # advocate, manager, legal, admin
     sender_name: str
-    sender_organization: Optional[str] = None
-    
+    sender_organization: str | None = None
+
     # Recipient (who receives)
     recipient_id: str  # User ID of tenant
     recipient_name: str
-    
+
     # Document reference
     document_id: str  # Vault document ID
     document_filename: str
     document_hash: str  # SHA-256 for integrity verification
-    
+
     # Delivery configuration
     delivery_type: DeliveryType
     requires_read_receipt: bool = False  # Only for REVIEW_REQUIRED
-    deadline: Optional[datetime] = None  # When action is required by
-    
+    deadline: datetime | None = None  # When action is required by
+
     # Message from sender
-    message: Optional[str] = None
-    
+    message: str | None = None
+
     # Status tracking
     status: DeliveryStatus = DeliveryStatus.PENDING
-    
+
     # Timestamps
     sent_at: datetime = Field(default_factory=datetime.utcnow)
-    viewed_at: Optional[datetime] = None
-    signed_at: Optional[datetime] = None
-    rejected_at: Optional[datetime] = None
-    
+    viewed_at: datetime | None = None
+    signed_at: datetime | None = None
+    rejected_at: datetime | None = None
+
     # Action details (for signature/rejection)
-    signature_data: Optional[dict] = None  # Signature image, typed name, etc.
-    rejection_reason: Optional[str] = None
-    
+    signature_data: dict | None = None  # Signature image, typed name, etc.
+    rejection_reason: str | None = None
+
     # Security chain
-    security_hash: Optional[str] = None  # Chain hash for audit
-    
+    security_hash: str | None = None  # Chain hash for audit
+
 class DeliveryInboxItem(BaseModel):
     """Simplified view of a delivery for inbox display."""
     delivery_id: str
     sender_name: str
-    sender_organization: Optional[str]
+    sender_organization: str | None
     sender_role: str
     document_filename: str
     delivery_type: DeliveryType
     status: DeliveryStatus
     sent_at: datetime
-    deadline: Optional[datetime]
+    deadline: datetime | None
     requires_read_receipt: bool
     has_message: bool  # True if message field is not empty
 
@@ -115,14 +117,14 @@ class SendDocumentRequest(BaseModel):
     document_id: str
     delivery_type: DeliveryType
     requires_read_receipt: bool = False
-    deadline: Optional[datetime] = None
-    message: Optional[str] = None
+    deadline: datetime | None = None
+    message: str | None = None
 
 
 class SendDocumentResponse(BaseModel):
     """Response after sending a document."""
     success: bool
-    delivery_id: Optional[str] = None
+    delivery_id: str | None = None
     message: str
 
 
@@ -136,7 +138,7 @@ class SignDocumentRequest(BaseModel):
 class SignDocumentResponse(BaseModel):
     """Response after signing."""
     success: bool
-    signed_at: Optional[datetime] = None
+    signed_at: datetime | None = None
     message: str
 
 
@@ -148,7 +150,7 @@ class RejectDocumentRequest(BaseModel):
 class RejectDocumentResponse(BaseModel):
     """Response after rejecting."""
     success: bool
-    rejected_at: Optional[datetime] = None
+    rejected_at: datetime | None = None
     message: str
 
 

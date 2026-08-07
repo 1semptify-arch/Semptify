@@ -14,12 +14,11 @@ Features:
 Tier: DEV (safe, optional)
 """
 
+import hashlib
 import os
 import shutil
-import hashlib
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional, Dict, List
-from datetime import datetime, timezone
 
 # -----------------------------
 # CONFIG — Semptify‑Safe
@@ -86,7 +85,7 @@ def file_hash(path: Path, algo: str = HASH_ALGO) -> str:
 # OCR LAYER
 # -----------------------------
 
-def ocr_extract_text(path: Path) -> Optional[str]:
+def ocr_extract_text(path: Path) -> str | None:
     try:
         import pytesseract
         from PIL import Image
@@ -119,7 +118,7 @@ def ocr_save(base: Path, file_path: Path, text: str) -> Path:
 # AI CLASSIFICATION HOOK
 # -----------------------------
 
-def ai_classify_document(path: Path, ocr_text: Optional[str] = None) -> str:
+def ai_classify_document(path: Path, ocr_text: str | None = None) -> str:
     return "unknown"
 
 
@@ -166,7 +165,7 @@ def legal_category_route(base: Path, file_path: Path, category: str) -> Path:
     return target / file_path.name
 
 
-def infer_and_route_legal_category(base: Path, file_path: Path, ocr_text: Optional[str], ai_label: Optional[str] = None) -> Optional[Path]:
+def infer_and_route_legal_category(base: Path, file_path: Path, ocr_text: str | None, ai_label: str | None = None) -> Path | None:
     if not ocr_text:
         return None
 
@@ -191,13 +190,13 @@ def infer_and_route_legal_category(base: Path, file_path: Path, ocr_text: Option
 # TIMELINE EVENT GENERATION
 # -----------------------------
 
-def generate_timeline_event(file_path: Path, category: str, ocr_text: Optional[str]) -> dict:
+def generate_timeline_event(file_path: Path, category: str, ocr_text: str | None) -> dict:
     """
     Creates a Semptify‑compatible timeline event object.
     Does NOT send it to the API — safe, offline, DEV‑tier.
     """
     return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "category": category,
         "file_name": file_path.name,
         "file_path": str(file_path),

@@ -6,7 +6,6 @@ and security recommendations. It is the protection layer for user accounts.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Two-Factor Authentication ---
 
 register_function_group(FunctionGroupContract(

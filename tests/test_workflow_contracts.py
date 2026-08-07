@@ -1,4 +1,5 @@
 import pytest
+
 from app.services.positronic_brain import get_brain
 
 
@@ -397,12 +398,13 @@ async def test_workflow_case_state_professional_role_maps_to_b4(client):
 
 @pytest.mark.anyio
 async def test_workflow_case_state_normalizes_partial_stage_cards_and_alerts(client, monkeypatch):
-    from app.core.cookie_auth import sign_user_id
     import sys
+
     # Import the router.py module directly via sys.modules to avoid the
     # __init__.py re-export that shadows the submodule with the APIRouter
     # object (from .router import router).
     import app.modules.workflow.router  # noqa: F401 — ensures submodule is loaded
+    from app.core.cookie_auth import sign_user_id
     workflow_router_module = sys.modules["app.modules.workflow.router"]
 
     monkeypatch.setattr(

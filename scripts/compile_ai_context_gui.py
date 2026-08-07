@@ -8,15 +8,13 @@ Run:       python scripts/compile_ai_context_gui.py
            (or double-click the desktop launcher)
 """
 
+import importlib
 import os
 import sys
-import importlib
-from pathlib import Path
-from datetime import datetime
-
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, scrolledtext, simpledialog
-
+from datetime import UTC, datetime
+from pathlib import Path
+from tkinter import filedialog, messagebox, scrolledtext, simpledialog, ttk
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT_DEFAULT = SCRIPT_DIR.parent
@@ -248,7 +246,7 @@ class ContextKitGUI:
         if not os.path.isdir(root_dir):
             messagebox.showerror("Folder not found", f"This folder doesn't exist:\n{root_dir}")
             return
-        self._log(f"--- Build started {datetime.now().isoformat(timespec='seconds')} ---")
+        self._log(f"--- Build started {datetime.now(UTC).isoformat(timespec='seconds')} ---")
         self._log(f"Looking in: {root_dir}")
 
         # Chdir so the script's relative paths resolve correctly
@@ -270,8 +268,8 @@ class ContextKitGUI:
             cac.TARGET_DOCS = list(self.docs)
 
             # Capture prints
-            import io
             import contextlib
+            import io
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 cac.compile_handoff_packet()
@@ -295,7 +293,7 @@ class ContextKitGUI:
     def _load_preview(self, path):
         self.preview.delete("1.0", "end")
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 self.preview.insert("1.0", f.read())
         except FileNotFoundError:
             self.preview.insert("1.0", "(No file yet — click 'Make the AI file' first.)")

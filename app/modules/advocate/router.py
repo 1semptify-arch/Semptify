@@ -16,22 +16,21 @@ All endpoints require advocate role (verified via user_id cookie).
 """
 
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db_session
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole
-from app.core.utc import utc_now
+from app.core.user_context import UserRole, get_role_from_user_id
 from app.core.user_id import get_provider_from_user_id
+from app.core.utc import utc_now
 from app.models.models import (
+    Document,
+    RelationshipType,
+    TimelineEvent,
     User,
     UserRelationship,
-    RelationshipType,
-    Document,
-    TimelineEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -92,12 +91,12 @@ def _check_client_link(db, advocate_id: str, client_id: str) -> UserRelationship
 
 class IntakeRequest(BaseModel):
     tenant_user_id: str = Field(..., min_length=8, max_length=128, description="Tenant's user_id")
-    notes: Optional[str] = Field(default=None, max_length=500, description="Optional intake notes")
+    notes: str | None = Field(default=None, max_length=500, description="Optional intake notes")
 
 
 class ReviewRequest(BaseModel):
     status: str = Field(default="reviewed", description="Review status: reviewed, flagged, approved")
-    notes: Optional[str] = Field(default=None, max_length=500, description="Review notes")
+    notes: str | None = Field(default=None, max_length=500, description="Review notes")
 
 
 # =============================================================================
@@ -334,7 +333,7 @@ async def new_intake(body: IntakeRequest, request: Request):
 
 
 @router.get("/timeline")
-async def merged_timeline(request: Request, client_id: Optional[str] = None):
+async def merged_timeline(request: Request, client_id: str | None = None):
     """Get merged timeline across all clients, or a single client's timeline."""
     user_id = require_request_user_id(request)
     _require_advocate(user_id)
@@ -459,12 +458,14 @@ async def review_document(
 # when viewing their document.
 # =============================================================================
 
-def _get_tenant_storage(tenant_user_id: str):
+async def _get_tenant_storage(tenant_user_id: str):
     """Get a storage provider instance for a tenant user.
 
     Uses the tenant's OAuth token (refreshed if needed) and their
     primary provider. Raises HTTPException if token or provider unavailable.
     """
+    from app.core.auto_refresh import ensure_valid_token
+    from app.core.database import get_session_factory
     from app.services.storage import get_provider
 
     provider_name = get_provider_from_user_id(tenant_user_id)
@@ -474,9 +475,12 @@ def _get_tenant_storage(tenant_user_id: str):
             detail="Could not determine storage provider from tenant user_id.",
         )
 
+    token = None
     try:
-        from app.core.oauth_token_manager import get_valid_token_for_user
-        token = get_valid_token_for_user(tenant_user_id)
+        factory = get_session_factory()
+        async with factory() as db:
+            _, token_obj, _ = await ensure_valid_token(tenant_user_id, db)
+            token = token_obj.access_token if token_obj else None
     except Exception as e:
         logger.warning("Advocate annotate: token lookup failed for %s: %s", tenant_user_id, e)
         token = None
@@ -503,7 +507,7 @@ class AnnotateRequest(BaseModel):
         ...,
         description="Type-specific payload (see unified_overlay_models.py for schema)",
     )
-    metadata: Optional[dict] = Field(
+    metadata: dict | None = Field(
         default=None,
         description="Optional metadata (source, jurisdiction, reason, etc.)",
     )
@@ -546,12 +550,12 @@ async def annotate_document(
         vault_path = doc.file_path
         document_id = doc.id
 
-    storage = _get_tenant_storage(client_id)
+    storage = await _get_tenant_storage(client_id)
 
     try:
-        from app.services.unified_overlay_manager import UnifiedOverlayManager
-        from app.models.unified_overlay_models import CreateOverlayRequest
         from app.core.overlay_types import OverlayType
+        from app.models.unified_overlay_models import CreateOverlayRequest
+        from app.services.unified_overlay_manager import UnifiedOverlayManager
 
         overlay_type_enum = OverlayType[body.overlay_type]
         mgr = UnifiedOverlayManager(storage, user_id)
@@ -604,7 +608,7 @@ async def list_document_overlays(
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
 
-    storage = _get_tenant_storage(client_id)
+    storage = await _get_tenant_storage(client_id)
 
     try:
         from app.services.unified_overlay_manager import UnifiedOverlayManager
@@ -652,7 +656,7 @@ async def delete_annotation(
     with get_db_session() as db:
         _check_client_link(db, user_id, client_id)
 
-    storage = _get_tenant_storage(client_id)
+    storage = await _get_tenant_storage(client_id)
 
     try:
         from app.services.unified_overlay_manager import UnifiedOverlayManager
@@ -729,7 +733,6 @@ async def list_org_invite_codes(request: Request):
         ).all()
 
         # Filter out expired and used-up codes
-        from datetime import datetime, timezone
         now = utc_now()
         available = []
         for c in codes:
@@ -772,7 +775,7 @@ class LinkAdvocateRequest(BaseModel):
         ..., min_length=8, max_length=128,
         description="The advocate's user_id (shared by the advocate)",
     )
-    notes: Optional[str] = Field(
+    notes: str | None = Field(
         default=None, max_length=500,
         description="Optional message from tenant to advocate",
     )

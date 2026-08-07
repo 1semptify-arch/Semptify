@@ -12,7 +12,6 @@ Gates (in order):
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,7 +32,7 @@ class OnboardingState:
         return self.storage_connected and self.vault_initialized
 
     @property
-    def next_required_gate(self) -> Optional[str]:
+    def next_required_gate(self) -> str | None:
         """
         Returns the name of the first incomplete gate, or None if all done.
         This is the single routing decision point for all middleware.
@@ -45,7 +44,7 @@ class OnboardingState:
         return None
 
     @property
-    def next_required_path(self) -> Optional[str]:
+    def next_required_path(self) -> str | None:
         """
         Returns the SSOT path for the next required onboarding step.
         Uses navigation registry — no hardcoded paths.
@@ -121,7 +120,7 @@ async def get_onboarding_state(
     )
 
 
-async def get_onboarding_state_no_db(completed_groups_str: Optional[str], user_id: str) -> OnboardingState:
+async def get_onboarding_state_no_db(completed_groups_str: str | None, user_id: str) -> OnboardingState:
     """
     Build OnboardingState from an already-fetched completed_groups string.
     Use this when the DB row has already been loaded to avoid a second query.

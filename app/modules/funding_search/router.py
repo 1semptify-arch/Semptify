@@ -2,14 +2,14 @@
 Funding & Tax Credit Search Router
 Search for LIHTC, NMTC, HUD funding, tax credits, and financing by company, address, or broker
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, Any, Optional, List
-from datetime import datetime
-from pydantic import BaseModel
-from enum import Enum
 import logging
+from enum import Enum
+from typing import Any
 
-from app.core.security import require_user, StorageUser, green_access
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+
+from app.core.security import StorageUser, green_access
 
 logger = logging.getLogger(__name__)
 
@@ -47,64 +47,64 @@ class SearchType(str, Enum):
 class PropertySearchRequest(BaseModel):
     query: str
     search_type: SearchType = SearchType.ALL
-    programs: Optional[List[FundingProgramType]] = None
-    state: Optional[str] = "MN"
-    city: Optional[str] = None
+    programs: list[FundingProgramType] | None = None
+    state: str | None = "MN"
+    city: str | None = None
     include_expired: bool = False
 
 class FundingRecord(BaseModel):
     id: str
     property_address: str
-    property_name: Optional[str] = None
+    property_name: str | None = None
     city: str
     state: str
-    zip_code: Optional[str] = None
-    county: Optional[str] = None
-    
+    zip_code: str | None = None
+    county: str | None = None
+
     # Owner/Company info
     owner_company: str
-    owner_type: Optional[str] = None  # LLC, Corporation, Trust, etc.
-    
+    owner_type: str | None = None  # LLC, Corporation, Trust, etc.
+
     # Broker/Agent info
-    broker_name: Optional[str] = None
-    broker_company: Optional[str] = None
-    broker_license: Optional[str] = None
-    
+    broker_name: str | None = None
+    broker_company: str | None = None
+    broker_license: str | None = None
+
     # Program details
     program_type: FundingProgramType
     program_name: str
-    application_date: Optional[str] = None
-    approval_date: Optional[str] = None
-    placed_in_service_date: Optional[str] = None
-    expiration_date: Optional[str] = None
+    application_date: str | None = None
+    approval_date: str | None = None
+    placed_in_service_date: str | None = None
+    expiration_date: str | None = None
     status: str  # applied, approved, active, expired, revoked
-    
+
     # Financial details
-    credit_amount: Optional[float] = None
-    loan_amount: Optional[float] = None
-    subsidy_amount: Optional[float] = None
-    total_project_cost: Optional[float] = None
-    
+    credit_amount: float | None = None
+    loan_amount: float | None = None
+    subsidy_amount: float | None = None
+    total_project_cost: float | None = None
+
     # Unit/Property details
-    total_units: Optional[int] = None
-    affordable_units: Optional[int] = None
-    ami_targeting: Optional[str] = None  # e.g., "60% AMI"
-    
+    total_units: int | None = None
+    affordable_units: int | None = None
+    ami_targeting: str | None = None  # e.g., "60% AMI"
+
     # Qualification details
-    qualification_requirements: List[str] = []
-    compliance_period: Optional[str] = None
+    qualification_requirements: list[str] = []
+    compliance_period: str | None = None
     annual_reporting_required: bool = False
-    
+
     # Source/Reference
     data_source: str
-    source_url: Optional[str] = None
+    source_url: str | None = None
     last_updated: str
 
 # =============================================================================
 # SAMPLE DATA (In production, this would come from database/external APIs)
 # =============================================================================
 
-SAMPLE_FUNDING_RECORDS: List[Dict[str, Any]] = [
+SAMPLE_FUNDING_RECORDS: list[dict[str, Any]] = [
     {
         "id": "lihtc_mn_001",
         "property_address": "1234 Cedar Ave S",
@@ -398,7 +398,7 @@ SAMPLE_FUNDING_RECORDS: List[Dict[str, Any]] = [
 # PROGRAM INFORMATION DATABASE
 # =============================================================================
 
-PROGRAM_INFO: Dict[str, Dict[str, Any]] = {
+PROGRAM_INFO: dict[str, dict[str, Any]] = {
     "lihtc": {
         "name": "Low-Income Housing Tax Credit (LIHTC)",
         "description": "Primary federal tool to finance affordable rental construction and rehabilitation",
@@ -524,32 +524,32 @@ PROGRAM_INFO: Dict[str, Dict[str, Any]] = {
 def search_records(
     query: str,
     search_type: SearchType,
-    programs: Optional[List[str]] = None,
-    state: Optional[str] = None,
-    city: Optional[str] = None,
+    programs: list[str] | None = None,
+    state: str | None = None,
+    city: str | None = None,
     include_expired: bool = False
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Search funding records by various criteria"""
     results = []
     query_lower = query.lower()
-    
+
     for record in SAMPLE_FUNDING_RECORDS:
         # Filter by status if not including expired
         if not include_expired and record.get("status") == "expired":
             continue
-        
+
         # Filter by state
         if state and record.get("state", "").upper() != state.upper():
             continue
-        
+
         # Filter by city
         if city and city.lower() not in record.get("city", "").lower():
             continue
-        
+
         # Filter by programs
         if programs and record.get("program_type") not in programs:
             continue
-        
+
         # Search by type
         match = False
         if search_type == SearchType.ALL or search_type == SearchType.ADDRESS:
@@ -561,26 +561,26 @@ def search_records(
                 match = True
             if query_lower in record.get("zip_code", ""):
                 match = True
-        
+
         if search_type == SearchType.ALL or search_type == SearchType.COMPANY:
             if query_lower in record.get("owner_company", "").lower():
                 match = True
-        
+
         if search_type == SearchType.ALL or search_type == SearchType.BROKER:
             broker_name = record.get("broker_name", "") or ""
             broker_company = record.get("broker_company", "") or ""
             if query_lower in broker_name.lower() or query_lower in broker_company.lower():
                 match = True
-        
+
         if search_type == SearchType.PROGRAM:
             if query_lower in record.get("program_type", "").lower():
                 match = True
             if query_lower in record.get("program_name", "").lower():
                 match = True
-        
+
         if match:
             results.append(record)
-    
+
     return results
 
 # =============================================================================
@@ -612,7 +612,7 @@ async def search_funding_records(
     Returns matching records with full qualification details.
     """
     programs = [p.value for p in request.programs] if request.programs else None
-    
+
     results = search_records(
         query=request.query,
         search_type=request.search_type,
@@ -621,7 +621,7 @@ async def search_funding_records(
         city=request.city,
         include_expired=request.include_expired
     )
-    
+
     return {
         "query": request.query,
         "search_type": request.search_type.value,
@@ -691,11 +691,11 @@ async def get_funding_statistics(
     stats = {}
     total_credits = 0
     total_units = 0
-    
+
     for record in SAMPLE_FUNDING_RECORDS:
         if record.get("state", "").upper() != state.upper():
             continue
-        
+
         program = record.get("program_type", "unknown")
         if program not in stats:
             stats[program] = {
@@ -704,15 +704,15 @@ async def get_funding_statistics(
                 "total_units": 0,
                 "affordable_units": 0
             }
-        
+
         stats[program]["count"] += 1
         stats[program]["total_credit_amount"] += record.get("credit_amount", 0) or 0
         stats[program]["total_units"] += record.get("total_units", 0) or 0
         stats[program]["affordable_units"] += record.get("affordable_units", 0) or 0
-        
+
         total_credits += record.get("credit_amount", 0) or 0
         total_units += record.get("total_units", 0) or 0
-    
+
     return {
         "state": state,
         "by_program": stats,
@@ -738,7 +738,7 @@ async def check_eligibility(
     This is a preliminary screening - actual eligibility requires detailed application.
     """
     eligible_programs = []
-    
+
     # LIHTC eligibility
     if total_units >= 4 and target_ami <= 80:
         eligible_programs.append({
@@ -756,7 +756,7 @@ async def check_eligibility(
                 "Prepare market study and development budget"
             ]
         })
-    
+
     # NMTC eligibility (would need census tract check)
     eligible_programs.append({
         "program": "nmtc",
@@ -772,7 +772,7 @@ async def check_eligibility(
             "Contact local CDE (Greater MN Housing Fund, etc.)"
         ]
     })
-    
+
     # Opportunity Zone (would need tract check)
     eligible_programs.append({
         "program": "opportunity_zone",
@@ -788,7 +788,7 @@ async def check_eligibility(
             "Structure investment through QOF"
         ]
     })
-    
+
     # Energy incentives
     if property_type == "multifamily":
         eligible_programs.append({
@@ -805,7 +805,7 @@ async def check_eligibility(
                 "Evaluate cost-benefit of efficiency upgrades"
             ]
         })
-    
+
     return {
         "property": {
             "address": address,

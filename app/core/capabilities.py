@@ -18,7 +18,7 @@ Architecture:
 """
 
 import logging
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
@@ -39,7 +39,7 @@ def _cache_key(user_id: str) -> str:
     return f"capabilities:{user_id}"
 
 
-async def _cache_get(user_id: str) -> Optional[set[str]]:
+async def _cache_get(user_id: str) -> set[str] | None:
     """Read capability set from Redis. Returns None on miss or Redis unavailable."""
     try:
         from app.core.redis_client import get_redis
@@ -97,8 +97,8 @@ async def seed_capability_defaults(
     Only inserts rows that don't already exist — safe to call on every login.
     Returns the number of new rows inserted.
     """
-    from app.models.models import UserCapability
     from app.core.product_manifest import CAPABILITY_DEFAULTS, MANIFEST
+    from app.models.models import UserCapability
 
     defaults = CAPABILITY_DEFAULTS.get(role, CAPABILITY_DEFAULTS.get("tenant", []))
 
@@ -177,7 +177,7 @@ async def grant_capability(
     user_id: str,
     module_name: str,
     session: AsyncSession,
-    granted_by: Optional[str] = None,
+    granted_by: str | None = None,
     source: str = "admin_grant",
 ) -> None:
     """
@@ -220,7 +220,7 @@ async def revoke_capability(
     user_id: str,
     module_name: str,
     session: AsyncSession,
-    revoked_by: Optional[str] = None,
+    revoked_by: str | None = None,
 ) -> None:
     """
     Revoke a capability from a user. Sets is_active=False (keeps audit trail).
@@ -273,7 +273,7 @@ def require_capability(module_name: str) -> Callable:
         request: Request,
         db: AsyncSession = Depends(_get_db),
     ) -> None:
-        user_id: Optional[str] = request.cookies.get("semptify_uid")
+        user_id: str | None = request.cookies.get("semptify_uid")
         if not user_id:
             return  # No user — let auth dependency handle it downstream
 
@@ -341,7 +341,7 @@ def _overlay_key(user_id: str) -> str:
     return f"{_OVERLAY_PREFIX}{user_id}"
 
 
-async def _overlay_get(user_id: str) -> Optional[set[str]]:
+async def _overlay_get(user_id: str) -> set[str] | None:
     """Read active overlay modules for a user. Returns None if no overlay."""
     try:
         from app.core.redis_client import get_redis

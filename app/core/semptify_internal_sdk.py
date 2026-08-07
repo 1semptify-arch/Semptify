@@ -53,17 +53,16 @@ from __future__ import annotations
 import asyncio
 import importlib
 import logging
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
-from functools import wraps
+from typing import Any
 
 from fastapi import FastAPI
 
+from app.core.event_bus import EventType as BusEventType, event_bus
 from app.core.id_gen import make_id
-from app.core.event_bus import event_bus, EventType as BusEventType
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -508,24 +507,24 @@ class ModuleManifest:
     tier: ProductTier
 
     # Capabilities
-    capabilities: Tuple[ModuleCapability, ...] = ()
+    capabilities: tuple[ModuleCapability, ...] = ()
 
     # Router configuration (only used when ModuleCapability.ROUTER present)
-    router_module: Optional[str] = None
+    router_module: str | None = None
     router_attr: str = "router"
-    tags: Tuple[str, ...] = ()
+    tags: tuple[str, ...] = ()
     prefix: str = ""
 
     # Contracts (only used when ModuleCapability.CONTRACT present)
-    contracts: Tuple[FunctionGroupContract, ...] = ()
+    contracts: tuple[FunctionGroupContract, ...] = ()
 
     # Mesh actions (only used when ModuleCapability.MESH present)
-    mesh_actions: Tuple[str, ...] = ()
+    mesh_actions: tuple[str, ...] = ()
 
     # Registration behavior
     optional: bool = True
 
-    def to_module_entry(self) -> Optional[ModuleEntry]:
+    def to_module_entry(self) -> ModuleEntry | None:
         """Convert to a product-manifest ``ModuleEntry`` for router registration.
 
         Returns ``None`` if this module does not declare a router.
@@ -564,7 +563,7 @@ class InstalledModule:
     manifest: ModuleManifest
     router: Any = None
     initialized: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -582,7 +581,7 @@ class ModuleRegistry:
     Writes happen once at startup, so no locking is needed.
     """
 
-    _instance: Optional[ModuleRegistry] = None
+    _instance: ModuleRegistry | None = None
 
     def __new__(cls) -> ModuleRegistry:
         if cls._instance is None:
@@ -593,8 +592,8 @@ class ModuleRegistry:
         if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized = True
-        self._modules: Dict[str, InstalledModule] = {}
-        self._tier_index: Dict[ProductTier, List[str]] = {
+        self._modules: dict[str, InstalledModule] = {}
+        self._tier_index: dict[ProductTier, list[str]] = {
             t: [] for t in ProductTier.all()
         }
 
@@ -607,28 +606,28 @@ class ModuleRegistry:
             module.manifest.tier.value,
         )
 
-    def get(self, name: str) -> Optional[InstalledModule]:
+    def get(self, name: str) -> InstalledModule | None:
         return self._modules.get(name)
 
-    def list_by_tier(self, tier: ProductTier) -> List[InstalledModule]:
+    def list_by_tier(self, tier: ProductTier) -> list[InstalledModule]:
         return [
             self._modules[n]
             for n in self._tier_index.get(tier, [])
             if n in self._modules
         ]
 
-    def list_by_capability(self, capability: ModuleCapability) -> List[InstalledModule]:
+    def list_by_capability(self, capability: ModuleCapability) -> list[InstalledModule]:
         return [
             m for m in self._modules.values()
             if capability in m.manifest.capabilities
         ]
 
-    def all(self) -> List[InstalledModule]:
+    def all(self) -> list[InstalledModule]:
         return list(self._modules.values())
 
     def validate(self) -> dict[str, Any]:
         """Validate the installed module set."""
-        violations: List[dict[str, str]] = []
+        violations: list[dict[str, str]] = []
         for module in self._modules.values():
             m = module.manifest
             if ModuleCapability.ROUTER in m.capabilities and not m.router_module:
@@ -677,7 +676,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
             try:
                 router = _load_router(entry)
                 if router is not None:
-                    kwargs: Dict[str, Any] = {"tags": list(entry.tags)}
+                    kwargs: dict[str, Any] = {"tags": list(entry.tags)}
                     if entry.prefix:
                         kwargs["prefix"] = entry.prefix
                     app.include_router(router, **kwargs)
@@ -748,7 +747,7 @@ def register_tier_modules(app: FastAPI, *tiers: ProductTier) -> dict[str, Any]:
     installed_count = 0
     skipped_count = 0
     error_count = 0
-    modules: List[InstalledModule] = []
+    modules: list[InstalledModule] = []
 
     logger.info("=" * 60)
     logger.info("Registering modules for tiers: %s", ", ".join(t.value for t in tiers))
@@ -833,26 +832,26 @@ class InfoPack:
     id: str
     pack_type: PackType
     user_id: str
-    source_document_id: Optional[str] = None
-    target_module: Optional[ModuleType] = None
-    
+    source_document_id: str | None = None
+    target_module: ModuleType | None = None
+
     # The actual data payload
-    data: Dict[str, Any] = field(default_factory=dict)
-    
+    data: dict[str, Any] = field(default_factory=dict)
+
     # What data is available vs what user needs to provide
-    auto_filled: Dict[str, Any] = field(default_factory=dict)
-    user_required: List[str] = field(default_factory=list)
-    optional_fields: List[str] = field(default_factory=list)
-    
+    auto_filled: dict[str, Any] = field(default_factory=dict)
+    user_required: list[str] = field(default_factory=list)
+    optional_fields: list[str] = field(default_factory=list)
+
     # Status tracking
     status: str = "pending"  # pending, sent, received, processed, failed
     created_at: datetime = field(default_factory=lambda: utc_now())
-    processed_at: Optional[datetime] = None
-    
+    processed_at: datetime | None = None
+
     # Confidence scores for auto-filled data
-    confidence: Dict[str, float] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    confidence: dict[str, float] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "pack_type": self.pack_type.value,
@@ -870,7 +869,7 @@ class InfoPack:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> "InfoPack":
+    def from_dict(cls, data: dict) -> InfoPack:
         data["pack_type"] = PackType(data["pack_type"])
         if data.get("target_module"):
             data["target_module"] = ModuleType(data["target_module"])
@@ -892,19 +891,19 @@ class DataRequest:
     request_type: RequestType
     requesting_module: ModuleType
     user_id: str
-    
-    # Request parameters
-    params: Dict[str, Any] = field(default_factory=dict)
-    
-    # Response
-    response_data: Optional[Dict[str, Any]] = None
-    status: str = "pending"  # pending, processing, completed, failed
-    error: Optional[str] = None
-    
-    created_at: datetime = field(default_factory=lambda: utc_now())
-    completed_at: Optional[datetime] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    # Request parameters
+    params: dict[str, Any] = field(default_factory=dict)
+
+    # Response
+    response_data: dict[str, Any] | None = None
+    status: str = "pending"  # pending, processing, completed, failed
+    error: str | None = None
+
+    created_at: datetime = field(default_factory=lambda: utc_now())
+    completed_at: datetime | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "request_type": self.request_type.value,
@@ -931,19 +930,19 @@ class ModuleUpdate:
     source_module: ModuleType
     user_id: str
     update_type: str
-    
+
     # The update data
-    data: Dict[str, Any] = field(default_factory=dict)
-    
+    data: dict[str, Any] = field(default_factory=dict)
+
     # Optional: which modules should receive this update
-    target_modules: List[ModuleType] = field(default_factory=list)
-    
+    target_modules: list[ModuleType] = field(default_factory=list)
+
     # Broadcast to all modules?
     broadcast: bool = False
-    
+
     created_at: datetime = field(default_factory=lambda: utc_now())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "source_module": self.source_module.value,
@@ -956,24 +955,24 @@ class ModuleUpdate:
         }
 
 
-@dataclass 
+@dataclass
 class RegisteredModule:
     """A registered module in the hub"""
     module_type: ModuleType
     name: str
     description: str
-    
+
     # What document types this module handles
-    handles_documents: List[DocumentCategory] = field(default_factory=list)
-    
+    handles_documents: list[DocumentCategory] = field(default_factory=list)
+
     # What pack types this module accepts
-    accepts_packs: List[PackType] = field(default_factory=list)
-    
+    accepts_packs: list[PackType] = field(default_factory=list)
+
     # Callbacks
-    on_pack_received: Optional[Callable] = None
-    on_data_request: Optional[Callable] = None
-    on_update_received: Optional[Callable] = None
-    
+    on_pack_received: Callable | None = None
+    on_data_request: Callable | None = None
+    on_update_received: Callable | None = None
+
     # Status
     active: bool = True
     registered_at: datetime = field(default_factory=lambda: utc_now())
@@ -1072,12 +1071,12 @@ class ModuleHub:
     """
 
     def __init__(self):
-        self._modules: Dict[ModuleType, RegisteredModule] = {}
-        self._info_packs: Dict[str, InfoPack] = {}
-        self._requests: List[DataRequest] = []
-        self._updates: List[ModuleUpdate] = []
-        self._user_stores: Dict[str, Dict[str, Any]] = {}  # user_id -> data store
-        self._comm_log: List[Dict[str, Any]] = []
+        self._modules: dict[ModuleType, RegisteredModule] = {}
+        self._info_packs: dict[str, InfoPack] = {}
+        self._requests: list[DataRequest] = []
+        self._updates: list[ModuleUpdate] = []
+        self._user_stores: dict[str, dict[str, Any]] = {}  # user_id -> data store
+        self._comm_log: list[dict[str, Any]] = []
 
     # =========================================================================
     # MODULE REGISTRATION
@@ -1088,8 +1087,8 @@ class ModuleHub:
         module_type: ModuleType,
         name: str,
         description: str,
-        handles_documents: List[DocumentCategory] = None,
-        accepts_packs: List[PackType] = None,
+        handles_documents: list[DocumentCategory] = None,
+        accepts_packs: list[PackType] = None,
         on_pack_received: Callable = None,
         on_data_request: Callable = None,
         on_update_received: Callable = None,
@@ -1116,9 +1115,9 @@ class ModuleHub:
         self,
         source_module: str,
         pack_type: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         user_id: str,
-        target_module: Optional[str] = None,
+        target_module: str | None = None,
     ) -> InfoPack:
         """Create an info pack (for external use)"""
         pack = InfoPack(
@@ -1137,9 +1136,9 @@ class ModuleHub:
         user_id: str,
         document_id: str,
         document_type: str,
-        extracted_data: Dict[str, Any],
-        confidence_scores: Dict[str, float] = None,
-    ) -> Optional[InfoPack]:
+        extracted_data: dict[str, Any],
+        confidence_scores: dict[str, float] = None,
+    ) -> InfoPack | None:
         """
         Route a document to the appropriate module.
         
@@ -1151,13 +1150,13 @@ class ModuleHub:
             doc_category = DocumentCategory(document_type.lower().replace(" ", "_"))
         except ValueError:
             doc_category = DocumentCategory.OTHER
-        
+
         # Get routing rules
         routing = DOCUMENT_ROUTING.get(doc_category)
         if not routing:
             logger.info(f"No routing rule for document type: {doc_category}")
             return None
-        
+
         # Create Info Pack
         pack = self._create_info_pack(
             user_id=user_id,
@@ -1167,13 +1166,13 @@ class ModuleHub:
             extracted_data=extracted_data,
             confidence_scores=confidence_scores or {},
         )
-        
+
         # Store pack
         self._info_packs[pack.id] = pack
-        
+
         # Send to target module
         await self._send_pack_to_module(pack)
-        
+
         # Log
         self._log_comm(
             "route_document",
@@ -1185,12 +1184,12 @@ class ModuleHub:
             },
             user_id=user_id,
         )
-        
+
         logger.info(
             f"● Document routed: {doc_category.value} ▸ "
             f"{routing['target_module'].value} (pack: {pack.id})"
         )
-        
+
         return pack
 
     def _create_info_pack(
@@ -1198,33 +1197,33 @@ class ModuleHub:
         user_id: str,
         document_id: str,
         doc_category: DocumentCategory,
-        routing: Dict,
-        extracted_data: Dict[str, Any],
-        confidence_scores: Dict[str, float],
+        routing: dict,
+        extracted_data: dict[str, Any],
+        confidence_scores: dict[str, float],
     ) -> InfoPack:
         """Create an Info Pack from extracted document data"""
-        
+
         pack_id = make_id("pack")
-        
+
         # Separate auto-filled from user-required
         auto_filled = {}
         for field in routing.get("auto_extract", []):
             if field in extracted_data:
                 auto_filled[field] = extracted_data[field]
-        
+
         # Get existing user data if available
         user_store = self._get_user_store(user_id)
-        
+
         # Merge with existing data (don't overwrite if already have good data)
         for field, value in auto_filled.items():
             existing = user_store.get(field)
             existing_conf = user_store.get(f"{field}_confidence", 0)
             new_conf = confidence_scores.get(field, 0.5)
-            
+
             if not existing or new_conf > existing_conf:
                 user_store[field] = value
                 user_store[f"{field}_confidence"] = new_conf
-        
+
         # Build complete data package
         pack_data = {
             **auto_filled,
@@ -1232,7 +1231,7 @@ class ModuleHub:
             "document_type": doc_category.value,
             "priority": routing.get("priority", "medium"),
         }
-        
+
         # Add any additional context from user store
         context_fields = [
             "landlord_name", "tenant_name", "property_address",
@@ -1241,7 +1240,7 @@ class ModuleHub:
         for field in context_fields:
             if field not in pack_data and field in user_store:
                 pack_data[field] = user_store[field]
-        
+
         return InfoPack(
             id=pack_id,
             pack_type=routing["pack_type"],
@@ -1259,15 +1258,15 @@ class ModuleHub:
         """Send an Info Pack to its target module"""
         if not pack.target_module:
             return
-        
+
         module = self._modules.get(pack.target_module)
         if not module:
             logger.warning(f"Target module not registered: {pack.target_module}")
             pack.status = "failed"
             return
-        
+
         pack.status = "sent"
-        
+
         # Call module's pack handler if registered
         if module.on_pack_received:
             try:
@@ -1279,7 +1278,7 @@ class ModuleHub:
             except Exception as e:
                 logger.error(f"Error sending pack to {pack.target_module}: {e}")
                 pack.status = "failed"
-        
+
         # Also publish to event bus
         await event_bus.publish(
             BusEventType.NOTIFICATION,
@@ -1303,7 +1302,7 @@ class ModuleHub:
         requesting_module: ModuleType,
         request_type: RequestType,
         user_id: str,
-        params: Dict[str, Any] = None,
+        params: dict[str, Any] = None,
     ) -> DataRequest:
         """
         Handle a data request from a module.
@@ -1317,9 +1316,9 @@ class ModuleHub:
             user_id=user_id,
             params=params or {},
         )
-        
+
         self._requests.append(request)
-        
+
         # Process the request
         try:
             request.status = "processing"
@@ -1331,7 +1330,7 @@ class ModuleHub:
             request.status = "failed"
             request.error = str(e)
             logger.error(f"Request failed: {e}")
-        
+
         self._log_comm(
             "data_request",
             requesting_module.value,
@@ -1341,14 +1340,14 @@ class ModuleHub:
             },
             user_id=user_id,
         )
-        
+
         return request
 
-    async def _process_request(self, request: DataRequest) -> Dict[str, Any]:
+    async def _process_request(self, request: DataRequest) -> dict[str, Any]:
         """Process a data request and return response data"""
         user_store = self._get_user_store(request.user_id)
         params = request.params
-        
+
         handlers = {
             RequestType.GET_USER_DOCUMENTS: self._get_user_documents,
             RequestType.GET_DOCUMENT_BY_TYPE: self._get_document_by_type,
@@ -1362,14 +1361,14 @@ class ModuleHub:
             RequestType.GET_APPLICABLE_LAWS: self._get_applicable_laws,
             RequestType.GET_USER_CONTEXT: self._get_user_context,
         }
-        
+
         handler = handlers.get(request.request_type)
         if handler:
             return await handler(request.user_id, params)
-        
+
         return {"error": f"Unknown request type: {request.request_type}"}
 
-    async def _get_user_documents(self, user_id: str, params: Dict) -> Dict:
+    async def _get_user_documents(self, user_id: str, params: dict) -> dict:
         """Get all documents for a user"""
         try:
             from app.services.document_pipeline import get_document_pipeline
@@ -1382,12 +1381,12 @@ class ModuleHub:
         except Exception as e:
             return {"documents": [], "error": str(e)}
 
-    async def _get_document_by_type(self, user_id: str, params: Dict) -> Dict:
+    async def _get_document_by_type(self, user_id: str, params: dict) -> dict:
         """Get documents filtered by type"""
         doc_type = params.get("type")
         try:
-            from app.services.document_pipeline import get_document_pipeline
             from app.services.azure_ai import DocumentType
+            from app.services.document_pipeline import get_document_pipeline
             pipeline = get_document_pipeline()
             docs = pipeline.get_user_documents_by_type(user_id, DocumentType(doc_type))
             return {
@@ -1397,7 +1396,7 @@ class ModuleHub:
         except Exception as e:
             return {"documents": [], "error": str(e)}
 
-    async def _get_timeline_events(self, user_id: str, params: Dict) -> Dict:
+    async def _get_timeline_events(self, user_id: str, params: dict) -> dict:
         """Get timeline events for a user"""
         try:
             from app.services.document_pipeline import get_document_pipeline
@@ -1410,7 +1409,7 @@ class ModuleHub:
         except Exception as e:
             return {"events": [], "error": str(e)}
 
-    async def _get_calendar_deadlines(self, user_id: str, params: Dict) -> Dict:
+    async def _get_calendar_deadlines(self, user_id: str, params: dict) -> dict:
         """Get calendar deadlines for a user"""
         user_store = self._get_user_store(user_id)
         deadlines = user_store.get("deadlines", [])
@@ -1419,7 +1418,7 @@ class ModuleHub:
             "count": len(deadlines),
         }
 
-    async def _get_case_info(self, user_id: str, params: Dict) -> Dict:
+    async def _get_case_info(self, user_id: str, params: dict) -> dict:
         """Get eviction case info for a user"""
         user_store = self._get_user_store(user_id)
         case_fields = [
@@ -1429,7 +1428,7 @@ class ModuleHub:
         case_info = {k: user_store.get(k) for k in case_fields if k in user_store}
         return case_info
 
-    async def _get_lease_data(self, user_id: str, params: Dict) -> Dict:
+    async def _get_lease_data(self, user_id: str, params: dict) -> dict:
         """Get lease information for a user"""
         user_store = self._get_user_store(user_id)
         lease_fields = [
@@ -1439,14 +1438,14 @@ class ModuleHub:
         lease_data = {k: user_store.get(k) for k in lease_fields if k in user_store}
         return lease_data
 
-    async def _get_payment_history(self, user_id: str, params: Dict) -> Dict:
+    async def _get_payment_history(self, user_id: str, params: dict) -> dict:
         """Get payment history for a user"""
         user_store = self._get_user_store(user_id)
         return {
             "payments": user_store.get("payment_history", []),
         }
 
-    async def _get_landlord_info(self, user_id: str, params: Dict) -> Dict:
+    async def _get_landlord_info(self, user_id: str, params: dict) -> dict:
         """Get landlord information"""
         user_store = self._get_user_store(user_id)
         landlord_fields = [
@@ -1455,7 +1454,7 @@ class ModuleHub:
         ]
         return {k: user_store.get(k) for k in landlord_fields if k in user_store}
 
-    async def _get_property_info(self, user_id: str, params: Dict) -> Dict:
+    async def _get_property_info(self, user_id: str, params: dict) -> dict:
         """Get property information"""
         user_store = self._get_user_store(user_id)
         property_fields = [
@@ -1464,7 +1463,7 @@ class ModuleHub:
         ]
         return {k: user_store.get(k) for k in property_fields if k in user_store}
 
-    async def _get_applicable_laws(self, user_id: str, params: Dict) -> Dict:
+    async def _get_applicable_laws(self, user_id: str, params: dict) -> dict:
         """Get applicable laws for user's situation"""
         user_store = self._get_user_store(user_id)
         try:
@@ -1474,7 +1473,7 @@ class ModuleHub:
         except Exception as e:
             return {"error": str(e)}
 
-    async def _get_user_context(self, user_id: str, params: Dict) -> Dict:
+    async def _get_user_context(self, user_id: str, params: dict) -> dict:
         """Get full user context"""
         return self._get_user_store(user_id)
 
@@ -1487,8 +1486,8 @@ class ModuleHub:
         source_module: ModuleType,
         user_id: str,
         update_type: str,
-        data: Dict[str, Any],
-        target_modules: List[ModuleType] = None,
+        data: dict[str, Any],
+        target_modules: list[ModuleType] = None,
         broadcast: bool = False,
     ) -> ModuleUpdate:
         """
@@ -1505,9 +1504,9 @@ class ModuleHub:
             target_modules=target_modules or [],
             broadcast=broadcast,
         )
-        
+
         self._updates.append(update)
-        
+
         # Route to target modules
         if broadcast:
             for module in self._modules.values():
@@ -1530,7 +1529,7 @@ class ModuleHub:
                             module.on_update_received(update)
                     except Exception as e:
                         logger.error(f"Error sending update to {target_type}: {e}")
-        
+
         self._log_comm(
             "module_update",
             source_module.value,
@@ -1541,25 +1540,25 @@ class ModuleHub:
             },
             user_id=user_id,
         )
-        
+
         return update
 
     # =========================================================================
     # USER DATA STORE
     # =========================================================================
 
-    def _get_user_store(self, user_id: str) -> Dict[str, Any]:
+    def _get_user_store(self, user_id: str) -> dict[str, Any]:
         """Get or create a user's data store"""
         if user_id not in self._user_stores:
             self._user_stores[user_id] = {}
         return self._user_stores[user_id]
 
-    def update_user_data(self, user_id: str, data: Dict[str, Any]):
+    def update_user_data(self, user_id: str, data: dict[str, Any]):
         """Update a user's data store"""
         user_store = self._get_user_store(user_id)
         user_store.update(data)
 
-    def get_user_data(self, user_id: str) -> Dict[str, Any]:
+    def get_user_data(self, user_id: str) -> dict[str, Any]:
         """Get a user's data store"""
         return self._get_user_store(user_id)
 
@@ -1567,7 +1566,7 @@ class ModuleHub:
     # COMMUNICATION LOGGING
     # =========================================================================
 
-    def _log_comm(self, comm_type: str, module: str, details: Dict, user_id: str):
+    def _log_comm(self, comm_type: str, module: str, details: dict, user_id: str):
         """Log a communication event"""
         self._comm_log.append({
             "timestamp": utc_now().isoformat(),
@@ -1577,7 +1576,7 @@ class ModuleHub:
             "user_id": user_id,
         })
 
-    def get_comm_log(self, user_id: str = None, limit: int = 100) -> List[Dict]:
+    def get_comm_log(self, user_id: str = None, limit: int = 100) -> list[dict]:
         """Get communication log"""
         if user_id:
             return [log for log in self._comm_log if log.get("user_id") == user_id][-limit:]
@@ -1587,7 +1586,7 @@ class ModuleHub:
     # STATUS AND QUERIES
     # =========================================================================
 
-    def get_hub_status(self) -> Dict[str, Any]:
+    def get_hub_status(self) -> dict[str, Any]:
         """Get the current status of the hub"""
         return {
             "modules_registered": len(self._modules),
@@ -1605,7 +1604,7 @@ class ModuleHub:
             "user_stores": len(self._user_stores),
         }
 
-    def get_module_info(self, module_type: ModuleType) -> Optional[Dict]:
+    def get_module_info(self, module_type: ModuleType) -> dict | None:
         """Get information about a specific module"""
         module = self._modules.get(module_type)
         if not module:
@@ -1635,28 +1634,28 @@ module_hub = ModuleHub()
 __all__ = [
     # Product Tiers
     "ProductTier",
-    
+
     # Module Capabilities
     "ModuleCapability",
-    
+
     # Module Types
     "ModuleType",
-    
+
     # Document Categories
     "DocumentCategory",
-    
+
     # Pack Types
     "PackType",
-    
+
     # Request Types
     "RequestType",
-    
+
     # Contracts
     "FunctionGroupContract",
     "ModuleContractRegistry",
     "contract_registry",
     "register_function_group",
-    
+
     # Product Manifest
     "ModuleEntry",
     "_ManifestRegistry",
@@ -1665,7 +1664,7 @@ __all__ = [
     "_load_router",
     "register_tiers",
     "register_all_tiers",
-    
+
     # Module SDK
     "ModuleManifest",
     "InstalledModule",
@@ -1674,7 +1673,7 @@ __all__ = [
     "register_module",
     "register_tier_modules",
     "get_module_status",
-    
+
     # Module Hub
     "InfoPack",
     "DataRequest",

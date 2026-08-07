@@ -2,7 +2,6 @@
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="page_composer",
     group_name="page_compose",

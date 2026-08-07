@@ -7,6 +7,7 @@ quick-start convenience endpoints, and module invocation error paths.
 
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 # The Positronic Mesh router is intentionally disabled in product_manifest.py

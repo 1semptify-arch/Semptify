@@ -3,12 +3,12 @@ Semptify 5.0 - Basic Tests
 Verifies the FastAPI application structure and storage-based auth.
 """
 
-import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import patch, MagicMock
-
 # We need to set up the test before importing the app
 import os
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 os.environ["SECURITY_MODE"] = "open"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_semptify.db"
 
@@ -123,7 +123,7 @@ async def test_timeline_list_events(client: AsyncClient):
             "is_evidence": False,
         },
     )
-    
+
     response = await client.get("/api/timeline/")
     assert response.status_code in [200, 401, 404]
     if response.status_code == 200:

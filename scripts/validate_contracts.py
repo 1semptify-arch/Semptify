@@ -12,14 +12,14 @@ Usage:
     python scripts/validate_contracts.py --page welcome
 """
 
-import sys
 import argparse
+import sys
 
 # Adjust path so imports work from project root
 sys.path.insert(0, ".")
 
 from app.core.page_contracts import PAGE_CONTRACTS, validate_all_contracts
-from app.core.process_registry import PROCESS_GROUPS, ALL_GROUP_NAMES
+from app.core.process_registry import ALL_GROUP_NAMES, PROCESS_GROUPS
 
 
 def check_registry_integrity() -> list[str]:

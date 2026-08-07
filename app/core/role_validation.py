@@ -11,16 +11,16 @@ Validation Methods:
 Privacy Note: We store minimal verification data - just enough to audit.
 """
 
-import re
 import logging
-from datetime import datetime
-from app.core.utc import utc_now
-from enum import Enum
-from typing import Optional, Dict, Any, List
+import re
 from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any
 
+from app.core.trusted_config import ACTIVE_INVITE_CODES, TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS
 from app.core.user_context import UserRole
-from app.core.trusted_config import TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS, ACTIVE_INVITE_CODES
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -55,12 +55,12 @@ class RoleVerification:
     role: UserRole
     status: VerificationStatus
     method: VerificationMethod
-    verified_at: Optional[datetime] = None
-    expires_at: Optional[datetime] = None
-    verification_data: Dict[str, Any] = None  # Bar #, cert #, etc.
+    verified_at: datetime | None = None
+    expires_at: datetime | None = None
+    verification_data: dict[str, Any] = None  # Bar #, cert #, etc.
     notes: str = ""
-    verified_by: Optional[str] = None  # Admin who approved (if manual)
-    
+    verified_by: str | None = None  # Admin who approved (if manual)
+
     def is_valid(self) -> bool:
         """Check if verification is currently valid."""
         if self.status != VerificationStatus.VERIFIED:
@@ -87,24 +87,24 @@ class RoleValidator:
             bar_number="0123456"
         )
     """
-    
+
     def __init__(self):
         # In production, this would be database-backed
-        self._pending_verifications: Dict[str, RoleVerification] = {}
+        self._pending_verifications: dict[str, RoleVerification] = {}
         # Invite codes are now loaded from trusted_config.py
-    
+
     # -------------------------------------------------------------------------
     # Main Validation Entry Point
     # -------------------------------------------------------------------------
-    
+
     def validate_for_role(
         self,
         user_id: str,
         requested_role: UserRole,
-        email: Optional[str] = None,
-        bar_number: Optional[str] = None,
-        hud_cert_number: Optional[str] = None,
-        invite_code: Optional[str] = None,
+        email: str | None = None,
+        bar_number: str | None = None,
+        hud_cert_number: str | None = None,
+        invite_code: str | None = None,
         attestation: bool = False,
     ) -> RoleVerification:
         """
@@ -121,7 +121,7 @@ class RoleValidator:
                 method=VerificationMethod.ADMIN_MANUAL,
                 notes="Admin role requires manual database entry"
             )
-        
+
         # USER is default, always valid
         if requested_role == UserRole.USER:
             return RoleVerification(
@@ -132,37 +132,37 @@ class RoleValidator:
                 verified_at=utc_now(),
                 notes="Default role, no verification required"
             )
-        
+
         # Try each verification method in order of trust
-        
+
         # 1. Invite Code (highest trust - org vouches for user)
         if invite_code:
             result = self._verify_invite_code(user_id, requested_role, invite_code)
             if result.status == VerificationStatus.VERIFIED:
                 return result
-        
+
         # 2. Email Domain (trusted organization)
         if email:
             result = self._verify_email_domain(user_id, requested_role, email)
             if result.status == VerificationStatus.VERIFIED:
                 return result
-        
+
         # 3. Bar Number (for LEGAL role)
         if requested_role == UserRole.LEGAL and bar_number:
             result = self._verify_bar_number(user_id, bar_number)
             if result.status == VerificationStatus.VERIFIED:
                 return result
-        
+
         # 4. HUD Certification (for ADVOCATE role)
         if requested_role == UserRole.ADVOCATE and hud_cert_number:
             result = self._verify_hud_cert(user_id, hud_cert_number)
             if result.status == VerificationStatus.VERIFIED:
                 return result
-        
+
         # 5. Attestation (lowest trust, but auditable)
         if attestation:
             return self._create_attestation(user_id, requested_role, email)
-        
+
         # No valid verification method provided
         return RoleVerification(
             user_id=user_id,
@@ -171,22 +171,20 @@ class RoleValidator:
             method=VerificationMethod.ADMIN_MANUAL,
             notes="No automatic verification available. Pending admin review."
         )
-    
+
     # -------------------------------------------------------------------------
     # Verification Methods
     # -------------------------------------------------------------------------
-    
+
     def _verify_invite_code(
-        self, 
-        user_id: str, 
-        requested_role: UserRole, 
+        self,
+        user_id: str,
+        requested_role: UserRole,
         code: str
     ) -> RoleVerification:
         """Verify using partner organization invite code."""
-        from app.core.trusted_config import ACTIVE_INVITE_CODES
-        
         code = code.upper().strip()
-        
+
         if code not in ACTIVE_INVITE_CODES:
             return RoleVerification(
                 user_id=user_id,
@@ -195,9 +193,9 @@ class RoleValidator:
                 method=VerificationMethod.INVITE_CODE,
                 notes=f"Invalid invite code: {code}"
             )
-        
+
         code_data = ACTIVE_INVITE_CODES[code]
-        
+
         # Check if code is for requested role or higher
         if not self._role_qualifies(code_data["role"], requested_role):
             return RoleVerification(
@@ -207,7 +205,7 @@ class RoleValidator:
                 method=VerificationMethod.INVITE_CODE,
                 notes=f"Code {code} is for {code_data['role'].value}, not {requested_role.value}"
             )
-        
+
         # Check expiration
         if utc_now() > code_data["expires"]:
             return RoleVerification(
@@ -217,7 +215,7 @@ class RoleValidator:
                 method=VerificationMethod.INVITE_CODE,
                 notes=f"Invite code {code} has expired"
             )
-        
+
         # Check uses remaining
         if code_data["uses_remaining"] <= 0:
             return RoleVerification(
@@ -227,12 +225,12 @@ class RoleValidator:
                 method=VerificationMethod.INVITE_CODE,
                 notes=f"Invite code {code} has no uses remaining"
             )
-        
+
         # Success! Decrement uses (in production, this would be atomic DB update)
         ACTIVE_INVITE_CODES[code]["uses_remaining"] -= 1
-        
+
         logger.info(f"● User {user_id} verified as {requested_role.value} via invite code from {code_data['org']}")
-        
+
         return RoleVerification(
             user_id=user_id,
             role=requested_role,
@@ -242,16 +240,16 @@ class RoleValidator:
             verification_data={"code": code, "org": code_data["org"]},
             notes=f"Verified via invite code from {code_data['org']}"
         )
-    
+
     def _verify_email_domain(
-        self, 
-        user_id: str, 
-        requested_role: UserRole, 
+        self,
+        user_id: str,
+        requested_role: UserRole,
         email: str
     ) -> RoleVerification:
         """Verify using trusted organization email domain."""
         email = email.lower().strip()
-        
+
         # Extract domain
         match = re.search(r'@([a-zA-Z0-9.-]+)$', email)
         if not match:
@@ -262,15 +260,15 @@ class RoleValidator:
                 method=VerificationMethod.EMAIL_DOMAIN,
                 notes=f"Invalid email format: {email}"
             )
-        
+
         domain = match.group(1)
-        
+
         # Check against trusted domains based on role
         trusted_domains = (
             TRUSTED_LEGAL_DOMAINS if requested_role == UserRole.LEGAL
             else TRUSTED_ADVOCATE_DOMAINS
         )
-        
+
         if domain not in trusted_domains:
             return RoleVerification(
                 user_id=user_id,
@@ -279,9 +277,9 @@ class RoleValidator:
                 method=VerificationMethod.EMAIL_DOMAIN,
                 notes=f"Domain {domain} not in trusted list. Pending manual review."
             )
-        
+
         logger.info(f"● User {user_id} verified as {requested_role.value} via trusted domain {domain}")
-        
+
         return RoleVerification(
             user_id=user_id,
             role=requested_role,
@@ -291,7 +289,7 @@ class RoleValidator:
             verification_data={"email": email, "domain": domain},
             notes=f"Verified via trusted organization email ({domain})"
         )
-    
+
     def _verify_bar_number(self, user_id: str, bar_number: str) -> RoleVerification:
         """
         Verify Minnesota Bar number.
@@ -302,7 +300,7 @@ class RoleValidator:
         For now, we do format validation and flag for manual review.
         """
         bar_number = bar_number.strip()
-        
+
         # MN Bar numbers are typically 6-7 digits
         if not re.match(r'^\d{5,7}$', bar_number):
             return RoleVerification(
@@ -312,7 +310,7 @@ class RoleValidator:
                 method=VerificationMethod.BAR_NUMBER,
                 notes=f"Invalid MN Bar number format: {bar_number}"
             )
-        
+
         # Basic local stub for bar number verification.
         # In production, this should call the MN Bar API.
         known_valid_bars = {
@@ -346,7 +344,7 @@ class RoleValidator:
             verification_data={"bar_number": bar_number, "state": "MN"},
             notes=f"Bar number {bar_number} pending verification. Manual review required."
         )
-    
+
     def _verify_hud_cert(self, user_id: str, cert_number: str) -> RoleVerification:
         """
         Verify HUD Housing Counselor certification.
@@ -357,7 +355,7 @@ class RoleValidator:
         For now, format validation + manual review.
         """
         cert_number = cert_number.strip().upper()
-        
+
         # Basic local stub for HUD certification validation.
         # In production, this should query HUD certification database/API.
         known_hud_certs = {
@@ -389,12 +387,12 @@ class RoleValidator:
             verification_data={"hud_cert": cert_number},
             notes=f"HUD certification {cert_number} pending verification."
         )
-    
+
     def _create_attestation(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         requested_role: UserRole,
-        email: Optional[str] = None
+        email: str | None = None
     ) -> RoleVerification:
         """
         Create attestation-based verification.
@@ -413,12 +411,12 @@ class RoleValidator:
                 "I attest that I work for a housing advocacy organization "
                 "and am qualified to assist tenants with housing issues."
             )
-        
+
         logger.warning(
             f"◆ ATTESTATION: User {user_id} attested for {requested_role.value} role. "
             f"Email: {email or 'not provided'}. Audit trail created."
         )
-        
+
         return RoleVerification(
             user_id=user_id,
             role=requested_role,
@@ -431,13 +429,13 @@ class RoleValidator:
                 "timestamp": utc_now().isoformat(),
                 "ip_logged": True  # Would capture IP in production
             },
-            notes=f"Verified via self-attestation. User accepted responsibility."
+            notes="Verified via self-attestation. User accepted responsibility."
         )
-    
+
     # -------------------------------------------------------------------------
     # Helpers
     # -------------------------------------------------------------------------
-    
+
     def _role_qualifies(self, code_role: UserRole, requested_role: UserRole) -> bool:
         """Check if a code's role qualifies for the requested role."""
         # LEGAL code can be used for ADVOCATE or LEGAL
@@ -445,8 +443,8 @@ class RoleValidator:
         if code_role == UserRole.LEGAL:
             return requested_role in (UserRole.LEGAL, UserRole.ADVOCATE)
         return code_role == requested_role
-    
-    def get_role_requirements(self, role: UserRole) -> Dict[str, Any]:
+
+    def get_role_requirements(self, role: UserRole) -> dict[str, Any]:
         """Get human-readable requirements for a role."""
         requirements = {
             UserRole.USER: {
@@ -501,7 +499,7 @@ class RoleValidator:
 # Singleton instance
 # =============================================================================
 
-_validator_instance: Optional[RoleValidator] = None
+_validator_instance: RoleValidator | None = None
 
 def get_role_validator() -> RoleValidator:
     """Get the role validator singleton."""

@@ -18,21 +18,21 @@ retained server-side beyond the lifetime of the request.
 """
 
 import logging
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, Depends
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser, green_access
+from app.core.security import StorageUser, green_access
+
 from .service import (
-    AccountabilityPlan,
     EntityRecord,
     EvidenceItem,
     NextStep,
-    create_plan,
     add_entity,
     add_evidence,
     add_next_step,
+    create_plan,
     mark_step_complete,
     plan_from_dict,
 )
@@ -87,15 +87,15 @@ class AddEntityBody(PlanStateRequest):
 class AddEvidenceBody(PlanStateRequest):
     """Combined body: current plan state + evidence fields."""
     description: str
-    vault_id: Optional[str] = None
-    date_obtained: Optional[str] = None
+    vault_id: str | None = None
+    date_obtained: str | None = None
     status: str = "pending"
 
 
 class AddStepBody(PlanStateRequest):
     """Combined body: current plan state + step fields."""
     action: str
-    due_date: Optional[str] = None
+    due_date: str | None = None
     notes: str = ""
 
 
@@ -290,7 +290,7 @@ async def get_default_steps() -> dict:
     Returns the default checklist items pre-populated when creating a new plan.
     Useful for UI autocomplete or template display.
     """
-    from .service import DEFAULT_NEXT_STEPS, DEFAULT_MODULES
+    from .service import DEFAULT_MODULES, DEFAULT_NEXT_STEPS
     return {
         "default_steps": DEFAULT_NEXT_STEPS,
         "default_modules": DEFAULT_MODULES,

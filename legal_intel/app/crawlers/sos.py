@@ -84,7 +84,7 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                     search_button = await page.query_selector(selector)
                     if search_button:
                         break
-                except:
+                except Exception:
                     continue
             
             if not search_button:
@@ -112,7 +112,7 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                     results_container = await page.query_selector(selector)
                     if results_container:
                         break
-                except:
+                except Exception:
                     continue
             
             if not results_container:
@@ -223,7 +223,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                     search_input = await page.query_selector(selector)
                     if search_input:
                         break
-                except:
+                except Exception:
                     continue
             
             if not search_input:
@@ -245,7 +245,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                     search_button = await page.query_selector(selector)
                     if search_button:
                         break
-                except:
+                except Exception:
                     continue
             
             if not search_button:
@@ -271,7 +271,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                     results_container = await page.query_selector(selector)
                     if results_container:
                         break
-                except:
+                except Exception:
                     continue
             
             if not results_container:

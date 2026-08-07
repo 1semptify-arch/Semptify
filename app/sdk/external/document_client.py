@@ -5,7 +5,6 @@ Read documents on behalf of an external module. Enforces document.read
 permission. Write requires document.write (rarely granted to external modules).
 """
 import logging
-from typing import List, Optional
 
 from app.sdk.external.context import ExternalModuleContext
 from app.sdk.external.permissions import Permission
@@ -21,10 +20,10 @@ class DocumentClient:
 
     async def list_documents(
         self,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """List documents. Requires document.read."""
         self._ctx.require_permission(Permission.DOCUMENT_READ.value, "list_documents")
         target_user = user_id or self._ctx.user_id
@@ -54,8 +53,8 @@ class DocumentClient:
         self,
         filename: str,
         content: bytes,
-        metadata: Optional[dict] = None,
-        user_id: Optional[str] = None,
+        metadata: dict | None = None,
+        user_id: str | None = None,
     ) -> dict:
         """Upload a document. Requires document.write."""
         self._ctx.require_permission(Permission.DOCUMENT_WRITE.value, "upload_document")

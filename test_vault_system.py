@@ -12,7 +12,7 @@ import json
 import asyncio
 import aiohttp
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 class VaultSystemTester:
     """Test suite for vault system functionality"""
@@ -33,7 +33,7 @@ class VaultSystemTester:
     def log_test(self, test_name, success, message, details=None):
         """Log test result"""
         status = "✅ PASS" if success else "❌ FAIL"
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = datetime.now(timezone.utc).strftime("%H:%M:%S")
         
         result = {
             "test": test_name,
@@ -345,7 +345,7 @@ class VaultSystemTester:
     def generate_report(self):
         """Generate test report"""
         report = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_tests": len(self.test_results),
             "passed_tests": len([r for r in self.test_results if "PASS" in r["status"]]),
             "test_results": self.test_results

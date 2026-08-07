@@ -7,7 +7,6 @@ searching across the project's static files.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="page_editor",
     group_name="page_editor_list_files",

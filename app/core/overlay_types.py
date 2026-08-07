@@ -5,8 +5,9 @@ Single source of truth for overlay type definitions.
 All overlay categories: traceability, processing, annotations, forms, queries, redactions.
 """
 
-from enum import Enum
 import logging
+from enum import Enum
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,85 +19,85 @@ class OverlayType(str, Enum):
     immutable vault documents. Originals never change; overlays provide all
     mutable behavior.
     """
-    
+
     # ==========================================================================
     # 1. UPLOAD TRACEABILITY
     # ==========================================================================
     VAULT_UPLOAD_MANIFEST = "vault_upload_manifest"
     """Records what was uploaded, when, by whom, with hash verification."""
-    
+
     # ==========================================================================
     # 2. PROCESSING RESULTS (AI extraction, classification)
     # ==========================================================================
     DOCUMENT_EXTRACTION = "document_extraction"
     """AI-extracted dates, parties, key terms."""
-    
+
     DOCUMENT_CLASSIFICATION = "document_classification"
     """Document type classification (lease, notice, correspondence, etc.)."""
-    
+
     TIMELINE_EXTRACTION = "timeline_extraction"
     """Events extracted for timeline generation."""
-    
+
     PARTY_EXTRACTION = "party_extraction"
     """Landlord, tenant, attorney names and roles."""
-    
+
     # ==========================================================================
     # 3. ANNOTATIONS (User-created content)
     # ==========================================================================
     HIGHLIGHT = "highlight"
     """Text selection with color (yellow, green, blue, red)."""
-    
+
     NOTE = "note"
     """Free-form note attached to document position or standalone."""
-    
+
     FOOTNOTE = "footnote"
     """Numbered annotation with optional legal citation."""
-    
+
     TRACKED_EDIT = "tracked_edit"
     """Suggested text change (insert, delete, replace)."""
-    
+
     # ==========================================================================
     # 4. FORM-FILL (Jurisdiction-specific legal forms)
     # ==========================================================================
     FORM_FILL = "form_fill"
     """Form field values overlaid on blank legal form."""
-    
+
     FORM_SIGNATURE = "form_signature"
     """Electronic signature overlay with timestamp and identity."""
-    
+
     # ==========================================================================
     # 5. OUTPUT/QUERY (Court packets, evidence bundles)
     # ==========================================================================
     COURT_PACKET_QUERY = "court_packet_query"
     """Query definition for assembling court filing packet."""
-    
+
     EVIDENCE_BUNDLE_QUERY = "evidence_bundle_query"
     """Query definition for evidence exhibit bundle."""
-    
+
     WATERMARKED_VIEW = "watermarked_view"
     """Ephemeral watermarked render view (not persisted)."""
-    
+
     # ==========================================================================
     # 6. REDACTION (PII and sensitive information)
     # ==========================================================================
     PII_REDACTION = "pii_redaction"
     """Redaction overlay for personally identifiable information."""
-    
+
     SENSITIVE_REDACTION = "sensitive_reduction"
     """Redaction overlay for sensitive but non-PII content."""
-    
+
     # ==========================================================================
     # 7. IDENTITY/ADAPTER (Linking and resolution)
     # ==========================================================================
     IDENTITY_ADAPTER = "identity_adapter"
     """Links mutable adapter records to vault artifacts."""
-    
+
     COMMUNICATION = "communication"
     """Messages, conversations, and collaboration threads."""
 
     FILEDORED = "filedored"
     """Virtual folder organization for post-processing (sort, dedup, AI classification)."""
-    
+
     DUPLICATE_DETECTION = "duplicate_detection"
     """Cross-vault duplicate identification and tracking."""
 

@@ -7,7 +7,6 @@ Contacts can be imported from document extraction or added manually.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="contacts",
     group_name="contacts_list",

@@ -7,9 +7,9 @@ Creates progress reports with suggested actions for each document.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime
 from dataclasses import dataclass, field
+from typing import Any
+
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class AnalysisSummary:
     doc_id: str
     filename: str
     analysis_timestamp: str
-    
+
     # Analysis Results
     timeline_events_count: int = 0
     calendar_events_count: int = 0
@@ -29,7 +29,7 @@ class AnalysisSummary:
     rights_count: int = 0
     missteps_count: int = 0
     tactics_recommended: int = 0
-    
+
     # Content Summaries
     timeline_summary: str = ""
     calendar_summary: str = ""
@@ -37,17 +37,17 @@ class AnalysisSummary:
     rights_summary: str = ""
     missteps_summary: str = ""
     tactics_summary: str = ""
-    
+
     # Progress & Status
     overall_progress: int = 0  # 0-100
     analysis_confidence: float = 0.0  # 0.0-1.0
-    
+
     # Actionable Items
-    recommended_actions: List[Dict[str, Any]] = field(default_factory=list)
-    urgent_actions: List[Dict[str, Any]] = field(default_factory=list)
-    next_steps: List[str] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    recommended_actions: list[dict[str, Any]] = field(default_factory=list)
+    urgent_actions: list[dict[str, Any]] = field(default_factory=list)
+    next_steps: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             'doc_id': self.doc_id,
@@ -84,7 +84,7 @@ class AutoModeSummaryService:
         self,
         doc_id: str,
         filename: str,
-        analysis_results: Dict[str, Any]
+        analysis_results: dict[str, Any]
     ) -> AnalysisSummary:
         """
         Generate comprehensive summary from analysis results.
@@ -153,7 +153,7 @@ class AutoModeSummaryService:
 
         return summary
 
-    def _summarize_timeline(self, timeline_events: List[Dict[str, Any]]) -> str:
+    def _summarize_timeline(self, timeline_events: list[dict[str, Any]]) -> str:
         """Generate timeline summary."""
         if not timeline_events:
             return "No timeline events extracted from document."
@@ -183,7 +183,7 @@ class AutoModeSummaryService:
 
         return "\n".join(parts)
 
-    def _summarize_calendar(self, calendar_events: List[Dict[str, Any]]) -> str:
+    def _summarize_calendar(self, calendar_events: list[dict[str, Any]]) -> str:
         """Generate calendar summary."""
         if not calendar_events:
             return "No calendar events generated."
@@ -207,7 +207,7 @@ class AutoModeSummaryService:
 
         return "\n".join(parts)
 
-    def _summarize_complaints(self, complaints: List[Dict[str, Any]]) -> str:
+    def _summarize_complaints(self, complaints: list[dict[str, Any]]) -> str:
         """Generate complaints summary."""
         if not complaints:
             return "No complaints to file identified."
@@ -225,7 +225,7 @@ class AutoModeSummaryService:
 
         return "\n".join(parts)
 
-    def _summarize_rights(self, rights: Dict[str, Any]) -> str:
+    def _summarize_rights(self, rights: dict[str, Any]) -> str:
         """Generate rights assessment summary."""
         strengths = rights.get('strengths', [])
         weaknesses = rights.get('weaknesses', [])
@@ -247,7 +247,7 @@ class AutoModeSummaryService:
 
         return "\n".join(parts) if parts else "Rights assessment generated."
 
-    def _summarize_missteps(self, missteps: List[str]) -> str:
+    def _summarize_missteps(self, missteps: list[str]) -> str:
         """Generate legal missteps summary."""
         if not missteps:
             return "No legal procedural violations detected."
@@ -260,7 +260,7 @@ class AutoModeSummaryService:
 
         return "\n".join(parts)
 
-    def _summarize_tactics(self, tactics: List[Dict[str, Any]]) -> str:
+    def _summarize_tactics(self, tactics: list[dict[str, Any]]) -> str:
         """Generate tactics summary."""
         if not tactics:
             return "No proactive defense tactics recommended at this time."
@@ -276,9 +276,9 @@ class AutoModeSummaryService:
 
     async def _generate_recommended_actions(
         self,
-        analysis_results: Dict[str, Any],
+        analysis_results: dict[str, Any],
         summary: AnalysisSummary
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate list of recommended actions."""
         actions = []
 
@@ -341,9 +341,9 @@ class AutoModeSummaryService:
 
     def _generate_urgent_actions(
         self,
-        analysis_results: Dict[str, Any],
+        analysis_results: dict[str, Any],
         summary: AnalysisSummary
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate list of urgent actions that need immediate attention."""
         urgent = []
 
@@ -381,14 +381,14 @@ class AutoModeSummaryService:
 
     def _generate_next_steps(
         self,
-        analysis_results: Dict[str, Any],
+        analysis_results: dict[str, Any],
         summary: AnalysisSummary
-    ) -> List[str]:
+    ) -> list[str]:
         """Generate list of next steps."""
         steps = []
 
         steps.append("1. Review the automatically extracted timeline and calendar for accuracy")
-        
+
         if summary.missteps_count > 0:
             steps.append("2. ◆ ADDRESS MISSTEPS IMMEDIATELY - Review legal procedural violations")
         else:
@@ -396,7 +396,7 @@ class AutoModeSummaryService:
 
         if summary.complaints_identified > 0:
             steps.append("3. Consider filing complaints with identified regulatory agencies")
-        
+
         if summary.tactics_recommended > 0:
             steps.append("4. Evaluate and plan implementation of recommended defense tactics")
 
@@ -421,7 +421,7 @@ class AutoModeSummaryService:
         total = sum(factor * weight for factor, weight in completion_factors)
         return min(100, total)
 
-    def _calculate_confidence(self, analysis_results: Dict[str, Any]) -> float:
+    def _calculate_confidence(self, analysis_results: dict[str, Any]) -> float:
         """
         Calculate confidence score based on analysis quality (0.0-1.0).
         """

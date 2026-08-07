@@ -27,8 +27,8 @@ Filterable by type via the `type_filter` parameter.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from app.core.utc import utc_now
 
@@ -67,14 +67,14 @@ def _is_deadline_event_type(event_type: str) -> bool:
     return any(k in subtype for k in ("deadline", "due", "response", "appeal"))
 
 
-def _source_label(source: Optional[str]) -> str:
+def _source_label(source: str | None) -> str:
     """Human-readable source label for eviction-sourced events."""
     if not source or source.lower() == "manual":
         return ""
     return source.replace("_", " ").title()
 
 
-def _empty_item() -> Dict[str, Any]:
+def _empty_item() -> dict[str, Any]:
     """Return a blank feed item dict."""
     return {
         "type": "",
@@ -88,13 +88,13 @@ def _empty_item() -> Dict[str, Any]:
     }
 
 
-def _format_timestamp(dt: Optional[datetime]) -> Dict[str, str]:
+def _format_timestamp(dt: datetime | None) -> dict[str, str]:
     """Format a datetime as ISO + human-readable label."""
     if dt is None:
         return {"timestamp_iso": "", "timestamp_label": ""}
     try:
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.replace(tzinfo=UTC)
         iso = dt.isoformat()
         now = utc_now()
         delta = now - dt
@@ -116,7 +116,7 @@ def _format_timestamp(dt: Optional[datetime]) -> Dict[str, str]:
         return {"timestamp_iso": "", "timestamp_label": ""}
 
 
-def _fetch_documents(user_id: str) -> List[Dict[str, Any]]:
+def _fetch_documents(user_id: str) -> list[dict[str, Any]]:
     """Fetch documents for the user. Returns feed items.
 
     Uses the canonical vault_upload_service.get_user_documents() — the same
@@ -124,9 +124,10 @@ def _fetch_documents(user_id: str) -> List[Dict[str, Any]]:
     via asyncio.run_if_needed; safe because this aggregator is called from
     async router context.
     """
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         import asyncio
+
         from app.services.vault_upload_service import get_vault_service
 
         vault = get_vault_service()
@@ -167,20 +168,22 @@ def _fetch_documents(user_id: str) -> List[Dict[str, Any]]:
     return items
 
 
-def _fetch_timeline_events(user_id: str) -> List[Dict[str, Any]]:
+def _fetch_timeline_events(user_id: str) -> list[dict[str, Any]]:
     """Fetch timeline events for the user from the TimelineEvent model.
 
     Queries the database directly — no HTTP hop, no router dependency.
     """
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         import asyncio
-        from sqlalchemy import select
-        from app.models.models import TimelineEvent
-        from app.core.database import get_db_session
 
-        async def _query() -> List[Dict[str, Any]]:
-            results: List[Dict[str, Any]] = []
+        from sqlalchemy import select
+
+        from app.core.database import get_db_session
+        from app.models.models import TimelineEvent
+
+        async def _query() -> list[dict[str, Any]]:
+            results: list[dict[str, Any]] = []
             async with get_db_session() as db:
                 stmt = (
                     select(TimelineEvent)
@@ -228,8 +231,8 @@ def _fetch_timeline_events(user_id: str) -> List[Dict[str, Any]]:
 
 async def aggregate_feed_async(
     user_id: str,
-    type_filter: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    type_filter: str | None = None,
+) -> list[dict[str, Any]]:
     """Async version of aggregate_feed — uses real data sources.
 
     Use this from async router context. The sync aggregate_feed() is kept
@@ -241,7 +244,7 @@ async def aggregate_feed_async(
             f"Unknown feed type filter: {type_filter}. Valid: {sorted(FEED_TYPES)}"
         )
 
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
 
     if not type_filter or type_filter == "document":
         items.extend(await _fetch_documents_async(user_id))
@@ -255,7 +258,7 @@ async def aggregate_feed_async(
     if not type_filter or type_filter == "letter":
         items.extend(_fetch_letters(user_id))
 
-    def _sort_key(item: Dict[str, Any]) -> tuple:
+    def _sort_key(item: dict[str, Any]) -> tuple:
         iso = item.get("timestamp_iso") or ""
         return ("" if iso else "0", iso)
 
@@ -263,9 +266,9 @@ async def aggregate_feed_async(
     return items
 
 
-async def _fetch_documents_async(user_id: str) -> List[Dict[str, Any]]:
+async def _fetch_documents_async(user_id: str) -> list[dict[str, Any]]:
     """Async fetch of documents via vault_upload_service."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         from app.services.vault_upload_service import get_vault_service
         vault = get_vault_service()
@@ -294,13 +297,14 @@ async def _fetch_documents_async(user_id: str) -> List[Dict[str, Any]]:
     return items
 
 
-async def _fetch_timeline_events_async(user_id: str) -> List[Dict[str, Any]]:
+async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
     """Async fetch of timeline events from the TimelineEvent model."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         from sqlalchemy import select
-        from app.models.models import TimelineEvent
+
         from app.core.database import get_db_session
+        from app.models.models import TimelineEvent
 
         async with get_db_session() as db:
             stmt = (
@@ -338,13 +342,14 @@ async def _fetch_timeline_events_async(user_id: str) -> List[Dict[str, Any]]:
     return items
 
 
-async def _fetch_eviction_timeline_events_async(user_id: str) -> List[Dict[str, Any]]:
+async def _fetch_eviction_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
     """Async fetch of eviction timeline events from the EvictionTimelineEvent model."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         from sqlalchemy import select
-        from app.models.models import EvictionTimelineEvent
+
         from app.core.database import get_db_session
+        from app.models.models import EvictionTimelineEvent
 
         async with get_db_session() as db:
             stmt = (
@@ -383,16 +388,13 @@ async def _fetch_eviction_timeline_events_async(user_id: str) -> List[Dict[str, 
     return items
 
 
-async def _fetch_eviction_timeline_events(user_id: str) -> List[Dict[str, Any]]:
+async def _fetch_eviction_timeline_events(user_id: str) -> list[dict[str, Any]]:
     """Sync-compatible wrapper for _fetch_eviction_timeline_events_async."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         import asyncio
-        from sqlalchemy import select
-        from app.models.models import EvictionTimelineEvent
-        from app.core.database import get_db_session
 
-        async def _query() -> List[Dict[str, Any]]:
+        async def _query() -> list[dict[str, Any]]:
             return await _fetch_eviction_timeline_events_async(user_id)
 
         try:
@@ -407,9 +409,9 @@ async def _fetch_eviction_timeline_events(user_id: str) -> List[Dict[str, Any]]:
     return items
 
 
-def _fetch_journal_entries(user_id: str) -> List[Dict[str, Any]]:
+def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
     """Fetch journal entries for the user."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         from app.modules.journal.service import list_journal_entries
         entries = list_journal_entries(user_id) if hasattr(
@@ -439,9 +441,9 @@ def _fetch_journal_entries(user_id: str) -> List[Dict[str, Any]]:
     return items
 
 
-def _fetch_deadlines(user_id: str) -> List[Dict[str, Any]]:
+def _fetch_deadlines(user_id: str) -> list[dict[str, Any]]:
     """Fetch deadlines for the user."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         from app.modules.deadlines.service import list_deadlines
         deadlines = list_deadlines(user_id) if hasattr(
@@ -471,9 +473,9 @@ def _fetch_deadlines(user_id: str) -> List[Dict[str, Any]]:
     return items
 
 
-def _fetch_letters(user_id: str) -> List[Dict[str, Any]]:
+def _fetch_letters(user_id: str) -> list[dict[str, Any]]:
     """Fetch generated letters for the user."""
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
     try:
         from app.modules.letters.service import list_letters
         letters = list_letters(user_id) if hasattr(
@@ -505,8 +507,8 @@ def _fetch_letters(user_id: str) -> List[Dict[str, Any]]:
 
 def aggregate_feed(
     user_id: str,
-    type_filter: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    type_filter: str | None = None,
+) -> list[dict[str, Any]]:
     """Aggregate all feed sources into a single chronological feed.
 
     Args:
@@ -524,7 +526,7 @@ def aggregate_feed(
             f"Unknown feed type filter: {type_filter}. Valid: {sorted(FEED_TYPES)}"
         )
 
-    items: List[Dict[str, Any]] = []
+    items: list[dict[str, Any]] = []
 
     # Fetch from all sources — each fetch is independent and fails gracefully
     if not type_filter or type_filter == "document":
@@ -541,7 +543,7 @@ def aggregate_feed(
 
     # Sort by timestamp descending (newest first). Items without a timestamp
     # sort to the end.
-    def _sort_key(item: Dict[str, Any]) -> tuple:
+    def _sort_key(item: dict[str, Any]) -> tuple:
         iso = item.get("timestamp_iso") or ""
         # ISO strings sort lexicographically — prefix with "1" so empty goes last
         return ("" if iso else "0", iso)
@@ -553,4 +555,4 @@ def aggregate_feed(
 
 # Backward-compat alias — FeedItem is the dict shape, not a dataclass.
 # Callers should treat the return value as List[Dict[str, Any]].
-FeedItem = Dict[str, Any]
+FeedItem = dict[str, Any]

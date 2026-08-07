@@ -5,15 +5,13 @@ API Documentation Generator - Developer Portal
 Generates comprehensive API documentation and developer portal.
 """
 
-import logging
-from app.core.utc import utc_now
 import json
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timezone
-from dataclasses import dataclass, asdict
+import logging
+from dataclasses import asdict, dataclass
 from enum import Enum
-import inspect
-import asyncio
+from typing import Any
+
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +24,10 @@ class DocumentationType(Enum):
 
 class APIEndpoint:
     """API endpoint documentation."""
-    def __init__(self, path: str, method: str, summary: str, 
-                 description: str, parameters: List[Dict[str, Any]] = None,
-                 request_body: Dict[str, Any] = None, responses: Dict[str, Any] = None,
-                 tags: List[str] = None, security: List[str] = None):
+    def __init__(self, path: str, method: str, summary: str,
+                 description: str, parameters: list[dict[str, Any]] = None,
+                 request_body: dict[str, Any] = None, responses: dict[str, Any] = None,
+                 tags: list[str] = None, security: list[str] = None):
         self.path = path
         self.method = method.upper()
         self.summary = summary
@@ -39,8 +37,8 @@ class APIEndpoint:
         self.responses = responses or {}
         self.tags = tags or []
         self.security = security or []
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "path": self.path,
             "method": self.method,
@@ -59,11 +57,11 @@ class APIModule:
     module_id: str
     name: str
     description: str
-    endpoints: List[APIEndpoint]
+    endpoints: list[APIEndpoint]
     version: str
     base_path: str
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 @dataclass
@@ -72,18 +70,18 @@ class CodeExample:
     language: str
     code: str
     description: str
-    filename: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    filename: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 class APIDocumentationGenerator:
     """Generates comprehensive API documentation."""
-    
+
     def __init__(self):
-        self.modules: Dict[str, APIModule] = {}
-        self.code_examples: List[CodeExample] = []
-        
+        self.modules: dict[str, APIModule] = {}
+        self.code_examples: list[CodeExample] = []
+
         # Documentation settings
         self.api_version = "v1"
         self.base_url = "https://api.semptify.org"
@@ -96,17 +94,17 @@ class APIDocumentationGenerator:
             "name": "MIT",
             "url": "https://opensource.org/licenses/MIT"
         }
-    
+
     def register_module(self, module: APIModule):
         """Register an API module for documentation."""
         self.modules[module.module_id] = module
         logger.info(f"Registered API module {module.module_id}")
-    
+
     def add_code_example(self, example: CodeExample):
         """Add a code example."""
         self.code_examples.append(example)
-    
-    def generate_openapi_spec(self) -> Dict[str, Any]:
+
+    def generate_openapi_spec(self) -> dict[str, Any]:
         """Generate OpenAPI 3.0 specification."""
         spec = {
             "openapi": "3.0.0",
@@ -133,13 +131,13 @@ class APIDocumentationGenerator:
                 "securitySchemes": {}
             }
         }
-        
+
         # Add all endpoints to paths
         for module in self.modules.values():
             for endpoint in module.endpoints:
                 if endpoint.path not in spec["paths"]:
                     spec["paths"][endpoint.path] = {}
-                
+
                 spec["paths"][endpoint.path][endpoint.method.lower()] = {
                     "summary": endpoint.summary,
                     "description": endpoint.description,
@@ -149,7 +147,7 @@ class APIDocumentationGenerator:
                     "responses": endpoint.responses,
                     "security": endpoint.security
                 }
-        
+
         # Add common schemas
         spec["components"]["schemas"] = {
             "User": {
@@ -181,7 +179,7 @@ class APIDocumentationGenerator:
                 }
             }
         }
-        
+
         # Add security schemes
         spec["components"]["securitySchemes"] = {
             "BearerAuth": {
@@ -204,10 +202,10 @@ class APIDocumentationGenerator:
                 }
             }
         }
-        
+
         return spec
-    
-    def generate_postman_collection(self) -> Dict[str, Any]:
+
+    def generate_postman_collection(self) -> dict[str, Any]:
         """Generate Postman collection."""
         collection = {
             "info": {
@@ -217,7 +215,7 @@ class APIDocumentationGenerator:
             },
             "item": []
         }
-        
+
         # Group endpoints by module
         for module in self.modules.values():
             module_item = {
@@ -225,7 +223,7 @@ class APIDocumentationGenerator:
                 "description": module.description,
                 "item": []
             }
-            
+
             for endpoint in module.endpoints:
                 endpoint_item = {
                     "name": endpoint.summary,
@@ -247,7 +245,7 @@ class APIDocumentationGenerator:
                         }
                     }
                 }
-                
+
                 # Add request body if present
                 if endpoint.request_body:
                     endpoint_item["request"]["body"] = {
@@ -259,7 +257,7 @@ class APIDocumentationGenerator:
                             }
                         }
                     }
-                
+
                 # Add response examples
                 if endpoint.responses:
                     endpoint_item["response"] = []
@@ -275,34 +273,34 @@ class APIDocumentationGenerator:
                             "code": int(status_code),
                             "status": "OK" if 200 <= int(status_code) < 300 else "Error"
                         }
-                        
+
                         if "example" in response:
                             response_item["body"] = json.dumps(response["example"], indent=2)
-                        
+
                         endpoint_item["response"].append(response_item)
-                
+
                 module_item["item"].append(endpoint_item)
-            
+
             collection["item"].append(module_item)
-        
+
         return collection
-    
+
     def generate_swagger_ui(self) -> str:
         """Generate Swagger UI HTML."""
         openapi_spec = self.generate_openapi_spec()
-        
-        swagger_html = f"""
+
+        swagger_html = """
         <!DOCTYPE html>
         <html>
         <head>
             <title>Semptify API Documentation</title>
             <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui.css" />
             <style>
-                html {{ box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }}
-                *, *:before, *:after {{ box-sizing: inherit; }}
-                body {{ margin: 0; background: #fafafa; }}
-                .swagger-ui .topbar {{ background-color: #1b1b1b; }}
-                .swagger-ui .topbar .download-url-wrapper {{ display: none; }}
+                html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+                *, *:before, *:after { box-sizing: inherit; }
+                body { margin: 0; background: #fafafa; }
+                .swagger-ui .topbar { background-color: #1b1b1b; }
+                .swagger-ui .topbar .download-url-wrapper { display: none; }
             </style>
         </head>
         <body>
@@ -310,8 +308,8 @@ class APIDocumentationGenerator:
             <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-bundle.js"></script>
             <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-standalone-preset.js"></script>
             <script>
-                window.onload = function() {{
-                    const ui = SwaggerUIBundle({{
+                window.onload = function() {
+                    const ui = SwaggerUIBundle({
                         url: '/docs/openapi.json',
                         dom_id: '#swagger-ui',
                         deepLinking: true,
@@ -323,19 +321,19 @@ class APIDocumentationGenerator:
                             SwaggerUIBundle.plugins.DownloadUrl
                         ],
                         layout: "StandaloneLayout"
-                    }});
-                }};
+                    });
+                };
             </script>
         </body>
         </html>
         """
-        
+
         return swagger_html
-    
+
     def generate_redoc_html(self) -> str:
         """Generate ReDoc HTML."""
         openapi_spec = self.generate_openapi_spec()
-        
+
         redoc_html = f"""
         <!DOCTYPE html>
         <html>
@@ -367,9 +365,9 @@ class APIDocumentationGenerator:
         </body>
         </html>
         """
-        
+
         return redoc_html
-    
+
     def generate_developer_portal(self) -> str:
         """Generate extensive interactive developer portal HTML with admin guide."""
         modules_list = []
@@ -382,11 +380,11 @@ class APIDocumentationGenerator:
                 "endpoint_count": len(module.endpoints),
                 "version": module.version
             })
-        
+
         code_examples_list = []
         for example in self.code_examples:
             code_examples_list.append(example.to_dict())
-        
+
         portal_html = f"""
         <!DOCTYPE html>
         <html>
@@ -643,7 +641,7 @@ class APIDocumentationGenerator:
                         <p>Browse all available API modules and their endpoints.</p>
                         <div class="module-list">
         """
-        
+
         for module in modules_list:
             portal_html += f"""
                             <div class="module-item">
@@ -662,8 +660,8 @@ class APIDocumentationGenerator:
                                 <div style="margin-top: 12px; color: #64748b; line-height: 1.6;">{module['description']}</div>
                             </div>
             """
-        
-        portal_html += f"""
+
+        portal_html += """
                         </div>
                     </div>
                 </div>
@@ -700,13 +698,13 @@ Authorization: Bearer ADMIN_TOKEN</code></pre>
                                     <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
-                                    <pre><code>PUT /api/admin/users/{{user_id}}/role
+                                    <pre><code>PUT /api/admin/users/{user_id}/role
 Authorization: Bearer ADMIN_TOKEN
 Content-Type: application/json
 
-{{
+{
   "role": "advocate"
-}}</code></pre>
+}</code></pre>
                                     <p>Valid roles: <code>tenant</code>, <code>advocate</code>, <code>legal</code>, <code>admin</code>.</p>
                                 </div>
                             </div>
@@ -716,7 +714,7 @@ Content-Type: application/json
                                     <span>▸</span>
                                 </div>
                                 <div class="accordion-content">
-                                    <pre><code>POST /api/admin/users/{{user_id}}/disable
+                                    <pre><code>POST /api/admin/users/{user_id}/disable
 Authorization: Bearer ADMIN_TOKEN</code></pre>
                                     <p>Disables a user account. User cannot login or access API.</p>
                                 </div>
@@ -783,7 +781,7 @@ Query params: user_id, action, start_date, end_date</code></pre>
                         <p>Production-ready code examples in multiple languages.</p>
                         <div class="code-examples">
         """
-        
+
         for example in code_examples_list:
             portal_html += f"""
                             <div class="code-example">
@@ -793,7 +791,7 @@ Query params: user_id, action, start_date, end_date</code></pre>
                                 </div>
                             </div>
             """
-        
+
         portal_html += f"""
                         </div>
                     </div>
@@ -928,15 +926,15 @@ if (response.ok) {{
         </body>
         </html>
         """
-        
+
         return portal_html
-    
-    def get_documentation_summary(self) -> Dict[str, Any]:
+
+    def get_documentation_summary(self) -> dict[str, Any]:
         """Get documentation summary statistics."""
         total_modules = len(self.modules)
         total_endpoints = sum(len(module.endpoints) for module in self.modules.values())
         total_examples = len(self.code_examples)
-        
+
         return {
             "api_version": self.api_version,
             "base_url": self.base_url,
@@ -955,24 +953,24 @@ if (response.ok) {{
         }
 
 # Global documentation generator instance
-_documentation_generator: Optional[APIDocumentationGenerator] = None
+_documentation_generator: APIDocumentationGenerator | None = None
 
 def get_documentation_generator() -> APIDocumentationGenerator:
     """Get the global documentation generator instance."""
     global _documentation_generator
-    
+
     if _documentation_generator is None:
         _documentation_generator = APIDocumentationGenerator()
-        
+
         # Register default modules
         _register_default_modules()
-    
+
     return _documentation_generator
 
 def _register_default_modules():
     """Register default API modules."""
     generator = get_documentation_generator()
-    
+
     # Authentication module
     auth_endpoints = [
         APIEndpoint(
@@ -1033,7 +1031,7 @@ def _register_default_modules():
             security=[]
         )
     ]
-    
+
     generator.register_module(APIModule(
         module_id="auth",
         name="Authentication",
@@ -1042,7 +1040,7 @@ def _register_default_modules():
         version="v1",
         base_path="/api/v1/auth"
     ))
-    
+
     # Documents module
     docs_endpoints = [
         APIEndpoint(
@@ -1117,7 +1115,7 @@ def _register_default_modules():
             security=["BearerAuth"]
         )
     ]
-    
+
     generator.register_module(APIModule(
         module_id="documents",
         name="Documents",
@@ -1126,7 +1124,7 @@ def _register_default_modules():
         version="v1",
         base_path="/api/v1/documents"
     ))
-    
+
     # Add code examples
     generator.add_code_example(CodeExample(
         language="python",
@@ -1158,7 +1156,7 @@ if login_response.status_code == 200:
         description="Python - Basic API Usage",
         filename="basic_usage.py"
     ))
-    
+
     generator.add_code_example(CodeExample(
         language="javascript",
         code="""
@@ -1209,12 +1207,12 @@ loginAndGetDocuments();
     ))
 
 # Helper functions
-def generate_openapi_spec() -> Dict[str, Any]:
+def generate_openapi_spec() -> dict[str, Any]:
     """Generate OpenAPI specification."""
     generator = get_documentation_generator()
     return generator.generate_openapi_spec()
 
-def generate_postman_collection() -> Dict[str, Any]:
+def generate_postman_collection() -> dict[str, Any]:
     """Generate Postman collection."""
     generator = get_documentation_generator()
     return generator.generate_postman_collection()
@@ -1234,7 +1232,7 @@ def generate_developer_portal() -> str:
     generator = get_documentation_generator()
     return generator.generate_developer_portal()
 
-def get_documentation_summary() -> Dict[str, Any]:
+def get_documentation_summary() -> dict[str, Any]:
     """Get documentation summary."""
     generator = get_documentation_generator()
     return generator.get_documentation_summary()

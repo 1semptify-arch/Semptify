@@ -6,8 +6,10 @@ This is a standalone utility that can be used by both the old vault_manager
 and the new Vault SDK + Installer architecture.
 """
 
-from app.core.user_id import parse_user_id
 import logging
+
+from app.core.user_id import parse_user_id
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,21 +27,21 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
         HTML content for Rehome.html
     """
     _, role, _ = parse_user_id(user_id)
-    
+
     provider_names = {
         "google_drive": "Google Drive",
         "dropbox": "Dropbox",
         "onedrive": "OneDrive"
     }
     provider_display = provider_names.get(provider, provider)
-    
+
     provider_icons = {
         "google_drive": "◆",
         "dropbox": "●",
         "onedrive": "○"
     }
     provider_icon = provider_icons.get(provider, "●")
-    
+
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>

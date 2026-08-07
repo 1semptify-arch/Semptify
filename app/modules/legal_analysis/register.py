@@ -7,7 +7,6 @@ timeline analysis, merit assessment, hearsay analysis, and binding status.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="legal_analysis",
     group_name="legal_analysis_classify_evidence",

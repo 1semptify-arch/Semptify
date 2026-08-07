@@ -6,14 +6,14 @@ on storage operations only. Encryption is a cross-cutting concern used by
 the Vault Installer for token backup creation.
 """
 
-import json
-from app.core.utc import utc_now
-import secrets
 import hashlib
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+import json
 import logging
+import secrets
+from dataclasses import asdict, dataclass
+
+from app.core.utc import utc_now
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,10 +42,10 @@ class MasterToken:
     token_expires_at: str = ""       # When access_token expires
 
     # Module authorizations - which features this token unlocks
-    modules: Optional[Dict[str, bool]] = None
+    modules: dict[str, bool] | None = None
 
     # Security
-    last_validated: Optional[str] = None       # Last time token was used
+    last_validated: str | None = None       # Last time token was used
     validation_count: int = 0        # How many times validated
 
     def __post_init__(self):
@@ -59,10 +59,10 @@ class MasterToken:
                 "defense": True,
                 "zoom_court": True,
             }
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "MasterToken":
         return cls(**data)
@@ -99,11 +99,12 @@ def encrypt_token(token: MasterToken, user_id: str, secret_key: str) -> bytes:
         Encrypted bytes (nonce + ciphertext)
     """
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
     from app.services.storage.legal_integrity import TokenIntegrity
 
     key = _derive_key(user_id, secret_key)
     nonce = secrets.token_bytes(12)
-    
+
     # Wrap token with integrity hash before encryption
     wrapped = TokenIntegrity.wrap_token(token.to_dict(), user_id)
     plaintext = json.dumps(wrapped).encode()
@@ -132,6 +133,7 @@ def decrypt_token(encrypted: bytes, user_id: str, secret_key: str) -> MasterToke
         ValueError: If decryption fails or token is invalid
     """
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
     from app.services.storage.legal_integrity import TokenIntegrity
 
     key = _derive_key(user_id, secret_key)
@@ -143,7 +145,7 @@ def decrypt_token(encrypted: bytes, user_id: str, secret_key: str) -> MasterToke
     plaintext = aesgcm.decrypt(nonce, ciphertext, None)
 
     wrapped = json.loads(plaintext.decode())
-    
+
     # Handle both wrapped (with integrity) and legacy (without) formats
     if "integrity" in wrapped and "data" in wrapped:
         # New format with integrity verification — verify_token returns (data, is_valid)
@@ -153,5 +155,5 @@ def decrypt_token(encrypted: bytes, user_id: str, secret_key: str) -> MasterToke
     else:
         # Legacy format (pre-integrity) - use data directly
         token_data = wrapped
-    
+
     return MasterToken.from_dict(token_data)

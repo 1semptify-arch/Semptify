@@ -3,18 +3,19 @@ Semptify 5.0 - Briefcase Tests
 Tests for document organization, folder management, and batch operations.
 """
 
-import pytest
-from httpx import AsyncClient, ASGITransport
 import io
 import json
 
 # Test environment setup
 import os
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 os.environ["SECURITY_MODE"] = "open"
 os.environ["TESTING"] = "true"
 
 from app.main import app
-
 
 # =============================================================================
 # Fixtures
@@ -52,13 +53,13 @@ class TestBriefcaseRoot:
         """Test getting the entire briefcase structure."""
         response = await client.get("/api/briefcase/")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "folders" in data
         assert "documents" in data
         assert "tags" in data
         assert "stats" in data
-        
+
         # Should have default folders
         folder_ids = [f["id"] for f in data["folders"]]
         assert "root" in folder_ids
@@ -71,7 +72,7 @@ class TestBriefcaseRoot:
         """Test briefcase statistics."""
         response = await client.get("/api/briefcase/stats")
         assert response.status_code == 200
-        
+
         stats = response.json()
         assert "total_folders" in stats
         assert "total_documents" in stats
@@ -98,7 +99,7 @@ class TestFolders:
             }
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["success"] is True
         assert data["folder"]["name"] == "Test Folder"
@@ -110,13 +111,13 @@ class TestFolders:
         """Test getting folder contents."""
         response = await client.get("/api/briefcase/folder/root")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "folder" in data
         assert "subfolders" in data
         assert "documents" in data
         assert "breadcrumb" in data
-        
+
         # Root should have default subfolders
         assert len(data["subfolders"]) >= 3
 
@@ -135,14 +136,14 @@ class TestFolders:
             json={"name": "Original Name", "parent_id": "root"}
         )
         folder_id = create_response.json()["folder"]["id"]
-        
+
         # Update it
         response = await client.put(
             f"/api/briefcase/folder/{folder_id}",
             json={"name": "Updated Name", "color": "#00ff00"}
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["folder"]["name"] == "Updated Name"
         assert data["folder"]["color"] == "#00ff00"
@@ -165,11 +166,11 @@ class TestFolders:
             json={"name": "To Delete", "parent_id": "root"}
         )
         folder_id = create_response.json()["folder"]["id"]
-        
+
         # Delete it
         response = await client.delete(f"/api/briefcase/folder/{folder_id}")
         assert response.status_code == 200
-        
+
         # Verify it's gone
         get_response = await client.get(f"/api/briefcase/folder/{folder_id}")
         assert get_response.status_code == 404
@@ -187,14 +188,14 @@ class TestDocuments:
         """Test uploading a document."""
         files = {"file": ("test.txt", io.BytesIO(sample_text_content), "text/plain")}
         data = {"folder_id": "root", "tags": "test,important", "notes": "Test notes"}
-        
+
         response = await client.post(
             "/api/briefcase/document",
             files=files,
             data=data
         )
         assert response.status_code == 200
-        
+
         result = response.json()
         assert result["success"] is True
         assert result["document"]["name"] == "test.txt"
@@ -212,11 +213,11 @@ class TestDocuments:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Get metadata
         response = await client.get(f"/api/briefcase/document/{doc_id}")
         assert response.status_code == 200
-        
+
         doc = response.json()
         assert doc["name"] == "test.txt"
         assert "content" not in doc  # Content should not be in metadata
@@ -232,7 +233,7 @@ class TestDocuments:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Download
         response = await client.get(f"/api/briefcase/document/{doc_id}/download")
         assert response.status_code == 200
@@ -249,11 +250,11 @@ class TestDocuments:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Preview
         response = await client.get(f"/api/briefcase/document/{doc_id}/preview")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "content" in data
         assert data["content"].startswith("data:")
@@ -269,14 +270,14 @@ class TestDocuments:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Update
         response = await client.put(
             f"/api/briefcase/document/{doc_id}",
             json={"name": "renamed.txt", "starred": True, "tags": ["important"]}
         )
         assert response.status_code == 200
-        
+
         doc = response.json()["document"]
         assert doc["name"] == "renamed.txt"
         assert doc["starred"] is True
@@ -293,18 +294,18 @@ class TestDocuments:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Star it
         response = await client.put(
             f"/api/briefcase/document/{doc_id}",
             json={"starred": True}
         )
         assert response.status_code == 200
-        
+
         # Check starred list
         starred_response = await client.get("/api/briefcase/starred")
         assert starred_response.status_code == 200
-        
+
         starred = starred_response.json()
         assert starred["count"] >= 1
 
@@ -319,11 +320,11 @@ class TestDocuments:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Delete
         response = await client.delete(f"/api/briefcase/document/{doc_id}")
         assert response.status_code == 200
-        
+
         # Verify it's gone
         get_response = await client.get(f"/api/briefcase/document/{doc_id}")
         assert get_response.status_code == 404
@@ -345,7 +346,7 @@ class TestMoveCopy:
             json={"name": "Target Folder", "parent_id": "root"}
         )
         target_folder_id = folder_response.json()["folder"]["id"]
-        
+
         # Upload a document to root
         files = {"file": ("test.txt", io.BytesIO(sample_text_content), "text/plain")}
         upload_response = await client.post(
@@ -354,14 +355,14 @@ class TestMoveCopy:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         # Move it
         response = await client.post(
             f"/api/briefcase/document/{doc_id}/move",
             data={"folder_id": target_folder_id}
         )
         assert response.status_code == 200
-        
+
         # Verify it moved
         doc_response = await client.get(f"/api/briefcase/document/{doc_id}")
         assert doc_response.json()["folder_id"] == target_folder_id
@@ -375,7 +376,7 @@ class TestMoveCopy:
             json={"name": "Copy Target", "parent_id": "root"}
         )
         target_folder_id = folder_response.json()["folder"]["id"]
-        
+
         # Upload a document to root
         files = {"file": ("original.txt", io.BytesIO(sample_text_content), "text/plain")}
         upload_response = await client.post(
@@ -384,19 +385,19 @@ class TestMoveCopy:
             data={"folder_id": "root"}
         )
         original_doc_id = upload_response.json()["document"]["id"]
-        
+
         # Copy it
         response = await client.post(
             f"/api/briefcase/document/{original_doc_id}/copy",
             data={"folder_id": target_folder_id}
         )
         assert response.status_code == 200
-        
+
         copy = response.json()["document"]
         assert copy["folder_id"] == target_folder_id
         assert copy["name"].startswith("Copy of")
         assert copy["id"] != original_doc_id
-        
+
         # Original should still be in root
         original_response = await client.get(f"/api/briefcase/document/{original_doc_id}")
         assert original_response.json()["folder_id"] == "root"
@@ -419,11 +420,11 @@ class TestSearch:
             files=files,
             data={"folder_id": "root"}
         )
-        
+
         # Search for it
         response = await client.get("/api/briefcase/search?q=unique_searchable")
         assert response.status_code == 200
-        
+
         results = response.json()
         assert results["count"] >= 1
         assert any("unique_searchable" in r["name"] for r in results["results"])
@@ -438,11 +439,11 @@ class TestSearch:
             files=files,
             data={"folder_id": "root", "tags": "special_tag"}
         )
-        
+
         # Search by tag
         response = await client.get("/api/briefcase/search?q=&tags=special_tag")
         assert response.status_code == 200
-        
+
         results = response.json()
         assert results["count"] >= 1
 
@@ -457,16 +458,16 @@ class TestSearch:
             data={"folder_id": "root"}
         )
         doc_id = upload_response.json()["document"]["id"]
-        
+
         await client.put(
             f"/api/briefcase/document/{doc_id}",
             json={"starred": True}
         )
-        
+
         # Search starred
         response = await client.get("/api/briefcase/search?q=&starred=true")
         assert response.status_code == 200
-        
+
         results = response.json()
         assert all(r["starred"] for r in results["results"])
 
@@ -483,7 +484,7 @@ class TestTags:
         """Test getting all available tags."""
         response = await client.get("/api/briefcase/tags")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "tags" in data
         # Should have default tags
@@ -497,7 +498,7 @@ class TestTags:
             data={"tag": "NewCustomTag"}
         )
         assert response.status_code == 200
-        
+
         tags = response.json()["tags"]
         assert "NewCustomTag" in tags
 
@@ -520,11 +521,11 @@ class TestRecent:
                 files=files,
                 data={"folder_id": "root"}
             )
-        
+
         # Get recent
         response = await client.get("/api/briefcase/recent?limit=5")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "documents" in data
         assert len(data["documents"]) >= 2
@@ -547,7 +548,7 @@ class TestExport:
             files=files,
             data={"folder_id": "root"}
         )
-        
+
         # Export root folder
         response = await client.post(
             "/api/briefcase/export",
@@ -577,7 +578,7 @@ class TestExtractions:
             }
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["success"] is True
         assert data["extraction"]["pdf_name"] == "test_document.pdf"
@@ -594,10 +595,10 @@ class TestExtractions:
                 "pages": json.dumps([1])
             }
         )
-        
+
         response = await client.get("/api/briefcase/extractions")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "extractions" in data
         assert len(data["extractions"]) >= 1
@@ -614,11 +615,11 @@ class TestExtractions:
             }
         )
         extraction_id = create_response.json()["extraction_id"]
-        
+
         # Delete it
         response = await client.delete(f"/api/briefcase/extraction/{extraction_id}")
         assert response.status_code == 200
-        
+
         # Verify it's gone
         get_response = await client.get(f"/api/briefcase/extraction/{extraction_id}")
         assert get_response.status_code == 404
@@ -646,7 +647,7 @@ class TestHighlights:
             }
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["success"] is True
         assert data["highlight"]["color"] == "#ffff00"
@@ -664,10 +665,10 @@ class TestHighlights:
                 "color": "#ff0000"
             }
         )
-        
+
         response = await client.get("/api/briefcase/highlights")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "highlights" in data
         assert len(data["highlights"]) >= 1
@@ -687,7 +688,7 @@ class TestHighlights:
             }
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["count"] == 3
 
@@ -704,9 +705,9 @@ class TestHighlights:
                     "color": color
                 }
             )
-        
+
         response = await client.get("/api/briefcase/highlights/by-color")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "groups" in data

@@ -7,26 +7,22 @@ All data is stored in the user's connected cloud (Google Drive, Dropbox, OneDriv
 Semptify stores NOTHING - we just orchestrate the sync.
 """
 
-from datetime import datetime, timezone
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, UploadFile, File, Form
+import logging
+
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings, get_settings
 from app.core.database import get_db
-from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser, yellow_access
-from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES, VAULT_ROOT
+from app.core.security import StorageUser, yellow_access
 from app.core.utc import utc_now
-from .service import (
-    UserCloudSync,
-    UserProfile,
-    CaseData,
-    SyncStatus,
-    QuickSyncData,
-)
+from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_CERTIFICATES, VAULT_DOCUMENTS, VAULT_ROOT
 
-import logging
+from .service import (
+    QuickSyncData,
+    UserCloudSync,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/sync", tags=["Cloud Sync"])
@@ -38,37 +34,37 @@ router = APIRouter(prefix="/api/sync", tags=["Cloud Sync"])
 
 class ProfileUpdate(BaseModel):
     """Profile update request."""
-    display_name: Optional[str] = None
-    theme: Optional[str] = None
-    language: Optional[str] = None
-    notifications: Optional[bool] = None
-    auto_sync: Optional[bool] = None
+    display_name: str | None = None
+    theme: str | None = None
+    language: str | None = None
+    notifications: bool | None = None
+    auto_sync: bool | None = None
 
 
 class CaseUpdate(BaseModel):
     """Case update request."""
-    case_number: Optional[str] = None
-    tenant_name: Optional[str] = None
-    tenant_address: Optional[str] = None
-    landlord_name: Optional[str] = None
-    landlord_address: Optional[str] = None
-    property_address: Optional[str] = None
-    notice_date: Optional[str] = None
-    summons_date: Optional[str] = None
-    hearing_date: Optional[str] = None
-    answer_deadline: Optional[str] = None
-    rent_amount: Optional[float] = None
-    amount_owed: Optional[float] = None
-    eviction_reason: Optional[str] = None
-    defenses: Optional[list] = None
-    notes: Optional[str] = None
+    case_number: str | None = None
+    tenant_name: str | None = None
+    tenant_address: str | None = None
+    landlord_name: str | None = None
+    landlord_address: str | None = None
+    property_address: str | None = None
+    notice_date: str | None = None
+    summons_date: str | None = None
+    hearing_date: str | None = None
+    answer_deadline: str | None = None
+    rent_amount: float | None = None
+    amount_owed: float | None = None
+    eviction_reason: str | None = None
+    defenses: list | None = None
+    notes: str | None = None
 
 
 class TimelineEventCreate(BaseModel):
     """Create timeline event."""
     event_type: str
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     event_date: str
     is_evidence: bool = False
 
@@ -78,7 +74,7 @@ class CalendarEventCreate(BaseModel):
     title: str
     event_type: str
     start_datetime: str
-    end_datetime: Optional[str] = None
+    end_datetime: str | None = None
     is_critical: bool = False
     reminder_days: int = 3
 
@@ -92,11 +88,11 @@ class SyncResponse(BaseModel):
     """Sync status response."""
     status: str
     user_id: str
-    synced_at: Optional[str] = None
-    profile: Optional[dict] = None
-    case_summary: Optional[dict] = None
-    counts: Optional[dict] = None
-    message: Optional[str] = None
+    synced_at: str | None = None
+    profile: dict | None = None
+    case_summary: dict | None = None
+    counts: dict | None = None
+    message: str | None = None
 
 
 # =============================================================================
@@ -116,7 +112,7 @@ class MockStorageClient:
         """Check if storage is connected - always True for mock."""
         return True
 
-    async def read_file(self, path: str) -> Optional[str]:
+    async def read_file(self, path: str) -> str | None:
         """Read file from mock storage."""
         return self._data.get(path)
 
@@ -150,7 +146,7 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
 
     # Get a valid session with real storage provider
     session = await get_valid_session(db, user.user_id)
-    
+
     # Require real storage connection - no mock fallback
     if not session:
         raise HTTPException(
@@ -249,7 +245,7 @@ async def full_sync(
     """
     sync = await get_sync_service(user, db, settings)
     result = await sync.sync_all()
-    
+
     return SyncResponse(
         status=result.get("status", "error"),
         user_id=user.user_id,
@@ -297,12 +293,12 @@ async def update_profile(
     """
     sync = await get_sync_service(user, db, settings)
     profile = await sync.get_or_create_profile()
-    
+
     # Apply updates
     for field, value in update.model_dump(exclude_none=True).items():
         if hasattr(profile, field):
             setattr(profile, field, value)
-    
+
     await sync.save_profile(profile)
     return profile.to_dict()
 
@@ -337,12 +333,12 @@ async def update_case(
     """
     sync = await get_sync_service(user, db, settings)
     case = await sync.get_or_create_case()
-    
+
     # Apply updates
     for field, value in update.model_dump(exclude_none=True).items():
         if hasattr(case, field):
             setattr(case, field, value)
-    
+
     await sync.save_case(case)
     return case.to_dict()
 
@@ -378,7 +374,7 @@ async def add_timeline_event(
     from app.core.id_gen import make_id
 
     sync = await get_sync_service(user, db, settings)
-    
+
     event_data = {
         "id": make_id("evt"),
         "event_type": event.event_type,
@@ -388,7 +384,7 @@ async def add_timeline_event(
         "is_evidence": event.is_evidence,
         "created_at": utc_now().isoformat(),
     }
-    
+
     await sync.add_timeline_event(event_data)
     return event_data
 
@@ -436,7 +432,7 @@ async def add_calendar_event(
         "reminder_days": event.reminder_days,
         "created_at": utc_now().isoformat(),
     }
-    
+
     events.append(event_data)
     await sync.save_calendar(events)
     return event_data
@@ -476,7 +472,7 @@ async def import_all_data(
     """
     sync = await get_sync_service(user, db, settings)
     success = await sync.import_all(request.data)
-    
+
     if success:
         return {"status": "imported", "message": "Data imported successfully"}
     else:
@@ -501,9 +497,9 @@ async def get_documents(
     All documents are now stored in Semptify5.0/Vault/documents/
     """
     import json
-    
+
     sync = await get_sync_service(user, db, settings)
-    
+
     # Try to load from vault index first (new architecture)
     vault_folder = VAULT_DOCUMENTS
     try:
@@ -518,7 +514,7 @@ async def get_documents(
         }
     except Exception as e:
         logger.warning(f"Vault document index load failed, falling back to legacy: {e}")
-    
+
     # Fallback to legacy document index
     docs = await sync.load_document_index()
     return {"documents": docs, "count": len(docs), "source": "legacy"}
@@ -535,10 +531,10 @@ async def get_vault_index(
     Returns all documents stored in Semptify5.0/Vault/documents/ with their metadata.
     """
     import json
-    
+
     sync = await get_sync_service(user, db, settings)
     vault_folder = VAULT_DOCUMENTS
-    
+
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
@@ -548,7 +544,7 @@ async def get_vault_index(
             "document_count": len(vault_index.get("documents", [])),
             "user_id": user.user_id,
         }
-    except Exception as e:
+    except Exception:
         return {
             "success": False,
             "index": {"documents": [], "version": "1.0"},
@@ -570,14 +566,14 @@ async def get_vault_document(
     Returns the document metadata from the vault index.
     """
     import json
-    
+
     sync = await get_sync_service(user, db, settings)
     vault_folder = VAULT_DOCUMENTS
-    
+
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
-        
+
         for doc in vault_index.get("documents", []):
             if doc.get("document_id") == document_id:
                 return {
@@ -585,12 +581,12 @@ async def get_vault_document(
                     "document": doc,
                     "user_id": user.user_id,
                 }
-        
+
         raise HTTPException(status_code=404, detail="Document not found in vault")
-        
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to read vault")
         raise HTTPException(status_code=500, detail="Failed to read vault")
 
@@ -607,31 +603,32 @@ async def get_vault_document_content(
     Returns the raw file content for processing.
     """
     import json
+
     from fastapi.responses import Response
-    
+
     sync = await get_sync_service(user, db, settings)
     vault_folder = VAULT_DOCUMENTS
-    
+
     # Find document in index
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
-        
+
         doc_info = None
         for doc in vault_index.get("documents", []):
             if doc.get("document_id") == document_id:
                 doc_info = doc
                 break
-        
+
         if not doc_info:
             raise HTTPException(status_code=404, detail="Document not found in vault")
-        
+
         # Download content — prefer provider file id when recorded
         storage_path = doc_info.get("storage_path", f"{vault_folder}/{document_id}")
         provider_id = doc_info.get("provider_file_id") or doc_info.get("cloud_id")
         from app.services.storage.utils import download_prefer_id
         content = await download_prefer_id(sync.storage, storage_path, provider_file_id=provider_id)
-        
+
         return Response(
             content=content,
             media_type=doc_info.get("mime_type", "application/octet-stream"),
@@ -641,10 +638,10 @@ async def get_vault_document_content(
                 "X-SHA256": doc_info.get("sha256", ""),
             }
         )
-        
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to download")
         raise HTTPException(status_code=500, detail="Failed to download")
 
@@ -652,10 +649,10 @@ async def get_vault_document_content(
 @router.patch("/vault/document/{document_id}")
 async def update_vault_document(
     document_id: str,
-    processed: Optional[bool] = None,
-    registered: Optional[bool] = None,
-    document_type: Optional[str] = None,
-    tags: Optional[str] = None,
+    processed: bool | None = None,
+    registered: bool | None = None,
+    document_type: str | None = None,
+    tags: str | None = None,
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -665,15 +662,14 @@ async def update_vault_document(
     Used by processing modules to update document status.
     """
     import json
-    from datetime import datetime, timezone
-    
+
     sync = await get_sync_service(user, db, settings)
     vault_folder = VAULT_DOCUMENTS
-    
+
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
-        
+
         updated = False
         for doc in vault_index.get("documents", []):
             if doc.get("document_id") == document_id:
@@ -688,22 +684,22 @@ async def update_vault_document(
                 doc["updated_at"] = utc_now().isoformat()
                 updated = True
                 break
-        
+
         if not updated:
             raise HTTPException(status_code=404, detail="Document not found in vault")
-        
+
         vault_index["last_updated"] = utc_now().isoformat()
-        
+
         await sync.storage.upload_file(
             f"{vault_folder}/index.json",
             json.dumps(vault_index, indent=2).encode("utf-8")
         )
-        
+
         return {"success": True, "document_id": document_id, "message": "Document updated"}
-        
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to update")
         raise HTTPException(status_code=500, detail="Failed to update")
 
@@ -725,18 +721,18 @@ async def upload_document_to_cloud(
     All uploads go to .semptify/vault/ with document ID and user ID.
     This is the single source of truth for all documents.
     """
-    from app.core.id_gen import make_id
     import hashlib
     import json
-    from datetime import datetime, timezone
-    
+
+    from app.core.id_gen import make_id
+
     sync = await get_sync_service(user, db, settings)
-    
+
     # Read file content
     content = await file.read()
     filename = file.filename or "unknown"
     file_size = len(content)
-    
+
     # Check size limit
     max_size = settings.max_upload_size_mb * 1024 * 1024
     if file_size > max_size:
@@ -744,15 +740,15 @@ async def upload_document_to_cloud(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB"
         )
-    
+
     # Generate document ID and compute hash
     document_id = make_id("doc")
     sha256_hash = hashlib.sha256(content).hexdigest()
-    
+
     # Determine extension and safe filename
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "bin"
     safe_filename = f"{document_id}.{ext}"
-    
+
     # Detect mime type
     mime_types = {
         "pdf": "application/pdf",
@@ -763,15 +759,15 @@ async def upload_document_to_cloud(
         "txt": "text/plain",
     }
     mime_type = file.content_type or mime_types.get(ext, "application/octet-stream")
-    
+
     # Parse tags
     tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
-    
+
     # Ensure vault folders exist
     vault_folder = VAULT_DOCUMENTS
     certs_folder = VAULT_CERTIFICATES
     index_folder = VAULT_DOCUMENTS
-    
+
     try:
         await sync.storage.create_folder(SEMPTIFY_ROOT)
         await sync.storage.create_folder(VAULT_ROOT)
@@ -779,7 +775,7 @@ async def upload_document_to_cloud(
         await sync.storage.create_folder(certs_folder)
     except Exception:
         pass  # Folders may already exist
-    
+
     # Upload file to vault
     storage_path = f"{vault_folder}/{safe_filename}"
     try:
@@ -789,7 +785,7 @@ async def upload_document_to_cloud(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to upload to vault: {str(e)}"
         )
-    
+
     # Create certificate
     certificate_id = f"cert_{utc_now().strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
     certificate = {
@@ -811,14 +807,14 @@ async def upload_document_to_cloud(
         "version": "5.0",
         "platform": "Semptify Vault",
     }
-    
+
     # Upload certificate
     cert_content = json.dumps(certificate, indent=2).encode("utf-8")
     try:
         await sync.storage.upload_file(f"{certs_folder}/{certificate_id}.json", cert_content)
     except Exception:
         pass  # Certificate failed but file uploaded
-    
+
     # Update vault index
     try:
         # Load existing index
@@ -827,7 +823,7 @@ async def upload_document_to_cloud(
             vault_index = json.loads(index_content.decode("utf-8"))
         except Exception:
             vault_index = {"documents": [], "version": "1.0"}
-        
+
         # Add document to index
         vault_index["documents"].append({
             "document_id": document_id,
@@ -847,7 +843,7 @@ async def upload_document_to_cloud(
             "registered": False,
         })
         vault_index["last_updated"] = utc_now().isoformat()
-        
+
         # Save updated index
         await sync.storage.upload_file(
             f"{index_folder}/index.json",
@@ -855,9 +851,9 @@ async def upload_document_to_cloud(
         )
     except Exception as e:
         logger.warning(f"Failed to update vault index: {e}")
-    
+
     logger.info(f"● Document uploaded to vault: {filename} -> {document_id}")
-    
+
     return {
         "success": True,
         "document_id": document_id,
@@ -870,7 +866,7 @@ async def upload_document_to_cloud(
         "storage_path": storage_path,
         "folder": folder,
         "user_id": user.user_id,
-        "message": f"Document uploaded to vault"
+        "message": "Document uploaded to vault"
     }
 
 
@@ -892,7 +888,7 @@ async def check_storage_connection(
     try:
         sync = await get_sync_service(user, db, settings)
         connected = await sync.storage.is_connected()
-        
+
         return {
             "connected": connected,
             "user_id": user.user_id,

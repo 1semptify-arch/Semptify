@@ -9,12 +9,12 @@ This service subscribes to document events and pushes data to all consumers.
 """
 
 import logging
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any
 
-from app.core.event_bus import event_bus, EventType
+from app.core.event_bus import EventType, event_bus
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -35,52 +35,52 @@ class DistributedDocument:
     """A document ready for distribution to all modules"""
     # Core identifiers
     document_id: str
-    registry_id: Optional[str] = None
+    registry_id: str | None = None
     user_id: str = ""
-    
+
     # File info
     filename: str = ""
     mime_type: str = ""
     file_size: int = 0
-    storage_path: Optional[str] = None
-    content_hash: Optional[str] = None
-    
+    storage_path: str | None = None
+    content_hash: str | None = None
+
     # Classification
-    doc_type: Optional[str] = None
+    doc_type: str | None = None
     category: DocumentCategory = DocumentCategory.OTHER
     confidence: float = 0.0
-    
+
     # Extracted data
-    title: Optional[str] = None
-    summary: Optional[str] = None
-    full_text: Optional[str] = None
-    
+    title: str | None = None
+    summary: str | None = None
+    full_text: str | None = None
+
     # Key data points
-    key_dates: List[Dict[str, Any]] = None
-    key_parties: List[Dict[str, Any]] = None
-    key_amounts: List[Dict[str, Any]] = None
-    key_terms: List[str] = None
-    case_numbers: List[str] = None
-    
+    key_dates: list[dict[str, Any]] = None
+    key_parties: list[dict[str, Any]] = None
+    key_amounts: list[dict[str, Any]] = None
+    key_terms: list[str] = None
+    case_numbers: list[str] = None
+
     # Legal references
-    law_references: List[Dict[str, Any]] = None
-    matched_statutes: List[str] = None
-    
+    law_references: list[dict[str, Any]] = None
+    matched_statutes: list[str] = None
+
     # Intelligence
-    urgency_level: Optional[str] = None
-    action_items: List[Dict[str, Any]] = None
-    timeline_events: List[Dict[str, Any]] = None
-    
+    urgency_level: str | None = None
+    action_items: list[dict[str, Any]] = None
+    timeline_events: list[dict[str, Any]] = None
+
     # Registry status
     is_duplicate: bool = False
     integrity_verified: bool = False
     forgery_score: float = 0.0
     requires_review: bool = False
-    
+
     # Timestamps
-    uploaded_at: Optional[datetime] = None
-    processed_at: Optional[datetime] = None
-    
+    uploaded_at: datetime | None = None
+    processed_at: datetime | None = None
+
     def __post_init__(self):
         if self.key_dates is None:
             self.key_dates = []
@@ -100,8 +100,8 @@ class DistributedDocument:
             self.action_items = []
         if self.timeline_events is None:
             self.timeline_events = []
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "document_id": self.document_id,
             "registry_id": self.registry_id,
@@ -133,8 +133,8 @@ class DistributedDocument:
             "uploaded_at": self.uploaded_at.isoformat() if self.uploaded_at else None,
             "processed_at": self.processed_at.isoformat() if self.processed_at else None,
         }
-    
-    def to_briefcase_format(self) -> Dict[str, Any]:
+
+    def to_briefcase_format(self) -> dict[str, Any]:
         """Convert to briefcase document format"""
         return {
             "id": self.document_id,
@@ -161,8 +161,8 @@ class DistributedDocument:
                 "requires_review": self.requires_review,
             }
         }
-    
-    def to_form_data_format(self) -> Dict[str, Any]:
+
+    def to_form_data_format(self) -> dict[str, Any]:
         """Convert to form data format for case info extraction"""
         return {
             "id": self.document_id,
@@ -178,8 +178,8 @@ class DistributedDocument:
             "urgency_level": self.urgency_level,
             "action_items": self.action_items,
         }
-    
-    def to_court_packet_format(self) -> Dict[str, Any]:
+
+    def to_court_packet_format(self) -> dict[str, Any]:
         """Convert to court packet evidence format"""
         return {
             "id": self.document_id,
@@ -200,7 +200,7 @@ class DistributedDocument:
             "law_references": self.law_references,
             "timeline_events": self.timeline_events,
         }
-    
+
     def _get_file_type(self) -> str:
         """Get file type from mime type"""
         type_map = {
@@ -213,7 +213,7 @@ class DistributedDocument:
             "text/plain": "text",
         }
         return type_map.get(self.mime_type, "other")
-    
+
     def _get_briefcase_folder(self) -> str:
         """Determine appropriate briefcase folder"""
         if self.doc_type in ["court_summons", "court_complaint", "court_filing", "court_order", "motion", "affidavit"]:
@@ -227,7 +227,7 @@ class DistributedDocument:
         elif self.doc_type in ["eviction_notice", "notice_to_quit", "rent_increase_notice", "late_fee_notice"]:
             return "court"  # Notices are court-related
         return "root"
-    
+
     def _get_court_category(self) -> str:
         """Determine court packet category"""
         if self.doc_type in ["photo_evidence", "video_evidence"]:
@@ -239,29 +239,29 @@ class DistributedDocument:
         elif self.doc_type in ["receipt", "payment_record", "bank_statement"]:
             return "financial"
         return "other"
-    
-    def _generate_tags(self) -> List[str]:
+
+    def _generate_tags(self) -> list[str]:
         """Generate tags based on document content"""
         tags = []
-        
+
         if self.doc_type:
             tags.append(self.doc_type.replace("_", " ").title())
-        
+
         if self.urgency_level == "critical":
             tags.append("Urgent")
-        
+
         if self.category == DocumentCategory.EVIDENCE:
             tags.append("Evidence")
-        
+
         if self.category == DocumentCategory.COURT:
             tags.append("Court")
-        
+
         if len(self.key_amounts) > 0:
             tags.append("Financial")
-        
+
         if self.requires_review:
             tags.append("Review Needed")
-        
+
         return tags[:5]  # Limit to 5 tags
 
 
@@ -275,29 +275,29 @@ class DocumentDistributor:
     3. Pushes to Briefcase, Form Data, and Court Packet
     4. Emits events for real-time UI updates
     """
-    
+
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         # In-memory stores (in production, use database)
-        self._distributed_docs: Dict[str, DistributedDocument] = {}
-        self._user_docs: Dict[str, List[str]] = {}  # user_id -> [doc_ids]
-        
+        self._distributed_docs: dict[str, DistributedDocument] = {}
+        self._user_docs: dict[str, list[str]] = {}  # user_id -> [doc_ids]
+
         # Subscribe to document events
         self._setup_event_listeners()
-        
+
         self._initialized = True
         logger.info("DocumentDistributor initialized")
-    
+
     def _setup_event_listeners(self):
         """Set up event bus listeners"""
         try:
@@ -305,8 +305,8 @@ class DocumentDistributor:
             logger.info("DocumentDistributor subscribed to events")
         except Exception as e:
             logger.warning(f"Failed to set up event listeners: {e}")
-    
-    def _on_document_processed(self, event_data: Dict[str, Any]):
+
+    def _on_document_processed(self, event_data: dict[str, Any]):
         """Handle document processed events"""
         try:
             doc_id = event_data.get("document_id")
@@ -315,32 +315,32 @@ class DocumentDistributor:
                 self._emit_distribution_events(doc)
         except Exception as e:
             logger.error(f"Error handling document processed event: {e}")
-    
+
     def distribute_document(
         self,
         document_id: str,
         user_id: str,
-        registry_id: Optional[str] = None,
+        registry_id: str | None = None,
         filename: str = "",
         mime_type: str = "",
         file_size: int = 0,
-        storage_path: Optional[str] = None,
-        content_hash: Optional[str] = None,
-        doc_type: Optional[str] = None,
+        storage_path: str | None = None,
+        content_hash: str | None = None,
+        doc_type: str | None = None,
         confidence: float = 0.0,
-        title: Optional[str] = None,
-        summary: Optional[str] = None,
-        full_text: Optional[str] = None,
-        key_dates: Optional[List[Dict]] = None,
-        key_parties: Optional[List[Dict]] = None,
-        key_amounts: Optional[List[Dict]] = None,
-        key_terms: Optional[List[str]] = None,
-        case_numbers: Optional[List[str]] = None,
-        law_references: Optional[List[Dict]] = None,
-        matched_statutes: Optional[List[str]] = None,
-        urgency_level: Optional[str] = None,
-        action_items: Optional[List[Dict]] = None,
-        timeline_events: Optional[List[Dict]] = None,
+        title: str | None = None,
+        summary: str | None = None,
+        full_text: str | None = None,
+        key_dates: list[dict] | None = None,
+        key_parties: list[dict] | None = None,
+        key_amounts: list[dict] | None = None,
+        key_terms: list[str] | None = None,
+        case_numbers: list[str] | None = None,
+        law_references: list[dict] | None = None,
+        matched_statutes: list[str] | None = None,
+        urgency_level: str | None = None,
+        action_items: list[dict] | None = None,
+        timeline_events: list[dict] | None = None,
         is_duplicate: bool = False,
         integrity_verified: bool = False,
         forgery_score: float = 0.0,
@@ -353,7 +353,7 @@ class DocumentDistributor:
         """
         # Determine category from doc_type
         category = self._determine_category(doc_type)
-        
+
         # Create distributed document
         doc = DistributedDocument(
             document_id=document_id,
@@ -387,35 +387,35 @@ class DocumentDistributor:
             uploaded_at=utc_now(),
             processed_at=utc_now(),
         )
-        
+
         # Store document
         self._distributed_docs[document_id] = doc
         if user_id not in self._user_docs:
             self._user_docs[user_id] = []
         if document_id not in self._user_docs[user_id]:
             self._user_docs[user_id].append(document_id)
-        
+
         # Emit distribution events
         self._emit_distribution_events(doc)
-        
+
         logger.info(f"Distributed document {document_id} to all modules")
         return doc
-    
-    def _determine_category(self, doc_type: Optional[str]) -> DocumentCategory:
+
+    def _determine_category(self, doc_type: str | None) -> DocumentCategory:
         """Determine document category from type"""
         if not doc_type:
             return DocumentCategory.OTHER
-        
-        court_types = ["court_summons", "court_complaint", "court_filing", "court_order", 
+
+        court_types = ["court_summons", "court_complaint", "court_filing", "court_order",
                        "eviction_notice", "notice_to_quit", "motion", "affidavit"]
         evidence_types = ["photo_evidence", "video_evidence", "inspection_report"]
-        correspondence_types = ["email_communication", "text_message", "letter", 
+        correspondence_types = ["email_communication", "text_message", "letter",
                                "repair_request", "repair_response"]
         financial_types = ["receipt", "payment_record", "bank_statement", "utility_bill",
                           "rent_increase_notice", "late_fee_notice"]
         lease_types = ["lease", "lease_amendment", "move_in_checklist", "move_out_checklist",
                       "security_deposit_receipt", "security_deposit_itemization"]
-        
+
         if doc_type in court_types:
             return DocumentCategory.COURT
         elif doc_type in evidence_types:
@@ -426,9 +426,9 @@ class DocumentDistributor:
             return DocumentCategory.FINANCIAL
         elif doc_type in lease_types:
             return DocumentCategory.LEASE
-        
+
         return DocumentCategory.OTHER
-    
+
     def _emit_distribution_events(self, doc: DistributedDocument):
         """Emit events to notify all modules"""
         try:
@@ -439,7 +439,7 @@ class DocumentDistributor:
                 source="document_distributor",
                 user_id=doc.user_id,
             )
-            
+
             # Event for Form Data
             event_bus.publish_sync(
                 EventType.DOCUMENT_READY_FOR_FORMS,
@@ -447,7 +447,7 @@ class DocumentDistributor:
                 source="document_distributor",
                 user_id=doc.user_id,
             )
-            
+
             # Event for Court Packet
             event_bus.publish_sync(
                 EventType.DOCUMENT_READY_FOR_COURT_PACKET,
@@ -455,7 +455,7 @@ class DocumentDistributor:
                 source="document_distributor",
                 user_id=doc.user_id,
             )
-            
+
             # General fully processed event
             event_bus.publish_sync(
                 EventType.DOCUMENT_FULLY_PROCESSED,
@@ -463,63 +463,63 @@ class DocumentDistributor:
                 source="document_distributor",
                 user_id=doc.user_id,
             )
-            
+
             logger.debug(f"Emitted distribution events for {doc.document_id}")
         except Exception as e:
             logger.error(f"Error emitting distribution events: {e}")
-    
-    def get_document(self, document_id: str) -> Optional[DistributedDocument]:
+
+    def get_document(self, document_id: str) -> DistributedDocument | None:
         """Get a distributed document by ID"""
         return self._distributed_docs.get(document_id)
-    
-    def get_user_documents(self, user_id: str) -> List[DistributedDocument]:
+
+    def get_user_documents(self, user_id: str) -> list[DistributedDocument]:
         """Get all distributed documents for a user"""
         doc_ids = self._user_docs.get(user_id, [])
         return [self._distributed_docs[did] for did in doc_ids if did in self._distributed_docs]
-    
-    def get_briefcase_documents(self, user_id: str) -> List[Dict[str, Any]]:
+
+    def get_briefcase_documents(self, user_id: str) -> list[dict[str, Any]]:
         """Get all documents formatted for briefcase"""
         docs = self.get_user_documents(user_id)
         return [doc.to_briefcase_format() for doc in docs]
-    
-    def get_form_data_documents(self, user_id: str) -> List[Dict[str, Any]]:
+
+    def get_form_data_documents(self, user_id: str) -> list[dict[str, Any]]:
         """Get all documents formatted for form data"""
         docs = self.get_user_documents(user_id)
         return [doc.to_form_data_format() for doc in docs]
-    
-    def get_court_packet_documents(self, user_id: str) -> List[Dict[str, Any]]:
+
+    def get_court_packet_documents(self, user_id: str) -> list[dict[str, Any]]:
         """Get all documents formatted for court packet"""
         docs = self.get_user_documents(user_id)
         return [doc.to_court_packet_format() for doc in docs]
-    
+
     def get_documents_by_category(
         self, user_id: str, category: DocumentCategory
-    ) -> List[DistributedDocument]:
+    ) -> list[DistributedDocument]:
         """Get documents by category"""
         docs = self.get_user_documents(user_id)
         return [doc for doc in docs if doc.category == category]
-    
-    def get_urgent_documents(self, user_id: str) -> List[DistributedDocument]:
+
+    def get_urgent_documents(self, user_id: str) -> list[DistributedDocument]:
         """Get urgent documents requiring attention"""
         docs = self.get_user_documents(user_id)
         return [doc for doc in docs if doc.urgency_level in ["critical", "high"]]
-    
-    def get_documents_with_action_items(self, user_id: str) -> List[DistributedDocument]:
+
+    def get_documents_with_action_items(self, user_id: str) -> list[DistributedDocument]:
         """Get documents that have pending action items"""
         docs = self.get_user_documents(user_id)
         return [doc for doc in docs if doc.action_items]
-    
-    def get_extracted_case_info(self, user_id: str) -> Dict[str, Any]:
+
+    def get_extracted_case_info(self, user_id: str) -> dict[str, Any]:
         """Aggregate case information from all documents"""
         docs = self.get_user_documents(user_id)
-        
+
         all_dates = []
         all_parties = []
         all_amounts = []
         all_case_numbers = []
         all_action_items = []
         all_timeline_events = []
-        
+
         for doc in docs:
             all_dates.extend(doc.key_dates)
             all_parties.extend(doc.key_parties)
@@ -527,10 +527,10 @@ class DocumentDistributor:
             all_case_numbers.extend(doc.case_numbers)
             all_action_items.extend(doc.action_items)
             all_timeline_events.extend(doc.timeline_events)
-        
+
         # Deduplicate case numbers
         unique_case_numbers = list(set(all_case_numbers))
-        
+
         return {
             "documents_count": len(docs),
             "dates": all_dates,
@@ -547,7 +547,7 @@ class DocumentDistributor:
 # Singleton accessor
 # =============================================================================
 
-_distributor: Optional[DocumentDistributor] = None
+_distributor: DocumentDistributor | None = None
 
 
 def get_document_distributor() -> DocumentDistributor:

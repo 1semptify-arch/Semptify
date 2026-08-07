@@ -8,10 +8,10 @@ Used for dependency validation, mesh orchestration, and documentation.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Set
-from enum import Enum, auto
 import logging
+from dataclasses import dataclass
+from enum import Enum, auto
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +47,7 @@ class ModuleLink:
     module_type: ModuleType
     connection_point: str  # API endpoint, event channel, etc.
     required: bool = True  # If True, page fails without this module
-    fallback_behavior: Optional[str] = None  # What to do if module unavailable
+    fallback_behavior: str | None = None  # What to do if module unavailable
     data_flow: str = "bidirectional"  # inbound, outbound, bidirectional
 
 
@@ -55,7 +55,7 @@ class ModuleLink:
 # DOCUMENT PAGES MODULE LINKS
 # =============================================================================
 
-VAULT_MODULE_LINKS: List[ModuleLink] = [
+VAULT_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="document_vault",
         module_type=ModuleType.DOCUMENT,
@@ -82,7 +82,7 @@ VAULT_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-DOCUMENTS_MODULE_LINKS: List[ModuleLink] = [
+DOCUMENTS_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="document_index",
         module_type=ModuleType.DOCUMENT,
@@ -101,7 +101,7 @@ DOCUMENTS_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-DOCUMENT_VIEWER_MODULE_LINKS: List[ModuleLink] = [
+DOCUMENT_VIEWER_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="document_renderer",
         module_type=ModuleType.DOCUMENT,
@@ -125,7 +125,7 @@ DOCUMENT_VIEWER_MODULE_LINKS: List[ModuleLink] = [
 # CASE MANAGEMENT MODULE LINKS
 # =============================================================================
 
-DASHBOARD_MODULE_LINKS: List[ModuleLink] = [
+DASHBOARD_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="case_summary",
         module_type=ModuleType.CASE,
@@ -152,7 +152,7 @@ DASHBOARD_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-TIMELINE_MODULE_LINKS: List[ModuleLink] = [
+TIMELINE_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="event_store",
         module_type=ModuleType.CASE,
@@ -171,7 +171,7 @@ TIMELINE_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-CALENDAR_MODULE_LINKS: List[ModuleLink] = [
+CALENDAR_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="deadline_engine",
         module_type=ModuleType.CALENDAR,
@@ -195,7 +195,7 @@ CALENDAR_MODULE_LINKS: List[ModuleLink] = [
 # COURT / LEGAL MODULE LINKS
 # =============================================================================
 
-COURT_PACKET_MODULE_LINKS: List[ModuleLink] = [
+COURT_PACKET_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="form_assembly",
         module_type=ModuleType.FORMS,
@@ -222,7 +222,7 @@ COURT_PACKET_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-EVICTION_ANSWER_MODULE_LINKS: List[ModuleLink] = [
+EVICTION_ANSWER_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="defense_selector",
         module_type=ModuleType.FORMS,
@@ -249,7 +249,7 @@ EVICTION_ANSWER_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-HEARING_PREP_MODULE_LINKS: List[ModuleLink] = [
+HEARING_PREP_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="talking_points_generator",
         module_type=ModuleType.COPILOT,
@@ -276,7 +276,7 @@ HEARING_PREP_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-ZOOM_COURT_MODULE_LINKS: List[ModuleLink] = [
+ZOOM_COURT_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="zoom_integration",
         module_type=ModuleType.COURT,
@@ -295,7 +295,7 @@ ZOOM_COURT_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-MOTIONS_MODULE_LINKS: List[ModuleLink] = [
+MOTIONS_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="motion_templates",
         module_type=ModuleType.FORMS,
@@ -314,7 +314,7 @@ MOTIONS_MODULE_LINKS: List[ModuleLink] = [
     ),
 ]
 
-LEGAL_ANALYSIS_MODULE_LINKS: List[ModuleLink] = [
+LEGAL_ANALYSIS_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="statute_lookup",
         module_type=ModuleType.RESEARCH,
@@ -346,7 +346,7 @@ LEGAL_ANALYSIS_MODULE_LINKS: List[ModuleLink] = [
 # STORAGE & SETUP MODULE LINKS
 # =============================================================================
 
-STORAGE_SETUP_MODULE_LINKS: List[ModuleLink] = [
+STORAGE_SETUP_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="oauth_manager",
         module_type=ModuleType.IDENTITY,
@@ -370,7 +370,7 @@ STORAGE_SETUP_MODULE_LINKS: List[ModuleLink] = [
 # CRISIS MODULE LINKS
 # =============================================================================
 
-CRISIS_INTAKE_MODULE_LINKS: List[ModuleLink] = [
+CRISIS_INTAKE_MODULE_LINKS: list[ModuleLink] = [
     ModuleLink(
         module_id="crisis_router",
         module_type=ModuleType.NOTIFICATION,
@@ -394,7 +394,7 @@ CRISIS_INTAKE_MODULE_LINKS: List[ModuleLink] = [
 # GLOBAL MODULE LINK REGISTRY
 # =============================================================================
 
-ALL_MODULE_LINKS: Dict[str, List[ModuleLink]] = {
+ALL_MODULE_LINKS: dict[str, list[ModuleLink]] = {
     "dashboard": DASHBOARD_MODULE_LINKS,
     "vault": VAULT_MODULE_LINKS,
     "documents": DOCUMENTS_MODULE_LINKS,
@@ -412,17 +412,17 @@ ALL_MODULE_LINKS: Dict[str, List[ModuleLink]] = {
 }
 
 
-def get_page_modules(page_id: str) -> List[ModuleLink]:
+def get_page_modules(page_id: str) -> list[ModuleLink]:
     """Get all module links for a page."""
     return ALL_MODULE_LINKS.get(page_id, [])
 
 
-def get_required_modules(page_id: str) -> List[ModuleLink]:
+def get_required_modules(page_id: str) -> list[ModuleLink]:
     """Get only required module links for a page."""
     return [m for m in get_page_modules(page_id) if m.required]
 
 
-def get_modules_by_type(module_type: ModuleType) -> List[str]:
+def get_modules_by_type(module_type: ModuleType) -> list[str]:
     """Get all page IDs that link to a specific module type."""
     pages = []
     for page_id, links in ALL_MODULE_LINKS.items():
@@ -431,7 +431,7 @@ def get_modules_by_type(module_type: ModuleType) -> List[str]:
     return pages
 
 
-def check_page_dependencies(page_id: str, available_modules: Set[str]) -> Dict[str, str]:
+def check_page_dependencies(page_id: str, available_modules: set[str]) -> dict[str, str]:
     """
     Check if a page's dependencies are satisfied.
     
@@ -440,7 +440,7 @@ def check_page_dependencies(page_id: str, available_modules: Set[str]) -> Dict[s
     """
     links = get_page_modules(page_id)
     results = {}
-    
+
     for link in links:
         if link.module_id in available_modules:
             results[link.module_id] = 'ok'
@@ -448,7 +448,7 @@ def check_page_dependencies(page_id: str, available_modules: Set[str]) -> Dict[s
             results[link.module_id] = 'blocked'
         else:
             results[link.module_id] = 'fallback'
-    
+
     return results
 
 
@@ -459,21 +459,21 @@ def check_page_dependencies(page_id: str, available_modules: Set[str]) -> Dict[s
 if __name__ == "__main__":
     logger.info("=== Module Links System ===")
     logger.info(f"Pages with module links: {len(ALL_MODULE_LINKS)}")
-    
+
     # Count by module type
-    type_counts: Dict[ModuleType, int] = {}
+    type_counts: dict[ModuleType, int] = {}
     for links in ALL_MODULE_LINKS.values():
         for link in links:
             type_counts[link.module_type] = type_counts.get(link.module_type, 0) + 1
-    
+
     logger.info("\nLinks by module type:")
     for mt, count in sorted(type_counts.items(), key=lambda x: x[1], reverse=True):
         logger.info(f"  {mt.name}: {count} links")
-    
+
     # Show sample
     logger.info("\nSample: dashboard modules")
     for link in DASHBOARD_MODULE_LINKS:
         req = "required" if link.required else "optional"
         logger.info(f"  - {link.module_id} ({req}) ▸ {link.connection_point}")
-    
-    logger.info(f"\n● Module links ready for health checks.")
+
+    logger.info("\n● Module links ready for health checks.")

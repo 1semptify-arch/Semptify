@@ -4,16 +4,15 @@ Court Packet Export API
 Generates court-ready document packets from Briefcase contents.
 """
 
-from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
-from typing import Dict, Any, List, Optional
-from datetime import datetime
-from app.core.utc import utc_now
-from app.core.request_utils import get_request_user_id
-import json
 import io
-import zipfile
 import logging
+import zipfile
+from typing import Any
+
+from fastapi import APIRouter, Request
+
+from app.core.request_utils import get_request_user_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/court-packet", tags=["Court Packet"])
@@ -32,14 +31,15 @@ except ImportError:
 
 # Import security for authentication
 try:
-    from app.core.security import require_user, StorageUser, yellow_access
     from fastapi import Depends
+
+    from app.core.security import StorageUser, require_user, yellow_access
     HAS_AUTH = True
 except ImportError:
     HAS_AUTH = False
 
 
-def _get_processed_documents(user_id: str) -> List[Dict[str, Any]]:
+def _get_processed_documents(user_id: str) -> list[dict[str, Any]]:
     """Get processed documents from the unified upload pipeline."""
     try:
         from app.services.document_distributor import get_document_distributor
@@ -50,7 +50,7 @@ def _get_processed_documents(user_id: str) -> List[Dict[str, Any]]:
 
 
 @router.get("/")
-async def get_packet_status(request: Request) -> Dict[str, Any]:
+async def get_packet_status(request: Request) -> dict[str, Any]:
     """
     Get current court packet status and contents summary.
     
@@ -59,15 +59,15 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
     - Unified upload pipeline (automatically categorized)
     """
     user_id = get_request_user_id(request)
-    
+
     # Count items from briefcase
     doc_count = len(briefcase_data.get("documents", {}))
     extraction_count = len(briefcase_data.get("extractions", {}))
     highlight_count = len(briefcase_data.get("highlights", {}))
-    
+
     # Get processed documents from unified upload
     processed_docs = _get_processed_documents(user_id)
-    
+
     # Categorize documents
     categories = {
         "evidence_photos": 0,
@@ -76,11 +76,11 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
         "financial": 0,
         "other": 0
     }
-    
+
     starred_docs = []
     all_timeline_events = []
     all_action_items = []
-    
+
     # Process briefcase documents
     for doc_id, doc in briefcase_data.get("documents", {}).items():
         cat = doc.get("category", "other")
@@ -88,14 +88,14 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
             categories[cat] += 1
         else:
             categories["other"] += 1
-        
+
         if doc.get("starred"):
             starred_docs.append({
                 "id": doc_id,
                 "name": doc.get("name"),
                 "type": doc.get("type")
             })
-    
+
     # Process unified upload documents
     for doc in processed_docs:
         cat = doc.get("category", "other")
@@ -103,7 +103,7 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
             categories[cat] += 1
         else:
             categories["other"] += 1
-        
+
         if doc.get("starred"):
             starred_docs.append({
                 "id": doc.get("id"),
@@ -112,12 +112,12 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
                 "doc_type": doc.get("doc_type"),
                 "registry_id": doc.get("registry_id"),
             })
-        
+
         # Collect timeline events and action items
         all_timeline_events.extend(doc.get("timeline_events", []))
-    
+
     total_doc_count = doc_count + len(processed_docs)
-    
+
     return {
         "success": True,
         "packet_summary": {
@@ -135,7 +135,7 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/documents")
-async def get_packet_documents(request: Request) -> Dict[str, Any]:
+async def get_packet_documents(request: Request) -> dict[str, Any]:
     """
     Get all documents available for court packet.
     
@@ -144,13 +144,13 @@ async def get_packet_documents(request: Request) -> Dict[str, Any]:
     - Unified upload pipeline (auto-processed)
     """
     user_id = get_request_user_id(request)
-    
+
     # Get briefcase documents
     briefcase_docs = list(briefcase_data.get("documents", {}).values())
-    
+
     # Get processed documents
     processed_docs = _get_processed_documents(user_id)
-    
+
     return {
         "success": True,
         "documents": {
@@ -162,17 +162,17 @@ async def get_packet_documents(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/evidence")
-async def get_packet_evidence(request: Request) -> Dict[str, Any]:
+async def get_packet_evidence(request: Request) -> dict[str, Any]:
     """
     Get all evidence documents for court packet.
     
     Filters to documents categorized as evidence from unified upload.
     """
     user_id = get_request_user_id(request)
-    
+
     processed_docs = _get_processed_documents(user_id)
     evidence_docs = [d for d in processed_docs if d.get("is_evidence") or d.get("category") == "evidence_photos"]
-    
+
     return {
         "success": True,
         "evidence": evidence_docs,
@@ -181,15 +181,15 @@ async def get_packet_evidence(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/legal-documents")
-async def get_packet_legal_docs(request: Request) -> Dict[str, Any]:
+async def get_packet_legal_docs(request: Request) -> dict[str, Any]:
     """
     Get all legal documents for court packet (notices, filings, etc.).
     """
     user_id = get_request_user_id(request)
-    
+
     processed_docs = _get_processed_documents(user_id)
     legal_docs = [d for d in processed_docs if d.get("category") == "legal_documents"]
-    
+
     return {
         "success": True,
         "legal_documents": legal_docs,
@@ -198,16 +198,16 @@ async def get_packet_legal_docs(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/timeline")
-async def get_packet_timeline(request: Request) -> Dict[str, Any]:
+async def get_packet_timeline(request: Request) -> dict[str, Any]:
     """
     Get aggregated timeline events from all processed documents.
     
     Useful for creating a chronological summary for court.
     """
     user_id = get_request_user_id(request)
-    
+
     processed_docs = _get_processed_documents(user_id)
-    
+
     all_events = []
     for doc in processed_docs:
         events = doc.get("timeline_events", [])
@@ -215,10 +215,10 @@ async def get_packet_timeline(request: Request) -> Dict[str, Any]:
             event["source_document"] = doc.get("name")
             event["source_doc_id"] = doc.get("id")
             all_events.append(event)
-    
+
     # Sort by date if available
     all_events.sort(key=lambda x: x.get("date", ""), reverse=False)
-    
+
     return {
         "success": True,
         "timeline_events": all_events,
@@ -227,12 +227,12 @@ async def get_packet_timeline(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/checklist")
-async def get_packet_checklist(request: Request) -> Dict[str, Any]:
+async def get_packet_checklist(request: Request) -> dict[str, Any]:
     """
     Get checklist of recommended items for court packet.
     """
     user_id = get_request_user_id(request)
-    
+
     checklist = [
         {
             "category": "Essential Documents",
@@ -262,15 +262,15 @@ async def get_packet_checklist(request: Request) -> Dict[str, Any]:
             ]
         }
     ]
-    
+
     # Get processed documents
     processed_docs = _get_processed_documents(user_id)
     processed_doc_types = set(d.get("doc_type") for d in processed_docs if d.get("doc_type"))
-    
+
     # Check what user has from briefcase
     docs = briefcase_data.get("documents", {})
     has_items = set()
-    
+
     for doc in docs.values():
         name_lower = doc.get("name", "").lower()
         if "eviction" in name_lower or "notice" in name_lower or "complaint" in name_lower:
@@ -285,23 +285,23 @@ async def get_packet_checklist(request: Request) -> Dict[str, Any]:
             has_items.add("Communication Records")
         if "receipt" in name_lower or "payment" in name_lower:
             has_items.add("Payment Records")
-    
+
     # Add status to checklist based on processed doc types
     for category in checklist:
         for item in category["items"]:
             # Check briefcase
             has_from_briefcase = item["name"] in has_items
-            
+
             # Check processed documents by doc_type
             has_from_processed = bool(set(item.get("doc_types", [])) & processed_doc_types)
-            
+
             item["has"] = has_from_briefcase or has_from_processed
             item["source"] = "processed" if has_from_processed else ("briefcase" if has_from_briefcase else None)
-    
+
     # Calculate completion
     total_required = sum(1 for cat in checklist for item in cat["items"] if item["required"])
     has_required = sum(1 for cat in checklist for item in cat["items"] if item["required"] and item["has"])
-    
+
     return {
         "success": True,
         "checklist": checklist,
@@ -320,7 +320,7 @@ async def generate_court_packet(
     include_extractions: bool = True,
     include_index: bool = True,
     format: str = "zip"  # zip or pdf
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Generate a court-ready document packet.
     
@@ -331,29 +331,29 @@ async def generate_court_packet(
     - Extracted pages
     """
     user_id = get_request_user_id(request)
-    
+
     try:
         # Get all items
         docs = briefcase_data.get("documents", {})
         extractions = briefcase_data.get("extractions", {}) if include_extractions else {}
         highlights = briefcase_data.get("highlights", {}) if include_highlights else {}
-        
+
         if not docs and not extractions:
             return {
                 "success": False,
                 "error": "No documents to export. Add documents to your Briefcase first."
             }
-        
+
         # Create ZIP in memory
         zip_buffer = io.BytesIO()
-        
+
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-            
+
             # 1. Create Evidence Index
             if include_index:
                 index_content = generate_evidence_index(docs, extractions, highlights)
                 zf.writestr("00_EVIDENCE_INDEX.txt", index_content)
-            
+
             # 2. Add documents
             doc_folder = "01_Documents/"
             for doc_id, doc in docs.items():
@@ -370,7 +370,7 @@ Notes:
 """
                 safe_name = doc.get('name', doc_id).replace('/', '_').replace('\\', '_')
                 zf.writestr(f"{doc_folder}{safe_name}_info.txt", doc_info)
-            
+
             # 3. Add extractions
             if extractions:
                 extract_folder = "02_Extracted_Pages/"
@@ -381,23 +381,23 @@ Pages: {ext.get('pages', 'Unknown')}
 Extracted: {ext.get('created_at', 'Unknown')}
 """
                     zf.writestr(f"{extract_folder}{ext_id}_info.txt", ext_info)
-            
+
             # 4. Add highlights summary
             if highlights:
                 highlight_summary = generate_highlights_summary(highlights)
                 zf.writestr("03_HIGHLIGHTS_SUMMARY.txt", highlight_summary)
-            
+
             # 5. Add cover sheet
             cover = generate_cover_sheet(docs, extractions, highlights)
             zf.writestr("COURT_PACKET_COVER.txt", cover)
-        
+
         # Save to temp location and return download info
         zip_buffer.seek(0)
-        
+
         # In real implementation, would save to file system or cloud
         # For now, store in memory with ID
         packet_id = f"packet_{utc_now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         return {
             "success": True,
             "packet_id": packet_id,
@@ -410,7 +410,7 @@ Extracted: {ext.get('created_at', 'Unknown')}
             "download_url": f"/api/court-packet/download/{packet_id}",
             "message": "Court packet generated successfully!"
         }
-        
+
     except Exception as e:
         logger.error(f"Error generating court packet: {e}")
         return {
@@ -419,7 +419,7 @@ Extracted: {ext.get('created_at', 'Unknown')}
         }
 
 
-def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> str:
+def generate_evidence_index(docs: dict, extractions: dict, highlights: dict) -> str:
     """Generate a text evidence index."""
     lines = [
         "=" * 60,
@@ -430,7 +430,7 @@ def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> 
         "DOCUMENTS",
         "-" * 40,
     ]
-    
+
     for i, (doc_id, doc) in enumerate(docs.items(), 1):
         lines.append(f"{i}. {doc.get('name', 'Unknown')}")
         lines.append(f"   Type: {doc.get('type', 'Unknown')}")
@@ -438,7 +438,7 @@ def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> 
         if doc.get('starred'):
             lines.append("   ◆ STARRED - Key Evidence")
         lines.append("")
-    
+
     if extractions:
         lines.extend([
             "",
@@ -450,7 +450,7 @@ def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> 
             lines.append(f"   From: {ext.get('source_pdf', 'Unknown')}")
             lines.append(f"   Pages: {ext.get('pages', 'Unknown')}")
             lines.append("")
-    
+
     if highlights:
         lines.extend([
             "",
@@ -458,17 +458,17 @@ def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> 
             "(See HIGHLIGHTS_SUMMARY.txt for details)",
             "",
         ])
-    
+
     lines.extend([
         "=" * 60,
         "END OF INDEX",
         "=" * 60,
     ])
-    
+
     return "\n".join(lines)
 
 
-def generate_highlights_summary(highlights: Dict) -> str:
+def generate_highlights_summary(highlights: dict) -> str:
     """Generate highlights summary organized by color/type."""
     lines = [
         "=" * 60,
@@ -477,7 +477,7 @@ def generate_highlights_summary(highlights: Dict) -> str:
         "=" * 60,
         "",
     ]
-    
+
     # Group by color
     by_color = {}
     color_labels = {
@@ -488,13 +488,13 @@ def generate_highlights_summary(highlights: Dict) -> str:
         "orange": "◆ DEADLINES",
         "red": "◆ VIOLATIONS"
     }
-    
+
     for h_id, h in highlights.items():
         color = h.get("color", "yellow")
         if color not in by_color:
             by_color[color] = []
         by_color[color].append(h)
-    
+
     for color, items in by_color.items():
         label = color_labels.get(color, color.upper())
         lines.append(f"\n{label}")
@@ -505,11 +505,11 @@ def generate_highlights_summary(highlights: Dict) -> str:
                 lines.append(f"  Note: {item.get('note')}")
             lines.append(f"  Source: {item.get('pdf_name', 'Unknown')} (Page {item.get('page', '?')})")
             lines.append("")
-    
+
     return "\n".join(lines)
 
 
-def generate_cover_sheet(docs: Dict, extractions: Dict, highlights: Dict) -> str:
+def generate_cover_sheet(docs: dict, extractions: dict, highlights: dict) -> str:
     """Generate cover sheet for court packet."""
     return f"""
 ╔══════════════════════════════════════════════════════════════╗
@@ -553,14 +553,14 @@ https://semptify.org
 
 
 @router.get("/preview")
-async def preview_packet(request: Request) -> Dict[str, Any]:
+async def preview_packet(request: Request) -> dict[str, Any]:
     """
     Preview what would be included in the court packet.
     """
     docs = briefcase_data.get("documents", {})
     extractions = briefcase_data.get("extractions", {})
     highlights = briefcase_data.get("highlights", {})
-    
+
     preview = {
         "documents": [
             {
@@ -583,7 +583,7 @@ async def preview_packet(request: Request) -> Dict[str, Any]:
         ],
         "highlights_by_color": {}
     }
-    
+
     # Group highlights by color
     for h_id, h in highlights.items():
         color = h.get("color", "yellow")
@@ -595,7 +595,7 @@ async def preview_packet(request: Request) -> Dict[str, Any]:
             "pdf": h.get("pdf_name"),
             "page": h.get("page")
         })
-    
+
     return {
         "success": True,
         "preview": preview,

@@ -14,20 +14,19 @@ GET endpoints allow self-inspection (user can read their own capabilities).
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.capabilities import (
-    get_user_capabilities,
-    grant_capability,
-    revoke_capability,
     attach_overlay,
     detach_overlay,
     get_overlay_modules,
+    get_user_capabilities,
+    grant_capability,
     require_capability,
+    revoke_capability,
 )
 from app.core.database import get_db
 from app.core.security import get_current_user

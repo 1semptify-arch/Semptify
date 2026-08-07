@@ -6,7 +6,6 @@ management, logging, and statistics endpoints.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="core_system",
     group_name="core_system_health_check",

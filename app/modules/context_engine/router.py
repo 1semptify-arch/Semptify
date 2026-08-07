@@ -13,15 +13,13 @@ Endpoints:
 """
 
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from app.core.request_utils import require_request_user_id
-from app.core.user_context import get_role_from_user_id, UserRole
-from app.modules.context_engine import cache as ctx_cache
-from app.modules.context_engine import stories as ctx_stories
+from app.core.user_context import UserRole, get_role_from_user_id
+from app.modules.context_engine import cache as ctx_cache, stories as ctx_stories
 from app.modules.context_engine.gatherer import gather_for_subject
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS, SUBJECT_LABELS
 from app.modules.context_engine.verifier import verify_subject
@@ -53,7 +51,7 @@ def _require_authenticated(user_id: str) -> None:
 class RefreshRequest(BaseModel):
     subject: str = Field(..., description="One of the 13 subjects")
     jurisdiction: str = Field(default="MN")
-    query: Optional[str] = None
+    query: str | None = None
 
 
 class StorySubmitRequest(BaseModel):
@@ -66,8 +64,8 @@ class StorySubmitRequest(BaseModel):
 
 class ModerateStoryRequest(BaseModel):
     publish: bool
-    title: Optional[str] = None
-    body: Optional[str] = None
+    title: str | None = None
+    body: str | None = None
 
 
 class VerifyRequest(BaseModel):
@@ -147,7 +145,7 @@ async def refresh_facts(body: RefreshRequest, request: Request):
 @router.get("/stories")
 async def get_stories(
     request: Request,
-    subject: Optional[str] = Query(default=None),
+    subject: str | None = Query(default=None),
     jurisdiction: str = Query(default="MN"),
     limit: int = Query(default=10, ge=1, le=50),
 ):

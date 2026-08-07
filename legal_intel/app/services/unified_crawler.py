@@ -1,6 +1,6 @@
 # app/services/unified_crawler.py
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from ..models import Attorney, Case, Docket, Entity
@@ -14,12 +14,12 @@ async def upsert_attorney(db: AsyncSession, bar_number: str, state: str = "MN") 
     )
     attorney = result.scalar_one_or_none()
     if not attorney:
-        attorney = Attorney(name="", bar_number=bar_number, state=state, last_seen=datetime.utcnow())
+        attorney = Attorney(name="", bar_number=bar_number, state=state, last_seen=datetime.now(timezone.utc))
         db.add(attorney)
         await db.commit()
         await db.refresh(attorney)
     else:
-        attorney.last_seen = datetime.utcnow()
+        attorney.last_seen = datetime.now(timezone.utc)
         await db.commit()
     return attorney
 
@@ -74,9 +74,9 @@ async def upsert_case(db: AsyncSession, attorney: Attorney, case_data: Dict) -> 
                     try:
                         filing_date = datetime.strptime(case_data["filing_date"], fmt).date()
                         break
-                    except:
+                    except Exception:
                         continue
-        except:
+        except Exception:
             pass
     
     if not case:
@@ -88,13 +88,13 @@ async def upsert_case(db: AsyncSession, attorney: Attorney, case_data: Dict) -> 
             status=case_data.get("status"),
             filing_date=filing_date,
             attorney_id=attorney.id,
-            last_crawled=datetime.utcnow(),
+            last_crawled=datetime.now(timezone.utc),
         )
         db.add(case)
         await db.commit()
         await db.refresh(case)
     else:
-        case.last_crawled = datetime.utcnow()
+        case.last_crawled = datetime.now(timezone.utc)
         # Update with new data if available
         if case_data.get("status"):
             case.status = case_data["status"]

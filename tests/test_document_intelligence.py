@@ -11,24 +11,18 @@ Tests the complete intelligence analysis including:
 """
 
 import pytest
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock
 
 from app.services.document_intelligence import (
     DocumentIntelligenceService,
-    get_document_intelligence,
-    analyze_document,
-    UrgencyLevel,
-    ActionItem,
-    LegalInsight,
-    TimelineEvent,
     IntelligenceResult,
+    UrgencyLevel,
+    analyze_document,
+    get_document_intelligence,
 )
 from app.services.document_recognition import (
     DocumentCategory,
     DocumentType,
 )
-
 
 # =============================================================================
 # FIXTURES
@@ -197,8 +191,8 @@ class TestClassification:
 
     @pytest.mark.asyncio
     async def test_court_summons_classification(
-        self, 
-        intelligence_service, 
+        self,
+        intelligence_service,
         court_summons_text
     ):
         """Test classification of court summons."""
@@ -206,7 +200,7 @@ class TestClassification:
             court_summons_text,
             "Summons_12345.pdf"
         )
-        
+
         assert result.category == DocumentCategory.COURT
         assert result.document_type == DocumentType.SUMMONS
         assert result.confidence >= 0.6  # Adjusted for realistic threshold
@@ -223,11 +217,11 @@ class TestClassification:
             eviction_notice_text,
             "Pay_or_Quit_Notice.pdf"
         )
-        
+
         # Should be landlord category with notice type
         assert result.category in [DocumentCategory.LANDLORD, DocumentCategory.COURT]
         assert result.document_type in [
-            DocumentType.EVICTION_NOTICE, 
+            DocumentType.EVICTION_NOTICE,
             DocumentType.NOTICE_TO_QUIT,
             DocumentType.LATE_NOTICE,
         ]
@@ -244,7 +238,7 @@ class TestClassification:
             lease_text,
             "lease_agreement.pdf"
         )
-        
+
         assert result.document_type == DocumentType.LEASE
         assert result.confidence >= 0.8
 
@@ -259,7 +253,7 @@ class TestClassification:
             writ_text,
             "writ.pdf"
         )
-        
+
         assert result.category == DocumentCategory.COURT
         assert result.document_type == DocumentType.WRIT
         assert result.confidence >= 0.8
@@ -280,7 +274,7 @@ class TestUrgencyAssessment:
     ):
         """Writ of restitution should be critical urgency."""
         result = await intelligence_service.analyze(writ_text, "writ.pdf")
-        
+
         assert result.urgency == UrgencyLevel.CRITICAL
         assert "writ" in result.urgency_reason.lower() or "24" in result.urgency_reason
 
@@ -295,7 +289,7 @@ class TestUrgencyAssessment:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         assert result.urgency == UrgencyLevel.CRITICAL
 
     @pytest.mark.asyncio
@@ -309,10 +303,10 @@ class TestUrgencyAssessment:
             eviction_notice_text,
             "Pay_or_Quit_Notice.pdf"
         )
-        
+
         # Should be at least some urgency due to eviction/notice content
         assert result.urgency in [
-            UrgencyLevel.HIGH, 
+            UrgencyLevel.HIGH,
             UrgencyLevel.CRITICAL,
             UrgencyLevel.MEDIUM,
             UrgencyLevel.NORMAL  # May be normal if deadline extraction fails
@@ -326,7 +320,7 @@ class TestUrgencyAssessment:
     ):
         """Lease agreement should be normal urgency."""
         result = await intelligence_service.analyze(lease_text, "lease.pdf")
-        
+
         assert result.urgency in [UrgencyLevel.NORMAL, UrgencyLevel.MEDIUM]
 
 
@@ -348,7 +342,7 @@ class TestEntityExtraction:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         assert len(result.case_numbers) > 0
         assert any("27-CV-25-12345" in cn for cn in result.case_numbers)
 
@@ -363,7 +357,7 @@ class TestEntityExtraction:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         # Party extraction may or may not find parties depending on format
         # At minimum, case number and basic classification should work
         assert result.document_type == DocumentType.SUMMONS
@@ -384,7 +378,7 @@ class TestEntityExtraction:
             eviction_notice_text,
             "notice.pdf"
         )
-        
+
         assert len(result.key_amounts) >= 1
         # Should find the $2,450 total
         amounts = [a["amount"] for a in result.key_amounts]
@@ -399,7 +393,7 @@ class TestEntityExtraction:
     ):
         """Test date extraction."""
         result = await intelligence_service.analyze(lease_text, "lease.pdf")
-        
+
         assert len(result.key_dates) >= 1
         # Should find lease start/end dates
         dates = [d["date"] for d in result.key_dates]
@@ -424,7 +418,7 @@ class TestActionItems:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         assert len(result.action_items) >= 1
         titles = [a.title.lower() for a in result.action_items]
         assert any("respond" in t or "answer" in t for t in titles)
@@ -437,7 +431,7 @@ class TestActionItems:
     ):
         """Writ should generate critical action item."""
         result = await intelligence_service.analyze(writ_text, "writ.pdf")
-        
+
         assert len(result.action_items) >= 1
         # First action should be priority 1
         assert result.action_items[0].priority == 1
@@ -455,10 +449,10 @@ class TestActionItems:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         titles = [a.title.lower() for a in result.action_items]
         descriptions = [a.description.lower() for a in result.action_items]
-        
+
         # Should recommend legal help somewhere
         has_legal_help = any(
             "legal" in t or "attorney" in t or "legal" in d
@@ -485,7 +479,7 @@ class TestLegalInsights:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         assert len(result.legal_insights) >= 1
         # Should reference 504B (MN tenant law)
         statutes = [l.statute for l in result.legal_insights]
@@ -502,7 +496,7 @@ class TestLegalInsights:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         for insight in result.legal_insights:
             # At least some insights should have tenant rights
             if insight.statute and "504B" in insight.statute:
@@ -527,7 +521,7 @@ class TestTimelineEvents:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         # May generate events if dates are found
         if result.key_dates:
             assert len(result.timeline_events) >= 1
@@ -540,10 +534,10 @@ class TestTimelineEvents:
     ):
         """Timeline events should have proper types."""
         result = await intelligence_service.analyze(lease_text, "lease.pdf")
-        
+
         for event in result.timeline_events:
             assert event.event_type in [
-                "deadline", "hearing", "notice", 
+                "deadline", "hearing", "notice",
                 "payment", "filing", "date"
             ]
 
@@ -566,7 +560,7 @@ class TestPlainEnglish:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         assert result.plain_english_explanation
         assert len(result.plain_english_explanation) > 50
         # Should explain what a summons is
@@ -582,7 +576,7 @@ class TestPlainEnglish:
     ):
         """Writ explanation should be urgent."""
         result = await intelligence_service.analyze(writ_text, "writ.pdf")
-        
+
         # Should have urgent markers
         explanation_lower = result.plain_english_explanation.lower()
         assert any(word in explanation_lower for word in [
@@ -608,9 +602,9 @@ class TestSerialization:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         data = result.to_dict()
-        
+
         assert "document_id" in data
         assert "classification" in data
         assert "understanding" in data
@@ -631,10 +625,10 @@ class TestSerialization:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         data = result.to_dict()
         classification = data["classification"]
-        
+
         assert "category" in classification
         assert "document_type" in classification
         assert "confidence" in classification
@@ -655,7 +649,7 @@ class TestConvenienceFunctions:
             court_summons_text,
             "summons.pdf"
         )
-        
+
         assert isinstance(result, IntelligenceResult)
         assert result.document_type == DocumentType.SUMMONS
 
@@ -663,7 +657,7 @@ class TestConvenienceFunctions:
         """Test singleton pattern."""
         service1 = get_document_intelligence()
         service2 = get_document_intelligence()
-        
+
         assert service1 is service2
 
 
@@ -678,7 +672,7 @@ class TestEdgeCases:
     async def test_empty_text(self, intelligence_service):
         """Test handling of empty text."""
         result = await intelligence_service.analyze("", "empty.pdf")
-        
+
         assert result.document_type == DocumentType.UNKNOWN
         assert result.confidence < 0.5
 
@@ -689,7 +683,7 @@ class TestEdgeCases:
             "asdfghjkl qwertyuiop zxcvbnm",
             "garbage.txt"
         )
-        
+
         assert result.document_type == DocumentType.UNKNOWN
         assert result.confidence < 0.5
 
@@ -700,7 +694,7 @@ class TestEdgeCases:
             "Rent due",
             "note.txt"
         )
-        
+
         # Should still return a valid result
         assert result.category is not None
         assert result.document_type is not None
@@ -714,5 +708,5 @@ class TestEdgeCases:
             "test.pdf",
             document_id=custom_id
         )
-        
+
         assert result.document_id == custom_id

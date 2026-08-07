@@ -1,4 +1,5 @@
 import logging
+
 """
 Document Registry API Router
 
@@ -11,24 +12,20 @@ Provides endpoints for:
 - Chain of custody tracking
 """
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query, Request
-from pydantic import BaseModel, Field
-from typing import Optional
-from datetime import datetime
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
+from pydantic import BaseModel
+
+from app.core.security import UserContext, green_access
 from app.core.utc import utc_now
-
-from app.core.security import get_optional_user_id, require_user, UserContext, green_access
 from app.services.document_registry import (
-    get_document_registry,
-    DocumentStatus,
-    IntegrityStatus,
-    ForgeryIndicator,
     CustodyAction,
+    DocumentStatus,
+    ForgeryIndicator,
+    IntegrityStatus,
     RegisteredDocument,
-    CustodyRecord,
-    ForgeryAlert,
+    get_document_registry,
 )
-
 
 router = APIRouter(prefix="/api/registry", tags=["Document Registry"])
 
@@ -43,8 +40,8 @@ class CustodyRecordResponse(BaseModel):
     action: str
     actor: str
     details: str
-    ip_address: Optional[str] = None
-    integrity_hash: Optional[str] = None
+    ip_address: str | None = None
+    integrity_hash: str | None = None
 
 
 class ForgeryAlertResponse(BaseModel):
@@ -52,8 +49,8 @@ class ForgeryAlertResponse(BaseModel):
     indicator: str
     severity: str
     description: str
-    affected_area: Optional[str] = None
-    evidence: Optional[str] = None
+    affected_area: str | None = None
+    evidence: str | None = None
     detected_at: str
 
 
@@ -62,7 +59,7 @@ class DocumentRegistrationResponse(BaseModel):
     document_id: str
     status: str
     is_duplicate: bool
-    original_document_id: Optional[str] = None
+    original_document_id: str | None = None
     content_hash: str
     integrity_status: str
     forgery_score: float
@@ -76,7 +73,7 @@ class RegisteredDocumentResponse(BaseModel):
     """Full registered document response."""
     document_id: str
     user_id: str
-    case_number: Optional[str] = None
+    case_number: str | None = None
     original_filename: str
     file_size: int
     mime_type: str
@@ -86,16 +83,16 @@ class RegisteredDocumentResponse(BaseModel):
     status: str
     integrity_status: str
     is_duplicate: bool
-    original_document_id: Optional[str] = None
+    original_document_id: str | None = None
     duplicate_count: int
     forgery_alerts: list[ForgeryAlertResponse]
     forgery_score: float
     requires_review: bool
     registered_at: str
-    last_verified_at: Optional[str] = None
-    last_accessed_at: Optional[str] = None
+    last_verified_at: str | None = None
+    last_accessed_at: str | None = None
     custody_chain: list[CustodyRecordResponse]
-    intake_document_id: Optional[str] = None
+    intake_document_id: str | None = None
 
 
 class VerificationResponse(BaseModel):
@@ -110,7 +107,7 @@ class VerificationResponse(BaseModel):
 class FlagDocumentRequest(BaseModel):
     """Request to flag a document."""
     reason: str
-    indicator: Optional[str] = None
+    indicator: str | None = None
 
 
 class AssociateCaseRequest(BaseModel):
@@ -137,8 +134,8 @@ async def register_document(
     request: Request,
     file: UploadFile = File(...),
     user_id: str = Form(..., description="User ID"),
-    case_number: Optional[str] = Form(None, description="Case number to associate"),
-    intake_document_id: Optional[str] = Form(None, description="Linked intake document ID"),
+    case_number: str | None = Form(None, description="Case number to associate"),
+    intake_document_id: str | None = Form(None, description="Linked intake document ID"),
 ):
     """
     Register a new document in the system.
@@ -151,20 +148,20 @@ async def register_document(
     - Initial custody record
     """
     registry = get_document_registry()
-    
+
     # Read file content
     content = await file.read()
-    
+
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
-    
+
     if len(content) > 50 * 1024 * 1024:  # 50MB limit
         raise HTTPException(status_code=400, detail="File too large (max 50MB)")
-    
+
     # Get client info for custody chain
     ip_address = request.client.host if request.client else None
     device_info = request.headers.get("User-Agent", "")[:200]
-    
+
     # Register the document
     doc = registry.register_document(
         user_id=user_id,
@@ -176,21 +173,21 @@ async def register_document(
         ip_address=ip_address,
         device_info=device_info,
     )
-    
+
     # Build message based on results
     messages = []
     messages.append(f"Document registered with ID: {doc.document_id}")
-    
+
     if doc.is_duplicate:
         messages.append(f"◆ DUPLICATE: This is a copy of document {doc.original_document_id}")
-    
+
     if doc.forgery_score > 0.7:
         messages.append("◆ HIGH FORGERY RISK: Document quarantined for review")
     elif doc.forgery_score > 0.3:
         messages.append("◆ FORGERY INDICATORS DETECTED: Flagged for review")
     elif doc.forgery_alerts:
         messages.append("ℹ Minor concerns detected - see alerts")
-    
+
     return DocumentRegistrationResponse(
         document_id=doc.document_id,
         status=doc.status.value,
@@ -224,15 +221,15 @@ async def register_document(
 async def get_document(doc_id: str, request: Request, user: UserContext = Depends(green_access)):
     """Get a registered document by its ID. User must own the document."""
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     # SECURITY: Verify user owns this document
     if doc.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
-    
+
     # Record access
     ip_address = request.client.host if request.client else None
     registry.record_access(
@@ -242,19 +239,19 @@ async def get_document(doc_id: str, request: Request, user: UserContext = Depend
         details="Document retrieved via API",
         ip_address=ip_address,
     )
-    
+
     return _doc_to_response(doc)
 
 
 @router.get("/documents", response_model=list[RegisteredDocumentResponse])
 async def list_documents(
     user: UserContext = Depends(green_access),
-    case_number: Optional[str] = Query(None, description="Filter by case number"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    case_number: str | None = Query(None, description="Filter by case number"),
+    status: str | None = Query(None, description="Filter by status"),
 ):
     """List registered documents for the authenticated user with optional filters."""
     registry = get_document_registry()
-    
+
     # SECURITY: Always filter by user_id - never return all documents
     if case_number:
         # Get case documents, then filter to only user's docs
@@ -263,14 +260,14 @@ async def list_documents(
     else:
         # Get only user's documents
         docs = registry.get_documents_by_user(user.user_id)
-    
+
     if status:
         try:
             status_filter = DocumentStatus(status)
             docs = [d for d in docs if d.status == status_filter]
         except ValueError as e:
             logging.warning(f"Document query failed: {e}")
-    
+
     return [_doc_to_response(d) for d in docs]
 
 
@@ -278,25 +275,25 @@ async def list_documents(
 async def delete_document(doc_id: str, user: UserContext = Depends(green_access)):
     """Delete a single registered document. User must own the document."""
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     # SECURITY: Verify user owns this document
     if doc.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
-    
+
     # Remove from registry
     if doc_id in registry._documents:
         del registry._documents[doc_id]
-    
+
     # Remove from hash index
     if doc.content_hash in registry._hash_index:
         registry._hash_index[doc.content_hash].discard(doc_id)
         if not registry._hash_index[doc.content_hash]:
             del registry._hash_index[doc.content_hash]
-    
+
     return {"status": "deleted", "document_id": doc_id, "message": f"Document {doc_id} has been removed"}
 
 
@@ -308,16 +305,16 @@ async def clear_all_documents(
     """Clear all registered documents FOR THE CURRENT USER. Requires confirm=true."""
     if not confirm:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Set confirm=true to delete all your documents. This action cannot be undone."
         )
-    
+
     registry = get_document_registry()
-    
+
     # SECURITY: Only delete user's own documents
     user_docs = registry.get_documents_by_user(user.user_id)
     count = len(user_docs)
-    
+
     # Remove only user's documents
     for doc in user_docs:
         if doc.document_id in registry._documents:
@@ -326,7 +323,7 @@ async def clear_all_documents(
             registry._hash_index[doc.content_hash].discard(doc.document_id)
             if not registry._hash_index[doc.content_hash]:
                 del registry._hash_index[doc.content_hash]
-    
+
     return {
         "status": "cleared",
         "deleted_count": count,
@@ -338,15 +335,15 @@ async def clear_all_documents(
 async def get_duplicates(doc_id: str, user: UserContext = Depends(green_access)):
     """Get all duplicates of a document. User must own the document."""
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     # SECURITY: Verify user owns this document
     if doc.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
-    
+
     duplicates = registry.get_duplicates(doc_id)
     # Also filter duplicates to only show user's own duplicates
     duplicates = [d for d in duplicates if d.user_id == user.user_id]
@@ -357,20 +354,20 @@ async def get_duplicates(doc_id: str, user: UserContext = Depends(green_access))
 async def get_custody_chain(doc_id: str, user: UserContext = Depends(green_access)):
     """Get the full chain of custody for a document. User must own the document."""
     registry = get_document_registry()
-    
+
     # First check document exists and user owns it
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     # SECURITY: Verify user owns this document
     if doc.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
-    
+
     chain = registry.get_custody_chain(doc_id)
     if not chain:
         raise HTTPException(status_code=404, detail=f"No custody records for document {doc_id}")
-    
+
     return [
         CustodyRecordResponse(
             timestamp=c.timestamp.isoformat(),
@@ -400,16 +397,16 @@ async def verify_document(
     to detect any modifications.
     """
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     content = await file.read()
     status = registry.verify_integrity(doc_id, content)
-    
+
     verified = status == IntegrityStatus.VERIFIED
-    
+
     messages = {
         IntegrityStatus.VERIFIED: "● Document integrity verified - no tampering detected",
         IntegrityStatus.TAMPERED: "◆ TAMPER DETECTED - Document content has been modified!",
@@ -417,7 +414,7 @@ async def verify_document(
         IntegrityStatus.CORRUPTED: "◆ Document appears to be corrupted",
         IntegrityStatus.UNVERIFIED: "◆ Document could not be verified",
     }
-    
+
     return VerificationResponse(
         document_id=doc_id,
         status=status.value,
@@ -488,31 +485,31 @@ async def flag_document(
 ):
     """Flag a document for review (suspected forgery, alteration, etc.)."""
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     indicator = ForgeryIndicator.NONE
     if flag_request.indicator:
         try:
             indicator = ForgeryIndicator(flag_request.indicator)
         except ValueError:
             pass
-    
+
     ip_address = request.client.host if request.client else None
     actor = f"api_user@{ip_address}" if ip_address else "api_user"
-    
+
     success = registry.flag_document(
         doc_id=doc_id,
         reason=flag_request.reason,
         actor=actor,
         indicator=indicator,
     )
-    
+
     if not success:
         raise HTTPException(status_code=500, detail="Failed to flag document")
-    
+
     return {
         "document_id": doc_id,
         "status": "flagged",
@@ -529,23 +526,23 @@ async def associate_case(
 ):
     """Associate a document with a case number."""
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     ip_address = request.client.host if request.client else None
     actor = f"api_user@{ip_address}" if ip_address else "api_user"
-    
+
     success = registry.associate_case(
         doc_id=doc_id,
         case_number=case_request.case_number,
         actor=actor,
     )
-    
+
     if not success:
         raise HTTPException(status_code=500, detail="Failed to associate case")
-    
+
     return {
         "document_id": doc_id,
         "case_number": case_request.case_number,
@@ -624,10 +621,10 @@ async def get_case_documents(case_number: str):
     """Get all documents for a specific case."""
     registry = get_document_registry()
     docs = registry.get_documents_by_case(case_number)
-    
+
     if not docs:
         return []
-    
+
     return [_doc_to_response(d) for d in docs]
 
 
@@ -635,7 +632,7 @@ async def get_case_documents(case_number: str):
 async def list_cases():
     """List all cases with document counts."""
     registry = get_document_registry()
-    
+
     cases = []
     for case_number, doc_ids in registry._case_index.items():
         docs = [registry._documents.get(did) for did in doc_ids if did in registry._documents]
@@ -645,7 +642,7 @@ async def list_cases():
             "document_count": len(doc_ids),
             "flagged_count": flagged,
         })
-    
+
     return {
         "total_cases": len(cases),
         "cases": cases,

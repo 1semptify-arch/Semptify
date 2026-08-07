@@ -13,12 +13,13 @@ Features:
 - Hybrid search combining FTS with BM25
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass
-
-from sqlalchemy import text, func
-from sqlalchemy.ext.asyncio import AsyncSession
 import logging
+from dataclasses import dataclass
+from typing import Any
+
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,17 +43,17 @@ class PostgresFTSService:
     - ts_headline: Result highlighting
     - GIN index: Fast inverted index
     """
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
-    
+
     async def search_documents(
         self,
         query: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 20,
         highlight_max_length: int = 150
-    ) -> List[FTSResult]:
+    ) -> list[FTSResult]:
         """
         Search documents using PostgreSQL FTS.
         
@@ -67,7 +68,7 @@ class PostgresFTSService:
         """
         # Build the tsquery
         tsquery = self._build_tsquery(query)
-        
+
         # Build the SQL query
         sql = """
         SELECT 
@@ -83,20 +84,20 @@ class PostgresFTSService:
         FROM documents d
         WHERE d.search_vector @@ to_tsquery(:tsquery)
         """
-        
+
         params = {"tsquery": tsquery, "limit": limit}
-        
+
         if user_id:
             sql += " AND d.user_id = :user_id"
             params["user_id"] = user_id
-        
+
         sql += """
         ORDER BY rank DESC
         LIMIT :limit
         """
-        
+
         result = await self.db.execute(text(sql), params)
-        
+
         return [
             FTSResult(
                 document_id=row.id,
@@ -106,13 +107,13 @@ class PostgresFTSService:
             )
             for row in result.fetchall()
         ]
-    
+
     async def search_vault_items(
         self,
         query: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 20
-    ) -> List[FTSResult]:
+    ) -> list[FTSResult]:
         """
         Search vault items using PostgreSQL FTS.
         
@@ -125,7 +126,7 @@ class PostgresFTSService:
             List of FTSResult with ranked vault items
         """
         tsquery = self._build_tsquery(query)
-        
+
         sql = """
         SELECT 
             v.id,
@@ -140,20 +141,20 @@ class PostgresFTSService:
         FROM vault_items v
         WHERE v.search_vector @@ to_tsquery(:tsquery)
         """
-        
+
         params = {"tsquery": tsquery, "limit": limit}
-        
+
         if user_id:
             sql += " AND v.user_id = :user_id"
             params["user_id"] = user_id
-        
+
         sql += """
         ORDER BY rank DESC
         LIMIT :limit
         """
-        
+
         result = await self.db.execute(text(sql), params)
-        
+
         return [
             FTSResult(
                 document_id=row.id,
@@ -163,13 +164,13 @@ class PostgresFTSService:
             )
             for row in result.fetchall()
         ]
-    
+
     async def hybrid_search(
         self,
         query: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 20
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Hybrid search combining FTS with simple text search.
         
@@ -188,14 +189,14 @@ class PostgresFTSService:
         """
         # Get FTS results
         fts_results = await self.search_documents(query, user_id, limit)
-        
+
         # Get vault results
         vault_results = await self.search_vault_items(query, user_id, limit)
-        
+
         # Combine results
         all_results = []
         seen_ids = set()
-        
+
         # Add FTS results first (higher relevance)
         for result in fts_results:
             if result.document_id not in seen_ids:
@@ -207,7 +208,7 @@ class PostgresFTSService:
                     "source": "fts"
                 })
                 seen_ids.add(result.document_id)
-        
+
         # Add vault results
         for result in vault_results:
             if result.document_id not in seen_ids:
@@ -219,12 +220,12 @@ class PostgresFTSService:
                     "source": "fts"
                 })
                 seen_ids.add(result.document_id)
-        
+
         # Sort by rank and limit
         all_results.sort(key=lambda x: x["rank"], reverse=True)
-        
+
         return all_results[:limit]
-    
+
     def _build_tsquery(self, query: str) -> str:
         """
         Build a PostgreSQL tsquery from user input.
@@ -241,17 +242,17 @@ class PostgresFTSService:
         """
         # Clean and normalize
         words = query.strip().lower().split()
-        
+
         if not words:
             return ""
-        
+
         # Handle single word
         if len(words) == 1:
             return words[0]
-        
+
         # Join multiple words with AND operator (&)
         return " & ".join(words)
-    
+
     async def update_document_vector(self, document_id: str) -> bool:
         """
         Update the search vector for a document.
@@ -275,15 +276,15 @@ class PostgresFTSService:
             setweight(to_tsvector('english', COALESCE(extracted_text, '')), 'C')
         WHERE id = :document_id
         """
-        
+
         try:
             await self.db.execute(text(sql), {"document_id": document_id})
             await self.db.commit()
             return True
-        except Exception as e:
+        except Exception:
             await self.db.rollback()
             return False
-    
+
     async def update_vault_item_vector(self, item_id: str) -> bool:
         """
         Update the search vector for a vault item.
@@ -303,21 +304,21 @@ class PostgresFTSService:
             setweight(to_tsvector('english', COALESCE(tags::text, '')), 'D')
         WHERE id = :item_id
         """
-        
+
         try:
             await self.db.execute(text(sql), {"item_id": item_id})
             await self.db.commit()
             return True
-        except Exception as e:
+        except Exception:
             await self.db.rollback()
             return False
-    
+
     async def get_search_suggestions(
         self,
         partial: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 10
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Get search suggestions based on partial input.
         
@@ -332,39 +333,39 @@ class PostgresFTSService:
             List of suggested completions
         """
         suggestions = []
-        
+
         # Search document filenames
         doc_sql = """
         SELECT DISTINCT filename as suggestion
         FROM documents
         WHERE filename ILIKE :pattern
         """
-        
+
         params = {"pattern": f"%{partial}%", "limit": limit}
-        
+
         if user_id:
             doc_sql += " AND user_id = :user_id"
-        
+
         doc_sql += " LIMIT :limit"
-        
+
         result = await self.db.execute(text(doc_sql), params)
         suggestions.extend([row.suggestion for row in result.fetchall()])
-        
+
         # Search vault item titles
         vault_sql = """
         SELECT DISTINCT title as suggestion
         FROM vault_items
         WHERE title ILIKE :pattern
         """
-        
+
         if user_id:
             vault_sql += " AND user_id = :user_id"
-        
+
         vault_sql += " LIMIT :limit"
-        
+
         result = await self.db.execute(text(vault_sql), params)
         suggestions.extend([row.suggestion for row in result.fetchall()])
-        
+
         # Return unique suggestions
         seen = set()
         unique = []
@@ -372,7 +373,7 @@ class PostgresFTSService:
             if s and s.lower() not in seen:
                 unique.append(s)
                 seen.add(s.lower())
-        
+
         return unique[:limit]
 
 

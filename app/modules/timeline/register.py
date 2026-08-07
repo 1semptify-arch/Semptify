@@ -8,7 +8,6 @@ tenant's "story of what happened" and is the home page of the tenant GUI.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="timeline",
     group_name="timeline_unified_view",

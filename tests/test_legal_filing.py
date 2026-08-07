@@ -1,7 +1,5 @@
 import pytest
 
-from app.models.legal_filing_models import LegalCase
-
 
 @pytest.mark.skip(
     reason="No seed mechanism exists: legal_filing service reads cases from "

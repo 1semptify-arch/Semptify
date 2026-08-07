@@ -7,14 +7,15 @@ personalized action recommendations based on emotional state
 and case context.
 """
 
-from fastapi import APIRouter, Query, Depends
-from typing import Optional
+import logging
+
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser, yellow_access
-from app.services.action_router import action_router, ActionCategory, ActionPriority
+from app.core.security import StorageUser, yellow_access
+from app.services.action_router import ActionCategory, ActionPriority, action_router
 from app.services.emotion_engine import emotion_engine
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,17 +25,16 @@ router = APIRouter(prefix="/api/actions", tags=["Smart Actions"])
 class CaseContext(BaseModel):
     """Context about the user's case"""
     has_court_date: bool = False
-    court_date: Optional[str] = None
+    court_date: str | None = None
     has_lease: bool = False
     has_payment_records: bool = False
     maintenance_issues: bool = False
     has_notice: bool = False
-    case_type: Optional[str] = None
-    urgency_level: Optional[str] = None
+    case_type: str | None = None
+    urgency_level: str | None = None
     documents_count: int = 0
 
 
-from fastapi import Header, HTTPException
 
 @router.get("/plan")
 async def get_action_plan(
@@ -53,7 +53,7 @@ async def get_action_plan(
     """
     # Get current emotional state
     emotional_state = emotion_engine.get_state(user_id=user.user_id)
-    
+
     # Build case context
     case_context = {
         "has_court_date": has_court_date,
@@ -62,13 +62,13 @@ async def get_action_plan(
         "maintenance_issues": maintenance_issues,
         "has_notice": has_notice
     }
-    
+
     # Generate action plan
     plan = action_router.generate_action_plan(
         emotional_state=emotional_state.to_dict() if hasattr(emotional_state, "to_dict") else dict(emotional_state),
         case_context=case_context
     )
-    
+
     return plan.to_dict()
 
 
@@ -82,16 +82,16 @@ async def get_action_plan_with_context(
     """
     # Get current emotional state
     emotional_state = emotion_engine.get_state(user_id=user.user_id)
-    
+
     # Convert context to dict
     case_context = context.dict()
-    
+
     # Generate action plan
     plan = action_router.generate_action_plan(
            emotional_state=emotional_state.to_dict(),
         case_context=case_context
     )
-    
+
     return plan.to_dict()
 
 
@@ -151,7 +151,7 @@ async def get_current_capacity(user: StorageUser = Depends(yellow_access)):
     state_dict = emotional_state.to_dict()
     capacity = action_router.assess_emotional_capacity(state_dict)
     mode = action_router.get_dashboard_mode(state_dict)
-    
+
     capacity_descriptions = {
         "minimal": "You're handling a lot right now. Let's keep it simple - just one thing at a time.",
         "limited": "You have some capacity. Let's focus on 2-3 manageable tasks.",
@@ -159,7 +159,7 @@ async def get_current_capacity(user: StorageUser = Depends(yellow_access)):
         "high": "You have strong capacity right now. Great time for challenging tasks.",
         "peak": "You're at peak capacity! This is the time for your most important work."
     }
-    
+
     return {
         "capacity": capacity.value,
         "description": capacity_descriptions.get(capacity.value, ""),
@@ -192,13 +192,13 @@ async def get_encouragement(user: StorageUser = Depends(yellow_access)):
     Get an encouragement message based on current emotional state.
     """
     import random
-    
+
     emotional_state = emotion_engine.get_state(user_id=user.user_id)
     mode = action_router.get_dashboard_mode(emotional_state.to_dict())
-    
+
     messages = action_router.encouragements.get(mode, action_router.encouragements["guided"])
     message = random.choice(messages)
-    
+
     return {
         "mode": mode,
         "message": message
@@ -212,7 +212,7 @@ async def get_next_action():
     Simplified endpoint for crisis mode or quick access.
     """
     emotional_state = emotion_engine.get_state()
-    
+
     # Simple case context - will be improved with actual case data
     case_context = {
         "has_court_date": False,
@@ -221,12 +221,12 @@ async def get_next_action():
         "maintenance_issues": False,
         "has_notice": False
     }
-    
+
     plan = action_router.generate_action_plan(
         emotional_state=emotional_state,
         case_context=case_context
     )
-    
+
     if plan.primary_action:
         return {
             "action": plan.primary_action.to_dict(),

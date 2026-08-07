@@ -17,17 +17,16 @@ Features:
     - Checks Python code for issues
 """
 
-import os
-import re
-import json
-import asyncio
-import aiohttp
 import argparse
-from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Optional
-from datetime import datetime
+import asyncio
+import json
+import re
 from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+
+import aiohttp
 
 # =============================================================================
 # CONFIGURATION
@@ -51,11 +50,11 @@ class Issue:
     severity: str  # critical, error, warning, info
     category: str  # html, js, css, api, python, config
     file: str
-    line: Optional[int]
+    line: int | None
     message: str
-    suggestion: Optional[str] = None
+    suggestion: str | None = None
     auto_fixable: bool = False
-    
+
     def to_dict(self):
         return {
             "severity": self.severity,
@@ -71,15 +70,15 @@ class Issue:
 @dataclass
 class CrawlReport:
     """Complete crawl report."""
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     issues: list[Issue] = field(default_factory=list)
     stats: dict = field(default_factory=dict)
     files_scanned: int = 0
     endpoints_tested: int = 0
-    
+
     def add_issue(self, issue: Issue):
         self.issues.append(issue)
-    
+
     def get_summary(self):
         by_severity = defaultdict(int)
         by_category = defaultdict(int)
@@ -101,13 +100,13 @@ class CrawlReport:
 
 class HTMLScanner:
     """Scans HTML files for issues."""
-    
+
     # Patterns to detect
     UNFORMATTED_DATE_PATTERNS = [
         (r'\$\{[^}]*\.date\}(?!\s*\))', "Unformatted date display - use formatDate()"),
         (r'\$\{[^}]*_at\}(?!\s*\))', "Unformatted timestamp - use formatDateTime()"),
     ]
-    
+
     MISSING_ALT_PATTERN = r'<img[^>]+(?!alt=)[^>]*>'
     EMPTY_HREF_PATTERN = r'href\s*=\s*["\'][\s]*["\']'
     INLINE_STYLE_PATTERN = r'style\s*=\s*["\'][^"\']{100,}["\']'
@@ -116,28 +115,28 @@ class HTMLScanner:
         r'href\s*=\s*["\']([^"\']+)["\']',
         r'src\s*=\s*["\']([^"\']+)["\']',
     ]
-    
+
     def __init__(self, report: CrawlReport):
         self.report = report
         self.all_files = set()
         self.referenced_files = set()
-    
+
     def scan_directory(self, directory: Path):
         """Scan all HTML files in directory."""
         html_files = list(directory.glob("**/*.html"))
-        
+
         for html_file in html_files:
             self.all_files.add(str(html_file.relative_to(BASE_DIR)))
             self.scan_file(html_file)
             self.report.files_scanned += 1
-    
+
     def scan_file(self, filepath: Path):
         """Scan a single HTML file."""
         try:
             content = filepath.read_text(encoding='utf-8')
             lines = content.split('\n')
             rel_path = str(filepath.relative_to(BASE_DIR))
-            
+
             for i, line in enumerate(lines, 1):
                 # Check for unformatted dates
                 for pattern, message in self.UNFORMATTED_DATE_PATTERNS:
@@ -159,7 +158,7 @@ class HTMLScanner:
                                     suggestion="Wrap date in formatDate() or formatDateTime()",
                                     auto_fixable=True
                                 ))
-                
+
                 # Check for console.log in production
                 if re.search(self.CONSOLE_LOG_PATTERN, line):
                     # Skip if it's in a comment
@@ -172,7 +171,7 @@ class HTMLScanner:
                             message="console.log found - consider removing for production",
                             suggestion="Remove or wrap in debug flag"
                         ))
-                
+
                 # Check for empty hrefs
                 if re.search(self.EMPTY_HREF_PATTERN, line):
                     self.report.add_issue(Issue(
@@ -183,7 +182,7 @@ class HTMLScanner:
                         message="Empty href attribute found",
                         suggestion="Add valid href or use button element"
                     ))
-                
+
                 # Check for very long inline styles
                 if re.search(self.INLINE_STYLE_PATTERN, line):
                     self.report.add_issue(Issue(
@@ -194,14 +193,14 @@ class HTMLScanner:
                         message="Long inline style - consider moving to CSS",
                         suggestion="Extract to CSS class"
                     ))
-                
+
                 # Collect referenced files
                 for pattern in self.BROKEN_LINK_PATTERNS:
                     for match in re.finditer(pattern, line):
                         href = match.group(1)
                         if href and not href.startswith(('http', 'https', '#', 'javascript:', 'mailto:', 'tel:', 'data:')):
                             self.referenced_files.add(href)
-            
+
             # Check for missing formatDate function
             # Only flag if file has ${...date} patterns without ANY date formatting
             # Exclude files that appear to use form data (date inputs) rather than API dates
@@ -218,7 +217,7 @@ class HTMLScanner:
                 uses_form_dates = bool(re.search(r'type\s*=\s*["\']date["\']', content))
                 # Check if file displays API timestamps (look for ISO date patterns or API fetch + date display)
                 displays_api_dates = bool(re.search(r'\$\{[^}]*\.(date|created_at|updated_at)\}', content)) and '.json()' in content
-                
+
                 if not has_date_formatting and displays_api_dates and not uses_form_dates:
                     self.report.add_issue(Issue(
                         severity="warning",
@@ -228,7 +227,7 @@ class HTMLScanner:
                         message="File uses date displays but may be missing formatDate function",
                         suggestion="Add formatDate() helper function"
                     ))
-            
+
             # Check for proper error handling in fetch calls
             fetch_count = content.count('fetch(')
             catch_count = content.count('.catch(') + content.count('catch {') + content.count('catch(')
@@ -241,7 +240,7 @@ class HTMLScanner:
                     message=f"Found {fetch_count} fetch calls but only ~{catch_count} error handlers",
                     suggestion="Ensure all fetch calls have proper error handling"
                 ))
-                
+
         except Exception as e:
             self.report.add_issue(Issue(
                 severity="error",
@@ -258,14 +257,14 @@ class HTMLScanner:
 
 class JavaScriptScanner:
     """Scans JavaScript files for issues."""
-    
+
     DEPRECATED_PATTERNS = [
         (r'document\.write\s*\(', "document.write is deprecated"),
         (r'\.substr\s*\(', "substr() is deprecated, use substring() or slice()"),
         (r'escape\s*\(', "escape() is deprecated, use encodeURIComponent()"),
         (r'unescape\s*\(', "unescape() is deprecated, use decodeURIComponent()"),
     ]
-    
+
     POTENTIAL_ISSUES = [
         (r'==\s*null(?!\s*\|\|)', "Use === for null comparison"),
         (r'!=\s*null', "Use !== for null comparison"),
@@ -273,31 +272,31 @@ class JavaScriptScanner:
         (r'new\s+Array\s*\(\)', "Use [] instead of new Array()"),
         (r'new\s+Object\s*\(\)', "Use {} instead of new Object()"),
     ]
-    
+
     def __init__(self, report: CrawlReport):
         self.report = report
-    
+
     def scan_directory(self, directory: Path):
         """Scan all JS files in directory."""
         js_files = list(directory.glob("**/*.js"))
-        
+
         for js_file in js_files:
             self.scan_file(js_file)
             self.report.files_scanned += 1
-    
+
     def scan_file(self, filepath: Path):
         """Scan a single JS file."""
         try:
             content = filepath.read_text(encoding='utf-8')
             lines = content.split('\n')
             rel_path = str(filepath.relative_to(BASE_DIR))
-            
+
             for i, line in enumerate(lines, 1):
                 # Skip comments
                 stripped = line.strip()
                 if stripped.startswith('//') or stripped.startswith('*'):
                     continue
-                
+
                 # Check deprecated patterns
                 for pattern, message in self.DEPRECATED_PATTERNS:
                     if re.search(pattern, line):
@@ -308,7 +307,7 @@ class JavaScriptScanner:
                             line=i,
                             message=message
                         ))
-                
+
                 # Check potential issues
                 for pattern, message in self.POTENTIAL_ISSUES:
                     if re.search(pattern, line):
@@ -319,10 +318,10 @@ class JavaScriptScanner:
                             line=i,
                             message=message
                         ))
-            
+
             # Check for undefined references
             self._check_undefined_references(content, rel_path)
-            
+
         except Exception as e:
             self.report.add_issue(Issue(
                 severity="error",
@@ -331,14 +330,14 @@ class JavaScriptScanner:
                 line=None,
                 message=f"Failed to scan file: {str(e)}"
             ))
-    
+
     def _check_undefined_references(self, content: str, filepath: str):
         """Check for potentially undefined function calls."""
         # Find function definitions
         defined_funcs = set(re.findall(r'function\s+(\w+)\s*\(', content))
         defined_funcs.update(re.findall(r'(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s*)?\(', content))
         defined_funcs.update(re.findall(r'(\w+)\s*:\s*(?:async\s*)?function', content))
-        
+
         # Common global/built-in functions to ignore
         builtins = {
             'fetch', 'console', 'document', 'window', 'localStorage', 'sessionStorage',
@@ -369,7 +368,7 @@ class JavaScriptScanner:
 
 class PythonScanner:
     """Scans Python files for issues."""
-    
+
     ISSUE_PATTERNS = [
         (r'except\s*:', "Bare except clause - specify exception type"),
         (r'print\s*\((?!.*#.*debug)', "print() found - use logging instead"),
@@ -377,7 +376,7 @@ class PythonScanner:
         (r'TODO|FIXME|HACK|XXX', "TODO/FIXME marker found"),
         (r'pass\s*$', "Empty pass statement - add implementation or comment"),
     ]
-    
+
     SECURITY_PATTERNS = [
         (r'eval\s*\(', "eval() is dangerous - avoid if possible"),
         (r'exec\s*\(', "exec() is dangerous - avoid if possible"),
@@ -385,34 +384,34 @@ class PythonScanner:
         (r'pickle\.loads?\s*\(', "Pickle can execute arbitrary code"),
         (r'shell\s*=\s*True', "shell=True in subprocess is dangerous"),
     ]
-    
+
     def __init__(self, report: CrawlReport):
         self.report = report
-    
+
     def scan_directory(self, directory: Path):
         """Scan all Python files in directory."""
         py_files = list(directory.glob("**/*.py"))
-        
+
         for py_file in py_files:
             # Skip virtual environment, cache, and the crawler itself
             if '.venv' in str(py_file) or '__pycache__' in str(py_file) or 'app_crawler.py' in str(py_file):
                 continue
             self.scan_file(py_file)
             self.report.files_scanned += 1
-    
+
     def scan_file(self, filepath: Path):
         """Scan a single Python file."""
         try:
             content = filepath.read_text(encoding='utf-8')
             lines = content.split('\n')
             rel_path = str(filepath.relative_to(BASE_DIR))
-            
+
             for i, line in enumerate(lines, 1):
                 # Skip comments
                 stripped = line.strip()
                 if stripped.startswith('#'):
                     continue
-                
+
                 # Check issue patterns
                 for pattern, message in self.ISSUE_PATTERNS:
                     if re.search(pattern, line, re.IGNORECASE):
@@ -423,7 +422,7 @@ class PythonScanner:
                             line=i,
                             message=message
                         ))
-                
+
                 # Check security patterns
                 for pattern, message in self.SECURITY_PATTERNS:
                     if re.search(pattern, line):
@@ -434,10 +433,10 @@ class PythonScanner:
                             line=i,
                             message=f"Security: {message}"
                         ))
-            
+
             # Check for missing docstrings in public functions
             self._check_docstrings(content, rel_path)
-            
+
         except Exception as e:
             self.report.add_issue(Issue(
                 severity="error",
@@ -446,7 +445,7 @@ class PythonScanner:
                 line=None,
                 message=f"Failed to scan file: {str(e)}"
             ))
-    
+
     def _check_docstrings(self, content: str, filepath: str):
         """Check for missing docstrings."""
         # Find function definitions without docstrings
@@ -476,7 +475,7 @@ class PythonScanner:
 
 class APITester:
     """Tests API endpoints for issues."""
-    
+
     ENDPOINTS_TO_TEST = [
         ("GET", "/api/health", None, 200),
         ("GET", "/api/intake/documents?user_id=test", None, [200, 401]),
@@ -489,18 +488,18 @@ class APITester:
         ("GET", "/static/documents.html", None, 200),
         ("GET", "/static/js/shared-nav.js", None, 200),
     ]
-    
+
     def __init__(self, report: CrawlReport, base_url: str = SERVER_URL):
         self.report = report
         self.base_url = base_url
-    
+
     async def test_endpoints(self):
         """Test all configured endpoints."""
         async with aiohttp.ClientSession() as session:
             for method, path, body, expected_status in self.ENDPOINTS_TO_TEST:
                 await self._test_endpoint(session, method, path, body, expected_status)
                 self.report.endpoints_tested += 1
-    
+
     async def _test_endpoint(self, session, method: str, path: str, body: dict, expected_status):
         """Test a single endpoint."""
         url = f"{self.base_url}{path}"
@@ -523,10 +522,10 @@ class APITester:
                         line=None,
                         message=f"{method} {path} returned {response.status}, expected {expected_status}"
                     ))
-                
+
                 # Check response time
                 # Note: aiohttp doesn't have elapsed, would need to time it manually
-                
+
         except aiohttp.ClientConnectorError:
             self.report.add_issue(Issue(
                 severity="critical",
@@ -535,7 +534,7 @@ class APITester:
                 line=None,
                 message=f"Cannot connect to {url} - is the server running?"
             ))
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.report.add_issue(Issue(
                 severity="error",
                 category="api",
@@ -559,19 +558,19 @@ class APITester:
 
 class ResourceChecker:
     """Checks for missing or broken resources."""
-    
+
     def __init__(self, report: CrawlReport):
         self.report = report
-    
+
     def check_static_resources(self):
         """Check that all referenced static resources exist."""
         # Collect all references from HTML files
         references = set()
-        
+
         for html_file in STATIC_DIR.glob("**/*.html"):
             try:
                 content = html_file.read_text(encoding='utf-8')
-                
+
                 # Find src and href references
                 for pattern in [r'src\s*=\s*["\']([^"\']+)["\']', r'href\s*=\s*["\']([^"\']+)["\']']:
                     for match in re.finditer(pattern, content):
@@ -584,7 +583,7 @@ class ResourceChecker:
                             references.add((str(html_file.relative_to(BASE_DIR)), ref))
             except Exception:
                 pass
-        
+
         # Check each reference
         for source_file, ref in references:
             # Skip API routes (these are handled by backend)
@@ -593,7 +592,7 @@ class ResourceChecker:
             # Skip route-like paths that are likely SPA routes
             if ref.startswith('/') and '.' not in ref.split('/')[-1] and ref not in ['/']:
                 continue
-                
+
             # Normalize reference
             if ref.startswith('/static/'):
                 check_path = BASE_DIR / ref[1:]  # Remove leading /
@@ -608,10 +607,10 @@ class ResourceChecker:
             else:
                 source_dir = (BASE_DIR / source_file).parent
                 check_path = source_dir / ref
-            
+
             # Handle query strings and fragments
             check_path = Path(str(check_path).split('?')[0].split('#')[0])
-            
+
             if not check_path.exists():
                 self.report.add_issue(Issue(
                     severity="warning",
@@ -629,16 +628,16 @@ class ResourceChecker:
 
 class ConfigChecker:
     """Checks configuration files for issues."""
-    
+
     def __init__(self, report: CrawlReport):
         self.report = report
-    
+
     def check_all(self):
         """Run all config checks."""
         self._check_requirements()
         self._check_env()
         self._check_gitignore()
-    
+
     def _check_requirements(self):
         """Check requirements.txt for issues."""
         req_file = BASE_DIR / "requirements.txt"
@@ -651,15 +650,15 @@ class ConfigChecker:
                 message="requirements.txt not found"
             ))
             return
-        
+
         content = req_file.read_text()
         lines = content.strip().split('\n')
-        
+
         for i, line in enumerate(lines, 1):
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
-            
+
             # Check for unpinned versions
             if '==' not in line and '>=' not in line and '<=' not in line:
                 if '@' not in line and line not in ['pip', 'setuptools', 'wheel']:
@@ -671,12 +670,12 @@ class ConfigChecker:
                         message=f"Unpinned dependency: {line}",
                         suggestion="Pin version with == for reproducible builds"
                     ))
-    
+
     def _check_env(self):
         """Check for .env file and example."""
         env_file = BASE_DIR / ".env"
         env_example = BASE_DIR / ".env.example"
-        
+
         if not env_file.exists() and not env_example.exists():
             self.report.add_issue(Issue(
                 severity="info",
@@ -686,7 +685,7 @@ class ConfigChecker:
                 message="No .env or .env.example file found",
                 suggestion="Create .env.example for documentation"
             ))
-    
+
     def _check_gitignore(self):
         """Check .gitignore for common patterns."""
         gitignore = BASE_DIR / ".gitignore"
@@ -699,10 +698,10 @@ class ConfigChecker:
                 message=".gitignore not found"
             ))
             return
-        
+
         content = gitignore.read_text()
         required_patterns = ['.env', '__pycache__', '.venv', 'venv', '*.pyc']
-        
+
         for pattern in required_patterns:
             if pattern not in content:
                 self.report.add_issue(Issue(
@@ -721,14 +720,14 @@ class ConfigChecker:
 
 class ReportGenerator:
     """Generates the crawl report."""
-    
+
     def __init__(self, report: CrawlReport):
         self.report = report
-    
+
     def generate_console_report(self):
         """Generate console output."""
         summary = self.report.get_summary()
-        
+
         print("\n" + "=" * 70)
         print("[REPORT] SEMPTIFY APPLICATION CRAWLER REPORT")
         print("=" * 70)
@@ -737,7 +736,7 @@ class ReportGenerator:
         print(f"Endpoints Tested: {summary['endpoints_tested']}")
         print(f"Total Issues: {summary['total_issues']}")
         print()
-        
+
         # Summary by severity
         print("[SEVERITY] Issues by Severity:")
         severity_icons = {'critical': '[!!!]', 'error': '[ERR]', 'warning': '[WRN]', 'info': '[INF]'}
@@ -746,19 +745,19 @@ class ReportGenerator:
             icon = severity_icons.get(severity, '[---]')
             print(f"   {icon} {severity.upper()}: {count}")
         print()
-        
+
         # Summary by category
         print("[CATEGORIES] Issues by Category:")
         for category, count in sorted(summary['by_category'].items()):
             print(f"   * {category}: {count}")
         print()
-        
+
         # Detailed issues (grouped by severity)
         if self.report.issues:
             print("-" * 70)
             print("[DETAILS] DETAILED ISSUES")
             print("-" * 70)
-            
+
             for severity in ['critical', 'error', 'warning', 'info']:
                 issues = [i for i in self.report.issues if i.severity == severity]
                 if issues:
@@ -772,11 +771,11 @@ class ReportGenerator:
                             print(f"      TIP: {issue.suggestion}")
                     if len(issues) > 20:
                         print(f"   ... and {len(issues) - 20} more")
-        
+
         print("\n" + "=" * 70)
         print("[DONE] Crawl Complete")
         print("=" * 70 + "\n")
-    
+
     def generate_json_report(self, output_path: Path):
         """Generate JSON report file."""
         data = {
@@ -784,14 +783,14 @@ class ReportGenerator:
             "summary": self.report.get_summary(),
             "issues": [i.to_dict() for i in self.report.issues]
         }
-        
+
         output_path.write_text(json.dumps(data, indent=2), encoding='utf-8')
         print(f"[FILE] JSON report saved to: {output_path}")
-    
+
     def generate_html_report(self, output_path: Path):
         """Generate HTML report file."""
         summary = self.report.get_summary()
-        
+
         html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -866,10 +865,10 @@ class ReportGenerator:
     </div>
 </body>
 </html>"""
-        
+
         output_path.write_text(html, encoding='utf-8')
         print(f"[FILE] HTML report saved to: {output_path}")
-    
+
     def _issue_to_html(self, issue: Issue) -> str:
         loc = f":{issue.line}" if issue.line else ""
         suggestion = f'<div class="issue-suggestion">💡 {issue.suggestion}</div>' if issue.suggestion else ''
@@ -896,36 +895,36 @@ async def main():
     parser.add_argument("--html", type=str, help="Output HTML report to file")
     parser.add_argument("--no-api", action="store_true", help="Skip API testing")
     args = parser.parse_args()
-    
+
     print("\n[CRAWLER] Starting Semptify Application Crawler...")
     print(f"   Base Directory: {BASE_DIR}\n")
-    
+
     report = CrawlReport()
-    
+
     # Run scanners
     print("[HTML] Scanning HTML files...")
     html_scanner = HTMLScanner(report)
     html_scanner.scan_directory(STATIC_DIR)
     if TEMPLATES_DIR.exists():
         html_scanner.scan_directory(TEMPLATES_DIR)
-    
+
     print("[JS] Scanning JavaScript files...")
     js_scanner = JavaScriptScanner(report)
     js_scanner.scan_directory(STATIC_DIR)
-    
+
     print("[PY] Scanning Python files...")
     py_scanner = PythonScanner(report)
     py_scanner.scan_directory(APP_DIR)
     py_scanner.scan_directory(BASE_DIR / "tools")
-    
+
     print("[RESOURCES] Checking static resources...")
     resource_checker = ResourceChecker(report)
     resource_checker.check_static_resources()
-    
+
     print("[CONFIG] Checking configuration files...")
     config_checker = ConfigChecker(report)
     config_checker.check_all()
-    
+
     # API testing (optional)
     if not args.no_api:
         print("[API] Testing API endpoints...")
@@ -934,21 +933,21 @@ async def main():
             await api_tester.test_endpoints()
         except Exception as e:
             print(f"   [!] API testing failed: {e}")
-    
+
     # Generate reports
     generator = ReportGenerator(report)
     generator.generate_console_report()
-    
+
     if args.json:
         generator.generate_json_report(Path(args.json))
-    
+
     if args.html:
         generator.generate_html_report(Path(args.html))
-    
+
     # Default HTML report
     default_report = BASE_DIR / "tools" / "crawler_report.html"
     generator.generate_html_report(default_report)
-    
+
     return report
 
 

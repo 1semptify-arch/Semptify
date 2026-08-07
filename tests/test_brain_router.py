@@ -7,6 +7,7 @@ workflow trigger + get, think, sync, and the 404 workflow path.
 
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 # The Positronic Brain router is intentionally disabled in product_manifest.py

@@ -3,14 +3,14 @@ Semptify 5.0 - Event Extractor Service
 Automatically extracts dated events from document text for timeline generation.
 """
 
+import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional, List
+from datetime import UTC, datetime
 from enum import Enum
 
-from app.core.event_bus import event_bus, EventType
-import logging
+from app.core.event_bus import EventType, event_bus
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +42,7 @@ class ExtractedEvent:
     confidence: float          # 0.0 - 1.0
     source_text: str           # Original text snippet
     is_deadline: bool = False  # True if this is a deadline/due date
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for serialization."""
         return {
@@ -86,27 +86,27 @@ class EventExtractor:
         (r'(?:notice|served|delivered|given)\s*(?:on|dated?)?\s*', 'Notice Served', 'notice', 0.9),
         (r'(?:must\s+vacate|vacate\s+by|quit\s+by|leave\s+by)\s*', 'Vacate Deadline', 'notice', 0.95),
         (r'(?:effective|expires?|terminat\w*)\s*(?:on|date)?\s*', 'Notice Effective Date', 'notice', 0.85),
-        
+
         # Court events
         (r'(?:filed|filing\s+date)\s*(?:on|in)?\s*', 'Court Filing', 'court', 0.95),
         (r'(?:hearing|trial|appear\w*)\s*(?:on|at|scheduled\s+for)?\s*', 'Court Hearing', 'court', 0.95),
         (r'(?:summons|complaint)\s*(?:dated?|filed)?\s*', 'Summons/Complaint Filed', 'court', 0.9),
-        
+
         # Lease events
         (r'(?:lease\s+)?(?:commence|start|begin)\w*\s*(?:on|date)?\s*', 'Lease Start Date', 'other', 0.9),
         (r'(?:lease\s+)?(?:end|expir\w*|terminat\w*)\s*(?:on|date)?\s*', 'Lease End Date', 'other', 0.9),
         (r'(?:move[\s\-]?in)\s*(?:on|date)?\s*', 'Move-In Date', 'other', 0.85),
         (r'(?:move[\s\-]?out)\s*(?:on|date)?\s*', 'Move-Out Date', 'other', 0.85),
-        
+
         # Payment events
         (r'(?:rent\s+)?(?:due|payable)\s*(?:on|by)?\s*', 'Rent Due', 'payment', 0.85),
         (r'(?:paid|payment\s+(?:of|made|received))\s*(?:on)?\s*', 'Payment Made', 'payment', 0.85),
         (r'(?:last\s+payment)\s*(?:on|dated?)?\s*', 'Last Payment Date', 'payment', 0.8),
-        
+
         # Communication
         (r'(?:dated?|written|sent|mailed)\s*(?:on)?\s*', 'Document Date', 'communication', 0.7),
         (r'(?:received)\s*(?:on)?\s*', 'Document Received', 'communication', 0.75),
-        
+
         # Inspection/Maintenance
         (r'(?:inspection|walkthrough)\s*(?:on|dated?)?\s*', 'Inspection Date', 'maintenance', 0.85),
         (r'(?:repair\w*|maintenanc\w*)\s*(?:request\w*|schedul\w*)?\s*(?:on|for)?\s*', 'Repair/Maintenance', 'maintenance', 0.8),
@@ -114,7 +114,7 @@ class EventExtractor:
 
     # Deadline indicators
     DEADLINE_WORDS = ['by', 'before', 'deadline', 'due', 'must', 'no later than', 'expire', 'within']
-    
+
     # Patterns to exclude (not real events)
     EXCLUDE_PATTERNS = [
         r'(?:dob|d\.o\.b\.?|date\s+of\s+birth|born|birthday)\s*[:)]?\s*',
@@ -143,40 +143,40 @@ class EventExtractor:
             List of extracted events sorted by date
         """
         events = []
-        
+
         # Split into sentences/chunks for context
         chunks = self._split_into_chunks(text)
-        
+
         for chunk in chunks:
             # Find all dates in this chunk
             dates_found = self._find_dates(chunk)
-            
+
             for date, date_str, position in dates_found:
                 # Get context around the date
                 context_before = chunk[max(0, position-100):position].lower()
                 context_after = chunk[position:position+50].lower()
-                
+
                 # Skip dates that are clearly not events (DOB, SSN, case numbers)
                 if self._should_exclude(context_before):
                     continue
-                
+
                 # Skip dates too far in the past (likely DOBs or historical refs)
                 if date.year < 2000:
                     continue
-                
+
                 # Determine event type from context
                 event_type, title, confidence = self._classify_event(
                     context_before, context_after, doc_type
                 )
-                
+
                 # Check if it's a deadline
                 is_deadline = any(word in context_before for word in self.DEADLINE_WORDS)
-                
+
                 # Build description from surrounding text
                 desc_start = max(0, position - 60)
                 desc_end = min(len(chunk), position + len(date_str) + 60)
                 description = chunk[desc_start:desc_end].strip()
-                
+
                 events.append(ExtractedEvent(
                     date=date,
                     event_type=event_type,
@@ -186,7 +186,7 @@ class EventExtractor:
                     source_text=date_str,
                     is_deadline=is_deadline
                 ))
-        
+
         # Deduplicate similar events
         events = self._deduplicate_events(events)
 
@@ -230,7 +230,7 @@ class EventExtractor:
     def _find_dates(self, text: str) -> list[tuple[datetime, str, int]]:
         """Find all dates in text with their positions."""
         dates = []
-        
+
         for pattern, fmt in self._date_patterns:
             for match in pattern.finditer(text):
                 try:
@@ -239,13 +239,13 @@ class EventExtractor:
                         dates.append((date, match.group(0), match.start()))
                 except (ValueError, IndexError):
                     continue
-        
+
         return dates
 
-    def _parse_match(self, match: re.Match, fmt: str) -> Optional[datetime]:
+    def _parse_match(self, match: re.Match, fmt: str) -> datetime | None:
         """Parse a regex match into a datetime."""
         groups = match.groups()
-        
+
         try:
             if fmt == 'MDY':
                 month, day, year = int(groups[0]), int(groups[1]), int(groups[2])
@@ -261,39 +261,39 @@ class EventExtractor:
                 year = int(groups[2])
             else:
                 return None
-            
+
             # Validate ranges
             if not (1 <= month <= 12 and 1 <= day <= 31 and 1900 <= year <= 2100):
                 return None
-            
-            return datetime(year, month, day, tzinfo=timezone.utc)
-        
+
+            return datetime(year, month, day, tzinfo=UTC)
+
         except (ValueError, KeyError):
             return None
 
     def _classify_event(
-        self, 
-        context_before: str, 
+        self,
+        context_before: str,
         context_after: str,
         doc_type: str
     ) -> tuple[str, str, float]:
         """Classify event type based on surrounding context."""
-        
+
         full_context = context_before + " " + context_after
-        
+
         # Check each context pattern
         best_match = None
         best_confidence = 0.0
-        
+
         for pattern, title, event_type, confidence in self._context_patterns:
             if pattern.search(full_context):
                 if confidence > best_confidence:
                     best_match = (event_type, title, confidence)
                     best_confidence = confidence
-        
+
         if best_match:
             return best_match
-        
+
         # Fall back to doc_type hints
         type_defaults = {
             'notice': ('notice', 'Notice Date', 0.6),
@@ -302,25 +302,25 @@ class EventExtractor:
             'receipt': ('payment', 'Payment Date', 0.6),
             'payment_record': ('payment', 'Payment Date', 0.6),
         }
-        
+
         return type_defaults.get(doc_type, ('other', 'Document Date', 0.5))
 
     def _deduplicate_events(self, events: list[ExtractedEvent]) -> list[ExtractedEvent]:
         """Remove duplicate events (same date + type)."""
         seen = set()
         unique = []
-        
+
         for event in events:
             key = (event.date.date(), event.event_type, event.title)
             if key not in seen:
                 seen.add(key)
                 unique.append(event)
-        
+
         return unique
 
 
 # Singleton
-_extractor: Optional[EventExtractor] = None
+_extractor: EventExtractor | None = None
 
 
 def get_event_extractor() -> EventExtractor:

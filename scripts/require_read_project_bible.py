@@ -17,9 +17,8 @@ This makes the check idempotent for the current workspace.
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
-import sys
 
 REQUIRED_DOCS = ["PROJECT_BIBLE.md", "README.md", "AGENTS.md"]
 ACK_FILE = Path(".semptify_read_ack")
@@ -66,7 +65,7 @@ def show_doc_summaries(lines: int = 20) -> None:
 
 def write_acknowledgement() -> None:
     ACK_FILE.write_text(
-        f"ACKNOWLEDGED {datetime.utcnow().isoformat()}Z\n"
+        f"ACKNOWLEDGED {datetime.now(UTC).isoformat()}Z\n"
         f"Canonical files read: {', '.join(REQUIRED_DOCS)}\n",
         encoding="utf-8",
     )

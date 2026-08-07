@@ -23,19 +23,18 @@ Three-Timestamp Model (NON-NEGOTIABLE):
 
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+import logging
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.core.utc import utc_now
-from app.core.vault_paths import VAULT_DOCUMENTS
-from app.models.models import VaultItem, Incident, VaultAuditLog
-import logging
+from app.models.models import VaultAuditLog, VaultItem
+
 logger = logging.getLogger(__name__)
 
 VAULT_INGESTION_FUNCTION_GROUP = "vault_ingestion"
@@ -77,40 +76,40 @@ class IngestionRequest:
     """
     user_id: str
     item_type: str  # lease, notice, photo, email, audio, etc.
-    
+
     # THREE TIMESTAMPS (REQUIRED)
     event_time: datetime  # Factual time of event
     record_time: datetime  # When evidence created
     # semptify_entry_time is auto-set by service
-    
+
     # Metadata (REQUIRED - never null, empty dict minimum)
     metadata: dict[str, Any]
-    
+
     # Optional classification
-    folder: Optional[str] = None
-    tags: Optional[list[str]] = None
-    related_incident_id: Optional[int] = None
-    source: Optional[str] = None
-    severity: Optional[str] = None  # critical, high, normal, low
-    status: Optional[str] = None  # pending, verified, disputed, archived
-    
+    folder: str | None = None
+    tags: list[str] | None = None
+    related_incident_id: int | None = None
+    source: str | None = None
+    severity: str | None = None  # critical, high, normal, low
+    status: str | None = None  # pending, verified, disputed, archived
+
     # Optional content
-    file_path: Optional[str] = None
-    title: Optional[str] = None
-    summary: Optional[str] = None
-    
+    file_path: str | None = None
+    title: str | None = None
+    summary: str | None = None
+
     # Rich metadata
-    location_data: Optional[dict[str, Any]] = None
+    location_data: dict[str, Any] | None = None
 
 
 @dataclass
 class IngestionResult:
     """Result of vault item ingestion."""
     success: bool
-    item_id: Optional[int] = None
-    audit_log_id: Optional[int] = None
-    error_message: Optional[str] = None
-    item: Optional[VaultItem] = None
+    item_id: int | None = None
+    audit_log_id: int | None = None
+    error_message: str | None = None
+    item: VaultItem | None = None
 
 
 class VaultIngestionError(Exception):
@@ -128,10 +127,10 @@ class VaultIngestionService:
     - Complete audit logging
     - Metadata preservation
     """
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
-    
+
     def _validate_request(self, request: IngestionRequest) -> None:
         """
         Validate ingestion request against data contract.
@@ -140,23 +139,23 @@ class VaultIngestionService:
             VaultIngestionError: If request violates data contract.
         """
         errors: list[str] = []
-        
+
         # Required fields
         if not request.user_id:
             errors.append("user_id is required")
         if not request.item_type:
             errors.append("item_type is required")
-        
+
         # Three timestamps required
         if not request.event_time:
             errors.append("event_time is required (three-timestamp model)")
         if not request.record_time:
             errors.append("record_time is required (three-timestamp model)")
-        
+
         # Metadata must not be None (empty dict is acceptable)
         if request.metadata is None:
             errors.append("metadata cannot be None (use empty dict if no metadata)")
-        
+
         # Validate timestamp logic
         if request.event_time and request.record_time:
             # Event time should generally not be after record time
@@ -166,12 +165,12 @@ class VaultIngestionService:
                     f"event_time ({request.event_time}) cannot be after "
                     f"record_time ({request.record_time})"
                 )
-        
+
         if errors:
             raise VaultIngestionError(
                 f"Data contract violations: {'; '.join(errors)}"
             )
-    
+
     def _preserve_metadata(self, raw_metadata: dict[str, Any]) -> dict[str, Any]:
         """
         Preserve all metadata without flattening or discarding.
@@ -196,13 +195,13 @@ class VaultIngestionService:
             else:
                 # Convert unknown types to string representation
                 return str(obj)
-        
+
         return make_serializable(raw_metadata)
-    
+
     async def ingest(
         self,
         request: IngestionRequest,
-        action_context: Optional[str] = None,
+        action_context: str | None = None,
     ) -> IngestionResult:
         """
         Ingest a new vault item with full data contract enforcement.
@@ -217,52 +216,52 @@ class VaultIngestionService:
         try:
             # Validate against data contract
             self._validate_request(request)
-            
+
             # Prepare metadata (preserve everything)
             preserved_metadata = self._preserve_metadata(request.metadata)
-            
+
             # Ensure timezone-aware timestamps
             event_time = self._ensure_timezone(request.event_time)
             record_time = self._ensure_timezone(request.record_time)
             semptify_entry_time = utc_now()
-            
+
             # Create vault item
             vault_item = VaultItem(
                 user_id=request.user_id,
-                
+
                 # Three timestamps (NON-NEGOTIABLE)
                 event_time=event_time,
                 record_time=record_time,
                 semptify_entry_time=semptify_entry_time,
-                
+
                 # Classification
                 item_type=request.item_type,
                 folder=request.folder,
                 tags=request.tags or [],
-                
+
                 # Relationships & Context
                 related_incident_id=request.related_incident_id,
                 source=request.source or "ingestion_service",
                 severity=request.severity or "normal",
                 status=request.status or "pending",
-                
+
                 # Rich metadata
                 location_data=request.location_data,
                 metadata=preserved_metadata,
-                
+
                 # Content
                 file_path=request.file_path,
                 title=request.title,
                 summary=request.summary,
-                
+
                 # Timestamps
                 created_at=semptify_entry_time,
                 updated_at=semptify_entry_time,
             )
-            
+
             self.db.add(vault_item)
             await self.db.flush()  # Get item_id
-            
+
             # Create audit log entry
             audit_log = VaultAuditLog(
                 item_id=vault_item.item_id,
@@ -280,17 +279,17 @@ class VaultIngestionService:
                 },
                 timestamp=semptify_entry_time,
             )
-            
+
             self.db.add(audit_log)
             await self.db.flush()
-            
+
             return IngestionResult(
                 success=True,
                 item_id=vault_item.item_id,
                 audit_log_id=audit_log.log_id,
                 item=vault_item,
             )
-            
+
         except VaultIngestionError as e:
             return IngestionResult(
                 success=False,
@@ -301,19 +300,19 @@ class VaultIngestionService:
                 success=False,
                 error_message=f"Unexpected ingestion error: {type(e).__name__}: {str(e)}",
             )
-    
+
     def _ensure_timezone(self, dt: datetime) -> datetime:
         """Ensure datetime is timezone-aware (UTC if none specified)."""
         if dt.tzinfo is None:
-            return dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
-    
+            return dt.replace(tzinfo=UTC)
+        return dt.astimezone(UTC)
+
     async def update_item(
         self,
         item_id: int,
         user_id: str,
         updates: dict[str, Any],
-        action_context: Optional[str] = None,
+        action_context: str | None = None,
     ) -> IngestionResult:
         """
         Update existing vault item with audit logging.
@@ -336,13 +335,13 @@ class VaultIngestionService:
                 )
             )
             item = result.scalar_one_or_none()
-            
+
             if not item:
                 return IngestionResult(
                     success=False,
                     error_message=f"Vault item {item_id} not found for user {user_id}",
                 )
-            
+
             # Capture before state
             before_state = {
                 "item_id": item.item_id,
@@ -357,22 +356,22 @@ class VaultIngestionService:
                 "title": item.title,
                 "summary": item.summary,
             }
-            
+
             # Apply updates (protecting immutable fields)
             immutable_fields = {
                 'item_id', 'user_id', 'event_time', 'record_time',
                 'semptify_entry_time', 'created_at',
             }
-            
+
             for field, value in updates.items():
                 if field in immutable_fields:
                     continue  # Skip immutable fields
                 if hasattr(item, field):
                     setattr(item, field, value)
-            
+
             item.updated_at = utc_now()
             await self.db.flush()
-            
+
             # Capture after state
             after_state = {
                 "item_id": item.item_id,
@@ -387,7 +386,7 @@ class VaultIngestionService:
                 "title": item.title,
                 "summary": item.summary,
             }
-            
+
             # Create audit log
             audit_log = VaultAuditLog(
                 item_id=item.item_id,
@@ -400,25 +399,25 @@ class VaultIngestionService:
             )
             self.db.add(audit_log)
             await self.db.flush()
-            
+
             return IngestionResult(
                 success=True,
                 item_id=item.item_id,
                 audit_log_id=audit_log.log_id,
                 item=item,
             )
-            
+
         except Exception as e:
             return IngestionResult(
                 success=False,
                 error_message=f"Update error: {type(e).__name__}: {str(e)}",
             )
-    
+
     async def delete_item(
         self,
         item_id: int,
         user_id: str,
-        action_context: Optional[str] = None,
+        action_context: str | None = None,
     ) -> IngestionResult:
         """
         Delete vault item with audit logging (soft delete not implemented yet).
@@ -439,13 +438,13 @@ class VaultIngestionService:
                 )
             )
             item = result.scalar_one_or_none()
-            
+
             if not item:
                 return IngestionResult(
                     success=False,
                     error_message=f"Vault item {item_id} not found for user {user_id}",
                 )
-            
+
             # Capture before state
             before_state = {
                 "item_id": item.item_id,
@@ -453,7 +452,7 @@ class VaultIngestionService:
                 "title": item.title,
                 "metadata_keys": list(item.metadata.keys()) if item.metadata else [],
             }
-            
+
             # Create audit log before deletion
             audit_log = VaultAuditLog(
                 item_id=item.item_id,
@@ -465,17 +464,17 @@ class VaultIngestionService:
                 timestamp=utc_now(),
             )
             self.db.add(audit_log)
-            
+
             # Delete item (cascades to audit_logs via FK)
             await self.db.delete(item)
             await self.db.flush()
-            
+
             return IngestionResult(
                 success=True,
                 item_id=item_id,
                 audit_log_id=audit_log.log_id,
             )
-            
+
         except Exception as e:
             return IngestionResult(
                 success=False,

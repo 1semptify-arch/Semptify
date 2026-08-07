@@ -5,7 +5,6 @@ The user module handles act-as impersonation for admin/manager users.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="user",
     group_name="user_act_as_start",

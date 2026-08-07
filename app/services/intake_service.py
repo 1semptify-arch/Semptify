@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import logging
 import mailbox
 import re
@@ -26,7 +25,6 @@ from datetime import UTC, datetime
 from email import policy
 from email.parser import BytesParser
 from pathlib import Path
-from typing import Optional
 from xml.etree import ElementTree as ET
 
 from sqlalchemy import select
@@ -77,7 +75,7 @@ def _extract_email_part(address: str) -> str:
     return address.strip().lower()
 
 
-def _extract_display_name(address: str) -> Optional[str]:
+def _extract_display_name(address: str) -> str | None:
     """Return the display name from 'Name <email@example.com>' if present."""
     match = re.search(r"^([^<]+?)\s*<", address)
     if match:
@@ -85,7 +83,7 @@ def _extract_display_name(address: str) -> Optional[str]:
     return None
 
 
-def _parse_date_rfc2822(value: str) -> Optional[datetime]:
+def _parse_date_rfc2822(value: str) -> datetime | None:
     """Parse an RFC 2822 date string to an offset-aware UTC datetime."""
     from email.utils import parsedate_to_datetime
 
@@ -99,7 +97,7 @@ def _parse_date_rfc2822(value: str) -> Optional[datetime]:
         return None
 
 
-def _parse_loose_date(value: str) -> Optional[datetime]:
+def _parse_loose_date(value: str) -> datetime | None:
     """Best-effort parse of common date/time strings."""
     value = value.strip()
     if not value:
@@ -332,8 +330,8 @@ async def extract_and_upsert_contacts(
     db: AsyncSession,
     user_id: str,
     communications: list[dict],
-    user_email: Optional[str] = None,
-    user_phone: Optional[str] = None,
+    user_email: str | None = None,
+    user_phone: str | None = None,
 ) -> list[ThirdPartyContact]:
     """
     Scan communication metadata/bodies for third-party contact info and upsert
@@ -456,10 +454,10 @@ async def import_communications(
     user_id: str,
     file_bytes: bytes,
     filename: str,
-    user_email: Optional[str] = None,
-    user_phone: Optional[str] = None,
-    user_name: Optional[str] = None,
-    case_record_id: Optional[str] = None,
+    user_email: str | None = None,
+    user_phone: str | None = None,
+    user_name: str | None = None,
+    case_record_id: str | None = None,
     keep_voicemail_audio: bool = False,
 ) -> dict:
     """

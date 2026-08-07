@@ -2,7 +2,7 @@
 """docs_staleness_check.py — regenerate docs/STALENESS-REPORT.md from doc-map.yaml.
 
 Usage:
-    .\venv311\Scripts\Activate.ps1
+    .\venv311\\Scripts\\Activate.ps1
     python tools/docs_staleness_check.py [options]
 
 This is the first job of the recurring internal scheduler. It reads
@@ -58,7 +58,7 @@ def _load_doc_map() -> list[dict]:
 def _compute_staleness(threshold_days: int) -> list[dict]:
     entries = _load_doc_map()
     threshold = datetime.timedelta(days=threshold_days)
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
     flagged = []
 
     for entry in entries:
@@ -125,7 +125,7 @@ def _format_time(t: datetime.datetime | None) -> str:
 
 
 def _generate_report(flagged: list[dict], threshold_days: int) -> str:
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
     total = len(flagged)
 
     lines = [

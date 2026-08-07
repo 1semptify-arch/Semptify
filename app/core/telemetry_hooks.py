@@ -10,13 +10,14 @@ Event emission layer for PageContract telemetry_events.
 
 from __future__ import annotations
 
-import time
 import json
 import logging
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Callable, Any
-from enum import Enum, auto
+import time
+from collections.abc import Callable
 from contextlib import contextmanager
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from typing import Any
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -40,10 +41,10 @@ class TelemetryEvent:
     page_id: str
     session_id: str
     timestamp: float = field(default_factory=time.time)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     priority: EventPriority = EventPriority.MEDIUM
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to dict for transmission/storage."""
         return {
             "event_type": self.event_type,
@@ -53,14 +54,14 @@ class TelemetryEvent:
             "metadata": self.metadata,
             "priority": self.priority.name,
         }
-    
+
     def to_json(self) -> str:
         """Serialize to JSON string."""
         return json.dumps(self.to_dict(), default=str)
 
 
 # Event type ▸ Priority mapping (from PageContracts)
-EVENT_PRIORITIES: Dict[str, EventPriority] = {
+EVENT_PRIORITIES: dict[str, EventPriority] = {
     # Critical: Rights-affecting actions
     "eviction_answer_load": EventPriority.CRITICAL,
     "answer_form_generated": EventPriority.CRITICAL,
@@ -74,7 +75,7 @@ EVENT_PRIORITIES: Dict[str, EventPriority] = {
     "answer_downloaded": EventPriority.CRITICAL,
     "defense_selected": EventPriority.CRITICAL,
     "packet_downloaded": EventPriority.CRITICAL,
-    
+
     # High: Important workflow steps
     "dashboard_load": EventPriority.HIGH,
     "document_upload_started": EventPriority.HIGH,
@@ -104,7 +105,7 @@ EVENT_PRIORITIES: Dict[str, EventPriority] = {
     "motion_drafted": EventPriority.HIGH,
     "motion_filed": EventPriority.HIGH,
     "analysis_memo_generated": EventPriority.HIGH,
-    
+
     # Medium: Standard interactions
     "tenant_dashboard_load": EventPriority.MEDIUM,
     "quick_action_clicked": EventPriority.MEDIUM,
@@ -128,7 +129,7 @@ EVENT_PRIORITIES: Dict[str, EventPriority] = {
     "case_action_completed": EventPriority.MEDIUM,
     "legal_aid_resource_opened": EventPriority.MEDIUM,
     "storage_status_set": EventPriority.MEDIUM,
-    
+
     # Low: Diagnostic / Navigation
     "storage_setup_load": EventPriority.LOW,
     "documents_page_load": EventPriority.LOW,
@@ -176,38 +177,38 @@ class TelemetryEmitter:
     - Privacy filtering
     - Mesh integration
     """
-    
+
     def __init__(self):
-        self._handlers: List[Callable[[TelemetryEvent], None]] = []
-        self._buffer: List[TelemetryEvent] = []
+        self._handlers: list[Callable[[TelemetryEvent], None]] = []
+        self._buffer: list[TelemetryEvent] = []
         self._buffer_size = 100
         self._privacy_mode = False  # If True, no events emitted
         self._enabled = True
-    
+
     def add_handler(self, handler: Callable[[TelemetryEvent], None]) -> None:
         """Register a callback for event processing."""
         self._handlers.append(handler)
-    
+
     def enable(self) -> None:
         """Enable emission globally."""
         self._enabled = True
-    
+
     def disable(self) -> None:
         """Disable emission globally."""
         self._enabled = False
-    
+
     def set_privacy_mode(self, enabled: bool) -> None:
         """Enable privacy mode (no events recorded)."""
         self._privacy_mode = enabled
-    
+
     def emit(
         self,
         event_type: str,
         page_id: str,
         session_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        priority: Optional[EventPriority] = None,
-    ) -> Optional[TelemetryEvent]:
+        metadata: dict[str, Any] | None = None,
+        priority: EventPriority | None = None,
+    ) -> TelemetryEvent | None:
         """
         Emit a telemetry event.
         
@@ -215,11 +216,11 @@ class TelemetryEmitter:
         """
         if not self._enabled or self._privacy_mode:
             return None
-        
+
         # Auto-detect priority from event type
         if priority is None:
             priority = EVENT_PRIORITIES.get(event_type, EventPriority.MEDIUM)
-        
+
         event = TelemetryEvent(
             event_type=event_type,
             page_id=page_id,
@@ -227,20 +228,20 @@ class TelemetryEmitter:
             metadata=metadata or {},
             priority=priority,
         )
-        
+
         # Buffer for batching
         self._buffer.append(event)
-        
+
         # Immediate emit for critical events
         if priority == EventPriority.CRITICAL:
             self._flush_event(event)
-        
+
         # Batch flush when buffer full
         if len(self._buffer) >= self._buffer_size:
             self.flush()
-        
+
         return event
-    
+
     def _flush_event(self, event: TelemetryEvent) -> None:
         """Send single event to all handlers."""
         for handler in self._handlers:
@@ -248,19 +249,19 @@ class TelemetryEmitter:
                 handler(event)
             except Exception as e:
                 logger.warning(f"Telemetry handler failed: {e}")
-    
+
     def flush(self) -> None:
         """Flush buffered events to handlers."""
         if not self._buffer:
             return
-        
+
         batch = self._buffer[:]
         self._buffer.clear()
-        
+
         for event in batch:
             self._flush_event(event)
-    
-    def get_buffer_stats(self) -> Dict[str, int]:
+
+    def get_buffer_stats(self) -> dict[str, int]:
         """Return current buffer statistics."""
         return {
             "buffered": len(self._buffer),
@@ -287,7 +288,7 @@ def console_handler(event: TelemetryEvent) -> None:
         EventPriority.MEDIUM: "◆",
         EventPriority.LOW: "▸",
     }.get(event.priority, "◆")
-    
+
     logger.info(
         f"{emoji} [{event.priority.name}] {event.event_type} "
         f"on {event.page_id} (session: {event.session_id[:8]}...)"
@@ -306,13 +307,13 @@ def mesh_handler(event: TelemetryEvent) -> None:
     """
     if event.priority not in (EventPriority.HIGH, EventPriority.CRITICAL):
         return
-    
+
     try:
         from app.core.positronic_mesh import (
-            mesh_trigger_workflow,
             TELEMETRY_WORKFLOW_TRIGGERS,
+            mesh_trigger_workflow,
         )
-        
+
         # Only trigger if this event type has a workflow mapping
         if event.event_type in TELEMETRY_WORKFLOW_TRIGGERS:
             mesh_trigger_workflow(
@@ -344,18 +345,18 @@ class PageTelemetry:
         telemetry = PageTelemetry("dashboard", session_id)
         telemetry.emit("quick_action_clicked", {"action": "view_deadlines"})
     """
-    
+
     def __init__(self, page_id: str, session_id: str, emitter: TelemetryEmitter = EMITTER):
         self.page_id = page_id
         self.session_id = session_id
         self._emitter = emitter
-    
+
     def emit(
         self,
         event_type: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        priority: Optional[EventPriority] = None,
-    ) -> Optional[TelemetryEvent]:
+        metadata: dict[str, Any] | None = None,
+        priority: EventPriority | None = None,
+    ) -> TelemetryEvent | None:
         """Emit event for this page."""
         return self._emitter.emit(
             event_type=event_type,
@@ -364,9 +365,9 @@ class PageTelemetry:
             metadata=metadata,
             priority=priority,
         )
-    
+
     @contextmanager
-    def timed_event(self, event_type: str, metadata: Optional[Dict[str, Any]] = None):
+    def timed_event(self, event_type: str, metadata: dict[str, Any] | None = None):
         """Context manager for timing operations."""
         start = time.time()
         try:
@@ -377,8 +378,8 @@ class PageTelemetry:
                 event_type=event_type,
                 metadata={**(metadata or {}), "duration_ms": int(duration * 1000)},
             )
-    
-    def page_load(self, extra_metadata: Optional[Dict[str, Any]] = None) -> None:
+
+    def page_load(self, extra_metadata: dict[str, Any] | None = None) -> None:
         """Convenience: emit standard page load event."""
         self.emit(
             event_type=f"{self.page_id}_load",
@@ -390,7 +391,7 @@ class PageTelemetry:
 # VALIDATION
 # =============================================================================
 
-def validate_event_types() -> Dict[str, List[str]]:
+def validate_event_types() -> dict[str, list[str]]:
     """
     Validate that all event types in PageContracts have priority mappings.
     Returns missing events by page.
@@ -402,9 +403,9 @@ def validate_event_types() -> Dict[str, List[str]]:
         import sys
         sys.path.insert(0, r"c:\Semptify\Semptify-FastAPI")
         from app.core.page_contracts import PAGE_CONTRACTS
-    
-    missing: Dict[str, List[str]] = {}
-    
+
+    missing: dict[str, list[str]] = {}
+
     for page_id, contract in PAGE_CONTRACTS.items():
         page_missing = [
             event for event in contract.telemetry_events
@@ -412,7 +413,7 @@ def validate_event_types() -> Dict[str, List[str]]:
         ]
         if page_missing:
             missing[page_id] = page_missing
-    
+
     return missing
 
 
@@ -422,18 +423,18 @@ def validate_event_types() -> Dict[str, List[str]]:
 
 if __name__ == "__main__":
     import sys
-    
+
     # Add handlers for full output
     EMITTER.add_handler(json_handler)
-    
+
     # Test emission
     logger.info("=== Telemetry System Test ===", file=sys.stderr)
-    
+
     telemetry = PageTelemetry("dashboard", "test-session-12345")
-    
+
     # Test basic emission
     telemetry.emit("quick_action_clicked", {"action": "view_deadlines"})
-    
+
     # Test critical event
     EMITTER.emit(
         event_type="eviction_answer_load",
@@ -441,18 +442,18 @@ if __name__ == "__main__":
         session_id="test-session-12345",
         metadata={"case_id": "C-2025-001"},
     )
-    
+
     # Test timed event
     with telemetry.timed_event("api_call", {"endpoint": "/freeapi/courts/evictions"}):
         time.sleep(0.01)  # Simulate work
-    
+
     # Flush and show stats
     EMITTER.flush()
     stats = EMITTER.get_buffer_stats()
-    
+
     logger.info("=== Stats ===")
     logger.info(f"Buffered: {stats['buffered']}")
-    
+
     # Show missing priority mappings
     missing = validate_event_types()
     if missing:

@@ -3,13 +3,15 @@ Legal Trails Module - Track violations, claims, and filing deadlines
 Supports: Legal Claims Trail, Eviction Threat Trail, Broker Oversight, Late Fee Violations
 """
 
+import logging
+from datetime import date, datetime
+from enum import Enum
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime, date
-from enum import Enum
+
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/legal-trails", tags=["Legal Trails"])
@@ -64,83 +66,83 @@ class FilingDestination(str, Enum):
 
 class Violation(BaseModel):
     """A single violation record"""
-    id: Optional[str] = None
+    id: str | None = None
     violation_type: ViolationType
     date_occurred: date
     description: str
-    amount_if_financial: Optional[float] = None
-    evidence_ids: List[str] = Field(default_factory=list)
-    witnesses: List[str] = Field(default_factory=list)
+    amount_if_financial: float | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
+    witnesses: list[str] = Field(default_factory=list)
     perpetrator: str  # Name of person who committed violation
     perpetrator_role: str  # e.g., "Property Manager", "Broker"
     company: str  # e.g., "Velair Property Management"
-    statutes_violated: List[StatuteType] = Field(default_factory=list)
-    created_at: Optional[datetime] = None
-    
-    
+    statutes_violated: list[StatuteType] = Field(default_factory=list)
+    created_at: datetime | None = None
+
+
 class EvictionThreat(BaseModel):
     """Track eviction threats for retaliation claims"""
-    id: Optional[str] = None
+    id: str | None = None
     date_threatened: date
     threat_method: str  # "verbal", "written", "notice"
     threat_content: str
     context: str  # What was happening when threat was made
     was_retaliatory: bool = True
-    prior_complaint_date: Optional[date] = None  # Date of complaint that triggered retaliation
-    prior_complaint_type: Optional[str] = None
-    evidence_ids: List[str] = Field(default_factory=list)
+    prior_complaint_date: date | None = None  # Date of complaint that triggered retaliation
+    prior_complaint_type: str | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
     perpetrator: str
     perpetrator_role: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class LateFeeViolation(BaseModel):
     """Track false or illegal late fees"""
-    id: Optional[str] = None
+    id: str | None = None
     date_charged: date
     amount_charged: float
     rent_amount: float
     days_late: int
     lease_allows_late_fee: bool
-    lease_late_fee_amount: Optional[float] = None
+    lease_late_fee_amount: float | None = None
     exceeds_8_percent: bool = False  # MN law caps at 8%
     legal_max_fee: float = 0  # Calculated 8% of rent
     overcharge_amount: float = 0  # Amount over legal max
-    evidence_ids: List[str] = Field(default_factory=list)
-    created_at: Optional[datetime] = None
+    evidence_ids: list[str] = Field(default_factory=list)
+    created_at: datetime | None = None
 
 
 class BrokerOversight(BaseModel):
     """Track broker responsibility for violations"""
     broker_name: str
-    broker_license: Optional[str] = None
+    broker_license: str | None = None
     broker_company: str
     company_address: str
-    managed_properties: List[str] = Field(default_factory=list)
-    violations_under_watch: List[str] = Field(default_factory=list)  # Violation IDs
+    managed_properties: list[str] = Field(default_factory=list)
+    violations_under_watch: list[str] = Field(default_factory=list)  # Violation IDs
     license_complaint_filed: bool = False
-    license_complaint_date: Optional[date] = None
+    license_complaint_date: date | None = None
     license_status: str = "active"
     notes: str = ""
 
 
 class LegalClaim(BaseModel):
     """A formal legal claim combining violations"""
-    id: Optional[str] = None
+    id: str | None = None
     title: str
     claim_type: str  # "civil", "criminal", "regulatory"
-    violations: List[str] = Field(default_factory=list)  # Violation IDs
-    statutes: List[StatuteType] = Field(default_factory=list)
-    defendants: List[str] = Field(default_factory=list)
+    violations: list[str] = Field(default_factory=list)  # Violation IDs
+    statutes: list[StatuteType] = Field(default_factory=list)
+    defendants: list[str] = Field(default_factory=list)
     status: ClaimStatus = ClaimStatus.DOCUMENTING
-    filing_destination: Optional[FilingDestination] = None
+    filing_destination: FilingDestination | None = None
     statute_of_limitations_date: date
     filing_deadline: date
-    damages_sought: Optional[float] = None
-    attorney: Optional[str] = None
-    case_number: Optional[str] = None
+    damages_sought: float | None = None
+    attorney: str | None = None
+    case_number: str | None = None
     notes: str = ""
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class FilingWindow(BaseModel):
@@ -249,8 +251,8 @@ async def add_violation(violation: Violation):
 
 @router.get("/violations")
 async def list_violations(
-    violation_type: Optional[ViolationType] = None,
-    perpetrator: Optional[str] = None
+    violation_type: ViolationType | None = None,
+    perpetrator: str | None = None
 ):
     """List all logged violations"""
     results = list(violations_db.values())
@@ -304,20 +306,20 @@ async def add_late_fee_violation(fee: LateFeeViolation):
     from app.core.id_gen import make_id
     fee.id = make_id("fee")
     fee.created_at = utc_now()
-    
+
     # Calculate legal max (8% of rent per MN 504B.177)
     fee.legal_max_fee = round(fee.rent_amount * 0.08, 2)
     fee.exceeds_8_percent = fee.amount_charged > fee.legal_max_fee
     fee.overcharge_amount = max(0, fee.amount_charged - fee.legal_max_fee)
-    
+
     late_fees_db[fee.id] = fee.dict()
-    
+
     violations = []
     if not fee.lease_allows_late_fee:
         violations.append("Late fee charged without lease authorization (MN 504B.177)")
     if fee.exceeds_8_percent:
         violations.append(f"Late fee exceeds 8% cap by ${fee.overcharge_amount:.2f} (MN 504B.177)")
-    
+
     return {
         "message": "Late fee violation logged",
         "fee_id": fee.id,
@@ -393,7 +395,7 @@ async def link_violation_to_broker(broker_name: str, violation_id: str):
         raise HTTPException(status_code=404, detail="Broker not found")
     if violation_id not in violations_db:
         raise HTTPException(status_code=404, detail="Violation not found")
-    
+
     broker_oversight_db[broker_name]["violations_under_watch"].append(violation_id)
     return {
         "message": f"Violation {violation_id} linked to broker {broker_name}",
@@ -418,7 +420,7 @@ async def create_legal_claim(claim: LegalClaim):
 
 
 @router.get("/claims")
-async def list_legal_claims(status: Optional[ClaimStatus] = None):
+async def list_legal_claims(status: ClaimStatus | None = None):
     """List all legal claims"""
     results = list(legal_claims_db.values())
     if status:
@@ -454,14 +456,14 @@ async def calculate_filing_windows(
 ):
     """Calculate all filing windows/deadlines for a violation date"""
     from datetime import timedelta
-    
+
     windows = []
     today = date.today()
-    
+
     for claim_type, years in STATUTE_OF_LIMITATIONS.items():
         deadline = violation_date + timedelta(days=years * 365)
         days_remaining = (deadline - today).days
-        
+
         if days_remaining < 0:
             urgency = "expired"
         elif days_remaining < 90:
@@ -470,7 +472,7 @@ async def calculate_filing_windows(
             urgency = "warning"
         else:
             urgency = "safe"
-        
+
         windows.append(FilingWindow(
             claim_type=claim_type,
             violation_date=violation_date,
@@ -479,7 +481,7 @@ async def calculate_filing_windows(
             days_remaining=max(0, days_remaining),
             urgency=urgency
         ))
-    
+
     return {
         "violation_date": violation_date,
         "windows": [w.dict() for w in sorted(windows, key=lambda x: x.days_remaining)]
@@ -494,13 +496,13 @@ async def generate_retaliation_complaint(
     property_address: str,
     landlord_name: str,
     management_company: str,
-    violation_ids: List[str] = Query(default=[]),
-    threat_ids: List[str] = Query(default=[])
+    violation_ids: list[str] = Query(default=[]),
+    threat_ids: list[str] = Query(default=[])
 ):
     """Generate a retaliation complaint document"""
     violations = [violations_db[v] for v in violation_ids if v in violations_db]
     threats = [eviction_threats_db[t] for t in threat_ids if t in eviction_threats_db]
-    
+
     complaint = {
         "title": "COMPLAINT FOR RETALIATORY EVICTION",
         "statute": "Minnesota Statute 504B.285",
@@ -517,14 +519,14 @@ async def generate_retaliation_complaint(
         "violations_referenced": violations,
         "threats_documented": threats
     }
-    
+
     return complaint
 
 
 @router.post("/generate/license-complaint")
 async def generate_license_complaint(
     broker_name: str,
-    license_number: Optional[str] = None,
+    license_number: str | None = None,
     company: str = "",
     violations_summary: str = ""
 ):

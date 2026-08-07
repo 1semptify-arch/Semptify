@@ -17,13 +17,12 @@ No plan content is retained server-side after the request.
 
 from __future__ import annotations
 
-from app.core.id_gen import make_id
-from app.core.utc import utc_now
 import json
 import logging
-from datetime import datetime, timezone
-from dataclasses import dataclass, field, asdict
-from typing import Optional
+from dataclasses import asdict, dataclass, field
+
+from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +45,8 @@ class EntityRecord:
 class EvidenceItem:
     """A single piece of evidence linked to this plan."""
     description: str
-    vault_id: Optional[str] = None
-    date_obtained: Optional[str] = None
+    vault_id: str | None = None
+    date_obtained: str | None = None
     status: str = "pending"  # pending | attached | missing
 
 
@@ -55,7 +54,7 @@ class EvidenceItem:
 class NextStep:
     """An action item the user or advocate needs to take."""
     action: str
-    due_date: Optional[str] = None
+    due_date: str | None = None
     completed: bool = False
     notes: str = ""
 
@@ -212,10 +211,10 @@ def create_plan(
     landlord_name: str = "",
     property_name: str = "",
     property_address: str = "",
-    issues: Optional[list[str]] = None,
+    issues: list[str] | None = None,
     narrative: str = "",
     lihtc_angle: str = "",
-    core_objectives: Optional[list[str]] = None,
+    core_objectives: list[str] | None = None,
     desired_outcomes: str = "",
     include_default_steps: bool = True,
 ) -> AccountabilityPlan:

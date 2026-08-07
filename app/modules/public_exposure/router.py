@@ -5,17 +5,18 @@ Public Exposure Router - API Endpoints for Press Releases & Media
 Provides API access to press release generation and media campaign tools.
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-import logging
+from app.core.security import StorageUser, green_access
 
-from app.core.security import require_user, StorageUser, green_access
 from .service import (
-    get_public_exposure_service,
     MediaOutlet,
     ReleaseType,
+    get_public_exposure_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -27,22 +28,22 @@ router = APIRouter(prefix="/api/exposure", tags=["Public Exposure"])
 class GeneratePressReleaseRequest(BaseModel):
     """Request to generate a press release"""
     property_address: str
-    violations: List[str]
-    contact_info: Dict[str, str]
-    bundle_link: Optional[str] = None
+    violations: list[str]
+    contact_info: dict[str, str]
+    bundle_link: str | None = None
     language: str = "en"
-    landlord_name: Optional[str] = None
-    tenant_count: Optional[int] = None
-    fraud_findings: Optional[List[Dict[str, Any]]] = None
-    quotes: Optional[List[Dict[str, str]]] = None
+    landlord_name: str | None = None
+    tenant_count: int | None = None
+    fraud_findings: list[dict[str, Any]] | None = None
+    quotes: list[dict[str, str]] | None = None
 
 
 class GenerateMediaKitRequest(BaseModel):
     """Request to generate a media kit"""
     press_release_id: str
-    timeline_events: List[Dict[str, str]]
-    evidence_docs: List[str]
-    target_outlets: Optional[List[str]] = None
+    timeline_events: list[dict[str, str]]
+    evidence_docs: list[str]
+    target_outlets: list[str] | None = None
 
 
 # Response Models
@@ -50,14 +51,14 @@ class PressReleaseResponse(BaseModel):
     """Press release response"""
     id: str
     headline: str
-    subheadline: Optional[str]
+    subheadline: str | None
     lede: str
-    body: List[str]
-    quotes: List[Dict[str, str]]
+    body: list[str]
+    quotes: list[dict[str, str]]
     call_to_action: str
     boilerplate: str
-    contact_info: Dict[str, str]
-    bundle_link: Optional[str]
+    contact_info: dict[str, str]
+    bundle_link: str | None
     created_at: str
     language: str
 
@@ -65,13 +66,13 @@ class PressReleaseResponse(BaseModel):
 class MediaKitResponse(BaseModel):
     """Media kit response"""
     id: str
-    press_release: Dict[str, Any]
-    fact_sheet: Dict[str, Any]
-    timeline: List[Dict[str, str]]
-    evidence_summary: List[str]
-    suggested_angles: List[str]
-    media_targets: List[Dict[str, str]]
-    social_media_posts: List[Dict[str, str]]
+    press_release: dict[str, Any]
+    fact_sheet: dict[str, Any]
+    timeline: list[dict[str, str]]
+    evidence_summary: list[str]
+    suggested_angles: list[str]
+    media_targets: list[dict[str, str]]
+    social_media_posts: list[dict[str, str]]
     created_at: str
 
 
@@ -96,7 +97,7 @@ async def generate_press_release(
     - so: Somali
     """
     service = get_public_exposure_service()
-    
+
     try:
         release = await service.generate_press_release(
             property_address=request.property_address,
@@ -110,7 +111,7 @@ async def generate_press_release(
             quotes=request.quotes,
         )
         return release.to_dict()
-    except Exception as e:
+    except Exception:
         logger.exception("Press release generation failed")
         raise HTTPException(status_code=500, detail="Press release generation failed")
 
@@ -123,10 +124,10 @@ async def get_press_release(
     """Get a press release by ID"""
     service = get_public_exposure_service()
     release = service.get_press_release(release_id)
-    
+
     if not release:
         raise HTTPException(status_code=404, detail="Press release not found")
-    
+
     return release.to_dict()
 
 
@@ -138,10 +139,10 @@ async def get_press_release_text(
     """Get a press release as formatted text (ready to send)"""
     service = get_public_exposure_service()
     release = service.get_press_release(release_id)
-    
+
     if not release:
         raise HTTPException(status_code=404, detail="Press release not found")
-    
+
     return {"text": release.to_text(), "id": release_id}
 
 
@@ -163,12 +164,12 @@ async def generate_media_kit(
     - Social media posts
     """
     service = get_public_exposure_service()
-    
+
     # Get the press release
     release = service.get_press_release(request.press_release_id)
     if not release:
         raise HTTPException(status_code=404, detail="Press release not found")
-    
+
     try:
         kit = await service.generate_media_kit(
             press_release=release,
@@ -177,7 +178,7 @@ async def generate_media_kit(
             target_outlets=request.target_outlets,
         )
         return kit.to_dict()
-    except Exception as e:
+    except Exception:
         logger.exception("Media kit generation failed")
         raise HTTPException(status_code=500, detail="Media kit generation failed")
 
@@ -190,16 +191,16 @@ async def get_media_kit(
     """Get a media kit by ID"""
     service = get_public_exposure_service()
     kit = service.get_media_kit(kit_id)
-    
+
     if not kit:
         raise HTTPException(status_code=404, detail="Media kit not found")
-    
+
     return kit.to_dict()
 
 
 @router.get("/media-outlets")
 async def list_media_outlets(
-    outlet_type: Optional[str] = Query(None, description="Filter by outlet type"),
+    outlet_type: str | None = Query(None, description="Filter by outlet type"),
     user: StorageUser = Depends(green_access)
 ):
     """
@@ -214,19 +215,19 @@ async def list_media_outlets(
     - social_media
     """
     service = get_public_exposure_service()
-    
+
     if outlet_type:
         try:
             media_type = MediaOutlet(outlet_type)
             outlets = service.get_mn_media_outlets(media_type)
         except ValueError:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Invalid outlet type: {outlet_type}. Valid types: {[t.value for t in MediaOutlet]}"
             )
     else:
         outlets = service.get_mn_media_outlets()
-    
+
     return {"outlets": outlets, "count": len(outlets)}
 
 
@@ -261,13 +262,13 @@ async def list_release_types(
 @router.post("/generate-social-posts")
 async def generate_social_posts(
     headline: str = Query(..., description="The headline or main topic"),
-    link: Optional[str] = Query(None, description="Link to include"),
-    hashtags: Optional[List[str]] = Query(default=["TenantRights", "HousingJustice"]),
+    link: str | None = Query(None, description="Link to include"),
+    hashtags: list[str] | None = Query(default=["TenantRights", "HousingJustice"]),
     user: StorageUser = Depends(green_access)
 ):
     """Generate social media posts for different platforms"""
     hashtag_str = " ".join(f"#{h}" for h in hashtags) if hashtags else ""
-    
+
     return {
         "posts": [
             {

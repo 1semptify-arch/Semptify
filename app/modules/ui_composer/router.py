@@ -11,17 +11,17 @@ All endpoints return server-rendered HTML (Jinja2) for HTMX or direct browser us
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 
 from app.services.ui_composer import (
-    compose_page,
-    render_fragment,
-    get_process_status,
-    PAGE_INTENTS,
     COMPONENT_TYPES,
+    PAGE_INTENTS,
+    compose_page,
+    get_process_status,
+    render_fragment,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ async def compose_page_endpoint(
     user_id = _get_user_id_from_request(request)
 
     # Build a minimal context from query params (real context comes from Context Loop)
-    context: Dict[str, Any] = {
+    context: dict[str, Any] = {
         "document_count": document_count,
     }
 
@@ -107,7 +107,7 @@ async def render_fragment_endpoint(
         )
 
     # Build data dict from query params
-    data: Dict[str, Any] = dict(request.query_params)
+    data: dict[str, Any] = dict(request.query_params)
 
     try:
         fragment = render_fragment(component_type, data)

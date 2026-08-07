@@ -3,7 +3,6 @@ import json
 import pytest
 
 from app.services.storage.vault_manager import (
-    AUTH_FOLDER,
     PROVISIONING_FILE,
     TOKEN_BACKUP,
     TOKEN_FILE,

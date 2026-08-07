@@ -8,8 +8,9 @@ This ensures consistency across the application and makes it easy to understand 
 Usage: Each module creates a GUI_REQUIREMENTS dict following this contract.
 """
 
-from typing import Dict, List, Optional, Any, Union
 from enum import Enum
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -106,10 +107,10 @@ class InputField(BaseModel):
     type: InputType
     required: bool = False
     default: Any = None
-    placeholder: Optional[str] = None
-    options: Optional[List[Dict[str, Any]]] = None  # For select/multiselect
-    validation: Optional[Dict[str, Any]] = None  # Validation rules
-    help_text: Optional[str] = None
+    placeholder: str | None = None
+    options: list[dict[str, Any]] | None = None  # For select/multiselect
+    validation: dict[str, Any] | None = None  # Validation rules
+    help_text: str | None = None
     disabled: bool = False
     hidden: bool = False
 
@@ -120,9 +121,9 @@ class OutputDisplay(BaseModel):
     label: str
     type: OutputType
     data_source: str  # API endpoint or data key
-    refresh_interval: Optional[int] = None  # Seconds
-    columns: Optional[List[Dict[str, Any]]] = None  # For tables
-    actions: Optional[List[Dict[str, Any]]] = None  # Row actions
+    refresh_interval: int | None = None  # Seconds
+    columns: list[dict[str, Any]] | None = None  # For tables
+    actions: list[dict[str, Any]] | None = None  # Row actions
 
 
 class ActionButton(BaseModel):
@@ -130,13 +131,13 @@ class ActionButton(BaseModel):
     name: str
     label: str
     type: ActionType
-    endpoint: Optional[str] = None  # API endpoint
+    endpoint: str | None = None  # API endpoint
     method: str = "POST"  # HTTP method
-    confirm: Optional[str] = None  # Confirmation message
+    confirm: str | None = None  # Confirmation message
     disabled: bool = False
-    icon: Optional[str] = None
-    style: Optional[str] = None  # CSS class/style
-    loading_state: Optional[str] = None  # What to show while loading
+    icon: str | None = None
+    style: str | None = None  # CSS class/style
+    loading_state: str | None = None  # What to show while loading
 
 
 class Indicator(BaseModel):
@@ -146,7 +147,7 @@ class Indicator(BaseModel):
     data_source: str  # API endpoint or data key
     position: str = "top-right"  # Position on screen
     auto_hide: bool = False
-    timeout: Optional[int] = None  # Auto-hide after seconds
+    timeout: int | None = None  # Auto-hide after seconds
 
 
 class PopOut(BaseModel):
@@ -154,9 +155,9 @@ class PopOut(BaseModel):
     name: str
     type: PopOutType
     trigger: str  # What triggers it (click, hover, auto)
-    title: Optional[str] = None
+    title: str | None = None
     content: str  # URL or content template
-    size: Optional[str] = None  # small, medium, large, full
+    size: str | None = None  # small, medium, large, full
     dismissible: bool = True
 
 
@@ -172,41 +173,41 @@ class GUIRequirements(BaseModel):
     """Complete GUI requirements contract for a module."""
     module_name: str
     version: str = "1.0"
-    
+
     # Page Layout
     layout: str = "default"  # default, wide, narrow, custom
-    sections: List[str] = Field(default_factory=list)  # Page sections
-    
+    sections: list[str] = Field(default_factory=list)  # Page sections
+
     # Input Fields
-    inputs: List[InputField] = Field(default_factory=list)
-    
+    inputs: list[InputField] = Field(default_factory=list)
+
     # Output Displays
-    outputs: List[OutputDisplay] = Field(default_factory=list)
-    
+    outputs: list[OutputDisplay] = Field(default_factory=list)
+
     # Action Buttons
-    actions: List[ActionButton] = Field(default_factory=list)
-    
+    actions: list[ActionButton] = Field(default_factory=list)
+
     # Indicators
-    indicators: List[Indicator] = Field(default_factory=list)
-    
+    indicators: list[Indicator] = Field(default_factory=list)
+
     # Pop-outs/Modals
-    popouts: List[PopOut] = Field(default_factory=list)
-    
+    popouts: list[PopOut] = Field(default_factory=list)
+
     # Special Requirements
-    special_requirements: List[SpecialRequirement] = Field(default_factory=list)
-    
+    special_requirements: list[SpecialRequirement] = Field(default_factory=list)
+
     # Navigation
-    navigation: Dict[str, str] = Field(default_factory=dict)  # name -> url
-    
+    navigation: dict[str, str] = Field(default_factory=dict)  # name -> url
+
     # Permissions
-    required_permissions: List[str] = Field(default_factory=list)
-    
+    required_permissions: list[str] = Field(default_factory=list)
+
     # Dependencies
-    css_files: List[str] = Field(default_factory=list)
-    js_files: List[str] = Field(default_factory=list)
-    
+    css_files: list[str] = Field(default_factory=list)
+    js_files: list[str] = Field(default_factory=list)
+
     # API Endpoints
-    api_endpoints: List[str] = Field(default_factory=list)
+    api_endpoints: list[str] = Field(default_factory=list)
 
 
 # =============================================================================

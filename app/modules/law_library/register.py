@@ -8,7 +8,6 @@ Facts only — no interpretations, no opinions, no legal advice.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="law_library",
     group_name="law_library_list_statutes",

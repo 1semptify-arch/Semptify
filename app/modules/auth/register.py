@@ -7,7 +7,6 @@ they logged in?
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="auth",
     group_name="auth_status",

@@ -4,9 +4,9 @@ Semptify SDK - Timeline Client
 Handles timeline events, statute of limitations, and deadline tracking.
 """
 
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import date
+from typing import Any
 
 from .base import BaseClient
 
@@ -17,15 +17,15 @@ class TimelineEvent:
     id: str
     event_type: str
     title: str
-    description: Optional[str] = None
-    event_date: Optional[date] = None
+    description: str | None = None
+    event_date: date | None = None
     importance: str = "normal"
-    source: Optional[str] = None
-    document_id: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    source: str | None = None
+    document_id: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
-@dataclass 
+@dataclass
 class Deadline:
     """Deadline information."""
     id: str
@@ -34,9 +34,9 @@ class Deadline:
     deadline_type: str
     status: str = "pending"
     priority: str = "normal"
-    description: Optional[str] = None
-    days_remaining: Optional[int] = None
-    statute_info: Optional[Dict[str, Any]] = None
+    description: str | None = None
+    days_remaining: int | None = None
+    statute_info: dict[str, Any] | None = None
 
 
 @dataclass
@@ -46,24 +46,24 @@ class StatuteInfo:
     jurisdiction: str
     limitation_period: str
     limitation_days: int
-    start_date: Optional[date] = None
-    deadline_date: Optional[date] = None
-    days_remaining: Optional[int] = None
-    tolling_info: Optional[Dict[str, Any]] = None
+    start_date: date | None = None
+    deadline_date: date | None = None
+    days_remaining: int | None = None
+    tolling_info: dict[str, Any] | None = None
 
 
 class TimelineClient(BaseClient):
     """Client for timeline and deadline operations."""
-    
+
     def add_event(
         self,
         event_type: str,
         title: str,
         event_date: date,
-        description: Optional[str] = None,
+        description: str | None = None,
         importance: str = "normal",
-        document_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        document_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> TimelineEvent:
         """
         Add a new event to the timeline.
@@ -86,16 +86,16 @@ class TimelineClient(BaseClient):
             "event_date": event_date.isoformat(),
             "importance": importance,
         }
-        
+
         if description:
             data["description"] = description
         if document_id:
             data["document_id"] = document_id
         if metadata:
             data["metadata"] = metadata
-        
+
         response = self.post("/api/timeline/events", json=data)
-        
+
         return TimelineEvent(
             id=response.get("id", ""),
             event_type=response.get("event_type", event_type),
@@ -106,14 +106,14 @@ class TimelineClient(BaseClient):
             document_id=response.get("document_id"),
             metadata=response.get("metadata"),
         )
-    
+
     def get_events(
         self,
-        start_date: Optional[date] = None,
-        end_date: Optional[date] = None,
-        event_type: Optional[str] = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+        event_type: str | None = None,
         limit: int = 100,
-    ) -> List[TimelineEvent]:
+    ) -> list[TimelineEvent]:
         """
         Get timeline events.
         
@@ -133,10 +133,10 @@ class TimelineClient(BaseClient):
             params["end_date"] = end_date.isoformat()
         if event_type:
             params["event_type"] = event_type
-        
+
         response = self.get("/api/timeline/events", params=params)
         events = response if isinstance(response, list) else response.get("events", [])
-        
+
         return [
             TimelineEvent(
                 id=evt.get("id", ""),
@@ -150,13 +150,13 @@ class TimelineClient(BaseClient):
             )
             for evt in events
         ]
-    
+
     def get_deadlines(
         self,
-        status: Optional[str] = None,
-        priority: Optional[str] = None,
+        status: str | None = None,
+        priority: str | None = None,
         days_ahead: int = 30,
-    ) -> List[Deadline]:
+    ) -> list[Deadline]:
         """
         Get upcoming deadlines.
         
@@ -173,10 +173,10 @@ class TimelineClient(BaseClient):
             params["status"] = status
         if priority:
             params["priority"] = priority
-        
+
         response = self.get("/api/timeline/deadlines", params=params)
         deadlines = response if isinstance(response, list) else response.get("deadlines", [])
-        
+
         return [
             Deadline(
                 id=dl.get("id", ""),
@@ -191,13 +191,13 @@ class TimelineClient(BaseClient):
             )
             for dl in deadlines
         ]
-    
+
     def calculate_statute(
         self,
         violation_type: str,
         jurisdiction: str,
         incident_date: date,
-        discovered_date: Optional[date] = None,
+        discovered_date: date | None = None,
     ) -> StatuteInfo:
         """
         Calculate statute of limitations for a specific violation.
@@ -218,9 +218,9 @@ class TimelineClient(BaseClient):
         }
         if discovered_date:
             data["discovered_date"] = discovered_date.isoformat()
-        
+
         response = self.post("/api/timeline/statute/calculate", json=data)
-        
+
         return StatuteInfo(
             statute_name=response.get("statute_name", ""),
             jurisdiction=response.get("jurisdiction", jurisdiction),
@@ -231,11 +231,11 @@ class TimelineClient(BaseClient):
             days_remaining=response.get("days_remaining"),
             tolling_info=response.get("tolling_info"),
         )
-    
+
     def get_statute_deadlines(
         self,
-        jurisdiction: Optional[str] = None,
-    ) -> List[StatuteInfo]:
+        jurisdiction: str | None = None,
+    ) -> list[StatuteInfo]:
         """
         Get all statute of limitations deadlines.
         
@@ -248,10 +248,10 @@ class TimelineClient(BaseClient):
         params = {}
         if jurisdiction:
             params["jurisdiction"] = jurisdiction
-        
+
         response = self.get("/api/timeline/statute/deadlines", params=params)
         statutes = response if isinstance(response, list) else response.get("statutes", [])
-        
+
         return [
             StatuteInfo(
                 statute_name=s.get("statute_name", ""),
@@ -265,8 +265,8 @@ class TimelineClient(BaseClient):
             )
             for s in statutes
         ]
-    
-    def get_timeline_summary(self) -> Dict[str, Any]:
+
+    def get_timeline_summary(self) -> dict[str, Any]:
         """
         Get a summary of the timeline with key events and deadlines.
         
@@ -274,7 +274,7 @@ class TimelineClient(BaseClient):
             Timeline summary with statistics and highlights
         """
         return self.get("/api/timeline/summary")
-    
+
     def delete_event(self, event_id: str) -> bool:
         """
         Delete a timeline event.

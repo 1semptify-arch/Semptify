@@ -8,14 +8,12 @@ Shows routing decisions, cookie state, and integration health.
 # Migrated from app/routers/workflow_validator.py into the workflow_validator SDK module.
 # All imports remain absolute since workflow_validator is a CORE module.
 
-from fastapi import APIRouter, Request, Cookie, Depends
-from fastapi.responses import HTMLResponse
-from typing import Optional
-from dataclasses import dataclass
-import json
 import logging
 
-from app.core.security import require_user, StorageUser, yellow_access
+from fastapi import APIRouter, Cookie, Depends, Request
+from fastapi.responses import HTMLResponse
+
+from app.core.security import StorageUser, yellow_access
 
 logger = logging.getLogger(__name__)
 
@@ -26,25 +24,25 @@ router = APIRouter(prefix="/admin/workflow-validator", tags=["admin", "workflow"
 async def validator_dashboard(
     request: Request,
     user: StorageUser = Depends(yellow_access),
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """Visual dashboard showing workflow system state."""
-    
+
     # Gather system state
-    from app.core.cookie_auth import verify_user_id, sign_user_id
-    from app.core.workflow_engine import route_user, StorageState, ProcessCode, evaluate_from_params
-    from app.core.module_contracts import contract_registry
     from app.core.action_maps import DASHBOARD_QUICK_ACTIONS
-    from app.core.vault_paths import VAULT_ROOT, VAULT_DOCUMENTS, VAULT_TIMELINE
-    from app.core.user_id import parse_user_id, get_role_from_user_id
-    
+    from app.core.cookie_auth import verify_user_id
+    from app.core.module_contracts import contract_registry
+    from app.core.user_id import parse_user_id
+    from app.core.vault_paths import VAULT_DOCUMENTS, VAULT_ROOT, VAULT_TIMELINE
+    from app.core.workflow_engine import evaluate_from_params, route_user
+
     # Cookie analysis
     raw_uid = verify_user_id(semptify_uid) if semptify_uid else None
     cookie_valid = raw_uid is not None
     provider = role = unique = None
     if raw_uid:
         provider, role, unique = parse_user_id(raw_uid)
-    
+
     # Routing tests (using correct user ID format: <provider><role><8-chars>)
     routing_tests = []
     test_cases = [
@@ -54,14 +52,14 @@ async def validator_dashboard(
         ("Advocate", "GVdef45678", True, True),         # G=Google, V=Advocate
         ("Legal", "GLghi90123", True, True),            # G=Google, L=Legal
     ]
-    
+
     for name, uid, docs, case in test_cases:
         try:
             result = await route_user(uid, documents_present=docs, has_active_case=case)
             routing_tests.append({"name": name, "uid": uid[:20], "route": result, "ok": True})
         except Exception as e:
             routing_tests.append({"name": name, "uid": uid[:20], "error": str(e), "ok": False})
-    
+
     # Workflow decisions
     workflow_tests = []
     test_roles = ["tenant", "advocate", "legal", "admin"]
@@ -84,11 +82,11 @@ async def validator_dashboard(
                 })
             except Exception as e:
                 workflow_tests.append({"role": role, "storage": storage, "error": str(e), "ok": False})
-    
+
     # System health
     contracts = contract_registry.list_contracts()
     actions = list(DASHBOARD_QUICK_ACTIONS.keys())
-    
+
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -323,7 +321,7 @@ async def validator_dashboard(
     </div>
 </body>
 </html>'''
-    
+
     return HTMLResponse(content=html)
 
 
@@ -335,7 +333,7 @@ async def test_routing(
 ):
     """API endpoint to test specific routing scenarios."""
     from app.core.workflow_engine import route_user
-    
+
     result = await route_user(user_id, documents_present, has_active_case)
     return {
         "user_id": user_id,

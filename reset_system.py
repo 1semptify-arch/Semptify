@@ -23,7 +23,7 @@ def reset_modules():
     if os.path.exists(admin_path):
         shutil.rmtree(admin_path)
         print(f"✓ Removed: {admin_path}")
-    
+
     # Recreate with generator
     generator = os.path.join(SEMPtIFY_PATH, "create_admin_module.py")
     if os.path.exists(generator):
@@ -82,17 +82,17 @@ def full_reset():
     print("   - UI state (cleared)")
     print("\n✓ Keeps: Ollama models, core code, documents")
     print()
-    
+
     if not confirm("Do you want to proceed with reset"):
         print("\nReset cancelled.")
         return
-    
+
     reset_modules()
     reset_logs()
     reset_backend()
     reset_ui()
     reset_models()
-    
+
     print("\n" + "=" * 60)
     print("Reset Complete!")
     print("=" * 60)

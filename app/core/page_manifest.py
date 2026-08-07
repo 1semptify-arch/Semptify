@@ -22,7 +22,6 @@ Coverage State Definitions:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Set
 from enum import Enum
 
 
@@ -43,13 +42,13 @@ class ObjectSetCoverage:
 @dataclass
 class PageManifestEntry:
     """Complete manifest entry for a single page."""
-    
+
     # Identity
     page_id: str
     route: str
     source_file: str  # Template or static HTML file path
     page_type: str    # "template", "static", "route_rendered"
-    
+
     # 9 Object Sets Coverage
     page_contract: ObjectSetCoverage
     route_guards: ObjectSetCoverage
@@ -59,12 +58,12 @@ class PageManifestEntry:
     output_objects: ObjectSetCoverage
     telemetry_hooks: ObjectSetCoverage
     mesh_binding: ObjectSetCoverage
-    
+
     # Overall status
     overall_coverage: CoverageStatus
-    
+
     # Gap analysis
-    missing_object_sets: List[str] = field(default_factory=list)
+    missing_object_sets: list[str] = field(default_factory=list)
     recommended_priority: str = "low"  # low, medium, high, critical
 
 
@@ -72,7 +71,7 @@ class PageManifestEntry:
 # PAGE MANIFEST REGISTRY
 # =============================================================================
 
-PAGE_MANIFEST: List[PageManifestEntry] = [
+PAGE_MANIFEST: list[PageManifestEntry] = [
     #
     # PROCESS A: WELCOME / ENTRY POINTS
     #
@@ -117,7 +116,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # ONBOARDING SEQUENCE (A2 — A4)
     #
@@ -291,7 +290,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="documents",
         route="/documents",
@@ -333,7 +332,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     PageManifestEntry(
         page_id="timeline",
         route="/timeline",
@@ -375,7 +374,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="calendar",
         route="/calendar",
@@ -417,7 +416,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     #
     # PROCESS C: GUIDED JOURNEYS
     #
@@ -462,7 +461,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="admin",
         route="/admin",
@@ -504,7 +503,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # LEGAL / RESEARCH PAGES
     #
@@ -549,7 +548,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="law_library",
         route="/law-library",
@@ -591,7 +590,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="research",
         route="/research",
@@ -633,7 +632,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="legal_trails",
         route="/legal-trails",
@@ -675,7 +674,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # DOCUMENT MANAGEMENT
     #
@@ -720,7 +719,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     PageManifestEntry(
         page_id="document_viewer",
         route="/document-viewer",
@@ -762,7 +761,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="document_intake",
         route="/document-intake",
@@ -804,7 +803,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     #
     # COURT / HEARING
     #
@@ -849,7 +848,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     PageManifestEntry(
         page_id="eviction_answer",
         route="/eviction-answer",
@@ -891,7 +890,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     PageManifestEntry(
         page_id="hearing_prep",
         route="/hearing-prep",
@@ -933,7 +932,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     PageManifestEntry(
         page_id="zoom_court",
         route="/zoom-court",
@@ -975,7 +974,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="motions",
         route="/motions",
@@ -1017,7 +1016,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="counterclaim",
         route="/counterclaim",
@@ -1059,7 +1058,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     #
     # CASE BUILDER / BRIEFCASE
     #
@@ -1104,7 +1103,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="briefcase",
         route="/briefcase",
@@ -1146,7 +1145,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # UTILITY / TOOLS
     #
@@ -1191,7 +1190,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="document_converter",
         route="/document-converter",
@@ -1233,7 +1232,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="contacts",
         route="/contacts",
@@ -1275,7 +1274,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="correspondence",
         route="/correspondence",
@@ -1317,7 +1316,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="letter_builder",
         route="/letter-builder",
@@ -1359,7 +1358,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # SETTINGS / SETUP
     #
@@ -1404,7 +1403,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="setup_wizard",
         route="/setup",
@@ -1446,7 +1445,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="storage_setup",
         route="/storage-setup",
@@ -1488,7 +1487,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     #
     # HELP / INFO
     #
@@ -1533,7 +1532,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="about",
         route="/about",
@@ -1575,7 +1574,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="privacy",
         route="/privacy",
@@ -1617,7 +1616,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # SPECIALIZED MODULES
     #
@@ -1662,7 +1661,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="public_exposure",
         route="/public-exposure",
@@ -1704,7 +1703,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="complaints",
         route="/complaints",
@@ -1746,7 +1745,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="dakota_defense",
         route="/dakota-defense",
@@ -1788,7 +1787,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # ADVANCED / SPECIALTY
     #
@@ -1833,7 +1832,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="brain",
         route="/brain",
@@ -1875,7 +1874,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="focus",
         route="/focus",
@@ -1917,7 +1916,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="campaign",
         route="/campaign",
@@ -1959,7 +1958,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="mesh_network",
         route="/mesh-network",
@@ -2001,7 +2000,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="crawler",
         route="/crawler",
@@ -2043,7 +2042,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="auto_analysis_summary",
         route="/auto-analysis",
@@ -2085,7 +2084,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # ONBOARDING / REGISTRATION
     # NOTE: /register redirects to /storage/providers (OAuth-based auth, no username/password)
@@ -2133,7 +2132,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="index",
         route="/index",
@@ -2175,7 +2174,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # DEVELOPER / ADMIN TOOLS
     #
@@ -2220,7 +2219,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="page_editor",
         route="/page-editor",
@@ -2262,7 +2261,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="layout_builder",
         route="/layout-builder",
@@ -2304,7 +2303,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="style_editor",
         route="/style-editor",
@@ -2346,7 +2345,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="module_converter",
         route="/module-converter",
@@ -2388,7 +2387,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="component_converter",
         route="/component-converter",
@@ -2430,7 +2429,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="page_index",
         route="/page-index",
@@ -2472,7 +2471,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="error",
         route="/error",
@@ -2514,7 +2513,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     #
     # FUNDING / RESOURCES
     #
@@ -2559,7 +2558,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="hud_funding",
         route="/hud-funding",
@@ -2601,7 +2600,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="recognition",
         route="/recognition",
@@ -2643,7 +2642,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="evaluation_report",
         route="/evaluation-report",
@@ -2685,7 +2684,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="crisis_intake",
         route="/crisis-intake",
@@ -2727,7 +2726,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="high"
     ),
-    
+
     PageManifestEntry(
         page_id="court_learning",
         route="/court-learning",
@@ -2769,7 +2768,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="complete_journey",
         route="/complete-journey",
@@ -2811,7 +2810,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="interactive_timeline",
         route="/interactive-timeline",
@@ -2853,7 +2852,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="timeline_builder",
         route="/timeline-builder",
@@ -2895,7 +2894,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="timeline_auto_build",
         route="/timeline-auto-build",
@@ -2937,7 +2936,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="document_calendar",
         route="/document-calendar",
@@ -2979,7 +2978,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="sample_certificate",
         route="/sample-certificate",
@@ -3021,7 +3020,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="sidebar_with_auto_mode",
         route="/sidebar-auto-mode",
@@ -3063,7 +3062,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="roles",
         route="/roles",
@@ -3105,7 +3104,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="enterprise_dashboard",
         route="/enterprise-dashboard",
@@ -3147,7 +3146,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="intake",
         route="/intake",
@@ -3189,7 +3188,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="medium"
     ),
-    
+
     PageManifestEntry(
         page_id="research_module",
         route="/research-module",
@@ -3231,7 +3230,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         missing_object_sets=[],
         recommended_priority="low"
     ),
-    
+
     PageManifestEntry(
         page_id="journey",
         route="/journey",
@@ -3662,7 +3661,7 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
 # MANIFEST QUERY FUNCTIONS
 # =============================================================================
 
-def get_page_manifest_entry(page_id: str) -> Optional[PageManifestEntry]:
+def get_page_manifest_entry(page_id: str) -> PageManifestEntry | None:
     """Get manifest entry for a specific page."""
     for entry in PAGE_MANIFEST:
         if entry.page_id == page_id:
@@ -3670,28 +3669,28 @@ def get_page_manifest_entry(page_id: str) -> Optional[PageManifestEntry]:
     return None
 
 
-def get_pages_by_coverage(status: CoverageStatus) -> List[PageManifestEntry]:
+def get_pages_by_coverage(status: CoverageStatus) -> list[PageManifestEntry]:
     """Get all pages with a specific overall coverage status."""
     return [p for p in PAGE_MANIFEST if p.overall_coverage == status]
 
 
-def get_pages_with_missing(object_set: str) -> List[PageManifestEntry]:
+def get_pages_with_missing(object_set: str) -> list[PageManifestEntry]:
     """Get all pages missing a specific object set."""
     return [p for p in PAGE_MANIFEST if object_set in p.missing_object_sets]
 
 
-def get_high_priority_pages() -> List[PageManifestEntry]:
+def get_high_priority_pages() -> list[PageManifestEntry]:
     """Get all pages marked as high or critical priority."""
     return [p for p in PAGE_MANIFEST if p.recommended_priority in ("high", "critical")]
 
 
-def get_coverage_summary() -> Dict[str, int]:
+def get_coverage_summary() -> dict[str, int]:
     """Get summary statistics of coverage across all pages."""
     total = len(PAGE_MANIFEST)
     complete = len(get_pages_by_coverage(CoverageStatus.COMPLETE))
     partial = len(get_pages_by_coverage(CoverageStatus.PARTIAL))
     missing = len(get_pages_by_coverage(CoverageStatus.MISSING))
-    
+
     return {
         "total_pages": total,
         "complete": complete,
@@ -3701,7 +3700,7 @@ def get_coverage_summary() -> Dict[str, int]:
     }
 
 
-def get_object_set_gap_summary() -> Dict[str, int]:
+def get_object_set_gap_summary() -> dict[str, int]:
     """Get count of pages missing each object set."""
     object_sets = [
         "page_contract", "route_guards", "module_links", "action_map",
@@ -3717,17 +3716,17 @@ def get_object_set_gap_summary() -> Dict[str, int]:
 # VALIDATION
 # =============================================================================
 
-def validate_manifest() -> List[str]:
+def validate_manifest() -> list[str]:
     """Validate the page manifest for completeness and consistency."""
     errors = []
     page_ids = set()
-    
+
     for entry in PAGE_MANIFEST:
         # Check for duplicate page_ids
         if entry.page_id in page_ids:
             errors.append(f"Duplicate page_id: {entry.page_id}")
         page_ids.add(entry.page_id)
-        
+
         # Check that missing_object_sets aligns with ObjectSetCoverage
         for missing in entry.missing_object_sets:
             coverage_map = {
@@ -3747,7 +3746,7 @@ def validate_manifest() -> List[str]:
                     f"[{entry.page_id}] Inconsistency: {missing} in missing_object_sets "
                     f"but status is {coverage_map[missing]}"
                 )
-    
+
     return errors
 
 
@@ -3772,7 +3771,7 @@ if __name__ == "__main__":
     for page in get_high_priority_pages():
         print(f"  [{page.recommended_priority.upper()}] {page.page_id}: {page.route}")
     print()
-    
+
     # Validate
     validation_errors = validate_manifest()
     if validation_errors:

@@ -1,7 +1,9 @@
 """Reset test user state for a clean onboarding run."""
 import asyncio
-from app.core.database import get_db_session
+
 from sqlalchemy import text
+
+from app.core.database import get_db_session
 
 LIST_TABLES = "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename"
 

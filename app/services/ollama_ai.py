@@ -5,15 +5,15 @@ Runs entirely on your machine - data never leaves.
 """
 
 import json
+import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
 
 import httpx
 
 from app.core.config import get_settings
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +42,7 @@ class OllamaAIService:
         settings = get_settings()
         self.base_url = getattr(settings, 'ollama_base_url', 'http://localhost:11434')
         self.model = getattr(settings, 'ollama_model', 'llama3.2')
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
 
     async def is_available(self) -> bool:
         """Check if Ollama is running."""
@@ -65,7 +65,7 @@ class OllamaAIService:
         self,
         text: str,
         filename: str,
-        doc_hint: Optional[str] = None
+        doc_hint: str | None = None
     ) -> OllamaAnalysisResult:
         """
         Analyze a document using local Ollama.
@@ -82,7 +82,7 @@ class OllamaAIService:
             return self._fallback_analysis(text, filename)
 
         prompt = self._build_analysis_prompt(text, filename, doc_hint)
-        
+
         try:
             result = await self._call_ollama(prompt)
             return self._parse_result(result)
@@ -94,10 +94,10 @@ class OllamaAIService:
         self,
         text: str,
         filename: str,
-        doc_hint: Optional[str] = None
+        doc_hint: str | None = None
     ) -> str:
         """Build the analysis prompt."""
-        
+
         # Truncate for smaller local models
         max_chars = 3000
         if len(text) > max_chars:
@@ -146,13 +146,13 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
 
         async with httpx.AsyncClient(timeout=120.0) as client:  # Longer timeout for local
             response = await client.post(url, json=payload)
-            
+
             if response.status_code != 200:
                 raise Exception(f"Ollama error: {response.status_code} - {response.text}")
-            
+
             result = response.json()
             content = result.get("response", "{}")
-            
+
             # Clean up response - sometimes models add extra text
             content = content.strip()
             if content.startswith("```json"):
@@ -162,7 +162,7 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
             if content.endswith("```"):
                 content = content[:-3]
             content = content.strip()
-            
+
             return json.loads(content)
 
     def _parse_result(self, data: dict) -> OllamaAnalysisResult:
@@ -259,18 +259,18 @@ Summary:"""
                     "stream": False,
                     "options": {"temperature": 0.3, "num_predict": 200}
                 })
-                
+
                 if response.status_code == 200:
                     return response.json().get("response", "").strip()
-                    
+
         except Exception as e:
             logger.error(f"Summary failed: {e}")
-            
+
         return "Unable to generate summary."
 
 
 # Singleton instance
-_ollama_service: Optional[OllamaAIService] = None
+_ollama_service: OllamaAIService | None = None
 
 
 def get_ollama_ai() -> OllamaAIService:

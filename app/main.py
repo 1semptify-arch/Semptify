@@ -103,8 +103,6 @@ templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
 templates.env.globals["get_locale"] = get_locale
 
-from datetime import datetime as _dt
-
 # Minimal, privacy-first stateless landing route for the On-The-Fly Composer demo
 
 
@@ -130,7 +128,7 @@ def register_stateless_routes(app: FastAPI):
 
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request):
-        ctx = {"request": request, "year": _dt.utcnow().year}
+        ctx = {"request": request, "year": utc_now().year}
         return templates.TemplateResponse("index.html", ctx)
 
     @app.get("/api/i18n/locale", include_in_schema=False)
@@ -445,8 +443,9 @@ async def lifespan(_app: FastAPI):
                 return
 
             def _sync_migrate():
-                from alembic import command
                 from alembic.config import Config
+
+                from alembic import command
 
                 alembic_cfg = Config("alembic.ini")
                 command.upgrade(alembic_cfg, "head")
@@ -3459,8 +3458,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_fix():
-                from alembic import command
                 from alembic.config import Config
+
+                from alembic import command
 
                 cfg = Config("alembic.ini")
                 # Stamp to the revision before legal_sub_role was added
@@ -3468,9 +3468,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 # Now upgrade to head — this will run the legal_sub_role migration
                 command.upgrade(cfg, "head")
                 # Return current version
-                from sqlalchemy import create_engine
-
                 from alembic.runtime.migration import MigrationContext
+                from sqlalchemy import create_engine
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)
@@ -3569,14 +3568,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             import asyncio
 
             def _sync_stamp():
-                from alembic import command
                 from alembic.config import Config
+
+                from alembic import command
 
                 cfg = Config("alembic.ini")
                 command.stamp(cfg, "head")
-                from sqlalchemy import create_engine
-
                 from alembic.runtime.migration import MigrationContext
+                from sqlalchemy import create_engine
 
                 sync_url = cfg.get_main_option("sqlalchemy.url")
                 eng = create_engine(sync_url)

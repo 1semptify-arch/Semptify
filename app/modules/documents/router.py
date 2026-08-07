@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Reques
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auto_refresh import ensure_valid_token
 from app.core.capabilities import require_capability
 from app.core.database import get_db
 from app.core.event_bus import EventType, event_bus
@@ -25,9 +26,6 @@ from app.core.security import StorageUser, green_access, yellow_access
 from app.core.utc import utc_now
 from app.services.document_pipeline import DocumentType, ProcessingStatus, get_document_pipeline
 from app.services.law_engine import get_law_engine
-
-from app.core.auto_refresh import ensure_valid_token
-
 
 # Import vault upload service - ALL uploads go through here first
 

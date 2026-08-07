@@ -32,10 +32,10 @@ Usage:
 """
 
 import logging
-from typing import Iterable
+from collections.abc import Iterable
 
-from app.core.product_manifest import MANIFEST, ModuleEntry, ProductTier
 from app.core.module_overrides import effective_entry
+from app.core.product_manifest import MANIFEST, ModuleEntry
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ async def _feature_flag_allowed(entry: ModuleEntry) -> bool:
     if not entry.feature_flag:
         return True  # no flag required
     try:
-        from app.core.features import features, Feature
+        from app.core.features import Feature, features
         # feature_flag stores the Feature enum value string
         feature = Feature(entry.feature_flag)
         return await features.is_enabled(feature)

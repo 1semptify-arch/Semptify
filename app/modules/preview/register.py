@@ -6,7 +6,6 @@ in multiple formats. Used by the documents module to render previews.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="preview",
     group_name="preview_generate",

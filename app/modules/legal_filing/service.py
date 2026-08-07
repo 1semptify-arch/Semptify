@@ -1,11 +1,10 @@
 
-from typing import List
-from pathlib import Path
 import json
-from datetime import date
+import logging
+from pathlib import Path
 
 from app.models.legal_filing_models import LegalCase
-import logging
+
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "legal_filings"
@@ -47,7 +46,7 @@ def load_case(case_id: str) -> LegalCase:
     return LegalCase.model_validate_json(p.read_text(encoding='utf-8'))
 
 
-def list_cases() -> List[LegalCase]:
+def list_cases() -> list[LegalCase]:
     cases = []
     for f in DATA_DIR.glob('case_*.json'):
         try:

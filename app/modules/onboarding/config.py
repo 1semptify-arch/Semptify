@@ -6,23 +6,9 @@ the config makes it specific.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from app.core.vault_paths import (
     CANONICAL_VAULT_FOLDERS,
-    SEMPTIFY_ROOT,
-    SYSTEM_FOLDER,
-    AUTH_FOLDER,
-    VAULT_ROOT,
-    VAULT_DOCUMENTS,
-    VAULT_CERTIFICATES,
-    VAULT_TIMELINE,
-    VAULT_OVERLAYS,
-    VAULT_OVERLAY_DOCUMENTS,
-    VAULT_OVERLAY_QUERIES,
-    VAULT_OVERLAYS_FORMS,
-    VAULT_OVERLAY_REDACTIONS,
-    VAULT_FOLDER as VAULT_METADATA_FOLDER,
 )
 
 
@@ -48,15 +34,15 @@ class OnboardingConfig:
 
     # --- Required ---
     product_name: str
-    allowed_roles: List[str]
-    allowed_providers: List[str]
+    allowed_roles: list[str]
+    allowed_providers: list[str]
     on_complete_redirect: str
 
     # --- Vault folders (defaults to canonical paths from vault_paths.py) ---
-    vault_folders: List[str] = field(default_factory=lambda: list(CANONICAL_VAULT_FOLDERS))
+    vault_folders: list[str] = field(default_factory=lambda: list(CANONICAL_VAULT_FOLDERS))
 
     # --- Gates (serial, each unlocks next) ---
-    gates: List[str] = field(default_factory=lambda: [
+    gates: list[str] = field(default_factory=lambda: [
         "storage_connected",
         "vault_initialized",
         "document_uploaded",

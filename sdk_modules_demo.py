@@ -1,7 +1,7 @@
 # app.py
 import logging
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from dataclasses import dataclass, field
 from functools import wraps
@@ -138,12 +138,12 @@ complaints_sdk = ModuleSDK(complaints_def)
 
 @complaints_sdk.action("file_complaint", required_params=["target_agency","violation_type","facts","language"], produces=["complaint_record"])
 async def file_complaint(user_id, params, context):
-    record = {"id": f"cmp_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}", **params, "status":"submitted"}
+    record = {"id": f"cmp_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}", **params, "status":"submitted"}
     return {"complaint_record": record}
 
 @complaints_sdk.action("update_status", required_params=["complaint_id","status"], produces=["complaint_status"])
 async def update_status(user_id, params, context):
-    return {"complaint_status": {**params, "updated_at": datetime.utcnow().isoformat()}}
+    return {"complaint_status": {**params, "updated_at": datetime.now(timezone.utc).isoformat()}}
 
 @complaints_sdk.action("export_zip", required_params=["complaint_id"], produces=["zip_bundle"])
 async def export_zip(user_id, params, context):
@@ -162,7 +162,7 @@ async def analyze_fraud(user_id, params, context):
     findings = []
     if any(d.get("signature_status")=="missing" for d in params["case_docs"]):
         findings.append({"rule":"unsigned_documents"})
-    report = {"landlord_id":params["landlord_id"],"findings":findings,"created_at":datetime.utcnow().isoformat()}
+    report = {"landlord_id":params["landlord_id"],"findings":findings,"created_at":datetime.now(timezone.utc).isoformat()}
     return {"fraud_report": report}
 
 fraud_sdk.initialize()

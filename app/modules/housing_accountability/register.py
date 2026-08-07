@@ -8,7 +8,6 @@ regulatory agencies, and build coalition actions. Facts and documentation only
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="housing_accountability",
     group_name="accountability_detect_patterns",

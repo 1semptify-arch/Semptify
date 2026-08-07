@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 """Quick system validation using stdlib only."""
 
-import json
-import sys
-from pathlib import Path
-from urllib.request import urlopen
 from urllib.error import HTTPError
+from urllib.request import urlopen
 
 BASE = "http://localhost:8000"
 results = []

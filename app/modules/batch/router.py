@@ -6,17 +6,23 @@ Provides batch operations for document management with progress tracking.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, red_access
-from app.core.capabilities import require_capability
 from app.core.batch_operations import (
-    get_batch_processor, BatchOperationType, BatchOperationStatus,
-    create_batch_operation, start_batch_operation, cancel_batch_operation,
-    get_batch_operation, get_user_batch_operations, get_batch_statistics
+    BatchOperationStatus,
+    BatchOperationType,
+    cancel_batch_operation,
+    create_batch_operation,
+    get_batch_operation,
+    get_batch_statistics,
+    get_user_batch_operations,
+    start_batch_operation,
 )
+from app.core.capabilities import require_capability
+from app.core.security import StorageUser, red_access
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -28,8 +34,8 @@ router = APIRouter()
 class BatchRequest(BaseModel):
     """Batch operation request."""
     operation_type: str = Field(..., description="Operation type: upload, delete, export, import, move, copy, tag, analyze, preview")
-    items: List[Dict[str, Any]] = Field(..., description="List of items to process")
-    settings: Optional[Dict[str, Any]] = Field(None, description="Operation settings")
+    items: list[dict[str, Any]] = Field(..., description="List of items to process")
+    settings: dict[str, Any] | None = Field(None, description="Operation settings")
 
 class BatchResponse(BaseModel):
     """Batch operation response."""
@@ -38,12 +44,12 @@ class BatchResponse(BaseModel):
     operation_type: str
     status: str
     total_items: int
-    message: Optional[str] = None
+    message: str | None = None
 
 class BatchItemRequest(BaseModel):
     """Single batch item."""
     type: str = Field(..., description="Item type")
-    data: Dict[str, Any] = Field(..., description="Item data")
+    data: dict[str, Any] = Field(..., description="Item data")
 
 # =============================================================================
 # Batch Operations Endpoints
@@ -78,17 +84,17 @@ async def create_batch_operation_endpoint(
                 status_code=400,
                 detail=f"Invalid operation type: {request.operation_type}"
             )
-        
+
         # Validate items
         if not request.items:
             raise HTTPException(status_code=400, detail="At least one item is required")
-        
+
         if len(request.items) > 1000:
             raise HTTPException(
                 status_code=400,
                 detail="Maximum 1000 items per batch operation"
             )
-        
+
         # Create batch operation
         operation_id = create_batch_operation(
             operation_type=request.operation_type,
@@ -96,7 +102,7 @@ async def create_batch_operation_endpoint(
             items=request.items,
             settings=request.settings or {}
         )
-        
+
         return BatchResponse(
             success=True,
             operation_id=operation_id,
@@ -105,7 +111,7 @@ async def create_batch_operation_endpoint(
             total_items=len(request.items),
             message="Batch operation created successfully"
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -126,22 +132,22 @@ async def start_batch_operation_endpoint(
         operation = get_batch_operation(operation_id)
         if not operation:
             raise HTTPException(status_code=404, detail="Batch operation not found")
-        
+
         if operation["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         # Start operation
         success = await start_batch_operation(operation_id)
-        
+
         if not success:
             raise HTTPException(status_code=409, detail="Operation cannot be started (max concurrent operations reached)")
-        
+
         return {
             "success": True,
             "operation_id": operation_id,
             "message": "Batch operation started successfully"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -162,22 +168,22 @@ async def cancel_batch_operation_endpoint(
         operation = get_batch_operation(operation_id)
         if not operation:
             raise HTTPException(status_code=404, detail="Batch operation not found")
-        
+
         if operation["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         # Cancel operation
         success = cancel_batch_operation(operation_id)
-        
+
         if not success:
             raise HTTPException(status_code=409, detail="Operation cannot be cancelled")
-        
+
         return {
             "success": True,
             "operation_id": operation_id,
             "message": "Batch operation cancelled successfully"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -198,13 +204,13 @@ async def get_batch_operation_endpoint(
         operation = get_batch_operation(operation_id)
         if not operation:
             raise HTTPException(status_code=404, detail="Batch operation not found")
-        
+
         # Check ownership
         if operation["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         return operation
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -213,7 +219,7 @@ async def get_batch_operation_endpoint(
 
 @router.get("/")
 async def get_user_batch_operations_endpoint(
-    status: Optional[str] = Query(None, description="Filter by status"),
+    status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(50, ge=1, le=200, description="Max operations to return"),
     offset: int = Query(0, ge=0, description="Operations offset"),
     user: StorageUser = Depends(red_access),
@@ -241,14 +247,14 @@ async def get_user_batch_operations_endpoint(
                     status_code=400,
                     detail=f"Invalid status: {status}"
                 )
-        
+
         # Get user operations
         operations = get_user_batch_operations(user.user_id, status_filter)
-        
+
         # Apply pagination
         total_operations = len(operations)
         paginated_operations = operations[offset:offset + limit]
-        
+
         return {
             "operations": paginated_operations,
             "total": total_operations,
@@ -256,7 +262,7 @@ async def get_user_batch_operations_endpoint(
             "offset": offset,
             "has_more": offset + limit < total_operations
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -274,35 +280,35 @@ async def get_batch_statistics_endpoint(
     try:
         # Get global statistics
         stats = get_batch_statistics()
-        
+
         # Get user-specific statistics
         user_operations = get_user_batch_operations(user.user_id)
-        
+
         user_stats = {
             "total_operations": len(user_operations),
             "completed_operations": len([
-                op for op in user_operations 
+                op for op in user_operations
                 if op["status"] == "completed"
             ]),
             "failed_operations": len([
-                op for op in user_operations 
+                op for op in user_operations
                 if op["status"] == "failed"
             ]),
             "running_operations": len([
-                op for op in user_operations 
+                op for op in user_operations
                 if op["status"] == "running"
             ]),
             "pending_operations": len([
-                op for op in user_operations 
+                op for op in user_operations
                 if op["status"] == "pending"
             ])
         }
-        
+
         return {
             "global_statistics": stats,
             "user_statistics": user_stats
         }
-        
+
     except Exception as e:
         logger.error(f"Get batch statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get batch statistics")
@@ -313,7 +319,7 @@ async def get_batch_statistics_endpoint(
 
 @router.post("/upload/prepare")
 async def prepare_batch_upload(
-    files_info: List[BatchItemRequest],
+    files_info: list[BatchItemRequest],
     user: StorageUser = Depends(red_access),
     _ = Depends(require_capability("admin_batch_ops"))
 ):
@@ -329,7 +335,7 @@ async def prepare_batch_upload(
                 status_code=400,
                 detail="Maximum 100 files per batch upload"
             )
-        
+
         # Validate each file
         validated_files = []
         for file_info in files_info:
@@ -338,14 +344,14 @@ async def prepare_batch_upload(
                     status_code=400,
                     detail="Filename is required for each file"
                 )
-            
+
             # Add validation logic here
             validated_files.append({
                 "type": file_info.type,
                 "data": file_info.data,
                 "validated": True
             })
-        
+
         # Create batch upload operation
         operation_id = create_batch_operation(
             operation_type="upload",
@@ -357,7 +363,7 @@ async def prepare_batch_upload(
                 "max_file_size": 50 * 1024 * 1024  # 50MB
             }
         )
-        
+
         return {
             "success": True,
             "operation_id": operation_id,
@@ -368,7 +374,7 @@ async def prepare_batch_upload(
                 "chunk_size": "8MB"
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -388,26 +394,26 @@ async def execute_batch_upload(
         operation = get_batch_operation(operation_id)
         if not operation:
             raise HTTPException(status_code=404, detail="Batch operation not found")
-        
+
         if operation["user_id"] != user.user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        
+
         if operation["operation_type"] != "upload":
             raise HTTPException(status_code=400, detail="Operation is not a batch upload")
-        
+
         # Start the batch upload
         success = await start_batch_operation(operation_id)
-        
+
         if not success:
             raise HTTPException(status_code=409, detail="Upload cannot be started")
-        
+
         return {
             "success": True,
             "operation_id": operation_id,
             "message": "Batch upload started",
             "websocket_channel": f"batch_operation_{operation_id}"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -420,7 +426,7 @@ async def execute_batch_upload(
 
 @router.post("/delete/prepare")
 async def prepare_batch_delete(
-    document_ids: List[str],
+    document_ids: list[str],
     user: StorageUser = Depends(red_access)
 ):
     """
@@ -432,7 +438,7 @@ async def prepare_batch_delete(
                 status_code=400,
                 detail="Maximum 500 documents per batch delete"
             )
-        
+
         # Create delete items
         delete_items = []
         for doc_id in document_ids:
@@ -444,7 +450,7 @@ async def prepare_batch_delete(
                     "delete_from_database": True
                 }
             })
-        
+
         # Create batch delete operation
         operation_id = create_batch_operation(
             operation_type="delete",
@@ -456,7 +462,7 @@ async def prepare_batch_delete(
                 "require_confirmation": True
             }
         )
-        
+
         return {
             "success": True,
             "operation_id": operation_id,
@@ -464,7 +470,7 @@ async def prepare_batch_delete(
             "confirmation_required": True,
             "warning": f"This will permanently delete {len(document_ids)} documents"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -477,7 +483,7 @@ async def prepare_batch_delete(
 
 @router.post("/export/prepare")
 async def prepare_batch_export(
-    document_ids: List[str],
+    document_ids: list[str],
     export_format: str = Query("zip", description="Export format: zip, pdf, csv"),
     user: StorageUser = Depends(red_access)
 ):
@@ -490,7 +496,7 @@ async def prepare_batch_export(
                 status_code=400,
                 detail="Maximum 1000 documents per batch export"
             )
-        
+
         # Create export items
         export_items = []
         for doc_id in document_ids:
@@ -503,7 +509,7 @@ async def prepare_batch_export(
                     "include_previews": export_format == "zip"
                 }
             })
-        
+
         # Create batch export operation
         operation_id = create_batch_operation(
             operation_type="export",
@@ -516,7 +522,7 @@ async def prepare_batch_export(
                 "compression_level": 6
             }
         )
-        
+
         return {
             "success": True,
             "operation_id": operation_id,
@@ -524,7 +530,7 @@ async def prepare_batch_export(
             "export_format": export_format,
             "estimated_size": f"{len(document_ids) * 2}MB"  # Rough estimate
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:

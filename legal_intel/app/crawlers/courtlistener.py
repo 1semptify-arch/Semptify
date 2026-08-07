@@ -1,7 +1,7 @@
 # app/crawlers/courtlistener.py
 import httpx
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 COURTLISTENER_API = "https://www.courtlistener.com/api/rest/v3/search/"
 COURTLISTENER_BASE = "https://www.courtlistener.com"
@@ -66,7 +66,7 @@ def normalize_courtlistener_case(raw: Dict) -> Optional[Dict]:
     if date_filed:
         try:
             filing_date = datetime.fromisoformat(date_filed.replace("Z", "+00:00")).date()
-        except:
+        except Exception:
             pass
     
     # Extract docket/case number

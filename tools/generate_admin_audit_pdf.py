@@ -12,7 +12,7 @@ import os
 import sys
 from collections import defaultdict
 from contextlib import suppress
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure the repo root is on sys.path and admin env vars are present so the
@@ -696,7 +696,7 @@ def build_pdf():
     story = []
 
     story.append(_p("Semptify Administrator Audit Report", style="ReportTitle", bold=True))
-    story.append(_p(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", style="BodyCustom"))
+    story.append(_p(f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M')}", style="BodyCustom"))
     story.append(_p(f"Repository: {REPO}", style="BodyCustom"))
     story.append(Spacer(1, 0.25 * inch))
 

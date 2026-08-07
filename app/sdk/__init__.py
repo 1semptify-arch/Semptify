@@ -29,73 +29,64 @@ Plugins:
     plugin_manager.load_all()
 """
 
+from app.core.module_sdk import (
+    InstalledModule,
+    # Core module SDK (product manifest integration)
+    ModuleCapability,
+    ModuleManifest,
+    ModuleRegistry,
+    get_module_status,
+    module_registry,
+    register_module,
+    register_tier_modules,
+)
+from app.core.product_manifest import ProductTier
 from app.sdk.auth import (
     CookieAuth,
-    set_auth_cookie,
-    verify_auth_cookie,
-    hash_token,
-    generate_token,
-    make_user_id,
-    parse_user_id,
     UserIdComponents,
     UserRole,
+    generate_token,
     get_permissions,
+    hash_token,
+    make_user_id,
+    parse_user_id,
+    set_auth_cookie,
+    verify_auth_cookie,
 )
-
-from app.sdk.navigation import (
-    get_stage,
-    get_path,
-    get_onboarding_start,
-    get_reconnect_path,
-    get_next_path,
-    is_canonical_path,
+from app.sdk.flask_converter import (
+    FlaskAnalysis,
+    FlaskAnalyzer,
+    FlaskConverter,
 )
-
 from app.sdk.module_sdk import (
-    # Main SDK class
-    ModuleSDK,
-
-    # Definition classes
-    ModuleDefinition,
     ActionDefinition,
-    InfoPack,
-    ModuleRequest,
-
-    # Enums
-    ModuleCategory,
-    DocumentType,
-    PackType,
-
     # Base class (alternative to SDK)
     BaseModule,
-
+    DocumentType,
+    InfoPack,
+    # Enums
+    ModuleCategory,
+    # Definition classes
+    ModuleDefinition,
+    ModuleRequest,
+    # Main SDK class
+    ModuleSDK,
+    PackType,
     # Helper functions
     create_module,
     generate_module_template,
 )
-
-from app.core.module_sdk import (
-    # Core module SDK (product manifest integration)
-    ModuleCapability,
-    ModuleManifest,
-    InstalledModule,
-    ModuleRegistry,
-    module_registry,
-    register_module,
-    register_tier_modules,
-    get_module_status,
+from app.sdk.navigation import (
+    get_next_path,
+    get_onboarding_start,
+    get_path,
+    get_reconnect_path,
+    get_stage,
+    is_canonical_path,
 )
-from app.core.product_manifest import ProductTier
-
-from app.sdk.flask_converter import (
-    FlaskConverter,
-    FlaskAnalyzer,
-    FlaskAnalysis,
-)
-
 from app.sdk.plugin_manager import (
-    PluginManager,
     Plugin,
+    PluginManager,
     PluginMetadata,
     PluginStatus,
     plugin_manager,

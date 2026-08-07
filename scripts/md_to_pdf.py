@@ -7,7 +7,6 @@ Requires Microsoft Edge to be installed at the standard Windows path.
 import re
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 EDGE_PATHS = [

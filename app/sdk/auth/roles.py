@@ -5,7 +5,6 @@ Zero framework dependencies. Pure Python.
 """
 
 from enum import Enum
-from typing import FrozenSet, Dict
 
 
 class UserRole(str, Enum):
@@ -17,7 +16,7 @@ class UserRole(str, Enum):
     ANONYMOUS = "anonymous"
 
 
-ROLE_PERMISSIONS: Dict[UserRole, FrozenSet[str]] = {
+ROLE_PERMISSIONS: dict[UserRole, frozenset[str]] = {
     UserRole.TENANT: frozenset({
         "read:own_documents",
         "write:own_documents",
@@ -82,7 +81,7 @@ ROLE_PERMISSIONS: Dict[UserRole, FrozenSet[str]] = {
 }
 
 
-def get_permissions(role: UserRole) -> FrozenSet[str]:
+def get_permissions(role: UserRole) -> frozenset[str]:
     """Return the permission set for a role."""
     return ROLE_PERMISSIONS.get(role, frozenset())
 

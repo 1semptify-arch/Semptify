@@ -15,11 +15,10 @@ so the form still shows success to the user (no broken UX in dev).
 # All imports remain absolute since public_forms is a CORE module.
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, field_validator
 
 from app.core.rate_limit import limiter
 
@@ -35,8 +34,8 @@ router = APIRouter(prefix="/api", tags=["Public Forms"])
 class FeedbackRequest(BaseModel):
     type: str
     message: str
-    email: Optional[str] = None
-    page: Optional[str] = None
+    email: str | None = None
+    page: str | None = None
 
     @field_validator("message")
     @classmethod
@@ -58,7 +57,7 @@ class ContactRequest(BaseModel):
     name: str
     email: str
     message: str
-    subject: Optional[str] = None
+    subject: str | None = None
 
     @field_validator("name", "message")
     @classmethod
@@ -141,8 +140,8 @@ async def load_tenant_autofill(user_id: str) -> dict:
     cloud_loaded = False
     try:
         from app.core.database import get_db_session
-        from app.modules.storage.router import get_valid_session
         from app.modules.cloud_sync.service import UserCloudSync
+        from app.modules.storage.router import get_valid_session
 
         async with get_db_session() as db:
             session = await get_valid_session(db, user_id)
@@ -194,9 +193,10 @@ async def load_tenant_autofill(user_id: str) -> dict:
     # -------------------------------------------------------------------------
     if not result["landlord_name"] or not result["property_address"]:
         try:
+            from sqlalchemy import select
+
             from app.core.database import get_db_session
             from app.models.models import Contact
-            from sqlalchemy import select
 
             async with get_db_session() as db:
                 contact_result = await db.execute(

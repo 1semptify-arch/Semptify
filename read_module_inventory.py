@@ -1,5 +1,6 @@
-import openpyxl
 import json
+
+import openpyxl
 
 wb = openpyxl.load_workbook('Semptify_Master_Inventory_LIVE_reviewed.xlsx', data_only=True)
 

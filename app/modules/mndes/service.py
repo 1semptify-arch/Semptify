@@ -21,29 +21,26 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
-from typing import Optional
 
-from app.core.mndes_compliance import (
-    mndes_validator,
-    MNDES_USER_WARNINGS,
-    MNDES_PORTAL_URL,
-    MNDESIssueCode,
-)
 from app.core.database import get_db_session
+from app.core.mndes_compliance import (
+    MNDES_PORTAL_URL,
+    MNDES_USER_WARNINGS,
+    mndes_validator,
+)
 from app.core.utc import utc_now
 from app.models.mndes_exhibit import (
+    MNDESAttestationRequest,
+    MNDESCaseType,
+    MNDESComplianceSummary,
     MNDESExhibit,
     MNDESExhibitCategory,
     MNDESExhibitPackage,
     MNDESExhibitStatus,
-    MNDESCaseType,
-    MNDESComplianceSummary,
     MNDESPackageCreateRequest,
-    MNDESAttestationRequest,
     MNDESSubmissionConfirmRequest,
 )
-from app.models.models import MNDESExhibitPackageDB, MNDESExhibitItemDB
+from app.models.models import MNDESExhibitPackageDB
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +125,7 @@ class MNDESExhibitService:
             logger.error("Failed to save package %s to DB: %s", package.package_id, e)
             raise
 
-    async def _get_package_from_db(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def _get_package_from_db(self, package_id: str) -> MNDESExhibitPackage | None:
         """Get package from database."""
         try:
             from sqlalchemy import select
@@ -242,7 +239,7 @@ class MNDESExhibitService:
         )
         return package
 
-    async def get_package(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def get_package(self, package_id: str) -> MNDESExhibitPackage | None:
         """Get package from database (falls back to in-memory for legacy)."""
         # Try database first
         db_package = await self._get_package_from_db(package_id)

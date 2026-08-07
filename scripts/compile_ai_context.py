@@ -12,7 +12,7 @@ Output: AI_HANDOFF_PACKET.md (in the project root)
 
 import os
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime
 
 OUTPUT_FILE = "AI_HANDOFF_PACKET.md"
 
@@ -49,10 +49,10 @@ def get_git_commit():
 
 def compile_handoff_packet():
     commit_hash = get_git_commit()
-    timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as out:
-        out.write(f"# SEMPTIFY — AI HANDOFF PACKET\n")
+        out.write("# SEMPTIFY — AI HANDOFF PACKET\n")
         out.write(f"**Generated:** {timestamp} | **Git commit at generation:** `{commit_hash}`\n\n")
         out.write(
             "**Instructions for the AI reading this:** this packet bundles the "
@@ -65,11 +65,11 @@ def compile_handoff_packet():
         for doc_path in TARGET_DOCS:
             out.write(f"## SOURCE FILE: {doc_path}\n\n")
             if os.path.exists(doc_path):
-                with open(doc_path, "r", encoding="utf-8") as f:
+                with open(doc_path, encoding="utf-8") as f:
                     out.write(f.read())
                 print(f"  merged: {doc_path}")
             else:
-                out.write(f"*(File not found at this path — skipped. Check the path is current.)*\n")
+                out.write("*(File not found at this path — skipped. Check the path is current.)*\n")
                 print(f"  SKIPPED (not found): {doc_path}")
             out.write("\n\n---\n\n")
 

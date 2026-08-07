@@ -20,10 +20,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from app.modules.context_engine.taxonomy import SUBJECT_LABELS
 from app.modules.page_composer.models import PageAssemblyResult
 from app.modules.page_composer.service import compose_page
-from app.modules.page_shell.blends import BLEND_PRESETS, get_blend
+from app.modules.page_shell.blends import get_blend
 from app.modules.page_shell.govern import apply_govern_rules
 from app.modules.page_shell.models import (
     AnyBlock,
@@ -34,7 +33,6 @@ from app.modules.page_shell.models import (
     PageConfig,
     Zone,
 )
-from app.modules.page_shell.skeletons import skeleton_for
 from app.modules.page_shell.zones import level_to_prominence
 from app.services.ui_composer import compose_page as ui_compose_page
 
@@ -414,7 +412,6 @@ def _apply_capability_filter(
         return page_config
 
     try:
-        from app.core.capabilities import get_user_capabilities
 
         # Synchronous DB access not available here; skip unless we already
         # have cached capabilities in context.

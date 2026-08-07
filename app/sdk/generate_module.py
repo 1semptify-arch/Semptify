@@ -15,7 +15,6 @@ Or with options:
 import argparse
 import logging
 import os
-import sys
 
 from app.core.utc import utc_now
 
@@ -35,7 +34,7 @@ See docs/admin/MODULE_DEVELOPMENT.md for documentation.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.sdk import (
@@ -273,13 +272,13 @@ def generate_module(
     output_dir: str = None,
 ) -> str:
     """Generate a new module file"""
-    
+
     # Format lists
     def format_list(items, prefix=""):
         if not items:
             return "# Add items here"
         return "\n        ".join(f'{prefix}.{item},' for item in items)
-    
+
     # Build template
     content = TEMPLATE.format(
         module_name=module_name,
@@ -295,7 +294,7 @@ def generate_module(
         depends_on=', '.join(f'"{d}"' for d in (depends_on or [])) or '# "documents",',
         router_section=ROUTER_TEMPLATE if include_router else "# Uncomment to add API endpoints\n# from fastapi import APIRouter\n# router = APIRouter()",
     )
-    
+
     # Write file if output_dir provided
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
@@ -303,7 +302,7 @@ def generate_module(
         with open(filepath, "w") as f:
             f.write(content)
         logger.info(f"● Generated module: {filepath}")
-        
+
         # Print next steps
         print(f"""
 ● Next Steps:
@@ -318,7 +317,7 @@ def generate_module(
    from app.modules.{module_name} import router as {module_name}_router
    app.include_router({module_name}_router, prefix="/api/{module_name.replace('_', '-')}", tags=["{display_name}"])
 """)
-    
+
     return content
 
 
@@ -326,7 +325,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate a new Semptify module"
     )
-    
+
     parser.add_argument(
         "module_name",
         help="Module name in snake_case (e.g., payment_tracking)"
@@ -341,7 +340,7 @@ def main():
     )
     parser.add_argument(
         "--category",
-        choices=["document", "legal", "calendar", "communication", 
+        choices=["document", "legal", "calendar", "communication",
                  "analysis", "storage", "ui", "utility", "ai", "integration"],
         default="utility",
         help="Module category (default: utility)"
@@ -371,11 +370,11 @@ def main():
         action="store_true",
         help="Print template without writing file"
     )
-    
+
     args = parser.parse_args()
-    
+
     output_dir = None if args.print_only else args.output_dir
-    
+
     content = generate_module(
         module_name=args.module_name,
         display_name=args.display_name,
@@ -386,7 +385,7 @@ def main():
         include_router=args.with_router,
         output_dir=output_dir,
     )
-    
+
     if args.print_only:
         logger.info(content)
 

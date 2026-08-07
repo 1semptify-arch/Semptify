@@ -1,5 +1,4 @@
 import openpyxl
-from datetime import datetime
 
 wb = openpyxl.load_workbook('Semptify_Master_Inventory_LIVE_reviewed.xlsx', data_only=True)
 ws = wb['Task Queue']

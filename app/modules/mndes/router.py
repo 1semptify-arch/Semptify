@@ -13,33 +13,32 @@ All navigation follows SSOT architecture (app.core.navigation).
 from __future__ import annotations
 
 import logging
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from app.core.mndes_compliance import (
     MNDES_FILE_TYPES_VERSION,
     MNDES_ORDER_NUMBER,
     MNDES_PORTAL_URL,
+    MNDES_SUPPORT_HOURS,
     MNDES_SUPPORT_PHONE_METRO,
     MNDES_SUPPORT_PHONE_OTHER,
-    MNDES_SUPPORT_HOURS,
     MNDES_USER_WARNINGS,
-    mndes_validator,
     get_conversion_action,
+    mndes_validator,
 )
 from app.models.mndes_exhibit import (
     MNDESAttestationRequest,
-    MNDESCaseType,
     MNDESExhibitPackage,
     MNDESPackageCreateRequest,
     MNDESSubmissionConfirmRequest,
     MNDESValidateRequest,
 )
-from .service import mndes_exhibit_service
 from app.services.vault_upload_service import get_vault_service
+
+from .service import mndes_exhibit_service
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +112,7 @@ async def get_acceptable_file_types() -> JSONResponse:
 # ============================================================================
 
 @router.get("/api/mndes/validate-file")
-async def validate_file(filename: str, file_size_bytes: Optional[int] = None) -> JSONResponse:
+async def validate_file(filename: str, file_size_bytes: int | None = None) -> JSONResponse:
     """
     Validate a single filename for MNDES compliance.
 
@@ -459,7 +458,7 @@ async def get_submission_guide() -> JSONResponse:
 # Helpers
 # ============================================================================
 
-def _extract_user_id(req: Request) -> Optional[str]:
+def _extract_user_id(req: Request) -> str | None:
     """Extract user_id from signed cookie. Returns None if not authenticated."""
     try:
         from app.core.user_id import parse_user_id

@@ -1,5 +1,4 @@
 """FEMS SQLAlchemy models — extends Semptify's database."""
-from datetime import datetime, timezone
 
 from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship

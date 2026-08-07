@@ -2,12 +2,11 @@
 Pydantic Schemas for Funding Management API
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
-from decimal import Decimal
 
-from .models import FundingSourceType, ApplicationStatus
+from pydantic import BaseModel, Field
+
+from .models import ApplicationStatus, FundingSourceType
 
 
 class FundingSourceBase(BaseModel):
@@ -15,19 +14,19 @@ class FundingSourceBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     organization: str = Field(..., min_length=1, max_length=255)
     source_type: FundingSourceType
-    contact_name: Optional[str] = None
-    contact_email: Optional[str] = None
-    contact_phone: Optional[str] = None
-    website: Optional[str] = None
-    description: Optional[str] = None
-    requirements: Optional[str] = None
-    deadlines: Optional[str] = None
-    min_amount: Optional[float] = None
-    max_amount: Optional[float] = None
+    contact_name: str | None = None
+    contact_email: str | None = None
+    contact_phone: str | None = None
+    website: str | None = None
+    description: str | None = None
+    requirements: str | None = None
+    deadlines: str | None = None
+    min_amount: float | None = None
+    max_amount: float | None = None
     currency: str = "USD"
     is_active: bool = True
     priority: int = Field(default=5, ge=1, le=10)
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 class FundingSourceCreate(FundingSourceBase):
@@ -37,22 +36,22 @@ class FundingSourceCreate(FundingSourceBase):
 
 class FundingSourceUpdate(BaseModel):
     """Schema for updating a funding source."""
-    name: Optional[str] = None
-    organization: Optional[str] = None
-    source_type: Optional[FundingSourceType] = None
-    contact_name: Optional[str] = None
-    contact_email: Optional[str] = None
-    contact_phone: Optional[str] = None
-    website: Optional[str] = None
-    description: Optional[str] = None
-    requirements: Optional[str] = None
-    deadlines: Optional[str] = None
-    min_amount: Optional[float] = None
-    max_amount: Optional[float] = None
-    currency: Optional[str] = None
-    is_active: Optional[bool] = None
-    priority: Optional[int] = Field(default=None, ge=1, le=10)
-    notes: Optional[str] = None
+    name: str | None = None
+    organization: str | None = None
+    source_type: FundingSourceType | None = None
+    contact_name: str | None = None
+    contact_email: str | None = None
+    contact_phone: str | None = None
+    website: str | None = None
+    description: str | None = None
+    requirements: str | None = None
+    deadlines: str | None = None
+    min_amount: float | None = None
+    max_amount: float | None = None
+    currency: str | None = None
+    is_active: bool | None = None
+    priority: int | None = Field(default=None, ge=1, le=10)
+    notes: str | None = None
 
 
 class FundingSourceResponse(FundingSourceBase):
@@ -60,7 +59,7 @@ class FundingSourceResponse(FundingSourceBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -69,19 +68,19 @@ class FundingApplicationBase(BaseModel):
     """Base schema for funding application."""
     funding_source_id: int
     project_name: str = Field(..., min_length=1, max_length=255)
-    requested_amount: Optional[float] = None
-    proposed_budget: Optional[str] = None  # JSON string
+    requested_amount: float | None = None
+    proposed_budget: str | None = None  # JSON string
     status: ApplicationStatus = ApplicationStatus.PROSPECT_IDENTIFIED
-    submission_date: Optional[datetime] = None
-    expected_decision_date: Optional[datetime] = None
-    actual_decision_date: Optional[datetime] = None
-    awarded_amount: Optional[float] = None
-    award_start_date: Optional[datetime] = None
-    award_end_date: Optional[datetime] = None
-    application_url: Optional[str] = None
-    supporting_docs: Optional[str] = None  # JSON array
-    assigned_to: Optional[str] = None
-    notes: Optional[str] = None
+    submission_date: datetime | None = None
+    expected_decision_date: datetime | None = None
+    actual_decision_date: datetime | None = None
+    awarded_amount: float | None = None
+    award_start_date: datetime | None = None
+    award_end_date: datetime | None = None
+    application_url: str | None = None
+    supporting_docs: str | None = None  # JSON array
+    assigned_to: str | None = None
+    notes: str | None = None
 
 
 class FundingApplicationCreate(FundingApplicationBase):
@@ -91,20 +90,20 @@ class FundingApplicationCreate(FundingApplicationBase):
 
 class FundingApplicationUpdate(BaseModel):
     """Schema for updating a funding application."""
-    project_name: Optional[str] = None
-    requested_amount: Optional[float] = None
-    proposed_budget: Optional[str] = None
-    status: Optional[ApplicationStatus] = None
-    submission_date: Optional[datetime] = None
-    expected_decision_date: Optional[datetime] = None
-    actual_decision_date: Optional[datetime] = None
-    awarded_amount: Optional[float] = None
-    award_start_date: Optional[datetime] = None
-    award_end_date: Optional[datetime] = None
-    application_url: Optional[str] = None
-    supporting_docs: Optional[str] = None
-    assigned_to: Optional[str] = None
-    notes: Optional[str] = None
+    project_name: str | None = None
+    requested_amount: float | None = None
+    proposed_budget: str | None = None
+    status: ApplicationStatus | None = None
+    submission_date: datetime | None = None
+    expected_decision_date: datetime | None = None
+    actual_decision_date: datetime | None = None
+    awarded_amount: float | None = None
+    award_start_date: datetime | None = None
+    award_end_date: datetime | None = None
+    application_url: str | None = None
+    supporting_docs: str | None = None
+    assigned_to: str | None = None
+    notes: str | None = None
 
 
 class FundingApplicationResponse(FundingApplicationBase):
@@ -112,8 +111,8 @@ class FundingApplicationResponse(FundingApplicationBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    funding_source: Optional[FundingSourceResponse] = None
-    
+    funding_source: FundingSourceResponse | None = None
+
     class Config:
         from_attributes = True
 

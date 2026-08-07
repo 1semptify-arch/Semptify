@@ -9,16 +9,13 @@ Exposes the mesh network capabilities via REST API:
 - Broadcasts
 """
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
-from typing import Any, Dict, List, Optional
 import logging
+from typing import Any
 
-from app.core.mesh_network import (
-    get_mesh_network,
-    MergeStrategy,
-    RequestType
-)
+from fastapi import APIRouter
+from pydantic import BaseModel, Field
+
+from app.core.mesh_network import MergeStrategy, get_mesh_network
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -33,16 +30,16 @@ class SingleCallRequest(BaseModel):
     source: str = Field(default="api", description="Calling module")
     target: str = Field(..., description="Target module")
     action: str = Field(..., description="Action to perform")
-    payload: Dict[str, Any] = Field(default_factory=dict)
+    payload: dict[str, Any] = Field(default_factory=dict)
     timeout: float = Field(default=30.0)
 
 
 class MultiCallRequest(BaseModel):
     """Call multiple modules in parallel."""
     source: str = Field(default="api", description="Calling module")
-    targets: List[str] = Field(..., description="Target modules")
+    targets: list[str] = Field(..., description="Target modules")
     action: str = Field(..., description="Action to perform")
-    payload: Dict[str, Any] = Field(default_factory=dict)
+    payload: dict[str, Any] = Field(default_factory=dict)
     merge_strategy: str = Field(default="combine", description="combine|first|all|priority")
     require_all: bool = Field(default=False)
     timeout: float = Field(default=30.0)
@@ -51,9 +48,9 @@ class MultiCallRequest(BaseModel):
 class CollaborateRequest(BaseModel):
     """Start a collaborative session."""
     source: str = Field(default="api")
-    modules: List[str] = Field(..., description="Modules to collaborate")
+    modules: list[str] = Field(..., description="Modules to collaborate")
     goal: str = Field(..., description="The goal/task")
-    initial_data: Dict[str, Any] = Field(default_factory=dict)
+    initial_data: dict[str, Any] = Field(default_factory=dict)
     timeout: float = Field(default=60.0)
 
 
@@ -61,14 +58,14 @@ class BroadcastRequest(BaseModel):
     """Broadcast to all modules."""
     source: str = Field(default="api")
     event_type: str = Field(..., description="Event type")
-    data: Dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(default_factory=dict)
 
 
 class AskRequest(BaseModel):
     """Ask the mesh a question."""
     question: str = Field(..., description="Natural language question")
     from_module: str = Field(default="user")
-    context: Dict[str, Any] = Field(default_factory=dict)
+    context: dict[str, Any] = Field(default_factory=dict)
 
 
 # =============================================================================
@@ -119,7 +116,7 @@ async def call_module(request: SingleCallRequest):
     ```
     """
     mesh = get_mesh_network()
-    
+
     response = await mesh.call(
         source=request.source,
         target=request.target,
@@ -127,7 +124,7 @@ async def call_module(request: SingleCallRequest):
         payload=request.payload,
         timeout=request.timeout
     )
-    
+
     return {
         "success": response.success,
         "request_id": response.request_id,
@@ -152,7 +149,7 @@ async def call_many_modules(request: MultiCallRequest):
     ```
     """
     mesh = get_mesh_network()
-    
+
     # Map string to enum
     strategy_map = {
         "combine": MergeStrategy.COMBINE,
@@ -162,7 +159,7 @@ async def call_many_modules(request: MultiCallRequest):
         "chain": MergeStrategy.CHAIN
     }
     strategy = strategy_map.get(request.merge_strategy, MergeStrategy.COMBINE)
-    
+
     response = await mesh.call_many(
         source=request.source,
         targets=request.targets,
@@ -172,7 +169,7 @@ async def call_many_modules(request: MultiCallRequest):
         require_all=request.require_all,
         timeout=request.timeout
     )
-    
+
     return {
         "success": response.success,
         "request_id": response.request_id,
@@ -202,7 +199,7 @@ async def start_collaboration(request: CollaborateRequest):
     ```
     """
     mesh = get_mesh_network()
-    
+
     response = await mesh.collaborate(
         source=request.source,
         modules=request.modules,
@@ -210,7 +207,7 @@ async def start_collaboration(request: CollaborateRequest):
         initial_data=request.initial_data,
         timeout=request.timeout
     )
-    
+
     return {
         "success": response.success,
         "collaboration_id": response.request_id,
@@ -236,13 +233,13 @@ async def broadcast_event(request: BroadcastRequest):
     ```
     """
     mesh = get_mesh_network()
-    
+
     notified = await mesh.broadcast(
         source=request.source,
         event_type=request.event_type,
         data=request.data
     )
-    
+
     return {
         "success": True,
         "event_type": request.event_type,
@@ -265,13 +262,13 @@ async def ask_mesh(request: AskRequest):
     ```
     """
     mesh = get_mesh_network()
-    
+
     response = await mesh.ask(
         question=request.question,
         from_module=request.from_module,
         context=request.context
     )
-    
+
     return {
         "success": response.success,
         "question": request.question,
@@ -288,7 +285,7 @@ async def ask_mesh(request: AskRequest):
 @router.post("/network/quick/case-summary")
 async def quick_case_summary(
     user_id: str,
-    case_id: Optional[str] = None
+    case_id: str | None = None
 ):
     """
     Quick endpoint: Get a complete case summary from all relevant modules.
@@ -296,7 +293,7 @@ async def quick_case_summary(
     Calls documents, calendar, eviction_defense, timeline in parallel.
     """
     mesh = get_mesh_network()
-    
+
     response = await mesh.call_many(
         source="api",
         targets=["documents", "calendar", "eviction_defense", "timeline"],
@@ -304,7 +301,7 @@ async def quick_case_summary(
         payload={"user_id": user_id, "case_id": case_id},
         merge=MergeStrategy.COMBINE
     )
-    
+
     return {
         "success": response.success,
         "case_summary": response.data,
@@ -319,7 +316,7 @@ async def quick_deadline_check(user_id: str):
     Quick endpoint: Check all deadlines across all modules.
     """
     mesh = get_mesh_network()
-    
+
     response = await mesh.call_many(
         source="api",
         targets=["calendar", "eviction_defense", "forms"],
@@ -327,7 +324,7 @@ async def quick_deadline_check(user_id: str):
         payload={"user_id": user_id},
         merge=MergeStrategy.COMBINE
     )
-    
+
     return {
         "success": response.success,
         "deadlines": response.data,
@@ -338,7 +335,7 @@ async def quick_deadline_check(user_id: str):
 @router.post("/network/quick/build-defense")
 async def quick_build_defense(
     user_id: str,
-    document_id: Optional[str] = None,
+    document_id: str | None = None,
     eviction_type: str = "nonpayment"
 ):
     """
@@ -347,7 +344,7 @@ async def quick_build_defense(
     All modules work together to build a complete defense package.
     """
     mesh = get_mesh_network()
-    
+
     response = await mesh.collaborate(
         source="api",
         modules=["documents", "eviction_defense", "law_library", "calendar", "forms", "copilot"],
@@ -359,7 +356,7 @@ async def quick_build_defense(
         },
         timeout=90.0
     )
-    
+
     return {
         "success": response.success,
         "defense_package": response.data,

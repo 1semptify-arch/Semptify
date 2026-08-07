@@ -7,7 +7,6 @@ tenant dashboard page.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="dashboard",
     group_name="dashboard_unified",

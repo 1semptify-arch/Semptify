@@ -5,33 +5,33 @@ Configured for SQLAlchemy with Semptify models.
 
 from logging.config import fileConfig
 
-from sqlalchemy import pool, engine_from_config
+from sqlalchemy import engine_from_config, pool
 from sqlalchemy.engine import Connection
 
 from alembic import context
+from app.core.config import get_settings
 
 # Import your models and Base
 from app.core.database import Base
 from app.models.models import (
-    User, 
-    LinkedProvider,
-    Document,
-    TimelineEvent,
-    RentPayment,
     CalendarEvent,
-    JournalEntry,
-    Complaint,
-    WitnessStatement,
     CertifiedMail,
-    Session,
-    StorageConfig,
-    FraudAnalysisResult,
-    PressReleaseRecord,
-    ResearchProfile,
+    Complaint,
     Contact,
     ContactInteraction,
+    Document,
+    FraudAnalysisResult,
+    JournalEntry,
+    LinkedProvider,
+    PressReleaseRecord,
+    RentPayment,
+    ResearchProfile,
+    Session,
+    StorageConfig,
+    TimelineEvent,
+    User,
+    WitnessStatement,
 )
-from app.core.config import get_settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -85,7 +85,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
             compare_server_default=True,

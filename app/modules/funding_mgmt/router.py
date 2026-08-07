@@ -2,15 +2,14 @@
 Funding Management Router - Admin GUI and API
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
-from typing import List, Optional
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse
 
+from app.core.capabilities import require_capability
 from app.core.database import get_db_session
 from app.core.security import require_admin
-from app.core.capabilities import require_capability
-from .models import FundingSource, FundingApplication, FundingTask, FundingSourceType, ApplicationStatus
+
+from .models import ApplicationStatus, FundingApplication, FundingSource
 
 router = APIRouter(
     prefix="/admin/funding",
@@ -22,11 +21,10 @@ router = APIRouter(
 @router.get("/", response_class=HTMLResponse)
 async def funding_dashboard(request: Request):
     """Main funding management dashboard."""
-    
+
     # Get stats from database (using static values for now - implement queries as needed)
-    from sqlalchemy import select, func
-    from sqlalchemy.ext.asyncio import AsyncSession
-    
+    from sqlalchemy import func, select
+
     try:
         async with get_db_session() as session:
             # Count active sources
@@ -34,17 +32,17 @@ async def funding_dashboard(request: Request):
                 select(func.count()).select_from(FundingSource).where(FundingSource.is_active == True)
             )
             active_sources = result.scalar() or 0
-            
+
             # Count pending applications
             result = await session.execute(
                 select(func.count()).select_from(FundingApplication)
                 .where(FundingApplication.status.in_([
-                    ApplicationStatus.SUBMITTED, 
+                    ApplicationStatus.SUBMITTED,
                     ApplicationStatus.UNDER_REVIEW
                 ]))
             )
             pending_apps = result.scalar() or 0
-            
+
             # Count awarded applications
             result = await session.execute(
                 select(func.count()).select_from(FundingApplication)
@@ -56,7 +54,7 @@ async def funding_dashboard(request: Request):
         active_sources = 0
         pending_apps = 0
         secured = 0
-    
+
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -154,7 +152,7 @@ async def funding_dashboard(request: Request):
 @router.get("/prospectus", response_class=HTMLResponse)
 async def funding_prospectus(request: Request):
     """Display the ID System Funding Prospectus."""
-    
+
     html = """
     <!DOCTYPE html>
     <html>

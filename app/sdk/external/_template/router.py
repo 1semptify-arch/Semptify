@@ -16,13 +16,11 @@ Forbidden imports (will raise ExternalModuleSecurityError at load time):
   - sqlalchemy, asyncpg, redis
 """
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from app.sdk.external import (
     ExternalModuleContext,
-    Permission,
     PermissionSet,
     TimelineClient,
     VaultClient,

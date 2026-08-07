@@ -8,7 +8,6 @@ vault stores documents; storage manages the connection to the cloud.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 # --- Session & Status ---
 
 register_function_group(FunctionGroupContract(

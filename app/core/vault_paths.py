@@ -22,8 +22,10 @@ Structure in user's cloud storage:
         └── vault/                   ▸ manifest.json, README.md
 """
 
-from app.core.path_utils import normalize_cloud_path
 import logging
+
+from app.core.path_utils import normalize_cloud_path
+
 logger = logging.getLogger(__name__)
 
 # ── Root folders ──────────────────────────────────────────────────────────────

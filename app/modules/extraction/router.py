@@ -7,19 +7,17 @@ API endpoints for:
 - Mapping extracted data to specific court forms
 """
 
-from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser, yellow_access
-from .service import (
-    FormFieldExtractor, 
-    get_form_field_extractor,
-    FormFieldsExtraction,
-    FieldConfidence,
-)
+from app.core.security import StorageUser, yellow_access
 from app.services.form_data import get_form_data_service
 
+from .service import (
+    FormFieldExtractor,
+)
 
 router = APIRouter(prefix="/api/extraction", tags=["Form Field Extraction"])
 
@@ -32,12 +30,12 @@ class DocumentInput(BaseModel):
     """Document for extraction."""
     filename: str
     text: str
-    document_type: Optional[str] = None
+    document_type: str | None = None
 
 
 class ExtractionRequest(BaseModel):
     """Request to extract form fields from documents."""
-    documents: List[DocumentInput]
+    documents: list[DocumentInput]
 
 
 class FieldUpdate(BaseModel):
@@ -49,7 +47,7 @@ class FieldUpdate(BaseModel):
 
 class FieldUpdatesRequest(BaseModel):
     """Request to update multiple fields."""
-    updates: List[FieldUpdate]
+    updates: list[FieldUpdate]
 
 
 class ApplyToFormsRequest(BaseModel):
@@ -84,7 +82,7 @@ async def extract_form_fields(
             status_code=400,
             detail="No documents provided for extraction"
         )
-    
+
     # Convert to dict format for extractor
     docs = [
         {
@@ -94,11 +92,11 @@ async def extract_form_fields(
         }
         for doc in request.documents
     ]
-    
+
     # Extract fields
     extractor = FormFieldExtractor()
     result = extractor.extract_from_documents(docs)
-    
+
     return {
         "status": "extracted",
         "extraction": result.to_dict(),
@@ -121,22 +119,23 @@ async def extract_from_vault_documents(
     form-ready data from their content.
     """
     from sqlalchemy import select
+
     from app.core.database import get_db_session
     from app.models.models import Document
-    
+
     # Get user's documents
     async with get_db_session() as session:
         query = select(Document).where(Document.user_id == user.user_id)
         result = await session.execute(query)
         documents = result.scalars().all()
-    
+
     if not documents:
         return {
             "status": "no_documents",
             "message": "No documents found in vault. Please upload documents first.",
             "extraction": None,
         }
-    
+
     # Prepare documents for extraction
     docs = []
     for doc in documents:
@@ -148,17 +147,17 @@ async def extract_from_vault_documents(
             text = doc.content
         elif hasattr(doc, 'description') and doc.description:
             text = doc.description
-        
+
         docs.append({
             "filename": doc.original_filename or doc.filename,
             "text": text,
             "type": doc.document_type,
         })
-    
+
     # Extract fields
     extractor = FormFieldExtractor()
     extraction = extractor.extract_from_documents(docs)
-    
+
     return {
         "status": "extracted",
         "extraction": extraction.to_dict(),
@@ -185,7 +184,7 @@ async def get_review_items(
     """
     # For now, return a template of what needs review
     # In production, this would pull from user's stored extraction
-    
+
     return {
         "status": "ok",
         "review_items": [
@@ -197,7 +196,7 @@ async def get_review_items(
                 ]
             },
             {
-                "category": "Your Information (Tenant/Defendant)", 
+                "category": "Your Information (Tenant/Defendant)",
                 "fields": [
                     {"field_name": "tenant_name", "display_name": "Your Full Legal Name", "required": True},
                     {"field_name": "tenant_address", "display_name": "Your Current Mailing Address", "required": True},
@@ -267,16 +266,16 @@ async def confirm_extracted_fields(
     # Get form data service and update
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     # Map field updates to case info
     updates = {}
     tenant_updates = {}
     landlord_updates = {}
-    
+
     for field_update in request.updates:
         name = field_update.field_name
         value = field_update.value
-        
+
         # Route to correct nested object
         if name.startswith('tenant_'):
             key = name.replace('tenant_', '')
@@ -315,15 +314,15 @@ async def confirm_extracted_fields(
             updates[f'property_{key}'] = value
         else:
             updates[name] = value
-    
+
     if tenant_updates:
         updates['tenant'] = tenant_updates
     if landlord_updates:
         updates['landlord'] = landlord_updates
-    
+
     # Apply updates
     service.update_case_info(updates)
-    
+
     return {
         "status": "confirmed",
         "fields_updated": len(request.updates),
@@ -344,7 +343,7 @@ async def apply_extraction_to_forms(
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    
+
     return {
         "status": "applied",
         "case_summary": service.get_case_summary(),

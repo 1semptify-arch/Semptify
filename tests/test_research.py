@@ -2,9 +2,9 @@
 Tests for the Research module - Landlord/property research and investigation.
 """
 import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
+from httpx import ASGITransport, AsyncClient
 
+from app.main import app
 
 # ============================================================================
 # HEALTH ENDPOINT
@@ -12,7 +12,7 @@ from app.main import app
 
 class TestResearchHealth:
     """Test research service health."""
-    
+
     @pytest.mark.asyncio
     async def test_health_check(self):
         """Test research service health endpoint."""
@@ -30,7 +30,7 @@ class TestResearchHealth:
 
 class TestDataSources:
     """Test data source listing."""
-    
+
     @pytest.mark.asyncio
     async def test_get_sources(self):
         """Test getting list of data sources."""
@@ -41,7 +41,7 @@ class TestDataSources:
             if response.status_code == 200:
                 assert isinstance(sources, list)
                 assert len(sources) >= 3
-    
+
     @pytest.mark.asyncio
     async def test_sources_have_required_fields(self):
         """Test that sources have required fields."""
@@ -54,7 +54,7 @@ class TestDataSources:
             for source in sources:
                 assert "id" in source
                 assert "name" in source
-    
+
     @pytest.mark.asyncio
     async def test_assessor_source_exists(self):
         """Test that county assessor source exists."""
@@ -66,7 +66,7 @@ class TestDataSources:
             sources = response.json()
             source_ids = [s["id"] for s in sources]
             assert "assessor" in source_ids
-    
+
     @pytest.mark.asyncio
     async def test_recorder_source_exists(self):
         """Test that county recorder source exists."""
@@ -78,7 +78,7 @@ class TestDataSources:
             sources = response.json()
             source_ids = [s["id"] for s in sources]
             assert "recorder" in source_ids
-    
+
     @pytest.mark.asyncio
     async def test_ucc_source_exists(self):
         """Test that UCC filing source exists."""
@@ -98,7 +98,7 @@ class TestDataSources:
 
 class TestPropertyLookup:
     """Test property lookup functionality."""
-    
+
     @pytest.mark.asyncio
     async def test_property_lookup(self):
         """Test looking up property by ID."""
@@ -106,7 +106,7 @@ class TestPropertyLookup:
             response = await client.get("/api/research/property/TEST123")
             # May return data or 404
             assert response.status_code in [200, 401, 404]
-    
+
     @pytest.mark.asyncio
     async def test_property_post_lookup(self):
         """Test property lookup via POST."""
@@ -124,7 +124,7 @@ class TestPropertyLookup:
 
 class TestAssessorData:
     """Test county assessor data retrieval."""
-    
+
     @pytest.mark.asyncio
     async def test_assessor_endpoint(self):
         """Test assessor data endpoint."""
@@ -132,7 +132,7 @@ class TestAssessorData:
             response = await client.get("/api/research/assessor", params={"property_id": "TEST123"})
             # May return data or 404
             assert response.status_code in [200, 401, 404, 422]
-    
+
     @pytest.mark.asyncio
     async def test_assessor_post(self):
         """Test assessor lookup via POST."""
@@ -150,7 +150,7 @@ class TestAssessorData:
 
 class TestRecorderData:
     """Test county recorder data retrieval."""
-    
+
     @pytest.mark.asyncio
     async def test_recorder_endpoint(self):
         """Test recorder data endpoint."""
@@ -165,7 +165,7 @@ class TestRecorderData:
 
 class TestUCCFilings:
     """Test UCC filing data retrieval."""
-    
+
     @pytest.mark.asyncio
     async def test_ucc_endpoint(self):
         """Test UCC filings endpoint."""
@@ -180,7 +180,7 @@ class TestUCCFilings:
 
 class TestDispatchData:
     """Test 911 dispatch data retrieval."""
-    
+
     @pytest.mark.asyncio
     async def test_dispatch_endpoint(self):
         """Test dispatch/911 data endpoint."""
@@ -195,7 +195,7 @@ class TestDispatchData:
 
 class TestNewsSearch:
     """Test news search functionality."""
-    
+
     @pytest.mark.asyncio
     async def test_news_endpoint(self):
         """Test news search endpoint."""
@@ -210,7 +210,7 @@ class TestNewsSearch:
 
 class TestSOSSearch:
     """Test Secretary of State business search."""
-    
+
     @pytest.mark.asyncio
     async def test_sos_endpoint(self):
         """Test SOS business lookup endpoint."""
@@ -225,7 +225,7 @@ class TestSOSSearch:
 
 class TestBankruptcySearch:
     """Test bankruptcy court search."""
-    
+
     @pytest.mark.asyncio
     async def test_bankruptcy_endpoint(self):
         """Test bankruptcy search endpoint."""
@@ -240,7 +240,7 @@ class TestBankruptcySearch:
 
 class TestInsuranceLookup:
     """Test insurance information lookup."""
-    
+
     @pytest.mark.asyncio
     async def test_insurance_endpoint(self):
         """Test insurance lookup endpoint."""
@@ -255,7 +255,7 @@ class TestInsuranceLookup:
 
 class TestFraudFlags:
     """Test fraud flag detection."""
-    
+
     @pytest.mark.asyncio
     async def test_fraud_flags_endpoint(self):
         """Test fraud flags endpoint."""
@@ -270,7 +270,7 @@ class TestFraudFlags:
 
 class TestResearchSummary:
     """Test research summary generation."""
-    
+
     @pytest.mark.asyncio
     async def test_summary_endpoint(self):
         """Test research summary endpoint."""
@@ -285,7 +285,7 @@ class TestResearchSummary:
 
 class TestCheckpointing:
     """Test research checkpointing."""
-    
+
     @pytest.mark.asyncio
     async def test_checkpoint_save(self):
         """Test saving a research checkpoint."""
@@ -298,7 +298,7 @@ class TestCheckpointing:
                 }
             )
             assert response.status_code in [200, 201, 404, 422]
-    
+
     @pytest.mark.asyncio
     async def test_checkpoint_load(self):
         """Test loading a research checkpoint."""
@@ -313,7 +313,7 @@ class TestCheckpointing:
 
 class TestDownloadExport:
     """Test research data download/export."""
-    
+
     @pytest.mark.asyncio
     async def test_download_endpoint(self):
         """Test research download endpoint."""
@@ -328,21 +328,21 @@ class TestDownloadExport:
 
 class TestServiceIntegration:
     """Test research service integration."""
-    
+
     @pytest.mark.asyncio
     async def test_service_responds(self):
         """Test that research service responds."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/research/health")
             assert response.status_code == 200
-    
+
     @pytest.mark.asyncio
     async def test_json_content_type(self):
         """Test that responses are JSON."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/research/health")
             assert "application/json" in response.headers.get("content-type", "")
-    
+
     @pytest.mark.asyncio
     async def test_sources_count(self):
         """Test that we have expected number of sources."""
@@ -360,7 +360,7 @@ class TestServiceIntegration:
 
 class TestErrorHandling:
     """Test research service error handling."""
-    
+
     @pytest.mark.asyncio
     async def test_invalid_property_id(self):
         """Test handling of invalid property ID."""
@@ -368,7 +368,7 @@ class TestErrorHandling:
             response = await client.get("/api/research/property/")
             # Should handle gracefully
             assert response.status_code in [404, 422, 307]  # 307 for redirect
-    
+
     @pytest.mark.asyncio
     async def test_missing_params(self):
         """Test handling of missing parameters."""

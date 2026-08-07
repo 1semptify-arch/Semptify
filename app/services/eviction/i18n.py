@@ -3,15 +3,15 @@ Dakota County Eviction Defense - i18n Service
 Quad-lingual support: English, Spanish, Somali, Arabic
 """
 
-from typing import Dict, Optional, List
 import logging
+
 logger = logging.getLogger(__name__)
 
 # ============================================================================
 # Translation Strings
 # ============================================================================
 
-STRINGS: Dict[str, Dict[str, str]] = {
+STRINGS: dict[str, dict[str, str]] = {
     # Navigation & Common
     "app_title": {
         "en": "Dakota County Eviction Defense",
@@ -61,7 +61,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Jooji",
         "ar": "إلغاء"
     },
-    
+
     # Main Menu
     "answer_summons": {
         "en": "Answer the Summons",
@@ -99,7 +99,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Caawiye Maxkamadda Zoom",
         "ar": "مساعد محكمة زووم"
     },
-    
+
     # Answer Flow
     "step": {
         "en": "Step",
@@ -149,7 +149,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Taariikhda Laguu Soo Diray",
         "ar": "تاريخ استلام الإخطار"
     },
-    
+
     # Defenses
     "select_defenses": {
         "en": "Select Your Defenses",
@@ -193,7 +193,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Kuma xadgudin heshiiska sida la sheegay",
         "ar": "لم أنتهك عقد الإيجار كما يُدعى"
     },
-    
+
     # Counterclaim
     "counterclaim_title": {
         "en": "File a Counterclaim",
@@ -225,7 +225,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Adeegyo sharci darro ah oo la xiray",
         "ar": "قطع غير قانوني للمرافق"
     },
-    
+
     # Motions
     "motion_dismiss": {
         "en": "Motion to Dismiss",
@@ -251,7 +251,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Ka Dhaafida Kharashka",
         "ar": "إعفاء من الرسوم"
     },
-    
+
     # Hearing Prep
     "hearing_date": {
         "en": "Hearing Date",
@@ -289,7 +289,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Xaqiiji markhaatiyaasha inay imaanayaan",
         "ar": "تأكد من حضور الشهود"
     },
-    
+
     # Zoom Court
     "zoom_tips_title": {
         "en": "Zoom Court Tips",
@@ -321,7 +321,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Iska aamusnow markaad aan hadlayn",
         "ar": "كتم الصوت عند عدم التحدث"
     },
-    
+
     # Resources
     "resources_title": {
         "en": "Legal Resources",
@@ -341,7 +341,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Adeegyo sharci oo bilaash ah",
         "ar": "خدمات قانونية مجانية"
     },
-    
+
     # Deadlines & Warnings
     "deadline_warning": {
         "en": "◆ You typically have only 7 days to respond to an eviction summons in Minnesota",
@@ -355,7 +355,7 @@ STRINGS: Dict[str, Dict[str, str]] = {
         "so": "Qalabkani wuxuu bixiyaa macluumaad kaliya, ma aha talo sharci ah.",
         "ar": "توفر هذه الأداة معلومات فقط، وليس مشورة قانونية."
     },
-    
+
     # Success Messages
     "download_ready": {
         "en": "Your document is ready for download",
@@ -379,12 +379,12 @@ def get_string(key: str, lang: str = "en") -> str:
     return key
 
 
-def get_all_strings(lang: str = "en") -> Dict[str, str]:
+def get_all_strings(lang: str = "en") -> dict[str, str]:
     """Get all strings for a language."""
     return {key: get_string(key, lang) for key in STRINGS}
 
 
-def get_supported_languages() -> List[str]:
+def get_supported_languages() -> list[str]:
     """Get list of supported language codes."""
     return ["en", "es", "so", "ar"]
 

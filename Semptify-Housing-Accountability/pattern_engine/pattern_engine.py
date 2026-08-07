@@ -1,11 +1,11 @@
 """Housing-pattern analysis workflows for tenant advocacy."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def detect_repeated_fees(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def detect_repeated_fees(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Detect recurring fees that appear across multiple tenant records."""
-    fee_counts: Dict[str, int] = {}
+    fee_counts: dict[str, int] = {}
     for record in records:
         fee_type = record.get("fee_type")
         if fee_type:
@@ -17,7 +17,7 @@ def detect_repeated_fees(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     ]
 
 
-def detect_eviction_patterns(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def detect_eviction_patterns(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Detect eviction-related patterns across tenant records."""
     return [
         {
@@ -31,7 +31,7 @@ def detect_eviction_patterns(records: List[Dict[str, Any]]) -> List[Dict[str, An
     ]
 
 
-def detect_subsidy_interference(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def detect_subsidy_interference(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Detect landlord actions that may interfere with housing subsidy programs."""
     return [
         {
@@ -45,7 +45,7 @@ def detect_subsidy_interference(records: List[Dict[str, Any]]) -> List[Dict[str,
     ]
 
 
-def detect_court_order_violations(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def detect_court_order_violations(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Detect potential violations of court orders or settlement terms."""
     return [
         {
@@ -59,7 +59,7 @@ def detect_court_order_violations(records: List[Dict[str, Any]]) -> List[Dict[st
     ]
 
 
-def generate_pattern_summary(records: List[Dict[str, Any]]) -> Dict[str, Any]:
+def generate_pattern_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Generate a summary of all detected patterns across tenant records."""
     return {
         "repeated_fees": detect_repeated_fees(records),

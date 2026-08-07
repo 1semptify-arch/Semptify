@@ -14,19 +14,19 @@ Endpoints:
 - /metrics/json - JSON metrics
 """
 
-import time
 import asyncio
-from datetime import datetime, timezone
-from pathlib import Path
 import json
+import logging
+import time
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
+from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 from app.core.config import Settings, get_settings
-from app.core.security import get_metrics, incr_metric, record_request_latency
+from app.core.security import get_metrics
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,7 +82,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
     for dir_name in ["uploads", "uploads/vault", "logs", "security", "data"]:
         dir_path = Path(dir_name)
         exists = dir_path.exists() and dir_path.is_dir()
-        
+
         # Test writability
         writable = False
         if exists:
@@ -93,7 +93,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
                 writable = True
             except Exception as e:
                 logger.warning(f"Optional operation failed: {e}")
-        
+
         key = f"dir_{dir_name.replace('/', '_')}"
         checks[key] = exists and writable
         details[key] = {"exists": exists, "writable": writable}
@@ -114,8 +114,9 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
 
     # Check database connectivity with timeout
     try:
-        from app.core.database import get_db_session
         from sqlalchemy import text
+
+        from app.core.database import get_db_session
         db_start = time.perf_counter()
         async with get_db_session() as session:
             await asyncio.wait_for(
@@ -124,7 +125,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
             )
         checks["database"] = True
         details["database_latency_ms"] = round((time.perf_counter() - db_start) * 1000, 2)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         checks["database"] = False
         details["database_error"] = "Connection timeout (5s)"
     except Exception as e:
@@ -136,13 +137,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
     if ai_provider and ai_provider != "none":
         checks["ai_provider"] = ai_provider
         # Check if API key is configured
-        if ai_provider == "anthropic" and settings.anthropic_api_key:
-            details["ai_configured"] = True
-        elif ai_provider == "openai" and settings.openai_api_key:
-            details["ai_configured"] = True
-        elif ai_provider == "azure" and settings.azure_openai_api_key:
-            details["ai_configured"] = True
-        elif ai_provider == "groq" and settings.groq_api_key:
+        if ai_provider == "anthropic" and settings.anthropic_api_key or ai_provider == "openai" and settings.openai_api_key or ai_provider == "azure" and settings.azure_openai_api_key or ai_provider == "groq" and settings.groq_api_key:
             details["ai_configured"] = True
         elif ai_provider == "ollama":
             details["ai_configured"] = True  # Ollama doesn't need API key
@@ -151,14 +146,14 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
 
     # Calculate total check time
     details["check_duration_ms"] = round((time.perf_counter() - start) * 1000, 2)
-    
+
     # Overall status
     critical_checks = ["dir_uploads", "dir_uploads_vault", "dir_security", "database"]
     all_critical_ok = all(checks.get(k, False) is True for k in critical_checks)
 
     # Return 503 if not ready (for load balancer integration)
     status_code = 200 if all_critical_ok else 503
-    
+
     return JSONResponse(
         status_code=status_code,
         content={

@@ -9,7 +9,7 @@ Tests the core VaultAccessEngine functionality:
 - Sharing capabilities
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from fastapi import Request
@@ -862,7 +862,7 @@ class TestVaultEngineIntegration:
 
     def test_full_document_lifecycle(self, manager_cookie):
         """Test create -> read -> update -> delete workflow."""
-        doc_id = f"lifecycle-test-{datetime.now().timestamp()}"
+        doc_id = f"lifecycle-test-{datetime.now(UTC).timestamp()}"
 
         # 1. Write (create) document
         write_response = client.post(

@@ -15,7 +15,6 @@ are re-routed to /storage/providers to re-authenticate. Expected behavior.
 import hashlib
 import hmac
 import logging
-from typing import Optional
 
 from app.core.config import get_settings
 
@@ -40,7 +39,7 @@ def sign_user_id(user_id: str) -> str:
     return f"{user_id}{_SEPARATOR}{sig}"
 
 
-def verify_user_id(cookie_value: Optional[str]) -> Optional[str]:
+def verify_user_id(cookie_value: str | None) -> str | None:
     """
     Verify a signed cookie value and return the raw user_id if valid.
 
@@ -78,7 +77,7 @@ def verify_user_id(cookie_value: Optional[str]) -> Optional[str]:
     return user_id
 
 
-def extract_user_id(request) -> Optional[str]:
+def extract_user_id(request) -> str | None:
     """
     Convenience: read and verify semptify_uid from a FastAPI Request.
     Returns raw user_id or None.

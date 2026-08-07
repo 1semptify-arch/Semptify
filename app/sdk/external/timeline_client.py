@@ -5,7 +5,6 @@ Read/create timeline events on behalf of an external module. Enforces
 timeline.read and timeline.write permissions.
 """
 import logging
-from typing import List, Optional
 
 from app.sdk.external.context import ExternalModuleContext
 from app.sdk.external.permissions import Permission
@@ -21,10 +20,10 @@ class TimelineClient:
 
     async def list_events(
         self,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         limit: int = 100,
         offset: int = 0,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """List timeline events. Requires timeline.read."""
         self._ctx.require_permission(Permission.TIMELINE_READ.value, "list_events")
         target_user = user_id or self._ctx.user_id
@@ -45,8 +44,8 @@ class TimelineClient:
         event_type: str,
         title: str,
         description: str = "",
-        metadata: Optional[dict] = None,
-        user_id: Optional[str] = None,
+        metadata: dict | None = None,
+        user_id: str | None = None,
     ) -> dict:
         """Create a timeline event. Requires timeline.write."""
         self._ctx.require_permission(Permission.TIMELINE_WRITE.value, "create_event")

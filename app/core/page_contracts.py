@@ -26,27 +26,27 @@ logger = logging.getLogger(__name__)
 from dataclasses import dataclass
 
 try:
-    from app.core.user_context import UserRole
     from app.core.process_registry import (
         ALL_GROUP_NAMES,
-        VALID_COVERAGE_VALUES,
         COVERAGE_ACTIVE,
-        COVERAGE_LINKED,
         COVERAGE_GUARDED,
+        COVERAGE_LINKED,
         COVERAGE_NA,
+        VALID_COVERAGE_VALUES,
     )
+    from app.core.user_context import UserRole
 except ImportError:
     import sys
     sys.path.insert(0, r"c:\Semptify\Semptify-FastAPI")
-    from app.core.user_context import UserRole
     from app.core.process_registry import (
         ALL_GROUP_NAMES,
-        VALID_COVERAGE_VALUES,
         COVERAGE_ACTIVE,
-        COVERAGE_LINKED,
         COVERAGE_GUARDED,
+        COVERAGE_LINKED,
         COVERAGE_NA,
+        VALID_COVERAGE_VALUES,
     )
+    from app.core.user_context import UserRole
 
 
 # =============================================================================
@@ -144,7 +144,7 @@ def _full_coverage(**overrides: str) -> dict[str, str]:
     Build a complete 8-group coverage dict starting from all n-a,
     then applying the given overrides.
     """
-    base = {name: COVERAGE_NA for name in ALL_GROUP_NAMES}
+    base = dict.fromkeys(ALL_GROUP_NAMES, COVERAGE_NA)
     base.update(overrides)
     return base
 

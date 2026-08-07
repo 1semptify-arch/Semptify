@@ -15,9 +15,9 @@ Usage (on Render shell or locally with server running):
 import argparse
 import json
 import sys
-import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+import urllib.request
+from datetime import UTC, datetime
 
 DEFAULT_BASE = "http://localhost:8000"
 
@@ -68,7 +68,7 @@ def run_smoke_tests(base):
     for path, desc in endpoints:
         status, body = http_get(base + path)
         if status == 200:
-            record(f"GET {path} ({desc})", "PASS", f"200 OK")
+            record(f"GET {path} ({desc})", "PASS", "200 OK")
         elif status is None:
             record(f"GET {path} ({desc})", "FAIL", body[:100])
         else:
@@ -124,7 +124,7 @@ def final_report(base):
     print("  FINAL REPORT")
     print("=" * 70)
     print(f"\n  Server: {base}")
-    print(f"  Date:  {datetime.now(timezone.utc).isoformat()}")
+    print(f"  Date:  {datetime.now(UTC).isoformat()}")
     print(f"\n  PASS: {PASS}")
     print(f"  FAIL: {FAIL}")
     print(f"  TOTAL: {PASS + FAIL}")
@@ -137,8 +137,8 @@ def final_report(base):
 
     print("\n" + "=" * 70)
     print("\n  NOTE: To run the full pytest suite against this server:")
-    print(f"    pytest tests/ -v --tb=short")
-    print(f"  (requires conftest.py DB fixture fix or running against live DB)")
+    print("    pytest tests/ -v --tb=short")
+    print("  (requires conftest.py DB fixture fix or running against live DB)")
     print()
     return FAIL == 0
 

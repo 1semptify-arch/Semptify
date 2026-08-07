@@ -12,16 +12,15 @@ Each route:
 This is the single entry point for all converted pages.
 """
 import logging
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from app.core.page_contracts import PAGE_CONTRACTS
 from app.core.page_manifest import PAGE_MANIFEST, PageManifestEntry
-from app.core.page_contracts import PAGE_CONTRACTS, PageContract
 from app.core.ssot_guard import ssot_redirect
 from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
 
@@ -59,7 +58,7 @@ except ImportError:
 # Guard logic — mirrors _guard_by_contract from main.py
 # =============================================================================
 
-async def _guard_page(request: Request, page_id: str) -> Optional[RedirectResponse]:
+async def _guard_page(request: Request, page_id: str) -> RedirectResponse | None:
     """Guard a page using its PageContract. Returns redirect if denied, None if OK."""
     contract = PAGE_CONTRACTS.get(page_id)
     if not contract:
@@ -95,10 +94,10 @@ async def _guard_page(request: Request, page_id: str) -> Optional[RedirectRespon
 # Context builder
 # =============================================================================
 
-def _build_context(request: Request, entry: PageManifestEntry) -> Dict[str, Any]:
+def _build_context(request: Request, entry: PageManifestEntry) -> dict[str, Any]:
     """Build standard context for a page render."""
     contract = PAGE_CONTRACTS.get(entry.page_id)
-    ctx: Dict[str, Any] = {
+    ctx: dict[str, Any] = {
         "page_id": entry.page_id,
         "page_title": contract.title if contract else entry.page_id.replace("_", " ").title(),
         "page_contract": contract,

@@ -4,21 +4,20 @@ Central data hub that connects all modules - document processing, defense, forms
 Gathers and distributes data across the entire system.
 """
 
-import json
+import logging
 import re
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, field, asdict
 from enum import Enum
+from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
-from app.core.event_bus import event_bus, EventType
-from app.models.models import Document, TimelineEvent, CalendarEvent
+from app.core.event_bus import EventType, event_bus
 from app.core.utc import utc_now
-import logging
+from app.models.models import Document, TimelineEvent
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,25 +54,25 @@ class CaseInfo:
     court_phone: str = "651-438-4300"
     judicial_district: str = "First Judicial District"
     county: str = "Dakota"
-    
+
     # Parties
     tenant: PartyInfo = field(default_factory=PartyInfo)
     landlord: PartyInfo = field(default_factory=PartyInfo)
-    
+
     # Property
     property_address: str = ""
     property_city: str = ""
     property_state: str = "MN"
     property_zip: str = ""
     unit_number: str = ""
-    
+
     # Lease
     lease_start_date: str = ""
     lease_end_date: str = ""
     monthly_rent: float = 0.0
     security_deposit: float = 0.0
     lease_type: str = "month-to-month"  # fixed-term, month-to-month
-    
+
     # Case dates
     notice_date: str = ""
     notice_type: str = ""  # 14-day, 30-day, etc.
@@ -81,43 +80,43 @@ class CaseInfo:
     answer_deadline: str = ""
     hearing_date: str = ""
     hearing_time: str = ""
-    
+
     # Case status
     stage: CaseStage = CaseStage.NOTICE_RECEIVED
-    
+
     # Amounts claimed
     rent_claimed: float = 0.0
     late_fees_claimed: float = 0.0
     other_fees_claimed: float = 0.0
     total_claimed: float = 0.0
-    
+
     # Defenses
-    selected_defenses: List[str] = field(default_factory=list)
-    counterclaims: List[str] = field(default_factory=list)
-    
+    selected_defenses: list[str] = field(default_factory=list)
+    counterclaims: list[str] = field(default_factory=list)
+
     # Notes
     notes: str = ""
 
 
-@dataclass 
+@dataclass
 class FormData:
     """Complete form data package for all court forms"""
     case: CaseInfo = field(default_factory=CaseInfo)
-    
+
     # Document references
-    documents: List[Dict[str, Any]] = field(default_factory=list)
-    timeline_events: List[Dict[str, Any]] = field(default_factory=list)
-    
+    documents: list[dict[str, Any]] = field(default_factory=list)
+    timeline_events: list[dict[str, Any]] = field(default_factory=list)
+
     # Extracted data from documents
-    extracted_dates: List[Dict[str, str]] = field(default_factory=list)
-    extracted_amounts: List[Dict[str, float]] = field(default_factory=list)
-    extracted_parties: List[Dict[str, str]] = field(default_factory=list)
-    
+    extracted_dates: list[dict[str, str]] = field(default_factory=list)
+    extracted_amounts: list[dict[str, float]] = field(default_factory=list)
+    extracted_parties: list[dict[str, str]] = field(default_factory=list)
+
     # Form-specific data
-    answer_form_data: Dict[str, Any] = field(default_factory=dict)
-    counterclaim_data: Dict[str, Any] = field(default_factory=dict)
-    motion_data: Dict[str, Any] = field(default_factory=dict)
-    
+    answer_form_data: dict[str, Any] = field(default_factory=dict)
+    counterclaim_data: dict[str, Any] = field(default_factory=dict)
+    motion_data: dict[str, Any] = field(default_factory=dict)
+
     # Processing status
     last_updated: str = ""
     processing_complete: bool = False
@@ -134,12 +133,12 @@ class FormDataService:
     - Form generation (output)
     - Calendar (output)
     """
-    
+
     def __init__(self, user_id: str):
         self.user_id = user_id
         self.form_data = FormData()
         self._storage_key = f"form_data_{user_id}"
-    
+
     async def load(self) -> FormData:
         """Load form data from database and documents"""
         await self._load_from_documents()
@@ -147,20 +146,20 @@ class FormDataService:
         await self._extract_case_info()
         self.form_data.last_updated = utc_now().isoformat()
         return self.form_data
-    
+
     async def save(self) -> bool:
         """Save form data for persistence"""
         # Store in user's local storage via API response
         # In production, would store in database
         return True
-    
+
     async def _load_from_documents(self):
         """Extract data from user's vault documents"""
         async with get_db_session() as session:
             query = select(Document).where(Document.user_id == self.user_id)
             result = await session.execute(query)
             documents = result.scalars().all()
-            
+
             for doc in documents:
                 doc_data = {
                     "id": doc.id,
@@ -170,7 +169,7 @@ class FormDataService:
                     "description": doc.description or "",
                 }
                 self.form_data.documents.append(doc_data)
-                
+
                 # Extract data based on document type
                 if doc.document_type == "notice":
                     await self._extract_notice_data(doc)
@@ -178,7 +177,7 @@ class FormDataService:
                     await self._extract_lease_data(doc)
                 elif doc.document_type == "legal":
                     await self._extract_legal_data(doc)
-    
+
     async def _load_from_timeline(self):
         """Load timeline events"""
         async with get_db_session() as session:
@@ -187,7 +186,7 @@ class FormDataService:
             ).order_by(TimelineEvent.event_date.desc())
             result = await session.execute(query)
             events = result.scalars().all()
-            
+
             for event in events:
                 event_data = {
                     "id": event.id,
@@ -198,7 +197,7 @@ class FormDataService:
                     "is_evidence": event.is_evidence,
                 }
                 self.form_data.timeline_events.append(event_data)
-    
+
     async def _extract_case_info(self):
         """Extract case information from documents and timeline"""
         # Look for case number patterns
@@ -207,7 +206,7 @@ class FormDataService:
             r'(\d{2}-CV-[A-Z]{2}-\d{2}-\d+)',  # 27-CV-HC-24-5847
             r'Case\s*(?:No\.?|Number|#)?\s*:?\s*([A-Z0-9-]+)',
         ]
-        
+
         for doc in self.form_data.documents:
             desc = doc.get("description", "") + " " + doc.get("filename", "")
             for pattern in case_patterns:
@@ -215,16 +214,16 @@ class FormDataService:
                 if match:
                     self.form_data.case.case_number = match.group(1)
                     break
-        
+
         # Extract dates from timeline
         for event in self.form_data.timeline_events:
             event_type = event.get("type", "")
             event_date = event.get("date", "")
             title = event.get("title", "").lower()
-            
+
             if not event_date:
                 continue
-                
+
             if "notice" in title and "served" in title:
                 self.form_data.case.notice_date = event_date[:10]
             elif "hearing" in title or "court date" in title:
@@ -237,7 +236,7 @@ class FormDataService:
                 self.form_data.case.lease_start_date = event_date[:10]
             elif "lease" in title and "end" in title:
                 self.form_data.case.lease_end_date = event_date[:10]
-        
+
         # Calculate answer deadline if we have summons date
         if self.form_data.case.summons_date:
             try:
@@ -246,10 +245,10 @@ class FormDataService:
                 self.form_data.case.answer_deadline = deadline.strftime("%Y-%m-%d")
             except ValueError:
                 pass
-        
+
         # Determine case stage
         self._determine_case_stage()
-    
+
     async def _extract_notice_data(self, doc: Document):
         """Extract data from notice documents"""
         self.form_data.extracted_dates.append({
@@ -257,7 +256,7 @@ class FormDataService:
             "type": "notice_date",
             "date": doc.uploaded_at.strftime("%Y-%m-%d") if doc.uploaded_at else "",
         })
-        
+
         # Try to determine notice type from filename
         filename = (doc.original_filename or doc.filename).lower()
         if "14" in filename or "fourteen" in filename:
@@ -266,7 +265,7 @@ class FormDataService:
             self.form_data.case.notice_type = "30-day"
         elif "pay" in filename and "quit" in filename:
             self.form_data.case.notice_type = "pay-or-quit"
-    
+
     async def _extract_lease_data(self, doc: Document):
         """Extract data from lease documents"""
         filename = (doc.original_filename or doc.filename or "").lower()
@@ -364,18 +363,18 @@ class FormDataService:
                                text, re.IGNORECASE)
             if addr_m:
                 self.form_data.case.property_address = addr_m.group(1).strip().title()
-    
+
     async def _extract_legal_data(self, doc: Document):
         """Extract data from legal documents (complaints, summons, etc.)"""
         filename = (doc.original_filename or doc.filename).lower()
-        
+
         if "complaint" in filename or "summons" in filename:
             self.form_data.case.stage = CaseStage.SUMMONS_SERVED
-    
+
     def _determine_case_stage(self):
         """Determine current case stage based on available data"""
         case = self.form_data.case
-        
+
         if case.hearing_date:
             hearing = datetime.fromisoformat(case.hearing_date)
             if hearing < utc_now():
@@ -392,30 +391,30 @@ class FormDataService:
             case.stage = CaseStage.SUMMONS_SERVED
         elif case.notice_date:
             case.stage = CaseStage.NOTICE_RECEIVED
-    
-    def update_case_info(self, updates: Dict[str, Any]) -> CaseInfo:
+
+    def update_case_info(self, updates: dict[str, Any]) -> CaseInfo:
         """Update case information from user input"""
         case = self.form_data.case
-        
+
         # Update tenant info
         if "tenant" in updates:
             for key, value in updates["tenant"].items():
                 if hasattr(case.tenant, key):
                     setattr(case.tenant, key, value)
-        
+
         # Update landlord info
         if "landlord" in updates:
             for key, value in updates["landlord"].items():
                 if hasattr(case.landlord, key):
                     setattr(case.landlord, key, value)
-        
+
         # Update case fields
         for key, value in updates.items():
             if key not in ["tenant", "landlord"] and hasattr(case, key):
                 setattr(case, key, value)
 
         self.form_data.last_updated = utc_now().isoformat()
-        
+
         # Publish event
         try:
             event_bus.publish_sync(
@@ -429,25 +428,25 @@ class FormDataService:
 
         return case
 
-    def add_defense(self, defense_code: str) -> List[str]:
+    def add_defense(self, defense_code: str) -> list[str]:
         """Add a defense to the case"""
         if defense_code not in self.form_data.case.selected_defenses:
             self.form_data.case.selected_defenses.append(defense_code)
         return self.form_data.case.selected_defenses
 
-    def remove_defense(self, defense_code: str) -> List[str]:
+    def remove_defense(self, defense_code: str) -> list[str]:
         """Remove a defense from the case"""
         if defense_code in self.form_data.case.selected_defenses:
             self.form_data.case.selected_defenses.remove(defense_code)
         return self.form_data.case.selected_defenses
-    
-    def add_counterclaim(self, claim_code: str) -> List[str]:
+
+    def add_counterclaim(self, claim_code: str) -> list[str]:
         """Add a counterclaim"""
         if claim_code not in self.form_data.case.counterclaims:
             self.form_data.case.counterclaims.append(claim_code)
         return self.form_data.case.counterclaims
-    
-    def get_answer_form_data(self) -> Dict[str, Any]:
+
+    def get_answer_form_data(self) -> dict[str, Any]:
         """Get pre-filled data for Answer to Eviction form"""
         case = self.form_data.case
         return {
@@ -465,8 +464,8 @@ class FormDataService:
             "hearing_date": case.hearing_date,
             "hearing_time": case.hearing_time,
         }
-    
-    def get_motion_form_data(self, motion_type: str) -> Dict[str, Any]:
+
+    def get_motion_form_data(self, motion_type: str) -> dict[str, Any]:
         """Get pre-filled data for motion forms"""
         case = self.form_data.case
         base_data = {
@@ -479,7 +478,7 @@ class FormDataService:
             "property_address": case.property_address,
             "filing_date": utc_now().strftime("%Y-%m-%d"),
         }
-        
+
         if motion_type == "continuance":
             base_data["current_hearing_date"] = case.hearing_date
             base_data["reason"] = ""
@@ -487,10 +486,10 @@ class FormDataService:
             base_data["grounds"] = case.selected_defenses
         elif motion_type == "stay":
             base_data["hearing_date"] = case.hearing_date
-        
+
         return base_data
-    
-    def get_counterclaim_form_data(self) -> Dict[str, Any]:
+
+    def get_counterclaim_form_data(self) -> dict[str, Any]:
         """Get pre-filled data for counterclaim form"""
         case = self.form_data.case
         return {
@@ -504,8 +503,8 @@ class FormDataService:
             "security_deposit": case.security_deposit,
             "monthly_rent": case.monthly_rent,
         }
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert form data to dictionary for API response"""
         return {
             "case": asdict(self.form_data.case),
@@ -517,11 +516,11 @@ class FormDataService:
             "last_updated": self.form_data.last_updated,
             "processing_complete": self.form_data.processing_complete,
         }
-    
-    def get_case_summary(self) -> Dict[str, Any]:
+
+    def get_case_summary(self) -> dict[str, Any]:
         """Get a summary of the case for display"""
         case = self.form_data.case
-        
+
         # Calculate days until hearing
         days_to_hearing = None
         if case.hearing_date:
@@ -530,7 +529,7 @@ class FormDataService:
                 days_to_hearing = (hearing - utc_now()).days
             except ValueError:
                 pass
-        
+
         return {
             "case_number": case.case_number or "Not yet assigned",
             "court": case.court_name,
@@ -552,7 +551,7 @@ class FormDataService:
 
 
 # Singleton instance cache
-_form_data_services: Dict[str, FormDataService] = {}
+_form_data_services: dict[str, FormDataService] = {}
 
 
 def get_form_data_service(user_id: str) -> FormDataService:

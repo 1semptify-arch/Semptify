@@ -8,7 +8,6 @@ options and prepare documentation.
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-
 register_function_group(FunctionGroupContract(
     module="eviction_defense",
     group_name="eviction_defense_list_forms",

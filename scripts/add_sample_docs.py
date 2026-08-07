@@ -1,12 +1,12 @@
 """Add sample eviction case documents for timeline testing."""
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Load existing index
 index_file = Path(__file__).parent.parent / "data/documents/index.json"
-with open(index_file, "r") as f:
+with open(index_file) as f:
     index = json.load(f)
 
 # Sample documents for an eviction case timeline
@@ -187,7 +187,7 @@ added = 0
 for doc_data in sample_docs:
     doc_id = str(uuid.uuid4())
     storage_path = f"data/documents/{user_id}/{doc_id}_{doc_data['filename']}"
-    
+
     index[doc_id] = {
         "id": doc_id,
         "user_id": user_id,
@@ -207,8 +207,8 @@ for doc_data in sample_docs:
         "key_amounts": [],
         "key_terms": [],
         "law_references": None,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "analyzed_at": datetime.now(timezone.utc).isoformat(),
+        "uploaded_at": datetime.now(UTC).isoformat(),
+        "analyzed_at": datetime.now(UTC).isoformat(),
     }
     added += 1
     print(f"  + {doc_data['filename']}")

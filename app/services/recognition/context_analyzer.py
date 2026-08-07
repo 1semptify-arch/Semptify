@@ -9,14 +9,11 @@ and assesses text quality.
 
 import re
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
+from typing import Any
+
 from app.core.utc import utc_now
 
-from .models import (
-    DocumentContext, DocumentSection, ConfidenceMetrics,
-    ReasoningChain, ReasoningStep, ReasoningType
-)
+from .models import DocumentContext, DocumentSection, ReasoningChain, ReasoningType
 
 
 @dataclass
@@ -40,14 +37,14 @@ class ContextAnalyzer:
     - Assess text quality and completeness
     - Extract structural metadata
     """
-    
+
     def __init__(self):
         # Document type structural indicators
         self.structural_patterns = self._build_structural_patterns()
         self.section_patterns = self._build_section_patterns()
         self.quality_indicators = self._build_quality_indicators()
-    
-    def _build_structural_patterns(self) -> Dict[str, List[str]]:
+
+    def _build_structural_patterns(self) -> dict[str, list[str]]:
         """Build patterns for structural elements"""
         return {
             "letterhead": [
@@ -95,8 +92,8 @@ class ContextAnalyzer:
                 r"(?i)^(?:WRIT\s+OF\s+(?:RECOVERY|RESTITUTION))",
             ],
         }
-    
-    def _build_section_patterns(self) -> Dict[str, re.Pattern]:
+
+    def _build_section_patterns(self) -> dict[str, re.Pattern]:
         """Build patterns for identifying sections"""
         return {
             "numbered_section": re.compile(r"^(?:\d+\.|\([a-z]\)|\([A-Z]\)|\([ivx]+\))\s+", re.MULTILINE),
@@ -104,8 +101,8 @@ class ContextAnalyzer:
             "underlined_section": re.compile(r"^.*\n[_\-=]{3,}\s*$", re.MULTILINE),
             "bold_markers": re.compile(r"(?:\*\*|__)(.*?)(?:\*\*|__)", re.MULTILINE),
         }
-    
-    def _build_quality_indicators(self) -> Dict[str, Any]:
+
+    def _build_quality_indicators(self) -> dict[str, Any]:
         """Build quality assessment patterns"""
         return {
             "ocr_errors": [
@@ -124,9 +121,9 @@ class ContextAnalyzer:
                 r"\b(?:the|and|of|to|in|for|is|that|with)\b",  # Common words
             ],
         }
-    
-    def analyze(self, text: str, filename: str = None, 
-                file_type: str = None) -> Tuple[DocumentContext, ReasoningChain]:
+
+    def analyze(self, text: str, filename: str = None,
+                file_type: str = None) -> tuple[DocumentContext, ReasoningChain]:
         """
         Perform full context analysis on document text.
         
@@ -135,12 +132,12 @@ class ContextAnalyzer:
         """
         reasoning = ReasoningChain(pass_number=1)
         context = DocumentContext()
-        
+
         if filename:
             context.filename = filename
         if file_type:
             context.file_type = file_type
-        
+
         # Step 1: Basic text statistics
         reasoning.add_step(
             ReasoningType.STRUCTURAL_ANALYSIS,
@@ -149,7 +146,7 @@ class ContextAnalyzer:
             {}
         )
         context = self._compute_text_stats(text, context)
-        
+
         # Step 2: Detect structural elements
         reasoning.add_step(
             ReasoningType.PATTERN_MATCH,
@@ -158,7 +155,7 @@ class ContextAnalyzer:
             {}
         )
         context = self._detect_structural_elements(text, context)
-        
+
         # Step 3: Identify sections
         reasoning.add_step(
             ReasoningType.STRUCTURAL_ANALYSIS,
@@ -167,7 +164,7 @@ class ContextAnalyzer:
             {}
         )
         context = self._identify_sections(text, context)
-        
+
         # Step 4: Determine document flow type
         reasoning.add_step(
             ReasoningType.SEMANTIC_ANALYSIS,
@@ -176,7 +173,7 @@ class ContextAnalyzer:
             {}
         )
         context = self._determine_flow_type(context)
-        
+
         # Step 5: Assess text quality
         reasoning.add_step(
             ReasoningType.STATISTICAL,
@@ -185,7 +182,7 @@ class ContextAnalyzer:
             {}
         )
         context = self._assess_quality(text, context)
-        
+
         # Step 6: Detect special characteristics
         reasoning.add_step(
             ReasoningType.PATTERN_MATCH,
@@ -194,85 +191,85 @@ class ContextAnalyzer:
             {}
         )
         context = self._detect_special_characteristics(text, context)
-        
+
         reasoning.completed_at = utc_now()
         reasoning.conclusion = f"Document type: {context.document_flow_type}, Quality: {context.ocr_quality:.1f}"
-        
+
         return context, reasoning
-    
+
     def _compute_text_stats(self, text: str, context: DocumentContext) -> DocumentContext:
         """Compute basic text statistics"""
         context.total_characters = len(text)
         context.total_words = len(text.split())
-        
+
         # Count sentences (approximate)
         sentences = re.split(r'[.!?]+', text)
         context.total_sentences = len([s for s in sentences if s.strip()])
-        
+
         # Estimate page count (rough: ~3000 chars per page)
         if context.total_characters > 0:
             context.page_count = max(1, context.total_characters // 3000)
-        
+
         return context
-    
+
     def _detect_structural_elements(self, text: str, context: DocumentContext) -> DocumentContext:
         """Detect structural elements in the document"""
         text_lines = text.split('\n')
         header_region = '\n'.join(text_lines[:min(20, len(text_lines))])
         footer_region = '\n'.join(text_lines[max(0, len(text_lines)-10):])
-        
+
         # Check for letterhead (typically in first 10 lines)
         for pattern in self.structural_patterns["letterhead"]:
             if re.search(pattern, header_region, re.MULTILINE):
                 context.has_letterhead = True
                 context.has_header = True
                 break
-        
+
         # Check for date line
         for pattern in self.structural_patterns["date_line"]:
             if re.search(pattern, text, re.MULTILINE):
                 context.has_date_line = True
                 break
-        
+
         # Check for address block
         address_matches = 0
         for pattern in self.structural_patterns["address_block"]:
             if re.search(pattern, text, re.MULTILINE | re.IGNORECASE):
                 address_matches += 1
         context.has_address_block = address_matches >= 2
-        
+
         # Check for salutation
         for pattern in self.structural_patterns["salutation"]:
             if re.search(pattern, text, re.MULTILINE):
                 context.has_salutation = True
                 break
-        
+
         # Check for signature block
         for pattern in self.structural_patterns["signature_block"]:
             if re.search(pattern, footer_region, re.MULTILINE):
                 context.has_signature_block = True
                 break
-        
+
         # Check for notary block
         notary_matches = 0
         for pattern in self.structural_patterns["notary_block"]:
             if re.search(pattern, text, re.MULTILINE):
                 notary_matches += 1
         context.has_notary_block = notary_matches >= 2
-        
+
         # Check for case caption (legal document)
         caption_matches = 0
         for pattern in self.structural_patterns["case_caption"]:
             if re.search(pattern, header_region, re.MULTILINE):
                 caption_matches += 1
         context.has_case_caption = caption_matches >= 2
-        
+
         return context
-    
+
     def _identify_sections(self, text: str, context: DocumentContext) -> DocumentContext:
         """Identify and extract document sections"""
         sections = []
-        
+
         # Find numbered sections
         numbered_matches = list(self.section_patterns["numbered_section"].finditer(text))
         for i, match in enumerate(numbered_matches):
@@ -283,7 +280,7 @@ class ContextAnalyzer:
                 start_position=match.start(),
                 end_position=end_pos,
             ))
-        
+
         # Find capitalized headers
         for match in self.section_patterns["capitalized_header"].finditer(text):
             header_text = match.group().strip()
@@ -294,7 +291,7 @@ class ContextAnalyzer:
                     start_position=match.start(),
                     end_position=match.end(),
                 ))
-        
+
         # Identify key sections by content
         section_keywords = {
             "terms": ["terms", "conditions", "agreement"],
@@ -304,7 +301,7 @@ class ContextAnalyzer:
             "property": ["premises", "property", "located at"],
             "payment": ["rent", "payment", "deposit", "amount"],
         }
-        
+
         for section_name, keywords in section_keywords.items():
             for keyword in keywords:
                 matches = list(re.finditer(rf'\b{keyword}\b', text, re.IGNORECASE))
@@ -320,10 +317,10 @@ class ContextAnalyzer:
                             end_position=end,
                             importance_score=0.5
                         ))
-        
+
         context.sections = sections
         return context
-    
+
     def _determine_flow_type(self, context: DocumentContext) -> DocumentContext:
         """Determine the overall document flow type"""
         scores = {
@@ -334,14 +331,14 @@ class ContextAnalyzer:
             "contract": 0,
             "evidence": 0,
         }
-        
+
         # Legal filing indicators
         if context.has_case_caption:
             scores["legal_filing"] += 5
         if context.has_notary_block:
             scores["legal_filing"] += 2
             scores["contract"] += 1
-        
+
         # Letter indicators
         if context.has_letterhead:
             scores["letter"] += 2
@@ -356,77 +353,77 @@ class ContextAnalyzer:
         if context.has_address_block:
             scores["letter"] += 2
             scores["notice"] += 1
-        
+
         # Notice indicators
         for section in context.sections:
             if section.section_type == "notice":
                 scores["notice"] += 2
             elif section.section_type == "terms":
                 scores["contract"] += 2
-        
+
         # Determine winner
         best_type = max(scores, key=scores.get)
         if scores[best_type] > 0:
             context.document_flow_type = best_type
         else:
             context.document_flow_type = "unknown"
-        
+
         # Determine if it's a form
         context.is_form = self._detect_form_characteristics(context)
-        
+
         return context
-    
+
     def _detect_form_characteristics(self, context: DocumentContext) -> bool:
         """Detect if document appears to be a form"""
         form_indicators = 0
-        
+
         # Check for blank lines (form fields)
         blank_line_patterns = ["____", ".....", "______"]
         for section in context.sections:
             for pattern in blank_line_patterns:
                 if pattern in section.content:
                     form_indicators += 1
-        
+
         # Check for checkbox indicators
         checkbox_patterns = ["[ ]", "[x]", "[X]", "☐", "☑", "☒"]
         for section in context.sections:
             for pattern in checkbox_patterns:
                 if pattern in section.content:
                     form_indicators += 2
-        
+
         return form_indicators >= 3
-    
+
     def _assess_quality(self, text: str, context: DocumentContext) -> DocumentContext:
         """Assess text quality and OCR accuracy"""
         quality_score = 100.0
-        
+
         # Check for OCR errors
         ocr_error_count = 0
         for pattern in self.quality_indicators["ocr_errors"]:
             matches = re.findall(pattern, text, re.IGNORECASE)
             ocr_error_count += len(matches)
-        
+
         # Penalize for OCR errors
         quality_score -= min(30, ocr_error_count * 5)
-        
+
         # Check for good quality indicators
         good_indicator_count = 0
         for pattern in self.quality_indicators["good_quality_indicators"]:
             matches = re.findall(pattern, text)
             good_indicator_count += len(matches)
-        
+
         # Reward for good indicators
         quality_score += min(20, good_indicator_count // 10)
-        
+
         # Check text completeness
         incomplete_count = 0
         for pattern in self.quality_indicators["incomplete_indicators"]:
             if re.search(pattern, text, re.IGNORECASE):
                 incomplete_count += 1
-        
+
         # Calculate completeness score
         completeness = max(0, 100 - incomplete_count * 20)
-        
+
         # Word density check (good documents have reasonable word density)
         if context.total_characters > 0:
             word_density = context.total_words / (context.total_characters / 100)
@@ -434,25 +431,25 @@ class ContextAnalyzer:
                 quality_score += 10
             elif word_density < 5 or word_density > 35:
                 quality_score -= 15
-        
+
         context.ocr_quality = max(0, min(100, quality_score))
         context.is_scanned = quality_score < 80 or ocr_error_count > 5
-        
+
         # Structural clarity based on section identification
         section_count = len(context.sections)
         if section_count >= 3:
             context.structural_clarity = min(100, 50 + section_count * 5)
         else:
             context.structural_clarity = max(20, section_count * 20)
-        
+
         context.text_completeness = completeness
-        
+
         return context
-    
+
     def _detect_special_characteristics(self, text: str, context: DocumentContext) -> DocumentContext:
         """Detect special document characteristics"""
         text_lower = text.lower()
-        
+
         # Handwriting indicators (often OCR produces specific patterns for handwriting)
         handwriting_patterns = [
             r"(?:illegible|unclear|handwritten)",
@@ -462,7 +459,7 @@ class ContextAnalyzer:
             if re.search(pattern, text, re.IGNORECASE):
                 context.has_handwriting = True
                 break
-        
+
         # Signature indicators
         signature_patterns = [
             r"(?:signature|signed|sign here)",
@@ -473,7 +470,7 @@ class ContextAnalyzer:
             if re.search(pattern, text, re.IGNORECASE):
                 context.has_signatures = True
                 break
-        
+
         # Stamp indicators
         stamp_patterns = [
             r"(?:FILED|RECEIVED|STAMPED|CERTIFIED)",
@@ -483,16 +480,16 @@ class ContextAnalyzer:
             if re.search(pattern, text, re.IGNORECASE):
                 context.has_stamps = True
                 break
-        
+
         # Language detection (basic - check for non-English)
         spanish_words = ["el", "la", "de", "que", "en", "los", "del", "las"]
         spanish_count = sum(1 for word in spanish_words if f" {word} " in text_lower)
         if spanish_count >= 3:
             context.language = "es"  # Spanish
-        
+
         return context
-    
-    def _summarize_elements(self, context: DocumentContext) -> Dict[str, bool]:
+
+    def _summarize_elements(self, context: DocumentContext) -> dict[str, bool]:
         """Summarize detected elements for reasoning chain"""
         return {
             "letterhead": context.has_letterhead,
@@ -503,9 +500,9 @@ class ContextAnalyzer:
             "notary_block": context.has_notary_block,
             "case_caption": context.has_case_caption,
         }
-    
-    def get_key_sections(self, context: DocumentContext, 
-                         max_sections: int = 5) -> List[DocumentSection]:
+
+    def get_key_sections(self, context: DocumentContext,
+                         max_sections: int = 5) -> list[DocumentSection]:
         """Get the most important sections for analysis"""
         # Sort by importance score
         sorted_sections = sorted(
@@ -514,8 +511,8 @@ class ContextAnalyzer:
             reverse=True
         )
         return sorted_sections[:max_sections]
-    
-    def extract_header_info(self, text: str) -> Dict[str, Any]:
+
+    def extract_header_info(self, text: str) -> dict[str, Any]:
         """Extract information typically found in document headers"""
         header_info = {
             "date": None,
@@ -524,11 +521,11 @@ class ContextAnalyzer:
             "re_subject": None,
             "case_number": None,
         }
-        
+
         # Look in first 30 lines
         lines = text.split('\n')[:30]
         header_text = '\n'.join(lines)
-        
+
         # Extract date
         date_patterns = [
             r"(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}",
@@ -539,15 +536,15 @@ class ContextAnalyzer:
             if match:
                 header_info["date"] = match.group()
                 break
-        
+
         # Extract RE: subject line
         re_match = re.search(r"(?:RE|Re|Subject):\s*(.+?)(?:\n|$)", header_text)
         if re_match:
             header_info["re_subject"] = re_match.group(1).strip()
-        
+
         # Extract case number
         case_match = re.search(r"(?:Case|File|No\.|Number|#)[:\s]*(\d+[-\w]*\d*)", header_text, re.IGNORECASE)
         if case_match:
             header_info["case_number"] = case_match.group(1)
-        
+
         return header_info

@@ -5,15 +5,15 @@ Uses Llama 3.1 70B via Groq's ultra-fast inference.
 """
 
 import json
+import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
 
 import httpx
 
 from app.core.config import get_settings
 from app.core.utc import utc_now
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,7 +39,7 @@ class GroqAIService:
     """
 
     API_URL = "https://api.groq.com/openai/v1/chat/completions"
-    
+
     # Model options (sorted by capability)
     MODELS = {
         "fast": "llama-3.1-8b-instant",      # Fastest, good for simple tasks
@@ -51,7 +51,7 @@ class GroqAIService:
         settings = get_settings()
         self.api_key = getattr(settings, 'groq_api_key', None)
         self.model = self.MODELS["balanced"]  # Default to 70B
-        
+
     @property
     def is_available(self) -> bool:
         """Check if Groq is configured."""
@@ -61,7 +61,7 @@ class GroqAIService:
         self,
         text: str,
         filename: str,
-        doc_hint: Optional[str] = None
+        doc_hint: str | None = None
     ) -> GroqAnalysisResult:
         """
         Analyze a document using Groq AI.
@@ -78,7 +78,7 @@ class GroqAIService:
             return self._fallback_analysis(text, filename)
 
         prompt = self._build_analysis_prompt(text, filename, doc_hint)
-        
+
         try:
             result = await self._call_groq(prompt)
             return self._parse_result(result)
@@ -90,10 +90,10 @@ class GroqAIService:
         self,
         text: str,
         filename: str,
-        doc_hint: Optional[str] = None
+        doc_hint: str | None = None
     ) -> str:
         """Build the analysis prompt for Groq."""
-        
+
         # Truncate text if too long (Groq has 8K context for most models)
         max_chars = 6000
         if len(text) > max_chars:
@@ -158,7 +158,7 @@ Important:
                     "content": "You are a legal document analyst. Always respond with valid JSON only, no other text."
                 },
                 {
-                    "role": "user", 
+                    "role": "user",
                     "content": prompt
                 }
             ],
@@ -173,10 +173,10 @@ Important:
                 headers=headers,
                 json=payload
             )
-            
+
             if response.status_code != 200:
                 raise Exception(f"Groq API error: {response.status_code} - {response.text}")
-            
+
             result = response.json()
             content = result["choices"][0]["message"]["content"]
             return json.loads(content)
@@ -284,7 +284,7 @@ Be direct and helpful. Don't use legal jargon."""
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json"
             }
-            
+
             async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     self.API_URL,
@@ -296,19 +296,19 @@ Be direct and helpful. Don't use legal jargon."""
                         "max_tokens": 300
                     }
                 )
-                
+
                 if response.status_code == 200:
                     result = response.json()
                     return result["choices"][0]["message"]["content"].strip()
-                    
+
         except Exception as e:
             logger.error(f"Summary generation failed: {e}")
-            
+
         return "Unable to generate summary. Please review the document."
 
 
 # Singleton instance
-_groq_service: Optional[GroqAIService] = None
+_groq_service: GroqAIService | None = None
 
 
 def get_groq_ai() -> GroqAIService:

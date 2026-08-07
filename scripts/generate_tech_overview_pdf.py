@@ -1,19 +1,18 @@
 """Generate Semptify Technical Overview PDF for sharing with tech people."""
 from pathlib import Path
 
-from reportlab.lib.pagesizes import LETTER
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_LEFT
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import LETTER
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
+    HRFlowable,
     ListFlowable,
     ListItem,
+    Paragraph,
     Preformatted,
-    HRFlowable,
+    SimpleDocTemplate,
+    Spacer,
 )
 
 OUTPUT = Path(__file__).resolve().parent.parent / "Semptify_Technical_Overview.pdf"

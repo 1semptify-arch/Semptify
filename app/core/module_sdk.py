@@ -40,21 +40,21 @@ module a runtime identity, contract hooks, and registry tracking.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from fastapi import FastAPI
 
-from app.core.product_manifest import (
-    ProductTier,
-    ModuleEntry,
-    MANIFEST,
-    _load_router,
-)
 from app.core.module_contracts import (
     FunctionGroupContract,
     contract_registry,
+)
+from app.core.product_manifest import (
+    MANIFEST,
+    ModuleEntry,
+    ProductTier,
+    _load_router,
 )
 
 logger = logging.getLogger(__name__)
@@ -94,24 +94,24 @@ class ModuleManifest:
     tier: ProductTier
 
     # Capabilities
-    capabilities: Tuple[ModuleCapability, ...] = ()
+    capabilities: tuple[ModuleCapability, ...] = ()
 
     # Router configuration (only used when ModuleCapability.ROUTER present)
-    router_module: Optional[str] = None
+    router_module: str | None = None
     router_attr: str = "router"
-    tags: Tuple[str, ...] = ()
+    tags: tuple[str, ...] = ()
     prefix: str = ""
 
     # Contracts (only used when ModuleCapability.CONTRACT present)
-    contracts: Tuple[FunctionGroupContract, ...] = ()
+    contracts: tuple[FunctionGroupContract, ...] = ()
 
     # Mesh actions (only used when ModuleCapability.MESH present)
-    mesh_actions: Tuple[str, ...] = ()
+    mesh_actions: tuple[str, ...] = ()
 
     # Registration behavior
     optional: bool = True
 
-    def to_module_entry(self) -> Optional[ModuleEntry]:
+    def to_module_entry(self) -> ModuleEntry | None:
         """Convert to a product-manifest ``ModuleEntry`` for router registration.
 
         Returns ``None`` if this module does not declare a router.
@@ -154,7 +154,7 @@ class InstalledModule:
     manifest: ModuleManifest
     router: Any = None
     initialized: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -176,7 +176,7 @@ class ModuleRegistry:
     Writes happen once at startup, so no locking is needed.
     """
 
-    _instance: Optional[ModuleRegistry] = None
+    _instance: ModuleRegistry | None = None
 
     def __new__(cls) -> ModuleRegistry:
         if cls._instance is None:
@@ -187,8 +187,8 @@ class ModuleRegistry:
         if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized = True
-        self._modules: Dict[str, InstalledModule] = {}
-        self._tier_index: Dict[ProductTier, List[str]] = {
+        self._modules: dict[str, InstalledModule] = {}
+        self._tier_index: dict[ProductTier, list[str]] = {
             t: [] for t in ProductTier.all()
         }
 
@@ -209,28 +209,28 @@ class ModuleRegistry:
     # Queries
     # ------------------------------------------------------------------
 
-    def get(self, name: str) -> Optional[InstalledModule]:
+    def get(self, name: str) -> InstalledModule | None:
         return self._modules.get(name)
 
-    def list_by_tier(self, tier: ProductTier) -> List[InstalledModule]:
+    def list_by_tier(self, tier: ProductTier) -> list[InstalledModule]:
         return [
             self._modules[n]
             for n in self._tier_index.get(tier, [])
             if n in self._modules
         ]
 
-    def list_by_capability(self, capability: ModuleCapability) -> List[InstalledModule]:
+    def list_by_capability(self, capability: ModuleCapability) -> list[InstalledModule]:
         return [
             m for m in self._modules.values()
             if capability in m.manifest.capabilities
         ]
 
-    def all(self) -> List[InstalledModule]:
+    def all(self) -> list[InstalledModule]:
         return list(self._modules.values())
 
     def validate(self) -> dict[str, Any]:
         """Validate the installed module set."""
-        violations: List[dict[str, str]] = []
+        violations: list[dict[str, str]] = []
         for module in self._modules.values():
             m = module.manifest
             if ModuleCapability.ROUTER in m.capabilities and not m.router_module:
@@ -283,7 +283,7 @@ def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
             try:
                 router = _load_router(entry)
                 if router is not None:
-                    kwargs: Dict[str, Any] = {"tags": list(entry.tags)}
+                    kwargs: dict[str, Any] = {"tags": list(entry.tags)}
                     if entry.prefix:
                         kwargs["prefix"] = entry.prefix
                     app.include_router(router, **kwargs)
@@ -354,7 +354,7 @@ def register_tier_modules(app: FastAPI, *tiers: ProductTier) -> dict[str, Any]:
     installed_count = 0
     skipped_count = 0
     error_count = 0
-    modules: List[InstalledModule] = []
+    modules: list[InstalledModule] = []
 
     logger.info("=" * 60)
     logger.info("Registering modules for tiers: %s", ", ".join(t.value for t in tiers))

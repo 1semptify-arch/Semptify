@@ -18,10 +18,10 @@ Usage:
 """
 
 import logging
-from app.core.utc import utc_now
+from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from fastapi import HTTPException, status
 
@@ -140,8 +140,9 @@ class FeatureFlagManager:
     async def _refresh_from_db(self) -> None:
         import time
         try:
-            from app.core.database import get_session_factory
             from sqlalchemy import text
+
+            from app.core.database import get_session_factory
             async with get_session_factory()() as session:
                 result = await session.execute(text(
                     "SELECT flag_name, enabled, rollout_percent, allowed_roles, description "
@@ -207,8 +208,9 @@ class FeatureFlagManager:
 
     async def set_enabled(self, flag_name: str, enabled: bool, updated_by: str = "system") -> None:
         """Persist flag change to PostgreSQL and update in-memory cache immediately."""
-        from app.core.database import get_session_factory
         from sqlalchemy import text
+
+        from app.core.database import get_session_factory
         async with get_session_factory()() as session:
             await session.execute(text("""
                 INSERT INTO feature_flags (flag_name, enabled, updated_by, updated_at)

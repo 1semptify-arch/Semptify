@@ -1,8 +1,7 @@
 """Manager module registration helper."""
 
-from app.core.product_manifest import ModuleEntry, ProductTier
 from app.core.module_contracts import FunctionGroupContract, register_function_group
-
+from app.core.product_manifest import ModuleEntry, ProductTier
 
 MODULE = ModuleEntry(
     module_path="app.modules.manager.router",

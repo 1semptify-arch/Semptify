@@ -1,7 +1,7 @@
 # app/crawlers/mcro.py
 from playwright.async_api import async_playwright
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 MCRO_SEARCH_URL = "https://publicaccess.courts.state.mn.us/CaseSearch"
 
@@ -39,7 +39,7 @@ async def fetch_cases_by_attorney(bar_number: str) -> List[Dict]:
                     attorney_input = await page.query_selector(selector)
                     if attorney_input:
                         break
-                except:
+                except Exception:
                     continue
             
             if not attorney_input:
@@ -67,7 +67,7 @@ async def fetch_cases_by_attorney(bar_number: str) -> List[Dict]:
                     search_button = await page.query_selector(selector)
                     if search_button:
                         break
-                except:
+                except Exception:
                     continue
             
             if not search_button:
@@ -94,7 +94,7 @@ async def fetch_cases_by_attorney(bar_number: str) -> List[Dict]:
                     results_table = await page.query_selector(selector)
                     if results_table:
                         break
-                except:
+                except Exception:
                     continue
             
             if not results_table:
@@ -187,7 +187,7 @@ async def fetch_case_docket(case_detail_url: str) -> List[Dict]:
                     roa_tab = await page.query_selector(selector)
                     if roa_tab:
                         break
-                except:
+                except Exception:
                     continue
             
             if roa_tab:
@@ -209,7 +209,7 @@ async def fetch_case_docket(case_detail_url: str) -> List[Dict]:
                     docket_table = await page.query_selector(selector)
                     if docket_table:
                         break
-                except:
+                except Exception:
                     continue
             
             if not docket_table:
@@ -255,9 +255,9 @@ async def fetch_case_docket(case_detail_url: str) -> List[Dict]:
                                 try:
                                     parsed_date = datetime.strptime(date_str, fmt).date()
                                     break
-                                except:
+                                except Exception:
                                     continue
-                        except:
+                        except Exception:
                             pass
                     
                     # Check for document link

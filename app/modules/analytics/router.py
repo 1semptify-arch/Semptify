@@ -11,23 +11,23 @@ Provides comprehensive analytics endpoints for:
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
-from app.core.utc import utc_now
-from typing import Optional, Dict, Any, List
+from datetime import datetime, timedelta
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, require_admin, green_access
-from app.core.capabilities import require_capability
 from app.core.analytics_engine import (
-    get_analytics_engine,
     AnalyticsEventType,
     TimePeriod,
-    track_api_request,
+    get_analytics_engine,
+    track_document_event,
     track_user_action,
-    track_document_event
 )
+from app.core.capabilities import require_capability
+from app.core.security import StorageUser, green_access, require_admin
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -40,7 +40,7 @@ router = APIRouter()
 class EventTrackRequest(BaseModel):
     """Track a custom analytics event."""
     event_type: str = Field(..., description="Event type")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Event metadata")
+    metadata: dict[str, Any] | None = Field(None, description="Event metadata")
 
 
 class EventTrackResponse(BaseModel):
@@ -53,8 +53,8 @@ class EventTrackResponse(BaseModel):
 class MetricsQueryRequest(BaseModel):
     """Metrics aggregation query."""
     period: str = Field("day", description="Time period: hour, day, week, month")
-    start_time: Optional[datetime] = Field(None, description="Start time (ISO format)")
-    end_time: Optional[datetime] = Field(None, description="End time (ISO format)")
+    start_time: datetime | None = Field(None, description="Start time (ISO format)")
+    end_time: datetime | None = Field(None, description="End time (ISO format)")
 
 
 class MetricsResponse(BaseModel):
@@ -67,14 +67,14 @@ class MetricsResponse(BaseModel):
     avg_response_time_ms: float
     error_count: int
     error_rate: float
-    top_endpoints: List[Dict[str, Any]]
-    feature_usage: Dict[str, int]
-    document_metrics: Dict[str, int]
+    top_endpoints: list[dict[str, Any]]
+    feature_usage: dict[str, int]
+    document_metrics: dict[str, int]
 
 
 class EventsListResponse(BaseModel):
     """List of analytics events."""
-    events: List[Dict[str, Any]]
+    events: list[dict[str, Any]]
     total: int
     limit: int
 
@@ -108,19 +108,19 @@ async def track_event(
         except ValueError:
             # Allow custom event types
             event_type = AnalyticsEventType.USER_ACTION
-        
+
         event_id = track_user_action(
             action=request.event_type,
             user_id=user.user_id,
             metadata=request.metadata or {}
         )
-        
+
         return EventTrackResponse(
             success=True,
             event_id=event_id,
             message="Event tracked successfully"
         )
-        
+
     except Exception as e:
         logger.error(f"Event tracking error: {e}")
         raise HTTPException(status_code=500, detail="Failed to track event")
@@ -137,7 +137,7 @@ async def track_pageview(
     """
     try:
         page_path = request.headers.get("X-Page-Path", "/unknown")
-        
+
         event_id = track_user_action(
             action="page_view",
             user_id=user.user_id,
@@ -146,13 +146,13 @@ async def track_pageview(
                 "timestamp": utc_now().isoformat()
             }
         )
-        
+
         return EventTrackResponse(
             success=True,
             event_id=event_id,
             message="Page view tracked"
         )
-        
+
     except Exception as e:
         logger.error(f"Pageview tracking error: {e}")
         raise HTTPException(status_code=500, detail="Failed to track page view")
@@ -161,7 +161,7 @@ async def track_pageview(
 @router.post("/track/document-upload")
 async def track_document_upload(
     document_id: str,
-    doc_type: Optional[str] = None,
+    doc_type: str | None = None,
     user: StorageUser = Depends(green_access)
 ):
     """Track a document upload event."""
@@ -172,9 +172,9 @@ async def track_document_upload(
             document_id=document_id,
             doc_type=doc_type
         )
-        
+
         return {"success": True, "event_id": event_id}
-        
+
     except Exception as e:
         logger.error(f"Document tracking error: {e}")
         raise HTTPException(status_code=500, detail="Failed to track document event")
@@ -199,7 +199,7 @@ async def get_metrics(
     """
     try:
         engine = get_analytics_engine()
-        
+
         # Map period string to TimePeriod enum
         period_map = {
             "hour": TimePeriod.HOUR,
@@ -208,20 +208,20 @@ async def get_metrics(
             "month": TimePeriod.MONTH
         }
         time_period = period_map.get(period.lower(), TimePeriod.DAY)
-        
+
         # Calculate time range
         end_time = utc_now()
         start_time = end_time - timedelta(hours=hours)
-        
+
         # Aggregate metrics
         metrics = await engine.aggregate_metrics(
             period=time_period,
             start_time=start_time,
             end_time=end_time
         )
-        
+
         return MetricsResponse(**metrics.to_dict())
-        
+
     except Exception as e:
         logger.error(f"Metrics aggregation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to aggregate metrics")
@@ -239,16 +239,16 @@ async def get_realtime_metrics(
     """
     try:
         engine = get_analytics_engine()
-        
+
         end_time = utc_now()
         start_time = end_time - timedelta(minutes=5)
-        
+
         metrics = await engine.aggregate_metrics(
             period=TimePeriod.HOUR,
             start_time=start_time,
             end_time=end_time
         )
-        
+
         return {
             "time_window": "last_5_minutes",
             "requests_per_minute": metrics.total_requests / 5,
@@ -257,7 +257,7 @@ async def get_realtime_metrics(
             "error_rate": metrics.error_rate,
             "top_endpoints": metrics.top_endpoints[:5]
         }
-        
+
     except Exception as e:
         logger.error(f"Realtime metrics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get realtime metrics")
@@ -276,14 +276,14 @@ async def get_user_metrics(
     """
     try:
         engine = get_analytics_engine()
-        
+
         # Get user's recent events
         events = engine.get_recent_events(user_id=user_id, limit=1000)
-        
+
         # Calculate user-specific metrics
         document_uploads = len([e for e in events if e.event_type == AnalyticsEventType.DOCUMENT_UPLOAD])
         api_requests = len([e for e in events if e.event_type == AnalyticsEventType.API_REQUEST])
-        
+
         return {
             "user_id": user_id,
             "period_days": days,
@@ -292,7 +292,7 @@ async def get_user_metrics(
             "api_requests": api_requests,
             "last_activity": events[0].timestamp.isoformat() if events else None
         }
-        
+
     except Exception as e:
         logger.error(f"User metrics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get user metrics")
@@ -304,7 +304,7 @@ async def get_user_metrics(
 
 @router.get("/events/recent")
 async def get_recent_events(
-    event_type: Optional[str] = Query(None, description="Filter by event type"),
+    event_type: str | None = Query(None, description="Filter by event type"),
     limit: int = Query(100, ge=1, le=1000, description="Number of events to return"),
     user: StorageUser = Depends(require_admin)
 ):
@@ -316,7 +316,7 @@ async def get_recent_events(
     """
     try:
         engine = get_analytics_engine()
-        
+
         # Map event type if provided
         event_type_enum = None
         if event_type:
@@ -324,18 +324,18 @@ async def get_recent_events(
                 event_type_enum = AnalyticsEventType(event_type)
             except ValueError:
                 logger.warning(f"Invalid event_type: {event_type}. Returning all events.")
-        
+
         events = engine.get_recent_events(
             event_type=event_type_enum,
             limit=limit
         )
-        
+
         return EventsListResponse(
             events=[e.to_dict() for e in events],
             total=len(events),
             limit=limit
         )
-        
+
     except Exception as e:
         logger.error(f"Events query error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get events")
@@ -357,12 +357,12 @@ async def export_json(
     """
     try:
         engine = get_analytics_engine()
-        
+
         end_time = utc_now()
         start_time = end_time - timedelta(days=days)
-        
+
         json_data = engine.export_to_json(start_time=start_time, end_time=end_time)
-        
+
         return Response(
             content=json_data,
             media_type="application/json",
@@ -371,7 +371,7 @@ async def export_json(
                 "Cache-Control": "no-cache"
             }
         )
-        
+
     except Exception as e:
         logger.error(f"JSON export error: {e}")
         raise HTTPException(status_code=500, detail="Failed to export data")
@@ -389,9 +389,9 @@ async def export_csv(
     """
     try:
         engine = get_analytics_engine()
-        
+
         csv_data = engine.export_to_csv()
-        
+
         return Response(
             content=csv_data,
             media_type="text/csv",
@@ -400,7 +400,7 @@ async def export_csv(
                 "Cache-Control": "no-cache"
             }
         )
-        
+
     except Exception as e:
         logger.error(f"CSV export error: {e}")
         raise HTTPException(status_code=500, detail="Failed to export data")
@@ -422,9 +422,9 @@ async def get_statistics(
     try:
         engine = get_analytics_engine()
         stats = engine.get_statistics()
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(f"Statistics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get statistics")
@@ -441,28 +441,28 @@ async def get_dashboard_summary(
     """
     try:
         engine = get_analytics_engine()
-        
+
         # Get metrics for different time periods
         now = utc_now()
-        
+
         today = await engine.aggregate_metrics(
             period=TimePeriod.DAY,
             start_time=now - timedelta(days=1),
             end_time=now
         )
-        
+
         this_week = await engine.aggregate_metrics(
             period=TimePeriod.WEEK,
             start_time=now - timedelta(weeks=1),
             end_time=now
         )
-        
+
         this_month = await engine.aggregate_metrics(
             period=TimePeriod.MONTH,
             start_time=now - timedelta(days=30),
             end_time=now
         )
-        
+
         return {
             "today": {
                 "requests": today.total_requests,
@@ -485,7 +485,7 @@ async def get_dashboard_summary(
             "top_features": today.feature_usage,
             "document_types": today.document_metrics
         }
-        
+
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get dashboard data")

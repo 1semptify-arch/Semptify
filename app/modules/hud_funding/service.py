@@ -14,10 +14,9 @@ may be participating in and what obligations that creates.
 """
 
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +76,7 @@ class IncomeLimit:
     category: EligibilityCategory
     percent_of_ami: int  # Area Median Income percentage
     description: str
-    
+
 
 @dataclass
 class FundingProgram:
@@ -87,41 +86,41 @@ class FundingProgram:
     program_type: ProgramType
     administering_agency: str
     description: str
-    
+
     # Landlord eligibility
-    landlord_eligibility: List[str]
-    property_requirements: List[str]
-    
+    landlord_eligibility: list[str]
+    property_requirements: list[str]
+
     # Tenant eligibility (income limits, etc.)
-    tenant_eligibility: List[IncomeLimit]
-    
+    tenant_eligibility: list[IncomeLimit]
+
     # What landlord must do
-    landlord_obligations: List[LandlordRequirement]
-    
+    landlord_obligations: list[LandlordRequirement]
+
     # Compliance
     compliance_level: ComplianceLevel
     inspection_frequency: str
-    reporting_requirements: List[str]
-    
+    reporting_requirements: list[str]
+
     # Financial details
     benefit_to_landlord: str
     typical_amount: str
     duration_years: int
-    
+
     # Affordability requirements
     rent_restrictions: str
     affordability_period_years: int
-    
+
     # Resources
     website: str
-    application_url: Optional[str] = None
-    contact_phone: Optional[str] = None
-    
+    application_url: str | None = None
+    contact_phone: str | None = None
+
     # Minnesota specific
-    mn_administrator: Optional[str] = None
-    mn_contact: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    mn_administrator: str | None = None
+    mn_contact: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -161,8 +160,8 @@ class FundingProgram:
 # FUNDING PROGRAMS DATABASE
 # =============================================================================
 
-FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
-    
+FUNDING_PROGRAMS: dict[str, FundingProgram] = {
+
     # =========================================================================
     # LOW-INCOME HOUSING TAX CREDIT (LIHTC)
     # =========================================================================
@@ -173,7 +172,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="IRS / State Housing Finance Agency",
         description="Primary federal program for financing affordable rental housing. "
                     "9% credits are competitive and provide approximately 70% of project costs in equity.",
-        
+
         landlord_eligibility=[
             "Must be a qualified low-income housing project",
             "Building must be residential rental property",
@@ -183,7 +182,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Must demonstrate financial need for credits",
             "Developer must have track record or partner with experienced developer",
         ],
-        
+
         property_requirements=[
             "Minimum 10-year credit period",
             "15-year compliance period minimum",
@@ -192,16 +191,16 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Building must be suitable for occupancy within specific timeframe",
             "Rehabilitation must meet minimum expenditure requirements ($6,000+/unit)",
         ],
-        
+
         tenant_eligibility=[
-            IncomeLimit(EligibilityCategory.LOW_INCOME, 60, 
+            IncomeLimit(EligibilityCategory.LOW_INCOME, 60,
                        "At least 40% of units for households ≤60% AMI (40/60 test)"),
             IncomeLimit(EligibilityCategory.VERY_LOW_INCOME, 50,
                        "OR at least 20% of units for households ≤50% AMI (20/50 test)"),
             IncomeLimit(EligibilityCategory.LOW_INCOME, 80,
                        "Income averaging option: average across units ≤60% AMI"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Rent Limits",
@@ -240,7 +239,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Request your tenant file records"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.HIGH,
         inspection_frequency="Annual physical inspections by state HFA; IRS audits possible",
         reporting_requirements=[
@@ -249,24 +248,24 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Quarterly occupancy reports to state HFA",
             "Report any noncompliance within 30 days",
         ],
-        
+
         benefit_to_landlord="Dollar-for-dollar reduction in federal tax liability; "
                            "typically provides 70% of eligible development costs as equity",
         typical_amount="$8,000-$15,000 per unit annually for 10 years",
         duration_years=10,
-        
+
         rent_restrictions="Maximum rent = 30% of income limit for unit size "
                          "(e.g., 60% AMI for 2BR = 30% of 60% AMI for 3-person household)",
         affordability_period_years=30,
-        
+
         website="https://www.irs.gov/credits-deductions/businesses/low-income-housing-tax-credit",
         application_url="https://www.mnhousing.gov/sites/multifamily/lihtc",
         contact_phone="1-800-829-4933",
-        
+
         mn_administrator="Minnesota Housing Finance Agency",
         mn_contact="(651) 296-7608",
     ),
-    
+
     "lihtc_4_percent": FundingProgram(
         id="lihtc_4_percent",
         name="Low-Income Housing Tax Credit (4% As-of-Right)",
@@ -274,27 +273,27 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="IRS / State Housing Finance Agency",
         description="Non-competitive LIHTC paired with tax-exempt bonds. "
                     "Provides approximately 30% of project costs. Easier to obtain than 9%.",
-        
+
         landlord_eligibility=[
             "Must use tax-exempt bond financing for 50%+ of aggregate basis",
             "Same qualified low-income housing project requirements as 9%",
             "Must apply for bond allocation from state/local issuer",
             "Financial feasibility review required",
         ],
-        
+
         property_requirements=[
             "Same as 9% LIHTC",
             "Must pair with tax-exempt bond financing",
             "Bonds must finance at least 50% of project costs",
         ],
-        
+
         tenant_eligibility=[
-            IncomeLimit(EligibilityCategory.LOW_INCOME, 60, 
+            IncomeLimit(EligibilityCategory.LOW_INCOME, 60,
                        "Same 20/50 or 40/60 test as 9% LIHTC"),
             IncomeLimit(EligibilityCategory.LOW_INCOME, 80,
                        "Income averaging option available"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Same as 9% LIHTC",
@@ -303,18 +302,18 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Same tenant recourse as 9% LIHTC"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.HIGH,
         inspection_frequency="Annual inspections",
         reporting_requirements=["Same as 9% LIHTC plus bond compliance reporting"],
-        
+
         benefit_to_landlord="30% of eligible costs as equity; easier to obtain than 9%",
         typical_amount="$3,500-$7,000 per unit annually for 10 years",
         duration_years=10,
-        
+
         rent_restrictions="Same as 9% LIHTC",
         affordability_period_years=30,
-        
+
         website="https://www.irs.gov/credits-deductions/businesses/low-income-housing-tax-credit",
         mn_administrator="Minnesota Housing Finance Agency",
         mn_contact="(651) 296-7608",
@@ -330,7 +329,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="HUD / Local Public Housing Authority",
         description="Rental assistance attached to specific units. "
                     "PHA pays difference between 30% of tenant income and contract rent.",
-        
+
         landlord_eligibility=[
             "Property must pass Housing Quality Standards inspection",
             "Owner must enter into Housing Assistance Payments (HAP) contract",
@@ -339,7 +338,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Must not have been debarred from federal programs",
             "Must have no outstanding violations or HUD debts",
         ],
-        
+
         property_requirements=[
             "Must pass HQS inspection before HAP contract execution",
             "Annual HQS inspections required",
@@ -347,7 +346,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Reasonable rent as determined by PHA",
             "Cannot exceed 25% of units in building (with exceptions)",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.VERY_LOW_INCOME, 50,
                        "At least 75% of new admissions must be ≤30% AMI"),
@@ -356,7 +355,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             IncomeLimit(EligibilityCategory.LOW_INCOME, 80,
                        "Up to 25% can be ≤80% AMI"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Accept HAP Payment",
@@ -395,7 +394,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Notify PHA of any eviction action; PHA may intervene"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.HIGH,
         inspection_frequency="Annual HQS inspections; special inspections on complaint",
         reporting_requirements=[
@@ -404,20 +403,20 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Report tenant income changes if known",
             "Provide move-out information",
         ],
-        
+
         benefit_to_landlord="Guaranteed rent payment from PHA; reduced vacancy risk; "
                            "long-term stable income stream",
         typical_amount="Contract rent minus 30% of tenant income (paid monthly by PHA)",
         duration_years=15,
-        
+
         rent_restrictions="Must be 'rent reasonable' - comparable to unassisted market units",
         affordability_period_years=15,
-        
+
         website="https://www.hud.gov/program_offices/public_indian_housing/programs/hcv/project",
         mn_administrator="Local Public Housing Authorities",
         mn_contact="Metro HRA: (651) 602-1000; Minneapolis PHA: (612) 342-1400",
     ),
-    
+
     "section_8_hcv": FundingProgram(
         id="section_8_hcv",
         name="Section 8 Housing Choice Vouchers (Tenant-Based)",
@@ -425,7 +424,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="HUD / Local Public Housing Authority",
         description="Tenant-based rental assistance that moves with the tenant. "
                     "Landlord participation is voluntary but must meet requirements.",
-        
+
         landlord_eligibility=[
             "Voluntary participation",
             "Property must pass HQS inspection",
@@ -434,20 +433,20 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Cannot have been debarred from federal programs",
             "Cannot be related to the tenant",
         ],
-        
+
         property_requirements=[
             "Pass HQS inspection before lease-up",
             "Meet rent reasonableness standard",
             "Annual reinspections required",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.VERY_LOW_INCOME, 50,
                        "75% of new vouchers to ≤30% AMI"),
             IncomeLimit(EligibilityCategory.LOW_INCOME, 80,
                        "Remaining vouchers to ≤80% AMI"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "HQS Compliance",
@@ -468,7 +467,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "File complaint with MN Dept of Human Rights"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.MEDIUM,
         inspection_frequency="Initial inspection; biennial reinspection (or annual)",
         reporting_requirements=[
@@ -476,14 +475,14 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Report needed repairs",
             "Provide move-out notice to PHA",
         ],
-        
+
         benefit_to_landlord="Reliable monthly payment from PHA; market-rate rent",
         typical_amount="Fair Market Rent minus tenant portion (typically 30% of income)",
         duration_years=1,
-        
+
         rent_restrictions="Payment standard based on Fair Market Rent; tenant pays difference if rent exceeds standard",
         affordability_period_years=1,
-        
+
         website="https://www.hud.gov/topics/housing_choice_voucher_program_section_8",
         mn_administrator="Local PHAs",
         mn_contact="HUD Minneapolis: (612) 370-3000",
@@ -499,7 +498,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="HUD Office of Multifamily Housing",
         description="Capital advances (no repayment required) and rental assistance "
                     "for housing for very low-income elderly (62+).",
-        
+
         landlord_eligibility=[
             "Must be private nonprofit organization",
             "Must have IRS 501(c)(3) or 501(c)(4) status",
@@ -507,7 +506,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Must demonstrate housing management capacity",
             "Must show evidence of community support",
         ],
-        
+
         property_requirements=[
             "New construction or substantial rehabilitation",
             "Designed for elderly occupancy",
@@ -515,14 +514,14 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Accessibility requirements (Section 504)",
             "40-year affordability period",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.VERY_LOW_INCOME, 50,
                        "Household income ≤50% AMI"),
             IncomeLimit(EligibilityCategory.ELDERLY, 62,
                        "At least one household member must be 62+"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Supportive Services",
@@ -543,7 +542,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Long-term affordability protects current and future tenants"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.HIGH,
         inspection_frequency="HUD REAC inspections; annual financial audits",
         reporting_requirements=[
@@ -551,21 +550,21 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Tenant income certifications",
             "Service coordinator reports",
         ],
-        
+
         benefit_to_landlord="Capital advance requires no repayment if compliance maintained; "
                            "Project Rental Assistance Contract (PRAC) covers operating costs",
         typical_amount="Capital: $10,000-$20,000/unit; PRAC: covers operating shortfall",
         duration_years=40,
-        
+
         rent_restrictions="Tenant pays 30% of adjusted income; PRAC covers remainder",
         affordability_period_years=40,
-        
+
         website="https://www.hud.gov/program_offices/housing/mfh/progdesc/eld202",
         contact_phone="(202) 708-2866",
         mn_administrator="HUD Minneapolis Multifamily Hub",
         mn_contact="(612) 370-3000",
     ),
-    
+
     "section_811": FundingProgram(
         id="section_811",
         name="Section 811 Supportive Housing for Persons with Disabilities",
@@ -573,28 +572,28 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="HUD Office of Multifamily Housing",
         description="Capital advances and rental assistance for housing "
                     "for very low-income persons with disabilities.",
-        
+
         landlord_eligibility=[
             "Must be private nonprofit organization",
             "501(c)(3) tax-exempt status required",
             "Cannot be controlled by for-profit entities",
             "Must partner with state/local disability service agencies",
         ],
-        
+
         property_requirements=[
             "Group homes, independent living facilities, or multifamily units",
             "Must be integrated into community (not institutional)",
             "Accessibility requirements (beyond minimum code)",
             "Must facilitate access to support services",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.EXTREMELY_LOW_INCOME, 30,
                        "Household income ≤30% AMI (or 50% with PRA)"),
             IncomeLimit(EligibilityCategory.DISABLED, 0,
                        "Adult with disability as defined by Section 811"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Service Coordination",
@@ -609,18 +608,18 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Report institutional or segregated settings"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.HIGH,
         inspection_frequency="REAC inspections; state agency monitoring",
         reporting_requirements=["Annual reports", "Service coordination documentation"],
-        
+
         benefit_to_landlord="No-repayment capital advance; Project Rental Assistance",
         typical_amount="Varies by project size and type",
         duration_years=40,
-        
+
         rent_restrictions="30% of adjusted income",
         affordability_period_years=40,
-        
+
         website="https://www.hud.gov/program_offices/housing/mfh/progdesc/disab811",
         mn_administrator="Minnesota Housing + HUD",
         mn_contact="(651) 296-7608",
@@ -636,7 +635,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="IRS / National Park Service",
         description="20% tax credit for certified rehabilitation of historic buildings. "
                     "Often combined with LIHTC for affordable housing in historic structures.",
-        
+
         landlord_eligibility=[
             "Building must be listed on National Register of Historic Places "
             "or contribute to a registered historic district",
@@ -645,19 +644,19 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Rehabilitation must be certified by National Park Service",
             "Must follow Secretary of Interior's Standards for Rehabilitation",
         ],
-        
+
         property_requirements=[
             "Certified historic structure",
             "Rehabilitation work must meet NPS standards",
             "Cannot destroy historic character",
             "5-year recapture period after placed in service",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.MARKET_RATE, 0,
                        "No income restrictions (unless combined with LIHTC)"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Historic Preservation",
@@ -672,25 +671,25 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Building sale doesn't affect tenant directly"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.MEDIUM,
         inspection_frequency="NPS certification review; state historic preservation office monitoring",
         reporting_requirements=["Part 3 certification application", "Maintain documentation"],
-        
+
         benefit_to_landlord="20% credit on qualified rehabilitation expenditures; "
                            "can be combined with LIHTC and state historic credits",
         typical_amount="20% of qualified rehabilitation costs",
         duration_years=5,
-        
+
         rent_restrictions="None (unless combined with other programs)",
         affordability_period_years=0,
-        
+
         website="https://www.nps.gov/subjects/taxincentives/index.htm",
         application_url="https://www.nps.gov/subjects/taxincentives/how-to-apply.htm",
         mn_administrator="Minnesota State Historic Preservation Office",
         mn_contact="(651) 201-3287",
     ),
-    
+
     "mn_historic_credit": FundingProgram(
         id="mn_historic_credit",
         name="Minnesota Historic Structure Rehabilitation Tax Credit",
@@ -698,23 +697,23 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="Minnesota SHPO / Dept of Revenue",
         description="State credit that can be stacked with federal historic credit. "
                     "20% for income-producing, 20% for owner-occupied residences.",
-        
+
         landlord_eligibility=[
             "Property on National Register or contributing to historic district",
             "Must meet state certification requirements",
             "Can be stacked with federal historic credit",
         ],
-        
+
         property_requirements=[
             "Certified historic structure in Minnesota",
             "Qualified rehabilitation expenditures",
             "Must follow Secretary of Interior's Standards",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.MARKET_RATE, 0, "No income restrictions"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Historic Preservation",
@@ -723,18 +722,18 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Same recourse as federal"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.MEDIUM,
         inspection_frequency="SHPO review",
         reporting_requirements=["State certification", "Cost documentation"],
-        
+
         benefit_to_landlord="Additional 20% state credit on top of federal 20%",
         typical_amount="20% of qualified costs (state)",
         duration_years=5,
-        
+
         rent_restrictions="None",
         affordability_period_years=0,
-        
+
         website="https://mn.gov/admin/shpo/incentives/tax-credit/",
         mn_administrator="MN State Historic Preservation Office",
         mn_contact="(651) 201-3287",
@@ -750,7 +749,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="IRS / Treasury",
         description="Tax incentives for investing capital gains in designated low-income areas. "
                     "Deferral, reduction, and potential elimination of capital gains taxes.",
-        
+
         landlord_eligibility=[
             "Must invest through a Qualified Opportunity Fund (QOF)",
             "Investment must be capital gains within 180 days of realization",
@@ -758,19 +757,19 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Property must be in designated census tract",
             "Substantial improvement required for existing buildings",
         ],
-        
+
         property_requirements=[
             "Located in designated Opportunity Zone census tract",
             "Original use must begin with QOF, OR substantial improvement made",
             "Substantial improvement = double adjusted basis within 30 months",
             "Must be trade or business property",
         ],
-        
+
         tenant_eligibility=[
-            IncomeLimit(EligibilityCategory.MARKET_RATE, 0, 
+            IncomeLimit(EligibilityCategory.MARKET_RATE, 0,
                        "No income restrictions required (location-based, not tenant-based)"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Substantial Improvement",
@@ -785,19 +784,19 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "No direct tenant recourse"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.LOW,
         inspection_frequency="IRS audit; annual certification",
         reporting_requirements=["Form 8996 annual certification", "QOF investor reporting"],
-        
+
         benefit_to_landlord="Capital gains deferral until 2026; 10% basis step-up if held 5 years; "
                            "exclusion of gains on OZ investment if held 10+ years",
         typical_amount="Tax savings on capital gains; varies by investment size",
         duration_years=10,
-        
+
         rent_restrictions="NONE - This is the key difference. No affordability requirements.",
         affordability_period_years=0,
-        
+
         website="https://www.irs.gov/credits-deductions/businesses/opportunity-zones",
         mn_administrator="N/A - Federal program",
     ),
@@ -812,7 +811,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="CDFI Fund / Treasury",
         description="39% tax credit over 7 years for investments in low-income communities. "
                     "Can be used for mixed-use with housing component.",
-        
+
         landlord_eligibility=[
             "Investment through certified Community Development Entity (CDE)",
             "Project must be in qualifying low-income census tract",
@@ -820,18 +819,18 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
             "Cannot be primarily residential (mixed-use OK)",
             "CDE must make Qualified Low-Income Community Investment",
         ],
-        
+
         property_requirements=[
             "Located in qualifying census tract (poverty rate, income criteria)",
             "Must be active business or mixed-use",
             "Residential component limited (generally <80%)",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.MARKET_RATE, 0,
                        "Location-based; residential component may have requirements"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Community Benefit",
@@ -846,18 +845,18 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "No direct tenant impact"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.MEDIUM,
         inspection_frequency="CDE monitoring; CDFI Fund audits",
         reporting_requirements=["Annual CDE reporting", "Community impact metrics"],
-        
+
         benefit_to_landlord="39% credit over 7 years; below-market financing; gap financing",
         typical_amount="39% of Qualified Equity Investment over 7 years",
         duration_years=7,
-        
+
         rent_restrictions="Varies by CDE requirements; not inherently required",
         affordability_period_years=0,
-        
+
         website="https://www.cdfifund.gov/programs-training/programs/new-markets-tax-credit",
         mn_administrator="CDEs operating in Minnesota",
     ),
@@ -872,24 +871,24 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="IRS",
         description="Tax deduction for energy-efficient improvements to commercial buildings, "
                     "including multifamily rental (4+ units).",
-        
+
         landlord_eligibility=[
             "Building must be commercial or multifamily (4+ units)",
             "Must install qualifying energy-efficient systems",
             "Energy savings must be certified by qualified professional",
             "Enhanced deductions for meeting prevailing wage/apprenticeship requirements",
         ],
-        
+
         property_requirements=[
             "Building envelope, HVAC, or lighting improvements",
             "Must achieve energy reduction targets",
             "Certification by qualified engineer/contractor",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.MARKET_RATE, 0, "No income restrictions"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Energy Performance",
@@ -898,22 +897,22 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Tenants may benefit from lower utility costs"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.LOW,
         inspection_frequency="Third-party certification required",
         reporting_requirements=["Energy certification", "Tax form documentation"],
-        
+
         benefit_to_landlord="Up to $5.00/sq ft deduction (enhanced) for qualifying improvements",
         typical_amount="$0.50-$5.00 per square foot",
         duration_years=1,
-        
+
         rent_restrictions="None",
         affordability_period_years=0,
-        
+
         website="https://www.irs.gov/credits-deductions/businesses/"
                 "energy-efficient-commercial-buildings-deduction",
     ),
-    
+
     "itc_solar": FundingProgram(
         id="itc_solar",
         name="Investment Tax Credit (ITC) - Solar/Renewable Energy",
@@ -921,24 +920,24 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="IRS",
         description="30% tax credit for solar and renewable energy installations. "
                     "Can apply to multifamily rental properties.",
-        
+
         landlord_eligibility=[
             "Must own the solar/renewable energy system",
             "Property must be placed in service",
             "Cannot be for tax-exempt entities (but can lease/PPA)",
             "Enhanced credit for meeting labor requirements",
         ],
-        
+
         property_requirements=[
             "Solar PV, solar water heating, geothermal, or other qualifying systems",
             "Must be new equipment (not used)",
             "5-year recapture period",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.MARKET_RATE, 0, "No restrictions"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "System Ownership",
@@ -947,19 +946,19 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Tenants may benefit from community solar or lower utility costs"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.LOW,
         inspection_frequency="None routine; IRS audit possible",
         reporting_requirements=["Form 3468", "Cost documentation"],
-        
+
         benefit_to_landlord="30% credit on system costs; bonus credits for domestic content, "
                            "energy communities, and low-income projects",
         typical_amount="30% of installed cost (base); up to 70% with bonuses",
         duration_years=5,
-        
+
         rent_restrictions="None (10-20% bonus for low-income housing projects)",
         affordability_period_years=0,
-        
+
         website="https://www.irs.gov/credits-deductions/businesses/"
                 "investment-tax-credit-for-energy-property",
     ),
@@ -974,27 +973,27 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="HUD",
         description="Federal block grant for affordable housing development, "
                     "rehabilitation, and tenant-based rental assistance.",
-        
+
         landlord_eligibility=[
             "Apply through Participating Jurisdiction (city/county/state)",
             "Must commit to affordability period",
             "Financial capacity to complete project",
             "Property must meet property standards",
         ],
-        
+
         property_requirements=[
             "Must meet HOME property standards within 6 months",
             "Lead-based paint requirements",
             "Minimum affordability period (5-20 years depending on investment)",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.LOW_INCOME, 80,
                        "Rental: ≤80% AMI; 90% of units to ≤60% AMI"),
             IncomeLimit(EligibilityCategory.VERY_LOW_INCOME, 50,
                        "20% of units must serve ≤50% AMI in projects of 5+ units"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Rent Limits",
@@ -1015,23 +1014,23 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Request copy of tenant selection plan"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.HIGH,
         inspection_frequency="PJ inspections; HUD monitoring",
         reporting_requirements=["Annual income certifications", "Rent compliance", "Physical inspections"],
-        
+
         benefit_to_landlord="Gap financing; low-interest loans; grants for development",
         typical_amount="Varies; up to $40,000-$75,000 per unit",
         duration_years=20,
-        
+
         rent_restrictions="High HOME Rent: 30% of 65% AMI; Low HOME Rent: 30% of 50% AMI",
         affordability_period_years=20,
-        
+
         website="https://www.hud.gov/program_offices/comm_planning/home",
         mn_administrator="Minnesota Housing; Metro HRA; Cities",
         mn_contact="(651) 296-7608",
     ),
-    
+
     "cdbg": FundingProgram(
         id="cdbg",
         name="Community Development Block Grant (CDBG)",
@@ -1039,25 +1038,25 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
         administering_agency="HUD",
         description="Flexible federal grant for community development including housing. "
                     "Primarily benefits low/moderate income persons.",
-        
+
         landlord_eligibility=[
             "Must benefit low/moderate income persons (51%+ of beneficiaries)",
             "Apply through grantee (city/county/state)",
             "Project must meet national objective",
             "Environmental review required",
         ],
-        
+
         property_requirements=[
             "Housing rehabilitation, infrastructure, economic development",
             "Must meet local codes and standards",
             "Environmental clearance required",
         ],
-        
+
         tenant_eligibility=[
             IncomeLimit(EligibilityCategory.LOW_INCOME, 80,
                        "Must benefit low/moderate income households (≤80% AMI)"),
         ],
-        
+
         landlord_obligations=[
             LandlordRequirement(
                 "Low/Mod Benefit",
@@ -1072,18 +1071,18 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
                 "Varies by grantee requirements"
             ),
         ],
-        
+
         compliance_level=ComplianceLevel.MEDIUM,
         inspection_frequency="Grantee monitoring",
         reporting_requirements=["Quarterly/annual performance reports"],
-        
+
         benefit_to_landlord="Grant funds for rehabilitation; infrastructure improvements",
         typical_amount="Varies widely by project",
         duration_years=5,
-        
+
         rent_restrictions="Varies by grantee requirements",
         affordability_period_years=5,
-        
+
         website="https://www.hud.gov/program_offices/comm_planning/cdbg",
         mn_administrator="Minnesota DEED; Cities; Counties",
         mn_contact="Varies by jurisdiction",
@@ -1095,7 +1094,7 @@ FUNDING_PROGRAMS: Dict[str, FundingProgram] = {
 # TAX BREAKS AND DEDUCTIONS (General Rental Property)
 # =============================================================================
 
-GENERAL_TAX_BREAKS: List[Dict[str, Any]] = [
+GENERAL_TAX_BREAKS: list[dict[str, Any]] = [
     {
         "id": "depreciation",
         "name": "Depreciation Deduction",
@@ -1205,15 +1204,15 @@ GENERAL_TAX_BREAKS: List[Dict[str, Any]] = [
 
 class HUDFundingGuideService:
     """Service for accessing HUD funding and tax credit information."""
-    
+
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
@@ -1221,37 +1220,37 @@ class HUDFundingGuideService:
         self.programs = FUNDING_PROGRAMS
         self.tax_breaks = GENERAL_TAX_BREAKS
         logger.info("◆ HUD Funding Guide Service initialized")
-    
+
     # =========================================================================
     # PROGRAM QUERIES
     # =========================================================================
-    
-    def get_all_programs(self) -> List[FundingProgram]:
+
+    def get_all_programs(self) -> list[FundingProgram]:
         """Get all funding programs."""
         return list(self.programs.values())
-    
-    def get_program(self, program_id: str) -> Optional[FundingProgram]:
+
+    def get_program(self, program_id: str) -> FundingProgram | None:
         """Get a specific program by ID."""
         return self.programs.get(program_id)
-    
-    def get_programs_by_type(self, program_type: ProgramType) -> List[FundingProgram]:
+
+    def get_programs_by_type(self, program_type: ProgramType) -> list[FundingProgram]:
         """Get programs of a specific type."""
         return [p for p in self.programs.values() if p.program_type == program_type]
-    
-    def get_tax_credit_programs(self) -> List[FundingProgram]:
+
+    def get_tax_credit_programs(self) -> list[FundingProgram]:
         """Get all tax credit programs."""
         return self.get_programs_by_type(ProgramType.TAX_CREDIT)
-    
-    def get_voucher_programs(self) -> List[FundingProgram]:
+
+    def get_voucher_programs(self) -> list[FundingProgram]:
         """Get all voucher/subsidy programs."""
-        return [p for p in self.programs.values() 
+        return [p for p in self.programs.values()
                 if p.program_type in [ProgramType.VOUCHER, ProgramType.SUBSIDY]]
-    
-    def get_grant_programs(self) -> List[FundingProgram]:
+
+    def get_grant_programs(self) -> list[FundingProgram]:
         """Get all grant programs."""
         return self.get_programs_by_type(ProgramType.GRANT)
-    
-    def search_programs(self, query: str) -> List[FundingProgram]:
+
+    def search_programs(self, query: str) -> list[FundingProgram]:
         """Search programs by keyword."""
         query_lower = query.lower()
         results = []
@@ -1261,19 +1260,19 @@ class HUDFundingGuideService:
                 any(query_lower in req.lower() for req in program.landlord_eligibility)):
                 results.append(program)
         return results
-    
+
     # =========================================================================
     # LANDLORD REQUIREMENTS
     # =========================================================================
-    
-    def get_landlord_requirements(self, program_id: str) -> List[LandlordRequirement]:
+
+    def get_landlord_requirements(self, program_id: str) -> list[LandlordRequirement]:
         """Get landlord requirements for a program."""
         program = self.get_program(program_id)
         if program:
             return program.landlord_obligations
         return []
-    
-    def get_all_landlord_obligations(self) -> Dict[str, List[Dict]]:
+
+    def get_all_landlord_obligations(self) -> dict[str, list[dict]]:
         """Get all landlord obligations across all programs."""
         obligations = {}
         for program in self.programs.values():
@@ -1288,17 +1287,17 @@ class HUDFundingGuideService:
                 for lo in program.landlord_obligations
             ]
         return obligations
-    
+
     # =========================================================================
     # TENANT RECOURSE
     # =========================================================================
-    
-    def get_tenant_recourse_options(self, program_id: str) -> List[Dict]:
+
+    def get_tenant_recourse_options(self, program_id: str) -> list[dict]:
         """Get what a tenant can do if landlord violates program requirements."""
         program = self.get_program(program_id)
         if not program:
             return []
-        
+
         recourse = []
         for obligation in program.landlord_obligations:
             recourse.append({
@@ -1308,35 +1307,35 @@ class HUDFundingGuideService:
                 "landlord_penalty": obligation.penalty_for_violation,
             })
         return recourse
-    
+
     # =========================================================================
     # TAX BREAKS
     # =========================================================================
-    
-    def get_all_tax_breaks(self) -> List[Dict]:
+
+    def get_all_tax_breaks(self) -> list[dict]:
         """Get all general tax breaks for rental properties."""
         return self.tax_breaks
-    
-    def get_tax_break(self, tax_break_id: str) -> Optional[Dict]:
+
+    def get_tax_break(self, tax_break_id: str) -> dict | None:
         """Get specific tax break by ID."""
         for tb in self.tax_breaks:
             if tb["id"] == tax_break_id:
                 return tb
         return None
-    
+
     # =========================================================================
     # ELIGIBILITY CHECKING
     # =========================================================================
-    
+
     def check_tenant_eligibility(
         self,
         income: float,
         ami: float,
         household_size: int = 1,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Check which programs a tenant might be eligible for."""
         percent_ami = (income / ami) * 100
-        
+
         eligible_programs = []
         for program in self.programs.values():
             for limit in program.tenant_eligibility:
@@ -1351,10 +1350,10 @@ class HUDFundingGuideService:
                         "your_income_percent_ami": round(percent_ami, 1),
                     })
                     break  # Only add once per program
-        
+
         return eligible_programs
-    
-    def check_property_programs(self, address: str) -> Dict:
+
+    def check_property_programs(self, address: str) -> dict:
         """
         Check what programs a property might be participating in.
         NOTE: This would need integration with HUD databases for real data.
@@ -1367,17 +1366,17 @@ class HUDFundingGuideService:
             "opportunity_zones": "https://opportunityzones.hud.gov/",
             "suggestion": "Ask your landlord directly what programs the property participates in",
         }
-    
+
     # =========================================================================
     # SUMMARY REPORTS
     # =========================================================================
-    
-    def get_program_summary(self, program_id: str) -> Optional[Dict]:
+
+    def get_program_summary(self, program_id: str) -> dict | None:
         """Get a concise summary of a program."""
         program = self.get_program(program_id)
         if not program:
             return None
-        
+
         return {
             "name": program.name,
             "type": program.program_type.value,
@@ -1398,8 +1397,8 @@ class HUDFundingGuideService:
             "website": program.website,
             "mn_contact": program.mn_contact,
         }
-    
-    def get_comparison_table(self, program_ids: List[str]) -> List[Dict]:
+
+    def get_comparison_table(self, program_ids: list[str]) -> list[dict]:
         """Compare multiple programs side by side."""
         comparisons = []
         for pid in program_ids:

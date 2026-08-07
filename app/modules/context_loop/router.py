@@ -5,24 +5,23 @@ Endpoints to interact with the Context Data Loop core.
 This is the nervous system of Semptify - everything flows through here.
 """
 
-from fastapi import APIRouter, Header, Query, Body, Depends
-from typing import Optional
-from datetime import datetime, timezone
+
+from fastapi import APIRouter, Body, Depends, Header, Query
 
 from app.core.security import get_optional_user_id, sanitize_user_input
 from app.core.utc import utc_now
-from .service import (
-    context_loop,
-    EventType,
-)
 
+from .service import (
+    EventType,
+    context_loop,
+)
 
 router = APIRouter(prefix="/api/core", tags=["Context Loop"])
 
 
 def resolve_user_id(
-    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
-    session_user_id: Optional[str] = Depends(get_optional_user_id),
+    x_user_id: str | None = Header(None, alias="X-User-ID"),
+    session_user_id: str | None = Depends(get_optional_user_id),
 ) -> str:
     """Resolve user_id from header or session, fallback to anonymous."""
     return x_user_id or session_user_id or "anonymous"
@@ -90,9 +89,9 @@ async def emit_event(
         # Default to action taken for unknown types
         etype = EventType.ACTION_TAKEN
         data["original_type"] = event_type
-    
+
     event = context_loop.emit_event(etype, uid, data, source)
-    
+
     return {
         "status": "processed",
         "event": event.to_dict(),
@@ -125,7 +124,7 @@ async def process_document(
         },
         source="document_upload",
     )
-    
+
     # If we have analysis, emit analyzed event
     if analysis:
         analyzed_event = context_loop.emit_event(
@@ -138,7 +137,7 @@ async def process_document(
             },
             source="document_analysis",
         )
-    
+
     return {
         "status": "processed",
         "document_type": document_type,
@@ -175,7 +174,7 @@ async def report_issue(
         issue_data,
         source="user_report",
     )
-    
+
     return {
         "status": "recorded",
         "issue": issue_data,
@@ -213,7 +212,7 @@ async def add_deadline(
         deadline_data,
         source="user_input",
     )
-    
+
     return {
         "status": "tracked",
         "deadline": deadline_data,
@@ -242,7 +241,7 @@ async def record_action(
         },
         source="user_action",
     )
-    
+
     return {
         "status": "recorded",
         "action": action,
@@ -259,7 +258,7 @@ async def get_predictions(
     Based on their documents, issues, and phase.
     """
     context = context_loop.get_context(uid)
-    
+
     return {
         "user_id": uid,
         "predictions": context.predicted_needs,
@@ -280,10 +279,10 @@ async def get_events(
 ):
     """Get recent events for a user."""
     context = context_loop.get_context(uid)
-    
+
     events = context.events[-limit:] if context.events else []
     events.reverse()  # Most recent first
-    
+
     return {
         "user_id": uid,
         "event_count": len(events),

@@ -2,7 +2,7 @@
 """recurring_scheduler.py — lightweight dispatcher for recurring agent review jobs.
 
 Usage:
-    .\venv311\Scripts\Activate.ps1
+    .\venv311\\Scripts\\Activate.ps1
     python tools/recurring_scheduler.py --run-all
     python tools/recurring_scheduler.py --run docs-staleness
     python tools/recurring_scheduler.py --list
@@ -93,7 +93,7 @@ def _is_due(state: dict, name: str, cadence_days: int) -> bool:
     if not last_str:
         return True
     last = datetime.datetime.fromisoformat(last_str)
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
     return (now - last) >= datetime.timedelta(days=cadence_days)
 
 
@@ -114,7 +114,7 @@ def _run_job(name: str, dry_run: bool = False) -> int:
 
 def _list_jobs() -> None:
     state = _load_state()
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
     print("Registered jobs:")
     for name, spec in JOBS.items():
         last = state.get(name, "never")
@@ -143,7 +143,7 @@ def main() -> int:
         return 0
 
     state = _load_state()
-    now = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
+    now = datetime.datetime.now(tz=datetime.UTC).isoformat()
 
     if args.run:
         code = _run_job(args.run, dry_run=args.dry_run)

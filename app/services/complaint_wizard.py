@@ -7,15 +7,15 @@ Now with DATABASE PERSISTENCE for drafts.
 
 import json
 import logging
-from app.core.id_gen import make_id
 from datetime import datetime
-from app.core.utc import utc_now
-from typing import Optional
-from pydantic import BaseModel
 from enum import Enum
 
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +49,11 @@ class Agency(BaseModel):
     description: str
     jurisdiction: str
     website: str
-    filing_url: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    address: Optional[str] = None
-    filing_fee: Optional[float] = None
+    filing_url: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    address: str | None = None
+    filing_fee: float | None = None
     typical_response_days: int = 30
     complaint_types: list[str] = []
     required_documents: list[str] = []
@@ -68,27 +68,27 @@ class ComplaintDraft(BaseModel):
     status: ComplaintStatus = ComplaintStatus.DRAFT
     created_at: datetime
     updated_at: datetime
-    
+
     # Complaint details
     subject: str = ""
     description: str = ""
     incident_dates: list[str] = []
-    damages_claimed: Optional[float] = None
+    damages_claimed: float | None = None
     relief_sought: str = ""
-    
+
     # Evidence
     attached_document_ids: list[str] = []
     timeline_included: bool = False
-    
+
     # Respondent info
     respondent_name: str = ""
     respondent_company: str = ""
     respondent_address: str = ""
     respondent_phone: str = ""
-    
+
     # Filing info
-    filed_date: Optional[datetime] = None
-    confirmation_number: Optional[str] = None
+    filed_date: datetime | None = None
+    confirmation_number: str | None = None
     notes: str = ""
 
 
@@ -439,7 +439,7 @@ class ComplaintWizardService:
             # Default to all MN agencies
             return self.get_all_agencies("MN")
 
-    def get_agency(self, agency_id: str) -> Optional[Agency]:
+    def get_agency(self, agency_id: str) -> Agency | None:
         """Get agency by ID."""
         return self.agencies.get(agency_id)
 
@@ -514,7 +514,7 @@ class ComplaintWizardService:
         logger.info("● Created complaint draft %s... for user %s...", draft_id[:8], user_id[:8])
         return draft
 
-    async def get_draft_db(self, db: AsyncSession, draft_id: str) -> Optional[ComplaintDraft]:
+    async def get_draft_db(self, db: AsyncSession, draft_id: str) -> ComplaintDraft | None:
         """Get a draft from database by ID."""
         from app.models.models import Complaint as ComplaintModel
 
@@ -544,7 +544,7 @@ class ComplaintWizardService:
         db: AsyncSession,
         draft_id: str,
         **updates
-    ) -> Optional[ComplaintDraft]:
+    ) -> ComplaintDraft | None:
         """Update a draft in database."""
         from app.models.models import Complaint as ComplaintModel
 
@@ -568,9 +568,7 @@ class ComplaintWizardService:
             db_key = field_mapping.get(key, key)
 
             # Handle JSON array fields
-            if key == "incident_dates" and isinstance(value, list):
-                value = json.dumps(value)
-            elif key == "attached_document_ids" and isinstance(value, list):
+            if key == "incident_dates" and isinstance(value, list) or key == "attached_document_ids" and isinstance(value, list):
                 value = json.dumps(value)
 
             if hasattr(db_complaint, db_key):
@@ -587,7 +585,7 @@ class ComplaintWizardService:
         db: AsyncSession,
         draft_id: str,
         document_ids: list[str]
-    ) -> Optional[ComplaintDraft]:
+    ) -> ComplaintDraft | None:
         """Attach documents to a draft in database."""
         from app.models.models import Complaint as ComplaintModel
 
@@ -620,8 +618,8 @@ class ComplaintWizardService:
         self,
         db: AsyncSession,
         draft_id: str,
-        confirmation_number: Optional[str] = None
-    ) -> Optional[ComplaintDraft]:
+        confirmation_number: str | None = None
+    ) -> ComplaintDraft | None:
         """Mark a complaint as filed in database."""
         from app.models.models import Complaint as ComplaintModel
 
@@ -726,7 +724,7 @@ class ComplaintWizardService:
         self._cache[draft_id] = draft
         return draft
 
-    def get_draft(self, draft_id: str) -> Optional[ComplaintDraft]:
+    def get_draft(self, draft_id: str) -> ComplaintDraft | None:
         """Get a draft by ID (from cache)."""
         return self._cache.get(draft_id)
 
@@ -738,7 +736,7 @@ class ComplaintWizardService:
         self,
         draft_id: str,
         **updates
-    ) -> Optional[ComplaintDraft]:
+    ) -> ComplaintDraft | None:
         """Update a draft (in cache)."""
         draft = self._cache.get(draft_id)
         if not draft:
@@ -755,7 +753,7 @@ class ComplaintWizardService:
         self,
         draft_id: str,
         document_ids: list[str]
-    ) -> Optional[ComplaintDraft]:
+    ) -> ComplaintDraft | None:
         """Attach documents to a draft (in cache)."""
         draft = self._cache.get(draft_id)
         if not draft:
@@ -769,7 +767,7 @@ class ComplaintWizardService:
         """Generate formatted complaint text from draft."""
         agency = self.get_agency(draft.agency_id)
         agency_name = agency.name if agency else "Agency"
-        
+
         lines = [
             f"FORMAL COMPLAINT TO {agency_name.upper()}",
             f"Date: {utc_now().strftime('%B %d, %Y')}",
@@ -801,20 +799,20 @@ class ComplaintWizardService:
             "RELEVANT DATES",
             "=" * 60,
         ]
-        
+
         for date in draft.incident_dates:
             lines.append(f"• {date}")
-        
+
         lines.extend([
             "",
             "=" * 60,
             "DAMAGES / HARM SUFFERED",
             "=" * 60,
         ])
-        
+
         if draft.damages_claimed:
             lines.append(f"Financial damages claimed: ${draft.damages_claimed:,.2f}")
-        
+
         lines.extend([
             "",
             "=" * 60,
@@ -836,31 +834,31 @@ class ComplaintWizardService:
             "____________________________",
             "Date"
         ])
-        
+
         return "\n".join(lines)
-    
+
     def mark_as_filed(
         self,
         draft_id: str,
-        confirmation_number: Optional[str] = None
-    ) -> Optional[ComplaintDraft]:
+        confirmation_number: str | None = None
+    ) -> ComplaintDraft | None:
         """Mark a complaint as filed (in cache)."""
         draft = self._cache.get(draft_id)
         if not draft:
             return None
-        
+
         draft.status = ComplaintStatus.FILED
         draft.filed_date = utc_now()
         draft.confirmation_number = confirmation_number
         draft.updated_at = utc_now()
         return draft
-    
+
     def get_filing_checklist(self, agency_id: str) -> dict:
         """Get filing checklist for an agency."""
         agency = self.get_agency(agency_id)
         if not agency:
             return {"error": "Agency not found"}
-        
+
         return {
             "agency": agency.name,
             "required_documents": agency.required_documents,

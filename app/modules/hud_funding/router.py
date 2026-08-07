@@ -6,15 +6,16 @@ API endpoints for searching HUD funding programs, tax credits,
 landlord eligibility requirements, and tenant recourse options.
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 import logging
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 
 from .service import (
     HUDFundingGuideService,
-    get_hud_funding_guide,
     ProgramType,
+    get_hud_funding_guide,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,9 +67,9 @@ class EligibilityCheck(BaseModel):
 
 @router.get("/programs")
 async def list_all_programs(
-    program_type: Optional[str] = Query(None, description="Filter by type: tax_credit, grant, loan, voucher, subsidy"),
+    program_type: str | None = Query(None, description="Filter by type: tax_credit, grant, loan, voucher, subsidy"),
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[ProgramSummary]:
+) -> list[ProgramSummary]:
     """
     ● List all HUD funding and tax credit programs.
     
@@ -82,7 +83,7 @@ async def list_all_programs(
             raise HTTPException(400, f"Invalid program type: {program_type}")
     else:
         programs = service.get_all_programs()
-    
+
     return [
         ProgramSummary(
             id=p.id,
@@ -101,7 +102,7 @@ async def list_all_programs(
 async def get_program_details(
     program_id: str,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     ◆ Get full details for a specific program.
     
@@ -111,7 +112,7 @@ async def get_program_details(
     program = service.get_program(program_id)
     if not program:
         raise HTTPException(404, f"Program not found: {program_id}")
-    
+
     return program.to_dict()
 
 
@@ -119,7 +120,7 @@ async def get_program_details(
 async def get_program_summary(
     program_id: str,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     ● Get a concise summary of a program.
     """
@@ -133,7 +134,7 @@ async def get_program_summary(
 async def search_programs(
     q: str = Query(..., description="Search query"),
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[ProgramSummary]:
+) -> list[ProgramSummary]:
     """
     ▸ Search programs by keyword.
     
@@ -161,7 +162,7 @@ async def search_programs(
 @router.get("/tax-credits")
 async def list_tax_credit_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[ProgramSummary]:
+) -> list[ProgramSummary]:
     """
     ● List all tax credit programs.
     
@@ -185,7 +186,7 @@ async def list_tax_credit_programs(
 @router.get("/voucher-programs")
 async def list_voucher_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[ProgramSummary]:
+) -> list[ProgramSummary]:
     """
     ○ List Section 8 and other voucher programs.
     """
@@ -207,7 +208,7 @@ async def list_voucher_programs(
 @router.get("/grants")
 async def list_grant_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[ProgramSummary]:
+) -> list[ProgramSummary]:
     """
     ● List grant programs (Section 202, 811, HOME, CDBG).
     """
@@ -234,7 +235,7 @@ async def list_grant_programs(
 async def get_landlord_requirements(
     program_id: str,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[LandlordObligation]:
+) -> list[LandlordObligation]:
     """
     ● Get what a landlord MUST do to qualify for and maintain a program.
     
@@ -243,7 +244,7 @@ async def get_landlord_requirements(
     program = service.get_program(program_id)
     if not program:
         raise HTTPException(404, f"Program not found: {program_id}")
-    
+
     return [
         LandlordObligation(
             requirement=lo.requirement,
@@ -259,7 +260,7 @@ async def get_landlord_requirements(
 async def get_landlord_eligibility(
     program_id: str,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     ● Get landlord eligibility requirements for a program.
     
@@ -268,7 +269,7 @@ async def get_landlord_eligibility(
     program = service.get_program(program_id)
     if not program:
         raise HTTPException(404, f"Program not found: {program_id}")
-    
+
     return {
         "program": program.name,
         "eligibility_requirements": program.landlord_eligibility,
@@ -283,7 +284,7 @@ async def get_landlord_eligibility(
 @router.get("/all-landlord-obligations")
 async def get_all_landlord_obligations(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, List[Dict]]:
+) -> dict[str, list[dict]]:
     """
     ● Get ALL landlord obligations across ALL programs.
     
@@ -301,7 +302,7 @@ async def get_all_landlord_obligations(
 async def get_tenant_recourse(
     program_id: str,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[TenantRecourse]:
+) -> list[TenantRecourse]:
     """
     ▸ Get what a tenant can do if landlord violates program requirements.
     
@@ -311,7 +312,7 @@ async def get_tenant_recourse(
     recourse = service.get_tenant_recourse_options(program_id)
     if not recourse:
         raise HTTPException(404, f"Program not found: {program_id}")
-    
+
     return [
         TenantRecourse(
             violation_type=r["violation_type"],
@@ -330,7 +331,7 @@ async def get_tenant_recourse(
 @router.get("/tax-breaks")
 async def list_tax_breaks(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     ● List general tax breaks available to rental property owners.
     
@@ -344,7 +345,7 @@ async def list_tax_breaks(
 async def get_tax_break(
     tax_break_id: str,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     ◆ Get details on a specific tax break.
     """
@@ -362,7 +363,7 @@ async def get_tax_break(
 async def check_tenant_eligibility(
     check: EligibilityCheck,
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     ▸ Check which programs a tenant might be eligible for.
     
@@ -374,9 +375,9 @@ async def check_tenant_eligibility(
         ami=check.area_median_income,
         household_size=check.household_size,
     )
-    
+
     percent_ami = (check.annual_income / check.area_median_income) * 100
-    
+
     return {
         "your_income": check.annual_income,
         "area_median_income": check.area_median_income,
@@ -397,7 +398,7 @@ async def check_tenant_eligibility(
 async def check_property_programs(
     address: str = Query(..., description="Property address"),
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     ○ Get resources to check what programs a property participates in.
     
@@ -415,7 +416,7 @@ async def check_property_programs(
 async def compare_programs(
     programs: str = Query(..., description="Comma-separated program IDs"),
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     ◆ Compare multiple programs side by side.
     
@@ -430,7 +431,7 @@ async def compare_programs(
 # =============================================================================
 
 @router.get("/quick-reference")
-async def quick_reference() -> Dict[str, Any]:
+async def quick_reference() -> dict[str, Any]:
     """
     ○ Quick reference guide for understanding HUD programs.
     """

@@ -4,13 +4,13 @@ Authentication Status Router
 Provides authentication status endpoints for checking current user state.
 """
 
-from fastapi import APIRouter, HTTPException, Cookie
-from pydantic import BaseModel
-from typing import Optional
 import logging
 
-from app.core.user_id import parse_user_id
+from fastapi import APIRouter, Cookie
+from pydantic import BaseModel
+
 from app.core.storage_middleware import is_valid_storage_user
+from app.core.user_id import parse_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -20,14 +20,14 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 class AuthStatusResponse(BaseModel):
     """Response model for auth status check."""
     authenticated: bool
-    user_id: Optional[str] = None
-    provider: Optional[str] = None
-    role: Optional[str] = None
+    user_id: str | None = None
+    provider: str | None = None
+    role: str | None = None
 
 
 @router.get("/me", response_model=AuthStatusResponse)
 async def get_auth_status(
-    semptify_uid: Optional[str] = Cookie(default=None),
+    semptify_uid: str | None = Cookie(default=None),
 ):
     """
     Get current authentication status.
@@ -37,11 +37,11 @@ async def get_auth_status(
     """
     if not semptify_uid:
         return AuthStatusResponse(authenticated=False)
-    
+
     try:
         # Parse the user ID to extract provider and role
         user_id_data = parse_user_id(semptify_uid)
-        
+
         # Verify the user is valid
         if is_valid_storage_user(semptify_uid):
             return AuthStatusResponse(
@@ -52,7 +52,7 @@ async def get_auth_status(
             )
         else:
             return AuthStatusResponse(authenticated=False)
-            
+
     except (ValueError, KeyError, AttributeError) as e:
         logger.warning(f"Auth status check failed: {e}")
         return AuthStatusResponse(authenticated=False)

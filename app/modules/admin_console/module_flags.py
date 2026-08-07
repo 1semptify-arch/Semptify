@@ -12,24 +12,22 @@ All endpoints require admin auth via _stealth_admin (returns 404 to non-admins).
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.capabilities import require_capability
 from app.core.database import get_db
-from app.core.product_manifest import MANIFEST, ModuleEntry
 from app.core.module_overrides import (
-    set_override,
     delete_override,
     list_overrides,
     load_overrides,
-    get_override,
+    set_override,
 )
 from app.core.module_resolver import get_user_module_summary, invalidate_all_caches
+from app.core.product_manifest import MANIFEST
 from app.core.utc import utc_now
-from app.core.capabilities import require_capability
 
 logger = logging.getLogger(__name__)
 
@@ -56,15 +54,15 @@ async def _stealth_admin(request: Request):
 
 class OverrideRequest(BaseModel):
     """Set or update an override for a module."""
-    lifecycle: Optional[str] = Field(
+    lifecycle: str | None = Field(
         default=None,
         description="Override lifecycle: stable|beta|experimental|dev_only|preview|internal",
     )
-    feature_flag: Optional[str] = Field(
+    feature_flag: str | None = Field(
         default=None,
         description="Override feature flag (Feature enum value or empty string to clear)",
     )
-    disabled: Optional[bool] = Field(
+    disabled: bool | None = Field(
         default=None,
         description="If True, module is hidden from all non-admin users",
     )
@@ -74,7 +72,7 @@ class OverrideRequest(BaseModel):
 class PreviewRequest(BaseModel):
     """Test-as-user request."""
     role: str = Field(..., description="Role to preview as: tenant|advocate|admin|manager|legal|judge|research|dev")
-    jurisdiction: Optional[str] = Field(default=None, description="Jurisdiction code (e.g. MN)")
+    jurisdiction: str | None = Field(default=None, description="Jurisdiction code (e.g. MN)")
     gates: list[str] = Field(default_factory=list, description="Gates the user has (e.g. vault_initialized)")
 
 

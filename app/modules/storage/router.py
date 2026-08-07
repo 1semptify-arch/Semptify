@@ -39,7 +39,6 @@ except ImportError:
     select = None
     SQLALCHEMY_AVAILABLE = False
 
-from app.core.auto_refresh import _decrypt_string, _encrypt_string
 from app.core.config import get_settings
 from app.core.cookie_auth import set_auth_cookie
 from app.core.database import get_db
@@ -1005,7 +1004,7 @@ async def list_providers(
 ):
     """Serve storage reconnect providers page with correct OAuth links."""
     from pathlib import Path
-    
+
     # Serve the reconnect-specific HTML file with /storage/auth/ links
     # Navigate from router.py to repo root: app/modules/storage/router.py -> app/ -> repo root
     base_dir = Path(__file__).parent.parent.parent.parent

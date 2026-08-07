@@ -3,27 +3,22 @@ Dakota County Eviction Defense - Defense Flow Routes
 Handles Answer, Counterclaim, Motion, and Hearing Prep flows.
 """
 
-import json
 import io
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Optional, List
+import json
 
-from fastapi import APIRouter, Request, Query, Form, HTTPException
+# Import services
+import sys
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
-# Import services
-import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from services.i18n import get_string, get_all_strings, get_supported_languages, is_rtl
-from services.pdf import (
-    generate_answer_pdf,
-    generate_counterclaim_pdf,
-    generate_motion_pdf,
-    generate_hearing_prep_pdf
-)
+from services.i18n import get_all_strings, get_string, get_supported_languages, is_rtl
+from services.pdf import generate_answer_pdf, generate_counterclaim_pdf, generate_hearing_prep_pdf, generate_motion_pdf
 from services.zip_service import create_defense_packet_zip
 
 # ============================================================================
@@ -49,7 +44,7 @@ class AnswerData(BaseModel):
     case_number: str = ""
     address: str = ""
     served_date: str = ""
-    defenses: List[str] = []
+    defenses: list[str] = []
     defense_details: str = ""
 
 
@@ -58,7 +53,7 @@ class CounterclaimData(BaseModel):
     landlord_name: str = Field(..., min_length=1)
     case_number: str = ""
     address: str = ""
-    claims: List[str] = []
+    claims: list[str] = []
     claim_details: str = ""
     damages_requested: str = ""
 
@@ -77,8 +72,8 @@ class HearingPrepData(BaseModel):
     hearing_date: str = ""
     hearing_time: str = ""
     is_zoom: bool = False
-    checklist_items: List[str] = []
-    documents_needed: List[str] = []
+    checklist_items: list[str] = []
+    documents_needed: list[str] = []
 
 
 # ============================================================================
@@ -100,7 +95,7 @@ async def answer_flow_start(
     Step 5: Download
     """
     strings = get_all_strings(lang)
-    
+
     # Defense options
     defenses = [
         {"id": "rent_paid", "label": get_string("defense_rent_paid", lang)},
@@ -110,7 +105,7 @@ async def answer_flow_start(
         {"id": "discrimination", "label": get_string("defense_discrimination", lang)},
         {"id": "nonpayment", "label": get_string("defense_nonpayment", lang)},
     ]
-    
+
     return templates.TemplateResponse(f"flows/answer_step{step}.html", {
         "request": request,
         "lang": lang,
@@ -128,9 +123,9 @@ async def generate_answer(data: AnswerData, lang: str = Query("en")):
     """Generate Answer to Eviction PDF."""
     try:
         pdf_bytes = generate_answer_pdf(data.dict(), lang)
-        
-        filename = f"Answer_to_Eviction_{data.tenant_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        
+
+        filename = f"Answer_to_Eviction_{data.tenant_name.replace(' ', '_')}_{datetime.now(UTC).strftime('%Y%m%d')}.pdf"
+
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
@@ -160,7 +155,7 @@ async def counterclaim_flow_start(
     Step 4: Review and download
     """
     strings = get_all_strings(lang)
-    
+
     # Counterclaim options
     claims = [
         {"id": "repairs", "label": get_string("counterclaim_repairs", lang)},
@@ -169,7 +164,7 @@ async def counterclaim_flow_start(
         {"id": "lockout", "label": get_string("counterclaim_lockout", lang)},
         {"id": "utilities", "label": get_string("counterclaim_utilities", lang)},
     ]
-    
+
     return templates.TemplateResponse(f"flows/counterclaim_step{step}.html", {
         "request": request,
         "lang": lang,
@@ -187,9 +182,9 @@ async def generate_counterclaim(data: CounterclaimData, lang: str = Query("en"))
     """Generate Counterclaim PDF."""
     try:
         pdf_bytes = generate_counterclaim_pdf(data.dict(), lang)
-        
-        filename = f"Counterclaim_{data.tenant_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        
+
+        filename = f"Counterclaim_{data.tenant_name.replace(' ', '_')}_{datetime.now(UTC).strftime('%Y%m%d')}.pdf"
+
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
@@ -209,7 +204,7 @@ async def generate_counterclaim(data: CounterclaimData, lang: str = Query("en"))
 async def motions_menu(request: Request, lang: str = Query("en")):
     """Motions menu - Select motion type."""
     strings = get_all_strings(lang)
-    
+
     motions = [
         {
             "id": "dismiss",
@@ -232,7 +227,7 @@ async def motions_menu(request: Request, lang: str = Query("en")):
             "description": "Request waiver of court filing fees"
         },
     ]
-    
+
     return templates.TemplateResponse("flows/motions_menu.html", {
         "request": request,
         "lang": lang,
@@ -252,9 +247,9 @@ async def motion_form(
     """Motion form - Fill out specific motion."""
     if motion_type not in ["dismiss", "continuance", "stay", "fee_waiver"]:
         raise HTTPException(status_code=404, detail="Motion type not found")
-    
+
     strings = get_all_strings(lang)
-    
+
     return templates.TemplateResponse(f"flows/motion_{motion_type}.html", {
         "request": request,
         "lang": lang,
@@ -270,16 +265,16 @@ async def generate_motion(data: MotionData, lang: str = Query("en")):
     """Generate Motion PDF."""
     try:
         pdf_bytes = generate_motion_pdf(data.motion_type, data.dict(), lang)
-        
+
         motion_names = {
             "dismiss": "Motion_to_Dismiss",
             "continuance": "Motion_for_Continuance",
             "stay": "Motion_to_Stay_Writ",
             "fee_waiver": "Fee_Waiver_Application"
         }
-        
-        filename = f"{motion_names.get(data.motion_type, 'Motion')}_{data.tenant_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        
+
+        filename = f"{motion_names.get(data.motion_type, 'Motion')}_{data.tenant_name.replace(' ', '_')}_{datetime.now(UTC).strftime('%Y%m%d')}.pdf"
+
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
@@ -308,7 +303,7 @@ async def hearing_prep_start(
     Step 3: Generate prep packet
     """
     strings = get_all_strings(lang)
-    
+
     # Standard documents to bring
     standard_docs = [
         "Lease/rental agreement",
@@ -320,7 +315,7 @@ async def hearing_prep_start(
         "Any filed documents (Answer, Counterclaim, Motions)",
         "ID and proof of address"
     ]
-    
+
     return templates.TemplateResponse(f"flows/hearing_step{step}.html", {
         "request": request,
         "lang": lang,
@@ -338,9 +333,9 @@ async def generate_hearing_prep(data: HearingPrepData, lang: str = Query("en")):
     """Generate Hearing Preparation PDF."""
     try:
         pdf_bytes = generate_hearing_prep_pdf(data.dict(), lang)
-        
-        filename = f"Hearing_Prep_{data.tenant_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        
+
+        filename = f"Hearing_Prep_{data.tenant_name.replace(' ', '_')}_{datetime.now(UTC).strftime('%Y%m%d')}.pdf"
+
         return StreamingResponse(
             io.BytesIO(pdf_bytes),
             media_type="application/pdf",
@@ -367,10 +362,10 @@ async def generate_complete_packet(
     """
     try:
         body = await request.json()
-        
+
         documents = []
         forms_to_include = []
-        
+
         # Generate Answer if provided
         if "answer" in body:
             answer_pdf = generate_answer_pdf(body["answer"], lang)
@@ -379,7 +374,7 @@ async def generate_complete_packet(
                 "content": answer_pdf,
                 "type": "answer"
             })
-        
+
         # Generate Counterclaim if provided
         if "counterclaim" in body:
             counterclaim_pdf = generate_counterclaim_pdf(body["counterclaim"], lang)
@@ -388,7 +383,7 @@ async def generate_complete_packet(
                 "content": counterclaim_pdf,
                 "type": "counterclaim"
             })
-        
+
         # Generate Motions if provided
         if "motions" in body:
             for i, motion in enumerate(body["motions"], 1):
@@ -398,7 +393,7 @@ async def generate_complete_packet(
                     "content": motion_pdf,
                     "type": "motion"
                 })
-        
+
         # Generate Hearing Prep if provided
         if "hearing" in body:
             hearing_pdf = generate_hearing_prep_pdf(body["hearing"], lang)
@@ -407,14 +402,14 @@ async def generate_complete_packet(
                 "content": hearing_pdf,
                 "type": "hearing_prep"
             })
-        
+
         # Load forms manifest
         forms_path = BASE_DIR / "assets" / "forms.json"
         if forms_path.exists():
-            with open(forms_path, "r", encoding="utf-8") as f:
+            with open(forms_path, encoding="utf-8") as f:
                 forms_data = json.load(f)
                 forms_to_include = forms_data.get("forms", [])
-        
+
         # Create case info
         case_info = body.get("case_info", {
             "case_number": body.get("answer", {}).get("case_number", ""),
@@ -422,7 +417,7 @@ async def generate_complete_packet(
             "landlord_name": body.get("answer", {}).get("landlord_name", ""),
             "hearing_date": body.get("hearing", {}).get("hearing_date", "")
         })
-        
+
         # Create ZIP bundle
         zip_bytes = create_defense_packet_zip(
             documents=documents,
@@ -430,9 +425,9 @@ async def generate_complete_packet(
             case_info=case_info,
             include_instructions=True
         )
-        
-        filename = f"Eviction_Defense_Packet_{case_info.get('tenant_name', 'Tenant').replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.zip"
-        
+
+        filename = f"Eviction_Defense_Packet_{case_info.get('tenant_name', 'Tenant').replace(' ', '_')}_{datetime.now(UTC).strftime('%Y%m%d')}.zip"
+
         return StreamingResponse(
             io.BytesIO(zip_bytes),
             media_type="application/zip",
@@ -440,7 +435,7 @@ async def generate_complete_packet(
                 "Content-Disposition": f'attachment; filename="{filename}"'
             }
         )
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -452,33 +447,33 @@ async def generate_complete_packet(
 @router.get("/api/deadlines")
 async def calculate_deadlines(
     served_date: str = Query(..., description="Date served (YYYY-MM-DD)"),
-    hearing_date: Optional[str] = Query(None, description="Hearing date if known")
+    hearing_date: str | None = Query(None, description="Hearing date if known")
 ):
     """Calculate important deadlines based on served date."""
     try:
         served = datetime.strptime(served_date, "%Y-%m-%d")
-        
+
         deadlines = {
             "answer_deadline": (served + timedelta(days=7)).strftime("%Y-%m-%d"),
             "answer_deadline_display": (served + timedelta(days=7)).strftime("%B %d, %Y"),
-            "days_to_answer": max(0, (served + timedelta(days=7) - datetime.now()).days),
+            "days_to_answer": max(0, (served + timedelta(days=7) - datetime.now(UTC)).days),
             "motion_deadline": None,
             "is_urgent": False
         }
-        
+
         # If hearing date provided, calculate motion deadline
         if hearing_date:
             hearing = datetime.strptime(hearing_date, "%Y-%m-%d")
             motion_deadline = hearing - timedelta(days=3)
             deadlines["motion_deadline"] = motion_deadline.strftime("%Y-%m-%d")
             deadlines["motion_deadline_display"] = motion_deadline.strftime("%B %d, %Y")
-            deadlines["days_to_hearing"] = max(0, (hearing - datetime.now()).days)
-        
+            deadlines["days_to_hearing"] = max(0, (hearing - datetime.now(UTC)).days)
+
         # Check if urgent (less than 3 days to answer)
         if deadlines["days_to_answer"] <= 3:
             deadlines["is_urgent"] = True
-        
+
         return JSONResponse(content=deadlines)
-    
-    except ValueError as e:
+
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")

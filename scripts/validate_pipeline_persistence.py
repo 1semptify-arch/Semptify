@@ -9,10 +9,10 @@ if str(ROOT) not in sys.path:
 
 from sqlalchemy import select
 
+import app.services.document_pipeline as dpmod
 from app.core.config import get_settings
 from app.core.database import get_db_session, init_db
 from app.models.models import DocumentPipelineIndex
-import app.services.document_pipeline as dpmod
 
 
 async def main() -> int:
@@ -28,7 +28,7 @@ async def main() -> int:
 	run_id = str(int(time.time() * 1000))
 	user_id = f"pg_validation_user_{run_id}"
 	filename = f"pg_validation_{run_id}.txt"
-	content = f"Postgres persistence validation payload {run_id}".encode("utf-8")
+	content = f"Postgres persistence validation payload {run_id}".encode()
 	mime_type = "text/plain"
 
 	pipeline = dpmod.get_document_pipeline()

@@ -8,7 +8,9 @@ Without admin auth, most should return:
 FAILURES = any 500 (server error) or 502/503/504.
 """
 import sys
+
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app, raise_server_exceptions=False)

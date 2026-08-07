@@ -6,41 +6,36 @@ Integrates with Brain Mesh for real-time updates and cross-module communication.
 Includes handwriting recognition and forgery detection.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, UploadFile, File
-from pydantic import BaseModel, Field
 import io
-import tempfile
-import os
-from typing import Optional, List, Dict, Any
-from datetime import datetime
 import logging
+import os
+import tempfile
+from typing import Any
 
-from app.services.recognition import (
-    DocumentRecognitionEngine,
-    RecognitionResult,
-    DocumentType,
-    DocumentCategory,
-    ConfidenceLevel,
-    EntityType,
-    IssueSeverity,
-    # Handwriting & Forgery
-    HandwritingAnalyzer,
-    HandwritingAnalysisResult,
-    SignatureProfile,
-    SignatureStatus,
-    ForgeryType,
-    RiskLevel,
-    analyze_handwriting,
-)
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from pydantic import BaseModel, Field
+
+from app.core.security import StorageUser, green_access
+from app.core.utc import utc_now
 from app.services.positronic_brain import (
-    get_brain,
-    PositronicBrain,
     BrainEvent,
     EventType,
     ModuleType,
+    PositronicBrain,
+    get_brain,
 )
-from app.core.security import require_user, StorageUser, green_access
-from app.core.utc import utc_now
+from app.services.recognition import (
+    DocumentCategory,
+    DocumentRecognitionEngine,
+    DocumentType,
+    EntityType,
+    ForgeryType,
+    HandwritingAnalysisResult,
+    HandwritingAnalyzer,
+    RecognitionResult,
+    RiskLevel,
+    SignatureStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +49,7 @@ router = APIRouter(prefix="/api/recognition", tags=["Document Recognition"])
 class AnalyzeTextRequest(BaseModel):
     """Request to analyze document text."""
     text: str = Field(..., min_length=10, description="Document text to analyze")
-    filename: Optional[str] = Field(None, description="Original filename for context")
+    filename: str | None = Field(None, description="Original filename for context")
     include_handwriting: bool = Field(True, description="Include handwriting/forgery analysis")
 
 
@@ -66,22 +61,22 @@ class QuickClassifyRequest(BaseModel):
 class HandwritingAnalyzeRequest(BaseModel):
     """Request for handwriting/forgery analysis."""
     text: str = Field(..., min_length=10, description="Document text to analyze")
-    document_type: Optional[str] = Field(None, description="Document type for context")
+    document_type: str | None = Field(None, description="Document type for context")
 
 
 class SignatureCompareRequest(BaseModel):
     """Request to compare signatures."""
     text: str = Field(..., min_length=10, description="Document text with signature")
     reference_name: str = Field(..., description="Name of expected signer")
-    reference_signatures: Optional[List[Dict[str, Any]]] = Field(
+    reference_signatures: list[dict[str, Any]] | None = Field(
         None, description="Known signature profiles for comparison"
     )
 
 
 class BatchAnalyzeRequest(BaseModel):
     """Request to analyze multiple documents."""
-    documents: List[Dict[str, str]] = Field(
-        ..., 
+    documents: list[dict[str, str]] = Field(
+        ...,
         description="List of documents with 'text' and optional 'filename' keys"
     )
 
@@ -92,7 +87,7 @@ class EntityResponse(BaseModel):
     type: str
     value: str
     confidence: float
-    attributes: Dict[str, Any] = {}
+    attributes: dict[str, Any] = {}
 
 
 class LegalIssueResponse(BaseModel):
@@ -101,7 +96,7 @@ class LegalIssueResponse(BaseModel):
     title: str
     description: str
     severity: str
-    statute: Optional[str] = None
+    statute: str | None = None
     defense_available: bool = False
 
 
@@ -110,7 +105,7 @@ class SignatureResponse(BaseModel):
     signer_name: str
     location: str
     confidence: float
-    characteristics: Dict[str, Any]
+    characteristics: dict[str, Any]
 
 
 class ForgeryIndicatorResponse(BaseModel):
@@ -119,20 +114,20 @@ class ForgeryIndicatorResponse(BaseModel):
     description: str
     risk_level: str
     confidence: float
-    evidence: List[str]
+    evidence: list[str]
     legal_significance: str
     recommended_action: str
 
 
 class HandwritingResponse(BaseModel):
     analysis_id: str
-    signatures: List[SignatureResponse]
-    forgery_indicators: List[ForgeryIndicatorResponse]
+    signatures: list[SignatureResponse]
+    forgery_indicators: list[ForgeryIndicatorResponse]
     risk_level: str
     risk_score: float
     total_signatures: int
     suspicious_elements: int
-    recommendations: List[str]
+    recommendations: list[str]
     requires_expert_review: bool
 
 
@@ -151,23 +146,23 @@ class ToneResponse(BaseModel):
     recipient: PartyResponse
     communication_flow: str  # e.g., "landlord_to_tenant"
     from_to_summary: str  # e.g., "From Landlord ▸ To Tenant"
-    
+
     # Tone analysis
     primary_tone: str
     tone_confidence: float
     tone_description: str
-    
+
     # Process direction
     primary_direction: str
     direction_confidence: float
     what_this_means: str
     likely_next_step: str
     recommended_response: str
-    
+
     # Urgency
     urgency_score: float
-    days_to_respond: Optional[int] = None
-    tone_breakdown: Dict[str, float] = {}
+    days_to_respond: int | None = None
+    tone_breakdown: dict[str, float] = {}
 
 
 class RecognitionResponse(BaseModel):
@@ -177,18 +172,18 @@ class RecognitionResponse(BaseModel):
     document_category: str
     confidence_score: float
     confidence_level: str
-    entities: List[EntityResponse]
-    legal_issues: List[LegalIssueResponse]
-    applicable_statutes: List[str]
-    defense_options: List[str]
+    entities: list[EntityResponse]
+    legal_issues: list[LegalIssueResponse]
+    applicable_statutes: list[str]
+    defense_options: list[str]
     urgency_level: str
     risk_score: float
     passes_completed: int
     processing_time_ms: float
     # Tone and direction analysis
-    tone: Optional[ToneResponse] = None
+    tone: ToneResponse | None = None
     # Handwriting analysis (if included)
-    handwriting: Optional[HandwritingResponse] = None
+    handwriting: HandwritingResponse | None = None
 
 
 class QuickClassifyResponse(BaseModel):
@@ -199,7 +194,7 @@ class QuickClassifyResponse(BaseModel):
 
 
 class BatchAnalyzeResponse(BaseModel):
-    results: List[RecognitionResponse]
+    results: list[RecognitionResponse]
     total_documents: int
     successful: int
     failed: int
@@ -210,8 +205,8 @@ class BatchAnalyzeResponse(BaseModel):
 # Module State
 # =============================================================================
 
-_engine: Optional[DocumentRecognitionEngine] = None
-_handwriting_analyzer: Optional[HandwritingAnalyzer] = None
+_engine: DocumentRecognitionEngine | None = None
+_handwriting_analyzer: HandwritingAnalyzer | None = None
 
 
 def get_engine() -> DocumentRecognitionEngine:
@@ -237,7 +232,7 @@ def get_handwriting_analyzer() -> HandwritingAnalyzer:
 async def emit_analysis_event(
     brain: PositronicBrain,
     result: RecognitionResult,
-    user_id: Optional[str] = None
+    user_id: str | None = None
 ):
     """Emit analysis complete event to Brain Mesh."""
     try:
@@ -254,7 +249,7 @@ async def emit_analysis_event(
             },
             user_id=user_id
         ))
-        
+
         # If critical issues, emit defense event
         critical_issues = result.get_critical_issues()
         if critical_issues:
@@ -275,7 +270,7 @@ async def emit_analysis_event(
 async def emit_forgery_event(
     brain: PositronicBrain,
     result: HandwritingAnalysisResult,
-    user_id: Optional[str] = None
+    user_id: str | None = None
 ):
     """Emit forgery detection event to Brain Mesh."""
     try:
@@ -302,12 +297,12 @@ async def emit_forgery_event(
 # =============================================================================
 
 def result_to_response(
-    result: RecognitionResult, 
+    result: RecognitionResult,
     processing_time_ms: float,
-    handwriting_result: Optional[HandwritingAnalysisResult] = None
+    handwriting_result: HandwritingAnalysisResult | None = None
 ) -> RecognitionResponse:
     """Convert RecognitionResult to API response."""
-    
+
     # Build handwriting response if available
     handwriting_response = None
     if handwriting_result:
@@ -349,7 +344,7 @@ def result_to_response(
             recommendations=handwriting_result.recommendations,
             requires_expert_review=handwriting_result.requires_expert_review,
         )
-    
+
     # Build tone response if available
     tone_response = None
     if result.tone_analysis:
@@ -450,16 +445,16 @@ async def analyze_text(
     """
     engine = get_engine()
     brain = get_brain()
-    
+
     start_time = utc_now()
-    
+
     try:
         # Run document analysis
         result = await engine.analyze(
             text=request.text,
             filename=request.filename,
         )
-        
+
         # Run handwriting analysis if requested
         handwriting_result = None
         if request.include_handwriting:
@@ -468,7 +463,7 @@ async def analyze_text(
                 request.text,
                 document_type=result.document_type.value,
             )
-            
+
             # Emit forgery event if high risk
             background_tasks.add_task(
                 emit_forgery_event,
@@ -476,9 +471,9 @@ async def analyze_text(
                 handwriting_result,
                 user.user_id,
             )
-        
+
         processing_time = (utc_now() - start_time).total_seconds() * 1000
-        
+
         # Emit analysis event
         background_tasks.add_task(
             emit_analysis_event,
@@ -486,9 +481,9 @@ async def analyze_text(
             result,
             user.user_id,
         )
-        
+
         return result_to_response(result, processing_time, handwriting_result)
-        
+
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
         logger.exception("Analysis failed")
@@ -514,31 +509,31 @@ async def analyze_file(
     """
     engine = get_engine()
     brain = get_brain()
-    
+
     # Validate file type
     allowed_extensions = {'.pdf', '.png', '.jpg', '.jpeg', '.gif', '.txt', '.doc', '.docx', '.rtf'}
     file_ext = os.path.splitext(file.filename or '')[1].lower()
     if file_ext not in allowed_extensions:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail=f"Unsupported file type: {file_ext}. Allowed: {', '.join(allowed_extensions)}"
         )
-    
+
     # Read file content
     content = await file.read()
     if len(content) > 20 * 1024 * 1024:  # 20MB limit
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 20MB.")
-    
+
     start_time = utc_now()
-    
+
     try:
         # Extract text based on file type
         text = ""
-        
+
         if file_ext == '.txt':
             # Plain text
             text = content.decode('utf-8', errors='ignore')
-        
+
         elif file_ext == '.rtf':
             # RTF - basic text extraction
             text = content.decode('utf-8', errors='ignore')
@@ -546,7 +541,7 @@ async def analyze_file(
             import re
             text = re.sub(r'\\[a-z]+\d*\s?', '', text)
             text = re.sub(r'[{}]', '', text)
-        
+
         elif file_ext == '.pdf':
             # PDF text extraction
             try:
@@ -567,10 +562,10 @@ async def analyze_file(
                         os.unlink(tmp_path)
                 except ImportError:
                     raise HTTPException(
-                        status_code=500, 
+                        status_code=500,
                         detail="PDF processing not available. Install PyMuPDF or pdfplumber."
                     )
-        
+
         elif file_ext in {'.png', '.jpg', '.jpeg', '.gif'}:
             # Image OCR
             try:
@@ -580,13 +575,13 @@ async def analyze_file(
                 text = pytesseract.image_to_string(img)
             except ImportError:
                 raise HTTPException(
-                    status_code=500, 
+                    status_code=500,
                     detail="Image OCR not available. Install pytesseract and Pillow."
                 )
-            except Exception as e:
+            except Exception:
                 logger.exception("OCR failed")
                 raise HTTPException(status_code=500, detail="OCR failed")
-        
+
         elif file_ext in {'.doc', '.docx'}:
             # Word document
             try:
@@ -601,29 +596,29 @@ async def analyze_file(
                     os.unlink(tmp_path)
             except ImportError:
                 raise HTTPException(
-                    status_code=500, 
+                    status_code=500,
                     detail="Word document processing not available. Install python-docx."
                 )
-        
+
         if not text or len(text.strip()) < 10:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Could not extract enough text from document. Try a different file or paste text directly."
             )
-        
+
         # Run document analysis
         result = await engine.analyze(
             text=text,
             filename=file.filename,
         )
-        
+
         # Run handwriting analysis
         analyzer = get_handwriting_analyzer()
         handwriting_result = await analyzer.analyze(
             text,
             document_type=result.document_type.value,
         )
-        
+
         # Emit forgery event if high risk
         background_tasks.add_task(
             emit_forgery_event,
@@ -631,9 +626,9 @@ async def analyze_file(
             handwriting_result,
             user.user_id,
         )
-        
+
         processing_time = (utc_now() - start_time).total_seconds() * 1000
-        
+
         # Emit analysis event
         background_tasks.add_task(
             emit_analysis_event,
@@ -641,9 +636,9 @@ async def analyze_file(
             result,
             user.user_id,
         )
-        
+
         return result_to_response(result, processing_time, handwriting_result)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -663,17 +658,17 @@ async def quick_classify(
     Fast classification for upload sorting and initial triage.
     """
     engine = get_engine()
-    
+
     try:
         result = await engine.analyze(request.text)
-        
+
         return QuickClassifyResponse(
             document_type=result.document_type.value,
             document_category=result.document_category.value,
             confidence=result.confidence.overall_score,
             confidence_level=result.confidence.level.value,
         )
-        
+
     except Exception as e:
         logger.error(f"Classification failed: {e}")
         logger.exception("Classification failed")
@@ -705,13 +700,13 @@ async def analyze_handwriting_endpoint(
     """
     analyzer = get_handwriting_analyzer()
     brain = get_brain()
-    
+
     try:
         result = await analyzer.analyze(
             request.text,
             document_type=request.document_type,
         )
-        
+
         # Emit forgery event if high risk
         background_tasks.add_task(
             emit_forgery_event,
@@ -719,7 +714,7 @@ async def analyze_handwriting_endpoint(
             result,
             user.user_id,
         )
-        
+
         return HandwritingResponse(
             analysis_id=result.analysis_id,
             signatures=[
@@ -758,7 +753,7 @@ async def analyze_handwriting_endpoint(
             recommendations=result.recommendations,
             requires_expert_review=result.requires_expert_review,
         )
-        
+
     except Exception as e:
         logger.error(f"Handwriting analysis failed: {e}")
         logger.exception("Analysis failed")
@@ -777,20 +772,20 @@ async def verify_signature(
     Returns verification status and discrepancy details.
     """
     analyzer = get_handwriting_analyzer()
-    
+
     try:
         # Analyze document
         result = await analyzer.analyze(request.text)
-        
+
         # Check signatures against reference name
         verified = False
         matches = []
         mismatches = []
-        
+
         for sig in result.signatures:
             name_match = request.reference_name.lower() in sig.signer_name.lower() or \
                         sig.signer_name.lower() in request.reference_name.lower()
-            
+
             if name_match and sig.confidence >= 0.6:
                 verified = True
                 matches.append({
@@ -807,7 +802,7 @@ async def verify_signature(
                     "expected_name": request.reference_name,
                     "location": sig.location_in_doc,
                 })
-        
+
         return {
             "verified": verified,
             "reference_name": request.reference_name,
@@ -817,7 +812,7 @@ async def verify_signature(
             "forgery_risk": result.overall_risk_level.value,
             "recommendations": result.recommendations[:5],
         }
-        
+
     except Exception as e:
         logger.error(f"Signature verification failed: {e}")
         logger.exception("Verification failed")
@@ -883,37 +878,37 @@ async def batch_analyze(
     engine = get_engine()
     analyzer = get_handwriting_analyzer()
     brain = get_brain()
-    
+
     start_time = utc_now()
     results = []
     successful = 0
     failed = 0
-    
+
     for doc in request.documents:
         try:
             text = doc.get("text", "")
             filename = doc.get("filename")
-            
+
             if len(text) < 10:
                 failed += 1
                 continue
-            
+
             doc_start = utc_now()
             result = await engine.analyze(text, filename=filename)
             handwriting_result = await analyzer.analyze(text)
             doc_time = (utc_now() - doc_start).total_seconds() * 1000
-            
+
             results.append(result_to_response(result, doc_time, handwriting_result))
             successful += 1
-            
+
             background_tasks.add_task(emit_analysis_event, brain, result, user.user_id)
-            
+
         except Exception as e:
             logger.error(f"Batch item failed: {e}")
             failed += 1
-    
+
     total_time = (utc_now() - start_time).total_seconds() * 1000
-    
+
     return BatchAnalyzeResponse(
         results=results,
         total_documents=len(request.documents),
