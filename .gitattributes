@@ -23,9 +23,11 @@
 *.txt text eol=lf
 *.rst text eol=lf
 
-# Shell scripts
+# Shell scripts and git hooks
 *.sh text eol=lf
 *.bash text eol=lf
+tools/hooks/commit-msg text eol=lf
+tools/hooks/pre-commit text eol=lf
 
 # Windows batch files (keep CRLF)
 *.bat text eol=crlf
