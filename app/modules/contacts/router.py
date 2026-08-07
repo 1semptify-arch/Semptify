@@ -47,9 +47,13 @@ router = APIRouter(
 # Request/Response Models
 # =============================================================================
 
+
 class ContactCreate(BaseModel):
     """Create a new contact."""
-    contact_type: str  # landlord, property_manager, attorney, witness, inspector, agency, court, legal_aid, tenant_org, other
+
+    contact_type: (
+        str  # landlord, property_manager, attorney, witness, inspector, agency, court, legal_aid, tenant_org, other
+    )
     role: str | None = None
     name: str
     organization: str | None = None
@@ -72,6 +76,7 @@ class ContactCreate(BaseModel):
 
 class ContactUpdate(BaseModel):
     """Update an existing contact."""
+
     contact_type: str | None = None
     role: str | None = None
     name: str | None = None
@@ -95,6 +100,7 @@ class ContactUpdate(BaseModel):
 
 class ContactResponse(BaseModel):
     """Contact response."""
+
     id: str
     contact_type: str
     role: str | None
@@ -122,8 +128,11 @@ class ContactResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class InteractionCreate(BaseModel):
     """Log an interaction with a contact."""
+
     interaction_type: str  # phone_call, email, letter, in_person, court_appearance, voicemail
     direction: str  # incoming, outgoing
     subject: str | None = None
@@ -138,6 +147,7 @@ class InteractionCreate(BaseModel):
 
 class InteractionResponse(BaseModel):
     """Interaction response."""
+
     id: str
     contact_id: str
     interaction_type: str
@@ -152,8 +162,11 @@ class InteractionResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
 class ContactsListResponse(BaseModel):
     """List of contacts."""
+
     contacts: list[ContactResponse]
     total: int
     by_type: dict
@@ -161,6 +174,7 @@ class ContactsListResponse(BaseModel):
 
 class ExtractedContactsRequest(BaseModel):
     """Request to import contacts from extracted form data."""
+
     tenant_name: str | None = None
     tenant_address: str | None = None
     tenant_phone: str | None = None
@@ -179,6 +193,7 @@ class ExtractedContactsRequest(BaseModel):
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def contact_to_response(contact: Contact) -> ContactResponse:
     """Convert Contact model to response."""
@@ -241,6 +256,7 @@ def parse_address(address: str) -> dict:
 # CRUD Endpoints
 # =============================================================================
 
+
 @router.get("/", response_model=ContactsListResponse)
 async def list_contacts(
     contact_type: str | None = Query(None, description="Filter by contact type"),
@@ -253,7 +269,7 @@ async def list_contacts(
 ):
     """
     List all contacts for the current user.
-    
+
     Filter by type, role, or search by name/organization.
     """
     query = select(Contact).where(Contact.user_id == user.user_id)
@@ -435,6 +451,7 @@ async def toggle_star(
 # Interaction Logging
 # =============================================================================
 
+
 @router.get("/{contact_id}/interactions", response_model=list[InteractionResponse])
 async def list_interactions(
     contact_id: str,
@@ -544,6 +561,7 @@ async def log_interaction(
 # Import from Extracted Data
 # =============================================================================
 
+
 @router.post("/import-from-extraction")
 async def import_from_extraction(
     data: ExtractedContactsRequest,
@@ -552,7 +570,7 @@ async def import_from_extraction(
 ):
     """
     Import contacts from extracted form data.
-    
+
     This is called by the extraction pipeline when contacts are
     found in uploaded documents (leases, summons, etc.).
     """
@@ -614,6 +632,7 @@ async def import_from_extraction(
 # =============================================================================
 # Quick Add (Common Types)
 # =============================================================================
+
 
 @router.post("/quick-add/landlord", response_model=ContactResponse)
 async def quick_add_landlord(
@@ -684,6 +703,7 @@ async def quick_add_witness(
 # Form Data Integration
 # =============================================================================
 
+
 @router.get("/for-forms")
 async def get_contacts_for_forms(
     user: StorageUser = Depends(yellow_access),
@@ -691,7 +711,7 @@ async def get_contacts_for_forms(
 ):
     """
     Get contacts formatted for form filling.
-    
+
     Returns contacts in a structure that matches court form fields.
     """
     result = await db.execute(
@@ -736,6 +756,7 @@ async def get_contacts_for_forms(
 # =============================================================================
 # Contact Types Reference
 # =============================================================================
+
 
 @router.get("/types")
 async def get_contact_types():

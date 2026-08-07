@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class TrainingExample:
     """A single training example from user feedback."""
+
     id: str = field(default_factory=lambda: make_id("trn"))
 
     # Document info
@@ -46,7 +47,7 @@ class TrainingExample:
 class DocumentTrainingService:
     """
     Service for collecting training data and improving recognition.
-    
+
     Training Loop:
     1. User uploads document
     2. System classifies it (with confidence)
@@ -119,15 +120,16 @@ class DocumentTrainingService:
         correct_type: str,
         user_notes: str = "",
         user_id: str = "",
-        county: str = "Dakota"
+        county: str = "Dakota",
     ) -> TrainingExample:
         """
         Record when a user corrects the system's prediction.
-        
+
         This is the primary training signal - when we get it wrong,
         we learn from the correction.
         """
         import hashlib
+
         doc_hash = hashlib.md5(document_text.encode()).hexdigest()
 
         # Check for duplicates
@@ -169,11 +171,11 @@ class DocumentTrainingService:
         document_filename: str,
         predicted_type: str,
         predicted_confidence: float,
-        user_id: str = ""
+        user_id: str = "",
     ) -> None:
         """
         Record when user confirms the prediction was correct.
-        
+
         This helps reinforce correct patterns.
         """
         key_phrases = self._extract_key_phrases(document_text)
@@ -221,7 +223,7 @@ class DocumentTrainingService:
     def _learn_from_correction(self, example: TrainingExample):
         """
         Immediately learn from a correction.
-        
+
         When the system gets it wrong:
         1. Suppress patterns that led to wrong prediction
         2. Boost patterns that should lead to correct type
@@ -233,9 +235,7 @@ class DocumentTrainingService:
                 self.learned_patterns["suppressed_patterns"][phrase_lower] = {}
 
             # Reduce weight for the wrong type
-            current = self.learned_patterns["suppressed_patterns"][phrase_lower].get(
-                example.predicted_type, 0
-            )
+            current = self.learned_patterns["suppressed_patterns"][phrase_lower].get(example.predicted_type, 0)
             self.learned_patterns["suppressed_patterns"][phrase_lower][example.predicted_type] = current + 0.2
 
         # Boost patterns for correct type
@@ -244,9 +244,7 @@ class DocumentTrainingService:
             if phrase_lower not in self.learned_patterns["boosted_keywords"]:
                 self.learned_patterns["boosted_keywords"][phrase_lower] = {}
 
-            current = self.learned_patterns["boosted_keywords"][phrase_lower].get(
-                example.correct_type, 0
-            )
+            current = self.learned_patterns["boosted_keywords"][phrase_lower].get(example.correct_type, 0)
             self.learned_patterns["boosted_keywords"][phrase_lower][example.correct_type] = current + 0.3
 
         self._save_learned_patterns()
@@ -289,7 +287,7 @@ class DocumentTrainingService:
     def get_weight_adjustments(self) -> dict:
         """
         Get keyword weight adjustments from learning.
-        
+
         This can be applied to the recognition engine to improve accuracy.
         """
         adjustments = {}

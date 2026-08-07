@@ -93,8 +93,8 @@ RETALIATION CLAIM ELEMENTS (Minnesota Statute § 504B.285)
    - Protected activity date: _______
    - Eviction filed: November 17, 2025
    - Days between: _______
-   
-   NOTE: Under MN law, if adverse action within 90 days of protected 
+
+   NOTE: Under MN law, if adverse action within 90 days of protected
    activity, there is a PRESUMPTION of retaliation that landlord must rebut.
 
 ================================================================================

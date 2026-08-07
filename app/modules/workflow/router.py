@@ -488,37 +488,70 @@ def _build_home_alerts(
 
     if role == UserRole.USER.value:
         if not documents_present:
-            alerts.append(HomeAlert(level="warning", message="No case documents found. Upload notices and lease records first."))
+            alerts.append(
+                HomeAlert(level="warning", message="No case documents found. Upload notices and lease records first.")
+            )
         elif timeline_events <= 0:
-            alerts.append(HomeAlert(level="warning", message="Timeline is empty. Review extracted dates before drafting defenses."))
+            alerts.append(
+                HomeAlert(
+                    level="warning", message="Timeline is empty. Review extracted dates before drafting defenses."
+                )
+            )
         elif defense_started and not court_packet_ready:
-            alerts.append(HomeAlert(level="good", message="Defense work has started. Build the court packet to move into hearing prep."))
+            alerts.append(
+                HomeAlert(
+                    level="good", message="Defense work has started. Build the court packet to move into hearing prep."
+                )
+            )
         else:
-            alerts.append(HomeAlert(level="good", message="Evidence is available. Use Research & Knowledge to pressure-test the filing path."))
+            alerts.append(
+                HomeAlert(
+                    level="good",
+                    message="Evidence is available. Use Research & Knowledge to pressure-test the filing path.",
+                )
+            )
 
-        alerts.append(HomeAlert(
-            level="danger" if hearing_scheduled else "good",
-            message="Hearing is on calendar. Finish Zoom Court readiness now." if hearing_scheduled else "Help & Contacts stays available if you need advocate or legal-aid escalation.",
-        ))
+        alerts.append(
+            HomeAlert(
+                level="danger" if hearing_scheduled else "good",
+                message="Hearing is on calendar. Finish Zoom Court readiness now."
+                if hearing_scheduled
+                else "Help & Contacts stays available if you need advocate or legal-aid escalation.",
+            )
+        )
         return alerts[:3]
 
     if not documents_present:
         alerts.append(HomeAlert(level="warning", message="No documents are attached to the active case context yet."))
     elif timeline_events <= 0:
-        alerts.append(HomeAlert(level="warning", message="Case documents are present, but timeline review has not been completed."))
+        alerts.append(
+            HomeAlert(
+                level="warning", message="Case documents are present, but timeline review has not been completed."
+            )
+        )
     else:
-        alerts.append(HomeAlert(level="good", message="Case context is loaded. Move from research into FunctionX actions or output prep."))
+        alerts.append(
+            HomeAlert(
+                level="good",
+                message="Case context is loaded. Move from research into FunctionX actions or output prep.",
+            )
+        )
 
-    alerts.append(HomeAlert(
-        level="danger" if hearing_scheduled else "good",
-        message="A hearing is scheduled. Prioritize output delivery and readiness checks." if hearing_scheduled else "Output & Delivery is available when you need to package filings or handoff materials.",
-    ))
+    alerts.append(
+        HomeAlert(
+            level="danger" if hearing_scheduled else "good",
+            message="A hearing is scheduled. Prioritize output delivery and readiness checks."
+            if hearing_scheduled
+            else "Output & Delivery is available when you need to package filings or handoff materials.",
+        )
+    )
     return alerts[:3]
 
 
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/route", response_model=RouteResponse)
 async def get_route_decision(body: RouteRequest) -> RouteResponse:
@@ -764,45 +797,57 @@ async def get_case_state(request: Request) -> CaseStateResponse:
     try:
         async with get_db_session() as db:
             # Documents stored in DocumentPipelineIndex by pipeline
-            doc_count = len((await db.execute(
-                select(DocumentPipelineIndex.doc_id).where(DocumentPipelineIndex.user_id == user_id)
-            )).scalars().all())
+            doc_count = len(
+                (await db.execute(select(DocumentPipelineIndex.doc_id).where(DocumentPipelineIndex.user_id == user_id)))
+                .scalars()
+                .all()
+            )
 
-            timeline_count = len((await db.execute(
-                select(TimelineEvent.id).where(
-                    TimelineEvent.user_id == user_id
-                )
-            )).scalars().all())
+            timeline_count = len(
+                (await db.execute(select(TimelineEvent.id).where(TimelineEvent.user_id == user_id))).scalars().all()
+            )
 
-            hearing_count = len((await db.execute(
-                select(CalendarEventModel.id).where(
-                    and_(
-                        CalendarEventModel.user_id == user_id,
-                        CalendarEventModel.event_type == "hearing",
-                        CalendarEventModel.start_datetime > now_utc,
+            hearing_count = len(
+                (
+                    await db.execute(
+                        select(CalendarEventModel.id).where(
+                            and_(
+                                CalendarEventModel.user_id == user_id,
+                                CalendarEventModel.event_type == "hearing",
+                                CalendarEventModel.start_datetime > now_utc,
+                            )
+                        )
                     )
                 )
-            )).scalars().all())
+                .scalars()
+                .all()
+            )
 
-            critical_dates = (await db.execute(
-                select(CalendarEventModel.start_datetime).where(
-                    and_(
-                        CalendarEventModel.user_id == user_id,
-                        CalendarEventModel.is_critical.is_(True),
-                        CalendarEventModel.start_datetime > now_utc,
+            critical_dates = (
+                (
+                    await db.execute(
+                        select(CalendarEventModel.start_datetime).where(
+                            and_(
+                                CalendarEventModel.user_id == user_id,
+                                CalendarEventModel.is_critical.is_(True),
+                                CalendarEventModel.start_datetime > now_utc,
+                            )
+                        )
                     )
                 )
-            )).scalars().all()
+                .scalars()
+                .all()
+            )
 
             if critical_dates:
                 nearest_critical = min(critical_dates)
                 nearest_critical_days = max(0, (nearest_critical - now_utc).days)
 
-            timeline_rows = (await db.execute(
-                select(TimelineEvent.urgency, TimelineEvent.is_deadline).where(
-                    TimelineEvent.user_id == user_id
+            timeline_rows = (
+                await db.execute(
+                    select(TimelineEvent.urgency, TimelineEvent.is_deadline).where(TimelineEvent.user_id == user_id)
                 )
-            )).all()
+            ).all()
 
             timeline_urgencies = [row[0] for row in timeline_rows if row[0]]
             has_deadline = any(bool(row[1]) for row in timeline_rows)
@@ -817,11 +862,7 @@ async def get_case_state(request: Request) -> CaseStateResponse:
             for event in cloud_timeline_events
             if isinstance(event, dict) and event.get("urgency")
         ]
-        has_deadline = any(
-            bool(event.get("is_deadline"))
-            for event in cloud_timeline_events
-            if isinstance(event, dict)
-        )
+        has_deadline = any(bool(event.get("is_deadline")) for event in cloud_timeline_events if isinstance(event, dict))
 
     defense_started, court_packet_ready = _scan_user_cases(user_id)
 
@@ -948,9 +989,10 @@ async def get_page_contract(page_id: str) -> dict:
     try:
         contract = get_contract(page_id)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail=(
-            f"No contract registered for page_id='{page_id}'. Available: {sorted(PAGE_CONTRACTS.keys())}"
-        )) from exc
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No contract registered for page_id='{page_id}'. Available: {sorted(PAGE_CONTRACTS.keys())}"),
+        ) from exc
     return {
         "page_id": contract.page_id,
         "title": contract.title,
@@ -1089,20 +1131,8 @@ async def help_telemetry_summary(limit: int = 1000, page: str | None = None) -> 
             "unique_pages": len(by_page),
             "unique_links": len(by_href),
         },
-        "by_day": [
-            {"day": day, "count": count}
-            for day, count in sorted(by_day.items())
-        ],
-        "top_actions": [
-            {"action": action_name, "count": count}
-            for action_name, count in by_action.most_common(25)
-        ],
-        "top_pages": [
-            {"page": page_name, "count": count}
-            for page_name, count in by_page.most_common(10)
-        ],
-        "top_links": [
-            {"href": href_value, "count": count}
-            for href_value, count in by_href.most_common(25)
-        ],
+        "by_day": [{"day": day, "count": count} for day, count in sorted(by_day.items())],
+        "top_actions": [{"action": action_name, "count": count} for action_name, count in by_action.most_common(25)],
+        "top_pages": [{"page": page_name, "count": count} for page_name, count in by_page.most_common(10)],
+        "top_links": [{"href": href_value, "count": count} for href_value, count in by_href.most_common(25)],
     }

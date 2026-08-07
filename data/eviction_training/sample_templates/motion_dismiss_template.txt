@@ -10,12 +10,12 @@ MINNESOTA DISTRICT COURT
 
 MOTION TO DISMISS
 
-Defendant {defendant_name} moves this Court for an Order dismissing 
+Defendant {defendant_name} moves this Court for an Order dismissing
 Plaintiff's Complaint for the following reasons:
 
 1. IMPROPER NOTICE
 
-The eviction notice served on Defendant failed to comply with Minnesota 
+The eviction notice served on Defendant failed to comply with Minnesota
 Statute § 504B.321 because:
 [ ] The notice period was insufficient
 [ ] The notice was not properly served
@@ -40,7 +40,7 @@ This eviction should be dismissed because:
 [ ] Plaintiff failed to maintain habitability
 [ ] Other: _______________
 
-WHEREFORE, Defendant respectfully requests this Court dismiss Plaintiff's 
+WHEREFORE, Defendant respectfully requests this Court dismiss Plaintiff's
 Complaint with prejudice.
 
 Dated: _______________

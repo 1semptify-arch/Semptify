@@ -13,14 +13,14 @@
 {% set auto_refresh = auto_refresh|default(false) %}
 {% set refresh_interval = refresh_interval or 30 %}
 
-<div class="understand-timeline-view role-{{ role }}" 
+<div class="understand-timeline-view role-{{ role }}"
      id="{{ component_id }}"
      data-function-group="{{ function_group }}"
      data-role="{{ role }}"
      data-view-mode="{{ view_mode }}"
      data-auto-refresh="{{ auto_refresh|lower }}"
      data-refresh-interval="{{ refresh_interval }}">
-  
+
   <div class="timeline-header">
     <div class="timeline-header-left">
       <div class="timeline-icon">+</div>
@@ -29,7 +29,7 @@
         <div class="timeline-subtitle">Chronological view of all events and documents</div>
       </div>
     </div>
-    
+
     {% if show_filters %}
     <div class="timeline-controls">
       <select class="timeline-filter" id="{{ component_id }}_filter">
@@ -40,7 +40,7 @@
         <option value="deadlines">Deadlines</option>
         <option value="maintenance">Maintenance Issues</option>
       </select>
-      
+
       <div class="timeline-view-toggle">
         <button class="timeline-view-btn active" data-view="chronological">Chronological</button>
         <button class="timeline-view-btn" data-view="grouped">Grouped</button>
@@ -48,7 +48,7 @@
     </div>
     {% endif %}
   </div>
-  
+
   {% if show_stats %}
   <div class="timeline-stats" id="{{ component_id }}_stats">
     <div class="timeline-stat">
@@ -69,7 +69,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="timeline-content" id="{{ component_id }}_content">
     <div class="timeline-loading">
       <div class="timeline-loading-spinner"></div>
@@ -79,7 +79,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-view-mode="{{ view_mode }}"
@@ -98,58 +98,58 @@ document.addEventListener('DOMContentLoaded', function() {
     autoRefresh: configEl.dataset.autoRefresh === 'true',
     refreshInterval: parseInt(configEl.dataset.refreshInterval)
   };
-  
+
   // Get DOM elements
   const component = document.getElementById(config.componentId);
   const content = document.getElementById(config.componentId + '_content');
   const filter = document.getElementById(config.componentId + '_filter');
   const viewBtns = component.querySelectorAll('.timeline-view-btn');
-  
+
   // State
   let currentFilter = 'all';
   let currentView = config.viewMode;
   let timelineData = null;
   let refreshTimer = null;
-  
+
   // Initialize
   initTimeline();
-  
+
   function initTimeline() {
     // Set up event listeners
     if (filter) {
       filter.addEventListener('change', handleFilterChange);
     }
-    
+
     viewBtns.forEach(btn => {
       btn.addEventListener('click', handleViewChange);
     });
-    
+
     // Load initial data
     loadTimelineData();
-    
+
     // Set up auto-refresh
     if (config.autoRefresh) {
       startAutoRefresh();
     }
   }
-  
+
   function handleFilterChange(e) {
     currentFilter = e.target.value;
     renderTimeline();
   }
-  
+
   function handleViewChange(e) {
     const view = e.target.dataset.view;
     currentView = view;
-    
+
     // Update button states
     viewBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.view === view);
     });
-    
+
     renderTimeline();
   }
-  
+
   function loadTimelineData() {
     // Show loading state
     content.innerHTML = `
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="timeline-loading-text">Loading timeline...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       // Mock timeline data
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
       renderTimeline();
     }, 1000);
   }
-  
+
   function generateMockTimelineData() {
     const now = new Date();
     const events = [
@@ -221,35 +221,35 @@ document.addEventListener('DOMContentLoaded', function() {
         priority: 'normal'
       }
     ];
-    
+
     return events;
   }
-  
+
   function updateStats() {
     if (!timelineData) return;
-    
+
     const stats = {
       total: timelineData.length,
       documents: timelineData.filter(e => e.type === 'document').length,
       deadlines: timelineData.filter(e => e.type === 'deadline').length,
       upcoming: timelineData.filter(e => e.deadline && e.deadline > new Date()).length
     };
-    
+
     // Update stats display
     const totalEl = document.getElementById(config.componentId + '_total_events');
     const docsEl = document.getElementById(config.componentId + '_documents');
     const deadlinesEl = document.getElementById(config.componentId + '_deadlines');
     const upcomingEl = document.getElementById(config.componentId + '_upcoming');
-    
+
     if (totalEl) totalEl.textContent = stats.total;
     if (docsEl) docsEl.textContent = stats.documents;
     if (deadlinesEl) deadlinesEl.textContent = stats.deadlines;
     if (upcomingEl) upcomingEl.textContent = stats.upcoming;
   }
-  
+
   function renderTimeline() {
     if (!timelineData) return;
-    
+
     // Filter events
     let filteredEvents = timelineData;
     if (currentFilter !== 'all') {
@@ -262,10 +262,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
       });
     }
-    
+
     // Sort by date (newest first)
     filteredEvents.sort((a, b) => b.date - a.date);
-    
+
     // Render based on view mode
     if (currentView === 'chronological') {
       renderChronologicalView(filteredEvents);
@@ -273,29 +273,29 @@ document.addEventListener('DOMContentLoaded', function() {
       renderGroupedView(filteredEvents);
     }
   }
-  
+
   function renderChronologicalView(events) {
     if (events.length === 0) {
       renderEmptyState();
       return;
     }
-    
+
     const html = `
       <div class="timeline-view-chronological">
         ${events.map(event => createEventHTML(event)).join('')}
       </div>
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function renderGroupedView(events) {
     if (events.length === 0) {
       renderEmptyState();
       return;
     }
-    
+
     // Group events by type
     const groups = {};
     events.forEach(event => {
@@ -305,21 +305,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       groups[groupKey].push(event);
     });
-    
+
     const html = `
       <div class="timeline-view-grouped">
         ${Object.entries(groups).map(([type, groupEvents]) => createGroupHTML(type, groupEvents)).join('')}
       </div>
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function createEventHTML(event) {
     const date = event.date.toLocaleDateString();
     const priorityClass = event.priority || 'normal';
-    
+
     return `
       <div class="timeline-event" data-event-id="${event.id}" data-priority="${priorityClass}">
         <div class="timeline-event-marker ${priorityClass}"></div>
@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function createGroupHTML(type, events) {
     const typeLabels = {
       communication: 'Communications',
@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
       deadline: 'Deadlines',
       maintenance: 'Maintenance Issues'
     };
-    
+
     return `
       <div class="timeline-group">
         <div class="timeline-group-title">
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function renderEmptyState() {
     content.innerHTML = `
       <div class="timeline-empty">
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function attachEventListeners() {
     // Event click handlers
     const eventElements = content.querySelectorAll('.timeline-event');
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     });
-    
+
     // Action button handlers
     const actionButtons = content.querySelectorAll('.timeline-event-action');
     actionButtons.forEach(btn => {
@@ -392,11 +392,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleEventClick(eventEl) {
     const eventId = eventEl.dataset.eventId;
     const event = timelineData.find(e => e.id === eventId);
-    
+
     if (event) {
       // Emit timeline event selection
       const timelineEvent = new CustomEvent('understand-timeline-select', {
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
       document.dispatchEvent(timelineEvent);
-      
+
       // Update selection state
       content.querySelectorAll('.timeline-event').forEach(el => {
         el.classList.remove('selected');
@@ -415,12 +415,12 @@ document.addEventListener('DOMContentLoaded', function() {
       eventEl.classList.add('selected');
     }
   }
-  
+
   function handleActionClick(btn) {
     const eventEl = btn.closest('.timeline-event');
     const eventId = eventEl.dataset.eventId;
     const event = timelineData.find(e => e.id === eventId);
-    
+
     if (event) {
       // Emit action event
       const actionEvent = new CustomEvent('understand-timeline-action', {
@@ -434,24 +434,24 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(actionEvent);
     }
   }
-  
+
   function startAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
     }
-    
+
     refreshTimer = setInterval(() => {
       loadTimelineData();
     }, config.refreshInterval * 1000);
   }
-  
+
   function stopAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
       refreshTimer = null;
     }
   }
-  
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', stopAutoRefresh);
 });

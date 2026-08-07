@@ -8,14 +8,14 @@ Quick Start:
     from app.sdk import ModuleSDK, ModuleDefinition
 import logging
 logger = logging.getLogger(__name__)
-    
+
     module = ModuleDefinition(name="my_module", ...)
     sdk = ModuleSDK(module)
-    
+
     @sdk.action("my_action")
     async def my_action(user_id, params, context):
         return {"result": "done"}
-    
+
     sdk.initialize()
 
 Convert Flask:
@@ -105,7 +105,6 @@ __all__ = [
     "BaseModule",
     "create_module",
     "generate_module_template",
-
     # Module SDK (product manifest integration)
     "ModuleCapability",
     "ModuleManifest",
@@ -116,12 +115,10 @@ __all__ = [
     "register_tier_modules",
     "get_module_status",
     "ProductTier",
-
     # Flask Converter
     "FlaskConverter",
     "FlaskAnalyzer",
     "FlaskAnalysis",
-
     # Plugin System
     "PluginManager",
     "Plugin",

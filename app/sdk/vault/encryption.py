@@ -22,31 +22,32 @@ class MasterToken:
     """
     Master token stored encrypted in user's cloud storage.
     This token NEVER leaves storage - server fetches and decrypts in-memory only.
-    
+
     Contains:
     - Module authorizations (what features user can access)
     - OAuth credentials (access_token, refresh_token) as BACKUP
-    
+
     The OAuth tokens in cloud are a BACKUP of the database tokens.
     This allows recovery if database is lost, and enables Rehome flow.
     """
-    token_id: str                    # Unique token identifier
-    user_id: str                     # User ID (GU2L3wyfBy format)
-    created_at: str                  # ISO timestamp
-    provider: str = ""               # Storage provider (google_drive, dropbox, onedrive)
-    version: str = "5.0"             # Semptify version
+
+    token_id: str  # Unique token identifier
+    user_id: str  # User ID (GU2L3wyfBy format)
+    created_at: str  # ISO timestamp
+    provider: str = ""  # Storage provider (google_drive, dropbox, onedrive)
+    version: str = "5.0"  # Semptify version
 
     # OAuth credentials (backup - also stored in database for fast access)
-    access_token: str = ""           # Provider OAuth access token
-    refresh_token: str = ""          # Provider OAuth refresh token
-    token_expires_at: str = ""       # When access_token expires
+    access_token: str = ""  # Provider OAuth access token
+    refresh_token: str = ""  # Provider OAuth refresh token
+    token_expires_at: str = ""  # When access_token expires
 
     # Module authorizations - which features this token unlocks
     modules: dict[str, bool] | None = None
 
     # Security
-    last_validated: str | None = None       # Last time token was used
-    validation_count: int = 0        # How many times validated
+    last_validated: str | None = None  # Last time token was used
+    validation_count: int = 0  # How many times validated
 
     def __post_init__(self):
         if self.modules is None:
@@ -89,12 +90,12 @@ def encrypt_token(token: MasterToken, user_id: str, secret_key: str) -> bytes:
     """
     Encrypt master token for storage with integrity verification.
     Uses AES-GCM which provides both encryption AND authentication (tamper detection).
-    
+
     Args:
         token: MasterToken to encrypt
         user_id: User ID for key derivation
         secret_key: Server secret key for key derivation
-    
+
     Returns:
         Encrypted bytes (nonce + ciphertext)
     """
@@ -120,15 +121,15 @@ def decrypt_token(encrypted: bytes, user_id: str, secret_key: str) -> MasterToke
     """
     Decrypt master token from storage with integrity verification.
     AES-GCM will raise InvalidTag if data was tampered with.
-    
+
     Args:
         encrypted: Encrypted bytes (nonce + ciphertext)
         user_id: User ID for key derivation
         secret_key: Server secret key for key derivation
-    
+
     Returns:
         Decrypted MasterToken
-    
+
     Raises:
         ValueError: If decryption fails or token is invalid
     """

@@ -1,8 +1,8 @@
 # EXTENDED User Journey Concept (Deferred)
 
-**Status:** CONCEPT ONLY - NOT IMPLEMENTED IN CORE 5.0  
-**Scope:** Semptify Extended (future add-on features)  
-**File Date:** April 30, 2026  
+**Status:** CONCEPT ONLY - NOT IMPLEMENTED IN CORE 5.0
+**Scope:** Semptify Extended (future add-on features)
+**File Date:** April 30, 2026
 **Source:** Archived from USER_JOURNEY_GUIDE.md (aspirational 9-step flow)
 
 ---
@@ -26,7 +26,7 @@ This was the conceptual framework for a complete, natural progression user exper
 
 ### **PHASE 1: WELCOME & ONBOARDING** (Steps 1-5)
 
-#### **Step 1: Welcome Screen** 
+#### **Step 1: Welcome Screen**
 - **User sees:** Beautiful welcome with "Let's Get Started" button
 - **Purpose:** Make them feel safe and confident
 - **Action:** Click to begin their journey

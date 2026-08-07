@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # SERVICE MESH NODES
 # =============================================================================
 
+
 class ServiceMeshRegistry:
     """
     Registry that creates and manages mesh nodes for all services.
@@ -66,7 +67,7 @@ class ServiceMeshRegistry:
                 "assess_merit",
                 "find_defenses",
                 "quick_case_check",
-            }
+            },
         )
 
         # Document Engine
@@ -79,7 +80,7 @@ class ServiceMeshRegistry:
                 "classify_document",
                 "search_documents",
                 "get_document",
-            }
+            },
         )
 
         # Timeline Service
@@ -91,7 +92,7 @@ class ServiceMeshRegistry:
                 "analyze_gaps",
                 "find_conflicts",
                 "build_narrative",
-            }
+            },
         )
 
         # Calendar Service
@@ -102,7 +103,7 @@ class ServiceMeshRegistry:
                 "get_deadlines",
                 "calculate_deadline",
                 "set_reminder",
-            }
+            },
         )
 
         # Eviction Defense
@@ -113,7 +114,7 @@ class ServiceMeshRegistry:
                 "find_violations",
                 "generate_defenses",
                 "calculate_deadlines",
-            }
+            },
         )
 
         # Court Learning - Bidirectional learning from court outcomes
@@ -130,7 +131,7 @@ class ServiceMeshRegistry:
                 "seed_historical_data",
                 "record_case_outcome",
                 "recommend_strategy",
-            }
+            },
         )
 
         # Forms Engine
@@ -140,7 +141,7 @@ class ServiceMeshRegistry:
                 "fill_form",
                 "validate_form",
                 "get_form_template",
-            }
+            },
         )
 
         # Tenancy Hub
@@ -151,7 +152,7 @@ class ServiceMeshRegistry:
                 "get_tenancy_data",
                 "cross_reference",
                 "extract_from_document",
-            }
+            },
         )
 
         # Copilot/AI Assistant
@@ -162,7 +163,7 @@ class ServiceMeshRegistry:
                 "suggest_action",
                 "answer_question",
                 "generate_text",
-            }
+            },
         )
 
         # UI/Notification Service
@@ -172,7 +173,7 @@ class ServiceMeshRegistry:
                 "notify",
                 "update_dashboard",
                 "show_alert",
-            }
+            },
         )
 
         # Legal Trails Service
@@ -187,7 +188,7 @@ class ServiceMeshRegistry:
                 "calculate_deadlines",
                 "generate_complaint",
                 "find_attorney",
-            }
+            },
         )
 
         logger.info(f"◆ Created {len(self._service_nodes)} service mesh nodes")
@@ -241,16 +242,18 @@ service_mesh = ServiceMeshRegistry()
 # DECORATOR FOR MESH-ENABLED FUNCTIONS
 # =============================================================================
 
+
 def mesh_handler(service: str, capability: str):
     """
     Decorator to automatically register a function as a mesh handler.
-    
+
     Usage:
         @mesh_handler("legal_analysis", "detect_hearsay")
         async def detect_hearsay(payload: Dict) -> Dict:
             # ... implementation
             return {"hearsay_found": True}
     """
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -260,19 +263,21 @@ def mesh_handler(service: str, capability: str):
         service_mesh.register_handler(service, capability, wrapper)
 
         return wrapper
+
     return decorator
 
 
 def mesh_event(service: str, event_type: str):
     """
     Decorator to emit an event after function execution.
-    
+
     Usage:
         @mesh_event("legal_analysis", "hearsay_detected")
         async def detect_hearsay(...):
-            # ... 
+            # ...
             return result  # This will be emitted as event data
     """
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -284,13 +289,16 @@ def mesh_event(service: str, event_type: str):
                 await node.emit_event(event_type, result or {})
 
             return result
+
         return wrapper
+
     return decorator
 
 
 # =============================================================================
 # BRIDGE FROM OLD BRAIN TO NEW MESH
 # =============================================================================
+
 
 class BrainMeshBridge:
     """
@@ -354,6 +362,7 @@ brain_mesh_bridge = BrainMeshBridge()
 # STARTUP/SHUTDOWN
 # =============================================================================
 
+
 async def start_mesh_network():
     """Start the distributed mesh network"""
     await service_mesh.start_all()
@@ -370,12 +379,14 @@ async def stop_mesh_network():
 # HELPER FUNCTIONS FOR SERVICES
 # =============================================================================
 
+
 async def mesh_call(capability: str, payload: dict[str, Any]) -> dict[str, Any]:
     """
     Make a call to any service with the capability.
     The mesh will route to the appropriate node.
     """
     from app.core.distributed_mesh import mesh_request
+
     return await mesh_request(capability, payload)
 
 

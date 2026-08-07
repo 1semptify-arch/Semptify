@@ -37,14 +37,17 @@ router = APIRouter()
 # Schemas
 # =============================================================================
 
+
 class EventTrackRequest(BaseModel):
     """Track a custom analytics event."""
+
     event_type: str = Field(..., description="Event type")
     metadata: dict[str, Any] | None = Field(None, description="Event metadata")
 
 
 class EventTrackResponse(BaseModel):
     """Event tracking response."""
+
     success: bool
     event_id: str
     message: str
@@ -52,6 +55,7 @@ class EventTrackResponse(BaseModel):
 
 class MetricsQueryRequest(BaseModel):
     """Metrics aggregation query."""
+
     period: str = Field("day", description="Time period: hour, day, week, month")
     start_time: datetime | None = Field(None, description="Start time (ISO format)")
     end_time: datetime | None = Field(None, description="End time (ISO format)")
@@ -59,6 +63,7 @@ class MetricsQueryRequest(BaseModel):
 
 class MetricsResponse(BaseModel):
     """Aggregated metrics response."""
+
     period: str
     start_time: str
     end_time: str
@@ -74,6 +79,7 @@ class MetricsResponse(BaseModel):
 
 class EventsListResponse(BaseModel):
     """List of analytics events."""
+
     events: list[dict[str, Any]]
     total: int
     limit: int
@@ -81,6 +87,7 @@ class EventsListResponse(BaseModel):
 
 class ExportResponse(BaseModel):
     """Export response."""
+
     success: bool
     format: str
     record_count: int
@@ -91,35 +98,25 @@ class ExportResponse(BaseModel):
 # Event Tracking Endpoints
 # =============================================================================
 
+
 @router.post("/track", response_model=EventTrackResponse)
-async def track_event(
-    request: EventTrackRequest,
-    user: StorageUser = Depends(green_access)
-):
+async def track_event(request: EventTrackRequest, user: StorageUser = Depends(green_access)):
     """
     Track a custom analytics event.
-    
+
     Use this endpoint to record user actions, feature usage, or custom events.
     """
     try:
         # Map string event type to enum
         try:
-            event_type = AnalyticsEventType(request.event_type)
+            AnalyticsEventType(request.event_type)
         except ValueError:
             # Allow custom event types
-            event_type = AnalyticsEventType.USER_ACTION
+            pass
 
-        event_id = track_user_action(
-            action=request.event_type,
-            user_id=user.user_id,
-            metadata=request.metadata or {}
-        )
+        event_id = track_user_action(action=request.event_type, user_id=user.user_id, metadata=request.metadata or {})
 
-        return EventTrackResponse(
-            success=True,
-            event_id=event_id,
-            message="Event tracked successfully"
-        )
+        return EventTrackResponse(success=True, event_id=event_id, message="Event tracked successfully")
 
     except Exception as e:
         logger.error(f"Event tracking error: {e}")
@@ -127,10 +124,7 @@ async def track_event(
 
 
 @router.post("/pageview", response_model=EventTrackResponse)
-async def track_pageview(
-    request: Request,
-    user: StorageUser = Depends(green_access)
-):
+async def track_pageview(request: Request, user: StorageUser = Depends(green_access)):
     """
     Track a page view event (frontend navigation tracking).
     Lightweight endpoint for recording page visits.
@@ -141,17 +135,10 @@ async def track_pageview(
         event_id = track_user_action(
             action="page_view",
             user_id=user.user_id,
-            metadata={
-                "page_path": page_path,
-                "timestamp": utc_now().isoformat()
-            }
+            metadata={"page_path": page_path, "timestamp": utc_now().isoformat()},
         )
 
-        return EventTrackResponse(
-            success=True,
-            event_id=event_id,
-            message="Page view tracked"
-        )
+        return EventTrackResponse(success=True, event_id=event_id, message="Page view tracked")
 
     except Exception as e:
         logger.error(f"Pageview tracking error: {e}")
@@ -160,9 +147,7 @@ async def track_pageview(
 
 @router.post("/track/document-upload")
 async def track_document_upload(
-    document_id: str,
-    doc_type: str | None = None,
-    user: StorageUser = Depends(green_access)
+    document_id: str, doc_type: str | None = None, user: StorageUser = Depends(green_access)
 ):
     """Track a document upload event."""
     try:
@@ -170,7 +155,7 @@ async def track_document_upload(
             event_type=AnalyticsEventType.DOCUMENT_UPLOAD,
             user_id=user.user_id,
             document_id=document_id,
-            doc_type=doc_type
+            doc_type=doc_type,
         )
 
         return {"success": True, "event_id": event_id}
@@ -184,16 +169,17 @@ async def track_document_upload(
 # Metrics & Aggregation Endpoints
 # =============================================================================
 
+
 @router.get("/metrics", response_model=MetricsResponse)
 async def get_metrics(
     period: str = Query("day", description="Time period: hour, day, week, month"),
     hours: int = Query(24, ge=1, le=720, description="Hours to look back (alternative to period)"),
     user: StorageUser = Depends(require_admin),
-    _ = Depends(require_capability("admin_analytics"))
+    _=Depends(require_capability("admin_analytics")),
 ):
     """
     Get aggregated analytics metrics.
-    
+
     Returns usage statistics, performance metrics, and feature adoption data.
     Requires admin access.
     """
@@ -205,7 +191,7 @@ async def get_metrics(
             "hour": TimePeriod.HOUR,
             "day": TimePeriod.DAY,
             "week": TimePeriod.WEEK,
-            "month": TimePeriod.MONTH
+            "month": TimePeriod.MONTH,
         }
         time_period = period_map.get(period.lower(), TimePeriod.DAY)
 
@@ -214,11 +200,7 @@ async def get_metrics(
         start_time = end_time - timedelta(hours=hours)
 
         # Aggregate metrics
-        metrics = await engine.aggregate_metrics(
-            period=time_period,
-            start_time=start_time,
-            end_time=end_time
-        )
+        metrics = await engine.aggregate_metrics(period=time_period, start_time=start_time, end_time=end_time)
 
         return MetricsResponse(**metrics.to_dict())
 
@@ -229,12 +211,11 @@ async def get_metrics(
 
 @router.get("/metrics/realtime")
 async def get_realtime_metrics(
-    user: StorageUser = Depends(require_admin),
-    _ = Depends(require_capability("admin_analytics"))
+    user: StorageUser = Depends(require_admin), _=Depends(require_capability("admin_analytics"))
 ):
     """
     Get real-time system metrics (last 5 minutes).
-    
+
     Quick overview of current system activity.
     """
     try:
@@ -243,11 +224,7 @@ async def get_realtime_metrics(
         end_time = utc_now()
         start_time = end_time - timedelta(minutes=5)
 
-        metrics = await engine.aggregate_metrics(
-            period=TimePeriod.HOUR,
-            start_time=start_time,
-            end_time=end_time
-        )
+        metrics = await engine.aggregate_metrics(period=TimePeriod.HOUR, start_time=start_time, end_time=end_time)
 
         return {
             "time_window": "last_5_minutes",
@@ -255,7 +232,7 @@ async def get_realtime_metrics(
             "active_users": metrics.unique_users,
             "avg_response_time_ms": metrics.avg_response_time,
             "error_rate": metrics.error_rate,
-            "top_endpoints": metrics.top_endpoints[:5]
+            "top_endpoints": metrics.top_endpoints[:5],
         }
 
     except Exception as e:
@@ -267,11 +244,11 @@ async def get_realtime_metrics(
 async def get_user_metrics(
     user_id: str,
     days: int = Query(30, ge=1, le=365, description="Days to look back"),
-    admin: StorageUser = Depends(require_admin)
+    admin: StorageUser = Depends(require_admin),
 ):
     """
     Get analytics for a specific user.
-    
+
     Requires admin access for privacy compliance.
     """
     try:
@@ -290,7 +267,7 @@ async def get_user_metrics(
             "total_events": len(events),
             "document_uploads": document_uploads,
             "api_requests": api_requests,
-            "last_activity": events[0].timestamp.isoformat() if events else None
+            "last_activity": events[0].timestamp.isoformat() if events else None,
         }
 
     except Exception as e:
@@ -302,15 +279,16 @@ async def get_user_metrics(
 # Events Query Endpoints
 # =============================================================================
 
+
 @router.get("/events/recent")
 async def get_recent_events(
     event_type: str | None = Query(None, description="Filter by event type"),
     limit: int = Query(100, ge=1, le=1000, description="Number of events to return"),
-    user: StorageUser = Depends(require_admin)
+    user: StorageUser = Depends(require_admin),
 ):
     """
     Get recent analytics events.
-    
+
     Query raw event data with optional filtering.
     Requires admin access.
     """
@@ -325,16 +303,9 @@ async def get_recent_events(
             except ValueError:
                 logger.warning(f"Invalid event_type: {event_type}. Returning all events.")
 
-        events = engine.get_recent_events(
-            event_type=event_type_enum,
-            limit=limit
-        )
+        events = engine.get_recent_events(event_type=event_type_enum, limit=limit)
 
-        return EventsListResponse(
-            events=[e.to_dict() for e in events],
-            total=len(events),
-            limit=limit
-        )
+        return EventsListResponse(events=[e.to_dict() for e in events], total=len(events), limit=limit)
 
     except Exception as e:
         logger.error(f"Events query error: {e}")
@@ -345,14 +316,15 @@ async def get_recent_events(
 # Export Endpoints
 # =============================================================================
 
+
 @router.get("/export/json")
 async def export_json(
     days: int = Query(30, ge=1, le=365, description="Days of data to export"),
-    user: StorageUser = Depends(require_admin)
+    user: StorageUser = Depends(require_admin),
 ):
     """
     Export analytics data as JSON.
-    
+
     Download complete analytics dataset for external analysis.
     """
     try:
@@ -368,8 +340,8 @@ async def export_json(
             media_type="application/json",
             headers={
                 "Content-Disposition": f"attachment; filename=analytics_export_{utc_now().strftime('%Y%m%d')}.json",
-                "Cache-Control": "no-cache"
-            }
+                "Cache-Control": "no-cache",
+            },
         )
 
     except Exception as e:
@@ -380,11 +352,11 @@ async def export_json(
 @router.get("/export/csv")
 async def export_csv(
     days: int = Query(30, ge=1, le=365, description="Days of data to export"),
-    user: StorageUser = Depends(require_admin)
+    user: StorageUser = Depends(require_admin),
 ):
     """
     Export analytics data as CSV.
-    
+
     Download analytics data in spreadsheet format.
     """
     try:
@@ -397,8 +369,8 @@ async def export_csv(
             media_type="text/csv",
             headers={
                 "Content-Disposition": f"attachment; filename=analytics_export_{utc_now().strftime('%Y%m%d')}.csv",
-                "Cache-Control": "no-cache"
-            }
+                "Cache-Control": "no-cache",
+            },
         )
 
     except Exception as e:
@@ -410,13 +382,12 @@ async def export_csv(
 # Statistics Endpoints
 # =============================================================================
 
+
 @router.get("/statistics")
-async def get_statistics(
-    user: StorageUser = Depends(require_admin)
-):
+async def get_statistics(user: StorageUser = Depends(require_admin)):
     """
     Get analytics engine statistics.
-    
+
     Overview of storage usage and data availability.
     """
     try:
@@ -431,12 +402,10 @@ async def get_statistics(
 
 
 @router.get("/dashboard")
-async def get_dashboard_summary(
-    user: StorageUser = Depends(require_admin)
-):
+async def get_dashboard_summary(user: StorageUser = Depends(require_admin)):
     """
     Get analytics dashboard summary.
-    
+
     Combined metrics for dashboard display.
     """
     try:
@@ -445,22 +414,14 @@ async def get_dashboard_summary(
         # Get metrics for different time periods
         now = utc_now()
 
-        today = await engine.aggregate_metrics(
-            period=TimePeriod.DAY,
-            start_time=now - timedelta(days=1),
-            end_time=now
-        )
+        today = await engine.aggregate_metrics(period=TimePeriod.DAY, start_time=now - timedelta(days=1), end_time=now)
 
         this_week = await engine.aggregate_metrics(
-            period=TimePeriod.WEEK,
-            start_time=now - timedelta(weeks=1),
-            end_time=now
+            period=TimePeriod.WEEK, start_time=now - timedelta(weeks=1), end_time=now
         )
 
         this_month = await engine.aggregate_metrics(
-            period=TimePeriod.MONTH,
-            start_time=now - timedelta(days=30),
-            end_time=now
+            period=TimePeriod.MONTH, start_time=now - timedelta(days=30), end_time=now
         )
 
         return {
@@ -468,22 +429,22 @@ async def get_dashboard_summary(
                 "requests": today.total_requests,
                 "unique_users": today.unique_users,
                 "avg_response_time_ms": today.avg_response_time,
-                "error_rate": today.error_rate
+                "error_rate": today.error_rate,
             },
             "this_week": {
                 "requests": this_week.total_requests,
                 "unique_users": this_week.unique_users,
                 "avg_response_time_ms": this_week.avg_response_time,
-                "error_rate": this_week.error_rate
+                "error_rate": this_week.error_rate,
             },
             "this_month": {
                 "requests": this_month.total_requests,
                 "unique_users": this_month.unique_users,
                 "avg_response_time_ms": this_month.avg_response_time,
-                "error_rate": this_month.error_rate
+                "error_rate": this_month.error_rate,
             },
             "top_features": today.feature_usage,
-            "document_types": today.document_metrics
+            "document_types": today.document_metrics,
         }
 
     except Exception as e:

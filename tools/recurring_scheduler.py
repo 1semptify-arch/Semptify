@@ -114,22 +114,23 @@ def _run_job(name: str, dry_run: bool = False) -> int:
 
 def _list_jobs() -> None:
     state = _load_state()
-    now = datetime.datetime.now(tz=datetime.UTC)
+    datetime.datetime.now(tz=datetime.UTC)
     print("Registered jobs:")
     for name, spec in JOBS.items():
         last = state.get(name, "never")
-        due = "now" if last == "never" else (
-            datetime.datetime.fromisoformat(last) +
-            datetime.timedelta(days=spec["cadence_days"])
-        ).strftime("%Y-%m-%d %H:%M")
+        due = (
+            "now"
+            if last == "never"
+            else (datetime.datetime.fromisoformat(last) + datetime.timedelta(days=spec["cadence_days"])).strftime(
+                "%Y-%m-%d %H:%M"
+            )
+        )
         print(f"  {name}: cadence {spec['cadence_days']}d, last run {last}, due {due}")
         print(f"    {spec['description']}")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Dispatcher for recurring agent review jobs."
-    )
+    parser = argparse.ArgumentParser(description="Dispatcher for recurring agent review jobs.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--run", help="Run a single job by name.")
     group.add_argument("--run-all", action="store_true", help="Run every registered job.")
@@ -152,10 +153,11 @@ def main() -> int:
             _save_state(state)
         return code
 
-    jobs_to_run = list(JOBS.keys()) if args.run_all else [
-        name for name, spec in JOBS.items()
-        if _is_due(state, name, spec["cadence_days"])
-    ]
+    jobs_to_run = (
+        list(JOBS.keys())
+        if args.run_all
+        else [name for name, spec in JOBS.items() if _is_due(state, name, spec["cadence_days"])]
+    )
 
     overall = 0
     for name in jobs_to_run:

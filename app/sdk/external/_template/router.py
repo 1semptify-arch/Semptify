@@ -15,6 +15,7 @@ Forbidden imports (will raise ExternalModuleSecurityError at load time):
   - app.modules.* (other internal modules)
   - sqlalchemy, asyncpg, redis
 """
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status

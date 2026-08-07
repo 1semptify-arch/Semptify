@@ -2,6 +2,7 @@
 Test the unified timeline API endpoint.
 Usage: python scripts/test_timeline_api.py
 """
+
 import asyncio
 import sys
 
@@ -36,18 +37,12 @@ async def test_unified_timeline():
     """Test POST /api/timeline/unified"""
     print("\nTesting POST /api/timeline/unified...")
 
-    payload = {
-        "date_axis": "event_time",
-        "item_types": ["document", "timeline_event"],
-        "limit": 10
-    }
+    payload = {"date_axis": "event_time", "item_types": ["document", "timeline_event"], "limit": 10}
 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                f"{BASE_URL}/api/timeline/unified",
-                json=payload,
-                headers={"Content-Type": "application/json"}
+                f"{BASE_URL}/api/timeline/unified", json=payload, headers={"Content-Type": "application/json"}
             )
             print(f"  Status: {response.status_code}")
             if response.status_code == 200:
@@ -55,7 +50,7 @@ async def test_unified_timeline():
                 print(f"  Total items: {data.get('total', 'N/A')}")
                 print(f"  Date axis: {data.get('date_axis')}")
                 print(f"  Items returned: {len(data.get('items', []))}")
-                if data.get('items'):
+                if data.get("items"):
                     print(f"  Sample item: {data['items'][0]['title'][:50]}...")
                 return True
             elif response.status_code == 401:

@@ -5,7 +5,6 @@ Creates minimal legal filing module files and registers the router in app/main.p
 """
 
 import json
-import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -27,7 +26,7 @@ for d in DIRS:
 
 # Models
 models_path = APP / "models" / "legal_filing_models.py"
-models_code = '''
+models_code = """
 from pydantic import BaseModel
 from datetime import date
 from typing import List, Optional
@@ -47,12 +46,12 @@ class EvidenceItem(BaseModel):
     description: str
     collected_on: Optional[date] = None
     tags: List[str] = []
-'''
-models_path.write_text(models_code, encoding='utf-8')
+"""
+models_path.write_text(models_code, encoding="utf-8")
 
 # Services
 service_path = APP / "services" / "legal_filing_service.py"
-service_code = '''
+service_code = """
 from typing import List
 from pathlib import Path
 import json
@@ -87,12 +86,12 @@ def list_cases() -> List[LegalCase]:
         except Exception:
             continue
     return cases
-'''
-service_path.write_text(service_code, encoding='utf-8')
+"""
+service_path.write_text(service_code, encoding="utf-8")
 
 # Router
 router_path = APP / "routers" / "legal_filing.py"
-router_code = '''
+router_code = """
 from fastapi import APIRouter, HTTPException
 from app.models.legal_filing_models import LegalCase
 from app.services.legal_filing_service import save_case, load_case, list_cases
@@ -114,42 +113,54 @@ def get_case(case_id: str):
 def create_case(case: LegalCase):
     saved = save_case(case)
     return {"status": "created", "case": saved}
-'''
-router_path.write_text(router_code, encoding='utf-8')
+"""
+router_path.write_text(router_code, encoding="utf-8")
 
 # Module SDK (stub)
 module_path = APP / "modules" / "legal_filing_module.py"
-module_code = '''
+module_code = """
 from app.routers.legal_filing import router as legal_filing_router
 
 # Placeholder for actual module integration with mesh/network.
 
 def init_module(app):
     app.include_router(legal_filing_router, tags=["Legal Filing"])
-'''
-module_path.write_text(module_code, encoding='utf-8')
+"""
+module_path.write_text(module_code, encoding="utf-8")
 
 # Templates
 advocate_template = APP / "templates" / "legal" / "advocate_dashboard.html"
-advocate_template.write_text('<h1>Advocate Legal Filing Dashboard</h1>', encoding='utf-8')
+advocate_template.write_text("<h1>Advocate Legal Filing Dashboard</h1>", encoding="utf-8")
 
 housing_template = APP / "templates" / "legal" / "housing_manager_monitor.html"
-housing_template.write_text('<h1>Housing Manager Legal Filing Monitor</h1>', encoding='utf-8')
+housing_template.write_text("<h1>Housing Manager Legal Filing Monitor</h1>", encoding="utf-8")
 
 # Seed basic cases
 seed_cases = [
-    {"case_id": "C001", "tenant_name": "Alice Tenant", "landlord_name": "Bob Landlord", "address": "123 Main St", "status": "draft"},
-    {"case_id": "C002", "tenant_name": "Charlie Tenant", "landlord_name": "Delta Landlord", "address": "456 Oak Ave", "status": "draft"},
+    {
+        "case_id": "C001",
+        "tenant_name": "Alice Tenant",
+        "landlord_name": "Bob Landlord",
+        "address": "123 Main St",
+        "status": "draft",
+    },
+    {
+        "case_id": "C002",
+        "tenant_name": "Charlie Tenant",
+        "landlord_name": "Delta Landlord",
+        "address": "456 Oak Ave",
+        "status": "draft",
+    },
 ]
 
 data_dir = ROOT / "data" / "legal_filings"
 for c in seed_cases:
-    (data_dir / f"case_{c['case_id']}.json").write_text(json.dumps(c, default=str), encoding='utf-8')
+    (data_dir / f"case_{c['case_id']}.json").write_text(json.dumps(c, default=str), encoding="utf-8")
 
 # Patch app/main.py
 
 main_path = APP / "main.py"
-main_text = main_path.read_text(encoding='utf-8')
+main_text = main_path.read_text(encoding="utf-8")
 
 import_marker = "from app.routers.legal_analysis import router as legal_analysis_router"
 insert_import = "from app.routers.legal_filing import router as legal_filing_router"
@@ -157,12 +168,12 @@ insert_import = "from app.routers.legal_filing import router as legal_filing_rou
 if insert_import not in main_text:
     main_text = main_text.replace(import_marker, import_marker + "\n" + insert_import)
 
-router_marker = "app.include_router(legal_analysis_router, tags=[\"Legal Analysis\"])"
-insert_router = "    app.include_router(legal_filing_router, tags=[\"Legal Filing\"])"
+router_marker = 'app.include_router(legal_analysis_router, tags=["Legal Analysis"])'
+insert_router = '    app.include_router(legal_filing_router, tags=["Legal Filing"])'
 
 if insert_router not in main_text:
     main_text = main_text.replace(router_marker, router_marker + "\n" + insert_router)
 
-main_path.write_text(main_text, encoding='utf-8')
+main_path.write_text(main_text, encoding="utf-8")
 
-print('✅ Legal Filing Module deployed. Created minimal files, seeded cases, patched app/main.py.')
+print("✅ Legal Filing Module deployed. Created minimal files, seeded cases, patched app/main.py.")

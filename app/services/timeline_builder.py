@@ -31,8 +31,10 @@ logger = logging.getLogger(__name__)
 # DATA CLASSES
 # =============================================================================
 
+
 class TimelineEventType(str, Enum):
     """Types of timeline events."""
+
     NOTICE = "notice"
     PAYMENT = "payment"
     MAINTENANCE = "maintenance"
@@ -47,6 +49,7 @@ class TimelineEventType(str, Enum):
 @dataclass
 class ExtractedTimelineEvent:
     """An event extracted from a document for the timeline."""
+
     id: str = field(default_factory=lambda: make_id("evt"))
     event_type: TimelineEventType = TimelineEventType.OTHER
     title: str = ""
@@ -82,6 +85,7 @@ class ExtractedTimelineEvent:
 @dataclass
 class TimelineBuildResult:
     """Result of building timeline from documents."""
+
     events: list[ExtractedTimelineEvent] = field(default_factory=list)
     total_documents_processed: int = 0
     total_events_found: int = 0
@@ -111,61 +115,156 @@ class TimelineBuildResult:
 # Common date patterns
 DATE_PATTERNS = [
     # MM/DD/YYYY or MM-DD-YYYY
-    (r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})', 'mdy'),
+    (r"(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})", "mdy"),
     # YYYY-MM-DD (ISO)
-    (r'(\d{4})[/\-](\d{1,2})[/\-](\d{1,2})', 'ymd'),
+    (r"(\d{4})[/\-](\d{1,2})[/\-](\d{1,2})", "ymd"),
     # Month DD, YYYY
-    (r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})', 'written'),
+    (
+        r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})",
+        "written",
+    ),
     # DD Month YYYY
-    (r'(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', 'written_euro'),
+    (
+        r"(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
+        "written_euro",
+    ),
     # Mon DD, YYYY (abbreviated)
-    (r'(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+(\d{1,2}),?\s+(\d{4})', 'abbrev'),
+    (r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\.?\s+(\d{1,2}),?\s+(\d{4})", "abbrev"),
 ]
 
 MONTH_MAP = {
-    'january': 1, 'february': 2, 'march': 3, 'april': 4,
-    'may': 5, 'june': 6, 'july': 7, 'august': 8,
-    'september': 9, 'october': 10, 'november': 11, 'december': 12,
-    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'jun': 6,
-    'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+    "january": 1,
+    "february": 2,
+    "march": 3,
+    "april": 4,
+    "may": 5,
+    "june": 6,
+    "july": 7,
+    "august": 8,
+    "september": 9,
+    "october": 10,
+    "november": 11,
+    "december": 12,
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
 }
 
 # Deadline indicator keywords
 DEADLINE_KEYWORDS = [
-    'must', 'deadline', 'by', 'before', 'no later than', 'within',
-    'due', 'expires', 'expiration', 'vacate', 'respond', 'appear',
-    'hearing', 'court date', 'trial', 'file by', 'required by'
+    "must",
+    "deadline",
+    "by",
+    "before",
+    "no later than",
+    "within",
+    "due",
+    "expires",
+    "expiration",
+    "vacate",
+    "respond",
+    "appear",
+    "hearing",
+    "court date",
+    "trial",
+    "file by",
+    "required by",
 ]
 
 # Event type indicators
 EVENT_TYPE_INDICATORS = {
     TimelineEventType.NOTICE: [
-        'notice', 'notify', 'notification', 'informed', 'advise',
-        'eviction', 'vacate', 'quit', 'terminate', 'violation'
+        "notice",
+        "notify",
+        "notification",
+        "informed",
+        "advise",
+        "eviction",
+        "vacate",
+        "quit",
+        "terminate",
+        "violation",
     ],
     TimelineEventType.PAYMENT: [
-        'payment', 'paid', 'rent', 'deposit', 'fee', 'charge',
-        'amount', 'balance', 'due', 'received', 'receipt'
+        "payment",
+        "paid",
+        "rent",
+        "deposit",
+        "fee",
+        "charge",
+        "amount",
+        "balance",
+        "due",
+        "received",
+        "receipt",
     ],
     TimelineEventType.MAINTENANCE: [
-        'repair', 'maintenance', 'fix', 'broken', 'damage', 'leak',
-        'mold', 'pest', 'hvac', 'plumbing', 'electrical', 'inspection'
+        "repair",
+        "maintenance",
+        "fix",
+        "broken",
+        "damage",
+        "leak",
+        "mold",
+        "pest",
+        "hvac",
+        "plumbing",
+        "electrical",
+        "inspection",
     ],
     TimelineEventType.COMMUNICATION: [
-        'email', 'letter', 'message', 'called', 'spoke', 'meeting',
-        'conversation', 'discussed', 'requested', 'responded'
+        "email",
+        "letter",
+        "message",
+        "called",
+        "spoke",
+        "meeting",
+        "conversation",
+        "discussed",
+        "requested",
+        "responded",
     ],
     TimelineEventType.COURT: [
-        'court', 'hearing', 'trial', 'judge', 'summons', 'complaint',
-        'motion', 'order', 'judgment', 'writ', 'file', 'docket'
+        "court",
+        "hearing",
+        "trial",
+        "judge",
+        "summons",
+        "complaint",
+        "motion",
+        "order",
+        "judgment",
+        "writ",
+        "file",
+        "docket",
     ],
     TimelineEventType.LEASE: [
-        'lease', 'agreement', 'contract', 'signed', 'executed',
-        'amendment', 'addendum', 'renewal', 'termination'
+        "lease",
+        "agreement",
+        "contract",
+        "signed",
+        "executed",
+        "amendment",
+        "addendum",
+        "renewal",
+        "termination",
     ],
     TimelineEventType.INSPECTION: [
-        'inspection', 'walkthrough', 'checklist', 'move-in', 'move-out',
-        'condition', 'inventory'
+        "inspection",
+        "walkthrough",
+        "checklist",
+        "move-in",
+        "move-out",
+        "condition",
+        "inventory",
     ],
 }
 
@@ -174,10 +273,11 @@ EVENT_TYPE_INDICATORS = {
 # TIMELINE BUILDER SERVICE
 # =============================================================================
 
+
 class TimelineBuilder:
     """
     Builds timeline events from document text.
-    
+
     Usage:
         builder = TimelineBuilder()
         result = await builder.build_from_text(document_text, filename="notice.pdf")
@@ -187,7 +287,7 @@ class TimelineBuilder:
 
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
-        self.min_confidence = self.config.get('min_confidence', 0.5)
+        self.min_confidence = self.config.get("min_confidence", 0.5)
 
     async def build_from_text(
         self,
@@ -198,13 +298,13 @@ class TimelineBuilder:
     ) -> TimelineBuildResult:
         """
         Extract timeline events from document text.
-        
+
         Args:
             text: Document text content
             document_id: Optional ID to link events to source document
             filename: Original filename for context
             document_type: Type of document (lease, notice, etc.)
-            
+
         Returns:
             TimelineBuildResult with extracted events
         """
@@ -261,20 +361,20 @@ class TimelineBuilder:
     ) -> TimelineBuildResult:
         """
         Build timeline from multiple documents.
-        
+
         Args:
             documents: List of document dicts with 'text', 'id', 'filename', 'type'
-            
+
         Returns:
             Combined TimelineBuildResult
         """
         combined = TimelineBuildResult()
 
         for doc in documents:
-            text = doc.get('text', '')
-            doc_id = doc.get('id')
-            filename = doc.get('filename')
-            doc_type = doc.get('type')
+            text = doc.get("text", "")
+            doc_id = doc.get("id")
+            filename = doc.get("filename")
+            doc_type = doc.get("type")
 
             result = await self.build_from_text(
                 text=text,
@@ -309,14 +409,14 @@ class TimelineBuilder:
     def _extract_dates(self, text: str) -> list[tuple[date, str, str, float]]:
         """
         Extract all dates from text with surrounding context.
-        
+
         Returns:
             List of (date_object, original_text, context_sentence, confidence)
         """
         results = []
 
         # Split into sentences for context
-        sentences = re.split(r'[.!?\n]+', text)
+        sentences = re.split(r"[.!?\n]+", text)
 
         for sentence in sentences:
             sentence = sentence.strip()
@@ -338,18 +438,18 @@ class TimelineBuilder:
         try:
             groups = match.groups()
 
-            if format_type == 'mdy':
+            if format_type == "mdy":
                 month, day, year = int(groups[0]), int(groups[1]), int(groups[2])
-            elif format_type == 'ymd':
+            elif format_type == "ymd":
                 year, month, day = int(groups[0]), int(groups[1]), int(groups[2])
-            elif format_type == 'written':
+            elif format_type == "written":
                 month = MONTH_MAP.get(groups[0].lower(), 0)
                 day, year = int(groups[1]), int(groups[2])
-            elif format_type == 'written_euro':
+            elif format_type == "written_euro":
                 day = int(groups[0])
                 month = MONTH_MAP.get(groups[1].lower(), 0)
                 year = int(groups[2])
-            elif format_type == 'abbrev':
+            elif format_type == "abbrev":
                 month = MONTH_MAP.get(groups[0].lower(), 0)
                 day, year = int(groups[1]), int(groups[2])
             else:
@@ -381,7 +481,7 @@ class TimelineBuilder:
                 break
 
         # Boost for document-specific context
-        if any(word in context_lower for word in ['hereby', 'dated', 'on or before', 'effective']):
+        if any(word in context_lower for word in ["hereby", "dated", "on or before", "effective"]):
             confidence += 0.1
 
         return min(confidence, 1.0)
@@ -428,26 +528,22 @@ class TimelineBuilder:
             extracted_from_text=context[:500],
         )
 
-    def _detect_event_type(
-        self,
-        context: str,
-        document_type: str | None = None
-    ) -> TimelineEventType:
+    def _detect_event_type(self, context: str, document_type: str | None = None) -> TimelineEventType:
         """Detect the event type from context and document type."""
         context_lower = context.lower()
 
         # Check document type first
         if document_type:
             doc_type_lower = document_type.lower()
-            if 'notice' in doc_type_lower or 'eviction' in doc_type_lower:
+            if "notice" in doc_type_lower or "eviction" in doc_type_lower:
                 return TimelineEventType.NOTICE
-            elif 'payment' in doc_type_lower or 'receipt' in doc_type_lower:
+            elif "payment" in doc_type_lower or "receipt" in doc_type_lower:
                 return TimelineEventType.PAYMENT
-            elif 'repair' in doc_type_lower or 'maintenance' in doc_type_lower:
+            elif "repair" in doc_type_lower or "maintenance" in doc_type_lower:
                 return TimelineEventType.MAINTENANCE
-            elif 'court' in doc_type_lower or 'summons' in doc_type_lower:
+            elif "court" in doc_type_lower or "summons" in doc_type_lower:
                 return TimelineEventType.COURT
-            elif 'lease' in doc_type_lower:
+            elif "lease" in doc_type_lower:
                 return TimelineEventType.LEASE
 
         # Check context keywords
@@ -467,7 +563,7 @@ class TimelineBuilder:
 
         # Future dates with action verbs are likely deadlines
         if date_obj > date.today():
-            action_words = ['must', 'shall', 'required', 'need', 'have to', 'should']
+            action_words = ["must", "shall", "required", "need", "have to", "should"]
             if any(word in context_lower for word in action_words):
                 return True
 
@@ -491,29 +587,24 @@ class TimelineBuilder:
         else:
             return "low"
 
-    def _generate_title(
-        self,
-        context: str,
-        event_type: TimelineEventType,
-        date_text: str
-    ) -> str:
+    def _generate_title(self, context: str, event_type: TimelineEventType, date_text: str) -> str:
         """Generate a concise title for the event."""
         context_lower = context.lower()
 
         # Look for specific event mentions
         title_patterns = [
-            (r'(eviction notice|notice to quit|notice to vacate)', 'Eviction Notice'),
-            (r'(hearing|court date|trial)', 'Court Hearing'),
-            (r'(rent due|payment due)', 'Rent Due'),
-            (r'(lease sign|signed lease|executed)', 'Lease Signed'),
-            (r'(repair request|maintenance request)', 'Repair Requested'),
-            (r'(inspection|walkthrough)', 'Property Inspection'),
-            (r'(payment received|rent paid)', 'Payment Made'),
-            (r'(move.?in|moved in)', 'Move-In Date'),
-            (r'(move.?out|must vacate)', 'Move-Out Date'),
-            (r'(summons|served)', 'Summons Served'),
-            (r'(complaint filed)', 'Complaint Filed'),
-            (r'(deadline|due date|expires)', 'Deadline'),
+            (r"(eviction notice|notice to quit|notice to vacate)", "Eviction Notice"),
+            (r"(hearing|court date|trial)", "Court Hearing"),
+            (r"(rent due|payment due)", "Rent Due"),
+            (r"(lease sign|signed lease|executed)", "Lease Signed"),
+            (r"(repair request|maintenance request)", "Repair Requested"),
+            (r"(inspection|walkthrough)", "Property Inspection"),
+            (r"(payment received|rent paid)", "Payment Made"),
+            (r"(move.?in|moved in)", "Move-In Date"),
+            (r"(move.?out|must vacate)", "Move-Out Date"),
+            (r"(summons|served)", "Summons Served"),
+            (r"(complaint filed)", "Complaint Filed"),
+            (r"(deadline|due date|expires)", "Deadline"),
         ]
 
         for pattern, title in title_patterns:
@@ -538,16 +629,13 @@ class TimelineBuilder:
     def _clean_description(self, context: str) -> str:
         """Clean and format the description."""
         # Remove extra whitespace
-        desc = ' '.join(context.split())
+        desc = " ".join(context.split())
         # Truncate if too long
         if len(desc) > 500:
             desc = desc[:497] + "..."
         return desc
 
-    def _deduplicate_events(
-        self,
-        events: list[ExtractedTimelineEvent]
-    ) -> list[ExtractedTimelineEvent]:
+    def _deduplicate_events(self, events: list[ExtractedTimelineEvent]) -> list[ExtractedTimelineEvent]:
         """Remove duplicate events (same date and similar title)."""
         seen = set()
         unique = []
@@ -577,6 +665,7 @@ class TimelineBuilder:
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
+
 async def extract_timeline_from_text(
     text: str,
     document_id: str | None = None,
@@ -584,7 +673,7 @@ async def extract_timeline_from_text(
 ) -> list[dict[str, Any]]:
     """
     Convenience function to extract timeline events from text.
-    
+
     Returns list of event dictionaries ready for API response.
     """
     builder = TimelineBuilder()
@@ -592,12 +681,10 @@ async def extract_timeline_from_text(
     return [event.to_dict() for event in result.events]
 
 
-async def extract_timeline_from_documents(
-    documents: list[dict[str, Any]]
-) -> dict[str, Any]:
+async def extract_timeline_from_documents(documents: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Convenience function to extract timeline from multiple documents.
-    
+
     Returns full result dictionary with events and statistics.
     """
     builder = TimelineBuilder()

@@ -19,10 +19,10 @@ import json
 import logging
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime
 
 from app.core.config import get_settings
 from app.core.path_utils import normalize_cloud_path
+from app.core.utc import utc_now
 from app.core.vault_paths import (
     AUTH_FOLDER,
     CANONICAL_VAULT_FOLDERS,
@@ -222,7 +222,7 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
             </div>
             <div class="info-row">
                 <span class="info-label">Account Type</span>
-                <span class="info-value" style="text-transform: capitalize;">● {role or 'User'}</span>
+                <span class="info-value" style="text-transform: capitalize;">● {role or "User"}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Account ID</span>
@@ -466,7 +466,7 @@ class VaultManager:
             "state": state,
             "vault_created": vault_created,
             "vault_enabled": vault_enabled,
-            "updated_at": datetime.now(UTC).isoformat(),
+            "updated_at": utc_now().isoformat(),
             "error": error,
         }
         await self.storage.upload_file(
@@ -519,7 +519,7 @@ class VaultManager:
             token = MasterToken(
                 token_id=secrets.token_urlsafe(32),
                 user_id=self.user_id,
-                created_at=datetime.now(UTC).isoformat(),
+                created_at=utc_now().isoformat(),
                 provider=provider_name,
                 access_token=access_token,
                 refresh_token=refresh_token,
@@ -564,7 +564,7 @@ class VaultManager:
             decrypt_token(backup_bytes, self.user_id)
 
             # Initialize device keys
-            device_keys = {"devices": [], "created_at": datetime.now(UTC).isoformat()}
+            device_keys = {"devices": [], "created_at": utc_now().isoformat()}
             await self.storage.upload_file(
                 file_content=json.dumps(device_keys, indent=2).encode(),
                 destination_path=AUTH_FOLDER,
@@ -606,7 +606,7 @@ class VaultManager:
             # is provably complete.
             manifest = generate_vault_manifest(
                 user_id=self.user_id,
-                created_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
+                created_at=utc_now().strftime("%Y-%m-%d %H:%M:%S UTC"),
             )
             await self.storage.upload_file(
                 file_content=manifest.encode(),
@@ -794,7 +794,7 @@ class VaultManager:
             device_data = json.loads(content.decode())
 
             # Add new device
-            now = datetime.now(UTC).isoformat()
+            now = utc_now().isoformat()
             new_device = {
                 "device_id": device_id,
                 "device_name": device_name,

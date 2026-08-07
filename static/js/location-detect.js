@@ -13,10 +13,10 @@ window.LocationDetect = {
         this.zipInputId = this.options.zipInputId;
         this.onDetected = this.options.onDetected || function() {};
         this.onError = this.options.onError || function() {};
-        
+
         console.log('Location detection initialized');
     },
-    
+
     // Refresh location detection
     refresh: function() {
         if (navigator.geolocation) {
@@ -28,12 +28,12 @@ window.LocationDetect = {
             this.onError('Geolocation not supported');
         }
     },
-    
+
     // Handle successful geolocation
     handleSuccess: function(position) {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        
+
         // For now, default to Minnesota since we're focused on MN tenant rights
         const location = {
             state: 'MN',
@@ -43,17 +43,17 @@ window.LocationDetect = {
             latitude: lat,
             longitude: lng
         };
-        
+
         this.updateForm(location);
         this.onDetected(location);
     },
-    
+
     // Handle geolocation error
     handleError: function(error) {
         console.log('Geolocation error:', error.message);
         this.onError(error.message);
     },
-    
+
     // Update form fields with detected location
     updateForm: function(location) {
         if (this.stateSelectId && location.state) {
@@ -62,21 +62,21 @@ window.LocationDetect = {
                 stateSelect.value = location.state;
             }
         }
-        
+
         if (this.cityInputId && location.city) {
             const cityInput = document.getElementById(this.cityInputId);
             if (cityInput) {
                 cityInput.value = location.city;
             }
         }
-        
+
         if (this.countyInputId && location.county) {
             const countyInput = document.getElementById(this.countyInputId);
             if (countyInput) {
                 countyInput.value = location.county;
             }
         }
-        
+
         if (this.zipInputId && location.zip) {
             const zipInput = document.getElementById(this.zipInputId);
             if (zipInput) {
@@ -84,7 +84,7 @@ window.LocationDetect = {
             }
         }
     },
-    
+
     // Get support message for state
     getSupportMessage: function(state) {
         const messages = {
@@ -94,7 +94,7 @@ window.LocationDetect = {
             'SD': '◆ Limited South Dakota tenant rights support',
             'default': '◆ Limited tenant rights support for this state'
         };
-        
+
         return messages[state] || messages['default'];
     }
 };

@@ -1,19 +1,19 @@
 <!--
   MAIN NAVIGATION COMPONENT - Semptify GUI Framework
-  
+
   MANDATORY: This navigation structure MUST be used on all Semptify pages.
-  
+
   Five Core Links:
   - Home: Main entry point and dashboard
   - Library: Law library and resources
   - Office: Document management and tools
   - Tools: Utility functions and features
   - Help: Support and guidance
-  
+
   Usage:
   - Static HTML: Include this file or copy the nav structure
   - Jinja2 Templates: Extends base_ssot.html (includes this automatically)
-  
+
   DO NOT MODIFY the link structure without architecture review.
 -->
 
@@ -24,12 +24,12 @@
       <span class="nav-logo">▸</span>
       <span class="nav-title">Semptify</span>
     </a>
-    
+
     <!-- Core Navigation Links - MANDATORY 5-ITEM STRUCTURE -->
     <ul class="nav-links" role="menubar">
       <li class="nav-item" role="none">
-        <a href="/" 
-           class="nav-link" 
+        <a href="/"
+           class="nav-link"
            role="menuitem"
            {% if active_nav == 'home' %}aria-current="page"{% endif %}
            data-nav="home">
@@ -37,10 +37,10 @@
           <span class="nav-label">Home</span>
         </a>
       </li>
-      
+
       <li class="nav-item" role="none">
-        <a href="/law-library" 
-           class="nav-link" 
+        <a href="/law-library"
+           class="nav-link"
            role="menuitem"
            {% if active_nav == 'library' %}aria-current="page"{% endif %}
            data-nav="library">
@@ -48,10 +48,10 @@
           <span class="nav-label">Library</span>
         </a>
       </li>
-      
+
       <li class="nav-item" role="none">
-        <a href="/office" 
-           class="nav-link" 
+        <a href="/office"
+           class="nav-link"
            role="menuitem"
            {% if active_nav == 'office' %}aria-current="page"{% endif %}
            data-nav="office">
@@ -59,10 +59,10 @@
           <span class="nav-label">Office</span>
         </a>
       </li>
-      
+
       <li class="nav-item" role="none">
-        <a href="/tools" 
-           class="nav-link" 
+        <a href="/tools"
+           class="nav-link"
            role="menuitem"
            {% if active_nav == 'tools' %}aria-current="page"{% endif %}
            data-nav="tools">
@@ -70,10 +70,10 @@
           <span class="nav-label">Tools</span>
         </a>
       </li>
-      
+
       <li class="nav-item" role="none">
-        <a href="/help" 
-           class="nav-link" 
+        <a href="/help"
+           class="nav-link"
            role="menuitem"
            {% if active_nav == 'help' %}aria-current="page"{% endif %}
            data-nav="help">
@@ -82,14 +82,14 @@
         </a>
       </li>
     </ul>
-    
+
     <!-- Optional: Contextual Actions (role-specific) -->
     <div class="nav-actions" id="navActions">
       <!-- Injected via JavaScript based on user context -->
     </div>
-    
+
     <!-- Mobile Menu Toggle -->
-    <button class="nav-toggle" 
+    <button class="nav-toggle"
             aria-label="Toggle navigation menu"
             aria-expanded="false"
             aria-controls="nav-links"
@@ -99,7 +99,7 @@
       <span class="toggle-bar"></span>
     </button>
   </div>
-  
+
   <!-- Mobile Navigation Menu -->
   <div class="nav-mobile" id="navMobile" hidden>
     <ul class="nav-mobile-links">
@@ -116,12 +116,12 @@
   // Main Navigation JavaScript
   (function() {
     'use strict';
-    
+
     // Highlight current page in navigation
     function highlightCurrentNav() {
       const currentPath = window.location.pathname;
       const navLinks = document.querySelectorAll('.nav-link, .nav-mobile-links a');
-      
+
       navLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href === currentPath || currentPath.startsWith(href + '/')) {
@@ -133,20 +133,20 @@
         }
       });
     }
-    
+
     // Toggle mobile navigation
     window.toggleMainNav = function() {
       const toggle = document.querySelector('.nav-toggle');
       const mobile = document.getElementById('navMobile');
       const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-      
+
       toggle.setAttribute('aria-expanded', !isExpanded);
       mobile.hidden = isExpanded;
     };
-    
+
     // Initialize on load
     document.addEventListener('DOMContentLoaded', highlightCurrentNav);
-    
+
     // Update on navigation (for SPAs)
     window.addEventListener('popstate', highlightCurrentNav);
   })();

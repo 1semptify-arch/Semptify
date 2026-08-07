@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, HTTPException, Request
 
 from app.core.request_utils import get_request_user_id
@@ -46,6 +45,7 @@ def _require_roles(request: Request, allowed_roles):
 def get_cases(request: Request):
     _require_roles(request, ["user", "manager", "advocate", "legal", "admin"])
     return list_cases()
+
 
 @router.get("/cases/{case_id}")
 def get_case(case_id: str, request: Request):

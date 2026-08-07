@@ -68,10 +68,11 @@ def get_sitemap_entries() -> list[dict[str, str]]:
     ]
     # Add all registered portal pages
     for page in portal_pages.get_sitemap_pages():
-        entries.append({
-            "path": page.path,
-            "priority": "0.8" if page.id in ("services", "renters_guide") else "0.6",
-            "changefreq": "weekly" if page.id in ("services", "tools") else "monthly",
-        })
+        entries.append(
+            {
+                "path": page.path,
+                "priority": "0.8" if page.id in ("services", "renters_guide") else "0.6",
+                "changefreq": "weekly" if page.id in ("services", "tools") else "monthly",
+            }
+        )
     return entries
-

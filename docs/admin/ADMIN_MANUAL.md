@@ -1,7 +1,7 @@
 # Semptify Admin Manual
 
-**Version:** 1.0  
-**Last Updated:** 2026-06-16  
+**Version:** 1.0
+**Last Updated:** 2026-06-16
 **For:** System Administrators
 
 ---
@@ -1557,7 +1557,7 @@ Include:
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-06-16  
-**Maintained By:** Semptify Development Team  
+**Document Version:** 1.0
+**Last Updated:** 2026-06-16
+**Maintained By:** Semptify Development Team
 **For questions or updates:** admin@semptify.org

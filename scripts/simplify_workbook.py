@@ -8,6 +8,7 @@ self-explanatory for anyone opening it cold:
   - Translates status text to emoji versions
   - Inserts a legend row just below the header row
 """
+
 from pathlib import Path
 
 from openpyxl import load_workbook
@@ -68,7 +69,10 @@ def build_start_here(wb):
         ("body", "🔵  [RI]  =  Look something up. No building — just research. → Ask Gemini or MSN Copilot."),
         ("body", "🟢  [EI]  =  Build something small and simple. → Ask Windsurf (free) or GLM-5.2."),
         ("body", "🟡  [EF]  =  Build something big that touches many parts. → Ask Windsurf Premium."),
-        ("body", "🔴  [JF]  =  Tricky decision. A person must think it through FIRST, then give it to Claude to build."),
+        (
+            "body",
+            "🔴  [JF]  =  Tricky decision. A person must think it through FIRST, then give it to Claude to build.",
+        ),
         ("space", ""),
         ("h", "How to use the Task Queue (step by step):"),
         ("body", "1.  Look at the Status column. Find a row that says ⭐ Not Started or ⏸️ Stuck."),
@@ -126,10 +130,10 @@ def simplify_task_queue(wb):
             status_cell.value = STATUS_MAP[status_cell.value]
 
     # --- Color-code rows by tag ---
-    blue_fill   = PatternFill("solid", fgColor="DDEBF7")
-    green_fill  = PatternFill("solid", fgColor="E2EFDA")
+    blue_fill = PatternFill("solid", fgColor="DDEBF7")
+    green_fill = PatternFill("solid", fgColor="E2EFDA")
     yellow_fill = PatternFill("solid", fgColor="FFF2CC")
-    red_fill    = PatternFill("solid", fgColor="FCE4E4")
+    red_fill = PatternFill("solid", fgColor="FCE4E4")
 
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
         tag_val = str(row[1].value or "")  # column B

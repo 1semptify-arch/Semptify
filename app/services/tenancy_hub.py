@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # ENUMS - Category Classifications
 # =============================================================================
 
+
 class PartyRole(str, Enum):
     TENANT = "tenant"
     LANDLORD = "landlord"
@@ -152,10 +153,10 @@ class IssueCategory(str, Enum):
 
 
 class IssueSeverity(str, Enum):
-    CRITICAL = "critical"      # Immediate health/safety risk
-    HIGH = "high"              # Serious problem requiring urgent attention
-    MEDIUM = "medium"          # Significant issue but not urgent
-    LOW = "low"                # Minor issue
+    CRITICAL = "critical"  # Immediate health/safety risk
+    HIGH = "high"  # Serious problem requiring urgent attention
+    MEDIUM = "medium"  # Significant issue but not urgent
+    LOW = "low"  # Minor issue
     INFORMATIONAL = "informational"  # For record keeping only
 
 
@@ -172,9 +173,11 @@ class CaseStatus(str, Enum):
 # DATA CLASSES - Core Data Structures
 # =============================================================================
 
+
 @dataclass
 class Party:
     """A person or entity involved in the tenancy."""
+
     id: str
     role: PartyRole
     name: str
@@ -224,6 +227,7 @@ class Party:
 @dataclass
 class Property:
     """The rental property details."""
+
     id: str
 
     # Address
@@ -282,6 +286,7 @@ class Property:
 @dataclass
 class LeaseTerms:
     """Lease agreement details."""
+
     id: str
 
     # Dates
@@ -359,6 +364,7 @@ class LeaseTerms:
 @dataclass
 class Payment:
     """A payment record."""
+
     id: str
 
     # Payment Details
@@ -408,6 +414,7 @@ class Payment:
 @dataclass
 class TenancyDocument:
     """A document in the tenancy case."""
+
     id: str
 
     # Document Info
@@ -474,6 +481,7 @@ class TenancyDocument:
 @dataclass
 class TimelineEvent:
     """An event in the tenancy timeline."""
+
     id: str
 
     # Event Details
@@ -537,6 +545,7 @@ class TimelineEvent:
 @dataclass
 class Issue:
     """A problem or complaint in the tenancy."""
+
     id: str
 
     # Issue Details
@@ -602,6 +611,7 @@ class Issue:
 @dataclass
 class LegalCase:
     """A court case related to the tenancy."""
+
     id: str
 
     # Case Info
@@ -682,12 +692,14 @@ class LegalCase:
 # TENANCY CASE - The Master Container
 # =============================================================================
 
+
 @dataclass
 class TenancyCase:
     """
     The master container for all tenancy information.
     This is the central hub that ties everything together.
     """
+
     id: str
     user_id: str
 
@@ -755,6 +767,7 @@ class TenancyCase:
 # TENANCY HUB SERVICE - The Brain
 # =============================================================================
 
+
 class TenancyHubService:
     """
     Central service for managing tenancy cases.
@@ -814,10 +827,12 @@ class TenancyHubService:
             case.landlord = party
 
         # Index the party
-        self._index_entity(case_id, "party", party.id, [
-            party.name, party.email, party.phone, party.address,
-            party.city, party.company_name
-        ])
+        self._index_entity(
+            case_id,
+            "party",
+            party.id,
+            [party.name, party.email, party.phone, party.address, party.city, party.company_name],
+        )
 
         case.updated_at = utc_now().isoformat()
         return party
@@ -840,10 +855,20 @@ class TenancyHubService:
         case.documents[document.id] = document
 
         # Index the document
-        self._index_entity(case_id, "document", document.id, [
-            document.filename, document.title, document.description,
-            document.summary, document.full_text[:1000] if document.full_text else "",
-        ] + document.tags + document.key_points)
+        self._index_entity(
+            case_id,
+            "document",
+            document.id,
+            [
+                document.filename,
+                document.title,
+                document.description,
+                document.summary,
+                document.full_text[:1000] if document.full_text else "",
+            ]
+            + document.tags
+            + document.key_points,
+        )
 
         case.updated_at = utc_now().isoformat()
         return document
@@ -866,11 +891,19 @@ class TenancyHubService:
         case.events[event.id] = event
 
         # Index the event
-        self._index_entity(case_id, "event", event.id, [
-            event.title, event.description, event.location,
-            event.event_type.value if isinstance(event.event_type, EventType) else event.event_type,
-            event.case_number, event.court_name,
-        ])
+        self._index_entity(
+            case_id,
+            "event",
+            event.id,
+            [
+                event.title,
+                event.description,
+                event.location,
+                event.event_type.value if isinstance(event.event_type, EventType) else event.event_type,
+                event.case_number,
+                event.court_name,
+            ],
+        )
 
         case.updated_at = utc_now().isoformat()
         return event
@@ -891,11 +924,18 @@ class TenancyHubService:
         case.payments[payment.id] = payment
 
         # Index the payment
-        self._index_entity(case_id, "payment", payment.id, [
-            payment.payment_type, payment.payment_method,
-            payment.receipt_number, payment.check_number,
-            str(payment.amount),
-        ])
+        self._index_entity(
+            case_id,
+            "payment",
+            payment.id,
+            [
+                payment.payment_type,
+                payment.payment_method,
+                payment.receipt_number,
+                payment.check_number,
+                str(payment.amount),
+            ],
+        )
 
         case.updated_at = utc_now().isoformat()
         return payment
@@ -916,11 +956,18 @@ class TenancyHubService:
         case.issues[issue.id] = issue
 
         # Index the issue
-        self._index_entity(case_id, "issue", issue.id, [
-            issue.title, issue.description,
-            issue.category.value if isinstance(issue.category, IssueCategory) else issue.category,
-            issue.location_in_property, issue.resolution,
-        ])
+        self._index_entity(
+            case_id,
+            "issue",
+            issue.id,
+            [
+                issue.title,
+                issue.description,
+                issue.category.value if isinstance(issue.category, IssueCategory) else issue.category,
+                issue.location_in_property,
+                issue.resolution,
+            ],
+        )
 
         case.updated_at = utc_now().isoformat()
         return issue
@@ -941,10 +988,19 @@ class TenancyHubService:
         case.legal_cases[legal_case.id] = legal_case
 
         # Index the legal case
-        self._index_entity(case_id, "legal_case", legal_case.id, [
-            legal_case.case_number, legal_case.court_name,
-            legal_case.county, legal_case.case_type,
-        ] + legal_case.claims + legal_case.defenses)
+        self._index_entity(
+            case_id,
+            "legal_case",
+            legal_case.id,
+            [
+                legal_case.case_number,
+                legal_case.court_name,
+                legal_case.county,
+                legal_case.case_type,
+            ]
+            + legal_case.claims
+            + legal_case.defenses,
+        )
 
         case.updated_at = utc_now().isoformat()
         return legal_case
@@ -956,12 +1012,12 @@ class TenancyHubService:
     def search(self, case_id: str, query: str, entity_types: list[str] = None) -> dict[str, list[dict[str, Any]]]:
         """
         Search across all entities in a case.
-        
+
         Args:
             case_id: The case to search in
             query: Search query (keywords)
             entity_types: Filter to specific types (party, document, event, payment, issue, legal_case)
-        
+
         Returns:
             Dict mapping entity type to list of matching entities
         """
@@ -1052,7 +1108,7 @@ class TenancyHubService:
     def get_cross_references(self, case_id: str, entity_type: str, entity_id: str) -> dict[str, list[dict[str, Any]]]:
         """
         Get all entities that reference the given entity.
-        
+
         For example, get all documents that reference a specific party,
         or all events related to a specific issue.
         """
@@ -1132,7 +1188,7 @@ class TenancyHubService:
     def get_context_pack(self, case_id: str, context: str) -> dict[str, Any]:
         """
         Get a context-specific pack of information.
-        
+
         Contexts:
         - "court_hearing": All info needed for a court hearing
         - "repair_history": All issues and repairs
@@ -1189,15 +1245,27 @@ class TenancyHubService:
         pack["legal_cases"] = [lc.to_dict() for lc in case.legal_cases.values()]
 
         # Key documents (court filings, notices, evidence)
-        court_docs = [d for d in case.documents.values()
-                      if d.category in [DocumentCategory.COURT_FILING, DocumentCategory.NOTICE,
-                                        DocumentCategory.EVICTION, DocumentCategory.PHOTO_EVIDENCE]]
+        court_docs = [
+            d
+            for d in case.documents.values()
+            if d.category
+            in [
+                DocumentCategory.COURT_FILING,
+                DocumentCategory.NOTICE,
+                DocumentCategory.EVICTION,
+                DocumentCategory.PHOTO_EVIDENCE,
+            ]
+        ]
         pack["key_documents"] = [d.to_dict() for d in court_docs]
 
         # Timeline of court-related events
-        court_events = [e for e in case.events.values()
-                        if e.event_type.value.startswith(('hearing', 'complaint', 'summons',
-                                                          'answer', 'motion', 'order', 'judgment'))]
+        court_events = [
+            e
+            for e in case.events.values()
+            if e.event_type.value.startswith(
+                ("hearing", "complaint", "summons", "answer", "motion", "order", "judgment")
+            )
+        ]
         court_events.sort(key=lambda e: e.event_date or "")
         pack["timeline"] = [e.to_dict() for e in court_events]
 
@@ -1224,9 +1292,14 @@ class TenancyHubService:
         pack["issues"] = [i.to_dict() for i in issues]
 
         # Repair-related events
-        repair_types = [EventType.ISSUE_REPORTED, EventType.REPAIR_REQUESTED,
-                        EventType.REPAIR_SCHEDULED, EventType.REPAIR_COMPLETED,
-                        EventType.INSPECTION_REQUESTED, EventType.INSPECTION_COMPLETED]
+        repair_types = [
+            EventType.ISSUE_REPORTED,
+            EventType.REPAIR_REQUESTED,
+            EventType.REPAIR_SCHEDULED,
+            EventType.REPAIR_COMPLETED,
+            EventType.INSPECTION_REQUESTED,
+            EventType.INSPECTION_COMPLETED,
+        ]
         repair_events = [e for e in case.events.values() if e.event_type in repair_types]
         repair_events.sort(key=lambda e: e.event_date or "")
         pack["repair_events"] = [e.to_dict() for e in repair_events]
@@ -1260,8 +1333,14 @@ class TenancyHubService:
         pack["payments"] = [p.to_dict() for p in payments]
 
         # Payment events
-        payment_types = [EventType.RENT_DUE, EventType.RENT_PAID, EventType.RENT_LATE,
-                         EventType.LATE_FEE_CHARGED, EventType.DEPOSIT_PAID, EventType.DEPOSIT_RETURNED]
+        payment_types = [
+            EventType.RENT_DUE,
+            EventType.RENT_PAID,
+            EventType.RENT_LATE,
+            EventType.LATE_FEE_CHARGED,
+            EventType.DEPOSIT_PAID,
+            EventType.DEPOSIT_RETURNED,
+        ]
         payment_events = [e for e in case.events.values() if e.event_type in payment_types]
         payment_events.sort(key=lambda e: e.event_date or "")
         pack["payment_events"] = [e.to_dict() for e in payment_events]
@@ -1285,18 +1364,28 @@ class TenancyHubService:
         }
 
         # Communication events
-        comm_types = [EventType.EMAIL_SENT, EventType.EMAIL_RECEIVED,
-                      EventType.LETTER_SENT, EventType.LETTER_RECEIVED,
-                      EventType.PHONE_CALL, EventType.TEXT_MESSAGE,
-                      EventType.IN_PERSON_MEETING, EventType.NOTICE_SENT,
-                      EventType.NOTICE_RECEIVED, EventType.NOTICE_POSTED]
+        comm_types = [
+            EventType.EMAIL_SENT,
+            EventType.EMAIL_RECEIVED,
+            EventType.LETTER_SENT,
+            EventType.LETTER_RECEIVED,
+            EventType.PHONE_CALL,
+            EventType.TEXT_MESSAGE,
+            EventType.IN_PERSON_MEETING,
+            EventType.NOTICE_SENT,
+            EventType.NOTICE_RECEIVED,
+            EventType.NOTICE_POSTED,
+        ]
         comm_events = [e for e in case.events.values() if e.event_type in comm_types]
         comm_events.sort(key=lambda e: e.event_date or "")
         pack["communications"] = [e.to_dict() for e in comm_events]
 
         # Correspondence documents
-        docs = [d for d in case.documents.values()
-                if d.category in [DocumentCategory.CORRESPONDENCE, DocumentCategory.NOTICE]]
+        docs = [
+            d
+            for d in case.documents.values()
+            if d.category in [DocumentCategory.CORRESPONDENCE, DocumentCategory.NOTICE]
+        ]
         docs.sort(key=lambda d: d.document_date or "")
         pack["documents"] = [d.to_dict() for d in docs]
 
@@ -1355,6 +1444,7 @@ class TenancyHubService:
     def _generate_id(self, prefix: str) -> str:
         """Generate a unique ID."""
         from app.core.id_gen import make_id
+
         return make_id(prefix)
 
     def _tokenize(self, text: str) -> list[str]:
@@ -1363,7 +1453,7 @@ class TenancyHubService:
             return []
         # Lowercase and split on non-alphanumeric
         text = text.lower()
-        tokens = re.split(r'[^a-z0-9]+', text)
+        tokens = re.split(r"[^a-z0-9]+", text)
         return [t for t in tokens if len(t) > 1]
 
     def _index_entity(self, case_id: str, entity_type: str, entity_id: str, texts: list[str]):
@@ -1379,7 +1469,7 @@ class TenancyHubService:
 
     def _matches(self, entity: Any, terms: list[str]) -> bool:
         """Check if an entity matches search terms."""
-        entity_dict = entity.to_dict() if hasattr(entity, 'to_dict') else entity
+        entity_dict = entity.to_dict() if hasattr(entity, "to_dict") else entity
         entity_text = json.dumps(entity_dict).lower()
 
         # All terms must match

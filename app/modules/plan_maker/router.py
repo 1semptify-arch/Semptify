@@ -46,6 +46,7 @@ router = APIRouter(prefix="/api/plan-maker", tags=["Plan Maker"])
 # Request / Response Schemas
 # =============================================================================
 
+
 class CreatePlanRequest(BaseModel):
     title: str = ""
     landlord_name: str = ""
@@ -64,6 +65,7 @@ class PlanStateRequest(BaseModel):
     The client submits the current plan state (from vault) when making
     mutations — stateless design, no server-side plan storage.
     """
+
     plan: dict
 
 
@@ -77,6 +79,7 @@ class AddEntityRequest(BaseModel):
 
 class AddEntityBody(PlanStateRequest):
     """Combined body: current plan state + entity fields."""
+
     name: str
     role: str = ""
     address: str = ""
@@ -86,6 +89,7 @@ class AddEntityBody(PlanStateRequest):
 
 class AddEvidenceBody(PlanStateRequest):
     """Combined body: current plan state + evidence fields."""
+
     description: str
     vault_id: str | None = None
     date_obtained: str | None = None
@@ -94,6 +98,7 @@ class AddEvidenceBody(PlanStateRequest):
 
 class AddStepBody(PlanStateRequest):
     """Combined body: current plan state + step fields."""
+
     action: str
     due_date: str | None = None
     notes: str = ""
@@ -102,6 +107,7 @@ class AddStepBody(PlanStateRequest):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/plans", summary="Create a new accountability plan")
 async def create_accountability_plan(
@@ -208,8 +214,13 @@ async def add_entity_to_plan(
     if plan.plan_id != plan_id or plan.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    entity_data = {"name": body.name, "role": body.role, "address": body.address,
-                   "registered_agent": body.registered_agent, "notes": body.notes}
+    entity_data = {
+        "name": body.name,
+        "role": body.role,
+        "address": body.address,
+        "registered_agent": body.registered_agent,
+        "notes": body.notes,
+    }
     updated = add_entity(plan, EntityRecord(**entity_data))
     return {"plan": updated.to_dict()}
 
@@ -231,8 +242,12 @@ async def add_evidence_to_plan(
     if plan.plan_id != plan_id or plan.user_id != user.user_id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    item_data = {"description": body.description, "vault_id": body.vault_id,
-                 "date_obtained": body.date_obtained, "status": body.status}
+    item_data = {
+        "description": body.description,
+        "vault_id": body.vault_id,
+        "date_obtained": body.date_obtained,
+        "status": body.status,
+    }
     updated = add_evidence(plan, EvidenceItem(**item_data))
     return {"plan": updated.to_dict()}
 
@@ -291,6 +306,7 @@ async def get_default_steps() -> dict:
     Useful for UI autocomplete or template display.
     """
     from .service import DEFAULT_MODULES, DEFAULT_NEXT_STEPS
+
     return {
         "default_steps": DEFAULT_NEXT_STEPS,
         "default_modules": DEFAULT_MODULES,

@@ -1,14 +1,15 @@
 # app/crawlers/sos.py
+
 from playwright.async_api import async_playwright
-from typing import Dict, Optional
 
 MN_SOS_SEARCH_URL = "https://mblsportal.sos.mn.gov/Business/Search"
 ND_SOS_SEARCH_URL = "https://firststop.sos.nd.gov/search/business"
 
-async def fetch_entity_from_sos(name: str, state: str = "MN") -> Optional[Dict]:
+
+async def fetch_entity_from_sos(name: str, state: str = "MN") -> dict | None:
     """
     Fetch entity information from Secretary of State business search.
-    
+
     Supports MN and ND SOS portals.
     """
     if state == "MN":
@@ -18,14 +19,14 @@ async def fetch_entity_from_sos(name: str, state: str = "MN") -> Optional[Dict]:
     else:
         return None
 
-async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
+
+async def fetch_mn_sos_entity(name: str) -> dict | None:
     """
     Fetch entity from Minnesota Secretary of State Business & Liens Portal.
     """
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-blink-features=AutomationControlled"]
+            headless=True, args=["--no-sandbox", "--disable-blink-features=AutomationControlled"]
         )
         context = await browser.new_context(
             user_agent=(
@@ -64,9 +65,9 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
 
             if not search_input:
                 raise ValueError("Could not find search input field")
-            
+
             await search_input.fill(name)
-            
+
             # Find and click search button
             search_button_selectors = [
                 "input[type='submit'][value*='Search']",
@@ -77,7 +78,7 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                 "#btnSearch",
                 "#ctl00_ContentPlaceHolder1_btnSearch",
             ]
-            
+
             search_button = None
             for selector in search_button_selectors:
                 try:
@@ -86,16 +87,16 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                         break
                 except Exception:
                     continue
-            
+
             if not search_button:
                 raise ValueError("Could not find search button")
-            
+
             await search_button.click()
-            
+
             # Wait for results
             await page.wait_for_load_state("networkidle", timeout=15000)
             await page.wait_for_timeout(2000)
-            
+
             # Look for results table or grid
             results_selectors = [
                 "table[id*='Results']",
@@ -105,7 +106,7 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                 ".results-table",
                 ".grid-view",
             ]
-            
+
             results_container = None
             for selector in results_selectors:
                 try:
@@ -114,7 +115,7 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                         break
                 except Exception:
                     continue
-            
+
             if not results_container:
                 # Try to find any table with rows
                 tables = await page.query_selector_all("table")
@@ -123,10 +124,10 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                     if len(rows) > 1:
                         results_container = table
                         break
-            
+
             if not results_container:
                 return None
-            
+
             rows = await results_container.query_selector_all("tr")
 
             # Skip header row
@@ -191,22 +192,23 @@ async def fetch_mn_sos_entity(name: str) -> Optional[Dict]:
                 "filing_date": filing_date,
                 "status": status,
             }
-            
+
         finally:
             await browser.close()
 
-async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
+
+async def fetch_nd_sos_entity(name: str) -> dict | None:
     """
     Fetch entity from North Dakota Secretary of State FirstStop portal.
     """
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
-        
+
         try:
             await page.goto(ND_SOS_SEARCH_URL, wait_until="networkidle")
             await page.wait_for_timeout(2000)
-            
+
             # ND SOS search input
             search_input_selectors = [
                 "input[name='search']",
@@ -216,7 +218,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                 "#search",
                 "input[type='text']",
             ]
-            
+
             search_input = None
             for selector in search_input_selectors:
                 try:
@@ -225,12 +227,12 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                         break
                 except Exception:
                     continue
-            
+
             if not search_input:
                 raise ValueError("Could not find search input field")
-            
+
             await search_input.fill(name)
-            
+
             # Find and click search button
             search_button_selectors = [
                 "button[type='submit']",
@@ -238,7 +240,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                 "input[type='submit']",
                 "#search-button",
             ]
-            
+
             search_button = None
             for selector in search_button_selectors:
                 try:
@@ -247,16 +249,16 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                         break
                 except Exception:
                     continue
-            
+
             if not search_button:
                 raise ValueError("Could not find search button")
-            
+
             await search_button.click()
-            
+
             # Wait for results
             await page.wait_for_load_state("networkidle", timeout=15000)
             await page.wait_for_timeout(2000)
-            
+
             # Look for results
             results_selectors = [
                 "table.results",
@@ -264,7 +266,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                 ".business-results",
                 ".results-list",
             ]
-            
+
             results_container = None
             for selector in results_selectors:
                 try:
@@ -273,7 +275,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                         break
                 except Exception:
                     continue
-            
+
             if not results_container:
                 # Try to find any table with rows
                 tables = await page.query_selector_all("table")
@@ -282,33 +284,33 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                     if len(rows) > 1:
                         results_container = table
                         break
-            
+
             if not results_container:
                 return None
-            
+
             rows = await results_container.query_selector_all("tr")
             data_rows = rows[1:] if len(rows) > 1 else rows
-            
+
             if not data_rows:
                 return None
-            
+
             first_row = data_rows[0]
             cells = await first_row.query_selector_all("td")
-            
+
             if len(cells) < 2:
                 return None
-            
+
             entity_name = (await cells[0].inner_text()).strip() if len(cells) > 0 else ""
             entity_type = (await cells[1].inner_text()).strip() if len(cells) > 1 else ""
             sos_id = (await cells[2].inner_text()).strip() if len(cells) > 2 else ""
-            
+
             # Click into detail page
             detail_link = await cells[0].query_selector("a")
             if detail_link:
                 await detail_link.click()
                 await page.wait_for_load_state("networkidle", timeout=15000)
                 await page.wait_for_timeout(2000)
-                
+
                 registered_agent = await extract_field(page, ["Registered Agent", "Agent"])
                 address = await extract_field(page, ["Address", "Registered Office"])
                 filing_date = await extract_field(page, ["Filing Date", "Date Filed"])
@@ -318,7 +320,7 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                 address = ""
                 filing_date = None
                 status = ""
-            
+
             return {
                 "name": entity_name,
                 "type": entity_type,
@@ -328,9 +330,10 @@ async def fetch_nd_sos_entity(name: str) -> Optional[Dict]:
                 "filing_date": filing_date,
                 "status": status,
             }
-            
+
         finally:
             await browser.close()
+
 
 async def extract_field(page, field_labels: list) -> str:
     """
@@ -353,7 +356,7 @@ async def extract_field(page, field_labels: list) -> str:
                     }
                     return null;
                 }""",
-                label
+                label,
             )
             if value:
                 return value
@@ -370,7 +373,7 @@ async def extract_field(page, field_labels: list) -> str:
                     }
                     return null;
                 }""",
-                label
+                label,
             )
             if value:
                 return value
@@ -379,8 +382,7 @@ async def extract_field(page, field_labels: list) -> str:
             label_element = await page.query_selector(f"text={label}")
             if label_element:
                 value = await page.evaluate(
-                    "el => el.nextElementSibling ? el.nextElementSibling.textContent.trim() : ''",
-                    label_element
+                    "el => el.nextElementSibling ? el.nextElementSibling.textContent.trim() : ''", label_element
                 )
                 if value:
                     return value

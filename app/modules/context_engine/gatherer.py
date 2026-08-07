@@ -70,14 +70,16 @@ async def gather_for_subject(
                 source_url = resp.get("source_url", "")
                 if not source_url:
                     return facts
-                facts.append(await upsert_fact(
-                    subject=subject,
-                    jurisdiction=jurisdiction,
-                    claim=resp.get("title") or f"Minn. Stat. § {section}",
-                    source_url=source_url,
-                    source_name="MN Revisor of Statutes",
-                    citation=f"Minn. Stat. § {section}",
-                ))
+                facts.append(
+                    await upsert_fact(
+                        subject=subject,
+                        jurisdiction=jurisdiction,
+                        claim=resp.get("title") or f"Minn. Stat. § {section}",
+                        source_url=source_url,
+                        source_name="MN Revisor of Statutes",
+                        citation=f"Minn. Stat. § {section}",
+                    )
+                )
 
         elif api_name == "epa_echo_lookup":
             resp = await registry.violations.environmental_violations(query or "")
@@ -85,14 +87,16 @@ async def gather_for_subject(
             if resp.get("status") == "ok" and source_url:
                 for f in resp.get("facilities", [])[:3]:
                     name = f.get("name") or f.get("FacilityName") or "Unknown facility"
-                    facts.append(await upsert_fact(
-                        subject=subject,
-                        jurisdiction=jurisdiction,
-                        claim=f"Environmental record: {name}",
-                        source_url=source_url,
-                        source_name="EPA ECHO",
-                        citation=f.get("registry_id") or f.get("RegistryId"),
-                    ))
+                    facts.append(
+                        await upsert_fact(
+                            subject=subject,
+                            jurisdiction=jurisdiction,
+                            claim=f"Environmental record: {name}",
+                            source_url=source_url,
+                            source_name="EPA ECHO",
+                            citation=f.get("registry_id") or f.get("RegistryId"),
+                        )
+                    )
 
         elif api_name == "court_listener_search":
             resp = await registry.courts.fetch_federal_cases(query or subject)
@@ -104,14 +108,16 @@ async def gather_for_subject(
                     claim = f"Federal case: {case_name}"
                     if snippet:
                         claim = f"{claim} — {snippet[:200]}"
-                    facts.append(await upsert_fact(
-                        subject=subject,
-                        jurisdiction=jurisdiction,
-                        claim=claim,
-                        source_url=source_url,
-                        source_name="CourtListener",
-                        citation=c.get("case_number") or c.get("docket_number"),
-                    ))
+                    facts.append(
+                        await upsert_fact(
+                            subject=subject,
+                            jurisdiction=jurisdiction,
+                            claim=claim,
+                            source_url=source_url,
+                            source_name="CourtListener",
+                            citation=c.get("case_number") or c.get("docket_number"),
+                        )
+                    )
 
         elif api_name == "hud_fair_housing":
             resp = await registry.courts.fetch_federal_cases(query or "fair housing")
@@ -123,14 +129,16 @@ async def gather_for_subject(
                     claim = f"Fair housing case: {case_name}"
                     if snippet:
                         claim = f"{claim} — {snippet[:200]}"
-                    facts.append(await upsert_fact(
-                        subject=subject,
-                        jurisdiction=jurisdiction,
-                        claim=claim,
-                        source_url=source_url,
-                        source_name="CourtListener / Fair Housing",
-                        citation=c.get("case_number") or c.get("docket_number"),
-                    ))
+                    facts.append(
+                        await upsert_fact(
+                            subject=subject,
+                            jurisdiction=jurisdiction,
+                            claim=claim,
+                            source_url=source_url,
+                            source_name="CourtListener / Fair Housing",
+                            citation=c.get("case_number") or c.get("docket_number"),
+                        )
+                    )
 
         elif api_name == "mncourts_search":
             resp = await registry.courts.search_evictions(query or "eviction")
@@ -138,14 +146,16 @@ async def gather_for_subject(
             if resp.get("status") == "ok" and source_url:
                 for c in resp.get("cases", [])[:3]:
                     case_name = c.get("case_name") or "Unknown case"
-                    facts.append(await upsert_fact(
-                        subject=subject,
-                        jurisdiction=jurisdiction,
-                        claim=f"Court record: {case_name}",
-                        source_url=source_url,
-                        source_name="MN Courts",
-                        citation=c.get("docket_number") or c.get("case_number"),
-                    ))
+                    facts.append(
+                        await upsert_fact(
+                            subject=subject,
+                            jurisdiction=jurisdiction,
+                            claim=f"Court record: {case_name}",
+                            source_url=source_url,
+                            source_name="MN Courts",
+                            citation=c.get("docket_number") or c.get("case_number"),
+                        )
+                    )
 
     except Exception as e:
         logger.warning("Gatherer for %s failed: %s", subject, e)

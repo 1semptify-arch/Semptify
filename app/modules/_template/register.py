@@ -4,6 +4,7 @@ Module Template — Registration Helper
 Call `register_template_module(app)` from main.py to register this module.
 Replace 'template' with your module name.
 """
+
 from app.core.semptify_internal_sdk import (
     ModuleCapability,
     ModuleManifest,

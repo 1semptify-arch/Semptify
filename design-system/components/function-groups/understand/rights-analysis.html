@@ -10,14 +10,14 @@
 {% set show_confidence = show_confidence|default(true) %}
 {% set show_actions = show_actions|default(true) %}
 
-<div class="understand-rights-analysis role-{{ role }}" 
+<div class="understand-rights-analysis role-{{ role }}"
      id="{{ component_id }}"
      data-function-group="{{ function_group }}"
      data-role="{{ role }}"
      data-auto-analyze="{{ auto_analyze|lower }}"
      data-show-confidence="{{ show_confidence|lower }}"
      data-show-actions="{{ show_actions|lower }}">
-  
+
   <div class="rights-header">
     <div class="rights-icon">+</div>
     <div>
@@ -25,7 +25,7 @@
       <div class="rights-subtitle">AI-powered detection of your tenant rights and risks</div>
     </div>
   </div>
-  
+
   <div class="rights-controls">
     <button class="rights-refresh-btn" id="{{ component_id }}_refresh_btn">
       Refresh Analysis
@@ -34,7 +34,7 @@
       Analyzing case data...
     </div>
   </div>
-  
+
   <div class="rights-content" id="{{ component_id }}_content">
     <div class="rights-loading">
       <div class="rights-loading-spinner"></div>
@@ -44,7 +44,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-auto-analyze="{{ auto_analyze|lower }}"
@@ -63,44 +63,44 @@ document.addEventListener('DOMContentLoaded', function() {
     showConfidence: configEl.dataset.showConfidence === 'true',
     showActions: configEl.dataset.showActions === 'true'
   };
-  
+
   // Get DOM elements
   const component = document.getElementById(config.componentId);
   const content = document.getElementById(config.componentId + '_content');
   const refreshBtn = document.getElementById(config.componentId + '_refresh_btn');
   const status = document.getElementById(config.componentId + '_status');
-  
+
   // State
   let analysisData = null;
   let isAnalyzing = false;
-  
+
   // Initialize
   initRightsAnalysis();
-  
+
   function initRightsAnalysis() {
     // Set up event listeners
     refreshBtn.addEventListener('click', handleRefresh);
-    
+
     // Load initial analysis
     if (config.autoAnalyze) {
       performAnalysis();
     }
   }
-  
+
   function handleRefresh() {
     if (!isAnalyzing) {
       performAnalysis();
     }
   }
-  
+
   function performAnalysis() {
     isAnalyzing = true;
     refreshBtn.disabled = true;
-    
+
     // Update status
     status.className = 'rights-status analyzing';
     status.textContent = 'Analyzing case data...';
-    
+
     // Show loading state
     content.innerHTML = `
       <div class="rights-loading">
@@ -108,21 +108,21 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="rights-loading-text">Analyzing your case for rights and risks...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       analysisData = generateMockAnalysisData();
       renderAnalysis();
-      
+
       // Update status
       status.className = 'rights-status complete';
       status.textContent = 'Analysis complete';
-      
+
       isAnalyzing = false;
       refreshBtn.disabled = false;
     }, 2000);
   }
-  
+
   function generateMockAnalysisData() {
     return {
       summary: {
@@ -231,10 +231,10 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     };
   }
-  
+
   function renderAnalysis() {
     if (!analysisData) return;
-    
+
     const html = `
       <div class="rights-summary">
         <div class="rights-summary-title">Rights Overview</div>
@@ -257,11 +257,11 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         </div>
       </div>
-      
+
       <div class="rights-categories">
         ${analysisData.categories.map(category => createCategoryHTML(category)).join('')}
       </div>
-      
+
       ${config.showActions ? `
         <div class="rights-actions">
           <button class="rights-action-btn primary" onclick="handleViewDetails()">
@@ -273,11 +273,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       ` : ''}
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function createCategoryHTML(category) {
     return `
       <div class="rights-category">
@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function createItemHTML(item) {
     return `
       <div class="rights-item" data-item-id="${item.id}" data-status="${item.status}">
@@ -312,13 +312,13 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function getConfidenceLevel(confidence) {
     if (confidence >= 0.8) return 'high';
     if (confidence >= 0.6) return 'medium';
     return 'low';
   }
-  
+
   function attachEventListeners() {
     // Item click handlers
     const itemElements = content.querySelectorAll('.rights-item');
@@ -328,14 +328,14 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleItemClick(itemEl) {
     const itemId = itemEl.dataset.itemId;
-    const category = analysisData.categories.find(cat => 
+    const category = analysisData.categories.find(cat =>
       cat.items.some(item => item.id === itemId)
     );
     const item = category ? category.items.find(item => item.id === itemId) : null;
-    
+
     if (item) {
       // Emit rights item selection event
       const rightsEvent = new CustomEvent('understand-rights-select', {
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(rightsEvent);
     }
   }
-  
+
   function handleViewDetails() {
     // Emit view details event
     const detailsEvent = new CustomEvent('understand-rights-details', {
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(detailsEvent);
   }
-  
+
   function handleExportReport() {
     // Emit export report event
     const exportEvent = new CustomEvent('understand-rights-export', {
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(exportEvent);
   }
-  
+
   // Make action functions available globally
   window.handleViewDetails = handleViewDetails;
   window.handleExportReport = handleExportReport;

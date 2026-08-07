@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 BASE_URL = "http://localhost:8000"
 STATIC_DIR = Path("static")
 
+
 @dataclass
 class Issue:
     severity: str  # error, warning, info
@@ -25,6 +26,7 @@ class Issue:
     description: str
     element: str = ""
     line_hint: str = ""
+
 
 @dataclass
 class CrawlReport:
@@ -36,6 +38,7 @@ class CrawlReport:
     js_errors: list[dict] = field(default_factory=list)
     missing_elements: list[dict] = field(default_factory=list)
     api_errors: list[dict] = field(default_factory=list)
+
 
 class GUICrawler:
     def __init__(self, base_url: str = BASE_URL):
@@ -68,9 +71,9 @@ class GUICrawler:
 
         try:
             # Handle relative URLs
-            if url.startswith('/'):
+            if url.startswith("/"):
                 full_url = f"{self.base_url}{url}"
-            elif url.startswith('http'):
+            elif url.startswith("http"):
                 full_url = url
             else:
                 return True  # Skip anchors, javascript:, etc
@@ -78,33 +81,23 @@ class GUICrawler:
             async with self.session.get(full_url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                 self.report.links_checked += 1
                 if resp.status >= 400:
-                    self.report.broken_links.append({
-                        "url": url,
-                        "status": resp.status,
-                        "source": source_page
-                    })
-                    self.report.issues.append(Issue(
-                        severity="error",
-                        page=source_page,
-                        issue_type="broken_link",
-                        description=f"Broken link: {url} (HTTP {resp.status})",
-                        element=f'href="{url}"'
-                    ))
+                    self.report.broken_links.append({"url": url, "status": resp.status, "source": source_page})
+                    self.report.issues.append(
+                        Issue(
+                            severity="error",
+                            page=source_page,
+                            issue_type="broken_link",
+                            description=f"Broken link: {url} (HTTP {resp.status})",
+                            element=f'href="{url}"',
+                        )
+                    )
                     return False
                 return True
         except TimeoutError:
-            self.report.broken_links.append({
-                "url": url,
-                "status": "timeout",
-                "source": source_page
-            })
+            self.report.broken_links.append({"url": url, "status": "timeout", "source": source_page})
             return False
         except Exception as e:
-            self.report.broken_links.append({
-                "url": url,
-                "status": str(e),
-                "source": source_page
-            })
+            self.report.broken_links.append({"url": url, "status": str(e), "source": source_page})
             return False
 
     async def check_api_endpoint(self, endpoint: str) -> dict:
@@ -119,90 +112,96 @@ class GUICrawler:
                 except Exception:
                     data = await resp.text()
 
-                result = {
-                    "endpoint": endpoint,
-                    "status": resp.status,
-                    "ok": resp.status < 400
-                }
+                result = {"endpoint": endpoint, "status": resp.status, "ok": resp.status < 400}
 
                 if resp.status >= 400:
-                    self.report.api_errors.append({
-                        "endpoint": endpoint,
-                        "status": resp.status,
-                        "response": str(data)[:200]
-                    })
-                    self.report.issues.append(Issue(
-                        severity="error",
-                        page="API",
-                        issue_type="api_error",
-                        description=f"API error: {endpoint} returned {resp.status}"
-                    ))
+                    self.report.api_errors.append(
+                        {"endpoint": endpoint, "status": resp.status, "response": str(data)[:200]}
+                    )
+                    self.report.issues.append(
+                        Issue(
+                            severity="error",
+                            page="API",
+                            issue_type="api_error",
+                            description=f"API error: {endpoint} returned {resp.status}",
+                        )
+                    )
                 return result
         except Exception as e:
-            self.report.api_errors.append({
-                "endpoint": endpoint,
-                "status": "exception",
-                "error": str(e)
-            })
+            self.report.api_errors.append({"endpoint": endpoint, "status": "exception", "error": str(e)})
             return {"endpoint": endpoint, "status": "error", "error": str(e)}
 
     def analyze_html_file(self, filepath: Path) -> list[Issue]:
         """Analyze an HTML file for common issues"""
         issues = []
-        content = filepath.read_text(encoding='utf-8', errors='ignore')
-        soup = BeautifulSoup(content, 'html.parser')
+        content = filepath.read_text(encoding="utf-8", errors="ignore")
+        soup = BeautifulSoup(content, "html.parser")
         page_name = str(filepath)
 
         # Check for [object Object] patterns (common JS bug)
-        if '[object Object]' in content:
-            issues.append(Issue(
-                severity="error",
-                page=page_name,
-                issue_type="object_object",
-                description="Found '[object Object]' text - likely a JS bug displaying object instead of value"
-            ))
+        if "[object Object]" in content:
+            issues.append(
+                Issue(
+                    severity="error",
+                    page=page_name,
+                    issue_type="object_object",
+                    description="Found '[object Object]' text - likely a JS bug displaying object instead of value",
+                )
+            )
 
         # Check for undefined/null in visible text
-        script_tags = soup.find_all('script')
+        script_tags = soup.find_all("script")
         non_script_content = content
         for script in script_tags:
             if script.string:
-                non_script_content = non_script_content.replace(script.string, '')
+                non_script_content = non_script_content.replace(script.string, "")
 
         # Find broken image sources
-        for img in soup.find_all('img'):
-            src = img.get('src', '')
-            if not src or src == '#':
-                issues.append(Issue(
-                    severity="warning",
-                    page=page_name,
-                    issue_type="missing_image",
-                    description="Image tag with missing or empty src",
-                    element=str(img)[:100]
-                ))
+        for img in soup.find_all("img"):
+            src = img.get("src", "")
+            if not src or src == "#":
+                issues.append(
+                    Issue(
+                        severity="warning",
+                        page=page_name,
+                        issue_type="missing_image",
+                        description="Image tag with missing or empty src",
+                        element=str(img)[:100],
+                    )
+                )
 
         # Find onclick handlers calling undefined functions
         onclick_pattern = re.compile(r'onclick="([^"]+)"')
         for match in onclick_pattern.finditer(content):
             handler = match.group(1)
             # Check if function is defined
-            func_name = handler.split('(')[0].strip()
-            if func_name and not re.search(rf'function\s+{func_name}\s*\(', content):
-                if not re.search(rf'{func_name}\s*[:=]\s*(async\s+)?function', content):
-                    if func_name not in ['SemptifyNav', 'SemptifyHelp', 'window', 'document', 'console', 'alert', 'confirm']:
+            func_name = handler.split("(")[0].strip()
+            if func_name and not re.search(rf"function\s+{func_name}\s*\(", content):
+                if not re.search(rf"{func_name}\s*[:=]\s*(async\s+)?function", content):
+                    if func_name not in [
+                        "SemptifyNav",
+                        "SemptifyHelp",
+                        "window",
+                        "document",
+                        "console",
+                        "alert",
+                        "confirm",
+                    ]:
                         # Check if it's a method call
-                        if '.' not in func_name:
-                            issues.append(Issue(
-                                severity="warning",
-                                page=page_name,
-                                issue_type="possible_undefined_function",
-                                description=f"onclick handler '{func_name}' may be undefined",
-                                element=handler
-                            ))
+                        if "." not in func_name:
+                            issues.append(
+                                Issue(
+                                    severity="warning",
+                                    page=page_name,
+                                    issue_type="possible_undefined_function",
+                                    description=f"onclick handler '{func_name}' may be undefined",
+                                    element=handler,
+                                )
+                            )
 
         # Find elements with IDs referenced in JS but not defined
         id_refs = re.findall(r'getElementById\([\'"]([^\'"]+)[\'"]\)', content)
-        defined_ids = set(tag.get('id') for tag in soup.find_all(id=True))
+        defined_ids = set(tag.get("id") for tag in soup.find_all(id=True))
         for id_ref in id_refs:
             if id_ref not in defined_ids:
                 # Could be dynamic, just note it
@@ -212,74 +211,80 @@ class GUICrawler:
         fetch_pattern = re.compile(r'fetch\([\'"]([^\'"]+)[\'"]\)')
         for match in fetch_pattern.finditer(content):
             url = match.group(1)
-            if url.startswith('/api/') or url.startswith('/storage/'):
+            if url.startswith("/api/") or url.startswith("/storage/"):
                 # These are API calls - we'll check them separately
                 pass
 
         # Check for console.error calls (debugging left in)
-        if 'console.error(' in content:
-            issues.append(Issue(
-                severity="info",
-                page=page_name,
-                issue_type="debug_code",
-                description="Contains console.error() calls"
-            ))
-
-        # Check for TODO/FIXME comments
-        todo_pattern = re.compile(r'(TODO|FIXME|XXX|HACK)[:|\s](.+)', re.IGNORECASE)
-        for match in todo_pattern.finditer(content):
-            issues.append(Issue(
-                severity="info",
-                page=page_name,
-                issue_type="todo",
-                description=f"{match.group(1)}: {match.group(2)[:50]}"
-            ))
-
-        # Check for empty href="#" links
-        for a in soup.find_all('a', href='#'):
-            text = a.get_text(strip=True)
-            if text and text not in ['#', '']:
-                issues.append(Issue(
+        if "console.error(" in content:
+            issues.append(
+                Issue(
                     severity="info",
                     page=page_name,
-                    issue_type="placeholder_link",
-                    description=f"Link with href='#': {text[:30]}"
-                ))
+                    issue_type="debug_code",
+                    description="Contains console.error() calls",
+                )
+            )
+
+        # Check for TODO/FIXME comments
+        todo_pattern = re.compile(r"(TODO|FIXME|XXX|HACK)[:|\s](.+)", re.IGNORECASE)
+        for match in todo_pattern.finditer(content):
+            issues.append(
+                Issue(
+                    severity="info",
+                    page=page_name,
+                    issue_type="todo",
+                    description=f"{match.group(1)}: {match.group(2)[:50]}",
+                )
+            )
+
+        # Check for empty href="#" links
+        for a in soup.find_all("a", href="#"):
+            text = a.get_text(strip=True)
+            if text and text not in ["#", ""]:
+                issues.append(
+                    Issue(
+                        severity="info",
+                        page=page_name,
+                        issue_type="placeholder_link",
+                        description=f"Link with href='#': {text[:30]}",
+                    )
+                )
 
         return issues
 
     def extract_links(self, filepath: Path) -> list[str]:
         """Extract all links from an HTML file"""
-        content = filepath.read_text(encoding='utf-8', errors='ignore')
-        soup = BeautifulSoup(content, 'html.parser')
+        content = filepath.read_text(encoding="utf-8", errors="ignore")
+        soup = BeautifulSoup(content, "html.parser")
         links = []
 
-        for a in soup.find_all('a', href=True):
-            href = a['href']
-            if href and not href.startswith(('#', 'javascript:', 'mailto:', 'tel:')):
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if href and not href.startswith(("#", "javascript:", "mailto:", "tel:")):
                 links.append(href)
 
-        for link in soup.find_all('link', href=True):
-            href = link['href']
+        for link in soup.find_all("link", href=True):
+            href = link["href"]
             if href:
                 links.append(href)
 
-        for script in soup.find_all('script', src=True):
-            links.append(script['src'])
+        for script in soup.find_all("script", src=True):
+            links.append(script["src"])
 
         return links
 
     def extract_api_calls(self, filepath: Path) -> list[str]:
         """Extract API endpoints from JavaScript in HTML"""
-        content = filepath.read_text(encoding='utf-8', errors='ignore')
+        content = filepath.read_text(encoding="utf-8", errors="ignore")
         endpoints = set()
 
         # Find fetch() calls
         fetch_pattern = re.compile(r'fetch\([\'"]([^\'"]+)[\'"]\)')
         for match in fetch_pattern.finditer(content):
             url = match.group(1)
-            if url.startswith('/'):
-                endpoints.add(url.split('?')[0])  # Remove query params
+            if url.startswith("/"):
+                endpoints.add(url.split("?")[0])  # Remove query params
 
         return list(endpoints)
 
@@ -295,7 +300,7 @@ class GUICrawler:
         # Extract and check links
         links = self.extract_links(filepath)
         for link in links:
-            if link.startswith('/static/') or link.startswith('/'):
+            if link.startswith("/static/") or link.startswith("/"):
                 await self.check_url(link, page_name)
 
         self.report.pages_checked += 1
@@ -409,7 +414,7 @@ class GUICrawler:
             print("-" * 60)
             for err in r.api_errors:
                 print(f"  {err['endpoint']} → {err['status']}")
-                if 'response' in err:
+                if "response" in err:
                     print(f"    Response: {err['response'][:100]}")
 
         # Save detailed report to JSON
@@ -422,7 +427,7 @@ class GUICrawler:
                 "total_issues": len(r.issues),
                 "errors": len(errors),
                 "warnings": len(warnings),
-                "info": len(infos)
+                "info": len(infos),
             },
             "issues": [
                 {
@@ -430,12 +435,12 @@ class GUICrawler:
                     "page": i.page,
                     "type": i.issue_type,
                     "description": i.description,
-                    "element": i.element
+                    "element": i.element,
                 }
                 for i in r.issues
             ],
             "broken_links": r.broken_links,
-            "api_errors": r.api_errors
+            "api_errors": r.api_errors,
         }
 
         report_path = Path("tools/crawl_report.json")

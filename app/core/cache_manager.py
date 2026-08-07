@@ -21,15 +21,19 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class CacheBackend(Enum):
     """Cache backend types."""
+
     MEMORY = "memory"
     REDIS = "redis"
     FILE = "file"
 
+
 @dataclass
 class CacheEntry:
     """Cache entry with metadata."""
+
     key: str
     value: Any
     expires_at: datetime | None
@@ -67,8 +71,9 @@ class CacheEntry:
             "access_count": self.access_count,
             "last_accessed": self.last_accessed.isoformat() if self.last_accessed else None,
             "size_bytes": self.size_bytes,
-            "tags": self.tags
+            "tags": self.tags,
         }
+
 
 class MemoryCache:
     """In-memory cache backend."""
@@ -106,8 +111,7 @@ class MemoryCache:
             self.hits += 1
             return entry.value
 
-    def set(self, key: str, value: Any, ttl_seconds: int | None = None,
-            tags: list[str] = None) -> bool:
+    def set(self, key: str, value: Any, ttl_seconds: int | None = None, tags: list[str] = None) -> bool:
         """Set value in cache."""
         with self.lock:
             # Calculate expiration
@@ -116,13 +120,7 @@ class MemoryCache:
                 expires_at = utc_now() + timedelta(seconds=ttl_seconds)
 
             # Create entry
-            entry = CacheEntry(
-                key=key,
-                value=value,
-                expires_at=expires_at,
-                created_at=utc_now(),
-                tags=tags or []
-            )
+            entry = CacheEntry(key=key, value=value, expires_at=expires_at, created_at=utc_now(), tags=tags or [])
 
             # Check if we need to evict
             self._ensure_capacity(entry.size_bytes)
@@ -168,8 +166,7 @@ class MemoryCache:
             return
 
         # Find LRU entry
-        lru_key = min(self.cache.keys(),
-                     key=lambda k: self.cache[k].last_accessed)
+        lru_key = min(self.cache.keys(), key=lambda k: self.cache[k].last_accessed)
 
         lru_entry = self.cache.pop(lru_key)
         self.current_size_bytes -= lru_entry.size_bytes
@@ -189,7 +186,7 @@ class MemoryCache:
                 "misses": self.misses,
                 "hit_rate_percent": hit_rate * 100,
                 "evictions": self.evictions,
-                "expirations": self.expirations
+                "expirations": self.expirations,
             }
 
     def get_entries_by_tag(self, tag: str) -> list[CacheEntry]:
@@ -200,8 +197,7 @@ class MemoryCache:
     def delete_by_tag(self, tag: str) -> int:
         """Delete all entries with a specific tag."""
         with self.lock:
-            keys_to_delete = [key for key, entry in self.cache.items()
-                            if tag in entry.tags]
+            keys_to_delete = [key for key, entry in self.cache.items() if tag in entry.tags]
 
             for key in keys_to_delete:
                 entry = self.cache.pop(key)
@@ -209,18 +205,16 @@ class MemoryCache:
 
             return len(keys_to_delete)
 
+
 class CacheManager:
     """Intelligent cache manager with multiple backends."""
 
-    def __init__(self, default_backend: CacheBackend = CacheBackend.MEMORY,
-                 memory_size_mb: int = 100):
+    def __init__(self, default_backend: CacheBackend = CacheBackend.MEMORY, memory_size_mb: int = 100):
         self.default_backend = default_backend
         self.backends: dict[CacheBackend, Any] = {}
 
         # Initialize memory backend
-        self.backends[CacheBackend.MEMORY] = MemoryCache(
-            max_size_mb=memory_size_mb
-        )
+        self.backends[CacheBackend.MEMORY] = MemoryCache(max_size_mb=memory_size_mb)
 
         # Cache policies
         self.default_ttl = 3600  # 1 hour
@@ -245,8 +239,9 @@ class CacheManager:
 
         return value
 
-    async def set(self, key: str, value: Any, ttl_seconds: int | None = None,
-                  backend: CacheBackend = None, tags: list[str] = None) -> bool:
+    async def set(
+        self, key: str, value: Any, ttl_seconds: int | None = None, backend: CacheBackend = None, tags: list[str] = None
+    ) -> bool:
         """Set value in cache."""
         cache_backend = self.get_backend(backend)
         if not cache_backend:
@@ -282,15 +277,15 @@ class CacheManager:
             cache_backend.clear()
             self.operation_counts[f"clear_{backend.value if backend else 'default'}"] += 1
 
-    def cache_result(self, key_prefix: str = None, ttl_seconds: int = None,
-                    backend: CacheBackend = None, tags: list[str] = None):
+    def cache_result(
+        self, key_prefix: str = None, ttl_seconds: int = None, backend: CacheBackend = None, tags: list[str] = None
+    ):
         """Decorator to cache function results."""
+
         def decorator(func):
             async def wrapper(*args, **kwargs):
                 # Generate cache key
-                cache_key = self._generate_cache_key(
-                    func.__name__, args, kwargs, key_prefix
-                )
+                cache_key = self._generate_cache_key(func.__name__, args, kwargs, key_prefix)
 
                 # Try to get from cache
                 cached_result = await self.get(cache_key, backend)
@@ -306,15 +301,13 @@ class CacheManager:
                 return result
 
             return wrapper
+
         return decorator
 
-    def _generate_cache_key(self, func_name: str, args: tuple, kwargs: dict,
-                           prefix: str = None) -> str:
+    def _generate_cache_key(self, func_name: str, args: tuple, kwargs: dict, prefix: str = None) -> str:
         """Generate cache key for function call."""
         # Create hash of arguments
-        args_hash = hashlib.md5(
-            json.dumps([args, kwargs], sort_keys=True, default=str).encode()
-        ).hexdigest()
+        args_hash = hashlib.md5(json.dumps([args, kwargs], sort_keys=True, default=str).encode()).hexdigest()
 
         # Build key
         if prefix:
@@ -325,7 +318,7 @@ class CacheManager:
     async def invalidate_by_tag(self, tag: str, backend: CacheBackend = None) -> int:
         """Invalidate cache entries by tag."""
         cache_backend = self.get_backend(backend)
-        if not cache_backend or not hasattr(cache_backend, 'delete_by_tag'):
+        if not cache_backend or not hasattr(cache_backend, "delete_by_tag"):
             return 0
 
         deleted_count = cache_backend.delete_by_tag(tag)
@@ -335,13 +328,10 @@ class CacheManager:
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
-        stats = {
-            "backends": {},
-            "operations": dict(self.operation_counts)
-        }
+        stats = {"backends": {}, "operations": dict(self.operation_counts)}
 
         for backend_name, backend in self.backends.items():
-            if hasattr(backend, 'get_stats'):
+            if hasattr(backend, "get_stats"):
                 stats["backends"][backend_name.value] = backend.get_stats()
 
         return stats
@@ -349,11 +339,13 @@ class CacheManager:
     async def cleanup_expired(self):
         """Clean up expired entries."""
         for backend_name, backend in self.backends.items():
-            if hasattr(backend, 'cleanup_expired'):
+            if hasattr(backend, "cleanup_expired"):
                 await backend.cleanup_expired()
+
 
 # Global cache manager instance
 _cache_manager: CacheManager | None = None
+
 
 def get_cache_manager() -> CacheManager:
     """Get the global cache manager instance."""
@@ -364,13 +356,15 @@ def get_cache_manager() -> CacheManager:
 
     return _cache_manager
 
+
 # Cache decorators and helpers
 def cache_user_data(ttl_seconds: int = 3600, tags: list[str] = None):
     """Cache user-specific data."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Extract user_id from kwargs or args
-            user_id = kwargs.get('user_id') or (args[0] if args else None)
+            user_id = kwargs.get("user_id") or (args[0] if args else None)
 
             if not user_id:
                 return await func(*args, **kwargs)
@@ -390,14 +384,17 @@ def cache_user_data(ttl_seconds: int = 3600, tags: list[str] = None):
             return result
 
         return wrapper
+
     return decorator
+
 
 def cache_document_data(ttl_seconds: int = 1800, tags: list[str] = None):
     """Cache document-specific data."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Extract document_id from kwargs or args
-            document_id = kwargs.get('document_id') or kwargs.get('vault_id') or (args[0] if args else None)
+            document_id = kwargs.get("document_id") or kwargs.get("vault_id") or (args[0] if args else None)
 
             if not document_id:
                 return await func(*args, **kwargs)
@@ -417,10 +414,13 @@ def cache_document_data(ttl_seconds: int = 1800, tags: list[str] = None):
             return result
 
         return wrapper
+
     return decorator
+
 
 def cache_system_data(ttl_seconds: int = 7200, tags: list[str] = None):
     """Cache system-wide data."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             cache_manager = get_cache_manager()
@@ -438,7 +438,9 @@ def cache_system_data(ttl_seconds: int = 7200, tags: list[str] = None):
             return result
 
         return wrapper
+
     return decorator
+
 
 # Helper functions
 async def cache_get(key: str, backend: CacheBackend = None) -> Any | None:
@@ -446,26 +448,32 @@ async def cache_get(key: str, backend: CacheBackend = None) -> Any | None:
     cache_manager = get_cache_manager()
     return await cache_manager.get(key, backend)
 
-async def cache_set(key: str, value: Any, ttl_seconds: int | None = None,
-                   backend: CacheBackend = None, tags: list[str] = None) -> bool:
+
+async def cache_set(
+    key: str, value: Any, ttl_seconds: int | None = None, backend: CacheBackend = None, tags: list[str] = None
+) -> bool:
     """Set value in cache."""
     cache_manager = get_cache_manager()
     return await cache_manager.set(key, value, ttl_seconds, backend, tags)
+
 
 async def cache_delete(key: str, backend: CacheBackend = None) -> bool:
     """Delete value from cache."""
     cache_manager = get_cache_manager()
     return await cache_manager.delete(key, backend)
 
+
 async def cache_clear(backend: CacheBackend = None):
     """Clear cache."""
     cache_manager = get_cache_manager()
     await cache_manager.clear(backend)
 
+
 def get_cache_stats() -> dict[str, Any]:
     """Get cache statistics."""
     cache_manager = get_cache_manager()
     return cache_manager.get_stats()
+
 
 # Background cleanup task
 async def start_cache_cleanup():

@@ -1,4 +1,5 @@
 """Duplicate Detection Service — Cross-vault duplicate identification via overlays."""
+
 import logging
 
 from app.core.overlay_types import OverlayType
@@ -17,7 +18,7 @@ async def detect_duplicates(
 ) -> dict:
     """
     Detect duplicates across user's vault using overlay system.
-    
+
     Returns dict with:
         - is_duplicate: bool
         - original_vault_id: str (if duplicate)
@@ -43,9 +44,7 @@ async def detect_duplicates(
 
     try:
         # Query for existing duplicate detection overlays with same hash
-        existing_response = await overlay_manager.get_overlays(
-            overlay_type=OverlayType.DUPLICATE_DETECTION
-        )
+        existing_response = await overlay_manager.get_overlays(overlay_type=OverlayType.DUPLICATE_DETECTION)
         existing_overlays = existing_response.overlays if existing_response.success else []
 
         # Check if any overlay has the same hash
@@ -125,7 +124,7 @@ async def detect_duplicates(
 async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
     """
     Get all duplicate groups for a user.
-    
+
     Returns list of duplicate groups, each containing:
         - sha256_hash
         - original_vault_id
@@ -152,9 +151,7 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
 
     try:
         # Get all duplicate detection overlays
-        overlays_response = await overlay_manager.get_overlays(
-            overlay_type=OverlayType.DUPLICATE_DETECTION
-        )
+        overlays_response = await overlay_manager.get_overlays(overlay_type=OverlayType.DUPLICATE_DETECTION)
         overlays = overlays_response.overlays if overlays_response.success else []
 
         # Group by hash
@@ -165,12 +162,14 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
             if hash_val:
                 if hash_val not in hash_groups:
                     hash_groups[hash_val] = []
-                hash_groups[hash_val].append({
-                    "vault_id": overlay.document_id,
-                    "filename": overlay.payload.get("filename"),
-                    "is_duplicate": overlay.payload.get("is_duplicate", False),
-                    "created_at": overlay.payload.get("created_at"),
-                })
+                hash_groups[hash_val].append(
+                    {
+                        "vault_id": overlay.document_id,
+                        "filename": overlay.payload.get("filename"),
+                        "is_duplicate": overlay.payload.get("is_duplicate", False),
+                        "created_at": overlay.payload.get("created_at"),
+                    }
+                )
 
         # Build duplicate groups list
         duplicate_groups = []
@@ -179,13 +178,15 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
                 original = next((d for d in documents if not d.get("is_duplicate")), documents[0])
                 duplicates = [d for d in documents if d.get("is_duplicate")]
 
-                duplicate_groups.append({
-                    "sha256_hash": hash_val,
-                    "original_vault_id": original["vault_id"],
-                    "original_filename": original["filename"],
-                    "duplicate_count": len(documents),
-                    "duplicates": duplicates,
-                })
+                duplicate_groups.append(
+                    {
+                        "sha256_hash": hash_val,
+                        "original_vault_id": original["vault_id"],
+                        "original_filename": original["filename"],
+                        "duplicate_count": len(documents),
+                        "duplicates": duplicates,
+                    }
+                )
 
         return duplicate_groups
 
@@ -201,43 +202,47 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> list[dict]:
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="duplicates",
-        group_name="detect",
-        title="Duplicate Detection (SSOT)",
-        description=(
-            "CANONICAL duplicate detection via detect_duplicates(). "
-            "Creates DUPLICATE_DETECTION overlay for each document. "
-            "Queries existing overlays via get_overlays(overlay_type=DUPLICATE_DETECTION). "
-            "NO get_overlays_by_type method exists. "
-            "FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest."
-        ),
-        inputs=("user_id", "vault_id", "sha256_hash", "filename", "overlay_manager?"),
-        outputs=("is_duplicate", "original_vault_id", "duplicate_count"),
-        dependencies=(
-            "app.services.duplicate_detection_service.detect_duplicates",
-            "app.services.unified_overlay_manager.UnifiedOverlayManager",
-            "app.core.overlay_types.OverlayType.DUPLICATE_DETECTION",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="duplicates",
+            group_name="detect",
+            title="Duplicate Detection (SSOT)",
+            description=(
+                "CANONICAL duplicate detection via detect_duplicates(). "
+                "Creates DUPLICATE_DETECTION overlay for each document. "
+                "Queries existing overlays via get_overlays(overlay_type=DUPLICATE_DETECTION). "
+                "NO get_overlays_by_type method exists. "
+                "FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest."
+            ),
+            inputs=("user_id", "vault_id", "sha256_hash", "filename", "overlay_manager?"),
+            outputs=("is_duplicate", "original_vault_id", "duplicate_count"),
+            dependencies=(
+                "app.services.duplicate_detection_service.detect_duplicates",
+                "app.services.unified_overlay_manager.UnifiedOverlayManager",
+                "app.core.overlay_types.OverlayType.DUPLICATE_DETECTION",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="duplicates",
-        group_name="list_all",
-        title="Duplicate Groups List (SSOT)",
-        description=(
-            "CANONICAL duplicate groups query via get_all_duplicates(). "
-            "Returns groups keyed by sha256_hash with original + duplicates list."
-        ),
-        inputs=("user_id", "overlay_manager?"),
-        outputs=("duplicate_groups",),
-        dependencies=(
-            "app.services.duplicate_detection_service.get_all_duplicates",
-            "app.services.unified_overlay_manager.UnifiedOverlayManager",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="duplicates",
+            group_name="list_all",
+            title="Duplicate Groups List (SSOT)",
+            description=(
+                "CANONICAL duplicate groups query via get_all_duplicates(). "
+                "Returns groups keyed by sha256_hash with original + duplicates list."
+            ),
+            inputs=("user_id", "overlay_manager?"),
+            outputs=("duplicate_groups",),
+            dependencies=(
+                "app.services.duplicate_detection_service.get_all_duplicates",
+                "app.services.unified_overlay_manager.UnifiedOverlayManager",
+            ),
+            deterministic=True,
+        )
+    )
 
 except Exception:
     pass

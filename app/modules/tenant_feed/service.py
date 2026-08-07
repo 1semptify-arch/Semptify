@@ -148,20 +148,22 @@ def _fetch_documents(user_id: str) -> list[dict[str, Any]]:
             uploaded_at = getattr(doc, "uploaded_at", None)
             ts_data = _format_timestamp(uploaded_at)
             item = _empty_item()
-            item.update({
-                "type": "document",
-                "title": getattr(doc, "filename", None) or getattr(doc, "description", None) or "Document",
-                "subtitle": getattr(doc, "description", "") or "",
-                "timestamp_iso": ts_data["timestamp_iso"],
-                "timestamp_label": ts_data["timestamp_label"],
-                "icon": "●",
-                "link": f"/tenant/documents/{getattr(doc, 'vault_id', '')}",
-                "metadata": {
-                    "doc_id": getattr(doc, "vault_id", None),
-                    "doc_type": getattr(doc, "document_type", None),
-                    "filename": getattr(doc, "filename", None),
-                },
-            })
+            item.update(
+                {
+                    "type": "document",
+                    "title": getattr(doc, "filename", None) or getattr(doc, "description", None) or "Document",
+                    "subtitle": getattr(doc, "description", "") or "",
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "●",
+                    "link": f"/tenant/documents/{getattr(doc, 'vault_id', '')}",
+                    "metadata": {
+                        "doc_id": getattr(doc, "vault_id", None),
+                        "doc_type": getattr(doc, "document_type", None),
+                        "filename": getattr(doc, "filename", None),
+                    },
+                }
+            )
             items.append(item)
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: documents fetch failed for %s: %s", user_id, e)
@@ -198,22 +200,24 @@ def _fetch_timeline_events(user_id: str) -> list[dict[str, Any]]:
                     is_deadline = bool(getattr(event, "is_deadline", False))
                     event_type = event.event_type or ""
                     item = _empty_item()
-                    item.update({
-                        "type": "timeline_event",
-                        "title": event.title or "Timeline event",
-                        "subtitle": event.description or "",
-                        "timestamp_iso": ts_data["timestamp_iso"],
-                        "timestamp_label": ts_data["timestamp_label"],
-                        "icon": _feed_icon_for_event_type(event_type, is_evidence),
-                        "link": "/tenant/timeline",
-                        "metadata": {
-                            "event_id": event.id,
-                            "event_type": event_type,
-                            "is_urgent": event.is_urgent if hasattr(event, "is_urgent") else False,
-                            "is_evidence": is_evidence,
-                            "is_deadline": is_deadline,
-                        },
-                    })
+                    item.update(
+                        {
+                            "type": "timeline_event",
+                            "title": event.title or "Timeline event",
+                            "subtitle": event.description or "",
+                            "timestamp_iso": ts_data["timestamp_iso"],
+                            "timestamp_label": ts_data["timestamp_label"],
+                            "icon": _feed_icon_for_event_type(event_type, is_evidence),
+                            "link": "/tenant/timeline",
+                            "metadata": {
+                                "event_id": event.id,
+                                "event_type": event_type,
+                                "is_urgent": event.is_urgent if hasattr(event, "is_urgent") else False,
+                                "is_evidence": is_evidence,
+                                "is_deadline": is_deadline,
+                            },
+                        }
+                    )
                     results.append(item)
             return results
 
@@ -240,9 +244,7 @@ async def aggregate_feed_async(
     inside an event loop.
     """
     if type_filter and type_filter not in FEED_TYPES:
-        raise ValueError(
-            f"Unknown feed type filter: {type_filter}. Valid: {sorted(FEED_TYPES)}"
-        )
+        raise ValueError(f"Unknown feed type filter: {type_filter}. Valid: {sorted(FEED_TYPES)}")
 
     items: list[dict[str, Any]] = []
 
@@ -271,26 +273,29 @@ async def _fetch_documents_async(user_id: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     try:
         from app.services.vault_upload_service import get_vault_service
+
         vault = get_vault_service()
         docs = await vault.get_user_documents(user_id)
         for doc in docs:
             uploaded_at = getattr(doc, "uploaded_at", None)
             ts_data = _format_timestamp(uploaded_at)
             item = _empty_item()
-            item.update({
-                "type": "document",
-                "title": getattr(doc, "filename", None) or getattr(doc, "description", None) or "Document",
-                "subtitle": getattr(doc, "description", "") or "",
-                "timestamp_iso": ts_data["timestamp_iso"],
-                "timestamp_label": ts_data["timestamp_label"],
-                "icon": "●",
-                "link": f"/tenant/documents/{getattr(doc, 'vault_id', '')}",
-                "metadata": {
-                    "doc_id": getattr(doc, "vault_id", None),
-                    "doc_type": getattr(doc, "document_type", None),
-                    "filename": getattr(doc, "filename", None),
-                },
-            })
+            item.update(
+                {
+                    "type": "document",
+                    "title": getattr(doc, "filename", None) or getattr(doc, "description", None) or "Document",
+                    "subtitle": getattr(doc, "description", "") or "",
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "●",
+                    "link": f"/tenant/documents/{getattr(doc, 'vault_id', '')}",
+                    "metadata": {
+                        "doc_id": getattr(doc, "vault_id", None),
+                        "doc_type": getattr(doc, "document_type", None),
+                        "filename": getattr(doc, "filename", None),
+                    },
+                }
+            )
             items.append(item)
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: documents async fetch failed for %s: %s", user_id, e)
@@ -320,22 +325,24 @@ async def _fetch_timeline_events_async(user_id: str) -> list[dict[str, Any]]:
                 is_deadline = bool(getattr(event, "is_deadline", False))
                 event_type = event.event_type or ""
                 item = _empty_item()
-                item.update({
-                    "type": "timeline_event",
-                    "title": event.title or "Timeline event",
-                    "subtitle": event.description or "",
-                    "timestamp_iso": ts_data["timestamp_iso"],
-                    "timestamp_label": ts_data["timestamp_label"],
-                    "icon": _feed_icon_for_event_type(event_type, is_evidence),
-                    "link": "/tenant/timeline",
-                    "metadata": {
-                        "event_id": event.id,
-                        "event_type": event_type,
-                        "is_urgent": bool(getattr(event, "is_urgent", False)),
-                        "is_evidence": is_evidence,
-                        "is_deadline": is_deadline,
-                    },
-                })
+                item.update(
+                    {
+                        "type": "timeline_event",
+                        "title": event.title or "Timeline event",
+                        "subtitle": event.description or "",
+                        "timestamp_iso": ts_data["timestamp_iso"],
+                        "timestamp_label": ts_data["timestamp_label"],
+                        "icon": _feed_icon_for_event_type(event_type, is_evidence),
+                        "link": "/tenant/timeline",
+                        "metadata": {
+                            "event_id": event.id,
+                            "event_type": event_type,
+                            "is_urgent": bool(getattr(event, "is_urgent", False)),
+                            "is_evidence": is_evidence,
+                            "is_deadline": is_deadline,
+                        },
+                    }
+                )
                 items.append(item)
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: timeline async fetch failed for %s: %s", user_id, e)
@@ -365,23 +372,25 @@ async def _fetch_eviction_timeline_events_async(user_id: str) -> list[dict[str, 
                 is_evidence = _is_evidence_event_type(event_type)
                 is_deadline = _is_deadline_event_type(event_type)
                 item = _empty_item()
-                item.update({
-                    "type": "timeline_event",
-                    "title": event_type.replace("_", " ").title() or "Eviction event",
-                    "subtitle": _source_label(event.source),
-                    "timestamp_iso": ts_data["timestamp_iso"],
-                    "timestamp_label": ts_data["timestamp_label"],
-                    "icon": _feed_icon_for_event_type(event_type, is_evidence),
-                    "link": "/tenant/timeline",
-                    "metadata": {
-                        "event_id": event.id,
-                        "event_type": event_type,
-                        "source": event.source,
-                        "is_evidence": is_evidence,
-                        "is_deadline": is_deadline,
-                        "is_urgent": is_deadline,
-                    },
-                })
+                item.update(
+                    {
+                        "type": "timeline_event",
+                        "title": event_type.replace("_", " ").title() or "Eviction event",
+                        "subtitle": _source_label(event.source),
+                        "timestamp_iso": ts_data["timestamp_iso"],
+                        "timestamp_label": ts_data["timestamp_label"],
+                        "icon": _feed_icon_for_event_type(event_type, is_evidence),
+                        "link": "/tenant/timeline",
+                        "metadata": {
+                            "event_id": event.id,
+                            "event_type": event_type,
+                            "source": event.source,
+                            "is_evidence": is_evidence,
+                            "is_deadline": is_deadline,
+                            "is_urgent": is_deadline,
+                        },
+                    }
+                )
                 items.append(item)
     except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Feed: eviction timeline fetch failed for %s: %s", user_id, e)
@@ -414,24 +423,25 @@ def _fetch_journal_entries(user_id: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     try:
         from app.modules.journal.service import list_journal_entries
-        entries = list_journal_entries(user_id) if hasattr(
-            list_journal_entries, "__call__"
-        ) else []
+
+        entries = list_journal_entries(user_id) if hasattr(list_journal_entries, "__call__") else []
         for entry in entries:
             ts_data = _format_timestamp(entry.get("created_at") or entry.get("timestamp"))
             item = _empty_item()
-            item.update({
-                "type": "journal",
-                "title": entry.get("title") or "Journal entry",
-                "subtitle": (entry.get("body") or "")[:120],
-                "timestamp_iso": ts_data["timestamp_iso"],
-                "timestamp_label": ts_data["timestamp_label"],
-                "icon": "○",
-                "link": "/tenant/journal",
-                "metadata": {
-                    "entry_id": entry.get("id"),
-                },
-            })
+            item.update(
+                {
+                    "type": "journal",
+                    "title": entry.get("title") or "Journal entry",
+                    "subtitle": (entry.get("body") or "")[:120],
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "○",
+                    "link": "/tenant/journal",
+                    "metadata": {
+                        "entry_id": entry.get("id"),
+                    },
+                }
+            )
             items.append(item)
     except ImportError:
         # Journal module not available — skip
@@ -446,25 +456,26 @@ def _fetch_deadlines(user_id: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     try:
         from app.modules.deadlines.service import list_deadlines
-        deadlines = list_deadlines(user_id) if hasattr(
-            list_deadlines, "__call__"
-        ) else []
+
+        deadlines = list_deadlines(user_id) if hasattr(list_deadlines, "__call__") else []
         for deadline in deadlines:
             ts_data = _format_timestamp(deadline.get("due_date") or deadline.get("date"))
             item = _empty_item()
-            item.update({
-                "type": "deadline",
-                "title": deadline.get("title") or "Deadline",
-                "subtitle": deadline.get("description") or "",
-                "timestamp_iso": ts_data["timestamp_iso"],
-                "timestamp_label": ts_data["timestamp_label"],
-                "icon": "◆",
-                "link": "/tenant/tools/deadlines",
-                "metadata": {
-                    "deadline_id": deadline.get("id"),
-                    "priority": deadline.get("priority"),
-                },
-            })
+            item.update(
+                {
+                    "type": "deadline",
+                    "title": deadline.get("title") or "Deadline",
+                    "subtitle": deadline.get("description") or "",
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "◆",
+                    "link": "/tenant/tools/deadlines",
+                    "metadata": {
+                        "deadline_id": deadline.get("id"),
+                        "priority": deadline.get("priority"),
+                    },
+                }
+            )
             items.append(item)
     except ImportError:
         pass
@@ -478,25 +489,26 @@ def _fetch_letters(user_id: str) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     try:
         from app.modules.letters.service import list_letters
-        letters = list_letters(user_id) if hasattr(
-            list_letters, "__call__"
-        ) else []
+
+        letters = list_letters(user_id) if hasattr(list_letters, "__call__") else []
         for letter in letters:
             ts_data = _format_timestamp(letter.get("created_at"))
             item = _empty_item()
-            item.update({
-                "type": "letter",
-                "title": letter.get("title") or "Letter",
-                "subtitle": letter.get("recipient") or "",
-                "timestamp_iso": ts_data["timestamp_iso"],
-                "timestamp_label": ts_data["timestamp_label"],
-                "icon": "●",
-                "link": "/tenant/tools/letters",
-                "metadata": {
-                    "letter_id": letter.get("id"),
-                    "letter_type": letter.get("type"),
-                },
-            })
+            item.update(
+                {
+                    "type": "letter",
+                    "title": letter.get("title") or "Letter",
+                    "subtitle": letter.get("recipient") or "",
+                    "timestamp_iso": ts_data["timestamp_iso"],
+                    "timestamp_label": ts_data["timestamp_label"],
+                    "icon": "●",
+                    "link": "/tenant/tools/letters",
+                    "metadata": {
+                        "letter_id": letter.get("id"),
+                        "letter_type": letter.get("type"),
+                    },
+                }
+            )
             items.append(item)
     except ImportError:
         pass
@@ -522,9 +534,7 @@ def aggregate_feed(
         timestamp_label, icon, link, metadata.
     """
     if type_filter and type_filter not in FEED_TYPES:
-        raise ValueError(
-            f"Unknown feed type filter: {type_filter}. Valid: {sorted(FEED_TYPES)}"
-        )
+        raise ValueError(f"Unknown feed type filter: {type_filter}. Valid: {sorted(FEED_TYPES)}")
 
     items: list[dict[str, Any]] = []
 

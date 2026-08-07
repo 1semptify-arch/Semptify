@@ -236,7 +236,7 @@ MN_SOURCES = {
         base_url="https://example.gov",
         source_type=SourceType.LEGAL_AID,
         description="Description of what this source provides",
-        robots_txt="https://example.gov/robots.txt"
+        robots_txt="https://example.gov/robots.txt",
     ),
     # ... existing sources
 }

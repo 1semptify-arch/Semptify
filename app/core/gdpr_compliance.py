@@ -20,24 +20,30 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class ConsentType(Enum):
     """Types of user consent."""
+
     DATA_PROCESSING = "data_processing"
     MARKETING = "marketing"
     ANALYTICS = "analytics"
     COOKIES = "cookies"
     STORAGE = "storage"
 
+
 class ConsentStatus(Enum):
     """Status of user consent."""
+
     GRANTED = "granted"
     DENIED = "denied"
     WITHDRAWN = "withdrawn"
     PENDING = "pending"
 
+
 @dataclass
 class ConsentRecord:
     """Record of user consent."""
+
     consent_type: ConsentType
     status: ConsentStatus
     granted_at: datetime | None
@@ -57,12 +63,14 @@ class ConsentRecord:
             "ip_address": self.ip_address,
             "user_agent": self.user_agent,
             "purpose": self.purpose,
-            "legal_basis": self.legal_basis
+            "legal_basis": self.legal_basis,
         }
+
 
 @dataclass
 class DataSubjectRequest:
     """Data subject access request."""
+
     request_id: str
     user_id: str
     request_type: str  # "access", "portability", "deletion", "rectification"
@@ -72,6 +80,7 @@ class DataSubjectRequest:
     data_export_url: str | None
     error_message: str | None
 
+
 class GDPRComplianceManager:
     """Manages GDPR compliance operations."""
 
@@ -80,14 +89,21 @@ class GDPRComplianceManager:
         self.data_requests: dict[str, DataSubjectRequest] = {}
         self.retention_policies = {
             "documents": timedelta(days=2555),  # 7 years
-            "audit_logs": timedelta(days=1095),   # 3 years
-            "user_data": timedelta(days=2555),   # 7 years
-            "consent_records": timedelta(days=3650)  # 10 years
+            "audit_logs": timedelta(days=1095),  # 3 years
+            "user_data": timedelta(days=2555),  # 7 years
+            "consent_records": timedelta(days=3650),  # 10 years
         }
 
-    def record_consent(self, user_id: str, consent_type: ConsentType,
-                      status: ConsentStatus, ip_address: str, user_agent: str,
-                      purpose: str, legal_basis: str = "legitimate_interest") -> bool:
+    def record_consent(
+        self,
+        user_id: str,
+        consent_type: ConsentType,
+        status: ConsentStatus,
+        ip_address: str,
+        user_agent: str,
+        purpose: str,
+        legal_basis: str = "legitimate_interest",
+    ) -> bool:
         """Record user consent."""
         if user_id not in self.user_consents:
             self.user_consents[user_id] = []
@@ -119,7 +135,7 @@ class GDPRComplianceManager:
                 ip_address=ip_address,
                 user_agent=user_agent,
                 purpose=purpose,
-                legal_basis=legal_basis
+                legal_basis=legal_basis,
             )
             self.user_consents[user_id].append(record)
 
@@ -140,8 +156,7 @@ class GDPRComplianceManager:
 
         return False
 
-    def create_data_request(self, user_id: str, request_type: str,
-                          ip_address: str, user_agent: str) -> str:
+    def create_data_request(self, user_id: str, request_type: str, ip_address: str, user_agent: str) -> str:
         """Create a data subject request."""
         request_id = f"dsr_{utc_now().timestamp()}_{user_id}"
 
@@ -153,7 +168,7 @@ class GDPRComplianceManager:
             status="pending",
             completed_at=None,
             data_export_url=None,
-            error_message=None
+            error_message=None,
         )
 
         self.data_requests[request_id] = request
@@ -209,7 +224,7 @@ class GDPRComplianceManager:
                 "request_id": request.request_id,
                 "user_id": request.user_id,
                 "export_date": utc_now().isoformat(),
-                "data": user_data
+                "data": user_data,
             }
 
             # Save export file
@@ -217,7 +232,7 @@ class GDPRComplianceManager:
             export_path = f"exports/{export_filename}"
             os.makedirs("exports", exist_ok=True)
 
-            with open(export_path, 'w') as f:
+            with open(export_path, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
             request.data_export_url = f"/api/gdpr/export/{request.request_id}"
@@ -236,7 +251,7 @@ class GDPRComplianceManager:
             # Create ZIP file with structured data
             zip_buffer = io.BytesIO()
 
-            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
                 # Add JSON data
                 json_data = json.dumps(user_data, indent=2, default=str)
                 zip_file.writestr("user_data.json", json_data)
@@ -245,7 +260,7 @@ class GDPRComplianceManager:
                 documents = self._get_user_documents(request.user_id)
                 for doc in documents:
                     try:
-                        doc_content = self._get_document_content(doc['id'])
+                        doc_content = self._get_document_content(doc["id"])
                         if doc_content:
                             zip_file.writestr(f"documents/{doc['filename']}", doc_content)
                     except Exception as e:
@@ -261,7 +276,7 @@ class GDPRComplianceManager:
             zip_path = f"exports/{zip_filename}"
             os.makedirs("exports", exist_ok=True)
 
-            with open(zip_path, 'wb') as f:
+            with open(zip_path, "wb") as f:
                 f.write(zip_buffer.getvalue())
 
             request.data_export_url = f"/api/gdpr/portability/{request.request_id}"
@@ -277,10 +292,7 @@ class GDPRComplianceManager:
             from app.core.data_deletion import execute_deletion_request, request_account_deletion
 
             # Create deletion request
-            deletion_request_id = request_account_deletion(
-                user_id=request.user_id,
-                reason="GDPR deletion request"
-            )
+            deletion_request_id = request_account_deletion(user_id=request.user_id, reason="GDPR deletion request")
 
             # Execute deletion
             success = execute_deletion_request(deletion_request_id)
@@ -313,7 +325,7 @@ class GDPRComplianceManager:
             "documents": self._get_user_documents(user_id),
             "audit_events": self._get_user_audit_events(user_id),
             "storage_info": self._get_user_storage_info(user_id),
-            "account_info": self._get_user_account_info(user_id)
+            "account_info": self._get_user_account_info(user_id),
         }
 
         return user_data
@@ -322,6 +334,7 @@ class GDPRComplianceManager:
         """Get user documents metadata."""
         try:
             from app.services.vault_upload_service import get_vault_service
+
             vault_service = get_vault_service()
             documents = vault_service.get_user_documents(user_id)
 
@@ -333,7 +346,7 @@ class GDPRComplianceManager:
                     "mime_type": doc.mime_type,
                     "created_at": doc.created_at.isoformat() if doc.created_at else None,
                     "tags": doc.tags or [],
-                    "provider": doc.provider
+                    "provider": doc.provider,
                 }
                 for doc in documents
             ]
@@ -345,6 +358,7 @@ class GDPRComplianceManager:
         """Get user audit events."""
         try:
             from app.core.audit_logger import get_audit_logger
+
             audit_logger = get_audit_logger()
             events = audit_logger.get_user_events(user_id, limit=1000)
 
@@ -357,6 +371,7 @@ class GDPRComplianceManager:
         """Get user storage information."""
         try:
             from app.services.vault_upload_service import get_vault_service
+
             vault_service = get_vault_service()
 
             documents = vault_service.get_user_documents(user_id)
@@ -367,7 +382,7 @@ class GDPRComplianceManager:
                 "total_size_bytes": total_size,
                 "storage_provider": vault_service.get_user_provider(user_id),
                 "storage_quota_used": total_size / (1024 * 1024 * 1024),  # GB
-                "last_upload": max([doc.created_at for doc in documents]).isoformat() if documents else None
+                "last_upload": max([doc.created_at for doc in documents]).isoformat() if documents else None,
             }
         except Exception as e:
             logger.error(f"Error getting user storage info: {e}")
@@ -423,6 +438,7 @@ class GDPRComplianceManager:
         """Get document content for export."""
         try:
             from app.services.vault_upload_service import get_vault_service
+
             vault_service = get_vault_service()
             return vault_service.get_document_content(document_id)
         except Exception as e:
@@ -486,15 +502,18 @@ class GDPRComplianceManager:
             "total_requests": total_requests,
             "consent_statistics": consent_stats,
             "request_statistics": request_stats,
-            "retention_policies": {k: str(v) for k, v in self.retention_policies.items()}
+            "retention_policies": {k: str(v) for k, v in self.retention_policies.items()},
         }
+
 
 # Global GDPR compliance manager instance
 gdpr_manager = GDPRComplianceManager()
 
+
 def get_gdpr_manager() -> GDPRComplianceManager:
     """Get the global GDPR compliance manager instance."""
     return gdpr_manager
+
 
 # Helper functions for common GDPR operations
 def grant_consent(user_id: str, consent_type: ConsentType, ip_address: str, user_agent: str, purpose: str):
@@ -505,8 +524,9 @@ def grant_consent(user_id: str, consent_type: ConsentType, ip_address: str, user
         status=ConsentStatus.GRANTED,
         ip_address=ip_address,
         user_agent=user_agent,
-        purpose=purpose
+        purpose=purpose,
     )
+
 
 def withdraw_consent(user_id: str, consent_type: ConsentType, ip_address: str, user_agent: str):
     """Withdraw user consent."""
@@ -516,23 +536,19 @@ def withdraw_consent(user_id: str, consent_type: ConsentType, ip_address: str, u
         status=ConsentStatus.WITHDRAWN,
         ip_address=ip_address,
         user_agent=user_agent,
-        purpose="Consent withdrawn"
+        purpose="Consent withdrawn",
     )
+
 
 def create_access_request(user_id: str, ip_address: str, user_agent: str) -> str:
     """Create data access request."""
     return gdpr_manager.create_data_request(
-        user_id=user_id,
-        request_type="access",
-        ip_address=ip_address,
-        user_agent=user_agent
+        user_id=user_id, request_type="access", ip_address=ip_address, user_agent=user_agent
     )
+
 
 def create_deletion_request(user_id: str, ip_address: str, user_agent: str) -> str:
     """Create data deletion request."""
     return gdpr_manager.create_data_request(
-        user_id=user_id,
-        request_type="deletion",
-        ip_address=ip_address,
-        user_agent=user_agent
+        user_id=user_id, request_type="deletion", ip_address=ip_address, user_agent=user_agent
     )

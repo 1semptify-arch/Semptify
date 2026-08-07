@@ -1,8 +1,8 @@
 # CITY OF EAGAN COMPLAINT
 ## Rental Property Violations & Landlord Misconduct
 
-**Eagan City Hall:** 3830 Pilot Knob Road, Eagan, MN 55122  
-**Main Phone:** (651) 675-5000  
+**Eagan City Hall:** 3830 Pilot Knob Road, Eagan, MN 55122
+**Main Phone:** (651) 675-5000
 **Code Enforcement:** (651) 675-5675
 
 ---
@@ -191,5 +191,5 @@ Call (651) 675-5675 first to ask what protections exist for Eagan renters and wh
 
 ---
 
-*Draft prepared: December 24, 2025*  
+*Draft prepared: December 24, 2025*
 *Based on case documents in Semptify*

@@ -4,6 +4,7 @@ External Timeline Client — Phase 3.2a
 Read/create timeline events on behalf of an external module. Enforces
 timeline.read and timeline.write permissions.
 """
+
 import logging
 
 from app.sdk.external.context import ExternalModuleContext
@@ -29,10 +30,13 @@ class TimelineClient:
         target_user = user_id or self._ctx.user_id
         logger.info(
             "ExternalTimeline: module=%s list_events user=%s limit=%d",
-            self._ctx.module_name, target_user[:6] + "...", limit,
+            self._ctx.module_name,
+            target_user[:6] + "...",
+            limit,
         )
         # Delegate to internal timeline service
         from app.modules.timeline.service import list_timeline_events
+
         return await list_timeline_events(
             user_id=target_user,
             limit=limit,
@@ -52,9 +56,12 @@ class TimelineClient:
         target_user = user_id or self._ctx.user_id
         logger.info(
             "ExternalTimeline: module=%s create_event type=%s user=%s",
-            self._ctx.module_name, event_type, target_user[:6] + "...",
+            self._ctx.module_name,
+            event_type,
+            target_user[:6] + "...",
         )
         from app.modules.timeline.service import create_timeline_event
+
         return await create_timeline_event(
             user_id=target_user,
             event_type=event_type,

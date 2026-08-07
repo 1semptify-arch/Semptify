@@ -198,12 +198,12 @@
 
 {% block content %}
 <div class="journal-container">
-    
+
     <div class="journal-header">
         <h1>● Your Journal</h1>
         <a href="/tenant/capture" class="new-entry-btn">+ New Entry</a>
     </div>
-    
+
     {% if entries %}
     <!-- Stats -->
     <div class="stats-bar">
@@ -224,7 +224,7 @@
             <div class="stat-label">Days Recording</div>
         </div>
     </div>
-    
+
     <!-- Filters -->
     <div class="filter-bar">
         <button class="filter-btn active" data-filter="all">All Entries</button>
@@ -233,7 +233,7 @@
         <button class="filter-btn" data-filter="repair">Repairs</button>
         <button class="filter-btn" data-filter="urgent">◆ Urgent</button>
     </div>
-    
+
     <!-- Entries -->
     <div class="entry-list">
         {% for entry in entries %}
@@ -266,7 +266,7 @@
         </article>
         {% endfor %}
     </div>
-    
+
     {% else %}
     <!-- Empty State -->
     <div class="empty-state">
@@ -276,7 +276,7 @@
         <a href="/tenant/capture" class="new-entry-btn">Record Your First Entry</a>
     </div>
     {% endif %}
-    
+
 </div>
 {% endblock %}
 
@@ -290,9 +290,9 @@ filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         filterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
+
         const filter = btn.dataset.filter;
-        
+
         entryCards.forEach(card => {
             if (filter === 'all') {
                 card.style.display = 'block';

@@ -11,7 +11,7 @@ This task list captures the next concrete actions to complete document upload, r
 
 2. Confirm canonical upload endpoint
    - ✅ Verified `POST /api/documents/upload` is the active upload path (unified endpoint with complete processing)
-   - ✅ Removed redundant `app/routers/vault.py` router from `app/main.py` 
+   - ✅ Removed redundant `app/routers/vault.py` router from `app/main.py`
    - ✅ Documented `/api/documents/upload` as the canonical path (provides vault storage + full AI processing)
 
 ## Priority 2 — Strengthen ID and integrity coverage

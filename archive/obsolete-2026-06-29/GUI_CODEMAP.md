@@ -389,10 +389,7 @@ async def my_page():
 # app/routers/my_page.py
 @router.get("/my-page")
 async def my_page(request: Request):
-    return templates.TemplateResponse(
-        "pages/my_page.html",
-        {"request": request, "data": ...}
-    )
+    return templates.TemplateResponse("pages/my_page.html", {"request": request, "data": ...})
 ```
 
 ### Pattern C: Template + Static Fallback

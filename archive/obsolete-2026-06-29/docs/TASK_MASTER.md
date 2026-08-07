@@ -1,7 +1,7 @@
 # Semptify 5.0 - Task Master
 
-**SSOT**: Single Source of Truth for all pending work  
-**Last Updated**: 2026-04-24  
+**SSOT**: Single Source of Truth for all pending work
+**Last Updated**: 2026-04-24
 **Rule**: Update status in real-time as work progresses
 
 ---
@@ -49,8 +49,8 @@ Welcome Page → "Returning User" → /storage/reconnect
 - Onboarding: `static/onboarding/` - NEW users only (COMPLETE - DON'T TOUCH)
 - Reconnect: `static/reconnect/` - RETURNING users only (separate module)
 
-**Status**: ✅ COMPLETE (2026-04-23)  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE (2026-04-23)
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -92,8 +92,8 @@ Welcome Page → "Returning User" → /storage/reconnect
 6. Success animation
 7. Continues to storage-select.html
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -130,8 +130,8 @@ Welcome Page → "Returning User" → /storage/reconnect
 5. Success → storage selection, OR
 6. Pending → continue as tenant temporarily
 
-**Status**: ✅ COMPLETE (with API placeholder for state bar integration)  
-**Blocked By**: None — Ready for production bar verification API  
+**Status**: ✅ COMPLETE (with API placeholder for state bar integration)
+**Blocked By**: None — Ready for production bar verification API
 **Assigned**: Available
 
 ---
@@ -153,8 +153,8 @@ Welcome Page → "Returning User" → /storage/reconnect
 select-role.html → storage-select.html → OAuth → vault-init.html → dashboard
 ```
 
-**Status**: ✅ COMPLETE (2026-04-23)  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE (2026-04-23)
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -185,8 +185,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 | `/admin/dashboard` | `pages/admin_dashboard.html` | `static/admin/dashboard.html` |
 | `/manager` | `pages/manager_dashboard.html` (Task 11) | `static/manager/dashboard.html` |
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -214,8 +214,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - `document_calendar.html` - Document deadline tracking
 - `document-converter.html` - Format conversion tool
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -241,8 +241,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 | `tenant/timeline.html` | Archived | `staticbac/_archive/timelines/` |
 | `office/timeline.html` | Archived | `staticbac/_archive/timelines/` |
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -281,8 +281,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - System alerts
 - User-specific messages
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -325,8 +325,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 - `app/routers/search.py` (existing search API)
 - `alembic/versions/20250424_add_search_indexes.py` (migration)
 
-**Status**: COMPLETE  
-**Blocked By**: None  
+**Status**: COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -365,8 +365,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 | GET | `/preview/{id}/text` | Get text preview |
 | GET | `/preview/info/{id}` | Preview metadata |
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -407,8 +407,8 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 | `GET /api/manager/staff` | Staff/advocate list |
 | `GET /api/manager/activity` | Activity feed |
 
-**Status**: ✅ COMPLETE  
-**Blocked By**: None  
+**Status**: ✅ COMPLETE
+**Blocked By**: None
 **Assigned**: Available
 
 ---
@@ -469,7 +469,7 @@ Jinja2 Template (primary) → Static File (fallback) → 404
 
 **Option B: Add Features**
 - Calendar integration
-- SMS notifications  
+- SMS notifications
 - Mobile app wrapper
 - Analytics dashboard
 

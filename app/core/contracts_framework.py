@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class ContractType(str, Enum):
     """Types of contracts and agreements."""
+
     TERMS_OF_SERVICE = "terms_of_service"
     PRIVACY_POLICY = "privacy_policy"
     DATA_PROCESSING = "data_processing"
@@ -32,6 +33,7 @@ class ContractType(str, Enum):
 
 class ContractStatus(str, Enum):
     """Status of contracts."""
+
     DRAFT = "draft"
     ACTIVE = "active"
     EXPIRED = "expired"
@@ -41,6 +43,7 @@ class ContractStatus(str, Enum):
 
 class ConsentLevel(str, Enum):
     """Levels of user consent."""
+
     NONE = "none"
     IMPLIED = "implied"
     EXPRESS = "express"
@@ -50,6 +53,7 @@ class ConsentLevel(str, Enum):
 
 class Contract(BaseModel):
     """Legal contract or agreement."""
+
     contract_id: str
     contract_type: ContractType
     title: str
@@ -69,6 +73,7 @@ class Contract(BaseModel):
 
 class UserConsent(BaseModel):
     """User consent record."""
+
     consent_id: str
     user_id: str
     contract_id: str
@@ -106,7 +111,7 @@ class ContractsFramework:
                 dependencies=[],
                 created_at=utc_now(),
                 updated_at=utc_now(),
-                created_by="system"
+                created_by="system",
             ),
             "privacy_2024_v1": Contract(
                 contract_id="privacy_2024_v1",
@@ -123,7 +128,7 @@ class ContractsFramework:
                 dependencies=["terms_2024_v1"],
                 created_at=utc_now(),
                 updated_at=utc_now(),
-                created_by="system"
+                created_by="system",
             ),
             "ai_consent_2024_v1": Contract(
                 contract_id="ai_consent_2024_v1",
@@ -140,7 +145,7 @@ class ContractsFramework:
                 dependencies=["privacy_2024_v1"],
                 created_at=utc_now(),
                 updated_at=utc_now(),
-                created_by="system"
+                created_by="system",
             ),
             "data_processing_2024_v1": Contract(
                 contract_id="data_processing_2024_v1",
@@ -157,7 +162,7 @@ class ContractsFramework:
                 dependencies=["privacy_2024_v1"],
                 created_at=utc_now(),
                 updated_at=utc_now(),
-                created_by="system"
+                created_by="system",
             ),
             "mobile_app_2024_v1": Contract(
                 contract_id="mobile_app_2024_v1",
@@ -174,7 +179,7 @@ class ContractsFramework:
                 dependencies=["terms_2024_v1", "privacy_2024_v1"],
                 created_at=utc_now(),
                 updated_at=utc_now(),
-                created_by="system"
+                created_by="system",
             ),
             "plugin_dev_2024_v1": Contract(
                 contract_id="plugin_dev_2024_v1",
@@ -191,7 +196,7 @@ class ContractsFramework:
                 dependencies=["terms_2024_v1"],
                 created_at=utc_now(),
                 updated_at=utc_now(),
-                created_by="system"
+                created_by="system",
             ),
         }
 
@@ -203,11 +208,19 @@ class ContractsFramework:
 
     def get_contracts_by_type(self, contract_type: ContractType) -> list[Contract]:
         """Get all contracts of a specific type."""
-        return [c for c in self.contracts.values() if c.contract_type == contract_type and c.status == ContractStatus.ACTIVE]
+        return [
+            c for c in self.contracts.values() if c.contract_type == contract_type and c.status == ContractStatus.ACTIVE
+        ]
 
-    def record_consent(self, user_id: str, contract_id: str, consent_level: ConsentLevel,
-                      ip_address: str | None = None, user_agent: str | None = None,
-                      metadata: dict[str, Any] | None = None) -> str:
+    def record_consent(
+        self,
+        user_id: str,
+        contract_id: str,
+        consent_level: ConsentLevel,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
         """Record user consent for a contract."""
         contract = self.get_contract(contract_id)
         if not contract:
@@ -224,7 +237,7 @@ class ContractsFramework:
             ip_address=ip_address,
             user_agent=user_agent,
             withdrawn_at=None,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         if user_id not in self.user_consents:

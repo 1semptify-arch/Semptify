@@ -3,9 +3,18 @@
 
 {% block title %}{{ title or 'Error' }} - Semptify{% endblock %}
 
+{% block styles %}
+<style>
+    .container { max-width: 600px; margin: 0 auto; padding: var(--space-md, 1rem); }
+    @media (max-width: 768px) {
+      .container { padding: var(--space-sm, 0.75rem); }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container container--narrow">
-    <div class="card text-center mt-xl">
+    <div class="container text-center mt-xl">
         <div class="error-icon">
             {% if status_code == 404 %}
             ▸

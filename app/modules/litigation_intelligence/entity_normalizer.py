@@ -14,15 +14,18 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class EntityResolution:
     """Result of entity normalization."""
+
     original_name: str
     normalized_name: str
     entity_type: str
     confidence: float
     aliases: list[str]
     metadata: dict[str, Any]
+
 
 class EntityNormalizer:
     """Normalizes and resolves legal entity names."""
@@ -42,26 +45,26 @@ class EntityNormalizer:
                 "canonical": "David A. Schooler",
                 "aliases": ["David Schooler", "D.A. Schooler", "David Schooler Law"],
                 "firm": "Schooler Law Office",
-                "specialties": ["family law", "housing law", "tenant rights"]
+                "specialties": ["family law", "housing law", "tenant rights"],
             },
             "john smith": {
                 "canonical": "John Smith",
                 "aliases": ["John P. Smith", "J.P. Smith", "Jonathan Smith"],
                 "firm": "Smith & Associates",
-                "specialties": ["civil litigation", "real estate law"]
+                "specialties": ["civil litigation", "real estate law"],
             },
             "mary johnson": {
                 "canonical": "Mary Johnson",
                 "aliases": ["Mary A. Johnson", "M.A. Johnson", "Mary Johnson Law"],
                 "firm": "Johnson Legal Group",
-                "specialties": ["tenant rights", "housing discrimination"]
+                "specialties": ["tenant rights", "housing discrimination"],
             },
             "robert williams": {
                 "canonical": "Robert Williams",
                 "aliases": ["Robert P. Williams", "R.P. Williams", "Robert Williams Esq."],
                 "firm": "Williams Law Firm",
-                "specialties": ["eviction defense", "landlord-tenant law"]
-            }
+                "specialties": ["eviction defense", "landlord-tenant law"],
+            },
         }
 
     def _load_property_patterns(self) -> list[dict[str, Any]]:
@@ -70,23 +73,23 @@ class EntityNormalizer:
             {
                 "pattern": r"(.+)\s+(apartments|apartment|apt|apts?)\s+(llc|l\.l\.c\.|limited)",
                 "type": "apartment_complex",
-                "example": "Sunset Apartments LLC"
+                "example": "Sunset Apartments LLC",
             },
             {
                 "pattern": r"(.+)\s+(properties|property|prop)s?\s+(management|mgmt)\s+(llc|l\.l\.c\.|limited)",
                 "type": "property_management",
-                "example": "Green Valley Properties LLC"
+                "example": "Green Valley Properties LLC",
             },
             {
                 "pattern": r"(.+)\s+(homes|housing|developments?)\s+(llc|l\.l\.c\.|limited)",
                 "type": "housing_development",
-                "example": "Maple Grove Homes LLC"
+                "example": "Maple Grove Homes LLC",
             },
             {
                 "pattern": r"(.+)\s+(realty|real\s+estate)\s+(llc|l\.l\.c\.|limited)",
                 "type": "real_estate",
-                "example": "Northern Realty LLC"
-            }
+                "example": "Northern Realty LLC",
+            },
         ]
 
     def _load_developer_patterns(self) -> list[dict[str, Any]]:
@@ -95,28 +98,28 @@ class EntityNormalizer:
             {
                 "pattern": r"(.+)\s+(development|dev)\s+(llc|l\.l\.c\.|limited)",
                 "type": "real_estate_development",
-                "example": "Harbor View Development LLC"
+                "example": "Harbor View Development LLC",
             },
             {
                 "pattern": r"(.+)\s+(construction|builders?|building)\s+(llc|l\.l\.c\.|limited)",
                 "type": "construction",
-                "example": "Summit Construction LLC"
+                "example": "Summit Construction LLC",
             },
             {
                 "pattern": r"(.+)\s+(investments|inv)\s+(llc|l\.l\.c\.|limited)",
                 "type": "investment",
-                "example": "Capital Investments LLC"
-            }
+                "example": "Capital Investments LLC",
+            },
         ]
 
     def normalize_entity(self, entity_name: str, context: str = "general") -> EntityResolution:
         """
         Normalize an entity name to its canonical form.
-        
+
         Args:
             entity_name: Raw entity name to normalize
             context: Context type (attorney, property, developer, general)
-        
+
         Returns:
             EntityResolution with normalized name and confidence
         """
@@ -156,11 +159,16 @@ class EntityNormalizer:
     def _clean_entity_name(self, name: str) -> str:
         """Clean entity name for processing."""
         # Remove common legal suffixes
-        name = re.sub(r'\s+(esq\.?|attorney|law|law\s+office|firm|group|llc|l\.l\.c\.|limited|inc|corp|co\.?)$', '', name, flags=re.IGNORECASE)
+        name = re.sub(
+            r"\s+(esq\.?|attorney|law|law\s+office|firm|group|llc|l\.l\.c\.|limited|inc|corp|co\.?)$",
+            "",
+            name,
+            flags=re.IGNORECASE,
+        )
 
         # Remove punctuation and extra spaces
-        name = re.sub(r'[^\w\s-]', '', name)
-        name = re.sub(r'\s+', ' ', name)
+        name = re.sub(r"[^\w\s-]", "", name)
+        name = re.sub(r"\s+", " ", name)
 
         return name.strip().title()
 
@@ -177,10 +185,7 @@ class EntityNormalizer:
                     entity_type="attorney",
                     confidence=1.0,
                     aliases=attorney_data["aliases"],
-                    metadata={
-                        "firm": attorney_data.get("firm"),
-                        "specialties": attorney_data.get("specialties", [])
-                    }
+                    metadata={"firm": attorney_data.get("firm"), "specialties": attorney_data.get("specialties", [])},
                 )
 
             # Check aliases
@@ -192,7 +197,7 @@ class EntityNormalizer:
                         entity_type="attorney",
                         confidence=0.9,
                         aliases=attorney_data["aliases"],
-                        metadata=attorney_data
+                        metadata=attorney_data,
                     )
 
         # Fuzzy matching for misspellings
@@ -213,7 +218,7 @@ class EntityNormalizer:
                 entity_type="attorney",
                 confidence=best_score,
                 aliases=attorney_data.get("aliases", []),
-                metadata=attorney_data
+                metadata=attorney_data,
             )
 
         # No match found
@@ -223,7 +228,7 @@ class EntityNormalizer:
             entity_type="attorney",
             confidence=0.3,
             aliases=[],
-            metadata={}
+            metadata={},
         )
 
     def _normalize_property_llc(self, name: str) -> EntityResolution:
@@ -241,10 +246,7 @@ class EntityNormalizer:
                     entity_type="property_llc",
                     confidence=0.9,
                     aliases=[entity_name],
-                    metadata={
-                        "llc_type": pattern_data["type"],
-                        "pattern_matched": pattern_data["pattern"]
-                    }
+                    metadata={"llc_type": pattern_data["type"], "pattern_matched": pattern_data["pattern"]},
                 )
 
         # No pattern match
@@ -254,7 +256,7 @@ class EntityNormalizer:
             entity_type="property_llc",
             confidence=0.4,
             aliases=[],
-            metadata={}
+            metadata={},
         )
 
     def _normalize_developer_llc(self, name: str) -> EntityResolution:
@@ -272,10 +274,7 @@ class EntityNormalizer:
                     entity_type="developer_llc",
                     confidence=0.9,
                     aliases=[entity_name],
-                    metadata={
-                        "llc_type": pattern_data["type"],
-                        "pattern_matched": pattern_data["pattern"]
-                    }
+                    metadata={"llc_type": pattern_data["type"], "pattern_matched": pattern_data["pattern"]},
                 )
 
         # No pattern match
@@ -285,16 +284,16 @@ class EntityNormalizer:
             entity_type="developer_llc",
             confidence=0.4,
             aliases=[],
-            metadata={}
+            metadata={},
         )
 
     def _general_normalization(self, name: str) -> EntityResolution:
         """General entity normalization."""
         # Remove common business suffixes
-        clean_name = re.sub(r'\s+(inc|llc|l\.l\.c\.|limited|corp|co\.?)$', '', name, flags=re.IGNORECASE)
+        clean_name = re.sub(r"\s+(inc|llc|l\.l\.c\.|limited|corp|co\.?)$", "", name, flags=re.IGNORECASE)
 
         # Standardize capitalization
-        normalized_name = ' '.join(word.capitalize() for word in clean_name.split())
+        normalized_name = " ".join(word.capitalize() for word in clean_name.split())
 
         return EntityResolution(
             original_name=name,
@@ -302,7 +301,7 @@ class EntityNormalizer:
             entity_type="general",
             confidence=0.5,
             aliases=[normalized_name],
-            metadata={}
+            metadata={},
         )
 
     def _fuzzy_match(self, str1: str, str2: str) -> float:
@@ -319,11 +318,11 @@ class EntityNormalizer:
     def resolve_entities(self, entity_names: list[str], context: str = "general") -> list[EntityResolution]:
         """
         Resolve multiple entities to their normalized forms.
-        
+
         Args:
             entity_names: List of entity names to resolve
             context: Context type for resolution
-        
+
         Returns:
             List of EntityResolution objects
         """
@@ -338,19 +337,14 @@ class EntityNormalizer:
     def get_entity_relationships(self, entities: list[EntityResolution]) -> dict[str, list[str]]:
         """
         Analyze relationships between normalized entities.
-        
+
         Args:
             entities: List of normalized entities
-        
+
         Returns:
             Dictionary mapping entity types to related entities
         """
-        relationships = {
-            "attorneys": [],
-            "properties": [],
-            "developers": [],
-            "general": []
-        }
+        relationships = {"attorneys": [], "properties": [], "developers": [], "general": []}
 
         # Group by entity type
         for entity in entities:
@@ -375,13 +369,15 @@ class EntityNormalizer:
             "attorney_database_size": len(self.attorney_aliases),
             "property_patterns_count": len(self.property_llc_patterns),
             "developer_patterns_count": len(self.developer_llc_patterns),
-            "cache_hit_rate": len(self.entity_cache) / max(1, len(self.entity_cache)) * 100
+            "cache_hit_rate": len(self.entity_cache) / max(1, len(self.entity_cache)) * 100,
         }
+
 
 # Factory function
 def create_entity_normalizer() -> EntityNormalizer:
     """Create entity normalizer instance."""
     return EntityNormalizer()
+
 
 # Example usage
 if __name__ == "__main__":
@@ -395,7 +391,7 @@ if __name__ == "__main__":
         "John P. Smith",
         "Sunset Apartments LLC",
         "Green Valley Properties LLC",
-        "Harbor View Development LLC"
+        "Harbor View Development LLC",
     ]
 
     logger.info("Entity Normalization Test Results:")

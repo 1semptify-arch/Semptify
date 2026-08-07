@@ -34,11 +34,15 @@ class ExternalMapping(Base):
 
     # User and context
     user_id: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
-    mapping_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)  # court_case, property, attorney, agency
+    mapping_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )  # court_case, property, attorney, agency
 
     # External system info
     external_system: Mapped[str] = mapped_column(String(50), nullable=False)  # mn_courts, hennepin_county, hud, etc.
-    external_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)  # Court case number, parcel ID, etc.
+    external_id: Mapped[str] = mapped_column(
+        String(100), nullable=False, index=True
+    )  # Court case number, parcel ID, etc.
     external_url: Mapped[str | None] = mapped_column(String(500), nullable=True)  # Link to external system
 
     # Semptify reference (what internal item this maps to)
@@ -302,7 +306,7 @@ def create_mapping(
     display_name: str | None = None,
     description: str | None = None,
     external_url: str | None = None,
-    verification_source: str | None = None
+    verification_source: str | None = None,
 ) -> ExternalMapping:
     """Create a new external mapping."""
     mapping = ExternalMapping(
@@ -327,20 +331,12 @@ def create_mapping(
 
 
 def get_user_mappings(
-    db_session,
-    user_id: str,
-    mapping_type: str | None = None,
-    status: str = "active"
+    db_session, user_id: str, mapping_type: str | None = None, status: str = "active"
 ) -> list[ExternalMapping]:
     """Get all mappings for a user, optionally filtered by type."""
     from sqlalchemy import and_, select
 
-    query = select(ExternalMapping).where(
-        and_(
-            ExternalMapping.user_id == user_id,
-            ExternalMapping.status == status
-        )
-    )
+    query = select(ExternalMapping).where(and_(ExternalMapping.user_id == user_id, ExternalMapping.status == status))
 
     if mapping_type:
         query = query.where(ExternalMapping.mapping_type == mapping_type)
@@ -350,19 +346,13 @@ def get_user_mappings(
 
 
 def find_by_external_id(
-    db_session,
-    external_system: str,
-    external_id: str,
-    mapping_type: str | None = None
+    db_session, external_system: str, external_id: str, mapping_type: str | None = None
 ) -> ExternalMapping | None:
     """Find mapping by external system ID."""
     from sqlalchemy import and_, select
 
     query = select(ExternalMapping).where(
-        and_(
-            ExternalMapping.external_system == external_system,
-            ExternalMapping.external_id == external_id
-        )
+        and_(ExternalMapping.external_system == external_system, ExternalMapping.external_id == external_id)
     )
 
     if mapping_type:
@@ -372,12 +362,7 @@ def find_by_external_id(
     return result.scalar_one_or_none()
 
 
-def update_mapping_status(
-    db_session,
-    mapping_id: int,
-    status: str,
-    verification_source: str | None = None
-) -> bool:
+def update_mapping_status(db_session, mapping_id: int, status: str, verification_source: str | None = None) -> bool:
     """Update mapping status and verification."""
     from sqlalchemy import select
 

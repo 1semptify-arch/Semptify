@@ -20,6 +20,7 @@ pytestmark = pytest.mark.action_gate
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _auth(uid: str) -> dict:
     return {"cookies": {"semptify_uid": uid}}
 
@@ -27,6 +28,7 @@ def _auth(uid: str) -> dict:
 # ---------------------------------------------------------------------------
 # Gate 1 — Unauthenticated requests are rejected (401/403)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.anyio
 async def test_gate_actions_plan_get_rejects_unauthenticated(client):
@@ -68,6 +70,7 @@ async def test_gate_actions_encouragement_rejects_unauthenticated(client):
 # Gate 2 — Per-user state isolation: different users get separate emotion buckets
 # ---------------------------------------------------------------------------
 
+
 def test_gate_emotion_engine_state_isolated_per_user():
     """
     EmotionEngine.get_state() MUST return independent state objects for each user_id.
@@ -81,9 +84,7 @@ def test_gate_emotion_engine_state_isolated_per_user():
     state_a = emotion_engine.get_state(user_id=uid_a)
     state_b = emotion_engine.get_state(user_id=uid_b)
 
-    assert state_a is not state_b, (
-        "emotion_engine.get_state() returned the same object for two different users"
-    )
+    assert state_a is not state_b, "emotion_engine.get_state() returned the same object for two different users"
 
 
 def test_gate_emotion_engine_mutation_does_not_bleed():
@@ -117,6 +118,7 @@ def test_gate_emotion_engine_mutation_does_not_bleed():
 # Gate 3 — POST /plan no longer uses hardcoded user bucket
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.anyio
 async def test_gate_actions_post_plan_uses_requester_state(client):
     """
@@ -126,14 +128,14 @@ async def test_gate_actions_post_plan_uses_requester_state(client):
     # Without auth — must get rejected
     resp_unauth = await client.post("/api/actions/plan", json={"has_notice": True})
     assert resp_unauth.status_code in (401, 403), (
-        "POST /actions/plan should reject unauthenticated requests, "
-        f"but returned {resp_unauth.status_code}"
+        f"POST /actions/plan should reject unauthenticated requests, but returned {resp_unauth.status_code}"
     )
 
 
 # ---------------------------------------------------------------------------
 # Gate 4 — Stateless endpoints still work without auth
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.anyio
 async def test_gate_actions_stateless_endpoints_accessible(client):
@@ -149,6 +151,5 @@ async def test_gate_actions_stateless_endpoints_accessible(client):
     for url in endpoints:
         resp = await client.get(url)
         assert resp.status_code not in (401, 403), (
-            f"Stateless endpoint {url} is blocking unauthenticated access "
-            f"(returned {resp.status_code})"
+            f"Stateless endpoint {url} is blocking unauthenticated access (returned {resp.status_code})"
         )

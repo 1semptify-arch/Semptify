@@ -108,13 +108,13 @@ async function openVaultUpload() {
   fileInput.type = 'file';
   fileInput.multiple = true;
   fileInput.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.heic,.heif';
-  
+
   fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
       handleVaultFiles(e.target.files);
     }
   });
-  
+
   fileInput.click();
 }
 
@@ -123,7 +123,7 @@ async function openVaultUpload() {
  */
 function handleVaultFiles(files) {
   const filesArray = Array.from(files);
-  
+
   // Build modal with document type selector
   const modalHTML = `
     <div id="vault-capture-modal" class="vault-modal active">
@@ -133,7 +133,7 @@ function handleVaultFiles(files) {
           <h2>● Document Upload (${filesArray.length} file${filesArray.length > 1 ? 's' : ''})</h2>
           <button class="vault-close" onclick="closeVaultCapture()">&times;</button>
         </div>
-        
+
         <div class="vault-capture-body">
           <div class="file-list">
             ${filesArray.map((file, idx) => `
@@ -146,7 +146,7 @@ function handleVaultFiles(files) {
               </div>
             `).join('')}
           </div>
-          
+
           <div class="capture-form">
             <div class="form-group">
               <label class="form-label">Document Type (optional — helps search & timeline)</label>
@@ -158,15 +158,15 @@ function handleVaultFiles(files) {
               </select>
               <p class="type-description" id="type-description"></p>
             </div>
-            
+
             <div id="auto-fields" class="auto-fields"></div>
-            
+
             <div class="form-group">
               <label class="form-label">Description (What happened?)</label>
-              <textarea class="form-input" id="vault-description" rows="3" 
+              <textarea class="form-input" id="vault-description" rows="3"
                 placeholder="Brief description: what is this, why it matters, dates, people involved..."></textarea>
             </div>
-            
+
             <div class="form-group checkbox-group">
               <label class="checkbox-label">
                 <input type="checkbox" id="vault-emergency" value="emergency">
@@ -174,7 +174,7 @@ function handleVaultFiles(files) {
               </label>
             </div>
           </div>
-          
+
           <div class="metadata-preview">
             <h4>◆ Auto-Captured Metadata</h4>
             <ul class="metadata-list">
@@ -188,18 +188,18 @@ function handleVaultFiles(files) {
             </p>
           </div>
         </div>
-        
+
         <div class="vault-storage-info">
           <div class="storage-provider">
             <span>○</span>
             <span>Saving to: <strong>Your Google Drive</strong> (Semptify/Vault/)</span>
           </div>
           <p class="privacy-note">
-            ◆ Your document stays in YOUR storage. Semptify creates an overlay (metadata only) 
+            ◆ Your document stays in YOUR storage. Semptify creates an overlay (metadata only)
             for searching and timeline. Full document never touches our servers.
           </p>
         </div>
-        
+
         <div class="vault-actions">
           <button class="btn btn-secondary" onclick="closeVaultCapture()">Cancel</button>
           <button class="btn btn-secondary" onclick="uploadToVault(${filesArray.length}, true)">
@@ -212,13 +212,13 @@ function handleVaultFiles(files) {
       </div>
     </div>
   `;
-  
+
   // Add to DOM
   const existing = document.getElementById('vault-capture-modal');
   if (existing) existing.remove();
-  
+
   document.body.insertAdjacentHTML('beforeend', modalHTML);
-  
+
   // Store files for upload
   window.vaultPendingFiles = filesArray;
 }
@@ -230,16 +230,16 @@ function updateAutoFields() {
   const type = document.getElementById('vault-doc-type').value;
   const container = document.getElementById('auto-fields');
   const description = document.getElementById('type-description');
-  
+
   if (!type || !DOCUMENT_TYPES[type]) {
     container.innerHTML = '';
     description.textContent = '';
     return;
   }
-  
+
   const docType = DOCUMENT_TYPES[type];
   description.textContent = docType.description;
-  
+
   // Build auto-fields form
   const fieldHTML = docType.autoFields.map(field => {
     const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -250,7 +250,7 @@ function updateAutoFields() {
       </div>
     `;
   }).join('');
-  
+
   container.innerHTML = fieldHTML;
 }
 

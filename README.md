@@ -3,9 +3,9 @@
 Tenant rights protection platform - rebuilt with async-first FastAPI architecture.
 
 > **Empowering tenants with knowledge, organization, and legal tools**
-> 
+>
 > **Version:** 5.0.0 | **Python:** 3.11.9 (MANDATED) | **Status:** Production Ready
-> 
+>
 > Canonical project guide: see `PROJECT_BIBLE.md` for the single source-of-truth hierarchy, build reference rules, and governance.
 
 ## Core Promise
@@ -75,8 +75,8 @@ Copy-Item .env.template .env
 .\start-semptify.ps1
 ```
 
-> **IMPORTANT:** Always use `start-semptify.ps1` to start the application.  
-> This ensures SECURITY_MODE=enforced and all production requirements are met.  
+> **IMPORTANT:** Always use `start-semptify.ps1` to start the application.
+> This ensures SECURITY_MODE=enforced and all production requirements are met.
 > Direct `uvicorn` commands are for emergency debugging only.
 
 ## API Documentation

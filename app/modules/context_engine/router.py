@@ -33,6 +33,7 @@ router = APIRouter(prefix="/api/context", tags=["Context Engine"])
 # Guards
 # =============================================================================
 
+
 def _require_admin(user_id: str) -> None:
     role = get_role_from_user_id(user_id)
     if role != UserRole.ADMIN:
@@ -47,6 +48,7 @@ def _require_authenticated(user_id: str) -> None:
 # =============================================================================
 # Request Models
 # =============================================================================
+
 
 class RefreshRequest(BaseModel):
     subject: str = Field(..., description="One of the 13 subjects")
@@ -77,14 +79,12 @@ class VerifyRequest(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/subjects")
 async def list_subjects():
     """List all 13 subjects with human labels."""
     return {
-        "subjects": [
-            {"value": s, "label": SUBJECT_LABELS.get(s, s)}
-            for s in ALL_SUBJECTS
-        ],
+        "subjects": [{"value": s, "label": SUBJECT_LABELS.get(s, s)} for s in ALL_SUBJECTS],
         "count": len(ALL_SUBJECTS),
     }
 
@@ -267,8 +267,7 @@ async def overview(request: Request):
     counts = await ctx_cache.list_subjects_with_counts()
     return {
         "subjects": [
-            {"value": s, "label": SUBJECT_LABELS.get(s, s), "fact_count": counts.get(s, 0)}
-            for s in ALL_SUBJECTS
+            {"value": s, "label": SUBJECT_LABELS.get(s, s), "fact_count": counts.get(s, 0)} for s in ALL_SUBJECTS
         ],
         "total_subjects": len(ALL_SUBJECTS),
     }

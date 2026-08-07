@@ -17,13 +17,13 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--bg);
@@ -31,12 +31,12 @@
             line-height: 1.6;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 900px;
             margin: 0 auto;
         }
-        
+
         header {
             text-align: center;
             padding: 40px 20px;
@@ -46,17 +46,17 @@
             margin-bottom: 30px;
             box-shadow: 0 10px 40px rgba(37, 99, 235, 0.3);
         }
-        
+
         header h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
         }
-        
+
         header p {
             font-size: 1.1rem;
             opacity: 0.9;
         }
-        
+
         .version-badge {
             display: inline-block;
             background: rgba(255,255,255,0.2);
@@ -65,7 +65,7 @@
             font-size: 0.9rem;
             margin-top: 10px;
         }
-        
+
         .card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -74,7 +74,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             border: 1px solid var(--border);
         }
-        
+
         .card h2 {
             color: var(--primary);
             margin-bottom: 15px;
@@ -82,35 +82,35 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .card h2 .icon {
             font-size: 1.5rem;
         }
-        
+
         .quick-start {
             background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
             border: 2px solid var(--success);
         }
-        
+
         .quick-start h2 {
             color: var(--success);
         }
-        
+
         .steps {
             counter-reset: step;
         }
-        
+
         .step {
             display: flex;
             gap: 15px;
             padding: 15px 0;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .step:last-child {
             border-bottom: none;
         }
-        
+
         .step-number {
             counter-increment: step;
             width: 36px;
@@ -124,21 +124,21 @@
             font-weight: bold;
             flex-shrink: 0;
         }
-        
+
         .step-number::before {
             content: counter(step);
         }
-        
+
         .step-content h3 {
             margin-bottom: 5px;
             color: var(--text);
         }
-        
+
         .step-content p {
             color: var(--text-muted);
             font-size: 0.95rem;
         }
-        
+
         code {
             background: #f1f5f9;
             padding: 3px 8px;
@@ -147,7 +147,7 @@
             font-size: 0.9rem;
             color: var(--primary-dark);
         }
-        
+
         pre {
             background: #1e293b;
             color: #e2e8f0;
@@ -156,13 +156,13 @@
             overflow-x: auto;
             margin: 15px 0;
         }
-        
+
         pre code {
             background: none;
             color: inherit;
             padding: 0;
         }
-        
+
         .file-box {
             display: inline-flex;
             align-items: center;
@@ -173,32 +173,32 @@
             border-radius: 6px;
             margin: 5px 0;
         }
-        
+
         .requirements-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-top: 15px;
         }
-        
+
         .req-item {
             background: var(--bg);
             padding: 15px;
             border-radius: 8px;
             text-align: center;
         }
-        
+
         .req-item .value {
             font-size: 1.5rem;
             font-weight: bold;
             color: var(--primary);
         }
-        
+
         .req-item .label {
             font-size: 0.85rem;
             color: var(--text-muted);
         }
-        
+
         .warning-box {
             background: #fef3c7;
             border-left: 4px solid var(--warning);
@@ -206,7 +206,7 @@
             border-radius: 0 8px 8px 0;
             margin: 15px 0;
         }
-        
+
         .success-box {
             background: #dcfce7;
             border-left: 4px solid var(--success);
@@ -214,7 +214,7 @@
             border-radius: 0 8px 8px 0;
             margin: 15px 0;
         }
-        
+
         .info-box {
             background: #dbeafe;
             border-left: 4px solid var(--primary);
@@ -222,24 +222,24 @@
             border-radius: 0 8px 8px 0;
             margin: 15px 0;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 15px 0;
         }
-        
+
         th, td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
-        
+
         th {
             background: var(--bg);
             font-weight: 600;
         }
-        
+
         .btn {
             display: inline-block;
             padding: 12px 25px;
@@ -250,12 +250,12 @@
             font-weight: 500;
             transition: all 0.2s;
         }
-        
+
         .btn:hover {
             background: var(--primary-dark);
             transform: translateY(-2px);
         }
-        
+
         .credentials-box {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             border: 2px solid var(--warning);
@@ -263,71 +263,71 @@
             border-radius: 12px;
             margin: 15px 0;
         }
-        
+
         .credentials-box h3 {
             color: #92400e;
             margin-bottom: 10px;
         }
-        
+
         .cred-item {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dashed #d97706;
         }
-        
+
         .cred-item:last-child {
             border-bottom: none;
         }
-        
+
         .cred-label {
             font-weight: 500;
         }
-        
+
         .cred-value {
             font-family: 'Consolas', monospace;
             background: white;
             padding: 2px 10px;
             border-radius: 4px;
         }
-        
+
         footer {
             text-align: center;
             padding: 30px;
             color: var(--text-muted);
             font-size: 0.9rem;
         }
-        
+
         .toc {
             background: var(--bg);
             padding: 20px;
             border-radius: 8px;
             margin: 15px 0;
         }
-        
+
         .toc ul {
             list-style: none;
             padding-left: 0;
         }
-        
+
         .toc li {
             padding: 5px 0;
         }
-        
+
         .toc a {
             color: var(--primary);
             text-decoration: none;
         }
-        
+
         .toc a:hover {
             text-decoration: underline;
         }
-        
+
         @media (max-width: 600px) {
             header h1 {
                 font-size: 1.8rem;
             }
-            
+
             .step {
                 flex-direction: column;
             }
@@ -450,7 +450,7 @@
         <div class="card" id="auto-install">
             <h2><span class="icon">&#9881;</span> Automatic Installation</h2>
             <p>The easiest way to install Semptify:</p>
-            
+
             <div class="steps">
                 <div class="step">
                     <div class="step-number"></div>
@@ -482,7 +482,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="info-box">
                 <strong>Advanced Options:</strong> Run PowerShell as administrator and use:
                 <pre><code>.\install_semptify.ps1 -InstallService    # Auto-start on boot
@@ -493,7 +493,7 @@
         <!-- PostgreSQL Setup -->
         <div class="card" id="postgresql">
             <h2><span class="icon">&#128451;</span> PostgreSQL Database Setup</h2>
-            
+
             <h3 style="margin-top: 15px;">Option A: Use Included Installer (Offline)</h3>
             <p>Run the PostgreSQL installer from the <code>postgresql/</code> folder:</p>
             <pre><code>postgresql\postgresql-16-windows-x64.exe</code></pre>
@@ -545,10 +545,10 @@ psql -U postgres -c "CREATE DATABASE semptify;"</code></pre>
         <!-- Starting Semptify -->
         <div class="card" id="starting">
             <h2><span class="icon">&#9654;</span> Starting Semptify</h2>
-            
+
             <h3>Option 1: Desktop Shortcut</h3>
             <p>Double-click the <strong>Semptify</strong> shortcut on your desktop</p>
-            
+
             <h3 style="margin-top: 15px;">Option 2: START Script</h3>
             <p>Double-click <code>START.ps1</code> or run:</p>
             <pre><code>cd C:\Semptify\Semptify-FastAPI
@@ -569,7 +569,7 @@ psql -U postgres -c "CREATE DATABASE semptify;"</code></pre>
         <div class="card" id="service">
             <h2><span class="icon">&#128736;</span> Windows Service (Auto-Start)</h2>
             <p>To have Semptify start automatically when Windows boots:</p>
-            
+
             <pre><code># Install as service (requires NSSM)
 .\install_semptify.ps1 -InstallService
 
@@ -588,11 +588,11 @@ Restart-Service Semptify  # Restart the service</code></pre>
         <!-- Troubleshooting -->
         <div class="card" id="troubleshooting">
             <h2><span class="icon">&#128295;</span> Troubleshooting</h2>
-            
+
             <h3>"Python not found"</h3>
             <p>Install Python from the included <code>python/</code> folder, or download from <a href="https://python.org" target="_blank">python.org</a></p>
             <pre><code>python\python-3.12.0-amd64.exe</code></pre>
-            
+
             <h3 style="margin-top: 15px;">"PostgreSQL connection failed"</h3>
             <p>Check if PostgreSQL service is running:</p>
             <pre><code>Get-Service postgresql*
@@ -620,7 +620,7 @@ psql -U postgres -c "ALTER USER postgres PASSWORD 'Semptify2024!';"</code></pre>
         <!-- Manual Installation -->
         <div class="card" id="manual-install">
             <h2><span class="icon">&#128736;</span> Manual Installation Steps</h2>
-            
+
             <div class="steps">
                 <div class="step">
                     <div class="step-number"></div>

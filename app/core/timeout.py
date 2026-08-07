@@ -19,26 +19,26 @@ logger = logging.getLogger(__name__)
 class TimeoutMiddleware(BaseHTTPMiddleware):
     """
     Middleware to enforce request timeout.
-    
+
     Usage:
         app.add_middleware(TimeoutMiddleware, timeout=30.0)
     """
 
     # Paths that should have longer or no timeout
     EXTENDED_TIMEOUT_PATHS = {
-        "/api/copilot": 120.0,      # AI requests need more time
+        "/api/copilot": 120.0,  # AI requests need more time
         "/api/court-packet": 180.0,  # PDF generation is slow
-        "/api/research": 90.0,       # Research aggregation
-        "/api/extraction": 60.0,     # Document extraction
+        "/api/research": 90.0,  # Research aggregation
+        "/api/extraction": 60.0,  # Document extraction
         "/api/intake/upload": 120.0,  # Full upload pipeline (notarize+vault+OCR+classify)
-        "/storage/callback": 60.0,   # OAuth token exchange with external providers
-        "/storage/auth": 60.0,       # OAuth redirect initiation
+        "/storage/callback": 60.0,  # OAuth token exchange with external providers
+        "/storage/auth": 60.0,  # OAuth redirect initiation
     }
 
     # Paths excluded from timeout (streaming, websockets)
     EXCLUDED_PATHS = {
-        "/ws",           # WebSocket connections
-        "/api/stream",   # Streaming responses
+        "/ws",  # WebSocket connections
+        "/api/stream",  # Streaming responses
     }
 
     def __init__(self, app, timeout: float = 30.0):
@@ -67,10 +67,7 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         try:
-            return await asyncio.wait_for(
-                call_next(request),
-                timeout=timeout
-            )
+            return await asyncio.wait_for(call_next(request), timeout=timeout)
         except TimeoutError:
             logger.warning(
                 "Request timeout: %s %s (%.1fs)",
@@ -81,7 +78,7 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
                     "timeout_seconds": timeout,
                     "path": request.url.path,
                     "method": request.method,
-                }
+                },
             )
 
             return JSONResponse(
@@ -93,7 +90,7 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
                 },
                 headers={
                     "Retry-After": "30",
-                }
+                },
             )
 
 
@@ -109,6 +106,7 @@ class SlowRequestLoggerMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         import time
+
         start = time.perf_counter()
 
         response = await call_next(request)
@@ -129,7 +127,7 @@ class SlowRequestLoggerMiddleware(BaseHTTPMiddleware):
                     "path": request.url.path,
                     "method": request.method,
                     "status_code": response.status_code,
-                }
+                },
             )
 
         return response

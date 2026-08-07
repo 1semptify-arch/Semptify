@@ -34,7 +34,7 @@
       </div>
     </div>
   </div>
-  
+
   {% if show_system_stats %}
   <div class="system-overview">
     <div class="overview-header">
@@ -48,7 +48,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   {% if show_user_management %}
   <div class="user-management">
     <div class="user-header">
@@ -63,7 +63,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="admin-actions">
     <div class="actions-header">
       <div class="actions-title">System Administration</div>
@@ -90,7 +90,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-system-stats="{{ show_system_stats|lower }}"
@@ -371,16 +371,16 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .header-stats {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .metrics-grid, .user-list {
     grid-template-columns: 1fr;
   }
-  
+
   .actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -397,15 +397,15 @@ document.addEventListener('DOMContentLoaded', function() {
     showSystemStats: configEl.dataset.showSystemStats === 'true',
     showUserManagement: configEl.dataset.showUserManagement === 'true'
   };
-  
+
   // Initialize admin dashboard
   initAdminDashboard();
-  
+
   function initAdminDashboard() {
     loadAdminData();
     setupEventListeners();
   }
-  
+
   function loadAdminData() {
     // Simulate loading admin data
     setTimeout(() => {
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         ]
       };
-      
+
       updateHeaderStats(adminData.stats);
       if (config.showSystemStats) {
         updateSystemMetrics(adminData.metrics);
@@ -475,21 +475,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 1000);
   }
-  
+
   function updateHeaderStats(stats) {
     const usersEl = document.getElementById(config.componentId + '_total_users');
     const casesEl = document.getElementById(config.componentId + '_active_cases');
     const healthEl = document.getElementById(config.componentId + '_system_health');
-    
+
     if (usersEl) usersEl.textContent = stats.totalUsers;
     if (casesEl) casesEl.textContent = stats.activeCases;
     if (healthEl) healthEl.textContent = stats.systemHealth + '%';
   }
-  
+
   function updateSystemMetrics(metrics) {
     const metricsGridEl = document.getElementById(config.componentId + '_metrics_grid');
     if (!metricsGridEl) return;
-    
+
     const html = metrics.map(metric => `
       <div class="metric-item" data-metric-id="${metric.id}">
         <div class="metric-icon">M</div>
@@ -500,14 +500,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     metricsGridEl.innerHTML = html;
   }
-  
+
   function updateUserList(users) {
     const userListEl = document.getElementById(config.componentId + '_user_list');
     if (!userListEl) return;
-    
+
     const html = users.map(user => `
       <div class="user-item" data-user-id="${user.id}">
         <div class="user-avatar">${user.name.split(' ').map(n => n[0]).join('')}</div>
@@ -519,10 +519,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="user-status ${user.status}">${user.status}</div>
       </div>
     `).join('');
-    
+
     userListEl.innerHTML = html;
   }
-  
+
   function setupEventListeners() {
     // Listen for function group events
     document.addEventListener('capture-upload', handleCaptureEvent);
@@ -531,22 +531,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('understand-timeline-select', handleUnderstandEvent);
     document.addEventListener('plan-action-select', handlePlanEvent);
   }
-  
+
   function handleCaptureEvent(event) {
     console.log('Admin dashboard - Capture event:', event.detail);
     loadAdminData(); // Refresh data
   }
-  
+
   function handleUnderstandEvent(event) {
     console.log('Admin dashboard - Understand event:', event.detail);
     loadAdminData(); // Refresh data
   }
-  
+
   function handlePlanEvent(event) {
     console.log('Admin dashboard - Plan event:', event.detail);
     loadAdminData(); // Refresh data
   }
-  
+
   // Action handlers
   function viewSystemMetrics() {
     const event = new CustomEvent('admin-view-system-metrics', {
@@ -554,49 +554,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(event);
   }
-  
+
   function addNewUser() {
     const event = new CustomEvent('admin-add-user', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function viewUserReports() {
     const event = new CustomEvent('admin-view-user-reports', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function systemMaintenance() {
     const event = new CustomEvent('admin-system-maintenance', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function generateSystemReport() {
     const event = new CustomEvent('admin-generate-system-report', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function viewAuditLogs() {
     const event = new CustomEvent('admin-view-audit-logs', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function systemSettings() {
     const event = new CustomEvent('admin-system-settings', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   // Make action handlers available globally
   window.viewSystemMetrics = viewSystemMetrics;
   window.addNewUser = addNewUser;

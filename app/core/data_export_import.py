@@ -22,21 +22,27 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class ExportFormat(Enum):
     """Data export formats."""
+
     JSON = "json"
     CSV = "csv"
     ZIP = "zip"
     PDF = "pdf"
 
+
 class ImportFormat(Enum):
     """Data import formats."""
+
     JSON = "json"
     CSV = "csv"
     ZIP = "zip"
 
+
 class ExportType(Enum):
     """Data export types."""
+
     ALL_DATA = "all_data"
     DOCUMENTS_ONLY = "documents_only"
     TIMELINE_ONLY = "timeline_only"
@@ -44,9 +50,11 @@ class ExportType(Enum):
     USER_PROFILE = "user_profile"
     AUDIT_LOG = "audit_log"
 
+
 @dataclass
 class ExportRequest:
     """Data export request."""
+
     export_id: str
     user_id: str
     export_type: ExportType
@@ -62,9 +70,11 @@ class ExportRequest:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
+
 @dataclass
 class ImportRequest:
     """Data import request."""
+
     import_id: str
     user_id: str
     import_type: str
@@ -85,6 +95,7 @@ class ImportRequest:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
+
 class DataExportImportManager:
     """Manages data export and import operations."""
 
@@ -99,14 +110,15 @@ class DataExportImportManager:
             "total_imports": 0,
             "completed_imports": 0,
             "exported_documents": 0,
-            "imported_documents": 0
+            "imported_documents": 0,
         }
 
         # Export retention (days)
         self.export_retention_days = 7
 
-    def create_export_request(self, user_id: str, export_type: ExportType,
-                           format: ExportFormat, filters: dict[str, Any] = None) -> str:
+    def create_export_request(
+        self, user_id: str, export_type: ExportType, format: ExportFormat, filters: dict[str, Any] = None
+    ) -> str:
         """Create a new export request."""
         export_id = f"export_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(user_id.encode()).hexdigest()[:8]}"
 
@@ -116,7 +128,7 @@ class DataExportImportManager:
             export_type=export_type,
             format=format,
             filters=filters or {},
-            created_at=utc_now()
+            created_at=utc_now(),
         )
 
         self.active_exports[export_id] = request
@@ -125,8 +137,9 @@ class DataExportImportManager:
         logger.info(f"Created export request {export_id} for user {user_id}")
         return export_id
 
-    def create_import_request(self, user_id: str, import_type: str,
-                           format: ImportFormat, validation_required: bool = True) -> str:
+    def create_import_request(
+        self, user_id: str, import_type: str, format: ImportFormat, validation_required: bool = True
+    ) -> str:
         """Create a new import request."""
         import_id = f"import_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(user_id.encode()).hexdigest()[:8]}"
 
@@ -136,7 +149,7 @@ class DataExportImportManager:
             import_type=import_type,
             format=format,
             validation_required=validation_required,
-            created_at=utc_now()
+            created_at=utc_now(),
         )
 
         self.active_imports[import_id] = request
@@ -212,7 +225,7 @@ class DataExportImportManager:
             "contacts": contacts.get("contacts", []),
             "user_profile": profile,
             "audit_log": audit_log.get("events", []),
-            "filters": filters
+            "filters": filters,
         }
 
     async def _export_documents(self, user_id: str, filters: dict[str, Any]) -> dict[str, Any]:
@@ -250,19 +263,18 @@ class DataExportImportManager:
                 # Convert to export format
                 export_documents = []
                 for doc in documents:
-                    export_documents.append({
-                        "id": doc.id,
-                        "filename": doc.filename,
-                        "document_type": doc.document_type,
-                        "file_size": doc.file_size,
-                        "sha256_hash": doc.sha256_hash,
-                        "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                        "updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
-                        "metadata": {
-                            "storage_provider": doc.storage_provider,
-                            "storage_path": doc.storage_path
+                    export_documents.append(
+                        {
+                            "id": doc.id,
+                            "filename": doc.filename,
+                            "document_type": doc.document_type,
+                            "file_size": doc.file_size,
+                            "sha256_hash": doc.sha256_hash,
+                            "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                            "updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
+                            "metadata": {"storage_provider": doc.storage_provider, "storage_path": doc.storage_path},
                         }
-                    })
+                    )
 
                 return {
                     "export_type": "documents",
@@ -270,7 +282,7 @@ class DataExportImportManager:
                     "exported_at": utc_now().isoformat(),
                     "documents": export_documents,
                     "total_count": len(export_documents),
-                    "filters": filters
+                    "filters": filters,
                 }
 
         except Exception as e:
@@ -308,19 +320,18 @@ class DataExportImportManager:
                 # Convert to export format
                 export_events = []
                 for event in events:
-                    export_events.append({
-                        "id": event.id,
-                        "title": event.title,
-                        "description": event.description,
-                        "event_type": event.event_type,
-                        "event_date": event.event_date.isoformat() if event.event_date else None,
-                        "created_at": event.created_at.isoformat() if event.created_at else None,
-                        "is_evidence": event.is_evidence,
-                        "metadata": {
-                            "location": event.location,
-                            "people_present": event.people_present
+                    export_events.append(
+                        {
+                            "id": event.id,
+                            "title": event.title,
+                            "description": event.description,
+                            "event_type": event.event_type,
+                            "event_date": event.event_date.isoformat() if event.event_date else None,
+                            "created_at": event.created_at.isoformat() if event.created_at else None,
+                            "is_evidence": event.is_evidence,
+                            "metadata": {"location": event.location, "people_present": event.people_present},
                         }
-                    })
+                    )
 
                 return {
                     "export_type": "timeline",
@@ -328,7 +339,7 @@ class DataExportImportManager:
                     "exported_at": utc_now().isoformat(),
                     "events": export_events,
                     "total_count": len(export_events),
-                    "filters": filters
+                    "filters": filters,
                 }
 
         except Exception as e:
@@ -357,18 +368,20 @@ class DataExportImportManager:
                 # Convert to export format
                 export_contacts = []
                 for contact in contacts:
-                    export_contacts.append({
-                        "id": contact.id,
-                        "name": contact.name,
-                        "role": contact.role,
-                        "organization": contact.organization,
-                        "phone": contact.phone,
-                        "email": contact.email,
-                        "address": contact.address,
-                        "notes": contact.notes,
-                        "created_at": contact.created_at.isoformat() if contact.created_at else None,
-                        "updated_at": contact.updated_at.isoformat() if contact.updated_at else None
-                    })
+                    export_contacts.append(
+                        {
+                            "id": contact.id,
+                            "name": contact.name,
+                            "role": contact.role,
+                            "organization": contact.organization,
+                            "phone": contact.phone,
+                            "email": contact.email,
+                            "address": contact.address,
+                            "notes": contact.notes,
+                            "created_at": contact.created_at.isoformat() if contact.created_at else None,
+                            "updated_at": contact.updated_at.isoformat() if contact.updated_at else None,
+                        }
+                    )
 
                 return {
                     "export_type": "contacts",
@@ -376,7 +389,7 @@ class DataExportImportManager:
                     "exported_at": utc_now().isoformat(),
                     "contacts": export_contacts,
                     "total_count": len(export_contacts),
-                    "filters": filters
+                    "filters": filters,
                 }
 
         except Exception as e:
@@ -410,8 +423,8 @@ class DataExportImportManager:
                         "last_login": user.last_login.isoformat() if user.last_login else None,
                         "preferences": user.preferences or {},
                         "storage_provider": user.provider,
-                        "subscription_tier": getattr(user, 'subscription_tier', 'basic')
-                    }
+                        "subscription_tier": getattr(user, "subscription_tier", "basic"),
+                    },
                 }
 
                 return profile
@@ -440,7 +453,7 @@ class DataExportImportManager:
                 "exported_at": utc_now().isoformat(),
                 "events": [event.to_dict() for event in audit_events],
                 "total_count": len(audit_events),
-                "filters": filters
+                "filters": filters,
             }
 
         except Exception as e:
@@ -476,7 +489,7 @@ class DataExportImportManager:
 
     async def _generate_json_export(self, data: dict[str, Any], file_path: str):
         """Generate JSON export file."""
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False, default=str)
 
     async def _generate_csv_export(self, data: dict[str, Any], file_path: str):
@@ -488,7 +501,7 @@ class DataExportImportManager:
             await self._generate_contacts_csv(data["contacts"], file_path)
         else:
             # Generic CSV export
-            with open(file_path, 'w', newline='', encoding='utf-8') as f:
+            with open(file_path, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerow(["Key", "Value"])
                 for key, value in data.items():
@@ -498,55 +511,55 @@ class DataExportImportManager:
 
     async def _generate_documents_csv(self, documents: list[dict[str, Any]], file_path: str):
         """Generate documents CSV export."""
-        with open(file_path, 'w', newline='', encoding='utf-8') as f:
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 
             # Header
-            writer.writerow([
-                "ID", "Filename", "Document Type", "File Size",
-                "SHA256 Hash", "Created At", "Storage Provider"
-            ])
+            writer.writerow(
+                ["ID", "Filename", "Document Type", "File Size", "SHA256 Hash", "Created At", "Storage Provider"]
+            )
 
             # Data rows
             for doc in documents:
-                writer.writerow([
-                    doc.get("id", ""),
-                    doc.get("filename", ""),
-                    doc.get("document_type", ""),
-                    doc.get("file_size", ""),
-                    doc.get("sha256_hash", ""),
-                    doc.get("created_at", ""),
-                    doc.get("metadata", {}).get("storage_provider", "")
-                ])
+                writer.writerow(
+                    [
+                        doc.get("id", ""),
+                        doc.get("filename", ""),
+                        doc.get("document_type", ""),
+                        doc.get("file_size", ""),
+                        doc.get("sha256_hash", ""),
+                        doc.get("created_at", ""),
+                        doc.get("metadata", {}).get("storage_provider", ""),
+                    ]
+                )
 
     async def _generate_contacts_csv(self, contacts: list[dict[str, Any]], file_path: str):
         """Generate contacts CSV export."""
-        with open(file_path, 'w', newline='', encoding='utf-8') as f:
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
 
             # Header
-            writer.writerow([
-                "ID", "Name", "Role", "Organization",
-                "Phone", "Email", "Address", "Notes", "Created At"
-            ])
+            writer.writerow(["ID", "Name", "Role", "Organization", "Phone", "Email", "Address", "Notes", "Created At"])
 
             # Data rows
             for contact in contacts:
-                writer.writerow([
-                    contact.get("id", ""),
-                    contact.get("name", ""),
-                    contact.get("role", ""),
-                    contact.get("organization", ""),
-                    contact.get("phone", ""),
-                    contact.get("email", ""),
-                    contact.get("address", ""),
-                    contact.get("notes", ""),
-                    contact.get("created_at", "")
-                ])
+                writer.writerow(
+                    [
+                        contact.get("id", ""),
+                        contact.get("name", ""),
+                        contact.get("role", ""),
+                        contact.get("organization", ""),
+                        contact.get("phone", ""),
+                        contact.get("email", ""),
+                        contact.get("address", ""),
+                        contact.get("notes", ""),
+                        contact.get("created_at", ""),
+                    ]
+                )
 
     async def _generate_zip_export(self, data: dict[str, Any], file_path: str):
         """Generate ZIP export file."""
-        with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        with zipfile.ZipFile(file_path, "w", zipfile.ZIP_DEFLATED) as zip_file:
             # Add JSON data
             json_data = json.dumps(data, indent=2, ensure_ascii=False, default=str)
             zip_file.writestr("data.json", json_data)
@@ -574,23 +587,23 @@ class DataExportImportManager:
             story = []
 
             # Title
-            title = Paragraph(f"Data Export - {data.get('export_type', 'Unknown')}", styles['Title'])
+            title = Paragraph(f"Data Export - {data.get('export_type', 'Unknown')}", styles["Title"])
             story.append(title)
             story.append(Spacer(1, 12))
 
             # Content
             if "documents" in data:
-                story.append(Paragraph("Documents", styles['Heading2']))
+                story.append(Paragraph("Documents", styles["Heading2"]))
                 for doc in data["documents"][:10]:  # Limit to first 10
                     doc_text = f"{doc.get('filename', 'Unknown')} - {doc.get('document_type', 'Unknown')}"
-                    story.append(Paragraph(doc_text, styles['Normal']))
+                    story.append(Paragraph(doc_text, styles["Normal"]))
                     story.append(Spacer(1, 6))
 
             doc.build(story)
 
         except ImportError:
             # Fallback to text file if reportlab not available
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(f"Data Export - {data.get('export_type', 'Unknown')}\n\n")
                 f.write(json.dumps(data, indent=2, ensure_ascii=False, default=str))
 
@@ -619,8 +632,12 @@ class DataExportImportManager:
         expired_exports = []
 
         for export_id, request in self.active_exports.items():
-            if (request.expires_at and current_time > request.expires_at and
-                request.file_path and os.path.exists(request.file_path)):
+            if (
+                request.expires_at
+                and current_time > request.expires_at
+                and request.file_path
+                and os.path.exists(request.file_path)
+            ):
                 expired_exports.append(export_id)
 
                 # Remove file
@@ -644,11 +661,13 @@ class DataExportImportManager:
             "total_imports": self.stats["total_imports"],
             "completed_imports": self.stats["completed_imports"],
             "exported_documents": self.stats["exported_documents"],
-            "imported_documents": self.stats["imported_documents"]
+            "imported_documents": self.stats["imported_documents"],
         }
+
 
 # Global export/import manager instance
 _export_import_manager: DataExportImportManager | None = None
+
 
 def get_export_import_manager() -> DataExportImportManager:
     """Get the global export/import manager instance."""
@@ -659,9 +678,9 @@ def get_export_import_manager() -> DataExportImportManager:
 
     return _export_import_manager
 
+
 # Helper functions
-def create_export_request(user_id: str, export_type: str, format: str,
-                        filters: dict[str, Any] = None) -> str:
+def create_export_request(user_id: str, export_type: str, format: str, filters: dict[str, Any] = None) -> str:
     """Create a new export request."""
     manager = get_export_import_manager()
 
@@ -670,30 +689,36 @@ def create_export_request(user_id: str, export_type: str, format: str,
 
     return manager.create_export_request(user_id, export_type_enum, format_enum, filters)
 
+
 async def process_export_request(export_id: str) -> bool:
     """Process an export request."""
     manager = get_export_import_manager()
     return await manager.process_export_request(export_id)
+
 
 def get_export_request(export_id: str) -> dict[str, Any] | None:
     """Get export request details."""
     manager = get_export_import_manager()
     return manager.get_export_request(export_id)
 
+
 def get_user_exports(user_id: str) -> list[dict[str, Any]]:
     """Get all export requests for a user."""
     manager = get_export_import_manager()
     return manager.get_user_exports(user_id)
+
 
 def cleanup_expired_exports():
     """Clean up expired export files."""
     manager = get_export_import_manager()
     manager.cleanup_expired_exports()
 
+
 def get_export_statistics() -> dict[str, Any]:
     """Get export/import statistics."""
     manager = get_export_import_manager()
     return manager.get_statistics()
+
 
 # Background cleanup task
 async def start_export_cleanup_task():

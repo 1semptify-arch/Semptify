@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # User Roles
 # =============================================================================
 
+
 class UserRole(str, Enum):
     """
     User roles determine what features/UI to show.
@@ -40,21 +41,24 @@ class UserRole(str, Enum):
     NOTE: Role is stable identity, not tied to gates or activation state.
     TENANT is the canonical role for housing context (previously "user").
     """
-    ADMIN = "admin"            # System admin: full access
-    MANAGER = "manager"        # Case manager: multi-client coordination
-    TENANT = "tenant"          # Tenant: standard housing case user
-    USER = "user"              # Legacy alias for tenant (deprecated, use TENANT)
-    ADVOCATE = "advocate"      # Tenant advocate: help multiple users
-    LEGAL = "legal"            # Legal role: attorneys, judges, clerks, paralegals (sub-roles via legal_sub_role)
-    JUDGE = "judge"            # DEPRECATED — merged into LEGAL as sub_role='judge'. Kept for backward compat only.
+
+    ADMIN = "admin"  # System admin: full access
+    MANAGER = "manager"  # Case manager: multi-client coordination
+    TENANT = "tenant"  # Tenant: standard housing case user
+    USER = "user"  # Legacy alias for tenant (deprecated, use TENANT)
+    ADVOCATE = "advocate"  # Tenant advocate: help multiple users
+    LEGAL = "legal"  # Legal role: attorneys, judges, clerks, paralegals (sub-roles via legal_sub_role)
+    JUDGE = "judge"  # DEPRECATED — merged into LEGAL as sub_role='judge'. Kept for backward compat only.
 
 
 # =============================================================================
 # Storage Providers
 # =============================================================================
 
+
 class StorageProvider(str, Enum):
     """Supported cloud storage providers."""
+
     GOOGLE_DRIVE = "google_drive"
     DROPBOX = "dropbox"
     ONEDRIVE = "onedrive"
@@ -109,7 +113,6 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
     },
-
     # ==========================================================================
     # MANAGER - Multi-client housing support coordination
     # ==========================================================================
@@ -122,7 +125,6 @@ ROLE_PERMISSIONS = {
         "property_manage",
         "user_view",  # View user info (not edit)
     },
-
     # ==========================================================================
     # ADVOCATE - Legal aid workers, paralegals, housing counselors
     # Focus: Help multiple tenants, case management across clients
@@ -143,14 +145,13 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
         # Advocate-specific
-        "complaints_review",      # Review/help with complaints
-        "multi_user",             # Access multiple tenant cases
-        "case_assignment",        # Assign cases to self
-        "case_notes",             # Add advocate notes (non-privileged)
-        "client_intake",          # Intake new clients
-        "bulk_export",            # Export case summaries
+        "complaints_review",  # Review/help with complaints
+        "multi_user",  # Access multiple tenant cases
+        "case_assignment",  # Assign cases to self
+        "case_notes",  # Add advocate notes (non-privileged)
+        "client_intake",  # Intake new clients
+        "bulk_export",  # Export case summaries
     },
-
     # ==========================================================================
     # LEGAL - Legal and court professionals (unified role with sub-roles)
     # Sub-roles: attorney, judge, clerk, paralegal
@@ -162,11 +163,11 @@ ROLE_PERMISSIONS = {
     # ==========================================================================
     UserRole.LEGAL: {
         # Read access to tenant data (requires invite/relationship)
-        "vault_read",              # View tenant documents (with invite)
+        "vault_read",  # View tenant documents (with invite)
         # NO vault_write — legal cannot modify or delete tenant documents
         "timeline_read",
         "calendar_read",
-        "calendar_write",          # Can write to own calendar
+        "calendar_write",  # Can write to own calendar
         "copilot_use",
         "complaints_create",
         "complaints_review",
@@ -177,30 +178,29 @@ ROLE_PERMISSIONS = {
         "court_forms",
         "letter_builder",
         # Multi-tenant access
-        "multi_user",             # Access multiple tenant cases (with invite)
+        "multi_user",  # Access multiple tenant cases (with invite)
         "case_assignment",
-        "case_notes",             # Add legal case notes (as overlays, not on tenant docs)
+        "case_notes",  # Add legal case notes (as overlays, not on tenant docs)
         "client_intake",
         "bulk_export",
         # Legal-specific (PRIVILEGED)
-        "legal_tools",            # Advanced legal analysis tools
-        "privileged_create",      # Create attorney-client privileged notes
-        "privileged_read",        # Read privileged work product
-        "work_product",           # Attorney work product protection
-        "legal_research",         # Advanced legal research tools
-        "court_filing",           # Generate court-ready filings
-        "discovery_prep",         # Prepare discovery responses
-        "case_strategy",          # Strategic case planning
-        "conflict_check",         # Check for conflicts of interest
+        "legal_tools",  # Advanced legal analysis tools
+        "privileged_create",  # Create attorney-client privileged notes
+        "privileged_read",  # Read privileged work product
+        "work_product",  # Attorney work product protection
+        "legal_research",  # Advanced legal research tools
+        "court_filing",  # Generate court-ready filings
+        "discovery_prep",  # Prepare discovery responses
+        "case_strategy",  # Strategic case planning
+        "conflict_check",  # Check for conflicts of interest
         # Merged from Judge role (for judge sub-role, but available to all legal)
-        "case_review",            # Review all case materials
-        "case_oversight",         # Case oversight capabilities
-        "judicial_order",         # Record judicial orders/decisions (judge sub-role)
+        "case_review",  # Review all case materials
+        "case_oversight",  # Case oversight capabilities
+        "judicial_order",  # Record judicial orders/decisions (judge sub-role)
         # New: Legal overlay + forms sharing
-        "overlay_create_legal",   # Create legal overlays (notes, redaction) on tenant docs
-        "forms_share",            # Share from own forms list with tenants
+        "overlay_create_legal",  # Create legal overlays (notes, redaction) on tenant docs
+        "forms_share",  # Share from own forms list with tenants
     },
-
     # ==========================================================================
     # JUDGE - Judicial officers with oversight capabilities
     # Focus: Case review, read-only access to evidence and timelines
@@ -212,17 +212,16 @@ ROLE_PERMISSIONS = {
         "calendar_read",
         "ledger_read",
         # Case oversight
-        "case_review",            # Review all case materials
-        "case_oversight",         # Judicial oversight of cases
-        "complaints_review",      # Review complaints and evidence
-        "multi_user",             # View multiple case files
+        "case_review",  # Review all case materials
+        "case_oversight",  # Judicial oversight of cases
+        "complaints_review",  # Review complaints and evidence
+        "multi_user",  # View multiple case files
         # Legal tools (read-only)
-        "legal_research",         # Access legal research
+        "legal_research",  # Access legal research
         # Judicial functions
-        "judicial_order",         # Record judicial orders/decisions
-        "case_notes",             # Add judicial notes
+        "judicial_order",  # Record judicial orders/decisions
+        "case_notes",  # Add judicial notes
     },
-
     # ==========================================================================
     # ADMIN - System administrators (you)
     # Focus: System config, analytics, full access
@@ -242,7 +241,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Tenant",
         "purpose": "Individual renter or resident organizing their own housing and case documents with guided help.",
         "default_landing_process": "B2 - Quick Case Triage",
-        "ui_mode": "mobile",           # Mobile-first, simplified
+        "ui_mode": "mobile",  # Mobile-first, simplified
         "landing_page": "/tenant/home",
         "icon": "○",
     },
@@ -250,7 +249,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Advocate",
         "purpose": "Frontline support worker helping tenants prepare evidence, organize timelines, and complete non-privileged actions.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "responsive",       # Tablet-friendly
+        "ui_mode": "responsive",  # Tablet-friendly
         "landing_page": "/advocate/home",
         "icon": "▸",
     },
@@ -266,7 +265,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Legal",
         "purpose": "Legal and court professionals (attorneys, judges, clerks, paralegals). Bar license required. Read-only access to invited tenant cases with legal overlay and forms sharing.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "desktop",          # Full complexity
+        "ui_mode": "desktop",  # Full complexity
         "landing_page": "/legal/home",
         "icon": "▸",
         "sub_roles": ("attorney", "judge", "clerk", "paralegal"),
@@ -276,7 +275,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Judge",
         "purpose": "Judicial officer with case oversight, evidence review, and decision recording capabilities.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "desktop",          # Full complexity
+        "ui_mode": "desktop",  # Full complexity
         "landing_page": "/judge/home",
         "icon": "●",
     },
@@ -284,7 +283,7 @@ ROLE_DEFINITIONS = {
         "display_name": "Administrator",
         "purpose": "Platform operations role with system-wide configuration, governance, and support access.",
         "default_landing_process": "B4 - Professional Review Workspace",
-        "ui_mode": "desktop",          # Full complexity
+        "ui_mode": "desktop",  # Full complexity
         "landing_page": "/admin/home",
         "icon": "▸",
     },
@@ -389,27 +388,29 @@ def get_permissions(role: UserRole) -> set[str]:
 # User Context (carries all session context)
 # =============================================================================
 
+
 @dataclass
 class UserContext:
     """
     Complete context for an authenticated user session.
     This is what gets passed to route handlers.
     """
+
     # Identity (stable)
-    user_id: str                          # Internal ID (hash of provider:storage_id)
+    user_id: str  # Internal ID (hash of provider:storage_id)
 
     # Storage info
-    provider: StorageProvider             # Which storage provider authenticated
-    storage_user_id: str                  # ID in the storage provider
-    access_token: str                     # Current access token for API calls
+    provider: StorageProvider  # Which storage provider authenticated
+    storage_user_id: str  # ID in the storage provider
+    access_token: str  # Current access token for API calls
 
     # Role & permissions
-    role: UserRole = UserRole.USER        # Active role for this session
+    role: UserRole = UserRole.USER  # Active role for this session
     permissions: set[str] = field(default_factory=set)
 
     # Role impersonation (acting_as)
     # When set, this user is impersonating another user's context
-    acting_as: str | None = None      # user_id of user being impersonated
+    acting_as: str | None = None  # user_id of user being impersonated
     acting_as_role: UserRole | None = None  # Role being assumed
 
     # SSOT PRIVACY RULE: For the tenant role, no personal user information
@@ -466,7 +467,7 @@ class UserContext:
     def start_impersonation(self, target_user_id: str, target_role: UserRole) -> None:
         """
         Start impersonating another user.
-        
+
         Only admins should be able to do this. Permission check should happen
         before calling this method.
         """
@@ -500,12 +501,14 @@ class UserContext:
 # Session Storage Structure
 # =============================================================================
 
+
 @dataclass
 class StoredSession:
     """
     What we store in the session store (memory/Redis/DB).
     Contains everything needed to reconstruct UserContext.
     """
+
     session_id: str
 
     # Identity
@@ -522,8 +525,8 @@ class StoredSession:
     role: str = "user"  # UserRole value
 
     # Impersonation state (admin only)
-    acting_as: str | None = None           # user_id being impersonated
-    acting_as_role: str | None = None      # role being assumed
+    acting_as: str | None = None  # user_id being impersonated
+    acting_as_role: str | None = None  # role being assumed
 
     # SSOT PRIVACY: No email or display_name stored.
 

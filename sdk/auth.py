@@ -12,6 +12,7 @@ from .base import BaseClient
 @dataclass
 class UserInfo:
     """User information."""
+
     user_id: str
     provider: str
     email: str | None = None
@@ -23,6 +24,7 @@ class UserInfo:
 @dataclass
 class StorageProvider:
     """Storage provider information."""
+
     id: str
     name: str
     icon: str
@@ -35,7 +37,7 @@ class AuthClient(BaseClient):
     def get_providers(self) -> list[StorageProvider]:
         """
         Get available storage providers.
-        
+
         Returns:
             List of available storage providers
         """
@@ -53,10 +55,10 @@ class AuthClient(BaseClient):
     def get_auth_url(self, provider: str) -> str:
         """
         Get the OAuth authorization URL for a provider.
-        
+
         Args:
             provider: The storage provider (google_drive, dropbox, onedrive)
-            
+
         Returns:
             The OAuth authorization URL
         """
@@ -68,19 +70,16 @@ class AuthClient(BaseClient):
     def complete_oauth(self, provider: str, code: str, state: str) -> UserInfo:
         """
         Complete OAuth flow with authorization code.
-        
+
         Args:
             provider: The storage provider
             code: The authorization code from OAuth callback
             state: The state parameter from OAuth callback
-            
+
         Returns:
             User information after successful authentication
         """
-        response = self.get(
-            f"/storage/callback/{provider}",
-            params={"code": code, "state": state}
-        )
+        response = self.get(f"/storage/callback/{provider}", params={"code": code, "state": state})
         self.set_user_id(response.get("user_id", ""))
         return UserInfo(
             user_id=response.get("user_id", ""),
@@ -92,7 +91,7 @@ class AuthClient(BaseClient):
     def get_current_user(self) -> UserInfo | None:
         """
         Get the currently authenticated user.
-        
+
         Returns:
             Current user info or None if not authenticated
         """
@@ -112,7 +111,7 @@ class AuthClient(BaseClient):
     def logout(self) -> bool:
         """
         Log out the current user.
-        
+
         Returns:
             True if logout was successful
         """
@@ -126,7 +125,7 @@ class AuthClient(BaseClient):
     def validate_session(self) -> bool:
         """
         Validate the current session.
-        
+
         Returns:
             True if session is valid
         """
@@ -139,10 +138,10 @@ class AuthClient(BaseClient):
     def switch_role(self, role: str) -> UserInfo:
         """
         Switch the current user's role.
-        
+
         Args:
             role: The new role (tenant, landlord, legal, etc.)
-            
+
         Returns:
             Updated user information
         """

@@ -35,6 +35,7 @@ _CACHE_TTL = 3600  # 1 hour — capability sets are stable within a session
 # Internal helpers
 # =============================================================================
 
+
 def _cache_key(user_id: str) -> str:
     return f"capabilities:{user_id}"
 
@@ -43,6 +44,7 @@ async def _cache_get(user_id: str) -> set[str] | None:
     """Read capability set from Redis. Returns None on miss or Redis unavailable."""
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is None:
             return None
@@ -59,6 +61,7 @@ async def _cache_set(user_id: str, modules: set[str]) -> None:
     """Write capability set to Redis with TTL."""
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is None:
             return
@@ -74,6 +77,7 @@ async def _cache_invalidate(user_id: str) -> None:
     """Remove cached capability set for a user."""
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is None:
             return
@@ -85,6 +89,7 @@ async def _cache_invalidate(user_id: str) -> None:
 # =============================================================================
 # Public API
 # =============================================================================
+
 
 async def seed_capability_defaults(
     user_id: str,
@@ -116,14 +121,16 @@ async def seed_capability_defaults(
     inserted = 0
     for module_name in defaults:
         if module_name not in existing:
-            session.add(UserCapability(
-                user_id=user_id,
-                module_name=module_name,
-                is_active=True,
-                source="role_default",
-                granted_at=utc_now(),
-                updated_at=utc_now(),
-            ))
+            session.add(
+                UserCapability(
+                    user_id=user_id,
+                    module_name=module_name,
+                    is_active=True,
+                    source="role_default",
+                    granted_at=utc_now(),
+                    updated_at=utc_now(),
+                )
+            )
             inserted += 1
 
     if inserted:
@@ -200,20 +207,21 @@ async def grant_capability(
         existing.granted_by = granted_by
         existing.updated_at = utc_now()
     else:
-        session.add(UserCapability(
-            user_id=user_id,
-            module_name=module_name,
-            is_active=True,
-            source=source,
-            granted_by=granted_by,
-            granted_at=utc_now(),
-            updated_at=utc_now(),
-        ))
+        session.add(
+            UserCapability(
+                user_id=user_id,
+                module_name=module_name,
+                is_active=True,
+                source=source,
+                granted_by=granted_by,
+                granted_at=utc_now(),
+                updated_at=utc_now(),
+            )
+        )
 
     await session.commit()
     await _cache_invalidate(user_id)
-    logger.info("Capability granted: user=%s module=%s source=%s by=%s",
-                user_id, module_name, source, granted_by)
+    logger.info("Capability granted: user=%s module=%s source=%s by=%s", user_id, module_name, source, granted_by)
 
 
 async def revoke_capability(
@@ -241,13 +249,13 @@ async def revoke_capability(
         cap.updated_at = utc_now()
         await session.commit()
         await _cache_invalidate(user_id)
-        logger.info("Capability revoked: user=%s module=%s by=%s",
-                    user_id, module_name, revoked_by)
+        logger.info("Capability revoked: user=%s module=%s by=%s", user_id, module_name, revoked_by)
 
 
 # =============================================================================
 # Gate — FastAPI Dependency Factory
 # =============================================================================
+
 
 def require_capability(module_name: str) -> Callable:
     """
@@ -269,6 +277,7 @@ def require_capability(module_name: str) -> Callable:
       so existing users are not locked out before their defaults are seeded.
     - If the capability row exists and is_active=False, returns 403.
     """
+
     async def _gate(
         request: Request,
         db: AsyncSession = Depends(_get_db),
@@ -280,6 +289,7 @@ def require_capability(module_name: str) -> Callable:
         # Admin bypass — admins have __all__
         try:
             from app.core.user_id import parse_user_id
+
             _, role, _ = parse_user_id(user_id)
             if role == "admin":
                 return
@@ -315,6 +325,7 @@ def require_capability(module_name: str) -> Callable:
 async def _get_db():
     """Thin wrapper so the gate can import get_db without circular imports."""
     from app.core.database import get_db
+
     async for session in get_db():
         yield session
 
@@ -345,6 +356,7 @@ async def _overlay_get(user_id: str) -> set[str] | None:
     """Read active overlay modules for a user. Returns None if no overlay."""
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is None:
             return None
@@ -368,6 +380,7 @@ async def attach_overlay(
     """
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is None:
             raise RuntimeError("Redis unavailable — overlay requires Redis")
@@ -375,8 +388,7 @@ async def attach_overlay(
         if module_names:
             await redis.sadd(key, *module_names)
             await redis.expire(key, _OVERLAY_TTL)
-        logger.info("Overlay attached: target=%s modules=%s by=%s",
-                    target_user_id[:6], module_names, attached_by[:6])
+        logger.info("Overlay attached: target=%s modules=%s by=%s", target_user_id[:6], module_names, attached_by[:6])
     except RuntimeError:
         raise
     except Exception as exc:
@@ -393,12 +405,12 @@ async def detach_overlay(
     """
     try:
         from app.core.redis_client import get_redis
+
         redis = await get_redis()
         if redis is None:
             return
         await redis.delete(_overlay_key(target_user_id))
-        logger.info("Overlay detached: target=%s by=%s",
-                    target_user_id[:6], detached_by[:6])
+        logger.info("Overlay detached: target=%s by=%s", target_user_id[:6], detached_by[:6])
     except Exception as exc:
         logger.warning("Overlay detach skipped: %s", exc)
 

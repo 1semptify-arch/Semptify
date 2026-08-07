@@ -39,16 +39,18 @@ from app.core.id_gen import _MAX_PREFIX_LEN, make_id
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 # =============================================================================
 # MESH NODE IDENTITY
 # =============================================================================
 
+
 @dataclass
 class NodeIdentity:
     """Unique identity for each mesh node/module"""
+
     node_id: str
     node_type: str  # e.g., "legal_analysis", "documents", "timeline"
     capabilities: set[str] = field(default_factory=set)
@@ -72,8 +74,10 @@ class NodeIdentity:
 # MESH MESSAGE PROTOCOL
 # =============================================================================
 
+
 class MessageType(str, Enum):
     """Types of messages in the mesh"""
+
     # Discovery
     ANNOUNCE = "announce"  # Node announcing itself
     DISCOVER = "discover"  # Looking for nodes with capability
@@ -97,6 +101,7 @@ class MessageType(str, Enum):
 @dataclass
 class MeshMessage:
     """Message passed between mesh nodes"""
+
     id: str
     type: MessageType
     source_node: str
@@ -136,6 +141,7 @@ class MeshMessage:
 # LOCAL MESSAGE QUEUE (Per-Node)
 # =============================================================================
 
+
 class LocalMessageQueue:
     """In-memory message queue for a single node"""
 
@@ -173,10 +179,11 @@ class LocalMessageQueue:
 # MESH NODE - The Core Unit
 # =============================================================================
 
+
 class MeshNode:
     """
     A single node in the distributed mesh.
-    
+
     Each module/service becomes a MeshNode that can:
     - Communicate directly with other nodes
     - Handle requests without going through central hub
@@ -352,9 +359,7 @@ class MeshNode:
             elapsed_ms = (time.time() - start_time) * 1000
 
             # Update metrics
-            self.metrics["avg_response_time_ms"] = int(
-                self.metrics["avg_response_time_ms"] * 0.9 + elapsed_ms * 0.1
-            )
+            self.metrics["avg_response_time_ms"] = int(self.metrics["avg_response_time_ms"] * 0.9 + elapsed_ms * 0.1)
 
             return response.payload
         except TimeoutError:
@@ -518,6 +523,7 @@ class MeshNode:
 # MESH COORDINATOR (Optional - for discovery only)
 # =============================================================================
 
+
 class MeshCoordinator:
     """
     Optional coordinator for node discovery.
@@ -580,12 +586,14 @@ class MeshCoordinator:
         edges = []
 
         for node in self._nodes.values():
-            nodes.append({
-                "id": node.identity.node_id,
-                "type": node.identity.node_type,
-                "capabilities": list(node.identity.capabilities),
-                "metrics": node.metrics,
-            })
+            nodes.append(
+                {
+                    "id": node.identity.node_id,
+                    "type": node.identity.node_type,
+                    "capabilities": list(node.identity.capabilities),
+                    "metrics": node.metrics,
+                }
+            )
 
             for peer_id in node.identity.direct_peers:
                 # Avoid duplicate edges
@@ -624,6 +632,7 @@ mesh_coordinator = MeshCoordinator()
 # =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
+
 
 def create_mesh_node(
     node_type: str,

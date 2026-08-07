@@ -17,7 +17,7 @@
         <p class="hero-subtitle">Your tenant rights protection starts here</p>
       </div>
     </div>
-    
+
     <div class="hero-progress">
       <div class="progress-steps">
         <div class="step active" data-step="1">
@@ -35,16 +35,16 @@
       </div>
     </div>
   </div>
-  
+
   <div class="welcome-content">
     <div class="welcome-intro">
       <h2 class="intro-title">Protect Your Housing Rights</h2>
       <p class="intro-text">
-        Semptify helps you understand and protect your tenant rights through smart case management, 
+        Semptify helps you understand and protect your tenant rights through smart case management,
         timeline tracking, and AI-powered legal insights.
       </p>
     </div>
-    
+
     <div class="feature-showcase">
       <div class="feature-grid">
         <div class="feature-card" data-feature="capture">
@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="feature-card" data-feature="understand">
           <div class="feature-icon">+</div>
           <div class="feature-content">
@@ -68,7 +68,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="feature-card" data-feature="plan">
           <div class="feature-icon">+</div>
           <div class="feature-content">
@@ -81,7 +81,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="welcome-actions">
       <button class="action-btn primary" onclick="startOnboarding()">
         <span class="btn-icon">+</span>
@@ -93,7 +93,7 @@
       </button>
     </div>
   </div>
-  
+
   {% if show_tour %}
   <div class="tour-overlay" id="{{ component_id }}_tour_overlay" style="display: none;">
     <div class="tour-tooltip" id="{{ component_id }}_tour_tooltip">
@@ -114,7 +114,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-tour="{{ show_tour|lower }}"
@@ -508,25 +508,25 @@
   .hero-title {
     font-size: var(--font-size-3xl);
   }
-  
+
   .progress-steps {
     gap: var(--space-md);
   }
-  
+
   .feature-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .welcome-actions {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .action-btn {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .tour-tooltip {
     margin: var(--space-md);
     max-width: 90%;
@@ -593,14 +593,14 @@ document.addEventListener('DOMContentLoaded', function() {
     showTour: configEl.dataset.showTour === 'true',
     autoStart: configEl.dataset.autoStart === 'true'
   };
-  
+
   // Tour state
   let currentTourStep = 0;
   let tourActive = false;
-  
+
   // Initialize onboarding
   initOnboarding();
-  
+
   function initOnboarding() {
     // Auto-start tour if enabled
     if (config.autoStart) {
@@ -608,11 +608,11 @@ document.addEventListener('DOMContentLoaded', function() {
         startOnboarding();
       }, 1000);
     }
-    
+
     // Set up event listeners for feature cards
     setupFeatureListeners();
   }
-  
+
   function setupFeatureListeners() {
     const featureCards = document.querySelectorAll('.feature-card');
     featureCards.forEach(card => {
@@ -622,20 +622,20 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function highlightFeature(feature) {
     // Remove existing highlights
     document.querySelectorAll('.feature-card').forEach(card => {
       card.classList.remove('highlighted');
     });
-    
+
     // Add highlight to selected feature
     const selectedCard = document.querySelector(`.feature-card[data-feature="${feature}"]`);
     if (selectedCard) {
       selectedCard.classList.add('highlighted');
       selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    
+
     // Emit feature selection event
     const featureEvent = new CustomEvent('onboarding-feature-select', {
       detail: {
@@ -646,24 +646,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(featureEvent);
   }
-  
+
   function startOnboarding() {
     if (!config.showTour) return;
-    
+
     tourActive = true;
     currentTourStep = 0;
     showTourStep(0);
-    
+
     // Show tour overlay
     const overlay = document.getElementById(config.componentId + '_tour_overlay');
     if (overlay) {
       overlay.style.display = 'flex';
     }
-    
+
     // Update progress step
     updateProgressStep(1);
   }
-  
+
   function showTourStep(stepIndex) {
     const tourSteps = [
       {
@@ -692,59 +692,59 @@ document.addEventListener('DOMContentLoaded', function() {
         target: '.action-btn.primary'
       }
     ];
-    
+
     if (stepIndex >= tourSteps.length) {
       completeTour();
       return;
     }
-    
+
     const step = tourSteps[stepIndex];
     const tooltip = document.getElementById(config.componentId + '_tour_tooltip');
     const titleEl = document.getElementById(config.componentId + '_tour_title');
     const descriptionEl = document.getElementById(config.componentId + '_tour_description');
-    
+
     if (tooltip && titleEl && descriptionEl) {
       titleEl.textContent = step.title;
       descriptionEl.textContent = step.description;
-      
+
       // Position tooltip near target
       positionTooltip(step.target);
-      
+
       // Highlight target element
       highlightTourTarget(step.target);
     }
   }
-  
+
   function positionTooltip(targetSelector) {
     const target = document.querySelector(targetSelector);
     const tooltip = document.getElementById(config.componentId + '_tour_tooltip');
     const overlay = document.getElementById(config.componentId + '_tour_overlay');
-    
+
     if (!target || !tooltip || !overlay) return;
-    
+
     const targetRect = target.getBoundingClientRect();
     const overlayRect = overlay.getBoundingClientRect();
-    
+
     // Calculate position
     let top = targetRect.top - overlayRect.top - 200;
     let left = targetRect.left - overlayRect.left + (targetRect.width / 2) - 200;
-    
+
     // Adjust if tooltip goes outside viewport
     if (top < 20) top = targetRect.bottom - overlayRect.top + 20;
     if (left < 20) left = 20;
     if (left + 400 > window.innerWidth) left = window.innerWidth - 420;
-    
+
     tooltip.style.position = 'absolute';
     tooltip.style.top = top + 'px';
     tooltip.style.left = left + 'px';
   }
-  
+
   function highlightTourTarget(targetSelector) {
     // Remove existing highlights
     document.querySelectorAll('.tour-highlight').forEach(el => {
       el.classList.remove('tour-highlight');
     });
-    
+
     // Add highlight to target
     const target = document.querySelector(targetSelector);
     if (target) {
@@ -752,34 +752,34 @@ document.addEventListener('DOMContentLoaded', function() {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
-  
+
   function nextTourStep() {
     currentTourStep++;
     updateProgressStep(currentTourStep + 1);
     showTourStep(currentTourStep);
   }
-  
+
   function skipTour() {
     completeTour();
   }
-  
+
   function completeTour() {
     tourActive = false;
-    
+
     // Hide tour overlay
     const overlay = document.getElementById(config.componentId + '_tour_overlay');
     if (overlay) {
       overlay.style.display = 'none';
     }
-    
+
     // Remove highlights
     document.querySelectorAll('.tour-highlight').forEach(el => {
       el.classList.remove('tour-highlight');
     });
-    
+
     // Update progress to final step
     updateProgressStep(3);
-    
+
     // Emit tour completion event
     const completeEvent = new CustomEvent('onboarding-tour-complete', {
       detail: {
@@ -789,7 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(completeEvent);
   }
-  
+
   function updateProgressStep(step) {
     // Update progress steps
     const steps = document.querySelectorAll('.step');
@@ -801,12 +801,12 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
+
   // Action handlers
   function startOnboarding() {
     startOnboarding();
   }
-  
+
   function skipToDashboard() {
     // Emit skip to dashboard event
     const skipEvent = new CustomEvent('onboarding-skip-dashboard', {
@@ -817,22 +817,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(skipEvent);
   }
-  
+
   // Make action handlers available globally
   window.startOnboarding = startOnboarding;
   window.skipToDashboard = skipToDashboard;
   window.nextTourStep = nextTourStep;
   window.skipTour = skipTour;
-  
+
   // Listen for component events
   document.addEventListener('capture-upload', (event) => {
     console.log('Onboarding - Capture event:', event.detail);
   });
-  
+
   document.addEventListener('understand-timeline-select', (event) => {
     console.log('Onboarding - Understand event:', event.detail);
   });
-  
+
   document.addEventListener('plan-action-select', (event) => {
     console.log('Onboarding - Plan event:', event.detail);
   });

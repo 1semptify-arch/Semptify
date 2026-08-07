@@ -11,9 +11,7 @@ def detect_repeated_fees(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if fee_type:
             fee_counts[str(fee_type)] = fee_counts.get(str(fee_type), 0) + 1
     return [
-        {"fee_type": fee, "count": count, "pattern": "repeated_fee"}
-        for fee, count in fee_counts.items()
-        if count >= 2
+        {"fee_type": fee, "count": count, "pattern": "repeated_fee"} for fee, count in fee_counts.items() if count >= 2
     ]
 
 
@@ -41,7 +39,9 @@ def detect_subsidy_interference(records: list[dict[str, Any]]) -> list[dict[str,
             "date": record.get("date"),
         }
         for record in records
-        if any(kw in str(record.get("event", "")).lower() for kw in ("section 8", "voucher", "subsidy", "housing choice"))
+        if any(
+            kw in str(record.get("event", "")).lower() for kw in ("section 8", "voucher", "subsidy", "housing choice")
+        )
     ]
 
 
@@ -55,7 +55,10 @@ def detect_court_order_violations(records: list[dict[str, Any]]) -> list[dict[st
             "date": record.get("date"),
         }
         for record in records
-        if any(kw in str(record.get("event", "")).lower() for kw in ("court order", "settlement", "injunction", "violation"))
+        if any(
+            kw in str(record.get("event", "")).lower()
+            for kw in ("court order", "settlement", "injunction", "violation")
+        )
     ]
 
 

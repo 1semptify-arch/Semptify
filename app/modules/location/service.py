@@ -20,16 +20,19 @@ logger = logging.getLogger(__name__)
 # LOCATION DATA STRUCTURES
 # =============================================================================
 
+
 class SupportLevel(str, Enum):
     """Level of support available for a state"""
-    FULL = "full"           # Full tenant rights database, all features
-    PARTIAL = "partial"     # Some resources, may reference MN law
-    MINIMAL = "minimal"     # Basic info only, defaults to MN resources
+
+    FULL = "full"  # Full tenant rights database, all features
+    PARTIAL = "partial"  # Some resources, may reference MN law
+    MINIMAL = "minimal"  # Basic info only, defaults to MN resources
 
 
 @dataclass
 class StateInfo:
     """Information about a supported state"""
+
     code: str
     name: str
     support_level: SupportLevel
@@ -45,6 +48,7 @@ class StateInfo:
 @dataclass
 class UserLocation:
     """User's location context"""
+
     state_code: str
     state_name: str
     county: str | None = None
@@ -87,7 +91,6 @@ STATES_INFO: dict[str, StateInfo] = {
         late_fee_limit="8% of rent or $12, whichever is greater (Minn. Stat. § 504B.177)",
         security_deposit_limit="No statutory limit, but interest required after 12 months",
     ),
-
     # PARTIAL SUPPORT - Neighboring states
     "WI": StateInfo(
         code="WI",
@@ -183,10 +186,11 @@ MN_COUNTIES: dict[str, dict[str, str]] = {
 # LOCATION SERVICE
 # =============================================================================
 
+
 class LocationService:
     """
     Location awareness service integrated with Positronic Brain.
-    
+
     Provides:
     - User location detection and storage
     - State-specific tenant rights info
@@ -249,7 +253,7 @@ class LocationService:
 
         self.user_locations[user_id] = location
 
-        logger.info("○ Location set for user %s...: %s, %s", user_id[:8], state_code, county or 'no county')
+        logger.info("○ Location set for user %s...: %s, %s", user_id[:8], state_code, county or "no county")
 
         return location
 
@@ -334,25 +338,31 @@ class LocationService:
 
         if state_info:
             if state_info.legal_aid_phone:
-                resources["resources"].append({
-                    "name": "Legal Aid Hotline",
-                    "phone": state_info.legal_aid_phone,
-                    "type": "phone",
-                })
+                resources["resources"].append(
+                    {
+                        "name": "Legal Aid Hotline",
+                        "phone": state_info.legal_aid_phone,
+                        "type": "phone",
+                    }
+                )
 
             if state_info.tenant_rights_url:
-                resources["resources"].append({
-                    "name": "Tenant Rights Guide",
-                    "url": state_info.tenant_rights_url,
-                    "type": "website",
-                })
+                resources["resources"].append(
+                    {
+                        "name": "Tenant Rights Guide",
+                        "url": state_info.tenant_rights_url,
+                        "type": "website",
+                    }
+                )
 
             if state_info.attorney_general_url:
-                resources["resources"].append({
-                    "name": "Attorney General Consumer Resources",
-                    "url": state_info.attorney_general_url,
-                    "type": "website",
-                })
+                resources["resources"].append(
+                    {
+                        "name": "Attorney General Consumer Resources",
+                        "url": state_info.attorney_general_url,
+                        "type": "website",
+                    }
+                )
 
         # Add county-specific info if Minnesota
         if location.state_code == "MN" and location.county:
@@ -413,7 +423,9 @@ class LocationService:
                 "support_level": state_info.support_level.value if state_info else "minimal",
                 "eviction_days": state_info.eviction_timeline_days if state_info else 14,
                 "late_fee_limit": state_info.late_fee_limit if state_info else None,
-            } if state_info else None,
+            }
+            if state_info
+            else None,
             "is_primary_state": location.state_code == "MN",
             "legal_resources": self.get_legal_resources(user_id),
         }
@@ -434,6 +446,7 @@ def get_location_service() -> LocationService:
 # =============================================================================
 # BRAIN ACTION HANDLERS
 # =============================================================================
+
 
 async def handle_get_location(user_id: str, _params: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
     """Brain action handler: Get user location"""
@@ -458,7 +471,9 @@ async def handle_get_legal_resources(user_id: str, _params: dict[str, Any], _con
     return location_service.get_legal_resources(user_id)
 
 
-async def handle_get_eviction_timeline(user_id: str, _params: dict[str, Any], _context: dict[str, Any]) -> dict[str, Any]:
+async def handle_get_eviction_timeline(
+    user_id: str, _params: dict[str, Any], _context: dict[str, Any]
+) -> dict[str, Any]:
     """Brain action handler: Get eviction timeline for state"""
     return location_service.get_eviction_timeline(user_id)
 
@@ -466,6 +481,7 @@ async def handle_get_eviction_timeline(user_id: str, _params: dict[str, Any], _c
 # =============================================================================
 # REGISTER WITH POSITRONIC MESH
 # =============================================================================
+
 
 def register_with_mesh():
     """Register location service actions with the Positronic Mesh"""

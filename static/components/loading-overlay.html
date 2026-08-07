@@ -105,18 +105,18 @@ window.LoadingOverlay = {
         const overlay = document.getElementById('loadingOverlay');
         const titleEl = document.getElementById('loadingTitle');
         const messageEl = document.getElementById('loadingMessage');
-        
+
         if (title) titleEl.textContent = title;
         if (message) messageEl.textContent = message;
-        
+
         overlay.classList.remove('hidden');
     },
-    
+
     hide: function() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.classList.add('hidden');
     },
-    
+
     // Button loading helper
     setButtonLoading: function(button, loading = true) {
         if (loading) {

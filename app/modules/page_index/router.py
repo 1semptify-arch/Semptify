@@ -17,6 +17,7 @@ router = APIRouter(prefix="/api/pages", tags=["Page Index"])
 
 class PageInfo(BaseModel):
     """Information about an HTML page"""
+
     name: str
     path: str
     full_path: str
@@ -28,6 +29,7 @@ class PageInfo(BaseModel):
 
 class PageIndexResponse(BaseModel):
     """Response containing list of pages"""
+
     pages: list[PageInfo]
     total: int
     repos: list[str]
@@ -38,20 +40,20 @@ def classify_page_type(path: str) -> str:
     """Classify page type based on path"""
     path_lower = path.lower()
 
-    if '_archive' in path_lower or 'backup' in path_lower:
-        return 'archive'
-    elif 'admin' in path_lower or 'mission_control' in path_lower:
-        return 'admin'
-    elif 'legal' in path_lower or 'court' in path_lower or 'motion' in path_lower or 'eviction' in path_lower:
-        return 'legal'
-    elif 'tenant' in path_lower:
-        return 'tenant'
-    elif 'dakota' in path_lower:
-        return 'dakota'
-    elif 'template' in path_lower or 'component' in path_lower:
-        return 'template'
+    if "_archive" in path_lower or "backup" in path_lower:
+        return "archive"
+    elif "admin" in path_lower or "mission_control" in path_lower:
+        return "admin"
+    elif "legal" in path_lower or "court" in path_lower or "motion" in path_lower or "eviction" in path_lower:
+        return "legal"
+    elif "tenant" in path_lower:
+        return "tenant"
+    elif "dakota" in path_lower:
+        return "dakota"
+    elif "template" in path_lower or "component" in path_lower:
+        return "template"
     else:
-        return 'static'
+        return "static"
 
 
 def get_repo_from_path(full_path: str, base_path: str = "C:\\Semptify") -> str:
@@ -88,7 +90,7 @@ async def scan_html_pages(
         try:
             # Skip node_modules, .git, __pycache__, etc.
             path_str = str(html_file)
-            if any(skip in path_str for skip in ['node_modules', '.git', '__pycache__', 'htmlcov', 'venv', '.venv']):
+            if any(skip in path_str for skip in ["node_modules", ".git", "__pycache__", "htmlcov", "venv", ".venv"]):
                 continue
 
             # Get relative path from base
@@ -97,23 +99,23 @@ async def scan_html_pages(
             page_type = classify_page_type(str(rel_path))
 
             # Filter based on options
-            if not include_templates and page_type == 'template':
+            if not include_templates and page_type == "template":
                 continue
-            if not include_archive and page_type == 'archive':
+            if not include_archive and page_type == "archive":
                 continue
 
             # Get file stats
             stat = html_file.stat()
-            modified = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d')
+            modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d")
 
             page = PageInfo(
                 name=html_file.name,
-                path=str(rel_path).replace('\\', '/'),
+                path=str(rel_path).replace("\\", "/"),
                 full_path=str(html_file),
                 repo=repo,
                 type=page_type,
                 size=stat.st_size,
-                date=modified
+                date=modified,
             )
 
             pages.append(page)
@@ -128,10 +130,7 @@ async def scan_html_pages(
     pages.sort(key=lambda p: p.path)
 
     return PageIndexResponse(
-        pages=pages,
-        total=len(pages),
-        repos=sorted(list(repos_set)),
-        types=sorted(list(types_set))
+        pages=pages, total=len(pages), repos=sorted(list(repos_set)), types=sorted(list(types_set))
     )
 
 
@@ -145,11 +144,7 @@ async def scan_fastapi_pages():
     types_set = set()
 
     # Scan both static and templates folders
-    scan_paths = [
-        Path("static"),
-        Path("app/templates"),
-        Path("semptify_dakota_eviction/app/templates")
-    ]
+    scan_paths = [Path("static"), Path("app/templates"), Path("semptify_dakota_eviction/app/templates")]
 
     for scan_path in scan_paths:
         if not scan_path.exists():
@@ -159,16 +154,16 @@ async def scan_fastapi_pages():
             try:
                 page_type = classify_page_type(str(html_file))
                 stat = html_file.stat()
-                modified = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d')
+                modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d")
 
                 page = PageInfo(
                     name=html_file.name,
-                    path=str(html_file).replace('\\', '/'),
+                    path=str(html_file).replace("\\", "/"),
                     full_path=str(html_file.absolute()),
                     repo="Semptify-FastAPI",
                     type=page_type,
                     size=stat.st_size,
-                    date=modified
+                    date=modified,
                 )
 
                 pages.append(page)
@@ -181,10 +176,7 @@ async def scan_fastapi_pages():
     pages.sort(key=lambda p: p.path)
 
     return PageIndexResponse(
-        pages=pages,
-        total=len(pages),
-        repos=sorted(list(repos_set)),
-        types=sorted(list(types_set))
+        pages=pages, total=len(pages), repos=sorted(list(repos_set)), types=sorted(list(types_set))
     )
 
 
@@ -205,7 +197,7 @@ async def get_page_stats(base_path: str = Query(default="C:\\Semptify")):
 
     for html_file in base.rglob("*.html"):
         path_str = str(html_file)
-        if any(skip in path_str for skip in ['node_modules', '.git', '__pycache__', 'htmlcov']):
+        if any(skip in path_str for skip in ["node_modules", ".git", "__pycache__", "htmlcov"]):
             continue
 
         try:
@@ -227,7 +219,7 @@ async def get_page_stats(base_path: str = Query(default="C:\\Semptify")):
         "total_size": total_size,
         "total_size_formatted": format_size(total_size),
         "by_repository": repos,
-        "by_type": types
+        "by_type": types,
     }
 
 
@@ -257,7 +249,7 @@ async def search_pages(
 
     for html_file in base.rglob("*.html"):
         path_str = str(html_file)
-        if any(skip in path_str for skip in ['node_modules', '.git', '__pycache__', 'htmlcov']):
+        if any(skip in path_str for skip in ["node_modules", ".git", "__pycache__", "htmlcov"]):
             continue
 
         # Check if matches search query
@@ -276,23 +268,21 @@ async def search_pages(
 
             rel_path = html_file.relative_to(base)
             stat = html_file.stat()
-            modified = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d')
+            modified = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d")
 
-            results.append(PageInfo(
-                name=html_file.name,
-                path=str(rel_path).replace('\\', '/'),
-                full_path=str(html_file),
-                repo=file_repo,
-                type=file_type,
-                size=stat.st_size,
-                date=modified
-            ))
+            results.append(
+                PageInfo(
+                    name=html_file.name,
+                    path=str(rel_path).replace("\\", "/"),
+                    full_path=str(html_file),
+                    repo=file_repo,
+                    type=file_type,
+                    size=stat.st_size,
+                    date=modified,
+                )
+            )
 
         except Exception:
             continue
 
-    return {
-        "query": q,
-        "results": results,
-        "count": len(results)
-    }
+    return {"query": q, "results": results, "count": len(results)}

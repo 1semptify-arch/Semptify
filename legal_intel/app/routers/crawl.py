@@ -1,13 +1,13 @@
 # app/routers/crawl.py
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
+from ..crawlers import sos
 from ..db import get_db
 from ..services.unified_crawler import crawl_attorney_full, upsert_entity
-from ..crawlers import sos
-from ..models import Entity
 
 router = APIRouter(prefix="/crawl", tags=["crawl"])
 
@@ -49,16 +49,11 @@ async def crawl_entity_endpoint(
     """
     try:
         loop = asyncio.get_event_loop()
-        entity_data = await loop.run_in_executor(
-            _thread_pool, _run_sos_in_thread, entity_name, state
-        )
+        entity_data = await loop.run_in_executor(_thread_pool, _run_sos_in_thread, entity_name, state)
     except Exception as e:
         error_msg = str(e)
         if "ERR_CONNECTION_RESET" in error_msg or "net::" in error_msg:
-            raise HTTPException(
-                status_code=503,
-                detail=f"Cannot reach {state} SOS website. Try again in a moment."
-            )
+            raise HTTPException(status_code=503, detail=f"Cannot reach {state} SOS website. Try again in a moment.")
         raise HTTPException(status_code=500, detail=f"Crawl error: {error_msg}")
 
     if not entity_data:

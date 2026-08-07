@@ -26,8 +26,10 @@ router = APIRouter()
 # Data Models
 # =============================================================================
 
+
 class UserProfile(BaseModel):
     """User's personal information"""
+
     full_name: str = Field(..., min_length=2, max_length=100)
     email: str | None = None
     phone: str | None = None
@@ -39,6 +41,7 @@ class UserProfile(BaseModel):
 
 class PartyInfo(BaseModel):
     """Information about a party (landlord/property manager)"""
+
     name: str = Field(..., min_length=2)
     address: str | None = None
     city: str | None = None
@@ -52,6 +55,7 @@ class PartyInfo(BaseModel):
 
 class CaseInfo(BaseModel):
     """Case information from summons/complaint"""
+
     case_number: str = Field(..., min_length=5, description="Court case number")
     court_name: str = Field(default="Dakota County District Court")
     court_county: str = Field(default="Dakota")
@@ -89,6 +93,7 @@ class CaseInfo(BaseModel):
 
 class StorageConfig(BaseModel):
     """Cloud storage configuration"""
+
     provider: str = Field(..., description="google_drive, onedrive, dropbox, or local")
     connected: bool = False
     folder_path: str | None = None
@@ -96,6 +101,7 @@ class StorageConfig(BaseModel):
 
 class SetupProgress(BaseModel):
     """Track setup wizard progress"""
+
     current_step: int = 1
     total_steps: int = 7
     steps_completed: list[int] = []
@@ -109,6 +115,7 @@ class SetupProgress(BaseModel):
 
 class SetupStatus(BaseModel):
     """Overall setup status"""
+
     is_complete: bool = False
     progress: SetupProgress
     profile: dict | None = None
@@ -153,6 +160,7 @@ def get_user_setup(user_id: str) -> dict:
 # Endpoints
 # =============================================================================
 
+
 @router.get("/check")
 async def check_setup_needed():
     """
@@ -162,11 +170,12 @@ async def check_setup_needed():
     """
     # Check if any user has completed setup (simple file-based check)
     import os
+
     setup_marker = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
 
     return {
         "setup_complete": os.path.exists(setup_marker),
-        "redirect": "/static/command_center.html" if os.path.exists(setup_marker) else "/static/setup_wizard.html"
+        "redirect": "/static/command_center.html" if os.path.exists(setup_marker) else "/static/setup_wizard.html",
     }
 
 
@@ -187,7 +196,7 @@ async def skip_setup():
     return {
         "status": "skipped",
         "message": "Setup wizard skipped. You can configure later via settings.",
-        "redirect": "/static/command_center.html"
+        "redirect": "/static/command_center.html",
     }
 
 
@@ -209,30 +218,26 @@ async def reset_setup(
         return {
             "status": "reset",
             "message": "Setup wizard will show again on next visit.",
-            "redirect": "/static/setup_wizard.html"
+            "redirect": "/static/setup_wizard.html",
         }
 
-    return {
-        "status": "already_reset",
-        "message": "Setup was not completed.",
-        "redirect": "/static/setup_wizard.html"
-    }
+    return {"status": "already_reset", "message": "Setup was not completed.", "redirect": "/static/setup_wizard.html"}
+
+
 @router.get("/status")
 async def get_setup_status(
     user: StorageUser = Depends(yellow_access),
 ) -> SetupStatus:
     """
     Get current setup wizard status.
-    
+
     Returns progress through the wizard and what's been completed.
     """
     setup = get_user_setup(user.user_id)
 
     # Count documents
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
 
     return SetupStatus(
@@ -253,7 +258,7 @@ async def save_profile(
 ):
     """
     Step 2: Save user profile information.
-    
+
     This is the tenant's personal information that will appear on court forms.
     """
     setup = get_user_setup(user.user_id)
@@ -265,19 +270,22 @@ async def save_profile(
 
     # Update Form Data Hub
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
-    service.update_case_info({
-        "tenant": {
-            "name": profile.full_name,
-            "address": profile.address,
-            "city": profile.city,
-            "state": profile.state,
-            "zip_code": profile.zip_code,
-            "phone": profile.phone or "",
-            "email": profile.email or "",
+    service.update_case_info(
+        {
+            "tenant": {
+                "name": profile.full_name,
+                "address": profile.address,
+                "city": profile.city,
+                "state": profile.state,
+                "zip_code": profile.zip_code,
+                "phone": profile.phone or "",
+                "email": profile.email or "",
+            }
         }
-    })
+    )
 
     return {
         "status": "saved",
@@ -305,7 +313,7 @@ async def save_case_info(
 ):
     """
     Step 3: Save case information.
-    
+
     Information from the summons and complaint documents.
     This data populates all court forms.
     """
@@ -327,6 +335,7 @@ async def save_case_info(
 
     # Update Form Data Hub
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
 
@@ -388,7 +397,7 @@ async def configure_storage(
 ):
     """
     Step 4: Configure document storage.
-    
+
     Choose where to store your case documents:
     - local: Store on this server (default)
     - google_drive: Connect Google Drive
@@ -436,7 +445,7 @@ async def upload_document(
 ):
     """
     Step 5: Upload a case document.
-    
+
     Supported document types:
     - summons: Court summons
     - complaint: Eviction complaint
@@ -446,7 +455,7 @@ async def upload_document(
     - communication: Emails, letters, texts
     - photo: Property condition photos
     - other: Other evidence
-    
+
     Documents are automatically processed to extract:
     - Dates (for timeline)
     - Amounts (for forms)
@@ -515,9 +524,7 @@ async def get_uploaded_documents(
 ):
     """Get list of uploaded documents."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
 
     return {
@@ -541,7 +548,7 @@ async def process_all_documents(
 ):
     """
     Step 6: Process all uploaded documents.
-    
+
     Extracts data from all documents and updates:
     - Form Data Hub
     - Timeline
@@ -550,9 +557,7 @@ async def process_all_documents(
     setup = get_user_setup(user.user_id)
 
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
 
     processed = []
@@ -561,20 +566,22 @@ async def process_all_documents(
         try:
             with open(doc.file_path, "rb") as f:
                 content = f.read()
-            extracted = await _process_document(
-                user.user_id, doc.id, doc.document_type, content, doc.original_filename
+            extracted = await _process_document(user.user_id, doc.id, doc.document_type, content, doc.original_filename)
+            processed.append(
+                {
+                    "document_id": doc.id,
+                    "filename": doc.original_filename,
+                    "extracted": extracted,
+                }
             )
-            processed.append({
-                "document_id": doc.id,
-                "filename": doc.original_filename,
-                "extracted": extracted,
-            })
         except Exception as e:
-            processed.append({
-                "document_id": doc.id,
-                "filename": doc.original_filename,
-                "error": str(e),
-            })
+            processed.append(
+                {
+                    "document_id": doc.id,
+                    "filename": doc.original_filename,
+                    "error": str(e),
+                }
+            )
 
     setup["progress"]["documents_processed"] = True
     if 6 not in setup["progress"]["steps_completed"]:
@@ -594,7 +601,7 @@ async def complete_setup(
 ):
     """
     Step 7: Complete setup wizard.
-    
+
     Marks setup as complete and redirects to command center.
     """
     setup = get_user_setup(user.user_id)
@@ -604,10 +611,7 @@ async def complete_setup(
     missing = [step for step in required if not setup["progress"].get(step)]
 
     if missing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot complete setup. Missing: {missing}"
-        )
+        raise HTTPException(status_code=400, detail=f"Cannot complete setup. Missing: {missing}")
 
     setup["progress"]["review_complete"] = True
     if 7 not in setup["progress"]["steps_completed"]:
@@ -615,12 +619,14 @@ async def complete_setup(
 
     # Get summary
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
     summary = service.get_case_summary()
 
     # Create setup complete marker file
     import os
+
     marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
     os.makedirs(os.path.dirname(marker_path), exist_ok=True)
     with open(marker_path, "w") as f:
@@ -632,26 +638,27 @@ async def complete_setup(
         "redirect": "/static/command_center.html",
         "case_summary": summary,
     }
+
+
 @router.get("/summary")
 async def get_setup_summary(
     user: StorageUser = Depends(yellow_access),
 ):
     """
     Get complete summary of all setup data.
-    
+
     Used by Step 7 (Review) to show everything before completion.
     """
     setup = get_user_setup(user.user_id)
 
     # Get documents
     async with get_db_session() as session:
-        result = await session.execute(
-            select(Document).where(Document.user_id == user.user_id)
-        )
+        result = await session.execute(select(Document).where(Document.user_id == user.user_id))
         docs = result.scalars().all()
 
     # Get form data
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user.user_id)
     await service.load()
 
@@ -676,6 +683,7 @@ async def get_setup_summary(
 # Helper Functions
 # =============================================================================
 
+
 async def _process_document(
     user_id: str,
     doc_id: int,
@@ -685,7 +693,7 @@ async def _process_document(
 ) -> dict:
     """
     Process a document to extract data.
-    
+
     Returns extracted dates, amounts, and other relevant information.
     """
     import re
@@ -705,9 +713,9 @@ async def _process_document(
 
     # Extract dates (various formats)
     date_patterns = [
-        r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b',  # MM/DD/YYYY or MM-DD-YYYY
-        r'\b(\w+)\s+(\d{1,2}),?\s+(\d{4})\b',  # Month DD, YYYY
-        r'\b(\d{4})[/-](\d{1,2})[/-](\d{1,2})\b',  # YYYY-MM-DD
+        r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b",  # MM/DD/YYYY or MM-DD-YYYY
+        r"\b(\w+)\s+(\d{1,2}),?\s+(\d{4})\b",  # Month DD, YYYY
+        r"\b(\d{4})[/-](\d{1,2})[/-](\d{1,2})\b",  # YYYY-MM-DD
     ]
 
     for pattern in date_patterns:
@@ -716,12 +724,12 @@ async def _process_document(
             extracted["dates"].append("".join(match))
 
     # Extract amounts (money)
-    amount_pattern = r'\$[\d,]+\.?\d*'
+    amount_pattern = r"\$[\d,]+\.?\d*"
     amounts = re.findall(amount_pattern, text)
     extracted["amounts"] = amounts[:10]  # Limit to 10
 
     # Extract case numbers
-    case_pattern = r'\b\d{2}[A-Z]{2}-[A-Z]{2}-\d{2}-\d+\b'
+    case_pattern = r"\b\d{2}[A-Z]{2}-[A-Z]{2}-\d{2}-\d+\b"
     cases = re.findall(case_pattern, text)
     extracted["case_numbers"] = cases
 
@@ -753,24 +761,29 @@ async def _process_document(
 
     # Update Form Data Hub with extracted data
     from app.services.form_data import get_form_data_service
+
     service = get_form_data_service(user_id)
     await service.load()
 
     # Add extracted dates
     for date in extracted["dates"][:5]:
-        service.form_data.extracted_dates.append({
-            "date": date,
-            "source": filename,
-            "type": doc_type,
-        })
+        service.form_data.extracted_dates.append(
+            {
+                "date": date,
+                "source": filename,
+                "type": doc_type,
+            }
+        )
 
     # Add extracted amounts
     for amount in extracted["amounts"][:5]:
-        service.form_data.extracted_amounts.append({
-            "amount": amount,
-            "source": filename,
-            "type": doc_type,
-        })
+        service.form_data.extracted_amounts.append(
+            {
+                "amount": amount,
+                "source": filename,
+                "type": doc_type,
+            }
+        )
 
     return extracted
 
@@ -788,24 +801,28 @@ async def _create_deadline_events(
 
     # Answer deadline
     if answer_deadline:
-        events_to_create.append({
-            "title": "◆ ANSWER DEADLINE",
-            "description": f"File your Answer to Eviction Complaint by end of day. Case: {case_info.case_number}",
-            "event_date": answer_deadline,
-            "event_type": "deadline",
-            "is_critical": True,
-        })
+        events_to_create.append(
+            {
+                "title": "◆ ANSWER DEADLINE",
+                "description": f"File your Answer to Eviction Complaint by end of day. Case: {case_info.case_number}",
+                "event_date": answer_deadline,
+                "event_type": "deadline",
+                "is_critical": True,
+            }
+        )
 
     # Hearing date
     if case_info.hearing_date:
         time_str = case_info.hearing_time or "TBD"
-        events_to_create.append({
-            "title": "▸ COURT HEARING",
-            "description": f"Eviction hearing at {case_info.court_name}. Time: {time_str}. Case: {case_info.case_number}",
-            "event_date": case_info.hearing_date,
-            "event_type": "hearing",
-            "is_critical": True,
-        })
+        events_to_create.append(
+            {
+                "title": "▸ COURT HEARING",
+                "description": f"Eviction hearing at {case_info.court_name}. Time: {time_str}. Case: {case_info.case_number}",
+                "event_date": case_info.hearing_date,
+                "event_type": "hearing",
+                "is_critical": True,
+            }
+        )
 
     # Create events in database
     async with get_db_session() as session:

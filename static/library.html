@@ -334,7 +334,7 @@
         if (!resp.ok) throw new Error('Failed to load states');
         const data = await resp.json();
         populateStateDropdown(data.states);
-        
+
         // Auto-detect if no saved preference
         if (!localStorage.getItem('selectedState')) {
           detectUserState();
@@ -352,14 +352,14 @@
     function populateStateDropdown(states) {
       const select = document.getElementById('state-law-select');
       select.innerHTML = '<option value="">— Select a State —</option>';
-      
+
       // Sort: complete states first, then alphabetically
       const sorted = states.sort((a, b) => {
         if (a.status === 'complete' && b.status !== 'complete') return -1;
         if (b.status === 'complete' && a.status !== 'complete') return 1;
         return a.name.localeCompare(b.name);
       });
-      
+
       sorted.forEach(state => {
         const marker = state.status === 'complete' ? ' ◆' : ' (basic)';
         const selected = state.code === currentStateCode ? ' selected' : '';
@@ -388,16 +388,16 @@
       const code = document.getElementById('state-law-select').value;
       const display = document.getElementById('state-law-display');
       if (!code) { display.style.display = 'none'; return; }
-      
+
       // Save selection
       currentStateCode = code;
       localStorage.setItem('selectedState', code);
-      
+
       // Show loading
       display.style.display = 'block';
       document.getElementById('sl-title').textContent = 'Loading...';
       document.getElementById('sl-content').innerHTML = '<p>Loading state law information...</p>';
-      
+
       try {
         const resp = await fetch(`/api/states/${code}`);
         if (!resp.ok) throw new Error('Failed to load state details');
@@ -408,22 +408,22 @@
         console.error('State law load failed:', e);
         document.getElementById('sl-content').innerHTML = `<p style="color:#c00;">Error loading state data. <a href="${getStubUrl(code)}" target="_blank">Visit state legal aid resources ▸</a></p>`;
       }
-      
+
       display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function renderStateLaw(law) {
       const isStub = law.status === 'stub';
       const isComplete = law.status === 'complete';
-      
+
       document.getElementById('sl-title').textContent = law.name + ' Housing Law Summary';
-      
+
       if (isStub) {
         // Stub display - limited info with link to external resources
         document.getElementById('sl-content').innerHTML = `
           <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:1rem;margin-bottom:1rem;">
             <strong>◆ Limited Data Available</strong><br>
-            We don't have detailed ${law.name} housing laws yet. 
+            We don't have detailed ${law.name} housing laws yet.
             Visit <a href="${law.stub_url}" target="_blank" rel="noopener">state legal aid resources</a> for accurate information.
           </div>
           <p>${law.notes || ''}</p>
@@ -431,7 +431,7 @@
         `;
         return;
       }
-      
+
       // Complete state display (MN)
       const housing = law.housing_laws || {};
       const notice = law.notice_requirements || {};
@@ -440,18 +440,18 @@
       const repairs = law.repairs || {};
       const eviction = law.eviction || {};
       const discrimination = law.discrimination || {};
-      
+
       let html = `
         <div style="background:#e8f5e9;border:1px solid #4caf50;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.9rem;">
           <strong>● Detailed Coverage</strong> — ${law.name} housing laws verified by legal aid organizations.
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">▸ Housing Laws</h4>
           <p><strong>Statute:</strong> <a href="${housing.statute_url}" target="_blank" rel="noopener">${housing.landlord_tenant_act}</a></p>
           <p>${housing.summary || ''}</p>
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">● Notice Requirements</h4>
           <ul style="margin-left:1.25rem;margin-bottom:0.5rem;">
@@ -461,7 +461,7 @@
           </ul>
           ${notice.notes ? `<p style="font-size:0.85rem;color:#666;"><em>${notice.notes}</em></p>` : ''}
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">● Security Deposit</h4>
           <ul style="margin-left:1.25rem;margin-bottom:0.5rem;">
@@ -470,18 +470,18 @@
             <li><strong>Interest Required:</strong> ${deposit.interest_required ? 'Yes' : 'No'}</li>
           </ul>
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">○ Rent Control</h4>
           <p>${rent.statewide ? 'Statewide rent control in effect' : (rent.local_programs || 'No statewide rent control')}</p>
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">▸ Repairs & Habitability</h4>
           <p><strong>Timeline:</strong> ${repairs.emergency_repairs || 'Reasonable time'}</p>
           ${repairs.cold_weather_rule ? `<p style="background:#e3f2fd;padding:0.5rem;border-radius:6px;margin-top:0.5rem;"><strong>○ Cold Weather Rule:</strong> ${repairs.cold_weather_rule}</p>` : ''}
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">▸ Eviction</h4>
           <ul style="margin-left:1.25rem;margin-bottom:0.5rem;">
@@ -490,14 +490,14 @@
             <li><strong>Lockouts:</strong> ${eviction.lockout_prohibited ? 'Illegal (self-help eviction prohibited)' : 'Check local law'}</li>
           </ul>
         </div>
-        
+
         <div class="state-law-section">
           <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">◆ Discrimination Protections</h4>
           <p><strong>Protected Classes:</strong> ${(discrimination.protected_classes || []).join(', ')}</p>
           <p><a href="${discrimination.complaint_url}" target="_blank" rel="noopener">File complaint with ${discrimination.complaint_agency}</a></p>
         </div>
       `;
-      
+
       // Legal Aid Section
       if (law.legal_aid && law.legal_aid.length > 0) {
         html += `
@@ -520,7 +520,7 @@
         });
         html += '</div></div>';
       }
-      
+
       document.getElementById('sl-content').innerHTML = html;
     }
 

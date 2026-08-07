@@ -62,16 +62,19 @@ logger = logging.getLogger(__name__)
 # Enums & Constants
 # =============================================================================
 
+
 class DateAxis(str, Enum):
     """Which timestamp to use for timeline sorting/display."""
-    EVENT_TIME = "event_time"      # When the event occurred
-    RECORD_TIME = "record_time"    # When the document was created
-    ENTRY_TIME = "entry_time"      # When uploaded to Semptify
-    UPLOADED_AT = "uploaded_at"    # Alias for entry_time (documents)
+
+    EVENT_TIME = "event_time"  # When the event occurred
+    RECORD_TIME = "record_time"  # When the document was created
+    ENTRY_TIME = "entry_time"  # When uploaded to Semptify
+    UPLOADED_AT = "uploaded_at"  # Alias for entry_time (documents)
 
 
 class ItemType(str, Enum):
     """Types of items that can appear on the timeline."""
+
     DOCUMENT = "document"
     TIMELINE_EVENT = "timeline_event"
     CALENDAR_EVENT = "calendar_event"
@@ -82,6 +85,7 @@ class ItemType(str, Enum):
 
 class Urgency(str, Enum):
     """Urgency levels for timeline items."""
+
     CRITICAL = "critical"
     HIGH = "high"
     NORMAL = "normal"
@@ -92,9 +96,13 @@ class Urgency(str, Enum):
 # Request/Response Models
 # =============================================================================
 
+
 class TimelineEventCreateRequest(BaseModel):
     """Request body for creating a manual timeline event."""
-    event_type: str = Field("manual", description="Event type (notice, payment, maintenance, communication, court, manual)")
+
+    event_type: str = Field(
+        "manual", description="Event type (notice, payment, maintenance, communication, court, manual)"
+    )
     title: str = Field(..., min_length=1, max_length=255, description="Event title")
     description: str | None = Field(None, description="Optional long-form description")
     event_date: str = Field(..., description="ISO date (YYYY-MM-DD) or datetime")
@@ -106,6 +114,7 @@ class TimelineEventCreateRequest(BaseModel):
 
 class TimelineEventResponse(BaseModel):
     """Response model for a created timeline event."""
+
     id: str
     event_type: str
     title: str
@@ -120,45 +129,25 @@ class TimelineEventResponse(BaseModel):
 
 class TimelineViewRequest(BaseModel):
     """Request parameters for timeline view."""
-    date_axis: DateAxis = Field(
-        default=DateAxis.EVENT_TIME,
-        description="Which date field to sort and display by"
-    )
-    start_date: str | None = Field(
-        None,
-        description="ISO date or relative (e.g., '-30d', '-6m', '-1y')"
-    )
-    end_date: str | None = Field(
-        None,
-        description="ISO date or relative"
-    )
+
+    date_axis: DateAxis = Field(default=DateAxis.EVENT_TIME, description="Which date field to sort and display by")
+    start_date: str | None = Field(None, description="ISO date or relative (e.g., '-30d', '-6m', '-1y')")
+    end_date: str | None = Field(None, description="ISO date or relative")
     item_types: list[ItemType] = Field(
-        default=[ItemType.DOCUMENT, ItemType.TIMELINE_EVENT,
-                 ItemType.CALENDAR_EVENT, ItemType.VAULT_ITEM],
-        description="Which types of items to include"
+        default=[ItemType.DOCUMENT, ItemType.TIMELINE_EVENT, ItemType.CALENDAR_EVENT, ItemType.VAULT_ITEM],
+        description="Which types of items to include",
     )
-    evidence_only: bool = Field(
-        False,
-        description="Only show items marked as evidence"
-    )
-    urgency_filter: list[Urgency] | None = Field(
-        None,
-        description="Filter by urgency levels"
-    )
-    search_query: str | None = Field(
-        None,
-        description="Search in titles and descriptions"
-    )
-    incident_id: int | None = Field(
-        None,
-        description="Filter vault items by related incident_id"
-    )
+    evidence_only: bool = Field(False, description="Only show items marked as evidence")
+    urgency_filter: list[Urgency] | None = Field(None, description="Filter by urgency levels")
+    search_query: str | None = Field(None, description="Search in titles and descriptions")
+    incident_id: int | None = Field(None, description="Filter vault items by related incident_id")
     limit: int = Field(default=100, ge=1, le=500)
     offset: int = Field(default=0, ge=0)
 
 
 class TimelineItem(BaseModel):
     """A single item on the unified timeline."""
+
     id: str
     item_type: ItemType
     title: str
@@ -193,6 +182,7 @@ class TimelineItem(BaseModel):
 
 class TimelineFacets(BaseModel):
     """Summary counts by category."""
+
     by_type: dict[str, int]
     by_urgency: dict[str, int]
     by_month: dict[str, int]  # YYYY-MM
@@ -200,6 +190,7 @@ class TimelineFacets(BaseModel):
 
 class TimelineViewResponse(BaseModel):
     """Complete timeline view response."""
+
     items: list[TimelineItem]
     total: int
     date_range: dict[str, str]  # {start, end}
@@ -210,6 +201,7 @@ class TimelineViewResponse(BaseModel):
 
 class DateRangeInfo(BaseModel):
     """Information about available date ranges."""
+
     earliest_event: str | None
     latest_event: str | None
     earliest_record: str | None
@@ -222,28 +214,29 @@ class DateRangeInfo(BaseModel):
 # Helper Functions
 # =============================================================================
 
+
 def _parse_relative_date(date_str: str, reference: datetime) -> datetime:
     """Parse a date string that might be relative (e.g., '-30d', '-6m')."""
     if not date_str:
         return reference
 
     # Handle relative dates
-    if date_str.startswith('-'):
+    if date_str.startswith("-"):
         value = int(date_str[1:-1])
         unit = date_str[-1]
 
-        if unit == 'd':
+        if unit == "d":
             return reference - timedelta(days=value)
-        elif unit == 'w':
+        elif unit == "w":
             return reference - timedelta(weeks=value)
-        elif unit == 'm':
+        elif unit == "m":
             return reference - timedelta(days=value * 30)
-        elif unit == 'y':
+        elif unit == "y":
             return reference - timedelta(days=value * 365)
 
     # Handle ISO dates
     try:
-        return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
     except ValueError:
         # Try just date
         try:
@@ -259,8 +252,9 @@ def _format_date(dt: datetime | None) -> str | None:
     return dt.isoformat()
 
 
-def _get_icon_and_color(item_type: ItemType, subtype: str | None,
-                        is_evidence: bool, urgency: Urgency) -> tuple[str, str]:
+def _get_icon_and_color(
+    item_type: ItemType, subtype: str | None, is_evidence: bool, urgency: Urgency
+) -> tuple[str, str]:
     """Get Lucide icon name and Tailwind color for an item."""
 
     # Evidence always gets special treatment
@@ -284,31 +278,31 @@ def _get_icon_and_color(item_type: ItemType, subtype: str | None,
     # Subtype overrides
     if item_type == ItemType.DOCUMENT and subtype:
         subtype_lower = subtype.lower()
-        if 'notice' in subtype_lower:
+        if "notice" in subtype_lower:
             return "bell", "amber"
-        elif 'lease' in subtype_lower:
+        elif "lease" in subtype_lower:
             return "home", "blue"
-        elif 'photo' in subtype_lower:
+        elif "photo" in subtype_lower:
             return "camera", "purple"
-        elif 'receipt' in subtype_lower or 'payment' in subtype_lower:
+        elif "receipt" in subtype_lower or "payment" in subtype_lower:
             return "receipt", "green"
-        elif 'legal' in subtype_lower or 'court' in subtype_lower:
+        elif "legal" in subtype_lower or "court" in subtype_lower:
             return "scale", "red"
 
     if item_type == ItemType.TIMELINE_EVENT and subtype:
         subtype_lower = subtype.lower()
-        if 'court' in subtype_lower:
+        if "court" in subtype_lower:
             return "gavel", "red"
-        elif 'notice' in subtype_lower:
+        elif "notice" in subtype_lower:
             return "bell", "amber"
-        elif 'payment' in subtype_lower:
+        elif "payment" in subtype_lower:
             return "dollar-sign", "green"
 
     if item_type == ItemType.CALENDAR_EVENT and subtype:
         subtype_lower = subtype.lower()
-        if 'hearing' in subtype_lower:
+        if "hearing" in subtype_lower:
             return "gavel", "red"
-        elif 'deadline' in subtype_lower:
+        elif "deadline" in subtype_lower:
             return "clock", "amber"
 
     # Color based on urgency
@@ -327,7 +321,7 @@ def _cloud_event_to_item(cloud_event: dict[str, Any], date_axis: DateAxis) -> "T
     event_time = None
     if event_time_str:
         try:
-            event_time = datetime.fromisoformat(event_time_str.replace('Z', '+00:00'))
+            event_time = datetime.fromisoformat(event_time_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
             # Invalid date format, will use None
             pass
@@ -342,7 +336,7 @@ def _cloud_event_to_item(cloud_event: dict[str, Any], date_axis: DateAxis) -> "T
         entry_time_str = cloud_event.get("entry_time") or cloud_event.get("created_at")
         if entry_time_str:
             try:
-                entry_time = datetime.fromisoformat(entry_time_str.replace('Z', '+00:00'))
+                entry_time = datetime.fromisoformat(entry_time_str.replace("Z", "+00:00"))
                 date_display = _format_date(entry_time)
             except (ValueError, AttributeError):
                 date_display = _format_date(event_time)
@@ -362,10 +356,7 @@ def _cloud_event_to_item(cloud_event: dict[str, Any], date_axis: DateAxis) -> "T
         urgency = Urgency.NORMAL
 
     icon, color = _get_icon_and_color(
-        item_type,
-        cloud_event.get("subtype"),
-        cloud_event.get("is_evidence", False),
-        urgency
+        item_type, cloud_event.get("subtype"), cloud_event.get("is_evidence", False), urgency
     )
 
     return TimelineItem(
@@ -391,16 +382,15 @@ def _cloud_event_to_item(cloud_event: dict[str, Any], date_axis: DateAxis) -> "T
 # Data Loading Functions
 # =============================================================================
 
+
 async def _load_cloud_timeline_events(user: StorageUser) -> list[dict[str, Any]]:
     """Load timeline events from user's cloud storage (events.json)."""
     try:
         overlay_mgr = UnifiedOverlayManager(user)
-        content = await overlay_mgr.read_file_from_cloud(
-            user.user_id,
-            VAULT_TIMELINE_EVENTS_FILE
-        )
+        content = await overlay_mgr.read_file_from_cloud(user.user_id, VAULT_TIMELINE_EVENTS_FILE)
         if content:
             import json
+
             data = json.loads(content)
             return data.get("events", [])
     except Exception as e:
@@ -409,11 +399,7 @@ async def _load_cloud_timeline_events(user: StorageUser) -> list[dict[str, Any]]
 
 
 async def _load_db_documents(
-    session: AsyncSession,
-    user_id: str,
-    start_date: datetime | None,
-    end_date: datetime | None,
-    date_axis: DateAxis
+    session: AsyncSession, user_id: str, start_date: datetime | None, end_date: datetime | None, date_axis: DateAxis
 ) -> list[TimelineItem]:
     """Load documents from database."""
     query = select(DocumentModel).where(DocumentModel.user_id == user_id)
@@ -445,28 +431,28 @@ async def _load_db_documents(
         else:
             display_dt = uploaded_at
 
-        icon, color = _get_icon_and_color(
-            ItemType.DOCUMENT, doc.document_type, False, Urgency.NORMAL
-        )
+        icon, color = _get_icon_and_color(ItemType.DOCUMENT, doc.document_type, False, Urgency.NORMAL)
 
-        items.append(TimelineItem(
-            id=doc.id,
-            item_type=ItemType.DOCUMENT,
-            title=doc.filename or doc.original_filename or "Untitled Document",
-            description=doc.description,
-            date_display=_format_date(display_dt) or "",
-            event_date=_format_date(event_dt),
-            record_date=_format_date(record_dt),
-            entry_date=_format_date(uploaded_at) or "",
-            is_evidence=doc.is_privileged or False,  # Could be refined
-            urgency=Urgency.NORMAL,
-            item_subtype=doc.document_type,
-            icon=icon,
-            color=color,
-            source="upload",
-            document_id=doc.id,
-            tags=doc.tags.split(",") if doc.tags else [],
-        ))
+        items.append(
+            TimelineItem(
+                id=doc.id,
+                item_type=ItemType.DOCUMENT,
+                title=doc.filename or doc.original_filename or "Untitled Document",
+                description=doc.description,
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=_format_date(record_dt),
+                entry_date=_format_date(uploaded_at) or "",
+                is_evidence=doc.is_privileged or False,  # Could be refined
+                urgency=Urgency.NORMAL,
+                item_subtype=doc.document_type,
+                icon=icon,
+                color=color,
+                source="upload",
+                document_id=doc.id,
+                tags=doc.tags.split(",") if doc.tags else [],
+            )
+        )
 
     return items
 
@@ -477,7 +463,7 @@ async def _load_db_timeline_events(
     start_date: datetime | None,
     end_date: datetime | None,
     date_axis: DateAxis,
-    evidence_only: bool
+    evidence_only: bool,
 ) -> list[TimelineItem]:
     """Load manual timeline events from database."""
     query = select(TimelineEventModel).where(TimelineEventModel.user_id == user_id)
@@ -517,33 +503,33 @@ async def _load_db_timeline_events(
         if evt.is_deadline and urgency == Urgency.NORMAL:
             urgency = Urgency.HIGH
 
-        icon, color = _get_icon_and_color(
-            ItemType.TIMELINE_EVENT, evt.event_type, evt.is_evidence, urgency
-        )
+        icon, color = _get_icon_and_color(ItemType.TIMELINE_EVENT, evt.event_type, evt.is_evidence, urgency)
 
-        items.append(TimelineItem(
-            id=evt.id,
-            item_type=ItemType.TIMELINE_EVENT,
-            title=evt.title,
-            description=evt.description,
-            date_display=_format_date(display_dt) or "",
-            event_date=_format_date(event_dt),
-            record_date=_format_date(event_dt),  # Same as event for manual events
-            entry_date=_format_date(entry_dt) or "",
-            is_evidence=evt.is_evidence or False,
-            is_deadline=evt.is_deadline or False,
-            urgency=urgency,
-            item_subtype=evt.event_type,
-            icon=icon,
-            color=color,
-            source="manual",
-            document_id=evt.document_id,
-            tags=[evt.highlight_color] if evt.highlight_color else [],
-            metadata={
-                "footnote_number": evt.footnote_number,
-                "source_extraction_id": evt.source_extraction_id,
-            }
-        ))
+        items.append(
+            TimelineItem(
+                id=evt.id,
+                item_type=ItemType.TIMELINE_EVENT,
+                title=evt.title,
+                description=evt.description,
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=_format_date(event_dt),  # Same as event for manual events
+                entry_date=_format_date(entry_dt) or "",
+                is_evidence=evt.is_evidence or False,
+                is_deadline=evt.is_deadline or False,
+                urgency=urgency,
+                item_subtype=evt.event_type,
+                icon=icon,
+                color=color,
+                source="manual",
+                document_id=evt.document_id,
+                tags=[evt.highlight_color] if evt.highlight_color else [],
+                metadata={
+                    "footnote_number": evt.footnote_number,
+                    "source_extraction_id": evt.source_extraction_id,
+                },
+            )
+        )
 
     return items
 
@@ -610,36 +596,36 @@ async def _load_db_eviction_timeline_events(
         if is_deadline and urgency == Urgency.NORMAL:
             urgency = Urgency.HIGH
 
-        icon, color = _get_icon_and_color(
-            ItemType.TIMELINE_EVENT, evt.event_type, is_evidence, urgency
-        )
+        icon, color = _get_icon_and_color(ItemType.TIMELINE_EVENT, evt.event_type, is_evidence, urgency)
 
-        items.append(TimelineItem(
-            id=evt.id,
-            item_type=ItemType.TIMELINE_EVENT,
-            title=title,
-            description="",
-            date_display=_format_date(display_dt) or "",
-            event_date=_format_date(event_dt),
-            record_date=None,
-            entry_date=_format_date(entry_dt) or "",
-            is_evidence=is_evidence,
-            is_deadline=is_deadline,
-            urgency=urgency,
-            item_subtype=evt.event_type,
-            icon=icon,
-            color=color,
-            source=source,
-            document_id=evt.source_document_id,
-            overlay_id=evt.content_overlay_id,
-            metadata={
-                "subject_id": evt.subject_id,
-                "jurisdiction": evt.jurisdiction,
-                "source_document_id": evt.source_document_id,
-                "content_overlay_id": evt.content_overlay_id,
-                "updated_at": _format_date(evt.updated_at),
-            },
-        ))
+        items.append(
+            TimelineItem(
+                id=evt.id,
+                item_type=ItemType.TIMELINE_EVENT,
+                title=title,
+                description="",
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=None,
+                entry_date=_format_date(entry_dt) or "",
+                is_evidence=is_evidence,
+                is_deadline=is_deadline,
+                urgency=urgency,
+                item_subtype=evt.event_type,
+                icon=icon,
+                color=color,
+                source=source,
+                document_id=evt.source_document_id,
+                overlay_id=evt.content_overlay_id,
+                metadata={
+                    "subject_id": evt.subject_id,
+                    "jurisdiction": evt.jurisdiction,
+                    "source_document_id": evt.source_document_id,
+                    "content_overlay_id": evt.content_overlay_id,
+                    "updated_at": _format_date(evt.updated_at),
+                },
+            )
+        )
 
     return items
 
@@ -683,32 +669,32 @@ async def _load_db_calendar_events(
 
         urgency = Urgency.CRITICAL if evt.is_critical else Urgency.HIGH
 
-        icon, color = _get_icon_and_color(
-            ItemType.CALENDAR_EVENT, evt.event_type, False, urgency
-        )
+        icon, color = _get_icon_and_color(ItemType.CALENDAR_EVENT, evt.event_type, False, urgency)
 
-        items.append(TimelineItem(
-            id=evt.id,
-            item_type=ItemType.CALENDAR_EVENT,
-            title=evt.title,
-            description=evt.description,
-            date_display=_format_date(display_dt) or "",
-            event_date=_format_date(event_dt),
-            record_date=_format_date(event_dt),
-            entry_date=_format_date(entry_dt) or "",
-            is_evidence=True,  # Court dates are always evidence
-            is_deadline=evt.event_type == "deadline",
-            urgency=urgency,
-            item_subtype=evt.event_type,
-            icon=icon,
-            color=color,
-            source="calendar",
-            metadata={
-                "all_day": evt.all_day,
-                "end_datetime": _format_date(evt.end_datetime),
-                "reminder_days": evt.reminder_days,
-            }
-        ))
+        items.append(
+            TimelineItem(
+                id=evt.id,
+                item_type=ItemType.CALENDAR_EVENT,
+                title=evt.title,
+                description=evt.description,
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=_format_date(event_dt),
+                entry_date=_format_date(entry_dt) or "",
+                is_evidence=True,  # Court dates are always evidence
+                is_deadline=evt.event_type == "deadline",
+                urgency=urgency,
+                item_subtype=evt.event_type,
+                icon=icon,
+                color=color,
+                source="calendar",
+                metadata={
+                    "all_day": evt.all_day,
+                    "end_datetime": _format_date(evt.end_datetime),
+                    "reminder_days": evt.reminder_days,
+                },
+            )
+        )
 
     return items
 
@@ -767,29 +753,29 @@ async def _load_db_vault_items(
 
         urgency = Urgency(vi.severity) if vi.severity else Urgency.NORMAL
 
-        icon, color = _get_icon_and_color(
-            ItemType.VAULT_ITEM, vi.item_type, False, urgency
-        )
+        icon, color = _get_icon_and_color(ItemType.VAULT_ITEM, vi.item_type, False, urgency)
 
-        items.append(TimelineItem(
-            id=str(vi.item_id),
-            item_type=ItemType.VAULT_ITEM,
-            title=vi.title or vi.item_type,
-            description=vi.summary,
-            date_display=_format_date(display_dt) or "",
-            event_date=_format_date(event_dt),
-            record_date=_format_date(record_dt),
-            entry_date=_format_date(entry_dt) or "",
-            is_evidence=vi.status == "verified",
-            urgency=urgency,
-            item_subtype=vi.item_type,
-            icon=icon,
-            color=color,
-            source=vi.source or "vault",
-            document_id=vi.file_path,
-            tags=vi.tags or [],
-            metadata=vi.item_metadata or {},
-        ))
+        items.append(
+            TimelineItem(
+                id=str(vi.item_id),
+                item_type=ItemType.VAULT_ITEM,
+                title=vi.title or vi.item_type,
+                description=vi.summary,
+                date_display=_format_date(display_dt) or "",
+                event_date=_format_date(event_dt),
+                record_date=_format_date(record_dt),
+                entry_date=_format_date(entry_dt) or "",
+                is_evidence=vi.status == "verified",
+                urgency=urgency,
+                item_subtype=vi.item_type,
+                icon=icon,
+                color=color,
+                source=vi.source or "vault",
+                document_id=vi.file_path,
+                tags=vi.tags or [],
+                metadata=vi.item_metadata or {},
+            )
+        )
 
     return items
 
@@ -798,6 +784,7 @@ async def _load_db_vault_items(
 # API Endpoints
 # =============================================================================
 
+
 @router.post("/unified", response_model=TimelineViewResponse)
 async def get_unified_timeline(
     request: TimelineViewRequest,
@@ -805,19 +792,19 @@ async def get_unified_timeline(
 ) -> TimelineViewResponse:
     """
     Get unified interactive timeline view.
-    
+
     Aggregates data from:
     - Documents (upload metadata)
     - Manual timeline events
     - Calendar events (court dates)
     - Vault items (evidence with 3 timestamps)
     - Cloud timeline (events.json) - merged in
-    
+
     **Date Axes:**
     - `event_time`: When the event actually occurred (e.g., date on notice)
     - `record_time`: When the document/photo was created
     - `entry_time`: When it was uploaded to Semptify
-    
+
     **Date Ranges:**
     - Use ISO dates: `2025-01-01`
     - Or relative: `-30d`, `-6m`, `-1y`
@@ -833,35 +820,33 @@ async def get_unified_timeline(
     async with get_db_session() as session:
         # Load from each source
         if ItemType.DOCUMENT in request.item_types:
-            docs = await _load_db_documents(
-                session, user.user_id, start_date, end_date, request.date_axis
-            )
+            docs = await _load_db_documents(session, user.user_id, start_date, end_date, request.date_axis)
             all_items.extend(docs)
 
         if ItemType.TIMELINE_EVENT in request.item_types:
             events = await _load_db_timeline_events(
-                session, user.user_id, start_date, end_date,
-                request.date_axis, request.evidence_only
+                session, user.user_id, start_date, end_date, request.date_axis, request.evidence_only
             )
             all_items.extend(events)
 
             eviction_events = await _load_db_eviction_timeline_events(
-                session, user.user_id, start_date, end_date,
-                request.date_axis, request.evidence_only
+                session, user.user_id, start_date, end_date, request.date_axis, request.evidence_only
             )
             all_items.extend(eviction_events)
 
         if ItemType.CALENDAR_EVENT in request.item_types:
-            cal_events = await _load_db_calendar_events(
-                session, user.user_id, start_date, end_date, request.date_axis
-            )
+            cal_events = await _load_db_calendar_events(session, user.user_id, start_date, end_date, request.date_axis)
             all_items.extend(cal_events)
 
         if ItemType.VAULT_ITEM in request.item_types:
             vault_items = await _load_db_vault_items(
-                session, user.user_id, start_date, end_date,
-                request.date_axis, request.evidence_only,
-                request.incident_id
+                session,
+                user.user_id,
+                start_date,
+                end_date,
+                request.date_axis,
+                request.evidence_only,
+                request.incident_id,
             )
             all_items.extend(vault_items)
 
@@ -872,16 +857,14 @@ async def get_unified_timeline(
             all_items.append(_cloud_event_to_item(ce, request.date_axis))
 
     # Sort by display date (descending = newest first)
-    all_items.sort(
-        key=lambda x: x.date_display or "",
-        reverse=True
-    )
+    all_items.sort(key=lambda x: x.date_display or "", reverse=True)
 
     # Apply search filter
     if request.search_query:
         query_lower = request.search_query.lower()
         all_items = [
-            item for item in all_items
+            item
+            for item in all_items
             if query_lower in item.title.lower()
             or (item.description and query_lower in item.description.lower())
             or any(query_lower in tag.lower() for tag in item.tags)
@@ -934,25 +917,23 @@ async def get_date_range_info(
 ) -> DateRangeInfo:
     """
     Get the available date range across all timeline sources.
-    
+
     Useful for setting up the timeline slider/selector on the frontend.
     """
     async with get_db_session() as session:
         # Documents
         doc_result = await session.execute(
-            select(
-                func.min(DocumentModel.uploaded_at),
-                func.max(DocumentModel.uploaded_at)
-            ).where(DocumentModel.user_id == user.user_id)
+            select(func.min(DocumentModel.uploaded_at), func.max(DocumentModel.uploaded_at)).where(
+                DocumentModel.user_id == user.user_id
+            )
         )
         doc_min, doc_max = doc_result.first() or (None, None)
 
         # Timeline events
         evt_result = await session.execute(
-            select(
-                func.min(TimelineEventModel.event_date),
-                func.max(TimelineEventModel.event_date)
-            ).where(TimelineEventModel.user_id == user.user_id)
+            select(func.min(TimelineEventModel.event_date), func.max(TimelineEventModel.event_date)).where(
+                TimelineEventModel.user_id == user.user_id
+            )
         )
         evt_min, evt_max = evt_result.first() or (None, None)
 
@@ -991,6 +972,7 @@ async def get_date_range_info(
 # =============================================================================
 # Manual Event Creation
 # =============================================================================
+
 
 def _parse_event_date(raw: str) -> datetime:
     """Parse YYYY-MM-DD or ISO datetime string into a timezone-aware datetime."""

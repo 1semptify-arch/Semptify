@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
     Semptify Windows Installer Builder
-    
+
 .DESCRIPTION
     Builds Semptify.exe Windows installer using PyInstaller
     Supports Windows 10/11/22 (Server 2022)
-    
+
 .NOTES
     Run from project root: .\installer\build_installer.ps1
 #>
@@ -27,7 +27,7 @@ function Write-Color($text, $color = "White") {
 Write-Color ""
 Write-Color "============================================================" "Cyan"
 Write-Color "  SEMPTIFY WINDOWS INSTALLER BUILDER" "Cyan"
-Write-Color "  Version 5.0.0 - Windows 10/11/22 Compatible" "Cyan"  
+Write-Color "  Version 5.0.0 - Windows 10/11/22 Compatible" "Cyan"
 Write-Color "============================================================" "Cyan"
 Write-Color ""
 

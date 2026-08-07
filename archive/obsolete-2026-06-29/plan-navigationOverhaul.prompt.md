@@ -207,7 +207,7 @@ sections: [
 function routeUser() {
     const hasSession = localStorage.getItem('semptify_user_id');
     const hasCase = localStorage.getItem('semptify_active_case');
-    
+
     if (!hasSession) {
         // First visit → Welcome
         window.location.href = '/static/welcome.html';

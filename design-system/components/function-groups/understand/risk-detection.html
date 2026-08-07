@@ -10,14 +10,14 @@
 {% set show_timeline = show_timeline|default(true) %}
 {% set show_actions = show_actions|default(true) %}
 
-<div class="understand-risk-detection role-{{ role }}" 
+<div class="understand-risk-detection role-{{ role }}"
      id="{{ component_id }}"
      data-function-group="{{ function_group }}"
      data-role="{{ role }}"
      data-auto-analyze="{{ auto_analyze|lower }}"
      data-show-timeline="{{ show_timeline|lower }}"
      data-show-actions="{{ show_actions|lower }}">
-  
+
   <div class="risk-header">
     <div class="risk-icon">+</div>
     <div>
@@ -25,7 +25,7 @@
       <div class="risk-subtitle">AI-powered risk assessment and complaint opportunity analysis</div>
     </div>
   </div>
-  
+
   <div class="risk-content" id="{{ component_id }}_content">
     <div class="risk-loading">
       <div class="risk-loading-spinner"></div>
@@ -35,7 +35,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-auto-analyze="{{ auto_analyze|lower }}"
@@ -54,28 +54,28 @@ document.addEventListener('DOMContentLoaded', function() {
     showTimeline: configEl.dataset.showTimeline === 'true',
     showActions: configEl.dataset.showActions === 'true'
   };
-  
+
   // Get DOM elements
   const component = document.getElementById(config.componentId);
   const content = document.getElementById(config.componentId + '_content');
-  
+
   // State
   let riskData = null;
   let isAnalyzing = false;
-  
+
   // Initialize
   initRiskDetection();
-  
+
   function initRiskDetection() {
     // Load initial analysis
     if (config.autoAnalyze) {
       performRiskAnalysis();
     }
   }
-  
+
   function performRiskAnalysis() {
     isAnalyzing = true;
-    
+
     // Show loading state
     content.innerHTML = `
       <div class="risk-loading">
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="risk-loading-text">Analyzing risks and opportunities...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       riskData = generateMockRiskData();
@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
       isAnalyzing = false;
     }, 2000);
   }
-  
+
   function generateMockRiskData() {
     const now = new Date();
-    
+
     return {
       overview: {
         critical: 1,
@@ -247,10 +247,10 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     };
   }
-  
+
   function renderRiskAnalysis() {
     if (!riskData) return;
-    
+
     const html = `
       <div class="risk-overview">
         <div class="risk-overview-item">
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="risk-overview-label">Low</div>
         </div>
       </div>
-      
+
       <div class="risk-levels">
         <div class="risk-level critical">
           <div>Critical</div>
@@ -289,11 +289,11 @@ document.addEventListener('DOMContentLoaded', function() {
           <div>Monitor Situation</div>
         </div>
       </div>
-      
+
       <div class="risk-categories">
         ${riskData.categories.map(category => createCategoryHTML(category)).join('')}
       </div>
-      
+
       ${config.showActions ? `
         <div class="risk-actions">
           <button class="risk-action-btn primary" onclick="handleViewActionPlan()">
@@ -305,11 +305,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       ` : ''}
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function createCategoryHTML(category) {
     return `
       <div class="risk-category">
@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function createItemHTML(item) {
     return `
       <div class="risk-item" data-item-id="${item.id}" data-impact="${item.impact}">
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function attachEventListeners() {
     // Item click handlers
     const itemElements = content.querySelectorAll('.risk-item');
@@ -357,14 +357,14 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleItemClick(itemEl) {
     const itemId = itemEl.dataset.itemId;
-    const category = riskData.categories.find(cat => 
+    const category = riskData.categories.find(cat =>
       cat.items.some(item => item.id === itemId)
     );
     const item = category ? category.items.find(item => item.id === itemId) : null;
-    
+
     if (item) {
       // Emit risk item selection event
       const riskEvent = new CustomEvent('understand-risk-select', {
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(riskEvent);
     }
   }
-  
+
   function handleViewActionPlan() {
     // Emit view action plan event
     const actionEvent = new CustomEvent('understand-risk-action-plan', {
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(actionEvent);
   }
-  
+
   function handleExportReport() {
     // Emit export report event
     const exportEvent = new CustomEvent('understand-risk-export', {
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(exportEvent);
   }
-  
+
   // Make action functions available globally
   window.handleViewActionPlan = handleViewActionPlan;
   window.handleExportReport = handleExportReport;

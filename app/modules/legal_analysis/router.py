@@ -63,9 +63,11 @@ except ImportError:
         NON_COMPLIANT = "non_compliant"
         UNKNOWN = "unknown"
 
+
 # Optional service dependencies for lightweight builds
 try:
     from ..services.tenancy_hub import get_tenancy_hub_service
+
     TENANCY_HUB_AVAILABLE = True
 except ImportError:
     TENANCY_HUB_AVAILABLE = False
@@ -73,6 +75,7 @@ except ImportError:
 
 try:
     from ..services.positronic_brain import BrainEvent, EventType, ModuleType, PositronicBrain, get_brain
+
     BRAIN_AVAILABLE = True
 except ImportError:
     BRAIN_AVAILABLE = False
@@ -91,20 +94,25 @@ router = APIRouter(
 # REQUEST/RESPONSE MODELS
 # =============================================================================
 
+
 class DocumentAnalysisRequest(BaseModel):
     document: dict[str, Any]
+
 
 class ConsistencyCheckRequest(BaseModel):
     items: list[dict[str, Any]]
     fields_to_check: list[str] = []
 
+
 class CorroborationRequest(BaseModel):
     claim: str
     evidence_items: list[dict[str, Any]]
 
+
 class TimelineAnalysisRequest(BaseModel):
     events: list[dict[str, Any]]
     eviction_type: str = "non_payment"
+
 
 class MeritAssessmentRequest(BaseModel):
     case_data: dict[str, Any]
@@ -115,11 +123,12 @@ class MeritAssessmentRequest(BaseModel):
 # DOCUMENT ANALYSIS ENDPOINTS
 # =============================================================================
 
+
 @router.post("/classify-evidence")
 async def classify_evidence(request: DocumentAnalysisRequest):
     """
     Classify a document for legal purposes.
-    
+
     Returns:
     - Evidence type (direct, hearsay, documentary, etc.)
     - Legal status (binding, informational, inadmissible)
@@ -138,7 +147,7 @@ async def classify_evidence(request: DocumentAnalysisRequest):
             "is_hearsay": classification.evidence_type == EvidenceType.HEARSAY,
             "is_strong_evidence": classification.weight >= 0.7,
             "needs_attention": len(classification.admissibility_issues) > 0,
-        }
+        },
     }
 
 
@@ -152,11 +161,13 @@ async def classify_evidence_batch(documents: list[dict[str, Any]]):
     results = []
     for doc in documents:
         classification = engine.classify_evidence(doc)
-        results.append({
-            "id": doc.get("id", "unknown"),
-            "title": doc.get("title", doc.get("filename", "unknown")),
-            "classification": classification.to_dict(),
-        })
+        results.append(
+            {
+                "id": doc.get("id", "unknown"),
+                "title": doc.get("title", doc.get("filename", "unknown")),
+                "classification": classification.to_dict(),
+            }
+        )
 
     # Summary statistics
     total = len(results)
@@ -173,7 +184,7 @@ async def classify_evidence_batch(documents: list[dict[str, Any]]):
             "hearsay_documents": hearsay,
             "strong_evidence": strong,
             "weak_evidence": total - strong,
-        }
+        },
     }
 
 
@@ -181,11 +192,12 @@ async def classify_evidence_batch(documents: list[dict[str, Any]]):
 # CONSISTENCY ANALYSIS ENDPOINTS
 # =============================================================================
 
+
 @router.post("/check-consistency")
 async def check_consistency(request: ConsistencyCheckRequest):
     """
     Check consistency across multiple documents/events.
-    
+
     Looks for contradictions in:
     - Names (tenant, landlord)
     - Addresses
@@ -234,11 +246,12 @@ def _generate_consistency_summary(checks: list) -> str:
 # CORROBORATION ANALYSIS ENDPOINTS
 # =============================================================================
 
+
 @router.post("/analyze-corroboration")
 async def analyze_corroboration(request: CorroborationRequest):
     """
     Analyze how well evidence supports a specific claim.
-    
+
     Example claims:
     - "Landlord failed to make repairs"
     - "Tenant did not pay rent"
@@ -284,10 +297,7 @@ def _get_corroboration_verdict(strength: float) -> dict[str, Any]:
 
 
 @router.post("/analyze-corroboration/multi")
-async def analyze_multiple_claims(
-    claims: list[str] = Body(...),
-    evidence_items: list[dict[str, Any]] = Body(...)
-):
+async def analyze_multiple_claims(claims: list[str] = Body(...), evidence_items: list[dict[str, Any]] = Body(...)):
     """
     Analyze corroboration for multiple claims at once.
     """
@@ -296,13 +306,15 @@ async def analyze_multiple_claims(
     results = []
     for claim in claims:
         analysis = engine.analyze_corroboration(claim, evidence_items)
-        results.append({
-            "claim": claim,
-            "strength": analysis.corroboration_strength,
-            "supporting_count": len(analysis.supporting_evidence),
-            "contradicting_count": len(analysis.contradicting_evidence),
-            "verdict": _get_corroboration_verdict(analysis.corroboration_strength)["level"],
-        })
+        results.append(
+            {
+                "claim": claim,
+                "strength": analysis.corroboration_strength,
+                "supporting_count": len(analysis.supporting_evidence),
+                "contradicting_count": len(analysis.contradicting_evidence),
+                "verdict": _get_corroboration_verdict(analysis.corroboration_strength)["level"],
+            }
+        )
 
     # Sort by strength
     results.sort(key=lambda x: x["strength"], reverse=True)
@@ -320,11 +332,12 @@ async def analyze_multiple_claims(
 # TIMELINE ANALYSIS ENDPOINTS
 # =============================================================================
 
+
 @router.post("/analyze-timeline")
 async def analyze_timeline(request: TimelineAnalysisRequest):
     """
     Analyze timeline for legal compliance.
-    
+
     Checks:
     - Notice periods (14-day notice, etc.)
     - Proper sequence of events
@@ -340,7 +353,9 @@ async def analyze_timeline(request: TimelineAnalysisRequest):
         "eviction_type": request.eviction_type,
         "analysis": analysis.to_dict(),
         "compliance_issues": _get_compliance_issues(analysis),
-        "defense_opportunities": _get_defense_opportunities(analysis) if analysis.notice_compliance != NoticeComplianceStatus.COMPLIANT else [],
+        "defense_opportunities": _get_defense_opportunities(analysis)
+        if analysis.notice_compliance != NoticeComplianceStatus.COMPLIANT
+        else [],
     }
 
 
@@ -349,35 +364,43 @@ def _get_compliance_issues(analysis) -> list[dict[str, Any]]:
     issues = []
 
     if analysis.notice_compliance == NoticeComplianceStatus.NON_COMPLIANT:
-        issues.append({
-            "type": "notice",
-            "severity": "critical",
-            "description": "Notice requirements were not met",
-            "impact": "Case may be dismissed",
-        })
+        issues.append(
+            {
+                "type": "notice",
+                "severity": "critical",
+                "description": "Notice requirements were not met",
+                "impact": "Case may be dismissed",
+            }
+        )
     elif analysis.notice_compliance == NoticeComplianceStatus.PARTIALLY_COMPLIANT:
-        issues.append({
-            "type": "notice",
-            "severity": "high",
-            "description": "Notice period was insufficient",
-            "impact": "May be grounds for dismissal",
-        })
+        issues.append(
+            {
+                "type": "notice",
+                "severity": "high",
+                "description": "Notice period was insufficient",
+                "impact": "May be grounds for dismissal",
+            }
+        )
 
     for issue in analysis.sequence_issues:
-        issues.append({
-            "type": "procedure",
-            "severity": "high",
-            "description": issue,
-            "impact": "Procedural defense may apply",
-        })
+        issues.append(
+            {
+                "type": "procedure",
+                "severity": "high",
+                "description": issue,
+                "impact": "Procedural defense may apply",
+            }
+        )
 
     for deadline in analysis.missed_deadlines:
-        issues.append({
-            "type": "deadline",
-            "severity": "medium",
-            "description": f"Missed deadline: {deadline['title']}",
-            "impact": "May affect case progression",
-        })
+        issues.append(
+            {
+                "type": "deadline",
+                "severity": "medium",
+                "description": f"Missed deadline: {deadline['title']}",
+                "impact": "May affect case progression",
+            }
+        )
 
     return issues
 
@@ -387,21 +410,27 @@ def _get_defense_opportunities(analysis) -> list[dict[str, Any]]:
     opportunities = []
 
     if analysis.notice_compliance != NoticeComplianceStatus.COMPLIANT:
-        opportunities.append({
-            "defense": "Improper Notice",
-            "basis": "Minnesota requires proper notice before eviction filing",
-            "statute": "Minn. Stat. § 504B.135",
-            "strength": "strong" if analysis.notice_compliance == NoticeComplianceStatus.NON_COMPLIANT else "moderate",
-        })
+        opportunities.append(
+            {
+                "defense": "Improper Notice",
+                "basis": "Minnesota requires proper notice before eviction filing",
+                "statute": "Minn. Stat. § 504B.135",
+                "strength": "strong"
+                if analysis.notice_compliance == NoticeComplianceStatus.NON_COMPLIANT
+                else "moderate",
+            }
+        )
 
     for issue in analysis.sequence_issues:
         if "without proper notice" in issue.lower():
-            opportunities.append({
-                "defense": "Procedural Defect",
-                "basis": issue,
-                "statute": "Minn. Stat. § 504B.321",
-                "strength": "moderate",
-            })
+            opportunities.append(
+                {
+                    "defense": "Procedural Defect",
+                    "basis": issue,
+                    "statute": "Minn. Stat. § 504B.321",
+                    "strength": "moderate",
+                }
+            )
 
     return opportunities
 
@@ -410,17 +439,18 @@ def _get_defense_opportunities(analysis) -> list[dict[str, Any]]:
 # COMPREHENSIVE MERIT ASSESSMENT
 # =============================================================================
 
+
 @router.post("/assess-merit")
 async def assess_legal_merit(request: MeritAssessmentRequest):
     """
     Comprehensive assessment of legal merit.
-    
+
     Analyzes:
     - All evidence quality and admissibility
     - Consistency across all documents
     - Timeline compliance
     - Overall case strength
-    
+
     Perspective:
     - "defendant" (tenant) - looks for defenses
     - "plaintiff" (landlord) - evaluates prosecution strength
@@ -442,44 +472,46 @@ def _generate_action_items(assessment) -> list[dict[str, Any]]:
 
     # Critical issues first
     for issue in assessment.critical_issues:
-        items.append({
-            "priority": "critical",
-            "action": f"Address: {issue}",
-            "deadline": "immediate",
-        })
+        items.append(
+            {
+                "priority": "critical",
+                "action": f"Address: {issue}",
+                "deadline": "immediate",
+            }
+        )
 
     # Then recommendations
     for rec in assessment.recommendations:
-        items.append({
-            "priority": "high",
-            "action": rec,
-            "deadline": "before hearing",
-        })
+        items.append(
+            {
+                "priority": "high",
+                "action": rec,
+                "deadline": "before hearing",
+            }
+        )
 
     # Address weaknesses
     for weakness in assessment.weaknesses[:3]:  # Top 3 weaknesses
-        items.append({
-            "priority": "medium",
-            "action": f"Improve: {weakness}",
-            "deadline": "when possible",
-        })
+        items.append(
+            {
+                "priority": "medium",
+                "action": f"Improve: {weakness}",
+                "deadline": "when possible",
+            }
+        )
 
     return items
 
 
 @router.get("/assess-merit/from-case/{case_id}")
-async def assess_merit_from_case(
-    case_id: str,
-    perspective: str = Query(default="defendant")
-):
+async def assess_merit_from_case(case_id: str, perspective: str = Query(default="defendant")):
     """
     Assess legal merit directly from a tenancy case.
     Requires: tenancy_hub service (available in Extended build)
     """
     if not TENANCY_HUB_AVAILABLE:
         raise HTTPException(
-            status_code=503,
-            detail="Tenancy hub service not available in Core build. Enable Extended features."
+            status_code=503, detail="Tenancy hub service not available in Core build. Enable Extended features."
         )
 
     hub_service = get_tenancy_hub_service()
@@ -496,20 +528,22 @@ async def assess_merit_from_case(
     if BRAIN_AVAILABLE:
         try:
             brain = await get_brain()
-            await brain.emit(BrainEvent(
-                event_type=EventType.LEGAL_MERIT_ASSESSED,
-                source_module=ModuleType.LEGAL_ANALYSIS,
-                data={
-                    "case_id": case_id,
-                    "case_name": case.case_name,
-                    "perspective": perspective,
-                    "overall_merit": assessment.overall_merit.value,
-                    "score": assessment.score,
-                    "strengths_count": len(assessment.strengths),
-                    "weaknesses_count": len(assessment.weaknesses),
-                    "critical_issues_count": len(assessment.critical_issues),
-                }
-            ))
+            await brain.emit(
+                BrainEvent(
+                    event_type=EventType.LEGAL_MERIT_ASSESSED,
+                    source_module=ModuleType.LEGAL_ANALYSIS,
+                    data={
+                        "case_id": case_id,
+                        "case_name": case.case_name,
+                        "perspective": perspective,
+                        "overall_merit": assessment.overall_merit.value,
+                        "score": assessment.score,
+                        "strengths_count": len(assessment.strengths),
+                        "weaknesses_count": len(assessment.weaknesses),
+                        "critical_issues_count": len(assessment.critical_issues),
+                    },
+                )
+            )
         except Exception as e:
             logger.debug(f"Brain event not emitted: {e}")
 
@@ -521,15 +555,18 @@ async def assess_merit_from_case(
         "assessment": assessment.to_dict(),
         "action_items": _generate_action_items(assessment),
     }
+
+
 # =============================================================================
 # FACT VS HEARSAY ANALYSIS
 # =============================================================================
+
 
 @router.post("/analyze-hearsay")
 async def analyze_hearsay(documents: list[dict[str, Any]]):
     """
     Analyze documents for hearsay content.
-    
+
     Identifies:
     - Direct evidence (first-hand)
     - Hearsay statements (second-hand)
@@ -574,13 +611,16 @@ async def analyze_hearsay(documents: list[dict[str, Any]]):
             "hearsay_percentage": len(results["hearsay"]) / len(documents) * 100 if documents else 0,
         },
         "results": results,
-        "recommendation": "Replace hearsay with direct evidence where possible" if results["hearsay"] else "Evidence appears admissible",
+        "recommendation": "Replace hearsay with direct evidence where possible"
+        if results["hearsay"]
+        else "Evidence appears admissible",
     }
 
 
 # =============================================================================
 # BINDING DOCUMENT ANALYSIS
 # =============================================================================
+
 
 @router.post("/analyze-binding-status")
 async def analyze_binding_status(documents: list[dict[str, Any]]):
@@ -616,10 +656,12 @@ async def analyze_binding_status(documents: list[dict[str, Any]]):
 
         if classification.admissibility_issues:
             for issue in classification.admissibility_issues:
-                results["issues"].append({
-                    "document": entry["title"],
-                    "issue": issue,
-                })
+                results["issues"].append(
+                    {
+                        "document": entry["title"],
+                        "issue": issue,
+                    }
+                )
 
     return {
         "success": True,
@@ -637,6 +679,7 @@ async def analyze_binding_status(documents: list[dict[str, Any]]):
 # QUICK ANALYSIS ENDPOINTS
 # =============================================================================
 
+
 @router.get("/quick-check/{case_id}")
 async def quick_case_check(case_id: str):
     """
@@ -646,8 +689,7 @@ async def quick_case_check(case_id: str):
     """
     if not TENANCY_HUB_AVAILABLE:
         raise HTTPException(
-            status_code=503,
-            detail="Tenancy hub service not available in Core build. Enable Extended features."
+            status_code=503, detail="Tenancy hub service not available in Core build. Enable Extended features."
         )
 
     hub_service = get_tenancy_hub_service()
@@ -680,18 +722,20 @@ async def quick_case_check(case_id: str):
     if BRAIN_AVAILABLE:
         try:
             brain = await get_brain()
-            await brain.emit(BrainEvent(
-                event_type=EventType.LEGAL_QUICK_CHECK,
-                source_module=ModuleType.LEGAL_ANALYSIS,
-                data={
-                    "case_id": case_id,
-                    "overall_status": overall,
-                    "evidence_status": checks["evidence"]["status"],
-                    "consistency_status": checks["consistency"]["status"],
-                    "timeline_status": checks["timeline"]["status"],
-                    "documentation_status": checks["documentation"]["status"],
-                }
-            ))
+            await brain.emit(
+                BrainEvent(
+                    event_type=EventType.LEGAL_QUICK_CHECK,
+                    source_module=ModuleType.LEGAL_ANALYSIS,
+                    data={
+                        "case_id": case_id,
+                        "overall_status": overall,
+                        "evidence_status": checks["evidence"]["status"],
+                        "consistency_status": checks["consistency"]["status"],
+                        "timeline_status": checks["timeline"]["status"],
+                        "documentation_status": checks["documentation"]["status"],
+                    },
+                )
+            )
         except Exception as e:
             logger.debug(f"Brain event not emitted: {e}")
 
@@ -701,6 +745,8 @@ async def quick_case_check(case_id: str):
         "overall_status": overall,
         "checks": checks,
     }
+
+
 def _check_evidence_status(case_data: dict[str, Any], engine) -> dict[str, Any]:
     """Check evidence quality status."""
     documents = list(case_data.get("documents", {}).values())
@@ -742,7 +788,11 @@ def _check_consistency_status(case_data: dict[str, Any], engine) -> dict[str, An
     if any(c.significance == "critical" for c in contradictions):
         return {"status": "red", "message": "Critical contradictions found", "contradictions": len(contradictions)}
     elif contradictions:
-        return {"status": "yellow", "message": f"{len(contradictions)} contradiction(s)", "contradictions": len(contradictions)}
+        return {
+            "status": "yellow",
+            "message": f"{len(contradictions)} contradiction(s)",
+            "contradictions": len(contradictions),
+        }
     else:
         return {"status": "green", "message": "All items consistent", "contradictions": 0}
 
@@ -774,7 +824,6 @@ def _check_documentation_status(case_data: dict[str, Any]) -> dict[str, Any]:
     has_landlord = case_data.get("landlord") is not None
     has_property = case_data.get("property") is not None
     has_lease = case_data.get("lease") is not None
-    has_legal_case = len(case_data.get("legal_cases", {})) > 0
 
     complete = sum([has_tenant, has_landlord, has_property, has_lease])
 
@@ -800,15 +849,13 @@ def _check_documentation_status(case_data: dict[str, Any]) -> dict[str, Any]:
 # METADATA ENDPOINTS
 # =============================================================================
 
+
 @router.get("/evidence-types")
 async def get_evidence_types():
     """Get all evidence type classifications."""
     return {
         "success": True,
-        "evidence_types": [
-            {"value": e.value, "description": _get_evidence_description(e)}
-            for e in EvidenceType
-        ]
+        "evidence_types": [{"value": e.value, "description": _get_evidence_description(e)} for e in EvidenceType],
     }
 
 
@@ -830,10 +877,7 @@ async def get_legal_statuses():
     """Get all document legal status classifications."""
     return {
         "success": True,
-        "legal_statuses": [
-            {"value": s.value, "description": _get_status_description(s)}
-            for s in DocumentLegalStatus
-        ]
+        "legal_statuses": [{"value": s.value, "description": _get_status_description(s)} for s in DocumentLegalStatus],
     }
 
 

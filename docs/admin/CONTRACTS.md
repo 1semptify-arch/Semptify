@@ -298,10 +298,10 @@ async def test_oauth_contract():
     provider = "google_drive"
     role = "tenant"
     callback_url = "https://semptify.org/onboarding/callback/google_drive"
-    
+
     # When: initiate OAuth
     state = await create_oauth_state(db, provider, role, callback_url)
-    
+
     # Then: invariants hold
     assert len(state) == 43  # token_urlsafe(32) produces 43 chars
     assert state not in [existing_states]  # unique

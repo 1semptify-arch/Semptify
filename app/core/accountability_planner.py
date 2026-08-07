@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ComplianceType(str, Enum):
     """Types of compliance requirements."""
+
     GDPR = "gdpr"
     CCPA = "ccpa"
     HIPAA = "hipaa"
@@ -29,6 +30,7 @@ class ComplianceType(str, Enum):
 
 class AuditAction(str, Enum):
     """Types of audit actions."""
+
     DOCUMENT_ACCESS = "document_access"
     DOCUMENT_PROCESS = "document_process"
     DATA_EXPORT = "data_export"
@@ -40,6 +42,7 @@ class AuditAction(str, Enum):
 
 class ComplianceStatus(str, Enum):
     """Compliance status."""
+
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
     PENDING_REVIEW = "pending_review"
@@ -48,6 +51,7 @@ class ComplianceStatus(str, Enum):
 
 class AuditEvent(BaseModel):
     """Single audit event."""
+
     event_id: str
     timestamp: datetime
     user_id: str | None
@@ -62,6 +66,7 @@ class AuditEvent(BaseModel):
 
 class ComplianceCheck(BaseModel):
     """Compliance check result."""
+
     check_id: str
     compliance_type: ComplianceType
     status: ComplianceStatus
@@ -75,6 +80,7 @@ class ComplianceCheck(BaseModel):
 
 class AccountabilityMetrics(BaseModel):
     """Accountability metrics."""
+
     total_events: int
     successful_events: int
     failed_events: int
@@ -97,7 +103,7 @@ class AccountabilityPlanner:
             compliance_score=0.0,
             last_audit=utc_now(),
             open_issues=0,
-            resolved_issues=0
+            resolved_issues=0,
         )
         self._initialize_compliance_checks()
 
@@ -114,28 +120,23 @@ class AccountabilityPlanner:
                     "Data minimization",
                     "Right to be forgotten",
                     "Data portability",
-                    "Breach notification within 72 hours"
+                    "Breach notification within 72 hours",
                 ],
                 findings=[],
                 recommendations=[],
                 checked_at=utc_now(),
-                next_review=utc_now().replace(year=utc_now().year + 1)
+                next_review=utc_now().replace(year=utc_now().year + 1),
             ),
             ComplianceType.CCPA: ComplianceCheck(
                 check_id="ccpa_001",
                 compliance_type=ComplianceType.CCPA,
                 status=ComplianceStatus.PENDING_REVIEW,
                 description="California Consumer Privacy Act compliance",
-                requirements=[
-                    "Right to know",
-                    "Right to delete",
-                    "Right to opt-out",
-                    "Non-discrimination"
-                ],
+                requirements=["Right to know", "Right to delete", "Right to opt-out", "Non-discrimination"],
                 findings=[],
                 recommendations=[],
                 checked_at=utc_now(),
-                next_review=utc_now().replace(year=utc_now().year + 1)
+                next_review=utc_now().replace(year=utc_now().year + 1),
             ),
             ComplianceType.HOUSING_LAW: ComplianceCheck(
                 check_id="housing_001",
@@ -146,26 +147,30 @@ class AccountabilityPlanner:
                     "Fair housing practices",
                     "Proper notice periods",
                     "Legal form requirements",
-                    "Privacy of tenant data"
+                    "Privacy of tenant data",
                 ],
                 findings=[],
                 recommendations=[],
                 checked_at=utc_now(),
-                next_review=utc_now() + timedelta(days=180)
+                next_review=utc_now() + timedelta(days=180),
             ),
         }
 
         self.compliance_checks = checks
 
-    def log_audit_event(self, user_id: str | None, action: AuditAction,
-                       resource: str, details: dict[str, Any],
-                       success: bool = True, error_message: str | None = None,
-                       ip_address: str | None = None,
-                       user_agent: str | None = None) -> str:
+    def log_audit_event(
+        self,
+        user_id: str | None,
+        action: AuditAction,
+        resource: str,
+        details: dict[str, Any],
+        success: bool = True,
+        error_message: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> str:
         """Log an audit event."""
-        event_id = hashlib.sha256(
-            f"{utc_now().isoformat()}{user_id}{action}{resource}".encode()
-        ).hexdigest()[:16]
+        event_id = hashlib.sha256(f"{utc_now().isoformat()}{user_id}{action}{resource}".encode()).hexdigest()[:16]
 
         event = AuditEvent(
             event_id=event_id,
@@ -177,7 +182,7 @@ class AccountabilityPlanner:
             ip_address=ip_address,
             user_agent=user_agent,
             success=success,
-            error_message=error_message
+            error_message=error_message,
         )
 
         self.audit_trail.append(event)
@@ -192,11 +197,14 @@ class AccountabilityPlanner:
         logger.info(f"Audit event logged: {event_id} - {action} on {resource}")
         return event_id
 
-    def get_audit_trail(self, user_id: str | None = None,
-                       action: AuditAction | None = None,
-                       start_date: datetime | None = None,
-                       end_date: datetime | None = None,
-                       limit: int = 100) -> list[AuditEvent]:
+    def get_audit_trail(
+        self,
+        user_id: str | None = None,
+        action: AuditAction | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        limit: int = 100,
+    ) -> list[AuditEvent]:
         """Get audit trail with optional filters."""
         filtered_trail = self.audit_trail
 
@@ -301,10 +309,16 @@ class AccountabilityPlanner:
             "recent_events": self.get_audit_trail(limit=50),
             "summary": {
                 "total_checks": len(self.compliance_checks),
-                "compliant_checks": sum(1 for c in self.compliance_checks.values() if c.status == ComplianceStatus.COMPLIANT),
-                "non_compliant_checks": sum(1 for c in self.compliance_checks.values() if c.status == ComplianceStatus.NON_COMPLIANT),
-                "pending_checks": sum(1 for c in self.compliance_checks.values() if c.status == ComplianceStatus.PENDING_REVIEW),
-            }
+                "compliant_checks": sum(
+                    1 for c in self.compliance_checks.values() if c.status == ComplianceStatus.COMPLIANT
+                ),
+                "non_compliant_checks": sum(
+                    1 for c in self.compliance_checks.values() if c.status == ComplianceStatus.NON_COMPLIANT
+                ),
+                "pending_checks": sum(
+                    1 for c in self.compliance_checks.values() if c.status == ComplianceStatus.PENDING_REVIEW
+                ),
+            },
         }
 
         for compliance_type, check in self.compliance_checks.items():
@@ -326,7 +340,7 @@ class AccountabilityPlanner:
             "user_id": user_id,
             "export_date": utc_now().isoformat(),
             "total_events": len(user_events),
-            "events": [event.dict() for event in user_events]
+            "events": [event.dict() for event in user_events],
         }
 
         # Log the export
@@ -335,7 +349,7 @@ class AccountabilityPlanner:
             action=AuditAction.DATA_EXPORT,
             resource="audit_data",
             details={"format": format, "event_count": len(user_events)},
-            success=True
+            success=True,
         )
 
         return export_data
@@ -348,10 +362,11 @@ accountability_planner = AccountabilityPlanner()
 # Decorator for automatic audit logging
 def audit_action(action: AuditAction, resource: str = ""):
     """Decorator to automatically audit function calls."""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             # Extract user_id from kwargs or context
-            user_id = kwargs.get('user_id') or getattr(args[0], 'user_id', None) if args else None
+            user_id = kwargs.get("user_id") or getattr(args[0], "user_id", None) if args else None
 
             try:
                 result = func(*args, **kwargs)
@@ -360,7 +375,7 @@ def audit_action(action: AuditAction, resource: str = ""):
                     action=action,
                     resource=resource or func.__name__,
                     details={"args": str(args), "kwargs": str(kwargs)},
-                    success=True
+                    success=True,
                 )
                 return result
             except Exception as e:
@@ -370,8 +385,10 @@ def audit_action(action: AuditAction, resource: str = ""):
                     resource=resource or func.__name__,
                     details={"args": str(args), "kwargs": str(kwargs)},
                     success=False,
-                    error_message=str(e)
+                    error_message=str(e),
                 )
                 raise
+
         return wrapper
+
     return decorator

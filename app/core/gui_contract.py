@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 class InputType(str, Enum):
     """Types of input fields."""
+
     TEXT = "text"
     NUMBER = "number"
     EMAIL = "email"
@@ -36,6 +37,7 @@ class InputType(str, Enum):
 
 class OutputType(str, Enum):
     """Types of output displays."""
+
     TEXT = "text"
     NUMBER = "number"
     TABLE = "table"
@@ -54,6 +56,7 @@ class OutputType(str, Enum):
 
 class ActionType(str, Enum):
     """Types of actions/buttons."""
+
     SUBMIT = "submit"
     CANCEL = "cancel"
     SAVE = "save"
@@ -74,6 +77,7 @@ class ActionType(str, Enum):
 
 class IndicatorType(str, Enum):
     """Types of indicators."""
+
     PROGRESS = "progress"
     SPINNER = "spinner"
     LOADING = "loading"
@@ -89,6 +93,7 @@ class IndicatorType(str, Enum):
 
 class PopOutType(str, Enum):
     """Types of pop-outs/modals."""
+
     MODAL = "modal"
     DRAWER = "drawer"
     TOOLTIP = "tooltip"
@@ -102,6 +107,7 @@ class PopOutType(str, Enum):
 
 class InputField(BaseModel):
     """Specification for an input field."""
+
     name: str
     label: str
     type: InputType
@@ -117,6 +123,7 @@ class InputField(BaseModel):
 
 class OutputDisplay(BaseModel):
     """Specification for an output display."""
+
     name: str
     label: str
     type: OutputType
@@ -128,6 +135,7 @@ class OutputDisplay(BaseModel):
 
 class ActionButton(BaseModel):
     """Specification for an action button."""
+
     name: str
     label: str
     type: ActionType
@@ -142,6 +150,7 @@ class ActionButton(BaseModel):
 
 class Indicator(BaseModel):
     """Specification for an indicator."""
+
     name: str
     type: IndicatorType
     data_source: str  # API endpoint or data key
@@ -152,6 +161,7 @@ class Indicator(BaseModel):
 
 class PopOut(BaseModel):
     """Specification for a pop-out/modal."""
+
     name: str
     type: PopOutType
     trigger: str  # What triggers it (click, hover, auto)
@@ -163,6 +173,7 @@ class PopOut(BaseModel):
 
 class SpecialRequirement(BaseModel):
     """Special GUI requirements."""
+
     name: str
     description: str
     type: str  # accessibility, security, performance, etc.
@@ -171,6 +182,7 @@ class SpecialRequirement(BaseModel):
 
 class GUIRequirements(BaseModel):
     """Complete GUI requirements contract for a module."""
+
     module_name: str
     version: str = "1.0"
 
@@ -214,6 +226,7 @@ class GUIRequirements(BaseModel):
 # Helper Functions
 # =============================================================================
 
+
 def create_input_field(name: str, label: str, type: InputType, **kwargs) -> InputField:
     """Helper to create an input field."""
     return InputField(name=name, label=label, type=type, **kwargs)
@@ -249,11 +262,16 @@ EXAMPLE_GUI_REQUIREMENTS = GUIRequirements(
     sections=["header", "main", "sidebar", "footer"],
     inputs=[
         create_input_field("search", "Search", InputType.SEARCH, placeholder="Search documents..."),
-        create_input_field("category", "Category", InputType.SELECT, options=[
-            {"value": "all", "label": "All"},
-            {"value": "pdf", "label": "PDF"},
-            {"value": "word", "label": "Word"},
-        ]),
+        create_input_field(
+            "category",
+            "Category",
+            InputType.SELECT,
+            options=[
+                {"value": "all", "label": "All"},
+                {"value": "pdf", "label": "PDF"},
+                {"value": "word", "label": "Word"},
+            ],
+        ),
     ],
     outputs=[
         create_output_display("results", "Results", OutputType.GRID, data_source="/api/results"),

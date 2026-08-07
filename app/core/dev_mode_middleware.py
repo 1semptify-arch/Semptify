@@ -115,6 +115,7 @@ class DevModeMiddleware(BaseHTTPMiddleware):
         """Check module_registry for dev_mode flag."""
         try:
             from app.core.module_overlay import module_overlay
+
             return await module_overlay.is_module_in_dev_mode(module_name)
         except Exception:
             return False
@@ -122,9 +123,11 @@ class DevModeMiddleware(BaseHTTPMiddleware):
     async def _capture_body(self, request: Request) -> bytes | None:
         """Capture request body without consuming it."""
         body = await request.body()
+
         # Re-populate the receive interface for downstream
         async def receive() -> Message:
             return {"type": "http.request", "body": body}
+
         request._receive = receive
         return body if body else None
 

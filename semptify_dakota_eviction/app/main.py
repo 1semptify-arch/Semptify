@@ -28,7 +28,7 @@ app = FastAPI(
     description="Interactive eviction defense system for tenants in Dakota County, Minnesota",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Base paths
@@ -58,25 +58,26 @@ app.include_router(forms_router, prefix="/forms", tags=["Court Forms"])
 # Core Routes
 # ============================================================================
 
+
 @app.get("/", response_class=HTMLResponse)
-async def home(
-    request: Request,
-    lang: str = Query("en", description="Language code (en, es, so, ar)")
-):
+async def home(request: Request, lang: str = Query("en", description="Language code (en, es, so, ar)")):
     """
     Home page - Entry point to Dakota County Eviction Defense system.
     Displays available defense pathways and resources.
     """
     strings = get_all_strings(lang)
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "lang": lang,
-        "is_rtl": is_rtl(lang),
-        "strings": strings,
-        "languages": get_supported_languages(),
-        "current_year": datetime.now(UTC).year
-    })
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "lang": lang,
+            "is_rtl": is_rtl(lang),
+            "strings": strings,
+            "languages": get_supported_languages(),
+            "current_year": datetime.now(UTC).year,
+        },
+    )
 
 
 @app.get("/health")
@@ -86,7 +87,7 @@ async def health_check():
         "status": "healthy",
         "service": "dakota-eviction-defense",
         "version": "1.0.0",
-        "timestamp": datetime.now(UTC).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -124,17 +125,11 @@ async def list_resources():
     with open(forms_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    return JSONResponse(content={
-        "resources": data.get("resources", []),
-        "zoom_court": data.get("zoom_court", {})
-    })
+    return JSONResponse(content={"resources": data.get("resources", []), "zoom_court": data.get("zoom_court", {})})
 
 
 @app.get("/zoom-helper", response_class=HTMLResponse)
-async def zoom_helper(
-    request: Request,
-    lang: str = Query("en", description="Language code")
-):
+async def zoom_helper(request: Request, lang: str = Query("en", description="Language code")):
     """
     Zoom Court Helper - Guidance for virtual court appearances.
     """
@@ -150,32 +145,40 @@ async def zoom_helper(
             zoom_court = data.get("zoom_court", {}).get("dakota_county", {})
             zoom_tips = zoom_court.get("tips", [])
 
-    return templates.TemplateResponse("flows/zoom_helper.html", {
-        "request": request,
-        "lang": lang,
-        "is_rtl": is_rtl(lang),
-        "strings": strings,
-        "zoom_tips": zoom_tips,
-        "languages": get_supported_languages()
-    })
+    return templates.TemplateResponse(
+        "flows/zoom_helper.html",
+        {
+            "request": request,
+            "lang": lang,
+            "is_rtl": is_rtl(lang),
+            "strings": strings,
+            "zoom_tips": zoom_tips,
+            "languages": get_supported_languages(),
+        },
+    )
 
 
 # ============================================================================
 # Error Handlers
 # ============================================================================
 
+
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc: HTTPException):
     """Custom 404 handler."""
     lang = request.query_params.get("lang", "en")
 
-    return templates.TemplateResponse("error.html", {
-        "request": request,
-        "lang": lang,
-        "is_rtl": is_rtl(lang),
-        "error_code": 404,
-        "error_message": "Page not found"
-    }, status_code=404)
+    return templates.TemplateResponse(
+        "error.html",
+        {
+            "request": request,
+            "lang": lang,
+            "is_rtl": is_rtl(lang),
+            "error_code": 404,
+            "error_message": "Page not found",
+        },
+        status_code=404,
+    )
 
 
 @app.exception_handler(500)
@@ -183,18 +186,23 @@ async def server_error_handler(request: Request, exc: Exception):
     """Custom 500 handler."""
     lang = request.query_params.get("lang", "en")
 
-    return templates.TemplateResponse("error.html", {
-        "request": request,
-        "lang": lang,
-        "is_rtl": is_rtl(lang),
-        "error_code": 500,
-        "error_message": "Something went wrong. Please try again."
-    }, status_code=500)
+    return templates.TemplateResponse(
+        "error.html",
+        {
+            "request": request,
+            "lang": lang,
+            "is_rtl": is_rtl(lang),
+            "error_code": 500,
+            "error_message": "Something went wrong. Please try again.",
+        },
+        status_code=500,
+    )
 
 
 # ============================================================================
 # Startup Events
 # ============================================================================
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -229,10 +237,11 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8001,  # Separate port from main Semptify
         reload=True,
-        reload_dirs=[str(BASE_DIR)]
+        reload_dirs=[str(BASE_DIR)],
     )

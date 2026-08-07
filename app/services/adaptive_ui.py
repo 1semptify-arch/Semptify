@@ -23,42 +23,46 @@ logger = logging.getLogger(__name__)
 
 class WidgetType(str, Enum):
     """Types of UI widgets that can be dynamically added."""
-    ALERT = "alert"              # Urgent: deadline, violation detected
+
+    ALERT = "alert"  # Urgent: deadline, violation detected
     ACTION_CARD = "action_card"  # Suggested action to take
-    INFO_PANEL = "info_panel"    # Information/education
-    CHECKLIST = "checklist"      # Steps to complete
-    TIMELINE = "timeline"        # Events visualization
+    INFO_PANEL = "info_panel"  # Information/education
+    CHECKLIST = "checklist"  # Steps to complete
+    TIMELINE = "timeline"  # Events visualization
     DOCUMENT_REQUEST = "doc_request"  # "We need this document"
-    CALCULATOR = "calculator"    # Rent calc, deposit calc, etc.
-    LETTER_BUILDER = "letter"    # Generate a letter to landlord
+    CALCULATOR = "calculator"  # Rent calc, deposit calc, etc.
+    LETTER_BUILDER = "letter"  # Generate a letter to landlord
     PROGRESS_TRACKER = "progress"  # How far along in a process
-    RESOURCE_LINK = "resource"   # External helpful resource
-    WARNING = "warning"          # Something to watch out for
+    RESOURCE_LINK = "resource"  # External helpful resource
+    WARNING = "warning"  # Something to watch out for
 
 
 class Priority(str, Enum):
     """How urgently this widget should be shown."""
-    CRITICAL = "critical"   # Red, top of screen, can't miss it
-    HIGH = "high"           # Orange, prominent
-    MEDIUM = "medium"       # Normal visibility
-    LOW = "low"             # Available but not prominent
+
+    CRITICAL = "critical"  # Red, top of screen, can't miss it
+    HIGH = "high"  # Orange, prominent
+    MEDIUM = "medium"  # Normal visibility
+    LOW = "low"  # Available but not prominent
     BACKGROUND = "background"  # There if they look for it
 
 
 class TenancyPhase(str, Enum):
     """What phase of tenancy the user appears to be in."""
-    PRE_MOVE_IN = "pre_move_in"       # Signing lease, before moving
-    ACTIVE_TENANCY = "active"          # Living there, normal
+
+    PRE_MOVE_IN = "pre_move_in"  # Signing lease, before moving
+    ACTIVE_TENANCY = "active"  # Living there, normal
     ISSUE_EMERGING = "issue_emerging"  # Problems starting
-    DISPUTE_ACTIVE = "dispute"         # Active conflict
-    EVICTION_THREAT = "eviction"       # Eviction situation
-    MOVE_OUT = "move_out"              # Planning to leave
-    POST_TENANCY = "post_tenancy"      # After moving out (deposit return)
+    DISPUTE_ACTIVE = "dispute"  # Active conflict
+    EVICTION_THREAT = "eviction"  # Eviction situation
+    MOVE_OUT = "move_out"  # Planning to leave
+    POST_TENANCY = "post_tenancy"  # After moving out (deposit return)
 
 
 @dataclass
 class UIWidget:
     """A single UI widget to display."""
+
     id: str
     type: WidgetType
     title: str
@@ -86,6 +90,7 @@ class UIWidget:
 @dataclass
 class UserContext:
     """Everything we know about this user's situation."""
+
     user_id: str
     phase: TenancyPhase = TenancyPhase.ACTIVE_TENANCY
     documents: list = field(default_factory=list)  # Document types they have
@@ -105,7 +110,7 @@ class UserContext:
         for d in self.deadlines:
             if isinstance(d, str) or isinstance(d, dict):
                 deadlines_list.append(d)
-            elif hasattr(d, 'isoformat'):
+            elif hasattr(d, "isoformat"):
                 deadlines_list.append(d.isoformat())
             else:
                 deadlines_list.append(str(d))
@@ -124,7 +129,7 @@ class UserContext:
 class AdaptiveUIEngine:
     """
     The brain that builds the UI based on user needs.
-    
+
     This isn't magic - it's pattern matching based on:
     1. What documents they have (tells us their situation)
     2. What issues are detected (tells us their problems)
@@ -223,7 +228,7 @@ class AdaptiveUIEngine:
         ctx = self.get_or_create_context(user_id)
         dismissed = self.dismissed_widgets.get(user_id, set())
 
-        widgets = []        # Always show: Welcome/status widget
+        widgets = []  # Always show: Welcome/status widget
         widgets.append(self._build_status_widget(ctx))
 
         # Phase-specific widgets
@@ -303,72 +308,78 @@ class AdaptiveUIEngine:
         widgets = []
 
         if ctx.phase == TenancyPhase.EVICTION_THREAT:
-            widgets.append(UIWidget(
-                id="eviction_alert",
-                type=WidgetType.ALERT,
-                title="◆ Eviction Notice Detected",
-                content={
-                    "message": "This is serious but you have rights. Let's make sure you know them.",
-                    "steps": [
-                        "Don't panic - you have legal protections",
-                        "Check the notice for required information",
-                        "Note all deadlines carefully",
-                        "Consider seeking legal help immediately",
+            widgets.append(
+                UIWidget(
+                    id="eviction_alert",
+                    type=WidgetType.ALERT,
+                    title="◆ Eviction Notice Detected",
+                    content={
+                        "message": "This is serious but you have rights. Let's make sure you know them.",
+                        "steps": [
+                            "Don't panic - you have legal protections",
+                            "Check the notice for required information",
+                            "Note all deadlines carefully",
+                            "Consider seeking legal help immediately",
+                        ],
+                    },
+                    priority=Priority.CRITICAL,
+                    reason="You uploaded an eviction-related document",
+                    actions=[
+                        {"label": "Know Your Eviction Rights", "action": "show_eviction_rights"},
+                        {"label": "Find Legal Help", "action": "find_legal_aid"},
+                        {"label": "Check Notice Validity", "action": "validate_notice"},
                     ],
-                },
-                priority=Priority.CRITICAL,
-                reason="You uploaded an eviction-related document",
-                actions=[
-                    {"label": "Know Your Eviction Rights", "action": "show_eviction_rights"},
-                    {"label": "Find Legal Help", "action": "find_legal_aid"},
-                    {"label": "Check Notice Validity", "action": "validate_notice"},
-                ],
-                dismissible=False,
-            ))
+                    dismissible=False,
+                )
+            )
 
         elif ctx.phase == TenancyPhase.ISSUE_EMERGING:
-            widgets.append(UIWidget(
-                id="issue_guidance",
-                type=WidgetType.ACTION_CARD,
-                title="Document Everything",
-                content={
-                    "message": "You're dealing with some issues. The most important thing: document everything.",
-                    "tips": [
-                        "Keep all written communication",
-                        "Take dated photos of any problems",
-                        "Follow up verbal conversations in writing",
-                        "Keep copies of everything you send",
+            widgets.append(
+                UIWidget(
+                    id="issue_guidance",
+                    type=WidgetType.ACTION_CARD,
+                    title="Document Everything",
+                    content={
+                        "message": "You're dealing with some issues. The most important thing: document everything.",
+                        "tips": [
+                            "Keep all written communication",
+                            "Take dated photos of any problems",
+                            "Follow up verbal conversations in writing",
+                            "Keep copies of everything you send",
+                        ],
+                    },
+                    priority=Priority.HIGH,
+                    reason="Issues detected in your tenancy",
+                    actions=[
+                        {"label": "Upload Evidence", "action": "upload_document"},
+                        {"label": "Write to Landlord", "action": "letter_builder"},
                     ],
-                },
-                priority=Priority.HIGH,
-                reason="Issues detected in your tenancy",
-                actions=[
-                    {"label": "Upload Evidence", "action": "upload_document"},
-                    {"label": "Write to Landlord", "action": "letter_builder"},
-                ],
-            ))
+                )
+            )
 
         elif ctx.phase == TenancyPhase.POST_TENANCY:
-            widgets.append(UIWidget(
-                id="deposit_recovery",
-                type=WidgetType.CHECKLIST,
-                title="Security Deposit Recovery",
-                content={
-                    "message": "Let's get your deposit back.",
-                    "items": [
-                        {"text": "Move-out photos taken", "checked": "photo_evidence" in ctx.documents},
-                        {"text": "Forwarding address provided", "checked": False},
-                        {"text": "Deposit demand letter sent", "checked": "deposit_demand" in ctx.documents},
-                        {"text": "21-day deadline tracked", "checked": False},
+            widgets.append(
+                UIWidget(
+                    id="deposit_recovery",
+                    type=WidgetType.CHECKLIST,
+                    title="Security Deposit Recovery",
+                    content={
+                        "message": "Let's get your deposit back.",
+                        "items": [
+                            {"text": "Move-out photos taken", "checked": "photo_evidence" in ctx.documents},
+                            {"text": "Forwarding address provided", "checked": False},
+                            {"text": "Deposit demand letter sent", "checked": "deposit_demand" in ctx.documents},
+                            {"text": "21-day deadline tracked", "checked": False},
+                        ],
+                    },
+                    priority=Priority.HIGH,
+                    reason="You've moved out - deposit recovery is your priority",
+                    actions=[
+                        {"label": "Generate Demand Letter", "action": "deposit_demand_letter"},
+                        {"label": "Calculate What's Owed", "action": "deposit_calculator"},
                     ],
-                },
-                priority=Priority.HIGH,
-                reason="You've moved out - deposit recovery is your priority",
-                actions=[
-                    {"label": "Generate Demand Letter", "action": "deposit_demand_letter"},
-                    {"label": "Calculate What's Owed", "action": "deposit_calculator"},
-                ],
-            ))
+                )
+            )
 
         return widgets
 
@@ -447,61 +458,67 @@ class AdaptiveUIEngine:
 
         # If they have a lease but no move-in photos
         if "lease" in ctx.documents and "photo_evidence" not in ctx.documents:
-            predictions.append(UIWidget(
-                id="predict_photos",
-                type=WidgetType.ACTION_CARD,
-                title="● Take Move-In Photos",
-                content={
-                    "message": "Protect your security deposit by documenting the condition now.",
-                    "why": "Move-in photos are your best defense against unfair deposit deductions.",
-                },
-                priority=Priority.MEDIUM,
-                reason="You have a lease but no photos documented",
-                actions=[
-                    {"label": "Upload Photos", "action": "upload_document"},
-                    {"label": "Photo Checklist", "action": "photo_checklist"},
-                ],
-            ))
+            predictions.append(
+                UIWidget(
+                    id="predict_photos",
+                    type=WidgetType.ACTION_CARD,
+                    title="● Take Move-In Photos",
+                    content={
+                        "message": "Protect your security deposit by documenting the condition now.",
+                        "why": "Move-in photos are your best defense against unfair deposit deductions.",
+                    },
+                    priority=Priority.MEDIUM,
+                    reason="You have a lease but no photos documented",
+                    actions=[
+                        {"label": "Upload Photos", "action": "upload_document"},
+                        {"label": "Photo Checklist", "action": "photo_checklist"},
+                    ],
+                )
+            )
 
         # If they have repair requests but no follow-up
         if "repair_request" in ctx.documents and "repair_followup" not in ctx.documents:
-            predictions.append(UIWidget(
-                id="predict_repair_followup",
-                type=WidgetType.ACTION_CARD,
-                title="Follow Up on Repairs",
-                content={
-                    "message": "Your repair request needs follow-up documentation.",
-                    "why": "Written follow-ups create a paper trail and legal protection.",
-                },
-                priority=Priority.MEDIUM,
-                reason="You submitted a repair request",
-                actions=[
-                    {"label": "Write Follow-Up", "action": "repair_followup_letter"},
-                    {"label": "Document Current State", "action": "upload_document"},
-                ],
-            ))
+            predictions.append(
+                UIWidget(
+                    id="predict_repair_followup",
+                    type=WidgetType.ACTION_CARD,
+                    title="Follow Up on Repairs",
+                    content={
+                        "message": "Your repair request needs follow-up documentation.",
+                        "why": "Written follow-ups create a paper trail and legal protection.",
+                    },
+                    priority=Priority.MEDIUM,
+                    reason="You submitted a repair request",
+                    actions=[
+                        {"label": "Write Follow-Up", "action": "repair_followup_letter"},
+                        {"label": "Document Current State", "action": "upload_document"},
+                    ],
+                )
+            )
 
         # New user with no documents
         if not ctx.documents:
-            predictions.append(UIWidget(
-                id="predict_start",
-                type=WidgetType.ACTION_CARD,
-                title="Let's Get Started",
-                content={
-                    "message": "Upload your first document and Semptify will start building your case.",
-                    "suggestions": [
-                        "Your lease agreement",
-                        "Rent receipts",
-                        "Photos of current conditions",
-                        "Any communication with landlord",
+            predictions.append(
+                UIWidget(
+                    id="predict_start",
+                    type=WidgetType.ACTION_CARD,
+                    title="Let's Get Started",
+                    content={
+                        "message": "Upload your first document and Semptify will start building your case.",
+                        "suggestions": [
+                            "Your lease agreement",
+                            "Rent receipts",
+                            "Photos of current conditions",
+                            "Any communication with landlord",
+                        ],
+                    },
+                    priority=Priority.HIGH,
+                    reason="Let's understand your situation",
+                    actions=[
+                        {"label": "Upload Document", "action": "upload_document"},
                     ],
-                },
-                priority=Priority.HIGH,
-                reason="Let's understand your situation",
-                actions=[
-                    {"label": "Upload Document", "action": "upload_document"},
-                ],
-            ))
+                )
+            )
 
         return predictions
 
@@ -543,10 +560,12 @@ class AdaptiveUIEngine:
     def record_action(self, user_id: str, action: str):
         """Record that a user took an action."""
         ctx = self.get_or_create_context(user_id)
-        ctx.actions_taken.append({
-            "action": action,
-            "timestamp": utc_now().isoformat(),
-        })
+        ctx.actions_taken.append(
+            {
+                "action": action,
+                "timestamp": utc_now().isoformat(),
+            }
+        )
 
 
 # Global instance
@@ -556,6 +575,7 @@ adaptive_ui = AdaptiveUIEngine()
 # =============================================================================
 # Context Loop Integration
 # =============================================================================
+
 
 def sync_from_context_loop(user_id: str):
     """
@@ -585,10 +605,7 @@ def sync_from_context_loop(user_id: str):
             ui_ctx.phase = phase_map[loop_ctx.phase]
 
         # Sync issues
-        ui_ctx.issues_detected = [
-            i.get("type") if isinstance(i, dict) else str(i)
-            for i in loop_ctx.active_issues
-        ]
+        ui_ctx.issues_detected = [i.get("type") if isinstance(i, dict) else str(i) for i in loop_ctx.active_issues]
 
         # Sync deadlines
         ui_ctx.deadlines = loop_ctx.deadlines
@@ -615,6 +632,7 @@ def build_ui_with_intensity(user_id: str) -> dict:
     # Get intensity from context loop
     try:
         from app.services.context_loop import context_loop
+
         intensity_report = context_loop.get_intensity_report(user_id)
     except ImportError:
         intensity_report = {"overall_intensity": 0, "severity": "info"}
@@ -624,4 +642,3 @@ def build_ui_with_intensity(user_id: str) -> dict:
         "widgets": widgets,
         "intensity": intensity_report,
     }
-

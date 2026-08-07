@@ -8,11 +8,11 @@
 {% set compact_mode = compact_mode|default(false) %}
 {% set show_stats = show_stats|default(true) %}
 
-<div class="vault-sidebar role-{{ role }} {{ 'compact' if compact_mode else '' }}" 
+<div class="vault-sidebar role-{{ role }} {{ 'compact' if compact_mode else '' }}"
      id="{{ component_id }}"
      data-role="{{ role }}"
      data-compact="{{ compact_mode|lower }}">
-  
+
   <div class="vault-header">
     <div class="vault-title">
       <svg class="vault-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -21,7 +21,7 @@
       </svg>
       <span class="vault-name">Vault</span>
     </div>
-    
+
     <div class="vault-actions">
       <button class="vault-toggle" onclick="toggleVaultCompact()" title="Toggle compact mode">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -30,7 +30,7 @@
       </button>
     </div>
   </div>
-  
+
   {% if not compact_mode %}
   <div class="vault-upload-section">
     <div class="upload-zone-mini" onclick="document.getElementById('vault_file_input').click()">
@@ -41,12 +41,12 @@
       </svg>
       <span>Quick Upload</span>
     </div>
-    <input type="file" id="vault_file_input" multiple style="display: none;" 
+    <input type="file" id="vault_file_input" multiple style="display: none;"
            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.mp3,.mp4,.wav"
            onchange="handleVaultUpload(event)">
   </div>
   {% endif %}
-  
+
   {% if show_stats %}
   <div class="vault-stats">
     <div class="stat-item">
@@ -59,11 +59,11 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="vault-search">
-    <input type="text" 
+    <input type="text"
            id="vault_search_input"
-           placeholder="Search vault..." 
+           placeholder="Search vault..."
            onkeyup="searchVault(event)"
            class="vault-search-input">
     <button class="search-clear" onclick="clearVaultSearch()" title="Clear search">
@@ -73,7 +73,7 @@
       </svg>
     </button>
   </div>
-  
+
   <div class="vault-categories">
     <div class="category-header">
       <span>Categories</span>
@@ -83,7 +83,7 @@
         </svg>
       </button>
     </div>
-    
+
     <div class="category-list" id="vault_categories">
       <div class="category-item active" data-category="all" onclick="filterByCategory('all')">
         <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -94,7 +94,7 @@
         <span>All Files</span>
         <span class="category-count" id="category_count_all">0</span>
       </div>
-      
+
       <div class="category-item" data-category="documents" onclick="filterByCategory('documents')">
         <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -103,7 +103,7 @@
         <span>Documents</span>
         <span class="category-count" id="category_count_documents">0</span>
       </div>
-      
+
       <div class="category-item" data-category="images" onclick="filterByCategory('images')">
         <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -113,7 +113,7 @@
         <span>Images</span>
         <span class="category-count" id="category_count_images">0</span>
       </div>
-      
+
       <div class="category-item" data-category="audio" onclick="filterByCategory('audio')">
         <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 1a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V4a3 3 0 0 0-3-3H12z"/>
@@ -122,7 +122,7 @@
         <span>Audio</span>
         <span class="category-count" id="category_count_audio">0</span>
       </div>
-      
+
       <div class="category-item" data-category="video" onclick="filterByCategory('video')">
         <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="23 7 16 12 23 7 23 7 16 12 23 7 16 12 23 7"/>
@@ -133,13 +133,13 @@
       </div>
     </div>
   </div>
-  
+
   <div class="vault-files" id="vault_files_container">
     <div class="loading-indicator" id="vault_loading">
       <div class="spinner"></div>
       <span>Loading vault...</span>
     </div>
-    
+
     <div class="empty-state" id="vault_empty" style="display: none;">
       <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
@@ -148,12 +148,12 @@
       <p>Your vault is empty</p>
       <p>Upload documents to get started</p>
     </div>
-    
+
     <div class="files-grid" id="vault_files_grid" style="display: none;">
       <!-- Files will be dynamically loaded here -->
     </div>
   </div>
-  
+
   <div class="vault-footer">
     <div class="storage-indicator">
       <div class="storage-bar">
@@ -161,7 +161,7 @@
       </div>
       <span class="storage-text" id="storage_text">0% used</span>
     </div>
-    
+
     <div class="vault-actions">
       <button class="action-button" onclick="openVaultManager()" title="Manage vault">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -522,11 +522,11 @@
     width: 280px;
     transform: translateX(100%);
   }
-  
+
   .vault-sidebar.mobile-open {
     transform: translateX(0);
   }
-  
+
   .vault-sidebar.compact {
     width: 50px;
   }
@@ -564,16 +564,16 @@ function isOnboardingComplete() {
 
 function initializeVault() {
   console.log('🔐 Initializing vault component');
-  
+
   // Load vault data
   loadVaultData();
-  
+
   // Set up event listeners
   setupVaultEventListeners();
-  
+
   // Start periodic sync
   startVaultSync();
-  
+
   // Show vault
   document.getElementById('{{ component_id }}').style.display = 'flex';
 }
@@ -591,7 +591,7 @@ function loadVaultData() {
 
 function fetchVaultData() {
   vaultState.isLoading = true;
-  
+
   fetch('/api/vault/files', {
     headers: {
       'X-Requested-With': 'XMLHttpRequest'
@@ -601,16 +601,16 @@ function fetchVaultData() {
   .then(data => {
     vaultState.files = data.files || [];
     vaultState.isLoading = false;
-    
+
     // Cache the data
     localStorage.setItem('vault_data', JSON.stringify(vaultState.files));
-    
+
     updateVaultUI();
   })
   .catch(error => {
     console.error('Failed to load vault data:', error);
     vaultState.isLoading = false;
-    
+
     // Show error state
     document.getElementById('vault_loading').style.display = 'none';
     document.getElementById('vault_empty').style.display = 'flex';
@@ -621,10 +621,10 @@ function updateVaultUI() {
   updateStats();
   updateCategories();
   displayFiles();
-  
+
   // Hide loading indicator
   document.getElementById('vault_loading').style.display = 'none';
-  
+
   // Show appropriate state
   if (vaultState.files.length === 0) {
     document.getElementById('vault_empty').style.display = 'flex';
@@ -639,10 +639,10 @@ function updateStats() {
   const totalFiles = vaultState.files.length;
   const totalSize = vaultState.files.reduce((sum, file) => sum + file.size, 0);
   const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
-  
+
   document.getElementById('vault_total_files').textContent = totalFiles;
   document.getElementById('vault_total_size').textContent = `${totalSizeMB} MB`;
-  
+
   // Update storage indicator (assuming 1GB limit)
   const storageUsed = (totalSize / (1024 * 1024 * 1024)) * 100;
   document.getElementById('storage_used_bar').style.width = `${Math.min(storageUsed, 100)}%`;
@@ -654,14 +654,14 @@ function updateCategories() {
   Object.keys(vaultState.categories).forEach(key => {
     vaultState.categories[key] = 0;
   });
-  
+
   // Count files by category
   vaultState.files.forEach(file => {
     const category = getFileCategory(file);
     vaultState.categories[category]++;
     vaultState.categories.all++;
   });
-  
+
   // Update UI
   Object.keys(vaultState.categories).forEach(category => {
     const element = document.getElementById(`category_count_${category}`);
@@ -673,7 +673,7 @@ function updateCategories() {
 
 function getFileCategory(file) {
   const extension = file.name.split('.').pop().toLowerCase();
-  
+
   if (['pdf', 'doc', 'docx', 'txt'].includes(extension)) {
     return 'documents';
   } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
@@ -683,16 +683,16 @@ function getFileCategory(file) {
   } else if (['mp4', 'avi', 'mov'].includes(extension)) {
     return 'video';
   }
-  
+
   return 'documents'; // default
 }
 
 function displayFiles() {
   const container = document.getElementById('vault_files_grid');
   container.innerHTML = '';
-  
+
   let filteredFiles = filterFiles();
-  
+
   filteredFiles.forEach(file => {
     const fileElement = createFileElement(file);
     container.appendChild(fileElement);
@@ -701,19 +701,19 @@ function displayFiles() {
 
 function filterFiles() {
   let files = [...vaultState.files];
-  
+
   // Filter by category
   if (vaultState.currentCategory !== 'all') {
     files = files.filter(file => getFileCategory(file) === vaultState.currentCategory);
   }
-  
+
   // Filter by search query
   if (vaultState.searchQuery) {
-    files = files.filter(file => 
+    files = files.filter(file =>
       file.name.toLowerCase().includes(vaultState.searchQuery.toLowerCase())
     );
   }
-  
+
   return files;
 }
 
@@ -721,39 +721,39 @@ function createFileElement(file) {
   const div = document.createElement('div');
   div.className = 'file-item';
   div.onclick = () => openFile(file);
-  
+
   const icon = getFileIcon(file);
   const size = formatFileSize(file.size);
-  
+
   div.innerHTML = `
     <div class="file-icon">${icon}</div>
     <div class="file-name">${file.name}</div>
     <div class="file-size">${size}</div>
   `;
-  
+
   return div;
 }
 
 function getFileIcon(file) {
   const category = getFileCategory(file);
-  
+
   const icons = {
     documents: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
     images: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
     audio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V4a3 3 0 0 0-3-3H12z"/><path d="M12 4v16"/></svg>',
     video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 7 23 7 16 12 23 7 16 12 23 7"/><rect x="2" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
   };
-  
+
   return icons[category] || icons.documents;
 }
 
 function formatFileSize(bytes) {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
@@ -762,7 +762,7 @@ function toggleVaultCompact() {
   vaultState.compactMode = !vaultState.compactMode;
   const sidebar = document.getElementById('{{ component_id }}');
   sidebar.classList.toggle('compact');
-  
+
   // Save preference
   localStorage.setItem('vault_compact_mode', vaultState.compactMode);
 }
@@ -770,10 +770,10 @@ function toggleVaultCompact() {
 function handleVaultUpload(event) {
   const files = event.target.files;
   if (files.length === 0) return;
-  
+
   const formData = new FormData();
   const fileMetadata = [];
-  
+
   Array.from(files).forEach((file, index) => {
     formData.append(`file_${index}`, file);
     fileMetadata.push({
@@ -782,15 +782,15 @@ function handleVaultUpload(event) {
       type: file.type
     });
   });
-  
+
   formData.append('metadata', JSON.stringify({
     source: 'vault_sidebar',
     files: fileMetadata
   }));
-  
+
   // Show upload progress
   showUploadProgress();
-  
+
   fetch('/api/vault/upload', {
     method: 'POST',
     body: formData
@@ -801,10 +801,10 @@ function handleVaultUpload(event) {
       // Add files to vault state
       vaultState.files.push(...data.files);
       updateVaultUI();
-      
+
       // Show success message
       showVaultMessage('Upload successful!', 'success');
-      
+
       // Emit event for other components
       emitVaultEvent('vault-upload-success', data);
     } else {
@@ -833,13 +833,13 @@ function clearVaultSearch() {
 
 function filterByCategory(category) {
   vaultState.currentCategory = category;
-  
+
   // Update active state
   document.querySelectorAll('.category-item').forEach(item => {
     item.classList.remove('active');
   });
   document.querySelector(`[data-category="${category}"]`).classList.add('active');
-  
+
   displayFiles();
 }
 
@@ -868,7 +868,7 @@ function showUploadProgress() {
       <span>Uploading...</span>
     </div>
   `;
-  
+
   const uploadSection = document.querySelector('.vault-upload-section');
   uploadSection.insertAdjacentHTML('afterbegin', progressHtml);
 }
@@ -885,11 +885,11 @@ function showVaultMessage(message, type) {
   const messageDiv = document.createElement('div');
   messageDiv.className = `vault-message vault-message-${type}`;
   messageDiv.textContent = message;
-  
+
   // Add to vault
   const vault = document.getElementById('{{ component_id }}');
   vault.appendChild(messageDiv);
-  
+
   // Auto-remove after 3 seconds
   setTimeout(() => {
     messageDiv.remove();
@@ -911,7 +911,7 @@ function setupVaultEventListeners() {
       fetchVaultData(); // Refresh from server
     }
   });
-  
+
   // Listen for workspace stage updates
   document.addEventListener('workspace-stage-update', function(event) {
     // Update vault based on workspace stage
@@ -920,7 +920,7 @@ function setupVaultEventListeners() {
       document.getElementById('{{ component_id }}').style.display = 'flex';
     }
   });
-  
+
   // Listen for role changes
   document.addEventListener('role-change', function(event) {
     // Update vault styling for new role

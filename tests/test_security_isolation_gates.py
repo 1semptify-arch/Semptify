@@ -10,7 +10,6 @@ Contracts protected:
 - Pipeline get_document() must never be exposed without auth + ownership check
 """
 
-
 import pytest
 
 from app.services.document_pipeline import (
@@ -24,12 +23,14 @@ from app.services.document_pipeline import (
 def _auth_cookie(user_id: str) -> str:
     """Sign a user id so it passes the semptify_uid cookie verifier."""
     from app.core.cookie_auth import sign_user_id
+
     return sign_user_id(user_id)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_pipeline_doc(user_id: str, doc_id: str = "doc-pipeline-001") -> TenancyDocument:
     """Return a minimal TenancyDocument owned by *user_id*."""
@@ -52,6 +53,7 @@ def _make_pipeline_doc(user_id: str, doc_id: str = "doc-pipeline-001") -> Tenanc
 # Gate 1 — GET /api/documents/{doc_id} requires authentication
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.anyio
 async def test_gate_documents_get_rejects_unauthenticated(client):
     """GET /{doc_id} MUST return 401/403 when no auth cookie is present."""
@@ -68,8 +70,7 @@ async def test_gate_documents_get_rejects_unauthenticated(client):
         # Hit the endpoint without any semptify_uid cookie
         response = await client.get(f"/api/documents/{doc_id}")
         assert response.status_code in (401, 403), (
-            f"Unauthenticated GET /api/documents/{{doc_id}} returned {response.status_code}; "
-            f"expected 401 or 403"
+            f"Unauthenticated GET /api/documents/{{doc_id}} returned {response.status_code}; expected 401 or 403"
         )
     finally:
         pipeline._documents = original_docs
@@ -95,8 +96,7 @@ async def test_gate_documents_get_rejects_wrong_owner(client):
             cookies={"semptify_uid": _auth_cookie(attacker_id)},
         )
         assert response.status_code == 403, (
-            f"Cross-tenant GET /api/documents/{{doc_id}} returned {response.status_code}; "
-            f"expected 403"
+            f"Cross-tenant GET /api/documents/{{doc_id}} returned {response.status_code}; expected 403"
         )
     finally:
         pipeline._documents = original_docs
@@ -124,8 +124,7 @@ async def test_gate_documents_get_allows_owner(client):
         )
         # 200 is expected; 404 is acceptable if the pipeline isn't fully wired in test
         assert response.status_code in (200, 404), (
-            f"Owner GET /api/documents/{{doc_id}} returned {response.status_code}; "
-            f"expected 200 or 404"
+            f"Owner GET /api/documents/{{doc_id}} returned {response.status_code}; expected 200 or 404"
         )
         if response.status_code == 200:
             payload = response.json()
@@ -137,6 +136,7 @@ async def test_gate_documents_get_allows_owner(client):
 # ---------------------------------------------------------------------------
 # Gate 2 — POST /api/documents/{doc_id}/reprocess requires authentication
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.anyio
 async def test_gate_reprocess_rejects_unauthenticated(client):
@@ -177,9 +177,7 @@ async def test_gate_reprocess_rejects_wrong_owner(client):
             f"/api/documents/{doc_id}/reprocess",
             cookies={"semptify_uid": _auth_cookie(attacker_id)},
         )
-        assert response.status_code == 403, (
-            f"Cross-tenant reprocess returned {response.status_code}; expected 403"
-        )
+        assert response.status_code == 403, f"Cross-tenant reprocess returned {response.status_code}; expected 403"
     finally:
         pipeline._documents = original_docs
 
@@ -187,6 +185,7 @@ async def test_gate_reprocess_rejects_wrong_owner(client):
 # ---------------------------------------------------------------------------
 # Gate 3 — Pipeline service layer never leaks cross-tenant documents
 # ---------------------------------------------------------------------------
+
 
 def test_gate_pipeline_get_documents_by_user_scoped():
     """

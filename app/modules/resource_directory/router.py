@@ -78,9 +78,7 @@ async def list_resources(
             query = query.where(func.lower(ResourceModel.service_area) == service_area.lower())
         if stale_only:
             cutoff = utc_now() - timedelta(days=_STALE_DAYS)
-            query = query.where(
-                (ResourceModel.last_verified == None) | (ResourceModel.last_verified < cutoff)
-            )
+            query = query.where((ResourceModel.last_verified == None) | (ResourceModel.last_verified < cutoff))
 
         result = await session.execute(query)
         resources = result.scalars().all()
@@ -139,7 +137,9 @@ async def create_resource(data: ResourceCreate):
     return _model_to_response(resource)
 
 
-@router.put("/admin/resources/{resource_id}", response_model=ResourceRead, dependencies=[Depends(require_admin_network)])
+@router.put(
+    "/admin/resources/{resource_id}", response_model=ResourceRead, dependencies=[Depends(require_admin_network)]
+)
 async def update_resource(resource_id: str, data: ResourceUpdate):
     """Update a resource listing (admin network only)."""
     async with get_db_session() as session:
@@ -159,7 +159,11 @@ async def update_resource(resource_id: str, data: ResourceUpdate):
         return _model_to_response(resource)
 
 
-@router.delete("/admin/resources/{resource_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_admin_network)])
+@router.delete(
+    "/admin/resources/{resource_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin_network)],
+)
 async def delete_resource(resource_id: str):
     """Soft-delete a resource listing (admin network only)."""
     async with get_db_session() as session:
@@ -306,7 +310,9 @@ async def import_resources_csv(file: UploadFile = File(...)):
     return ResourceImportResponse(imported=imported, updated=updated, skipped=skipped, errors=errors)
 
 
-@router.get("/admin/resources/stale", response_model=ResourceListResponse, dependencies=[Depends(require_admin_network)])
+@router.get(
+    "/admin/resources/stale", response_model=ResourceListResponse, dependencies=[Depends(require_admin_network)]
+)
 async def list_stale_resources(days: int = Query(_STALE_DAYS, ge=1, description="Staleness threshold in days")):
     """List resources whose last_verified date is older than `days` (admin network only)."""
     cutoff = utc_now() - timedelta(days=days)

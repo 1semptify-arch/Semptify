@@ -22,8 +22,10 @@ logger = logging.getLogger(__name__)
 # Error Response Models
 # =============================================================================
 
+
 class ErrorDetail(BaseModel):
     """Detail for a single error."""
+
     loc: list[str] | None = None  # Location of error (field path)
     msg: str  # Error message
     type: str  # Error type identifier
@@ -31,6 +33,7 @@ class ErrorDetail(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard error response format."""
+
     error: str  # Error code (e.g., "validation_error", "not_found")
     message: str  # Human-readable message
     details: list[ErrorDetail] | None = None  # Additional details
@@ -41,6 +44,7 @@ class ErrorResponse(BaseModel):
 # =============================================================================
 # Custom Exceptions
 # =============================================================================
+
 
 class SemptifyError(Exception):
     """Base exception for Semptify-specific errors."""
@@ -167,6 +171,7 @@ class StorageError(SemptifyError):
 # Exception Handlers
 # =============================================================================
 
+
 def get_request_id(request: Request) -> str | None:
     """Extract request ID from request."""
     return request.headers.get("X-Request-Id")
@@ -178,7 +183,7 @@ async def semptify_error_handler(request: Request, exc: SemptifyError) -> JSONRe
         "SemptifyError: %s - %s",
         exc.error_code,
         exc.message,
-        extra={"error_code": exc.error_code, "path": request.url.path}
+        extra={"error_code": exc.error_code, "path": request.url.path},
     )
 
     return JSONResponse(
@@ -225,11 +230,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     """Handle Pydantic validation errors."""
     details = []
     for error in exc.errors():
-        details.append({
-            "loc": list(error.get("loc", [])),
-            "msg": error.get("msg", ""),
-            "type": error.get("type", ""),
-        })
+        details.append(
+            {
+                "loc": list(error.get("loc", [])),
+                "msg": error.get("msg", ""),
+                "type": error.get("type", ""),
+            }
+        )
 
     logger.info(
         "Validation error on %s: %d issues",
@@ -260,7 +267,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             "path": request.url.path,
             "method": request.method,
             "traceback": traceback.format_exc(),
-        }
+        },
     )
 
     # Don't expose internal details in production
@@ -278,10 +285,11 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 # Setup Function
 # =============================================================================
 
+
 def setup_exception_handlers(app: FastAPI) -> None:
     """
     Register all exception handlers with the FastAPI app.
-    
+
     Call during app initialization:
         setup_exception_handlers(app)
     """

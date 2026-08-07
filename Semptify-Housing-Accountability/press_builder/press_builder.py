@@ -34,8 +34,12 @@ def build_public_money_analysis(records: list[dict[str, Any]]) -> dict[str, Any]
     """Build a summary of public-money issues (subsidies, tax credits, etc.)."""
     total = len(records)
     relevant = [
-        r for r in records
-        if any(kw in str(r.get("description", "")).lower() for kw in ("subsidy", "tax credit", "public money", "housing voucher", "section 8"))
+        r
+        for r in records
+        if any(
+            kw in str(r.get("description", "")).lower()
+            for kw in ("subsidy", "tax credit", "public money", "housing voucher", "section 8")
+        )
     ]
     return {
         "total_records": total,

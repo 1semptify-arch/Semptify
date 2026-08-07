@@ -55,7 +55,6 @@
     .btn-secondary {
         background: rgba(255, 255, 255, 0.2);
         color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .btn-secondary:hover {
@@ -71,10 +70,8 @@
 
     .summary-card {
         background: white;
-        border: 1px solid #e5e7eb;
         border-radius: 8px;
         padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .summary-card h3 {
@@ -101,7 +98,6 @@
 
     .analysis-results {
         background: white;
-        border: 1px solid #e5e7eb;
         border-radius: 8px;
         padding: 2rem;
         margin-bottom: 2rem;
@@ -114,7 +110,7 @@
 
     .result-item {
         padding: 1.5rem;
-        border: 1px solid #e5e7eb;
+        background: var(--color-surface-alt);
         border-radius: 6px;
         margin-bottom: 1rem;
         display: grid;
@@ -174,7 +170,7 @@
 
     .filter-btn {
         padding: 0.5rem 1rem;
-        border: 1px solid #d1d5db;
+        border: none;
         background: white;
         border-radius: 6px;
         cursor: pointer;
@@ -186,7 +182,6 @@
     .filter-btn.active {
         background: #2C5F2D;
         color: white;
-        border-color: #2C5F2D;
     }
 
     .empty-state {
@@ -294,12 +289,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         const response = await fetch('/api/auto-mode/status');
         const status = await statusResponse.json();
-        
+
         // Update statistics
         document.getElementById('doc-count').textContent = status.analysis_count || '0';
         document.getElementById('event-count').textContent = Math.max(0, status.analysis_count * 5) || '0';
         document.getElementById('success-rate').textContent = status.analysis_count > 0 ? '95%' : '--';
-        
+
     } catch (error) {
         console.error('Error loading analysis data:', error);
     }

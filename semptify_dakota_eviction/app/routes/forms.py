@@ -37,11 +37,10 @@ templates.env.globals["is_rtl"] = is_rtl
 # Forms Library Routes
 # ============================================================================
 
+
 @router.get("/library", response_class=HTMLResponse)
 async def forms_library(
-    request: Request,
-    lang: str = Query("en"),
-    category: str | None = Query(None, description="Filter by category")
+    request: Request, lang: str = Query("en"), category: str | None = Query(None, description="Filter by category")
 ):
     """
     Court Forms Library - Browse and download official MN court forms.
@@ -71,24 +70,24 @@ async def forms_library(
         name_key = f"name_{lang}" if lang != "en" else "name"
         form["display_name"] = form.get(name_key, form.get("name", "Unknown Form"))
 
-    return templates.TemplateResponse("forms/library.html", {
-        "request": request,
-        "lang": lang,
-        "is_rtl": is_rtl(lang),
-        "strings": strings,
-        "forms": forms,
-        "categories": categories,
-        "selected_category": category,
-        "resources": resources,
-        "languages": get_supported_languages()
-    })
+    return templates.TemplateResponse(
+        "forms/library.html",
+        {
+            "request": request,
+            "lang": lang,
+            "is_rtl": is_rtl(lang),
+            "strings": strings,
+            "forms": forms,
+            "categories": categories,
+            "selected_category": category,
+            "resources": resources,
+            "languages": get_supported_languages(),
+        },
+    )
 
 
 @router.get("/api/list")
-async def list_all_forms(
-    lang: str = Query("en"),
-    category: str | None = Query(None)
-):
+async def list_all_forms(lang: str = Query("en"), category: str | None = Query(None)):
     """API: List all available court forms."""
     forms_path = ASSETS_DIR / "forms.json"
 
@@ -109,11 +108,7 @@ async def list_all_forms(
         name_key = f"name_{lang}" if lang != "en" else "name"
         form["display_name"] = form.get(name_key, form.get("name", "Unknown"))
 
-    return JSONResponse(content={
-        "forms": forms,
-        "total": len(forms),
-        "language": lang
-    })
+    return JSONResponse(content={"forms": forms, "total": len(forms), "language": lang})
 
 
 @router.get("/api/form/{form_id}")
@@ -166,6 +161,7 @@ async def download_form(form_id: str):
 
     # Redirect to official source
     from fastapi.responses import RedirectResponse
+
     return RedirectResponse(url=url, status_code=302)
 
 
@@ -200,9 +196,7 @@ async def proxy_form_download(form_id: str):
             return StreamingResponse(
                 open(cached_path, "rb"),
                 media_type="application/pdf",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{form.get("local", form_id + ".pdf")}"'
-                }
+                headers={"Content-Disposition": f'attachment; filename="{form.get("local", form_id + ".pdf")}"'},
             )
 
         # Fetch from source
@@ -216,9 +210,7 @@ async def proxy_form_download(form_id: str):
         return StreamingResponse(
             iter([response.content]),
             media_type=content_type,
-            headers={
-                "Content-Disposition": f'attachment; filename="{filename}"'
-            }
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
 
     except httpx.HTTPError as e:
@@ -228,6 +220,7 @@ async def proxy_form_download(form_id: str):
 # ============================================================================
 # Resources Routes
 # ============================================================================
+
 
 @router.get("/resources", response_class=HTMLResponse)
 async def legal_resources(request: Request, lang: str = Query("en")):
@@ -245,14 +238,17 @@ async def legal_resources(request: Request, lang: str = Query("en")):
             data = json.load(f)
             resources = data.get("resources", [])
 
-    return templates.TemplateResponse("forms/resources.html", {
-        "request": request,
-        "lang": lang,
-        "is_rtl": is_rtl(lang),
-        "strings": strings,
-        "resources": resources,
-        "languages": get_supported_languages()
-    })
+    return templates.TemplateResponse(
+        "forms/resources.html",
+        {
+            "request": request,
+            "lang": lang,
+            "is_rtl": is_rtl(lang),
+            "strings": strings,
+            "resources": resources,
+            "languages": get_supported_languages(),
+        },
+    )
 
 
 @router.get("/api/resources")
@@ -266,10 +262,7 @@ async def list_resources():
     with open(forms_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    return JSONResponse(content={
-        "resources": data.get("resources", []),
-        "zoom_court": data.get("zoom_court", {})
-    })
+    return JSONResponse(content={"resources": data.get("resources", []), "zoom_court": data.get("zoom_court", {})})
 
 
 # ============================================================================
@@ -277,54 +270,29 @@ async def list_resources():
 # ============================================================================
 
 FORM_CATEGORIES = {
-    "answer": {
-        "en": "Answer & Response",
-        "es": "Respuesta",
-        "so": "Jawaab",
-        "ar": "الرد"
-    },
-    "motion": {
-        "en": "Motions",
-        "es": "Mociones",
-        "so": "Codsiyada",
-        "ar": "الطلبات"
-    },
-    "counterclaim": {
-        "en": "Counterclaims",
-        "es": "Contrademandas",
-        "so": "Dacwadaha Lid ah",
-        "ar": "الدعاوى المضادة"
-    },
+    "answer": {"en": "Answer & Response", "es": "Respuesta", "so": "Jawaab", "ar": "الرد"},
+    "motion": {"en": "Motions", "es": "Mociones", "so": "Codsiyada", "ar": "الطلبات"},
+    "counterclaim": {"en": "Counterclaims", "es": "Contrademandas", "so": "Dacwadaha Lid ah", "ar": "الدعاوى المضادة"},
     "fee_waiver": {
         "en": "Fee Waivers",
         "es": "Exenciones de Tarifas",
         "so": "Cafinta Kharashka",
-        "ar": "الإعفاءات من الرسوم"
+        "ar": "الإعفاءات من الرسوم",
     },
     "expungement": {
         "en": "Expungement",
         "es": "Eliminación de Registro",
         "so": "Tirtirida Diiwaanka",
-        "ar": "محو السجل"
+        "ar": "محو السجل",
     },
     "evidence": {
         "en": "Evidence & Documentation",
         "es": "Evidencia y Documentación",
         "so": "Caddayn iyo Dukumeenti",
-        "ar": "الأدلة والتوثيق"
+        "ar": "الأدلة والتوثيق",
     },
-    "rent_escrow": {
-        "en": "Rent Escrow",
-        "es": "Depósito de Alquiler",
-        "so": "Kaydinta Kirada",
-        "ar": "حجز الإيجار"
-    },
-    "service": {
-        "en": "Service of Process",
-        "es": "Notificación",
-        "so": "Adeegga",
-        "ar": "التبليغ"
-    }
+    "rent_escrow": {"en": "Rent Escrow", "es": "Depósito de Alquiler", "so": "Kaydinta Kirada", "ar": "حجز الإيجار"},
+    "service": {"en": "Service of Process", "es": "Notificación", "so": "Adeegga", "ar": "التبليغ"},
 }
 
 
@@ -334,9 +302,6 @@ async def list_categories(lang: str = Query("en")):
     categories = []
 
     for cat_id, names in FORM_CATEGORIES.items():
-        categories.append({
-            "id": cat_id,
-            "name": names.get(lang, names.get("en", cat_id))
-        })
+        categories.append({"id": cat_id, "name": names.get(lang, names.get("en", cat_id))})
 
     return JSONResponse(content={"categories": categories})

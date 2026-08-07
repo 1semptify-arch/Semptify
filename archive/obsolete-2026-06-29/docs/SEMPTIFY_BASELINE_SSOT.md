@@ -1,7 +1,7 @@
 # Semptify 5.0 - Master Baseline SSOT
 
-**Status**: Single Source of Truth for ALL Semptify Development  
-**Created**: 2026-04-23  
+**Status**: Single Source of Truth for ALL Semptify Development
+**Created**: 2026-04-23
 **Rule**: This document is the MASTER. Update it before/during/after any work.
 
 ---
@@ -108,7 +108,7 @@ staticbac/
 
 **What This Means**:
 - ❌ No email registration
-- ❌ No passwords  
+- ❌ No passwords
 - ❌ No "accounts" to create or manage
 - ❌ No personal information tracked or stored by Semptify
 - ✅ Your identity = Your connected storage
@@ -128,16 +128,16 @@ staticbac/
 - System restores their session
 - No "account lookup" - just storage reconnection
 
-**SSOT**: `app/core/user_id.py`  
-**Status**: ✅ Enforced  
+**SSOT**: `app/core/user_id.py`
+**Status**: ✅ Enforced
 **Rule**: Never implement account-based features. Never track personal data.
 
 ---
 
 ## � SMART GATE CHECKPOINT (Single Entry Point)
 
-**SSOT**: `app/core/checkpoint_middleware.py`  
-**Status**: ✅ Active  
+**SSOT**: `app/core/checkpoint_middleware.py`
+**Status**: ✅ Active
 **Purpose**: Mandatory welcome page checkpoint for new users
 
 **Logic:**
@@ -379,12 +379,12 @@ Used by: Jinja2 templates (`base.html`), dashboards, logged-in pages
             --paper: #ffffff;
             --text: #1e293b;
         }
-        
+
         body {
             background: var(--bg);
             color: var(--text);
         }
-        
+
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
         }

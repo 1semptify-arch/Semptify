@@ -18,10 +18,10 @@ Usage:
     from app.services.recognition import DocumentRecognitionEngine
 import logging
 logger = logging.getLogger(__name__)
-    
+
     engine = DocumentRecognitionEngine()
     result = await engine.analyze(document_text, filename="eviction_notice.pdf")
-    
+
     logger.info(f"Document Type: {result.document_type}")
     logger.info(f"Confidence: {result.confidence.overall_score}")
     logger.info(f"Critical Issues: {result.legal_analysis.critical_issues}")

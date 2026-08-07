@@ -10,34 +10,34 @@
   --header-bg-end: #1e3a5f;
   --header-text: #f1f5f9;
   --header-accent: #38bdf8;
-  
+
   /* Footer - Slightly lighter navy */
   --footer-bg-start: #0f172a;
   --footer-bg-end: #1e293b;
   --footer-text: #e2e8f0;
   --footer-accent: #22d3ee;
-  
+
   /* Body - White background */
   --body-bg: #ffffff;
   --body-text: #0f172a;
-  
+
   /* Cards - Light gray */
   --card-bg: #f8fafc;
   --card-border: #e2e8f0;
   --card-text: #0f172a;
-  
+
   /* Text hierarchy */
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
-  
+
   /* Accents */
   --accent-primary: #10b981;
   --accent-secondary: #3b82f6;
   --accent-success: #22c55e;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
-  
+
   /* Interactive states */
   --hover-bg: #f1f5f9;
   --focus-ring: #3b82f6;

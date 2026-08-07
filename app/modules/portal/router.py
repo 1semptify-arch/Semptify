@@ -71,6 +71,7 @@ async def list_portal_pages():
     and footer links.
     """
     from app.modules.portal.pages import portal_pages
+
     return portal_pages.to_dict()
 
 
@@ -137,4 +138,3 @@ async def get_robots_txt(request: Request):
     ]
     content = "\n".join(lines)
     return Response(content=content, media_type="text/plain")
-

@@ -1,7 +1,7 @@
 # HUD FAIR HOUSING COMPLAINT DRAFT
 ## Crowe & Sazama v. Velair Property Management, LLC
 
-**File Online:** https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint  
+**File Online:** https://www.hud.gov/program_offices/fair_housing_equal_opp/online-complaint
 **Or Call:** 1-800-669-9777 (TTY: 1-800-927-9275)
 
 ---
@@ -59,7 +59,7 @@
 ### Check all that apply:
 - [X] **RETALIATION** - 24 CFR § 100.400 (Retaliation for exercising fair housing rights)
 - [ ] Race
-- [ ] Color  
+- [ ] Color
 - [ ] National Origin
 - [ ] Religion
 - [ ] Sex
@@ -212,7 +212,7 @@ Minneapolis, MN 55402
 
 ⚠️ **You must file within ONE YEAR of the last discriminatory act.**
 
-Last documented act: September 19, 2025  
+Last documented act: September 19, 2025
 Filing deadline: **September 19, 2026**
 
 However, file as soon as possible - delay can weaken your case.

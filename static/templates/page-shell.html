@@ -1,13 +1,13 @@
 <!--
   SSOT Page Shell Template
   Standardized page layout for all Semptify pages
-  
+
   Usage:
   1. Copy this as starting point for new pages
   2. Replace {{PAGE_TITLE}} with actual title
   3. Replace {{ROLE}} with tenant/advocate/legal/admin
   4. Add content in {{CONTENT}} sections
-  
+
   Required CSS: /static/css/ssot-design-system.css
   Required JS: /static/js/ssot-navigation.js (optional)
 -->
@@ -25,24 +25,24 @@
 
   <!-- SSOT Design System -->
   <link rel="stylesheet" href="/static/css/ssot-design-system.css">
-  
+
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.ico">
-  
+
   <!-- Meta -->
   <meta name="description" content="{{PAGE_DESCRIPTION}}">
   <meta name="theme-color" content="#1e3a5f">
 </head>
 <body>
-  
+
   <!-- Skip Link (Accessibility) -->
   <a href="#main-content" class="sr-only focus-visible">
     Skip to main content
   </a>
-  
+
   <!-- Drawer Backdrop (Mobile) -->
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
-  
+
   <!-- Mobile Navigation Drawer -->
   <nav class="nav-drawer" id="nav-drawer" role="navigation" aria-label="Mobile navigation">
     <div class="drawer-header">
@@ -55,7 +55,7 @@
     <a href="/law-library">▸ Rights</a>
     <a href="/{{ROLE}}/help">🆘 Help</a>
   </nav>
-  
+
   <!-- Header -->
   <header class="page-header">
     <div class="container">
@@ -68,7 +68,7 @@
             Semptify
           </a>
         </div>
-        
+
         <!-- Desktop Navigation -->
         <nav class="core-nav hide-mobile" role="navigation" aria-label="Main navigation">
           <a href="/{{ROLE}}/home" class="nav__link nav__link--active">○ Home</a>
@@ -77,7 +77,7 @@
           <a href="/law-library" class="nav__link">▸ Rights</a>
           <a href="/{{ROLE}}/help" class="nav__link">🆘 Help</a>
         </nav>
-        
+
         <div class="flex items-center gap-3">
           <button class="btn btn--ghost text-inverse">
             ◆ Vault
@@ -87,7 +87,7 @@
           </button>
         </div>
       </div>
-      
+
       <!-- Page Title Section -->
       <div class="mt-6">
         <h1 class="page-header__title">{{PAGE_TITLE}}</h1>
@@ -95,11 +95,11 @@
       </div>
     </div>
   </header>
-  
+
   <!-- Main Content -->
   <main id="main-content" class="container py-6">
     <div class="page-layout">
-      
+
       <!-- Sidebar (Optional) -->
       <aside class="sidebar hide-mobile" role="complementary">
         <div class="sidebar__section">
@@ -110,7 +110,7 @@
             <a href="/law-library" class="nav__link">○ Law Library</a>
           </nav>
         </div>
-        
+
         <div class="sidebar__section">
           <h3 class="sidebar__title">Status</h3>
           <div class="flex items-center gap-2 text-sm">
@@ -119,15 +119,15 @@
           </div>
         </div>
       </aside>
-      
+
       <!-- Main Content Area -->
       <section class="main-content">
         {{MAIN_CONTENT}}
       </section>
-      
+
     </div>
   </main>
-  
+
   <!-- Footer -->
   <footer class="page-footer">
     <div class="container">
@@ -144,7 +144,7 @@
       </div>
     </div>
   </footer>
-  
+
   <!-- Scripts -->
   <script>
     // Mobile Drawer Functions
@@ -153,19 +153,19 @@
       document.getElementById('drawer-backdrop').classList.add('open');
       document.body.style.overflow = 'hidden';
     }
-    
+
     function closeDrawer() {
       document.getElementById('nav-drawer').classList.remove('open');
       document.getElementById('drawer-backdrop').classList.remove('open');
       document.body.style.overflow = '';
     }
-    
+
     // Close drawer on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeDrawer();
     });
   </script>
-  
+
   <script src="/static/components/feedback.js"></script>
 </body>
 </html>

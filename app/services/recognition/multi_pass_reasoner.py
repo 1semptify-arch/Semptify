@@ -38,6 +38,7 @@ from .models import (
 @dataclass
 class ExtractionCandidate:
     """A candidate extraction that needs validation"""
+
     entity_type: EntityType
     value: str
     confidence: float
@@ -51,6 +52,7 @@ class ExtractionCandidate:
 @dataclass
 class ReasoningContext:
     """Context passed between reasoning passes"""
+
     text: str
     document_context: DocumentContext
     candidates: dict[EntityType, list[ExtractionCandidate]] = field(default_factory=lambda: defaultdict(list))
@@ -65,7 +67,7 @@ class ReasoningContext:
 class MultiPassReasoner:
     """
     Multi-pass reasoning engine for document analysis.
-    
+
     Each pass builds on previous findings:
     1. Initial extraction - Find all candidate entities
     2. Cross-validation - Verify entities against document context
@@ -277,14 +279,12 @@ class MultiPassReasoner:
             "court_info_consistent": self._validate_court_info,
         }
 
-    async def reason(self, text: str, document_context: DocumentContext) -> tuple[
-        list[ExtractedEntity],
-        list[ReasoningChain],
-        ConfidenceMetrics
-    ]:
+    async def reason(
+        self, text: str, document_context: DocumentContext
+    ) -> tuple[list[ExtractedEntity], list[ReasoningChain], ConfidenceMetrics]:
         """
         Perform multi-pass reasoning on document text.
-        
+
         Returns:
             Tuple of (validated_entities, reasoning_chains, confidence_metrics)
         """
@@ -316,10 +316,7 @@ class MultiPassReasoner:
         """
         chain = ReasoningChain(pass_number=1)
         chain.add_step(
-            ReasoningType.PATTERN_MATCH,
-            "Beginning initial entity extraction",
-            {"text_length": len(context.text)},
-            {}
+            ReasoningType.PATTERN_MATCH, "Beginning initial entity extraction", {"text_length": len(context.text)}, {}
         )
 
         # Extract entities for each type
@@ -378,24 +375,21 @@ class MultiPassReasoner:
             ReasoningType.PATTERN_MATCH,
             f"Extracted {total_candidates} candidate entities",
             {},
-            {
-                "by_type": {
-                    et.value: len(candidates)
-                    for et, candidates in context.candidates.items()
-                }
-            },
-            confidence_impact=10 if total_candidates > 5 else 5
+            {"by_type": {et.value: len(candidates) for et, candidates in context.candidates.items()}},
+            confidence_impact=10 if total_candidates > 5 else 5,
         )
 
         chain.completed_at = utc_now()
         chain.conclusion = f"Found {total_candidates} candidate entities across {len(context.candidates)} types"
         chain.new_findings = [f"{et.value}: {len(c)}" for et, c in context.candidates.items() if c]
 
-        context.pass_results.append({
-            "pass": 1,
-            "total_candidates": total_candidates,
-            "by_type": {et.value: len(c) for et, c in context.candidates.items()}
-        })
+        context.pass_results.append(
+            {
+                "pass": 1,
+                "total_candidates": total_candidates,
+                "by_type": {et.value: len(c) for et, c in context.candidates.items()},
+            }
+        )
 
         return chain, context
 
@@ -405,12 +399,7 @@ class MultiPassReasoner:
         Check for consistency and supporting evidence.
         """
         chain = ReasoningChain(pass_number=2)
-        chain.add_step(
-            ReasoningType.CROSS_REFERENCE,
-            "Beginning cross-validation of extracted entities",
-            {},
-            {}
-        )
+        chain.add_step(ReasoningType.CROSS_REFERENCE, "Beginning cross-validation of extracted entities", {}, {})
 
         validated_count = 0
         revised_count = 0
@@ -418,9 +407,7 @@ class MultiPassReasoner:
         # Validate each entity type
         for entity_type, candidates in context.candidates.items():
             for candidate in candidates:
-                was_validated, notes = self._cross_validate_candidate(
-                    candidate, context
-                )
+                was_validated, notes = self._cross_validate_candidate(candidate, context)
 
                 if was_validated:
                     candidate.validated = True
@@ -457,7 +444,7 @@ class MultiPassReasoner:
             f"Validated {validated_count} entities, revised {revised_count}",
             {},
             {"validated": validated_count, "revised": revised_count},
-            confidence_impact=validated_count * 2
+            confidence_impact=validated_count * 2,
         )
 
         # Check relationships between entities
@@ -465,20 +452,20 @@ class MultiPassReasoner:
 
         chain.completed_at = utc_now()
         chain.conclusion = f"Cross-validation complete: {validated_count} validated"
-        chain.findings_confirmed = [f"{e.entity_type.value}: {e.value}"
-                                     for e in context.validated_entities[:5]]
+        chain.findings_confirmed = [f"{e.entity_type.value}: {e.value}" for e in context.validated_entities[:5]]
         chain.findings_revised = [f"Revised {revised_count} low-confidence candidates"]
 
-        context.pass_results.append({
-            "pass": 2,
-            "validated": validated_count,
-            "revised": revised_count,
-        })
+        context.pass_results.append(
+            {
+                "pass": 2,
+                "validated": validated_count,
+                "revised": revised_count,
+            }
+        )
 
         return chain, context
 
-    def _cross_validate_candidate(self, candidate: ExtractionCandidate,
-                                   context: ReasoningContext) -> tuple[bool, str]:
+    def _cross_validate_candidate(self, candidate: ExtractionCandidate, context: ReasoningContext) -> tuple[bool, str]:
         """Cross-validate a single candidate entity"""
         evidence_score = 0
         notes = []
@@ -500,7 +487,7 @@ class MultiPassReasoner:
         if candidate.entity_type == EntityType.PERSON:
             # Check if followed by common party indicators
             pos = candidate.position[1]
-            following_text = context.text[pos:pos+50].lower()
+            following_text = context.text[pos : pos + 50].lower()
             if any(term in following_text for term in ["tenant", "landlord", "defendant", "plaintiff"]):
                 evidence_score += 20
                 notes.append("Associated with party role")
@@ -508,7 +495,7 @@ class MultiPassReasoner:
         elif candidate.entity_type == EntityType.MONEY:
             # Check if preceded by amount descriptors
             pos = candidate.position[0]
-            preceding_text = context.text[max(0, pos-50):pos].lower()
+            preceding_text = context.text[max(0, pos - 50) : pos].lower()
             if any(term in preceding_text for term in ["rent", "deposit", "fee", "owed", "due", "total"]):
                 evidence_score += 20
                 notes.append("Has financial context")
@@ -519,7 +506,7 @@ class MultiPassReasoner:
                 evidence_score += 15
                 notes.append("Contains Minnesota reference")
             # Check for zip code
-            if re.search(r'\d{5}', candidate.value):
+            if re.search(r"\d{5}", candidate.value):
                 evidence_score += 15
                 notes.append("Contains zip code")
 
@@ -633,17 +620,17 @@ class MultiPassReasoner:
 
         # Try common formats
         formats = [
-            "%B %d, %Y",      # January 15, 2024
-            "%B %d %Y",       # January 15 2024
-            "%m/%d/%Y",       # 01/15/2024
-            "%m-%d-%Y",       # 01-15-2024
-            "%m/%d/%y",       # 01/15/24
-            "%Y-%m-%d",       # 2024-01-15
+            "%B %d, %Y",  # January 15, 2024
+            "%B %d %Y",  # January 15 2024
+            "%m/%d/%Y",  # 01/15/2024
+            "%m-%d-%Y",  # 01-15-2024
+            "%m/%d/%y",  # 01/15/24
+            "%Y-%m-%d",  # 2024-01-15
         ]
 
         # Clean the string
-        cleaned = re.sub(r'(\d+)(?:st|nd|rd|th)', r'\1', date_str)
-        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+        cleaned = re.sub(r"(\d+)(?:st|nd|rd|th)", r"\1", date_str)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
         for fmt in formats:
             try:
@@ -659,12 +646,7 @@ class MultiPassReasoner:
         Classify document type and identify legal issues.
         """
         chain = ReasoningChain(pass_number=3)
-        chain.add_step(
-            ReasoningType.LEGAL_RULE,
-            "Beginning legal domain reasoning",
-            {},
-            {}
-        )
+        chain.add_step(ReasoningType.LEGAL_RULE, "Beginning legal domain reasoning", {}, {})
 
         # Document type classification
         doc_type = self._classify_document_type(context)
@@ -675,7 +657,7 @@ class MultiPassReasoner:
             f"Classified document as {doc_type.value}",
             {"entities_used": len(context.validated_entities)},
             {"document_type": doc_type.value},
-            confidence_impact=15
+            confidence_impact=15,
         )
 
         # Build timeline from dates
@@ -692,11 +674,13 @@ class MultiPassReasoner:
         chain.conclusion = f"Legal analysis complete: {doc_type.value}"
         chain.new_findings = [f"Document type: {doc_type.value}"]
 
-        context.pass_results.append({
-            "pass": 3,
-            "document_type": doc_type.value,
-            "timeline_entries": len(context.timeline_entries),
-        })
+        context.pass_results.append(
+            {
+                "pass": 3,
+                "document_type": doc_type.value,
+                "timeline_entries": len(context.timeline_entries),
+            }
+        )
 
         return chain, context
 
@@ -776,17 +760,15 @@ class MultiPassReasoner:
 
     def _build_timeline(self, context: ReasoningContext):
         """Build timeline entries from extracted dates"""
-        date_entities = [e for e in context.validated_entities
-                        if e.entity_type == EntityType.DATE]
-        deadline_entities = [e for e in context.validated_entities
-                           if e.entity_type == EntityType.DEADLINE]
+        date_entities = [e for e in context.validated_entities if e.entity_type == EntityType.DATE]
+        [e for e in context.validated_entities if e.entity_type == EntityType.DEADLINE]
 
         for date_entity in date_entities:
             parsed = self._parse_date(date_entity.value)
             if parsed:
                 # Determine event type from context
                 pos = date_entity.start_position
-                context_text = context.text[max(0, pos-100):pos+100].lower()
+                context_text = context.text[max(0, pos - 100) : pos + 100].lower()
 
                 event_type = "date"
                 is_deadline = False
@@ -811,33 +793,26 @@ class MultiPassReasoner:
                     is_deadline=is_deadline,
                     is_court_date=is_court_date,
                     confidence=date_entity.confidence,
-                    source_text=context.text[max(0, pos-50):min(len(context.text), pos+100)],
+                    source_text=context.text[max(0, pos - 50) : min(len(context.text), pos + 100)],
                 )
                 context.timeline_entries.append(entry)
 
-    async def _pass_confidence_calibration(self, context: ReasoningContext) -> tuple[
-        ReasoningChain, ReasoningContext, ConfidenceMetrics
-    ]:
+    async def _pass_confidence_calibration(
+        self, context: ReasoningContext
+    ) -> tuple[ReasoningChain, ReasoningContext, ConfidenceMetrics]:
         """
         Pass 4: Calibrate confidence scores.
         Final adjustments based on cross-pass agreement.
         """
         chain = ReasoningChain(pass_number=4)
-        chain.add_step(
-            ReasoningType.STATISTICAL,
-            "Beginning confidence calibration",
-            {},
-            {}
-        )
+        chain.add_step(ReasoningType.STATISTICAL, "Beginning confidence calibration", {}, {})
 
         metrics = ConfidenceMetrics()
 
         # Calculate component confidences
         if context.validated_entities:
             entity_confidences = [e.confidence for e in context.validated_entities]
-            metrics.entity_extraction_confidence = (
-                sum(entity_confidences) / len(entity_confidences) * 100
-            )
+            metrics.entity_extraction_confidence = sum(entity_confidences) / len(entity_confidences) * 100
 
         # Document type confidence
         if context.document_type_votes:
@@ -849,13 +824,9 @@ class MultiPassReasoner:
         metrics.text_quality_confidence = context.document_context.ocr_quality
 
         # Relationship confidence
-        entities_with_relations = sum(
-            1 for e in context.validated_entities if e.related_entities
-        )
+        entities_with_relations = sum(1 for e in context.validated_entities if e.related_entities)
         if context.validated_entities:
-            metrics.relationship_confidence = (
-                entities_with_relations / len(context.validated_entities)
-            ) * 100
+            metrics.relationship_confidence = (entities_with_relations / len(context.validated_entities)) * 100
 
         # Temporal confidence
         if context.timeline_entries:
@@ -873,12 +844,12 @@ class MultiPassReasoner:
         }
 
         metrics.overall_score = (
-            metrics.entity_extraction_confidence * weights["entity"] +
-            metrics.document_type_confidence * weights["doc_type"] +
-            metrics.text_quality_confidence * weights["text_quality"] +
-            metrics.relationship_confidence * weights["relationship"] +
-            metrics.temporal_confidence * weights["temporal"] +
-            context.document_context.structural_clarity * weights["structural"]
+            metrics.entity_extraction_confidence * weights["entity"]
+            + metrics.document_type_confidence * weights["doc_type"]
+            + metrics.text_quality_confidence * weights["text_quality"]
+            + metrics.relationship_confidence * weights["relationship"]
+            + metrics.temporal_confidence * weights["temporal"]
+            + context.document_context.structural_clarity * weights["structural"]
         )
 
         metrics.level = metrics.classify()
@@ -896,37 +867,38 @@ class MultiPassReasoner:
             f"Calculated overall confidence: {metrics.overall_score:.1f}%",
             {},
             {"overall": metrics.overall_score, "level": metrics.level.value},
-            confidence_impact=0
+            confidence_impact=0,
         )
 
         chain.completed_at = utc_now()
         chain.conclusion = f"Final confidence: {metrics.overall_score:.1f}% ({metrics.level.value})"
         chain.confidence_delta = metrics.overall_score
 
-        context.pass_results.append({
-            "pass": 4,
-            "confidence": metrics.overall_score,
-            "level": metrics.level.value,
-        })
+        context.pass_results.append(
+            {
+                "pass": 4,
+                "confidence": metrics.overall_score,
+                "level": metrics.level.value,
+            }
+        )
 
         return chain, context, metrics
 
     # Validation rules
     def _validate_tenant_address(self, context: ReasoningContext) -> bool:
         """Validate that tenant has associated address"""
-        tenants = [e for e in context.validated_entities
-                   if e.entity_type == EntityType.PERSON
-                   and e.attributes.get("role") == PartyRole.TENANT.value]
-        addresses = [e for e in context.validated_entities
-                    if e.entity_type == EntityType.ADDRESS]
+        tenants = [
+            e
+            for e in context.validated_entities
+            if e.entity_type == EntityType.PERSON and e.attributes.get("role") == PartyRole.TENANT.value
+        ]
+        addresses = [e for e in context.validated_entities if e.entity_type == EntityType.ADDRESS]
         return bool(tenants and addresses)
 
     def _validate_amount_context(self, context: ReasoningContext) -> bool:
         """Validate that amounts have proper context"""
-        amounts = [e for e in context.validated_entities
-                   if e.entity_type == EntityType.MONEY]
-        return all(a.attributes.get("amount_type", "unknown") != "unknown"
-                   for a in amounts)
+        amounts = [e for e in context.validated_entities if e.entity_type == EntityType.MONEY]
+        return all(a.attributes.get("amount_type", "unknown") != "unknown" for a in amounts)
 
     def _validate_dates(self, context: ReasoningContext) -> bool:
         """Validate that dates are parseable and reasonable"""
@@ -944,6 +916,5 @@ class MultiPassReasoner:
 
     def _validate_court_info(self, context: ReasoningContext) -> bool:
         """Validate court information consistency"""
-        case_numbers = [e for e in context.validated_entities
-                       if e.entity_type == EntityType.COURT_CASE]
+        case_numbers = [e for e in context.validated_entities if e.entity_type == EntityType.COURT_CASE]
         return len(set(c.value for c in case_numbers)) <= 1  # At most one unique case number

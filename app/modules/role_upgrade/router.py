@@ -24,8 +24,10 @@ router = APIRouter(prefix="/api/roles", tags=["Role Management"])
 # Request Models
 # =============================================================================
 
+
 class RoleUpgradeRequest(BaseModel):
     """Request to upgrade to an elevated role."""
+
     requested_role: str  # "advocate" or "legal"
     email: str | None = None
     bar_number: str | None = None
@@ -33,15 +35,16 @@ class RoleUpgradeRequest(BaseModel):
     invite_code: str | None = None
     attestation: bool = False
 
-    model_config = ConfigDict(json_schema_extra={
-            "example": {
-                "requested_role": "advocate",
-                "email": "counselor@homeline.org",
-                "invite_code": "HOMELINE2025"
-            }
-        })
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {"requested_role": "advocate", "email": "counselor@homeline.org", "invite_code": "HOMELINE2025"}
+        }
+    )
+
+
 class RoleRequirementsResponse(BaseModel):
     """Requirements for a specific role."""
+
     role: str
     name: str
     requirements: str
@@ -51,6 +54,7 @@ class RoleRequirementsResponse(BaseModel):
 
 class RoleVerificationResponse(BaseModel):
     """Response from role verification request."""
+
     success: bool
     status: str
     role: str
@@ -63,6 +67,7 @@ class RoleVerificationResponse(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/available")
 async def get_available_roles():
     """
@@ -73,19 +78,18 @@ async def get_available_roles():
     roles = []
     for role in [UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL]:
         req = validator.get_role_requirements(role)
-        roles.append({
-            "role": role.value,
-            "name": req.get("name", role.value),
-            "requirements": req.get("requirements", ""),
-            "verification_options": req.get("verification_options", []),
-            "warning": req.get("warning"),
-            "self_service": role != UserRole.ADMIN
-        })
+        roles.append(
+            {
+                "role": role.value,
+                "name": req.get("name", role.value),
+                "requirements": req.get("requirements", ""),
+                "verification_options": req.get("verification_options", []),
+                "warning": req.get("warning"),
+                "self_service": role != UserRole.ADMIN,
+            }
+        )
 
-    return {
-        "roles": roles,
-        "note": "Admin role is not available via self-service"
-    }
+    return {"roles": roles, "note": "Admin role is not available via self-service"}
 
 
 @router.get("/requirements/{role}")
@@ -107,18 +111,15 @@ async def get_role_requirements(role: str):
         name=requirements.get("name", role),
         requirements=requirements.get("requirements", ""),
         verification_options=requirements.get("verification_options", []),
-        warning=requirements.get("warning")
+        warning=requirements.get("warning"),
     )
 
 
 @router.post("/upgrade")
-async def request_role_upgrade(
-    request: RoleUpgradeRequest,
-    user: UserContext | None = Depends(get_current_user)
-):
+async def request_role_upgrade(request: RoleUpgradeRequest, user: UserContext | None = Depends(get_current_user)):
     """
     Request an upgrade to an elevated role.
-    
+
     Verification methods (in order of trust):
     1. Partner invite code
     2. Trusted organization email domain
@@ -133,15 +134,13 @@ async def request_role_upgrade(
         requested_role = UserRole(request.requested_role.lower())
     except ValueError:
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid role: {request.requested_role}. Valid: user, advocate, legal"
+            status_code=400, detail=f"Invalid role: {request.requested_role}. Valid: user, advocate, legal"
         )
 
     # Reject admin requests
     if requested_role == UserRole.ADMIN:
         raise HTTPException(
-            status_code=403,
-            detail="Admin role cannot be requested via API. Contact system administrator."
+            status_code=403, detail="Admin role cannot be requested via API. Contact system administrator."
         )
 
     # TEMPORARY: Professional roles coming soon (Q3 2026)
@@ -153,8 +152,8 @@ async def request_role_upgrade(
                 "error": "coming_soon",
                 "message": f"The {requested_role.value} role is launching Q3 2026.",
                 "available_now": ["tenant"],
-                "note": "SSOT: static/onboarding/select-role.html shows current availability"
-            }
+                "note": "SSOT: static/onboarding/select-role.html shows current availability",
+            },
         )
 
     # Get user ID (from session or generate temp)
@@ -179,7 +178,7 @@ async def request_role_upgrade(
             role=requested_role.value,
             method=verification.method.value,
             message=f"● Role upgrade approved! You now have {requested_role.value} access.",
-            next_steps="Refresh the page to access your new dashboard."
+            next_steps="Refresh the page to access your new dashboard.",
         )
 
     elif verification.status == VerificationStatus.PENDING:
@@ -192,7 +191,7 @@ async def request_role_upgrade(
             next_steps=(
                 "An administrator will review your request within 1-2 business days. "
                 "You'll receive an email when approved."
-            )
+            ),
         )
 
     else:  # REJECTED
@@ -203,9 +202,8 @@ async def request_role_upgrade(
             method=verification.method.value,
             message=f"◆ Verification failed: {verification.notes}",
             next_steps=(
-                "Please verify your credentials and try again, or contact support "
-                "if you believe this is an error."
-            )
+                "Please verify your credentials and try again, or contact support if you believe this is an error."
+            ),
         )
 
 
@@ -220,7 +218,7 @@ async def get_my_role(user: UserContext | None = Depends(get_current_user)):
             "display_name": "Tenant",
             "permissions": [],
             "verified": False,
-            "message": "Not logged in. Default tenant role applies."
+            "message": "Not logged in. Default tenant role applies.",
         }
 
     validator = get_role_validator()
@@ -248,5 +246,5 @@ async def get_trusted_organizations():
         "note": (
             "Users with email addresses from these organizations can be automatically "
             "verified for elevated roles. Contact us to add your organization."
-        )
+        ),
     }

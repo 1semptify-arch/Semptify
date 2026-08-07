@@ -11,7 +11,7 @@
 {% set auto_refresh = auto_refresh|default(false) %}
 {% set refresh_interval = refresh_interval or 30 %}
 
-<div class="plan-next-step-card role-{{ role }}" 
+<div class="plan-next-step-card role-{{ role }}"
      id="{{ component_id }}"
      data-function-group="{{ function_group }}"
      data-role="{{ role }}"
@@ -19,7 +19,7 @@
      data-show-reasoning="{{ show_reasoning|lower }}"
      data-auto-refresh="{{ auto_refresh|lower }}"
      data-refresh-interval="{{ refresh_interval }}">
-  
+
   <div class="next-step-header">
     <div class="next-step-icon">+</div>
     <div>
@@ -27,7 +27,7 @@
       <div class="next-step-subtitle">AI-powered recommendation based on your case stage and urgency</div>
     </div>
   </div>
-  
+
   <div class="next-step-content" id="{{ component_id }}_content">
     <div class="next-step-loading">
       <div class="next-step-loading-spinner"></div>
@@ -37,7 +37,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-alternatives="{{ show_alternatives|lower }}"
@@ -58,28 +58,28 @@ document.addEventListener('DOMContentLoaded', function() {
     autoRefresh: configEl.dataset.autoRefresh === 'true',
     refreshInterval: parseInt(configEl.dataset.refreshInterval)
   };
-  
+
   // Get DOM elements
   const component = document.getElementById(config.componentId);
   const content = document.getElementById(config.componentId + '_content');
-  
+
   // State
   let nextStepData = null;
   let refreshTimer = null;
-  
+
   // Initialize
   initNextStepCard();
-  
+
   function initNextStepCard() {
     // Load initial data
     loadNextStepData();
-    
+
     // Set up auto-refresh
     if (config.autoRefresh) {
       startAutoRefresh();
     }
   }
-  
+
   function loadNextStepData() {
     // Show loading state
     content.innerHTML = `
@@ -88,17 +88,17 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="next-step-loading-text">Analyzing your case for next steps...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       nextStepData = generateMockNextStepData();
       renderNextStepCard();
     }, 1500);
   }
-  
+
   function generateMockNextStepData() {
     const now = new Date();
-    
+
     return {
       primary: {
         id: '1',
@@ -146,34 +146,34 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     };
   }
-  
+
   function renderNextStepCard() {
     if (!nextStepData || !nextStepData.primary) return;
-    
+
     const primary = nextStepData.primary;
-    
+
     const html = `
       <div class="next-step-card ${primary.priority}">
         <div class="next-step-priority">
           <div class="next-step-priority-badge ${primary.priority}">${primary.priority}</div>
         </div>
-        
+
         <div class="next-step-action-title">${primary.title}</div>
         <div class="next-step-action-description">${primary.description}</div>
-        
+
         ${config.showReasoning ? `
           <div class="next-step-reasoning">
             <div class="next-step-reasoning-title">Why this action?</div>
             <div class="next-step-reasoning-text">${primary.reasoning}</div>
           </div>
         ` : ''}
-        
+
         <div class="next-step-meta">
           <div class="next-step-estimated-time">Time: ${primary.estimatedTime}</div>
           <div class="next-step-category ${primary.category}">${primary.category}</div>
           ${primary.deadline ? `<div>Deadline: ${primary.deadline.toLocaleDateString()}</div>` : ''}
         </div>
-        
+
         <div class="next-step-actions">
           <button class="next-step-action-btn primary" onclick="executePrimaryAction('${primary.id}')">
             ${primary.actions[0]}
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </button>
         </div>
       </div>
-      
+
       ${config.showAlternatives && nextStepData.alternatives && nextStepData.alternatives.length > 0 ? `
         <div class="next-step-alternatives">
           <div class="next-step-alternatives-title">Alternative Actions</div>
@@ -193,11 +193,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       ` : ''}
     `;
-    
+
     content.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function createAlternativeHTML(alternative) {
     return `
       <div class="next-step-alternative" data-alternative-id="${alternative.id}">
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function attachEventListeners() {
     // Alternative click handlers
     const alternativeElements = content.querySelectorAll('.next-step-alternative');
@@ -219,11 +219,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleAlternativeClick(altEl) {
     const alternativeId = altEl.dataset.alternativeId;
     const alternative = nextStepData.alternatives.find(alt => alt.id === alternativeId);
-    
+
     if (alternative) {
       // Emit alternative selection event
       const altEvent = new CustomEvent('plan-alternative-select', {
@@ -236,11 +236,11 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(altEvent);
     }
   }
-  
+
   function executePrimaryAction(actionId) {
-    const action = nextStepData.primary.id === actionId ? nextStepData.primary : 
+    const action = nextStepData.primary.id === actionId ? nextStepData.primary :
                    nextStepData.alternatives.find(alt => alt.id === actionId);
-    
+
     if (action) {
       // Emit action execution event
       const executeEvent = new CustomEvent('plan-action-execute', {
@@ -253,11 +253,11 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(executeEvent);
     }
   }
-  
+
   function viewActionDetails(actionId) {
-    const action = nextStepData.primary.id === actionId ? nextStepData.primary : 
+    const action = nextStepData.primary.id === actionId ? nextStepData.primary :
                    nextStepData.alternatives.find(alt => alt.id === actionId);
-    
+
     if (action) {
       // Emit view details event
       const detailsEvent = new CustomEvent('plan-action-details', {
@@ -270,28 +270,28 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(detailsEvent);
     }
   }
-  
+
   function startAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
     }
-    
+
     refreshTimer = setInterval(() => {
       loadNextStepData();
     }, config.refreshInterval * 1000);
   }
-  
+
   function stopAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
       refreshTimer = null;
     }
   }
-  
+
   // Make action functions available globally
   window.executePrimaryAction = executePrimaryAction;
   window.viewActionDetails = viewActionDetails;
-  
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', stopAutoRefresh);
 });

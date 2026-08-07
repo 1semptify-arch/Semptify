@@ -5,6 +5,7 @@ Least-privilege permission system for external modules. Each permission
 must be declared in the module's semptify.module.json manifest and approved
 by an admin before the module can use it.
 """
+
 from collections.abc import Iterable
 from enum import Enum
 
@@ -20,6 +21,7 @@ class Permission(str, Enum):
       - Network calls to non-declared domains
       - File system access outside sandbox
     """
+
     # Vault
     VAULT_READ = "vault.read"
     VAULT_WRITE = "vault.write"
@@ -55,8 +57,7 @@ class PermissionDeniedError(Exception):
         self.permission = permission
         self.action = action
         super().__init__(
-            f"Permission denied: external module lacks '{permission}'"
-            + (f" for action '{action}'" if action else "")
+            f"Permission denied: external module lacks '{permission}'" + (f" for action '{action}'" if action else "")
         )
 
 

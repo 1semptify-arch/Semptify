@@ -35,7 +35,7 @@
       </div>
     </div>
   </div>
-  
+
   {% if show_case_overview %}
   <div class="case-overview">
     <div class="overview-header">
@@ -49,7 +49,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   {% if show_client_list %}
   <div class="client-management">
     <div class="client-header">
@@ -64,7 +64,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   {% if show_team_collaboration %}
   <div class="team-collaboration">
     <div class="team-header">
@@ -80,7 +80,7 @@
     </div>
   </div>
   {% endif %}
-  
+
   <div class="advocate-workspace">
     <div class="workspace-grid">
       <!-- Quick Actions -->
@@ -113,7 +113,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Recent Activity -->
       <div class="workspace-section recent-activity">
         <div class="section-header">
@@ -134,7 +134,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-client-list="{{ show_client_list|lower }}"
@@ -590,16 +590,16 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .header-stats {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .workspace-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .action-grid {
     grid-template-columns: 1fr;
   }
@@ -617,15 +617,15 @@ document.addEventListener('DOMContentLoaded', function() {
     showCaseOverview: configEl.dataset.showCaseOverview === 'true',
     showTeamCollaboration: configEl.dataset.showTeamCollaboration === 'true'
   };
-  
+
   // Initialize advocate dashboard
   initAdvocateDashboard();
-  
+
   function initAdvocateDashboard() {
     loadDashboardData();
     setupEventListeners();
   }
-  
+
   function loadDashboardData() {
     // Simulate loading dashboard data
     setTimeout(() => {
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         ]
       };
-      
+
       updateHeaderStats(dashboardData.stats);
       if (config.showCaseOverview) {
         updateCaseOverview(dashboardData.cases);
@@ -716,21 +716,21 @@ document.addEventListener('DOMContentLoaded', function() {
       updateRecentActivity(dashboardData.recentActivity);
     }, 1000);
   }
-  
+
   function updateHeaderStats(stats) {
     const activeCasesEl = document.getElementById(config.componentId + '_active_cases');
     const urgentCasesEl = document.getElementById(config.componentId + '_urgent_cases');
     const newCasesEl = document.getElementById(config.componentId + '_new_cases');
-    
+
     if (activeCasesEl) activeCasesEl.textContent = stats.activeCases;
     if (urgentCasesEl) urgentCasesEl.textContent = stats.urgentCases;
     if (newCasesEl) newCasesEl.textContent = stats.newCases;
   }
-  
+
   function updateCaseOverview(cases) {
     const overviewGridEl = document.getElementById(config.componentId + '_overview_grid');
     if (!overviewGridEl) return;
-    
+
     const html = cases.map(case_ => `
       <div class="case-card" data-case-id="${case_.id}">
         <div class="case-header">
@@ -742,14 +742,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="case-update">Updated: ${case_.lastUpdate}</div>
       </div>
     `).join('');
-    
+
     overviewGridEl.innerHTML = html;
   }
-  
+
   function updateClientList(clients) {
     const clientListEl = document.getElementById(config.componentId + '_client_list');
     if (!clientListEl) return;
-    
+
     const html = clients.map(client => `
       <div class="client-item" data-client-id="${client.id}">
         <div class="client-avatar">${client.name.split(' ').map(n => n[0]).join('')}</div>
@@ -760,14 +760,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="client-status ${client.status}">${client.status}</div>
       </div>
     `).join('');
-    
+
     clientListEl.innerHTML = html;
   }
-  
+
   function updateTeamActivity(activity) {
     const teamActivityEl = document.getElementById(config.componentId + '_team_activity');
     if (!teamActivityEl) return;
-    
+
     const html = activity.map(item => `
       <div class="team-activity-item" data-activity-id="${item.id}">
         <div class="team-activity-icon"></div>
@@ -778,14 +778,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     teamActivityEl.innerHTML = html;
   }
-  
+
   function updateRecentActivity(activity) {
     const recentActivityEl = document.getElementById(config.componentId + '_recent_activity');
     if (!recentActivityEl) return;
-    
+
     const html = activity.map(item => `
       <div class="activity-item" data-activity-id="${item.id}">
         <div class="activity-icon"></div>
@@ -796,10 +796,10 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
     `).join('');
-    
+
     recentActivityEl.innerHTML = html;
   }
-  
+
   function setupEventListeners() {
     // Listen for function group events
     document.addEventListener('capture-upload', handleCaptureEvent);
@@ -808,22 +808,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('understand-timeline-select', handleUnderstandEvent);
     document.addEventListener('plan-action-select', handlePlanEvent);
   }
-  
+
   function handleCaptureEvent(event) {
     console.log('Advocate dashboard - Capture event:', event.detail);
     loadDashboardData(); // Refresh data
   }
-  
+
   function handleUnderstandEvent(event) {
     console.log('Advocate dashboard - Understand event:', event.detail);
     loadDashboardData(); // Refresh data
   }
-  
+
   function handlePlanEvent(event) {
     console.log('Advocate dashboard - Plan event:', event.detail);
     loadDashboardData(); // Refresh data
   }
-  
+
   // Action handlers
   function viewAllCases() {
     const event = new CustomEvent('advocate-view-all-cases', {
@@ -831,56 +831,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.dispatchEvent(event);
   }
-  
+
   function addNewClient() {
     const event = new CustomEvent('advocate-add-client', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function viewClientQueue() {
     const event = new CustomEvent('advocate-view-queue', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function createHandoff() {
     const event = new CustomEvent('advocate-create-handoff', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function startNewCase() {
     const event = new CustomEvent('advocate-start-case', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function reviewDocuments() {
     const event = new CustomEvent('advocate-review-documents', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function scheduleConsultation() {
     const event = new CustomEvent('advocate-schedule-consultation', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   function generateReport() {
     const event = new CustomEvent('advocate-generate-report', {
       detail: { componentId: config.componentId, role: config.role }
     });
     document.dispatchEvent(event);
   }
-  
+
   // Make action handlers available globally
   window.viewAllCases = viewAllCases;
   window.addNewClient = addNewClient;

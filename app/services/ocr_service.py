@@ -56,7 +56,7 @@ class OCRResult:
 class OCRService:
     """
     Multi-method OCR service with automatic fallback.
-    
+
     Priority:
     1. Azure Document Intelligence (best quality, requires API key)
     2. Tesseract (good quality, requires local install)
@@ -78,6 +78,7 @@ class OCRService:
         """Check if Tesseract is installed."""
         try:
             import pytesseract
+
             # Try to get version
             pytesseract.get_tesseract_version()
             return True
@@ -93,22 +94,23 @@ class OCRService:
     ) -> OCRResult:
         """
         Extract text from document using best available method.
-        
+
         Args:
             file_path: Path to file on disk
             file_bytes: Raw file bytes
             filename: Original filename (for type detection)
             prefer_method: Force specific method (azure, tesseract, pdf)
-            
+
         Returns:
             OCRResult with extracted text and metadata
         """
         import time
+
         start_time = time.time()
 
         # Get file bytes if path provided
         if file_path and not file_bytes:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 file_bytes = f.read()
 
         if not file_bytes:
@@ -116,8 +118,7 @@ class OCRService:
 
         # Detect file type
         file_ext = Path(filename).suffix.lower()
-        is_pdf = file_ext == '.pdf'
-        is_image = file_ext in ['.jpg', '.jpeg', '.png', '.tiff', '.bmp', '.gif', '.heic']
+        is_pdf = file_ext == ".pdf"
 
         # Try methods in order
         methods_to_try = []
@@ -236,12 +237,15 @@ class OCRService:
             file_ext = Path(filename).suffix.lower()
 
             # Handle PDFs by converting to images
-            if file_ext == '.pdf':
+            if file_ext == ".pdf":
                 try:
                     import pdf2image
+
                     images = pdf2image.convert_from_bytes(file_bytes)
                 except ImportError:
-                    return OCRResult(text="", method="tesseract", metadata={"error": "pdf2image not installed for PDF OCR"})
+                    return OCRResult(
+                        text="", method="tesseract", metadata={"error": "pdf2image not installed for PDF OCR"}
+                    )
             else:
                 # Load image directly
                 images = [Image.open(io.BytesIO(file_bytes))]
@@ -250,11 +254,11 @@ class OCRService:
             text_parts = []
             for i, img in enumerate(images):
                 # Convert to RGB if necessary
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
 
                 # Get text with confidence data
-                data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+                pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
 
                 page_text = pytesseract.image_to_string(img)
                 text_parts.append(page_text)
@@ -315,7 +319,9 @@ class OCRService:
             "azure_available": self.azure_available,
             "tesseract_available": self.tesseract_available,
             "pdf_text_available": True,  # Always available with PyPDF2
-            "best_method": "azure" if self.azure_available else ("tesseract" if self.tesseract_available else "pdf_text"),
+            "best_method": "azure"
+            if self.azure_available
+            else ("tesseract" if self.tesseract_available else "pdf_text"),
             "recommendations": self._get_recommendations(),
         }
 

@@ -25,6 +25,7 @@ router = APIRouter(prefix="/api/fraud", tags=["Fraud Exposure"])
 # Request Models
 class AnalyzeFraudRequest(BaseModel):
     """Request to analyze potential fraud"""
+
     landlord_id: str | None = None
     landlord_name: str | None = None  # Alias for landlord_id
     case_id: str | None = None  # Alternative identifier
@@ -39,6 +40,7 @@ class AnalyzeFraudRequest(BaseModel):
 
 class PatternCheckRequest(BaseModel):
     """Request to check for fraud patterns"""
+
     pattern_type: str
     details: dict[str, Any]
 
@@ -46,6 +48,7 @@ class PatternCheckRequest(BaseModel):
 # Response Models
 class FraudReportResponse(BaseModel):
     """Fraud analysis report response"""
+
     id: str
     landlord_id: str
     property_address: str | None = None
@@ -67,13 +70,10 @@ async def fraud_health_check():
 
 
 @router.post("/analyze", response_model=FraudReportResponse)
-async def analyze_fraud(
-    request: AnalyzeFraudRequest,
-    user: StorageUser = Depends(yellow_access)
-):
+async def analyze_fraud(request: AnalyzeFraudRequest, user: StorageUser = Depends(yellow_access)):
     """
     Analyze potential fraud in a tenant rights case.
-    
+
     Examines:
     - HUD subsidy violations
     - Mortgage fraud indicators
@@ -87,8 +87,7 @@ async def analyze_fraud(
     landlord_id = request.landlord_id or request.landlord_name or request.case_id
     if not landlord_id:
         raise HTTPException(
-            status_code=422,
-            detail="At least one identifier required: landlord_id, landlord_name, or case_id"
+            status_code=422, detail="At least one identifier required: landlord_id, landlord_name, or case_id"
         )
 
     try:
@@ -122,11 +121,10 @@ async def analyze_fraud(
     except Exception:
         logger.exception("Fraud analysis failed")
         raise HTTPException(status_code=500, detail="Fraud analysis failed")
+
+
 @router.get("/report/{report_id}")
-async def get_fraud_report(
-    report_id: str,
-    user: StorageUser = Depends(yellow_access)
-):
+async def get_fraud_report(report_id: str, user: StorageUser = Depends(yellow_access)):
     """Get a fraud analysis report by ID"""
     service = get_fraud_service()
     report = service.get_report(report_id)
@@ -138,13 +136,10 @@ async def get_fraud_report(
 
 
 @router.post("/check-pattern")
-async def check_fraud_pattern(
-    request: PatternCheckRequest,
-    user: StorageUser = Depends(yellow_access)
-):
+async def check_fraud_pattern(request: PatternCheckRequest, user: StorageUser = Depends(yellow_access)):
     """
     Check for a specific fraud pattern.
-    
+
     Pattern types:
     - habitability: Check habitability fraud (requires violations list)
     - hud_subsidy: Check HUD subsidy fraud (requires subsidy_info)
@@ -165,14 +160,12 @@ async def check_fraud_pattern(
             result = service.check_mortgage_fraud(details.get("lender_info"))
         elif pattern_type == "security_deposit":
             result = service.check_security_deposit_fraud(
-                details.get("deposit_amount"),
-                details.get("rent_amount"),
-                details.get("deductions")
+                details.get("deposit_amount"), details.get("rent_amount"), details.get("deductions")
             )
         else:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unknown pattern type: {pattern_type}. Valid types: habitability, hud_subsidy, mortgage, security_deposit"
+                detail=f"Unknown pattern type: {pattern_type}. Valid types: habitability, hud_subsidy, mortgage, security_deposit",
             )
 
         return {"pattern_type": pattern_type, "result": result}
@@ -187,11 +180,11 @@ async def check_fraud_pattern(
 async def get_statute_of_limitations(
     fraud_type: str = Query(..., description="Type of fraud (e.g., habitability, hud, mortgage)"),
     discovery_date: str | None = Query(None, description="Date fraud was discovered (YYYY-MM-DD)"),
-    user: StorageUser = Depends(yellow_access)
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get statute of limitations information for a fraud type.
-    
+
     Fraud types:
     - habitability: Landlord habitability fraud
     - hud: HUD subsidy fraud
@@ -210,11 +203,11 @@ async def get_statute_of_limitations(
 @router.get("/whistleblower-info")
 async def get_whistleblower_info(
     fraud_type: str | None = Query(None, description="Type of fraud for specific protections"),
-    user: StorageUser = Depends(yellow_access)
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get whistleblower protection information.
-    
+
     Returns federal and state protections applicable to fraud reporting.
     """
     service = get_fraud_service()
@@ -222,22 +215,15 @@ async def get_whistleblower_info(
 
 
 @router.get("/patterns")
-async def list_fraud_patterns(
-    user: StorageUser = Depends(yellow_access)
-):
+async def list_fraud_patterns(user: StorageUser = Depends(yellow_access)):
     """List all known fraud patterns the system can detect"""
     service = get_fraud_service()
     patterns = service.get_all_patterns()
-    return {
-        "patterns": patterns,
-        "count": len(patterns)
-    }
+    return {"patterns": patterns, "count": len(patterns)}
 
 
 @router.get("/agencies")
-async def list_reporting_agencies(
-    user: StorageUser = Depends(yellow_access)
-):
+async def list_reporting_agencies(user: StorageUser = Depends(yellow_access)):
     """List agencies where fraud can be reported"""
     service = get_fraud_service()
     agencies = service.get_reporting_agencies()
@@ -247,9 +233,4 @@ async def list_reporting_agencies(
     state = [a for a in agencies if a.get("jurisdiction") == "state"]
     local = [a for a in agencies if a.get("jurisdiction") == "local"]
 
-    return {
-        "federal": federal,
-        "state": state,
-        "local": local,
-        "total": len(agencies)
-    }
+    return {"federal": federal, "state": state, "local": local, "total": len(agencies)}

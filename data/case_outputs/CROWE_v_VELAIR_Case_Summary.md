@@ -111,7 +111,7 @@
 
 ### Smoking Gun Evidence
 > **Unit was listed for rent on Aug 17, 2025 - ONE DAY BEFORE the alleged lease violation on Aug 18, 2025**
-> 
+>
 > This proves the decision to remove tenants was made BEFORE any alleged infraction occurred.
 
 ### Fabricated Violation Analysis

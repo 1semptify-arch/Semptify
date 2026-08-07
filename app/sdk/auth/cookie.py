@@ -12,7 +12,6 @@ Framework-specific helpers (set_auth_cookie) accept a response object genericall
 Wraps app.core.cookie_auth — single source of truth stays in core.
 """
 
-
 from app.core.cookie_auth import sign_user_id, verify_user_id
 
 COOKIE_NAME = "semptify_uid"

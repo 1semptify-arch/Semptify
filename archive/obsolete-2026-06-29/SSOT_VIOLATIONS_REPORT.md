@@ -19,7 +19,7 @@
 
 **Files Affected:**
 - `@static/home.html:112`
-- `@static/library.html:87` 
+- `@static/library.html:87`
 - `@static/office.html:87`
 - `@static/tools.html:87`
 - `@static/help.html:100`

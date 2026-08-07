@@ -4,6 +4,7 @@ External Document Client — Phase 3.2a
 Read documents on behalf of an external module. Enforces document.read
 permission. Write requires document.write (rarely granted to external modules).
 """
+
 import logging
 
 from app.sdk.external.context import ExternalModuleContext
@@ -29,10 +30,12 @@ class DocumentClient:
         target_user = user_id or self._ctx.user_id
         logger.info(
             "ExternalDocument: module=%s list_documents user=%s",
-            self._ctx.module_name, target_user[:6] + "...",
+            self._ctx.module_name,
+            target_user[:6] + "...",
         )
         # Delegate to internal document service
         from app.modules.documents.service import list_documents
+
         return await list_documents(
             user_id=target_user,
             limit=limit,
@@ -44,9 +47,11 @@ class DocumentClient:
         self._ctx.require_permission(Permission.DOCUMENT_READ.value, "read_document")
         logger.info(
             "ExternalDocument: module=%s read_document id=%s",
-            self._ctx.module_name, document_id,
+            self._ctx.module_name,
+            document_id,
         )
         from app.modules.documents.service import get_document
+
         return await get_document(document_id=document_id)
 
     async def upload_document(
@@ -61,9 +66,12 @@ class DocumentClient:
         target_user = user_id or self._ctx.user_id
         logger.info(
             "ExternalDocument: module=%s upload_document name=%s size=%d",
-            self._ctx.module_name, filename, len(content),
+            self._ctx.module_name,
+            filename,
+            len(content),
         )
         from app.modules.documents.service import upload_document
+
         return await upload_document(
             user_id=target_user,
             filename=filename,

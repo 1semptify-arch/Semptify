@@ -1,7 +1,7 @@
 # Legal Intelligence Engine — Operations Manual
 
-**Version:** 1.0  
-**Location:** `c:\Semptify\Semptify-FastAPI\legal_intel\`  
+**Version:** 1.0
+**Location:** `c:\Semptify\Semptify-FastAPI\legal_intel\`
 **Purpose:** Crawl attorney and entity data from public courts (MCRO), Secretary of State, PlainSite, and CourtListener. Store results in PostgreSQL. Surface pattern intelligence via API and GUI.
 
 ---
@@ -317,12 +317,7 @@ DEFAULT_JUDGMENT_KEYWORDS = [
     "notice of default",
 ]
 
-SETTLEMENT_KEYWORDS = [
-    "stipulation of dismissal",
-    "settlement agreement",
-    "dismissal with prejudice",
-    ...
-]
+SETTLEMENT_KEYWORDS = ["stipulation of dismissal", "settlement agreement", "dismissal with prejudice", ...]
 ```
 
 Add any keywords that are relevant to your cases.

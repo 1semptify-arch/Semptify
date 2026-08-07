@@ -41,6 +41,7 @@ from app.services.document_registry import (
 # Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def app():
     """Create test application."""
@@ -85,6 +86,7 @@ def sample_image_content():
 # =============================================================================
 # Document ID Generator Tests
 # =============================================================================
+
 
 class TestDocumentIDGenerator:
     """Tests for unique document ID generation."""
@@ -142,6 +144,7 @@ class TestDocumentIDGenerator:
 # =============================================================================
 # Hash Generator Tests
 # =============================================================================
+
 
 class TestHashGenerator:
     """Tests for document hash generation."""
@@ -259,16 +262,14 @@ class TestHashGenerator:
 # Document Registration Tests
 # =============================================================================
 
+
 class TestDocumentRegistration:
     """Tests for document registration functionality."""
 
     def test_register_document(self, fresh_registry, sample_content):
         """Should register a document and return registration info."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
         assert result is not None
         assert result.document_id.startswith("SEM-")
@@ -281,17 +282,14 @@ class TestDocumentRegistration:
             content=sample_content,
             filename="notice.pdf",
             mime_type="application/pdf",
-            case_number="19HA-CV-24-12345"
+            case_number="19HA-CV-24-12345",
         )
         assert result.case_number == "19HA-CV-24-12345"
 
     def test_register_assigns_timestamp(self, fresh_registry, sample_content):
         """Registration should assign creation timestamp."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
         assert result.registered_at is not None
         assert isinstance(result.registered_at, datetime)
@@ -299,10 +297,7 @@ class TestDocumentRegistration:
     def test_register_creates_chain_of_custody(self, fresh_registry, sample_content):
         """Registration should create initial custody record."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
         assert len(result.custody_chain) >= 1
         assert result.custody_chain[0].action == CustodyAction.RECEIVED
@@ -311,10 +306,7 @@ class TestDocumentRegistration:
     def test_register_generates_hashes(self, fresh_registry, sample_content):
         """Registration should generate all hashes."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
         assert result.content_hash is not None
         assert len(result.content_hash) == 64
@@ -324,10 +316,7 @@ class TestDocumentRegistration:
     def test_register_stores_file_info(self, fresh_registry, sample_content):
         """Registration should store file information."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="evidence.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="evidence.pdf", mime_type="application/pdf"
         )
         assert result.original_filename == "evidence.pdf"
         assert result.mime_type == "application/pdf"
@@ -338,23 +327,18 @@ class TestDocumentRegistration:
 # Duplicate Detection Tests
 # =============================================================================
 
+
 class TestDuplicateDetection:
     """Tests for duplicate document detection."""
 
     def test_detect_exact_duplicate(self, fresh_registry, sample_content):
         """Should detect exact duplicate documents."""
         original = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="original.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="original.pdf", mime_type="application/pdf"
         )
 
         duplicate = fresh_registry.register_document(
-            user_id="user_456",
-            content=sample_content,
-            filename="copy.pdf",
-            mime_type="application/pdf"
+            user_id="user_456", content=sample_content, filename="copy.pdf", mime_type="application/pdf"
         )
 
         assert duplicate.is_duplicate is True
@@ -364,17 +348,11 @@ class TestDuplicateDetection:
     def test_different_documents_not_duplicate(self, fresh_registry):
         """Different documents should not be marked as duplicates."""
         doc1 = fresh_registry.register_document(
-            user_id="user_123",
-            content=b"Document content A",
-            filename="doc1.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=b"Document content A", filename="doc1.pdf", mime_type="application/pdf"
         )
 
         doc2 = fresh_registry.register_document(
-            user_id="user_123",
-            content=b"Document content B",
-            filename="doc2.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=b"Document content B", filename="doc2.pdf", mime_type="application/pdf"
         )
 
         assert doc1.status == DocumentStatus.ORIGINAL
@@ -384,17 +362,11 @@ class TestDuplicateDetection:
     def test_duplicate_references_original(self, fresh_registry, sample_content):
         """Duplicate should reference original document ID."""
         original = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="original.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="original.pdf", mime_type="application/pdf"
         )
 
         duplicate = fresh_registry.register_document(
-            user_id="user_789",
-            content=sample_content,
-            filename="another_copy.pdf",
-            mime_type="application/pdf"
+            user_id="user_789", content=sample_content, filename="another_copy.pdf", mime_type="application/pdf"
         )
 
         assert duplicate.original_document_id == original.document_id
@@ -402,17 +374,11 @@ class TestDuplicateDetection:
     def test_original_tracks_duplicates(self, fresh_registry, sample_content):
         """Original document should track its duplicates."""
         original = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="original.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="original.pdf", mime_type="application/pdf"
         )
 
         dup1 = fresh_registry.register_document(
-            user_id="user_456",
-            content=sample_content,
-            filename="copy1.pdf",
-            mime_type="application/pdf"
+            user_id="user_456", content=sample_content, filename="copy1.pdf", mime_type="application/pdf"
         )
 
         # Check that first duplicate is tracked
@@ -425,22 +391,17 @@ class TestDuplicateDetection:
 # Integrity Verification Tests
 # =============================================================================
 
+
 class TestIntegrityVerification:
     """Tests for document integrity verification."""
 
     def test_verify_unmodified_document(self, fresh_registry, sample_content):
         """Unmodified document should pass integrity check."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
-        result = fresh_registry.verify_integrity(
-            doc_id=registered.document_id,
-            content=sample_content
-        )
+        result = fresh_registry.verify_integrity(doc_id=registered.document_id, content=sample_content)
 
         # After a tampered check on a duplicate, the original's status might change
         # So we just check it's either VERIFIED or still valid
@@ -449,27 +410,18 @@ class TestIntegrityVerification:
     def test_detect_modified_document(self, fresh_registry, sample_content):
         """Modified document should fail integrity check."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         modified_content = sample_content + b" TAMPERED"
-        result = fresh_registry.verify_integrity(
-            doc_id=registered.document_id,
-            content=modified_content
-        )
+        result = fresh_registry.verify_integrity(doc_id=registered.document_id, content=modified_content)
 
         assert result == IntegrityStatus.TAMPERED
 
     def test_detect_corrupted_combined_hash(self, fresh_registry, sample_content):
         """Corrupting the stored combined hash should fail verification."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         # The implementation computes metadata_hash from utc_now().isoformat()
@@ -499,10 +451,7 @@ class TestIntegrityVerification:
         # Simulate tampering with the stored integrity hash only
         registered.combined_hash = "0" * 64
 
-        result = fresh_registry.verify_integrity(
-            doc_id=registered.document_id,
-            content=sample_content
-        )
+        result = fresh_registry.verify_integrity(doc_id=registered.document_id, content=sample_content)
 
         assert result == IntegrityStatus.CORRUPTED
 
@@ -512,14 +461,11 @@ class TestIntegrityVerification:
             user_id="user_123",
             content=sample_content,
             filename="test_verify.pdf",  # Unique filename
-            mime_type="application/pdf"
+            mime_type="application/pdf",
         )
 
         # Perform verification
-        fresh_registry.verify_integrity(
-            doc_id=registered.document_id,
-            content=sample_content
-        )
+        fresh_registry.verify_integrity(doc_id=registered.document_id, content=sample_content)
 
         doc = fresh_registry.get_document(registered.document_id)
         # Check that custody chain has grown (could be RECEIVED + INTEGRITY_CHECK)
@@ -527,10 +473,7 @@ class TestIntegrityVerification:
 
     def test_verify_nonexistent_document(self, fresh_registry, sample_content):
         """Should handle verification of nonexistent document."""
-        result = fresh_registry.verify_integrity(
-            doc_id="SEM-2025-NONEXIST-XXXX",
-            content=sample_content
-        )
+        result = fresh_registry.verify_integrity(doc_id="SEM-2025-NONEXIST-XXXX", content=sample_content)
         assert result == IntegrityStatus.UNVERIFIED
 
 
@@ -538,23 +481,21 @@ class TestIntegrityVerification:
 # Forgery Detection Tests
 # =============================================================================
 
+
 class TestForgeryDetection:
     """Tests for forgery detection and flagging."""
 
     def test_flag_for_review(self, fresh_registry, sample_content):
         """Should flag document for review."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="suspect.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="suspect.pdf", mime_type="application/pdf"
         )
 
         result = fresh_registry.flag_document(
             doc_id=registered.document_id,
             reason="Suspected forgery",
             actor="analyst_123",
-            indicator=ForgeryIndicator.METADATA_TAMPERING
+            indicator=ForgeryIndicator.METADATA_TAMPERING,
         )
 
         assert result is True
@@ -565,17 +506,14 @@ class TestForgeryDetection:
     def test_flag_records_custody(self, fresh_registry, sample_content):
         """Forgery flag should record custody event."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         fresh_registry.flag_document(
             doc_id=registered.document_id,
             reason="Font inconsistency detected",
             actor="analyst_123",
-            indicator=ForgeryIndicator.FONT_MISMATCH
+            indicator=ForgeryIndicator.FONT_MISMATCH,
         )
 
         doc = fresh_registry.get_document(registered.document_id)
@@ -585,17 +523,14 @@ class TestForgeryDetection:
     def test_flag_adds_forgery_alert(self, fresh_registry, sample_content):
         """Flagging should add forgery alert."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         fresh_registry.flag_document(
             doc_id=registered.document_id,
             reason="Date appears to be altered",
             actor="analyst_123",
-            indicator=ForgeryIndicator.DATE_INCONSISTENCY
+            indicator=ForgeryIndicator.DATE_INCONSISTENCY,
         )
 
         doc = fresh_registry.get_document(registered.document_id)
@@ -604,11 +539,7 @@ class TestForgeryDetection:
 
     def test_flag_nonexistent_document(self, fresh_registry):
         """Should handle flagging nonexistent document."""
-        result = fresh_registry.flag_document(
-            doc_id="SEM-2025-NONEXIST-XXXX",
-            reason="Test",
-            actor="analyst_123"
-        )
+        result = fresh_registry.flag_document(doc_id="SEM-2025-NONEXIST-XXXX", reason="Test", actor="analyst_123")
         assert result is False
 
 
@@ -616,22 +547,18 @@ class TestForgeryDetection:
 # Case Number Association Tests
 # =============================================================================
 
+
 class TestCaseNumberAssociation:
     """Tests for linking documents to case numbers."""
 
     def test_associate_case(self, fresh_registry, sample_content):
         """Should associate document with case number."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="evidence.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="evidence.pdf", mime_type="application/pdf"
         )
 
         result = fresh_registry.associate_case(
-            doc_id=registered.document_id,
-            case_number="19HA-CV-24-12345",
-            actor="attorney_123"
+            doc_id=registered.document_id, case_number="19HA-CV-24-12345", actor="attorney_123"
         )
 
         assert result is True
@@ -645,14 +572,10 @@ class TestCaseNumberAssociation:
             content=sample_content,
             filename="evidence.pdf",
             mime_type="application/pdf",
-            case_number="OLD-CASE-001"
+            case_number="OLD-CASE-001",
         )
 
-        fresh_registry.associate_case(
-            doc_id=registered.document_id,
-            case_number="NEW-CASE-002",
-            actor="user_123"
-        )
+        fresh_registry.associate_case(doc_id=registered.document_id, case_number="NEW-CASE-002", actor="user_123")
 
         doc = fresh_registry.get_document(registered.document_id)
         assert doc.case_number == "NEW-CASE-002"
@@ -664,7 +587,7 @@ class TestCaseNumberAssociation:
             content=sample_content,
             filename="doc1.pdf",
             mime_type="application/pdf",
-            case_number="CASE-001"
+            case_number="CASE-001",
         )
 
         doc2 = fresh_registry.register_document(
@@ -672,7 +595,7 @@ class TestCaseNumberAssociation:
             content=b"Different document content",
             filename="doc2.pdf",
             mime_type="application/pdf",
-            case_number="CASE-001"
+            case_number="CASE-001",
         )
 
         case_docs = fresh_registry.get_documents_by_case("CASE-001")
@@ -681,9 +604,7 @@ class TestCaseNumberAssociation:
     def test_associate_nonexistent_document(self, fresh_registry):
         """Should handle associating nonexistent document."""
         result = fresh_registry.associate_case(
-            doc_id="SEM-2025-NONEXIST-XXXX",
-            case_number="CASE-001",
-            actor="user_123"
+            doc_id="SEM-2025-NONEXIST-XXXX", case_number="CASE-001", actor="user_123"
         )
         assert result is False
 
@@ -692,16 +613,14 @@ class TestCaseNumberAssociation:
 # Chain of Custody Tests
 # =============================================================================
 
+
 class TestChainOfCustody:
     """Tests for chain of custody tracking."""
 
     def test_custody_chain_on_registration(self, fresh_registry, sample_content):
         """Registration creates initial custody record."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         assert len(registered.custody_chain) >= 1
@@ -712,17 +631,11 @@ class TestChainOfCustody:
     def test_custody_chain_on_access(self, fresh_registry, sample_content):
         """Accessing document records custody event."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         fresh_registry.record_access(
-            doc_id=registered.document_id,
-            actor="viewer_456",
-            action=CustodyAction.ACCESSED,
-            details="Document viewed"
+            doc_id=registered.document_id, actor="viewer_456", action=CustodyAction.ACCESSED, details="Document viewed"
         )
 
         doc = fresh_registry.get_document(registered.document_id)
@@ -732,19 +645,12 @@ class TestChainOfCustody:
     def test_custody_chain_grows(self, fresh_registry, sample_content):
         """Custody chain should grow with each action."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         initial_count = len(registered.custody_chain)
 
-        fresh_registry.record_access(
-            doc_id=registered.document_id,
-            actor="viewer_456",
-            action=CustodyAction.ACCESSED
-        )
+        fresh_registry.record_access(doc_id=registered.document_id, actor="viewer_456", action=CustodyAction.ACCESSED)
 
         doc = fresh_registry.get_document(registered.document_id)
         assert len(doc.custody_chain) > initial_count
@@ -752,10 +658,7 @@ class TestChainOfCustody:
     def test_get_full_custody_chain(self, fresh_registry, sample_content):
         """Should retrieve complete custody chain."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         chain = fresh_registry.get_custody_chain(registered.document_id)
@@ -768,16 +671,14 @@ class TestChainOfCustody:
 # Document Retrieval Tests
 # =============================================================================
 
+
 class TestDocumentRetrieval:
     """Tests for document retrieval functionality."""
 
     def test_get_document_by_id(self, fresh_registry, sample_content):
         """Should retrieve document by ID."""
         registered = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="test.pdf", mime_type="application/pdf"
         )
 
         doc = fresh_registry.get_document(registered.document_id)
@@ -792,17 +693,11 @@ class TestDocumentRetrieval:
     def test_get_documents_by_user(self, fresh_registry, sample_content):
         """Should retrieve documents by user ID."""
         fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="doc1.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="doc1.pdf", mime_type="application/pdf"
         )
 
         fresh_registry.register_document(
-            user_id="user_123",
-            content=b"Another document",
-            filename="doc2.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=b"Another document", filename="doc2.pdf", mime_type="application/pdf"
         )
 
         user_docs = fresh_registry.get_documents_by_user("user_123")
@@ -811,17 +706,11 @@ class TestDocumentRetrieval:
     def test_get_duplicates_of_document(self, fresh_registry, sample_content):
         """Should retrieve all duplicates of a document."""
         original = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="original_dup_test.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="original_dup_test.pdf", mime_type="application/pdf"
         )
 
         fresh_registry.register_document(
-            user_id="user_456",
-            content=sample_content,
-            filename="copy1_dup_test.pdf",
-            mime_type="application/pdf"
+            user_id="user_456", content=sample_content, filename="copy1_dup_test.pdf", mime_type="application/pdf"
         )
 
         duplicates = fresh_registry.get_duplicates(original.document_id)
@@ -830,17 +719,11 @@ class TestDocumentRetrieval:
     def test_get_all_flagged(self, fresh_registry, sample_content):
         """Should retrieve all flagged documents."""
         doc1 = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="suspect1.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="suspect1.pdf", mime_type="application/pdf"
         )
 
         doc2 = fresh_registry.register_document(
-            user_id="user_123",
-            content=b"Different content",
-            filename="suspect2.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=b"Different content", filename="suspect2.pdf", mime_type="application/pdf"
         )
 
         fresh_registry.flag_document(doc1.document_id, "Suspicious", "analyst_123")
@@ -854,28 +737,23 @@ class TestDocumentRetrieval:
 # Statistics Tests
 # =============================================================================
 
+
 class TestRegistryStatistics:
     """Tests for registry statistics."""
 
     def test_get_statistics(self, fresh_registry, sample_content):
         """Should return registry statistics."""
         fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="doc1.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="doc1.pdf", mime_type="application/pdf"
         )
         fresh_registry.register_document(
-            user_id="user_123",
-            content=b"other content",
-            filename="doc2.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=b"other content", filename="doc2.pdf", mime_type="application/pdf"
         )
         fresh_registry.register_document(
             user_id="user_456",
             content=sample_content,  # Duplicate
             filename="duplicate.pdf",
-            mime_type="application/pdf"
+            mime_type="application/pdf",
         )
 
         stats = fresh_registry.get_statistics()
@@ -888,6 +766,7 @@ class TestRegistryStatistics:
 # =============================================================================
 # API Endpoint Tests
 # =============================================================================
+
 
 class TestRegistryAPIEndpoints:
     """Tests for Document Registry API endpoints."""
@@ -991,6 +870,7 @@ class TestRegistryAPIEndpoints:
 # Edge Cases Tests
 # =============================================================================
 
+
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
@@ -1006,10 +886,7 @@ class TestEdgeCases:
     def test_special_characters_in_filename(self, fresh_registry, sample_content):
         """Should handle special characters in filename."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="notice (copy) [2024].pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="notice (copy) [2024].pdf", mime_type="application/pdf"
         )
         assert result is not None
         assert result.original_filename == "notice (copy) [2024].pdf"
@@ -1017,10 +894,7 @@ class TestEdgeCases:
     def test_unicode_filename(self, fresh_registry, sample_content):
         """Should handle unicode characters in filename."""
         result = fresh_registry.register_document(
-            user_id="user_123",
-            content=sample_content,
-            filename="документ_тест.pdf",
-            mime_type="application/pdf"
+            user_id="user_123", content=sample_content, filename="документ_тест.pdf", mime_type="application/pdf"
         )
         assert result is not None
         assert "документ" in result.original_filename
@@ -1029,6 +903,7 @@ class TestEdgeCases:
 # =============================================================================
 # Forgery Indicator Enum Tests
 # =============================================================================
+
 
 class TestForgeryIndicators:
     """Tests for all forgery indicator types."""
@@ -1065,6 +940,7 @@ class TestForgeryIndicators:
 # =============================================================================
 # DocumentIDGenerator Tests
 # =============================================================================
+
 
 class TestDocumentIDGeneratorClass:
     """Tests for DocumentIDGenerator class."""
@@ -1105,12 +981,12 @@ class TestDocumentIDGeneratorClass:
         """Should return None for invalid formats."""
         invalid_ids = [
             "INVALID-2024-000001-ABCD",  # Wrong prefix
-            "SEM-2024-00001-ABCD",       # Sequence too short
-            "SEM-2024-000001-ABC",       # Suffix too short
-            "SEM-2024-000001-ABCD-extra", # Too many parts
-            "SEM-2024-000001-abc",       # Lowercase suffix
-            "",                          # Empty
-            "SEM-2024",                  # Missing parts
+            "SEM-2024-00001-ABCD",  # Sequence too short
+            "SEM-2024-000001-ABC",  # Suffix too short
+            "SEM-2024-000001-ABCD-extra",  # Too many parts
+            "SEM-2024-000001-abc",  # Lowercase suffix
+            "",  # Empty
+            "SEM-2024",  # Missing parts
         ]
         # NOTE: "SEM-2024-000001-1234" (numeric suffix) is intentionally
         # excluded because the implementation's regex ([A-Z0-9]{4}) accepts
@@ -1136,7 +1012,7 @@ class TestDocumentIDGeneratorClass:
         # Invalid cases
         invalid_ids = [
             "SEM-2024-000001-ABCD-extra",
-            "SEM-2024-000001-abc",   # Lowercase
+            "SEM-2024-000001-abc",  # Lowercase
             "SEM-2024-000001-ABCD ",  # With space
         ]
         # NOTE: "SEM-2024-000001-ABCD\n" (with trailing newline) is
@@ -1147,7 +1023,7 @@ class TestDocumentIDGeneratorClass:
         for invalid_id in invalid_ids:
             assert not DocumentIDGenerator.is_valid(invalid_id)
 
-    @patch('app.services.document_registry.utc_now')
+    @patch("app.services.document_registry.utc_now")
     def test_year_reset_behavior(self, mock_utc_now):
         """Counter should reset when year changes."""
         # The implementation uses utc_now() (from app.core.utc) rather than
@@ -1204,6 +1080,7 @@ class TestDocumentIDGeneratorClass:
 # =============================================================================
 # =============================================================================
 
+
 class TestSingletonPattern:
     """Tests for singleton registry pattern."""
 
@@ -1218,6 +1095,7 @@ class TestSingletonPattern:
 # ForgeryDetector Tests
 # =============================================================================
 
+
 class TestForgeryDetectorClass:
     """Tests for ForgeryDetector class."""
 
@@ -1229,7 +1107,7 @@ class TestForgeryDetectorClass:
             text="Normal document content",
             metadata={"filename": "test.pdf"},
             filename="test.pdf",
-            existing_docs=[]
+            existing_docs=[],
         )
         assert score < 0.5
 
@@ -1238,11 +1116,7 @@ class TestForgeryDetectorClass:
         content = b"Date: 02/30/2024"
         text = "Date: 02/30/2024"
         alerts, score = ForgeryDetector.analyze(
-            content=content,
-            text=text,
-            metadata={},
-            filename="test.pdf",
-            existing_docs=[]
+            content=content, text=text, metadata={}, filename="test.pdf", existing_docs=[]
         )
         # May or may not detect based on implementation
         assert isinstance(alerts, list)

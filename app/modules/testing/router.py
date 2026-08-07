@@ -33,38 +33,43 @@ router = APIRouter()
 # Schemas
 # =============================================================================
 
+
 class TestSuiteCreateRequest(BaseModel):
     """Test suite creation request."""
+
     suite_id: str = Field(..., description="Unique suite identifier")
     name: str = Field(..., description="Suite name")
     description: str = Field(..., description="Suite description")
     tags: list[str] = Field(default_factory=list, description="Suite tags")
 
+
 class TestRunRequest(BaseModel):
     """Test run request."""
+
     suite_id: str = Field(..., description="Suite ID to run")
     test_filter: str | None = Field(None, description="Filter tests by tag")
     environment: dict[str, Any] | None = Field(None, description="Test environment variables")
 
+
 class PipelineConfigRequest(BaseModel):
     """Pipeline configuration request."""
+
     name: str = Field(..., description="Pipeline name")
     stages: list[str] = Field(default_factory=list, description="Pipeline stages")
     environment: dict[str, Any] | None = Field(None, description="Pipeline environment")
     notifications: dict[str, bool] | None = Field(None, description="Notification settings")
 
+
 # =============================================================================
 # Test Suite Management Endpoints
 # =============================================================================
 
+
 @router.post("/suites")
-async def create_test_suite_endpoint(
-    request: TestSuiteCreateRequest,
-    user: StorageUser = Depends(red_access)
-):
+async def create_test_suite_endpoint(request: TestSuiteCreateRequest, user: StorageUser = Depends(red_access)):
     """
     Create a new test suite.
-    
+
     Test suites organize related test cases and can be run together.
     """
     try:
@@ -75,127 +80,133 @@ async def create_test_suite_endpoint(
 
         if "core" in request.tags:
             # Add core functionality tests
-            test_cases.extend([
-                TestCase(
-                    test_id=f"{request.suite_id}_auth_test",
-                    name="User Authentication",
-                    test_type=TestType.UNIT,
-                    module="security",
-                    function="authenticate_user",
-                    description="Test user authentication functionality",
-                    test_code="""
+            test_cases.extend(
+                [
+                    TestCase(
+                        test_id=f"{request.suite_id}_auth_test",
+                        name="User Authentication",
+                        test_type=TestType.UNIT,
+                        module="security",
+                        function="authenticate_user",
+                        description="Test user authentication functionality",
+                        test_code="""
                         # Test user authentication
                         from app.core.security import authenticate_user
-                        
+
                         # Test valid credentials
                         result = authenticate_user("test@example.com", "valid_password")
                         assert result is not None
                         assert result.user_id is not None
-                        
+
                         # Test invalid credentials
                         result = authenticate_user("test@example.com", "invalid_password")
                         assert result is None
-                        
+
                         result = {"success": True}
                     """,
-                    expected_result={"success": True}
-                ),
-                TestCase(
-                    test_id=f"{request.suite_id}_document_test",
-                    name="Document Upload",
-                    test_type=TestType.INTEGRATION,
-                    module="vault",
-                    function="upload_document",
-                    description="Test document upload functionality",
-                    test_code="""
+                        expected_result={"success": True},
+                    ),
+                    TestCase(
+                        test_id=f"{request.suite_id}_document_test",
+                        name="Document Upload",
+                        test_type=TestType.INTEGRATION,
+                        module="vault",
+                        function="upload_document",
+                        description="Test document upload functionality",
+                        test_code="""
                         # Test document upload
                         import tempfile
                         import os
-                        
+
                         # Create test file
                         with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
                             f.write("Test document content")
                             temp_path = f.name
-                        
+
                         try:
                             # Test upload (simplified)
                             result = {"success": True, "file_path": temp_path}
                             os.unlink(temp_path)
                         except Exception as e:
                             result = {"success": False, "error": str(e)}
-                        
+
                         result = {"success": True}
                     """,
-                    expected_result={"success": True}
-                )
-            ])
+                        expected_result={"success": True},
+                    ),
+                ]
+            )
 
         if "security" in request.tags:
             # Add security tests
-            test_cases.extend([
-                TestCase(
-                    test_id=f"{request.suite_id}_rate_limit_test",
-                    name="Rate Limiting",
-                    test_type=TestType.SECURITY,
-                    module="rate_limiter",
-                    function="check_rate_limit",
-                    description="Test rate limiting functionality",
-                    test_code="""
+            test_cases.extend(
+                [
+                    TestCase(
+                        test_id=f"{request.suite_id}_rate_limit_test",
+                        name="Rate Limiting",
+                        test_type=TestType.SECURITY,
+                        module="rate_limiter",
+                        function="check_rate_limit",
+                        description="Test rate limiting functionality",
+                        test_code="""
                         # Test rate limiting
                         from app.core.advanced_rate_limiter import check_rate_limit
-                        
+
                         # Test normal usage
                         result1 = check_rate_limit("user1", "api", 10)
                         assert result1.allowed is True
-                        
+
                         # Test exceeded limit
                         for i in range(15):
                             check_rate_limit("user1", "api", 10)
-                        
+
                         result2 = check_rate_limit("user1", "api", 10)
                         assert result2.allowed is False
-                        
+
                         result = {"success": True}
                     """,
-                    expected_result={"success": True}
-                )
-            ])
+                        expected_result={"success": True},
+                    )
+                ]
+            )
 
         if "performance" in request.tags:
             # Add performance tests
-            test_cases.extend([
-                TestCase(
-                    test_id=f"{request.suite_id}_cache_test",
-                    name="Cache Performance",
-                    test_type=TestType.PERFORMANCE,
-                    module="cache_manager",
-                    function="cache_operations",
-                    description="Test cache performance",
-                    test_code="""
+            test_cases.extend(
+                [
+                    TestCase(
+                        test_id=f"{request.suite_id}_cache_test",
+                        name="Cache Performance",
+                        test_type=TestType.PERFORMANCE,
+                        module="cache_manager",
+                        function="cache_operations",
+                        description="Test cache performance",
+                        test_code="""
                         # Test cache performance
                         import time
                         from app.core.cache_manager import get_cache_manager
-                        
+
                         cache = get_cache_manager()
-                        
+
                         # Test cache set/get performance
                         start_time = time.time()
-                        
+
                         for i in range(1000):
                             cache.set(f"key_{i}", f"value_{i}")
                             cache.get(f"key_{i}")
-                        
+
                         end_time = time.time()
                         duration = end_time - start_time
-                        
+
                         # Should complete within 1 second
                         assert duration < 1.0
-                        
+
                         result = {"success": True, "duration": duration}
                     """,
-                    expected_result={"success": True}
-                )
-            ])
+                        expected_result={"success": True},
+                    )
+                ]
+            )
 
         # Create test suite
         suite = create_test_suite(
@@ -203,7 +214,7 @@ async def create_test_suite_endpoint(
             name=request.name,
             description=request.description,
             test_cases=test_cases,
-            tags=request.tags
+            tags=request.tags,
         )
 
         return {
@@ -212,18 +223,16 @@ async def create_test_suite_endpoint(
             "name": suite.name,
             "test_count": len(suite.test_cases),
             "tags": suite.tags,
-            "message": "Test suite created successfully"
+            "message": "Test suite created successfully",
         }
 
     except Exception as e:
         logger.error(f"Test suite creation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to create test suite")
 
+
 @router.get("/suites/{suite_id}")
-async def get_test_suite_endpoint(
-    suite_id: str,
-    user: StorageUser = Depends(red_access)
-):
+async def get_test_suite_endpoint(suite_id: str, user: StorageUser = Depends(red_access)):
     """
     Get test suite details.
     """
@@ -241,10 +250,9 @@ async def get_test_suite_endpoint(
         logger.error(f"Get test suite failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get test suite")
 
+
 @router.get("/suites")
-async def list_test_suites(
-    user: StorageUser = Depends(red_access)
-):
+async def list_test_suites(user: StorageUser = Depends(red_access)):
     """
     List all available test suites.
     """
@@ -255,37 +263,31 @@ async def list_test_suites(
         for suite in framework.test_suites.values():
             suites.append(suite.to_dict())
 
-        return {
-            "suites": suites,
-            "total_suites": len(suites),
-            "test_framework_stats": framework.get_statistics()
-        }
+        return {"suites": suites, "total_suites": len(suites), "test_framework_stats": framework.get_statistics()}
 
     except Exception as e:
         logger.error(f"List test suites failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to list test suites")
 
+
 # =============================================================================
 # Test Execution Endpoints
 # =============================================================================
 
+
 @router.post("/run", response_model_exclude_none=True)
 async def run_test_suite_endpoint(
-    request: TestRunRequest,
-    background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(red_access)
+    request: TestRunRequest, background_tasks: BackgroundTasks, user: StorageUser = Depends(red_access)
 ):
     """
     Run a test suite.
-    
+
     Executes all test cases in the specified suite.
     """
     try:
         # Start test run in background
         run_id = await run_test_suite(
-            suite_id=request.suite_id,
-            test_filter=request.test_filter,
-            environment=request.environment
+            suite_id=request.suite_id, test_filter=request.test_filter, environment=request.environment
         )
 
         # Add background task to monitor progress
@@ -297,7 +299,7 @@ async def run_test_suite_endpoint(
             "suite_id": request.suite_id,
             "status": "started",
             "message": "Test suite execution started",
-            "monitor_url": f"/testing/run/{run_id}"
+            "monitor_url": f"/testing/run/{run_id}",
         }
 
     except ValueError as e:
@@ -306,11 +308,9 @@ async def run_test_suite_endpoint(
         logger.error(f"Test suite run failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to run test suite")
 
+
 @router.get("/run/{run_id}")
-async def get_test_run_endpoint(
-    run_id: str,
-    user: StorageUser = Depends(red_access)
-):
+async def get_test_run_endpoint(run_id: str, user: StorageUser = Depends(red_access)):
     """
     Get test run details and results.
     """
@@ -328,15 +328,16 @@ async def get_test_run_endpoint(
         logger.error(f"Get test run failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get test run")
 
+
 @router.get("/run/{run_id}/results")
 async def get_test_results_endpoint(
     run_id: str,
     format: str = Query("json", description="Response format: json, csv, html"),
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
 ):
     """
     Get detailed test results for a run.
-    
+
     Supports multiple output formats for reporting.
     """
     try:
@@ -350,7 +351,7 @@ async def get_test_results_endpoint(
                 "run_id": run_id,
                 "suite_id": run.suite_id,
                 "results": [tr.to_dict() for tr in run.test_results],
-                "summary": run.get_summary()
+                "summary": run.get_summary(),
             }
 
         elif format == "csv":
@@ -362,44 +363,32 @@ async def get_test_results_endpoint(
             writer = csv.writer(output)
 
             # Header
-            writer.writerow([
-                "Test ID", "Name", "Type", "Status", "Duration",
-                "Error Message", "Passed"
-            ])
+            writer.writerow(["Test ID", "Name", "Type", "Status", "Duration", "Error Message", "Passed"])
 
             # Data rows
             for result in run.test_results:
-                writer.writerow([
-                    result.test_id,
-                    "",  # Name would need to be looked up
-                    result.test_type if hasattr(result, 'test_type') else "",
-                    result.status.value,
-                    result.duration_seconds,
-                    result.error_message or "",
-                    result.passed
-                ])
+                writer.writerow(
+                    [
+                        result.test_id,
+                        "",  # Name would need to be looked up
+                        result.test_type if hasattr(result, "test_type") else "",
+                        result.status.value,
+                        result.duration_seconds,
+                        result.error_message or "",
+                        result.passed,
+                    ]
+                )
 
-            return {
-                "run_id": run_id,
-                "format": "csv",
-                "csv_data": output.getvalue()
-            }
+            return {"run_id": run_id, "format": "csv", "csv_data": output.getvalue()}
 
         elif format == "html":
             # Generate HTML report
             html_report = generate_html_report(run)
 
-            return {
-                "run_id": run_id,
-                "format": "html",
-                "html_report": html_report
-            }
+            return {"run_id": run_id, "format": "html", "html_report": html_report}
 
         else:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Unsupported format: {format}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unsupported format: {format}")
 
     except HTTPException:
         raise
@@ -407,10 +396,9 @@ async def get_test_results_endpoint(
         logger.error(f"Get test results failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get test results")
 
+
 @router.get("/statistics")
-async def get_test_statistics_endpoint(
-    user: StorageUser = Depends(red_access)
-):
+async def get_test_statistics_endpoint(user: StorageUser = Depends(red_access)):
     """
     Get testing framework statistics.
     """
@@ -424,63 +412,56 @@ async def get_test_statistics_endpoint(
                 "total_runs": stats["total_runs"],
                 "total_tests": stats["total_tests"],
                 "overall_pass_rate": stats["overall_pass_rate"],
-                "active_runs": stats["active_runs"]
-            }
+                "active_runs": stats["active_runs"],
+            },
         }
 
     except Exception as e:
         logger.error(f"Get test statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get test statistics")
 
+
 # =============================================================================
 # CI/CD Pipeline Endpoints
 # =============================================================================
 
+
 @router.post("/pipeline/create")
-async def create_pipeline_endpoint(
-    request: PipelineConfigRequest,
-    user: StorageUser = Depends(red_access)
-):
+async def create_pipeline_endpoint(request: PipelineConfigRequest, user: StorageUser = Depends(red_access)):
     """
     Create a new CI/CD pipeline configuration.
-    
+
     Pipelines automate testing, building, and deployment.
     """
     try:
         # Create pipeline configuration
-        config = {
-            "stages": request.stages,
-            "environment": request.environment,
-            "notifications": request.notifications
-        }
+        config = {"stages": request.stages, "environment": request.environment, "notifications": request.notifications}
 
-        pipeline_id = create_pipeline_config(
-            name=request.name,
-            config=config
-        )
+        pipeline_id = create_pipeline_config(name=request.name, config=config)
 
         return {
             "success": True,
             "pipeline_id": pipeline_id,
             "name": request.name,
             "stages": request.stages,
-            "message": "Pipeline configuration created successfully"
+            "message": "Pipeline configuration created successfully",
         }
 
     except Exception as e:
         logger.error(f"Pipeline creation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to create pipeline")
 
+
 @router.post("/pipeline/{pipeline_id}/run")
 async def run_pipeline_endpoint(
     pipeline_id: str,
     background_tasks: BackgroundTasks,
     trigger: str = Query("manual", description="Trigger type"),
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
 ):
     """
     Run a CI/CD pipeline.
-    
+
     Executes pipeline stages in sequence.
     """
     try:
@@ -497,7 +478,7 @@ async def run_pipeline_endpoint(
             "trigger": trigger,
             "status": "started",
             "message": "Pipeline execution started",
-            "monitor_url": f"/testing/pipeline/run/{run_id}"
+            "monitor_url": f"/testing/pipeline/run/{run_id}",
         }
 
     except ValueError as e:
@@ -506,11 +487,9 @@ async def run_pipeline_endpoint(
         logger.error(f"Pipeline run failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to run pipeline")
 
+
 @router.get("/pipeline/run/{run_id}")
-async def get_pipeline_run_endpoint(
-    run_id: str,
-    user: StorageUser = Depends(red_access)
-):
+async def get_pipeline_run_endpoint(run_id: str, user: StorageUser = Depends(red_access)):
     """
     Get pipeline run details and status.
     """
@@ -528,10 +507,9 @@ async def get_pipeline_run_endpoint(
         logger.error(f"Get pipeline run failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get pipeline run")
 
+
 @router.get("/pipeline/statistics")
-async def get_pipeline_statistics_endpoint(
-    user: StorageUser = Depends(red_access)
-):
+async def get_pipeline_statistics_endpoint(user: StorageUser = Depends(red_access)):
     """
     Get CI/CD pipeline statistics.
     """
@@ -544,17 +522,19 @@ async def get_pipeline_statistics_endpoint(
                 "total_pipelines": stats["total_pipelines"],
                 "total_runs": stats["total_runs"],
                 "success_rate": stats["success_rate"],
-                "active_runs": stats["active_runs"]
-            }
+                "active_runs": stats["active_runs"],
+            },
         }
 
     except Exception as e:
         logger.error(f"Get pipeline statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get pipeline statistics")
 
+
 # =============================================================================
 # Utility Functions
 # =============================================================================
+
 
 async def monitor_test_run(run_id: str, suite_id: str):
     """Background task to monitor test run progress."""
@@ -570,6 +550,7 @@ async def monitor_test_run(run_id: str, suite_id: str):
             # Send WebSocket update if available
             try:
                 from app.core.websocket_manager import get_websocket_manager
+
                 ws_manager = get_websocket_manager()
 
                 await ws_manager.broadcast_to_subscription(
@@ -580,8 +561,8 @@ async def monitor_test_run(run_id: str, suite_id: str):
                         "suite_id": suite_id,
                         "status": run.status.value,
                         "progress": len(run.test_results),
-                        "total_tests": len(get_test_suite(suite_id).test_cases) if get_test_suite(suite_id) else 0
-                    }
+                        "total_tests": len(get_test_suite(suite_id).test_cases) if get_test_suite(suite_id) else 0,
+                    },
                 )
             except Exception:
                 pass  # WebSocket not available
@@ -590,6 +571,7 @@ async def monitor_test_run(run_id: str, suite_id: str):
 
     except Exception as e:
         logger.error(f"Test run monitoring failed: {e}")
+
 
 async def monitor_pipeline_run(run_id: str, pipeline_id: str):
     """Background task to monitor pipeline run progress."""
@@ -604,6 +586,7 @@ async def monitor_pipeline_run(run_id: str, pipeline_id: str):
             # Send WebSocket update if available
             try:
                 from app.core.websocket_manager import get_websocket_manager
+
                 ws_manager = get_websocket_manager()
 
                 await ws_manager.broadcast_to_subscription(
@@ -613,8 +596,8 @@ async def monitor_pipeline_run(run_id: str, pipeline_id: str):
                         "run_id": run_id,
                         "pipeline_id": pipeline_id,
                         "status": run["status"],
-                        "stages": run.get("stages", {})
-                    }
+                        "stages": run.get("stages", {}),
+                    },
                 )
             except Exception:
                 pass  # WebSocket not available
@@ -623,6 +606,7 @@ async def monitor_pipeline_run(run_id: str, pipeline_id: str):
 
     except Exception as e:
         logger.error(f"Pipeline run monitoring failed: {e}")
+
 
 def generate_html_report(run) -> str:
     """Generate HTML test report."""
@@ -648,14 +632,14 @@ def generate_html_report(run) -> str:
             <p><strong>Suite ID:</strong> {run.suite_id}</p>
             <p><strong>Status:</strong> {run.status.value}</p>
         </div>
-        
+
         <div class="summary">
             <h2>Summary</h2>
             <p>Total Tests: {len(run.test_results)}</p>
             <p>Passed: {len([tr for tr in run.test_results if tr.passed])}</p>
             <p>Failed: {len([tr for tr in run.test_results if not tr.passed])}</p>
         </div>
-        
+
         <div class="results">
             <h2>Test Results</h2>
     """
@@ -667,7 +651,7 @@ def generate_html_report(run) -> str:
                 <h3>{result.test_id}</h3>
                 <p><strong>Status:</strong> {result.status.value}</p>
                 <p><strong>Duration:</strong> {result.duration_seconds:.2f}s</p>
-                {f'<p><strong>Error:</strong> {result.error_message}</p>' if result.error_message else ''}
+                {f"<p><strong>Error:</strong> {result.error_message}</p>" if result.error_message else ""}
             </div>
         """
 

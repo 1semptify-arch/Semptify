@@ -12,17 +12,21 @@ Revision ID: 20250507_merge_and_widen_final
 Revises: 20250506_add_mndes_and_vault_index, 20250507_widen_user_id_columns
 Create Date: 2026-05-07
 """
-from typing import Sequence, Union
-from alembic import op
+
+from collections.abc import Sequence
+from typing import Union
+
 import sqlalchemy as sa
 
-revision: str = '20250507_merge_and_widen_final'
-down_revision: Union[str, Sequence[str], None] = (
-    '20250506_add_mndes_and_vault_index',
-    '20250507_widen_user_id_columns',
+from alembic import op
+
+revision: str = "20250507_merge_and_widen_final"
+down_revision: str | Sequence[str] | None = (
+    "20250506_add_mndes_and_vault_index",
+    "20250507_widen_user_id_columns",
 )
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

@@ -16,23 +16,29 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class RateLimitStrategy(Enum):
     """Rate limiting strategies."""
+
     FIXED_WINDOW = "fixed_window"
     SLIDING_WINDOW = "sliding_window"
     TOKEN_BUCKET = "token_bucket"
     LEAKY_BUCKET = "leaky_bucket"
 
+
 class UserTier(Enum):
     """User access tiers."""
+
     FREE = "free"
     BASIC = "basic"
     PREMIUM = "premium"
     ENTERPRISE = "enterprise"
 
+
 @dataclass
 class RateLimitConfig:
     """Rate limit configuration."""
+
     requests_per_window: int
     window_seconds: int
     burst_size: int | None = None
@@ -43,12 +49,14 @@ class RateLimitConfig:
             "requests_per_window": self.requests_per_window,
             "window_seconds": self.window_seconds,
             "burst_size": self.burst_size,
-            "strategy": self.strategy.value
+            "strategy": self.strategy.value,
         }
+
 
 @dataclass
 class RateLimitState:
     """Rate limit state for a client."""
+
     current_requests: int
     window_start: float
     last_request_time: float
@@ -65,8 +73,9 @@ class RateLimitState:
             "tokens": self.tokens,
             "last_refill_time": self.last_refill_time,
             "violations": self.violations,
-            "blocked_until": self.blocked_until
+            "blocked_until": self.blocked_until,
         }
+
 
 class TokenBucketLimiter:
     """Token bucket rate limiter."""
@@ -87,6 +96,7 @@ class TokenBucketLimiter:
             return True, state.tokens
         else:
             return False, state.tokens
+
 
 class SlidingWindowLimiter:
     """Sliding window rate limiter."""
@@ -110,6 +120,7 @@ class SlidingWindowLimiter:
         else:
             return False, request_history
 
+
 class AdvancedRateLimiter:
     """Advanced rate limiting system."""
 
@@ -121,29 +132,29 @@ class AdvancedRateLimiter:
                 "write": RateLimitConfig(50, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "upload": RateLimitConfig(10, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
                 "auth": RateLimitConfig(5, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
-                "ai": RateLimitConfig(20, 60, strategy=RateLimitStrategy.TOKEN_BUCKET)
+                "ai": RateLimitConfig(20, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
             },
             UserTier.BASIC: {
                 "read": RateLimitConfig(500, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "write": RateLimitConfig(200, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "upload": RateLimitConfig(50, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
                 "auth": RateLimitConfig(10, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
-                "ai": RateLimitConfig(100, 60, strategy=RateLimitStrategy.TOKEN_BUCKET)
+                "ai": RateLimitConfig(100, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
             },
             UserTier.PREMIUM: {
                 "read": RateLimitConfig(2000, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "write": RateLimitConfig(1000, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "upload": RateLimitConfig(200, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
                 "auth": RateLimitConfig(20, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
-                "ai": RateLimitConfig(500, 60, strategy=RateLimitStrategy.TOKEN_BUCKET)
+                "ai": RateLimitConfig(500, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
             },
             UserTier.ENTERPRISE: {
                 "read": RateLimitConfig(10000, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "write": RateLimitConfig(5000, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
                 "upload": RateLimitConfig(1000, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
                 "auth": RateLimitConfig(100, 60, strategy=RateLimitStrategy.SLIDING_WINDOW),
-                "ai": RateLimitConfig(2000, 60, strategy=RateLimitStrategy.TOKEN_BUCKET)
-            }
+                "ai": RateLimitConfig(2000, 60, strategy=RateLimitStrategy.TOKEN_BUCKET),
+            },
         }
 
         # Client states
@@ -169,7 +180,7 @@ class AdvancedRateLimiter:
             "allowed_requests": 0,
             "blocked_requests": 0,
             "violations_by_tier": defaultdict(int),
-            "violations_by_endpoint": defaultdict(int)
+            "violations_by_endpoint": defaultdict(int),
         }
 
     def get_user_tier(self, user_id: str) -> UserTier:
@@ -226,13 +237,11 @@ class AdvancedRateLimiter:
                     "reason": "client_blocked",
                     "retry_after": self._get_block_duration(client_key),
                     "tier": tier.value,
-                    "endpoint_type": endpoint_type
+                    "endpoint_type": endpoint_type,
                 }
 
             # Apply rate limiting based on strategy
-            allowed, details = self._apply_rate_limit(
-                client_key, config, endpoint_type
-            )
+            allowed, details = self._apply_rate_limit(client_key, config, endpoint_type)
 
             if allowed:
                 self.stats["allowed_requests"] += 1
@@ -241,7 +250,7 @@ class AdvancedRateLimiter:
                     "tier": tier.value,
                     "endpoint_type": endpoint_type,
                     "remaining": details.get("remaining", 0),
-                    "reset_time": details.get("reset_time", 0)
+                    "reset_time": details.get("reset_time", 0),
                 }
             else:
                 self.stats["blocked_requests"] += 1
@@ -254,32 +263,31 @@ class AdvancedRateLimiter:
                     "tier": tier.value,
                     "endpoint_type": endpoint_type,
                     "limit": config.requests_per_window,
-                    "window": config.window_seconds
+                    "window": config.window_seconds,
                 }
 
-    def _apply_rate_limit(self, client_key: str, config: RateLimitConfig,
-                         endpoint_type: str) -> tuple[bool, dict[str, Any]]:
+    def _apply_rate_limit(
+        self, client_key: str, config: RateLimitConfig, endpoint_type: str
+    ) -> tuple[bool, dict[str, Any]]:
         """Apply rate limiting based on strategy."""
         current_time = time.time()
 
         # Apply adaptive throttling
-        effective_limit = int(config.requests_per_window *
-                              self.global_load_factor *
-                              self.endpoint_load_factors[endpoint_type])
+        effective_limit = int(
+            config.requests_per_window * self.global_load_factor * self.endpoint_load_factors[endpoint_type]
+        )
 
         if config.strategy == RateLimitStrategy.SLIDING_WINDOW:
-            return self._sliding_window_check(client_key, effective_limit,
-                                             config.window_seconds, current_time)
+            return self._sliding_window_check(client_key, effective_limit, config.window_seconds, current_time)
         elif config.strategy == RateLimitStrategy.TOKEN_BUCKET:
-            return self._token_bucket_check(client_key, effective_limit,
-                                           config.window_seconds, current_time)
+            return self._token_bucket_check(client_key, effective_limit, config.window_seconds, current_time)
         else:
             # Default to sliding window
-            return self._sliding_window_check(client_key, effective_limit,
-                                             config.window_seconds, current_time)
+            return self._sliding_window_check(client_key, effective_limit, config.window_seconds, current_time)
 
-    def _sliding_window_check(self, client_key: str, max_requests: int,
-                              window_seconds: int, current_time: float) -> tuple[bool, dict[str, Any]]:
+    def _sliding_window_check(
+        self, client_key: str, max_requests: int, window_seconds: int, current_time: float
+    ) -> tuple[bool, dict[str, Any]]:
         """Sliding window rate limit check."""
         if client_key not in self.sliding_windows:
             self.sliding_windows[client_key] = defaultdict(deque)
@@ -294,10 +302,7 @@ class AdvancedRateLimiter:
         # Check if under limit
         if len(window) < max_requests:
             window.append(current_time)
-            return True, {
-                "remaining": max_requests - len(window),
-                "reset_time": current_time + window_seconds
-            }
+            return True, {"remaining": max_requests - len(window), "reset_time": current_time + window_seconds}
         else:
             # Calculate retry after
             oldest_request = window[0]
@@ -306,11 +311,12 @@ class AdvancedRateLimiter:
             return False, {
                 "retry_after": max(retry_after, 1),
                 "window_start": oldest_request,
-                "current_count": len(window)
+                "current_count": len(window),
             }
 
-    def _token_bucket_check(self, client_key: str, capacity: int,
-                           refill_time: int, current_time: float) -> tuple[bool, dict[str, Any]]:
+    def _token_bucket_check(
+        self, client_key: str, capacity: int, refill_time: int, current_time: float
+    ) -> tuple[bool, dict[str, Any]]:
         """Token bucket rate limit check."""
         # Get or create token bucket
         bucket_key = f"bucket:{client_key}"
@@ -325,7 +331,7 @@ class AdvancedRateLimiter:
                 window_start=current_time,
                 last_request_time=current_time,
                 tokens=capacity,
-                last_refill_time=current_time
+                last_refill_time=current_time,
             )
 
         state = self.client_states[client_key]["token_bucket"]
@@ -336,14 +342,11 @@ class AdvancedRateLimiter:
         if allowed:
             return True, {
                 "remaining": int(remaining_tokens),
-                "reset_time": current_time + (capacity - remaining_tokens) / bucket.refill_rate
+                "reset_time": current_time + (capacity - remaining_tokens) / bucket.refill_rate,
             }
         else:
             retry_after = int((1 - remaining_tokens) / bucket.refill_rate)
-            return False, {
-                "retry_after": max(retry_after, 1),
-                "tokens_available": remaining_tokens
-            }
+            return False, {"retry_after": max(retry_after, 1), "tokens_available": remaining_tokens}
 
     def _is_client_blocked(self, client_key: str) -> bool:
         """Check if client is temporarily blocked."""
@@ -381,9 +384,7 @@ class AdvancedRateLimiter:
 
         # Keep only recent violations (last hour)
         cutoff_time = current_time - 3600
-        self.violations[client_key] = [
-            v for v in self.violations[client_key] if v > cutoff_time
-        ]
+        self.violations[client_key] = [v for v in self.violations[client_key] if v > cutoff_time]
 
         # Update statistics
         self.stats["violations_by_tier"][tier.value] += 1
@@ -403,11 +404,10 @@ class AdvancedRateLimiter:
                 tokens=0,
                 last_refill_time=current_time,
                 violations=len(self.violations[client_key]),
-                blocked_until=current_time + block_duration
+                blocked_until=current_time + block_duration,
             )
 
-    def update_load_factors(self, global_load: float = None,
-                          endpoint_loads: dict[str, float] = None):
+    def update_load_factors(self, global_load: float = None, endpoint_loads: dict[str, float] = None):
         """Update adaptive load factors."""
         with self.lock:
             if global_load is not None:
@@ -433,12 +433,15 @@ class AdvancedRateLimiter:
                 "violations_by_tier": dict(self.stats["violations_by_tier"]),
                 "violations_by_endpoint": dict(self.stats["violations_by_endpoint"]),
                 "active_clients": len(self.client_states),
-                "blocked_clients": len([
-                    key for key, states in self.client_states.items()
-                    if "block_state" in states and states["block_state"].blocked_until
-                ]),
+                "blocked_clients": len(
+                    [
+                        key
+                        for key, states in self.client_states.items()
+                        if "block_state" in states and states["block_state"].blocked_until
+                    ]
+                ),
                 "global_load_factor": self.global_load_factor,
-                "endpoint_load_factors": dict(self.endpoint_load_factors)
+                "endpoint_load_factors": dict(self.endpoint_load_factors),
             }
 
     def get_client_status(self, user_id: str, ip_address: str) -> dict[str, Any]:
@@ -457,7 +460,7 @@ class AdvancedRateLimiter:
                     "limit": config.requests_per_window,
                     "window": config.window_seconds,
                     "violations": len(self.violations.get(client_key, [])),
-                    "blocked": self._is_client_blocked(client_key)
+                    "blocked": self._is_client_blocked(client_key),
                 }
 
         return client_info
@@ -481,8 +484,10 @@ class AdvancedRateLimiter:
                 if bucket_key in self.token_buckets:
                     del self.token_buckets[bucket_key]
 
+
 # Global rate limiter instance
 _rate_limiter: AdvancedRateLimiter | None = None
+
 
 def get_advanced_rate_limiter() -> AdvancedRateLimiter:
     """Get the global advanced rate limiter instance."""
@@ -493,40 +498,45 @@ def get_advanced_rate_limiter() -> AdvancedRateLimiter:
 
     return _rate_limiter
 
+
 # Helper functions
 def check_rate_limit(user_id: str, ip_address: str, method: str, path: str) -> tuple[bool, dict[str, Any]]:
     """Check if request is allowed."""
     limiter = get_advanced_rate_limiter()
     return limiter.is_allowed(user_id, ip_address, method, path)
 
+
 def get_rate_limit_stats() -> dict[str, Any]:
     """Get rate limiting statistics."""
     limiter = get_advanced_rate_limiter()
     return limiter.get_stats()
 
-def update_rate_limit_load_factors(global_load: float = None,
-                                 endpoint_loads: dict[str, float] = None):
+
+def update_rate_limit_load_factors(global_load: float = None, endpoint_loads: dict[str, float] = None):
     """Update adaptive load factors."""
     limiter = get_advanced_rate_limiter()
     limiter.update_load_factors(global_load, endpoint_loads)
+
 
 def reset_client_rate_limits(user_id: str, ip_address: str):
     """Reset rate limit state for a client."""
     limiter = get_advanced_rate_limiter()
     limiter.reset_client(user_id, ip_address)
 
+
 # FastAPI dependency
 async def rate_limit_dependency(request):
     """FastAPI dependency for rate limiting."""
     # Extract user info (this would come from authentication)
-    user_id = getattr(request.state, 'user_id', 'anonymous')
-    ip_address = request.client.host if request.client else 'unknown'
+    user_id = getattr(request.state, "user_id", "anonymous")
+    ip_address = request.client.host if request.client else "unknown"
 
     # Check rate limit
     allowed, details = check_rate_limit(user_id, ip_address, request.method, request.url.path)
 
     if not allowed:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=429,
             detail="Rate limit exceeded",
@@ -534,8 +544,8 @@ async def rate_limit_dependency(request):
                 "Retry-After": str(details.get("retry_after", 60)),
                 "X-RateLimit-Limit": str(details.get("limit", 0)),
                 "X-RateLimit-Remaining": str(details.get("remaining", 0)),
-                "X-RateLimit-Reset": str(details.get("reset_time", 0))
-            }
+                "X-RateLimit-Reset": str(details.get("reset_time", 0)),
+            },
         )
 
     # Add rate limit headers to response

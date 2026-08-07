@@ -12,6 +12,7 @@ Endpoints:
 
 Ideas are stored in the `dev_ideas` PostgreSQL table.
 """
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -31,8 +32,10 @@ router = APIRouter(tags=["Dev Ideas"])
 # Auth — reuse stealth admin
 # =============================================================================
 
+
 async def _stealth_admin(request: Request):
     from app.modules.admin_console.router import _stealth_admin as _admin
+
     return await _admin(request)
 
 
@@ -40,11 +43,15 @@ async def _stealth_admin(request: Request):
 # Models
 # =============================================================================
 
+
 class IdeaCreate(BaseModel):
     """Submit a new idea."""
+
     name: str = Field(..., min_length=1, max_length=200, description="Idea name")
     description: str = Field(..., min_length=1, max_length=5000, description="What does it do?")
-    target_role: str = Field("tenant", description="Who is this for? tenant|advocate|admin|manager|legal|judge|research|dev")
+    target_role: str = Field(
+        "tenant", description="Who is this for? tenant|advocate|admin|manager|legal|judge|research|dev"
+    )
     target_tier: str = Field("core", description="Which tier? core|extended|advocate|admin|research|dev")
     origin: str = Field("internal", description="internal (first-party) or external (third-party)")
     dependencies: str = Field(default="", description="Comma-separated SDK clients or modules needed")
@@ -54,6 +61,7 @@ class IdeaCreate(BaseModel):
 
 class IdeaPromote(BaseModel):
     """Promote an idea to a dev module."""
+
     module_name: str = Field(..., description="Module name (e.g. 'court_forms_ny')")
     action: str = Field("scaffold", description="scaffold (internal) or sdk_template (external)")
 
@@ -61,6 +69,7 @@ class IdeaPromote(BaseModel):
 # =============================================================================
 # Schema
 # =============================================================================
+
 
 async def ensure_ideas_schema(db: AsyncSession) -> None:
     """Create dev_ideas table if it doesn't exist."""
@@ -96,6 +105,7 @@ async def ensure_ideas_schema(db: AsyncSession) -> None:
 # Endpoints
 # =============================================================================
 
+
 @router.get("")
 async def list_ideas(
     request: Request,
@@ -125,21 +135,23 @@ async def list_ideas(
 
     ideas = []
     for row in rows:
-        ideas.append({
-            "id": row.id,
-            "name": row.name,
-            "description": row.description,
-            "target_role": row.target_role,
-            "target_tier": row.target_tier,
-            "origin": row.origin,
-            "dependencies": row.dependencies,
-            "success_criteria": row.success_criteria,
-            "submitted_by": row.submitted_by,
-            "status": row.status,
-            "promoted_module_name": row.promoted_module_name,
-            "created_at": row.created_at.isoformat() if row.created_at else None,
-            "updated_at": row.updated_at.isoformat() if row.updated_at else None,
-        })
+        ideas.append(
+            {
+                "id": row.id,
+                "name": row.name,
+                "description": row.description,
+                "target_role": row.target_role,
+                "target_tier": row.target_tier,
+                "origin": row.origin,
+                "dependencies": row.dependencies,
+                "success_criteria": row.success_criteria,
+                "submitted_by": row.submitted_by,
+                "status": row.status,
+                "promoted_module_name": row.promoted_module_name,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+            }
+        )
 
     return {
         "ideas": ideas,
@@ -294,7 +306,9 @@ async def promote_idea(
         "sdk_template": "Generate external SDK template package for developer (app/sdk/external/_template/)",
     }
 
-    logger.info("DevIdeas: idea %d '%s' promoted to module '%s' (action=%s)", idea_id, row.name, body.module_name, body.action)
+    logger.info(
+        "DevIdeas: idea %d '%s' promoted to module '%s' (action=%s)", idea_id, row.name, body.module_name, body.action
+    )
 
     return {
         "status": "ok",
@@ -344,38 +358,44 @@ async def delete_idea(
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="ideas_list",
-        title="Dev Ideas List (SSOT)",
-        description="CANONICAL list of submitted dev ideas. GET /dev/lab/ideas.",
-        inputs=("status_filter", "origin_filter", "admin_user_id"),
-        outputs=("ideas", "total"),
-        dependencies=("app.modules.dev_lab.ideas",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="ideas_list",
+            title="Dev Ideas List (SSOT)",
+            description="CANONICAL list of submitted dev ideas. GET /dev/lab/ideas.",
+            inputs=("status_filter", "origin_filter", "admin_user_id"),
+            outputs=("ideas", "total"),
+            dependencies=("app.modules.dev_lab.ideas",),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="ideas_submit",
-        title="Dev Idea Submit (SSOT)",
-        description="CANONICAL submit a new dev idea. POST /dev/lab/ideas.",
-        inputs=("name", "description", "target_role", "target_tier", "origin", "admin_user_id"),
-        outputs=("status", "idea_id"),
-        dependencies=("app.modules.dev_lab.ideas",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="ideas_submit",
+            title="Dev Idea Submit (SSOT)",
+            description="CANONICAL submit a new dev idea. POST /dev/lab/ideas.",
+            inputs=("name", "description", "target_role", "target_tier", "origin", "admin_user_id"),
+            outputs=("status", "idea_id"),
+            dependencies=("app.modules.dev_lab.ideas",),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="ideas_promote",
-        title="Dev Idea Promote (SSOT)",
-        description="CANONICAL promote an idea to a dev module. POST /dev/lab/ideas/{id}/promote.",
-        inputs=("idea_id", "module_name", "action", "admin_user_id"),
-        outputs=("status", "module_name", "action", "next_steps"),
-        dependencies=("app.modules.dev_lab.ideas",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="ideas_promote",
+            title="Dev Idea Promote (SSOT)",
+            description="CANONICAL promote an idea to a dev module. POST /dev/lab/ideas/{id}/promote.",
+            inputs=("idea_id", "module_name", "action", "admin_user_id"),
+            outputs=("status", "module_name", "action", "next_steps"),
+            dependencies=("app.modules.dev_lab.ideas",),
+            deterministic=True,
+        )
+    )
 
 except Exception:
     pass

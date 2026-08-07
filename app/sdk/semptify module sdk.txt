@@ -127,22 +127,22 @@ class ModuleDefinition:
     description: str               # What this module does
     version: str = "1.0.0"
     category: ModuleCategory = ModuleCategory.UTILITY
-    
+
     # Document handling capabilities
     handles_documents: List[DocumentType] = field(default_factory=list)
-    
+
     # Info pack capabilities
     accepts_packs: List[PackType] = field(default_factory=list)
     produces_packs: List[PackType] = field(default_factory=list)
-    
+
     # Dependencies on other modules
     depends_on: List[str] = field(default_factory=list)
-    
+
     # Optional capabilities
     has_ui: bool = False
     has_background_tasks: bool = False
     requires_auth: bool = True
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
@@ -172,7 +172,7 @@ class InfoPack:
     created_at: datetime = field(default_factory=datetime.utcnow)
     expires_at: Optional[datetime] = None
     priority: int = 5  # 1-10, higher = more urgent
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -207,11 +207,11 @@ class ModuleRequest:
 class ModuleSDK:
     """
     SDK for integrating a module with the Semptify Positronic Mesh.
-    
+
     This is the ONLY thing new modules need to import to integrate
     with the entire Semptify ecosystem.
     """
-    
+
     def __init__(self, definition: ModuleDefinition):
         self.definition = definition
         self.actions: Dict[str, ActionDefinition] = {}
@@ -219,13 +219,13 @@ class ModuleSDK:
         self._initialized = False
         self._mesh = None
         self._hub = None
-        
+
         logger.info(f"📦 ModuleSDK created for: {definition.name}")
-    
+
     # =========================================================================
     # ACTION REGISTRATION (Decorator-based)
     # =========================================================================
-    
+
     def action(
         self,
         name: str,
@@ -238,7 +238,7 @@ class ModuleSDK:
     ):
         """
         Decorator to register an action handler.
-        
+
         Usage:
             @sdk.action("my_action", produces=["output_key"])
             async def my_action(user_id, params, context):
@@ -253,7 +253,7 @@ class ModuleSDK:
                 handler = async_wrapper
             else:
                 handler = func
-            
+
             action_def = ActionDefinition(
                 name=name,
                 handler=handler,
@@ -265,14 +265,14 @@ class ModuleSDK:
                 is_async=True,
                 timeout_seconds=timeout_seconds,
             )
-            
+
             self.actions[name] = action_def
             logger.debug(f"   ⚡ Registered action: {self.definition.name}.{name}")
-            
+
             return handler
-        
+
         return decorator
-    
+
     def register_action(
         self,
         name: str,
@@ -284,15 +284,15 @@ class ModuleSDK:
         Programmatically register an action (alternative to decorator).
         """
         self.action(name, description, produces=produces)(handler)
-    
+
     # =========================================================================
     # EVENT HANDLING
     # =========================================================================
-    
+
     def on_event(self, event_type: str):
         """
         Decorator to handle mesh events.
-        
+
         Usage:
             @sdk.on_event("workflow_started")
             async def handle_workflow(event_type, data):
@@ -304,11 +304,11 @@ class ModuleSDK:
             self.event_handlers[event_type].append(func)
             return func
         return decorator
-    
+
     # =========================================================================
     # INFO PACK OPERATIONS
     # =========================================================================
-    
+
     def create_pack(
         self,
         pack_type: PackType,
@@ -327,7 +327,7 @@ class ModuleSDK:
             data=data,
             priority=priority,
         )
-        
+
         # Send to hub if initialized
         if self._hub:
             self._hub.create_info_pack(
@@ -337,10 +337,10 @@ class ModuleSDK:
                 user_id=user_id,
                 target_module=target_module,
             )
-        
+
         logger.info(f"📤 {self.definition.name} created pack: {pack_type.value}")
         return pack
-    
+
     async def request_data(
         self,
         from_module: str,
@@ -356,11 +356,11 @@ class ModuleSDK:
                 user_id=user_id,
             )
         return {}
-    
+
     # =========================================================================
     # WORKFLOW TRIGGERS
     # =========================================================================
-    
+
     async def trigger_workflow(
         self,
         workflow_type: str,
@@ -381,7 +381,7 @@ class ModuleSDK:
             except ValueError:
                 logger.error(f"Unknown workflow type: {workflow_type}")
         return None
-    
+
     async def invoke_action(
         self,
         module: str,
@@ -398,11 +398,11 @@ class ModuleSDK:
                 params=params or {},
             )
         return {}
-    
+
     # =========================================================================
     # INITIALIZATION
     # =========================================================================
-    
+
     def initialize(self):
         """
         Initialize the module and register with the Positronic Mesh.
@@ -411,17 +411,17 @@ class ModuleSDK:
         if self._initialized:
             logger.warning(f"Module {self.definition.name} already initialized")
             return
-        
+
         # Import the core systems
         try:
             from app.core.positronic_mesh import positronic_mesh
             from app.core.module_hub import module_hub
-            
+
             self._mesh = positronic_mesh
             self._hub = module_hub
         except ImportError as e:
             logger.warning(f"Could not import core systems: {e}")
-        
+
         # Register module with hub
         if self._hub:
             self._hub.register_module(
@@ -431,7 +431,7 @@ class ModuleSDK:
                 handles_documents=[d.value for d in self.definition.handles_documents],
                 accepts_packs=[p.value for p in self.definition.accepts_packs],
             )
-        
+
         # Register actions with mesh
         if self._mesh:
             for action_name, action_def in self.actions.items():
@@ -444,16 +444,16 @@ class ModuleSDK:
                     optional_params=action_def.optional_params,
                     produces=action_def.produces,
                 )
-        
+
         # Register event handlers
         if self._mesh:
             for event_type, handlers in self.event_handlers.items():
                 for handler in handlers:
                     self._mesh.subscribe(event_type, handler)
-        
+
         self._initialized = True
         logger.info(f"✅ Module initialized: {self.definition.name} ({len(self.actions)} actions)")
-    
+
     def get_status(self) -> Dict[str, Any]:
         """Get current module status"""
         return {
@@ -475,7 +475,7 @@ class ModuleSDK:
 class BaseModule(ABC):
     """
     Abstract base class for modules preferring inheritance over SDK.
-    
+
     Usage:
         class MyModule(BaseModule):
             def __init__(self):
@@ -484,14 +484,14 @@ class BaseModule(ABC):
                     display_name="My Module",
                     description="Does things",
                 )
-            
+
             def register_actions(self):
                 self.sdk.register_action("do_thing", self.do_thing)
-            
+
             async def do_thing(self, user_id, params, context):
                 return {"result": "done"}
     """
-    
+
     def __init__(
         self,
         name: str,
@@ -510,17 +510,17 @@ class BaseModule(ABC):
             **kwargs,
         )
         self.sdk = ModuleSDK(self.definition)
-    
+
     @abstractmethod
     def register_actions(self):
         """Override to register module actions"""
         pass
-    
+
     def initialize(self):
         """Initialize the module"""
         self.register_actions()
         self.sdk.initialize()
-    
+
     def get_sdk(self) -> ModuleSDK:
         """Get the underlying SDK instance"""
         return self.sdk
@@ -541,7 +541,7 @@ def create_module(
 ) -> ModuleSDK:
     """
     Quick helper to create a module SDK instance.
-    
+
     Usage:
         sdk = create_module(
             "my_module",
@@ -610,30 +610,30 @@ module_definition = ModuleDefinition(
     description="{description}",
     version="1.0.0",
     category=ModuleCategory.UTILITY,  # Change as needed
-    
+
     # Document types this module can process
     handles_documents=[
         # DocumentType.LEASE,
         # DocumentType.EVICTION_NOTICE,
     ],
-    
+
     # Info pack types this module accepts
     accepts_packs=[
         # PackType.EVICTION_DATA,
         # PackType.USER_DATA,
     ],
-    
+
     # Info pack types this module produces
     produces_packs=[
         # PackType.ANALYSIS_RESULT,
     ],
-    
+
     # Other modules this depends on
     depends_on=[
         # "documents",
         # "calendar",
     ],
-    
+
     has_ui=False,
     has_background_tasks=False,
     requires_auth=True,
@@ -664,22 +664,22 @@ async def example_action(
 ) -> Dict[str, Any]:
     """
     Example action handler.
-    
+
     Args:
         user_id: The user making the request
         params: Parameters passed to this action
         context: Shared workflow context
-    
+
     Returns:
         Dictionary with output data (keys should match 'produces')
     """
     logger.info(f"{{module_definition.name}}: Processing for user {{user_id[:8]}}...")
-    
+
     input_data = params.get("input_data", "")
-    
+
     # Your logic here
     result = f"Processed: {{input_data}}"
-    
+
     return {{
         "output_data": result,
         "processed_at": "now",
@@ -734,7 +734,7 @@ def initialize():
 # Export for easy importing
 __all__ = ["sdk", "module_definition", "initialize"]
 '''
-    
+
     if output_dir:
         import os
         os.makedirs(output_dir, exist_ok=True)
@@ -742,5 +742,5 @@ __all__ = ["sdk", "module_definition", "initialize"]
         with open(filepath, "w") as f:
             f.write(template)
         logger.info(f"📄 Generated module template: {filepath}")
-    
+
     return template

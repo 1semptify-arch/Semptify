@@ -31,6 +31,7 @@ router = APIRouter(prefix="/api", tags=["Public Forms"])
 # Request Models
 # =============================================================================
 
+
 class FeedbackRequest(BaseModel):
     type: str
     message: str
@@ -70,6 +71,7 @@ class ContactRequest(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/feedback")
 async def submit_feedback(body: FeedbackRequest):
@@ -153,12 +155,15 @@ async def load_tenant_autofill(user_id: str) -> dict:
 
             if provider == "google_drive":
                 from app.services.storage.google_drive import GoogleDriveProvider
+
                 storage = GoogleDriveProvider(access_token)
             elif provider == "dropbox":
                 from app.services.storage.dropbox import DropboxProvider
+
                 storage = DropboxProvider(access_token)
             elif provider == "onedrive":
                 from app.services.storage.onedrive import OneDriveProvider
+
                 storage = OneDriveProvider(access_token)
 
             if storage:
@@ -200,10 +205,9 @@ async def load_tenant_autofill(user_id: str) -> dict:
 
             async with get_db_session() as db:
                 contact_result = await db.execute(
-                    select(Contact).where(
-                        Contact.user_id == user_id,
-                        Contact.contact_type == "landlord"
-                    ).order_by(Contact.created_at.desc())
+                    select(Contact)
+                    .where(Contact.user_id == user_id, Contact.contact_type == "landlord")
+                    .order_by(Contact.created_at.desc())
                 )
                 landlord = contact_result.scalars().first()
                 if landlord:
@@ -228,6 +232,7 @@ async def load_tenant_autofill(user_id: str) -> dict:
     if not result["tenant_name"]:
         try:
             from app.core.tenant_briefcase import get_tenant_briefcase
+
             briefcase = await get_tenant_briefcase(user_id)
             if briefcase and briefcase.user_name:
                 result["tenant_name"] = briefcase.user_name
@@ -252,6 +257,7 @@ async def tenant_autofill(request: Request):
     POST to prevent CSRF.
     """
     from app.core.cookie_auth import extract_user_id
+
     user_id = extract_user_id(request) or ""
     result = await load_tenant_autofill(user_id)
     return JSONResponse(result)
@@ -264,8 +270,6 @@ async def submit_contact(body: ContactRequest):
     Forwards to support inbox via Resend.
     """
     from app.services.email_service import send_contact_email
-
-    subject = body.subject or f"Contact: {body.name}"
 
     sent = await send_contact_email(
         sender_name=body.name,

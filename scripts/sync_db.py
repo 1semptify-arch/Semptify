@@ -2,6 +2,7 @@
 Database Sync: Local SQLite ↔ Neon PostgreSQL
 Usage: python scripts/sync_db.py [export|import]
 """
+
 import argparse
 import asyncio
 import json
@@ -18,7 +19,7 @@ async def export_local():
             "users": [],
             "sessions": [],
             "documents": [],
-            "events": []
+            "events": [],
         }
 
         # Export users
@@ -37,10 +38,12 @@ async def export_local():
         print(f"Exported {len(data['users'])} users, {len(data['sessions'])} sessions")
         return
 
+
 async def import_to_neon():
     """Import JSON to Neon PostgreSQL."""
     # Set NEON_DATABASE_URL env var first
     import os
+
     os.environ["DATABASE_URL"] = os.getenv("NEON_DATABASE_URL")
 
     from app.core.database import get_db
@@ -51,15 +54,19 @@ async def import_to_neon():
     async for db in get_db():
         # Insert users
         for user in data["users"]:
-            await db.execute("""
+            await db.execute(
+                """
                 INSERT INTO users (id, created_at, role)
                 VALUES (:id, :created_at, :role)
                 ON CONFLICT (id) DO NOTHING
-            """, user)
+            """,
+                user,
+            )
 
         await db.commit()
         print(f"Imported {len(data['users'])} users to Neon")
         return
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

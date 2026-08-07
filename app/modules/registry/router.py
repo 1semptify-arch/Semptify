@@ -34,8 +34,10 @@ router = APIRouter(prefix="/api/registry", tags=["Document Registry"])
 # PYDANTIC MODELS
 # =============================================================================
 
+
 class CustodyRecordResponse(BaseModel):
     """Custody chain record response."""
+
     timestamp: str
     action: str
     actor: str
@@ -46,6 +48,7 @@ class CustodyRecordResponse(BaseModel):
 
 class ForgeryAlertResponse(BaseModel):
     """Forgery alert response."""
+
     indicator: str
     severity: str
     description: str
@@ -56,6 +59,7 @@ class ForgeryAlertResponse(BaseModel):
 
 class DocumentRegistrationResponse(BaseModel):
     """Response after document registration."""
+
     document_id: str
     status: str
     is_duplicate: bool
@@ -71,6 +75,7 @@ class DocumentRegistrationResponse(BaseModel):
 
 class RegisteredDocumentResponse(BaseModel):
     """Full registered document response."""
+
     document_id: str
     user_id: str
     case_number: str | None = None
@@ -97,6 +102,7 @@ class RegisteredDocumentResponse(BaseModel):
 
 class VerificationResponse(BaseModel):
     """Integrity verification response."""
+
     document_id: str
     status: str
     verified: bool
@@ -106,17 +112,20 @@ class VerificationResponse(BaseModel):
 
 class FlagDocumentRequest(BaseModel):
     """Request to flag a document."""
+
     reason: str
     indicator: str | None = None
 
 
 class AssociateCaseRequest(BaseModel):
     """Request to associate document with case."""
+
     case_number: str
 
 
 class RegistryStatsResponse(BaseModel):
     """Registry statistics response."""
+
     total_documents: int
     total_cases: int
     total_users: int
@@ -129,6 +138,7 @@ class RegistryStatsResponse(BaseModel):
 # REGISTRATION ENDPOINTS
 # =============================================================================
 
+
 @router.post("/register", response_model=DocumentRegistrationResponse)
 async def register_document(
     request: Request,
@@ -139,7 +149,7 @@ async def register_document(
 ):
     """
     Register a new document in the system.
-    
+
     Returns:
     - Unique SEMPTIFY document ID (SEM-YYYY-NNNNNN-XXXX)
     - Content hash for tamper detection
@@ -216,6 +226,7 @@ async def register_document(
 # =============================================================================
 # RETRIEVAL ENDPOINTS
 # =============================================================================
+
 
 @router.get("/documents/{doc_id}", response_model=RegisteredDocumentResponse)
 async def get_document(doc_id: str, request: Request, user: UserContext = Depends(green_access)):
@@ -300,13 +311,12 @@ async def delete_document(doc_id: str, user: UserContext = Depends(green_access)
 @router.delete("/documents")
 async def clear_all_documents(
     user: UserContext = Depends(green_access),
-    confirm: bool = Query(False, description="Set to true to confirm deletion")
+    confirm: bool = Query(False, description="Set to true to confirm deletion"),
 ):
     """Clear all registered documents FOR THE CURRENT USER. Requires confirm=true."""
     if not confirm:
         raise HTTPException(
-            status_code=400,
-            detail="Set confirm=true to delete all your documents. This action cannot be undone."
+            status_code=400, detail="Set confirm=true to delete all your documents. This action cannot be undone."
         )
 
     registry = get_document_registry()
@@ -324,11 +334,7 @@ async def clear_all_documents(
             if not registry._hash_index[doc.content_hash]:
                 del registry._hash_index[doc.content_hash]
 
-    return {
-        "status": "cleared",
-        "deleted_count": count,
-        "message": f"Successfully deleted {count} of your documents"
-    }
+    return {"status": "cleared", "deleted_count": count, "message": f"Successfully deleted {count} of your documents"}
 
 
 @router.get("/documents/{doc_id}/duplicates", response_model=list[RegisteredDocumentResponse])
@@ -385,6 +391,7 @@ async def get_custody_chain(doc_id: str, user: UserContext = Depends(green_acces
 # VERIFICATION ENDPOINTS
 # =============================================================================
 
+
 @router.post("/documents/{doc_id}/verify", response_model=VerificationResponse)
 async def verify_document(
     doc_id: str,
@@ -392,7 +399,7 @@ async def verify_document(
 ):
     """
     Verify a document hasn't been tampered with.
-    
+
     Compares the uploaded file's hash against the stored hash
     to detect any modifications.
     """
@@ -428,7 +435,7 @@ async def verify_document(
 async def get_integrity_status(doc_id: str):
     """
     Get the current integrity status of a document.
-    
+
     This returns the stored integrity status without re-verification.
     Use POST /verify with a file upload for full re-verification.
     """
@@ -473,9 +480,12 @@ async def get_document_hash(doc_id: str):
         "algorithm": "SHA-256",
         "registered_at": doc.registered_at.isoformat(),
     }
+
+
 # =============================================================================
 # FLAGGING & CASE ASSOCIATION
 # =============================================================================
+
 
 @router.post("/documents/{doc_id}/flag")
 async def flag_document(
@@ -554,6 +564,7 @@ async def associate_case(
 # FLAGGED DOCUMENTS & REVIEW
 # =============================================================================
 
+
 @router.get("/flagged", response_model=list[RegisteredDocumentResponse])
 async def get_flagged_documents():
     """Get all documents flagged for review."""
@@ -566,10 +577,7 @@ async def get_flagged_documents():
 async def get_quarantined_documents():
     """Get all quarantined documents (high forgery risk)."""
     registry = get_document_registry()
-    docs = [
-        d for d in registry._documents.values()
-        if d.status == DocumentStatus.QUARANTINED
-    ]
+    docs = [d for d in registry._documents.values() if d.status == DocumentStatus.QUARANTINED]
     return {
         "count": len(docs),
         "documents": [_doc_to_response(d) for d in docs],
@@ -579,6 +587,7 @@ async def get_quarantined_documents():
 # =============================================================================
 # STATISTICS & ENUMS
 # =============================================================================
+
 
 @router.get("/stats", response_model=RegistryStatsResponse)
 async def get_registry_stats():
@@ -616,6 +625,7 @@ async def get_custody_actions():
 # CASE ENDPOINTS
 # =============================================================================
 
+
 @router.get("/cases/{case_number}/documents", response_model=list[RegisteredDocumentResponse])
 async def get_case_documents(case_number: str):
     """Get all documents for a specific case."""
@@ -637,11 +647,13 @@ async def list_cases():
     for case_number, doc_ids in registry._case_index.items():
         docs = [registry._documents.get(did) for did in doc_ids if did in registry._documents]
         flagged = sum(1 for d in docs if d and d.requires_review)
-        cases.append({
-            "case_number": case_number,
-            "document_count": len(doc_ids),
-            "flagged_count": flagged,
-        })
+        cases.append(
+            {
+                "case_number": case_number,
+                "document_count": len(doc_ids),
+                "flagged_count": flagged,
+            }
+        )
 
     return {
         "total_cases": len(cases),
@@ -652,6 +664,7 @@ async def list_cases():
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def _doc_to_response(doc: RegisteredDocument) -> RegisteredDocumentResponse:
     """Convert RegisteredDocument to response model."""

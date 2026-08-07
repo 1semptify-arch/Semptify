@@ -164,14 +164,14 @@ Add new tests by editing `tools/gui_test_bot.py`:
 ```python
 async def test_my_new_feature(self, page: Page, role: str):
     await page.goto(f"{BASE_URL}/my-feature")
-    
+
     # Wait for specific element
     await page.wait_for_selector("[data-my-feature]", state="visible")
-    
+
     # Interact with form
     await page.fill("input[name='test']", "test value")
     await page.click("button[type='submit']")
-    
+
     # Verify result
     success = await page.locator(".success-message").is_visible()
     if not success:

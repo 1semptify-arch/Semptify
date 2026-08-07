@@ -39,7 +39,7 @@ def check_python_version():
     return print_status(
         "Python version",
         passed,
-        f"{version.major}.{version.minor}.{version.micro}" + (" (need >= 3.11)" if not passed else "")
+        f"{version.major}.{version.minor}.{version.micro}" + (" (need >= 3.11)" if not passed else ""),
     )
 
 
@@ -65,7 +65,7 @@ def check_required_packages():
     return print_status(
         "Required packages",
         passed,
-        f"Missing: {', '.join(missing)}" if missing else f"All {len(required)} packages found"
+        f"Missing: {', '.join(missing)}" if missing else f"All {len(required)} packages found",
     )
 
 
@@ -84,9 +84,7 @@ def check_directories():
 
     passed = len(issues) == 0
     return print_status(
-        "Required directories",
-        passed,
-        f"Issues: {', '.join(issues)}" if issues else f"All {len(dirs)} directories OK"
+        "Required directories", passed, f"Issues: {', '.join(issues)}" if issues else f"All {len(dirs)} directories OK"
     )
 
 
@@ -106,6 +104,7 @@ def check_env_file():
 def check_secret_key():
     """Check that SECRET_KEY is configured (not default)."""
     from dotenv import load_dotenv
+
     load_dotenv()
 
     secret_key = os.getenv("SECRET_KEY", "")
@@ -123,6 +122,7 @@ def check_secret_key():
 def check_database():
     """Check database connectivity."""
     from dotenv import load_dotenv
+
     load_dotenv()
 
     db_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./semptify.db")
@@ -154,6 +154,7 @@ def check_database():
 def check_ai_provider():
     """Check AI provider configuration."""
     from dotenv import load_dotenv
+
     load_dotenv()
 
     provider = os.getenv("AI_PROVIDER", "anthropic")

@@ -11,6 +11,7 @@ Each route:
 
 This is the single entry point for all converted pages.
 """
+
 import logging
 from pathlib import Path
 from typing import Any
@@ -35,12 +36,14 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 # Re-expose the same globals that main.py sets up so templates work identically
 try:
     from app.core.navigation import navigation
+
     templates.env.globals["navigation"] = navigation
 except ImportError:
     logger.warning("navigation module not available to page_router")
 
 try:
     from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale
+
     templates.env.globals["_"] = _jinja2_gettext
     templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
     templates.env.globals["get_locale"] = get_locale
@@ -49,6 +52,7 @@ except ImportError:
 
 try:
     from app.core.subject_starters import get_subject_starters as _get_subject_starters
+
     templates.env.globals["subject_starters"] = _get_subject_starters()
 except ImportError:
     pass
@@ -57,6 +61,7 @@ except ImportError:
 # =============================================================================
 # Guard logic — mirrors _guard_by_contract from main.py
 # =============================================================================
+
 
 async def _guard_page(request: Request, page_id: str) -> RedirectResponse | None:
     """Guard a page using its PageContract. Returns redirect if denied, None if OK."""
@@ -72,12 +77,14 @@ async def _guard_page(request: Request, page_id: str) -> RedirectResponse | None
     if not user_id:
         # No cookie — new user to welcome page
         from app.core.navigation import navigation
+
         root_stage = navigation.get_stage("root")
         root_path = root_stage.path if root_stage else "/"
         return ssot_redirect(root_path, context=f"page_router:{page_id} no user cookie")
     if not is_valid_storage_user(user_id):
         # Has cookie but invalid — returning user needs reconnect
         from app.core.navigation import navigation
+
         reconnect_stage = navigation.get_stage("storage_reconnect")
         reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
         return ssot_redirect(reconnect_path, context=f"page_router:{page_id} reconnect required")
@@ -93,6 +100,7 @@ async def _guard_page(request: Request, page_id: str) -> RedirectResponse | None
 # =============================================================================
 # Context builder
 # =============================================================================
+
 
 def _build_context(request: Request, entry: PageManifestEntry) -> dict[str, Any]:
     """Build standard context for a page render."""
@@ -164,11 +172,13 @@ def _render_placeholder(request: Request, entry: PageManifestEntry) -> HTMLRespo
 # Pages that already have dedicated route handlers elsewhere — don't register duplicates
 _SKIP_ROUTES = {
     "/",  # welcome — handled in main.py
-    "/tenant", "/tenant/",  # tenant root — handled in main.py
+    "/tenant",
+    "/tenant/",  # tenant root — handled in main.py
     "/home",  # home — handled in main.py
     "/advocate",  # advocate — handled in main.py
     "/admin",  # admin — handled in main.py
-    "/legal", "/legal/",  # legal — handled in main.py
+    "/legal",
+    "/legal/",  # legal — handled in main.py
     "/help",  # help — stays static
     "/office",  # office — handled in main.py
     "/library",  # library — handled in main.py

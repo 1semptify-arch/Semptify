@@ -7,7 +7,7 @@ All functionality in a single file for easy integration.
 
 Usage:
     from semptify_sdk import SemptifyClient
-    
+
     client = SemptifyClient("http://localhost:8000")
     client.auth.login("google_drive")
     doc = client.documents.upload("lease.pdf")
@@ -26,40 +26,59 @@ import httpx
 # EXCEPTIONS
 # =============================================================================
 
+
 class SemptifyError(Exception):
     """Base exception for all Semptify SDK errors."""
-    def __init__(self, message: str, status_code: int | None = None,
-                 response_data: dict | None = None, request_id: str | None = None):
+
+    def __init__(
+        self,
+        message: str,
+        status_code: int | None = None,
+        response_data: dict | None = None,
+        request_id: str | None = None,
+    ):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
         self.response_data = response_data
         self.request_id = request_id
 
+
 class AuthenticationError(SemptifyError):
     """Authentication failed."""
+
     pass
+
 
 class NotFoundError(SemptifyError):
     """Resource not found."""
+
     pass
+
 
 class ValidationError(SemptifyError):
     """Validation error."""
+
     pass
+
 
 class RateLimitError(SemptifyError):
     """Rate limit exceeded."""
+
     def __init__(self, message: str, retry_after: int, **kwargs):
         super().__init__(message, **kwargs)
         self.retry_after = retry_after
 
+
 class ServerError(SemptifyError):
     """Server error."""
+
     pass
+
 
 class StorageRequiredError(SemptifyError):
     """Storage connection required."""
+
     def __init__(self, message: str, redirect_url: str, **kwargs):
         super().__init__(message, **kwargs)
         self.redirect_url = redirect_url
@@ -69,9 +88,11 @@ class StorageRequiredError(SemptifyError):
 # DATA MODELS
 # =============================================================================
 
+
 @dataclass
 class UserInfo:
     """User information."""
+
     user_id: str
     provider: str
     email: str | None = None
@@ -79,17 +100,21 @@ class UserInfo:
     avatar_url: str | None = None
     role: str = "user"
 
+
 @dataclass
 class StorageProvider:
     """Storage provider information."""
+
     id: str
     name: str
     icon: str
     connected: bool = False
 
+
 @dataclass
 class Document:
     """Document information."""
+
     id: str
     filename: str
     document_type: str
@@ -101,9 +126,11 @@ class Document:
     storage_path: str
     metadata: dict[str, Any] | None = None
 
+
 @dataclass
 class TimelineEvent:
     """Timeline event."""
+
     id: str
     title: str
     description: str
@@ -113,9 +140,11 @@ class TimelineEvent:
     is_evidence: bool = False
     metadata: dict[str, Any] | None = None
 
+
 @dataclass
 class Complaint:
     """Complaint information."""
+
     id: str
     complaint_type: str
     title: str
@@ -125,9 +154,11 @@ class Complaint:
     target_agency: str | None = None
     violations: list[str] | None = None
 
+
 @dataclass
 class Briefcase:
     """Briefcase information."""
+
     id: str
     name: str
     description: str | None = None
@@ -137,9 +168,11 @@ class Briefcase:
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
+
 @dataclass
 class VaultItem:
     """Vault item information."""
+
     id: str
     name: str
     item_type: str
@@ -157,6 +190,7 @@ class VaultItem:
 # =============================================================================
 # BASE HTTP CLIENT
 # =============================================================================
+
 
 class BaseClient:
     """Base HTTP client with error handling and authentication."""
@@ -338,6 +372,7 @@ class BaseClient:
 # SERVICE CLIENTS
 # =============================================================================
 
+
 class AuthClient(BaseClient):
     """Authentication service client."""
 
@@ -361,10 +396,7 @@ class AuthClient(BaseClient):
 
     def complete_oauth(self, provider: str, code: str, state: str) -> UserInfo:
         """Complete OAuth flow with authorization code."""
-        response = self.get(
-            f"/storage/callback/{provider}",
-            params={"code": code, "state": state}
-        )
+        response = self.get(f"/storage/callback/{provider}", params={"code": code, "state": state})
         self.set_user_id(response.get("user_id", ""))
         return UserInfo(
             user_id=response.get("user_id", ""),
@@ -480,18 +512,20 @@ class DocumentClient(BaseClient):
         response = self.get("/api/documents", params={"limit": limit, "offset": offset})
         documents = []
         for doc_data in response.get("documents", []):
-            documents.append(Document(
-                id=doc_data.get("id", ""),
-                filename=doc_data.get("filename", ""),
-                document_type=doc_data.get("document_type", ""),
-                file_size=doc_data.get("file_size", 0),
-                content_type=doc_data.get("content_type", ""),
-                created_at=datetime.fromisoformat(doc_data.get("created_at", "")),
-                updated_at=datetime.fromisoformat(doc_data.get("updated_at", "")),
-                storage_provider=doc_data.get("storage_provider", ""),
-                storage_path=doc_data.get("storage_path", ""),
-                metadata=doc_data.get("metadata", {}),
-            ))
+            documents.append(
+                Document(
+                    id=doc_data.get("id", ""),
+                    filename=doc_data.get("filename", ""),
+                    document_type=doc_data.get("document_type", ""),
+                    file_size=doc_data.get("file_size", 0),
+                    content_type=doc_data.get("content_type", ""),
+                    created_at=datetime.fromisoformat(doc_data.get("created_at", "")),
+                    updated_at=datetime.fromisoformat(doc_data.get("updated_at", "")),
+                    storage_provider=doc_data.get("storage_provider", ""),
+                    storage_path=doc_data.get("storage_path", ""),
+                    metadata=doc_data.get("metadata", {}),
+                )
+            )
         return documents
 
     def delete(self, document_id: str) -> bool:
@@ -506,16 +540,20 @@ class DocumentClient(BaseClient):
 class TimelineClient(BaseClient):
     """Timeline and deadline service client."""
 
-    def create_event(self, title: str, description: str, event_type: str,
-                    event_date: datetime, is_evidence: bool = False) -> TimelineEvent:
+    def create_event(
+        self, title: str, description: str, event_type: str, event_date: datetime, is_evidence: bool = False
+    ) -> TimelineEvent:
         """Create a timeline event."""
-        response = self.post("/api/timeline/events", json={
-            "title": title,
-            "description": description,
-            "event_type": event_type,
-            "event_date": event_date.isoformat(),
-            "is_evidence": is_evidence,
-        })
+        response = self.post(
+            "/api/timeline/events",
+            json={
+                "title": title,
+                "description": description,
+                "event_type": event_type,
+                "event_date": event_date.isoformat(),
+                "is_evidence": is_evidence,
+            },
+        )
 
         return TimelineEvent(
             id=response.get("id", ""),
@@ -533,16 +571,18 @@ class TimelineClient(BaseClient):
         response = self.get("/api/timeline/events", params={"limit": limit})
         events = []
         for event_data in response.get("events", []):
-            events.append(TimelineEvent(
-                id=event_data.get("id", ""),
-                title=event_data.get("title", ""),
-                description=event_data.get("description", ""),
-                event_type=event_data.get("event_type", ""),
-                event_date=datetime.fromisoformat(event_data.get("event_date", "")),
-                created_at=datetime.fromisoformat(event_data.get("created_at", "")),
-                is_evidence=event_data.get("is_evidence", False),
-                metadata=event_data.get("metadata", {}),
-            ))
+            events.append(
+                TimelineEvent(
+                    id=event_data.get("id", ""),
+                    title=event_data.get("title", ""),
+                    description=event_data.get("description", ""),
+                    event_type=event_data.get("event_type", ""),
+                    event_date=datetime.fromisoformat(event_data.get("event_date", "")),
+                    created_at=datetime.fromisoformat(event_data.get("created_at", "")),
+                    is_evidence=event_data.get("is_evidence", False),
+                    metadata=event_data.get("metadata", {}),
+                )
+            )
         return events
 
     def get_deadlines(self, days_ahead: int = 30) -> list[TimelineEvent]:
@@ -550,16 +590,18 @@ class TimelineClient(BaseClient):
         response = self.get("/api/timeline/deadlines", params={"days_ahead": days_ahead})
         deadlines = []
         for deadline_data in response.get("deadlines", []):
-            deadlines.append(TimelineEvent(
-                id=deadline_data.get("id", ""),
-                title=deadline_data.get("title", ""),
-                description=deadline_data.get("description", ""),
-                event_type=deadline_data.get("event_type", ""),
-                event_date=datetime.fromisoformat(deadline_data.get("event_date", "")),
-                created_at=datetime.fromisoformat(deadline_data.get("created_at", "")),
-                is_evidence=deadline_data.get("is_evidence", False),
-                metadata=deadline_data.get("metadata", {}),
-            ))
+            deadlines.append(
+                TimelineEvent(
+                    id=deadline_data.get("id", ""),
+                    title=deadline_data.get("title", ""),
+                    description=deadline_data.get("description", ""),
+                    event_type=deadline_data.get("event_type", ""),
+                    event_date=datetime.fromisoformat(deadline_data.get("event_date", "")),
+                    created_at=datetime.fromisoformat(deadline_data.get("created_at", "")),
+                    is_evidence=deadline_data.get("is_evidence", False),
+                    metadata=deadline_data.get("metadata", {}),
+                )
+            )
         return deadlines
 
 
@@ -602,8 +644,14 @@ class CopilotClient(BaseClient):
 class ComplaintClient(BaseClient):
     """Complaint management service client."""
 
-    def create(self, complaint_type: str, title: str, description: str,
-               target_agency: str | None = None, violations: list[str] | None = None) -> Complaint:
+    def create(
+        self,
+        complaint_type: str,
+        title: str,
+        description: str,
+        target_agency: str | None = None,
+        violations: list[str] | None = None,
+    ) -> Complaint:
         """Create a complaint."""
         data = {
             "complaint_type": complaint_type,
@@ -650,24 +698,25 @@ class ComplaintClient(BaseClient):
         response = self.get("/api/complaints", params=params)
         complaints = []
         for complaint_data in response.get("complaints", []):
-            complaints.append(Complaint(
-                id=complaint_data.get("id", ""),
-                complaint_type=complaint_data.get("complaint_type", ""),
-                title=complaint_data.get("title", ""),
-                description=complaint_data.get("description", ""),
-                status=complaint_data.get("status", ""),
-                created_at=datetime.fromisoformat(complaint_data.get("created_at", "")),
-                target_agency=complaint_data.get("target_agency"),
-                violations=complaint_data.get("violations", []),
-            ))
+            complaints.append(
+                Complaint(
+                    id=complaint_data.get("id", ""),
+                    complaint_type=complaint_data.get("complaint_type", ""),
+                    title=complaint_data.get("title", ""),
+                    description=complaint_data.get("description", ""),
+                    status=complaint_data.get("status", ""),
+                    created_at=datetime.fromisoformat(complaint_data.get("created_at", "")),
+                    target_agency=complaint_data.get("target_agency"),
+                    violations=complaint_data.get("violations", []),
+                )
+            )
         return complaints
 
 
 class BriefcaseClient(BaseClient):
     """Briefcase management service client."""
 
-    def create(self, name: str, description: str | None = None,
-               case_type: str | None = None) -> Briefcase:
+    def create(self, name: str, description: str | None = None, case_type: str | None = None) -> Briefcase:
         """Create a briefcase."""
         data = {"name": name}
         if description:
@@ -706,25 +755,37 @@ class BriefcaseClient(BaseClient):
         response = self.get("/api/briefcases")
         briefcases = []
         for briefcase_data in response.get("briefcases", []):
-            briefcases.append(Briefcase(
-                id=briefcase_data.get("id", ""),
-                name=briefcase_data.get("name", ""),
-                description=briefcase_data.get("description"),
-                case_type=briefcase_data.get("case_type"),
-                status=briefcase_data.get("status", "active"),
-                item_count=briefcase_data.get("item_count", 0),
-                created_at=datetime.fromisoformat(briefcase_data.get("created_at", "")) if briefcase_data.get("created_at") else None,
-                updated_at=datetime.fromisoformat(briefcase_data.get("updated_at", "")) if briefcase_data.get("updated_at") else None,
-            ))
+            briefcases.append(
+                Briefcase(
+                    id=briefcase_data.get("id", ""),
+                    name=briefcase_data.get("name", ""),
+                    description=briefcase_data.get("description"),
+                    case_type=briefcase_data.get("case_type"),
+                    status=briefcase_data.get("status", "active"),
+                    item_count=briefcase_data.get("item_count", 0),
+                    created_at=datetime.fromisoformat(briefcase_data.get("created_at", ""))
+                    if briefcase_data.get("created_at")
+                    else None,
+                    updated_at=datetime.fromisoformat(briefcase_data.get("updated_at", ""))
+                    if briefcase_data.get("updated_at")
+                    else None,
+                )
+            )
         return briefcases
 
 
 class VaultClient(BaseClient):
     """Vault (secure storage) service client."""
 
-    def add_item(self, name: str, item_type: str = "document",
-                 description: str | None = None, access_type: str = "private",
-                 tags: list[str] | None = None, encrypt: bool = True) -> VaultItem:
+    def add_item(
+        self,
+        name: str,
+        item_type: str = "document",
+        description: str | None = None,
+        access_type: str = "private",
+        tags: list[str] | None = None,
+        encrypt: bool = True,
+    ) -> VaultItem:
         """Add an item to the vault."""
         data = {
             "name": name,
@@ -763,9 +824,13 @@ class VaultClient(BaseClient):
             tags=response.get("tags", []),
         )
 
-    def list_items(self, access_type: str | None = None,
-                   item_type: str | None = None, tags: list[str] | None = None,
-                   limit: int = 50) -> list[VaultItem]:
+    def list_items(
+        self,
+        access_type: str | None = None,
+        item_type: str | None = None,
+        tags: list[str] | None = None,
+        limit: int = 50,
+    ) -> list[VaultItem]:
         """List vault items."""
         params = {"limit": limit}
         if access_type:
@@ -779,16 +844,18 @@ class VaultClient(BaseClient):
         items = response.get("items", [])
         vault_items = []
         for item_data in items:
-            vault_items.append(VaultItem(
-                id=item_data.get("id", ""),
-                name=item_data.get("name", ""),
-                item_type=item_data.get("item_type", ""),
-                access_type=item_data.get("access_type", "private"),
-                description=item_data.get("description"),
-                document_id=item_data.get("document_id"),
-                encrypted=item_data.get("encrypted", True),
-                tags=item_data.get("tags", []),
-            ))
+            vault_items.append(
+                VaultItem(
+                    id=item_data.get("id", ""),
+                    name=item_data.get("name", ""),
+                    item_type=item_data.get("item_type", ""),
+                    access_type=item_data.get("access_type", "private"),
+                    description=item_data.get("description"),
+                    document_id=item_data.get("document_id"),
+                    encrypted=item_data.get("encrypted", True),
+                    tags=item_data.get("tags", []),
+                )
+            )
         return vault_items
 
     def delete_item(self, item_id: str) -> bool:
@@ -804,29 +871,30 @@ class VaultClient(BaseClient):
 # MAIN SEMPTIFY CLIENT
 # =============================================================================
 
+
 class SemptifyClient:
     """
     Main Semptify SDK client - Single File Implementation
-    
+
     Provides unified access to all Semptify API services.
-    
+
     Example:
         ```python
         from semptify_sdk import SemptifyClient
-        
+
         # Initialize client
         client = SemptifyClient("http://localhost:8000")
-        
+
         # Authenticate via OAuth
         auth_url = client.auth.get_auth_url("google")
         client.auth.complete_oauth("google", code, state)
-        
+
         # Upload a document
         doc = client.documents.upload("lease.pdf")
-        
+
         # Get AI analysis
         analysis = client.copilot.analyze_case()
-        
+
         # Check deadlines
         deadlines = client.timeline.get_deadlines()
         ```
@@ -982,6 +1050,7 @@ class SemptifyClient:
             self._client.close()
         if self._async_client:
             import asyncio
+
             if asyncio.get_event_loop().is_running():
                 # If in async context, create a task to close
                 asyncio.create_task(self._async_client.aclose())

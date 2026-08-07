@@ -277,22 +277,22 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .voice-record-btn {
     width: 56px;
     height: 56px;
     font-size: 20px;
   }
-  
+
   .voice-actions {
     flex-direction: column;
   }
-  
+
   .voice-action-btn {
     width: 100%;
     text-align: center;
   }
-  
+
   .voice-settings {
     flex-direction: column;
     align-items: flex-start;

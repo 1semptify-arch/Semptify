@@ -1,7 +1,7 @@
 # ALL-IN-ONE Unified Evidence Vault — Integration Guide
 
-**Status:** ✅ Implemented  
-**Version:** Semptify 5.0  
+**Status:** ✅ Implemented
+**Version:** Semptify 5.0
 **Date:** April 21, 2026
 
 ---
@@ -352,8 +352,8 @@ VAULT_TIMELINE = "Semptify5.0/Vault/timeline"
 ```python
 # Good - complete timestamp information
 request = IngestionRequest(
-    event_time=notice_date,        # When notice was served
-    record_time=document_date,     # When document was created
+    event_time=notice_date,  # When notice was served
+    record_time=document_date,  # When document was created
     metadata={"source": "upload"},  # Semptify_entry_time auto-set
 )
 ```
@@ -389,11 +389,7 @@ curl /vault/incidents/1/timeline
 
 ```python
 # Search by any metadata field
-results = await search_service.deep_metadata_search(
-    user_id=user_id,
-    metadata_field="landlord",
-    value="ABC Management"
-)
+results = await search_service.deep_metadata_search(user_id=user_id, metadata_field="landlord", value="ABC Management")
 ```
 
 ---

@@ -210,6 +210,6 @@ localStorage key: `autoModeConfig`
 
 ---
 
-**Version**: 1.0  
-**Status**: ✅ Production Ready  
+**Version**: 1.0
+**Status**: ✅ Production Ready
 **Last Updated**: 2026-03-23

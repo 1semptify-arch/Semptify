@@ -2,7 +2,7 @@
 Minnesota Eviction & Tenant Rights Document Crawler
 
 Focused crawler for:
-- Eviction defense documents  
+- Eviction defense documents
 - Tenant counterclaims against landlords
 - Habitability complaints
 - Security deposit disputes
@@ -150,28 +150,31 @@ class EvictionCrawler:
                     print(f"  ⚠ Status {response.status_code}")
                     continue
 
-                soup = BeautifulSoup(response.text, 'html.parser')
+                soup = BeautifulSoup(response.text, "html.parser")
 
                 # Find all links that might be forms
-                all_links = soup.find_all('a', href=True)
+                all_links = soup.find_all("a", href=True)
 
                 for link in all_links:
-                    href = link['href']
+                    href = link["href"]
                     text = link.get_text(strip=True).lower()
 
                     # Look for eviction/housing related links
-                    if any(kw in text for kw in ['eviction', 'housing', 'tenant', 'landlord', 'answer', 'motion', 'counterclaim']):
+                    if any(
+                        kw in text
+                        for kw in ["eviction", "housing", "tenant", "landlord", "answer", "motion", "counterclaim"]
+                    ):
                         print(f"  📄 Found: {link.get_text(strip=True)[:50]}...")
 
                         # If it's a PDF link, download it
-                        if '.pdf' in href.lower():
-                            full_url = href if href.startswith('http') else f"https://mncourts.gov{href}"
+                        if ".pdf" in href.lower():
+                            full_url = href if href.startswith("http") else f"https://mncourts.gov{href}"
                             if await self.download_document(full_url, FORMS_DIR, "form"):
                                 count += 1
 
                         # If it's a form download page, try to get the PDF
-                        elif 'getforms' in href.lower() or 'f=' in href.lower():
-                            full_url = href if href.startswith('http') else f"https://mncourts.gov{href}"
+                        elif "getforms" in href.lower() or "f=" in href.lower():
+                            full_url = href if href.startswith("http") else f"https://mncourts.gov{href}"
                             if await self.download_form_from_page(full_url):
                                 count += 1
 
@@ -189,9 +192,9 @@ class EvictionCrawler:
                 return False
 
             # Check if it redirected to a PDF
-            content_type = response.headers.get('content-type', '')
-            if 'pdf' in content_type.lower():
-                filename = url.split('=')[-1] + ".pdf"
+            content_type = response.headers.get("content-type", "")
+            if "pdf" in content_type.lower():
+                filename = url.split("=")[-1] + ".pdf"
                 filepath = FORMS_DIR / filename
                 filepath.write_bytes(response.content)
                 print(f"    ✓ Downloaded {filename}")
@@ -199,12 +202,12 @@ class EvictionCrawler:
                 return True
 
             # Otherwise parse the page for PDF link
-            soup = BeautifulSoup(response.text, 'html.parser')
-            pdf_links = soup.find_all('a', href=lambda h: h and '.pdf' in h.lower())
+            soup = BeautifulSoup(response.text, "html.parser")
+            pdf_links = soup.find_all("a", href=lambda h: h and ".pdf" in h.lower())
 
             for link in pdf_links[:1]:  # Just get first PDF
-                pdf_url = link['href']
-                if not pdf_url.startswith('http'):
+                pdf_url = link["href"]
+                if not pdf_url.startswith("http"):
                     pdf_url = f"https://mncourts.gov{pdf_url}"
                 return await self.download_document(pdf_url, FORMS_DIR, "form")
 
@@ -231,17 +234,19 @@ class EvictionCrawler:
                 if response.status_code != 200:
                     continue
 
-                soup = BeautifulSoup(response.text, 'html.parser')
+                soup = BeautifulSoup(response.text, "html.parser")
 
                 # Find PDF links
-                pdf_links = soup.find_all('a', href=lambda h: h and '.pdf' in h.lower())
+                pdf_links = soup.find_all("a", href=lambda h: h and ".pdf" in h.lower())
 
                 for link in pdf_links:
-                    href = link['href']
-                    full_url = href if href.startswith('http') else f"https://www.lawhelpmn.org{href}"
+                    href = link["href"]
+                    full_url = href if href.startswith("http") else f"https://www.lawhelpmn.org{href}"
 
                     text = link.get_text(strip=True)
-                    if any(kw in text.lower() for kw in ['eviction', 'tenant', 'landlord', 'housing', 'answer', 'rights']):
+                    if any(
+                        kw in text.lower() for kw in ["eviction", "tenant", "landlord", "housing", "answer", "rights"]
+                    ):
                         if await self.download_document(full_url, GUIDES_DIR, "guide"):
                             count += 1
 
@@ -267,14 +272,14 @@ class EvictionCrawler:
                 if response.status_code != 200:
                     continue
 
-                soup = BeautifulSoup(response.text, 'html.parser')
+                soup = BeautifulSoup(response.text, "html.parser")
 
                 # Find PDF/document links
-                doc_links = soup.find_all('a', href=lambda h: h and ('.pdf' in h.lower() or 'document' in h.lower()))
+                doc_links = soup.find_all("a", href=lambda h: h and (".pdf" in h.lower() or "document" in h.lower()))
 
                 for link in doc_links:
-                    href = link['href']
-                    full_url = href if href.startswith('http') else f"https://homelinemn.org{href}"
+                    href = link["href"]
+                    full_url = href if href.startswith("http") else f"https://homelinemn.org{href}"
 
                     if await self.download_document(full_url, GUIDES_DIR, "guide"):
                         count += 1
@@ -300,7 +305,7 @@ class EvictionCrawler:
             try:
                 response = await self.client.get(url)
 
-                if 'pdf' in response.headers.get('content-type', '').lower():
+                if "pdf" in response.headers.get("content-type", "").lower():
                     filename = "MN_AG_Landlord_Tenant_Handbook.pdf"
                     filepath = GUIDES_DIR / filename
                     filepath.write_bytes(response.content)
@@ -308,13 +313,15 @@ class EvictionCrawler:
                     self.downloaded += 1
                     count += 1
 
-                    self.documents.append({
-                        "filename": filename,
-                        "url": url,
-                        "doc_type": "handbook",
-                        "source": "MN Attorney General",
-                        "topic": "landlord_tenant_law",
-                    })
+                    self.documents.append(
+                        {
+                            "filename": filename,
+                            "url": url,
+                            "doc_type": "handbook",
+                            "source": "MN Attorney General",
+                            "topic": "landlord_tenant_law",
+                        }
+                    )
                     break
 
             except Exception as e:
@@ -330,17 +337,17 @@ class EvictionCrawler:
             if response.status_code != 200:
                 return False
 
-            content_type = response.headers.get('content-type', '')
+            content_type = response.headers.get("content-type", "")
 
             # Generate filename
-            filename = url.split('/')[-1].split('?')[0]
+            filename = url.split("/")[-1].split("?")[0]
             if not filename or len(filename) < 3:
                 filename = f"doc_{hash(url) % 10000}.pdf"
 
             # Clean filename
-            filename = re.sub(r'[^\w\-_\.]', '_', filename)
-            if not filename.endswith('.pdf') and 'pdf' in content_type.lower():
-                filename += '.pdf'
+            filename = re.sub(r"[^\w\-_\.]", "_", filename)
+            if not filename.endswith(".pdf") and "pdf" in content_type.lower():
+                filename += ".pdf"
 
             output_dir.mkdir(parents=True, exist_ok=True)
             filepath = output_dir / filename
@@ -353,13 +360,15 @@ class EvictionCrawler:
             print(f"  ✓ {filename} ({len(response.content)} bytes)")
 
             self.downloaded += 1
-            self.documents.append({
-                "filename": filename,
-                "url": url,
-                "doc_type": doc_type,
-                "size": len(response.content),
-                "downloaded": datetime.now(UTC).isoformat(),
-            })
+            self.documents.append(
+                {
+                    "filename": filename,
+                    "url": url,
+                    "doc_type": doc_type,
+                    "size": len(response.content),
+                    "downloaded": datetime.now(UTC).isoformat(),
+                }
+            )
 
             return True
 
@@ -387,12 +396,12 @@ class EvictionCrawler:
 {defendant_name},
                     Defendant.
 
-COMES NOW the Defendant, {defendant_name}, and for their Answer to Plaintiff's 
+COMES NOW the Defendant, {defendant_name}, and for their Answer to Plaintiff's
 Complaint states as follows:
 
 DENIALS
 
-1. Defendant denies each and every allegation in Plaintiff's Complaint not 
+1. Defendant denies each and every allegation in Plaintiff's Complaint not
    specifically admitted herein.
 
 2. Defendant denies that Plaintiff is entitled to possession of the premises.
@@ -401,15 +410,15 @@ DENIALS
 
 AFFIRMATIVE DEFENSES
 
-1. IMPROPER SERVICE: The Summons and Complaint were not properly served as 
+1. IMPROPER SERVICE: The Summons and Complaint were not properly served as
    required by Minnesota Statute § 504B.331.
 
-2. HABITABILITY DEFENSE: Plaintiff failed to maintain the premises in 
-   compliance with the implied warranty of habitability under Minnesota 
+2. HABITABILITY DEFENSE: Plaintiff failed to maintain the premises in
+   compliance with the implied warranty of habitability under Minnesota
    Statute § 504B.161. Specifically:
    [List specific habitability issues]
 
-3. RETALIATION: This eviction action is retaliatory in violation of 
+3. RETALIATION: This eviction action is retaliatory in violation of
    Minnesota Statute § 504B.285 because:
    [Describe protected activity and timing]
 
@@ -442,13 +451,13 @@ _______________________
 {plaintiff_name},                                  Case No.: {case_number}
                     Plaintiff,
         vs.                                        COUNTERCLAIM
-                                                   
+
 {defendant_name},
                     Defendant/Counterclaimant.
 
 COUNTERCLAIM
 
-Defendant/Counterclaimant {defendant_name} brings this Counterclaim against 
+Defendant/Counterclaimant {defendant_name} brings this Counterclaim against
 Plaintiff/Counterdefendant and states:
 
 PARTIES AND JURISDICTION
@@ -457,15 +466,15 @@ PARTIES AND JURISDICTION
 
 2. Counterdefendant is the landlord of said property.
 
-3. This Court has jurisdiction over this counterclaim pursuant to 
+3. This Court has jurisdiction over this counterclaim pursuant to
    Minnesota Statute § 504B.
 
 FACTS
 
-4. On or about {lease_date}, Counterclaimant entered into a lease agreement 
+4. On or about {lease_date}, Counterclaimant entered into a lease agreement
    with Counterdefendant for the premises.
 
-5. Counterdefendant has breached the lease and violated Minnesota Statute 
+5. Counterdefendant has breached the lease and violated Minnesota Statute
    § 504B.161 by failing to:
    a. [Specific violation 1]
    b. [Specific violation 2]
@@ -522,12 +531,12 @@ _______________________
 
 MOTION TO DISMISS
 
-Defendant {defendant_name} moves this Court for an Order dismissing 
+Defendant {defendant_name} moves this Court for an Order dismissing
 Plaintiff's Complaint for the following reasons:
 
 1. IMPROPER NOTICE
 
-The eviction notice served on Defendant failed to comply with Minnesota 
+The eviction notice served on Defendant failed to comply with Minnesota
 Statute § 504B.321 because:
 [ ] The notice period was insufficient
 [ ] The notice was not properly served
@@ -552,7 +561,7 @@ This eviction should be dismissed because:
 [ ] Plaintiff failed to maintain habitability
 [ ] Other: _______________
 
-WHEREFORE, Defendant respectfully requests this Court dismiss Plaintiff's 
+WHEREFORE, Defendant respectfully requests this Court dismiss Plaintiff's
 Complaint with prejudice.
 
 Dated: _______________
@@ -566,13 +575,15 @@ _______________________
         print(f"  ✓ Created {len(list(samples_dir.glob('*.txt')))} sample templates")
 
         # Add to metadata
-        for template_file in samples_dir.glob('*.txt'):
-            self.documents.append({
-                "filename": template_file.name,
-                "doc_type": "template",
-                "category": "training_sample",
-                "path": str(template_file),
-            })
+        for template_file in samples_dir.glob("*.txt"):
+            self.documents.append(
+                {
+                    "filename": template_file.name,
+                    "doc_type": "template",
+                    "category": "training_sample",
+                    "path": str(template_file),
+                }
+            )
 
     def save_metadata(self):
         """Save crawl metadata."""

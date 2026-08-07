@@ -81,6 +81,7 @@ _FACT_TO_READING_LEVEL: dict[str, str] = {
 # Public API
 # ---------------------------------------------------------------------------
 
+
 async def assemble_page(
     subject: str,
     jurisdiction: str = DEFAULT_JURISDICTION,
@@ -170,6 +171,7 @@ async def assemble_page(
 # Phase implementations
 # ---------------------------------------------------------------------------
 
+
 async def _resolve_context(
     user_id: str | None,
     user_context: dict[str, Any],
@@ -179,6 +181,7 @@ async def _resolve_context(
     if user_id:
         try:
             from app.services.context_loop import context_loop
+
             state = context_loop.get_state(user_id)
             if state and isinstance(state, dict):
                 merged.update(state.get("context", {}))
@@ -308,7 +311,7 @@ def _gather_blocks(page_data: dict[str, Any], context: dict[str, Any]) -> dict[s
     for idx, fact in enumerate(facts):
         tags = fact.get("tags") or []
         source_name = fact.get("source_name", "verified source")
-        label = _fact_label(fact)
+        _fact_label(fact)
         reading = _fact_reading_level(tags)
         blocks["know"].append(
             InfoBlock(
@@ -412,7 +415,6 @@ def _apply_capability_filter(
         return page_config
 
     try:
-
         # Synchronous DB access not available here; skip unless we already
         # have cached capabilities in context.
         cached_caps = context.get("capabilities")
@@ -468,6 +470,7 @@ def _build_ui_context(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _fact_label(fact: dict[str, Any]) -> str:
     """Extract a short display label from a fact."""

@@ -7,23 +7,23 @@ helper functions for common use cases.
 
 USAGE:
     from app.core.document_hub import get_document_hub, DocumentHub
-    
+
     hub = get_document_hub()
-    
+
     # Get all data for a user
     case_data = await hub.get_case_data(user_id)
-    
+
     # Get specific data types
     dates = hub.get_key_dates(user_id)
     parties = hub.get_parties(user_id)
     amounts = hub.get_amounts(user_id)
-    
+
     # Auto-fill forms
     form_data = hub.get_form_autofill(user_id, "HOU301")
-    
+
     # Get timeline events for display
     timeline = hub.get_timeline_events(user_id)
-    
+
     # Get urgent action items
     actions = hub.get_action_items(user_id, urgent_only=True)
 """
@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 class DataCategory(str, Enum):
     """Categories of document data"""
+
     DATES = "dates"
     PARTIES = "parties"
     AMOUNTS = "amounts"
@@ -54,6 +55,7 @@ class DataCategory(str, Enum):
 @dataclass
 class CaseData:
     """Aggregated case data from all documents"""
+
     user_id: str
 
     # Case identification
@@ -159,7 +161,7 @@ class CaseData:
 class DocumentHub:
     """
     Central hub for accessing document data across all Semptify modules.
-    
+
     This provides a consistent interface that any module can use to get
     processed document data without needing to know about the underlying
     document pipeline, registry, or distributor services.
@@ -186,6 +188,7 @@ class DocumentHub:
         """Lazy load the document distributor"""
         try:
             from app.services.document_distributor import get_document_distributor
+
             return get_document_distributor()
         except ImportError:
             logger.warning("DocumentDistributor not available")
@@ -195,6 +198,7 @@ class DocumentHub:
         """Lazy load the document pipeline"""
         try:
             from app.services.document_pipeline import get_document_pipeline
+
             return get_document_pipeline()
         except ImportError:
             return None
@@ -203,6 +207,7 @@ class DocumentHub:
         """Lazy load the document registry"""
         try:
             from app.services.document_registry import get_document_registry
+
             return get_document_registry()
         except ImportError:
             return None
@@ -210,7 +215,7 @@ class DocumentHub:
     def get_case_data(self, user_id: str, force_refresh: bool = False) -> CaseData:
         """
         Get aggregated case data for a user from all their documents.
-        
+
         This is the main entry point for modules that need document data.
         Returns a CaseData object with all extracted information.
         """
@@ -298,26 +303,27 @@ class DocumentHub:
 
                 # Get law references from documents
                 for doc in docs:
-                    law_refs = doc.law_references if hasattr(doc, 'law_references') else []
+                    law_refs = doc.law_references if hasattr(doc, "law_references") else []
                     if law_refs:
                         case_data.law_references.extend(law_refs)
 
-                    statutes = doc.matched_statutes if hasattr(doc, 'matched_statutes') else []
+                    statutes = doc.matched_statutes if hasattr(doc, "matched_statutes") else []
                     case_data.matched_statutes.extend(statutes)
 
                     # Track document types
-                    doc_type = doc.doc_type if hasattr(doc, 'doc_type') else "unknown"
+                    doc_type = doc.doc_type if hasattr(doc, "doc_type") else "unknown"
                     case_data.documents_by_type[doc_type] = case_data.documents_by_type.get(doc_type, 0) + 1
 
                 # Get urgent documents
                 urgent_docs = distributor.get_urgent_documents(user_id)
                 if urgent_docs:
-                    case_data.urgency_level = urgent_docs[0].urgency_level if hasattr(urgent_docs[0], 'urgency_level') else "high"
+                    case_data.urgency_level = (
+                        urgent_docs[0].urgency_level if hasattr(urgent_docs[0], "urgency_level") else "high"
+                    )
 
                 # Filter urgent action items
                 case_data.urgent_actions = [
-                    a for a in case_data.action_items
-                    if a.get("priority", 0) <= 2 or a.get("urgent")
+                    a for a in case_data.action_items if a.get("priority", 0) <= 2 or a.get("urgent")
                 ]
 
                 # Deduplicate
@@ -455,7 +461,7 @@ class DocumentHub:
     def get_form_autofill(self, user_id: str, form_id: str) -> dict[str, Any]:
         """
         Get pre-filled form data based on extracted document data.
-        
+
         Supported form_ids:
         - HOU301: Answer to Eviction Complaint
         - HOU302: Motion to Dismiss
@@ -575,7 +581,7 @@ class DocumentHub:
     def get_calendar_events(self, user_id: str) -> list[dict[str, Any]]:
         """
         Get calendar events derived from documents.
-        
+
         Returns events in a format suitable for calendar display.
         """
         case_data = self.get_case_data(user_id)
@@ -583,39 +589,45 @@ class DocumentHub:
 
         # Add hearing as event
         if case_data.hearing_date:
-            events.append({
-                "id": f"hearing_{user_id}",
-                "title": "Court Hearing",
-                "date": case_data.hearing_date,
-                "time": case_data.hearing_time,
-                "type": "hearing",
-                "critical": True,
-                "source": "document_extraction",
-            })
+            events.append(
+                {
+                    "id": f"hearing_{user_id}",
+                    "title": "Court Hearing",
+                    "date": case_data.hearing_date,
+                    "time": case_data.hearing_time,
+                    "type": "hearing",
+                    "critical": True,
+                    "source": "document_extraction",
+                }
+            )
 
         # Add answer deadline
         if case_data.answer_deadline:
-            events.append({
-                "id": f"deadline_{user_id}",
-                "title": "Answer Deadline",
-                "date": case_data.answer_deadline,
-                "type": "deadline",
-                "critical": True,
-                "source": "document_extraction",
-            })
+            events.append(
+                {
+                    "id": f"deadline_{user_id}",
+                    "title": "Answer Deadline",
+                    "date": case_data.answer_deadline,
+                    "type": "deadline",
+                    "critical": True,
+                    "source": "document_extraction",
+                }
+            )
 
         # Add action items with deadlines
         for i, action in enumerate(case_data.action_items):
             if action.get("deadline"):
-                events.append({
-                    "id": f"action_{user_id}_{i}",
-                    "title": action.get("title", "Action Required"),
-                    "date": action["deadline"],
-                    "type": "action_item",
-                    "critical": action.get("priority", 5) <= 2,
-                    "source": "document_extraction",
-                    "description": action.get("description"),
-                })
+                events.append(
+                    {
+                        "id": f"action_{user_id}_{i}",
+                        "title": action.get("title", "Action Required"),
+                        "date": action["deadline"],
+                        "type": "action_item",
+                        "critical": action.get("priority", 5) <= 2,
+                        "source": "document_extraction",
+                        "description": action.get("description"),
+                    }
+                )
 
         # Add timeline events that have future dates
         for i, event in enumerate(case_data.timeline_events):
@@ -624,14 +636,16 @@ class DocumentHub:
                 try:
                     dt = datetime.fromisoformat(event_date.replace("Z", "+00:00"))
                     if dt > utc_now():
-                        events.append({
-                            "id": f"timeline_{user_id}_{i}",
-                            "title": event.get("title", "Event"),
-                            "date": event_date,
-                            "type": "timeline",
-                            "critical": event.get("is_critical", False),
-                            "source": "document_extraction",
-                        })
+                        events.append(
+                            {
+                                "id": f"timeline_{user_id}_{i}",
+                                "title": event.get("title", "Event"),
+                                "date": event_date,
+                                "type": "timeline",
+                                "critical": event.get("is_critical", False),
+                                "source": "document_extraction",
+                            }
+                        )
                 except (ValueError, TypeError):
                     pass
 
@@ -647,7 +661,7 @@ class DocumentHub:
     def get_ai_context(self, user_id: str) -> str:
         """
         Get a text summary of case data for AI context injection.
-        
+
         This provides the AI copilot with relevant case information.
         """
         case_data = self.get_case_data(user_id)
@@ -670,7 +684,9 @@ class DocumentHub:
         if case_data.answer_deadline:
             deadline_info = self.get_deadline_info(user_id)
             if deadline_info.get("days_until") is not None:
-                context_parts.append(f"Answer Deadline: {case_data.answer_deadline} ({deadline_info['days_until']} days)")
+                context_parts.append(
+                    f"Answer Deadline: {case_data.answer_deadline} ({deadline_info['days_until']} days)"
+                )
 
         # Amounts
         if case_data.rent_claimed:

@@ -24,8 +24,10 @@ logger = logging.getLogger(__name__)
 # ENUMERATIONS
 # ============================================================================
 
+
 class DocumentCategory(Enum):
     """High-level document categorization"""
+
     NOTICE = "notice"
     COURT_FILING = "court_filing"
     LEASE_AGREEMENT = "lease_agreement"
@@ -38,6 +40,7 @@ class DocumentCategory(Enum):
 
 class DocumentType(Enum):
     """Specific document types for Minnesota tenant law"""
+
     # Eviction Related
     EVICTION_NOTICE = "eviction_notice"
     NOTICE_TO_QUIT = "notice_to_quit"
@@ -100,24 +103,27 @@ class DocumentType(Enum):
 
 class IssueSeverity(Enum):
     """Legal issue severity levels"""
-    CRITICAL = "critical"      # Immediate action required
-    HIGH = "high"              # Serious issue, action needed soon
-    MEDIUM = "medium"          # Notable issue, should address
-    LOW = "low"                # Minor issue, FYI
+
+    CRITICAL = "critical"  # Immediate action required
+    HIGH = "high"  # Serious issue, action needed soon
+    MEDIUM = "medium"  # Notable issue, should address
+    LOW = "low"  # Minor issue, FYI
     INFORMATIONAL = "informational"  # Not an issue, just noting
 
 
 class ConfidenceLevel(Enum):
     """Confidence classification"""
-    CERTAIN = "certain"        # 95%+ confidence
-    HIGH = "high"              # 80-95% confidence
-    MEDIUM = "medium"          # 60-80% confidence
-    LOW = "low"                # 40-60% confidence
-    UNCERTAIN = "uncertain"    # Below 40%
+
+    CERTAIN = "certain"  # 95%+ confidence
+    HIGH = "high"  # 80-95% confidence
+    MEDIUM = "medium"  # 60-80% confidence
+    LOW = "low"  # 40-60% confidence
+    UNCERTAIN = "uncertain"  # Below 40%
 
 
 class EntityType(Enum):
     """Types of extracted entities"""
+
     PERSON = "person"
     ORGANIZATION = "organization"
     ADDRESS = "address"
@@ -133,6 +139,7 @@ class EntityType(Enum):
 
 class PartyRole(Enum):
     """Roles parties can play in tenant law"""
+
     TENANT = "tenant"
     LANDLORD = "landlord"
     PROPERTY_MANAGER = "property_manager"
@@ -149,6 +156,7 @@ class PartyRole(Enum):
 
 class ReasoningType(Enum):
     """Types of reasoning applied"""
+
     PATTERN_MATCH = "pattern_match"
     SEMANTIC_ANALYSIS = "semantic_analysis"
     LEGAL_RULE = "legal_rule"
@@ -163,12 +171,14 @@ class ReasoningType(Enum):
 # CORE DATA CLASSES
 # ============================================================================
 
+
 @dataclass
 class ConfidenceMetrics:
     """
     Multi-dimensional confidence scoring.
     Tracks confidence across different aspects of analysis.
     """
+
     overall_score: float = 0.0  # 0-100 aggregate confidence
     level: ConfidenceLevel = ConfidenceLevel.UNCERTAIN
 
@@ -223,7 +233,7 @@ class ConfidenceMetrics:
                 "text_completeness": self.text_completeness,
                 "structural_clarity": self.structural_clarity,
                 "reasoning_agreement": self.reasoning_agreement,
-            }
+            },
         }
 
 
@@ -232,6 +242,7 @@ class ExtractedEntity:
     """
     An entity extracted from the document.
     """
+
     id: str = field(default_factory=lambda: make_id("ent"))
     entity_type: EntityType = EntityType.PERSON
     value: str = ""
@@ -277,6 +288,7 @@ class ExtractedEntity:
 @dataclass
 class ReasoningStep:
     """A single step in the reasoning chain"""
+
     step_number: int = 0
     reasoning_type: ReasoningType = ReasoningType.PATTERN_MATCH
     description: str = ""
@@ -292,6 +304,7 @@ class ReasoningChain:
     Complete chain of reasoning for an analysis.
     Enables transparency and debugging.
     """
+
     chain_id: str = field(default_factory=lambda: make_id("chain"))
     started_at: datetime = field(default_factory=datetime.now)
     completed_at: datetime | None = None
@@ -311,16 +324,21 @@ class ReasoningChain:
     conclusion: str = ""
     confidence_delta: float = 0.0  # Change in confidence from this pass
 
-    def add_step(self, reasoning_type: ReasoningType, description: str,
-                 input_data: dict = None, output_data: dict = None,
-                 confidence_impact: float = 0.0) -> ReasoningStep:
+    def add_step(
+        self,
+        reasoning_type: ReasoningType,
+        description: str,
+        input_data: dict = None,
+        output_data: dict = None,
+        confidence_impact: float = 0.0,
+    ) -> ReasoningStep:
         step = ReasoningStep(
             step_number=len(self.steps) + 1,
             reasoning_type=reasoning_type,
             description=description,
             input_data=input_data or {},
             output_data=output_data or {},
-            confidence_impact=confidence_impact
+            confidence_impact=confidence_impact,
         )
         self.steps.append(step)
         return step
@@ -353,6 +371,7 @@ class ReasoningChain:
 @dataclass
 class DocumentSection:
     """A recognized section within a document"""
+
     id: str = field(default_factory=lambda: make_id("sec"))
     section_type: str = ""  # header, body, footer, signature, etc.
     title: str | None = None
@@ -376,6 +395,7 @@ class DocumentContext:
     """
     Rich context about the document structure and content.
     """
+
     # Document identification
     filename: str | None = None
     file_type: str = ""  # pdf, jpg, docx, etc.
@@ -446,7 +466,7 @@ class DocumentContext:
                 "case_caption": self.has_case_caption,
                 "signature_block": self.has_signature_block,
                 "notary_block": self.has_notary_block,
-            }
+            },
         }
 
 
@@ -455,6 +475,7 @@ class LegalIssue:
     """
     A legal issue detected in the document.
     """
+
     id: str = field(default_factory=lambda: make_id("iss"))
 
     # Issue details
@@ -509,13 +530,14 @@ class LegalIssue:
             "defense": {
                 "available": self.defense_available,
                 "strategies": self.defense_strategies,
-            }
+            },
         }
 
 
 @dataclass
 class TimelineEntry:
     """An event extracted for timeline"""
+
     id: str = field(default_factory=lambda: make_id("tle"))
 
     event_date: date | None = None
@@ -564,6 +586,7 @@ class TimelineEntry:
 @dataclass
 class PartyRelationship:
     """Relationship between parties"""
+
     id: str = field(default_factory=lambda: make_id("rel"))
 
     party_a_id: str = ""
@@ -588,6 +611,7 @@ class PartyRelationship:
 @dataclass
 class AmountRelationship:
     """Financial amount with context"""
+
     id: str = field(default_factory=lambda: make_id("amt"))
 
     amount: float = 0.0
@@ -621,6 +645,7 @@ class RelationshipMap:
     """
     Complete map of relationships in the document.
     """
+
     # Parties
     parties: list[ExtractedEntity] = field(default_factory=list)
     party_relationships: list[PartyRelationship] = field(default_factory=list)
@@ -698,7 +723,7 @@ class RelationshipMap:
                 "tenant": self.get_tenant().value if self.get_tenant() else None,
                 "landlord": self.get_landlord().value if self.get_landlord() else None,
                 "total_claimed": self.get_total_claimed(),
-            }
+            },
         }
 
 
@@ -707,6 +732,7 @@ class LegalAnalysis:
     """
     Complete legal analysis of the document.
     """
+
     # Document classification
     document_category: DocumentCategory = DocumentCategory.UNKNOWN
     document_type: DocumentType = DocumentType.UNKNOWN
@@ -768,13 +794,17 @@ class LegalAnalysis:
                 "compliant": self.notice_period_compliant,
                 "served": self.notice_served_date.isoformat() if self.notice_served_date else None,
                 "effective": self.notice_effective_date.isoformat() if self.notice_effective_date else None,
-            } if self.notice_type else None,
+            }
+            if self.notice_type
+            else None,
             "court_case": {
                 "court": self.court_name,
                 "case_number": self.case_number,
                 "judge": self.judge_name,
                 "next_date": self.next_court_date.isoformat() if self.next_court_date else None,
-            } if self.case_number else None,
+            }
+            if self.case_number
+            else None,
             "actions": {
                 "immediate": self.immediate_actions,
                 "deadlines": [d.to_dict() for d in self.upcoming_deadlines],
@@ -783,7 +813,7 @@ class LegalAnalysis:
             "risk": {
                 "urgency": self.urgency_level,
                 "score": self.risk_score,
-            }
+            },
         }
 
 
@@ -793,6 +823,7 @@ class RecognitionResult:
     Complete result from the document recognition engine.
     This is the primary output of the analysis.
     """
+
     # Identification
     analysis_id: str = field(default_factory=lambda: make_id("anl"))
     analyzed_at: datetime = field(default_factory=datetime.now)
@@ -831,8 +862,7 @@ class RecognitionResult:
 
     def get_critical_issues(self) -> list[LegalIssue]:
         """Get all critical severity issues"""
-        return [i for i in self.legal_analysis.issues
-                if i.severity == IssueSeverity.CRITICAL]
+        return [i for i in self.legal_analysis.issues if i.severity == IssueSeverity.CRITICAL]
 
     def get_deadlines(self, within_days: int = 30) -> list[TimelineEntry]:
         """Get upcoming deadlines within specified days"""
@@ -887,4 +917,5 @@ class RecognitionResult:
     def to_json(self) -> str:
         """Convert to JSON string"""
         import json
+
         return json.dumps(self.to_dict(), indent=2, default=str)

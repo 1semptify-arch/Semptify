@@ -31,9 +31,11 @@ logger = logging.getLogger(__name__)
 # Data Models
 # =============================================================================
 
+
 @dataclass
 class EntityRecord:
     """A named party with optional address and role."""
+
     name: str
     role: str = ""
     address: str = ""
@@ -44,6 +46,7 @@ class EntityRecord:
 @dataclass
 class EvidenceItem:
     """A single piece of evidence linked to this plan."""
+
     description: str
     vault_id: str | None = None
     date_obtained: str | None = None
@@ -53,6 +56,7 @@ class EvidenceItem:
 @dataclass
 class NextStep:
     """An action item the user or advocate needs to take."""
+
     action: str
     due_date: str | None = None
     completed: bool = False
@@ -69,6 +73,7 @@ class AccountabilityPlan:
       - Exportable to JSON for vault storage and portability
       - Passable to other Semptify modules (case_builder, public_exposure, etc.)
     """
+
     plan_id: str
     user_id: str
     title: str
@@ -205,6 +210,7 @@ DEFAULT_MODULES: list[str] = [
 # Service Functions
 # =============================================================================
 
+
 def create_plan(
     user_id: str,
     title: str,
@@ -225,11 +231,7 @@ def create_plan(
     now = utc_now().isoformat()
     plan_id = make_id("plan")
 
-    next_steps = (
-        [NextStep(action=s) for s in DEFAULT_NEXT_STEPS]
-        if include_default_steps
-        else []
-    )
+    next_steps = [NextStep(action=s) for s in DEFAULT_NEXT_STEPS] if include_default_steps else []
 
     plan = AccountabilityPlan(
         plan_id=plan_id,
@@ -270,9 +272,7 @@ def add_next_step(plan: AccountabilityPlan, step: NextStep) -> AccountabilityPla
     return plan
 
 
-def mark_step_complete(
-    plan: AccountabilityPlan, step_index: int
-) -> AccountabilityPlan:
+def mark_step_complete(plan: AccountabilityPlan, step_index: int) -> AccountabilityPlan:
     if 0 <= step_index < len(plan.next_steps):
         plan.next_steps[step_index].completed = True
         plan.updated_at = utc_now().isoformat()

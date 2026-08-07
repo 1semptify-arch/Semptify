@@ -42,8 +42,10 @@ logger = logging.getLogger(__name__)
 # Data Models
 # =============================================================================
 
+
 class SyncStatus(str, Enum):
     """Sync status states."""
+
     IDLE = "idle"
     SYNCING = "syncing"
     SYNCED = "synced"
@@ -54,6 +56,7 @@ class SyncStatus(str, Enum):
 @dataclass
 class UserProfile:
     """User profile stored in cloud."""
+
     user_id: str
     display_name: str = ""
     email: str = ""
@@ -82,6 +85,7 @@ class UserProfile:
 @dataclass
 class CaseData:
     """Case data stored in cloud."""
+
     case_id: str
     case_number: str = ""
     court: str = "Dakota County District Court"
@@ -125,6 +129,7 @@ class CaseData:
 @dataclass
 class SyncState:
     """Sync state metadata."""
+
     last_sync: str = ""
     sync_count: int = 0
     version: str = "1.0"
@@ -140,22 +145,23 @@ class SyncState:
 # Cloud Sync Service
 # =============================================================================
 
+
 class UserCloudSync:
     """
     Manages user data sync with their cloud storage.
-    
+
     Usage:
         sync = UserCloudSync(storage_client, user_id)
-        
+
         # Load user data from cloud
         profile = await sync.load_profile()
         case = await sync.load_case()
         timeline = await sync.load_timeline()
-        
+
         # Save changes to cloud
         await sync.save_profile(profile)
         await sync.save_case(case)
-        
+
         # Full sync
         await sync.sync_all()
     """
@@ -165,7 +171,7 @@ class UserCloudSync:
     def __init__(self, storage_client, user_id: str):
         """
         Initialize sync service.
-        
+
         Args:
             storage_client: Storage provider client (GoogleDrive, Dropbox, OneDrive)
             user_id: User's unique ID
@@ -274,6 +280,7 @@ class UserCloudSync:
         case = await self.load_case()
         if not case:
             from app.core.id_gen import make_id
+
             case = CaseData(
                 case_id=make_id("case"),
                 created_at=utc_now().isoformat(),
@@ -416,7 +423,9 @@ class UserCloudSync:
             else:
                 # Look up in index by id
                 docs = await self.load_document_index()
-                doc = next((d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None)
+                doc = next(
+                    (d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None
+                )
                 if doc and doc.get("path"):
                     path = doc["path"]
                 else:
@@ -430,6 +439,7 @@ class UserCloudSync:
             except Exception:
                 provider_id = None
             from app.services.storage.utils import download_prefer_id
+
             content = await download_prefer_id(self.storage, path, provider_file_id=provider_id)
             logger.info(f"● Document downloaded: {path}")
             return content
@@ -447,7 +457,9 @@ class UserCloudSync:
             else:
                 # Look up in index by id
                 docs = await self.load_document_index()
-                doc = next((d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None)
+                doc = next(
+                    (d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None
+                )
                 if doc and doc.get("path"):
                     path = doc["path"]
                 else:
@@ -553,7 +565,7 @@ class UserCloudSync:
         try:
             content = await self.storage.read_file(path)
             if content:
-                return json.loads(content.decode('utf-8'))
+                return json.loads(content.decode("utf-8"))
             return None
         except FileNotFoundError:
             return None
@@ -564,7 +576,7 @@ class UserCloudSync:
     async def _write_json(self, filename: str, data: dict) -> None:
         """Write JSON file to cloud storage."""
         path = f"{self.SEMPTIFY_FOLDER}/{filename}"
-        content = json.dumps(data, indent=2, default=str).encode('utf-8')
+        content = json.dumps(data, indent=2, default=str).encode("utf-8")
         await self.storage.write_file(path, content)
 
     async def _update_sync_state(self) -> None:
@@ -586,16 +598,17 @@ class UserCloudSync:
 # Factory Function
 # =============================================================================
 
+
 async def get_cloud_sync(storage_client, user_id: str) -> UserCloudSync:
     """
     Get a UserCloudSync instance for a user.
-    
+
     Usage:
         from app.services.storage.google_drive import GoogleDriveClient
-        
+
         client = GoogleDriveClient(access_token)
         sync = await get_cloud_sync(client, user_id)
-        
+
         # Now use sync to load/save user data
         profile = await sync.load_profile()
     """
@@ -606,6 +619,7 @@ async def get_cloud_sync(storage_client, user_id: str) -> UserCloudSync:
 # =============================================================================
 # Quick Sync Endpoints Helper
 # =============================================================================
+
 
 class QuickSyncData:
     """
@@ -624,7 +638,9 @@ class QuickSyncData:
                 "case_number": sync._cache.get("case", {}).get("case_number"),
                 "status": sync._cache.get("case", {}).get("status"),
                 "hearing_date": sync._cache.get("case", {}).get("hearing_date"),
-            } if sync._cache.get("case") else None,
+            }
+            if sync._cache.get("case")
+            else None,
             "counts": {
                 "timeline": len(sync._cache.get("timeline", [])),
                 "calendar": len(sync._cache.get("calendar", [])),

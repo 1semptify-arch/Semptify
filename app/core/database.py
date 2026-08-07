@@ -17,6 +17,7 @@ try:
     )
     from sqlalchemy.orm import DeclarativeBase
     from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
+
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
     AsyncSession = object
@@ -32,6 +33,7 @@ from app.core.config import get_settings
 
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
+
     pass
 
 
@@ -105,7 +107,7 @@ def get_session_factory():
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI dependency for database sessions.
-    
+
     Usage:
         @router.get("/items")
         async def get_items(db: AsyncSession = Depends(get_db)):
@@ -146,15 +148,8 @@ async def init_db():
     engine = get_engine()
     async with engine.begin() as conn:
         # Only create tables that are not in the optional/migration-only set
-        target_tables = [
-            t for t in Base.metadata.sorted_tables
-            if t.name not in _OPTIONAL_TABLES
-        ]
-        await conn.run_sync(
-            lambda sync_conn: Base.metadata.create_all(
-                sync_conn, tables=target_tables
-            )
-        )
+        target_tables = [t for t in Base.metadata.sorted_tables if t.name not in _OPTIONAL_TABLES]
+        await conn.run_sync(lambda sync_conn: Base.metadata.create_all(sync_conn, tables=target_tables))
 
 
 async def close_db():

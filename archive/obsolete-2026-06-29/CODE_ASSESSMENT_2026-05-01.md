@@ -1,6 +1,6 @@
 # Semptify 5.0 - Latest Code Assessment
-**Date:** May 1, 2026  
-**Purpose:** Streamlined finishing assessment for app completion  
+**Date:** May 1, 2026
+**Purpose:** Streamlined finishing assessment for app completion
 **Scope:** Critical issues, code health, completion roadmap
 
 ---
@@ -74,7 +74,7 @@ async def tenant_home(request: Request):
 
 **Test Results:**
 - `test_role_select_page_loads` - FAILED
-- `test_tenant_role_available` - FAILED  
+- `test_tenant_role_available` - FAILED
 - `test_role_selection_flow` - FAILED
 
 **Likely Causes:**

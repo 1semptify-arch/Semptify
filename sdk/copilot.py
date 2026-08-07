@@ -13,6 +13,7 @@ from .base import BaseClient
 
 class ConversationType(str, Enum):
     """Types of copilot conversations."""
+
     GENERAL = "general"
     DOCUMENT_ANALYSIS = "document_analysis"
     CASE_STRATEGY = "case_strategy"
@@ -24,6 +25,7 @@ class ConversationType(str, Enum):
 @dataclass
 class Message:
     """Conversation message."""
+
     role: str  # "user" or "assistant"
     content: str
     timestamp: str | None = None
@@ -33,6 +35,7 @@ class Message:
 @dataclass
 class Conversation:
     """Copilot conversation."""
+
     id: str
     conversation_type: str
     title: str | None = None
@@ -48,6 +51,7 @@ class Conversation:
 @dataclass
 class CaseAnalysis:
     """AI-generated case analysis."""
+
     summary: str
     strengths: list[str]
     weaknesses: list[str]
@@ -61,6 +65,7 @@ class CaseAnalysis:
 @dataclass
 class DraftResponse:
     """AI-generated draft document."""
+
     draft_type: str
     content: str
     sections: list[dict[str, str]]
@@ -80,19 +85,21 @@ class CopilotClient(BaseClient):
     ) -> dict[str, Any]:
         """
         Send a message to the copilot and get a response.
-        
+
         Args:
             message: User message
             conversation_id: Existing conversation ID to continue
             conversation_type: Type of conversation
             context: Additional context (documents, case info, etc.)
-            
+
         Returns:
             Response with assistant message and conversation details
         """
         data = {
             "message": message,
-            "conversation_type": conversation_type.value if isinstance(conversation_type, ConversationType) else conversation_type,
+            "conversation_type": conversation_type.value
+            if isinstance(conversation_type, ConversationType)
+            else conversation_type,
         }
 
         if conversation_id:
@@ -110,12 +117,12 @@ class CopilotClient(BaseClient):
     ) -> CaseAnalysis:
         """
         Get a comprehensive AI analysis of the current case.
-        
+
         Args:
             include_documents: Include document analysis
             include_timeline: Include timeline analysis
             focus_areas: Specific areas to focus on
-            
+
         Returns:
             Case analysis with strengths, weaknesses, and recommendations
         """
@@ -146,11 +153,11 @@ class CopilotClient(BaseClient):
     ) -> dict[str, Any]:
         """
         Analyze a specific document with AI.
-        
+
         Args:
             document_id: The document ID to analyze
             analysis_type: Type of analysis (comprehensive, summary, key_dates, violations)
-            
+
         Returns:
             Document analysis results
         """
@@ -169,14 +176,14 @@ class CopilotClient(BaseClient):
     ) -> DraftResponse:
         """
         Draft a letter using AI assistance.
-        
+
         Args:
             letter_type: Type of letter (demand, complaint_to_landlord, repair_request, etc.)
             recipient: Letter recipient description
             key_points: Key points to include
             tone: Letter tone (professional, firm, urgent)
             include_citations: Include legal citations
-            
+
         Returns:
             Drafted letter content
         """
@@ -206,12 +213,12 @@ class CopilotClient(BaseClient):
     ) -> DraftResponse:
         """
         Draft a section of a legal complaint.
-        
+
         Args:
             section_type: Section type (allegations, prayer_for_relief, causes_of_action)
             facts: Relevant facts to include
             legal_basis: Legal basis for the section
-            
+
         Returns:
             Drafted complaint section
         """
@@ -239,11 +246,11 @@ class CopilotClient(BaseClient):
     ) -> list[dict[str, Any]]:
         """
         Get AI-powered recommendations for next steps.
-        
+
         Args:
             context: Context for recommendations
             urgency: Urgency level (low, normal, high, critical)
-            
+
         Returns:
             List of recommended actions
         """
@@ -256,10 +263,10 @@ class CopilotClient(BaseClient):
     def get_conversation(self, conversation_id: str) -> Conversation:
         """
         Get a specific conversation.
-        
+
         Args:
             conversation_id: The conversation ID
-            
+
         Returns:
             Conversation with messages
         """
@@ -291,11 +298,11 @@ class CopilotClient(BaseClient):
     ) -> list[Conversation]:
         """
         List copilot conversations.
-        
+
         Args:
             conversation_type: Filter by type
             limit: Maximum conversations to return
-            
+
         Returns:
             List of conversations
         """
@@ -320,10 +327,10 @@ class CopilotClient(BaseClient):
     def delete_conversation(self, conversation_id: str) -> bool:
         """
         Delete a conversation.
-        
+
         Args:
             conversation_id: The conversation ID
-            
+
         Returns:
             True if deleted successfully
         """
@@ -338,12 +345,12 @@ class CopilotClient(BaseClient):
     ) -> list[dict[str, Any]]:
         """
         Search legal resources and precedents.
-        
+
         Args:
             query: Search query
             jurisdiction: Filter by jurisdiction
             document_types: Filter by document types
-            
+
         Returns:
             Search results with relevant legal resources
         """

@@ -22,23 +22,29 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class TwoFactorMethod(Enum):
     """Two-factor authentication methods."""
+
     TOTP = "totp"
     SMS = "sms"
     EMAIL = "email"
     BACKUP_CODES = "backup_codes"
 
+
 class SessionStatus(Enum):
     """Session status types."""
+
     ACTIVE = "active"
     EXPIRED = "expired"
     REVOKED = "revoked"
     SUSPENDED = "suspended"
 
+
 @dataclass
 class TwoFactorSetup:
     """Two-factor authentication setup data."""
+
     user_id: str
     secret: str
     backup_codes: list[str]
@@ -54,12 +60,14 @@ class TwoFactorSetup:
             "qr_code": self.qr_code,
             "backup_codes_count": len(self.backup_codes),
             "created_at": self.created_at.isoformat(),
-            "verified_at": self.verified_at.isoformat() if self.verified_at else None
+            "verified_at": self.verified_at.isoformat() if self.verified_at else None,
         }
+
 
 @dataclass
 class UserSession:
     """User session information."""
+
     session_id: str
     user_id: str
     created_at: datetime
@@ -82,12 +90,14 @@ class UserSession:
             "user_agent": self.user_agent,
             "status": self.status.value,
             "two_factor_verified": self.two_factor_verified,
-            "device_info": self.device_info
+            "device_info": self.device_info,
         }
+
 
 @dataclass
 class SecurityEvent:
     """Security event log."""
+
     event_id: str
     user_id: str
     event_type: str
@@ -108,8 +118,9 @@ class SecurityEvent:
             "user_agent": self.user_agent,
             "timestamp": self.timestamp.isoformat(),
             "severity": self.severity,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
+
 
 class TwoFactorAuthManager:
     """Manages two-factor authentication."""
@@ -136,17 +147,14 @@ class TwoFactorAuthManager:
 
         codes = []
         for _ in range(count):
-            code = ''.join(secrets.choice('0123456789') for _ in range(self.backup_code_length))
+            code = "".join(secrets.choice("0123456789") for _ in range(self.backup_code_length))
             codes.append(code)
 
         return codes
 
     def generate_qr_code(self, secret: str, user_email: str, issuer: str = "Semptify") -> str:
         """Generate QR code for TOTP setup."""
-        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-            name=user_email,
-            issuer_name=issuer
-        )
+        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user_email, issuer_name=issuer)
 
         qr = qrcode.QRCode(
             version=1,
@@ -159,12 +167,13 @@ class TwoFactorAuthManager:
         # Convert to base64 image
         img = qr.make_image(fill_color="black", back_color="white")
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
 
         return base64.b64encode(buffer.getvalue()).decode()
 
-    def setup_two_factor(self, user_id: str, user_email: str,
-                           method: TwoFactorMethod = TwoFactorMethod.TOTP) -> TwoFactorSetup:
+    def setup_two_factor(
+        self, user_id: str, user_email: str, method: TwoFactorMethod = TwoFactorMethod.TOTP
+    ) -> TwoFactorSetup:
         """Setup two-factor authentication for user."""
         secret = self.generate_totp_secret()
         backup_codes = self.generate_backup_codes()
@@ -180,7 +189,7 @@ class TwoFactorAuthManager:
             backup_codes=backup_codes,
             qr_code=qr_code,
             method=method,
-            created_at=utc_now()
+            created_at=utc_now(),
         )
 
         # Store setup data
@@ -215,8 +224,7 @@ class TwoFactorAuthManager:
 
         return False
 
-    def verify_two_factor(self, user_id: str, code: str,
-                         method: TwoFactorMethod = TwoFactorMethod.TOTP) -> bool:
+    def verify_two_factor(self, user_id: str, code: str, method: TwoFactorMethod = TwoFactorMethod.TOTP) -> bool:
         """Verify two-factor authentication code."""
         if method == TwoFactorMethod.TOTP:
             return self.verify_totp(user_id, code)
@@ -258,7 +266,7 @@ class TwoFactorAuthManager:
             "enabled": enabled,
             "has_setup": has_setup,
             "method": TwoFactorMethod.TOTP.value if has_setup else None,
-            "enabled_at": self.verified_users.get(user_id).isoformat() if enabled else None
+            "enabled_at": self.verified_users.get(user_id).isoformat() if enabled else None,
         }
 
     def regenerate_backup_codes(self, user_id: str) -> list[str]:
@@ -271,6 +279,7 @@ class TwoFactorAuthManager:
 
         logger.info(f"Regenerated backup codes for user {user_id}")
         return backup_codes
+
 
 class SessionManager:
     """Manages user sessions with enhanced security."""
@@ -288,15 +297,19 @@ class SessionManager:
         # Security events
         self.security_events: list[SecurityEvent] = []
 
-    def create_session(self, user_id: str, ip_address: str,
-                    user_agent: str, device_info: dict[str, Any] = None,
-                    duration: timedelta = None) -> str:
+    def create_session(
+        self,
+        user_id: str,
+        ip_address: str,
+        user_agent: str,
+        device_info: dict[str, Any] = None,
+        duration: timedelta = None,
+    ) -> str:
         """Create a new user session."""
         # Check session limits
         if len(self.user_sessions[user_id]) >= self.max_sessions_per_user:
             # Remove oldest session
-            oldest_session_id = min(self.user_sessions[user_id],
-                                key=lambda sid: self.sessions[sid].created_at)
+            oldest_session_id = min(self.user_sessions[user_id], key=lambda sid: self.sessions[sid].created_at)
             self.revoke_session(oldest_session_id)
 
         # Generate session ID
@@ -315,7 +328,7 @@ class SessionManager:
             expires_at=utc_now() + duration,
             ip_address=ip_address,
             user_agent=user_agent,
-            device_info=device_info or {}
+            device_info=device_info or {},
         )
 
         # Store session
@@ -329,7 +342,7 @@ class SessionManager:
             description="New session created",
             ip_address=ip_address,
             user_agent=user_agent,
-            metadata={"session_id": session_id}
+            metadata={"session_id": session_id},
         )
 
         logger.info(f"Created session {session_id} for user {user_id}")
@@ -360,11 +373,7 @@ class SessionManager:
                 description="Session IP address changed",
                 ip_address=ip_address,
                 user_agent="",
-                metadata={
-                    "session_id": session_id,
-                    "original_ip": session.ip_address,
-                    "new_ip": ip_address
-                }
+                metadata={"session_id": session_id, "original_ip": session.ip_address, "new_ip": ip_address},
             )
 
         # Update last activity
@@ -398,14 +407,15 @@ class SessionManager:
             description=f"Session revoked: {reason}",
             ip_address=session.ip_address,
             user_agent=session.user_agent,
-            metadata={"session_id": session_id, "reason": reason}
+            metadata={"session_id": session_id, "reason": reason},
         )
 
         logger.info(f"Revoked session {session_id} for user {user_id}")
         return True
 
-    def revoke_all_user_sessions(self, user_id: str, except_session_id: str = None,
-                              reason: str = "security_action") -> int:
+    def revoke_all_user_sessions(
+        self, user_id: str, except_session_id: str = None, reason: str = "security_action"
+    ) -> int:
         """Revoke all sessions for a user."""
         if user_id not in self.user_sessions:
             return 0
@@ -440,10 +450,7 @@ class SessionManager:
             description="Session extended",
             ip_address=session.ip_address,
             user_agent=session.user_agent,
-            metadata={
-                "session_id": session_id,
-                "new_expires_at": session.expires_at.isoformat()
-            }
+            metadata={"session_id": session_id, "new_expires_at": session.expires_at.isoformat()},
         )
 
         logger.info(f"Extended session {session_id} for user {session.user_id}")
@@ -489,7 +496,7 @@ class SessionManager:
                 description="Session expired",
                 ip_address=session.ip_address,
                 user_agent=session.user_agent,
-                metadata={"session_id": session_id}
+                metadata={"session_id": session_id},
             )
 
         if expired_sessions:
@@ -497,9 +504,16 @@ class SessionManager:
 
         return len(expired_sessions)
 
-    def log_security_event(self, user_id: str, event_type: str, description: str,
-                         ip_address: str, user_agent: str,
-                         severity: str = "medium", metadata: dict[str, Any] = None):
+    def log_security_event(
+        self,
+        user_id: str,
+        event_type: str,
+        description: str,
+        ip_address: str,
+        user_agent: str,
+        severity: str = "medium",
+        metadata: dict[str, Any] = None,
+    ):
         """Log a security event."""
         event = SecurityEvent(
             event_id=secrets.token_urlsafe(16),
@@ -510,7 +524,7 @@ class SessionManager:
             user_agent=user_agent,
             timestamp=utc_now(),
             severity=severity,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         self.security_events.append(event)
@@ -535,21 +549,18 @@ class SessionManager:
         """Get session statistics."""
         current_time = utc_now()
 
-        active_sessions = len([
-            s for s in self.sessions.values()
-            if s.status == SessionStatus.ACTIVE and s.expires_at > current_time
-        ])
+        active_sessions = len(
+            [s for s in self.sessions.values() if s.status == SessionStatus.ACTIVE and s.expires_at > current_time]
+        )
 
         return {
             "total_sessions": len(self.sessions),
             "active_sessions": active_sessions,
             "unique_users": len(self.user_sessions),
             "security_events_logged": len(self.security_events),
-            "average_sessions_per_user": (
-                len(self.sessions) / len(self.user_sessions)
-                if self.user_sessions else 0
-            )
+            "average_sessions_per_user": (len(self.sessions) / len(self.user_sessions) if self.user_sessions else 0),
         }
+
 
 class AdvancedSecurityManager:
     """Manages advanced security features."""
@@ -562,8 +573,7 @@ class AdvancedSecurityManager:
         """Setup two-factor authentication."""
         return self.two_factor.setup_two_factor(user_id, user_email)
 
-    def verify_two_factor(self, user_id: str, code: str,
-                         method: TwoFactorMethod = TwoFactorMethod.TOTP) -> bool:
+    def verify_two_factor(self, user_id: str, code: str, method: TwoFactorMethod = TwoFactorMethod.TOTP) -> bool:
         """Verify two-factor authentication."""
         return self.two_factor.verify_two_factor(user_id, code, method)
 
@@ -575,16 +585,18 @@ class AdvancedSecurityManager:
         """Disable two-factor authentication."""
         return self.two_factor.disable_two_factor(user_id)
 
-    def create_secure_session(self, user_id: str, ip_address: str,
-                          user_agent: str, device_info: dict[str, Any] = None,
-                          require_2fa: bool = False) -> dict[str, Any]:
+    def create_secure_session(
+        self,
+        user_id: str,
+        ip_address: str,
+        user_agent: str,
+        device_info: dict[str, Any] = None,
+        require_2fa: bool = False,
+    ) -> dict[str, Any]:
         """Create a secure session with optional 2FA requirement."""
         # Create session
         session_id = self.session_manager.create_session(
-            user_id=user_id,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            device_info=device_info
+            user_id=user_id, ip_address=ip_address, user_agent=user_agent, device_info=device_info
         )
 
         # Check if 2FA is required and enabled
@@ -594,11 +606,7 @@ class AdvancedSecurityManager:
         session = self.session_manager.sessions[session_id]
         session.two_factor_verified = not two_factor_required
 
-        return {
-            "session_id": session_id,
-            "two_factor_required": two_factor_required,
-            "session": session.to_dict()
-        }
+        return {"session_id": session_id, "two_factor_required": two_factor_required, "session": session.to_dict()}
 
     def validate_secure_session(self, session_id: str, ip_address: str = None) -> UserSession | None:
         """Validate a secure session."""
@@ -620,7 +628,7 @@ class AdvancedSecurityManager:
             "active_sessions": len(user_sessions),
             "sessions": [s.to_dict() for s in user_sessions],
             "recent_security_events": [e.to_dict() for e in security_events],
-            "security_score": self._calculate_security_score(user_id)
+            "security_score": self._calculate_security_score(user_id),
         }
 
     def _calculate_security_score(self, user_id: str) -> int:
@@ -640,10 +648,7 @@ class AdvancedSecurityManager:
 
         # Recent security events
         recent_events = self.session_manager.get_user_security_events(user_id, limit=20)
-        failed_attempts = len([
-            e for e in recent_events
-            if e.event_type in ["login_failed", "session_revoked"]
-        ])
+        failed_attempts = len([e for e in recent_events if e.event_type in ["login_failed", "session_revoked"]])
 
         if failed_attempts == 0:
             score += 10
@@ -656,8 +661,10 @@ class AdvancedSecurityManager:
 
         return max(0, min(100, score))
 
+
 # Global advanced security manager instance
 _advanced_security_manager: AdvancedSecurityManager | None = None
+
 
 def get_advanced_security_manager() -> AdvancedSecurityManager:
     """Get the global advanced security manager instance."""
@@ -668,11 +675,13 @@ def get_advanced_security_manager() -> AdvancedSecurityManager:
 
     return _advanced_security_manager
 
+
 # Helper functions
 def setup_two_factor_auth(user_id: str, user_email: str) -> TwoFactorSetup:
     """Setup two-factor authentication."""
     manager = get_advanced_security_manager()
     return manager.setup_two_factor_auth(user_id, user_email)
+
 
 def verify_two_factor(user_id: str, code: str, method: str = "totp") -> bool:
     """Verify two-factor authentication."""
@@ -680,27 +689,32 @@ def verify_two_factor(user_id: str, code: str, method: str = "totp") -> bool:
     method_enum = TwoFactorMethod(method)
     return manager.verify_two_factor(user_id, code, method_enum)
 
+
 def enable_two_factor(user_id: str) -> bool:
     """Enable two-factor authentication."""
     manager = get_advanced_security_manager()
     return manager.enable_two_factor(user_id)
+
 
 def disable_two_factor(user_id: str) -> bool:
     """Disable two-factor authentication."""
     manager = get_advanced_security_manager()
     return manager.disable_two_factor(user_id)
 
-def create_secure_session(user_id: str, ip_address: str, user_agent: str,
-                        device_info: dict[str, Any] = None,
-                        require_2fa: bool = False) -> dict[str, Any]:
+
+def create_secure_session(
+    user_id: str, ip_address: str, user_agent: str, device_info: dict[str, Any] = None, require_2fa: bool = False
+) -> dict[str, Any]:
     """Create a secure session."""
     manager = get_advanced_security_manager()
     return manager.create_secure_session(user_id, ip_address, user_agent, device_info, require_2fa)
+
 
 def validate_secure_session(session_id: str, ip_address: str = None) -> UserSession | None:
     """Validate a secure session."""
     manager = get_advanced_security_manager()
     return manager.validate_secure_session(session_id, ip_address)
+
 
 def get_security_status(user_id: str) -> dict[str, Any]:
     """Get comprehensive security status."""

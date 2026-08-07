@@ -29,45 +29,100 @@ logger = logging.getLogger(__name__)
 # Builtin names permitted inside exec()'d test snippets.
 # Dangerous builtins (open, eval, exec, compile, input, breakpoint, exit, quit)
 # are intentionally excluded.
-_SAFE_BUILTIN_NAMES = frozenset([
-    'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'bytearray', 'bytes',
-    'callable', 'chr', 'classmethod', 'complex', 'dict',
-    'divmod', 'enumerate', 'filter', 'float', 'format', 'frozenset',
-    'hash', 'hex', 'id', 'int', 'isinstance', 'issubclass',
-    'iter', 'len', 'list', 'map', 'max', 'memoryview', 'min', 'next',
-    'oct', 'ord', 'pow', 'property', 'range', 'repr', 'reversed', 'round',
-    'set', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super', 'tuple',
-    'zip', 'AssertionError', 'AttributeError', 'Exception',
-    'ImportError', 'IndexError', 'KeyError', 'LookupError', 'NameError',
-    'RuntimeError', 'StopIteration', 'TypeError', 'ValueError', 'ZeroDivisionError',
-    'True', 'False', 'None',
-])
+_SAFE_BUILTIN_NAMES = frozenset(
+    [
+        "abs",
+        "all",
+        "any",
+        "ascii",
+        "bin",
+        "bool",
+        "bytearray",
+        "bytes",
+        "callable",
+        "chr",
+        "classmethod",
+        "complex",
+        "dict",
+        "divmod",
+        "enumerate",
+        "filter",
+        "float",
+        "format",
+        "frozenset",
+        "hash",
+        "hex",
+        "id",
+        "int",
+        "isinstance",
+        "issubclass",
+        "iter",
+        "len",
+        "list",
+        "map",
+        "max",
+        "memoryview",
+        "min",
+        "next",
+        "oct",
+        "ord",
+        "pow",
+        "property",
+        "range",
+        "repr",
+        "reversed",
+        "round",
+        "set",
+        "slice",
+        "sorted",
+        "staticmethod",
+        "str",
+        "sum",
+        "super",
+        "tuple",
+        "zip",
+        "AssertionError",
+        "AttributeError",
+        "Exception",
+        "ImportError",
+        "IndexError",
+        "KeyError",
+        "LookupError",
+        "NameError",
+        "RuntimeError",
+        "StopIteration",
+        "TypeError",
+        "ValueError",
+        "ZeroDivisionError",
+        "True",
+        "False",
+        "None",
+    ]
+)
 
 _builtins_source = __builtins__ if isinstance(__builtins__, dict) else vars(__builtins__)
-_SAFE_BUILTINS = {
-    name: _builtins_source[name]
-    for name in _SAFE_BUILTIN_NAMES
-    if name in _builtins_source
-}
+_SAFE_BUILTINS = {name: _builtins_source[name] for name in _SAFE_BUILTIN_NAMES if name in _builtins_source}
 
 # Modules that hardcoded default test snippets are allowed to import.
 # Any module outside this set (or special-cased below) is rejected by the
 # custom __import__ guard. Relative imports are not allowed.
-_SAFE_ALLOWED_MODULES = frozenset([
-    'tempfile',
-    'time',
-    'pyotp',
-    'app.core.security',
-    'app.core.advanced_rate_limiter',
-    'app.core.advanced_security',
-    'app.core.cache_manager',
-])
+_SAFE_ALLOWED_MODULES = frozenset(
+    [
+        "tempfile",
+        "time",
+        "pyotp",
+        "app.core.security",
+        "app.core.advanced_rate_limiter",
+        "app.core.advanced_security",
+        "app.core.cache_manager",
+    ]
+)
 
 # The default test snippet uses os.unlink to clean up a temp file. Expose
 # only that operation so that dangerous attributes like os.system cannot be
 # reached from inside the sandbox.
 _safe_os = types.SimpleNamespace()
-_safe_os.__name__ = 'os'
+_safe_os.__name__ = "os"
 _safe_os.unlink = os.unlink
 
 
@@ -75,18 +130,19 @@ def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     """Restricted __import__ used by exec()'d test code."""
     if level != 0:
         raise ImportError("Relative imports are not allowed in test sandbox")
-    if name == 'os':
+    if name == "os":
         return _safe_os
     if name not in _SAFE_ALLOWED_MODULES:
         raise ImportError(f"Import of module '{name}' is not allowed in test sandbox")
     return importlib.import_module(name)
 
 
-_SAFE_BUILTINS['__import__'] = _safe_import
+_SAFE_BUILTINS["__import__"] = _safe_import
 
 
 class TestType(Enum):
     """Test types."""
+
     UNIT = "unit"
     INTEGRATION = "integration"
     ENDPOINT = "endpoint"
@@ -94,8 +150,10 @@ class TestType(Enum):
     SECURITY = "security"
     E2E = "e2e"
 
+
 class TestStatus(Enum):
     """Test execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -103,9 +161,11 @@ class TestStatus(Enum):
     SKIPPED = "skipped"
     ERROR = "error"
 
+
 @dataclass
 class TestCase:
     """Individual test case."""
+
     test_id: str
     name: str
     test_type: TestType
@@ -126,9 +186,11 @@ class TestCase:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
+
 @dataclass
 class TestResult:
     """Test execution result."""
+
     test_id: str
     status: TestStatus
     started_at: datetime
@@ -152,12 +214,14 @@ class TestResult:
             "error_message": self.error_message,
             "actual_result": self.actual_result,
             "expected_result": self.expected_result,
-            "passed": self.passed
+            "passed": self.passed,
         }
+
 
 @dataclass
 class TestSuite:
     """Collection of test cases."""
+
     suite_id: str
     name: str
     description: str
@@ -177,12 +241,14 @@ class TestSuite:
             "description": self.description,
             "test_cases": [tc.to_dict() for tc in self.test_cases],
             "test_count": len(self.test_cases),
-            "tags": self.tags
+            "tags": self.tags,
         }
+
 
 @dataclass
 class TestRun:
     """Test execution run."""
+
     run_id: str
     suite_id: str
     started_at: datetime
@@ -205,7 +271,7 @@ class TestRun:
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "status": self.status.value,
             "test_results": [tr.to_dict() for tr in self.test_results],
-            "summary": self.get_summary()
+            "summary": self.get_summary(),
         }
 
     def get_summary(self) -> dict[str, Any]:
@@ -226,8 +292,9 @@ class TestRun:
             "error_tests": error_tests,
             "pass_rate": (passed_tests / total_tests) if total_tests > 0 else 0,
             "total_duration_seconds": total_duration,
-            "average_duration_seconds": (total_duration / total_tests) if total_tests > 0 else 0
+            "average_duration_seconds": (total_duration / total_tests) if total_tests > 0 else 0,
         }
+
 
 class TestFramework:
     """Comprehensive testing framework."""
@@ -243,13 +310,7 @@ class TestFramework:
         self.max_retries = 3
 
         # Statistics
-        self.stats = {
-            "total_suites": 0,
-            "total_runs": 0,
-            "total_tests": 0,
-            "total_passed": 0,
-            "total_failed": 0
-        }
+        self.stats = {"total_suites": 0, "total_runs": 0, "total_tests": 0, "total_passed": 0, "total_failed": 0}
 
     def register_test_suite(self, suite: TestSuite):
         """Register a test suite."""
@@ -259,22 +320,18 @@ class TestFramework:
 
         logger.info(f"Registered test suite {suite.suite_id} with {len(suite.test_cases)} tests")
 
-    def create_test_suite(self, suite_id: str, name: str, description: str,
-                       test_cases: list[TestCase], tags: list[str] = None) -> TestSuite:
+    def create_test_suite(
+        self, suite_id: str, name: str, description: str, test_cases: list[TestCase], tags: list[str] = None
+    ) -> TestSuite:
         """Create and register a test suite."""
-        suite = TestSuite(
-            suite_id=suite_id,
-            name=name,
-            description=description,
-            test_cases=test_cases,
-            tags=tags or []
-        )
+        suite = TestSuite(suite_id=suite_id, name=name, description=description, test_cases=test_cases, tags=tags or [])
 
         self.register_test_suite(suite)
         return suite
 
-    async def run_test_suite(self, suite_id: str, test_filter: str = None,
-                          environment: dict[str, Any] = None) -> TestRun:
+    async def run_test_suite(
+        self, suite_id: str, test_filter: str = None, environment: dict[str, Any] = None
+    ) -> TestRun:
         """Run a test suite."""
         if suite_id not in self.test_suites:
             raise ValueError(f"Test suite not found: {suite_id}")
@@ -283,12 +340,7 @@ class TestFramework:
         run_id = f"run_{utc_now().strftime('%Y%m%d_%H%M%S')}_{suite_id}"
 
         # Create test run
-        run = TestRun(
-            run_id=run_id,
-            suite_id=suite_id,
-            started_at=utc_now(),
-            environment=environment or {}
-        )
+        run = TestRun(run_id=run_id, suite_id=suite_id, started_at=utc_now(), environment=environment or {})
 
         self.test_runs[run_id] = run
         self.stats["total_runs"] += 1
@@ -324,7 +376,7 @@ class TestFramework:
                         status=TestStatus.ERROR,
                         started_at=utc_now(),
                         completed_at=utc_now(),
-                        error_message=str(result)
+                        error_message=str(result),
                     )
                     run.test_results.append(error_result)
                 else:
@@ -354,11 +406,7 @@ class TestFramework:
     async def _execute_test_case(self, test_case: TestCase, semaphore: asyncio.Semaphore) -> TestResult:
         """Execute a single test case."""
         async with semaphore:
-            result = TestResult(
-                test_id=test_case.test_id,
-                status=TestStatus.RUNNING,
-                started_at=utc_now()
-            )
+            result = TestResult(test_id=test_case.test_id, status=TestStatus.RUNNING, started_at=utc_now())
 
             try:
                 # Execute setup code if provided
@@ -416,18 +464,18 @@ class TestFramework:
             # excluded. A custom __import__ restricts imports to the small
             # set of modules required by the hardcoded default test suites.
             local_vars = {
-                'datetime': datetime,
-                'timezone': timezone,
-                'logger': logger,
-                'asyncio': asyncio,
-                '__builtins__': _SAFE_BUILTINS.copy(),
+                "datetime": datetime,
+                "timezone": timezone,
+                "logger": logger,
+                "asyncio": asyncio,
+                "__builtins__": _SAFE_BUILTINS.copy(),
             }
 
             # Execute the code
             exec(code, local_vars)
 
             # Return result if available
-            return local_vars.get('result')
+            return local_vars.get("result")
 
         except Exception as e:
             logger.error(f"Code execution failed in {context}: {e}")
@@ -465,14 +513,11 @@ class TestFramework:
             "total_passed": self.stats["total_passed"],
             "total_failed": self.stats["total_failed"],
             "overall_pass_rate": (
-                self.stats["total_passed"] / self.stats["total_tests"]
-                if self.stats["total_tests"] > 0 else 0
+                self.stats["total_passed"] / self.stats["total_tests"] if self.stats["total_tests"] > 0 else 0
             ),
-            "active_runs": len([
-                run for run in self.test_runs.values()
-                if run.status == TestStatus.RUNNING
-            ])
+            "active_runs": len([run for run in self.test_runs.values() if run.status == TestStatus.RUNNING]),
         }
+
 
 class CICDPipeline:
     """CI/CD Pipeline Management."""
@@ -483,24 +528,10 @@ class CICDPipeline:
 
         # Default pipeline configuration
         self.default_config = {
-            "stages": [
-                "lint",
-                "unit_tests",
-                "integration_tests",
-                "security_tests",
-                "build",
-                "deploy_staging"
-            ],
+            "stages": ["lint", "unit_tests", "integration_tests", "security_tests", "build", "deploy_staging"],
             "triggers": ["push", "pull_request"],
-            "environment": {
-                "python_version": "3.9+",
-                "node_version": "16+"
-            },
-            "notifications": {
-                "slack": True,
-                "email": True,
-                "github": True
-            }
+            "environment": {"python_version": "3.9+", "node_version": "16+"},
+            "notifications": {"slack": True, "email": True, "github": True},
         }
 
     def create_pipeline_config(self, name: str, config: dict[str, Any] = None) -> str:
@@ -516,7 +547,7 @@ class CICDPipeline:
             "name": name,
             "config": final_config,
             "created_at": utc_now().isoformat(),
-            "active": True
+            "active": True,
         }
 
         logger.info(f"Created pipeline config {pipeline_id} for {name}")
@@ -537,7 +568,7 @@ class CICDPipeline:
             "started_at": utc_now().isoformat(),
             "status": "running",
             "stages": {},
-            "logs": []
+            "logs": [],
         }
 
         logger.info(f"Starting pipeline run {run_id} for pipeline {pipeline_id}")
@@ -555,7 +586,7 @@ class CICDPipeline:
 
                 self.pipeline_runs[run_id]["stages"][stage] = {
                     "status": "running",
-                    "started_at": stage_start.isoformat()
+                    "started_at": stage_start.isoformat(),
                 }
 
                 # Execute stage
@@ -564,11 +595,13 @@ class CICDPipeline:
                 stage_end = utc_now()
                 duration = (stage_end - stage_start).total_seconds()
 
-                self.pipeline_runs[run_id]["stages"][stage].update({
-                    "status": "passed" if success else "failed",
-                    "completed_at": stage_end.isoformat(),
-                    "duration_seconds": duration
-                })
+                self.pipeline_runs[run_id]["stages"][stage].update(
+                    {
+                        "status": "passed" if success else "failed",
+                        "completed_at": stage_end.isoformat(),
+                        "duration_seconds": duration,
+                    }
+                )
 
                 if not success:
                     self.pipeline_runs[run_id]["status"] = "failed"
@@ -613,10 +646,11 @@ class CICDPipeline:
         """Run code linting."""
         try:
             # Run flake8
-            result = subprocess.run([
-                sys.executable, "-m", "flake8",
-                "app/", "--max-line-length=100", "--ignore=E203,W503"
-            ], capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, "-m", "flake8", "app/", "--max-line-length=100", "--ignore=E203,W503"],
+                capture_output=True,
+                text=True,
+            )
 
             return result.returncode == 0
 
@@ -628,10 +662,9 @@ class CICDPipeline:
         """Run unit tests."""
         try:
             # Run pytest
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                "tests/unit/", "-v", "--tb=short"
-            ], capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, "-m", "pytest", "tests/unit/", "-v", "--tb=short"], capture_output=True, text=True
+            )
 
             return result.returncode == 0
 
@@ -643,10 +676,11 @@ class CICDPipeline:
         """Run integration tests."""
         try:
             # Run pytest for integration tests
-            result = subprocess.run([
-                sys.executable, "-m", "pytest",
-                "tests/integration/", "-v", "--tb=short"
-            ], capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, "-m", "pytest", "tests/integration/", "-v", "--tb=short"],
+                capture_output=True,
+                text=True,
+            )
 
             return result.returncode == 0
 
@@ -658,10 +692,9 @@ class CICDPipeline:
         """Run security tests."""
         try:
             # Run bandit for security scanning
-            result = subprocess.run([
-                sys.executable, "-m", "bandit",
-                "-r", "app/", "-f", "json"
-            ], capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, "-m", "bandit", "-r", "app/", "-f", "json"], capture_output=True, text=True
+            )
 
             return result.returncode == 0
 
@@ -673,9 +706,7 @@ class CICDPipeline:
         """Run build process."""
         try:
             # Run build process (simplified)
-            result = subprocess.run([
-                sys.executable, "setup.py", "build"
-            ], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, "setup.py", "build"], capture_output=True, text=True)
 
             return result.returncode == 0
 
@@ -703,14 +734,8 @@ class CICDPipeline:
     def get_pipeline_statistics(self) -> dict[str, Any]:
         """Get CI/CD pipeline statistics."""
         total_runs = len(self.pipeline_runs)
-        passed_runs = len([
-            run for run in self.pipeline_runs.values()
-            if run["status"] == "passed"
-        ])
-        failed_runs = len([
-            run for run in self.pipeline_runs.values()
-            if run["status"] == "failed"
-        ])
+        passed_runs = len([run for run in self.pipeline_runs.values() if run["status"] == "passed"])
+        failed_runs = len([run for run in self.pipeline_runs.values() if run["status"] == "failed"])
 
         return {
             "total_pipelines": len(self.pipeline_configs),
@@ -718,15 +743,14 @@ class CICDPipeline:
             "passed_runs": passed_runs,
             "failed_runs": failed_runs,
             "success_rate": (passed_runs / total_runs) if total_runs > 0 else 0,
-            "active_runs": len([
-                run for run in self.pipeline_runs.values()
-                if run["status"] == "running"
-            ])
+            "active_runs": len([run for run in self.pipeline_runs.values() if run["status"] == "running"]),
         }
+
 
 # Global instances
 _test_framework: TestFramework | None = None
 _cicd_pipeline: CICDPipeline | None = None
+
 
 def get_test_framework() -> TestFramework:
     """Get the global test framework instance."""
@@ -740,6 +764,7 @@ def get_test_framework() -> TestFramework:
 
     return _test_framework
 
+
 def get_cicd_pipeline() -> CICDPipeline:
     """Get the global CI/CD pipeline instance."""
     global _cicd_pipeline
@@ -748,6 +773,7 @@ def get_cicd_pipeline() -> CICDPipeline:
         _cicd_pipeline = CICDPipeline()
 
     return _cicd_pipeline
+
 
 def _create_default_test_suites():
     """Create default test suites for the application."""
@@ -765,19 +791,19 @@ def _create_default_test_suites():
             test_code="""
                 # Test user authentication
                 from app.core.security import authenticate_user
-                
+
                 # Test valid credentials
                 result = authenticate_user("test@example.com", "valid_password")
                 assert result is not None
                 assert result.user_id is not None
-                
+
                 # Test invalid credentials
                 result = authenticate_user("test@example.com", "invalid_password")
                 assert result is None
-                
+
                 result = {"success": True}
             """,
-            expected_result={"success": True}
+            expected_result={"success": True},
         ),
         TestCase(
             test_id="test_document_upload",
@@ -790,23 +816,23 @@ def _create_default_test_suites():
                 # Test document upload
                 import tempfile
                 import os
-                
+
                 # Create test file
                 with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
                     f.write("Test document content")
                     temp_path = f.name
-                
+
                 try:
                     # Test upload (simplified)
                     result = {"success": True, "file_path": temp_path}
                     os.unlink(temp_path)
                 except Exception as e:
                     result = {"success": False, "error": str(e)}
-                
+
                 result = {"success": True}
             """,
-            expected_result={"success": True}
-        )
+            expected_result={"success": True},
+        ),
     ]
 
     framework.create_test_suite(
@@ -814,7 +840,7 @@ def _create_default_test_suites():
         name="Core Functionality Tests",
         description="Tests for core application functionality",
         test_cases=core_tests,
-        tags=["core", "critical"]
+        tags=["core", "critical"],
     )
 
     # Security tests
@@ -829,21 +855,21 @@ def _create_default_test_suites():
             test_code="""
                 # Test rate limiting
                 from app.core.advanced_rate_limiter import check_rate_limit
-                
+
                 # Test normal usage
                 result1 = check_rate_limit("user1", "api", 10)
                 assert result1.allowed is True
-                
+
                 # Test exceeded limit
                 for i in range(15):
                     check_rate_limit("user1", "api", 10)
-                
+
                 result2 = check_rate_limit("user1", "api", 10)
                 assert result2.allowed is False
-                
+
                 result = {"success": True}
             """,
-            expected_result={"success": True}
+            expected_result={"success": True},
         ),
         TestCase(
             test_id="test_2fa",
@@ -855,23 +881,23 @@ def _create_default_test_suites():
             test_code="""
                 # Test 2FA
                 from app.core.advanced_security import setup_two_factor_auth, verify_two_factor
-                
+
                 # Setup 2FA
                 setup = setup_two_factor_auth("user1", "test@example.com")
                 assert setup.secret is not None
-                
+
                 # Test verification
                 import pyotp
                 totp = pyotp.TOTP(setup.secret)
                 code = totp.now()
-                
+
                 result = verify_two_factor("user1", code)
                 assert result is True
-                
+
                 result = {"success": True}
             """,
-            expected_result={"success": True}
-        )
+            expected_result={"success": True},
+        ),
     ]
 
     framework.create_test_suite(
@@ -879,7 +905,7 @@ def _create_default_test_suites():
         name="Security Tests",
         description="Security and authentication tests",
         test_cases=security_tests,
-        tags=["security", "critical"]
+        tags=["security", "critical"],
     )
 
     # Performance tests
@@ -895,25 +921,25 @@ def _create_default_test_suites():
                 # Test cache performance
                 import time
                 from app.core.cache_manager import get_cache_manager
-                
+
                 cache = get_cache_manager()
-                
+
                 # Test cache set/get performance
                 start_time = time.time()
-                
+
                 for i in range(1000):
                     cache.set(f"key_{i}", f"value_{i}")
                     cache.get(f"key_{i}")
-                
+
                 end_time = time.time()
                 duration = end_time - start_time
-                
+
                 # Should complete within 1 second
                 assert duration < 1.0
-                
+
                 result = {"success": True, "duration": duration}
             """,
-            expected_result={"success": True}
+            expected_result={"success": True},
         )
     ]
 
@@ -922,51 +948,60 @@ def _create_default_test_suites():
         name="Performance Tests",
         description="Performance and load tests",
         test_cases=performance_tests,
-        tags=["performance", "optimization"]
+        tags=["performance", "optimization"],
     )
 
+
 # Helper functions
-def create_test_suite(suite_id: str, name: str, description: str,
-                   test_cases: list[TestCase], tags: list[str] = None) -> TestSuite:
+def create_test_suite(
+    suite_id: str, name: str, description: str, test_cases: list[TestCase], tags: list[str] = None
+) -> TestSuite:
     """Create and register a test suite."""
     framework = get_test_framework()
     return framework.create_test_suite(suite_id, name, description, test_cases, tags)
 
-async def run_test_suite(suite_id: str, test_filter: str = None,
-                      environment: dict[str, Any] = None) -> TestRun:
+
+async def run_test_suite(suite_id: str, test_filter: str = None, environment: dict[str, Any] = None) -> TestRun:
     """Run a test suite."""
     framework = get_test_framework()
     return await framework.run_test_suite(suite_id, test_filter, environment)
+
 
 def get_test_suite(suite_id: str) -> TestSuite | None:
     """Get a test suite by ID."""
     framework = get_test_framework()
     return framework.get_test_suite(suite_id)
 
+
 def get_test_run(run_id: str) -> TestRun | None:
     """Get a test run by ID."""
     framework = get_test_framework()
     return framework.get_test_run(run_id)
+
 
 def get_test_statistics() -> dict[str, Any]:
     """Get test framework statistics."""
     framework = get_test_framework()
     return framework.get_statistics()
 
+
 def create_pipeline_config(name: str, config: dict[str, Any] = None) -> str:
     """Create a new CI/CD pipeline configuration."""
     pipeline = get_cicd_pipeline()
     return pipeline.create_pipeline_config(name, config)
+
 
 def run_pipeline(pipeline_id: str, trigger: str = "manual") -> str:
     """Run a CI/CD pipeline."""
     pipeline = get_cicd_pipeline()
     return pipeline.run_pipeline(pipeline_id, trigger)
 
+
 def get_pipeline_status(run_id: str) -> dict[str, Any] | None:
     """Get pipeline run status."""
     pipeline = get_cicd_pipeline()
     return pipeline.get_pipeline_status(run_id)
+
 
 def get_pipeline_statistics() -> dict[str, Any]:
     """Get CI/CD pipeline statistics."""

@@ -1,9 +1,9 @@
 # Process Contract: Returning User Reconnect
 
-**Contract ID**: `proc_returning_user_reconnect`  
-**Function Group**: `user_session_recovery`  
-**Version**: 1.0  
-**Status**: Draft  
+**Contract ID**: `proc_returning_user_reconnect`
+**Function Group**: `user_session_recovery`
+**Version**: 1.0
+**Status**: Draft
 **Created**: 2026-04-23
 
 ---
@@ -42,24 +42,24 @@
 ### Step 2: Verify Journal Exists
 **Backend Action**: Check if Semptify folder exists in user's storage
 
-**Success**: Journal found → Proceed to Step 3  
+**Success**: Journal found → Proceed to Step 3
 **Failure**: No journal → Show "No journal found" → Option to start fresh onboarding
 
 ### Step 3: Verify Storage Connection
 **Backend Action**: Check if OAuth tokens exist and are valid
 
-**Case A - Tokens Valid**:  
-→ Skip OAuth, restore session from DB tokens  
+**Case A - Tokens Valid**:
+→ Skip OAuth, restore session from DB tokens
 → Redirect to dashboard
 
-**Case B - Tokens Expired but Refreshable**:  
-→ Use refresh token to get new access token  
-→ Update DB, restore session  
+**Case B - Tokens Expired but Refreshable**:
+→ Use refresh token to get new access token
+→ Update DB, restore session
 → Redirect to dashboard
 
-**Case C - Tokens Revoked/Missing**:  
-→ Save `return_to` in session  
-→ Redirect to OAuth provider  
+**Case C - Tokens Revoked/Missing**:
+→ Save `return_to` in session
+→ Redirect to OAuth provider
 → After OAuth callback → restore session → redirect to dashboard
 
 ### Step 4: Session Restoration
@@ -71,10 +71,10 @@
 
 ### Step 5: Role-Based Routing
 **Redirect Target**:
-- Tenant → `/tenant/dashboard`  
-- Advocate → `/advocate/dashboard`  
-- Legal → `/legal/dashboard`  
-- Manager → `/manager/dashboard`  
+- Tenant → `/tenant/dashboard`
+- Advocate → `/advocate/dashboard`
+- Legal → `/legal/dashboard`
+- Manager → `/manager/dashboard`
 - Admin → `/admin/dashboard`
 
 ---
@@ -146,11 +146,11 @@
 ## 9. API Endpoints
 
 ### GET `/storage/auth/{provider}`
-**Query**: `?return_to=/storage/reconnect`  
+**Query**: `?return_to=/storage/reconnect`
 **Purpose**: Initiate OAuth flow
 
 ### GET `/storage/callback/{provider}`
-**Query**: `?code=...&state=...`  
+**Query**: `?code=...&state=...`
 **Purpose**: OAuth callback, identify user by provider account, restore session
 
 **Response**: Redirect to role-appropriate dashboard

@@ -1,10 +1,10 @@
 /**
  * Semptify Smoke Test
  * ===================
- * 
+ *
  * Quick test to verify the app is working.
  * Runs in ~30 seconds.
- * 
+ *
  * Checks:
  * - Server responds
  * - Main pages load
@@ -21,14 +21,14 @@ async function smokeTest() {
   console.log('=======================');
   console.log(`Target: ${BASE_URL}`);
   console.log('');
-  
+
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   const page = await context.newPage();
-  
+
   let passed = 0;
   let failed = 0;
-  
+
   const tests = [
     { name: 'Health Check', url: '/healthz' },
     { name: 'Welcome Page', url: '/static/welcome.html' },
@@ -37,14 +37,14 @@ async function smokeTest() {
     { name: 'Storage Entry', url: '/storage/entry' },
     { name: 'Navigation', url: '/ui/navigation' },
   ];
-  
+
   for (const test of tests) {
     try {
-      const response = await page.goto(`${BASE_URL}${test.url}`, { 
+      const response = await page.goto(`${BASE_URL}${test.url}`, {
         waitUntil: 'domcontentloaded',
-        timeout: 10000 
+        timeout: 10000
       });
-      
+
       if (response && (response.status() === 200 || response.status() === 307)) {
         console.log(`✅ ${test.name}: OK`);
         passed++;
@@ -57,14 +57,14 @@ async function smokeTest() {
       failed++;
     }
   }
-  
+
   await browser.close();
-  
+
   console.log('');
   console.log('=======================');
   console.log(`Passed: ${passed}/${tests.length}`);
   console.log(`Failed: ${failed}/${tests.length}`);
-  
+
   if (failed === 0) {
     console.log('✅ Smoke test PASSED');
     process.exit(0);

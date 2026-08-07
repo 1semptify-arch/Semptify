@@ -10,6 +10,7 @@ from httpx import AsyncClient
 # Authentication Tests
 # =============================================================================
 
+
 class TestAuthentication:
     """Tests for authentication endpoints."""
 
@@ -37,6 +38,7 @@ class TestAuthentication:
 # =============================================================================
 # Document Vault Tests
 # =============================================================================
+
 
 class TestDocumentVault:
     """Tests for document vault endpoints."""
@@ -67,6 +69,7 @@ class TestDocumentVault:
 # Timeline Tests
 # =============================================================================
 
+
 class TestTimeline:
     """Tests for timeline endpoints."""
 
@@ -82,11 +85,7 @@ class TestTimeline:
         """Test creating timeline event."""
         response = await client.post(
             "/api/timeline/events",
-            json={
-                "title": "Test Event",
-                "date": "2024-01-15",
-                "description": "Test description"
-            }
+            json={"title": "Test Event", "date": "2024-01-15", "description": "Test description"},
         )
         # Accept any valid HTTP response
         assert 100 <= response.status_code < 600
@@ -101,6 +100,7 @@ class TestTimeline:
 # =============================================================================
 # Calendar Tests
 # =============================================================================
+
 
 class TestCalendar:
     """Tests for calendar endpoints."""
@@ -122,25 +122,20 @@ class TestCalendar:
 # AI Copilot Tests
 # =============================================================================
 
+
 class TestAICopilot:
     """Tests for AI copilot endpoints."""
 
     @pytest.mark.anyio
     async def test_copilot_chat_empty_message(self, client: AsyncClient):
         """Test copilot rejects empty message."""
-        response = await client.post(
-            "/api/copilot/chat",
-            json={"message": ""}
-        )
+        response = await client.post("/api/copilot/chat", json={"message": ""})
         assert response.status_code in [400, 404, 422]
 
     @pytest.mark.anyio
     async def test_copilot_chat_valid_message(self, client: AsyncClient):
         """Test copilot with valid message."""
-        response = await client.post(
-            "/api/copilot/chat",
-            json={"message": "What are my tenant rights?"}
-        )
+        response = await client.post("/api/copilot/chat", json={"message": "What are my tenant rights?"})
         # May need API key or return error
         assert response.status_code in [200, 401, 404, 500, 503]
 
@@ -154,6 +149,7 @@ class TestAICopilot:
 # =============================================================================
 # Court Forms Tests
 # =============================================================================
+
 
 class TestCourtForms:
     """Tests for court forms endpoints."""
@@ -181,6 +177,7 @@ class TestCourtForms:
 # Complaints Tests
 # =============================================================================
 
+
 class TestComplaints:
     """Tests for complaint filing endpoints."""
 
@@ -200,6 +197,7 @@ class TestComplaints:
 # =============================================================================
 # Research Module Tests
 # =============================================================================
+
 
 class TestResearch:
     """Tests for research/investigation endpoints."""
@@ -221,6 +219,7 @@ class TestResearch:
 # Form Data Hub Tests
 # =============================================================================
 
+
 class TestFormData:
     """Tests for form data integration."""
 
@@ -240,6 +239,7 @@ class TestFormData:
 # =============================================================================
 # Module Hub Tests
 # =============================================================================
+
 
 class TestModuleHub:
     """Tests for module hub endpoints."""
@@ -261,6 +261,7 @@ class TestModuleHub:
 # Location Service Tests
 # =============================================================================
 
+
 class TestLocation:
     """Tests for location-based services."""
 
@@ -280,6 +281,7 @@ class TestLocation:
 # =============================================================================
 # API Version Tests
 # =============================================================================
+
 
 class TestAPIVersion:
     """Tests for API versioning."""
@@ -305,6 +307,7 @@ class TestAPIVersion:
 # Rate Limiting Tests
 # =============================================================================
 
+
 class TestRateLimiting:
     """Tests for rate limiting."""
 
@@ -327,6 +330,7 @@ class TestRateLimiting:
 # =============================================================================
 # Error Handling Tests
 # =============================================================================
+
 
 class TestErrorHandling:
     """Tests for error handling."""
@@ -352,10 +356,7 @@ class TestErrorHandling:
     @pytest.mark.anyio
     async def test_copilot_validation(self, client: AsyncClient):
         """Test validation error format on copilot."""
-        response = await client.post(
-            "/api/copilot/chat",
-            json={}
-        )
+        response = await client.post("/api/copilot/chat", json={})
         # Should return validation error
         assert response.status_code in [400, 404, 422]
 
@@ -363,6 +364,7 @@ class TestErrorHandling:
 # =============================================================================
 # Security Headers Tests
 # =============================================================================
+
 
 class TestSecurityHeaders:
     """Tests for security headers."""
@@ -390,6 +392,7 @@ class TestSecurityHeaders:
 # CORS Tests
 # =============================================================================
 
+
 class TestCORS:
     """Tests for CORS configuration."""
 
@@ -397,11 +400,7 @@ class TestCORS:
     async def test_cors_preflight(self, client: AsyncClient):
         """Test CORS preflight request."""
         response = await client.options(
-            "/healthz",
-            headers={
-                "Origin": "http://localhost:3000",
-                "Access-Control-Request-Method": "GET"
-            }
+            "/healthz", headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"}
         )
         # Should allow or deny based on config
         assert response.status_code in [200, 204, 400]

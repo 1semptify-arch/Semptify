@@ -74,9 +74,7 @@ async def _gather_context(
     import asyncio
 
     facts_task = ctx_cache.get_facts(subject, jurisdiction, limit=fact_limit)
-    stories_task = ctx_stories.get_published_stories(
-        subject=subject, jurisdiction=jurisdiction, limit=story_limit
-    )
+    stories_task = ctx_stories.get_published_stories(subject=subject, jurisdiction=jurisdiction, limit=story_limit)
     return await asyncio.gather(facts_task, stories_task)
 
 
@@ -87,6 +85,7 @@ async def _gather_user_case(subject: str, user_id: str) -> dict[str, Any] | None
     """
     try:
         from app.modules.case_builder import case_builder as cb_module
+
         if hasattr(cb_module, "get_cases_for_user"):
             cases = await cb_module.get_cases_for_user(user_id, subject=subject)
             if cases:

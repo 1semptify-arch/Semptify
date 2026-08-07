@@ -66,7 +66,7 @@
 
 **Why**: Current test only validates rejection (401). Need to test success path.
 
-### Task 2: Validate Storage Connection Health  
+### Task 2: Validate Storage Connection Health
 **Goal**: Ensure vault folders are created, OAuth tokens encrypt/decrypt correctly
 **Tests**:
 - Verify vault folder exists in storage provider (Google Drive/Dropbox/OneDrive)
@@ -123,4 +123,3 @@ curl -X POST http://localhost:8000/storage/role \
 1. **Need real session for browser switch**: Current tests only validate 401 rejection
 2. **Admin elevation cookie not yet tested**: Need to issue and use elevation cookie
 3. **Per-provider storage validation pending**: Google Drive/Dropbox/OneDrive connections untested
-

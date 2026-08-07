@@ -44,12 +44,10 @@ EVICTION_FORMS = {
     "HOU304_Expungement": "https://mncourts.gov/GetForms.aspx?c=11&f=355",
     "HOU305_Continuance": "https://mncourts.gov/GetForms.aspx?c=11&f=356",
     "HOU306_Stay_Writ": "https://mncourts.gov/GetForms.aspx?c=11&f=357",
-
     # Sue the Landlord / Tenant Claims
     "HOU308_Habitability": "https://mncourts.gov/GetForms.aspx?c=11&f=359",
     "HOU309_Rent_Escrow": "https://mncourts.gov/GetForms.aspx?c=11&f=360",
     "HOU310_Tenant_Remedies": "https://mncourts.gov/GetForms.aspx?c=11&f=361",
-
     # General Forms needed
     "IFP_Fee_Waiver": "https://mncourts.gov/GetForms.aspx?c=19&f=466",
     "Affidavit_Service": "https://mncourts.gov/GetForms.aspx?c=19&f=443",
@@ -61,29 +59,27 @@ TENANT_RESOURCES = [
     # HOME Line (MN tenant rights org)
     "https://homelinemn.org/wp-content/uploads/Eviction-Answer-Form-Guide.pdf",
     "https://homelinemn.org/wp-content/uploads/Tenant-Remedies-Action-Guide.pdf",
-
     # Legal Aid resources
     "https://www.mylegalaid.org/documents/eviction-answer-guide",
-
     # MN AG tenant rights
     "https://www.ag.state.mn.us/consumer/handbooks/lt/default.asp",
 ]
 
 # Case types for eviction/landlord-tenant
 EVICTION_DOCUMENT_TYPES = [
-    "eviction_complaint",      # Landlord files to evict
-    "answer",                   # Tenant response
-    "motion_to_dismiss",        # Tenant defense
-    "counterclaim",             # Tenant sues landlord back
-    "habitability_complaint",   # Tenant claims unfit conditions
-    "rent_escrow",              # Tenant deposits rent with court
-    "tenant_remedies",          # Tenant sues for damages
-    "repair_deduct",            # Tenant made repairs, deducted from rent
-    "retaliation_claim",        # Landlord retaliated against tenant
-    "security_deposit",         # Landlord wrongfully kept deposit
-    "lease_violation",          # Either party claims violation
-    "stay_of_writ",             # Stop eviction execution
-    "expungement",              # Seal eviction record
+    "eviction_complaint",  # Landlord files to evict
+    "answer",  # Tenant response
+    "motion_to_dismiss",  # Tenant defense
+    "counterclaim",  # Tenant sues landlord back
+    "habitability_complaint",  # Tenant claims unfit conditions
+    "rent_escrow",  # Tenant deposits rent with court
+    "tenant_remedies",  # Tenant sues for damages
+    "repair_deduct",  # Tenant made repairs, deducted from rent
+    "retaliation_claim",  # Landlord retaliated against tenant
+    "security_deposit",  # Landlord wrongfully kept deposit
+    "lease_violation",  # Either party claims violation
+    "stay_of_writ",  # Stop eviction execution
+    "expungement",  # Seal eviction record
 ]
 
 
@@ -137,26 +133,22 @@ class MNCourtCrawler:
                     print(f"  ⚠ Could not access {base_url} ({response.status_code})")
                     continue
 
-                soup = BeautifulSoup(response.text, 'html.parser')
+                soup = BeautifulSoup(response.text, "html.parser")
 
                 # Find all opinion links (typically .pdf or .htm)
-                links = soup.find_all('a', href=True)
+                links = soup.find_all("a", href=True)
                 opinion_links = [
-                    link['href'] for link in links
-                    if link['href'].endswith(('.pdf', '.htm', '.html'))
-                    and not link['href'].startswith('#')
+                    link["href"]
+                    for link in links
+                    if link["href"].endswith((".pdf", ".htm", ".html")) and not link["href"].startswith("#")
                 ]
 
                 print(f"  Found {len(opinion_links)} potential documents")
 
                 for href in opinion_links[:50]:  # Limit per source
-                    full_url = href if href.startswith('http') else f"{base_url.rstrip('/')}/{href}"
+                    full_url = href if href.startswith("http") else f"{base_url.rstrip('/')}/{href}"
                     downloaded = await self.download_document(
-                        full_url,
-                        OPINIONS_DIR,
-                        doc_type="opinion",
-                        court=court_type,
-                        year=year
+                        full_url, OPINIONS_DIR, doc_type="opinion", court=court_type, year=year
                     )
                     if downloaded:
                         count += 1
@@ -184,23 +176,19 @@ class MNCourtCrawler:
                 if response.status_code != 200:
                     continue
 
-                soup = BeautifulSoup(response.text, 'html.parser')
+                soup = BeautifulSoup(response.text, "html.parser")
 
                 # Find PDF links in the opinions table
-                pdf_links = soup.find_all('a', href=lambda h: h and '.pdf' in h.lower())
+                pdf_links = soup.find_all("a", href=lambda h: h and ".pdf" in h.lower())
 
                 print(f"  Found {len(pdf_links)} PDF links")
 
                 for link in pdf_links[:25]:
-                    href = link['href']
-                    full_url = href if href.startswith('http') else f"https://mncourts.gov{href}"
+                    href = link["href"]
+                    full_url = href if href.startswith("http") else f"https://mncourts.gov{href}"
 
                     downloaded = await self.download_document(
-                        full_url,
-                        OPINIONS_DIR,
-                        doc_type="opinion",
-                        court=court_type,
-                        year=datetime.now(UTC).year
+                        full_url, OPINIONS_DIR, doc_type="opinion", court=court_type, year=datetime.now(UTC).year
                     )
                     if downloaded:
                         count += 1
@@ -245,34 +233,24 @@ class MNCourtCrawler:
             print(f"\n  Category: {category}")
             for url in urls:
                 downloaded = await self.download_document(
-                    url,
-                    FILINGS_DIR / category,
-                    doc_type="form",
-                    court="district",
-                    category=category
+                    url, FILINGS_DIR / category, doc_type="form", court="district", category=category
                 )
                 if downloaded:
                     count += 1
 
         return count
 
-    async def download_document(
-        self,
-        url: str,
-        output_dir: Path,
-        doc_type: str = "unknown",
-        **metadata
-    ) -> bool:
+    async def download_document(self, url: str, output_dir: Path, doc_type: str = "unknown", **metadata) -> bool:
         """Download a single document and save metadata."""
 
         # Generate filename from URL
         url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
-        filename = url.split('/')[-1]
+        filename = url.split("/")[-1]
         if not filename or len(filename) > 100:
             filename = f"doc_{url_hash}.pdf"
 
         # Clean filename
-        filename = re.sub(r'[^\w\-_\.]', '_', filename)
+        filename = re.sub(r"[^\w\-_\.]", "_", filename)
 
         output_dir.mkdir(parents=True, exist_ok=True)
         filepath = output_dir / filename
@@ -290,19 +268,19 @@ class MNCourtCrawler:
                 return False
 
             # Check content type
-            content_type = response.headers.get('content-type', '')
+            content_type = response.headers.get("content-type", "")
 
-            if 'pdf' in content_type.lower() or filename.endswith('.pdf'):
+            if "pdf" in content_type.lower() or filename.endswith(".pdf"):
                 # Save PDF
                 filepath.write_bytes(response.content)
                 print(f"    ✓ {filename} ({len(response.content)} bytes)")
 
-            elif 'html' in content_type.lower():
+            elif "html" in content_type.lower():
                 # Save HTML
-                if not filename.endswith(('.htm', '.html')):
-                    filename = filename.replace('.pdf', '.html')
+                if not filename.endswith((".htm", ".html")):
+                    filename = filename.replace(".pdf", ".html")
                 filepath = output_dir / filename
-                filepath.write_text(response.text, encoding='utf-8')
+                filepath.write_text(response.text, encoding="utf-8")
                 print(f"    ✓ {filename} (HTML)")
 
             else:
@@ -318,7 +296,7 @@ class MNCourtCrawler:
                 "downloaded_at": datetime.now(UTC).isoformat(),
                 "size_bytes": len(response.content),
                 "content_type": content_type,
-                **metadata
+                **metadata,
             }
             self.metadata.append(doc_metadata)
             self.downloaded += 1
@@ -338,16 +316,16 @@ class MNCourtCrawler:
             "crawl_date": datetime.now(UTC).isoformat(),
             "total_downloaded": self.downloaded,
             "total_errors": self.errors,
-            "documents": self.metadata
+            "documents": self.metadata,
         }
 
-        metadata_file.write_text(json.dumps(crawl_info, indent=2), encoding='utf-8')
+        metadata_file.write_text(json.dumps(crawl_info, indent=2), encoding="utf-8")
         print(f"\n📊 Metadata saved to {metadata_file}")
 
         # Also save a consolidated index
         index_file = METADATA_DIR / "document_index.json"
         if index_file.exists():
-            existing = json.loads(index_file.read_text(encoding='utf-8'))
+            existing = json.loads(index_file.read_text(encoding="utf-8"))
         else:
             existing = {"documents": []}
 
@@ -355,7 +333,7 @@ class MNCourtCrawler:
         existing["last_updated"] = datetime.now(UTC).isoformat()
         existing["total_documents"] = len(existing["documents"])
 
-        index_file.write_text(json.dumps(existing, indent=2), encoding='utf-8')
+        index_file.write_text(json.dumps(existing, indent=2), encoding="utf-8")
 
 
 async def main():

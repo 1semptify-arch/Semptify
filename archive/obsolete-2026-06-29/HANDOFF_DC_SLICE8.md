@@ -5,10 +5,10 @@
 
 ## Current State
 
-- **Lifecycle:** `beta` (admin-only)  
-- **Forge tests:** 26/26 passing  
-- **Contracts:** 5 registered  
-- **All inline CSS extracted** — no linter warnings  
+- **Lifecycle:** `beta` (admin-only)
+- **Forge tests:** 26/26 passing
+- **Contracts:** 5 registered
+- **All inline CSS extracted** — no linter warnings
 
 ### Files you will touch
 | File | Purpose |
@@ -101,6 +101,7 @@ def test_dc_synthesize_overlays_ocr_excerpt_capped():
     """OCR text excerpt is capped at 200 chars + ellipsis."""
     from app.modules.document_center.router import _synthesize_overlays
     from unittest.mock import MagicMock
+
     doc = MagicMock()
     doc.registry_id = None
     doc.document_type = None
@@ -112,10 +113,12 @@ def test_dc_synthesize_overlays_ocr_excerpt_capped():
     assert len(ocr["items"][0]) <= 204  # 200 + "…" (3 bytes) + margin
     assert ocr["items"][0].endswith("…")
 
+
 def test_dc_synthesize_overlays_items_capped_at_10():
     """items lists are capped at 10 entries."""
     from app.modules.document_center.router import _synthesize_overlays
     from unittest.mock import MagicMock
+
     doc = MagicMock()
     doc.registry_id = None
     doc.document_type = None
@@ -138,7 +141,7 @@ def test_dc_synthesize_overlays_items_capped_at_10():
 
 1. Run tests: `.\venv311\Scripts\python.exe -m pytest app/modules/document_center/tests/ -q --no-header --tb=short`
 2. All pass → edit `app/core/product_manifest.py`:
-   - Change `lifecycle="beta"` → `lifecycle="stable"`  
+   - Change `lifecycle="beta"` → `lifecycle="stable"`
    - Update `dev_notes` last line
    - Update `log_message`
 3. Update `BUILD_STATE.md` with session entry

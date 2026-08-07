@@ -9,34 +9,34 @@
   --header-bg-end: #4c1d95;
   --header-accent: #6d28d9;
   --header-text: #faf5ff;
-  
+
   /* Footer - Deep purple to indigo */
   --footer-bg-start: #1e1b4b;
   --footer-bg-end: #312e81;
   --footer-accent: #4338ca;
   --footer-text: #e0e7ff;
-  
+
   /* Body - White */
   --body-bg: #ffffff;
   --body-text: #2e1065;
-  
+
   /* Cards - Light purple */
   --card-bg: #faf5ff;
   --card-border: #e9d5ff;
   --card-text: #2e1065;
-  
+
   /* Text */
   --text-primary: #2e1065;
   --text-secondary: #6b21a8;
   --text-muted: #9333ea;
-  
+
   /* Accents */
   --accent-primary: #8b5cf6;
   --accent-secondary: #ec4899;
   --accent-success: #22c55e;
   --accent-warning: #f59e0b;
   --accent-error: #ef4444;
-  
+
   /* Interactive */
   --hover-bg: #f3e8ff;
   --focus-ring: #8b5cf6;

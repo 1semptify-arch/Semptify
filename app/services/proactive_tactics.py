@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class TacticType(str, Enum):
     """Types of proactive tactics."""
+
     MOTION_DISMISS = "motion_dismiss"
     RENT_ESCROW = "rent_escrow"
     RETALIATION = "retaliation"
@@ -31,6 +32,7 @@ class TacticType(str, Enum):
 
 class UrgencyLevel(str, Enum):
     """Urgency levels for tactics."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -39,15 +41,17 @@ class UrgencyLevel(str, Enum):
 
 class ConditionSeverity(str, Enum):
     """Severity levels for habitability conditions."""
-    CRITICAL = "critical"      # No heat, sewage, mold - immediate escrow
-    MAJOR = "major"            # Persistent leaks, broken locks - escrow after notice
-    MODERATE = "moderate"      # Peeling paint, minor appliances - track & escalate
-    PATTERN = "pattern"        # Multiple unresolved moderate issues - aggregate
+
+    CRITICAL = "critical"  # No heat, sewage, mold - immediate escrow
+    MAJOR = "major"  # Persistent leaks, broken locks - escrow after notice
+    MODERATE = "moderate"  # Peeling paint, minor appliances - track & escalate
+    PATTERN = "pattern"  # Multiple unresolved moderate issues - aggregate
 
 
 @dataclass
 class TacticRecommendation:
     """A recommended tactic with supporting context."""
+
     tactic_type: TacticType
     title: str
     urgency: UrgencyLevel
@@ -73,6 +77,7 @@ class TacticRecommendation:
 @dataclass
 class EvidenceItem:
     """An item in the evidence preparation checklist."""
+
     name: str
     action: str
     category: str
@@ -84,6 +89,7 @@ class EvidenceItem:
 @dataclass
 class RetaliationFlag:
     """A potential retaliation event."""
+
     protected_activity: str
     protected_date: datetime
     landlord_response: str
@@ -178,7 +184,10 @@ class ProactiveTacticsEngine:
                 event_type = event.get("event_type", "").lower()
 
                 if "habitability" in event_tags or event_type in [
-                    "repair_request", "condition_report", "inspection", "complaint"
+                    "repair_request",
+                    "condition_report",
+                    "inspection",
+                    "complaint",
                 ]:
                     habitability_events.append(event)
 
@@ -189,7 +198,9 @@ class ProactiveTacticsEngine:
             return TacticRecommendation(
                 tactic_type=TacticType.RENT_ESCROW,
                 title="Rent Escrow Motion - Multiple Habitability Issues",
-                urgency=UrgencyLevel.HIGH if severity in [ConditionSeverity.CRITICAL, ConditionSeverity.MAJOR] else UrgencyLevel.MEDIUM,
+                urgency=UrgencyLevel.HIGH
+                if severity in [ConditionSeverity.CRITICAL, ConditionSeverity.MAJOR]
+                else UrgencyLevel.MEDIUM,
                 reason=f"Found {len(habitability_events)} habitability issues in the past {self.HABITABILITY_WINDOW_DAYS} days. This supports a rent escrow motion.",
                 action_items=[
                     "Document all habitability issues with photos/videos",
@@ -236,7 +247,7 @@ class ProactiveTacticsEngine:
     ) -> TacticRecommendation | None:
         """
         Suggest retaliation counterclaim if eviction filed <30 days after protected activity.
-        
+
         Protected activities include:
         - Complaints to city/housing authority
         - Repair requests
@@ -257,14 +268,16 @@ class ProactiveTacticsEngine:
                 days_until_filing = (eviction_filed_date - activity_date).days
 
                 if 0 < days_until_filing <= self.RETALIATION_THRESHOLD_DAYS:
-                    flags.append(RetaliationFlag(
-                        protected_activity=activity.get("type", "Protected activity"),
-                        protected_date=activity_date,
-                        landlord_response="Eviction filing",
-                        response_date=eviction_filed_date,
-                        days_between=days_until_filing,
-                        flagged=True,
-                    ))
+                    flags.append(
+                        RetaliationFlag(
+                            protected_activity=activity.get("type", "Protected activity"),
+                            protected_date=activity_date,
+                            landlord_response="Eviction filing",
+                            response_date=eviction_filed_date,
+                            days_between=days_until_filing,
+                            flagged=True,
+                        )
+                    )
 
         if flags:
             closest = min(flags, key=lambda f: f.days_between)
@@ -396,7 +409,7 @@ class ProactiveTacticsEngine:
     ) -> list[TacticRecommendation]:
         """
         Run the full decision tree and return all applicable tactics.
-        
+
         Decision Tree:
         1. Was service <7 days? ▸ Motion to Dismiss
         2. ≥3 serious habitability issues? ▸ Rent Escrow Motion
@@ -470,26 +483,16 @@ class ProactiveTacticsEngine:
                 doc_type = doc.get("doc_type", "").lower()
                 stored_types.add(doc_type)
 
-        type_mapping = {
-            "lease": "Lease (all pages)",
-            "payment": "Payment proofs (receipts, bank)",
-            "repair_request": "Repair request emails/texts",
-            "photo": "Photos/videos of conditions",
-            "inspection": "City inspection reports",
-            "medical": "Medical impact letters",
-        }
-
         for item in self.evidence_checklist:
-            stored = any(
-                item.name.lower() in doc_type or doc_type in item.name.lower()
-                for doc_type in stored_types
+            stored = any(item.name.lower() in doc_type or doc_type in item.name.lower() for doc_type in stored_types)
+            checklist.append(
+                {
+                    "name": item.name,
+                    "action": item.action,
+                    "category": item.category,
+                    "stored": stored,
+                }
             )
-            checklist.append({
-                "name": item.name,
-                "action": item.action,
-                "category": item.category,
-                "stored": stored,
-            })
 
         return checklist
 
@@ -501,7 +504,6 @@ class ProactiveTacticsEngine:
         Generate pre-hearing tactical timeline.
         """
         now = utc_now()
-        days_until = (hearing_date - now).days
 
         actions = [
             {

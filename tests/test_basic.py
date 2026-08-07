@@ -32,6 +32,7 @@ async def client():
 # Health Check Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_healthz(client: AsyncClient):
     """Test health endpoint."""
@@ -58,6 +59,7 @@ async def test_root(client: AsyncClient):
 # =============================================================================
 # Storage Provider Tests
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_storage_providers_list(client: AsyncClient):
@@ -88,6 +90,7 @@ async def test_storage_session_unauthenticated(client: AsyncClient):
 # =============================================================================
 # Timeline Tests (Open Mode)
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_timeline_create_event(client: AsyncClient):
@@ -136,6 +139,7 @@ async def test_timeline_list_events(client: AsyncClient):
 # Calendar Tests (Open Mode)
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_calendar_create_event(client: AsyncClient):
     """Test creating a calendar event in open mode."""
@@ -171,6 +175,7 @@ async def test_calendar_upcoming(client: AsyncClient):
 # Copilot Tests
 # =============================================================================
 
+
 @pytest.mark.anyio
 async def test_copilot_status(client: AsyncClient):
     """Test AI copilot status endpoint."""
@@ -185,6 +190,7 @@ async def test_copilot_status(client: AsyncClient):
 # =============================================================================
 # Auth Tests (Legacy - should redirect to storage)
 # =============================================================================
+
 
 @pytest.mark.anyio
 async def test_auth_me_open_mode(client: AsyncClient):
@@ -201,11 +207,13 @@ async def test_auth_me_open_mode(client: AsyncClient):
 # Cleanup
 # =============================================================================
 
+
 @pytest.fixture(autouse=True)
 async def cleanup():
     """Clean up test database after tests."""
     yield
     import os
+
     if os.path.exists("test_semptify.db"):
         try:
             os.remove("test_semptify.db")

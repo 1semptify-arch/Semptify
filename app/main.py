@@ -1841,7 +1841,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if request.method == "HEAD":
             return Response(status_code=200)
 
-        current_year = datetime.datetime.now(datetime.UTC).year
+        current_year = utc_now().year
         return templates.TemplateResponse(
             request,
             "index.html",

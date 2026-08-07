@@ -112,6 +112,7 @@ class FeatureFlagManager:
         if self._env_loaded:
             return
         import os
+
         for feature in Feature:
             env_key = f"FEATURE_{feature.value.upper()}"
             val = os.environ.get(env_key)
@@ -122,6 +123,7 @@ class FeatureFlagManager:
 
     def _is_cache_fresh(self) -> bool:
         import time
+
         return (time.monotonic() - self._cache_loaded_at) < self.CACHE_TTL_SECONDS
 
     def _apply_defaults_to_cache(self) -> None:
@@ -139,15 +141,16 @@ class FeatureFlagManager:
 
     async def _refresh_from_db(self) -> None:
         import time
+
         try:
             from sqlalchemy import text
 
             from app.core.database import get_session_factory
+
             async with get_session_factory()() as session:
-                result = await session.execute(text(
-                    "SELECT flag_name, enabled, rollout_percent, allowed_roles, description "
-                    "FROM feature_flags"
-                ))
+                result = await session.execute(
+                    text("SELECT flag_name, enabled, rollout_percent, allowed_roles, description FROM feature_flags")
+                )
                 rows = result.fetchall()
             for row in rows:
                 self._cache[row.flag_name] = row.enabled
@@ -211,15 +214,19 @@ class FeatureFlagManager:
         from sqlalchemy import text
 
         from app.core.database import get_session_factory
+
         async with get_session_factory()() as session:
-            await session.execute(text("""
+            await session.execute(
+                text("""
                 INSERT INTO feature_flags (flag_name, enabled, updated_by, updated_at)
                 VALUES (:name, :enabled, :by, NOW())
                 ON CONFLICT (flag_name) DO UPDATE
                     SET enabled    = EXCLUDED.enabled,
                         updated_by = EXCLUDED.updated_by,
                         updated_at = NOW()
-            """), {"name": flag_name, "enabled": enabled, "by": updated_by})
+            """),
+                {"name": flag_name, "enabled": enabled, "by": updated_by},
+            )
             await session.commit()
         self._cache[flag_name] = enabled
         logger.info("Feature flag %s set to %s by %s", flag_name, enabled, updated_by)
@@ -244,6 +251,7 @@ class FeatureFlagManager:
         """Summary for health checks and admin dashboard."""
         await self._ensure_fresh()
         import time
+
         enabled_count = sum(1 for f in Feature if self._resolve(f.value))
         return {
             "total_features": len(Feature),
@@ -265,6 +273,7 @@ features = FeatureFlagManager()
 
 def require_feature(feature: Feature):
     """Decorator to require a feature flag for an endpoint."""
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
@@ -274,12 +283,15 @@ def require_feature(feature: Feature):
                     detail="This feature is not currently available",
                 )
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def require_feature_for_user(feature: Feature, user_id_param: str = "user_id"):
     """Decorator to require a feature flag for a specific user."""
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> T:
@@ -290,5 +302,7 @@ def require_feature_for_user(feature: Feature, user_id_param: str = "user_id"):
                     detail="This feature is not available for your account",
                 )
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Test MCRO document recognition."""
+
 import sys
-sys.path.insert(0, '.')
+
+sys.path.insert(0, ".")
 from app.services.document_recognition import DocumentRecognitionEngine
 
 engine = DocumentRecognitionEngine()
@@ -13,38 +15,49 @@ print()
 
 # Test cases from your actual documents
 tests = [
-    ("Motion to Dismiss", """
+    (
+        "Motion to Dismiss",
+        """
         STATE OF MINNESOTA - COUNTY OF DAKOTA
         Court File No. 19AV-CV-25-3477
-        NOTICE OF DEFENDANTS MOTION AND MOTION TO DISMISS 
+        NOTICE OF DEFENDANTS MOTION AND MOTION TO DISMISS
         WITHOUT PREJUDICE AND EXPUNGE
         Defendants respectfully move this Court to dismiss.
-    """),
-    
-    ("Court Order", """
+    """,
+    ),
+    (
+        "Court Order",
+        """
         STATE OF MINNESOTA - FIRST JUDICIAL DISTRICT
         IT IS HEREBY ORDERED that the Motion is GRANTED.
         The case is hereby dismissed without prejudice.
         So ordered.
-    """),
-    
-    ("Judgment", """
+    """,
+    ),
+    (
+        "Judgment",
+        """
         JUDGMENT
         Judgment is entered for the Defendant.
         The complaint is hereby dismissed.
-    """),
-    
-    ("Summons", """
+    """,
+    ),
+    (
+        "Summons",
+        """
         SUMMONS
         YOU ARE BEING SUED. You must respond within 20 days.
         Failure to respond may result in default judgment.
-    """),
-    
-    ("Eviction Filing", """
+    """,
+    ),
+    (
+        "Eviction Filing",
+        """
         COMPLAINT FOR UNLAWFUL DETAINER
         Plaintiff seeks recovery of premises and possession.
         Tenant has failed to pay rent as agreed.
-    """),
+    """,
+    ),
 ]
 
 print("Recognition Results:")
@@ -73,7 +86,7 @@ Dena Sazama, Bradley Crowe,
 
     NOTICE OF DEFENDANTS' MOTION AND MOTION TO DISMISS WITHOUT PREJUDICE AND EXPUNGE
 
-PLEASE TAKE NOTICE that the above-named Defendants, by and through counsel, will bring on 
+PLEASE TAKE NOTICE that the above-named Defendants, by and through counsel, will bring on
 for hearing a Motion to Dismiss Without Prejudice and Expunge before the Honorable Dannia Edwards,
 or the presiding judge of Dakota County District Court, on December 3, 2025, at 1:30 p.m.,
 via Zoom, or as soon thereafter as counsel may be heard.

@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class InventoryType(str, Enum):
     """Types of inventory items."""
+
     BACKUP = "backup"
     ARCHIVE = "archive"
     SNAPSHOT = "snapshot"
@@ -31,6 +32,7 @@ class InventoryType(str, Enum):
 
 class RotationPolicy(str, Enum):
     """Rotation policies for inventory items."""
+
     KEEP_2 = "keep_2"  # Keep only 2 most recent
     KEEP_5 = "keep_5"  # Keep 5 most recent
     KEEP_10 = "keep_10"  # Keep 10 most recent
@@ -42,6 +44,7 @@ class RotationPolicy(str, Enum):
 @dataclass
 class InventoryItem:
     """Single inventory item."""
+
     item_id: str
     inventory_type: InventoryType
     file_path: str
@@ -78,18 +81,18 @@ class InventoryManager:
                 with open(inventory_file) as f:
                     data = json.load(f)
 
-                for item_data in data.get('items', []):
+                for item_data in data.get("items", []):
                     item = InventoryItem(
-                        item_id=item_data['item_id'],
-                        inventory_type=InventoryType(item_data['inventory_type']),
-                        file_path=item_data['file_path'],
-                        created_at=datetime.fromisoformat(item_data['created_at']),
-                        file_size=item_data['file_size'],
-                        checksum=item_data['checksum'],
-                        metadata=item_data['metadata'],
-                        color_code=item_data.get('color_code'),
-                        rotation_policy=RotationPolicy(item_data.get('rotation_policy', 'keep_2')),
-                        tags=item_data.get('tags', [])
+                        item_id=item_data["item_id"],
+                        inventory_type=InventoryType(item_data["inventory_type"]),
+                        file_path=item_data["file_path"],
+                        created_at=datetime.fromisoformat(item_data["created_at"]),
+                        file_size=item_data["file_size"],
+                        checksum=item_data["checksum"],
+                        metadata=item_data["metadata"],
+                        color_code=item_data.get("color_code"),
+                        rotation_policy=RotationPolicy(item_data.get("rotation_policy", "keep_2")),
+                        tags=item_data.get("tags", []),
                     )
                     self.items[item.item_id] = item
 
@@ -101,27 +104,24 @@ class InventoryManager:
         """Save inventory to disk."""
         inventory_file = self.inventory_dir / "inventory.json"
 
-        data = {
-            'items': [],
-            'last_updated': utc_now().isoformat()
-        }
+        data = {"items": [], "last_updated": utc_now().isoformat()}
 
         for item in self.items.values():
             item_data = {
-                'item_id': item.item_id,
-                'inventory_type': item.inventory_type.value,
-                'file_path': item.file_path,
-                'created_at': item.created_at.isoformat(),
-                'file_size': item.file_size,
-                'checksum': item.checksum,
-                'metadata': item.metadata,
-                'color_code': item.color_code,
-                'rotation_policy': item.rotation_policy.value,
-                'tags': item.tags
+                "item_id": item.item_id,
+                "inventory_type": item.inventory_type.value,
+                "file_path": item.file_path,
+                "created_at": item.created_at.isoformat(),
+                "file_size": item.file_size,
+                "checksum": item.checksum,
+                "metadata": item.metadata,
+                "color_code": item.color_code,
+                "rotation_policy": item.rotation_policy.value,
+                "tags": item.tags,
             }
-            data['items'].append(item_data)
+            data["items"].append(item_data)
 
-        with open(inventory_file, 'w') as f:
+        with open(inventory_file, "w") as f:
             json.dump(data, f, indent=2)
 
         logger.info(f"Saved {len(self.items)} inventory items")
@@ -149,12 +149,14 @@ class InventoryManager:
             return f"{base_name}_{date_str}.{extension}"
         return f"{base_name}_{date_str}"
 
-    def add_inventory_item(self,
-                          inventory_type: InventoryType,
-                          source_file: str,
-                          metadata: dict[str, Any] | None = None,
-                          rotation_policy: RotationPolicy = RotationPolicy.KEEP_2,
-                          tags: list[str] | None = None) -> str:
+    def add_inventory_item(
+        self,
+        inventory_type: InventoryType,
+        source_file: str,
+        metadata: dict[str, Any] | None = None,
+        rotation_policy: RotationPolicy = RotationPolicy.KEEP_2,
+        tags: list[str] | None = None,
+    ) -> str:
         """Add a new item to inventory."""
         try:
             source_path = Path(source_file)
@@ -162,12 +164,12 @@ class InventoryManager:
                 raise FileNotFoundError(f"Source file not found: {source_file}")
 
             # Calculate checksum
-            with open(source_path, 'rb') as f:
+            with open(source_path, "rb") as f:
                 checksum = hashlib.sha256(f.read()).hexdigest()
 
             # Generate inventory filename with date
             base_name = source_path.stem
-            extension = source_path.suffix.lstrip('.')
+            extension = source_path.suffix.lstrip(".")
             inventory_filename = self._format_filename_with_date(base_name, extension)
             inventory_path = self.inventory_dir / inventory_type.value / inventory_filename
 
@@ -176,6 +178,7 @@ class InventoryManager:
 
             # Copy file to inventory
             import shutil
+
             shutil.copy2(source_file, inventory_path)
 
             # Generate color code
@@ -192,7 +195,7 @@ class InventoryManager:
                 metadata=metadata or {},
                 color_code=color_code,
                 rotation_policy=rotation_policy,
-                tags=tags or []
+                tags=tags or [],
             )
 
             self.items[item.item_id] = item
@@ -211,10 +214,7 @@ class InventoryManager:
     def _apply_rotation_policy(self, inventory_type: InventoryType):
         """Apply rotation policy to keep only specified number of items."""
         # Get items of this type, sorted by creation date (newest first)
-        items_of_type = [
-            item for item in self.items.values()
-            if item.inventory_type == inventory_type
-        ]
+        items_of_type = [item for item in self.items.values() if item.inventory_type == inventory_type]
         items_of_type.sort(key=lambda x: x.created_at, reverse=True)
 
         policy = items_of_type[0].rotation_policy if items_of_type else RotationPolicy.KEEP_2
@@ -292,9 +292,9 @@ class InventoryManager:
         except Exception as e:
             logger.error(f"Failed to delete inventory item {item_id}: {str(e)}")
 
-    def get_inventory_items(self,
-                           inventory_type: InventoryType | None = None,
-                           tags: list[str] | None = None) -> list[InventoryItem]:
+    def get_inventory_items(
+        self, inventory_type: InventoryType | None = None, tags: list[str] | None = None
+    ) -> list[InventoryItem]:
         """Get inventory items with optional filters."""
         items = list(self.items.values())
 
@@ -324,35 +324,35 @@ class InventoryManager:
     def get_inventory_summary(self) -> dict[str, Any]:
         """Get summary of inventory status."""
         summary = {
-            'total_items': len(self.items),
-            'by_type': {},
-            'by_policy': {},
-            'total_size': 0,
-            'oldest_item': None,
-            'newest_item': None
+            "total_items": len(self.items),
+            "by_type": {},
+            "by_policy": {},
+            "total_size": 0,
+            "oldest_item": None,
+            "newest_item": None,
         }
 
         for item in self.items.values():
             # Count by type
             type_name = item.inventory_type.value
-            if type_name not in summary['by_type']:
-                summary['by_type'][type_name] = 0
-            summary['by_type'][type_name] += 1
+            if type_name not in summary["by_type"]:
+                summary["by_type"][type_name] = 0
+            summary["by_type"][type_name] += 1
 
             # Count by policy
             policy_name = item.rotation_policy.value
-            if policy_name not in summary['by_policy']:
-                summary['by_policy'][policy_name] = 0
-            summary['by_policy'][policy_name] += 1
+            if policy_name not in summary["by_policy"]:
+                summary["by_policy"][policy_name] = 0
+            summary["by_policy"][policy_name] += 1
 
             # Total size
-            summary['total_size'] += item.file_size
+            summary["total_size"] += item.file_size
 
             # Oldest/newest
-            if not summary['oldest_item'] or item.created_at < summary['oldest_item'].created_at:
-                summary['oldest_item'] = item
-            if not summary['newest_item'] or item.created_at > summary['newest_item'].created_at:
-                summary['newest_item'] = item
+            if not summary["oldest_item"] or item.created_at < summary["oldest_item"].created_at:
+                summary["oldest_item"] = item
+            if not summary["newest_item"] or item.created_at > summary["newest_item"].created_at:
+                summary["newest_item"] = item
 
         return summary
 
@@ -363,7 +363,7 @@ class InventoryManager:
             source_file=source_path,
             metadata={"backup_type": "manual", "source": source_path},
             rotation_policy=RotationPolicy.KEEP_2,
-            tags=tags or ["backup"]
+            tags=tags or ["backup"],
         )
 
     def create_snapshot(self, source_path: str, tags: list[str] | None = None) -> str:
@@ -373,7 +373,7 @@ class InventoryManager:
             source_file=source_path,
             metadata={"snapshot_type": "manual", "source": source_path},
             rotation_policy=RotationPolicy.KEEP_5,
-            tags=tags or ["snapshot"]
+            tags=tags or ["snapshot"],
         )
 
 

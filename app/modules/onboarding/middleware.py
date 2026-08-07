@@ -88,8 +88,11 @@ class OnboardingGateMiddleware(BaseHTTPMiddleware):
 
         logger.info(
             "Gate '%s' incomplete for user %s, redirecting to %s",
-            incomplete, raw_uid[:6] + "***", redirect_path,
+            incomplete,
+            raw_uid[:6] + "***",
+            redirect_path,
         )
         # Use SSOT-compliant redirect for internal navigation
         from app.core.ssot_guard import ssot_redirect
+
         return ssot_redirect(redirect_path, context="onboarding_gate_redirect")

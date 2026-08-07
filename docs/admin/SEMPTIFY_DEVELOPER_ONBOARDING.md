@@ -202,6 +202,7 @@ router = APIRouter(
     dependencies=[Depends(require_capability(_MODULE_PATH))],
 )
 
+
 @router.get("/health")
 async def health():
     return {"status": "healthy", "module": "your_module"}
@@ -217,9 +218,10 @@ The gate automatically handles:
 
 ```python
 """your_module SQLAlchemy models."""
+
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
-from app.core.database import Base          # ALWAYS use this Base
-from app.core.utc import utc_now            # ALWAYS use this for timestamps
+from app.core.database import Base  # ALWAYS use this Base
+from app.core.utc import utc_now  # ALWAYS use this for timestamps
 
 
 class YourRecord(Base):
@@ -269,7 +271,7 @@ _register(
     prefix="",
     tags=("Your Module",),
     optional=True,
-    tier=ProductTier.EXTENDED,        # choose the right tier
+    tier=ProductTier.EXTENDED,  # choose the right tier
     log_message="your_module router loaded",
 )
 ```

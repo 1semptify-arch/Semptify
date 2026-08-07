@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class CalendarEventType(str, Enum):
     """Types of calendar events"""
+
     COURT_HEARING = "court_hearing"
     NOTICE_DEADLINE = "notice_deadline"
     PAYMENT_DUE = "payment_due"
@@ -26,6 +27,7 @@ class CalendarEventType(str, Enum):
 @dataclass
 class CalendarEvent:
     """Represents a calendar event"""
+
     title: str
     description: str
     start_date: date
@@ -45,10 +47,7 @@ class CalendarService:
     def __init__(self):
         self.logger = logger
 
-    async def generate_events_from_timeline(
-        self,
-        timeline_events: list[dict[str, Any]]
-    ) -> list[CalendarEvent]:
+    async def generate_events_from_timeline(self, timeline_events: list[dict[str, Any]]) -> list[CalendarEvent]:
         """
         Generate calendar events from timeline events
         """
@@ -59,7 +58,7 @@ class CalendarService:
                 if isinstance(event, dict):
                     event_data = event
                 else:
-                    event_data = event.to_dict() if hasattr(event, 'to_dict') else event.__dict__
+                    event_data = event.to_dict() if hasattr(event, "to_dict") else event.__dict__
 
                 # Extract date
                 event_date = self._extract_date(event_data)
@@ -78,7 +77,7 @@ class CalendarService:
 
     def _extract_date(self, event_data: dict[str, Any]) -> date | None:
         """Extract date from event data"""
-        date_formats = ['date', 'event_date', 'start_date', 'deadline', 'due_date']
+        date_formats = ["date", "event_date", "start_date", "deadline", "due_date"]
 
         for field in date_formats:
             if field in event_data:
@@ -89,35 +88,31 @@ class CalendarService:
                     return value.date()
                 elif isinstance(value, str):
                     try:
-                        return datetime.strptime(value, '%Y-%m-%d').date()
+                        return datetime.strptime(value, "%Y-%m-%d").date()
                     except ValueError:
                         pass
 
         return None
 
-    def _create_calendar_event(
-        self,
-        event_data: dict[str, Any],
-        event_date: date
-    ) -> CalendarEvent | None:
+    def _create_calendar_event(self, event_data: dict[str, Any], event_date: date) -> CalendarEvent | None:
         """Create a calendar event from event data"""
-        title = event_data.get('title', event_data.get('description', 'Event'))
-        description = event_data.get('description', event_data.get('title', ''))
-        event_type_str = event_data.get('type', event_data.get('event_type', 'other')).lower()
+        title = event_data.get("title", event_data.get("description", "Event"))
+        description = event_data.get("description", event_data.get("title", ""))
+        event_type_str = event_data.get("type", event_data.get("event_type", "other")).lower()
 
         # Map event type
         cal_type = CalendarEventType.OTHER
-        if 'hearing' in event_type_str or 'court' in event_type_str:
+        if "hearing" in event_type_str or "court" in event_type_str:
             cal_type = CalendarEventType.COURT_HEARING
-        elif 'deadline' in event_type_str or 'notice' in event_type_str:
+        elif "deadline" in event_type_str or "notice" in event_type_str:
             cal_type = CalendarEventType.NOTICE_DEADLINE
-        elif 'payment' in event_type_str or 'due' in event_type_str:
+        elif "payment" in event_type_str or "due" in event_type_str:
             cal_type = CalendarEventType.PAYMENT_DUE
-        elif 'document' in event_type_str:
+        elif "document" in event_type_str:
             cal_type = CalendarEventType.DOCUMENT_DEADLINE
-        elif 'inspection' in event_type_str:
+        elif "inspection" in event_type_str:
             cal_type = CalendarEventType.INSPECTION
-        elif 'mediation' in event_type_str:
+        elif "mediation" in event_type_str:
             cal_type = CalendarEventType.MEDIATION
 
         # Set reminders
@@ -138,11 +133,7 @@ class CalendarService:
             reminders=reminders,
         )
 
-    async def get_upcoming_events(
-        self,
-        events: list[CalendarEvent],
-        days_ahead: int = 30
-    ) -> list[CalendarEvent]:
+    async def get_upcoming_events(self, events: list[CalendarEvent], days_ahead: int = 30) -> list[CalendarEvent]:
         """Get upcoming events within specified days."""
         now = date.today()
         cutoff = now + timedelta(days=days_ahead)

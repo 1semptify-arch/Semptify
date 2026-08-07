@@ -120,9 +120,11 @@ token = await vault.read_master_token()
 await vault.update_oauth_backup(access_token, refresh_token)
 
 # Product-Specific Extensions
-vault.register_folders([
-    "Semptify5.0/Vault/legal_filings",
-])
+vault.register_folders(
+    [
+        "Semptify5.0/Vault/legal_filings",
+    ]
+)
 await vault.create_folders()
 ```
 
@@ -152,21 +154,26 @@ await vault.create_folders()
 from dataclasses import dataclass, field
 from typing import List
 
+
 @dataclass
 class VaultFolderSpec:
     root: str = "Semptify5.0"
 
-    core_folders: List[str] = field(default_factory=lambda: [
-        "Semptify5.0",
-        "Semptify5.0/Vault",
-        "Semptify5.0/Vault/documents",
-        "Semptify5.0/Vault/certificates",
-    ])
+    core_folders: List[str] = field(
+        default_factory=lambda: [
+            "Semptify5.0",
+            "Semptify5.0/Vault",
+            "Semptify5.0/Vault/documents",
+            "Semptify5.0/Vault/certificates",
+        ]
+    )
 
-    auth_folders: List[str] = field(default_factory=lambda: [
-        ".Semptify5.0/auth",
-        ".Semptify5.0/vault",
-    ])
+    auth_folders: List[str] = field(
+        default_factory=lambda: [
+            ".Semptify5.0/auth",
+            ".Semptify5.0/vault",
+        ]
+    )
 
     product_folders: List[str] = field(default_factory=list)
 
@@ -182,25 +189,32 @@ class VaultFolderSpec:
             product_folders=self.product_folders + folders,
         )
 
+
 # Pre-built specs
 TENANT_VAULT = VaultFolderSpec()
 
-ADVOCATE_VAULT = VaultFolderSpec().extend([
-    "Semptify5.0/Vault/client_files",
-    "Semptify5.0/Vault/case_notes",
-    "Semptify5.0/Vault/legal_filings",
-])
+ADVOCATE_VAULT = VaultFolderSpec().extend(
+    [
+        "Semptify5.0/Vault/client_files",
+        "Semptify5.0/Vault/case_notes",
+        "Semptify5.0/Vault/legal_filings",
+    ]
+)
 
-LEGAL_VAULT = VaultFolderSpec().extend([
-    "Semptify5.0/Vault/court_exhibits",
-    "Semptify5.0/Vault/case_files",
-    "Semptify5.0/Vault/discovery",
-])
+LEGAL_VAULT = VaultFolderSpec().extend(
+    [
+        "Semptify5.0/Vault/court_exhibits",
+        "Semptify5.0/Vault/case_files",
+        "Semptify5.0/Vault/discovery",
+    ]
+)
 
-RESEARCH_VAULT = VaultFolderSpec().extend([
-    "Semptify5.0/Vault/research",
-    "Semptify5.0/Vault/dossiers",
-])
+RESEARCH_VAULT = VaultFolderSpec().extend(
+    [
+        "Semptify5.0/Vault/research",
+        "Semptify5.0/Vault/dossiers",
+    ]
+)
 ```
 
 ---
@@ -227,11 +241,13 @@ RESEARCH_VAULT = VaultFolderSpec().extend([
 ```python
 # Old code (today):
 from app.services.storage import get_provider
+
 storage = get_provider("google_drive", access_token=token)
 await storage.create_folder("Semptify5.0/Vault/documents")
 
 # New code (SDK):
 from app.sdk.vault import VaultClient
+
 vault = VaultClient(provider="google_drive", access_token=token, user_id=uid)
 await vault.create_folders()
 
@@ -249,6 +265,7 @@ Access token expires mid-folder-creation (1hr lifetime, slow API calls).
 ```python
 async def refresh(current_token: str) -> str:
     return new_token
+
 
 vault = VaultClient(
     provider="google_drive",

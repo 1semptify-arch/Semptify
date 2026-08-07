@@ -179,6 +179,7 @@ app/modules/your_module/
 
 ```python
 """your_module configuration."""
+
 import os
 from pathlib import Path
 
@@ -190,9 +191,10 @@ YOUR_MODULE_PREFIX = "/api/your_module"
 
 ```python
 """your_module SQLAlchemy models."""
+
 from datetime import datetime, timezone
 from sqlalchemy import Column, DateTime, Integer, String, Text
-from app.core.database import Base          # ← ALWAYS use this Base
+from app.core.database import Base  # ← ALWAYS use this Base
 
 
 class YourRecord(Base):
@@ -208,6 +210,7 @@ class YourRecord(Base):
 
 ```python
 """your_module FastAPI router."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -232,6 +235,7 @@ async def list_records(db: AsyncSession = Depends(get_db)):
 
 ```python
 """your_module — brief description."""
+
 from app.modules.your_module.router import router
 from app.modules.your_module.models import YourRecord
 
@@ -261,7 +265,7 @@ _register(
     tags=("Your Module",),
     prefix="",
     optional=True,
-    tier=ProductTier.EXTENDED,          # choose the right tier — see Part 5
+    tier=ProductTier.EXTENDED,  # choose the right tier — see Part 5
     log_message="your_module router loaded — active at /api/your_module",
 )
 ```
@@ -280,28 +284,29 @@ Revises: <previous_revision_id>           ← get this from: alembic heads
 Create Date: YYYY-MM-DD 00:00:00.000000
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
-revision = 'YYYYMMDD_add_your_module_tables'
-down_revision = '<previous_revision_id>'
+revision = "YYYYMMDD_add_your_module_tables"
+down_revision = "<previous_revision_id>"
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
     op.create_table(
-        'your_module_records',
-        sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
-        sa.Column('title', sa.String(500), nullable=False),
-        sa.Column('content', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(), nullable=True),
+        "your_module_records",
+        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+        sa.Column("title", sa.String(500), nullable=False),
+        sa.Column("content", sa.Text(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
     )
-    op.create_index('ix_your_module_records_id', 'your_module_records', ['id'])
+    op.create_index("ix_your_module_records_id", "your_module_records", ["id"])
 
 
 def downgrade() -> None:
-    op.drop_table('your_module_records')
+    op.drop_table("your_module_records")
 ```
 
 Then run:
@@ -359,6 +364,7 @@ If your module needs a frontend page:
 ```python
 from fastapi.responses import FileResponse
 
+
 @router.get("/ui", response_class=FileResponse)
 async def ui_page():
     return FileResponse("static/your_module/index.html")
@@ -374,6 +380,7 @@ If your module needs to know which tenant owns a record, add a `user_id` column:
 
 ```python
 from sqlalchemy import Column, String
+
 # In your model:
 user_id = Column(String(100), nullable=True, index=True)
 ```
@@ -384,14 +391,13 @@ Retrieve the current user in a route:
 from fastapi import Request
 from app.core.cookie_auth import extract_user_id
 
+
 @router.get("/my-records")
 async def my_records(request: Request, db: AsyncSession = Depends(get_db)):
     user_id = extract_user_id(request)
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    records = (await db.execute(
-        select(YourRecord).where(YourRecord.user_id == user_id)
-    )).scalars().all()
+    records = (await db.execute(select(YourRecord).where(YourRecord.user_id == user_id))).scalars().all()
     return records
 ```
 

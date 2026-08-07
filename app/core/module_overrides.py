@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 # In-process cache (so resolver doesn't hit DB on every request)
 # =============================================================================
 
+
 class _OverrideCache:
     """In-process cache of module overrides.
 
@@ -80,6 +81,7 @@ _CACHE = _OverrideCache()
 # Public API
 # =============================================================================
 
+
 async def load_overrides(db: AsyncSession) -> None:
     """Load all overrides from DB into the in-process cache.
 
@@ -87,20 +89,20 @@ async def load_overrides(db: AsyncSession) -> None:
     """
     try:
         result = await db.execute(
-            text(
-                "SELECT module_path, lifecycle, feature_flag, disabled, notes "
-                "FROM module_overrides"
-            )
+            text("SELECT module_path, lifecycle, feature_flag, disabled, notes FROM module_overrides")
         )
         rows = result.fetchall()
         _CACHE.clear()
         for row in rows:
-            _CACHE.set(row.module_path, {
-                "lifecycle": row.lifecycle,
-                "feature_flag": row.feature_flag,
-                "disabled": bool(row.disabled),
-                "notes": row.notes or "",
-            })
+            _CACHE.set(
+                row.module_path,
+                {
+                    "lifecycle": row.lifecycle,
+                    "feature_flag": row.feature_flag,
+                    "disabled": bool(row.disabled),
+                    "notes": row.notes or "",
+                },
+            )
         _CACHE.mark_loaded()
         logger.info("ModuleOverrides: loaded %d overrides from DB", len(rows))
     except Exception as e:
@@ -153,9 +155,7 @@ async def set_override(
     if lifecycle is not None:
         allowed = ("stable", "beta", "experimental", "dev_only", "preview", "internal")
         if lifecycle not in allowed:
-            raise ValueError(
-                f"lifecycle '{lifecycle}' invalid. Must be one of {allowed}"
-            )
+            raise ValueError(f"lifecycle '{lifecycle}' invalid. Must be one of {allowed}")
 
     # Build override dict
     override = {
@@ -198,7 +198,10 @@ async def set_override(
     _CACHE.set(module_path, override)
     logger.info(
         "ModuleOverrides: set override for %s — lifecycle=%s ff=%s disabled=%s",
-        module_path, lifecycle, feature_flag, override["disabled"],
+        module_path,
+        lifecycle,
+        feature_flag,
+        override["disabled"],
     )
     return override
 
@@ -238,15 +241,17 @@ async def list_overrides(db: AsyncSession) -> list[dict]:
     overrides = []
     for module_path, override in _CACHE.all().items():
         entry = MANIFEST.find(module_path)
-        overrides.append({
-            "module_path": module_path,
-            "override": override,
-            "declared": {
-                "lifecycle": entry.lifecycle if entry else None,
-                "feature_flag": entry.feature_flag if entry else None,
-                "tier": entry.tier.value if entry else None,
-            },
-        })
+        overrides.append(
+            {
+                "module_path": module_path,
+                "override": override,
+                "declared": {
+                    "lifecycle": entry.lifecycle if entry else None,
+                    "feature_flag": entry.feature_flag if entry else None,
+                    "tier": entry.tier.value if entry else None,
+                },
+            }
+        )
     return overrides
 
 
@@ -280,12 +285,14 @@ def effective_entry(entry: ModuleEntry) -> ModuleEntry:
 def _with_fields(entry: ModuleEntry, **updates) -> ModuleEntry:
     """Create a new ModuleEntry with updated fields (since it's frozen)."""
     from dataclasses import replace
+
     return replace(entry, **updates)
 
 
 # =============================================================================
 # DB Schema Initialization
 # =============================================================================
+
 
 async def ensure_schema(db: AsyncSession) -> None:
     """Create the module_overrides table if it doesn't exist.

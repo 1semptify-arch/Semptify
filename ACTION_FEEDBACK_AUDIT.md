@@ -216,11 +216,11 @@ Every API endpoint should return a structured result that the frontend can displ
 ### Proposed: Standardized Result Envelope
 ```python
 {
-  "ok": true,
-  "message": "Evidence uploaded to vault.",  # user-displayable
-  "detail": "File lease.pdf saved to /vault/documents/",  # optional, more info
-  "data": { ... },  # the actual payload
-  "next_steps": ["Review the uploaded document", "Add it to your timeline"]  # optional
+    "ok": true,
+    "message": "Evidence uploaded to vault.",  # user-displayable
+    "detail": "File lease.pdf saved to /vault/documents/",  # optional, more info
+    "data": {...},  # the actual payload
+    "next_steps": ["Review the uploaded document", "Add it to your timeline"],  # optional
 }
 ```
 

@@ -24,15 +24,15 @@
             </p>
         </div>
     </div>
-    
+
     <p class="mb-2">
         {% if lang == 'en' %}What did your landlord do wrong? Select all that apply.{% elif lang == 'es' %}¿Qué hizo mal su arrendador? Seleccione todo lo que aplique.{% elif lang == 'so' %}Maxaa mulkiilahaagu qalday? Dooro dhammaan kuwa khuseeya.{% else %}ماذا فعل المالك بشكل خاطئ؟ اختر كل ما ينطبق.{% endif %}
     </p>
-    
+
     <form action="/flows/counterclaim?step=3&lang={{ lang }}" method="GET">
         <input type="hidden" name="step" value="3">
         <input type="hidden" name="lang" value="{{ lang }}">
-        
+
         <div class="checkbox-list">
             {% for claim in claims %}
             <label class="checkbox-item">
@@ -41,7 +41,7 @@
             </label>
             {% endfor %}
         </div>
-        
+
         <div class="flex justify-between mt-4">
             <a href="/flows/counterclaim?step=1&lang={{ lang }}" class="btn btn-outline">← {{ strings.btn_back }}</a>
             <button type="submit" class="btn btn-primary">{{ strings.btn_next }} →</button>

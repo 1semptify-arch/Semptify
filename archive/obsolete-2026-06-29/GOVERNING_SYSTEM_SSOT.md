@@ -1,7 +1,7 @@
 # Semptify 5.0 — Governing System (SSOT)
 
-**Purpose:** Single source of truth for system orchestration, authentication flow, and cross-module integration.  
-**Conductor Philosophy:** Distributed governance with centralized routing. No single point of failure.  
+**Purpose:** Single source of truth for system orchestration, authentication flow, and cross-module integration.
+**Conductor Philosophy:** Distributed governance with centralized routing. No single point of failure.
 **Last Updated:** April 29, 2026
 
 ---
@@ -51,7 +51,7 @@ Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
 
 **Provider Codes (1 char):**
 - `G` = Google Drive
-- `D` = Dropbox  
+- `D` = Dropbox
 - `O` = OneDrive
 
 **Role Codes (1 char):**
@@ -159,13 +159,15 @@ DASHBOARD_QUICK_ACTIONS["view_timeline"] → QuickAction(
 
 Services register their capabilities:
 ```python
-contract_registry.register(FunctionGroupContract(
-    module="legal_analysis",
-    group_name="evidence_classification",
-    inputs=("document",),
-    outputs=("classification", "summary"),
-    dependencies=(),  # No external deps = works in Core
-))
+contract_registry.register(
+    FunctionGroupContract(
+        module="legal_analysis",
+        group_name="evidence_classification",
+        inputs=("document",),
+        outputs=("classification", "summary"),
+        dependencies=(),  # No external deps = works in Core
+    )
+)
 ```
 
 ### 4. Path → Vault Integration

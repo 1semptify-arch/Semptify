@@ -701,6 +701,6 @@ Is this simple enough? Yes. Is it actually secure? Yes. Do you have to trust us 
 
 ---
 
-**Last Updated:** June 14, 2026  
-**Version:** 5.1 - Role-Scoped Privacy Policy Added  
+**Last Updated:** June 14, 2026
+**Version:** 5.1 - Role-Scoped Privacy Policy Added
 **Status:** ✅ In Production (Verified)

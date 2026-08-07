@@ -1,9 +1,9 @@
 # Process Contract: User Reconnect Flow
 
-**Contract ID**: `proc_user_reconnect`  
-**Function Group**: `user_session_recovery`  
-**Version**: 2.0  
-**Status**: Active  
+**Contract ID**: `proc_user_reconnect`
+**Function Group**: `user_session_recovery`
+**Version**: 2.0
+**Status**: Active
 **Created**: 2026-04-24
 
 ---
@@ -215,26 +215,26 @@ connected or how often.
 ## 9. API Endpoints
 
 ### GET `/storage/`
-**Purpose**: Main entry point for returning users  
-**Cookie**: `semptify_uid`  
+**Purpose**: Main entry point for returning users
+**Cookie**: `semptify_uid`
 **Response**: 302 redirect to home page, OAuth, or /storage/reconnect
 
 ### GET `/storage/session/status`
-**Purpose**: Check session status for frontend auto-reconnect  
+**Purpose**: Check session status for frontend auto-reconnect
 **Response**: `{has_session, is_valid, user_id, role, provider, has_storage}`
 
 ### GET `/storage/reconnect`
-**Purpose**: UI for users who lost their cookie  
+**Purpose**: UI for users who lost their cookie
 **Response**: HTML page with provider selection
 
 ### GET `/storage/auth/{provider}`
-**Query**: `?existing_uid={uid}&return_to={url}`  
-**Purpose**: Initiate OAuth flow for reconnect  
+**Query**: `?existing_uid={uid}&return_to={url}`
+**Purpose**: Initiate OAuth flow for reconnect
 **Logic**: If `existing_uid` → returning user reauth; else → reconnection attempt
 
 ### GET `/storage/callback/{provider}`
-**Query**: `?code={auth_code}&state={csrf_token}`  
-**Purpose**: OAuth callback, identify user by `provider_subject`  
+**Query**: `?code={auth_code}&state={csrf_token}`
+**Purpose**: OAuth callback, identify user by `provider_subject`
 **Response**: Redirect to role-appropriate dashboard
 
 ---

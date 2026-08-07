@@ -33,10 +33,11 @@ logger = logging.getLogger(__name__)
 # State Enums & Constants
 # =============================================================================
 
+
 class StorageState(str, Enum):
-    NEED_CONNECT = "need_connect"           # not authenticated yet
-    ALREADY_CONNECTED = "already_connected" # OAuth token valid
-    REVIEW_ONLY = "review_only"             # no storage, read-only mode
+    NEED_CONNECT = "need_connect"  # not authenticated yet
+    ALREADY_CONNECTED = "already_connected"  # OAuth token valid
+    REVIEW_ONLY = "review_only"  # no storage, read-only mode
 
 
 class ProcessState(str, Enum):
@@ -47,11 +48,11 @@ class ProcessState(str, Enum):
 
 
 class ProcessCode(str, Enum):
-    A = "A"      # Welcome
-    B1 = "B1"    # Document Upload Wizard
-    B2 = "B2"    # Quick Case Triage (Tenant path)
-    B3 = "B3"    # Filing & Packet Preparation
-    B4 = "B4"    # Professional Review Workspace
+    A = "A"  # Welcome
+    B1 = "B1"  # Document Upload Wizard
+    B2 = "B2"  # Quick Case Triage (Tenant path)
+    B3 = "B3"  # Filing & Packet Preparation
+    B4 = "B4"  # Professional Review Workspace
 
 
 def _nav_path(stage_id: str, fallback: str) -> str:
@@ -65,11 +66,11 @@ def _nav_path(stage_id: str, fallback: str) -> str:
 
 # Mapping of process codes to canonical SSOT paths.
 # All paths resolved from navigation registry — never hardcoded here.
-_home_item   = next((n for n in navigation.MAIN_NAV if n.name == "Home"),   None)
+_home_item = next((n for n in navigation.MAIN_NAV if n.name == "Home"), None)
 _office_item = next((n for n in navigation.MAIN_NAV if n.name == "Office"), None)
 
 PROCESS_ROUTES: dict[ProcessCode, str] = {
-    ProcessCode.A:  _home_item.path   if _home_item   else "/home",
+    ProcessCode.A: _home_item.path if _home_item else "/home",
     ProcessCode.B1: _office_item.path if _office_item else "/office",
     ProcessCode.B2: _office_item.path if _office_item else "/office",
     ProcessCode.B3: _office_item.path if _office_item else "/office",
@@ -79,9 +80,9 @@ PROCESS_ROUTES: dict[ProcessCode, str] = {
 # Role-specific portal routes — resolved from navigation registry.
 # Each role lands on their /role/home rendered page after onboarding or reconnect.
 ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
-    UserRole.LEGAL:    _nav_path("legal_home",    "/legal/home"),
-    UserRole.ADMIN:    _nav_path("admin_home",    "/admin/home"),
-    UserRole.MANAGER:  _nav_path("manager_home",  "/manager/home"),
+    UserRole.LEGAL: _nav_path("legal_home", "/legal/home"),
+    UserRole.ADMIN: _nav_path("admin_home", "/admin/home"),
+    UserRole.MANAGER: _nav_path("manager_home", "/manager/home"),
     UserRole.ADVOCATE: _nav_path("advocate_home", "/advocate/home"),
 }
 
@@ -90,12 +91,14 @@ ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
 # Workflow State — input to the engine
 # =============================================================================
 
+
 @dataclass
 class WorkflowState:
     """
     Represents everything the engine needs to make a routing decision.
     Constructed from the active UserContext plus request parameters.
     """
+
     role: UserRole
     storage_state: StorageState
     process_state: ProcessState = ProcessState.NOT_STARTED
@@ -109,23 +112,26 @@ class WorkflowState:
 # Workflow Decision — output from the engine
 # =============================================================================
 
+
 @dataclass
 class WorkflowDecision:
     """
     The engine's deterministic answer for a given WorkflowState.
     """
-    next_process: ProcessCode               # where to send the user
-    next_route: str                         # exact URL to redirect to
-    allowed_actions: list[str]              # actions available from current state
-    blocked_actions: list[str]              # actions present but locked
-    deterministic_reason: str              # plain-English routing explanation
-    block_reason: str | None = None      # why the user is blocked (if applicable)
+
+    next_process: ProcessCode  # where to send the user
+    next_route: str  # exact URL to redirect to
+    allowed_actions: list[str]  # actions available from current state
+    blocked_actions: list[str]  # actions present but locked
+    deterministic_reason: str  # plain-English routing explanation
+    block_reason: str | None = None  # why the user is blocked (if applicable)
     warnings: list[str] = field(default_factory=list)
 
 
 # =============================================================================
 # Core Routing Logic
 # =============================================================================
+
 
 def _resolve_route(process: ProcessCode, role: UserRole) -> str:
     """Return the most specific route for a role+process combination."""
@@ -147,8 +153,7 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
             allowed_actions=["select_role", "connect_storage"],
             blocked_actions=["upload_document", "start_case", "view_vault"],
             deterministic_reason=(
-                "Tenant has not connected a storage provider. "
-                "Routing to storage provider selection to complete setup."
+                "Tenant has not connected a storage provider. Routing to storage provider selection to complete setup."
             ),
             block_reason="Storage provider not connected.",
         )
@@ -168,8 +173,7 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
             allowed_actions=["upload_document", "connect_storage"],
             blocked_actions=["start_case", "view_timeline", "get_ai_analysis"],
             deterministic_reason=(
-                "Tenant has no documents in vault. "
-                "Routing to tenant home — upload CTA is on the home page."
+                "Tenant has no documents in vault. Routing to tenant home — upload CTA is on the home page."
             ),
             warnings=warnings,
         )
@@ -188,8 +192,7 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
         ],
         blocked_actions=[],
         deterministic_reason=(
-            "Tenant has storage connected and documents present. "
-            "Routing to Process B2 (Quick Case Triage)."
+            "Tenant has storage connected and documents present. Routing to Process B2 (Quick Case Triage)."
         ),
         warnings=warnings,
     )
@@ -203,8 +206,7 @@ def _professional_decision(state: WorkflowState) -> WorkflowDecision:
 
     if state.storage_state == StorageState.NEED_CONNECT:
         warnings.append(
-            "Storage provider not connected. "
-            "Document operations will be unavailable until connection is made."
+            "Storage provider not connected. Document operations will be unavailable until connection is made."
         )
 
     allowed_actions = [
@@ -223,18 +225,22 @@ def _professional_decision(state: WorkflowState) -> WorkflowDecision:
         allowed_actions = [a for a in allowed_actions if a not in ("upload_document",)]
 
     if state.role == UserRole.LEGAL:
-        allowed_actions.extend([
-            "create_privileged_note",
-            "generate_court_filing",
-            "run_conflict_check",
-        ])
+        allowed_actions.extend(
+            [
+                "create_privileged_note",
+                "generate_court_filing",
+                "run_conflict_check",
+            ]
+        )
 
     if state.role == UserRole.ADMIN:
-        allowed_actions.extend([
-            "view_system_dashboard",
-            "manage_users",
-            "inspect_contract_health",
-        ])
+        allowed_actions.extend(
+            [
+                "view_system_dashboard",
+                "manage_users",
+                "inspect_contract_health",
+            ]
+        )
 
     role_def = get_role_definition(state.role)
     reason = (
@@ -256,6 +262,7 @@ def _professional_decision(state: WorkflowState) -> WorkflowDecision:
 # =============================================================================
 # Public API
 # =============================================================================
+
 
 def evaluate(state: WorkflowState) -> WorkflowDecision:
     """
@@ -309,16 +316,19 @@ async def route_user(
     role_str = get_role_from_user_id(user_id) or "user"
 
     # Strip HMAC signature for database operations (user_id may include HMAC from cookie)
-    db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+    db_user_id = user_id.split(".")[0] if "." in user_id else user_id
 
     if documents_present is None:
         try:
             from app.services.vault_upload_service import VaultUploadService
+
             vault_service = VaultUploadService()
             docs = await vault_service.get_user_documents(db_user_id)
             documents_present = len(docs) > 0
         except Exception as exc:
-            logger.warning("route_user: vault query failed for user %s: %s — defaulting to False", db_user_id[:6] + "***", exc)
+            logger.warning(
+                "route_user: vault query failed for user %s: %s — defaulting to False", db_user_id[:6] + "***", exc
+            )
             documents_present = False
 
     try:

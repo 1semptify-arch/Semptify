@@ -39,7 +39,7 @@ gates = ["storage_connected", "vault_initialized"]
 - Input: Authorization code + state from provider
 - Output: User created, session saved, storage_connected gate marked
 - **CRITICAL:** Do NOT block on vault creation
-- Success Criteria: 
+- Success Criteria:
   - User record exists in database
   - OAuth tokens cached
   - storage_connected gate marked
@@ -49,7 +49,7 @@ gates = ["storage_connected", "vault_initialized"]
 **Entry Point:** `/onboarding/vault-setup`
 **Contract:**
 - Input: Authenticated user with storage_connected gate
-- Process: 
+- Process:
   1. Show "Please be patient — 10–30 seconds" message
   2. Display rotating "Did you know?" facts
   3. Create vault folders via API call
@@ -89,11 +89,7 @@ gates = ["storage_connected", "vault_initialized"]
 ALLOWED_ROLES = {"tenant", "advocate", "legal", "admin", "manager"}
 
 # Success output
-{
-    "role": "tenant",
-    "next_step": "provider_selection",
-    "redirect": "/onboarding/providers?role=tenant"
-}
+{"role": "tenant", "next_step": "provider_selection", "redirect": "/onboarding/providers?role=tenant"}
 ```
 
 ### Step 2: Provider Selection Contract
@@ -106,7 +102,7 @@ ALLOWED_PROVIDERS = {"google_drive", "dropbox", "onedrive"}
     "state": "kZDck5dVuGWpJqVpwoKToF0H4Rcy2SbltqYPTtnWSKA",
     "provider": "google_drive",
     "role": "tenant",
-    "callback_url": "https://semptify.org/onboarding/callback/google_drive"
+    "callback_url": "https://semptify.org/onboarding/callback/google_drive",
 }
 ```
 
@@ -118,14 +114,11 @@ ALLOWED_PROVIDERS = {"google_drive", "dropbox", "onedrive"}
     "is_new": true,
     "storage_connected": true,
     "vault_initialized": false,  # Always false - force vault-setup
-    "redirect": "/onboarding/vault-setup"
+    "redirect": "/onboarding/vault-setup",
 }
 
 # Error handling
-{
-    "error": "invalid_code",
-    "redirect": "/onboarding/providers?error=oauth_failed"
-}
+{"error": "invalid_code", "redirect": "/onboarding/providers?error=oauth_failed"}
 ```
 
 ### Step 4: Vault Setup Contract
@@ -139,19 +132,15 @@ ALLOWED_PROVIDERS = {"google_drive", "dropbox", "onedrive"}
         "Semptify5.0/Vault/documents",
         # ... all canonical folders
     ],
-    "failed_folders": []
+    "failed_folders": [],
 }
 
 # API: GET /onboarding/api/vault/verify
 {
     "accessible": true,
     "ok": true,
-    "test_results": {
-        "write_test": "passed",
-        "read_test": "passed",
-        "list_test": "passed"
-    },
-    "error": null
+    "test_results": {"write_test": "passed", "read_test": "passed", "list_test": "passed"},
+    "error": null,
 }
 ```
 
@@ -160,19 +149,14 @@ ALLOWED_PROVIDERS = {"google_drive", "dropbox", "onedrive"}
 # Route decision based on role
 {
     "tenant": "/tenant/home",
-    "advocate": "/advocate/home", 
+    "advocate": "/advocate/home",
     "legal": "/legal/home",
     "admin": "/admin/home",
-    "manager": "/manager/home"
+    "manager": "/manager/home",
 }
 
 # Homepage validation
-{
-    "loads_without_error": true,
-    "user_context_valid": true,
-    "storage_accessible": true,
-    "productive_ui_visible": true
-}
+{"loads_without_error": true, "user_context_valid": true, "storage_accessible": true, "productive_ui_visible": true}
 ```
 
 ## Error Recovery Paths

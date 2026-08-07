@@ -8,7 +8,7 @@ This is the primary interface for document analysis.
 Usage:
     engine = DocumentRecognitionEngine()
     result = await engine.analyze(document_text, filename="notice.pdf")
-    
+
     # Access results
     logger.info(result.document_type)          # DocumentType.EVICTION_NOTICE
     logger.info(result.confidence.overall_score)  # 87.5
@@ -52,14 +52,14 @@ logger = logging.getLogger(__name__)
 class DocumentRecognitionEngine:
     """
     World-class document recognition engine for Minnesota tenant law.
-    
+
     Features:
     - Context-aware analysis
     - Multi-pass reasoning with cross-validation
     - Minnesota tenant law expertise
     - Comprehensive relationship mapping
     - Multi-dimensional confidence scoring
-    
+
     Architecture:
     1. Context Analysis ▸ Understand document structure
     2. Multi-Pass Reasoning ▸ Extract and validate entities
@@ -73,7 +73,7 @@ class DocumentRecognitionEngine:
     def __init__(self, config: dict[str, Any] | None = None):
         """
         Initialize the recognition engine.
-        
+
         Args:
             config: Optional configuration overrides
         """
@@ -84,9 +84,7 @@ class DocumentRecognitionEngine:
         self.legal_dictionary = get_legal_dictionary()
         self.tone_analyzer = get_tone_analyzer()
         self.context_analyzer = ContextAnalyzer()
-        self.reasoner = MultiPassReasoner(
-            max_passes=self.config.get("max_passes", 4)
-        )
+        self.reasoner = MultiPassReasoner(max_passes=self.config.get("max_passes", 4))
         self.legal_expert = MinnesotaTenantLawExpert()
         self.relationship_mapper = RelationshipMapper()
         self.confidence_scorer = ConfidenceScorer()
@@ -98,19 +96,22 @@ class DocumentRecognitionEngine:
 
         logger.info(f"DocumentRecognitionEngine v{self.VERSION} initialized")
 
-    async def analyze(self, text: str,
-                      filename: str | None = None,
-                      file_type: str | None = None,
-                      metadata: dict[str, Any] | None = None) -> RecognitionResult:
+    async def analyze(
+        self,
+        text: str,
+        filename: str | None = None,
+        file_type: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> RecognitionResult:
         """
         Perform comprehensive document analysis.
-        
+
         Args:
             text: Document text to analyze
             filename: Optional filename for context
             file_type: Optional file type (pdf, jpg, etc.)
             metadata: Optional additional metadata
-        
+
         Returns:
             RecognitionResult with all analysis data
         """
@@ -134,9 +135,7 @@ class DocumentRecognitionEngine:
 
                 # Add preprocessing info to result
                 if preprocess_result.corrections_made:
-                    result.notes.append(
-                        f"Applied {len(preprocess_result.corrections_made)} OCR corrections"
-                    )
+                    result.notes.append(f"Applied {len(preprocess_result.corrections_made)} OCR corrections")
                 if preprocess_result.warnings:
                     result.warnings.extend(preprocess_result.warnings)
 
@@ -172,9 +171,7 @@ class DocumentRecognitionEngine:
             # PASS 1: Context Analysis
             # ============================================================
             logger.debug("Pass 1: Context analysis...")
-            context, context_chain = await self._analyze_context(
-                working_text, filename, file_type
-            )
+            context, context_chain = await self._analyze_context(working_text, filename, file_type)
             result.context = context
             result.reasoning_chains.append(context_chain)
 
@@ -182,14 +179,10 @@ class DocumentRecognitionEngine:
             # PASS 2: Multi-Pass Reasoning (Entity Extraction)
             # ============================================================
             logger.debug("Pass 2: Multi-pass reasoning...")
-            entities, reasoning_chains, initial_confidence = await self._reason(
-                working_text, context
-            )
+            entities, reasoning_chains, initial_confidence = await self._reason(working_text, context)
 
             # Enhance entities with dictionary findings
-            entities = self._enhance_entities_from_dictionary(
-                entities, legal_phrases, statutes_found, critical_numbers
-            )
+            entities = self._enhance_entities_from_dictionary(entities, legal_phrases, statutes_found, critical_numbers)
             result.entities = entities
             result.reasoning_chains.extend(reasoning_chains)
 
@@ -207,18 +200,18 @@ class DocumentRecognitionEngine:
             # ============================================================
             if self.enable_legal_analysis:
                 logger.debug("Pass 4: Legal analysis...")
-                legal_analysis, legal_chain = await self._analyze_legal(
-                    working_text, entities, result.document_type
-                )
+                legal_analysis, legal_chain = await self._analyze_legal(working_text, entities, result.document_type)
 
                 # Enhance with statute information
                 if statutes_found:
                     for statute in statutes_found:
-                        legal_analysis.statute_references.append({
-                            "citation": statute["full_citation"],
-                            "title": statute["title"],
-                            "summary": statute["summary"],
-                        })
+                        legal_analysis.statute_references.append(
+                            {
+                                "citation": statute["full_citation"],
+                                "title": statute["title"],
+                                "summary": statute["summary"],
+                            }
+                        )
 
                 result.legal_analysis = legal_analysis
                 result.reasoning_chains.append(legal_chain)
@@ -228,8 +221,7 @@ class DocumentRecognitionEngine:
             # ============================================================
             logger.debug("Pass 5: Relationship mapping...")
             relationships, rel_chain = await self._map_relationships(
-                working_text, entities, result.legal_analysis.upcoming_deadlines
-                if result.legal_analysis else []
+                working_text, entities, result.legal_analysis.upcoming_deadlines if result.legal_analysis else []
             )
             result.relationships = relationships
             result.reasoning_chains.append(rel_chain)
@@ -246,11 +238,13 @@ class DocumentRecognitionEngine:
             # ============================================================
             logger.debug("Pass 7: Confidence scoring...")
             confidence, conf_chain = await self._score_confidence(
-                context, entities, result.document_type,
+                context,
+                entities,
+                result.document_type,
                 relationships,
                 result.legal_analysis.issues if result.legal_analysis else [],
                 relationships.timeline,
-                result.reasoning_chains
+                result.reasoning_chains,
             )
             result.confidence = confidence
             result.reasoning_chains.append(conf_chain)
@@ -262,9 +256,7 @@ class DocumentRecognitionEngine:
 
             # Add warnings for low confidence areas
             if confidence.overall_score < 60:
-                result.warnings.append(
-                    "Overall confidence is low - manual review recommended"
-                )
+                result.warnings.append("Overall confidence is low - manual review recommended")
 
             for item in confidence.missing_information[:3]:
                 result.notes.append(f"Missing: {item}")
@@ -286,15 +278,14 @@ class DocumentRecognitionEngine:
 
         return result
 
-    async def analyze_batch(self, documents: list[dict[str, Any]],
-                            parallel: bool = True) -> list[RecognitionResult]:
+    async def analyze_batch(self, documents: list[dict[str, Any]], parallel: bool = True) -> list[RecognitionResult]:
         """
         Analyze multiple documents.
-        
+
         Args:
             documents: List of dicts with 'text' and optional 'filename', 'file_type'
             parallel: Whether to process in parallel
-        
+
         Returns:
             List of RecognitionResult
         """
@@ -304,7 +295,7 @@ class DocumentRecognitionEngine:
                     doc.get("text", ""),
                     filename=doc.get("filename"),
                     file_type=doc.get("file_type"),
-                    metadata=doc.get("metadata")
+                    metadata=doc.get("metadata"),
                 )
                 for doc in documents
             ]
@@ -316,30 +307,27 @@ class DocumentRecognitionEngine:
                     doc.get("text", ""),
                     filename=doc.get("filename"),
                     file_type=doc.get("file_type"),
-                    metadata=doc.get("metadata")
+                    metadata=doc.get("metadata"),
                 )
                 results.append(result)
             return results
 
-    async def _analyze_context(self, text: str,
-                                filename: str | None,
-                                file_type: str | None) -> tuple[DocumentContext, ReasoningChain]:
+    async def _analyze_context(
+        self, text: str, filename: str | None, file_type: str | None
+    ) -> tuple[DocumentContext, ReasoningChain]:
         """Analyze document context and structure"""
-        context, chain = self.context_analyzer.analyze(
-            text, filename=filename, file_type=file_type
-        )
+        context, chain = self.context_analyzer.analyze(text, filename=filename, file_type=file_type)
         return context, chain
 
-    async def _reason(self, text: str,
-                      context: DocumentContext) -> tuple[
-        list[ExtractedEntity], list[ReasoningChain], ConfidenceMetrics
-    ]:
+    async def _reason(
+        self, text: str, context: DocumentContext
+    ) -> tuple[list[ExtractedEntity], list[ReasoningChain], ConfidenceMetrics]:
         """Perform multi-pass reasoning for entity extraction"""
         return await self.reasoner.reason(text, context)
 
-    async def _classify_document(self, text: str,
-                                  context: DocumentContext,
-                                  entities: list[ExtractedEntity]) -> DocumentType:
+    async def _classify_document(
+        self, text: str, context: DocumentContext, entities: list[ExtractedEntity]
+    ) -> DocumentType:
         """Classify the document type"""
         # Use context hints
         text_lower = text.lower()
@@ -406,7 +394,6 @@ class DocumentRecognitionEngine:
             DocumentType.THIRTY_DAY_NOTICE: DocumentCategory.NOTICE,
             DocumentType.RENT_INCREASE_NOTICE: DocumentCategory.NOTICE,
             DocumentType.LATE_FEE_NOTICE: DocumentCategory.NOTICE,
-
             # Court filings
             DocumentType.SUMMONS: DocumentCategory.COURT_FILING,
             DocumentType.COMPLAINT: DocumentCategory.COURT_FILING,
@@ -418,30 +405,25 @@ class DocumentRecognitionEngine:
             DocumentType.COURT_ORDER: DocumentCategory.COURT_FILING,
             DocumentType.ORDER_FOR_JUDGMENT: DocumentCategory.COURT_FILING,
             DocumentType.SUBPOENA: DocumentCategory.COURT_FILING,
-
             # Lease
             DocumentType.LEASE: DocumentCategory.LEASE_AGREEMENT,
             DocumentType.LEASE_AMENDMENT: DocumentCategory.LEASE_AGREEMENT,
             DocumentType.LEASE_RENEWAL: DocumentCategory.LEASE_AGREEMENT,
             DocumentType.LEASE_TERMINATION: DocumentCategory.LEASE_AGREEMENT,
-
             # Financial
             DocumentType.RENT_RECEIPT: DocumentCategory.FINANCIAL,
             DocumentType.RENT_LEDGER: DocumentCategory.FINANCIAL,
             DocumentType.SECURITY_DEPOSIT_RECEIPT: DocumentCategory.FINANCIAL,
             DocumentType.SECURITY_DEPOSIT_ITEMIZATION: DocumentCategory.FINANCIAL,
-
             # Correspondence
             DocumentType.LANDLORD_LETTER: DocumentCategory.CORRESPONDENCE,
             DocumentType.TENANT_LETTER: DocumentCategory.CORRESPONDENCE,
             DocumentType.ATTORNEY_LETTER: DocumentCategory.CORRESPONDENCE,
-
             # Evidence
             DocumentType.PHOTOGRAPH: DocumentCategory.EVIDENCE,
             DocumentType.TEXT_MESSAGES: DocumentCategory.EVIDENCE,
             DocumentType.EMAIL: DocumentCategory.EVIDENCE,
             DocumentType.BANK_STATEMENT: DocumentCategory.EVIDENCE,
-
             # Government
             DocumentType.HUD_FORM: DocumentCategory.GOVERNMENT_FORM,
             DocumentType.HOUSING_ASSISTANCE_NOTICE: DocumentCategory.GOVERNMENT_FORM,
@@ -449,9 +431,9 @@ class DocumentRecognitionEngine:
         }
         return category_map.get(doc_type, DocumentCategory.UNKNOWN)
 
-    async def _analyze_legal(self, text: str,
-                              entities: list[ExtractedEntity],
-                              document_type: DocumentType) -> tuple[LegalAnalysis, ReasoningChain]:
+    async def _analyze_legal(
+        self, text: str, entities: list[ExtractedEntity], document_type: DocumentType
+    ) -> tuple[LegalAnalysis, ReasoningChain]:
         """Perform legal analysis"""
         # Get timeline entries from entities
         timeline = []
@@ -465,9 +447,7 @@ class DocumentRecognitionEngine:
                 timeline.append(entry)
 
         # Run legal expert analysis
-        issues, statutes, defenses, reasoning = await self.legal_expert.analyze(
-            text, entities, document_type, timeline
-        )
+        issues, statutes, defenses, reasoning = await self.legal_expert.analyze(text, entities, document_type, timeline)
 
         # Build legal analysis result
         analysis = LegalAnalysis(
@@ -484,8 +464,12 @@ class DocumentRecognitionEngine:
         analysis.risk_score = self._calculate_risk_score(issues)
 
         # Extract notice-specific info if applicable
-        if document_type in [DocumentType.EVICTION_NOTICE, DocumentType.FOURTEEN_DAY_NOTICE,
-                            DocumentType.THIRTY_DAY_NOTICE, DocumentType.NOTICE_TO_QUIT]:
+        if document_type in [
+            DocumentType.EVICTION_NOTICE,
+            DocumentType.FOURTEEN_DAY_NOTICE,
+            DocumentType.THIRTY_DAY_NOTICE,
+            DocumentType.NOTICE_TO_QUIT,
+        ]:
             analysis.notice_type = document_type.value
 
         # Set immediate actions based on issues
@@ -500,19 +484,17 @@ class DocumentRecognitionEngine:
 
         return analysis, reasoning
 
-    def _calculate_urgency(self, issues: list[LegalIssue],
-                           timeline: list[TimelineEntry]) -> str:
+    def _calculate_urgency(self, issues: list[LegalIssue], timeline: list[TimelineEntry]) -> str:
         """Calculate urgency level"""
         critical_count = sum(1 for i in issues if i.severity.value == "critical")
         high_count = sum(1 for i in issues if i.severity.value == "high")
 
         # Check for imminent deadlines
         from datetime import date
+
         today = date.today()
         imminent_deadlines = sum(
-            1 for t in timeline
-            if t.is_deadline and t.event_date and
-            0 <= (t.event_date - today).days <= 7
+            1 for t in timeline if t.is_deadline and t.event_date and 0 <= (t.event_date - today).days <= 7
         )
 
         if critical_count > 0 or imminent_deadlines > 0:
@@ -536,33 +518,30 @@ class DocumentRecognitionEngine:
             "informational": 0,
         }
 
-        total_risk = sum(
-            severity_weights.get(i.severity.value, 0) * i.confidence
-            for i in issues
-        )
+        total_risk = sum(severity_weights.get(i.severity.value, 0) * i.confidence for i in issues)
 
         # Cap at 100
         return min(100.0, total_risk)
 
-    async def _map_relationships(self, text: str,
-                                  entities: list[ExtractedEntity],
-                                  timeline: list[TimelineEntry]) -> tuple[RelationshipMap, ReasoningChain]:
+    async def _map_relationships(
+        self, text: str, entities: list[ExtractedEntity], timeline: list[TimelineEntry]
+    ) -> tuple[RelationshipMap, ReasoningChain]:
         """Map relationships between entities"""
-        return await self.relationship_mapper.map_relationships(
-            text, entities, timeline
-        )
+        return await self.relationship_mapper.map_relationships(text, entities, timeline)
 
-    async def _score_confidence(self, context: DocumentContext,
-                                 entities: list[ExtractedEntity],
-                                 document_type: DocumentType,
-                                 relationships: RelationshipMap,
-                                 issues: list[LegalIssue],
-                                 timeline: list[TimelineEntry],
-                                 reasoning_chains: list[ReasoningChain]) -> tuple[ConfidenceMetrics, ReasoningChain]:
+    async def _score_confidence(
+        self,
+        context: DocumentContext,
+        entities: list[ExtractedEntity],
+        document_type: DocumentType,
+        relationships: RelationshipMap,
+        issues: list[LegalIssue],
+        timeline: list[TimelineEntry],
+        reasoning_chains: list[ReasoningChain],
+    ) -> tuple[ConfidenceMetrics, ReasoningChain]:
         """Calculate comprehensive confidence metrics"""
         return await self.confidence_scorer.score(
-            context, entities, document_type,
-            relationships, issues, timeline, reasoning_chains
+            context, entities, document_type, relationships, issues, timeline, reasoning_chains
         )
 
     def _clean_text(self, text: str) -> str:
@@ -570,14 +549,14 @@ class DocumentRecognitionEngine:
         import re
 
         # Remove excessive whitespace
-        cleaned = re.sub(r'\s+', ' ', text)
+        cleaned = re.sub(r"\s+", " ", text)
 
         # Remove common OCR artifacts
-        cleaned = re.sub(r'[|]', 'l', cleaned)  # Pipe to lowercase L
+        cleaned = re.sub(r"[|]", "l", cleaned)  # Pipe to lowercase L
 
         # Normalize quotes
         cleaned = cleaned.replace('"', '"').replace('"', '"')
-        cleaned = cleaned.replace(''', "'").replace(''', "'")
+        cleaned = cleaned.replace(""", "'").replace(""", "'")
 
         return cleaned.strip()
 
@@ -586,11 +565,11 @@ class DocumentRecognitionEngine:
         entities: list[ExtractedEntity],
         legal_phrases: list[dict],
         statutes_found: list[dict],
-        critical_numbers: dict
+        critical_numbers: dict,
     ) -> list[ExtractedEntity]:
         """
         Enhance extracted entities with dictionary-based findings.
-        
+
         This adds high-confidence entities from the legal dictionary
         that may have been missed by pattern matching.
         """
@@ -600,46 +579,52 @@ class DocumentRecognitionEngine:
         # Add statute citations as entities
         for statute in statutes_found:
             if statute["full_citation"].lower() not in existing_values:
-                enhanced.append(ExtractedEntity(
-                    entity_type=EntityType.STATUTE,
-                    value=statute["full_citation"],
-                    confidence=0.98,  # Very high - dictionary match
-                    extraction_method="legal_dictionary",
-                    start_position=statute["position"][0],
-                    end_position=statute["position"][1],
-                    attributes={
-                        "title": statute["title"],
-                        "summary": statute["summary"],
-                    }
-                ))
+                enhanced.append(
+                    ExtractedEntity(
+                        entity_type=EntityType.STATUTE,
+                        value=statute["full_citation"],
+                        confidence=0.98,  # Very high - dictionary match
+                        extraction_method="legal_dictionary",
+                        start_position=statute["position"][0],
+                        end_position=statute["position"][1],
+                        attributes={
+                            "title": statute["title"],
+                            "summary": statute["summary"],
+                        },
+                    )
+                )
 
         # Add critical amounts with validation
         if "money_amount" in critical_numbers:
             for amount in critical_numbers["money_amount"]:
                 amount_str = f"${amount['value']}"
                 if amount_str.lower() not in existing_values and amount["valid"]:
-                    enhanced.append(ExtractedEntity(
-                        entity_type=EntityType.MONEY,
-                        value=amount_str,
-                        confidence=0.95,
-                        extraction_method="critical_number_extraction",
-                        start_position=amount["position"][0],
-                        end_position=amount["position"][1],
-                    ))
+                    enhanced.append(
+                        ExtractedEntity(
+                            entity_type=EntityType.MONEY,
+                            value=amount_str,
+                            confidence=0.95,
+                            extraction_method="critical_number_extraction",
+                            start_position=amount["position"][0],
+                            end_position=amount["position"][1],
+                        )
+                    )
 
         # Add deadline days
         if "deadline_days" in critical_numbers:
             for deadline in critical_numbers["deadline_days"]:
                 if deadline["valid"]:
-                    enhanced.append(ExtractedEntity(
-                        entity_type=EntityType.DEADLINE,
-                        value=f"{deadline['value']} days",
-                        confidence=0.95,
-                        extraction_method="critical_number_extraction",
-                        start_position=deadline["position"][0],
-                        end_position=deadline["position"][1],
-                        attributes={"full_text": deadline["full_match"]}
-                    ))
+                    enhanced.append(
+                        ExtractedEntity(
+                            entity_type=EntityType.DEADLINE,
+                            value=f"{deadline['value']} days",
+                            confidence=0.95,
+                            extraction_method="critical_number_extraction",
+                            start_position=deadline["position"][0],
+                            end_position=deadline["position"][1],
+                            attributes={"full_text": deadline["full_match"]},
+                        )
+                    )
 
         return enhanced
 
@@ -649,11 +634,11 @@ class DocumentRecognitionEngine:
         context: DocumentContext,
         entities: list[ExtractedEntity],
         dict_doc_type: str,
-        dict_confidence: float
+        dict_confidence: float,
     ) -> DocumentType:
         """
         Enhanced document classification using both dictionary and pattern matching.
-        
+
         This combines the legal dictionary's pattern-based detection with
         the original classification logic for maximum accuracy.
         """
@@ -687,10 +672,8 @@ class DocumentRecognitionEngine:
                 "level": result.confidence.level.value,
             },
             "parties": {
-                "tenant": result.relationships.get_tenant().value
-                         if result.relationships.get_tenant() else None,
-                "landlord": result.relationships.get_landlord().value
-                           if result.relationships.get_landlord() else None,
+                "tenant": result.relationships.get_tenant().value if result.relationships.get_tenant() else None,
+                "landlord": result.relationships.get_landlord().value if result.relationships.get_landlord() else None,
             },
             "property": result.relationships.primary_property,
             "issues": {

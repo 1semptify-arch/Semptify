@@ -159,12 +159,12 @@ Local storage is NOT supported. Please select one of the providers below.
 **The limitation is now clearly stated in THREE places:**
 
 1. ✅ **On the UI** - Red alert box at `/storage/providers`
-2. ✅ **In Documentation** - New `docs/STORAGE_CONFIG.md`  
+2. ✅ **In Documentation** - New `docs/STORAGE_CONFIG.md`
 3. ✅ **In Code Comments** - Well-documented throughout
 
 **Users cannot miss this.** The red alert is impossible to ignore, and they're forced to choose from cloud-only options.
 
 ---
 
-**Updated:** March 23, 2026  
+**Updated:** March 23, 2026
 **Status:** ✅ Complete and live on running server

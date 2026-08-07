@@ -40,7 +40,7 @@ complaint = client.complaints.create(
     complaint_type="habitability",
     title="Mold and Water Damage",
     description="Persistent mold issue not addressed by landlord",
-    violations=["failure_to_repair", "health_hazard"]
+    violations=["failure_to_repair", "health_hazard"],
 )
 ```
 
@@ -69,11 +69,7 @@ client.auth.logout()
 
 ```python
 # Upload a document
-doc = client.documents.upload(
-    file="path/to/document.pdf",
-    document_type="lease",
-    tags=["important", "contract"]
-)
+doc = client.documents.upload(file="path/to/document.pdf", document_type="lease", tags=["important", "contract"])
 
 # Upload through intake engine for auto-processing
 intake_doc = client.documents.intake_upload("document.pdf")
@@ -101,26 +97,18 @@ from datetime import date
 
 # Add an event
 event = client.timeline.add_event(
-    event_type="notice_received",
-    title="3-Day Notice Received",
-    event_date=date.today(),
-    importance="critical"
+    event_type="notice_received", title="3-Day Notice Received", event_date=date.today(), importance="critical"
 )
 
 # Get events
-events = client.timeline.get_events(
-    start_date=date(2024, 1, 1),
-    event_type="notice_received"
-)
+events = client.timeline.get_events(start_date=date(2024, 1, 1), event_type="notice_received")
 
 # Get upcoming deadlines
 deadlines = client.timeline.get_deadlines(days_ahead=30)
 
 # Calculate statute of limitations
 statute = client.timeline.calculate_statute(
-    violation_type="habitability",
-    jurisdiction="california",
-    incident_date=date(2024, 1, 15)
+    violation_type="habitability", jurisdiction="california", incident_date=date(2024, 1, 15)
 )
 
 # Get timeline summary
@@ -132,28 +120,18 @@ summary = client.timeline.get_timeline_summary()
 ```python
 # Chat with the copilot
 response = client.copilot.chat(
-    message="What are my options for responding to this eviction notice?",
-    conversation_type="case_strategy"
+    message="What are my options for responding to this eviction notice?", conversation_type="case_strategy"
 )
 
 # Get comprehensive case analysis
-analysis = client.copilot.analyze_case(
-    include_documents=True,
-    include_timeline=True
-)
+analysis = client.copilot.analyze_case(include_documents=True, include_timeline=True)
 
 # Analyze a specific document
-doc_analysis = client.copilot.analyze_document(
-    document_id="doc_123",
-    analysis_type="comprehensive"
-)
+doc_analysis = client.copilot.analyze_document(document_id="doc_123", analysis_type="comprehensive")
 
 # Draft a letter
 letter = client.copilot.draft_letter(
-    letter_type="demand",
-    recipient="Landlord",
-    key_points=["Repair request ignored", "Health hazard"],
-    tone="firm"
+    letter_type="demand", recipient="Landlord", key_points=["Repair request ignored", "Health hazard"], tone="firm"
 )
 
 # Get recommendations
@@ -165,10 +143,7 @@ recommendations = client.copilot.get_recommendations(urgency="high")
 ```python
 # Create a complaint
 complaint = client.complaints.create(
-    complaint_type="habitability",
-    title="Mold and Water Damage",
-    description="...",
-    violations=["failure_to_repair"]
+    complaint_type="habitability", title="Mold and Water Damage", description="...", violations=["failure_to_repair"]
 )
 
 # Get complaint
@@ -197,24 +172,13 @@ pdf_content = client.complaints.generate_pdf("complaint_id")
 
 ```python
 # Create a briefcase
-briefcase = client.briefcase.create(
-    name="Habitability Case",
-    case_type="habitability"
-)
+briefcase = client.briefcase.create(name="Habitability Case", case_type="habitability")
 
 # Add document
-item = client.briefcase.add_document(
-    briefcase_id="bc_123",
-    document_id="doc_456",
-    tags=["evidence"]
-)
+item = client.briefcase.add_document(briefcase_id="bc_123", document_id="doc_456", tags=["evidence"])
 
 # Add note
-note = client.briefcase.add_note(
-    briefcase_id="bc_123",
-    title="Inspection Notes",
-    content="..."
-)
+note = client.briefcase.add_note(briefcase_id="bc_123", title="Inspection Notes", content="...")
 
 # Get items
 items = client.briefcase.get_items("bc_123", item_type="document")
@@ -232,18 +196,11 @@ client.briefcase.share("bc_123", email="lawyer@example.com")
 from sdk.vault import VaultPermission
 
 # Add item to vault
-item = client.vault.add_item(
-    name="Sensitive Document",
-    document_id="doc_123",
-    encrypt=True
-)
+item = client.vault.add_item(name="Sensitive Document", document_id="doc_123", encrypt=True)
 
 # Grant access
 access = client.vault.grant_access(
-    item_id="item_123",
-    email="user@example.com",
-    permission=VaultPermission.VIEW,
-    expires_in_days=7
+    item_id="item_123", email="user@example.com", permission=VaultPermission.VIEW, expires_in_days=7
 )
 
 # Get audit log
@@ -295,13 +252,15 @@ All client methods have async variants prefixed with `a`:
 ```python
 import asyncio
 
+
 async def main():
     async with SemptifyClient() as client:
         # Async operations
         health = await client.ahealth_check()
-        
+
         # Or use async client methods directly
         response = await client.auth.async_client.get("/api/auth/providers")
+
 
 asyncio.run(main())
 ```
@@ -323,9 +282,9 @@ async with SemptifyClient() as client:
 ```python
 client = SemptifyClient(
     base_url="http://localhost:8000",  # API base URL
-    api_key="your_api_key",             # Optional API key
-    timeout=30.0,                       # Request timeout
-    user_id="user_123",                 # Optional user ID
+    api_key="your_api_key",  # Optional API key
+    timeout=30.0,  # Request timeout
+    user_id="user_123",  # Optional user ID
 )
 ```
 

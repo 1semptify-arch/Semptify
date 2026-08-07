@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class SignatureStatus(str, Enum):
     """Status of signature verification."""
+
     VERIFIED = "verified"
     SUSPICIOUS = "suspicious"
     LIKELY_FORGED = "likely_forged"
@@ -37,6 +38,7 @@ class SignatureStatus(str, Enum):
 
 class HandwritingType(str, Enum):
     """Types of handwritten content."""
+
     SIGNATURE = "signature"
     INITIALS = "initials"
     DATE = "date"
@@ -49,6 +51,7 @@ class HandwritingType(str, Enum):
 
 class ForgeryType(str, Enum):
     """Types of forgery indicators."""
+
     SIGNATURE_MISMATCH = "signature_mismatch"
     DATE_ALTERATION = "date_alteration"
     AMOUNT_MODIFICATION = "amount_modification"
@@ -64,6 +67,7 @@ class ForgeryType(str, Enum):
 
 class RiskLevel(str, Enum):
     """Risk level for forgery detection."""
+
     NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
@@ -74,6 +78,7 @@ class RiskLevel(str, Enum):
 @dataclass
 class SignatureProfile:
     """Profile of a signature for comparison."""
+
     id: str
     signer_name: str
     signature_text: str  # Extracted signature text/representation
@@ -96,9 +101,7 @@ class SignatureProfile:
 
     def __post_init__(self):
         if not self.signature_hash:
-            self.signature_hash = hashlib.md5(
-                f"{self.signer_name}:{self.signature_text}".encode()
-            ).hexdigest()[:12]
+            self.signature_hash = hashlib.md5(f"{self.signer_name}:{self.signature_text}".encode()).hexdigest()[:12]
 
     def similarity_to(self, other: "SignatureProfile") -> float:
         """Calculate similarity score to another signature."""
@@ -181,6 +184,7 @@ class SignatureProfile:
 @dataclass
 class HandwrittenElement:
     """A handwritten element detected in document."""
+
     id: str
     element_type: HandwritingType
     content: str
@@ -213,6 +217,7 @@ class HandwrittenElement:
 @dataclass
 class ForgeryIndicator:
     """An indicator of potential forgery."""
+
     id: str
     forgery_type: ForgeryType
     description: str
@@ -243,6 +248,7 @@ class ForgeryIndicator:
 @dataclass
 class SignatureComparison:
     """Result of comparing two signatures."""
+
     signature1_id: str
     signature2_id: str
     similarity_score: float
@@ -273,6 +279,7 @@ class SignatureComparison:
 @dataclass
 class HandwritingAnalysisResult:
     """Complete handwriting analysis result."""
+
     analysis_id: str
     analyzed_at: datetime = field(default_factory=datetime.now)
 
@@ -326,7 +333,7 @@ class HandwritingAnalysisResult:
 class HandwritingAnalyzer:
     """
     Advanced handwriting analysis engine.
-    
+
     Analyzes documents for:
     - Signature presence and validity
     - Handwritten dates, amounts, annotations
@@ -346,17 +353,13 @@ class HandwritingAnalyzer:
             # Explicit signature lines
             (r"(?:Signature|Signed|Sign here)[:\s]*[_\-]{3,}", "signature_line"),
             (r"(?:/{2,}|_{3,})\s*(?:Signature|Tenant|Landlord|Owner)", "signature_field"),
-
             # Name after signature indicator
             (r"(?:Signed|Executed by)[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)", "signed_name"),
             (r"(?:By|Signature of)[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)", "by_name"),
-
             # Witness signatures
             (r"Witness(?:ed)?[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)", "witness_sig"),
-
             # Notary signatures
             (r"Notary\s+Public[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)", "notary_sig"),
-
             # Common signature patterns
             (r"/s/\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)", "electronic_sig"),
             (r"\[signed\]\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)", "indicated_sig"),
@@ -411,7 +414,6 @@ class HandwritingAnalyzer:
                 "description": "Legal document dated on weekend/holiday",
                 "risk": RiskLevel.LOW,
             },
-
             # Signature issues
             "signature_missing": {
                 "type": ForgeryType.SIGNATURE_MISMATCH,
@@ -428,7 +430,6 @@ class HandwritingAnalyzer:
                 "description": "Signature doesn't match name",
                 "risk": RiskLevel.HIGH,
             },
-
             # Amount manipulation
             "amount_altered": {
                 "type": ForgeryType.AMOUNT_MODIFICATION,
@@ -440,7 +441,6 @@ class HandwritingAnalyzer:
                 "description": "Amounts don't add up correctly",
                 "risk": RiskLevel.HIGH,
             },
-
             # Document tampering
             "whiteout": {
                 "type": ForgeryType.WHITEOUT_DETECTED,
@@ -489,12 +489,12 @@ class HandwritingAnalyzer:
     ) -> HandwritingAnalysisResult:
         """
         Perform complete handwriting analysis.
-        
+
         Args:
             text: Document text to analyze
             document_type: Type of document for context
             reference_signatures: Known signatures for comparison
-        
+
         Returns:
             Complete handwriting analysis result
         """
@@ -518,12 +518,9 @@ class HandwritingAnalyzer:
 
         # Compare signatures if references provided
         if reference_signatures:
-            result.signature_comparisons = self._compare_signatures(
-                result.signatures, reference_signatures
-            )
+            result.signature_comparisons = self._compare_signatures(result.signatures, reference_signatures)
             result.all_signatures_verified = all(
-                c.match_status == SignatureStatus.VERIFIED
-                for c in result.signature_comparisons
+                c.match_status == SignatureStatus.VERIFIED for c in result.signature_comparisons
             )
 
         # Calculate overall risk
@@ -531,19 +528,14 @@ class HandwritingAnalyzer:
         result.overall_risk_level = self._determine_risk_level(result.forgery_risk_score)
 
         # Count suspicious elements
-        result.suspicious_elements = len([
-            e for e in result.handwritten_elements
-            if not e.is_authentic
-        ]) + len([
-            s for s in result.signatures
-            if s.confidence < 0.6
-        ])
+        result.suspicious_elements = len([e for e in result.handwritten_elements if not e.is_authentic]) + len(
+            [s for s in result.signatures if s.confidence < 0.6]
+        )
 
         # Generate recommendations
         result.recommendations = self._generate_recommendations(result)
         result.requires_expert_review = (
-            result.overall_risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]
-            or result.suspicious_elements > 2
+            result.overall_risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL] or result.suspicious_elements > 2
         )
 
         return result
@@ -552,7 +544,7 @@ class HandwritingAnalyzer:
         """Extract all signatures from document."""
 
         signatures = []
-        text_lower = text.lower()
+        text.lower()
 
         for pattern, pattern_type in self.signature_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE | re.MULTILINE):
@@ -586,7 +578,9 @@ class HandwritingAnalyzer:
                 )
 
                 # Avoid duplicates
-                if not any(s.signer_name == sig.signer_name and s.location_in_doc == sig.location_in_doc for s in signatures):
+                if not any(
+                    s.signer_name == sig.signer_name and s.location_in_doc == sig.location_in_doc for s in signatures
+                ):
                     signatures.append(sig)
 
         # Check for electronic signatures
@@ -605,52 +599,60 @@ class HandwritingAnalyzer:
         # Extract dates
         for pattern, pattern_type in self.handwritten_date_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                elements.append(HandwrittenElement(
-                    id=make_id("fri"),
-                    element_type=HandwritingType.DATE,
-                    content=match.group(0),
-                    location=self._determine_location(text, match.start()),
-                    page_number=self._estimate_page(text, match.start()),
-                    confidence=0.85,
-                    field_label=self._find_field_label(text, match.start()),
-                ))
+                elements.append(
+                    HandwrittenElement(
+                        id=make_id("fri"),
+                        element_type=HandwritingType.DATE,
+                        content=match.group(0),
+                        location=self._determine_location(text, match.start()),
+                        page_number=self._estimate_page(text, match.start()),
+                        confidence=0.85,
+                        field_label=self._find_field_label(text, match.start()),
+                    )
+                )
 
         # Extract amounts
         for pattern, pattern_type in self.handwritten_amount_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                elements.append(HandwrittenElement(
-                    id=make_id("fri"),
-                    element_type=HandwritingType.AMOUNT,
-                    content=match.group(0),
-                    location=self._determine_location(text, match.start()),
-                    page_number=self._estimate_page(text, match.start()),
-                    confidence=0.85,
-                    field_label=self._find_field_label(text, match.start()),
-                ))
+                elements.append(
+                    HandwrittenElement(
+                        id=make_id("fri"),
+                        element_type=HandwritingType.AMOUNT,
+                        content=match.group(0),
+                        location=self._determine_location(text, match.start()),
+                        page_number=self._estimate_page(text, match.start()),
+                        confidence=0.85,
+                        field_label=self._find_field_label(text, match.start()),
+                    )
+                )
 
         # Extract initials
         for pattern, pattern_type in self.initials_patterns:
             for match in re.finditer(pattern, text):
-                elements.append(HandwrittenElement(
-                    id=make_id("fri"),
-                    element_type=HandwritingType.INITIALS,
-                    content=match.group(0),
-                    location=self._determine_location(text, match.start()),
-                    page_number=self._estimate_page(text, match.start()),
-                    confidence=0.75,
-                ))
+                elements.append(
+                    HandwrittenElement(
+                        id=make_id("fri"),
+                        element_type=HandwritingType.INITIALS,
+                        content=match.group(0),
+                        location=self._determine_location(text, match.start()),
+                        page_number=self._estimate_page(text, match.start()),
+                        confidence=0.75,
+                    )
+                )
 
         # Extract annotations
         for pattern, pattern_type in self.annotation_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                elements.append(HandwrittenElement(
-                    id=make_id("fri"),
-                    element_type=HandwritingType.ANNOTATION,
-                    content=match.group(0)[:200],
-                    location=self._determine_location(text, match.start()),
-                    page_number=self._estimate_page(text, match.start()),
-                    confidence=0.7,
-                ))
+                elements.append(
+                    HandwrittenElement(
+                        id=make_id("fri"),
+                        element_type=HandwritingType.ANNOTATION,
+                        content=match.group(0)[:200],
+                        location=self._determine_location(text, match.start()),
+                        page_number=self._estimate_page(text, match.start()),
+                        confidence=0.7,
+                    )
+                )
 
         return elements
 
@@ -667,17 +669,19 @@ class HandwritingAnalyzer:
 
         # Check for missing signatures on legal documents
         if self._requires_signature(document_type) and not signatures:
-            indicators.append(ForgeryIndicator(
-                id=make_id("fri"),
-                forgery_type=ForgeryType.SIGNATURE_MISMATCH,
-                description="Required signature is missing from document",
-                location="document",
-                risk_level=RiskLevel.HIGH,
-                confidence=0.9,
-                evidence=["No signature detected in legal document"],
-                legal_significance="Document may not be legally binding without proper signatures",
-                recommended_action="Request properly signed original document",
-            ))
+            indicators.append(
+                ForgeryIndicator(
+                    id=make_id("fri"),
+                    forgery_type=ForgeryType.SIGNATURE_MISMATCH,
+                    description="Required signature is missing from document",
+                    location="document",
+                    risk_level=RiskLevel.HIGH,
+                    confidence=0.9,
+                    evidence=["No signature detected in legal document"],
+                    legal_significance="Document may not be legally binding without proper signatures",
+                    recommended_action="Request properly signed original document",
+                )
+            )
 
         # Check for date issues
         date_indicators = self._check_date_issues(text, elements)
@@ -713,17 +717,19 @@ class HandwritingAnalyzer:
         for date_elem in dates:
             parsed_date = self._parse_date(date_elem.content)
             if parsed_date and parsed_date > today:
-                indicators.append(ForgeryIndicator(
-                    id=make_id("fri"),
-                    forgery_type=ForgeryType.DATE_ALTERATION,
-                    description=f"Document contains future date: {date_elem.content}",
-                    location=date_elem.location,
-                    risk_level=RiskLevel.HIGH,
-                    confidence=0.95,
-                    evidence=[f"Date '{date_elem.content}' is after today's date"],
-                    legal_significance="Future-dated documents may indicate fraud or manipulation",
-                    recommended_action="Verify actual document creation date",
-                ))
+                indicators.append(
+                    ForgeryIndicator(
+                        id=make_id("fri"),
+                        forgery_type=ForgeryType.DATE_ALTERATION,
+                        description=f"Document contains future date: {date_elem.content}",
+                        location=date_elem.location,
+                        risk_level=RiskLevel.HIGH,
+                        confidence=0.95,
+                        evidence=[f"Date '{date_elem.content}' is after today's date"],
+                        legal_significance="Future-dated documents may indicate fraud or manipulation",
+                        recommended_action="Verify actual document creation date",
+                    )
+                )
 
         # Check for inconsistent dates
         if len(dates) > 1:
@@ -733,17 +739,19 @@ class HandwritingAnalyzer:
             if parsed_dates:
                 date_range = (max(parsed_dates) - min(parsed_dates)).days
                 if date_range > 30:  # Dates more than 30 days apart
-                    indicators.append(ForgeryIndicator(
-                        id=make_id("fri"),
-                        forgery_type=ForgeryType.DATE_ALTERATION,
-                        description=f"Document contains dates {date_range} days apart",
-                        location="multiple",
-                        risk_level=RiskLevel.MEDIUM,
-                        confidence=0.7,
-                        evidence=[f"Date range spans {date_range} days"],
-                        legal_significance="May indicate document was modified over time",
-                        recommended_action="Verify all dates are accurate and intentional",
-                    ))
+                    indicators.append(
+                        ForgeryIndicator(
+                            id=make_id("fri"),
+                            forgery_type=ForgeryType.DATE_ALTERATION,
+                            description=f"Document contains dates {date_range} days apart",
+                            location="multiple",
+                            risk_level=RiskLevel.MEDIUM,
+                            confidence=0.7,
+                            evidence=[f"Date range spans {date_range} days"],
+                            legal_significance="May indicate document was modified over time",
+                            recommended_action="Verify all dates are accurate and intentional",
+                        )
+                    )
 
         return indicators
 
@@ -751,14 +759,14 @@ class HandwritingAnalyzer:
         """Check for amount-related forgery indicators."""
 
         indicators = []
-        amounts = [e for e in elements if e.element_type == HandwritingType.AMOUNT]
+        [e for e in elements if e.element_type == HandwritingType.AMOUNT]
 
         # Extract all dollar amounts from text
-        all_amounts = re.findall(r'\$\s*([\d,]+(?:\.\d{2})?)', text)
+        all_amounts = re.findall(r"\$\s*([\d,]+(?:\.\d{2})?)", text)
         parsed_amounts = []
         for amt in all_amounts:
             try:
-                parsed_amounts.append(float(amt.replace(',', '')))
+                parsed_amounts.append(float(amt.replace(",", "")))
             except ValueError:
                 pass
 
@@ -766,33 +774,34 @@ class HandwritingAnalyzer:
         if len(parsed_amounts) >= 3:
             # Look for a "total" pattern
             total_match = re.search(
-                r'(?:total|sum|amount due|balance)[:\s]*\$?\s*([\d,]+(?:\.\d{2})?)',
-                text, re.IGNORECASE
+                r"(?:total|sum|amount due|balance)[:\s]*\$?\s*([\d,]+(?:\.\d{2})?)", text, re.IGNORECASE
             )
             if total_match:
                 try:
-                    stated_total = float(total_match.group(1).replace(',', ''))
+                    stated_total = float(total_match.group(1).replace(",", ""))
                     # Sum all other amounts
                     other_amounts = [a for a in parsed_amounts if a != stated_total]
                     if other_amounts:
                         calculated_sum = sum(other_amounts)
                         # Allow for small rounding differences
                         if abs(calculated_sum - stated_total) > 1.0 and stated_total > 0:
-                            indicators.append(ForgeryIndicator(
-                                id=make_id("fri"),
-                                forgery_type=ForgeryType.AMOUNT_MODIFICATION,
-                                description=f"Amounts don't add up: stated ${stated_total:.2f}, calculated ${calculated_sum:.2f}",
-                                location="financial section",
-                                risk_level=RiskLevel.HIGH,
-                                confidence=0.85,
-                                evidence=[
-                                    f"Stated total: ${stated_total:.2f}",
-                                    f"Sum of items: ${calculated_sum:.2f}",
-                                    f"Discrepancy: ${abs(stated_total - calculated_sum):.2f}",
-                                ],
-                                legal_significance="Amount discrepancies may indicate manipulation",
-                                recommended_action="Request itemized breakdown and verify calculations",
-                            ))
+                            indicators.append(
+                                ForgeryIndicator(
+                                    id=make_id("fri"),
+                                    forgery_type=ForgeryType.AMOUNT_MODIFICATION,
+                                    description=f"Amounts don't add up: stated ${stated_total:.2f}, calculated ${calculated_sum:.2f}",
+                                    location="financial section",
+                                    risk_level=RiskLevel.HIGH,
+                                    confidence=0.85,
+                                    evidence=[
+                                        f"Stated total: ${stated_total:.2f}",
+                                        f"Sum of items: ${calculated_sum:.2f}",
+                                        f"Discrepancy: ${abs(stated_total - calculated_sum):.2f}",
+                                    ],
+                                    legal_significance="Amount discrepancies may indicate manipulation",
+                                    recommended_action="Request itemized breakdown and verify calculations",
+                                )
+                            )
                 except ValueError:
                     pass
 
@@ -807,20 +816,22 @@ class HandwritingAnalyzer:
         seen_hashes = {}
         for sig in signatures:
             if sig.signature_hash in seen_hashes:
-                indicators.append(ForgeryIndicator(
-                    id=make_id("fri"),
-                    forgery_type=ForgeryType.COPY_PASTE_SIGNATURE,
-                    description="Identical signature detected in multiple locations",
-                    location=f"{seen_hashes[sig.signature_hash]} and {sig.location_in_doc}",
-                    risk_level=RiskLevel.CRITICAL,
-                    confidence=0.9,
-                    evidence=[
-                        f"Signature hash {sig.signature_hash} appears multiple times",
-                        "Digital copies produce identical patterns",
-                    ],
-                    legal_significance="Copy-pasted signatures are typically not legally valid",
-                    recommended_action="Request original wet signatures or verified e-signatures",
-                ))
+                indicators.append(
+                    ForgeryIndicator(
+                        id=make_id("fri"),
+                        forgery_type=ForgeryType.COPY_PASTE_SIGNATURE,
+                        description="Identical signature detected in multiple locations",
+                        location=f"{seen_hashes[sig.signature_hash]} and {sig.location_in_doc}",
+                        risk_level=RiskLevel.CRITICAL,
+                        confidence=0.9,
+                        evidence=[
+                            f"Signature hash {sig.signature_hash} appears multiple times",
+                            "Digital copies produce identical patterns",
+                        ],
+                        legal_significance="Copy-pasted signatures are typically not legally valid",
+                        recommended_action="Request original wet signatures or verified e-signatures",
+                    )
+                )
             else:
                 seen_hashes[sig.signature_hash] = sig.location_in_doc
 
@@ -832,32 +843,29 @@ class HandwritingAnalyzer:
         indicators = []
 
         # Check for common alteration indicators
-        alteration_patterns = [
-            (r'\b(\d)\s+(\d)\b', "Spaced digits may indicate inserted numbers"),
-            (r'(?:^|\s)([A-Z])\s+([a-z])', "Unusual spacing may indicate text insertion"),
-            (r'\[\s*(?:sic|?)\s*\]', "Editorial marks may indicate known issues"),
-        ]
 
         # Check for strikethrough/correction indicators
         correction_patterns = [
-            (r'(?:strikethrough|crossed out|deleted)', "Document mentions deletions"),
-            (r'(?:correction|corrected|amended)', "Document mentions corrections"),
-            (r'(?:white.?out|liquid paper|correction fluid)', "Document mentions correction fluid"),
+            (r"(?:strikethrough|crossed out|deleted)", "Document mentions deletions"),
+            (r"(?:correction|corrected|amended)", "Document mentions corrections"),
+            (r"(?:white.?out|liquid paper|correction fluid)", "Document mentions correction fluid"),
         ]
 
         for pattern, description in correction_patterns:
             if re.search(pattern, text, re.IGNORECASE):
-                indicators.append(ForgeryIndicator(
-                    id=make_id("fri"),
-                    forgery_type=ForgeryType.WHITEOUT_DETECTED,
-                    description=description,
-                    location="document body",
-                    risk_level=RiskLevel.MEDIUM,
-                    confidence=0.7,
-                    evidence=[f"Text pattern: {pattern}"],
-                    legal_significance="Corrections should be initialed and dated",
-                    recommended_action="Verify all corrections were made by authorized parties",
-                ))
+                indicators.append(
+                    ForgeryIndicator(
+                        id=make_id("fri"),
+                        forgery_type=ForgeryType.WHITEOUT_DETECTED,
+                        description=description,
+                        location="document body",
+                        risk_level=RiskLevel.MEDIUM,
+                        confidence=0.7,
+                        evidence=[f"Text pattern: {pattern}"],
+                        legal_significance="Corrections should be initialed and dated",
+                        recommended_action="Verify all corrections were made by authorized parties",
+                    )
+                )
 
         return indicators
 
@@ -870,9 +878,7 @@ class HandwritingAnalyzer:
         dates = [e for e in elements if e.element_type == HandwritingType.DATE]
 
         # Look for eviction-related terms
-        is_eviction = bool(re.search(
-            r'evict|vacate|quit|terminate|14.?day|30.?day', text, re.IGNORECASE
-        ))
+        is_eviction = bool(re.search(r"evict|vacate|quit|terminate|14.?day|30.?day", text, re.IGNORECASE))
 
         if is_eviction and dates:
             for date_elem in dates:
@@ -882,20 +888,22 @@ class HandwritingAnalyzer:
 
                     # Check if date is suspiciously close to current requirements
                     if -2 <= days_from_now <= 0:
-                        indicators.append(ForgeryIndicator(
-                            id=make_id("fri"),
-                            forgery_type=ForgeryType.DATE_ALTERATION,
-                            description="Notice date appears to be backdated to meet statutory requirements",
-                            location=date_elem.location,
-                            risk_level=RiskLevel.CRITICAL,
-                            confidence=0.75,
-                            evidence=[
-                                f"Notice dated {date_elem.content}",
-                                "Date suspiciously close to statutory deadline",
-                            ],
-                            legal_significance="Backdating notices violates MN Stat. 504B - improper notice is a defense to eviction",
-                            recommended_action="Challenge notice validity; request proof of service date",
-                        ))
+                        indicators.append(
+                            ForgeryIndicator(
+                                id=make_id("fri"),
+                                forgery_type=ForgeryType.DATE_ALTERATION,
+                                description="Notice date appears to be backdated to meet statutory requirements",
+                                location=date_elem.location,
+                                risk_level=RiskLevel.CRITICAL,
+                                confidence=0.75,
+                                evidence=[
+                                    f"Notice dated {date_elem.content}",
+                                    "Date suspiciously close to statutory deadline",
+                                ],
+                                legal_significance="Backdating notices violates MN Stat. 504B - improper notice is a defense to eviction",
+                                recommended_action="Challenge notice validity; request proof of service date",
+                            )
+                        )
 
         return indicators
 
@@ -935,16 +943,18 @@ class HandwritingAnalyzer:
                 if abs(doc_sig.estimated_slant - best_match.estimated_slant) > 0.3:
                     discrepancies.append("Significant slant difference")
 
-                comparisons.append(SignatureComparison(
-                    signature1_id=doc_sig.id,
-                    signature2_id=best_match.id,
-                    similarity_score=best_score,
-                    match_status=status,
-                    discrepancies=discrepancies,
-                    name_match=doc_sig.signer_name.lower() == best_match.signer_name.lower(),
-                    style_match=best_score >= 0.7,
-                    size_match=doc_sig.estimated_size == best_match.estimated_size,
-                ))
+                comparisons.append(
+                    SignatureComparison(
+                        signature1_id=doc_sig.id,
+                        signature2_id=best_match.id,
+                        similarity_score=best_score,
+                        match_status=status,
+                        discrepancies=discrepancies,
+                        name_match=doc_sig.signer_name.lower() == best_match.signer_name.lower(),
+                        style_match=best_score >= 0.7,
+                        size_match=doc_sig.estimated_size == best_match.estimated_size,
+                    )
+                )
 
         return comparisons
 
@@ -1023,7 +1033,7 @@ class HandwritingAnalyzer:
         surrounding = text[start:end]
 
         # Look for name patterns
-        name_match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)', surrounding)
+        name_match = re.search(r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)", surrounding)
         if name_match:
             return name_match.group(1)
 
@@ -1057,8 +1067,8 @@ class HandwritingAnalyzer:
             return 0.0
 
         # Names with more descenders tend to slant right
-        descenders = sum(1 for c in name.lower() if c in 'gjpqy')
-        ascenders = sum(1 for c in name.lower() if c in 'bdfhklt')
+        descenders = sum(1 for c in name.lower() if c in "gjpqy")
+        ascenders = sum(1 for c in name.lower() if c in "bdfhklt")
 
         slant = (descenders - ascenders) * 0.1
         return max(-1.0, min(1.0, slant + 0.2))  # Slight right bias
@@ -1087,7 +1097,7 @@ class HandwritingAnalyzer:
     def _detect_flourish(self, name: str) -> bool:
         """Detect if signature likely has flourishes."""
         # Names ending in certain letters often have flourishes
-        if name and name[-1].lower() in 'sygnr':
+        if name and name[-1].lower() in "sygnr":
             return True
         return False
 
@@ -1098,25 +1108,27 @@ class HandwritingAnalyzer:
 
         # Common e-signature patterns
         e_sig_patterns = [
-            r'Electronically signed by[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-            r'DocuSign[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-            r'Adobe Sign[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-            r'e-?signed[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
+            r"Electronically signed by[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)",
+            r"DocuSign[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)",
+            r"Adobe Sign[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)",
+            r"e-?signed[:\s]*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)",
         ]
 
         for pattern in e_sig_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
-                signatures.append(SignatureProfile(
-                    id=make_id("fri"),
-                    signer_name=match.group(1).strip(),
-                    signature_text=match.group(0),
-                    location_in_doc="electronic",
-                    estimated_size="medium",
-                    estimated_complexity=0.3,  # E-sigs are standardized
-                    is_legible=True,
-                    confidence=0.9,  # E-sigs are reliable
-                    extraction_method="electronic_signature",
-                ))
+                signatures.append(
+                    SignatureProfile(
+                        id=make_id("fri"),
+                        signer_name=match.group(1).strip(),
+                        signature_text=match.group(0),
+                        location_in_doc="electronic",
+                        estimated_size="medium",
+                        estimated_complexity=0.3,  # E-sigs are standardized
+                        is_legible=True,
+                        confidence=0.9,  # E-sigs are reliable
+                        extraction_method="electronic_signature",
+                    )
+                )
 
         return signatures
 
@@ -1126,7 +1138,7 @@ class HandwritingAnalyzer:
         preceding = text[start:position]
 
         # Look for label patterns
-        label_match = re.search(r'([A-Za-z\s]+)[:\s]*$', preceding)
+        label_match = re.search(r"([A-Za-z\s]+)[:\s]*$", preceding)
         if label_match:
             return label_match.group(1).strip()
 
@@ -1139,8 +1151,16 @@ class HandwritingAnalyzer:
 
         doc_lower = document_type.lower()
         signature_required = [
-            'lease', 'agreement', 'contract', 'notice', 'affidavit',
-            'motion', 'complaint', 'summons', 'order', 'deed',
+            "lease",
+            "agreement",
+            "contract",
+            "notice",
+            "affidavit",
+            "motion",
+            "complaint",
+            "summons",
+            "order",
+            "deed",
         ]
 
         return any(req in doc_lower for req in signature_required)
@@ -1151,14 +1171,20 @@ class HandwritingAnalyzer:
         from datetime import datetime
 
         # Clean the string
-        date_str = re.sub(r'[^\d/\-\w\s]', '', date_str).strip()
+        date_str = re.sub(r"[^\d/\-\w\s]", "", date_str).strip()
 
         # Try common formats
         formats = [
-            '%m/%d/%Y', '%m-%d-%Y', '%m/%d/%y', '%m-%d-%y',
-            '%Y-%m-%d', '%Y/%m/%d',
-            '%B %d, %Y', '%b %d, %Y',
-            '%d %B %Y', '%d %b %Y',
+            "%m/%d/%Y",
+            "%m-%d-%Y",
+            "%m/%d/%y",
+            "%m-%d-%y",
+            "%Y-%m-%d",
+            "%Y/%m/%d",
+            "%B %d, %Y",
+            "%b %d, %Y",
+            "%d %B %Y",
+            "%d %b %Y",
         ]
 
         for fmt in formats:
@@ -1178,12 +1204,12 @@ async def analyze_handwriting(
 ) -> HandwritingAnalysisResult:
     """
     Analyze document for handwriting and forgery.
-    
+
     Args:
         text: Document text
         document_type: Optional document type for context
         reference_signatures: Optional known signatures for comparison
-    
+
     Returns:
         Complete handwriting analysis result
     """

@@ -27,11 +27,12 @@ async def debug_vault_installer(
 ):
     """Debug endpoint to verify router is accessible. Requires authentication."""
     from app.core.utc import utc_now
+
     return {
         "status": "vault_installer_router_ok",
         "router_prefix": router.prefix,
         "routes": [r.path for r in router.routes],
-        "timestamp": utc_now().isoformat()
+        "timestamp": utc_now().isoformat(),
     }
 
 
@@ -42,13 +43,13 @@ async def install_vault(
 ):
     """
     Install Semptify vault using existing OAuth storage.
-    
+
     This endpoint:
     1. Uses your existing OAuth tokens (from storage connection)
     2. Creates the complete vault folder structure
     3. Adds system files and initial data
     4. Marks vault as activated
-    
+
     No complex onboarding required - just install and go.
     """
     logger.info("=== VAULT INSTALL START ===")
@@ -64,7 +65,7 @@ async def install_vault(
             raise HTTPException(status_code=401, detail="Authentication required - please complete OAuth first")
 
         # UserContext is a dataclass - access user_id as attribute
-        user_id = getattr(current_user, 'user_id', None)
+        user_id = getattr(current_user, "user_id", None)
         if not user_id:
             logger.error("No user_id in current_user!")
             raise HTTPException(status_code=401, detail="Authentication required")
@@ -74,10 +75,7 @@ async def install_vault(
         logger.info(f"Session result: {'found' if session else 'NOT FOUND'}")
 
         if not session:
-            raise HTTPException(
-                status_code=400,
-                detail="No storage provider connected. Please connect storage first."
-            )
+            raise HTTPException(status_code=400, detail="No storage provider connected. Please connect storage first.")
 
         provider = session.get("provider")
         access_token = session.get("access_token")
@@ -91,11 +89,14 @@ async def install_vault(
             provider_name=provider,
             access_token=access_token,
         )
-        logger.info(f"install_vault_for_user result: success={result.get('success')}, folders={len(result.get('folders_created', []))}")
+        logger.info(
+            f"install_vault_for_user result: success={result.get('success')}, folders={len(result.get('folders_created', []))}"
+        )
 
         if result["success"]:
             # Mark vault_initialized — folders are confirmed created.
             from app.modules.onboarding.gates import mark_gate
+
             await mark_gate(db, user_id, "vault_initialized")
 
             # Mark document_uploaded if the user already has documents in vault
@@ -103,6 +104,7 @@ async def install_vault(
             already_has_docs = False
             try:
                 from app.services.vault_upload_service import VaultUploadService
+
                 svc = VaultUploadService()
                 docs = await svc.get_user_documents(user_id)
                 if docs:
@@ -118,8 +120,10 @@ async def install_vault(
                     "activation_code": result["activation_code"],
                     "folders_created": result["folders_created"],
                     "files_created": result["files_created"],
-                    "next_step": "Your vault is ready. Start uploading documents." if not already_has_docs else "Vault reinstalled. Your documents are accessible.",
-                }
+                    "next_step": "Your vault is ready. Start uploading documents."
+                    if not already_has_docs
+                    else "Vault reinstalled. Your documents are accessible.",
+                },
             )
         else:
             raise HTTPException(
@@ -127,19 +131,20 @@ async def install_vault(
                 detail={
                     "error": "Vault installation failed",
                     "details": result["errors"],
-                }
+                },
             )
 
     except HTTPException:
         raise
     except Exception as e:
         import traceback
+
         error_detail = f"Installation error: {str(e)}"
         logger.error(f"VAULT INSTALLER ERROR: {error_detail}")
         logger.error(f"TRACEBACK: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500,
-            detail={"error": "Vault installation failed. Check server logs for details.", "type": type(e).__name__}
+            detail={"error": "Vault installation failed. Check server logs for details.", "type": type(e).__name__},
         )
 
 
@@ -166,18 +171,13 @@ async def get_vault_status(
             "storage_connected": bool(session and session.get("provider")),
             "provider": session.get("provider") if session else None,
             "next_action": (
-                "connect_storage" if not session
-                else "install_vault" if not vault_initialized
-                else "upload_documents"
+                "connect_storage" if not session else "install_vault" if not vault_initialized else "upload_documents"
             ),
         }
 
     except Exception as e:
         logger.error(f"Status check error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Status check error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Status check error: {str(e)}")
 
 
 @router.post("/quick-install")
@@ -208,8 +208,8 @@ async def quick_install(
                     "summary": {
                         "folders": len(result["folders_created"]),
                         "files": len(result["files_created"]),
-                    }
-                }
+                    },
+                },
             )
         else:
             raise HTTPException(
@@ -217,16 +217,13 @@ async def quick_install(
                 detail={
                     "error": "Quick install failed",
                     "details": result["errors"],
-                }
+                },
             )
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Quick install error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Quick install error: {str(e)}")
 
 
 def create_router() -> APIRouter:

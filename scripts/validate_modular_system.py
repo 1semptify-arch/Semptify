@@ -27,6 +27,7 @@ import requests
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+
 class ModularSystemValidator:
     """Validates the complete modular component system"""
 
@@ -39,7 +40,7 @@ class ModularSystemValidator:
             "api_endpoints": {"passed": 0, "failed": 0, "issues": []},
             "event_system": {"passed": 0, "failed": 0, "issues": []},
             "role_functionality": {"passed": 0, "failed": 0, "issues": []},
-            "performance": {"passed": 0, "failed": 0, "issues": []}
+            "performance": {"passed": 0, "failed": 0, "issues": []},
         }
 
     def validate_all(self) -> dict[str, Any]:
@@ -69,7 +70,6 @@ class ModularSystemValidator:
             # Design system
             "design-system/index.css",
             "design-system/index.js",
-
             # Function group components
             "design-system/components/function-groups/capture/upload-zone.html",
             "design-system/components/function-groups/capture/upload-zone.css",
@@ -78,7 +78,6 @@ class ModularSystemValidator:
             "design-system/components/function-groups/capture/voice-intake.html",
             "design-system/components/function-groups/capture/voice-intake.css",
             "design-system/components/function-groups/capture/index.css",
-
             "design-system/components/function-groups/understand/timeline-view.html",
             "design-system/components/function-groups/understand/timeline-view.css",
             "design-system/components/function-groups/understand/rights-analysis.html",
@@ -86,7 +85,6 @@ class ModularSystemValidator:
             "design-system/components/function-groups/understand/risk-detection.html",
             "design-system/components/function-groups/understand/risk-detection.css",
             "design-system/components/function-groups/understand/index.css",
-
             "design-system/components/function-groups/plan/action-list.html",
             "design-system/components/function-groups/plan/action-list.css",
             "design-system/components/function-groups/plan/deadline-tracker.html",
@@ -94,31 +92,24 @@ class ModularSystemValidator:
             "design-system/components/function-groups/plan/next-step-card.html",
             "design-system/components/function-groups/plan/next-step-card.css",
             "design-system/components/function-groups/plan/index.css",
-
             # Role-specific components
             "design-system/components/function-groups/role-specific/tenant/dashboard.html",
             "design-system/components/function-groups/role-specific/tenant/case-summary.html",
             "design-system/components/function-groups/role-specific/tenant/emergency-actions.html",
             "design-system/components/function-groups/role-specific/tenant/index.css",
-
             "design-system/components/function-groups/role-specific/advocate/dashboard.html",
             "design-system/components/function-groups/role-specific/advocate/client-management.html",
             "design-system/components/function-groups/role-specific/advocate/index.css",
-
             "design-system/components/function-groups/role-specific/legal/dashboard.html",
             "design-system/components/function-groups/role-specific/legal/index.css",
-
             "design-system/components/function-groups/role-specific/admin/dashboard.html",
             "design-system/components/function-groups/role-specific/admin/index.css",
-
             # Onboarding components
             "design-system/components/function-groups/onboarding/welcome.html",
             "design-system/components/function-groups/onboarding/demo.html",
             "design-system/components/function-groups/onboarding/onboarding-tracker.html",
-
             # Backend integration
             "app/routers/components.py",
-
             # Role pages
             "app/templates/pages/tenant_dashboard.html",
         ]
@@ -140,7 +131,7 @@ class ModularSystemValidator:
         # Check main design system CSS
         main_css_path = project_root / "design-system/components/index.css"
         if main_css_path.exists():
-            with open(main_css_path, encoding='utf-8') as f:
+            with open(main_css_path, encoding="utf-8") as f:
                 css_content = f.read()
 
             # Check for required imports
@@ -151,7 +142,7 @@ class ModularSystemValidator:
                 "function-groups/role-specific/tenant/index.css",
                 "function-groups/role-specific/advocate/index.css",
                 "function-groups/role-specific/legal/index.css",
-                "function-groups/role-specific/admin/index.css"
+                "function-groups/role-specific/admin/index.css",
             ]
 
             for import_path in required_imports:
@@ -168,7 +159,7 @@ class ModularSystemValidator:
                 "--color-tenant-primary",
                 "--color-advocate-primary",
                 "--color-legal-primary",
-                "--color-admin-primary"
+                "--color-admin-primary",
             ]
 
             for variable in required_variables:
@@ -191,7 +182,7 @@ class ModularSystemValidator:
         # Check tenant dashboard template
         tenant_dashboard_path = project_root / "app/templates/pages/tenant_dashboard.html"
         if tenant_dashboard_path.exists():
-            with open(tenant_dashboard_path, encoding='utf-8') as f:
+            with open(tenant_dashboard_path, encoding="utf-8") as f:
                 html_content = f.read()
 
             # Check for required includes
@@ -200,7 +191,7 @@ class ModularSystemValidator:
                 "workspace-stage-model.js",
                 "role-specific/tenant/dashboard.html",
                 "role-specific/tenant/emergency-actions.html",
-                "role-specific/tenant/case-summary.html"
+                "role-specific/tenant/case-summary.html",
             ]
 
             for include in required_includes:
@@ -214,11 +205,11 @@ class ModularSystemValidator:
 
             # Check for required elements
             required_elements = [
-                "class=\"tenant-dashboard-page\"",
-                "class=\"workspace-stage-panel\"",
-                "class=\"emergency-actions\"",
-                "class=\"dashboard-main\"",
-                "class=\"dashboard-sidebar\""
+                'class="tenant-dashboard-page"',
+                'class="workspace-stage-panel"',
+                'class="emergency-actions"',
+                'class="dashboard-main"',
+                'class="dashboard-sidebar"',
             ]
 
             for element in required_elements:
@@ -244,7 +235,7 @@ class ModularSystemValidator:
             "/api/components/config/legal",
             "/api/components/config/admin",
             "/api/components/workspace-stage",
-            "/api/components/next-step"
+            "/api/components/next-step",
         ]
 
         for endpoint in endpoints:
@@ -255,7 +246,9 @@ class ModularSystemValidator:
                     print(f"  + {endpoint} ({response.status_code})")
                 else:
                     self.results["api_endpoints"]["failed"] += 1
-                    self.results["api_endpoints"]["issues"].append(f"Endpoint error: {endpoint} ({response.status_code})")
+                    self.results["api_endpoints"]["issues"].append(
+                        f"Endpoint error: {endpoint} ({response.status_code})"
+                    )
                     print(f"  - {endpoint} ({response.status_code})")
             except requests.exceptions.RequestException as e:
                 self.results["api_endpoints"]["failed"] += 1
@@ -268,30 +261,39 @@ class ModularSystemValidator:
 
         # Test component event endpoints
         event_endpoints = [
-            ("/api/components/capture/upload", {
-                "component_id": "test_upload",
-                "role": "tenant",
-                "timestamp": "2026-04-16T20:00:00Z",
-                "event_type": "capture-upload",
-                "files": [{"name": "test.pdf", "size": 1024}],
-                "total_size": 1024
-            }),
-            ("/api/components/understand/timeline", {
-                "component_id": "test_timeline",
-                "role": "tenant",
-                "timestamp": "2026-04-16T20:00:00Z",
-                "event_type": "understand-timeline-select",
-                "event_id": "timeline_123",
-                "event_data": {"date": "2026-04-15"}
-            }),
-            ("/api/components/plan/action", {
-                "component_id": "test_action",
-                "role": "tenant",
-                "timestamp": "2026-04-16T20:00:00Z",
-                "event_type": "plan-action-select",
-                "action_id": "action_123",
-                "action_data": {"action": "file_response"}
-            })
+            (
+                "/api/components/capture/upload",
+                {
+                    "component_id": "test_upload",
+                    "role": "tenant",
+                    "timestamp": "2026-04-16T20:00:00Z",
+                    "event_type": "capture-upload",
+                    "files": [{"name": "test.pdf", "size": 1024}],
+                    "total_size": 1024,
+                },
+            ),
+            (
+                "/api/components/understand/timeline",
+                {
+                    "component_id": "test_timeline",
+                    "role": "tenant",
+                    "timestamp": "2026-04-16T20:00:00Z",
+                    "event_type": "understand-timeline-select",
+                    "event_id": "timeline_123",
+                    "event_data": {"date": "2026-04-15"},
+                },
+            ),
+            (
+                "/api/components/plan/action",
+                {
+                    "component_id": "test_action",
+                    "role": "tenant",
+                    "timestamp": "2026-04-16T20:00:00Z",
+                    "event_type": "plan-action-select",
+                    "action_id": "action_123",
+                    "action_data": {"action": "file_response"},
+                },
+            ),
         ]
 
         for endpoint, payload in event_endpoints:
@@ -321,25 +323,22 @@ class ModularSystemValidator:
 
         # Test role-specific endpoints
         role_endpoints = [
-            ("/api/components/tenant/emergency-action", {
-                "component_id": "test_emergency",
-                "emergency_id": "emergency_123",
-                "action": "call_hotline"
-            }),
-            ("/api/components/advocate/handoff-client", {
-                "component_id": "test_handoff",
-                "client_id": "client_123",
-                "target_role": "legal"
-            }),
-            ("/api/components/legal/start-review", {
-                "component_id": "test_review",
-                "case_id": "case_123",
-                "review_type": "document_analysis"
-            }),
-            ("/api/components/admin/system-maintenance", {
-                "component_id": "test_maintenance",
-                "maintenance_type": "database_backup"
-            })
+            (
+                "/api/components/tenant/emergency-action",
+                {"component_id": "test_emergency", "emergency_id": "emergency_123", "action": "call_hotline"},
+            ),
+            (
+                "/api/components/advocate/handoff-client",
+                {"component_id": "test_handoff", "client_id": "client_123", "target_role": "legal"},
+            ),
+            (
+                "/api/components/legal/start-review",
+                {"component_id": "test_review", "case_id": "case_123", "review_type": "document_analysis"},
+            ),
+            (
+                "/api/components/admin/system-maintenance",
+                {"component_id": "test_maintenance", "maintenance_type": "database_backup"},
+            ),
         ]
 
         for endpoint, params in role_endpoints:
@@ -356,7 +355,9 @@ class ModularSystemValidator:
                         print(f"  - {endpoint} (FAILED)")
                 else:
                     self.results["role_functionality"]["failed"] += 1
-                    self.results["role_functionality"]["issues"].append(f"Role action error: {endpoint} ({response.status_code})")
+                    self.results["role_functionality"]["issues"].append(
+                        f"Role action error: {endpoint} ({response.status_code})"
+                    )
                     print(f"  - {endpoint} ({response.status_code})")
             except requests.exceptions.RequestException as e:
                 self.results["role_functionality"]["failed"] += 1
@@ -371,7 +372,7 @@ class ModularSystemValidator:
         endpoints_to_test = [
             "/api/components/config/tenant",
             "/api/components/workspace-stage",
-            "/api/components/next-step"
+            "/api/components/next-step",
         ]
 
         total_time = 0
@@ -447,7 +448,7 @@ class ModularSystemValidator:
 
         # Save results to file
         results_file = project_root / "validation_results.json"
-        with open(results_file, 'w', encoding='utf-8') as f:
+        with open(results_file, "w", encoding="utf-8") as f:
             json.dump(self.results, f, indent=2, default=str)
 
         print(f"\nDetailed results saved to: {results_file}")

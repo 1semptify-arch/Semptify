@@ -22,6 +22,7 @@ router = APIRouter()
 # Request/Response Models
 # =============================================================================
 
+
 class PartyInfoUpdate(BaseModel):
     name: str | None = None
     address: str | None = None
@@ -68,13 +69,14 @@ class CounterclaimAction(BaseModel):
 # Endpoints
 # =============================================================================
 
+
 @router.get("/")
 async def get_form_data(
     user: StorageUser = Depends(yellow_access),
 ):
     """
     Get all form data for the current user.
-    
+
     This is the central data hub - returns:
     - Case information (parties, property, dates)
     - All documents and their extracted data (including unified upload)
@@ -89,6 +91,7 @@ async def get_form_data(
     # Enhance with processed documents from unified upload
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
         processed_docs = distributor.get_form_data_documents(user.user_id)
         extracted_info = distributor.get_extracted_case_info(user.user_id)
@@ -114,7 +117,7 @@ async def get_extracted_data(
 ):
     """
     Get all extracted data from processed documents.
-    
+
     Aggregates extracted information from unified upload pipeline:
     - Dates (deadlines, hearing dates, notice dates)
     - Parties (landlord, tenant, attorneys)
@@ -125,6 +128,7 @@ async def get_extracted_data(
     """
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
 
         return {
@@ -147,7 +151,7 @@ async def get_case_summary(
 ):
     """
     Get a summary of the current case status.
-    
+
     Quick overview including:
     - Case number and stage
     - Days until hearing
@@ -163,11 +167,12 @@ async def get_case_summary(
     # Enhance with processed documents info
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
 
         extracted_info = distributor.get_extracted_case_info(user.user_id)
         urgent_docs = distributor.get_urgent_documents(user.user_id)
-        action_docs = distributor.get_documents_with_action_items(user.user_id)
+        distributor.get_documents_with_action_items(user.user_id)
 
         summary["processed_documents_count"] = extracted_info.get("documents_count", 0)
         summary["urgent_documents_count"] = len(urgent_docs)
@@ -187,7 +192,7 @@ async def update_case_info(
 ):
     """
     Update case information.
-    
+
     All fields are optional - only provided fields will be updated.
     This data flows to all form generation endpoints.
     """
@@ -212,7 +217,7 @@ async def get_answer_form_data(
 ):
     """
     Get pre-filled data for the Answer to Eviction Complaint form.
-    
+
     Returns all fields needed for HOU301 form, populated from:
     - Case information entered by user
     - Data extracted from uploaded documents (unified upload)
@@ -226,6 +231,7 @@ async def get_answer_form_data(
     # Enhance with processed document data
     try:
         from app.services.document_distributor import get_document_distributor
+
         distributor = get_document_distributor()
         extracted_info = distributor.get_extracted_case_info(user.user_id)
 
@@ -252,7 +258,7 @@ async def get_answer_form_data(
             "Add any counterclaims if applicable",
             "Sign and date the form",
             "File with the court before your deadline",
-        ]
+        ],
     }
 
 
@@ -263,19 +269,16 @@ async def get_motion_form_data(
 ):
     """
     Get pre-filled data for motion forms.
-    
+
     Supported motion types:
     - dismiss: Motion to Dismiss
-    - continuance: Motion for Continuance  
+    - continuance: Motion for Continuance
     - stay: Motion to Stay Eviction
     - fee_waiver: Fee Waiver Application
     """
     valid_types = ["dismiss", "continuance", "stay", "fee_waiver"]
     if motion_type not in valid_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid motion type. Must be one of: {valid_types}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid motion type. Must be one of: {valid_types}")
 
     service = get_form_data_service(user.user_id)
     await service.load()
@@ -291,7 +294,7 @@ async def get_counterclaim_form_data(
 ):
     """
     Get pre-filled data for counterclaim form.
-    
+
     Returns data for filing counterclaims against the landlord.
     """
     service = get_form_data_service(user.user_id)
@@ -309,7 +312,7 @@ async def add_defense(
 ):
     """
     Add a defense to the case.
-    
+
     Defense codes come from /dakota/procedures/defenses endpoint.
     Selected defenses will be included in generated forms.
     """
@@ -351,7 +354,7 @@ async def add_counterclaim(
 ):
     """
     Add a counterclaim to the case.
-    
+
     Counterclaim codes come from /dakota/procedures/counterclaims endpoint.
     """
     service = get_form_data_service(user.user_id)
@@ -379,7 +382,7 @@ async def get_case_documents(
 ):
     """
     Get all documents associated with this case.
-    
+
     Returns documents from the vault with extracted data.
     """
     service = get_form_data_service(user.user_id)
@@ -398,7 +401,7 @@ async def get_case_timeline(
 ):
     """
     Get timeline events for this case.
-    
+
     Events are derived from uploaded documents and manual entries.
     """
     service = get_form_data_service(user.user_id)
@@ -415,11 +418,12 @@ async def refresh_form_data(
 ):
     """
     Refresh form data by re-processing all documents.
-    
+
     Call this after uploading new documents to update extracted data.
     """
     # Clear cached service to force reload
     from app.services.form_data import _form_data_services
+
     if user.user_id in _form_data_services:
         del _form_data_services[user.user_id]
 

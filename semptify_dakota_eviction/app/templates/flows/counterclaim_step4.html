@@ -57,14 +57,14 @@ async function downloadCounterclaim() {
         claim_details: localStorage.getItem('claim_details') || '',
         damages_requested: localStorage.getItem('damages_requested') || ''
     };
-    
+
     try {
         const response = await fetch('/flows/counterclaim/generate?lang={{ lang }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
-        
+
         if (response.ok) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);

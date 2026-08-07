@@ -15,11 +15,11 @@
             --border-color: #e2e8f0;
             --footnote-bg: #f7fafc;
         }
-        
+
         * {
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Times New Roman', Times, serif;
             font-size: 12pt;
@@ -29,7 +29,7 @@
             margin: 0;
             padding: 20px;
         }
-        
+
         .document-container {
             max-width: 8.5in;
             margin: 0 auto;
@@ -37,7 +37,7 @@
             padding: 1in;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-        
+
         /* Header Styles */
         .document-header {
             text-align: center;
@@ -45,35 +45,35 @@
             padding-bottom: 1em;
             border-bottom: 2px solid var(--primary-color);
         }
-        
+
         .court {
             font-weight: bold;
             font-size: 14pt;
             margin-bottom: 0.5em;
         }
-        
+
         .case-number {
             font-size: 12pt;
             margin-bottom: 0.5em;
         }
-        
+
         .parties {
             font-size: 12pt;
             margin-bottom: 1em;
         }
-        
+
         .document-title {
             font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
             margin: 1em 0 0.5em;
         }
-        
+
         .date {
             font-size: 11pt;
             color: #666;
         }
-        
+
         /* Table of Contents */
         .toc {
             background: var(--footnote-bg);
@@ -82,51 +82,51 @@
             margin-bottom: 2em;
             border-radius: 4px;
         }
-        
+
         .toc h2 {
             font-size: 14pt;
             margin-top: 0;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.5em;
         }
-        
+
         .toc ul {
             list-style: none;
             padding-left: 0;
         }
-        
+
         .toc li {
             margin: 0.3em 0;
         }
-        
+
         .toc a {
             color: var(--accent-color);
             text-decoration: none;
         }
-        
+
         .toc a:hover {
             text-decoration: underline;
         }
-        
+
         /* Content Styles */
         h1, h2, h3, h4, h5, h6 {
             color: var(--primary-color);
             margin-top: 1.5em;
             margin-bottom: 0.5em;
         }
-        
+
         h1 { font-size: 18pt; }
         h2 { font-size: 16pt; }
         h3 { font-size: 14pt; }
         h4 { font-size: 13pt; }
         h5 { font-size: 12pt; }
         h6 { font-size: 11pt; }
-        
+
         p {
             margin: 1em 0;
             text-align: justify;
         }
-        
+
         blockquote {
             margin: 1em 2em;
             padding: 0.5em 1em;
@@ -134,31 +134,31 @@
             background: var(--footnote-bg);
             font-style: italic;
         }
-        
+
         /* Tables */
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin: 1em 0;
         }
-        
+
         .data-table th,
         .data-table td {
             border: 1px solid var(--border-color);
             padding: 0.5em;
             text-align: left;
         }
-        
+
         .data-table th {
             background: var(--primary-color);
             color: white;
             font-weight: bold;
         }
-        
+
         .data-table tr:nth-child(even) {
             background: var(--footnote-bg);
         }
-        
+
         /* Code */
         code {
             background: #f1f5f9;
@@ -167,7 +167,7 @@
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
         }
-        
+
         pre {
             background: #1e293b;
             color: #e2e8f0;
@@ -175,48 +175,48 @@
             border-radius: 4px;
             overflow-x: auto;
         }
-        
+
         pre code {
             background: none;
             padding: 0;
             color: inherit;
         }
-        
+
         /* Footnotes */
         .footnote-ref {
             cursor: pointer;
         }
-        
+
         .footnote-ref a {
             color: var(--accent-color);
             text-decoration: none;
         }
-        
+
         .footnotes {
             margin-top: 3em;
             padding-top: 1em;
             border-top: 2px solid var(--border-color);
         }
-        
+
         .footnotes h2 {
             font-size: 14pt;
         }
-        
+
         .footnotes ol {
             padding-left: 1.5em;
         }
-        
+
         .footnotes li {
             margin: 0.5em 0;
             font-size: 10pt;
         }
-        
+
         .footnote-back {
             color: var(--accent-color);
             text-decoration: none;
             margin-left: 0.5em;
         }
-        
+
         /* Footnote Popup */
         .footnote-popup {
             display: none;
@@ -230,11 +230,11 @@
             font-size: 10pt;
             z-index: 1000;
         }
-        
+
         .footnote-popup.visible {
             display: block;
         }
-        
+
         /* Document Links */
         .document-link {
             color: var(--accent-color);
@@ -242,45 +242,45 @@
             text-decoration: none;
             border-bottom: 1px dashed var(--accent-color);
         }
-        
+
         .document-link:hover {
             background: #ebf8ff;
         }
-        
+
         .document-link::before {
             content: "📄 ";
         }
-        
+
         /* Divider */
         .divider {
             border: none;
             border-top: 1px solid var(--border-color);
             margin: 2em 0;
         }
-        
+
         /* Print Styles */
         @media print {
             body {
                 background: white;
                 padding: 0;
             }
-            
+
             .document-container {
                 box-shadow: none;
                 max-width: none;
                 padding: 0;
             }
-            
+
             .footnote-popup {
                 display: none !important;
             }
-            
+
             a {
                 color: black;
                 text-decoration: none;
             }
         }
-        
+
     </style>
 </head>
 <body>
@@ -360,28 +360,28 @@
         document.addEventListener('DOMContentLoaded', function() {
             const popup = document.getElementById('footnote-popup');
             const footnoteRefs = document.querySelectorAll('.footnote-ref');
-            
+
             footnoteRefs.forEach(ref => {
                 ref.addEventListener('mouseenter', function(e) {
                     const footnoteKey = this.dataset.footnote;
                     const footnoteEl = document.getElementById('fn-' + footnoteKey);
-                    
+
                     if (footnoteEl) {
                         popup.innerHTML = footnoteEl.innerHTML;
                         popup.classList.add('visible');
-                        
+
                         // Position popup
                         const rect = this.getBoundingClientRect();
                         popup.style.left = rect.left + 'px';
                         popup.style.top = (rect.bottom + 10) + 'px';
                     }
                 });
-                
+
                 ref.addEventListener('mouseleave', function() {
                     popup.classList.remove('visible');
                 });
             });
-            
+
             // Smooth scroll for TOC links
             document.querySelectorAll('.toc a').forEach(link => {
                 link.addEventListener('click', function(e) {
@@ -393,7 +393,7 @@
                 });
             });
         });
-        
+
     </script>
 </body>
 </html>

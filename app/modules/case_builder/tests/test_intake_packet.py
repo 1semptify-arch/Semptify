@@ -391,4 +391,3 @@ def test_zip_empty_case_evidence_index_says_no_evidence():
     with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
         idx_text = zf.read("evidence-index.txt").decode("utf-8")
         assert "No evidence items" in idx_text
-

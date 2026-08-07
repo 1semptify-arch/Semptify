@@ -1,10 +1,10 @@
-
 import logging
 from datetime import date
 
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+
 
 class LegalCase(BaseModel):
     case_id: str
@@ -14,6 +14,7 @@ class LegalCase(BaseModel):
     status: str = "draft"
     due_date: date | None = None
     notes: str | None = None
+
 
 class EvidenceItem(BaseModel):
     item_id: str

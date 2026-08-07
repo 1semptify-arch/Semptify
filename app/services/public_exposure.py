@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class ReleaseType(str, Enum):
     """Types of press releases"""
+
     VIOLATION_EXPOSURE = "violation_exposure"
     COMMUNITY_ACTION = "community_action"
     LEGAL_UPDATE = "legal_update"
@@ -31,6 +32,7 @@ class ReleaseType(str, Enum):
 
 class MediaOutlet(str, Enum):
     """Target media outlets"""
+
     LOCAL_NEWS = "local_news"
     INVESTIGATIVE = "investigative"
     COMMUNITY_PAPER = "community_paper"
@@ -42,6 +44,7 @@ class MediaOutlet(str, Enum):
 @dataclass
 class PressRelease:
     """Generated press release"""
+
     id: str
     headline: str
     subheadline: str | None
@@ -87,22 +90,26 @@ class PressRelease:
             lines.extend([para, ""])
 
         for quote in self.quotes:
-            lines.extend([
-                f'"{quote["quote"]}"',
-                f'— {quote["speaker"]}',
-                "",
-            ])
+            lines.extend(
+                [
+                    f'"{quote["quote"]}"',
+                    f"— {quote['speaker']}",
+                    "",
+                ]
+            )
 
-        lines.extend([
-            "###",
-            "",
-            self.call_to_action,
-            "",
-            "ABOUT:",
-            self.boilerplate,
-            "",
-            "MEDIA CONTACT:",
-        ])
+        lines.extend(
+            [
+                "###",
+                "",
+                self.call_to_action,
+                "",
+                "ABOUT:",
+                self.boilerplate,
+                "",
+                "MEDIA CONTACT:",
+            ]
+        )
 
         for key, value in self.contact_info.items():
             lines.append(f"{key}: {value}")
@@ -116,6 +123,7 @@ class PressRelease:
 @dataclass
 class MediaKit:
     """Complete media kit for campaign"""
+
     id: str
     press_release: PressRelease
     fact_sheet: dict[str, Any]
@@ -167,9 +175,24 @@ MN_MEDIA_OUTLETS = [
     {"name": "MPR News", "type": MediaOutlet.RADIO, "beat": "housing", "email": "news@mpr.org"},
     {"name": "KARE 11", "type": MediaOutlet.LOCAL_NEWS, "beat": "investigative", "email": "investigators@kare11.com"},
     {"name": "WCCO", "type": MediaOutlet.LOCAL_NEWS, "beat": "consumer", "email": "tips@wcco.com"},
-    {"name": "Southwest Journal", "type": MediaOutlet.COMMUNITY_PAPER, "beat": "local", "email": "editor@swjournal.com"},
-    {"name": "Sahan Journal", "type": MediaOutlet.COMMUNITY_PAPER, "beat": "immigrant_communities", "email": "tips@sahanjournal.com"},
-    {"name": "Minnesota Reformer", "type": MediaOutlet.INVESTIGATIVE, "beat": "housing_policy", "email": "tips@minnesotareformer.com"},
+    {
+        "name": "Southwest Journal",
+        "type": MediaOutlet.COMMUNITY_PAPER,
+        "beat": "local",
+        "email": "editor@swjournal.com",
+    },
+    {
+        "name": "Sahan Journal",
+        "type": MediaOutlet.COMMUNITY_PAPER,
+        "beat": "immigrant_communities",
+        "email": "tips@sahanjournal.com",
+    },
+    {
+        "name": "Minnesota Reformer",
+        "type": MediaOutlet.INVESTIGATIVE,
+        "beat": "housing_policy",
+        "email": "tips@minnesotareformer.com",
+    },
 ]
 
 
@@ -195,7 +218,7 @@ class PublicExposureService:
     ) -> PressRelease:
         """
         Generate a press release for tenant rights violations.
-        
+
         Args:
             property_address: Property address
             violations: List of violation descriptions
@@ -206,7 +229,7 @@ class PublicExposureService:
             tenant_count: Number of affected tenants
             fraud_findings: Fraud analysis findings
             quotes: Spokesperson quotes
-            
+
         Returns:
             PressRelease object
         """
@@ -239,21 +262,27 @@ class PublicExposureService:
         if fraud_findings:
             high_severity = [f for f in fraud_findings if f.get("severity") in ["high", "critical"]]
             if high_severity:
-                body.append(f"An analysis of the case has revealed {len(high_severity)} serious findings that may constitute fraud, including potential violations of federal housing programs.")
+                body.append(
+                    f"An analysis of the case has revealed {len(high_severity)} serious findings that may constitute fraud, including potential violations of federal housing programs."
+                )
 
         # Impact paragraph
         if tenant_count:
-            body.append(f"The issues affect approximately {tenant_count} residents who have been paying rent while living with substandard conditions.")
+            body.append(
+                f"The issues affect approximately {tenant_count} residents who have been paying rent while living with substandard conditions."
+            )
 
         # Action paragraph
-        body.append("Tenants have filed complaints with relevant regulatory agencies and are calling for immediate action to address the violations.")
+        body.append(
+            "Tenants have filed complaints with relevant regulatory agencies and are calling for immediate action to address the violations."
+        )
 
         # Default quotes if none provided
         if not quotes:
             quotes = [
                 {
                     "speaker": "Affected Tenant",
-                    "quote": "We've tried to work with management, but nothing changes. We're speaking out because tenants deserve safe housing."
+                    "quote": "We've tried to work with management, but nothing changes. We're speaking out because tenants deserve safe housing.",
                 }
             ]
 
@@ -292,13 +321,13 @@ class PublicExposureService:
     ) -> MediaKit:
         """
         Generate a complete media kit for a campaign.
-        
+
         Args:
             press_release: The press release
-            timeline_events: List of {"date": "...", "event": "..."} 
+            timeline_events: List of {"date": "...", "event": "..."}
             evidence_docs: List of evidence document descriptions
             target_outlets: Optional list of target outlet names
-            
+
         Returns:
             MediaKit object
         """

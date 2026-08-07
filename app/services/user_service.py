@@ -23,18 +23,18 @@ logger = logging.getLogger(__name__)
 # User CRUD Operations
 # =============================================================================
 
+
 async def get_user_by_id(user_id: str) -> User | None:
     """Get user by their internal ID."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
 
 async def get_user_by_provider(provider: str, storage_user_id: str) -> User | None:
     """Get user by storage provider identity."""
     from app.core.security import derive_user_id
+
     user_id = derive_user_id(provider, storage_user_id)
     return await get_user_by_id(user_id)
 
@@ -91,9 +91,7 @@ async def get_or_create_user(
 async def update_user_role(user_id: str, role: str) -> User | None:
     """Update user's default role preference."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user:
             user.default_role = role
@@ -108,9 +106,7 @@ async def update_user_role_and_timestamp(
 ) -> User | None:
     """Update user last-active timestamp. PII updates go to cloud vault, not here."""
     async with get_db_session() as session:
-        result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await session.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
         if user:
             user.updated_at = utc_now()
@@ -122,6 +118,7 @@ async def update_user_role_and_timestamp(
 # =============================================================================
 # Linked Providers
 # =============================================================================
+
 
 async def link_provider(
     user_id: str,
@@ -151,9 +148,7 @@ async def get_linked_providers(user_id: str) -> list[LinkedProvider]:
     """Get all linked providers for a user."""
     async with get_db_session() as session:
         result = await session.execute(
-            select(LinkedProvider)
-            .where(LinkedProvider.user_id == user_id)
-            .where(LinkedProvider.is_active == True)
+            select(LinkedProvider).where(LinkedProvider.user_id == user_id).where(LinkedProvider.is_active == True)
         )
         return list(result.scalars().all())
 
@@ -162,9 +157,7 @@ async def unlink_provider(user_id: str, provider: str) -> bool:
     """Unlink a provider from user's account."""
     async with get_db_session() as session:
         result = await session.execute(
-            select(LinkedProvider)
-            .where(LinkedProvider.user_id == user_id)
-            .where(LinkedProvider.provider == provider)
+            select(LinkedProvider).where(LinkedProvider.user_id == user_id).where(LinkedProvider.provider == provider)
         )
         linked = result.scalar_one_or_none()
         if linked:
@@ -178,10 +171,11 @@ async def unlink_provider(user_id: str, provider: str) -> bool:
 # User Lookup for Returning Users
 # =============================================================================
 
+
 async def get_user_auth_info(user_id: str) -> dict | None:
     """
     Get the info needed to re-authenticate a returning user.
-    
+
     Returns:
         {
             "user_id": "abc123",

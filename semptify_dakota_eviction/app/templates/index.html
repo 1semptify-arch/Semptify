@@ -71,7 +71,7 @@
             </span>
         </div>
     </a>
-    
+
     <!-- Counterclaim -->
     <a href="/flows/counterclaim?lang={{ lang }}" class="card" style="text-decoration: none; color: inherit;">
         <div class="card-header">
@@ -97,7 +97,7 @@
             </span>
         </div>
     </a>
-    
+
     <!-- Motions -->
     <a href="/flows/motions?lang={{ lang }}" class="card" style="text-decoration: none; color: inherit;">
         <div class="card-header">
@@ -123,7 +123,7 @@
             </span>
         </div>
     </a>
-    
+
     <!-- Hearing Prep -->
     <a href="/flows/hearing?lang={{ lang }}" class="card" style="text-decoration: none; color: inherit;">
         <div class="card-header">
@@ -149,7 +149,7 @@
             </span>
         </div>
     </a>
-    
+
     <!-- Forms Library -->
     <a href="/forms/library?lang={{ lang }}" class="card" style="text-decoration: none; color: inherit;">
         <div class="card-header">
@@ -175,7 +175,7 @@
             </span>
         </div>
     </a>
-    
+
     <!-- Zoom Court -->
     <a href="/zoom-helper?lang={{ lang }}" class="card" style="text-decoration: none; color: inherit;">
         <div class="card-header">
@@ -230,24 +230,24 @@
 function calculateDeadline() {
     const input = document.getElementById('servedDate');
     const result = document.getElementById('deadlineResult');
-    
+
     if (!input.value) {
         result.textContent = '{% if lang == "en" %}Please enter a date{% elif lang == "es" %}Por favor ingrese una fecha{% elif lang == "so" %}Fadlan geli taariikh{% else %}يرجى إدخال تاريخ{% endif %}';
         return;
     }
-    
+
     const served = new Date(input.value);
     const deadline = new Date(served);
     deadline.setDate(deadline.getDate() + 7);
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
-    
+
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const deadlineStr = deadline.toLocaleDateString('{% if lang == "es" %}es-ES{% elif lang == "ar" %}ar-SA{% else %}en-US{% endif %}', options);
-    
+
     if (daysLeft < 0) {
         result.innerHTML = '⚠️ {% if lang == "en" %}Deadline PASSED{% elif lang == "es" %}Fecha límite PASADA{% elif lang == "so" %}Wakhtiga wuu DHAAFAY{% else %}انتهى الموعد{% endif %}! ' + deadlineStr;
         result.style.color = '#dc2626';

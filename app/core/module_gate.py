@@ -13,17 +13,17 @@ lifecycle-based visibility (dev_only, beta, experimental, stable).
 
 Usage:
     from app.core.module_gate import ModuleGateMiddleware, get_module_access
-    
+
     # Add to FastAPI app
     app.add_module_gate(ModuleGateMiddleware)
-    
+
     # Check access in routes
     @router.get("/some-feature")
     async def feature(request: Request):
         access = get_module_access(request)
         if not access.can_use("eviction_defense"):
             raise HTTPException(403, "Not available in your jurisdiction")
-        
+
         # Phase 2.2: Check against the new overlay-based resolver
         if not access.can_use_module_path("app.modules.eviction_defense.router"):
             raise HTTPException(403, "Module not available for your lifecycle/role")
@@ -46,16 +46,18 @@ logger = logging.getLogger(__name__)
 
 class JurisdictionLevel(str, Enum):
     """Levels of jurisdiction granularity."""
-    COUNTRY = "country"        # e.g., "US"
-    STATE = "state"            # e.g., "ND", "MN"
-    COUNTY = "county"          # e.g., "Cass County"
-    COURT = "court"            # e.g., "East Central Judicial District"
+
+    COUNTRY = "country"  # e.g., "US"
+    STATE = "state"  # e.g., "ND", "MN"
+    COUNTY = "county"  # e.g., "Cass County"
+    COURT = "court"  # e.g., "East Central Judicial District"
     MUNICIPALITY = "municipality"  # e.g., "Fargo"
 
 
 @dataclass(frozen=True)
 class Jurisdiction:
     """Immutable jurisdiction identifier."""
+
     country: str = "US"
     state: str | None = None
     county: str | None = None
@@ -77,6 +79,7 @@ class Jurisdiction:
 @dataclass
 class ModuleActivationRule:
     """Rule for when a module should be active."""
+
     module_id: str
     # Role requirements
     min_role: UserRole | None = None
@@ -93,6 +96,7 @@ class ModuleActivationRule:
 @dataclass
 class ModuleAccess:
     """Per-request module access container."""
+
     user_role: UserRole
     jurisdiction: Jurisdiction
     active_modules: set[str] = field(default_factory=set)
@@ -109,7 +113,7 @@ class ModuleAccess:
 
     def can_use_module_path(self, module_path: str) -> bool:
         """Check if user can use a module by its full module_path.
-        
+
         Uses the Phase 2.2 resolver which respects lifecycle, origin,
         requires_role, requires_jurisdiction, requires_gate, and feature_flag.
         """
@@ -138,7 +142,7 @@ def register_module_gate(
 ) -> None:
     """
     Register a module with gating rules.
-    
+
     Example:
         register_module_gate(
             "eviction_defense",
@@ -162,6 +166,7 @@ def register_module_gate(
 # =============================================================================
 # Default Module Registrations
 # =============================================================================
+
 
 def _register_default_gates():
     """Register default module gating rules."""
@@ -217,10 +222,11 @@ _register_default_gates()
 # Middleware
 # =============================================================================
 
+
 class ModuleGateMiddleware(BaseHTTPMiddleware):
     """
     Middleware that determines module access based on role + jurisdiction.
-    
+
     Adds `module_access` to request.state for downstream use.
     """
 
@@ -241,6 +247,7 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
         # Phase 2.2: Resolve modules via the new overlay-aware resolver
         try:
             from app.core.module_resolver import resolve_modules
+
             gates = self._extract_gates(request)
             resolved = await resolve_modules(
                 role=user_role.value,
@@ -256,6 +263,7 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
             )
             # Fail open: all registered modules visible (legacy behavior)
             from app.core.product_manifest import MANIFEST
+
             access.resolved_module_paths = {e.module_path for e in MANIFEST.all()}
 
         # Store in request state
@@ -265,7 +273,9 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
         # Log for debugging
         logger.debug(
             "Module access for %s: %d legacy active, %d resolved",
-            user_role.value, len(access.active_modules), len(access.resolved_module_paths),
+            user_role.value,
+            len(access.active_modules),
+            len(access.resolved_module_paths),
         )
 
         return await call_next(request)
@@ -314,12 +324,7 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
             county=county,
         )
 
-    def _calculate_access(
-        self,
-        role: UserRole,
-        jurisdiction: Jurisdiction,
-        request: Request
-    ) -> ModuleAccess:
+    def _calculate_access(self, role: UserRole, jurisdiction: Jurisdiction, request: Request) -> ModuleAccess:
         """Calculate which modules are accessible."""
         active: set[str] = set()
         restricted: dict[str, str] = {}
@@ -379,12 +384,12 @@ class ModuleGateMiddleware(BaseHTTPMiddleware):
 def get_module_access(request: Request) -> ModuleAccess:
     """
     Get module access from request state.
-    
+
     Usage in routes:
         access = get_module_access(request)
         if not access.can_use("eviction_defense"):
             raise HTTPException(403, "Feature not available")
-        
+
         # Phase 2.2: Check by full module_path
         if not access.can_use_module_path("app.modules.eviction_defense.router"):
             raise HTTPException(403, "Module not available for your lifecycle/role")
@@ -395,6 +400,7 @@ def get_module_access(request: Request) -> ModuleAccess:
     # Return empty access if middleware not configured
     # Fail open: all modules visible (legacy behavior)
     from app.core.product_manifest import MANIFEST
+
     return ModuleAccess(
         user_role=UserRole.USER,
         jurisdiction=Jurisdiction(),

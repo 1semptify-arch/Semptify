@@ -16,6 +16,7 @@ from app.core.utc import utc_now
 
 try:
     from playwright.async_api import Page, async_playwright
+
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -23,9 +24,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CourtCase:
     """Court case data structure."""
+
     case_number: str
     case_title: str
     court: str
@@ -46,8 +49,9 @@ class CourtCase:
             "filing_date": self.filing_date.isoformat() if self.filing_date else None,
             "status": self.status,
             "docket_entries": self.docket_entries or [],
-            "documents": self.documents or []
+            "documents": self.documents or [],
         }
+
 
 class CourtScraperPack:
     """Main court scraper pack for Minnesota court systems."""
@@ -56,9 +60,9 @@ class CourtScraperPack:
         self.session_data = {}
         self.captcha_solver = CaptchaSolver()
 
-    async def scrape_mncis_cases(self, case_number: str = None,
-                              attorney_name: str = None,
-                              date_range: str = None) -> list[dict[str, Any]]:
+    async def scrape_mncis_cases(
+        self, case_number: str = None, attorney_name: str = None, date_range: str = None
+    ) -> list[dict[str, Any]]:
         """Scrape MN Court Information System (MNCIS)."""
         if not PLAYWRIGHT_AVAILABLE:
             logger.warning("Playwright not available - MNCIS scraping disabled")
@@ -87,10 +91,10 @@ class CourtScraperPack:
                     await page.select_option('select[name="dateRange"]', date_range)
 
                 await page.click('button[type="submit"]')
-                await page.wait_for_load_state('networkidle')
+                await page.wait_for_load_state("networkidle")
 
                 # Extract case data
-                case_elements = await page.query_selector_all('.case-row')
+                case_elements = await page.query_selector_all(".case-row")
 
                 for element in case_elements:
                     case_data = await self._extract_mncis_case_data(element)
@@ -104,8 +108,7 @@ class CourtScraperPack:
 
         return cases
 
-    async def scrape_efilemn_cases(self, case_number: str = None,
-                               party_name: str = None) -> list[dict[str, Any]]:
+    async def scrape_efilemn_cases(self, case_number: str = None, party_name: str = None) -> list[dict[str, Any]]:
         """Scrape Minnesota eFileMN system."""
         if not PLAYWRIGHT_AVAILABLE:
             logger.warning("Playwright not available - eFileMN scraping disabled")
@@ -131,10 +134,10 @@ class CourtScraperPack:
                     await page.fill('input[name="partyName"]', party_name)
 
                 await page.click('button[type="submit"]')
-                await page.wait_for_load_state('networkidle')
+                await page.wait_for_load_state("networkidle")
 
                 # Extract case data
-                case_elements = await page.query_selector_all('.case-item')
+                case_elements = await page.query_selector_all(".case-item")
 
                 for element in case_elements:
                     case_data = await self._extract_efilemn_case_data(element)
@@ -168,7 +171,7 @@ class CourtScraperPack:
                 await self._handle_efilemn_login(page)
 
                 # Extract filing data
-                filing_elements = await page.query_selector_all('.filing-item')
+                filing_elements = await page.query_selector_all(".filing-item")
 
                 for element in filing_elements:
                     filing_data = await self._extract_filing_data(element)
@@ -185,7 +188,7 @@ class CourtScraperPack:
     async def _handle_mncis_login(self, page: "Page"):
         """Handle MNCIS login with session persistence."""
         # Check if already logged in
-        login_check = await page.query_selector('.user-info')
+        login_check = await page.query_selector(".user-info")
         if login_check:
             return
 
@@ -194,17 +197,17 @@ class CourtScraperPack:
         await page.wait_for_selector('input[name="username"]')
 
         # Use stored credentials if available
-        if 'mncis' in self.session_data:
-            credentials = self.session_data['mncis']
-            await page.fill('input[name="username"]', credentials['username'])
-            await page.fill('input[name="password"]', credentials['password'])
+        if "mncis" in self.session_data:
+            credentials = self.session_data["mncis"]
+            await page.fill('input[name="username"]', credentials["username"])
+            await page.fill('input[name="password"]', credentials["password"])
             await page.click('button[type="submit"]')
-            await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state("networkidle")
 
     async def _handle_efilemn_login(self, page: "Page"):
         """Handle eFileMN login with session persistence."""
         # Check if already logged in
-        login_check = await page.query_selector('.user-info')
+        login_check = await page.query_selector(".user-info")
         if login_check:
             return
 
@@ -213,20 +216,20 @@ class CourtScraperPack:
         await page.wait_for_selector('input[name="username"]')
 
         # Use stored credentials if available
-        if 'efilemn' in self.session_data:
-            credentials = self.session_data['efilemn']
-            await page.fill('input[name="username"]', credentials['username'])
-            await page.fill('input[name="password"]', credentials['password'])
+        if "efilemn" in self.session_data:
+            credentials = self.session_data["efilemn"]
+            await page.fill('input[name="username"]', credentials["username"])
+            await page.fill('input[name="password"]', credentials["password"])
             await page.click('button[type="submit"]')
-            await page.wait_for_load_state('networkidle')
+            await page.wait_for_load_state("networkidle")
 
     async def _extract_mncis_case_data(self, element) -> dict[str, Any] | None:
         """Extract case data from MNCIS page element."""
         try:
-            case_number = await element.query_selector('.case-number')
-            case_title = await element.query_selector('.case-title')
-            court = await element.query_selector('.court-name')
-            judge = await element.query_selector('.judge-name')
+            case_number = await element.query_selector(".case-number")
+            case_title = await element.query_selector(".case-title")
+            court = await element.query_selector(".court-name")
+            judge = await element.query_selector(".judge-name")
 
             if not all([case_number, case_title, court]):
                 return None
@@ -237,7 +240,7 @@ class CourtScraperPack:
                 "court": await court.inner_text(),
                 "judge": await judge.inner_text() if judge else None,
                 "source": "mncis",
-                "scraped_at": utc_now().isoformat()
+                "scraped_at": utc_now().isoformat(),
             }
 
         except Exception as e:
@@ -247,9 +250,9 @@ class CourtScraperPack:
     async def _extract_efilemn_case_data(self, element) -> dict[str, Any] | None:
         """Extract case data from eFileMN page element."""
         try:
-            case_number = await element.query_selector('.case-number')
-            case_title = await element.query_selector('.case-title')
-            party_info = await element.query_selector('.party-info')
+            case_number = await element.query_selector(".case-number")
+            case_title = await element.query_selector(".case-title")
+            party_info = await element.query_selector(".party-info")
 
             if not all([case_number, case_title]):
                 return None
@@ -259,7 +262,7 @@ class CourtScraperPack:
                 "case_title": await case_title.inner_text(),
                 "party_info": await party_info.inner_text() if party_info else None,
                 "source": "efilemn",
-                "scraped_at": utc_now().isoformat()
+                "scraped_at": utc_now().isoformat(),
             }
 
         except Exception as e:
@@ -269,9 +272,9 @@ class CourtScraperPack:
     async def _extract_filing_data(self, element) -> dict[str, Any] | None:
         """Extract filing data from page element."""
         try:
-            filing_date = await element.query_selector('.filing-date')
-            filing_type = await element.query_selector('.filing-type')
-            filing_party = await element.query_selector('.filing-party')
+            filing_date = await element.query_selector(".filing-date")
+            filing_type = await element.query_selector(".filing-type")
+            filing_party = await element.query_selector(".filing-party")
 
             if not all([filing_date, filing_type]):
                 return None
@@ -280,12 +283,13 @@ class CourtScraperPack:
                 "filing_date": await filing_date.inner_text(),
                 "filing_type": await filing_type.inner_text(),
                 "filing_party": await filing_party.inner_text() if filing_party else None,
-                "scraped_at": utc_now().isoformat()
+                "scraped_at": utc_now().isoformat(),
             }
 
         except Exception as e:
             logger.error(f"Failed to extract filing data: {e}")
             return None
+
 
 class CaptchaSolver:
     """CAPTCHA solving system for court websites."""
@@ -313,10 +317,12 @@ class CaptchaSolver:
             logger.error(f"CAPTCHA solving failed: {e}")
             return False
 
+
 # Factory function
 def create_court_scraper() -> CourtScraperPack:
     """Create court scraper instance."""
     return CourtScraperPack()
+
 
 # Example usage
 async def example_usage():
@@ -324,10 +330,7 @@ async def example_usage():
     scraper = create_court_scraper()
 
     # Scrape MNCIS cases
-    cases = await scraper.scrape_mncis_cases(
-        case_number="27-CV-21-12345",
-        attorney_name="Smith"
-    )
+    cases = await scraper.scrape_mncis_cases(case_number="27-CV-21-12345", attorney_name="Smith")
 
     logger.info(f"Found {len(cases)} cases")
     for case in cases:
@@ -339,6 +342,7 @@ async def example_usage():
     logger.info(f"Found {len(filings)} filings")
     for filing in filings:
         logger.info(f"Filing: {filing['filing_date']} - {filing['filing_type']}")
+
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

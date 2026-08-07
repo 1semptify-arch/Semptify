@@ -9,6 +9,7 @@ from typing import Any
 # Try WeasyPrint, fallback to basic HTML export
 try:
     from weasyprint import CSS, HTML
+
     WEASYPRINT_AVAILABLE = True
 except ImportError:
     WEASYPRINT_AVAILABLE = False
@@ -19,7 +20,7 @@ def generate_pdf_from_html(html_content: str, css_content: str | None = None) ->
     """Generate PDF from HTML string."""
     if not WEASYPRINT_AVAILABLE:
         # Fallback: return HTML as bytes
-        return html_content.encode('utf-8')
+        return html_content.encode("utf-8")
 
     stylesheets = []
     if css_content:
@@ -60,6 +61,7 @@ def generate_hearing_prep_pdf(data: dict[str, Any], lang: str = "en") -> bytes:
 # HTML Rendering Functions
 # ============================================================================
 
+
 def render_answer_html(data: dict[str, Any], lang: str = "en") -> str:
     """Render Answer to Eviction HTML."""
     tenant_name = data.get("tenant_name", "")
@@ -92,26 +94,26 @@ def render_answer_html(data: dict[str, Any], lang: str = "en") -> str:
                 Case No: {case_number}
             </div>
         </header>
-        
+
         <h1 class="document-title">ANSWER TO EVICTION COMPLAINT</h1>
-        
+
         <section class="parties">
             <p><strong>{landlord_name}</strong>, Plaintiff(s)</p>
             <p>vs.</p>
             <p><strong>{tenant_name}</strong>, Defendant(s)</p>
         </section>
-        
+
         <section class="content">
             <p>The Defendant(s), residing at <strong>{address}</strong>, hereby responds to the Eviction Complaint as follows:</p>
-            
+
             <h2>DEFENSES</h2>
             <ol class="defenses-list">
                 {defenses_html}
             </ol>
-            
+
             <h2>STATEMENT OF FACTS</h2>
             <p>{defense_details}</p>
-            
+
             <h2>RELIEF REQUESTED</h2>
             <p>Defendant respectfully requests that this Court:</p>
             <ol>
@@ -120,15 +122,15 @@ def render_answer_html(data: dict[str, Any], lang: str = "en") -> str:
                 <li>Grant such other relief as the Court deems just and equitable.</li>
             </ol>
         </section>
-        
+
         <section class="signature">
-            <p>Date: {datetime.now(UTC).strftime('%B %d, %Y')}</p>
+            <p>Date: {datetime.now(UTC).strftime("%B %d, %Y")}</p>
             <br><br>
             <p>_______________________________</p>
             <p>{tenant_name}, Defendant</p>
             <p>{address}</p>
         </section>
-        
+
         <footer class="filing-info">
             <p><strong>Date Served:</strong> {served_date}</p>
             <p><em>This Answer must be filed with the Court within 7 days of service.</em></p>
@@ -150,7 +152,7 @@ def render_counterclaim_html(data: dict[str, Any], lang: str = "en") -> str:
 
     claims_html = ""
     for i, claim in enumerate(claims, 1):
-        claims_html += f'<li><strong>Count {i}:</strong> {claim}</li>'
+        claims_html += f"<li><strong>Count {i}:</strong> {claim}</li>"
 
     return f"""
     <!DOCTYPE html>
@@ -170,29 +172,29 @@ def render_counterclaim_html(data: dict[str, Any], lang: str = "en") -> str:
                 Case No: {case_number}
             </div>
         </header>
-        
+
         <h1 class="document-title">TENANT COUNTERCLAIM</h1>
-        
+
         <section class="parties">
             <p><strong>{tenant_name}</strong>, Counter-Plaintiff</p>
             <p>vs.</p>
             <p><strong>{landlord_name}</strong>, Counter-Defendant</p>
         </section>
-        
+
         <section class="content">
             <p>The Counter-Plaintiff (Tenant), residing at <strong>{address}</strong>, hereby files this Counterclaim against the Counter-Defendant (Landlord) and states as follows:</p>
-            
+
             <h2>CLAIMS</h2>
             <ol class="claims-list">
                 {claims_html}
             </ol>
-            
+
             <h2>STATEMENT OF FACTS</h2>
             <p>{claim_details}</p>
-            
+
             <h2>DAMAGES</h2>
             <p>Counter-Plaintiff has suffered damages in the amount of: <strong>{damages_requested}</strong></p>
-            
+
             <h2>RELIEF REQUESTED</h2>
             <p>Counter-Plaintiff respectfully requests that this Court:</p>
             <ol>
@@ -201,15 +203,15 @@ def render_counterclaim_html(data: dict[str, Any], lang: str = "en") -> str:
                 <li>Grant such other relief as the Court deems just and equitable.</li>
             </ol>
         </section>
-        
+
         <section class="signature">
-            <p>Date: {datetime.now(UTC).strftime('%B %d, %Y')}</p>
+            <p>Date: {datetime.now(UTC).strftime("%B %d, %Y")}</p>
             <br><br>
             <p>_______________________________</p>
             <p>{tenant_name}, Counter-Plaintiff</p>
             <p>{address}</p>
         </section>
-        
+
         <footer class="filing-info">
             <p><em>File this Counterclaim with your Answer within 7 days of service.</em></p>
         </footer>
@@ -230,7 +232,7 @@ def render_motion_html(motion_type: str, data: dict[str, Any], lang: str = "en")
         "dismiss": "MOTION TO DISMISS",
         "continuance": "MOTION FOR CONTINUANCE",
         "stay": "MOTION TO STAY WRIT OF RECOVERY",
-        "fee_waiver": "APPLICATION FOR WAIVER OF FILING FEES"
+        "fee_waiver": "APPLICATION FOR WAIVER OF FILING FEES",
     }
 
     title = motion_titles.get(motion_type, "MOTION")
@@ -253,27 +255,27 @@ def render_motion_html(motion_type: str, data: dict[str, Any], lang: str = "en")
                 Case No: {case_number}
             </div>
         </header>
-        
+
         <h1 class="document-title">{title}</h1>
-        
+
         <section class="parties">
             <p><strong>{landlord_name}</strong>, Plaintiff(s)</p>
             <p>vs.</p>
             <p><strong>{tenant_name}</strong>, Defendant(s)</p>
         </section>
-        
+
         <section class="content">
             <p>Defendant <strong>{tenant_name}</strong> respectfully moves this Court for the following relief:</p>
-            
+
             <h2>GROUNDS FOR MOTION</h2>
             <p>{grounds}</p>
-            
+
             <h2>RELIEF REQUESTED</h2>
             <p>Defendant requests that this Court grant the motion and provide appropriate relief.</p>
         </section>
-        
+
         <section class="signature">
-            <p>Date: {datetime.now(UTC).strftime('%B %d, %Y')}</p>
+            <p>Date: {datetime.now(UTC).strftime("%B %d, %Y")}</p>
             <p>Hearing Date: {hearing_date}</p>
             <br><br>
             <p>_______________________________</p>
@@ -295,11 +297,11 @@ def render_hearing_prep_html(data: dict[str, Any], lang: str = "en") -> str:
 
     checklist_html = ""
     for item in checklist_items:
-        checklist_html += f'<li>☐ {item}</li>'
+        checklist_html += f"<li>☐ {item}</li>"
 
     docs_html = ""
     for doc in documents_needed:
-        docs_html += f'<li>☐ {doc}</li>'
+        docs_html += f"<li>☐ {doc}</li>"
 
     zoom_section = ""
     if is_zoom:
@@ -326,28 +328,28 @@ def render_hearing_prep_html(data: dict[str, Any], lang: str = "en") -> str:
     </head>
     <body>
         <h1 class="document-title">HEARING PREPARATION CHECKLIST</h1>
-        
+
         <section class="hearing-info">
             <p><strong>Tenant:</strong> {tenant_name}</p>
             <p><strong>Hearing Date:</strong> {hearing_date}</p>
             <p><strong>Hearing Time:</strong> {hearing_time}</p>
             <p><strong>Format:</strong> {"Zoom (Virtual)" if is_zoom else "In-Person"}</p>
         </section>
-        
+
         <section class="checklist">
             <h2>GENERAL CHECKLIST</h2>
             <ul>
                 {checklist_html}
             </ul>
-            
+
             <h2>DOCUMENTS TO BRING</h2>
             <ul>
                 {docs_html}
             </ul>
-            
+
             {zoom_section}
         </section>
-        
+
         <section class="tips">
             <h2>IMPORTANT REMINDERS</h2>
             <ul>
@@ -359,10 +361,10 @@ def render_hearing_prep_html(data: dict[str, Any], lang: str = "en") -> str:
                 <li>If you don't understand something, ask for clarification</li>
             </ul>
         </section>
-        
+
         <footer>
             <p><em>Generated by Semptify Dakota County Eviction Defense System</em></p>
-            <p><em>Date: {datetime.now(UTC).strftime('%B %d, %Y')}</em></p>
+            <p><em>Date: {datetime.now(UTC).strftime("%B %d, %Y")}</em></p>
         </footer>
     </body>
     </html>

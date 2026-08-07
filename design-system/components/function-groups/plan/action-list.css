@@ -413,17 +413,17 @@
     align-items: flex-start;
     gap: var(--space-md);
   }
-  
+
   .action-list-controls {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .action-list-item {
     flex-direction: column;
     gap: var(--space-sm);
   }
-  
+
   .action-list-item-actions {
     align-self: flex-end;
   }

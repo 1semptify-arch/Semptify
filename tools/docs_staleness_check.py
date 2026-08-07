@@ -58,7 +58,7 @@ def _load_doc_map() -> list[dict]:
 def _compute_staleness(threshold_days: int) -> list[dict]:
     entries = _load_doc_map()
     threshold = datetime.timedelta(days=threshold_days)
-    now = datetime.datetime.now(tz=datetime.UTC)
+    datetime.datetime.now(tz=datetime.UTC)
     flagged = []
 
     for entry in entries:
@@ -89,11 +89,7 @@ def _compute_staleness(threshold_days: int) -> list[dict]:
                     "reason": (
                         "missing git history"
                         if doc_time is None and latest_code_time is None
-                        else (
-                            "doc has no git history"
-                            if doc_time is None
-                            else "covered code has no git history"
-                        )
+                        else ("doc has no git history" if doc_time is None else "covered code has no git history")
                     ),
                 }
             )
@@ -176,17 +172,13 @@ def _generate_report(flagged: list[dict], threshold_days: int) -> str:
 
     lines.append("---")
     lines.append("")
-    lines.append(
-        "Run `python tools/docs_staleness_check.py` to regenerate this report."
-    )
+    lines.append("Run `python tools/docs_staleness_check.py` to regenerate this report.")
     lines.append("")
     return "\n".join(lines)
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Regenerate docs/STALENESS-REPORT.md from doc-map.yaml."
-    )
+    parser = argparse.ArgumentParser(description="Regenerate docs/STALENESS-REPORT.md from doc-map.yaml.")
     parser.add_argument(
         "--threshold-days",
         type=int,

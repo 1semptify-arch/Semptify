@@ -43,6 +43,7 @@ class RefreshResult:
     token" from "provider rejected the refresh" from "missing client
     credentials" — instead of all of these collapsing to a bare None.
     """
+
     access_token: str | None = None
     error: str | None = None
     token_data: dict[str, Any] | None = None
@@ -55,7 +56,7 @@ class RefreshResult:
 class StatelessOAuthManager:
     """
     Manages OAuth tokens in a stateless, privacy-preserving manner.
-    
+
     Tokens are stored in the user's cloud storage, not the server database.
     This ensures server never has access to user's provider identity.
     """
@@ -63,7 +64,7 @@ class StatelessOAuthManager:
     def __init__(self, vault_service):
         """
         Initialize with vault service for cloud storage access.
-        
+
         Args:
             vault_service: Service to access user's cloud storage
         """
@@ -95,23 +96,23 @@ class StatelessOAuthManager:
     ) -> bool:
         """
         Store OAuth tokens in user's cloud storage.
-        
+
         Tokens are encrypted and stored in .semptify/auth/ directory
         in the user's own cloud storage (Google Drive, Dropbox, OneDrive).
-        
+
         Args:
             user_id: User's Semptify ID
             provider: Storage provider (google_drive, dropbox, onedrive)
             access_token: OAuth access token
             refresh_token: OAuth refresh token (optional)
             expires_at: Token expiration timestamp (optional)
-        
+
         Returns:
             True if stored successfully, False otherwise
         """
         try:
             # Strip HMAC signature for vault operations
-            raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+            raw_user_id = user_id.split(".")[0] if "." in user_id else user_id
 
             # Prepare token data
             token_data = {
@@ -123,11 +124,10 @@ class StatelessOAuthManager:
             }
 
             # Store in user's cloud storage
-            token_path = f"{AUTH_FOLDER}/{provider}_tokens.json"
             token_json = json.dumps(token_data)
 
             await self.vault.upload_file(
-                file_content=token_json.encode('utf-8'),
+                file_content=token_json.encode("utf-8"),
                 destination_path=AUTH_FOLDER,
                 filename=f"{provider}_tokens.json",
                 mime_type="application/json",
@@ -147,27 +147,29 @@ class StatelessOAuthManager:
     ) -> dict[str, Any] | None:
         """
         Retrieve OAuth tokens from user's cloud storage.
-        
+
         Args:
             user_id: User's Semptify ID
             provider: Storage provider
-        
+
         Returns:
             Token data dict or None if not found
         """
         try:
             # Strip HMAC signature for vault operations
-            raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+            raw_user_id = user_id.split(".")[0] if "." in user_id else user_id
 
             # Read from user's cloud storage
             token_path = f"{AUTH_FOLDER}/{provider}_tokens.json"
             token_content = await self.vault.download_file(token_path)
 
             if not token_content:
-                logger.warning(f"No OAuth tokens found in cloud storage for user={raw_user_id[:4]}... provider={provider}")
+                logger.warning(
+                    f"No OAuth tokens found in cloud storage for user={raw_user_id[:4]}... provider={provider}"
+                )
                 return None
 
-            token_data = json.loads(token_content.decode('utf-8'))
+            token_data = json.loads(token_content.decode("utf-8"))
             logger.info(f"OAuth tokens retrieved from cloud storage for user={raw_user_id[:4]}... provider={provider}")
             return token_data
 
@@ -182,13 +184,13 @@ class StatelessOAuthManager:
     ) -> bool:
         """
         Validate OAuth token directly with provider API.
-        
+
         This is the stateless validation method - no database required.
-        
+
         Args:
             provider: Storage provider
             access_token: OAuth access token to validate
-        
+
         Returns:
             True if token is valid, False otherwise
         """
@@ -213,8 +215,7 @@ class StatelessOAuthManager:
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://www.googleapis.com/oauth2/v3/tokeninfo",
-                params={"access_token": access_token}
+                "https://www.googleapis.com/oauth2/v3/tokeninfo", params={"access_token": access_token}
             )
             return response.status_code == 200
 
@@ -224,8 +225,7 @@ class StatelessOAuthManager:
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                "https://api.dropboxapi.com/2/check/user",
-                headers={"Authorization": f"Bearer {access_token}"}
+                "https://api.dropboxapi.com/2/check/user", headers={"Authorization": f"Bearer {access_token}"}
             )
             return response.status_code == 200
 
@@ -235,8 +235,7 @@ class StatelessOAuthManager:
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://graph.microsoft.com/v1.0/me",
-                headers={"Authorization": f"Bearer {access_token}"}
+                "https://graph.microsoft.com/v1.0/me", headers={"Authorization": f"Bearer {access_token}"}
             )
             return response.status_code == 200
 
@@ -247,11 +246,11 @@ class StatelessOAuthManager:
     ) -> RefreshResult:
         """
         Refresh OAuth token if expired.
-        
+
         Args:
             user_id: User's Semptify ID
             provider: Storage provider
-        
+
         Returns:
             RefreshResult — on success access_token is set; on failure
             access_token is None and error describes the specific reason
@@ -295,8 +294,7 @@ class StatelessOAuthManager:
             refresh_result = await self._refresh_with_provider(provider, refresh_token)
             if not refresh_result.success:
                 logger.warning(
-                    f"Token refresh failed for user={user_id[:4]}... provider={provider}: "
-                    f"{refresh_result.error}"
+                    f"Token refresh failed for user={user_id[:4]}... provider={provider}: {refresh_result.error}"
                 )
                 return RefreshResult(error=f"refresh_failed:{refresh_result.error}")
 
@@ -383,10 +381,7 @@ class StatelessOAuthManager:
                 response = await client.post(token_url, data=data)
                 if response.status_code != 200:
                     body = response.text[:200]
-                    logger.error(
-                        f"Token refresh failed for provider={provider}: "
-                        f"HTTP {response.status_code} - {body}"
-                    )
+                    logger.error(f"Token refresh failed for provider={provider}: HTTP {response.status_code} - {body}")
                     return RefreshResult(error=f"http_{response.status_code}:{body}")
                 token_data = response.json()
                 return RefreshResult(
@@ -405,20 +400,20 @@ class StatelessOAuthManager:
     ) -> bool:
         """
         Store session data in user's cloud storage.
-        
+
         STEP 2: Migrate sessions from database to cloud storage.
         Sessions are stored as encrypted JSON in .semptify/sessions/
-        
+
         Args:
             user_id: User's Semptify ID
             session_data: Session data to store
-        
+
         Returns:
             True if stored successfully, False otherwise
         """
         try:
             # Strip HMAC signature for vault operations
-            raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+            raw_user_id = user_id.split(".")[0] if "." in user_id else user_id
 
             # Prepare session data
             session_json = json.dumps(session_data)
@@ -428,8 +423,8 @@ class StatelessOAuthManager:
 
             await self.vault.write_file(
                 path=session_path,
-                content=session_json.encode('utf-8'),
-                metadata={"purpose": "session", "encrypted": True}
+                content=session_json.encode("utf-8"),
+                metadata={"purpose": "session", "encrypted": True},
             )
 
             logger.info(f"Session stored in cloud storage for user={raw_user_id[:4]}...")
@@ -445,16 +440,16 @@ class StatelessOAuthManager:
     ) -> dict[str, Any] | None:
         """
         Retrieve session data from user's cloud storage.
-        
+
         Args:
             user_id: User's Semptify ID
-        
+
         Returns:
             Session data dict or None if not found
         """
         try:
             # Strip HMAC signature for vault operations
-            raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+            raw_user_id = user_id.split(".")[0] if "." in user_id else user_id
 
             # Read from user's cloud storage
             session_path = f"{SEMPTIFY_ROOT}/sessions/{raw_user_id}_session.json"
@@ -464,7 +459,7 @@ class StatelessOAuthManager:
                 logger.warning(f"No session found in cloud storage for user={raw_user_id[:4]}...")
                 return None
 
-            session_data = json.loads(session_content.decode('utf-8'))
+            session_data = json.loads(session_content.decode("utf-8"))
             logger.info(f"Session retrieved from cloud storage for user={raw_user_id[:4]}...")
             return session_data
 
@@ -478,16 +473,16 @@ class StatelessOAuthManager:
     ) -> bool:
         """
         Delete session from user's cloud storage.
-        
+
         Args:
             user_id: User's Semptify ID
-        
+
         Returns:
             True if deleted successfully, False otherwise
         """
         try:
             # Strip HMAC signature for vault operations
-            raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+            raw_user_id = user_id.split(".")[0] if "." in user_id else user_id
 
             # Delete from user's cloud storage
             session_path = f"{SEMPTIFY_ROOT}/sessions/{raw_user_id}_session.json"
@@ -505,14 +500,14 @@ class StatelessOAuthManager:
 def create_stateless_auth_cookie(user_id: str) -> str:
     """
     Create HMAC-signed auth cookie for stateless authentication.
-    
+
     This is the ONLY cookie needed for authentication.
     Contains: provider + role + random (encoded in user_id)
     Signed with: HMAC-SHA256 using SECRET_KEY
-    
+
     Args:
         user_id: Raw user ID (will be signed)
-    
+
     Returns:
         Signed cookie value
     """
@@ -522,10 +517,10 @@ def create_stateless_auth_cookie(user_id: str) -> str:
 def verify_stateless_auth_cookie(cookie_value: str) -> str | None:
     """
     Verify HMAC-signed auth cookie.
-    
+
     Args:
         cookie_value: Cookie value from request
-    
+
     Returns:
         Raw user ID if valid, None otherwise
     """

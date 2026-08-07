@@ -27,24 +27,24 @@ class TestDocumentRecognitionEngine:
         text = """
         STATE OF MINNESOTA                    DISTRICT COURT
         COUNTY OF HENNEPIN                    FOURTH JUDICIAL DISTRICT
-        
+
         ABC Property Management LLC,
             Plaintiff,                        Case No: 27-CV-25-3456
         vs.
         John Smith,
             Defendant.
-        
+
                                 SUMMONS
-        
-        You are hereby summoned and required to serve upon Plaintiff's attorney 
+
+        You are hereby summoned and required to serve upon Plaintiff's attorney
         an Answer to the Complaint within twenty (20) days.
-        
+
         If you fail to do so, judgment by default will be taken against you.
-        
+
         This is an Unlawful Detainer Action seeking recovery of premises.
-        
+
         NOTICE: You must respond by January 15, 2025.
-        
+
         Dated: December 28, 2024
         """
 
@@ -62,21 +62,21 @@ class TestDocumentRecognitionEngine:
         text = """
         STATE OF MINNESOTA                    DISTRICT COURT
         COUNTY OF RAMSEY                      Case No: 62-CV-25-1234
-        
+
         Gold Star Apartments LLC,
             Plaintiff,
         vs.
         Sarah Thompson,
             Defendant.
-        
+
                                 JUDGMENT
-        
+
         IT IS HEREBY ORDERED AND ADJUDGED that:
-        
+
         1. Judgment is entered for Plaintiff.
         2. Defendant shall pay $4,850.00.
         3. A Writ of Restitution may issue.
-        
+
         Dated: January 10, 2025
         """
 
@@ -92,14 +92,14 @@ class TestDocumentRecognitionEngine:
         """Test recognition of writ of restitution."""
         text = """
         WRIT OF RESTITUTION
-        
+
         Case No: 27-CV-25-9999
-        
+
         To the Sheriff of Hennepin County:
-        
+
         You are hereby commanded to remove the defendant from the premises
         located at 123 Main Street, Minneapolis, MN.
-        
+
         Execute this writ within 14 days.
         """
 
@@ -115,18 +115,18 @@ class TestDocumentRecognitionEngine:
         """Test recognition of lease agreement."""
         text = """
         RESIDENTIAL LEASE AGREEMENT
-        
+
         This Lease Agreement is entered into by and between:
-        
+
         LANDLORD: ABC Properties Inc.
         TENANT: John Doe
-        
+
         PROPERTY ADDRESS: 123 Oak Street, Minneapolis, MN
-        
+
         TERM OF LEASE: 12 months beginning June 1, 2024
         MONTHLY RENT: $1,500.00
         SECURITY DEPOSIT: $1,500.00
-        
+
         LATE FEE: $75.00 if rent not received by the 5th.
         """
 
@@ -142,15 +142,15 @@ class TestDocumentRecognitionEngine:
         """Test recognition of eviction notice."""
         text = """
         EVICTION NOTICE - PAY OR QUIT
-        
+
         To: Jane Doe
         Address: 456 Oak Street, St. Paul, MN
-        
+
         You have failed to pay rent of $1,200.00 due on January 1, 2025.
-        
+
         PURSUANT TO MINNESOTA STATUTE 504B.135, you have 14 DAYS to pay
         or vacate the premises.
-        
+
         Landlord: Robert Johnson
         """
 
@@ -164,12 +164,12 @@ class TestDocumentRecognitionEngine:
         """Test recognition of notice to quit."""
         text = """
         NOTICE TO QUIT
-        
+
         14-DAY PAY OR QUIT NOTICE
-        
+
         You are hereby notified to pay the rent owed or quit and vacate
         the premises within 14 days.
-        
+
         Amount Due: $2,400.00
         """
 
@@ -184,15 +184,15 @@ class TestDocumentRecognitionEngine:
         """Test recognition of payment receipt."""
         text = """
         RENT RECEIPT
-        
+
         Date: January 3, 2025
         Receipt #: 2025-0103
-        
+
         RECEIVED FROM: David Chen
-        
+
         Amount Paid: $1,350.00
         Payment Method: Check
-        
+
         Thank you for your payment.
         """
 
@@ -219,8 +219,7 @@ class TestDocumentRecognitionEngine:
         assert len(result.dates) >= 3
         # Check that context labels are meaningful
         date_labels = [d.context_label for d in result.dates]
-        assert any("Deadline" in label or "Respond" in label or "Court" in label
-                   for label in date_labels)
+        assert any("Deadline" in label or "Respond" in label or "Court" in label for label in date_labels)
 
     def test_extract_amounts(self, engine):
         """Test amount extraction with context."""
@@ -236,8 +235,7 @@ class TestDocumentRecognitionEngine:
 
         assert len(result.amounts) >= 3
         amount_labels = [a.context_label for a in result.amounts]
-        assert any("Rent" in label or "Late Fee" in label or "Security" in label
-                   for label in amount_labels)
+        assert any("Rent" in label or "Late Fee" in label or "Security" in label for label in amount_labels)
 
     def test_extract_case_number(self, engine):
         """Test case number extraction."""
@@ -250,8 +248,7 @@ class TestDocumentRecognitionEngine:
 
         assert len(result.case_numbers) >= 1
         case_nums = [c.value for c in result.case_numbers]
-        assert any("27-CV-25-3456" in num or "62-CV-25-1234" in num
-                   for num in case_nums)
+        assert any("27-CV-25-3456" in num or "62-CV-25-1234" in num for num in case_nums)
 
     def test_extract_addresses(self, engine):
         """Test address extraction."""
@@ -370,8 +367,7 @@ class TestDocumentRecognitionEngine:
         result = recognize_document(text, "lease.pdf")
 
         assert len(result.reasoning_chain) > 0
-        assert any("match" in r.lower() or "score" in r.lower()
-                   for r in result.reasoning_chain)
+        assert any("match" in r.lower() or "score" in r.lower() for r in result.reasoning_chain)
 
     # === EDGE CASES ===
 

@@ -21,10 +21,11 @@ logger = logging.getLogger(__name__)
 # Base Overlay Model
 # =============================================================================
 
+
 class UnifiedOverlay(BaseModel):
     """
     Single unified overlay model for all overlay types.
-    
+
     All mutations on vault documents are stored as overlays, never modifying
     the original. Original documents in VAULT_DOCUMENTS remain immutable.
     """
@@ -58,7 +59,7 @@ class UnifiedOverlay(BaseModel):
     # Versioning
     version: str = Field(default="1.0", description="Overlay schema version")
 
-    @field_validator('overlay_type')
+    @field_validator("overlay_type")
     def validate_overlay_type(cls, v):
         """Ensure overlay_type is valid."""
         if not isinstance(v, OverlayType):
@@ -69,12 +70,15 @@ class UnifiedOverlay(BaseModel):
         """Return the category for this overlay type."""
         return get_overlay_category(self.overlay_type)
 
+
 # =============================================================================
 # Type-Specific Payload Models
 # =============================================================================
 
+
 class TextRange(BaseModel):
     """Position reference in document."""
+
     start_offset: int
     end_offset: int
     text: str | None = None  # Selected text (for verification)
@@ -85,8 +89,10 @@ class TextRange(BaseModel):
 
 # --- Upload Traceability ---
 
+
 class UploadManifestPayload(BaseModel):
     """Payload for VAULT_UPLOAD_MANIFEST overlays."""
+
     original_filename: str
     mime_type: str
     file_size_bytes: int
@@ -97,8 +103,10 @@ class UploadManifestPayload(BaseModel):
 
 # --- Processing Results ---
 
+
 class DocumentExtractionPayload(BaseModel):
     """Payload for DOCUMENT_EXTRACTION overlays."""
+
     extracted_dates: list[dict] = Field(default_factory=list)
     extracted_parties: list[dict] = Field(default_factory=list)
     extracted_amounts: list[dict] = Field(default_factory=list)
@@ -109,6 +117,7 @@ class DocumentExtractionPayload(BaseModel):
 
 class DocumentClassificationPayload(BaseModel):
     """Payload for DOCUMENT_CLASSIFICATION overlays."""
+
     document_type: str  # lease, notice, correspondence, evidence
     confidence_score: float | None = None
     classification_model: str | None = None
@@ -117,14 +126,17 @@ class DocumentClassificationPayload(BaseModel):
 
 class TimelineExtractionPayload(BaseModel):
     """Payload for TIMELINE_EXTRACTION overlays."""
+
     events: list[dict] = Field(default_factory=list)
     extraction_confidence: float | None = None
 
 
 # --- Annotations ---
 
+
 class HighlightPayload(BaseModel):
     """Payload for HIGHLIGHT overlays."""
+
     range: TextRange
     color: str = "yellow"  # yellow, green, blue, red
     note: str | None = None
@@ -132,6 +144,7 @@ class HighlightPayload(BaseModel):
 
 class NotePayload(BaseModel):
     """Payload for NOTE overlays."""
+
     range: TextRange | None = None
     content: str
     note_type: str = "user"  # user, ai, system, legal
@@ -142,6 +155,7 @@ class NotePayload(BaseModel):
 
 class FootnotePayload(BaseModel):
     """Payload for FOOTNOTE overlays."""
+
     number: int
     range: TextRange
     content: str
@@ -150,6 +164,7 @@ class FootnotePayload(BaseModel):
 
 class TrackedEditPayload(BaseModel):
     """Payload for TRACKED_EDIT overlays."""
+
     range: TextRange
     original_text: str
     new_text: str
@@ -160,8 +175,10 @@ class TrackedEditPayload(BaseModel):
 
 # --- Form-Fill ---
 
+
 class FormFieldMapping(BaseModel):
     """Mapping from form field to data source."""
+
     field_name: str
     field_type: str  # text, date, signature, checkbox
     data_source: str  # vault://user/profile/name, etc.
@@ -171,6 +188,7 @@ class FormFieldMapping(BaseModel):
 
 class FormFillPayload(BaseModel):
     """Payload for FORM_FILL overlays."""
+
     jurisdiction: str  # "CA", "TX", "NY", etc.
     form_type: str  # "eviction_answer", "motion_to_dismiss", etc.
     field_mappings: list[FormFieldMapping] = Field(default_factory=list)
@@ -180,6 +198,7 @@ class FormFillPayload(BaseModel):
 
 class FormSignaturePayload(BaseModel):
     """Payload for FORM_SIGNATURE overlays."""
+
     signer_id: str
     signer_name: str
     signed_at: datetime
@@ -191,8 +210,10 @@ class FormSignaturePayload(BaseModel):
 
 # --- Query/Output ---
 
+
 class DocumentReference(BaseModel):
     """Reference to document in query."""
+
     document_id: str
     overlay_ids: list[str] = Field(default_factory=list)  # Which overlays to apply
     page_range: tuple[int, int] | None = None  # (start, end) for partial inclusion
@@ -200,6 +221,7 @@ class DocumentReference(BaseModel):
 
 class CourtPacketQueryPayload(BaseModel):
     """Payload for COURT_PACKET_QUERY overlays."""
+
     case_id: str
     packet_type: str  # "eviction_answer", "motion", "counterclaim", etc.
     document_refs: list[DocumentReference] = Field(default_factory=list)
@@ -210,6 +232,7 @@ class CourtPacketQueryPayload(BaseModel):
 
 class WatermarkedViewPayload(BaseModel):
     """Payload for WATERMARKED_VIEW overlays (ephemeral)."""
+
     view_id: str
     source_query_id: str | None = None
     watermark_text: str
@@ -218,8 +241,10 @@ class WatermarkedViewPayload(BaseModel):
 
 # --- Redaction ---
 
+
 class RedactionRegion(BaseModel):
     """Region to redact."""
+
     page: int
     x: float  # Top-left x coordinate
     y: float  # Top-left y coordinate
@@ -230,6 +255,7 @@ class RedactionRegion(BaseModel):
 
 class PIIRedactionPayload(BaseModel):
     """Payload for PII_REDACTION overlays."""
+
     redaction_type: str = "pii"  # pii, sensitive, custom
     regions: list[RedactionRegion] = Field(default_factory=list)
     detected_categories: list[str] = Field(default_factory=list)  # ssn, dob, address, etc.
@@ -239,8 +265,10 @@ class PIIRedactionPayload(BaseModel):
 
 # --- Identity ---
 
+
 class IdentityAdapterPayload(BaseModel):
     """Payload for IDENTITY_ADAPTER overlays."""
+
     adapter_type: str  # "document", "timeline", "case"
     linked_artifact_ids: list[str] = Field(default_factory=list)
     resolution_logic: dict = Field(default_factory=dict)
@@ -250,8 +278,10 @@ class IdentityAdapterPayload(BaseModel):
 # Request/Response Models
 # =============================================================================
 
+
 class CreateOverlayRequest(BaseModel):
     """Request to create an overlay."""
+
     overlay_type: OverlayType
     document_id: str
     vault_path: str
@@ -262,6 +292,7 @@ class CreateOverlayRequest(BaseModel):
 
 class CreateOverlayResponse(BaseModel):
     """Response after creating an overlay."""
+
     success: bool
     overlay_id: str | None = None
     overlay_type: OverlayType | None = None
@@ -270,6 +301,7 @@ class CreateOverlayResponse(BaseModel):
 
 class GetOverlaysRequest(BaseModel):
     """Request to query overlays."""
+
     document_id: str | None = None
     overlay_type: OverlayType | None = None
     category: str | None = None  # upload, processing, annotation, etc.
@@ -279,6 +311,7 @@ class GetOverlaysRequest(BaseModel):
 
 class GetOverlaysResponse(BaseModel):
     """Response with overlay list."""
+
     success: bool
     overlays: list[UnifiedOverlay] = Field(default_factory=list)
     count: int = 0
@@ -287,12 +320,14 @@ class GetOverlaysResponse(BaseModel):
 
 class UpdateOverlayRequest(BaseModel):
     """Request to update an overlay."""
+
     payload: dict | None = None
     metadata: dict | None = None
 
 
 class DeleteOverlayResponse(BaseModel):
     """Response after deleting an overlay."""
+
     success: bool
     overlay_id: str
     message: str
@@ -300,6 +335,7 @@ class DeleteOverlayResponse(BaseModel):
 
 class DocumentViewRequest(BaseModel):
     """Request to compose a document view with overlays."""
+
     document_id: str
     overlay_ids: list[str] = Field(default_factory=list)
     apply_redactions: bool = True
@@ -308,6 +344,7 @@ class DocumentViewRequest(BaseModel):
 
 class DocumentViewResponse(BaseModel):
     """Response with composed document view."""
+
     success: bool
     document_id: str
     view_url: str | None = None  # Ephemeral watermarked view URL

@@ -29,8 +29,10 @@ router = APIRouter(tags=["Vault Engine"])
 # Schemas
 # =============================================================================
 
+
 class ResourceReadRequest(BaseModel):
     """Request to read a vault resource."""
+
     resource_type: str = Field(..., description="Type: document, timeline_event, calendar_event, etc.")
     resource_id: str = Field(..., description="ID of the resource")
     reason: str | None = Field(None, description="Reason for access (audit)")
@@ -38,6 +40,7 @@ class ResourceReadRequest(BaseModel):
 
 class ResourceWriteRequest(BaseModel):
     """Request to write a vault resource."""
+
     resource_type: str = Field(..., description="Type: document, timeline_event, calendar_event, etc.")
     resource_id: str = Field(..., description="ID of the resource")
     data: Any = Field(..., description="Data to store")
@@ -46,6 +49,7 @@ class ResourceWriteRequest(BaseModel):
 
 class ResourceDeleteRequest(BaseModel):
     """Request to delete a vault resource."""
+
     resource_type: str = Field(..., description="Type of resource")
     resource_id: str = Field(..., description="ID of the resource")
     hard_delete: bool = Field(False, description="Permanently delete (vs soft delete)")
@@ -54,6 +58,7 @@ class ResourceDeleteRequest(BaseModel):
 
 class ShareRequest(BaseModel):
     """Request to share a resource."""
+
     resource_id: str = Field(..., description="ID of the resource to share")
     share_with: str = Field(..., description="User ID to share with")
     reason: str | None = Field(None, description="Reason for sharing")
@@ -61,6 +66,7 @@ class ShareRequest(BaseModel):
 
 class AccessCheckRequest(BaseModel):
     """Check if access is allowed."""
+
     resource_type: str
     resource_id: str
     action: str = Field(..., description="read, write, delete")
@@ -70,6 +76,7 @@ class AccessCheckRequest(BaseModel):
 # Access Control Endpoints
 # =============================================================================
 
+
 @router.post("/check-access")
 async def check_access(
     request: AccessCheckRequest,
@@ -78,7 +85,7 @@ async def check_access(
 ):
     """
     Check if current user can perform an action on a resource.
-    
+
     Useful for UI to show/hide actions before attempting them.
     """
     try:
@@ -112,6 +119,7 @@ async def check_access(
 # CRUD Endpoints
 # =============================================================================
 
+
 @router.post("/read")
 async def read_resource(
     request: ResourceReadRequest,
@@ -120,7 +128,7 @@ async def read_resource(
 ):
     """
     Read a resource from the vault.
-    
+
     Access is verified and logged.
     """
     try:
@@ -158,7 +166,7 @@ async def write_resource(
 ):
     """
     Write (create/update) a resource in the vault.
-    
+
     Access is verified and logged.
     """
     try:
@@ -196,7 +204,7 @@ async def delete_resource(
 ):
     """
     Delete a resource from the vault.
-    
+
     Soft delete by default (recoverable). Set hard_delete=true to permanently remove.
     """
     try:
@@ -228,6 +236,7 @@ async def delete_resource(
 # Sharing Endpoints
 # =============================================================================
 
+
 @router.post("/share")
 async def share_resource(
     request: ShareRequest,
@@ -236,7 +245,7 @@ async def share_resource(
 ):
     """
     Share a resource with another user.
-    
+
     Only owners or privileged users can share.
     """
     success, message = engine.share(
@@ -261,7 +270,7 @@ async def unshare_resource(
 ):
     """
     Remove sharing from a user.
-    
+
     Only owners can unshare.
     """
     success, message = engine.unshare(
@@ -279,6 +288,7 @@ async def unshare_resource(
 # =============================================================================
 # Query Endpoints
 # =============================================================================
+
 
 @router.get("/list")
 async def list_resources(
@@ -320,7 +330,7 @@ async def get_audit_log(
 ):
     """
     Get audit log entries.
-    
+
     Regular users see only their own actions.
     Privileged users (legal, manager, admin) see all entries.
     """
@@ -348,6 +358,7 @@ async def get_stats(
 # =============================================================================
 # Resource Types Enum
 # =============================================================================
+
 
 @router.get("/resource-types")
 async def list_resource_types():

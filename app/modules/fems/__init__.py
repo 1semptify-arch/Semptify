@@ -1,4 +1,5 @@
 """FEMS — Forensic Evidence Management System module for Semptify."""
+
 from app.modules.fems.models import (
     FemsCase,
     FemsChunk,

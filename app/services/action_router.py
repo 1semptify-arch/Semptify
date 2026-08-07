@@ -25,15 +25,17 @@ logger = logging.getLogger(__name__)
 
 class ActionPriority(Enum):
     """Priority levels for suggested actions"""
-    CRITICAL = "critical"      # Must do NOW - legal deadlines, emergencies
-    HIGH = "high"              # Should do today
-    MEDIUM = "medium"          # Should do this week
-    LOW = "low"                # Nice to have
-    MAINTENANCE = "maintenance" # Background tasks
+
+    CRITICAL = "critical"  # Must do NOW - legal deadlines, emergencies
+    HIGH = "high"  # Should do today
+    MEDIUM = "medium"  # Should do this week
+    LOW = "low"  # Nice to have
+    MAINTENANCE = "maintenance"  # Background tasks
 
 
 class ActionCategory(Enum):
     """Categories of actions"""
+
     LEGAL_DEADLINE = "legal_deadline"
     EVIDENCE_COLLECTION = "evidence_collection"
     DOCUMENT_PREPARATION = "document_preparation"
@@ -46,16 +48,18 @@ class ActionCategory(Enum):
 
 class EmotionalCapacity(Enum):
     """User's current capacity based on emotional state"""
-    MINIMAL = "minimal"      # Can only handle 1 simple thing
-    LIMITED = "limited"      # Can handle 2-3 simple things
-    MODERATE = "moderate"    # Can handle normal workload
-    HIGH = "high"            # Can handle complex tasks
-    PEAK = "peak"            # Ready for challenging work
+
+    MINIMAL = "minimal"  # Can only handle 1 simple thing
+    LIMITED = "limited"  # Can handle 2-3 simple things
+    MODERATE = "moderate"  # Can handle normal workload
+    HIGH = "high"  # Can handle complex tasks
+    PEAK = "peak"  # Ready for challenging work
 
 
 @dataclass
 class SuggestedAction:
     """A single suggested action"""
+
     id: str
     title: str
     description: str
@@ -84,13 +88,14 @@ class SuggestedAction:
             "deadline": self.deadline.isoformat() if self.deadline else None,
             "prerequisites": self.prerequisites,
             "benefits": self.benefits,
-            "encouragement": self.encouragement
+            "encouragement": self.encouragement,
         }
 
 
 @dataclass
 class ActionPlan:
     """A complete action plan with emotional adaptation"""
+
     primary_action: SuggestedAction
     secondary_actions: list[SuggestedAction]
     self_care_reminder: SuggestedAction | None
@@ -107,7 +112,7 @@ class ActionPlan:
             "emotional_capacity": self.emotional_capacity.value,
             "total_estimated_time": self.total_estimated_time,
             "encouragement_message": self.encouragement_message,
-            "mode": self.mode
+            "mode": self.mode,
         }
 
 
@@ -127,32 +132,32 @@ class SmartActionRouter:
                 "Right now, only ONE thing matters. Let's focus on that.",
                 "You're stronger than you know. Just this one step.",
                 "Breathe. We'll handle this together, one piece at a time.",
-                "In crisis, simplicity is power. Here's your one focus."
+                "In crisis, simplicity is power. Here's your one focus.",
             ],
             "focused": [
                 "You're doing great. Let's keep building momentum.",
                 "Every step forward is a victory. Here's your next one.",
                 "Stay focused on what's in front of you. You've got this.",
-                "Small consistent actions lead to big wins."
+                "Small consistent actions lead to big wins.",
             ],
             "guided": [
                 "Let me help you navigate what comes next.",
                 "Here's a clear path forward. No need to figure it all out alone.",
                 "We'll work through this step by step together.",
-                "You don't have to know everything. I'll guide you."
+                "You don't have to know everything. I'll guide you.",
             ],
             "flow": [
                 "You're in a great rhythm! Let's keep it going.",
                 "Your momentum is building. Ride this wave.",
                 "You're making real progress. Here's how to continue.",
-                "This is your zone. Let's maximize it."
+                "This is your zone. Let's maximize it.",
             ],
             "power": [
                 "You're ready for anything. Let's tackle something big.",
                 "Peak performance mode! Time for high-impact work.",
                 "Channel this energy into your most important tasks.",
-                "You're unstoppable right now. Let's use this."
-            ]
+                "You're unstoppable right now. Let's use this.",
+            ],
         }
 
         # Self-care actions
@@ -168,7 +173,7 @@ class SmartActionRouter:
                 page_url="#",
                 icon="○",
                 benefits=["Reduces stress", "Improves focus", "Calms nervous system"],
-                encouragement="Your wellbeing matters. Take a moment."
+                encouragement="Your wellbeing matters. Take a moment.",
             ),
             SuggestedAction(
                 id="water",
@@ -181,7 +186,7 @@ class SmartActionRouter:
                 page_url="#",
                 icon="○",
                 benefits=["Improves clarity", "Boosts energy", "Supports focus"],
-                encouragement="Small acts of self-care make a big difference."
+                encouragement="Small acts of self-care make a big difference.",
             ),
             SuggestedAction(
                 id="stretch",
@@ -194,7 +199,7 @@ class SmartActionRouter:
                 page_url="#",
                 icon="●",
                 benefits=["Releases tension", "Improves circulation", "Refreshes mind"],
-                encouragement="Your body carries stress. Give it a moment."
+                encouragement="Your body carries stress. Give it a moment.",
             ),
             SuggestedAction(
                 id="celebrate",
@@ -207,8 +212,8 @@ class SmartActionRouter:
                 page_url="#",
                 icon="○",
                 benefits=["Boosts confidence", "Builds momentum", "Reduces overwhelm"],
-                encouragement="You've done hard things. Honor that."
-            )
+                encouragement="You've done hard things. Honor that.",
+            ),
         ]
 
     def _build_action_library(self) -> dict[str, SuggestedAction]:
@@ -227,7 +232,7 @@ class SmartActionRouter:
             page_url="/static/document_intake.html?type=lease",
             icon="●",
             benefits=["Enables violation detection", "Required for court", "Protects your rights"],
-            encouragement="This is one of the most important documents. You're doing the right thing."
+            encouragement="This is one of the most important documents. You're doing the right thing.",
         )
 
         actions["upload_payment_proof"] = SuggestedAction(
@@ -241,7 +246,7 @@ class SmartActionRouter:
             page_url="/static/document_intake.html?type=payment",
             icon="●",
             benefits=["Proves payment history", "Counters false claims", "Strengthens defense"],
-            encouragement="Every receipt is evidence. You're building your case."
+            encouragement="Every receipt is evidence. You're building your case.",
         )
 
         actions["upload_maintenance_requests"] = SuggestedAction(
@@ -255,7 +260,7 @@ class SmartActionRouter:
             page_url="/static/document_intake.html?type=maintenance",
             icon="▸",
             benefits=["Shows landlord neglect", "Supports habitability defense", "Documents timeline"],
-            encouragement="Documenting maintenance issues is powerful defense."
+            encouragement="Documenting maintenance issues is powerful defense.",
         )
 
         actions["take_photos"] = SuggestedAction(
@@ -269,7 +274,7 @@ class SmartActionRouter:
             page_url="/static/document_intake.html?type=photos",
             icon="●",
             benefits=["Visual evidence is powerful", "Documents conditions", "Hard to dispute"],
-            encouragement="A picture is worth a thousand words in court."
+            encouragement="A picture is worth a thousand words in court.",
         )
 
         # Document Preparation Actions
@@ -284,7 +289,7 @@ class SmartActionRouter:
             page_url="/static/recognition.html",
             icon="▸",
             benefits=["Finds violations automatically", "Identifies key issues", "Saves hours of research"],
-            encouragement="Let the system work for you. Knowledge is power."
+            encouragement="Let the system work for you. Knowledge is power.",
         )
 
         actions["generate_court_packet"] = SuggestedAction(
@@ -298,7 +303,7 @@ class SmartActionRouter:
             page_url="/static/court_packet.html",
             icon="●",
             benefits=["Looks professional", "All evidence organized", "Judge-ready format"],
-            encouragement="An organized packet shows the court you're serious."
+            encouragement="An organized packet shows the court you're serious.",
         )
 
         actions["review_briefcase"] = SuggestedAction(
@@ -312,7 +317,7 @@ class SmartActionRouter:
             page_url="/static/briefcase.html",
             icon="○",
             benefits=["See full picture", "Identify gaps", "Track progress"],
-            encouragement="Organization reduces overwhelm. You're being smart."
+            encouragement="Organization reduces overwhelm. You're being smart.",
         )
 
         # Court Preparation Actions
@@ -327,7 +332,7 @@ class SmartActionRouter:
             page_url="/static/court_learning.html",
             icon="○",
             benefits=["Reduces anxiety", "Prepares you mentally", "Know what to expect"],
-            encouragement="Knowledge is your shield. The more you know, the less scary it becomes."
+            encouragement="Knowledge is your shield. The more you know, the less scary it becomes.",
         )
 
         actions["research_laws"] = SuggestedAction(
@@ -341,7 +346,7 @@ class SmartActionRouter:
             page_url="/static/law_library.html",
             icon="▸",
             benefits=["Understand your rights", "Find defenses", "Speak with authority"],
-            encouragement="The law is on your side more than you might think."
+            encouragement="The law is on your side more than you might think.",
         )
 
         actions["set_court_date"] = SuggestedAction(
@@ -355,7 +360,7 @@ class SmartActionRouter:
             page_url="/static/calendar.html",
             icon="◆",
             benefits=["Never miss a deadline", "Countdown tracking", "Automatic reminders"],
-            encouragement="Knowing your deadline is the first step to meeting it."
+            encouragement="Knowing your deadline is the first step to meeting it.",
         )
 
         # Communication Actions
@@ -370,7 +375,7 @@ class SmartActionRouter:
             page_url="/static/contacts.html",
             icon="●",
             benefits=["Quick access", "Organized info", "Track communications"],
-            encouragement="Building your support network is important."
+            encouragement="Building your support network is important.",
         )
 
         actions["find_legal_aid"] = SuggestedAction(
@@ -384,7 +389,7 @@ class SmartActionRouter:
             page_url="/help",
             icon="🆘",
             benefits=["Professional guidance", "Free resources", "Expert support"],
-            encouragement="You don't have to do this alone. Help exists."
+            encouragement="You don't have to do this alone. Help exists.",
         )
 
         return actions
@@ -409,11 +414,11 @@ class SmartActionRouter:
 
         # Calculate composite score
         capacity_score = (
-            (1 - overwhelm) * 0.3 +
-            clarity * 0.25 +
-            confidence * 0.2 +
-            momentum * 0.15 +
-            (1 - intensity * 0.5) * 0.1  # Very high intensity can drain
+            (1 - overwhelm) * 0.3
+            + clarity * 0.25
+            + confidence * 0.2
+            + momentum * 0.15
+            + (1 - intensity * 0.5) * 0.1  # Very high intensity can drain
         )
 
         if capacity_score < 0.3:
@@ -459,9 +464,7 @@ class SmartActionRouter:
         return "guided"
 
     def filter_actions_by_capacity(
-        self,
-        actions: list[SuggestedAction],
-        capacity: EmotionalCapacity
+        self, actions: list[SuggestedAction], capacity: EmotionalCapacity
     ) -> list[SuggestedAction]:
         """Filter actions based on emotional capacity"""
 
@@ -471,7 +474,7 @@ class SmartActionRouter:
             EmotionalCapacity.LIMITED: 0.35,
             EmotionalCapacity.MODERATE: 0.5,
             EmotionalCapacity.HIGH: 0.7,
-            EmotionalCapacity.PEAK: 1.0
+            EmotionalCapacity.PEAK: 1.0,
         }
 
         # Maximum time commitment by capacity
@@ -480,26 +483,21 @@ class SmartActionRouter:
             EmotionalCapacity.LIMITED: 15,
             EmotionalCapacity.MODERATE: 30,
             EmotionalCapacity.HIGH: 60,
-            EmotionalCapacity.PEAK: 120
+            EmotionalCapacity.PEAK: 120,
         }
 
         threshold_cost = max_cost.get(capacity, 0.5)
         threshold_time = max_time.get(capacity, 30)
 
-        return [
-            a for a in actions
-            if a.emotional_cost <= threshold_cost and a.estimated_minutes <= threshold_time
-        ]
+        return [a for a in actions if a.emotional_cost <= threshold_cost and a.estimated_minutes <= threshold_time]
 
     def prioritize_actions(
-        self,
-        actions: list[SuggestedAction],
-        case_context: dict[str, Any],
-        capacity: EmotionalCapacity
+        self, actions: list[SuggestedAction], case_context: dict[str, Any], capacity: EmotionalCapacity
     ) -> list[SuggestedAction]:
         """
         Prioritize actions based on case context and deadlines.
         """
+
         def priority_score(action: SuggestedAction) -> float:
             score = 0.0
 
@@ -509,7 +507,7 @@ class SmartActionRouter:
                 ActionPriority.HIGH: 50,
                 ActionPriority.MEDIUM: 20,
                 ActionPriority.LOW: 5,
-                ActionPriority.MAINTENANCE: 1
+                ActionPriority.MAINTENANCE: 1,
             }
             score += priority_weights.get(action.priority, 10)
 
@@ -546,11 +544,7 @@ class SmartActionRouter:
 
         return sorted(actions, key=priority_score, reverse=True)
 
-    def generate_action_plan(
-        self,
-        emotional_state: dict[str, float],
-        case_context: dict[str, Any]
-    ) -> ActionPlan:
+    def generate_action_plan(self, emotional_state: dict[str, float], case_context: dict[str, Any]) -> ActionPlan:
         """
         Generate a personalized action plan based on emotional state and case needs.
         """
@@ -581,11 +575,11 @@ class SmartActionRouter:
             EmotionalCapacity.LIMITED: 1,
             EmotionalCapacity.MODERATE: 2,
             EmotionalCapacity.HIGH: 3,
-            EmotionalCapacity.PEAK: 5
+            EmotionalCapacity.PEAK: 5,
         }.get(capacity, 2)
 
         primary = prioritized[0] if prioritized else None
-        secondary = prioritized[1:num_secondary + 1] if len(prioritized) > 1 else []
+        secondary = prioritized[1 : num_secondary + 1] if len(prioritized) > 1 else []
 
         # Add self-care reminder if needed
         self_care = None
@@ -597,6 +591,7 @@ class SmartActionRouter:
                 self_care = self.self_care_actions[3]  # Celebrate
             else:
                 import random
+
                 self_care = random.choice(self.self_care_actions[:3])
 
         # Calculate total time
@@ -604,6 +599,7 @@ class SmartActionRouter:
 
         # Get encouragement message
         import random
+
         encouragement = random.choice(self.encouragements.get(mode, self.encouragements["guided"]))
 
         return ActionPlan(
@@ -613,7 +609,7 @@ class SmartActionRouter:
             emotional_capacity=capacity,
             total_estimated_time=total_time,
             encouragement_message=encouragement,
-            mode=mode
+            mode=mode,
         )
 
     def get_quick_wins(self, case_context: dict[str, Any]) -> list[SuggestedAction]:

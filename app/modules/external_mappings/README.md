@@ -56,7 +56,7 @@ case_data = {
     "filing_date": "2024-01-15T00:00:00Z",
     "hearing_date": "2024-02-01T10:00:00Z",
     "case_portal_url": "https://mncourts.gov/case/27-HC-21-12345",
-    "septify_complaint_id": "abc-123-def"
+    "septify_complaint_id": "abc-123-def",
 }
 
 response = await client.post("/api/external-mappings/court-case", json=case_data)
@@ -75,7 +75,7 @@ property_data = {
     "state": "MN",
     "zip_code": "55401",
     "county_assessor_url": "https://hennepin.us/property/12-345-678-9012",
-    "septify_lease_doc_id": "lease-456-def"
+    "septify_lease_doc_id": "lease-456-def",
 }
 
 response = await client.post("/api/external-mappings/property", json=property_data)
@@ -92,7 +92,7 @@ agency_data = {
     "complaint_type": "consumer_protection",
     "submission_date": "2024-01-10T00:00:00Z",
     "tracking_url": "https://www.ag.state.mn.us/track/AG-2024-001234",
-    "septify_complaint_id": "complaint-789-ghi"
+    "septify_complaint_id": "complaint-789-ghi",
 }
 
 response = await client.post("/api/external-mappings/agency", json=agency_data)

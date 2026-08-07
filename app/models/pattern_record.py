@@ -84,6 +84,7 @@ class PatternRecord(Base):
 def is_pattern_persistence_enabled() -> bool:
     """Check if pattern persistence is enabled in environment."""
     import os
+
     return os.getenv("ENABLE_PATTERN_PERSISTENCE", "false").lower() == "true"
 
 
@@ -93,11 +94,11 @@ def save_pattern_record(
     analysis_type: str,
     pattern_data: dict[str, Any],
     data_sources: dict[str, Any] | None = None,
-    notes: str | None = None
+    notes: str | None = None,
 ) -> PatternRecord | None:
     """
     Save a pattern record to database if persistence is enabled.
-    
+
     Returns:
         PatternRecord if saved, None if persistence disabled
     """
@@ -114,7 +115,7 @@ def save_pattern_record(
             data_sources=data_sources or {},
             algorithm_version="1.0",
             created_at=utc_now(),
-            notes=notes
+            notes=notes,
         )
 
         db_session.add(record)
@@ -126,14 +127,10 @@ def save_pattern_record(
         raise e
 
 
-def get_pattern_history(
-    db_session,
-    user_id: str,
-    limit: int = 50
-) -> list[PatternRecord]:
+def get_pattern_history(db_session, user_id: str, limit: int = 50) -> list[PatternRecord]:
     """
     Get pattern history for a user if persistence is enabled.
-    
+
     Returns:
         List of PatternRecord sorted by created_at desc, empty list if disabled
     """
@@ -155,14 +152,10 @@ def get_pattern_history(
         return []
 
 
-def get_pattern_trends(
-    db_session,
-    user_id: str,
-    days: int = 30
-) -> dict[str, Any]:
+def get_pattern_trends(db_session, user_id: str, days: int = 30) -> dict[str, Any]:
     """
     Analyze pattern trends over time if persistence is enabled.
-    
+
     Returns:
         Dictionary with trend analysis or empty dict if disabled
     """
@@ -179,33 +172,30 @@ def get_pattern_trends(
         # Get average risk score over time
         result = db_session.execute(
             select(
-                func.date(PatternRecord.created_at).label('date'),
-                func.avg(PatternRecord.risk_score).label('avg_risk'),
-                func.count(PatternRecord.id).label('count')
+                func.date(PatternRecord.created_at).label("date"),
+                func.avg(PatternRecord.risk_score).label("avg_risk"),
+                func.count(PatternRecord.id).label("count"),
             )
-            .where(and_(
-                PatternRecord.user_id == user_id,
-                PatternRecord.created_at >= cutoff_date
-            ))
+            .where(and_(PatternRecord.user_id == user_id, PatternRecord.created_at >= cutoff_date))
             .group_by(func.date(PatternRecord.created_at))
             .order_by(func.date(PatternRecord.created_at))
         )
 
         daily_data = []
         for row in result:
-            daily_data.append({
-                "date": row.date.isoformat(),
-                "avg_risk": float(row.avg_risk) if row.avg_risk else 0,
-                "count": row.count
-            })
+            daily_data.append(
+                {
+                    "date": row.date.isoformat(),
+                    "avg_risk": float(row.avg_risk) if row.avg_risk else 0,
+                    "count": row.count,
+                }
+            )
 
         # Get most common pattern types
         patterns_result = db_session.execute(
-            select(PatternRecord.patterns)
-            .where(and_(
-                PatternRecord.user_id == user_id,
-                PatternRecord.created_at >= cutoff_date
-            ))
+            select(PatternRecord.patterns).where(
+                and_(PatternRecord.user_id == user_id, PatternRecord.created_at >= cutoff_date)
+            )
         )
 
         type_counts = {}
@@ -219,7 +209,7 @@ def get_pattern_trends(
             "period_days": days,
             "daily_averages": daily_data,
             "pattern_type_frequency": type_counts,
-            "total_analyses": len(daily_data)
+            "total_analyses": len(daily_data),
         }
 
     except Exception:

@@ -66,14 +66,16 @@ After `DOCUMENT_PROCESSED` event fires, DC service converts intake results into 
 # DC service.py — bridge_intake_to_overlays(doc_id, vault_id, vault_path, user_id)
 
 # 1. Classification → DOCUMENT_CLASSIFICATION overlay
-await manager.create_overlay(CreateOverlayRequest(
-    overlay_type=OverlayType.DOCUMENT_CLASSIFICATION,
-    document_id=vault_id,
-    vault_path=vault_path,
-    payload={"doc_type": doc_type, "confidence": confidence},
-    metadata={"source": "intake_auto"},
-    ephemeral=False,
-))
+await manager.create_overlay(
+    CreateOverlayRequest(
+        overlay_type=OverlayType.DOCUMENT_CLASSIFICATION,
+        document_id=vault_id,
+        vault_path=vault_path,
+        payload={"doc_type": doc_type, "confidence": confidence},
+        metadata={"source": "intake_auto"},
+        ephemeral=False,
+    )
+)
 
 # 2. Parties → PARTY_EXTRACTION overlay
 # 3. Dates + Amounts → DOCUMENT_EXTRACTION overlay
@@ -477,14 +479,16 @@ dc::unlock_status       — get current unlock state for user
 
 ```python
 # Create overlay (e.g. OCR extraction result)
-await manager.create_overlay(CreateOverlayRequest(
-    overlay_type=OverlayType.OCR_EXTRACTION,   # real enum value
-    document_id=doc_id,
-    vault_path=vault_path,
-    payload={"extracted_fields": {...}},
-    metadata={"confidence": 0.92},
-    ephemeral=False,
-))
+await manager.create_overlay(
+    CreateOverlayRequest(
+        overlay_type=OverlayType.OCR_EXTRACTION,  # real enum value
+        document_id=doc_id,
+        vault_path=vault_path,
+        payload={"extracted_fields": {...}},
+        metadata={"confidence": 0.92},
+        ephemeral=False,
+    )
+)
 
 # Query overlays for a document
 response = await manager.get_overlays(document_id=doc_id)

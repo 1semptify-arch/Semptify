@@ -32,6 +32,7 @@ from .models import (
 @dataclass
 class RelationshipCandidate:
     """A candidate relationship to be validated"""
+
     entity_a_id: str
     entity_b_id: str
     relationship_type: str
@@ -42,7 +43,7 @@ class RelationshipCandidate:
 class RelationshipMapper:
     """
     Maps relationships between extracted entities.
-    
+
     Capabilities:
     - Identify party roles and relationships
     - Connect financial amounts to parties
@@ -60,33 +61,62 @@ class RelationshipMapper:
         """Build patterns for inferring party roles"""
         return {
             PartyRole.TENANT: [
-                "tenant", "lessee", "renter", "occupant", "resident",
-                "defendant", "respondent",
+                "tenant",
+                "lessee",
+                "renter",
+                "occupant",
+                "resident",
+                "defendant",
+                "respondent",
             ],
             PartyRole.LANDLORD: [
-                "landlord", "lessor", "owner", "property owner",
-                "plaintiff", "petitioner",
+                "landlord",
+                "lessor",
+                "owner",
+                "property owner",
+                "plaintiff",
+                "petitioner",
             ],
             PartyRole.PROPERTY_MANAGER: [
-                "property manager", "manager", "management company",
-                "property management", "on behalf of",
+                "property manager",
+                "manager",
+                "management company",
+                "property management",
+                "on behalf of",
             ],
             PartyRole.MANAGEMENT_COMPANY: [
-                "management llc", "management inc", "management company",
-                "properties llc", "realty", "real estate",
+                "management llc",
+                "management inc",
+                "management company",
+                "properties llc",
+                "realty",
+                "real estate",
             ],
             PartyRole.ATTORNEY: [
-                "attorney", "lawyer", "counsel", "esq", "law firm",
-                "attorney for", "representing",
+                "attorney",
+                "lawyer",
+                "counsel",
+                "esq",
+                "law firm",
+                "attorney for",
+                "representing",
             ],
             PartyRole.JUDGE: [
-                "judge", "honorable", "the court", "presiding",
+                "judge",
+                "honorable",
+                "the court",
+                "presiding",
             ],
             PartyRole.PROCESS_SERVER: [
-                "process server", "served by", "service of process",
+                "process server",
+                "served by",
+                "service of process",
             ],
             PartyRole.HOUSING_AUTHORITY: [
-                "housing authority", "pha", "hud", "section 8",
+                "housing authority",
+                "pha",
+                "hud",
+                "section 8",
                 "public housing",
             ],
         }
@@ -189,23 +219,18 @@ class RelationshipMapper:
             },
         }
 
-    async def map_relationships(self, text: str,
-                                entities: list[ExtractedEntity],
-                                timeline: list[TimelineEntry]) -> tuple[
-        RelationshipMap, ReasoningChain
-    ]:
+    async def map_relationships(
+        self, text: str, entities: list[ExtractedEntity], timeline: list[TimelineEntry]
+    ) -> tuple[RelationshipMap, ReasoningChain]:
         """
         Build complete relationship map from entities.
-        
+
         Returns:
             Tuple of (RelationshipMap, ReasoningChain)
         """
         reasoning = ReasoningChain(pass_number=1)
         reasoning.add_step(
-            ReasoningType.ENTITY_RELATIONSHIP,
-            "Beginning relationship mapping",
-            {"entity_count": len(entities)},
-            {}
+            ReasoningType.ENTITY_RELATIONSHIP, "Beginning relationship mapping", {"entity_count": len(entities)}, {}
         )
 
         rel_map = RelationshipMap()
@@ -222,9 +247,7 @@ class RelationshipMapper:
         self._assign_party_roles(rel_map.parties, text, reasoning)
 
         # Step 3: Build party relationships
-        rel_map.party_relationships = self._build_party_relationships(
-            rel_map.parties, text, reasoning
-        )
+        rel_map.party_relationships = self._build_party_relationships(rel_map.parties, text, reasoning)
 
         # Step 4: Build amount relationships
         rel_map.amount_relationships = self._build_amount_relationships(
@@ -232,9 +255,7 @@ class RelationshipMapper:
         )
 
         # Step 5: Identify primary property
-        rel_map.primary_property = self._identify_primary_property(
-            rel_map.addresses, text, reasoning
-        )
+        rel_map.primary_property = self._identify_primary_property(rel_map.addresses, text, reasoning)
 
         # Step 6: Build timeline
         rel_map.timeline = self._enhance_timeline(timeline, entities, reasoning)
@@ -250,8 +271,7 @@ class RelationshipMapper:
 
         return rel_map, reasoning
 
-    def _assign_party_roles(self, parties: list[ExtractedEntity],
-                            text: str, reasoning: ReasoningChain):
+    def _assign_party_roles(self, parties: list[ExtractedEntity], text: str, reasoning: ReasoningChain):
         """Assign roles to party entities"""
         text_lower = text.lower()
 
@@ -294,10 +314,8 @@ class RelationshipMapper:
             ReasoningType.ENTITY_RELATIONSHIP,
             f"Assigned roles to {len(parties)} parties",
             {},
-            {
-                "role_distribution": self._count_roles(parties)
-            },
-            confidence_impact=5
+            {"role_distribution": self._count_roles(parties)},
+            confidence_impact=5,
         )
 
     def _count_roles(self, parties: list[ExtractedEntity]) -> dict[str, int]:
@@ -308,17 +326,20 @@ class RelationshipMapper:
             counts[role] += 1
         return dict(counts)
 
-    def _build_party_relationships(self, parties: list[ExtractedEntity],
-                                    text: str,
-                                    reasoning: ReasoningChain) -> list[PartyRelationship]:
+    def _build_party_relationships(
+        self, parties: list[ExtractedEntity], text: str, reasoning: ReasoningChain
+    ) -> list[PartyRelationship]:
         """Build relationships between parties"""
         relationships = []
         text_lower = text.lower()
 
         # Find tenant-landlord relationship
         tenants = [p for p in parties if p.attributes.get("role") == PartyRole.TENANT.value]
-        landlords = [p for p in parties if p.attributes.get("role") in
-                    [PartyRole.LANDLORD.value, PartyRole.PROPERTY_MANAGER.value]]
+        landlords = [
+            p
+            for p in parties
+            if p.attributes.get("role") in [PartyRole.LANDLORD.value, PartyRole.PROPERTY_MANAGER.value]
+        ]
 
         for tenant in tenants:
             for landlord in landlords:
@@ -335,10 +356,7 @@ class RelationshipMapper:
                 relationships.append(relationship)
 
         # Find vs. relationships (court cases)
-        vs_match = re.search(
-            r"([A-Z][A-Za-z\s]+?)\s+(?:v\.?|vs\.?|versus)\s+([A-Z][A-Za-z\s]+)",
-            text
-        )
+        vs_match = re.search(r"([A-Z][A-Za-z\s]+?)\s+(?:v\.?|vs\.?|versus)\s+([A-Z][A-Za-z\s]+)", text)
         if vs_match:
             plaintiff_name = vs_match.group(1).strip()
             defendant_name = vs_match.group(2).strip()
@@ -366,7 +384,7 @@ class RelationshipMapper:
             # Find who they represent
             pos = text_lower.find(attorney.value.lower())
             if pos != -1:
-                context = text_lower[max(0, pos-50):pos+len(attorney.value)+50]
+                context = text_lower[max(0, pos - 50) : pos + len(attorney.value) + 50]
 
                 if "plaintiff" in context or "landlord" in context:
                     for landlord in landlords:
@@ -399,30 +417,27 @@ class RelationshipMapper:
             ReasoningType.ENTITY_RELATIONSHIP,
             f"Built {len(relationships)} party relationships",
             {},
-            {
-                "types": list(set(r.relationship_type for r in relationships))
-            }
+            {"types": list(set(r.relationship_type for r in relationships))},
         )
 
         return relationships
 
-    def _build_amount_relationships(self, amounts: list[ExtractedEntity],
-                                    parties: list[ExtractedEntity],
-                                    text: str,
-                                    reasoning: ReasoningChain) -> list[AmountRelationship]:
+    def _build_amount_relationships(
+        self, amounts: list[ExtractedEntity], parties: list[ExtractedEntity], text: str, reasoning: ReasoningChain
+    ) -> list[AmountRelationship]:
         """Build relationships for financial amounts"""
         relationships = []
         text_lower = text.lower()
 
         # Get tenant and landlord
-        tenant = next(
-            (p for p in parties if p.attributes.get("role") == PartyRole.TENANT.value),
-            None
-        )
+        tenant = next((p for p in parties if p.attributes.get("role") == PartyRole.TENANT.value), None)
         landlord = next(
-            (p for p in parties if p.attributes.get("role") in
-             [PartyRole.LANDLORD.value, PartyRole.PROPERTY_MANAGER.value]),
-            None
+            (
+                p
+                for p in parties
+                if p.attributes.get("role") in [PartyRole.LANDLORD.value, PartyRole.PROPERTY_MANAGER.value]
+            ),
+            None,
         )
 
         for amount in amounts:
@@ -455,7 +470,7 @@ class RelationshipMapper:
             dispute_reason = None
 
             pos = amount.start_position
-            context = text_lower[max(0, pos-100):min(len(text), pos+100)]
+            context = text_lower[max(0, pos - 100) : min(len(text), pos + 100)]
             if any(word in context for word in ["dispute", "incorrect", "wrong", "contest"]):
                 is_disputed = True
                 dispute_reason = "Amount appears to be disputed in document"
@@ -482,7 +497,7 @@ class RelationshipMapper:
             {
                 "total_amount": sum(r.amount for r in relationships),
                 "types": list(set(r.amount_type for r in relationships)),
-            }
+            },
         )
 
         return relationships
@@ -507,9 +522,9 @@ class RelationshipMapper:
         type_def = self.amount_contexts.get(amount_type, {})
         return type_def.get("period", "unknown")
 
-    def _identify_primary_property(self, addresses: list[ExtractedEntity],
-                                   text: str,
-                                   reasoning: ReasoningChain) -> str | None:
+    def _identify_primary_property(
+        self, addresses: list[ExtractedEntity], text: str, reasoning: ReasoningChain
+    ) -> str | None:
         """Identify the primary property address"""
         if not addresses:
             return None
@@ -521,7 +536,7 @@ class RelationshipMapper:
         for addr in addresses:
             score = 0
             pos = addr.start_position
-            context = text_lower[max(0, pos-100):pos+len(addr.value)+100]
+            context = text_lower[max(0, pos - 100) : pos + len(addr.value) + 100]
 
             # Boost for property-related keywords
             if any(word in context for word in ["premises", "property", "located at", "subject property"]):
@@ -554,9 +569,9 @@ class RelationshipMapper:
 
         return primary
 
-    def _enhance_timeline(self, timeline: list[TimelineEntry],
-                          entities: list[ExtractedEntity],
-                          reasoning: ReasoningChain) -> list[TimelineEntry]:
+    def _enhance_timeline(
+        self, timeline: list[TimelineEntry], entities: list[ExtractedEntity], reasoning: ReasoningChain
+    ) -> list[TimelineEntry]:
         """Enhance timeline entries with related entities"""
         # Get deadline entities
         deadlines = [e for e in entities if e.entity_type == EntityType.DEADLINE]
@@ -589,20 +604,19 @@ class RelationshipMapper:
             {
                 "deadlines": sum(1 for t in timeline if t.is_deadline),
                 "court_dates": sum(1 for t in timeline if t.is_court_date),
-            }
+            },
         )
 
         return timeline
 
-    def _link_by_proximity(self, entities: list[ExtractedEntity],
-                           text: str, reasoning: ReasoningChain):
+    def _link_by_proximity(self, entities: list[ExtractedEntity], text: str, reasoning: ReasoningChain):
         """Link entities that appear near each other"""
         proximity_threshold = 200  # characters
 
         links_created = 0
 
         for i, entity_a in enumerate(entities):
-            for entity_b in entities[i+1:]:
+            for entity_b in entities[i + 1 :]:
                 # Calculate distance
                 dist = abs(entity_a.start_position - entity_b.start_position)
 
@@ -622,7 +636,7 @@ class RelationshipMapper:
             ReasoningType.ENTITY_RELATIONSHIP,
             f"Created {links_created} proximity-based links",
             {"threshold": proximity_threshold},
-            {}
+            {},
         )
 
     def get_party_summary(self, rel_map: RelationshipMap) -> dict[str, Any]:
@@ -644,13 +658,14 @@ class RelationshipMapper:
                     "type": r.relationship_type,
                 }
                 for r in rel_map.party_relationships
-            ]
+            ],
         }
 
     def get_financial_summary(self, rel_map: RelationshipMap) -> dict[str, Any]:
         """Get summary of financial relationships"""
         total_owed = sum(
-            r.amount for r in rel_map.amount_relationships
+            r.amount
+            for r in rel_map.amount_relationships
             if r.amount_type in ["rent_owed", "damages", "late_fee", "total_owed"]
         )
 
@@ -659,17 +674,10 @@ class RelationshipMapper:
 
         return {
             "total_claimed": total_owed,
-            "amounts_by_type": {
-                r.amount_type: r.amount
-                for r in rel_map.amount_relationships
-            },
-            "disputed_amounts": [
-                {"amount": r.amount, "reason": r.dispute_reason}
-                for r in disputed
-            ],
+            "amounts_by_type": {r.amount_type: r.amount for r in rel_map.amount_relationships},
+            "disputed_amounts": [{"amount": r.amount, "reason": r.dispute_reason} for r in disputed],
             "questionable_amounts": [
-                {"amount": r.amount, "type": r.amount_type, "reason": r.illegality_reason}
-                for r in questionable
+                {"amount": r.amount, "type": r.amount_type, "reason": r.illegality_reason} for r in questionable
             ],
         }
 

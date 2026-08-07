@@ -5,7 +5,7 @@ REM  Version 5.0.0 - Windows 10/11/22 Compatible
 REM ============================================================
 REM
 REM  Usage: build_installer.bat [options]
-REM  
+REM
 REM  Options:
 REM    clean     - Remove previous build before building
 REM    onefile   - Create single EXE (slower startup)

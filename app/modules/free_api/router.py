@@ -19,6 +19,7 @@ router = APIRouter(prefix="/freeapi", tags=["Free API Pack"])
 
 # ---------------- PROPERTY LOOKUP ----------------
 
+
 @router.get("/property/parcel")
 async def property_parcel(county: str, parcel_id: str):
     """Lookup parcel by county and parcel ID."""
@@ -32,6 +33,7 @@ async def property_address(county: str, address: str):
 
 
 # ---------------- LANDLORD LOOKUP ----------------
+
 
 @router.get("/landlord/business")
 async def landlord_business(name: str):
@@ -47,6 +49,7 @@ async def landlord_owner(property_id: str):
 
 # ---------------- COURT SCRAPER ----------------
 
+
 @router.get("/courts/evictions")
 async def court_evictions(name: str):
     """Search MN court eviction records by party name."""
@@ -60,6 +63,7 @@ async def court_federal(query: str):
 
 
 # ---------------- VIOLATIONS ----------------
+
 
 @router.get("/violations/city")
 async def city_violations(city: str, address: str):
@@ -75,6 +79,7 @@ async def env_violations(facility: str):
 
 # ---------------- INSPECTIONS ----------------
 
+
 @router.get("/inspections/hud")
 async def hud_inspection(property_id: str):
     """Lookup HUD REAC inspection scores."""
@@ -88,6 +93,7 @@ async def local_inspection(city: str, address: str):
 
 
 # ---------------- STATUTES ----------------
+
 
 @router.get("/statutes")
 async def statute(section: str):

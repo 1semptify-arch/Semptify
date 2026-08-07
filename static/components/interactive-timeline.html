@@ -3,7 +3,7 @@ Interactive Timeline Component
 ==============================
 
 Usage:
-  <interactive-timeline 
+  <interactive-timeline
     user-id="current-user-id"
     api-base="/api/timeline">
   </interactive-timeline>
@@ -20,10 +20,10 @@ Dependencies: Tailwind CSS, Lucide Icons
 
 <template id="interactive-timeline-template">
   <div class="interactive-timeline bg-white rounded-lg shadow-sm border border-gray-200">
-    
+
     <!-- Header & Controls -->
     <div class="p-4 border-b border-gray-200 space-y-4">
-      
+
       <!-- Title & Stats -->
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-900">Timeline</h2>
@@ -33,10 +33,10 @@ Dependencies: Tailwind CSS, Lucide Icons
           <span id="date-range-display">All time</span>
         </div>
       </div>
-      
+
       <!-- Primary Controls Row -->
       <div class="flex flex-wrap items-center gap-3">
-        
+
         <!-- Date Axis Selector -->
         <div class="flex items-center gap-2">
           <label class="text-sm font-medium text-gray-700">Show by:</label>
@@ -46,7 +46,7 @@ Dependencies: Tailwind CSS, Lucide Icons
             <option value="entry_time">Upload Date (when added)</option>
           </select>
         </div>
-        
+
         <!-- View Mode -->
         <div class="flex items-center bg-gray-100 rounded-md p-0.5">
           <button data-view="list" class="view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-gray-900">
@@ -59,17 +59,17 @@ Dependencies: Tailwind CSS, Lucide Icons
             Calendar
           </button>
         </div>
-        
+
         <!-- Evidence Toggle -->
         <button id="evidence-toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
           <i data-lucide="shield" class="w-4 h-4"></i>
           <span>Evidence Only</span>
         </button>
       </div>
-      
+
       <!-- Secondary Controls Row -->
       <div class="flex flex-wrap items-center gap-3">
-        
+
         <!-- Date Range -->
         <div class="flex items-center gap-2">
           <label class="text-sm text-gray-600">Range:</label>
@@ -82,7 +82,7 @@ Dependencies: Tailwind CSS, Lucide Icons
             <option value="custom">Custom...</option>
           </select>
         </div>
-        
+
         <!-- Custom Date Inputs (hidden by default) -->
         <div id="custom-date-range" class="hidden flex items-center gap-2">
           <input type="date" id="start-date" class="text-sm border-gray-300 rounded-md">
@@ -90,7 +90,7 @@ Dependencies: Tailwind CSS, Lucide Icons
           <input type="date" id="end-date" class="text-sm border-gray-300 rounded-md">
           <button id="apply-custom" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Apply</button>
         </div>
-        
+
         <!-- Item Type Filters -->
         <div class="flex items-center gap-1.5" id="type-filters">
           <button data-type="document" class="type-chip active px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200">
@@ -106,39 +106,39 @@ Dependencies: Tailwind CSS, Lucide Icons
             Vault
           </button>
         </div>
-        
+
         <!-- Search -->
         <div class="flex-1 min-w-[200px]">
           <div class="relative">
             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-            <input type="text" id="search-input" placeholder="Search timeline..." 
+            <input type="text" id="search-input" placeholder="Search timeline..."
               class="w-full pl-9 pr-3 py-1.5 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- Timeline Content -->
     <div id="timeline-content" class="p-4 min-h-[400px] max-h-[600px] overflow-y-auto">
-      
+
       <!-- Loading State -->
       <div id="loading" class="flex items-center justify-center h-40">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         <span class="ml-3 text-sm text-gray-600">Loading timeline...</span>
       </div>
-      
+
       <!-- Empty State -->
       <div id="empty" class="hidden flex flex-col items-center justify-center h-40 text-center">
         <i data-lucide="calendar-x" class="w-12 h-12 text-gray-300 mb-3"></i>
         <p class="text-gray-500 font-medium">No items found</p>
         <p class="text-sm text-gray-400 mt-1">Try adjusting your filters or date range</p>
       </div>
-      
+
       <!-- Timeline Items -->
       <div id="items-container" class="hidden space-y-1">
         <!-- Items will be injected here -->
       </div>
-      
+
       <!-- Load More -->
       <div id="load-more" class="hidden py-4 text-center">
         <button id="load-more-btn" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
@@ -146,7 +146,7 @@ Dependencies: Tailwind CSS, Lucide Icons
         </button>
       </div>
     </div>
-    
+
     <!-- Facets Summary -->
     <div id="facets-bar" class="hidden px-4 py-3 bg-gray-50 border-t border-gray-200 text-sm">
       <div class="flex flex-wrap items-center gap-4">
@@ -170,7 +170,7 @@ class InteractiveTimeline extends HTMLElement {
     this.hasMore = false;
     this.loading = false;
     this.currentView = 'list';
-    
+
     // Filters
     this.filters = {
       dateAxis: 'event_time',
@@ -182,21 +182,21 @@ class InteractiveTimeline extends HTMLElement {
       searchQuery: '',
     };
   }
-  
+
   connectedCallback() {
     this.innerHTML = document.getElementById('interactive-timeline-template').innerHTML;
     this.apiBase = this.getAttribute('api-base') || '/api/timeline';
-    
+
     this.initElements();
     this.bindEvents();
     this.loadData();
-    
+
     // Initialize Lucide icons
     if (window.lucide) {
       lucide.createIcons({ node: this });
     }
   }
-  
+
   initElements() {
     this.els = {
       dateAxis: this.querySelector('#date-axis'),
@@ -220,14 +220,14 @@ class InteractiveTimeline extends HTMLElement {
       facetTypes: this.querySelector('#facet-types'),
     };
   }
-  
+
   bindEvents() {
     // Date axis
     this.els.dateAxis.addEventListener('change', (e) => {
       this.filters.dateAxis = e.target.value;
       this.refresh();
     });
-    
+
     // Date preset
     this.els.datePreset.addEventListener('change', (e) => {
       this.filters.datePreset = e.target.value;
@@ -238,14 +238,14 @@ class InteractiveTimeline extends HTMLElement {
         this.refresh();
       }
     });
-    
+
     // Custom date apply
     this.els.applyCustom.addEventListener('click', () => {
       this.filters.startDate = this.els.startDate.value;
       this.filters.endDate = this.els.endDate.value;
       this.refresh();
     });
-    
+
     // Evidence toggle
     this.els.evidenceToggle.addEventListener('click', () => {
       this.filters.evidenceOnly = !this.filters.evidenceOnly;
@@ -255,16 +255,16 @@ class InteractiveTimeline extends HTMLElement {
       this.els.evidenceToggle.classList.toggle('text-gray-700', !this.filters.evidenceOnly);
       this.refresh();
     });
-    
+
     // Type filters
     this.els.typeFilters.addEventListener('click', (e) => {
       const chip = e.target.closest('.type-chip');
       if (!chip) return;
-      
+
       const type = chip.dataset.type;
       chip.classList.toggle('active');
       chip.classList.toggle('opacity-50');
-      
+
       if (chip.classList.contains('active')) {
         if (!this.filters.itemTypes.includes(type)) {
           this.filters.itemTypes.push(type);
@@ -274,7 +274,7 @@ class InteractiveTimeline extends HTMLElement {
       }
       this.refresh();
     });
-    
+
     // Search
     let searchTimeout;
     this.els.searchInput.addEventListener('input', (e) => {
@@ -284,7 +284,7 @@ class InteractiveTimeline extends HTMLElement {
         this.refresh();
       }, 300);
     });
-    
+
     // View mode
     this.els.viewBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -298,23 +298,23 @@ class InteractiveTimeline extends HTMLElement {
         this.render();
       });
     });
-    
+
     // Load more
     this.els.loadMoreBtn.addEventListener('click', () => {
       this.loadMore();
     });
   }
-  
+
   async loadData(append = false) {
     if (this.loading) return;
     this.loading = true;
-    
+
     if (!append) {
       this.els.loading.classList.remove('hidden');
       this.els.itemsContainer.classList.add('hidden');
       this.els.empty.classList.add('hidden');
     }
-    
+
     try {
       // Build request
       const body = {
@@ -325,7 +325,7 @@ class InteractiveTimeline extends HTMLElement {
         limit: this.limit,
         offset: append ? this.offset : 0,
       };
-      
+
       // Date range
       if (this.filters.datePreset !== 'all' && this.filters.datePreset !== 'custom') {
         body.start_date = this.filters.datePreset;
@@ -333,37 +333,37 @@ class InteractiveTimeline extends HTMLElement {
         body.start_date = this.filters.startDate;
         body.end_date = this.filters.endDate;
       }
-      
+
       const response = await fetch(`${this.apiBase}/unified`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (append) {
         this.items.push(...data.items);
       } else {
         this.items = data.items;
       }
-      
+
       this.hasMore = data.has_more;
       this.offset = data.items.length + (append ? this.offset : 0);
-      
+
       // Update stats
       this.els.totalCount.textContent = `${data.total} items`;
       this.els.dateRangeDisplay.textContent = this.formatDateRange(data.date_range);
-      
+
       // Update facets
       this.updateFacets(data.facets);
-      
+
       this.render();
-      
+
     } catch (error) {
       console.error('Failed to load timeline:', error);
       this.els.itemsContainer.innerHTML = `
@@ -377,16 +377,16 @@ class InteractiveTimeline extends HTMLElement {
       this.els.loading.classList.add('hidden');
     }
   }
-  
+
   refresh() {
     this.offset = 0;
     this.loadData(false);
   }
-  
+
   loadMore() {
     this.loadData(true);
   }
-  
+
   render() {
     if (this.items.length === 0) {
       this.els.empty.classList.remove('hidden');
@@ -395,11 +395,11 @@ class InteractiveTimeline extends HTMLElement {
       this.els.facetsBar.classList.add('hidden');
       return;
     }
-    
+
     this.els.empty.classList.add('hidden');
     this.els.itemsContainer.classList.remove('hidden');
     this.els.facetsBar.classList.remove('hidden');
-    
+
     if (this.currentView === 'list') {
       this.renderList();
     } else if (this.currentView === 'timeline') {
@@ -407,15 +407,15 @@ class InteractiveTimeline extends HTMLElement {
     } else {
       this.renderCalendar();
     }
-    
+
     this.els.loadMore.classList.toggle('hidden', !this.hasMore);
   }
-  
+
   renderList() {
     const html = this.items.map(item => this.renderItemCard(item)).join('');
     this.els.itemsContainer.innerHTML = html;
   }
-  
+
   renderTimeline() {
     // Group by month
     const groups = {};
@@ -424,12 +424,12 @@ class InteractiveTimeline extends HTMLElement {
       if (!groups[month]) groups[month] = [];
       groups[month].push(item);
     });
-    
+
     let html = '';
     Object.entries(groups).sort().reverse().forEach(([month, items]) => {
       const [year, mon] = month.split('-');
       const monthName = new Date(`${year}-${mon}-01`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      
+
       html += `
         <div class="timeline-group mb-6">
           <div class="sticky top-0 bg-white py-2 border-b border-gray-200 mb-3 z-10">
@@ -442,10 +442,10 @@ class InteractiveTimeline extends HTMLElement {
         </div>
       `;
     });
-    
+
     this.els.itemsContainer.innerHTML = html;
   }
-  
+
   renderCalendar() {
     // Simple calendar grid for now
     this.els.itemsContainer.innerHTML = `
@@ -456,7 +456,7 @@ class InteractiveTimeline extends HTMLElement {
       </div>
     `;
   }
-  
+
   renderItemCard(item, compact = false) {
     const colorClasses = {
       red: 'bg-red-50 border-red-200 text-red-700',
@@ -467,18 +467,18 @@ class InteractiveTimeline extends HTMLElement {
       purple: 'bg-purple-50 border-purple-200 text-purple-700',
       gray: 'bg-gray-50 border-gray-200 text-gray-700',
     }[item.color] || colorClasses.gray;
-    
+
     const icon = item.icon || 'file';
-    const evidenceBadge = item.is_evidence 
+    const evidenceBadge = item.is_evidence
       ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">Evidence</span>`
       : '';
-    
+
     const urgencyBadge = item.urgency !== 'normal'
       ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${item.urgency === 'critical' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'} rounded uppercase">${item.urgency}</span>`
       : '';
-    
+
     const dateLabel = this.formatDateLabel(item);
-    
+
     return `
       <div class="timeline-item flex items-start gap-3 p-3 rounded-lg border ${colorClasses} hover:shadow-sm transition-shadow cursor-pointer"
            data-id="${item.id}" data-type="${item.item_type}">
@@ -508,7 +508,7 @@ class InteractiveTimeline extends HTMLElement {
       </div>
     `;
   }
-  
+
   formatDateLabel(item) {
     const axis = this.filters.dateAxis;
     if (axis === 'event_time' && item.event_date) {
@@ -519,7 +519,7 @@ class InteractiveTimeline extends HTMLElement {
       return this.formatDate(item.entry_date);
     }
   }
-  
+
   formatDate(isoDate) {
     if (!isoDate) return 'Unknown';
     try {
@@ -532,31 +532,31 @@ class InteractiveTimeline extends HTMLElement {
       return isoDate.substring(0, 10);
     }
   }
-  
+
   formatDateRange(range) {
     if (!range?.start || !range?.end) return 'All time';
     const start = this.formatDate(range.start);
     const end = this.formatDate(range.end);
     return `${start} — ${end}`;
   }
-  
+
   updateFacets(facets) {
     if (!facets?.by_type) return;
-    
+
     const typeLabels = {
       document: 'Documents',
       timeline_event: 'Events',
       calendar_event: 'Court',
       vault_item: 'Vault',
     };
-    
+
     const typeColors = {
       document: 'bg-blue-100 text-blue-700',
       timeline_event: 'bg-green-100 text-green-700',
       calendar_event: 'bg-amber-100 text-amber-700',
       vault_item: 'bg-purple-100 text-purple-700',
     };
-    
+
     const html = Object.entries(facets.by_type)
       .sort((a, b) => b[1] - a[1])
       .map(([type, count]) => `
@@ -564,10 +564,10 @@ class InteractiveTimeline extends HTMLElement {
           ${typeLabels[type] || type}: ${count}
         </span>
       `).join('');
-    
+
     this.els.facetTypes.innerHTML = html;
   }
-  
+
   escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');

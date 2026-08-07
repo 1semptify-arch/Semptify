@@ -40,9 +40,7 @@ WORKBOOK_NOTE = (
 def get_git_commit():
     """Get the current commit hash, or a clear placeholder if not in a repo."""
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
-        ).decode("utf-8").strip()
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL).decode("utf-8").strip()
     except Exception:
         return "NO_GIT_REPOSITORY_DETECTED"
 

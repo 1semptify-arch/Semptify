@@ -17,9 +17,11 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ScheduledTask:
     """Scheduled task configuration."""
+
     task_id: str
     task_name: str
     schedule_type: str  # cron, interval, once
@@ -31,9 +33,11 @@ class ScheduledTask:
     next_run: datetime | None = None
     created_at: datetime = field(default_factory=datetime.now)
 
+
 @dataclass
 class WatchdogAlert:
     """Watchdog alert for system monitoring."""
+
     alert_id: str
     alert_type: str
     severity: str
@@ -42,6 +46,7 @@ class WatchdogAlert:
     data: dict[str, Any]
     created_at: datetime = field(default_factory=datetime.now)
     acknowledged: bool = False
+
 
 class LitigationScheduler:
     """Main scheduler and watchdog for LIS."""
@@ -194,12 +199,15 @@ class LitigationScheduler:
                 logger.info(f"Task {task.task_name} completed successfully")
 
                 # Trigger completion event
-                await self._trigger_event("task_completed", {
-                    "task_id": task.task_id,
-                    "task_name": task.task_name,
-                    "result": result,
-                    "executed_at": task.last_run.isoformat()
-                })
+                await self._trigger_event(
+                    "task_completed",
+                    {
+                        "task_id": task.task_id,
+                        "task_name": task.task_name,
+                        "result": result,
+                        "executed_at": task.last_run.isoformat(),
+                    },
+                )
             else:
                 logger.warning(f"No handler found for task: {task.handler}")
 
@@ -207,12 +215,15 @@ class LitigationScheduler:
             logger.error(f"Task {task.task_name} failed: {e}")
 
             # Trigger failure event
-            await self._trigger_event("task_failed", {
-                "task_id": task.task_id,
-                "task_name": task.task_name,
-                "error": str(e),
-                "failed_at": utc_now().isoformat()
-            })
+            await self._trigger_event(
+                "task_failed",
+                {
+                    "task_id": task.task_id,
+                    "task_name": task.task_name,
+                    "error": str(e),
+                    "failed_at": utc_now().isoformat(),
+                },
+            )
 
     async def _check_overdue_tasks(self):
         """Check for overdue tasks and create alerts."""
@@ -234,9 +245,9 @@ class LitigationScheduler:
                         "task_id": task.task_id,
                         "task_name": task.task_name,
                         "scheduled_time": task.next_run.isoformat(),
-                        "overdue_by": (current_time - task.next_run).total_seconds()
+                        "overdue_by": (current_time - task.next_run).total_seconds(),
                     },
-                    created_at=current_time
+                    created_at=current_time,
                 )
 
                 self.add_watchdog_alert(alert)
@@ -263,9 +274,9 @@ class LitigationScheduler:
                     data={
                         "storage_health": storage_health,
                         "external_health": external_health,
-                        "checked_at": utc_now().isoformat()
+                        "checked_at": utc_now().isoformat(),
                     },
-                    created_at=utc_now()
+                    created_at=utc_now(),
                 )
 
                 self.add_watchdog_alert(alert)
@@ -284,13 +295,16 @@ class LitigationScheduler:
         for alert in self.watchdog_alerts:
             if not alert.acknowledged:
                 # Trigger alert event
-                await self._trigger_event("watchdog_alert", {
-                    "alert_id": alert.alert_id,
-                    "alert_type": alert.alert_type,
-                    "severity": alert.severity,
-                    "message": alert.message,
-                    "data": alert.data
-                })
+                await self._trigger_event(
+                    "watchdog_alert",
+                    {
+                        "alert_id": alert.alert_id,
+                        "alert_type": alert.alert_type,
+                        "severity": alert.severity,
+                        "message": alert.message,
+                        "data": alert.data,
+                    },
+                )
 
                 # Mark as processed (but not acknowledged)
                 alert.acknowledged = True
@@ -316,16 +330,16 @@ class LitigationScheduler:
     def _parse_interval(self, interval_str: str) -> timedelta:
         """Parse interval string to timedelta."""
         # Support formats: "1h", "30m", "7d", "1w"
-        if interval_str.endswith('h'):
+        if interval_str.endswith("h"):
             hours = int(interval_str[:-1])
             return timedelta(hours=hours)
-        elif interval_str.endswith('m'):
+        elif interval_str.endswith("m"):
             minutes = int(interval_str[:-1])
             return timedelta(minutes=minutes)
-        elif interval_str.endswith('d'):
+        elif interval_str.endswith("d"):
             days = int(interval_str[:-1])
             return timedelta(days=days)
-        elif interval_str.endswith('w'):
+        elif interval_str.endswith("w"):
             weeks = int(interval_str[:-1])
             return timedelta(weeks=weeks)
         else:
@@ -359,7 +373,7 @@ class LitigationScheduler:
             "enabled": task.enabled,
             "last_run": task.last_run.isoformat() if task.last_run else None,
             "next_run": task.next_run.isoformat() if task.next_run else None,
-            "created_at": task.created_at.isoformat()
+            "created_at": task.created_at.isoformat(),
         }
 
     def get_all_tasks(self) -> list[dict[str, Any]]:
@@ -377,7 +391,7 @@ class LitigationScheduler:
                 "source": alert.source,
                 "data": alert.data,
                 "created_at": alert.created_at.isoformat(),
-                "acknowledged": alert.acknowledged
+                "acknowledged": alert.acknowledged,
             }
             for alert in self.watchdog_alerts
         ]
@@ -391,10 +405,12 @@ class LitigationScheduler:
                 return True
         return False
 
+
 # Factory function
 def create_litigation_scheduler() -> LitigationScheduler:
     """Create litigation scheduler instance."""
     return LitigationScheduler()
+
 
 # Example usage
 async def example_usage():
@@ -420,7 +436,7 @@ async def example_usage():
         handler="case_scanner",
         parameters={"scan_type": "new_cases"},
         enabled=True,
-        created_at=utc_now()
+        created_at=utc_now(),
     )
 
     task2 = ScheduledTask(
@@ -431,7 +447,7 @@ async def example_usage():
         handler="pattern_analyzer",
         parameters={"analysis_type": "trends"},
         enabled=True,
-        created_at=utc_now()
+        created_at=utc_now(),
     )
 
     scheduler.add_scheduled_task(task1)
@@ -450,6 +466,8 @@ async def example_usage():
     await scheduler.stop()
     logger.info("Scheduler stopped")
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(example_usage())

@@ -1,6 +1,7 @@
 """
 PDF Tools Router - Read, View, and Extract pages from PDFs
 """
+
 # Migrated from app/routers/pdf_tools.py into the pdf_tools SDK module.
 # All imports remain absolute since pdf_tools is a CORE module.
 import base64
@@ -20,15 +21,18 @@ router = APIRouter(prefix="/api/pdf", tags=["PDF Tools"])
 
 # Store uploaded PDFs temporarily
 pdf_cache = {}
+
+
 @router.get("/test")
 async def test_pdf_tools():
     """Test endpoint to verify PDF tools are working."""
     return {"status": "PDF tools available", "pymupdf_version": fitz.__version__}
 
+
 @router.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
     """Upload a PDF file for processing"""
-    if not file.filename.lower().endswith('.pdf'):
+    if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="File must be a PDF")
 
     content = await file.read()
@@ -46,7 +50,7 @@ async def upload_pdf(file: UploadFile = File(...)):
             "filename": file.filename,
             "content": content,
             "page_count": page_count,
-            "uploaded_at": utc_now().isoformat()
+            "uploaded_at": utc_now().isoformat(),
         }
 
         # Get metadata
@@ -65,8 +69,8 @@ async def upload_pdf(file: UploadFile = File(...)):
                 "creator": metadata.get("creator", ""),
                 "producer": metadata.get("producer", ""),
                 "creation_date": metadata.get("creationDate", ""),
-                "modification_date": metadata.get("modDate", "")
-            }
+                "modification_date": metadata.get("modDate", ""),
+            },
         }
     except Exception:
         logger.exception("Invalid PDF file")
@@ -85,12 +89,7 @@ async def get_pdf_info(pdf_id: str):
     pages_info = []
     for i, page in enumerate(doc):
         rect = page.rect
-        pages_info.append({
-            "page_number": i + 1,
-            "width": rect.width,
-            "height": rect.height,
-            "rotation": page.rotation
-        })
+        pages_info.append({"page_number": i + 1, "width": rect.width, "height": rect.height, "rotation": page.rotation})
 
     doc.close()
 
@@ -99,7 +98,7 @@ async def get_pdf_info(pdf_id: str):
         "filename": pdf_data["filename"],
         "page_count": pdf_data["page_count"],
         "uploaded_at": pdf_data["uploaded_at"],
-        "pages": pages_info
+        "pages": pages_info,
     }
 
 
@@ -126,7 +125,7 @@ async def get_page_image(pdf_id: str, page_num: int, zoom: float = 1.5):
     return StreamingResponse(
         io.BytesIO(img_bytes),
         media_type="image/png",
-        headers={"Content-Disposition": f"inline; filename=page_{page_num}.png"}
+        headers={"Content-Disposition": f"inline; filename=page_{page_num}.png"},
     )
 
 
@@ -148,13 +147,10 @@ async def get_page_base64(pdf_id: str, page_num: int, zoom: float = 1.5):
     pix = page.get_pixmap(matrix=mat)
 
     img_bytes = pix.tobytes("png")
-    base64_img = base64.b64encode(img_bytes).decode('utf-8')
+    base64_img = base64.b64encode(img_bytes).decode("utf-8")
     doc.close()
 
-    return {
-        "page_number": page_num,
-        "image": f"data:image/png;base64,{base64_img}"
-    }
+    return {"page_number": page_num, "image": f"data:image/png;base64,{base64_img}"}
 
 
 @router.get("/text/{pdf_id}/{page_num}")
@@ -174,10 +170,7 @@ async def get_page_text(pdf_id: str, page_num: int):
     text = page.get_text()
     doc.close()
 
-    return {
-        "page_number": page_num,
-        "text": text
-    }
+    return {"page_number": page_num, "text": text}
 
 
 @router.get("/text-all/{pdf_id}")
@@ -191,24 +184,17 @@ async def get_all_text(pdf_id: str):
 
     pages_text = []
     for i, page in enumerate(doc):
-        pages_text.append({
-            "page_number": i + 1,
-            "text": page.get_text()
-        })
+        pages_text.append({"page_number": i + 1, "text": page.get_text()})
 
     doc.close()
 
-    return {
-        "pdf_id": pdf_id,
-        "filename": pdf_data["filename"],
-        "pages": pages_text
-    }
+    return {"pdf_id": pdf_id, "filename": pdf_data["filename"], "pages": pages_text}
 
 
 @router.post("/extract")
 async def extract_pages(
     pdf_id: str = Form(...),
-    pages: str = Form(...)  # Comma-separated page numbers or ranges like "1,3,5-8"
+    pages: str = Form(...),  # Comma-separated page numbers or ranges like "1,3,5-8"
 ):
     """Extract specific pages into a new PDF"""
     if pdf_id not in pdf_cache:
@@ -227,7 +213,7 @@ async def extract_pages(
     new_doc = fitz.open()
 
     for page_num in page_numbers:
-        new_doc.insert_pdf(src_doc, from_page=page_num-1, to_page=page_num-1)
+        new_doc.insert_pdf(src_doc, from_page=page_num - 1, to_page=page_num - 1)
 
     # Save to bytes
     output = io.BytesIO()
@@ -242,17 +228,12 @@ async def extract_pages(
     new_filename = f"{original_name}_pages_{pages.replace(',', '-').replace(' ', '')}.pdf"
 
     return StreamingResponse(
-        output,
-        media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={new_filename}"}
+        output, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={new_filename}"}
     )
 
 
 @router.post("/extract-base64")
-async def extract_pages_base64(
-    pdf_id: str = Form(...),
-    pages: str = Form(...)
-):
+async def extract_pages_base64(pdf_id: str = Form(...), pages: str = Form(...)):
     """Extract specific pages and return as base64"""
     if pdf_id not in pdf_cache:
         raise HTTPException(status_code=404, detail="PDF not found")
@@ -270,11 +251,11 @@ async def extract_pages_base64(
     new_doc = fitz.open()
 
     for page_num in page_numbers:
-        new_doc.insert_pdf(src_doc, from_page=page_num-1, to_page=page_num-1)
+        new_doc.insert_pdf(src_doc, from_page=page_num - 1, to_page=page_num - 1)
 
     # Save to bytes
     pdf_bytes = new_doc.tobytes()
-    base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+    base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
 
     new_doc.close()
     src_doc.close()
@@ -286,7 +267,7 @@ async def extract_pages_base64(
         "filename": new_filename,
         "page_count": len(page_numbers),
         "extracted_pages": page_numbers,
-        "pdf_base64": f"data:application/pdf;base64,{base64_pdf}"
+        "pdf_base64": f"data:application/pdf;base64,{base64_pdf}",
     }
 
 
@@ -318,34 +299,32 @@ async def get_thumbnails(pdf_id: str, max_width: int = 150):
         pix = page.get_pixmap(matrix=mat)
 
         img_bytes = pix.tobytes("png")
-        base64_img = base64.b64encode(img_bytes).decode('utf-8')
+        base64_img = base64.b64encode(img_bytes).decode("utf-8")
 
-        thumbnails.append({
-            "page_number": i + 1,
-            "width": pix.width,
-            "height": pix.height,
-            "thumbnail": f"data:image/png;base64,{base64_img}"
-        })
+        thumbnails.append(
+            {
+                "page_number": i + 1,
+                "width": pix.width,
+                "height": pix.height,
+                "thumbnail": f"data:image/png;base64,{base64_img}",
+            }
+        )
 
     doc.close()
 
-    return {
-        "pdf_id": pdf_id,
-        "filename": pdf_data["filename"],
-        "thumbnails": thumbnails
-    }
+    return {"pdf_id": pdf_id, "filename": pdf_data["filename"], "thumbnails": thumbnails}
 
 
 def parse_page_selection(selection: str, max_pages: int) -> list[int]:
     """Parse page selection string like '1,3,5-8,10' into list of page numbers"""
     pages = set()
-    parts = selection.replace(' ', '').split(',')
+    parts = selection.replace(" ", "").split(",")
 
     for part in parts:
-        if '-' in part:
+        if "-" in part:
             # Range like "5-8"
             try:
-                start, end = part.split('-')
+                start, end = part.split("-")
                 start = int(start)
                 end = int(end)
                 for p in range(max(1, start), min(max_pages, end) + 1):
@@ -365,10 +344,7 @@ def parse_page_selection(selection: str, max_pages: int) -> list[int]:
 
 
 @router.post("/split")
-async def split_pdf(
-    pdf_id: str = Form(...),
-    pages_per_file: int = Form(default=1)
-):
+async def split_pdf(pdf_id: str = Form(...), pages_per_file: int = Form(default=1)):
     """Split PDF into multiple files"""
     if pdf_id not in pdf_cache:
         raise HTTPException(status_code=404, detail="PDF not found")
@@ -384,18 +360,20 @@ async def split_pdf(
         end = min(start + pages_per_file, total_pages)
 
         new_doc = fitz.open()
-        new_doc.insert_pdf(src_doc, from_page=start, to_page=end-1)
+        new_doc.insert_pdf(src_doc, from_page=start, to_page=end - 1)
 
         pdf_bytes = new_doc.tobytes()
-        base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+        base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
 
-        splits.append({
-            "filename": f"{original_name}_part_{start+1}-{end}.pdf",
-            "start_page": start + 1,
-            "end_page": end,
-            "page_count": end - start,
-            "pdf_base64": f"data:application/pdf;base64,{base64_pdf}"
-        })
+        splits.append(
+            {
+                "filename": f"{original_name}_part_{start + 1}-{end}.pdf",
+                "start_page": start + 1,
+                "end_page": end,
+                "page_count": end - start,
+                "pdf_base64": f"data:application/pdf;base64,{base64_pdf}",
+            }
+        )
 
         new_doc.close()
 
@@ -405,7 +383,7 @@ async def split_pdf(
         "original_filename": pdf_data["filename"],
         "total_pages": total_pages,
         "split_count": len(splits),
-        "files": splits
+        "files": splits,
     }
 
 
@@ -418,7 +396,7 @@ async def merge_pdfs(files: list[UploadFile] = File(...)):
     merged_doc = fitz.open()
 
     for file in files:
-        if not file.filename.lower().endswith('.pdf'):
+        if not file.filename.lower().endswith(".pdf"):
             continue
 
         content = await file.read()
@@ -433,13 +411,13 @@ async def merge_pdfs(files: list[UploadFile] = File(...)):
         raise HTTPException(status_code=400, detail="No valid PDFs to merge")
 
     pdf_bytes = merged_doc.tobytes()
-    base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+    base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
     merged_doc.close()
 
     return {
         "filename": "merged.pdf",
         "page_count": len(merged_doc),
-        "pdf_base64": f"data:application/pdf;base64,{base64_pdf}"
+        "pdf_base64": f"data:application/pdf;base64,{base64_pdf}",
     }
 
 
@@ -447,7 +425,7 @@ async def merge_pdfs(files: list[UploadFile] = File(...)):
 async def rotate_pages(
     pdf_id: str = Form(...),
     pages: str = Form(...),
-    rotation: int = Form(...)  # 90, 180, 270, or -90
+    rotation: int = Form(...),  # 90, 180, 270, or -90
 ):
     """Rotate specific pages"""
     if pdf_id not in pdf_cache:
@@ -466,7 +444,7 @@ async def rotate_pages(
         page.set_rotation((page.rotation + rotation) % 360)
 
     pdf_bytes = doc.tobytes()
-    base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+    base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
 
     # Update cache
     pdf_cache[pdf_id]["content"] = pdf_bytes
@@ -477,5 +455,5 @@ async def rotate_pages(
         "success": True,
         "rotated_pages": page_numbers,
         "rotation": rotation,
-        "pdf_base64": f"data:application/pdf;base64,{base64_pdf}"
+        "pdf_base64": f"data:application/pdf;base64,{base64_pdf}",
     }

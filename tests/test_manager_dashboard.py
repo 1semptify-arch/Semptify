@@ -21,6 +21,7 @@ def _make_session(users_by_id, redeemed_codes):
             filter_mock.all.return_value = redeemed_codes
             query_mock.filter.return_value = filter_mock
         elif model is User:
+
             def _first():
                 # filter_by was called with keyword args, e.g. filter_by(id=user_id)
                 kwargs = query_mock.filter_by.call_args.kwargs

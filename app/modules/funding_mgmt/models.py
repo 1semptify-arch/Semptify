@@ -12,6 +12,7 @@ from app.core.database import Base
 
 class FundingSourceType(str, PyEnum):
     """Types of funding sources."""
+
     FEDERAL_GRANT = "federal_grant"
     FOUNDATION_GRANT = "foundation_grant"
     CORPORATE_SPONSORSHIP = "corporate_sponsorship"
@@ -23,6 +24,7 @@ class FundingSourceType(str, PyEnum):
 
 class ApplicationStatus(str, PyEnum):
     """Application lifecycle stages."""
+
     PROSPECT_IDENTIFIED = "prospect_identified"
     RESEARCH_COMPLETE = "research_complete"
     APPLICATION_DRAFT = "application_draft"

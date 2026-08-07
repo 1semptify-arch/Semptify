@@ -5,7 +5,6 @@ Clean interface to the navigation SSOT registry.
 Zero FastAPI dependencies. Pure Python.
 """
 
-
 from app.core.navigation import FlowStage, navigation
 
 

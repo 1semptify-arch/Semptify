@@ -17,25 +17,27 @@ TIMELINE_TXT = Path("C:/Semptify/Semptify-FastAPI/data/case_outputs/timeline_19A
 
 # Known date patterns in MCRO filenames
 # Format: MCRO_CaseNum_DocType_YYYY-MM-DD_timestamp.pdf
-MCRO_DATE_PATTERN = r'(\d{4}-\d{2}-\d{2})'
+MCRO_DATE_PATTERN = r"(\d{4}-\d{2}-\d{2})"
+
 
 def extract_date_from_filename(filename: str) -> tuple[str, str]:
     """Extract date and document type from filename."""
     # MCRO format: MCRO_19AV-CV-25-3477_DocType_2025-11-17_timestamp.pdf
-    if 'MCRO' in filename:
-        parts = filename.split('_')
+    if "MCRO" in filename:
+        parts = filename.split("_")
         if len(parts) >= 4:
             doc_type = parts[2] if len(parts) > 2 else "Unknown"
             dates = re.findall(MCRO_DATE_PATTERN, filename)
             if dates:
-                return dates[0], doc_type.replace('-', ' ')
+                return dates[0], doc_type.replace("-", " ")
 
     # Other files - look for dates in name
     dates = re.findall(MCRO_DATE_PATTERN, filename)
     if dates:
-        return dates[0], filename.split('_')[1] if '_' in filename else filename
+        return dates[0], filename.split("_")[1] if "_" in filename else filename
 
     return None, filename
+
 
 def categorize_document(filename: str) -> dict:
     """Categorize document by type and relevance."""
@@ -43,7 +45,15 @@ def categorize_document(filename: str) -> dict:
 
     categories = {
         "court_filing": ["complaint", "summons", "answer", "motion", "order", "affidavit", "memorandum", "certificate"],
-        "retaliation_evidence": ["retaliation", "cease", "desist", "harassment", "rationale", "non-renewal", "violation"],
+        "retaliation_evidence": [
+            "retaliation",
+            "cease",
+            "desist",
+            "harassment",
+            "rationale",
+            "non-renewal",
+            "violation",
+        ],
         "lease_rental": ["lease", "ledger", "rent", "payment"],
         "communication": ["gmail", "email", "letter", "notice"],
         "property_info": ["rentcafe", "apartment", "flats"],
@@ -155,7 +165,9 @@ def build_timeline():
         "property": "Lexington Flats, Eagan MN",
         "hearing_date": "2025-12-23",
         "generated": datetime.now(UTC).isoformat(),
-        "timeline_by_date": {d: [{"type": e["document_type"], "file": e["filename"]} for e in documents_by_date[d]] for d in sorted_dates},
+        "timeline_by_date": {
+            d: [{"type": e["document_type"], "file": e["filename"]} for e in documents_by_date[d]] for d in sorted_dates
+        },
         "documents_by_category": categories_count,
         "total_documents": len(timeline_events),
         "key_evidence": [e for e in timeline_events if "significance" in e],
@@ -217,8 +229,8 @@ RETALIATION CLAIM ELEMENTS (Minnesota Statute § 504B.285)
    - Protected activity date: _______
    - Eviction filed: November 17, 2025
    - Days between: _______
-   
-   NOTE: Under MN law, if adverse action within 90 days of protected 
+
+   NOTE: Under MN law, if adverse action within 90 days of protected
    activity, there is a PRESUMPTION of retaliation that landlord must rebut.
 
 ================================================================================

@@ -57,9 +57,11 @@ router = APIRouter(
     dependencies=[Depends(require_capability("app.modules.evidence_seal.router"))],
 )
 
+
 @router.get("/health")
 async def health():
     return {"status": "healthy", "module": "evidence_seal"}
+
 
 @router.post("/seal")
 async def seal_document(document_id: str):
@@ -74,7 +76,7 @@ _register(
     tags=("Evidence Seal",),
     tier=ProductTier.ADMIN,
     optional=True,
-    lifecycle="experimental",       # flip to "stable" once it's proven out
+    lifecycle="experimental",  # flip to "stable" once it's proven out
     requires_gate="vault_initialized",
     upl_risk_tier=UPLRiskTier.LOW,  # it seals documents, doesn't give legal advice
     log_message="Evidence Seal module loaded",

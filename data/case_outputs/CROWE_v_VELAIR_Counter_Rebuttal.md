@@ -26,12 +26,12 @@ This document provides point-by-point rebuttals to Velair Property Management's 
    - No incident reports
    - No witness statements
    - No dates, times, or specific allegations
-   
+
 2. **5-Year Clean Record**
    - Bradley Crowe has been a tenant since November 21, 2021
    - ZERO documented lease violations in 5 years
    - This claim conveniently arises only AFTER tenant asserted legal rights
-   
+
 3. **Vague & Conclusory Language**
    - "Belligerent manner" is subjective and undefined
    - Provides no specific acts that constitute a lease violation
@@ -52,11 +52,11 @@ Under Minnesota law, landlords must provide specific, documented grounds for adv
 1. **Defamatory Per Se**
    - Falsely accusing someone of substance abuse in a professional/housing context constitutes defamation per se under Minnesota law
    - No evidence provided (blood test, police report, medical documentation)
-   
+
 2. **No Police Report**
    - Even when Lisa Burg called police, NO police report exists documenting intoxication
    - If tenant was truly "under the influence," law enforcement would have documented it
-   
+
 3. **Pattern of False Accusations**
    - This accusation appeared ONLY after tenant filed Cease & Desist
    - Never mentioned in prior 5 years of tenancy
@@ -82,17 +82,17 @@ Making unsubstantiated accusations of intoxication is:
    - No signed statements from maintenance staff
    - No audio/video recordings
    - No contemporaneous documentation
-   
+
 2. **Contradictory Timeline**
    - Unit #104 was listed on RENTCafe on **August 17, 2025**
    - Alleged violation occurred on **August 18, 2025**
    - **Decision to remove tenants preceded the alleged violation**
-   
+
 3. **Selective Enforcement**
    - Notice issued ONLY to Dena Sazama
    - Bradley Crowe not named despite being co-tenant
    - Suggests targeting of vulnerable tenant (Dena has documented anxiety)
-   
+
 4. **Procedural Violations**
    - No opportunity to cure the alleged violation
    - No prior warning about the alleged behavior
@@ -115,12 +115,12 @@ The lease infraction notice is demonstrably pretextual because the landlord list
    - Police were called during tenant's "peaceful inquiry"
    - No arrest was made
    - No charges were filed
-   
+
 2. **Police Response ≠ Tenant Misconduct**
    - A landlord calling police does not prove tenant wrongdoing
    - Weaponizing law enforcement against tenants is itself a form of harassment
    - Common retaliation tactic to create paper trail
-   
+
 3. **Tenant Was Exercising Rights**
    - Tenant was attempting to discuss allegations face-to-face
    - Landlord slammed door and called police

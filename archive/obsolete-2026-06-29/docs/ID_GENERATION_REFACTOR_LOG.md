@@ -1,7 +1,7 @@
 # ID Generation Refactor — Change Log & SSOT Registry
 
-**Date:** 2025-04-21  
-**Scope:** All `uuid4()` calls eliminated from `app/` directory  
+**Date:** 2025-04-21
+**Scope:** All `uuid4()` calls eliminated from `app/` directory
 **New SSOT:** `app/core/id_gen.py`
 
 ---

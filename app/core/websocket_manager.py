@@ -10,7 +10,7 @@ import json
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -19,8 +19,10 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class NotificationType(Enum):
     """Types of notifications."""
+
     JOB_STATUS = "job_status"
     DOCUMENT_UPLOAD = "document_upload"
     SYSTEM_ALERT = "system_alert"
@@ -29,9 +31,11 @@ class NotificationType(Enum):
     SECURITY_EVENT = "security_event"
     CONTEXT_UPDATE = "context_update"
 
+
 @dataclass
 class WebSocketMessage:
     """WebSocket message structure."""
+
     type: str
     data: dict[str, Any]
     timestamp: datetime
@@ -44,12 +48,14 @@ class WebSocketMessage:
             "data": self.data,
             "timestamp": self.timestamp.isoformat(),
             "user_id": self.user_id,
-            "session_id": self.session_id
+            "session_id": self.session_id,
         }
+
 
 @dataclass
 class ConnectionInfo:
     """WebSocket connection information."""
+
     websocket: Any
     user_id: str
     session_id: str
@@ -63,8 +69,9 @@ class ConnectionInfo:
             "session_id": self.session_id,
             "connected_at": self.connected_at.isoformat(),
             "last_ping": self.last_ping.isoformat(),
-            "subscriptions": list(self.subscriptions)
+            "subscriptions": list(self.subscriptions),
         }
+
 
 class WebSocketManager:
     """Manages WebSocket connections and real-time messaging."""
@@ -88,7 +95,7 @@ class WebSocketManager:
             "active_connections": 0,
             "messages_sent": 0,
             "messages_failed": 0,
-            "subscriptions_active": 0
+            "subscriptions_active": 0,
         }
 
         # Shutdown flag
@@ -108,7 +115,7 @@ class WebSocketManager:
             session_id=session_id,
             connected_at=utc_now(),
             last_ping=utc_now(),
-            subscriptions=set()
+            subscriptions=set(),
         )
 
         # Store connection
@@ -125,16 +132,15 @@ class WebSocketManager:
         logger.info(f"WebSocket connected: user={user_id}, session={session_id}, conn_id={connection_id}")
 
         # Send welcome message
-        await self.send_to_connection(connection_id, WebSocketMessage(
-            type="connection_established",
-            data={
-                "connection_id": connection_id,
-                "session_id": session_id,
-                "server_time": utc_now().isoformat()
-            },
-            timestamp=utc_now(),
-            user_id=user_id
-        ))
+        await self.send_to_connection(
+            connection_id,
+            WebSocketMessage(
+                type="connection_established",
+                data={"connection_id": connection_id, "session_id": session_id, "server_time": utc_now().isoformat()},
+                timestamp=utc_now(),
+                user_id=user_id,
+            ),
+        )
 
         return connection_id
 
@@ -262,24 +268,17 @@ class WebSocketManager:
 
     async def queue_message(self, message: WebSocketMessage, target: str = None, target_type: str = "all"):
         """Queue a message for background processing."""
-        await self.message_queue.put({
-            "message": message,
-            "target": target,
-            "target_type": target_type
-        })
+        await self.message_queue.put({"message": message, "target": target, "target_type": target_type})
 
-    async def send_job_status_update(self, user_id: str, job_id: str, status: str, progress: float = None, result: dict[str, Any] = None):
+    async def send_job_status_update(
+        self, user_id: str, job_id: str, status: str, progress: float = None, result: dict[str, Any] = None
+    ):
         """Send job status update to user."""
         message = WebSocketMessage(
             type=NotificationType.JOB_STATUS.value,
-            data={
-                "job_id": job_id,
-                "status": status,
-                "progress": progress,
-                "result": result
-            },
+            data={"job_id": job_id, "status": status, "progress": progress, "result": result},
             timestamp=utc_now(),
-            user_id=user_id
+            user_id=user_id,
         )
 
         await self.send_to_user(user_id, message)
@@ -288,13 +287,9 @@ class WebSocketManager:
         """Send document upload notification."""
         message = WebSocketMessage(
             type=NotificationType.DOCUMENT_UPLOAD.value,
-            data={
-                "document_id": document_id,
-                "filename": filename,
-                "status": status
-            },
+            data={"document_id": document_id, "filename": filename, "status": status},
             timestamp=utc_now(),
-            user_id=user_id
+            user_id=user_id,
         )
 
         await self.send_to_user(user_id, message)
@@ -303,11 +298,8 @@ class WebSocketManager:
         """Send system alert."""
         alert_message = WebSocketMessage(
             type=NotificationType.SYSTEM_ALERT.value,
-            data={
-                "message": message,
-                "severity": severity
-            },
-            timestamp=utc_now()
+            data={"message": message, "severity": severity},
+            timestamp=utc_now(),
         )
 
         if target_users:
@@ -320,12 +312,9 @@ class WebSocketManager:
         """Send security event notification."""
         message = WebSocketMessage(
             type=NotificationType.SECURITY_EVENT.value,
-            data={
-                "event_type": event_type,
-                "details": details
-            },
+            data={"event_type": event_type, "details": details},
             timestamp=utc_now(),
-            user_id=user_id
+            user_id=user_id,
         )
 
         await self.send_to_user(user_id, message)
@@ -370,7 +359,7 @@ class WebSocketManager:
             try:
                 await asyncio.sleep(30)  # Run every 30 seconds
 
-                current_time = datetime.now(UTC())
+                current_time = utc_now()
                 dead_connections = []
 
                 # Check for dead connections (no ping for 5 minutes)
@@ -390,11 +379,7 @@ class WebSocketManager:
 
     async def ping_connections(self):
         """Ping all connections to check they're alive."""
-        ping_message = WebSocketMessage(
-            type="ping",
-            data={"timestamp": utc_now().isoformat()},
-            timestamp=utc_now()
-        )
+        ping_message = WebSocketMessage(type="ping", data={"timestamp": utc_now().isoformat()}, timestamp=utc_now())
 
         dead_connections = []
 
@@ -419,7 +404,7 @@ class WebSocketManager:
             "total_subscriptions": len(self.subscriptions),
             "messages_sent": self.stats["messages_sent"],
             "messages_failed": self.stats["messages_failed"],
-            "total_connections": self.stats["total_connections"]
+            "total_connections": self.stats["total_connections"],
         }
 
     def get_user_connections(self, user_id: str) -> list[dict[str, Any]]:
@@ -450,8 +435,10 @@ class WebSocketManager:
 
         logger.info("WebSocket manager shutdown complete")
 
+
 # Global WebSocket manager instance
 _websocket_manager: WebSocketManager | None = None
+
 
 def get_websocket_manager() -> WebSocketManager:
     """Get the global WebSocket manager instance."""
@@ -462,31 +449,37 @@ def get_websocket_manager() -> WebSocketManager:
 
     return _websocket_manager
 
+
 # Helper functions
 async def send_job_notification(user_id: str, job_id: str, status: str, progress: float = None):
     """Send job status notification."""
     manager = get_websocket_manager()
     await manager.send_job_status_update(user_id, job_id, status, progress)
 
+
 async def send_upload_notification(user_id: str, document_id: str, filename: str, status: str):
     """Send upload notification."""
     manager = get_websocket_manager()
     await manager.send_document_upload_notification(user_id, document_id, filename, status)
+
 
 async def send_system_alert(message: str, severity: str = "info", target_users: list[str] = None):
     """Send system alert."""
     manager = get_websocket_manager()
     await manager.send_system_alert(message, severity, target_users)
 
+
 async def send_security_notification(user_id: str, event_type: str, details: dict[str, Any]):
     """Send security notification."""
     manager = get_websocket_manager()
     await manager.send_security_event(user_id, event_type, details)
 
+
 def get_websocket_stats() -> dict[str, Any]:
     """Get WebSocket statistics."""
     manager = get_websocket_manager()
     return manager.get_connection_stats()
+
 
 # Cleanup on shutdown
 import atexit

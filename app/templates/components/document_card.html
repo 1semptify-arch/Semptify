@@ -15,7 +15,7 @@
         ●
         {% endif %}
     </div>
-    
+
     <div class="doc-card__info">
         <div class="doc-card__name">{{ doc.original_filename or doc.filename or 'Untitled' }}</div>
         <div class="doc-card__meta">
@@ -30,7 +30,7 @@
             {% endif %}
         </div>
     </div>
-    
+
     <div class="doc-card__actions">
         {% if show_download %}
         <button class="btn btn--secondary btn--sm" onclick="downloadDocument('{{ doc.id }}')">
@@ -108,7 +108,7 @@
     .doc-card {
         flex-wrap: wrap;
     }
-    
+
     .doc-card__actions {
         width: 100%;
         margin-top: var(--space-sm);

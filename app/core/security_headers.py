@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     Middleware to add security headers to all responses.
-    
+
     Headers added:
     - X-Content-Type-Options: Prevent MIME sniffing
     - X-Frame-Options: Prevent clickjacking
@@ -48,17 +48,19 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         Default Content Security Policy.
         Allows self-hosted resources and common CDNs.
         """
-        return "; ".join([
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
-            "font-src 'self' https://fonts.gstatic.com data:",
-            "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://api.openai.com https://api.anthropic.com https://cloudflareinsights.com wss:",
-            "frame-ancestors 'self'",
-            "form-action 'self'",
-            "base-uri 'self'",
-        ])
+        return "; ".join(
+            [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com",
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
+                "font-src 'self' https://fonts.gstatic.com data:",
+                "img-src 'self' data: https: blob:",
+                "connect-src 'self' https://api.openai.com https://api.anthropic.com https://cloudflareinsights.com wss:",
+                "frame-ancestors 'self'",
+                "form-action 'self'",
+                "base-uri 'self'",
+            ]
+        )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         response = await call_next(request)
@@ -84,9 +86,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # HSTS (only enable in production with HTTPS)
         if self.enable_hsts:
-            response.headers["Strict-Transport-Security"] = (
-                f"max-age={self.hsts_max_age}; includeSubDomains"
-            )
+            response.headers["Strict-Transport-Security"] = f"max-age={self.hsts_max_age}; includeSubDomains"
 
         # Cache control for sensitive pages
         if request.url.path.startswith("/api/") and request.method in ("GET", "HEAD"):
@@ -128,9 +128,7 @@ class TrustedHostMiddleware(BaseHTTPMiddleware):
 
             # Host not allowed
             from fastapi.responses import JSONResponse
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "Invalid host header"}
-            )
+
+            return JSONResponse(status_code=400, content={"detail": "Invalid host header"})
 
         return await call_next(request)

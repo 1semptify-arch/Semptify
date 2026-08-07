@@ -1,6 +1,6 @@
 # ID Generation Refactor & Interactive Timeline — Completion Summary
 
-**Date:** 2025-04-22  
+**Date:** 2025-04-22
 **Status:** ✅ Complete
 
 ---
@@ -89,7 +89,7 @@ app/core/id_gen.py
 
 ### Usage Example
 ```html
-<interactive-timeline 
+<interactive-timeline
   api-base="/api/timeline">
 </interactive-timeline>
 ```
@@ -145,7 +145,7 @@ Add to any HTML page:
   <div id="app">
     <interactive-timeline></interactive-timeline>
   </div>
-  
+
   <script>
     // Load the component
     fetch('/static/components/interactive-timeline.html')

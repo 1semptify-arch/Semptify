@@ -13,7 +13,6 @@ Routes:
 - DELETE /api/invite-codes/{code} - Deactivate a code
 """
 
-
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
@@ -34,6 +33,7 @@ router = APIRouter(prefix="/api/invite-codes", tags=["Invite Codes"])
 # =============================================================================
 # Request/Response Models
 # =============================================================================
+
 
 class ValidateCodeRequest(BaseModel):
     code: str = Field(..., min_length=4, max_length=32, description="Invite code to validate")
@@ -90,6 +90,7 @@ class CodeInfo(BaseModel):
 # Public Endpoints (for onboarding flow)
 # =============================================================================
 
+
 @router.post("/validate", response_model=ValidateCodeResponse)
 async def validate_code(
     request: Request,
@@ -97,7 +98,7 @@ async def validate_code(
 ):
     """
     Validate an invite code without redeeming it.
-    
+
     Used during onboarding to check if a code is valid
     before the user completes registration.
     """
@@ -119,7 +120,7 @@ async def redeem_code(
 ):
     """
     Redeem an invite code for the current user.
-    
+
     This permanently associates the code with the user's account
     and grants them the specified role.
     """
@@ -143,6 +144,7 @@ async def redeem_code(
 # Manager/Admin Endpoints (require elevated permissions)
 # =============================================================================
 
+
 @router.post("/create", response_model=CreateCodeResponse)
 async def create_code(
     request: Request,
@@ -150,7 +152,7 @@ async def create_code(
 ):
     """
     Create a new invite code.
-    
+
     Requires manager or admin role. The created code will be
     associated with the creator's organization.
     """
@@ -197,7 +199,7 @@ async def create_code(
 async def list_codes(request: Request):
     """
     List all invite codes for the current user's organization.
-    
+
     Returns active and inactive codes with usage statistics.
     """
     from app.core.user_context import UserRole, get_role_from_user_id
@@ -240,7 +242,7 @@ async def list_codes(request: Request):
 async def delete_code(code: str, request: Request):
     """
     Deactivate an invite code.
-    
+
     The code becomes permanently invalid but remains in the
     database for audit purposes.
     """

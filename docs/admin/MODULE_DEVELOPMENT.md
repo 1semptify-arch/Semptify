@@ -38,10 +38,12 @@ module_definition = ModuleDefinition(
 # Create SDK instance
 sdk = ModuleSDK(module_definition)
 
+
 # Register actions
 @sdk.action("your_action", produces=["result"])
 async def your_action(user_id, params, context):
     return {"result": "done"}
+
 
 # Initialize function
 def initialize():
@@ -54,6 +56,7 @@ Add to the startup sequence in `app/main.py`:
 
 ```python
 from app.modules.your_module_name import initialize as init_your_module
+
 init_your_module()
 ```
 
@@ -66,35 +69,30 @@ That's it! Your module is now part of the Positronic Mesh.
 ```python
 ModuleDefinition(
     # Required
-    name="unique_snake_case_name",      # Unique identifier
+    name="unique_snake_case_name",  # Unique identifier
     display_name="Human Readable Name",  # UI display name
-    description="What this module does", # Description
-    
+    description="What this module does",  # Description
     # Optional
-    version="1.0.0",                     # Semantic version
-    category=ModuleCategory.UTILITY,     # Organization category
-    
+    version="1.0.0",  # Semantic version
+    category=ModuleCategory.UTILITY,  # Organization category
     # Document handling
-    handles_documents=[                   # Document types this can process
+    handles_documents=[  # Document types this can process
         DocumentType.LEASE,
         DocumentType.EVICTION_NOTICE,
     ],
-    
     # Inter-module communication
-    accepts_packs=[                       # Info packs this can receive
+    accepts_packs=[  # Info packs this can receive
         PackType.EVICTION_DATA,
     ],
-    produces_packs=[                      # Info packs this creates
+    produces_packs=[  # Info packs this creates
         PackType.ANALYSIS_RESULT,
     ],
-    
     # Dependencies
-    depends_on=["documents", "calendar"], # Required modules
-    
+    depends_on=["documents", "calendar"],  # Required modules
     # Capabilities
-    has_ui=False,                         # Has frontend component
-    has_background_tasks=False,           # Runs background jobs
-    requires_auth=True,                   # Needs user authentication
+    has_ui=False,  # Has frontend component
+    has_background_tasks=False,  # Runs background jobs
+    requires_auth=True,  # Needs user authentication
 )
 ```
 
@@ -106,19 +104,19 @@ Actions are functions your module exposes to the mesh:
 
 ```python
 @sdk.action(
-    "action_name",                        # Unique action identifier
+    "action_name",  # Unique action identifier
     description="What this action does",  # Human-readable description
-    required_params=["param1", "param2"], # Required parameters
-    optional_params=["param3"],           # Optional parameters
-    produces=["output_key"],              # Context keys this produces
-    requires_context=["needed_key"],      # Context keys this needs
-    timeout_seconds=30,                   # Max execution time
+    required_params=["param1", "param2"],  # Required parameters
+    optional_params=["param3"],  # Optional parameters
+    produces=["output_key"],  # Context keys this produces
+    requires_context=["needed_key"],  # Context keys this needs
+    timeout_seconds=30,  # Max execution time
 )
 async def action_name(
-    user_id: str,                         # User making the request
-    params: Dict[str, Any],               # Action parameters
-    context: Dict[str, Any],              # Workflow context
-) -> Dict[str, Any]:                      # Must return a dict
+    user_id: str,  # User making the request
+    params: Dict[str, Any],  # Action parameters
+    context: Dict[str, Any],  # Workflow context
+) -> Dict[str, Any]:  # Must return a dict
     # Your logic here
     return {"output_key": "result"}
 ```
@@ -241,16 +239,16 @@ async def on_document_uploaded(event_type: str, data: Dict[str, Any]):
 
 ```python
 class ModuleCategory(str, Enum):
-    DOCUMENT = "document"          # Document processing
-    LEGAL = "legal"                # Legal analysis/forms
-    CALENDAR = "calendar"          # Scheduling/deadlines
+    DOCUMENT = "document"  # Document processing
+    LEGAL = "legal"  # Legal analysis/forms
+    CALENDAR = "calendar"  # Scheduling/deadlines
     COMMUNICATION = "communication"  # User communication
-    ANALYSIS = "analysis"          # Data analysis
-    STORAGE = "storage"            # File/data storage
-    UI = "ui"                      # User interface
-    UTILITY = "utility"            # General utilities
-    AI = "ai"                      # AI/ML features
-    INTEGRATION = "integration"    # External integrations
+    ANALYSIS = "analysis"  # Data analysis
+    STORAGE = "storage"  # File/data storage
+    UI = "ui"  # User interface
+    UTILITY = "utility"  # General utilities
+    AI = "ai"  # AI/ML features
+    INTEGRATION = "integration"  # External integrations
 ```
 
 ---
@@ -298,6 +296,7 @@ from typing import Optional
 
 router = APIRouter()
 
+
 @router.get("/your-endpoint")
 async def your_endpoint(
     semptify_uid: Optional[str] = Cookie(default=None),
@@ -310,6 +309,7 @@ async def your_endpoint(
 Then in `main.py`:
 ```python
 from app.modules.your_module import router as your_router
+
 app.include_router(your_router, prefix="/api/your-module", tags=["Your Module"])
 ```
 
@@ -327,6 +327,7 @@ See `app/modules/example_payment_tracking.py` for a complete working example.
 # test_your_module.py
 import pytest
 from app.modules.your_module import sdk, your_action
+
 
 @pytest.mark.asyncio
 async def test_your_action():

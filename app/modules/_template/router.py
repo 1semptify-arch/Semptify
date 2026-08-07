@@ -4,6 +4,7 @@ Module Template — FastAPI Router
 Skeleton with health check + CRUD endpoints. Replace with your module's
 endpoints. Keep routers thin — delegate to service.py.
 """
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -38,7 +39,7 @@ async def list_items(
     user: UserContext = Depends(get_current_user),
 ):
     """List items for the current user."""
-    user_id = get_request_user_id(request)
+    get_request_user_id(request)
     # TODO: Replace with real list query
     return []
 

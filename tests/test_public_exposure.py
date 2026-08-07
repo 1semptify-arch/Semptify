@@ -1,6 +1,7 @@
 """
 Tests for the Public Exposure module - Press releases and media campaigns.
 """
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -9,6 +10,7 @@ from app.main import app
 # ============================================================================
 # HEALTH ENDPOINT
 # ============================================================================
+
 
 class TestExposureHealth:
     """Test public exposure service health."""
@@ -28,6 +30,7 @@ class TestExposureHealth:
 # PRESS RELEASE GENERATION
 # ============================================================================
 
+
 class TestPressReleaseGeneration:
     """Test press release generation functionality."""
 
@@ -41,8 +44,8 @@ class TestPressReleaseGeneration:
                     "case_id": "test-123",
                     "headline": "Test Headline for Press Release",
                     "summary": "This is a test summary of the case.",
-                    "language": "en"
-                }
+                    "language": "en",
+                },
             )
             # Accept various status codes
             assert response.status_code in [200, 201, 401, 422, 500]
@@ -52,11 +55,7 @@ class TestPressReleaseGeneration:
         """Test that press release requires headline."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/exposure/press-release",
-                json={
-                    "case_id": "test-123",
-                    "summary": "Test summary"
-                }
+                "/api/exposure/press-release", json={"case_id": "test-123", "summary": "Test summary"}
             )
             assert response.status_code in [400, 401, 422, 500]
 
@@ -71,8 +70,8 @@ class TestPressReleaseGeneration:
                     "case_id": "test-es-123",
                     "headline": "Titular de Prueba",
                     "summary": "Este es un resumen de prueba.",
-                    "language": "es"
-                }
+                    "language": "es",
+                },
             )
             assert response.status_code in [200, 201, 401, 422, 500]
 
@@ -80,6 +79,7 @@ class TestPressReleaseGeneration:
 # ============================================================================
 # MEDIA OUTLETS
 # ============================================================================
+
 
 class TestMediaOutlets:
     """Test media outlet database."""
@@ -105,6 +105,7 @@ class TestMediaOutlets:
 # MEDIA KIT GENERATION
 # ============================================================================
 
+
 class TestMediaKitGeneration:
     """Test media kit generation."""
 
@@ -118,8 +119,8 @@ class TestMediaKitGeneration:
                     "case_id": "test-kit-123",
                     "title": "Test Media Kit",
                     "include_press_release": True,
-                    "include_fact_sheet": True
-                }
+                    "include_fact_sheet": True,
+                },
             )
             assert response.status_code in [200, 201, 401, 404, 422]
 
@@ -127,16 +128,14 @@ class TestMediaKitGeneration:
     async def test_media_kit_requires_case_id(self):
         """Test that media kit requires case_id."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.post(
-                "/api/exposure/media-kit",
-                json={"title": "Test Kit"}
-            )
+            response = await client.post("/api/exposure/media-kit", json={"title": "Test Kit"})
             assert response.status_code in [400, 401, 404, 422]
 
 
 # ============================================================================
 # FACT SHEET GENERATION
 # ============================================================================
+
 
 class TestFactSheetGeneration:
     """Test fact sheet generation."""
@@ -147,11 +146,7 @@ class TestFactSheetGeneration:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/exposure/fact-sheet",
-                json={
-                    "case_id": "test-fact-123",
-                    "title": "Case Fact Sheet",
-                    "facts": ["Fact 1", "Fact 2", "Fact 3"]
-                }
+                json={"case_id": "test-fact-123", "title": "Case Fact Sheet", "facts": ["Fact 1", "Fact 2", "Fact 3"]},
             )
             assert response.status_code in [200, 201, 404, 422]
 
@@ -159,6 +154,7 @@ class TestFactSheetGeneration:
 # ============================================================================
 # SOCIAL MEDIA POSTS
 # ============================================================================
+
 
 class TestSocialMediaPosts:
     """Test social media post generation."""
@@ -172,8 +168,8 @@ class TestSocialMediaPosts:
                 json={
                     "case_id": "test-social-123",
                     "message": "Test message for social media",
-                    "platforms": ["twitter", "facebook"]
-                }
+                    "platforms": ["twitter", "facebook"],
+                },
             )
             assert response.status_code in [200, 201, 404, 422]
 
@@ -181,6 +177,7 @@ class TestSocialMediaPosts:
 # ============================================================================
 # LANGUAGE SUPPORT
 # ============================================================================
+
 
 class TestLanguageSupport:
     """Test multi-language support."""
@@ -203,8 +200,8 @@ class TestLanguageSupport:
                     "case_id": "test-hmong-123",
                     "headline": "Test Headline",
                     "summary": "Test summary",
-                    "language": "hmn"
-                }
+                    "language": "hmn",
+                },
             )
             # Should accept Hmong as a language option
             assert response.status_code in [200, 201, 401, 422, 500]
@@ -219,8 +216,8 @@ class TestLanguageSupport:
                     "case_id": "test-somali-123",
                     "headline": "Test Headline",
                     "summary": "Test summary",
-                    "language": "so"
-                }
+                    "language": "so",
+                },
             )
             # Should accept Somali as a language option
             assert response.status_code in [200, 201, 401, 422, 500]
@@ -229,6 +226,7 @@ class TestLanguageSupport:
 # ============================================================================
 # DISTRIBUTION
 # ============================================================================
+
 
 class TestDistribution:
     """Test press release distribution features."""
@@ -246,10 +244,7 @@ class TestDistribution:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/exposure/distribute",
-                json={
-                    "release_id": "test-release-123",
-                    "outlets": ["mn_star_tribune", "mn_public_radio"]
-                }
+                json={"release_id": "test-release-123", "outlets": ["mn_star_tribune", "mn_public_radio"]},
             )
             assert response.status_code in [200, 201, 404, 422]
 
@@ -257,6 +252,7 @@ class TestDistribution:
 # ============================================================================
 # TEMPLATES
 # ============================================================================
+
 
 class TestTemplates:
     """Test press release templates."""
@@ -272,6 +268,7 @@ class TestTemplates:
 # ============================================================================
 # SERVICE INTEGRATION
 # ============================================================================
+
 
 class TestServiceIntegration:
     """Test exposure service integration."""
@@ -295,6 +292,7 @@ class TestServiceIntegration:
 # ERROR HANDLING
 # ============================================================================
 
+
 class TestErrorHandling:
     """Test exposure service error handling."""
 
@@ -303,9 +301,7 @@ class TestErrorHandling:
         """Test handling of invalid JSON."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
-                "/api/exposure/press-release",
-                content="invalid json",
-                headers={"Content-Type": "application/json"}
+                "/api/exposure/press-release", content="invalid json", headers={"Content-Type": "application/json"}
             )
             assert response.status_code in [400, 422]
 
@@ -313,8 +309,5 @@ class TestErrorHandling:
     async def test_empty_body(self):
         """Test handling of empty request body."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.post(
-                "/api/exposure/press-release",
-                json={}
-            )
+            response = await client.post("/api/exposure/press-release", json={})
             assert response.status_code in [400, 401, 422, 500]

@@ -35,8 +35,10 @@ logger = logging.getLogger(__name__)
 # Configuration
 # =============================================================================
 
+
 class CrawlerConfig:
     """Crawler configuration."""
+
     USER_AGENT = "Semptify/5.0 (Tenant Rights Research Bot; +https://semptify.org/bot)"
     RATE_LIMIT_SECONDS = 1.0  # Minimum seconds between requests to same domain
     REQUEST_TIMEOUT = 30.0
@@ -48,6 +50,7 @@ class CrawlerConfig:
 
 class SourceType(str, Enum):
     """Types of data sources."""
+
     COURT_RECORDS = "court_records"
     STATUTES = "statutes"
     PROPERTY_RECORDS = "property_records"
@@ -60,6 +63,7 @@ class SourceType(str, Enum):
 @dataclass
 class CrawlResult:
     """Result from a crawl operation."""
+
     url: str
     success: bool
     status_code: int | None = None
@@ -77,6 +81,7 @@ class CrawlResult:
 @dataclass
 class SearchResult:
     """A single search result."""
+
     title: str
     url: str
     snippet: str
@@ -97,7 +102,7 @@ MN_SOURCES = {
         "search_url": "https://www.revisor.mn.gov/search/?search=statutes&keyword={query}",
         "type": SourceType.STATUTES,
         "robots_ok": True,
-        "description": "Official Minnesota state laws and statutes"
+        "description": "Official Minnesota state laws and statutes",
     },
     "mn_courts": {
         "name": "Minnesota Judicial Branch",
@@ -105,7 +110,7 @@ MN_SOURCES = {
         "search_url": "https://www.mncourts.gov/search/?q={query}",
         "type": SourceType.COURT_RECORDS,
         "robots_ok": True,
-        "description": "Court information and resources"
+        "description": "Court information and resources",
     },
     "mn_ag": {
         "name": "Minnesota Attorney General",
@@ -113,7 +118,7 @@ MN_SOURCES = {
         "search_url": "https://www.ag.state.mn.us/search/?q={query}",
         "type": SourceType.GOVERNMENT_FORMS,
         "robots_ok": True,
-        "description": "Consumer protection and tenant rights resources"
+        "description": "Consumer protection and tenant rights resources",
     },
     "mn_commerce": {
         "name": "MN Department of Commerce",
@@ -121,7 +126,7 @@ MN_SOURCES = {
         "search_url": "https://mn.gov/commerce/search/?q={query}",
         "type": SourceType.BUSINESS_REGISTRY,
         "robots_ok": True,
-        "description": "Business licenses and real estate professionals"
+        "description": "Business licenses and real estate professionals",
     },
     "mn_sos": {
         "name": "MN Secretary of State - Business Search",
@@ -129,7 +134,7 @@ MN_SOURCES = {
         "search_url": "https://mblsportal.sos.state.mn.us/Business/Search",
         "type": SourceType.BUSINESS_REGISTRY,
         "robots_ok": True,
-        "description": "Business entity registration lookup"
+        "description": "Business entity registration lookup",
     },
     "hennepin_property": {
         "name": "Hennepin County Property Records",
@@ -137,7 +142,7 @@ MN_SOURCES = {
         "search_url": "https://www.hennepin.us/residents/property/property-information",
         "type": SourceType.PROPERTY_RECORDS,
         "robots_ok": True,
-        "description": "Property tax and ownership records"
+        "description": "Property tax and ownership records",
     },
     "ramsey_property": {
         "name": "Ramsey County Property Records",
@@ -145,7 +150,7 @@ MN_SOURCES = {
         "search_url": "https://www.ramseycounty.us/residents/property-home/property-data",
         "type": SourceType.PROPERTY_RECORDS,
         "robots_ok": True,
-        "description": "Property tax and ownership records"
+        "description": "Property tax and ownership records",
     },
     "dakota_property": {
         "name": "Dakota County Property Records",
@@ -153,7 +158,7 @@ MN_SOURCES = {
         "search_url": "https://www.co.dakota.mn.us/homepropertyandland/propertytaxes",
         "type": SourceType.PROPERTY_RECORDS,
         "robots_ok": True,
-        "description": "Property tax and ownership records"
+        "description": "Property tax and ownership records",
     },
     "hud": {
         "name": "HUD Fair Housing",
@@ -161,7 +166,7 @@ MN_SOURCES = {
         "search_url": "https://www.hud.gov/search?query={query}",
         "type": SourceType.GOVERNMENT_FORMS,
         "robots_ok": True,
-        "description": "Federal housing rights and complaint forms"
+        "description": "Federal housing rights and complaint forms",
     },
     "legal_aid_mn": {
         "name": "LawHelp Minnesota",
@@ -169,7 +174,7 @@ MN_SOURCES = {
         "search_url": "https://www.lawhelpmn.org/search?keyword={query}",
         "type": SourceType.LEGAL_AID,
         "robots_ok": True,
-        "description": "Free legal information and resources"
+        "description": "Free legal information and resources",
     },
     "homeline": {
         "name": "HOME Line Minnesota",
@@ -177,7 +182,7 @@ MN_SOURCES = {
         "search_url": "https://homelinemn.org/?s={query}",
         "type": SourceType.LEGAL_AID,
         "robots_ok": True,
-        "description": "Tenant hotline and resources"
+        "description": "Tenant hotline and resources",
     },
 }
 
@@ -185,6 +190,7 @@ MN_SOURCES = {
 # =============================================================================
 # Crawler Service
 # =============================================================================
+
 
 class CrawlerService:
     """
@@ -321,11 +327,11 @@ class CrawlerService:
     async def crawl(self, url: str, use_cache: bool = True) -> CrawlResult:
         """
         Crawl a URL ethically.
-        
+
         Args:
             url: URL to crawl
             use_cache: Whether to use cached results
-            
+
         Returns:
             CrawlResult with page data
         """
@@ -339,11 +345,7 @@ class CrawlerService:
         # Check robots.txt
         if not await self._check_robots(url):
             logger.warning(f"◆ Blocked by robots.txt: {url}")
-            return CrawlResult(
-                url=url,
-                success=False,
-                error="Blocked by robots.txt"
-            )
+            return CrawlResult(url=url, success=False, error="Blocked by robots.txt")
 
         # Rate limit
         await self._rate_limit(url)
@@ -368,7 +370,7 @@ class CrawlerService:
                 elif "application/json" in content_type:
                     result.data = response.json()
                 else:
-                    result.text = response.text[:CrawlerConfig.MAX_CONTENT_SIZE]
+                    result.text = response.text[: CrawlerConfig.MAX_CONTENT_SIZE]
 
             # Cache successful results
             if result.success:
@@ -430,10 +432,7 @@ class CrawlerService:
         headings = []
         for level in range(1, 4):
             for h in soup.find_all(f"h{level}"):
-                headings.append({
-                    "level": level,
-                    "text": h.get_text(strip=True)
-                })
+                headings.append({"level": level, "text": h.get_text(strip=True)})
         if headings:
             data["headings"] = headings[:20]
 
@@ -454,10 +453,7 @@ class CrawlerService:
         pdf_links = []
         for a in soup.find_all("a", href=True):
             if ".pdf" in a["href"].lower():
-                pdf_links.append({
-                    "text": a.get_text(strip=True),
-                    "url": a["href"]
-                })
+                pdf_links.append({"text": a.get_text(strip=True), "url": a["href"]})
         if pdf_links:
             data["pdf_links"] = pdf_links[:20]
 
@@ -477,14 +473,16 @@ class CrawlerService:
 
         if result.success and result.text:
             # Extract statute sections
-            results.append(SearchResult(
-                title=result.title or f"MN Statute {query}",
-                url=result.url,
-                snippet=result.text[:500] if result.text else "",
-                source=source["name"],
-                source_type=source["type"],
-                relevance_score=1.0,
-            ))
+            results.append(
+                SearchResult(
+                    title=result.title or f"MN Statute {query}",
+                    url=result.url,
+                    snippet=result.text[:500] if result.text else "",
+                    source=source["name"],
+                    source_type=source["type"],
+                    relevance_score=1.0,
+                )
+            )
 
         return results
 
@@ -499,15 +497,17 @@ class CrawlerService:
         result = await self.crawl(search_url)
 
         if result.success:
-            results.append(SearchResult(
-                title=f"Business Search: {business_name}",
-                url=result.url,
-                snippet=result.text[:500] if result.text else "Search results",
-                source=source["name"],
-                source_type=source["type"],
-                relevance_score=0.9,
-                metadata=result.data,
-            ))
+            results.append(
+                SearchResult(
+                    title=f"Business Search: {business_name}",
+                    url=result.url,
+                    snippet=result.text[:500] if result.text else "Search results",
+                    source=source["name"],
+                    source_type=source["type"],
+                    relevance_score=0.9,
+                    metadata=result.data,
+                )
+            )
 
         return results
 
@@ -524,14 +524,16 @@ class CrawlerService:
 
         results = []
         if result.success:
-            results.append(SearchResult(
-                title=f"Property Records: {address}",
-                url=result.url,
-                snippet=f"Property information for {county} County",
-                source=source["name"],
-                source_type=source["type"],
-                relevance_score=0.8,
-            ))
+            results.append(
+                SearchResult(
+                    title=f"Property Records: {address}",
+                    url=result.url,
+                    snippet=f"Property information for {county} County",
+                    source=source["name"],
+                    source_type=source["type"],
+                    relevance_score=0.8,
+                )
+            )
 
         return results
 
@@ -547,14 +549,16 @@ class CrawlerService:
             result = await self.crawl(search_url)
 
             if result.success:
-                results.append(SearchResult(
-                    title=result.title or f"Legal Resources: {query}",
-                    url=result.url,
-                    snippet=result.text[:500] if result.text else "",
-                    source=source["name"],
-                    source_type=source["type"],
-                    relevance_score=0.85,
-                ))
+                results.append(
+                    SearchResult(
+                        title=result.title or f"Legal Resources: {query}",
+                        url=result.url,
+                        snippet=result.text[:500] if result.text else "",
+                        source=source["name"],
+                        source_type=source["type"],
+                        relevance_score=0.85,
+                    )
+                )
 
         return results
 
@@ -588,15 +592,17 @@ class CrawlerService:
         if not result.success:
             return []
 
-        return [SearchResult(
-            title=result.title or source["name"],
-            url=result.url,
-            snippet=result.text[:500] if result.text else source["description"],
-            source=source["name"],
-            source_type=source["type"],
-            relevance_score=0.7,
-            metadata=result.data,
-        )]
+        return [
+            SearchResult(
+                title=result.title or source["name"],
+                url=result.url,
+                snippet=result.text[:500] if result.text else source["description"],
+                source=source["name"],
+                source_type=source["type"],
+                relevance_score=0.7,
+                metadata=result.data,
+            )
+        ]
 
     # =========================================================================
     # Specialized Extractors

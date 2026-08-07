@@ -34,17 +34,18 @@ class PortalService:
 
     Immutable — SSOT for one service block on the portal page.
     """
-    id: str                          # unique identifier (e.g. "tenant_organizer")
-    name: str                        # human-readable name
-    short_description: str           # one-line description for the card
-    cta_label: str                   # call-to-action button text
-    cta_path: str                    # SSOT navigation path (from navigation.get_stage)
-    icon: str = ""                   # emoji or icon
-    category: str = "tenant"         # grouping category
-    order: int = 100                 # sort priority within category (lower = first)
-    visible: bool = True             # toggle visibility (future: tied to module flags)
-    requires_auth: bool = False      # does this service require login?
-    description_long: str = ""       # longer description for the service detail page
+
+    id: str  # unique identifier (e.g. "tenant_organizer")
+    name: str  # human-readable name
+    short_description: str  # one-line description for the card
+    cta_label: str  # call-to-action button text
+    cta_path: str  # SSOT navigation path (from navigation.get_stage)
+    icon: str = ""  # emoji or icon
+    category: str = "tenant"  # grouping category
+    order: int = 100  # sort priority within category (lower = first)
+    visible: bool = True  # toggle visibility (future: tied to module flags)
+    requires_auth: bool = False  # does this service require login?
+    description_long: str = ""  # longer description for the service detail page
 
 
 @dataclass
@@ -402,11 +403,7 @@ class PortalRegistry:
         """Return categories that have at least one visible service."""
         visible = cls.get_visible_services()
         active_categories = {s.category for s in visible}
-        return {
-            cat: cls.CATEGORIES[cat]
-            for cat in active_categories
-            if cat in cls.CATEGORIES
-        }
+        return {cat: cls.CATEGORIES[cat] for cat in active_categories if cat in cls.CATEGORIES}
 
     @classmethod
     def to_dict(cls) -> dict:

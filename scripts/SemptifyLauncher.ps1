@@ -15,7 +15,7 @@ $BaseUrl = "http://localhost:$Port"
 # Function to check setup status and determine URL
 function Get-StartupUrl {
     param($BaseUrl)
-    
+
     try {
         # Use public /check endpoint (no auth required)
         $checkResponse = Invoke-RestMethod -Uri "$BaseUrl/api/setup/check" -TimeoutSec 3 -ErrorAction Stop
@@ -92,7 +92,7 @@ function Show-BrowserSelector {
         } else {
             $profilePath = "$env:LOCALAPPDATA\Google\Chrome\User Data"
         }
-        
+
         if (Test-Path $profilePath) {
             Get-ChildItem $profilePath -Directory | Where-Object { $_.Name -match "^(Default|Profile)" } | ForEach-Object {
                 $profileCombo.Items.Add($_.Name)
@@ -134,7 +134,7 @@ function Show-BrowserSelector {
     $form.Controls.Add($statusLabel)
 
     $result = $form.ShowDialog()
-    
+
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         return $form.Tag
     }

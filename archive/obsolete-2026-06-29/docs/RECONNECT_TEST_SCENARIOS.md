@@ -1,6 +1,6 @@
 # Reconnect Flow Test Scenarios
 
-**Contract**: `proc_user_reconnect` (Returning User Reconnect)  
+**Contract**: `proc_user_reconnect` (Returning User Reconnect)
 **Note**: This document covers **reconnect** for returning users only. Onboarding is a separate process with its own contract.
 
 ## Unified Reconnect Philosophy
@@ -190,10 +190,10 @@ curl -b "semptify_session=<valid_token>" \
 
 ## Compliance with Builder's Bible
 
-✅ **Free Forever**: No payment gates in any flow  
-✅ **No Ads**: No promotional content  
-✅ **Privacy by Design**: User data never stored server-side  
-✅ **Evidence Integrity**: Vault paths deterministic and auditable  
-✅ **Calm UX**: Returning users never asked for information they already provided  
-✅ **Single Source of Truth**: `route_user()` and `provider_subject` lookup  
-✅ **Stateless**: No server-side session state beyond encrypted tokens  
+✅ **Free Forever**: No payment gates in any flow
+✅ **No Ads**: No promotional content
+✅ **Privacy by Design**: User data never stored server-side
+✅ **Evidence Integrity**: Vault paths deterministic and auditable
+✅ **Calm UX**: Returning users never asked for information they already provided
+✅ **Single Source of Truth**: `route_user()` and `provider_subject` lookup
+✅ **Stateless**: No server-side session state beyond encrypted tokens

@@ -31,9 +31,7 @@ async def test_generate_case_summary_report_and_export_pdf():
         assert gen_data["success"] is True
         report_id = gen_data["report"]["report_id"]
 
-        export_resp = await client.get(
-            f"/api/litigation-intelligence/report/{report_id}/export?format=pdf"
-        )
+        export_resp = await client.get(f"/api/litigation-intelligence/report/{report_id}/export?format=pdf")
         assert export_resp.status_code == 200
         export_data = export_resp.json()
         assert export_data["success"] is True

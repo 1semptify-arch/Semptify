@@ -404,7 +404,7 @@
             </div>
         </div>
         <div class="footer-disclaimer">
-            <strong>Important:</strong> Semptify is an organizational tool, not legal advice. 
+            <strong>Important:</strong> Semptify is an organizational tool, not legal advice.
             Always consult a qualified attorney for legal guidance.
         </div>
         <div class="footer-bottom">
@@ -440,17 +440,17 @@
                     // Valid session with provider - show reconnect option
                     sessionProvider = data.provider;
                     sessionRole = data.role || role;
-                    
+
                     const providerNames = {
                         'google_drive': 'Google Drive',
                         'dropbox': 'Dropbox',
                         'onedrive': 'OneDrive'
                     };
-                    
-                    document.getElementById('previous-provider').textContent = 
+
+                    document.getElementById('previous-provider').textContent =
                         providerNames[data.provider] || data.provider;
                     document.getElementById('reconnect-section').style.display = 'block';
-                    
+
                     // Show reconnect option but don't auto-redirect - let user choose
                     console.log('Existing session found, showing reconnect option');
                 }
@@ -512,21 +512,21 @@
             console.log("selectProvider called with:", provider, "role:", role);
             event.preventDefault();
             event.stopPropagation();
-            
+
             // Map frontend role to backend role before sending to OAuth
             const backendRole = mapFrontendRoleToBackend(role);
-            
+
             const params = new URLSearchParams();
             params.set("role", backendRole);
             params.set("from", "onboarding");
             params.set("return_to", "/ui/route");
-            
+
             const url = "/storage/auth/" + provider + "?" + params.toString();
             console.log("Navigating to:", url);
             window.location.href = url;
             return false;
         }
-        
+
         // Prevent bfcache issues - reload if restored from cache
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {

@@ -42,6 +42,7 @@ LEGAL_DISCLAIMER = (
 # Enums & Data Models
 # =============================================================================
 
+
 class CaseStage(str, Enum):
     NOTICE_RECEIVED = "notice_received"
     COMPLAINT_FILED = "complaint_filed"
@@ -79,6 +80,7 @@ class DefenseType(str, Enum):
 
 class FormTemplate(BaseModel):
     """A court form template."""
+
     id: str
     title: str
     description: str
@@ -92,6 +94,7 @@ class FormTemplate(BaseModel):
 
 class Motion(BaseModel):
     """A motion template with arguments."""
+
     id: str
     title: str
     motion_type: MotionType
@@ -105,6 +108,7 @@ class Motion(BaseModel):
 
 class Procedure(BaseModel):
     """A court procedure guide."""
+
     id: str
     title: str
     category: str
@@ -116,6 +120,7 @@ class Procedure(BaseModel):
 
 class CounterclaimTemplate(BaseModel):
     """A counterclaim template."""
+
     id: str
     title: str
     legal_basis: str
@@ -142,21 +147,38 @@ COURT_FORMS = {
             {"name": "plaintiff_name", "label": "Landlord Name (Plaintiff)", "type": "text", "required": True},
             {"name": "property_address", "label": "Rental Property Address", "type": "text", "required": True},
             {"name": "admit_deny", "label": "Response to Each Allegation", "type": "paragraph", "required": True},
-            {"name": "defenses", "label": "Affirmative Defenses", "type": "checklist", "required": False,
-             "options": ["Improper Notice", "Retaliation", "Habitability", "Discrimination", "Waiver", "Payment Made"]},
-            {"name": "counterclaims", "label": "Counterclaims", "type": "checklist", "required": False,
-             "options": ["Breach of Habitability", "Security Deposit", "Retaliation", "Illegal Lockout"]},
-            {"name": "jury_demand", "label": "Demand Jury Trial", "type": "checkbox", "required": False}
+            {
+                "name": "defenses",
+                "label": "Affirmative Defenses",
+                "type": "checklist",
+                "required": False,
+                "options": [
+                    "Improper Notice",
+                    "Retaliation",
+                    "Habitability",
+                    "Discrimination",
+                    "Waiver",
+                    "Payment Made",
+                ],
+            },
+            {
+                "name": "counterclaims",
+                "label": "Counterclaims",
+                "type": "checklist",
+                "required": False,
+                "options": ["Breach of Habitability", "Security Deposit", "Retaliation", "Illegal Lockout"],
+            },
+            {"name": "jury_demand", "label": "Demand Jury Trial", "type": "checkbox", "required": False},
         ],
         "instructions": [
             "File within 7 days of being served with the Summons and Complaint",
             "File with Dakota County District Court, 1560 Highway 55, Hastings, MN 55033",
             "Keep a copy for your records",
             "Serve a copy on the landlord or their attorney",
-            "If requesting a jury trial, additional filing fee applies"
+            "If requesting a jury trial, additional filing fee applies",
         ],
         "filing_fee": 0,
-        "deadline_days": 7
+        "deadline_days": 7,
     },
     "jury_trial_demand": {
         "id": "jury_trial_demand",
@@ -167,16 +189,16 @@ COURT_FORMS = {
         "fields": [
             {"name": "case_number", "label": "Case Number", "type": "text", "required": True},
             {"name": "defendant_name", "label": "Your Name", "type": "text", "required": True},
-            {"name": "basis", "label": "Basis for Jury Demand", "type": "text", "required": False}
+            {"name": "basis", "label": "Basis for Jury Demand", "type": "text", "required": False},
         ],
         "instructions": [
             "File with your Answer or within 10 days after Answer",
             "Pay jury fee (verify current amount with court clerk - approximately $75 as of 2024)",
             "Jury trial typically scheduled 2-4 weeks later than bench trial",
-            "Jury must reach unanimous verdict"
+            "Jury must reach unanimous verdict",
         ],
         "filing_fee": 75,  # Verify with court - fees may change
-        "deadline_days": 10
+        "deadline_days": 10,
     },
     "motion_to_dismiss": {
         "id": "motion_to_dismiss",
@@ -187,17 +209,28 @@ COURT_FORMS = {
         "fields": [
             {"name": "case_number", "label": "Case Number", "type": "text", "required": True},
             {"name": "defendant_name", "label": "Your Name", "type": "text", "required": True},
-            {"name": "grounds", "label": "Grounds for Dismissal", "type": "checklist", "required": True,
-             "options": ["Improper Notice", "Improper Service", "Complaint Defects", "Landlord Lacks Standing", "No Landlord-Tenant Relationship"]}
+            {
+                "name": "grounds",
+                "label": "Grounds for Dismissal",
+                "type": "checklist",
+                "required": True,
+                "options": [
+                    "Improper Notice",
+                    "Improper Service",
+                    "Complaint Defects",
+                    "Landlord Lacks Standing",
+                    "No Landlord-Tenant Relationship",
+                ],
+            },
         ],
         "instructions": [
             "File as soon as possible after identifying defect",
             "Include memorandum of law supporting your motion",
             "Request oral argument if helpful",
-            "Serve on opposing party at least 14 days before hearing"
+            "Serve on opposing party at least 14 days before hearing",
         ],
         "filing_fee": 0,
-        "deadline_days": None
+        "deadline_days": None,
     },
     "motion_for_continuance": {
         "id": "motion_for_continuance",
@@ -209,16 +242,16 @@ COURT_FORMS = {
             {"name": "case_number", "label": "Case Number", "type": "text", "required": True},
             {"name": "hearing_date", "label": "Current Hearing Date", "type": "date", "required": True},
             {"name": "reason", "label": "Reason for Continuance", "type": "paragraph", "required": True},
-            {"name": "proposed_date", "label": "Proposed New Date", "type": "date", "required": False}
+            {"name": "proposed_date", "label": "Proposed New Date", "type": "date", "required": False},
         ],
         "instructions": [
             "File as soon as you know you need a continuance",
             "State specific reasons (illness, need for attorney, evidence gathering)",
             "Propose specific alternative dates",
-            "Court may grant only one continuance"
+            "Court may grant only one continuance",
         ],
         "filing_fee": 0,
-        "deadline_days": None
+        "deadline_days": None,
     },
     "counterclaim_form": {
         "id": "counterclaim_form",
@@ -228,19 +261,31 @@ COURT_FORMS = {
         "stage": CaseStage.ANSWER_DUE,
         "fields": [
             {"name": "case_number", "label": "Case Number", "type": "text", "required": True},
-            {"name": "claim_types", "label": "Types of Claims", "type": "checklist", "required": True,
-             "options": ["Breach of Habitability", "Security Deposit Violation", "Retaliation", "Illegal Lockout", "Privacy Violation", "Utility Shutoff"]},
+            {
+                "name": "claim_types",
+                "label": "Types of Claims",
+                "type": "checklist",
+                "required": True,
+                "options": [
+                    "Breach of Habitability",
+                    "Security Deposit Violation",
+                    "Retaliation",
+                    "Illegal Lockout",
+                    "Privacy Violation",
+                    "Utility Shutoff",
+                ],
+            },
             {"name": "facts", "label": "Statement of Facts", "type": "paragraph", "required": True},
-            {"name": "damages", "label": "Damages Sought", "type": "paragraph", "required": True}
+            {"name": "damages", "label": "Damages Sought", "type": "paragraph", "required": True},
         ],
         "instructions": [
             "File with your Answer (same deadline)",
             "Be specific about landlord's violations",
             "Include all supporting evidence references",
-            "Calculate and itemize damages sought"
+            "Calculate and itemize damages sought",
         ],
         "filing_fee": 0,
-        "deadline_days": 7
+        "deadline_days": 7,
     },
     "motion_for_expungement": {
         "id": "motion_for_expungement",
@@ -250,19 +295,24 @@ COURT_FORMS = {
         "stage": CaseStage.POST_TRIAL,
         "fields": [
             {"name": "case_number", "label": "Case Number", "type": "text", "required": True},
-            {"name": "case_outcome", "label": "Case Outcome", "type": "select", "required": True,
-             "options": ["Dismissed", "Tenant Won", "Settled", "Landlord Won (Seeking Discretionary)"]},
-            {"name": "reasons", "label": "Reasons for Expungement", "type": "paragraph", "required": True}
+            {
+                "name": "case_outcome",
+                "label": "Case Outcome",
+                "type": "select",
+                "required": True,
+                "options": ["Dismissed", "Tenant Won", "Settled", "Landlord Won (Seeking Discretionary)"],
+            },
+            {"name": "reasons", "label": "Reasons for Expungement", "type": "paragraph", "required": True},
         ],
         "instructions": [
             "File after case concludes",
             "Expungement is automatic for dismissed cases and tenant wins",
             "Discretionary expungement available in other cases",
-            "Explain how public record harms you (housing, employment)"
+            "Explain how public record harms you (housing, employment)",
         ],
         "filing_fee": 0,
-        "deadline_days": None
-    }
+        "deadline_days": None,
+    },
 }
 
 
@@ -281,12 +331,12 @@ MOTIONS = {
             "Notice was not properly served",
             "Notice did not contain required information",
             "Wrong notice type was used",
-            "Notice was sent to wrong address"
+            "Notice was sent to wrong address",
         ],
         "legal_basis": [
             "Minn. Stat. § 504B.321 - Notice Requirements",
             "Minn. Stat. § 504B.135 - Service of Notice",
-            "Housing court requires strict compliance"
+            "Housing court requires strict compliance",
         ],
         "template_text": """STATE OF MINNESOTA                          DISTRICT COURT
 COUNTY OF DAKOTA                            FIRST JUDICIAL DISTRICT
@@ -322,9 +372,9 @@ _______________________________
 Defendant, Pro Se""",
         "supporting_cases": [
             "Housing court uniformly requires strict notice compliance",
-            "Landlord bears burden of proving proper notice"
+            "Landlord bears burden of proving proper notice",
         ],
-        "success_rate": "High when notice defect is clear"
+        "success_rate": "High when notice defect is clear",
     },
     "motion_for_jury_trial": {
         "id": "motion_for_jury_trial",
@@ -335,24 +385,21 @@ Defendant, Pro Se""",
             "Disputed facts that jury should decide",
             "Need more time to prepare defense",
             "Want landlord to face higher burden",
-            "Sympathetic case facts"
+            "Sympathetic case facts",
         ],
         "legal_basis": [
             "Minnesota Constitution, Article I, Section 4",
             "Minn. Stat. § 504B.335",
-            "Right to jury trial in housing matters"
+            "Right to jury trial in housing matters",
         ],
         "template_text": """DEMAND FOR JURY TRIAL
 
-Defendant [DEFENDANT_NAME] hereby demands a jury trial in this matter 
+Defendant [DEFENDANT_NAME] hereby demands a jury trial in this matter
 pursuant to the Minnesota Constitution and Minn. Stat. § 504B.335.
 
 Defendant is prepared to pay the required jury fee.""",
-        "supporting_cases": [
-            "Jury trial is constitutional right",
-            "6-person jury required in housing matters"
-        ],
-        "success_rate": "Always granted if timely filed with fee"
+        "supporting_cases": ["Jury trial is constitutional right", "6-person jury required in housing matters"],
+        "success_rate": "Always granted if timely filed with fee",
     },
     "motion_to_stay_pending_repairs": {
         "id": "motion_to_stay_pending_repairs",
@@ -363,16 +410,16 @@ Defendant is prepared to pay the required jury fee.""",
             "Serious habitability violations exist",
             "Repairs are being made",
             "Rent escrow has been filed",
-            "Code violations documented"
+            "Code violations documented",
         ],
         "legal_basis": [
             "Minn. Stat. § 504B.161 - Habitability",
             "Minn. Stat. § 504B.385 - Rent Escrow",
-            "Equitable power of the court"
+            "Equitable power of the court",
         ],
         "template_text": """MOTION TO STAY EVICTION PENDING REPAIRS
 
-Defendant moves this Court to stay eviction proceedings pending completion 
+Defendant moves this Court to stay eviction proceedings pending completion
 of necessary repairs to the premises, on the following grounds:
 
 1. The premises have serious habitability violations including: [LIST VIOLATIONS]
@@ -383,14 +430,11 @@ of necessary repairs to the premises, on the following grounds:
 
 4. It would be inequitable to evict Defendant while landlord is in breach.
 
-WHEREFORE, Defendant requests this Court stay the eviction pending 
+WHEREFORE, Defendant requests this Court stay the eviction pending
 completion of repairs or resolution of habitability claims.""",
-        "supporting_cases": [
-            "Fritz v. Warthen - habitability warranty",
-            "Court has discretion to stay proceedings"
-        ],
-        "success_rate": "Moderate to high with documented violations"
-    }
+        "supporting_cases": ["Fritz v. Warthen - habitability warranty", "Court has discretion to stay proceedings"],
+        "success_rate": "Moderate to high with documented violations",
+    },
 }
 
 
@@ -404,50 +448,78 @@ PROCEDURES = {
         "title": "How to File Your Answer",
         "category": "initial_response",
         "steps": [
-            {"step": "1", "action": "Complete the Answer form", "details": "Fill out all required fields, check applicable defenses and counterclaims"},
-            {"step": "2", "action": "Make copies", "details": "Original for court, one copy for yourself, one for landlord"},
-            {"step": "3", "action": "File with court", "details": "Dakota County District Court, 1560 Highway 55, Hastings, MN 55033"},
-            {"step": "4", "action": "Pay filing fee (if any)", "details": "Answer is typically free; jury demand fee varies - verify with court clerk"},
+            {
+                "step": "1",
+                "action": "Complete the Answer form",
+                "details": "Fill out all required fields, check applicable defenses and counterclaims",
+            },
+            {
+                "step": "2",
+                "action": "Make copies",
+                "details": "Original for court, one copy for yourself, one for landlord",
+            },
+            {
+                "step": "3",
+                "action": "File with court",
+                "details": "Dakota County District Court, 1560 Highway 55, Hastings, MN 55033",
+            },
+            {
+                "step": "4",
+                "action": "Pay filing fee (if any)",
+                "details": "Answer is typically free; jury demand fee varies - verify with court clerk",
+            },
             {"step": "5", "action": "Serve the landlord", "details": "Mail a copy to landlord or their attorney"},
-            {"step": "6", "action": "File proof of service", "details": "Complete and file Certificate of Service with court"}
+            {
+                "step": "6",
+                "action": "File proof of service",
+                "details": "Complete and file Certificate of Service with court",
+            },
         ],
         "timeline": "Must be completed within 7 days of being served",
         "tips": [
             "File early - don't wait until day 7",
             "Keep copies of everything you file",
             "Note the date and time you filed",
-            "Get a stamped copy back from the clerk"
+            "Get a stamped copy back from the clerk",
         ],
         "warnings": [
             "Missing the deadline may result in default judgment",
-            "You cannot raise defenses you don't include in your Answer"
-        ]
+            "You cannot raise defenses you don't include in your Answer",
+        ],
     },
     "court_hearing_prep": {
         "id": "court_hearing_prep",
         "title": "Preparing for Your Court Hearing",
         "category": "trial_prep",
         "steps": [
-            {"step": "1", "action": "Organize your documents", "details": "Create folders: Lease, Notices, Payments, Communications, Photos, Evidence"},
-            {"step": "2", "action": "Make exhibit list", "details": "Number each exhibit and create a list describing each one"},
+            {
+                "step": "1",
+                "action": "Organize your documents",
+                "details": "Create folders: Lease, Notices, Payments, Communications, Photos, Evidence",
+            },
+            {
+                "step": "2",
+                "action": "Make exhibit list",
+                "details": "Number each exhibit and create a list describing each one",
+            },
             {"step": "3", "action": "Prepare your testimony", "details": "Write out key facts in chronological order"},
-            {"step": "4", "action": "Prepare witness list", "details": "If you have witnesses, list their names and what they'll testify to"},
+            {
+                "step": "4",
+                "action": "Prepare witness list",
+                "details": "If you have witnesses, list their names and what they'll testify to",
+            },
             {"step": "5", "action": "Plan your questions", "details": "Write questions to ask the landlord"},
             {"step": "6", "action": "Review the law", "details": "Know the statutes that support your defense"},
-            {"step": "7", "action": "Plan logistics", "details": "Know the courtroom location, parking, arrive early"}
+            {"step": "7", "action": "Plan logistics", "details": "Know the courtroom location, parking, arrive early"},
         ],
         "timeline": "Start preparing immediately, finalize 2-3 days before hearing",
         "tips": [
             "Practice stating your case clearly and briefly",
             "Anticipate what the landlord will argue",
             "Dress professionally",
-            "Bring extra copies of all documents"
+            "Bring extra copies of all documents",
         ],
-        "warnings": [
-            "Don't bring weapons to court",
-            "Turn off your phone",
-            "Don't discuss your case in the hallway"
-        ]
+        "warnings": ["Don't bring weapons to court", "Turn off your phone", "Don't discuss your case in the hallway"],
     },
     "courtroom_etiquette": {
         "id": "courtroom_etiquette",
@@ -457,11 +529,27 @@ PROCEDURES = {
             {"step": "1", "action": "Arrive early", "details": "Be there 15-30 minutes before your hearing time"},
             {"step": "2", "action": "Check in", "details": "Find the courtroom, check in with the clerk or bailiff"},
             {"step": "3", "action": "Wait quietly", "details": "Sit in the gallery until your case is called"},
-            {"step": "4", "action": "Stand when judge enters", "details": "Remain standing until judge is seated or says 'be seated'"},
+            {
+                "step": "4",
+                "action": "Stand when judge enters",
+                "details": "Remain standing until judge is seated or says 'be seated'",
+            },
             {"step": "5", "action": "Wait to be recognized", "details": "Don't speak until the judge addresses you"},
-            {"step": "6", "action": "Address the judge properly", "details": "Say 'Your Honor' when speaking to the judge"},
-            {"step": "7", "action": "Present your case", "details": "Speak clearly, stick to relevant facts, be respectful"},
-            {"step": "8", "action": "Don't interrupt", "details": "Wait for opposing party to finish before responding"}
+            {
+                "step": "6",
+                "action": "Address the judge properly",
+                "details": "Say 'Your Honor' when speaking to the judge",
+            },
+            {
+                "step": "7",
+                "action": "Present your case",
+                "details": "Speak clearly, stick to relevant facts, be respectful",
+            },
+            {
+                "step": "8",
+                "action": "Don't interrupt",
+                "details": "Wait for opposing party to finish before responding",
+            },
         ],
         "timeline": "Day of hearing",
         "tips": [
@@ -469,27 +557,43 @@ PROCEDURES = {
             "Be polite even when you disagree",
             "Answer questions directly",
             "Say 'I don't know' if you don't know",
-            "Take notes during the hearing"
+            "Take notes during the hearing",
         ],
         "warnings": [
             "Never argue with the judge",
             "Don't make faces or gestures",
             "Don't bring food or drinks",
-            "Control your emotions"
-        ]
+            "Control your emotions",
+        ],
     },
     "zoom_hearing": {
         "id": "zoom_hearing",
         "title": "Remote Hearing via Zoom",
         "category": "remote_court",
         "steps": [
-            {"step": "1", "action": "Test your technology", "details": "Check camera, microphone, internet connection day before"},
-            {"step": "2", "action": "Set up your space", "details": "Find quiet location, good lighting, neutral background"},
+            {
+                "step": "1",
+                "action": "Test your technology",
+                "details": "Check camera, microphone, internet connection day before",
+            },
+            {
+                "step": "2",
+                "action": "Set up your space",
+                "details": "Find quiet location, good lighting, neutral background",
+            },
             {"step": "3", "action": "Join early", "details": "Log in 10-15 minutes before hearing time"},
             {"step": "4", "action": "Mute yourself", "details": "Stay muted until it's your turn to speak"},
-            {"step": "5", "action": "Have documents ready", "details": "Keep papers organized and ready to share screen if needed"},
+            {
+                "step": "5",
+                "action": "Have documents ready",
+                "details": "Keep papers organized and ready to share screen if needed",
+            },
             {"step": "6", "action": "Treat it like in-person", "details": "Same rules of conduct apply"},
-            {"step": "7", "action": "Stay on until dismissed", "details": "Don't leave the meeting until judge ends hearing"}
+            {
+                "step": "7",
+                "action": "Stay on until dismissed",
+                "details": "Don't leave the meeting until judge ends hearing",
+            },
         ],
         "timeline": "Test technology day before, log in 10-15 minutes early",
         "tips": [
@@ -498,15 +602,15 @@ PROCEDURES = {
             "Close other applications",
             "Use headphones to avoid echo",
             "Look at camera when speaking",
-            "Have phone nearby as backup"
+            "Have phone nearby as backup",
         ],
         "warnings": [
             "Recording court proceedings is prohibited",
             "Don't have others in the room",
             "Don't drive during the hearing",
-            "Test your internet speed beforehand"
-        ]
-    }
+            "Test your internet speed beforehand",
+        ],
+    },
 }
 
 
@@ -524,27 +628,27 @@ COUNTERCLAIMS = {
             "Premises had condition making them unfit for habitation",
             "Tenant notified landlord of condition",
             "Landlord failed to remedy within reasonable time",
-            "Tenant suffered damages"
+            "Tenant suffered damages",
         ],
         "damages": [
             "Rent abatement (reduction) for period of uninhabitable conditions",
             "Cost of repairs tenant made",
             "Cost of alternative housing",
             "Damaged personal property",
-            "Moving and storage costs"
+            "Moving and storage costs",
         ],
         "evidence_needed": [
             "Photos/videos of conditions",
             "Written complaints to landlord",
             "Inspection reports",
             "Repair receipts",
-            "Medical records if health affected"
+            "Medical records if health affected",
         ],
         "template_text": """COUNTERCLAIM - BREACH OF HABITABILITY
 
 1. Defendant is a tenant at [ADDRESS] pursuant to a lease agreement.
 
-2. Landlord is obligated under Minn. Stat. § 504B.161 to maintain the premises 
+2. Landlord is obligated under Minn. Stat. § 504B.161 to maintain the premises
    in fit and habitable condition.
 
 3. The premises have the following conditions rendering them unfit for habitation:
@@ -557,8 +661,8 @@ COUNTERCLAIMS = {
 6. As a result, Defendant has suffered damages including:
    [LIST DAMAGES AND AMOUNTS]
 
-WHEREFORE, Defendant demands judgment against Plaintiff for damages in the 
-amount of $[AMOUNT], plus costs and attorney fees if applicable."""
+WHEREFORE, Defendant demands judgment against Plaintiff for damages in the
+amount of $[AMOUNT], plus costs and attorney fees if applicable.""",
     },
     "security_deposit": {
         "id": "security_deposit",
@@ -568,20 +672,20 @@ amount of $[AMOUNT], plus costs and attorney fees if applicable."""
             "Tenant paid security deposit",
             "Tenancy ended",
             "Landlord failed to return deposit within 21 days",
-            "Or landlord made improper deductions"
+            "Or landlord made improper deductions",
         ],
         "damages": [
             "Full security deposit amount",
             "Interest on deposit (if over $2000)",
             "Bad faith penalty up to $500",
-            "Attorney fees"
+            "Attorney fees",
         ],
         "evidence_needed": [
             "Proof of deposit payment",
             "Move-out date documentation",
             "Photos of unit condition at move-out",
             "Written demand for return",
-            "Any statement from landlord"
+            "Any statement from landlord",
         ],
         "template_text": """COUNTERCLAIM - SECURITY DEPOSIT VIOLATION
 
@@ -589,16 +693,16 @@ amount of $[AMOUNT], plus costs and attorney fees if applicable."""
 
 2. Defendant's tenancy ended on [DATE].
 
-3. More than 21 days have passed and Landlord has [not returned the deposit / 
+3. More than 21 days have passed and Landlord has [not returned the deposit /
    made improper deductions].
 
-4. Under Minn. Stat. § 504B.178, Landlord was required to return the deposit 
+4. Under Minn. Stat. § 504B.178, Landlord was required to return the deposit
    within 21 days with an itemized statement of any deductions.
 
 5. Landlord's conduct was in bad faith.
 
-WHEREFORE, Defendant demands judgment for the security deposit amount of 
-$[AMOUNT], plus bad faith penalty of $[AMOUNT], plus costs."""
+WHEREFORE, Defendant demands judgment for the security deposit amount of
+$[AMOUNT], plus bad faith penalty of $[AMOUNT], plus costs.""",
     },
     "retaliation": {
         "id": "retaliation",
@@ -608,36 +712,31 @@ $[AMOUNT], plus bad faith penalty of $[AMOUNT], plus costs."""
             "Tenant exercised legal right (complained, reported, organized)",
             "Landlord took adverse action (eviction, rent increase, service reduction)",
             "Adverse action occurred within 90 days of protected activity",
-            "Causal connection between protected activity and adverse action"
+            "Causal connection between protected activity and adverse action",
         ],
-        "damages": [
-            "Defense to eviction",
-            "Actual damages",
-            "Attorney fees",
-            "Possible punitive damages"
-        ],
+        "damages": ["Defense to eviction", "Actual damages", "Attorney fees", "Possible punitive damages"],
         "evidence_needed": [
             "Documentation of protected activity (complaint, report, etc.)",
             "Timeline showing proximity of events",
             "Evidence of landlord's knowledge",
-            "Any statements by landlord"
+            "Any statements by landlord",
         ],
         "template_text": """COUNTERCLAIM - RETALIATORY EVICTION
 
-1. On [DATE], Defendant engaged in protected activity by [DESCRIBE: reporting 
+1. On [DATE], Defendant engaged in protected activity by [DESCRIBE: reporting
    code violations, complaining about conditions, joining tenant organization, etc.]
 
-2. Within 90 days of this protected activity, Landlord [commenced this eviction / 
+2. Within 90 days of this protected activity, Landlord [commenced this eviction /
    raised rent / reduced services].
 
-3. Under Minn. Stat. § 504B.285, there is a presumption of retaliation when 
+3. Under Minn. Stat. § 504B.285, there is a presumption of retaliation when
    adverse action occurs within 90 days of protected activity.
 
 4. The eviction is retaliatory and should be dismissed.
 
-WHEREFORE, Defendant demands dismissal of this action, damages for retaliatory 
-conduct, and attorney fees."""
-    }
+WHEREFORE, Defendant demands dismissal of this action, damages for retaliatory
+conduct, and attorney fees.""",
+    },
 }
 
 
@@ -655,20 +754,18 @@ CASE_STATISTICS = {
             "landlord_won_trial": 0.28,
             "tenant_won_trial": 0.08,
             "dismissed": 0.12,
-            "settled": 0.17
+            "settled": 0.17,
         },
         "defense_success_rates": {
             "improper_notice": 0.78,
             "habitability": 0.45,
             "retaliation": 0.52,
             "discrimination": 0.61,
-            "procedural_defect": 0.72
+            "procedural_defect": 0.72,
         },
         "jury_trial_requests": 0.12,  # 12% requested jury
-        "jury_outcomes": {
-            "tenant_favorable": 0.41
-        },
-        "expungement_granted": 0.85  # When case dismissed or tenant won
+        "jury_outcomes": {"tenant_favorable": 0.41},
+        "expungement_granted": 0.85,  # When case dismissed or tenant won
     }
 }
 
@@ -677,10 +774,11 @@ CASE_STATISTICS = {
 # Endpoints
 # =============================================================================
 
+
 @router.get("/forms", response_model=list[FormTemplate])
 async def list_forms(
     category: str | None = Query(None, description="Filter by category"),
-    stage: CaseStage | None = Query(None, description="Filter by case stage")
+    stage: CaseStage | None = Query(None, description="Filter by case stage"),
 ):
     """List all available court forms."""
     forms = list(COURT_FORMS.values())
@@ -695,9 +793,7 @@ async def list_forms(
 
 
 @router.get("/forms/{form_id}", response_model=FormTemplate)
-async def get_form(
-    form_id: str
-):
+async def get_form(form_id: str):
     """Get a specific form by ID."""
     if form_id not in COURT_FORMS:
         raise HTTPException(status_code=404, detail="Form not found")
@@ -706,9 +802,7 @@ async def get_form(
 
 
 @router.get("/motions", response_model=list[Motion])
-async def list_motions(
-    motion_type: MotionType | None = Query(None, description="Filter by motion type")
-):
+async def list_motions(motion_type: MotionType | None = Query(None, description="Filter by motion type")):
     """List all available motions."""
     motions = list(MOTIONS.values())
 
@@ -719,9 +813,7 @@ async def list_motions(
 
 
 @router.get("/motions/{motion_id}", response_model=Motion)
-async def get_motion(
-    motion_id: str
-):
+async def get_motion(motion_id: str):
     """Get a specific motion by ID."""
     if motion_id not in MOTIONS:
         raise HTTPException(status_code=404, detail="Motion not found")
@@ -730,9 +822,7 @@ async def get_motion(
 
 
 @router.get("/procedures", response_model=list[Procedure])
-async def list_procedures(
-    category: str | None = Query(None, description="Filter by category")
-):
+async def list_procedures(category: str | None = Query(None, description="Filter by category")):
     """List all procedure guides."""
     procedures = list(PROCEDURES.values())
 
@@ -743,9 +833,7 @@ async def list_procedures(
 
 
 @router.get("/procedures/{procedure_id}", response_model=Procedure)
-async def get_procedure(
-    procedure_id: str
-):
+async def get_procedure(procedure_id: str):
     """Get a specific procedure guide."""
     if procedure_id not in PROCEDURES:
         raise HTTPException(status_code=404, detail="Procedure not found")
@@ -760,9 +848,7 @@ async def list_counterclaims():
 
 
 @router.get("/counterclaims/{claim_id}", response_model=CounterclaimTemplate)
-async def get_counterclaim(
-    claim_id: str
-):
+async def get_counterclaim(claim_id: str):
     """Get a specific counterclaim template."""
     if claim_id not in COUNTERCLAIMS:
         raise HTTPException(status_code=404, detail="Counterclaim not found")
@@ -788,57 +874,56 @@ async def list_defenses():
                 "name": "Improper Notice",
                 "description": "The landlord's notice was defective in form, timing, or service.",
                 "strength": "Strong when notice clearly fails to meet statutory requirements (Minn. Stat. § 504B.321)",
-                "evidence_needed": ["Original notice", "Proof of service date", "Lease terms"]
+                "evidence_needed": ["Original notice", "Proof of service date", "Lease terms"],
             },
             {
                 "type": DefenseType.RETALIATION,
                 "name": "Retaliatory Eviction",
                 "description": "Landlord is evicting you for exercising your legal rights.",
                 "strength": "Presumed retaliatory if within 90 days of protected activity (Minn. Stat. § 504B.285)",
-                "evidence_needed": ["Complaint records", "Timeline of events", "Landlord communications"]
+                "evidence_needed": ["Complaint records", "Timeline of events", "Landlord communications"],
             },
             {
                 "type": DefenseType.HABITABILITY,
                 "name": "Uninhabitable Conditions",
                 "description": "Landlord failed to maintain safe, habitable premises.",
                 "strength": "Depends on severity of conditions and documentation (Minn. Stat. § 504B.161)",
-                "evidence_needed": ["Photos/videos", "Repair requests", "Inspection reports"]
+                "evidence_needed": ["Photos/videos", "Repair requests", "Inspection reports"],
             },
             {
                 "type": DefenseType.DISCRIMINATION,
                 "name": "Discriminatory Eviction",
                 "description": "Eviction is based on protected class status.",
                 "strength": "Strong with comparative evidence showing disparate treatment (Fair Housing Act)",
-                "evidence_needed": ["Comparative evidence", "Statements by landlord", "Pattern of conduct"]
+                "evidence_needed": ["Comparative evidence", "Statements by landlord", "Pattern of conduct"],
             },
             {
                 "type": DefenseType.WAIVER,
                 "name": "Waiver by Landlord",
                 "description": "Landlord accepted rent after alleged violation, waiving right to evict.",
                 "strength": "Strong when landlord knowingly accepted rent after learning of violation",
-                "evidence_needed": ["Payment records", "Receipt showing acceptance after notice"]
+                "evidence_needed": ["Payment records", "Receipt showing acceptance after notice"],
             },
             {
                 "type": DefenseType.PAYMENT,
                 "name": "Payment Was Made",
                 "description": "Rent was actually paid as alleged or cure occurred.",
                 "strength": "Strong with clear payment documentation (Minn. Stat. § 504B.291)",
-                "evidence_needed": ["Bank records", "Receipts", "Money order stubs"]
-            }
-        ]
+                "evidence_needed": ["Bank records", "Receipts", "Money order stubs"],
+            },
+        ],
     }
 
 
 class DeadlineCalculation(BaseModel):
     """Request for deadline calculation."""
+
     service_date: date
     case_type: str = "nonpayment"
 
 
 @router.post("/calculate-deadlines")
-async def calculate_deadlines(
-    request: DeadlineCalculation
-):
+async def calculate_deadlines(request: DeadlineCalculation):
     """Calculate all important deadlines based on service date."""
     service = request.service_date
 
@@ -848,7 +933,7 @@ async def calculate_deadlines(
         "jury_demand_due": (service + timedelta(days=10)).isoformat(),
         "estimated_hearing": (service + timedelta(days=14)).isoformat(),
         "estimated_jury_trial": (service + timedelta(days=28)).isoformat(),
-        "warnings": []
+        "warnings": [],
     }
 
     # Check if deadlines are imminent
@@ -864,9 +949,7 @@ async def calculate_deadlines(
 
 
 @router.get("/case-checklist/{stage}")
-async def get_case_checklist(
-    stage: CaseStage
-):
+async def get_case_checklist(stage: CaseStage):
     """Get a checklist of tasks for the current case stage."""
     checklists = {
         CaseStage.NOTICE_RECEIVED: {
@@ -877,8 +960,8 @@ async def get_case_checklist(
                 {"task": "Check if notice period is correct", "priority": "high", "done": False},
                 {"task": "Photograph/scan the notice", "priority": "medium", "done": False},
                 {"task": "Research if you can cure (pay)", "priority": "high", "done": False},
-                {"task": "Contact legal aid if available", "priority": "medium", "done": False}
-            ]
+                {"task": "Contact legal aid if available", "priority": "medium", "done": False},
+            ],
         },
         CaseStage.COMPLAINT_FILED: {
             "stage": "Complaint Filed",
@@ -888,8 +971,8 @@ async def get_case_checklist(
                 {"task": "Read complaint carefully", "priority": "high", "done": False},
                 {"task": "Identify defenses that apply", "priority": "high", "done": False},
                 {"task": "Gather supporting documents", "priority": "high", "done": False},
-                {"task": "Prepare Answer form", "priority": "high", "done": False}
-            ]
+                {"task": "Prepare Answer form", "priority": "high", "done": False},
+            ],
         },
         CaseStage.ANSWER_DUE: {
             "stage": "Answer Due",
@@ -899,8 +982,8 @@ async def get_case_checklist(
                 {"task": "Include counterclaims if any", "priority": "medium", "done": False},
                 {"task": "Consider jury trial demand", "priority": "medium", "done": False},
                 {"task": "File with court", "priority": "high", "done": False},
-                {"task": "Serve copy on landlord", "priority": "high", "done": False}
-            ]
+                {"task": "Serve copy on landlord", "priority": "high", "done": False},
+            ],
         },
         CaseStage.PRETRIAL: {
             "stage": "Pre-Trial",
@@ -910,8 +993,8 @@ async def get_case_checklist(
                 {"task": "Prepare testimony outline", "priority": "high", "done": False},
                 {"task": "Confirm witness attendance", "priority": "medium", "done": False},
                 {"task": "Review court procedures", "priority": "medium", "done": False},
-                {"task": "Plan what to wear", "priority": "low", "done": False}
-            ]
+                {"task": "Plan what to wear", "priority": "low", "done": False},
+            ],
         },
         CaseStage.TRIAL: {
             "stage": "Trial Day",
@@ -920,9 +1003,9 @@ async def get_case_checklist(
                 {"task": "Bring all original documents", "priority": "high", "done": False},
                 {"task": "Check in with clerk", "priority": "high", "done": False},
                 {"task": "Review notes while waiting", "priority": "medium", "done": False},
-                {"task": "Stay calm and respectful", "priority": "high", "done": False}
-            ]
-        }
+                {"task": "Stay calm and respectful", "priority": "high", "done": False},
+            ],
+        },
     }
 
     if stage not in checklists:
@@ -935,8 +1018,10 @@ async def get_case_checklist(
 # Case Analysis Endpoints (NEW - Connects All Services)
 # =============================================================================
 
+
 class AnalysisRequest(BaseModel):
     """Request for case analysis."""
+
     include_violations: bool = True
     include_strategies: bool = True
     include_forms: bool = True
@@ -944,6 +1029,7 @@ class AnalysisRequest(BaseModel):
 
 class ViolationInfo(BaseModel):
     """Information about a detected violation."""
+
     id: str
     type: str
     title: str
@@ -955,6 +1041,7 @@ class ViolationInfo(BaseModel):
 
 class StrategyInfo(BaseModel):
     """Defense strategy recommendation."""
+
     code: str
     title: str
     description: str
@@ -965,6 +1052,7 @@ class StrategyInfo(BaseModel):
 
 class AnalysisResponse(BaseModel):
     """Complete case analysis response."""
+
     case_number: str
     violations: list[ViolationInfo] = []
     strategies: list[StrategyInfo] = []
@@ -974,13 +1062,10 @@ class AnalysisResponse(BaseModel):
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
-async def analyze_case(
-    request: AnalysisRequest = AnalysisRequest(),
-    user: StorageUser = Depends(yellow_access)
-):
+async def analyze_case(request: AnalysisRequest = AnalysisRequest(), user: StorageUser = Depends(yellow_access)):
     """
     Analyze the user's case for violations and defense strategies.
-    
+
     This is the MAIN ENTRY POINT for case analysis.
     Connects: FormDataHub ▸ LawEngine ▸ DefenseStrategies ▸ FormsRecommendation
     """
@@ -1084,11 +1169,12 @@ async def get_quick_status(user: StorageUser = Depends(yellow_access)):
 # Document Hub Integration - Document-informed defense recommendations
 # =============================================================================
 
+
 @router.get("/from-documents/defenses")
 async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)):
     """
     Get defense recommendations based on uploaded documents.
-    
+
     Analyzes your uploaded documents and recommends applicable defenses
     based on document types, extracted content, and matched statutes.
     """
@@ -1100,53 +1186,67 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
 
     # Check for improper notice defense
     if case_data.notice_date:
-        recommendations.append({
-            "defense": DefenseType.IMPROPER_NOTICE,
-            "confidence": "medium",
-            "reason": "Notice date found - verify proper service and timing requirements",
-            "evidence_needed": ["Copy of notice", "Proof of service date", "Calendar showing days count"],
-            "statute": "Minn. Stat. § 504B.135",
-        })
+        recommendations.append(
+            {
+                "defense": DefenseType.IMPROPER_NOTICE,
+                "confidence": "medium",
+                "reason": "Notice date found - verify proper service and timing requirements",
+                "evidence_needed": ["Copy of notice", "Proof of service date", "Calendar showing days count"],
+                "statute": "Minn. Stat. § 504B.135",
+            }
+        )
 
     # Check for habitability defense
     if doc_types.get("repair_request") or doc_types.get("inspection_report"):
-        recommendations.append({
-            "defense": DefenseType.HABITABILITY,
-            "confidence": "high",
-            "reason": "Repair-related documents found in your uploads",
-            "evidence_needed": doc_types.get("repair_request", []) + doc_types.get("inspection_report", []),
-            "statute": "Minn. Stat. § 504B.161",
-        })
+        recommendations.append(
+            {
+                "defense": DefenseType.HABITABILITY,
+                "confidence": "high",
+                "reason": "Repair-related documents found in your uploads",
+                "evidence_needed": doc_types.get("repair_request", []) + doc_types.get("inspection_report", []),
+                "statute": "Minn. Stat. § 504B.161",
+            }
+        )
 
     # Check for retaliation defense
     if doc_types.get("letter") or doc_types.get("email_communication") or doc_types.get("complaint"):
-        recommendations.append({
-            "defense": DefenseType.RETALIATION,
-            "confidence": "medium",
-            "reason": "Communications found that may show protected activity before eviction",
-            "evidence_needed": ["Complaint to landlord", "Complaint to city/inspector", "Timeline showing eviction within 90 days of complaint"],
-            "statute": "Minn. Stat. § 504B.441",
-        })
+        recommendations.append(
+            {
+                "defense": DefenseType.RETALIATION,
+                "confidence": "medium",
+                "reason": "Communications found that may show protected activity before eviction",
+                "evidence_needed": [
+                    "Complaint to landlord",
+                    "Complaint to city/inspector",
+                    "Timeline showing eviction within 90 days of complaint",
+                ],
+                "statute": "Minn. Stat. § 504B.441",
+            }
+        )
 
     # Check for payment defense
     if doc_types.get("receipt") or doc_types.get("payment_record") or doc_types.get("bank_statement"):
-        recommendations.append({
-            "defense": DefenseType.PAYMENT,
-            "confidence": "high",
-            "reason": "Payment records found - verify all rent was paid",
-            "evidence_needed": ["Receipts", "Bank statements showing payments", "Payment history"],
-            "statute": "Common law defense",
-        })
+        recommendations.append(
+            {
+                "defense": DefenseType.PAYMENT,
+                "confidence": "high",
+                "reason": "Payment records found - verify all rent was paid",
+                "evidence_needed": ["Receipts", "Bank statements showing payments", "Payment history"],
+                "statute": "Common law defense",
+            }
+        )
 
     # Check for waiver defense
     if case_data.rent_amount and doc_types.get("receipt"):
-        recommendations.append({
-            "defense": DefenseType.WAIVER,
-            "confidence": "medium",
-            "reason": "Rent payment records may show landlord accepted rent after alleged breach",
-            "evidence_needed": ["Rent receipts dated after alleged violation", "Any written acceptance of rent"],
-            "statute": "Common law defense",
-        })
+        recommendations.append(
+            {
+                "defense": DefenseType.WAIVER,
+                "confidence": "medium",
+                "reason": "Rent payment records may show landlord accepted rent after alleged breach",
+                "evidence_needed": ["Rent receipts dated after alleged violation", "Any written acceptance of rent"],
+                "statute": "Common law defense",
+            }
+        )
 
     return {
         "recommended_defenses": recommendations,
@@ -1162,7 +1262,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)
 async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_access)):
     """
     Get counterclaim recommendations based on uploaded documents.
-    
+
     Analyzes your uploaded documents and recommends potential counterclaims
     you may be able to file against your landlord.
     """
@@ -1174,39 +1274,49 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_ac
 
     # Security deposit counterclaim
     if case_data.deposit_amount:
-        recommendations.append({
-            "counterclaim": "security_deposit",
-            "title": "Security Deposit Violations",
-            "confidence": "high",
-            "reason": f"Security deposit of ${case_data.deposit_amount} found in documents",
-            "potential_recovery": case_data.deposit_amount * 2,  # Bad faith can double
-            "statute": "Minn. Stat. § 504B.178",
-            "evidence_needed": ["Lease showing deposit amount", "Move-out condition photos", "Written demand for return"],
-        })
+        recommendations.append(
+            {
+                "counterclaim": "security_deposit",
+                "title": "Security Deposit Violations",
+                "confidence": "high",
+                "reason": f"Security deposit of ${case_data.deposit_amount} found in documents",
+                "potential_recovery": case_data.deposit_amount * 2,  # Bad faith can double
+                "statute": "Minn. Stat. § 504B.178",
+                "evidence_needed": [
+                    "Lease showing deposit amount",
+                    "Move-out condition photos",
+                    "Written demand for return",
+                ],
+            }
+        )
 
     # Habitability counterclaim
     if doc_types.get("repair_request") or doc_types.get("inspection_report") or doc_types.get("photo_evidence"):
-        recommendations.append({
-            "counterclaim": "breach_of_habitability",
-            "title": "Breach of Warranty of Habitability",
-            "confidence": "high",
-            "reason": "Repair/condition documentation found",
-            "potential_recovery": "Rent reduction + repair costs + damages",
-            "statute": "Minn. Stat. § 504B.161",
-            "evidence_needed": ["Photos of conditions", "Repair requests sent to landlord", "Inspector reports"],
-        })
+        recommendations.append(
+            {
+                "counterclaim": "breach_of_habitability",
+                "title": "Breach of Warranty of Habitability",
+                "confidence": "high",
+                "reason": "Repair/condition documentation found",
+                "potential_recovery": "Rent reduction + repair costs + damages",
+                "statute": "Minn. Stat. § 504B.161",
+                "evidence_needed": ["Photos of conditions", "Repair requests sent to landlord", "Inspector reports"],
+            }
+        )
 
     # Harassment/self-help eviction
     if doc_types.get("letter") and case_data.urgency_level == "critical":
-        recommendations.append({
-            "counterclaim": "tenant_harassment",
-            "title": "Tenant Harassment",
-            "confidence": "medium",
-            "reason": "Communications may show harassment patterns",
-            "potential_recovery": "Statutory damages + actual damages",
-            "statute": "Minn. Stat. § 504B.395",
-            "evidence_needed": ["Harassing communications", "Timeline of harassment", "Witness statements"],
-        })
+        recommendations.append(
+            {
+                "counterclaim": "tenant_harassment",
+                "title": "Tenant Harassment",
+                "confidence": "medium",
+                "reason": "Communications may show harassment patterns",
+                "potential_recovery": "Statutory damages + actual damages",
+                "statute": "Minn. Stat. § 504B.395",
+                "evidence_needed": ["Harassing communications", "Timeline of harassment", "Witness statements"],
+            }
+        )
 
     return {
         "recommended_counterclaims": recommendations,
@@ -1220,7 +1330,7 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_ac
 async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access)):
     """
     Get deadlines calculated from your documents.
-    
+
     Analyzes dates in your documents and calculates important deadlines
     based on Minnesota eviction law.
     """
@@ -1235,15 +1345,17 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
         try:
             deadline = datetime.fromisoformat(case_data.answer_deadline.replace("Z", "+00:00")).date()
             days_until = (deadline - today).days
-            deadlines.append({
-                "type": "answer_deadline",
-                "title": "File Answer to Eviction Complaint",
-                "date": case_data.answer_deadline,
-                "days_until": days_until,
-                "urgency": "critical" if days_until <= 3 else "high" if days_until <= 7 else "medium",
-                "action": "File your Answer form with the court before this date",
-                "consequence": "Default judgment may be entered against you",
-            })
+            deadlines.append(
+                {
+                    "type": "answer_deadline",
+                    "title": "File Answer to Eviction Complaint",
+                    "date": case_data.answer_deadline,
+                    "days_until": days_until,
+                    "urgency": "critical" if days_until <= 3 else "high" if days_until <= 7 else "medium",
+                    "action": "File your Answer form with the court before this date",
+                    "consequence": "Default judgment may be entered against you",
+                }
+            )
         except (ValueError, TypeError):
             logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
 
@@ -1252,16 +1364,18 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
         try:
             hearing = datetime.fromisoformat(case_data.hearing_date.replace("Z", "+00:00")).date()
             days_until = (hearing - today).days
-            deadlines.append({
-                "type": "hearing",
-                "title": "Court Hearing",
-                "date": case_data.hearing_date,
-                "time": case_data.hearing_time,
-                "days_until": days_until,
-                "urgency": "critical" if days_until <= 7 else "high" if days_until <= 14 else "medium",
-                "action": "Prepare your case and bring all evidence to court",
-                "consequence": "Missing the hearing results in default judgment",
-            })
+            deadlines.append(
+                {
+                    "type": "hearing",
+                    "title": "Court Hearing",
+                    "date": case_data.hearing_date,
+                    "time": case_data.hearing_time,
+                    "days_until": days_until,
+                    "urgency": "critical" if days_until <= 7 else "high" if days_until <= 14 else "medium",
+                    "action": "Prepare your case and bring all evidence to court",
+                    "consequence": "Missing the hearing results in default judgment",
+                }
+            )
         except (ValueError, TypeError):
             logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
 
@@ -1271,15 +1385,17 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
             try:
                 action_deadline = datetime.fromisoformat(action["deadline"].replace("Z", "+00:00")).date()
                 days_until = (action_deadline - today).days
-                deadlines.append({
-                    "type": "action_item",
-                    "title": action.get("title", "Action Required"),
-                    "date": action["deadline"],
-                    "days_until": days_until,
-                    "urgency": "high" if action.get("priority", 5) <= 2 else "medium",
-                    "action": action.get("description", "Complete this action"),
-                    "source": "document_extraction",
-                })
+                deadlines.append(
+                    {
+                        "type": "action_item",
+                        "title": action.get("title", "Action Required"),
+                        "date": action["deadline"],
+                        "days_until": days_until,
+                        "urgency": "high" if action.get("priority", 5) <= 2 else "medium",
+                        "action": action.get("description", "Complete this action"),
+                        "source": "document_extraction",
+                    }
+                )
             except (ValueError, TypeError):
                 logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
 
@@ -1299,7 +1415,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access
 async def get_full_document_analysis(user: StorageUser = Depends(yellow_access)):
     """
     Get comprehensive eviction defense analysis based on uploaded documents.
-    
+
     This combines all document-extracted information into a full defense analysis.
     """
     hub = get_document_hub()

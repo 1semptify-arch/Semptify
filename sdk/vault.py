@@ -14,6 +14,7 @@ from .base import BaseClient
 
 class VaultPermission(str, Enum):
     """Vault permission levels."""
+
     NONE = "none"
     VIEW = "view"
     DOWNLOAD = "download"
@@ -23,6 +24,7 @@ class VaultPermission(str, Enum):
 
 class AccessType(str, Enum):
     """Access type for vault items."""
+
     PRIVATE = "private"
     SHARED = "shared"
     PUBLIC = "public"
@@ -31,6 +33,7 @@ class AccessType(str, Enum):
 @dataclass
 class VaultItem:
     """Vault item (secure document or resource)."""
+
     id: str
     name: str
     item_type: str
@@ -50,6 +53,7 @@ class VaultItem:
 @dataclass
 class VaultAccess:
     """Vault access record."""
+
     id: str
     user_email: str
     permission: str
@@ -61,6 +65,7 @@ class VaultAccess:
 @dataclass
 class VaultAuditEntry:
     """Vault audit log entry."""
+
     id: str
     action: str
     item_id: str
@@ -73,6 +78,7 @@ class VaultAuditEntry:
 @dataclass
 class VaultStats:
     """Vault statistics."""
+
     total_items: int
     total_size_bytes: int
     encrypted_items: int
@@ -95,7 +101,7 @@ class VaultClient(BaseClient):
     ) -> VaultItem:
         """
         Add an item to the vault.
-        
+
         Args:
             name: Item name
             document_id: Associated document ID
@@ -104,7 +110,7 @@ class VaultClient(BaseClient):
             access_type: Access level (private, shared, public)
             tags: Tags for organization
             encrypt: Whether to encrypt the item
-            
+
         Returns:
             Created vault item
         """
@@ -138,10 +144,10 @@ class VaultClient(BaseClient):
     def get_item(self, item_id: str) -> VaultItem:
         """
         Get a vault item by ID.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             Vault item details
         """
@@ -167,13 +173,13 @@ class VaultClient(BaseClient):
     ) -> list[VaultItem]:
         """
         List vault items.
-        
+
         Args:
             access_type: Filter by access type
             item_type: Filter by item type
             tags: Filter by tags
             limit: Maximum number to return
-            
+
         Returns:
             List of vault items
         """
@@ -205,10 +211,10 @@ class VaultClient(BaseClient):
     def delete_item(self, item_id: str) -> bool:
         """
         Delete a vault item.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             True if deleted successfully
         """
@@ -224,13 +230,13 @@ class VaultClient(BaseClient):
     ) -> VaultAccess:
         """
         Grant access to a vault item.
-        
+
         Args:
             item_id: The item ID
             email: Email of user to grant access
             permission: Permission level
             expires_in_days: Number of days until access expires
-            
+
         Returns:
             Access record
         """
@@ -253,11 +259,11 @@ class VaultClient(BaseClient):
     def revoke_access(self, item_id: str, email: str) -> bool:
         """
         Revoke access to a vault item.
-        
+
         Args:
             item_id: The item ID
             email: Email of user to revoke access
-            
+
         Returns:
             True if revoked successfully
         """
@@ -267,10 +273,10 @@ class VaultClient(BaseClient):
     def list_access(self, item_id: str) -> list[VaultAccess]:
         """
         List access records for a vault item.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             List of access records
         """
@@ -295,12 +301,12 @@ class VaultClient(BaseClient):
     ) -> list[VaultAuditEntry]:
         """
         Get vault audit log.
-        
+
         Args:
             item_id: Filter by specific item
             action: Filter by action type
             limit: Maximum entries to return
-            
+
         Returns:
             List of audit entries
         """
@@ -329,7 +335,7 @@ class VaultClient(BaseClient):
     def get_stats(self) -> VaultStats:
         """
         Get vault statistics.
-        
+
         Returns:
             Vault statistics
         """
@@ -346,7 +352,7 @@ class VaultClient(BaseClient):
     def lock(self) -> bool:
         """
         Lock the vault (require re-authentication for access).
-        
+
         Returns:
             True if locked successfully
         """
@@ -356,10 +362,10 @@ class VaultClient(BaseClient):
     def unlock(self, password: str | None = None) -> bool:
         """
         Unlock the vault.
-        
+
         Args:
             password: Vault password if additional auth required
-            
+
         Returns:
             True if unlocked successfully
         """
@@ -373,10 +379,10 @@ class VaultClient(BaseClient):
     def download_item(self, item_id: str) -> bytes:
         """
         Download a vault item's content.
-        
+
         Args:
             item_id: The item ID
-            
+
         Returns:
             Decrypted content as bytes
         """

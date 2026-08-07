@@ -1,6 +1,7 @@
 """
 Tests for the HUD Funding Guide module - Federal housing program information.
 """
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -9,6 +10,7 @@ from app.main import app
 # ============================================================================
 # PROGRAMS ENDPOINT
 # ============================================================================
+
 
 class TestHUDPrograms:
     """Test HUD funding program listing."""
@@ -63,6 +65,7 @@ class TestHUDPrograms:
 # PROGRAM TYPES
 # ============================================================================
 
+
 class TestProgramTypes:
     """Test program type categorization."""
 
@@ -76,8 +79,13 @@ class TestProgramTypes:
             for program in programs:
                 assert "program_type" in program
                 assert program["program_type"] in [
-                    "tax_credit", "voucher", "grant", "tax_deduction",
-                    "loan", "insurance", "other"
+                    "tax_credit",
+                    "voucher",
+                    "grant",
+                    "tax_deduction",
+                    "loan",
+                    "insurance",
+                    "other",
                 ]
 
     @pytest.mark.asyncio
@@ -104,6 +112,7 @@ class TestProgramTypes:
 # ============================================================================
 # RENT RESTRICTIONS
 # ============================================================================
+
 
 class TestRentRestrictions:
     """Test that programs include rent restriction information."""
@@ -136,6 +145,7 @@ class TestRentRestrictions:
 # LANDLORD BENEFITS
 # ============================================================================
 
+
 class TestLandlordBenefits:
     """Test that programs explain landlord benefits (for fraud detection)."""
 
@@ -167,6 +177,7 @@ class TestLandlordBenefits:
 # ============================================================================
 # SPECIFIC PROGRAMS
 # ============================================================================
+
 
 class TestSpecificPrograms:
     """Test specific important programs exist."""
@@ -227,6 +238,7 @@ class TestSpecificPrograms:
 # ENERGY/GREEN PROGRAMS
 # ============================================================================
 
+
 class TestEnergyPrograms:
     """Test energy efficiency and green programs."""
 
@@ -256,6 +268,7 @@ class TestEnergyPrograms:
 # ============================================================================
 # PROGRAM COUNT
 # ============================================================================
+
 
 class TestProgramCoverage:
     """Test comprehensive program coverage."""

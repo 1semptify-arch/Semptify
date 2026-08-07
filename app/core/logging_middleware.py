@@ -20,7 +20,7 @@ logger = logging.getLogger("semptify.requests")
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
     Middleware for logging HTTP requests and responses.
-    
+
     Features:
     - Request ID tracking
     - Response timing
@@ -84,24 +84,27 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             duration_ms = (time.perf_counter() - start_time) * 1000
 
             # Log response
-            log_data.update({
-                "status_code": response.status_code,
-                "duration_ms": round(duration_ms, 2),
-            })
+            log_data.update(
+                {
+                    "status_code": response.status_code,
+                    "duration_ms": round(duration_ms, 2),
+                }
+            )
 
             # Track analytics for API requests
             try:
                 from app.core.analytics_engine import track_api_request
+
                 user_id = None
-                if hasattr(request.state, 'user'):
-                    user_id = getattr(request.state.user, 'user_id', None)
+                if hasattr(request.state, "user"):
+                    user_id = getattr(request.state.user, "user_id", None)
 
                 track_api_request(
                     endpoint=path,
                     method=request.method,
                     user_id=user_id,
                     status_code=response.status_code,
-                    duration_ms=duration_ms
+                    duration_ms=duration_ms,
                 )
             except Exception:
                 # Analytics tracking should not break requests
@@ -111,20 +114,29 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             if response.status_code >= 500:
                 logger.error(
                     "Request completed: %s %s -> %d (%.2fms)",
-                    request.method, path, response.status_code, duration_ms,
-                    extra=log_data
+                    request.method,
+                    path,
+                    response.status_code,
+                    duration_ms,
+                    extra=log_data,
                 )
             elif response.status_code >= 400:
                 logger.warning(
                     "Request completed: %s %s -> %d (%.2fms)",
-                    request.method, path, response.status_code, duration_ms,
-                    extra=log_data
+                    request.method,
+                    path,
+                    response.status_code,
+                    duration_ms,
+                    extra=log_data,
                 )
             else:
                 logger.info(
                     "Request completed: %s %s -> %d (%.2fms)",
-                    request.method, path, response.status_code, duration_ms,
-                    extra=log_data
+                    request.method,
+                    path,
+                    response.status_code,
+                    duration_ms,
+                    extra=log_data,
                 )
 
             # Add request ID to response headers
@@ -136,15 +148,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # Log exception
             duration_ms = (time.perf_counter() - start_time) * 1000
-            log_data.update({
-                "status_code": 500,
-                "duration_ms": round(duration_ms, 2),
-                "error": str(e),
-            })
+            log_data.update(
+                {
+                    "status_code": 500,
+                    "duration_ms": round(duration_ms, 2),
+                    "error": str(e),
+                }
+            )
             logger.exception(
-                "Request failed: %s %s -> 500 (%.2fms) - %s",
-                request.method, path, duration_ms, str(e),
-                extra=log_data
+                "Request failed: %s %s -> 500 (%.2fms) - %s", request.method, path, duration_ms, str(e), extra=log_data
             )
             raise
 
@@ -196,7 +208,7 @@ class SlowRequestMiddleware(BaseHTTPMiddleware):
                     "threshold_ms": self.threshold_ms,
                     "path": request.url.path,
                     "method": request.method,
-                }
+                },
             )
 
         return response

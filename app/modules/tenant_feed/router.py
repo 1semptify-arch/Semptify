@@ -24,6 +24,7 @@ def _get_user_id_sync(request) -> str:
     """Extract user_id from signed cookie on the request."""
     try:
         from app.core.cookie_auth import verify_user_id
+
         user_id_cookie = request.cookies.get("semptify_uid", "")
         if not user_id_cookie:
             return ""

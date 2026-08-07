@@ -1,7 +1,7 @@
 # Data Freshness Integration Plan
 ## Central Hub for FEMS, Accountability, Legal Library & More
 
-**Date:** June 14, 2026  
+**Date:** June 14, 2026
 **Priority:** High - Critical System Integration
 
 ---
@@ -58,10 +58,10 @@ class FEMSFreshnessRules:
         metadata={
             "sources": ["bank_api", "payment_processors", "fee_calculators"],
             "impact": "high",  # Affects tenant billing
-            "compliance": ["PCI-DSS", "GAAP"]
-        }
+            "compliance": ["PCI-DSS", "GAAP"],
+        },
     )
-    
+
     EMERGENCY_CONTACTS = FreshnessRule(
         rule_id="fems_emergency_001",
         data_type=FreshnessType.EMERGENCY,
@@ -71,8 +71,8 @@ class FEMSFreshnessRules:
         metadata={
             "sources": ["shelters", "hotlines", "legal_aid"],
             "impact": "critical",  # Life-saving information
-            "compliance": ["ADA", "Emergency Services"]
-        }
+            "compliance": ["ADA", "Emergency Services"],
+        },
     )
 ```
 
@@ -94,7 +94,7 @@ class FreshnessAuditEvents:
     DATA_EXPIRED = "data_expired"
     FRESHNESS_ALERT = "freshness_alert"
     COMPLIANCE_CHECK = "compliance_check"
-    
+
     # Audit trail for all freshness operations
     def log_freshness_event(self, rule_id: str, action: str, details: Dict):
         accountability_planner.log_audit_event(
@@ -106,9 +106,9 @@ class FreshnessAuditEvents:
                 "rule_id": rule_id,
                 "data_type": self.rules[rule_id].data_type.value,
                 "timestamp": utc_now().isoformat(),
-                **details
+                **details,
             },
-            success=True
+            success=True,
         )
 ```
 
@@ -136,10 +136,10 @@ class LegalLibraryFreshness:
             "jurisdictions": ["all_states"],
             "sources": ["state_legislature_api", "court_systems"],
             "impact": "legal_compliance",
-            "notification": ["lawyers", "advocates", "tenants"]
-        }
+            "notification": ["lawyers", "advocates", "tenants"],
+        },
     )
-    
+
     CASE_LAW_UPDATES = FreshnessRule(
         rule_id="case_law_001",
         data_type=FreshnessType.LEGAL_CONTENT,
@@ -149,8 +149,8 @@ class LegalLibraryFreshness:
         metadata={
             "categories": ["eviction", "housing", "landlord_tenant"],
             "sources": ["court_listener", "pacier", "state_courts"],
-            "impact": "legal_strategy"
-        }
+            "impact": "legal_strategy",
+        },
     )
 ```
 
@@ -172,17 +172,14 @@ class ComplaintFreshnessValidator:
         """Ensure complaint uses current legal standards."""
         # Check if relevant laws have changed since complaint filing
         relevant_laws = self.get_applicable_laws(complaint.jurisdiction)
-        
+
         for law in relevant_laws:
             freshness = data_freshness_manager.check_freshness(f"legal_{law.id}")
             if freshness != FreshnessStatus.FRESH:
                 # Flag complaint for review
-                self.flag_complaint_for_review(
-                    complaint.id,
-                    f"Legal basis {law.id} may be outdated"
-                )
+                self.flag_complaint_for_review(complaint.id, f"Legal basis {law.id} may be outdated")
                 return False
-        
+
         return True
 ```
 
@@ -205,22 +202,14 @@ class FreshLinker:
         # Ensure both source and target data are fresh
         source_fresh = data_freshness_manager.check_freshness(source)
         target_fresh = data_freshness_manager.check_freshness(target)
-        
+
         if source_fresh != FreshnessStatus.FRESH or target_fresh != FreshnessStatus.FRESH:
             # Create warning reference
             return CrossReference(
-                source=source,
-                target=target,
-                validity="questionable",
-                warning="Some referenced data may be stale"
+                source=source, target=target, validity="questionable", warning="Some referenced data may be stale"
             )
-        
-        return CrossReference(
-            source=source,
-            target=target,
-            validity="current",
-            confidence="high"
-        )
+
+        return CrossReference(source=source, target=target, validity="current", confidence="high")
 ```
 
 **Benefits:**
@@ -279,13 +268,13 @@ class IntegratedDataFreshnessManager(DataFreshnessManager):
     def __init__(self):
         super().__init__()
         self.integrated_systems = {
-            'fems': FEMSIntegration(self),
-            'accountability': AccountabilityIntegration(self),
-            'legal_library': LegalLibraryIntegration(self),
-            'complaint_system': ComplaintSystemIntegration(self),
-            'linker': LinkerIntegration(self)
+            "fems": FEMSIntegration(self),
+            "accountability": AccountabilityIntegration(self),
+            "legal_library": LegalLibraryIntegration(self),
+            "complaint_system": ComplaintSystemIntegration(self),
+            "linker": LinkerIntegration(self),
         }
-    
+
     def register_integrated_refresh_function(self, system: str, name: str, function: Callable):
         """Register refresh function with system integration."""
         self.register_refresh_function(name, function)
@@ -299,17 +288,17 @@ class UnifiedFreshnessAlerts:
         """Create alert across all integrated systems."""
         # Log in accountability planner
         accountability_planner.log_audit_event(...)
-        
+
         # Notify FEMS if financial impact
-        if 'financial' in message.lower():
-            self.integrated_systems['fems'].create_financial_alert(...)
-        
+        if "financial" in message.lower():
+            self.integrated_systems["fems"].create_financial_alert(...)
+
         # Update legal library if legal content
-        if 'legal' in message.lower():
-            self.integrated_systems['legal_library'].update_content(...)
-        
+        if "legal" in message.lower():
+            self.integrated_systems["legal_library"].update_content(...)
+
         # Cross-reference in linker
-        self.integrated_systems['linker'].update_references(...)
+        self.integrated_systems["linker"].update_references(...)
 ```
 
 ---

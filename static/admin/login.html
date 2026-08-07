@@ -104,21 +104,21 @@
         </div>
         <h1>Admin Access</h1>
         <p class="subtitle">Semptify Administration</p>
-        
+
         <div id="error" class="error"></div>
-        
+
         <!-- Step 1: Username/Password -->
         <form id="step1Form">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required autocomplete="username">
             </div>
-            
+
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
-            
+
             <button type="submit" id="step1Btn">Continue</button>
         </form>
 
@@ -126,14 +126,14 @@
         <form id="step2Form" style="display:none;">
             <div class="form-group">
                 <label for="totpCode">Two-Step Code</label>
-                <input type="text" id="totpCode" name="totpCode" required 
-                       maxlength="6" pattern="[0-9]{6}" 
+                <input type="text" id="totpCode" name="totpCode" required
+                       maxlength="6" pattern="[0-9]{6}"
                        placeholder="000000" autocomplete="one-time-code">
                 <small style="color:#94a3b8;font-size:12px;margin-top:4px;display:block;">
                     Enter 6-digit code from your authenticator app
                 </small>
             </div>
-            
+
             <button type="submit" id="step2Btn">Verify & Sign In</button>
             <button type="button" id="backBtn" style="background:#475569;margin-top:10px;">▸ Back</button>
         </form>
@@ -146,16 +146,16 @@
         // Step 1: Validate username/password
         document.getElementById('step1Form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             pendingUsername = document.getElementById('username').value;
             pendingPassword = document.getElementById('password').value;
             const errorDiv = document.getElementById('error');
             const step1Btn = document.getElementById('step1Btn');
-            
+
             step1Btn.disabled = true;
             step1Btn.textContent = 'Checking...';
             errorDiv.classList.remove('show');
-            
+
             try {
                 const response = await fetch('/admin/api/login-step1', {
                     method: 'POST',
@@ -163,9 +163,9 @@
                     body: JSON.stringify({ username: pendingUsername, password: pendingPassword }),
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok && data.step2_required) {
                     // Show 2FA step
                     document.getElementById('step1Form').style.display = 'none';
@@ -189,29 +189,29 @@
         // Step 2: Verify 2FA code
         document.getElementById('step2Form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const totpCode = document.getElementById('totpCode').value;
             const errorDiv = document.getElementById('error');
             const step2Btn = document.getElementById('step2Btn');
-            
+
             step2Btn.disabled = true;
             step2Btn.textContent = 'Verifying...';
             errorDiv.classList.remove('show');
-            
+
             try {
                 const response = await fetch('/admin/api/login-step2', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        username: pendingUsername, 
+                    body: JSON.stringify({
+                        username: pendingUsername,
                         password: pendingPassword,
-                        totp_code: totpCode 
+                        totp_code: totpCode
                     }),
                     credentials: 'include'
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok && data.success) {
                     window.location.href = '/admin/dashboard.html';
                 } else {

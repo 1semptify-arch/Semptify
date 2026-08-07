@@ -23,26 +23,26 @@
                 </button>
             </div>
         </div>
-        
+
         <div class="preview-modal__content" id="preview-content">
             <div class="preview-modal__loading" id="preview-loading">
                 <div class="preview-modal__spinner"></div>
                 <p>Loading preview...</p>
             </div>
-            
+
             <div class="preview-modal__error" id="preview-error" style="display: none;">
                 <p>Failed to load preview</p>
             </div>
-            
+
             <!-- Image Preview -->
             <img id="preview-image" class="preview-modal__image" style="display: none;" alt="Document preview">
-            
+
             <!-- PDF Preview -->
             <iframe id="preview-pdf" class="preview-modal__pdf" style="display: none;"></iframe>
-            
+
             <!-- Text Preview -->
             <pre id="preview-text" class="preview-modal__text" style="display: none;"></pre>
-            
+
             <!-- Placeholder for unsupported types -->
             <div id="preview-placeholder" class="preview-modal__placeholder" style="display: none;">
                 <div class="preview-modal__placeholder-icon">●</div>
@@ -52,7 +52,7 @@
                 </button>
             </div>
         </div>
-        
+
         <div class="preview-modal__footer">
             <span class="preview-modal__meta" id="preview-meta"></span>
         </div>
@@ -252,7 +252,7 @@
         width: 95%;
         max-height: 95vh;
     }
-    
+
     .preview-modal__title {
         max-width: 50%;
     }
@@ -271,7 +271,7 @@ let currentPreviewDoc = null;
  */
 function openPreviewModal(documentId, filename, mimeType = null) {
     currentPreviewDoc = { documentId, filename, mimeType };
-    
+
     const modal = document.getElementById('preview-modal');
     const title = document.getElementById('preview-title');
     const loading = document.getElementById('preview-loading');
@@ -281,7 +281,7 @@ function openPreviewModal(documentId, filename, mimeType = null) {
     const text = document.getElementById('preview-text');
     const placeholder = document.getElementById('preview-placeholder');
     const meta = document.getElementById('preview-meta');
-    
+
     // Reset state
     loading.style.display = 'block';
     error.style.display = 'none';
@@ -289,15 +289,15 @@ function openPreviewModal(documentId, filename, mimeType = null) {
     pdf.style.display = 'none';
     text.style.display = 'none';
     placeholder.style.display = 'none';
-    
+
     // Set title
     title.textContent = filename || 'Document Preview';
     meta.textContent = 'Loading...';
-    
+
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    
+
     // Load preview
     loadPreview(documentId, filename, mimeType);
 }
@@ -309,16 +309,16 @@ function closePreviewModal() {
     const modal = document.getElementById('preview-modal');
     modal.classList.remove('active');
     document.body.style.overflow = '';
-    
+
     // Clear content
     const image = document.getElementById('preview-image');
     const pdf = document.getElementById('preview-pdf');
     const text = document.getElementById('preview-text');
-    
+
     image.src = '';
     pdf.src = '';
     text.textContent = '';
-    
+
     currentPreviewDoc = null;
 }
 
@@ -333,52 +333,52 @@ async function loadPreview(documentId, filename, mimeType) {
     const text = document.getElementById('preview-text');
     const placeholder = document.getElementById('preview-placeholder');
     const meta = document.getElementById('preview-meta');
-    
+
     try {
         // Determine preview type from mime type or extension
-        const isImage = mimeType?.startsWith('image/') || 
+        const isImage = mimeType?.startsWith('image/') ||
                        filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-        const isPDF = mimeType === 'application/pdf' || 
+        const isPDF = mimeType === 'application/pdf' ||
                      filename?.toLowerCase().endsWith('.pdf');
-        const isText = mimeType?.startsWith('text/') || 
+        const isText = mimeType?.startsWith('text/') ||
                       filename?.match(/\.(txt|md|csv)$/i);
-        
+
         if (isImage) {
             // Load image preview
             const response = await fetch(`/api/documents/${documentId}/download`);
             if (!response.ok) throw new Error('Failed to load image');
-            
+
             const blob = await response.blob();
             image.src = URL.createObjectURL(blob);
             image.style.display = 'block';
             loading.style.display = 'none';
             meta.textContent = `${filename} • Image`;
-            
+
         } else if (isPDF) {
             // Load PDF preview
             pdf.src = `/api/documents/${documentId}/preview/pdf`;
             pdf.style.display = 'block';
             loading.style.display = 'none';
             meta.textContent = `${filename} • PDF Document`;
-            
+
         } else if (isText) {
             // Load text preview
             const response = await fetch(`/api/preview/${documentId}/text`);
             if (!response.ok) throw new Error('Failed to load text');
-            
+
             const content = await response.text();
             text.textContent = content;
             text.style.display = 'block';
             loading.style.display = 'none';
             meta.textContent = `${filename} • Text Document`;
-            
+
         } else {
             // Unsupported type - show placeholder
             loading.style.display = 'none';
             placeholder.style.display = 'block';
             meta.textContent = `${filename} • ${mimeType || 'Unknown type'}`;
         }
-        
+
     } catch (err) {
         console.error('Preview error:', err);
         loading.style.display = 'none';
@@ -393,7 +393,7 @@ async function loadPreview(documentId, filename, mimeType) {
  */
 function downloadPreviewDocument() {
     if (!currentPreviewDoc) return;
-    
+
     const { documentId, filename } = currentPreviewDoc;
     const link = document.createElement('a');
     link.href = `/api/documents/${documentId}/download`;

@@ -13,6 +13,7 @@ Endpoints:
 
 All endpoints require admin auth (dev_lab is admin-only by design).
 """
+
 import importlib
 import logging
 from pathlib import Path
@@ -42,9 +43,11 @@ router = APIRouter(tags=["Dev Lab"])
 # Auth — reuse stealth admin from admin_console
 # =============================================================================
 
+
 async def _stealth_admin(request: Request):
     """Stealth admin guard — returns 404 to non-admins."""
     from app.modules.admin_console.router import _stealth_admin as _admin
+
     return await _admin(request)
 
 
@@ -52,14 +55,17 @@ async def _stealth_admin(request: Request):
 # Request models
 # =============================================================================
 
+
 class PromoteRequest(BaseModel):
     """Request to promote a module to the next lifecycle stage."""
+
     target_lifecycle: str = Field(..., description="Target lifecycle: experimental|beta|stable")
     notes: str = Field(default="", description="Admin notes about this promotion")
 
 
 class RunTestsRequest(BaseModel):
     """Request to run a module's test suite."""
+
     test_path: str | None = Field(
         default=None,
         description="Specific test path (defaults to module's tests/ directory)",
@@ -69,6 +75,7 @@ class RunTestsRequest(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("")
 async def list_dev_modules(
@@ -85,21 +92,23 @@ async def list_dev_modules(
     for entry in MANIFEST.all():
         if entry.lifecycle not in ("dev_only", "preview", "experimental"):
             continue
-        dev_modules.append({
-            "module_path": entry.module_path,
-            "tier": entry.tier.value,
-            "lifecycle": entry.lifecycle,
-            "origin": entry.origin,
-            "prefix": entry.prefix,
-            "tags": list(entry.tags),
-            "requires_role": list(entry.requires_role),
-            "requires_gate": entry.requires_gate,
-            "feature_flag": entry.feature_flag,
-            "dev_notes": entry.dev_notes,
-            "visibility_label": entry.visibility_label,
-            "next_lifecycle": get_next_lifecycle(entry.lifecycle),
-            "checklist": get_checklist(entry.lifecycle),
-        })
+        dev_modules.append(
+            {
+                "module_path": entry.module_path,
+                "tier": entry.tier.value,
+                "lifecycle": entry.lifecycle,
+                "origin": entry.origin,
+                "prefix": entry.prefix,
+                "tags": list(entry.tags),
+                "requires_role": list(entry.requires_role),
+                "requires_gate": entry.requires_gate,
+                "feature_flag": entry.feature_flag,
+                "dev_notes": entry.dev_notes,
+                "visibility_label": entry.visibility_label,
+                "next_lifecycle": get_next_lifecycle(entry.lifecycle),
+                "checklist": get_checklist(entry.lifecycle),
+            }
+        )
 
     # Sort by lifecycle (dev_only first), then module_path
     lc_order = {"dev_only": 0, "preview": 1, "experimental": 2}
@@ -129,7 +138,7 @@ async def get_dev_module(
         )
 
     # Check if module has tests directory
-    module_file = entry.module_path.replace(".", "/")
+    entry.module_path.replace(".", "/")
     # Try to find the module's directory
     tests_dir = None
     try:
@@ -156,7 +165,9 @@ async def get_dev_module(
         "is_external": entry.is_external,
         "next_lifecycle": get_next_lifecycle(entry.lifecycle),
         "current_checklist": get_checklist(entry.lifecycle),
-        "next_checklist": get_checklist(get_next_lifecycle(entry.lifecycle)) if get_next_lifecycle(entry.lifecycle) else [],
+        "next_checklist": get_checklist(get_next_lifecycle(entry.lifecycle))
+        if get_next_lifecycle(entry.lifecycle)
+        else [],
         "has_tests": tests_dir is not None,
         "tests_dir": tests_dir,
     }
@@ -187,8 +198,8 @@ async def get_module_status(
             "is_current": stage == current_lifecycle,
             "is_next": stage == next_lifecycle,
             "is_passed": LIFECYCLE_ORDER.index(stage) < LIFECYCLE_ORDER.index(current_lifecycle)
-                if stage in LIFECYCLE_ORDER and current_lifecycle in LIFECYCLE_ORDER
-                else False,
+            if stage in LIFECYCLE_ORDER and current_lifecycle in LIFECYCLE_ORDER
+            else False,
         }
 
     return {
@@ -234,6 +245,7 @@ async def promote_module(
     # Set the override
     try:
         from app.core.module_overrides import set_override as _set_override
+
         override = await _set_override(
             db=db,
             module_path=module_path,
@@ -249,7 +261,9 @@ async def promote_module(
 
     logger.info(
         "DevLab: module %s promoted from %s to %s by admin",
-        module_path, entry.lifecycle, body.target_lifecycle,
+        module_path,
+        entry.lifecycle,
+        body.target_lifecycle,
     )
 
     return {
@@ -298,7 +312,7 @@ async def run_module_tests(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No tests directory found for module '{module_path}'. "
-                   f"Expected tests/ directory or specify test_path.",
+            f"Expected tests/ directory or specify test_path.",
         )
 
     # Run pytest in subprocess
@@ -316,6 +330,7 @@ async def run_module_tests(
 
         # Try to parse JSON report
         import json
+
         report_path = Path(".report.json")
         test_report = {}
         if report_path.exists():
@@ -358,64 +373,72 @@ async def run_module_tests(
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="dev_modules_list",
-        title="Dev Modules List (SSOT)",
-        description=(
-            "CANONICAL list of all dev_only/preview/experimental modules. "
-            "GET /dev/lab. Stealth admin guard enforced."
-        ),
-        inputs=("admin_user_id",),
-        outputs=("modules", "total", "lifecycle_order", "maturity_checklist"),
-        dependencies=("app.modules.dev_lab.router", "app.core.product_manifest.MANIFEST"),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="dev_modules_list",
+            title="Dev Modules List (SSOT)",
+            description=(
+                "CANONICAL list of all dev_only/preview/experimental modules. "
+                "GET /dev/lab. Stealth admin guard enforced."
+            ),
+            inputs=("admin_user_id",),
+            outputs=("modules", "total", "lifecycle_order", "maturity_checklist"),
+            dependencies=("app.modules.dev_lab.router", "app.core.product_manifest.MANIFEST"),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="dev_module_status",
-        title="Dev Module Maturity Status (SSOT)",
-        description=(
-            "CANONICAL maturity checklist status for a module. "
-            "GET /dev/lab/{module_path}/status. "
-            "Returns checklist requirements for each lifecycle stage."
-        ),
-        inputs=("module_path", "admin_user_id"),
-        outputs=("module_path", "current_lifecycle", "next_lifecycle", "stages"),
-        dependencies=("app.modules.dev_lab.router", "app.modules.dev_lab.maturity"),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="dev_module_status",
+            title="Dev Module Maturity Status (SSOT)",
+            description=(
+                "CANONICAL maturity checklist status for a module. "
+                "GET /dev/lab/{module_path}/status. "
+                "Returns checklist requirements for each lifecycle stage."
+            ),
+            inputs=("module_path", "admin_user_id"),
+            outputs=("module_path", "current_lifecycle", "next_lifecycle", "stages"),
+            dependencies=("app.modules.dev_lab.router", "app.modules.dev_lab.maturity"),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="dev_module_promote",
-        title="Dev Module Promote (SSOT)",
-        description=(
-            "CANONICAL promote a module to the next lifecycle stage. "
-            "POST /dev/lab/{module_path}/promote. "
-            "Sets runtime override and invalidates resolver caches."
-        ),
-        inputs=("module_path", "target_lifecycle", "notes", "admin_user_id"),
-        outputs=("status", "module_path", "previous_lifecycle", "new_lifecycle"),
-        dependencies=("app.modules.dev_lab.router", "app.core.module_overrides"),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="dev_module_promote",
+            title="Dev Module Promote (SSOT)",
+            description=(
+                "CANONICAL promote a module to the next lifecycle stage. "
+                "POST /dev/lab/{module_path}/promote. "
+                "Sets runtime override and invalidates resolver caches."
+            ),
+            inputs=("module_path", "target_lifecycle", "notes", "admin_user_id"),
+            outputs=("status", "module_path", "previous_lifecycle", "new_lifecycle"),
+            dependencies=("app.modules.dev_lab.router", "app.core.module_overrides"),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="dev_lab",
-        group_name="dev_module_test",
-        title="Dev Module Test Runner (SSOT)",
-        description=(
-            "CANONICAL run a module's test suite via pytest. "
-            "POST /dev/lab/{module_path}/test. "
-            "Returns pass/fail/error counts and stdout/stderr."
-        ),
-        inputs=("module_path", "test_path", "admin_user_id"),
-        outputs=("status", "exit_code", "passed", "failed", "errors", "skipped"),
-        dependencies=("app.modules.dev_lab.router",),
-        deterministic=False,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="dev_lab",
+            group_name="dev_module_test",
+            title="Dev Module Test Runner (SSOT)",
+            description=(
+                "CANONICAL run a module's test suite via pytest. "
+                "POST /dev/lab/{module_path}/test. "
+                "Returns pass/fail/error counts and stdout/stderr."
+            ),
+            inputs=("module_path", "test_path", "admin_user_id"),
+            outputs=("status", "exit_code", "passed", "failed", "errors", "skipped"),
+            dependencies=("app.modules.dev_lab.router",),
+            deterministic=False,
+        )
+    )
 
 except Exception:
     pass

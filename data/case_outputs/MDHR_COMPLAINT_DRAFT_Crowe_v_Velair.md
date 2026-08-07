@@ -1,17 +1,17 @@
 # MINNESOTA DEPARTMENT OF HUMAN RIGHTS
 ## Housing Discrimination Complaint
 
-**File Online:** https://mn.gov/mdhr/intake/housing/  
-**Phone:** (651) 539-1100 | **Toll-Free:** 1-800-657-3704  
+**File Online:** https://mn.gov/mdhr/intake/housing/
+**Phone:** (651) 539-1100 | **Toll-Free:** 1-800-657-3704
 **TTY:** (651) 296-1283
 
 ---
 
 ## WHY FILE WITH MDHR?
 
-✅ **Faster than HUD** - State agencies often resolve cases more quickly  
-✅ **Stronger state laws** - Minnesota Human Rights Act provides additional protections  
-✅ **Work-share agreement** - MDHR shares info with HUD, so you get dual coverage  
+✅ **Faster than HUD** - State agencies often resolve cases more quickly
+✅ **Stronger state laws** - Minnesota Human Rights Act provides additional protections
+✅ **Work-share agreement** - MDHR shares info with HUD, so you get dual coverage
 ✅ **Local investigators** - Minneapolis-based staff who know MN landlord-tenant law
 
 ---
@@ -274,6 +274,6 @@ MDHR has a **work-share agreement** with HUD. Filing with MDHR can be cross-file
 
 ---
 
-*Draft prepared: December 24, 2025*  
-*Based on case documents in Semptify*  
+*Draft prepared: December 24, 2025*
+*Based on case documents in Semptify*
 *Dakota County Case #: 19AV-CV-25-3477*

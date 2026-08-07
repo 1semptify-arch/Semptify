@@ -34,7 +34,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 CFG = {
     # County Assessor — Hennepin County ArcGIS REST (free, no key)
-    "ASSESSOR_BASE": os.getenv("ASSESSOR_BASE", "https://gis.hennepin.us/arcgis/rest/services/Property/PropertyData/MapServer/0"),
+    "ASSESSOR_BASE": os.getenv(
+        "ASSESSOR_BASE", "https://gis.hennepin.us/arcgis/rest/services/Property/PropertyData/MapServer/0"
+    ),
     # County Recorder — NO FREE API (web scraping or honest status)
     "RECORDER_BASE": os.getenv("RECORDER_BASE", "https://www.hennepin.us/recorder"),
     # UCC — MN SOS (no free API, web scraping)
@@ -62,6 +64,7 @@ CFG = {
 @dataclass
 class FraudFlag:
     """A potential fraud indicator"""
+
     flag_type: str
     detail: str
     severity: str = "medium"  # low, medium, high, critical
@@ -77,6 +80,7 @@ class FraudFlag:
 @dataclass
 class LandlordProfile:
     """Complete landlord/property research profile"""
+
     property_id: str
     owner_name: str | None
     site_address: str | None
@@ -126,6 +130,7 @@ class LandlordProfile:
 @dataclass
 class ResearchCheckpoint:
     """Checkpoint for research progress"""
+
     id: str
     user_id: str
     property_id: str
@@ -298,6 +303,7 @@ class ResearchService:
         for row in rows:
             if not isinstance(row, list):
                 continue
+
             # Map by known field names; fallback to position guesses if metadata unavailable
             def _val(*names):
                 for name in names:
@@ -305,12 +311,17 @@ class ResearchService:
                         return row[col_map[name]]
                 return ""
 
-            calls.append({
-                "description": _val("description", "desc", "reason") or (row[0] if len(row) > 0 and not columns else ""),
-                "date": _val("date", "datetime", "call_date") or (row[1] if len(row) > 1 and not columns else ""),
-                "address": _val("address", "location", "incident_address") or (row[2] if len(row) > 2 and not columns else ""),
-                "precinct": _val("precinct", "police_precinct", "precinct_number") or (row[3] if len(row) > 3 and not columns else ""),
-            })
+            calls.append(
+                {
+                    "description": _val("description", "desc", "reason")
+                    or (row[0] if len(row) > 0 and not columns else ""),
+                    "date": _val("date", "datetime", "call_date") or (row[1] if len(row) > 1 and not columns else ""),
+                    "address": _val("address", "location", "incident_address")
+                    or (row[2] if len(row) > 2 and not columns else ""),
+                    "precinct": _val("precinct", "police_precinct", "precinct_number")
+                    or (row[3] if len(row) > 3 and not columns else ""),
+                }
+            )
 
         return {
             "source": "dispatch",
@@ -322,11 +333,7 @@ class ResearchService:
     async def _fetch_news_rss(self, query: str) -> list[dict[str, Any]]:
         """Google News RSS — completely free, no API key."""
         encoded_q = quote_plus(query)
-        rss_url = (
-            f"https://news.google.com/rss/search"
-            f"?q={encoded_q}"
-            f"&hl=en-US&gl=US&ceid=US:en"
-        )
+        rss_url = f"https://news.google.com/rss/search?q={encoded_q}&hl=en-US&gl=US&ceid=US:en"
         try:
             client = await self._get_client()
             r = await client.get(rss_url, timeout=15.0)
@@ -338,13 +345,15 @@ class ResearchService:
                 link = item.find("link")
                 pub_date = item.find("pubDate")
                 description = item.find("description")
-                articles.append({
-                    "title": title.text if title is not None else "",
-                    "url": link.text if link is not None else "",
-                    "publishedAt": pub_date.text if pub_date is not None else "",
-                    "description": description.text if description is not None else "",
-                    "source": {"name": "Google News RSS"},
-                })
+                articles.append(
+                    {
+                        "title": title.text if title is not None else "",
+                        "url": link.text if link is not None else "",
+                        "publishedAt": pub_date.text if pub_date is not None else "",
+                        "description": description.text if description is not None else "",
+                        "source": {"name": "Google News RSS"},
+                    }
+                )
                 if len(articles) >= 25:
                     break
             return articles
@@ -388,6 +397,7 @@ class ResearchService:
         logger.info("MN SOS: no free API. Attempting ethical web crawl.")
         try:
             from app.services.crawler import get_crawler
+
             crawler = get_crawler()
             search_url = f"{CFG['SOS_BASE']}?BusinessName={quote_plus(entity_name)}"
             result = await crawler.crawl(search_url)
@@ -443,13 +453,15 @@ class ResearchService:
             results = _safe(data, "results", [])
             cases = []
             for r in results[:10]:
-                cases.append({
-                    "case_name": _safe(r, "caseName"),
-                    "docket_number": _safe(r, "docketNumber"),
-                    "court": _safe(r, "court"),
-                    "date_filed": _safe(r, "dateFiled"),
-                    "status": _safe(r, "status"),
-                })
+                cases.append(
+                    {
+                        "case_name": _safe(r, "caseName"),
+                        "docket_number": _safe(r, "docketNumber"),
+                        "court": _safe(r, "court"),
+                        "date_filed": _safe(r, "dateFiled"),
+                        "status": _safe(r, "status"),
+                    }
+                )
             return {
                 "source": "bankruptcy",
                 "cases": cases,
@@ -498,45 +510,55 @@ class ResearchService:
         sos_entity = _safe(sos, "entity", {})
         sos_name = _safe(sos_entity, "legal_name", "")
         if assessor_owner and sos_name and assessor_owner.lower() != sos_name.lower():
-            flags.append(FraudFlag(
-                flag_type="owner_mismatch",
-                detail=f"Assessor owner '{assessor_owner}' != SOS '{sos_name}'",
-                severity="medium",
-            ))
+            flags.append(
+                FraudFlag(
+                    flag_type="owner_mismatch",
+                    detail=f"Assessor owner '{assessor_owner}' != SOS '{sos_name}'",
+                    severity="medium",
+                )
+            )
 
         # Suspicious liens (recent, high count)
         liens = _safe(recorder, "liens", [])
         if isinstance(liens, list):
             if len(liens) >= 5:
-                flags.append(FraudFlag(
-                    flag_type="multiple_liens",
-                    detail=f"{len(liens)} liens recorded - high risk",
-                    severity="high",
-                ))
+                flags.append(
+                    FraudFlag(
+                        flag_type="multiple_liens",
+                        detail=f"{len(liens)} liens recorded - high risk",
+                        severity="high",
+                    )
+                )
             elif len(liens) >= 3:
-                flags.append(FraudFlag(
-                    flag_type="multiple_liens",
-                    detail=f"{len(liens)} liens recorded",
-                    severity="medium",
-                ))
+                flags.append(
+                    FraudFlag(
+                        flag_type="multiple_liens",
+                        detail=f"{len(liens)} liens recorded",
+                        severity="medium",
+                    )
+                )
 
         # Entity inactive/delinquent
         status = _safe(sos_entity, "status", "").lower()
         if status in {"inactive", "dissolved", "delinquent"}:
-            flags.append(FraudFlag(
-                flag_type="entity_status",
-                detail=f"Entity status: {status}",
-                severity="high",
-            ))
+            flags.append(
+                FraudFlag(
+                    flag_type="entity_status",
+                    detail=f"Entity status: {status}",
+                    severity="high",
+                )
+            )
 
         # Tax delinquency
         taxes = _safe(assessor, "taxes", {})
         if _safe(taxes, "delinquent") or _safe(taxes, "past_due"):
-            flags.append(FraudFlag(
-                flag_type="tax_delinquent",
-                detail="Property taxes are delinquent",
-                severity="medium",
-            ))
+            flags.append(
+                FraudFlag(
+                    flag_type="tax_delinquent",
+                    detail="Property taxes are delinquent",
+                    severity="medium",
+                )
+            )
 
         return flags
 
@@ -550,7 +572,7 @@ class ResearchService:
     ) -> dict[str, Any]:
         """
         Collect and bundle landlord/property data.
-        
+
         Returns profile, checkpoint, and ZIP token.
         """
         property_id = _clean_text(property_id)
@@ -666,12 +688,14 @@ class ResearchService:
         for flag in profile.fraud_flags:
             lines.append(f"  [{flag.severity.upper()}] {flag.flag_type}: {flag.detail}")
 
-        lines.extend([
-            "",
-            f"Generated: {profile.generated_at.isoformat()}",
-            "",
-            "This report was generated by Semptify Research Module.",
-        ])
+        lines.extend(
+            [
+                "",
+                f"Generated: {profile.generated_at.isoformat()}",
+                "",
+                "This report was generated by Semptify Research Module.",
+            ]
+        )
 
         return "\n".join(lines)
 

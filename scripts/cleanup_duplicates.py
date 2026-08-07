@@ -3,6 +3,7 @@ Script to remove duplicate documents from the index.
 Keeps the first (earliest) document for each unique file_hash per user.
 Also cleans up orphaned files.
 """
+
 import json
 import os
 from pathlib import Path

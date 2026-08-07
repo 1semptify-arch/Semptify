@@ -27,8 +27,10 @@ router = APIRouter(prefix="/api/hud-funding", tags=["HUD Funding Guide"])
 # RESPONSE MODELS
 # =============================================================================
 
+
 class ProgramSummary(BaseModel):
     """Brief program summary."""
+
     id: str
     name: str
     program_type: str
@@ -40,6 +42,7 @@ class ProgramSummary(BaseModel):
 
 class LandlordObligation(BaseModel):
     """Landlord requirement detail."""
+
     requirement: str
     description: str
     penalty: str
@@ -48,6 +51,7 @@ class LandlordObligation(BaseModel):
 
 class TenantRecourse(BaseModel):
     """What tenant can do if landlord violates."""
+
     violation_type: str
     description: str
     what_tenant_can_do: str
@@ -56,6 +60,7 @@ class TenantRecourse(BaseModel):
 
 class EligibilityCheck(BaseModel):
     """Tenant eligibility check request."""
+
     annual_income: float
     area_median_income: float
     household_size: int = 1
@@ -65,6 +70,7 @@ class EligibilityCheck(BaseModel):
 # PROGRAM ENDPOINTS
 # =============================================================================
 
+
 @router.get("/programs")
 async def list_all_programs(
     program_type: str | None = Query(None, description="Filter by type: tax_credit, grant, loan, voucher, subsidy"),
@@ -72,7 +78,7 @@ async def list_all_programs(
 ) -> list[ProgramSummary]:
     """
     ● List all HUD funding and tax credit programs.
-    
+
     Optionally filter by program type.
     """
     if program_type:
@@ -105,7 +111,7 @@ async def get_program_details(
 ) -> dict[str, Any]:
     """
     ◆ Get full details for a specific program.
-    
+
     Includes landlord eligibility, tenant requirements,
     landlord obligations, compliance info, and resources.
     """
@@ -137,7 +143,7 @@ async def search_programs(
 ) -> list[ProgramSummary]:
     """
     ▸ Search programs by keyword.
-    
+
     Searches program names, descriptions, and eligibility requirements.
     """
     programs = service.search_programs(q)
@@ -159,13 +165,14 @@ async def search_programs(
 # CATEGORY ENDPOINTS
 # =============================================================================
 
+
 @router.get("/tax-credits")
 async def list_tax_credit_programs(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> list[ProgramSummary]:
     """
     ● List all tax credit programs.
-    
+
     Includes LIHTC, Historic Tax Credit, etc.
     """
     programs = service.get_tax_credit_programs()
@@ -231,6 +238,7 @@ async def list_grant_programs(
 # LANDLORD REQUIREMENTS
 # =============================================================================
 
+
 @router.get("/programs/{program_id}/landlord-requirements")
 async def get_landlord_requirements(
     program_id: str,
@@ -238,7 +246,7 @@ async def get_landlord_requirements(
 ) -> list[LandlordObligation]:
     """
     ● Get what a landlord MUST do to qualify for and maintain a program.
-    
+
     Includes penalties for violations and what tenants can do.
     """
     program = service.get_program(program_id)
@@ -263,7 +271,7 @@ async def get_landlord_eligibility(
 ) -> dict[str, Any]:
     """
     ● Get landlord eligibility requirements for a program.
-    
+
     What the landlord must have/do to APPLY for the program.
     """
     program = service.get_program(program_id)
@@ -287,7 +295,7 @@ async def get_all_landlord_obligations(
 ) -> dict[str, list[dict]]:
     """
     ● Get ALL landlord obligations across ALL programs.
-    
+
     Useful for understanding what your landlord should be doing
     if they're receiving any government funding.
     """
@@ -298,6 +306,7 @@ async def get_all_landlord_obligations(
 # TENANT RECOURSE
 # =============================================================================
 
+
 @router.get("/programs/{program_id}/tenant-recourse")
 async def get_tenant_recourse(
     program_id: str,
@@ -305,7 +314,7 @@ async def get_tenant_recourse(
 ) -> list[TenantRecourse]:
     """
     ▸ Get what a tenant can do if landlord violates program requirements.
-    
+
     This is your ammunition if your landlord is getting government
     money but not following the rules.
     """
@@ -328,13 +337,14 @@ async def get_tenant_recourse(
 # TAX BREAKS
 # =============================================================================
 
+
 @router.get("/tax-breaks")
 async def list_tax_breaks(
     service: HUDFundingGuideService = Depends(get_hud_funding_guide),
 ) -> list[dict[str, Any]]:
     """
     ● List general tax breaks available to rental property owners.
-    
+
     These are standard deductions/credits available to ALL landlords,
     not program-specific benefits.
     """
@@ -359,6 +369,7 @@ async def get_tax_break(
 # ELIGIBILITY CHECKING
 # =============================================================================
 
+
 @router.post("/check-eligibility")
 async def check_tenant_eligibility(
     check: EligibilityCheck,
@@ -366,7 +377,7 @@ async def check_tenant_eligibility(
 ) -> dict[str, Any]:
     """
     ▸ Check which programs a tenant might be eligible for.
-    
+
     Provide annual income and Area Median Income (AMI) for your location.
     AMI can be found at: https://www.huduser.gov/portal/datasets/il.html
     """
@@ -383,11 +394,15 @@ async def check_tenant_eligibility(
         "area_median_income": check.area_median_income,
         "your_percent_of_ami": round(percent_ami, 1),
         "income_category": (
-            "Extremely Low Income (≤30% AMI)" if percent_ami <= 30 else
-            "Very Low Income (≤50% AMI)" if percent_ami <= 50 else
-            "Low Income (≤60% AMI)" if percent_ami <= 60 else
-            "Low-Moderate Income (≤80% AMI)" if percent_ami <= 80 else
-            "Above Low Income (>80% AMI)"
+            "Extremely Low Income (≤30% AMI)"
+            if percent_ami <= 30
+            else "Very Low Income (≤50% AMI)"
+            if percent_ami <= 50
+            else "Low Income (≤60% AMI)"
+            if percent_ami <= 60
+            else "Low-Moderate Income (≤80% AMI)"
+            if percent_ami <= 80
+            else "Above Low Income (>80% AMI)"
         ),
         "eligible_programs": eligible,
         "total_eligible": len(eligible),
@@ -401,7 +416,7 @@ async def check_property_programs(
 ) -> dict[str, Any]:
     """
     ○ Get resources to check what programs a property participates in.
-    
+
     NOTE: This provides links to official databases where you can search.
     Actual property lookup would require integration with HUD APIs.
     """
@@ -412,6 +427,7 @@ async def check_property_programs(
 # COMPARISON
 # =============================================================================
 
+
 @router.get("/compare")
 async def compare_programs(
     programs: str = Query(..., description="Comma-separated program IDs"),
@@ -419,7 +435,7 @@ async def compare_programs(
 ) -> list[dict[str, Any]]:
     """
     ◆ Compare multiple programs side by side.
-    
+
     Example: /compare?programs=lihtc_9_percent,section_8_pbv,home_program
     """
     program_ids = [p.strip() for p in programs.split(",")]
@@ -429,6 +445,7 @@ async def compare_programs(
 # =============================================================================
 # QUICK REFERENCE
 # =============================================================================
+
 
 @router.get("/quick-reference")
 async def quick_reference() -> dict[str, Any]:

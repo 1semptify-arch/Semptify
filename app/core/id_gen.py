@@ -57,6 +57,7 @@ _MAX_PREFIX_LEN = 10  # Prevent absurdly long prefixes
 
 class IdType(str, Enum):
     """Canonical ID type prefixes for type safety."""
+
     DOCUMENT = "doc"
     OVERLAY = "ovl"
     EVENT = "evt"
@@ -108,7 +109,7 @@ def make_id(prefix: str, length: int = _DEFAULT_LENGTH) -> str:
 
 def make_id_typed(id_type: IdType, length: int = _DEFAULT_LENGTH) -> str:
     """Type-safe ID generation using IdType enum.
-    
+
     Example:
         >>> make_id_typed(IdType.DOCUMENT)
         'doc_K8mXp2nR4jW7qF9a'
@@ -118,13 +119,13 @@ def make_id_typed(id_type: IdType, length: int = _DEFAULT_LENGTH) -> str:
 
 def parse_id(full_id: str) -> tuple[str, str]:
     """Parse a full ID into (prefix, suffix).
-    
+
     Args:
         full_id: ID like "doc_K8mXp2nR4jW7qF9a"
-        
+
     Returns:
         Tuple of (prefix, suffix)
-        
+
     Raises:
         ValueError: If ID format is invalid
     """
@@ -142,11 +143,11 @@ def parse_id(full_id: str) -> tuple[str, str]:
 
 def validate_id(full_id: str, expected_prefix: str | None = None) -> bool:
     """Validate an ID format and optionally check prefix.
-    
+
     Args:
         full_id: ID to validate
         expected_prefix: If provided, verify ID has this prefix
-        
+
     Returns:
         True if valid, False otherwise
     """

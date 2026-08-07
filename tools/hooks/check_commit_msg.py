@@ -100,9 +100,7 @@ def _category_from_message(subject: str) -> str | None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate commit message category prefix against doc-map.yaml."
-    )
+    parser = argparse.ArgumentParser(description="Validate commit message category prefix against doc-map.yaml.")
     parser.add_argument("msg_file", help="Path to the commit message file.")
     args = parser.parse_args()
 
@@ -139,7 +137,10 @@ def main() -> int:
         return 1
 
     if category not in matched:
-        print(f"Warning: commit starts with '{category}:' but touches categories: {', '.join(sorted(matched))}.", file=sys.stderr)
+        print(
+            f"Warning: commit starts with '{category}:' but touches categories: {', '.join(sorted(matched))}.",
+            file=sys.stderr,
+        )
         print("Use the most specific category, or split into smaller commits.", file=sys.stderr)
         # Non-fatal: user might have a good reason. The changelog will use the prefix.
 

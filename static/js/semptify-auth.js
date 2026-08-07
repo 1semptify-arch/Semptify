@@ -1,15 +1,15 @@
 /**
  * Semptify Authentication & User ID Module
  * Single source of truth for user authentication across ALL pages
- * 
+ *
  * Usage: Include in any page:
  *   <script src="/js/semptify-auth.js"></script>
- *   
+ *
  * Then use:
  *   await SemptifyAuth.ensureAuth();      // Redirects to /auth if not logged in
  *   const userId = SemptifyAuth.getUserId();
  *   const headers = SemptifyAuth.getHeaders();
- *   
+ *
  * IMPORTANT: This module ONLY uses the `semptify_uid` cookie set by the server.
  * We do NOT use localStorage user IDs or any other sources.
  */
@@ -17,10 +17,10 @@
 const SemptifyAuth = {
     // The ONE cookie name we use - set by server during OAuth
     COOKIE_NAME: 'semptify_uid',
-    
+
     // Cache the user ID to avoid repeated cookie parsing
     _cachedUserId: null,
-    
+
     /**
      * Get user ID from the server-set cookie
      * @returns {string|null} User ID or null if not authenticated
@@ -29,7 +29,7 @@ const SemptifyAuth = {
         if (this._cachedUserId) {
             return this._cachedUserId;
         }
-        
+
         const cookies = document.cookie.split(';');
         for (const cookie of cookies) {
             const [name, value] = cookie.trim().split('=');
@@ -38,10 +38,10 @@ const SemptifyAuth = {
                 return this._cachedUserId;
             }
         }
-        
+
         return null;
     },
-    
+
     /**
      * Check if user is authenticated with REAL cloud storage
      * User must have G (Google), D (Dropbox), or O (OneDrive) prefix
@@ -53,7 +53,7 @@ const SemptifyAuth = {
         const validPrefixes = ['G', 'D', 'O'];
         return validPrefixes.includes(userId.charAt(0));
     },
-    
+
     /**
      * Ensure user is authenticated - redirect to storage providers if not
      * Call at the start of any protected page
@@ -62,12 +62,12 @@ const SemptifyAuth = {
      */
     ensureAuth(redirect = true) {
         const userId = this.getUserId();
-        
+
         // User must have a REAL storage cookie (G, D, O prefix = Google, Dropbox, OneDrive)
         // Session-only users (S prefix) must reconnect
         const validPrefixes = ['G', 'D', 'O'];
         const hasValidStorage = userId && validPrefixes.includes(userId.charAt(0));
-        
+
         if (!hasValidStorage && redirect) {
             // Save current URL for redirect back after auth
             const returnUrl = window.location.pathname + window.location.search;
@@ -77,10 +77,10 @@ const SemptifyAuth = {
             window.location.href = '/storage/providers';
             return false;
         }
-        
+
         return hasValidStorage;
     },
-    
+
     /**
      * Get headers to include in API requests
      * These headers help the server identify the user
@@ -91,14 +91,14 @@ const SemptifyAuth = {
         const headers = {
             'Content-Type': 'application/json'
         };
-        
+
         if (userId) {
             headers['X-User-ID'] = userId;
         }
-        
+
         return headers;
     },
-    
+
     /**
      * Make an authenticated fetch request
      * Automatically includes auth headers and handles 401s
@@ -111,32 +111,32 @@ const SemptifyAuth = {
             ...this.getHeaders(),
             ...options.headers
         };
-        
+
         // Remove Content-Type for FormData (browser sets it automatically with boundary)
         if (options.body instanceof FormData) {
             delete headers['Content-Type'];
         }
-        
+
         const response = await fetch(url, {
             ...options,
             headers,
             credentials: 'include'  // Always include cookies
         });
-        
+
         // Handle authentication errors
         if (response.status === 401) {
             console.warn('[SemptifyAuth] Received 401 - session may be expired');
             this._cachedUserId = null;  // Clear cache
-            
+
             // Optionally redirect to auth
             if (options.redirectOn401 !== false) {
                 this.ensureAuth();
             }
         }
-        
+
         return response;
     },
-    
+
     /**
      * Make an authenticated JSON fetch request
      * @param {string} url - API endpoint
@@ -145,40 +145,40 @@ const SemptifyAuth = {
      */
     async fetchJSON(url, options = {}) {
         const response = await this.fetch(url, options);
-        
+
         if (!response.ok) {
             const error = await response.json().catch(() => ({ error: 'Unknown error' }));
             throw new Error(error.message || error.error || `Request failed: ${response.status}`);
         }
-        
+
         return response.json();
     },
-    
+
     /**
      * Logout the user
      * @param {string} redirectTo - URL to redirect to after logout (default: '/auth')
      */
     async logout(redirectTo = '/auth') {
         try {
-            await fetch('/api/auth/logout', { 
+            await fetch('/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include'
             });
         } catch (e) {
             console.error('[SemptifyAuth] Logout request failed:', e);
         }
-        
+
         // Clear cached user ID
         this._cachedUserId = null;
-        
+
         // Clear any localStorage user data (legacy cleanup)
         localStorage.removeItem('semptify_user_id');
         localStorage.removeItem('user_id');
-        
+
         // Redirect
         window.location.href = redirectTo;
     },
-    
+
     /**
      * Get user info from the API
      * @returns {Promise<Object|null>} User info or null
@@ -194,7 +194,7 @@ const SemptifyAuth = {
         }
         return null;
     },
-    
+
     /**
      * Initialize auth state on page load
      * Call this once when the page loads
@@ -209,7 +209,7 @@ const SemptifyAuth = {
                 window.location.href = returnUrl;
             }
         }
-        
+
         // Log auth state in dev
         if (window.location.hostname === 'localhost') {
             console.log('[SemptifyAuth] User ID:', this.getUserId() || 'Not authenticated');

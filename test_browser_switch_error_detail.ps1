@@ -12,14 +12,14 @@ try {
     $response = Invoke-WebRequest -Method POST -Uri "$BaseUrl/storage/role" `
         -Body $roleSwitchBody -ContentType "application/json" `
         -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
-    
+
     Write-Host "✅ Response: $($response.StatusCode)"
     Write-Host $response.Content
 }
 catch {
     $statusCode = [int]$_.Exception.Response.StatusCode
     $statusDesc = $_.Exception.Response.StatusDescription
-    
+
     try {
         $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
         $body = $reader.ReadToEnd()

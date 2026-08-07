@@ -20,9 +20,11 @@ from sqlalchemy.pool import QueuePool
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class QueryStats:
     """Database query statistics."""
+
     query: str
     duration_ms: float
     rows_affected: int
@@ -37,12 +39,14 @@ class QueryStats:
             "rows_affected": self.rows_affected,
             "timestamp": self.timestamp,
             "success": self.success,
-            "error": self.error
+            "error": self.error,
         }
+
 
 @dataclass
 class PoolStats:
     """Connection pool statistics."""
+
     total_connections: int
     active_connections: int
     idle_connections: int
@@ -52,6 +56,7 @@ class PoolStats:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
 
 class DatabaseConnectionPool:
     """Enhanced database connection pool with monitoring and optimization."""
@@ -100,17 +105,14 @@ class DatabaseConnectionPool:
                     "command_timeout": 30,
                     "server_settings": {
                         "application_name": "semptify_fastapi",
-                        "jit": "off"  # Disable JIT for consistent performance
-                    }
-                }
+                        "jit": "off",  # Disable JIT for consistent performance
+                    },
+                },
             )
 
             # Create session factory
             self.session_factory = sessionmaker(
-                bind=self.engine,
-                class_=AsyncSession,
-                expire_on_commit=False,
-                future=True
+                bind=self.engine, class_=AsyncSession, expire_on_commit=False, future=True
             )
 
             # Register event listeners for monitoring
@@ -129,29 +131,23 @@ class DatabaseConnectionPool:
         @event.listens_for(self.engine.sync_engine, "connect")
         def receive_connect(dbapi_connection, connection_record):
             """Log new connections."""
-            self.connection_events.append({
-                "event": "connect",
-                "timestamp": time.time(),
-                "connection_id": id(connection_record)
-            })
+            self.connection_events.append(
+                {"event": "connect", "timestamp": time.time(), "connection_id": id(connection_record)}
+            )
 
         @event.listens_for(self.engine.sync_engine, "checkout")
         def receive_checkout(dbapi_connection, connection_record, connection_proxy):
             """Log connection checkouts."""
-            self.connection_events.append({
-                "event": "checkout",
-                "timestamp": time.time(),
-                "connection_id": id(connection_record)
-            })
+            self.connection_events.append(
+                {"event": "checkout", "timestamp": time.time(), "connection_id": id(connection_record)}
+            )
 
         @event.listens_for(self.engine.sync_engine, "checkin")
         def receive_checkin(dbapi_connection, connection_record):
             """Log connection checkins."""
-            self.connection_events.append({
-                "event": "checkin",
-                "timestamp": time.time(),
-                "connection_id": id(connection_record)
-            })
+            self.connection_events.append(
+                {"event": "checkin", "timestamp": time.time(), "connection_id": id(connection_record)}
+            )
 
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
@@ -168,23 +164,18 @@ class DatabaseConnectionPool:
 
             # Record successful session
             duration_ms = (time.time() - start_time) * 1000
-            self.connection_events.append({
-                "event": "session_success",
-                "timestamp": time.time(),
-                "duration_ms": duration_ms
-            })
+            self.connection_events.append(
+                {"event": "session_success", "timestamp": time.time(), "duration_ms": duration_ms}
+            )
 
         except Exception as e:
             await session.rollback()
 
             # Record failed session
             duration_ms = (time.time() - start_time) * 1000
-            self.connection_events.append({
-                "event": "session_error",
-                "timestamp": time.time(),
-                "duration_ms": duration_ms,
-                "error": str(e)
-            })
+            self.connection_events.append(
+                {"event": "session_error", "timestamp": time.time(), "duration_ms": duration_ms, "error": str(e)}
+            )
 
             logger.error(f"Database session error: {e}")
             raise
@@ -215,7 +206,7 @@ class DatabaseConnectionPool:
                     duration_ms=duration_ms,
                     rows_affected=rows_affected,
                     timestamp=start_time,
-                    success=success
+                    success=success,
                 )
 
                 self.query_stats.append(stats)
@@ -226,6 +217,7 @@ class DatabaseConnectionPool:
 
                 # Log to performance monitor
                 from app.core.performance_monitor import get_performance_monitor
+
                 perf_monitor = get_performance_monitor()
                 perf_monitor.record_database_query(query, duration_ms, rows_affected)
 
@@ -242,7 +234,7 @@ class DatabaseConnectionPool:
                 rows_affected=rows_affected,
                 timestamp=start_time,
                 success=success,
-                error=error
+                error=error,
             )
 
             self.query_stats.append(stats)
@@ -267,13 +259,15 @@ class DatabaseConnectionPool:
 
                 # Record batch stats
                 duration_ms = (time.time() - start_time) * 1000
-                self.query_stats.append(QueryStats(
-                    query=f"BATCH: {len(queries)} queries",
-                    duration_ms=duration_ms,
-                    rows_affected=sum(r.rowcount for r in results),
-                    timestamp=start_time,
-                    success=True
-                ))
+                self.query_stats.append(
+                    QueryStats(
+                        query=f"BATCH: {len(queries)} queries",
+                        duration_ms=duration_ms,
+                        rows_affected=sum(r.rowcount for r in results),
+                        timestamp=start_time,
+                        success=True,
+                    )
+                )
 
                 return results
 
@@ -281,14 +275,16 @@ class DatabaseConnectionPool:
             duration_ms = (time.time() - start_time) * 1000
 
             # Record failed batch
-            self.query_stats.append(QueryStats(
-                query=f"BATCH: {len(queries)} queries",
-                duration_ms=duration_ms,
-                rows_affected=0,
-                timestamp=start_time,
-                success=False,
-                error=str(e)
-            ))
+            self.query_stats.append(
+                QueryStats(
+                    query=f"BATCH: {len(queries)} queries",
+                    duration_ms=duration_ms,
+                    rows_affected=0,
+                    timestamp=start_time,
+                    success=False,
+                    error=str(e),
+                )
+            )
 
             logger.error(f"Database batch query failed: {e}")
             raise
@@ -306,7 +302,7 @@ class DatabaseConnectionPool:
             idle_connections=pool.checkedin(),
             overflow_connections=pool.overflow(),
             checked_out_connections=pool.checkedout(),
-            checked_in_connections=pool.checkedin()
+            checked_in_connections=pool.checkedin(),
         )
 
         self.pool_stats_history.append(stats)
@@ -316,10 +312,7 @@ class DatabaseConnectionPool:
         """Get query performance statistics."""
         cutoff_time = time.time() - (hours * 3600)
 
-        recent_queries = [
-            stat for stat in self.query_stats
-            if stat.timestamp >= cutoff_time
-        ]
+        recent_queries = [stat for stat in self.query_stats if stat.timestamp >= cutoff_time]
 
         if not recent_queries:
             return {
@@ -327,7 +320,7 @@ class DatabaseConnectionPool:
                 "average_duration_ms": 0,
                 "slow_queries": 0,
                 "error_rate_percent": 0,
-                "rows_affected_total": 0
+                "rows_affected_total": 0,
             }
 
         durations = [q.duration_ms for q in recent_queries]
@@ -343,7 +336,7 @@ class DatabaseConnectionPool:
             "slow_queries": slow_count,
             "slow_query_rate_percent": (slow_count / len(recent_queries)) * 100,
             "error_rate_percent": (error_count / len(recent_queries)) * 100,
-            "rows_affected_total": sum(q.rows_affected for q in recent_queries)
+            "rows_affected_total": sum(q.rows_affected for q in recent_queries),
         }
 
     def get_slow_queries(self, limit: int = 50) -> list[dict[str, Any]]:
@@ -408,7 +401,7 @@ class DatabaseConnectionPool:
                 "response_time_ms": health_time,
                 "pool_stats": pool_stats.to_dict(),
                 "query_stats": query_stats,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
         except Exception as e:
@@ -416,7 +409,7 @@ class DatabaseConnectionPool:
                 "status": "unhealthy",
                 "error": str(e),
                 "response_time_ms": (time.time() - start_time) * 1000,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
     async def close(self):
@@ -426,8 +419,10 @@ class DatabaseConnectionPool:
             self._initialized = False
             logger.info("Database connection pool closed")
 
+
 # Global database pool instance
 _database_pool: DatabaseConnectionPool | None = None
+
 
 async def get_database_pool() -> DatabaseConnectionPool:
     """Get the global database connection pool."""
@@ -435,17 +430,19 @@ async def get_database_pool() -> DatabaseConnectionPool:
 
     if _database_pool is None:
         from app.core.config import get_settings
+
         settings = get_settings()
 
         _database_pool = DatabaseConnectionPool(
             database_url=settings.database_url,
-            pool_size=settings.db_pool_size if hasattr(settings, 'db_pool_size') else 20,
-            max_overflow=settings.db_max_overflow if hasattr(settings, 'db_max_overflow') else 30
+            pool_size=settings.db_pool_size if hasattr(settings, "db_pool_size") else 20,
+            max_overflow=settings.db_max_overflow if hasattr(settings, "db_max_overflow") else 30,
         )
 
         await _database_pool.initialize()
 
     return _database_pool
+
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for getting database session."""
@@ -453,26 +450,30 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with pool.get_session() as session:
         yield session
 
+
 # Helper functions
 async def execute_query(query: str, params: dict[str, Any] = None) -> Any:
     """Execute a database query."""
     pool = await get_database_pool()
     return await pool.execute_query(query, params)
 
+
 async def get_database_health() -> dict[str, Any]:
     """Get database health status."""
     pool = await get_database_pool()
     return await pool.health_check()
+
 
 async def optimize_database():
     """Optimize the database."""
     pool = await get_database_pool()
     await pool.optimize_database()
 
+
 # Query optimization helpers
-def build_optimized_query(base_query: str, filters: dict[str, Any] = None,
-                         order_by: str = None, limit: int = None,
-                         offset: int = None) -> tuple:
+def build_optimized_query(
+    base_query: str, filters: dict[str, Any] = None, order_by: str = None, limit: int = None, offset: int = None
+) -> tuple:
     """Build an optimized SQL query."""
     query_parts = [base_query]
     params = {}
@@ -501,9 +502,11 @@ def build_optimized_query(base_query: str, filters: dict[str, Any] = None,
     final_query = " ".join(query_parts)
     return final_query, params
 
+
 # Performance monitoring decorator
 def monitor_query_performance(func):
     """Decorator to monitor query performance."""
+
     async def wrapper(*args, **kwargs):
         start_time = time.time()
 
@@ -513,12 +516,9 @@ def monitor_query_performance(func):
 
             # Log performance
             from app.core.performance_monitor import get_performance_monitor
+
             perf_monitor = get_performance_monitor()
-            perf_monitor._store_metric(
-                f"query.{func.__name__}",
-                duration_ms,
-                "ms"
-            )
+            perf_monitor._store_metric(f"query.{func.__name__}", duration_ms, "ms")
 
             return result
 
@@ -527,12 +527,9 @@ def monitor_query_performance(func):
 
             # Log error performance
             from app.core.performance_monitor import get_performance_monitor
+
             perf_monitor = get_performance_monitor()
-            perf_monitor._store_metric(
-                f"query.{func.__name__}.errors",
-                1,
-                "count"
-            )
+            perf_monitor._store_metric(f"query.{func.__name__}.errors", 1, "count")
 
             raise
 

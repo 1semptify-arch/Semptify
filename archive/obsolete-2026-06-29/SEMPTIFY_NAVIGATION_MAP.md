@@ -1,7 +1,7 @@
 # Semptify Complete Navigation Map
 *Comprehensive mapping of all internal routes, external links, and user travel paths within Semptify*
 
-Generated: 2026-05-20  
+Generated: 2026-05-20
 Scope: All possible ways users can navigate through the application
 
 ---
@@ -16,7 +16,7 @@ Scope: All possible ways users can navigate through the application
 ### Main Navigation (5 Core Links - Present on Every Page)
 ```
 🏠 Home     → /home
-📚 Library  → /library  
+📚 Library  → /library
 🏢 Office   → /office
 🔧 Tools    → /tools
 🆘 Help     → /help
@@ -297,7 +297,7 @@ Scope: All possible ways users can navigate through the application
 - **Controls**: Access to document operations, vault features
 - **Bypass**: Public pages, help content, role selection
 
-### Vault Initialization Gate  
+### Vault Initialization Gate
 - **Required**: Vault folders created in user storage
 - **Controls**: Full feature access, document upload
 - **Bypass**: Basic browsing, public content
@@ -338,26 +338,26 @@ Scope: All possible ways users can navigate through the application
 
 ### New User Flow
 ```
-/ → /welcome.html → /preamble → /onboarding/select-role.html → 
-/onboarding/providers → OAuth → /onboarding/vault-setup → 
+/ → /welcome.html → /preamble → /onboarding/select-role.html →
+/onboarding/providers → OAuth → /onboarding/vault-setup →
 /onboarding/complete → /home → [Role Dashboard]
 ```
 
 ### Returning User Flow
 ```
-/ → /preamble → /storage/reconnect → OAuth (if needed) → /home → 
+/ → /preamble → /storage/reconnect → OAuth (if needed) → /home →
 [Role Dashboard] → [Last Accessed Feature]
 ```
 
 ### Document Management Flow
 ```
-[Role Dashboard] → /office.html → /office/vault.html → 
+[Role Dashboard] → /office.html → /office/vault.html →
 /documents → /api/vault/* → Document Operations
 ```
 
 ### Legal Tools Flow (Extended Tier)
 ```
-[Role Dashboard] → /eviction-defense → /court-forms → 
+[Role Dashboard] → /eviction-defense → /court-forms →
 /legal-filing → /mndes/validate → /mndes/package
 ```
 
@@ -373,7 +373,7 @@ Scope: All possible ways users can navigate through the application
 
 ### Evolution Mechanisms
 - **Escape Hatches**: Temporary experimental paths (7-day TTL)
-- **Deprecated Paths**: Automatic redirects to new SSOT paths  
+- **Deprecated Paths**: Automatic redirects to new SSOT paths
 - **Dynamic Registration**: `register_stage()` for feature expansion
 
 ### Verification

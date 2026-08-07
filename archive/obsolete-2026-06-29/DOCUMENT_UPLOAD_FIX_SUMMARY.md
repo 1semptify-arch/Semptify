@@ -2,8 +2,8 @@
 
 ## What Was Fixed
 
-**Date Implemented**: January 2024  
-**User Requirement**: "Documents need to be registered into the system and saved to user storage and made available for processing keeping the original with notarization of its"  
+**Date Implemented**: January 2024
+**User Requirement**: "Documents need to be registered into the system and saved to user storage and made available for processing keeping the original with notarization of its"
 
 ---
 
@@ -48,7 +48,7 @@ Upload → Vault → Intake → (Processing conditionally)
 
 ### AFTER (✅ Complete)
 ```
-Upload 
+Upload
   ↓ Notarize (SHA-256 hash, timestamp, metadata)
   ↓ Vault Upload (store file + certificate)
   ↓ Register (create intake document with vault_id)

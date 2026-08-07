@@ -42,14 +42,14 @@ DEFAULT_DEADLINE_DAYS = 7
 class DocumentDeliveryService:
     """
     Manages document delivery between professionals and tenants.
-    
+
     All delivery records stored as overlays in user's cloud storage.
     """
 
     def __init__(self, storage_provider, sender_user_id: str):
         """
         Initialize delivery service.
-        
+
         Args:
             storage_provider: Cloud storage adapter
             sender_user_id: ID of the user initiating actions
@@ -73,15 +73,14 @@ class DocumentDeliveryService:
     ) -> SendDocumentResponse:
         """
         Send a document to a tenant.
-        
+
         Creates a delivery record in the recipient's vault overlays.
         """
         try:
             # Validate sender role
             if sender_role not in SENDER_ROLES:
                 return SendDocumentResponse(
-                    success=False,
-                    message=f"Role '{sender_role}' cannot send documents. Only: {SENDER_ROLES}"
+                    success=False, message=f"Role '{sender_role}' cannot send documents. Only: {SENDER_ROLES}"
                 )
 
             # Create delivery record
@@ -124,10 +123,7 @@ class DocumentDeliveryService:
 
             if not result.success:
                 logger.error(f"Failed to create delivery overlay: {result.message}")
-                return SendDocumentResponse(
-                    success=False,
-                    message=f"Failed to store delivery: {result.message}"
-                )
+                return SendDocumentResponse(success=False, message=f"Failed to store delivery: {result.message}")
 
             logger.info(
                 f"Document sent: {delivery.delivery_id} from {self.user_id} "
@@ -138,21 +134,16 @@ class DocumentDeliveryService:
                 return SendDocumentResponse(
                     success=True,
                     delivery_id=delivery.delivery_id,
-                    message="Document queued for process server delivery"
+                    message="Document queued for process server delivery",
                 )
 
             return SendDocumentResponse(
-                success=True,
-                delivery_id=delivery.delivery_id,
-                message="Document sent successfully"
+                success=True, delivery_id=delivery.delivery_id, message="Document sent successfully"
             )
 
         except Exception as e:
             logger.error(f"Send document failed: {e}", exc_info=True)
-            return SendDocumentResponse(
-                success=False,
-                message=f"Error sending document: {str(e)}"
-            )
+            return SendDocumentResponse(success=False, message=f"Error sending document: {str(e)}")
 
     # ==========================================================================
     # Tenant Inbox
@@ -161,7 +152,7 @@ class DocumentDeliveryService:
     async def get_inbox(self) -> DeliveryListResponse:
         """
         Get all deliveries for the current user (tenant inbox).
-        
+
         Returns PENDING and handled deliveries.
         """
         try:
@@ -299,9 +290,7 @@ class DocumentDeliveryService:
             logger.info(f"Document signed: {delivery_id} by {self.user_id}")
 
             return SignDocumentResponse(
-                success=True,
-                signed_at=delivery.signed_at,
-                message="Document signed successfully"
+                success=True, signed_at=delivery.signed_at, message="Document signed successfully"
             )
 
         except Exception as e:
@@ -328,7 +317,9 @@ class DocumentDeliveryService:
                 return RejectDocumentResponse(success=False, message="Not authorized to reject this document")
 
             if delivery.status != DeliveryStatus.PENDING:
-                return RejectDocumentResponse(success=False, message=f"Cannot reject: status is {delivery.status.value}")
+                return RejectDocumentResponse(
+                    success=False, message=f"Cannot reject: status is {delivery.status.value}"
+                )
 
             if not request.reason or len(request.reason.strip()) < 10:
                 return RejectDocumentResponse(success=False, message="Rejection reason must be at least 10 characters")
@@ -344,11 +335,7 @@ class DocumentDeliveryService:
 
             logger.info(f"Document rejected: {delivery_id} by {self.user_id}")
 
-            return RejectDocumentResponse(
-                success=True,
-                rejected_at=delivery.rejected_at,
-                message="Document rejected"
-            )
+            return RejectDocumentResponse(success=True, rejected_at=delivery.rejected_at, message="Document rejected")
 
         except Exception as e:
             logger.error(f"Reject document failed: {e}", exc_info=True)
@@ -478,7 +465,7 @@ class DocumentDeliveryService:
                     "recipient_id": delivery.recipient_id,
                     "status": delivery.status.value,
                     "updated_at": utc_now().isoformat(),
-                }
+                },
             )
 
             return True
@@ -506,71 +493,79 @@ async def get_delivery_service(storage_provider, user_id: str) -> DocumentDelive
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="delivery",
-        group_name="document_send",
-        title="Document Send (SSOT)",
-        description=(
-            "CANONICAL document send via DocumentDeliveryService.send_document(). "
-            "Creates IDENTITY_ADAPTER overlay in recipient's cloud storage. "
-            "Sender must be advocate/manager/legal/admin role."
-        ),
-        inputs=("request", "sender_name", "sender_user_id", "storage"),
-        outputs=("delivery_id", "success"),
-        dependencies=(
-            "app.services.document_delivery_service.DocumentDeliveryService",
-            "app.models.document_delivery_models.SendDocumentRequest",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="delivery",
+            group_name="document_send",
+            title="Document Send (SSOT)",
+            description=(
+                "CANONICAL document send via DocumentDeliveryService.send_document(). "
+                "Creates IDENTITY_ADAPTER overlay in recipient's cloud storage. "
+                "Sender must be advocate/manager/legal/admin role."
+            ),
+            inputs=("request", "sender_name", "sender_user_id", "storage"),
+            outputs=("delivery_id", "success"),
+            dependencies=(
+                "app.services.document_delivery_service.DocumentDeliveryService",
+                "app.models.document_delivery_models.SendDocumentRequest",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="delivery",
-        group_name="inbox_list",
-        title="Delivery Inbox List (SSOT)",
-        description=(
-            "CANONICAL inbox via DocumentDeliveryService.get_inbox(). "
-            "Returns DeliveryListResponse with all deliveries for current user."
-        ),
-        inputs=("user_id", "storage"),
-        outputs=("deliveries", "count"),
-        dependencies=("app.services.document_delivery_service.DocumentDeliveryService",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="delivery",
+            group_name="inbox_list",
+            title="Delivery Inbox List (SSOT)",
+            description=(
+                "CANONICAL inbox via DocumentDeliveryService.get_inbox(). "
+                "Returns DeliveryListResponse with all deliveries for current user."
+            ),
+            inputs=("user_id", "storage"),
+            outputs=("deliveries", "count"),
+            dependencies=("app.services.document_delivery_service.DocumentDeliveryService",),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="delivery",
-        group_name="document_sign",
-        title="Document Sign (SSOT)",
-        description=(
-            "CANONICAL document sign via DocumentDeliveryService.sign_document(). "
-            "Updates delivery overlay with signature, marks as SIGNED."
-        ),
-        inputs=("delivery_id", "request", "user_id", "storage"),
-        outputs=("signed_document_id", "success"),
-        dependencies=(
-            "app.services.document_delivery_service.DocumentDeliveryService",
-            "app.models.document_delivery_models.SignDocumentRequest",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="delivery",
+            group_name="document_sign",
+            title="Document Sign (SSOT)",
+            description=(
+                "CANONICAL document sign via DocumentDeliveryService.sign_document(). "
+                "Updates delivery overlay with signature, marks as SIGNED."
+            ),
+            inputs=("delivery_id", "request", "user_id", "storage"),
+            outputs=("signed_document_id", "success"),
+            dependencies=(
+                "app.services.document_delivery_service.DocumentDeliveryService",
+                "app.models.document_delivery_models.SignDocumentRequest",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="delivery",
-        group_name="document_reject",
-        title="Document Reject (SSOT)",
-        description=(
-            "CANONICAL document reject via DocumentDeliveryService.reject_document(). "
-            "Updates delivery overlay with rejection reason, marks as REJECTED."
-        ),
-        inputs=("delivery_id", "request", "user_id", "storage"),
-        outputs=("success",),
-        dependencies=(
-            "app.services.document_delivery_service.DocumentDeliveryService",
-            "app.models.document_delivery_models.RejectDocumentRequest",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="delivery",
+            group_name="document_reject",
+            title="Document Reject (SSOT)",
+            description=(
+                "CANONICAL document reject via DocumentDeliveryService.reject_document(). "
+                "Updates delivery overlay with rejection reason, marks as REJECTED."
+            ),
+            inputs=("delivery_id", "request", "user_id", "storage"),
+            outputs=("success",),
+            dependencies=(
+                "app.services.document_delivery_service.DocumentDeliveryService",
+                "app.models.document_delivery_models.RejectDocumentRequest",
+            ),
+            deterministic=True,
+        )
+    )
 
 except Exception:
     pass

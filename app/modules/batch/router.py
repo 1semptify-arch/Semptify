@@ -31,14 +31,20 @@ router = APIRouter()
 # Schemas
 # =============================================================================
 
+
 class BatchRequest(BaseModel):
     """Batch operation request."""
-    operation_type: str = Field(..., description="Operation type: upload, delete, export, import, move, copy, tag, analyze, preview")
+
+    operation_type: str = Field(
+        ..., description="Operation type: upload, delete, export, import, move, copy, tag, analyze, preview"
+    )
     items: list[dict[str, Any]] = Field(..., description="List of items to process")
     settings: dict[str, Any] | None = Field(None, description="Operation settings")
 
+
 class BatchResponse(BaseModel):
     """Batch operation response."""
+
     success: bool
     operation_id: str
     operation_type: str
@@ -46,24 +52,26 @@ class BatchResponse(BaseModel):
     total_items: int
     message: str | None = None
 
+
 class BatchItemRequest(BaseModel):
     """Single batch item."""
+
     type: str = Field(..., description="Item type")
     data: dict[str, Any] = Field(..., description="Item data")
+
 
 # =============================================================================
 # Batch Operations Endpoints
 # =============================================================================
 
+
 @router.post("/create", response_model=BatchResponse)
 async def create_batch_operation_endpoint(
-    request: BatchRequest,
-    user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    request: BatchRequest, user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
 ):
     """
     Create a new batch operation.
-    
+
     Supported operations:
     - upload: Bulk document upload
     - delete: Bulk document deletion
@@ -78,29 +86,23 @@ async def create_batch_operation_endpoint(
     try:
         # Validate operation type
         try:
-            operation_type = BatchOperationType(request.operation_type)
+            BatchOperationType(request.operation_type)
         except ValueError:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid operation type: {request.operation_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid operation type: {request.operation_type}")
 
         # Validate items
         if not request.items:
             raise HTTPException(status_code=400, detail="At least one item is required")
 
         if len(request.items) > 1000:
-            raise HTTPException(
-                status_code=400,
-                detail="Maximum 1000 items per batch operation"
-            )
+            raise HTTPException(status_code=400, detail="Maximum 1000 items per batch operation")
 
         # Create batch operation
         operation_id = create_batch_operation(
             operation_type=request.operation_type,
             user_id=user.user_id,
             items=request.items,
-            settings=request.settings or {}
+            settings=request.settings or {},
         )
 
         return BatchResponse(
@@ -109,7 +111,7 @@ async def create_batch_operation_endpoint(
             operation_type=request.operation_type,
             status="pending",
             total_items=len(request.items),
-            message="Batch operation created successfully"
+            message="Batch operation created successfully",
         )
 
     except HTTPException:
@@ -118,11 +120,10 @@ async def create_batch_operation_endpoint(
         logger.error(f"Batch operation creation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to create batch operation")
 
+
 @router.post("/{operation_id}/start")
 async def start_batch_operation_endpoint(
-    operation_id: str,
-    user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    operation_id: str, user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
 ):
     """
     Start processing a batch operation.
@@ -140,13 +141,11 @@ async def start_batch_operation_endpoint(
         success = await start_batch_operation(operation_id)
 
         if not success:
-            raise HTTPException(status_code=409, detail="Operation cannot be started (max concurrent operations reached)")
+            raise HTTPException(
+                status_code=409, detail="Operation cannot be started (max concurrent operations reached)"
+            )
 
-        return {
-            "success": True,
-            "operation_id": operation_id,
-            "message": "Batch operation started successfully"
-        }
+        return {"success": True, "operation_id": operation_id, "message": "Batch operation started successfully"}
 
     except HTTPException:
         raise
@@ -154,11 +153,10 @@ async def start_batch_operation_endpoint(
         logger.error(f"Batch operation start failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to start batch operation")
 
+
 @router.post("/{operation_id}/cancel")
 async def cancel_batch_operation_endpoint(
-    operation_id: str,
-    user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    operation_id: str, user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
 ):
     """
     Cancel a batch operation.
@@ -178,11 +176,7 @@ async def cancel_batch_operation_endpoint(
         if not success:
             raise HTTPException(status_code=409, detail="Operation cannot be cancelled")
 
-        return {
-            "success": True,
-            "operation_id": operation_id,
-            "message": "Batch operation cancelled successfully"
-        }
+        return {"success": True, "operation_id": operation_id, "message": "Batch operation cancelled successfully"}
 
     except HTTPException:
         raise
@@ -190,11 +184,10 @@ async def cancel_batch_operation_endpoint(
         logger.error(f"Batch operation cancel failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel batch operation")
 
+
 @router.get("/{operation_id}")
 async def get_batch_operation_endpoint(
-    operation_id: str,
-    user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    operation_id: str, user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
 ):
     """
     Get details of a batch operation.
@@ -217,17 +210,18 @@ async def get_batch_operation_endpoint(
         logger.error(f"Get batch operation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get batch operation")
 
+
 @router.get("/")
 async def get_user_batch_operations_endpoint(
     status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(50, ge=1, le=200, description="Max operations to return"),
     offset: int = Query(0, ge=0, description="Operations offset"),
     user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    _=Depends(require_capability("admin_batch_ops")),
 ):
     """
     Get all batch operations for the current user.
-    
+
     Status filters:
     - pending
     - running
@@ -243,24 +237,21 @@ async def get_user_batch_operations_endpoint(
             try:
                 status_filter = BatchOperationStatus(status)
             except ValueError:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid status: {status}"
-                )
+                raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
 
         # Get user operations
         operations = get_user_batch_operations(user.user_id, status_filter)
 
         # Apply pagination
         total_operations = len(operations)
-        paginated_operations = operations[offset:offset + limit]
+        paginated_operations = operations[offset : offset + limit]
 
         return {
             "operations": paginated_operations,
             "total": total_operations,
             "limit": limit,
             "offset": offset,
-            "has_more": offset + limit < total_operations
+            "has_more": offset + limit < total_operations,
         }
 
     except HTTPException:
@@ -269,10 +260,10 @@ async def get_user_batch_operations_endpoint(
         logger.error(f"Get user batch operations failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get batch operations")
 
+
 @router.get("/statistics")
 async def get_batch_statistics_endpoint(
-    user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    user: StorageUser = Depends(red_access), _=Depends(require_capability("admin_batch_ops"))
 ):
     """
     Get batch operations statistics.
@@ -286,71 +277,48 @@ async def get_batch_statistics_endpoint(
 
         user_stats = {
             "total_operations": len(user_operations),
-            "completed_operations": len([
-                op for op in user_operations
-                if op["status"] == "completed"
-            ]),
-            "failed_operations": len([
-                op for op in user_operations
-                if op["status"] == "failed"
-            ]),
-            "running_operations": len([
-                op for op in user_operations
-                if op["status"] == "running"
-            ]),
-            "pending_operations": len([
-                op for op in user_operations
-                if op["status"] == "pending"
-            ])
+            "completed_operations": len([op for op in user_operations if op["status"] == "completed"]),
+            "failed_operations": len([op for op in user_operations if op["status"] == "failed"]),
+            "running_operations": len([op for op in user_operations if op["status"] == "running"]),
+            "pending_operations": len([op for op in user_operations if op["status"] == "pending"]),
         }
 
-        return {
-            "global_statistics": stats,
-            "user_statistics": user_stats
-        }
+        return {"global_statistics": stats, "user_statistics": user_stats}
 
     except Exception as e:
         logger.error(f"Get batch statistics failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to get batch statistics")
 
+
 # =============================================================================
 # Batch Upload Endpoints
 # =============================================================================
+
 
 @router.post("/upload/prepare")
 async def prepare_batch_upload(
     files_info: list[BatchItemRequest],
     user: StorageUser = Depends(red_access),
-    _ = Depends(require_capability("admin_batch_ops"))
+    _=Depends(require_capability("admin_batch_ops")),
 ):
     """
     Prepare a batch upload operation.
-    
+
     This endpoint validates files and returns upload URLs/parameters
     for the actual upload process.
     """
     try:
         if len(files_info) > 100:
-            raise HTTPException(
-                status_code=400,
-                detail="Maximum 100 files per batch upload"
-            )
+            raise HTTPException(status_code=400, detail="Maximum 100 files per batch upload")
 
         # Validate each file
         validated_files = []
         for file_info in files_info:
             if not file_info.data.get("filename"):
-                raise HTTPException(
-                    status_code=400,
-                    detail="Filename is required for each file"
-                )
+                raise HTTPException(status_code=400, detail="Filename is required for each file")
 
             # Add validation logic here
-            validated_files.append({
-                "type": file_info.type,
-                "data": file_info.data,
-                "validated": True
-            })
+            validated_files.append({"type": file_info.type, "data": file_info.data, "validated": True})
 
         # Create batch upload operation
         operation_id = create_batch_operation(
@@ -360,8 +328,8 @@ async def prepare_batch_upload(
             settings={
                 "batch_size": 10,
                 "delay_between_batches": 0.5,
-                "max_file_size": 50 * 1024 * 1024  # 50MB
-            }
+                "max_file_size": 50 * 1024 * 1024,  # 50MB
+            },
         )
 
         return {
@@ -371,8 +339,8 @@ async def prepare_batch_upload(
             "upload_settings": {
                 "max_file_size": "50MB",
                 "allowed_types": ["pdf", "doc", "docx", "jpg", "png", "txt"],
-                "chunk_size": "8MB"
-            }
+                "chunk_size": "8MB",
+            },
         }
 
     except HTTPException:
@@ -381,11 +349,9 @@ async def prepare_batch_upload(
         logger.error(f"Prepare batch upload failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to prepare batch upload")
 
+
 @router.post("/upload/execute/{operation_id}")
-async def execute_batch_upload(
-    operation_id: str,
-    user: StorageUser = Depends(red_access)
-):
+async def execute_batch_upload(operation_id: str, user: StorageUser = Depends(red_access)):
     """
     Execute a prepared batch upload operation.
     """
@@ -411,7 +377,7 @@ async def execute_batch_upload(
             "success": True,
             "operation_id": operation_id,
             "message": "Batch upload started",
-            "websocket_channel": f"batch_operation_{operation_id}"
+            "websocket_channel": f"batch_operation_{operation_id}",
         }
 
     except HTTPException:
@@ -420,47 +386,37 @@ async def execute_batch_upload(
         logger.error(f"Execute batch upload failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to execute batch upload")
 
+
 # =============================================================================
 # Batch Delete Endpoints
 # =============================================================================
 
+
 @router.post("/delete/prepare")
-async def prepare_batch_delete(
-    document_ids: list[str],
-    user: StorageUser = Depends(red_access)
-):
+async def prepare_batch_delete(document_ids: list[str], user: StorageUser = Depends(red_access)):
     """
     Prepare a batch delete operation.
     """
     try:
         if len(document_ids) > 500:
-            raise HTTPException(
-                status_code=400,
-                detail="Maximum 500 documents per batch delete"
-            )
+            raise HTTPException(status_code=400, detail="Maximum 500 documents per batch delete")
 
         # Create delete items
         delete_items = []
         for doc_id in document_ids:
-            delete_items.append({
-                "type": "document",
-                "data": {
-                    "document_id": doc_id,
-                    "delete_from_storage": True,
-                    "delete_from_database": True
+            delete_items.append(
+                {
+                    "type": "document",
+                    "data": {"document_id": doc_id, "delete_from_storage": True, "delete_from_database": True},
                 }
-            })
+            )
 
         # Create batch delete operation
         operation_id = create_batch_operation(
             operation_type="delete",
             user_id=user.user_id,
             items=delete_items,
-            settings={
-                "batch_size": 20,
-                "delay_between_batches": 0.1,
-                "require_confirmation": True
-            }
+            settings={"batch_size": 20, "delay_between_batches": 0.1, "require_confirmation": True},
         )
 
         return {
@@ -468,7 +424,7 @@ async def prepare_batch_delete(
             "operation_id": operation_id,
             "documents_count": len(document_ids),
             "confirmation_required": True,
-            "warning": f"This will permanently delete {len(document_ids)} documents"
+            "warning": f"This will permanently delete {len(document_ids)} documents",
         }
 
     except HTTPException:
@@ -477,50 +433,46 @@ async def prepare_batch_delete(
         logger.error(f"Prepare batch delete failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to prepare batch delete")
 
+
 # =============================================================================
 # Batch Export Endpoints
 # =============================================================================
+
 
 @router.post("/export/prepare")
 async def prepare_batch_export(
     document_ids: list[str],
     export_format: str = Query("zip", description="Export format: zip, pdf, csv"),
-    user: StorageUser = Depends(red_access)
+    user: StorageUser = Depends(red_access),
 ):
     """
     Prepare a batch export operation.
     """
     try:
         if len(document_ids) > 1000:
-            raise HTTPException(
-                status_code=400,
-                detail="Maximum 1000 documents per batch export"
-            )
+            raise HTTPException(status_code=400, detail="Maximum 1000 documents per batch export")
 
         # Create export items
         export_items = []
         for doc_id in document_ids:
-            export_items.append({
-                "type": "document",
-                "data": {
-                    "document_id": doc_id,
-                    "include_metadata": True,
-                    "include_content": True,
-                    "include_previews": export_format == "zip"
+            export_items.append(
+                {
+                    "type": "document",
+                    "data": {
+                        "document_id": doc_id,
+                        "include_metadata": True,
+                        "include_content": True,
+                        "include_previews": export_format == "zip",
+                    },
                 }
-            })
+            )
 
         # Create batch export operation
         operation_id = create_batch_operation(
             operation_type="export",
             user_id=user.user_id,
             items=export_items,
-            settings={
-                "format": export_format,
-                "batch_size": 50,
-                "delay_between_batches": 1.0,
-                "compression_level": 6
-            }
+            settings={"format": export_format, "batch_size": 50, "delay_between_batches": 1.0, "compression_level": 6},
         )
 
         return {
@@ -528,7 +480,7 @@ async def prepare_batch_export(
             "operation_id": operation_id,
             "documents_count": len(document_ids),
             "export_format": export_format,
-            "estimated_size": f"{len(document_ids) * 2}MB"  # Rough estimate
+            "estimated_size": f"{len(document_ids) * 2}MB",  # Rough estimate
         }
 
     except HTTPException:
@@ -537,9 +489,11 @@ async def prepare_batch_export(
         logger.error(f"Prepare batch export failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to prepare batch export")
 
+
 # =============================================================================
 # Utility Endpoints
 # =============================================================================
+
 
 @router.get("/supported-operations")
 async def get_supported_operations():
@@ -553,56 +507,56 @@ async def get_supported_operations():
                 "name": "Bulk Upload",
                 "description": "Upload multiple documents at once",
                 "max_items": 100,
-                "settings": ["batch_size", "delay_between_batches", "max_file_size"]
+                "settings": ["batch_size", "delay_between_batches", "max_file_size"],
             },
             {
                 "type": "delete",
                 "name": "Bulk Delete",
                 "description": "Delete multiple documents at once",
                 "max_items": 500,
-                "settings": ["batch_size", "require_confirmation"]
+                "settings": ["batch_size", "require_confirmation"],
             },
             {
                 "type": "export",
                 "name": "Bulk Export",
                 "description": "Export multiple documents",
                 "max_items": 1000,
-                "settings": ["format", "compression_level", "include_previews"]
+                "settings": ["format", "compression_level", "include_previews"],
             },
             {
                 "type": "move",
                 "name": "Bulk Move",
                 "description": "Move multiple documents",
                 "max_items": 500,
-                "settings": ["destination_folder", "preserve_structure"]
+                "settings": ["destination_folder", "preserve_structure"],
             },
             {
                 "type": "copy",
                 "name": "Bulk Copy",
                 "description": "Copy multiple documents",
                 "max_items": 500,
-                "settings": ["destination_folder", "preserve_metadata"]
+                "settings": ["destination_folder", "preserve_metadata"],
             },
             {
                 "type": "tag",
                 "name": "Bulk Tag",
                 "description": "Tag multiple documents",
                 "max_items": 1000,
-                "settings": ["tags", "replace_existing"]
+                "settings": ["tags", "replace_existing"],
             },
             {
                 "type": "analyze",
                 "name": "Bulk Analysis",
                 "description": "Analyze multiple documents",
                 "max_items": 100,
-                "settings": ["analysis_type", "depth"]
+                "settings": ["analysis_type", "depth"],
             },
             {
                 "type": "preview",
                 "name": "Bulk Preview Generation",
                 "description": "Generate previews for multiple documents",
                 "max_items": 200,
-                "settings": ["preview_type", "quality", "size"]
-            }
+                "settings": ["preview_type", "quality", "size"],
+            },
         ]
     }

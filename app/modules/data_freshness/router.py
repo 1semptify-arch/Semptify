@@ -31,8 +31,8 @@ async def get_freshness_status():
                 "fresh": sum(1 for s in status.values() if s == FreshnessStatus.FRESH),
                 "stale": sum(1 for s in status.values() if s == FreshnessStatus.STALE),
                 "expired": sum(1 for s in status.values() if s == FreshnessStatus.EXPIRED),
-                "unknown": sum(1 for s in status.values() if s == FreshnessStatus.UNKNOWN)
-            }
+                "unknown": sum(1 for s in status.values() if s == FreshnessStatus.UNKNOWN),
+            },
         }
     except Exception as e:
         logger.error(f"Error getting freshness status: {str(e)}")
@@ -60,17 +60,13 @@ async def refresh_data(rule_id: str, background_tasks: BackgroundTasks):
             action=AuditAction.SYSTEM_CHANGE,
             resource=f"data_freshness:{rule_id}",
             details={"manual_refresh": True},
-            success=True
+            success=True,
         )
 
         # Queue background refresh
         background_tasks.add_task(data_freshness_manager.refresh_data, rule_id)
 
-        return {
-            "message": f"Refresh queued for {rule_id}",
-            "rule_id": rule_id,
-            "timestamp": utc_now().isoformat()
-        }
+        return {"message": f"Refresh queued for {rule_id}", "rule_id": rule_id, "timestamp": utc_now().isoformat()}
     except Exception as e:
         logger.error(f"Error queuing refresh for {rule_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to queue refresh")
@@ -86,7 +82,7 @@ async def refresh_stale_data(background_tasks: BackgroundTasks, priority: int = 
             action=AuditAction.SYSTEM_CHANGE,
             resource="data_freshness:bulk_refresh",
             details={"priority": priority},
-            success=True
+            success=True,
         )
 
         # Queue background refresh
@@ -95,7 +91,7 @@ async def refresh_stale_data(background_tasks: BackgroundTasks, priority: int = 
         return {
             "message": f"Bulk refresh queued for priority <= {priority}",
             "priority": priority,
-            "timestamp": utc_now().isoformat()
+            "timestamp": utc_now().isoformat(),
         }
     except Exception as e:
         logger.error(f"Error queuing bulk refresh: {str(e)}")
@@ -103,14 +99,10 @@ async def refresh_stale_data(background_tasks: BackgroundTasks, priority: int = 
 
 
 @router.get("/alerts")
-async def get_freshness_alerts(severity: str | None = None,
-                              acknowledged: bool | None = None):
+async def get_freshness_alerts(severity: str | None = None, acknowledged: bool | None = None):
     """Get freshness alerts."""
     try:
-        alerts = data_freshness_manager.get_alerts(
-            severity=severity,
-            acknowledged=acknowledged
-        )
+        alerts = data_freshness_manager.get_alerts(severity=severity, acknowledged=acknowledged)
 
         return {
             "alerts": [
@@ -122,7 +114,7 @@ async def get_freshness_alerts(severity: str | None = None,
                     "message": a.message,
                     "created_at": a.created_at.isoformat(),
                     "acknowledged": a.acknowledged,
-                    "resolved_at": a.resolved_at.isoformat() if a.resolved_at else None
+                    "resolved_at": a.resolved_at.isoformat() if a.resolved_at else None,
                 }
                 for a in alerts
             ]
@@ -164,7 +156,7 @@ async def get_freshness_rules():
                 "last_refresh": rule.last_refresh.isoformat() if rule.last_refresh else None,
                 "status": rule.status.value,
                 "error_count": rule.error_count,
-                "metadata": rule.metadata
+                "metadata": rule.metadata,
             }
 
         return {"rules": rules}
@@ -186,7 +178,7 @@ async def daily_refresh_cron():
             action=AuditAction.SYSTEM_CHANGE,
             resource="data_freshness:cron_daily",
             details={"cron_job": "daily_refresh"},
-            success=True
+            success=True,
         )
 
         # Refresh high-priority data (1-3)
@@ -205,8 +197,8 @@ async def daily_refresh_cron():
                 "total": total_count,
                 "successful": success_count,
                 "failed": total_count - success_count,
-                "details": results
-            }
+                "details": results,
+            },
         }
     except Exception as e:
         logger.error(f"Error in daily refresh cron: {str(e)}")
@@ -217,7 +209,7 @@ async def daily_refresh_cron():
             action=AuditAction.SYSTEM_CHANGE,
             resource="data_freshness:cron_daily",
             details={"cron_job": "daily_refresh", "error": str(e)},
-            success=False
+            success=False,
         )
 
         raise HTTPException(status_code=500, detail="Daily refresh failed")
@@ -235,7 +227,7 @@ async def hourly_deadlines_cron():
             action=AuditAction.SYSTEM_CHANGE,
             resource="data_freshness:cron_hourly",
             details={"cron_job": "hourly_deadlines"},
-            success=True
+            success=True,
         )
 
         # Refresh deadlines (highest priority)
@@ -243,11 +235,7 @@ async def hourly_deadlines_cron():
 
         logger.info(f"Hourly deadlines refresh completed: {'success' if success else 'failed'}")
 
-        return {
-            "message": "Hourly deadlines refresh completed",
-            "timestamp": utc_now().isoformat(),
-            "success": success
-        }
+        return {"message": "Hourly deadlines refresh completed", "timestamp": utc_now().isoformat(), "success": success}
     except Exception as e:
         logger.error(f"Error in hourly deadlines cron: {str(e)}")
 
@@ -257,7 +245,7 @@ async def hourly_deadlines_cron():
             action=AuditAction.SYSTEM_CHANGE,
             resource="data_freshness:cron_hourly",
             details={"cron_job": "hourly_deadlines", "error": str(e)},
-            success=False
+            success=False,
         )
 
         raise HTTPException(status_code=500, detail="Hourly deadlines refresh failed")
@@ -290,13 +278,9 @@ async def health_check():
                 "stale": sum(1 for s in status.values() if s == FreshnessStatus.STALE),
                 "fresh": sum(1 for s in status.values() if s == FreshnessStatus.FRESH),
                 "active_alerts": len(alerts),
-                "critical_alerts": len(critical_alerts)
-            }
+                "critical_alerts": len(critical_alerts),
+            },
         }
     except Exception as e:
         logger.error(f"Error in health check: {str(e)}")
-        return {
-            "status": "error",
-            "timestamp": utc_now().isoformat(),
-            "error": str(e)
-        }
+        return {"status": "error", "timestamp": utc_now().isoformat(), "error": str(e)}

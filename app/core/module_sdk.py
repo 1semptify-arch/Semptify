@@ -64,19 +64,22 @@ logger = logging.getLogger(__name__)
 # Capabilities
 # =============================================================================
 
+
 class ModuleCapability(str, Enum):
     """Capabilities a module can declare."""
-    ROUTER = "router"           # Provides FastAPI routes
-    CONTRACT = "contract"       # Declares function-group contracts
-    MESH = "mesh"               # Integrates with Positronic Mesh
-    DOCUMENT = "document"       # Handles document processing
-    WIDGET = "widget"           # Provides UI widgets
-    BACKGROUND = "background"   # Has background tasks
+
+    ROUTER = "router"  # Provides FastAPI routes
+    CONTRACT = "contract"  # Declares function-group contracts
+    MESH = "mesh"  # Integrates with Positronic Mesh
+    DOCUMENT = "document"  # Handles document processing
+    WIDGET = "widget"  # Provides UI widgets
+    BACKGROUND = "background"  # Has background tasks
 
 
 # =============================================================================
 # Manifest
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class ModuleManifest:
@@ -148,9 +151,11 @@ class ModuleManifest:
 # Installed Module (runtime)
 # =============================================================================
 
+
 @dataclass
 class InstalledModule:
     """Runtime representation of a module that has been registered."""
+
     manifest: ModuleManifest
     router: Any = None
     initialized: bool = False
@@ -168,6 +173,7 @@ class InstalledModule:
 # =============================================================================
 # Registry
 # =============================================================================
+
 
 class ModuleRegistry:
     """Global singleton registry tracking all installed Semptify modules.
@@ -188,9 +194,7 @@ class ModuleRegistry:
             return
         self._initialized = True
         self._modules: dict[str, InstalledModule] = {}
-        self._tier_index: dict[ProductTier, list[str]] = {
-            t: [] for t in ProductTier.all()
-        }
+        self._tier_index: dict[ProductTier, list[str]] = {t: [] for t in ProductTier.all()}
 
     # ------------------------------------------------------------------
     # Mutation (startup only)
@@ -213,17 +217,10 @@ class ModuleRegistry:
         return self._modules.get(name)
 
     def list_by_tier(self, tier: ProductTier) -> list[InstalledModule]:
-        return [
-            self._modules[n]
-            for n in self._tier_index.get(tier, [])
-            if n in self._modules
-        ]
+        return [self._modules[n] for n in self._tier_index.get(tier, []) if n in self._modules]
 
     def list_by_capability(self, capability: ModuleCapability) -> list[InstalledModule]:
-        return [
-            m for m in self._modules.values()
-            if capability in m.manifest.capabilities
-        ]
+        return [m for m in self._modules.values() if capability in m.manifest.capabilities]
 
     def all(self) -> list[InstalledModule]:
         return list(self._modules.values())
@@ -234,15 +231,19 @@ class ModuleRegistry:
         for module in self._modules.values():
             m = module.manifest
             if ModuleCapability.ROUTER in m.capabilities and not m.router_module:
-                violations.append({
-                    "module": m.name,
-                    "reason": "declares ROUTER but router_module is empty",
-                })
+                violations.append(
+                    {
+                        "module": m.name,
+                        "reason": "declares ROUTER but router_module is empty",
+                    }
+                )
             if ModuleCapability.CONTRACT in m.capabilities and not m.contracts:
-                violations.append({
-                    "module": m.name,
-                    "reason": "declares CONTRACT but contracts is empty",
-                })
+                violations.append(
+                    {
+                        "module": m.name,
+                        "reason": "declares CONTRACT but contracts is empty",
+                    }
+                )
         return {
             "valid": len(violations) == 0,
             "total": len(self._modules),
@@ -256,6 +257,7 @@ module_registry = ModuleRegistry()
 # =============================================================================
 # Registration API
 # =============================================================================
+
 
 def register_module(app: FastAPI, manifest: ModuleManifest) -> InstalledModule:
     """Register a single module with the Semptify platform.
@@ -412,13 +414,7 @@ def get_module_status() -> dict[str, Any]:
     validation = registry.validate()
     return {
         "installed_modules": [m.to_dict() for m in registry.all()],
-        "by_tier": {
-            t.value: [m.manifest.name for m in registry.list_by_tier(t)]
-            for t in ProductTier.all()
-        },
-        "by_capability": {
-            c.value: [m.manifest.name for m in registry.list_by_capability(c)]
-            for c in ModuleCapability
-        },
+        "by_tier": {t.value: [m.manifest.name for m in registry.list_by_tier(t)] for t in ProductTier.all()},
+        "by_capability": {c.value: [m.manifest.name for m in registry.list_by_capability(c)] for c in ModuleCapability},
         "validation": validation,
     }

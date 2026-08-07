@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 # Main entry points
 # ---------------------------------------------------------------------------
 
+
 async def init_vault(
     db: AsyncSession,
     user_id: str,

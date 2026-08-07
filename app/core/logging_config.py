@@ -41,19 +41,45 @@ class JSONFormatter(logging.Formatter):
         # Add extra fields from record
         if self.include_extras:
             # Standard extra fields we add
-            for key in ["request_id", "user_id", "path", "method", "status_code",
-                       "duration_ms", "error_code", "client_ip"]:
+            for key in [
+                "request_id",
+                "user_id",
+                "path",
+                "method",
+                "status_code",
+                "duration_ms",
+                "error_code",
+                "client_ip",
+            ]:
                 if hasattr(record, key):
                     log_data[key] = getattr(record, key)
 
             # Any other extra fields
             for key, value in record.__dict__.items():
-                if key not in ["name", "msg", "args", "created", "filename",
-                              "funcName", "levelname", "levelno", "lineno",
-                              "module", "msecs", "pathname", "process",
-                              "processName", "relativeCreated", "stack_info",
-                              "exc_info", "exc_text", "thread", "threadName",
-                              "message", "taskName"]:
+                if key not in [
+                    "name",
+                    "msg",
+                    "args",
+                    "created",
+                    "filename",
+                    "funcName",
+                    "levelname",
+                    "levelno",
+                    "lineno",
+                    "module",
+                    "msecs",
+                    "pathname",
+                    "process",
+                    "processName",
+                    "relativeCreated",
+                    "stack_info",
+                    "exc_info",
+                    "exc_text",
+                    "thread",
+                    "threadName",
+                    "message",
+                    "taskName",
+                ]:
                     if not key.startswith("_"):
                         log_data[key] = value
 
@@ -68,10 +94,10 @@ class ColoredFormatter(logging.Formatter):
 
     # ANSI color codes
     COLORS = {
-        "DEBUG": "\033[36m",     # Cyan
-        "INFO": "\033[32m",      # Green
-        "WARNING": "\033[33m",   # Yellow
-        "ERROR": "\033[31m",     # Red
+        "DEBUG": "\033[36m",  # Cyan
+        "INFO": "\033[32m",  # Green
+        "WARNING": "\033[33m",  # Yellow
+        "ERROR": "\033[31m",  # Red
         "CRITICAL": "\033[35m",  # Magenta
     }
     RESET = "\033[0m"
@@ -105,7 +131,7 @@ def setup_logging(
 ) -> None:
     """
     Configure application logging.
-    
+
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         json_format: Use JSON formatting (for production)
@@ -146,7 +172,7 @@ def setup_logging(
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger instance.
-    
+
     Usage:
         from app.core.logging_config import get_logger
         logger = get_logger(__name__)
@@ -159,7 +185,7 @@ def get_logger(name: str) -> logging.Logger:
 class LogContext:
     """
     Context manager for adding contextual information to logs.
-    
+
     Usage:
         with LogContext(request_id="abc123", user_id="user1"):
             logger.info("Processing request")  # Will include request_id and user_id

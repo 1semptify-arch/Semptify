@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GeminiAnalysisResult:
     """Result from Gemini document analysis."""
+
     doc_type: str
     confidence: float
     title: str
@@ -42,15 +43,15 @@ class GeminiAIService:
 
     # Model options
     MODELS = {
-        "flash": "gemini-1.5-flash",      # Fast, free tier friendly
-        "pro": "gemini-1.5-pro",          # More capable
-        "flash-8b": "gemini-1.5-flash-8b", # Fastest, lowest cost
+        "flash": "gemini-1.5-flash",  # Fast, free tier friendly
+        "pro": "gemini-1.5-pro",  # More capable
+        "flash-8b": "gemini-1.5-flash-8b",  # Fastest, lowest cost
     }
 
     def __init__(self):
         settings = get_settings()
-        self.api_key = getattr(settings, 'gemini_api_key', None) or getattr(settings, 'google_ai_api_key', None)
-        self.model = getattr(settings, 'gemini_model', self.MODELS["flash"])
+        self.api_key = getattr(settings, "gemini_api_key", None) or getattr(settings, "google_ai_api_key", None)
+        self.model = getattr(settings, "gemini_model", self.MODELS["flash"])
 
     @property
     def is_available(self) -> bool:
@@ -65,12 +66,12 @@ class GeminiAIService:
     ) -> GeminiAnalysisResult:
         """
         Analyze a document using Gemini.
-        
+
         Args:
             text: Document text content
             filename: Original filename
             doc_hint: Optional hint about document type
-            
+
         Returns:
             GeminiAnalysisResult with extracted information
         """
@@ -90,8 +91,8 @@ class GeminiAIService:
                         "temperature": 0.1,
                         "topP": 0.95,
                         "maxOutputTokens": 4096,
-                    }
-                }
+                    },
+                },
             )
 
             if response.status_code != 200:
@@ -112,12 +113,12 @@ class GeminiAIService:
     ) -> str:
         """
         Chat with Gemini about tenant rights.
-        
+
         Args:
             message: User's question
             context: Context type (tenant_rights, eviction_defense, etc.)
             history: Previous conversation history
-            
+
         Returns:
             AI response text
         """
@@ -130,10 +131,7 @@ class GeminiAIService:
         contents = []
 
         # Add system context as first user message
-        contents.append({
-            "role": "user",
-            "parts": [{"text": f"Context: {system_prompt}\n\nQuestion: {message}"}]
-        })
+        contents.append({"role": "user", "parts": [{"text": f"Context: {system_prompt}\n\nQuestion: {message}"}]})
 
         url = f"{self.API_URL}/{self.model}:generateContent?key={self.api_key}"
 
@@ -146,15 +144,20 @@ class GeminiAIService:
                         "temperature": 0.7,
                         "topP": 0.95,
                         "maxOutputTokens": 2048,
-                    }
-                }
+                    },
+                },
             )
 
             if response.status_code != 200:
                 raise ValueError(f"Gemini API error: {response.status_code}")
 
             data = response.json()
-            return data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "I couldn't process that request.")
+            return (
+                data.get("candidates", [{}])[0]
+                .get("content", {})
+                .get("parts", [{}])[0]
+                .get("text", "I couldn't process that request.")
+            )
 
     async def generate_document(
         self,
@@ -184,8 +187,8 @@ Include proper formatting, case caption, and all required sections.
                     "generationConfig": {
                         "temperature": 0.3,
                         "maxOutputTokens": 4096,
-                    }
-                }
+                    },
+                },
             )
 
             if response.status_code != 200:
@@ -276,7 +279,6 @@ You provide accurate, practical advice about:
 
 Always recommend consulting with a licensed attorney for specific legal advice.
 Provide citations to Minnesota statutes when relevant.""",
-
             "eviction_defense": """You are an expert in Minnesota eviction defense.
 Help tenants understand:
 - Eviction process timeline and deadlines

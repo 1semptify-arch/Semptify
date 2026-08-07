@@ -39,8 +39,10 @@ logger = logging.getLogger(__name__)
 # Provider & Role Codes
 # =============================================================================
 
+
 class ProviderCode(str, Enum):
     """Single-character provider codes."""
+
     GOOGLE_DRIVE = "G"
     DROPBOX = "D"
     ONEDRIVE = "O"
@@ -48,6 +50,7 @@ class ProviderCode(str, Enum):
 
 class RoleCode(str, Enum):
     """Single-character role codes."""
+
     ADMIN = "A"
     MANAGER = "M"
     USER = "U"
@@ -75,8 +78,8 @@ CODE_TO_PROVIDER = {
 ROLE_TO_CODE = {
     "admin": RoleCode.ADMIN,
     "manager": RoleCode.MANAGER,
-    "tenant": RoleCode.USER,      # Maps to 'U' code, distinct from USER string
-    "user": RoleCode.USER,        # Legacy alias
+    "tenant": RoleCode.USER,  # Maps to 'U' code, distinct from USER string
+    "user": RoleCode.USER,  # Legacy alias
     "advocate": RoleCode.ADVOCATE,
     "legal": RoleCode.LEGAL,
     "judge": RoleCode.JUDGE,
@@ -85,13 +88,13 @@ ROLE_TO_CODE = {
 CODE_TO_ROLE = {
     RoleCode.ADMIN: "admin",
     RoleCode.MANAGER: "manager",
-    RoleCode.USER: "tenant",      # 'U' code = tenant (canonical housing role)
+    RoleCode.USER: "tenant",  # 'U' code = tenant (canonical housing role)
     RoleCode.ADVOCATE: "advocate",
     RoleCode.LEGAL: "legal",
     RoleCode.JUDGE: "judge",
     "A": "admin",
     "M": "manager",
-    "U": "tenant",              # 'U' decodes to tenant
+    "U": "tenant",  # 'U' decodes to tenant
     "V": "advocate",
     "L": "legal",
     "J": "judge",
@@ -101,6 +104,7 @@ CODE_TO_ROLE = {
 # =============================================================================
 # User ID Operations
 # =============================================================================
+
 
 def generate_user_id(provider: str, role: str = "user") -> str:
     """
@@ -123,16 +127,13 @@ def generate_user_id(provider: str, role: str = "user") -> str:
 
     # Generate cryptographically secure 8-char random suffix
     # Use token_urlsafe for URL-safe characters, then convert to alphanumeric
-    random_bytes = secrets.token_bytes(6)  # 48 bits = ~8 base64 chars
+    secrets.token_bytes(6)  # 48 bits = ~8 base64 chars
     random_part = secrets.token_urlsafe(6)[:8]  # Take first 8 chars
 
     # Ensure all characters are alphanumeric (replace URL-safe chars if needed)
     alphabet = string.ascii_letters + string.digits
     # If any non-alphanumeric chars appear, replace them with random alphanumeric
-    random_part = ''.join(
-        c if c in alphabet else secrets.choice(alphabet)
-        for c in random_part
-    )
+    random_part = "".join(c if c in alphabet else secrets.choice(alphabet) for c in random_part)
 
     # Ensure exactly 8 characters
     while len(random_part) < 8:
@@ -146,13 +147,13 @@ def generate_user_id(provider: str, role: str = "user") -> str:
 def parse_user_id(user_id: str) -> tuple[str | None, str | None, str | None]:
     """
     Parse a user ID to extract provider, role, and unique part.
-    
+
     Args:
         user_id: User ID like "GT7x9kM2pQ"
-    
+
     Returns:
         Tuple of (provider, role, unique_id) or (None, None, None) if invalid
-    
+
     Example:
         >>> parse_user_id("GU7x9kM2pQ")
         ('google_drive', 'user', '7x9kM2pQ')
@@ -180,7 +181,7 @@ def parse_user_id(user_id: str) -> tuple[str | None, str | None, str | None]:
 def update_user_id_role(user_id: str, new_role: str) -> str | None:
     """
     Create a new user ID with updated role (keeps provider and unique part).
-    
+
     Args:
         user_id: Current user ID
         new_role: New role (user, manager, advocate, legal, admin)
@@ -216,9 +217,11 @@ def get_role_from_user_id(user_id: str) -> str | None:
 # Parsed User ID Object
 # =============================================================================
 
+
 @dataclass
 class ParsedUserId:
     """Structured representation of a parsed user ID."""
+
     user_id: str
     provider: str
     role: str

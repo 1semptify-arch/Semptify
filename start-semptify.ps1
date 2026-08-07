@@ -97,7 +97,7 @@ try {
 
     # Step 2: Database & Configure
     Write-Step 2 "Configuring environment..."
-    
+
     # Database setup
     if ($WithDocker) {
         Write-Host "  -> Starting Docker + PostgreSQL..." -ForegroundColor Gray
@@ -111,21 +111,21 @@ try {
     }
     elseif ($WithPostgres) {
         Write-Host "  -> Checking PostgreSQL service..." -ForegroundColor Gray
-        
+
         # Dynamic PostgreSQL service detection
         $pgService = Get-Service | Where-Object {
             $_.Name -match 'postgresql|postgres' -or $_.DisplayName -match 'PostgreSQL'
         } | Sort-Object Name | Select-Object -First 1
-        
+
         if (-not $pgService) {
             throw "No PostgreSQL service found. Install PostgreSQL or use -WithDocker."
         }
-        
+
         if ($pgService.Status -ne 'Running') {
             Write-Host "  -> Starting $($pgService.Name)..." -ForegroundColor Gray
             Start-Service -Name $pgService.Name -ErrorAction Stop
         }
-        
+
         # Wait for PostgreSQL to accept connections
         Write-Host "  -> Waiting for PostgreSQL to be ready..." -ForegroundColor Gray
         $pgReady = $false
@@ -136,19 +136,19 @@ try {
             } catch {}
             Start-Sleep -Milliseconds 500
         }
-        
+
         if (-not $pgReady) {
             throw "PostgreSQL did not become ready on port 5432"
         }
-        
+
         $env:DATABASE_URL = "postgresql+asyncpg://semptify:semptify@localhost:5432/semptify"
         Write-Host "  -> PostgreSQL ready (service: $($pgService.Name))" -ForegroundColor Green
     }
-    
+
     $env:SECURITY_MODE = $SECURITY_MODE
     $env:PYTHONPATH = $SCRIPT_DIR
     $env:PYTHONIOENCODING = 'utf-8'
-    
+
     # Ensure SECRET_KEY is set (generate if missing)
     if (-not $env:SECRET_KEY -or $env:SECRET_KEY -eq 'change-me-in-production') {
         $rng = New-Object System.Security.Cryptography.RNGCryptoServiceProvider
@@ -157,7 +157,7 @@ try {
         $env:SECRET_KEY = [Convert]::ToBase64String($bytes)
         Write-Host "  -> SECRET_KEY: auto-generated" -ForegroundColor Gray
     }
-    
+
     Write-Host "  -> Security mode: $SECURITY_MODE" -ForegroundColor Gray
     Write-Host "  -> Server: http://${ListenHost}:${Port}" -ForegroundColor Gray
 

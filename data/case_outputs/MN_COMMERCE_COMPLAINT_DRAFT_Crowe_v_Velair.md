@@ -1,8 +1,8 @@
 # MINNESOTA DEPARTMENT OF COMMERCE
 ## Real Estate Broker/Agent Complaint
 
-**File Online:** https://mn.gov/commerce/consumers/file-a-complaint/  
-**Phone:** (651) 539-1600 | **Toll-Free:** 1-800-657-3602  
+**File Online:** https://mn.gov/commerce/consumers/file-a-complaint/
+**Phone:** (651) 539-1600 | **Toll-Free:** 1-800-657-3602
 **Email:** consumer.protection@state.mn.us
 
 ---
@@ -246,5 +246,5 @@ Before filing, verify Ryan Schwickert's license status:
 
 ---
 
-*Draft prepared: December 24, 2025*  
+*Draft prepared: December 24, 2025*
 *Based on case documents in Semptify*

@@ -402,11 +402,11 @@
   .next-step-actions {
     flex-direction: column;
   }
-  
+
   .next-step-action-btn {
     width: 100%;
   }
-  
+
   .next-step-meta {
     flex-direction: column;
     align-items: flex-start;

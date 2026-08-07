@@ -1,7 +1,7 @@
 # Semptify Admin System — Roadmap & Status
 
-**Created**: 2026-06-08  
-**Purpose**: Replace human recall with documented plan  
+**Created**: 2026-06-08
+**Purpose**: Replace human recall with documented plan
 **Status**: Phase 1 (Functional Foundation)
 
 ---

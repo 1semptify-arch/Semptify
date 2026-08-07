@@ -17,67 +17,79 @@ class UserRole(str, Enum):
 
 
 ROLE_PERMISSIONS: dict[UserRole, frozenset[str]] = {
-    UserRole.TENANT: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-    }),
-    UserRole.ADVOCATE: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-        "read:client_cases",
-        "write:client_messages",
-        "deliver:documents",
-    }),
-    UserRole.MANAGER: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-        "read:client_cases",
-        "write:client_messages",
-        "manage:cases",
-    }),
-    UserRole.LEGAL: frozenset({
-        "read:own_documents",
-        "write:own_documents",
-        "read:vault",
-        "write:vault",
-        "read:timeline",
-        "write:timeline",
-        "read:contacts",
-        "write:contacts",
-        "read:client_cases",
-        "write:legal_filings",
-        "read:court_forms",
-        "write:court_forms",
-        "access:privilege_docs",
-    }),
-    UserRole.ADMIN: frozenset({
-        "read:all",
-        "write:all",
-        "admin:users",
-        "admin:system",
-        "admin:analytics",
-    }),
-    UserRole.ANONYMOUS: frozenset({
-        "read:public",
-    }),
+    UserRole.TENANT: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+        }
+    ),
+    UserRole.ADVOCATE: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+            "read:client_cases",
+            "write:client_messages",
+            "deliver:documents",
+        }
+    ),
+    UserRole.MANAGER: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+            "read:client_cases",
+            "write:client_messages",
+            "manage:cases",
+        }
+    ),
+    UserRole.LEGAL: frozenset(
+        {
+            "read:own_documents",
+            "write:own_documents",
+            "read:vault",
+            "write:vault",
+            "read:timeline",
+            "write:timeline",
+            "read:contacts",
+            "write:contacts",
+            "read:client_cases",
+            "write:legal_filings",
+            "read:court_forms",
+            "write:court_forms",
+            "access:privilege_docs",
+        }
+    ),
+    UserRole.ADMIN: frozenset(
+        {
+            "read:all",
+            "write:all",
+            "admin:users",
+            "admin:system",
+            "admin:analytics",
+        }
+    ),
+    UserRole.ANONYMOUS: frozenset(
+        {
+            "read:public",
+        }
+    ),
 }
 
 

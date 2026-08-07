@@ -304,10 +304,10 @@
     <main class="search-container">
         <div class="search-box">
             <div class="search-input-group">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    class="search-input" 
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="search-input"
                     placeholder="Search documents, timeline, contacts, laws..."
                     autofocus
                 >
@@ -315,7 +315,7 @@
                     Search
                 </button>
             </div>
-            
+
             <div class="search-filters">
                 <div class="filter-chip active" data-type="all" onclick="toggleFilter(this)">All</div>
                 <div class="filter-chip" data-type="document" onclick="toggleFilter(this)">Documents</div>
@@ -366,7 +366,7 @@
 
         function toggleFilter(chip) {
             const type = chip.dataset.type;
-            
+
             if (type === 'all') {
                 // Select "All" and deselect others
                 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -376,7 +376,7 @@
                 // Deselect "All" if selecting specific types
                 document.querySelector('.filter-chip[data-type="all"]').classList.remove('active');
                 activeFilters.delete('all');
-                
+
                 // Toggle the selected filter
                 if (activeFilters.has(type)) {
                     activeFilters.delete(type);
@@ -385,14 +385,14 @@
                     activeFilters.add(type);
                     chip.classList.add('active');
                 }
-                
+
                 // If no filters selected, default to "All"
                 if (activeFilters.size === 0) {
                     document.querySelector('.filter-chip[data-type="all"]').classList.add('active');
                     activeFilters = new Set(['all']);
                 }
             }
-            
+
             // Re-render results if we have them
             if (searchResults) {
                 renderResults(searchResults);
@@ -402,32 +402,32 @@
         async function performSearch() {
             const input = document.getElementById('searchInput');
             const query = input.value.trim();
-            
+
             if (!query) {
                 return;
             }
-            
+
             currentQuery = query;
-            
+
             // Update URL
             const url = new URL(window.location);
             url.searchParams.set('q', query);
             window.history.pushState({}, '', url);
-            
+
             // Show loading
             showLoading();
-            
+
             try {
                 const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}&limit=20`);
-                
+
                 if (!response.ok) {
                     throw new Error('Search failed');
                 }
-                
+
                 const data = await response.json();
                 searchResults = data;
                 renderResults(data);
-                
+
             } catch (error) {
                 console.error('Search error:', error);
                 showError('Search failed. Please try again.');
@@ -457,7 +457,7 @@
 
         function renderResults(data) {
             const resultsContent = document.getElementById('resultsContent');
-            
+
             if (!data.total_results || data.total_results === 0) {
                 resultsContent.innerHTML = `
                     <div class="results-empty">
@@ -468,31 +468,31 @@
                 `;
                 return;
             }
-            
+
             let html = `
                 <div class="results-header">
                     <h2>Search Results</h2>
                     <div class="results-count">${data.total_results} results found</div>
                 </div>
             `;
-            
+
             // Render each section if it has results and is not filtered out
             if (shouldShowSection('document') && data.documents.length > 0) {
                 html += renderSection('Documents', data.documents, 'document');
             }
-            
+
             if (shouldShowSection('timeline') && data.timeline.length > 0) {
                 html += renderSection('Timeline Events', data.timeline, 'timeline');
             }
-            
+
             if (shouldShowSection('contact') && data.contacts.length > 0) {
                 html += renderSection('Contacts', data.contacts, 'contact');
             }
-            
+
             if (shouldShowSection('law') && data.law_library.length > 0) {
                 html += renderSection('Law Library', data.law_library, 'law');
             }
-            
+
             resultsContent.innerHTML = html;
         }
 
@@ -507,18 +507,18 @@
                 contact: '●',
                 law: '▸'
             }[type] || '●';
-            
+
             let html = `
                 <div class="result-section">
                     <h3 class="result-section-title">
                         ${icon} ${title} (${results.length})
                     </h3>
             `;
-            
+
             results.slice(0, 10).forEach(result => {
                 html += renderResult(result, type);
             });
-            
+
             html += '</div>';
             return html;
         }
@@ -526,9 +526,9 @@
         function renderResult(result, type) {
             const snippet = highlightQuery(result.snippet || '', currentQuery);
             const metadata = result.metadata || {};
-            
+
             let metaHtml = '';
-            
+
             if (type === 'document') {
                 metaHtml = `
                     <span class="result-type document">Document</span>
@@ -555,7 +555,7 @@
                     ${metadata.keywords ? `<span>Keywords: ${metadata.keywords.join(', ')}</span>` : ''}
                 `;
             }
-            
+
             return `
                 <div class="result-item" onclick="window.location.href='${result.url}'">
                     <div class="result-title">${escapeHtml(result.title)}</div>
@@ -570,7 +570,7 @@
 
         function highlightQuery(text, query) {
             if (!text || !query) return escapeHtml(text);
-            
+
             const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
             return escapeHtml(text).replace(regex, '<span class="highlight">$1</span>');
         }
@@ -587,7 +587,7 @@
 
         function formatDate(dateString) {
             if (!dateString) return '';
-            
+
             try {
                 const date = new Date(dateString);
                 return date.toLocaleDateString();

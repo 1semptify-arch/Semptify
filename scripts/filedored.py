@@ -39,6 +39,7 @@ HASH_ALGO = "sha256"
 # UTILITIES
 # -----------------------------
 
+
 def ensure_dir(base: Path, rel: str) -> Path:
     """Create folder if missing."""
     target = base / rel
@@ -58,6 +59,7 @@ def file_hash(path: Path, algo: str = HASH_ALGO) -> str:
 # -----------------------------
 # AI CLASSIFICATION HOOK
 # -----------------------------
+
 
 def ai_classify_document(path: Path) -> str:
     """
@@ -88,6 +90,7 @@ def ai_route(base: Path, file_path: Path, label: str) -> Path:
 # -----------------------------
 # MAIN VAULT POST‑PROCESSOR
 # -----------------------------
+
 
 def filedored_run(root_path: str, enable_ai: bool = True) -> dict:
     """
@@ -148,12 +151,7 @@ def filedored_run(root_path: str, enable_ai: bool = True) -> dict:
             shutil.move(str(src), str(dst))
             moved.append(str(dst))
 
-    return {
-        "sorted": moved,
-        "duplicates": duplicates,
-        "ai_classified": ai_sorted,
-        "status": "complete"
-    }
+    return {"sorted": moved, "duplicates": duplicates, "ai_classified": ai_sorted, "status": "complete"}
 
 
 # -----------------------------

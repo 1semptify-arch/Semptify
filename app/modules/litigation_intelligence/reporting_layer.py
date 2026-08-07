@@ -19,8 +19,10 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
+
 class ReportType(Enum):
     """Types of litigation reports."""
+
     CASE_SUMMARY = "case_summary"
     ENTITY_ANALYSIS = "entity_analysis"
     PATTERN_TRENDS = "pattern_trends"
@@ -29,18 +31,22 @@ class ReportType(Enum):
     RISK_ASSESSMENT = "risk_assessment"
     LEGAL_PRECEDENTS = "legal_precedents"
 
+
 @dataclass
 class ReportMetric:
     """Metric data for reports."""
+
     name: str
     value: float
     unit: str
     trend: str  # increasing, decreasing, stable
     comparison_period: str
 
+
 @dataclass
 class LitigationReport:
     """Complete litigation report."""
+
     report_id: str
     report_type: ReportType
     generated_at: datetime
@@ -63,6 +69,7 @@ class LitigationReport:
             "data": self.data,
         }
 
+
 class ReportingLayer:
     """Main reporting layer for litigation intelligence."""
 
@@ -78,19 +85,17 @@ class ReportingLayer:
             "entity_metrics": EntityMetricsCalculator(),
             "pattern_metrics": PatternMetricsCalculator(),
             "success_metrics": SuccessMetricsCalculator(),
-            "timeline_metrics": TimelineMetricsCalculator()
+            "timeline_metrics": TimelineMetricsCalculator(),
         }
 
-    async def generate_case_summary_report(self,
-                                      time_period: str = "30_days",
-                                      filters: dict[str, Any] = None) -> LitigationReport:
+    async def generate_case_summary_report(
+        self, time_period: str = "30_days", filters: dict[str, Any] = None
+    ) -> LitigationReport:
         """Generate comprehensive case summary report."""
         logger.info("Generating case summary report")
 
         # Calculate metrics
-        case_metrics = await self.metric_calculators["case_metrics"].calculate(
-            time_period, filters
-        )
+        case_metrics = await self.metric_calculators["case_metrics"].calculate(time_period, filters)
 
         # Generate insights
         insights = self._generate_case_insights(case_metrics)
@@ -106,7 +111,7 @@ class ReportingLayer:
             metrics=case_metrics,
             insights=insights,
             recommendations=recommendations,
-            data={"filters": filters or {}}
+            data={"filters": filters or {}},
         )
 
         # Cache report
@@ -114,16 +119,14 @@ class ReportingLayer:
 
         return report
 
-    async def generate_entity_analysis_report(self,
-                                        time_period: str = "30_days",
-                                        entity_type: str = None) -> LitigationReport:
+    async def generate_entity_analysis_report(
+        self, time_period: str = "30_days", entity_type: str = None
+    ) -> LitigationReport:
         """Generate entity analysis report."""
         logger.info(f"Generating entity analysis report for {entity_type}")
 
         # Calculate entity metrics
-        entity_metrics = self.metric_calculators["entity_metrics"].calculate(
-            time_period, {"entity_type": entity_type}
-        )
+        entity_metrics = self.metric_calculators["entity_metrics"].calculate(time_period, {"entity_type": entity_type})
 
         # Generate insights
         insights = self._generate_entity_insights(entity_metrics, entity_type)
@@ -139,7 +142,7 @@ class ReportingLayer:
             metrics=entity_metrics,
             insights=insights,
             recommendations=recommendations,
-            data={"entity_type": entity_type}
+            data={"entity_type": entity_type},
         )
 
         # Cache report
@@ -147,15 +150,12 @@ class ReportingLayer:
 
         return report
 
-    async def generate_pattern_trends_report(self,
-                                       time_period: str = "90_days") -> LitigationReport:
+    async def generate_pattern_trends_report(self, time_period: str = "90_days") -> LitigationReport:
         """Generate pattern trends report."""
         logger.info("Generating pattern trends report")
 
         # Calculate pattern metrics
-        pattern_metrics = self.metric_calculators["pattern_metrics"].calculate(
-            time_period
-        )
+        pattern_metrics = self.metric_calculators["pattern_metrics"].calculate(time_period)
 
         # Generate insights
         insights = self._generate_pattern_insights(pattern_metrics)
@@ -171,7 +171,7 @@ class ReportingLayer:
             metrics=pattern_metrics,
             insights=insights,
             recommendations=recommendations,
-            data={}
+            data={},
         )
 
         # Cache report
@@ -179,15 +179,12 @@ class ReportingLayer:
 
         return report
 
-    async def generate_success_metrics_report(self,
-                                       time_period: str = "180_days") -> LitigationReport:
+    async def generate_success_metrics_report(self, time_period: str = "180_days") -> LitigationReport:
         """Generate success metrics report."""
         logger.info("Generating success metrics report")
 
         # Calculate success metrics
-        success_metrics = self.metric_calculators["success_metrics"].calculate(
-            time_period
-        )
+        success_metrics = self.metric_calculators["success_metrics"].calculate(time_period)
 
         # Generate insights
         insights = self._generate_success_insights(success_metrics)
@@ -203,7 +200,7 @@ class ReportingLayer:
             metrics=success_metrics,
             insights=insights,
             recommendations=recommendations,
-            data={}
+            data={},
         )
 
         # Cache report
@@ -298,11 +295,13 @@ class ReportingLayer:
         if backlog_rate and backlog_rate.value > 0.2:
             recommendations.append("Implement case prioritization system to reduce backlog")
 
-        recommendations.extend([
-            "Regular case review meetings to ensure progress",
-            "Document successful strategies for future reference",
-            "Consider automation for routine case tasks"
-        ])
+        recommendations.extend(
+            [
+                "Regular case review meetings to ensure progress",
+                "Document successful strategies for future reference",
+                "Consider automation for routine case tasks",
+            ]
+        )
 
         return recommendations
 
@@ -311,17 +310,21 @@ class ReportingLayer:
         recommendations = []
 
         if entity_type == "attorney":
-            recommendations.extend([
-                "Build attorney expertise database for better matching",
-                "Consider attorney performance metrics",
-                "Develop attorney referral network"
-            ])
+            recommendations.extend(
+                [
+                    "Build attorney expertise database for better matching",
+                    "Consider attorney performance metrics",
+                    "Develop attorney referral network",
+                ]
+            )
         elif entity_type == "property":
-            recommendations.extend([
-                "Implement property entity clustering analysis",
-                "Track property ownership patterns",
-                "Develop property compliance monitoring"
-            ])
+            recommendations.extend(
+                [
+                    "Implement property entity clustering analysis",
+                    "Track property ownership patterns",
+                    "Develop property compliance monitoring",
+                ]
+            )
 
         return recommendations
 
@@ -333,17 +336,21 @@ class ReportingLayer:
         repeat_offender_rate = next((m for m in metrics if m.name == "repeat_offender_rate"), None)
 
         if repeat_offender_rate and repeat_offender_rate.value > 0.2:
-            recommendations.extend([
-                "Implement enhanced penalties for repeat offenders",
-                "Develop early warning system for repeat patterns",
-                "Consider regulatory reporting of repeat offenders"
-            ])
+            recommendations.extend(
+                [
+                    "Implement enhanced penalties for repeat offenders",
+                    "Develop early warning system for repeat patterns",
+                    "Consider regulatory reporting of repeat offenders",
+                ]
+            )
 
-        recommendations.extend([
-            "Regular pattern analysis to identify emerging trends",
-            "Develop pattern-based case assessment tools",
-            "Create pattern alerting system for high-risk patterns"
-        ])
+        recommendations.extend(
+            [
+                "Regular pattern analysis to identify emerging trends",
+                "Develop pattern-based case assessment tools",
+                "Create pattern alerting system for high-risk patterns",
+            ]
+        )
 
         return recommendations
 
@@ -355,17 +362,21 @@ class ReportingLayer:
         settlement_rate = next((m for m in metrics if m.name == "settlement_rate"), None)
 
         if settlement_rate and settlement_rate.value < 0.6:
-            recommendations.extend([
-                "Review negotiation strategies",
-                "Consider alternative dispute resolution methods",
-                "Analyze factors affecting settlement rates"
-            ])
+            recommendations.extend(
+                [
+                    "Review negotiation strategies",
+                    "Consider alternative dispute resolution methods",
+                    "Analyze factors affecting settlement rates",
+                ]
+            )
 
-        recommendations.extend([
-            "Track success factors for continuous improvement",
-            "Develop best practices documentation",
-            "Implement success rate monitoring dashboard"
-        ])
+        recommendations.extend(
+            [
+                "Track success factors for continuous improvement",
+                "Develop best practices documentation",
+                "Implement success rate monitoring dashboard",
+            ]
+        )
 
         return recommendations
 
@@ -405,13 +416,7 @@ class ReportingLayer:
 
         # Write metrics
         for metric in report.metrics:
-            writer.writerow([
-                metric.name,
-                metric.value,
-                metric.unit,
-                metric.trend,
-                metric.comparison_period
-            ])
+            writer.writerow([metric.name, metric.value, metric.unit, metric.trend, metric.comparison_period])
 
         return output.getvalue()
 
@@ -480,6 +485,7 @@ class ReportingLayer:
             logger.error("PDF export failed: %s", exc, exc_info=True)
             return f"PDF export failed: {exc}"
 
+
 # Metric Calculator Classes
 class CaseMetricsCalculator:
     """Calculate case-related metrics from the litigation storage layer."""
@@ -531,6 +537,7 @@ class CaseMetricsCalculator:
             ReportMetric("avg_case_duration", float(avg_duration), "days", trend, time_period),
         ]
 
+
 class EntityMetricsCalculator:
     """Calculate entity-related metrics."""
 
@@ -539,8 +546,9 @@ class EntityMetricsCalculator:
         return [
             ReportMetric("total_entities", 89.0, "count", "stable", time_period),
             ReportMetric("repeat_entities", 18.0, "count", "increasing", time_period),
-            ReportMetric("entity_growth_rate", 0.12, "percentage", "stable", time_period)
+            ReportMetric("entity_growth_rate", 0.12, "percentage", "stable", time_period),
         ]
+
 
 class PatternMetricsCalculator:
     """Calculate pattern-related metrics."""
@@ -550,8 +558,9 @@ class PatternMetricsCalculator:
         return [
             ReportMetric("repeat_offender_rate", 0.28, "percentage", "stable", time_period),
             ReportMetric("habitability_violations", 0.45, "percentage", "increasing", time_period),
-            ReportMetric("discrimination_cases", 0.15, "percentage", "stable", time_period)
+            ReportMetric("discrimination_cases", 0.15, "percentage", "stable", time_period),
         ]
+
 
 class SuccessMetricsCalculator:
     """Calculate success-related metrics."""
@@ -561,8 +570,9 @@ class SuccessMetricsCalculator:
         return [
             ReportMetric("settlement_rate", 0.72, "percentage", "stable", time_period),
             ReportMetric("trial_success_rate", 0.68, "percentage", "stable", time_period),
-            ReportMetric("client_satisfaction", 4.2, "score", "stable", time_period)
+            ReportMetric("client_satisfaction", 4.2, "score", "stable", time_period),
         ]
+
 
 class TimelineMetricsCalculator:
     """Calculate timeline-related metrics."""
@@ -572,13 +582,15 @@ class TimelineMetricsCalculator:
         return [
             ReportMetric("avg_response_time", 2.5, "days", "stable", time_period),
             ReportMetric("deadline_compliance", 0.85, "percentage", "stable", time_period),
-            ReportMetric("timeline_accuracy", 0.92, "percentage", "stable", time_period)
+            ReportMetric("timeline_accuracy", 0.92, "percentage", "stable", time_period),
         ]
+
 
 # Factory function
 def create_reporting_layer(storage_layer: Any = None) -> ReportingLayer:
     """Create reporting layer instance."""
     return ReportingLayer(storage_layer)
+
 
 # Example usage
 async def example_usage():
@@ -602,6 +614,8 @@ async def example_usage():
     json_data = reporting.export_report_data(case_report.report_id, "json")
     logger.info(f"Exported {len(json_data)} characters of JSON data")
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(example_usage())

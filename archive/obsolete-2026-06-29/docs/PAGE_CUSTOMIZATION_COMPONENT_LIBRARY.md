@@ -1,5 +1,5 @@
 # Page Customization Component Library
-**Purpose:** Complete catalog of all objects, functions, modules & components for page assembly  
+**Purpose:** Complete catalog of all objects, functions, modules & components for page assembly
 **Status:** Reference Only - For Planning Custom Page Layouts
 
 ---
@@ -33,7 +33,7 @@
 
 ### 1.3 Color Options
 
-Hero colors: `blue`, `purple`, `green`, `red`, `amber`  
+Hero colors: `blue`, `purple`, `green`, `red`, `amber`
 Info box types: `info`, `warning`, `success`, `error`
 
 ---
@@ -325,8 +325,8 @@ Info box types: `info`, `warning`, `success`, `error`
 
 ```jinja2
 {% extends "base.html" %}
-{% from "components/ui_macros.html" import hero, section_title, service_card, 
-                                         card_grid, quick_link, quick_grid, 
+{% from "components/ui_macros.html" import hero, section_title, service_card,
+                                         card_grid, quick_link, quick_grid,
                                          vault_cta, privacy_note, nav_bar, ui_styles %}
 
 {% block title %}Your Page - Semptify{% endblock %}
@@ -388,11 +388,14 @@ from app.modules.timeline import router as timeline_router
 documents = await documents_router.get_documents(user_id)
 timeline_events = await timeline_router.get_timeline(user_id)
 
-return templates.TemplateResponse("page.html", {
-    "request": request,
-    "documents": documents,
-    "timeline": timeline_events,
-})
+return templates.TemplateResponse(
+    "page.html",
+    {
+        "request": request,
+        "documents": documents,
+        "timeline": timeline_events,
+    },
+)
 ```
 
 ---

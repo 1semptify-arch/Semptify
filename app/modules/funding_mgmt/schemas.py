@@ -11,6 +11,7 @@ from .models import ApplicationStatus, FundingSourceType
 
 class FundingSourceBase(BaseModel):
     """Base schema for funding source."""
+
     name: str = Field(..., min_length=1, max_length=255)
     organization: str = Field(..., min_length=1, max_length=255)
     source_type: FundingSourceType
@@ -31,11 +32,13 @@ class FundingSourceBase(BaseModel):
 
 class FundingSourceCreate(FundingSourceBase):
     """Schema for creating a funding source."""
+
     pass
 
 
 class FundingSourceUpdate(BaseModel):
     """Schema for updating a funding source."""
+
     name: str | None = None
     organization: str | None = None
     source_type: FundingSourceType | None = None
@@ -56,6 +59,7 @@ class FundingSourceUpdate(BaseModel):
 
 class FundingSourceResponse(FundingSourceBase):
     """Schema for funding source response."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -66,6 +70,7 @@ class FundingSourceResponse(FundingSourceBase):
 
 class FundingApplicationBase(BaseModel):
     """Base schema for funding application."""
+
     funding_source_id: int
     project_name: str = Field(..., min_length=1, max_length=255)
     requested_amount: float | None = None
@@ -85,11 +90,13 @@ class FundingApplicationBase(BaseModel):
 
 class FundingApplicationCreate(FundingApplicationBase):
     """Schema for creating a funding application."""
+
     pass
 
 
 class FundingApplicationUpdate(BaseModel):
     """Schema for updating a funding application."""
+
     project_name: str | None = None
     requested_amount: float | None = None
     proposed_budget: str | None = None
@@ -108,6 +115,7 @@ class FundingApplicationUpdate(BaseModel):
 
 class FundingApplicationResponse(FundingApplicationBase):
     """Schema for funding application response."""
+
     id: int
     created_at: datetime
     updated_at: datetime
@@ -119,6 +127,7 @@ class FundingApplicationResponse(FundingApplicationBase):
 
 class FundingDashboardStats(BaseModel):
     """Dashboard statistics."""
+
     active_sources: int
     pending_applications: int
     awarded_count: int

@@ -105,19 +105,19 @@
 <body>
     <div id="app">
         <h1>Filedored - Document Organization</h1>
-        
+
         <div id="controls">
             <button class="process-button" onclick="processAll()">Process All Documents</button>
             <button class="process-button" onclick="processWithAI()">Process All with AI</button>
             <button class="process-button" onclick="checkFolders()">Check Folders</button>
         </div>
-        
+
         <div id="message"></div>
-        
+
         <div id="folder-view" class="folder-grid">
             <div class="loading">Loading folders...</div>
         </div>
-        
+
         <div id="document-view" class="document-list" style="display: none;">
             <button onclick="showFolders()" style="margin-bottom: 20px;">▸ Back to Folders</button>
             <div id="documents"></div>
@@ -126,7 +126,7 @@
 
     <script>
         let currentFolder = null;
-        
+
         // Folder icons mapping
         const folderIcons = {
             'Documents/PDF': '●',
@@ -139,7 +139,7 @@
             '__OTHER__': '●',
             '__AI_CLASSIFIED__': '○'
         };
-        
+
         async function fetchAPI(endpoint, options = {}) {
             const response = await fetch(`/api/filedored${endpoint}`, {
                 headers: {
@@ -148,116 +148,116 @@
                 },
                 ...options
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             return await response.json();
         }
-        
+
         function showMessage(message, type = 'info') {
             const messageDiv = document.getElementById('message');
             messageDiv.className = type;
             messageDiv.textContent = message;
             messageDiv.style.display = 'block';
-            
+
             setTimeout(() => {
                 messageDiv.style.display = 'none';
             }, 5000);
         }
-        
+
         async function loadFolders() {
             try {
                 const data = await fetchAPI('/folders');
                 const folderView = document.getElementById('folder-view');
-                
+
                 folderView.innerHTML = '';
-                
+
                 for (const [name, info] of Object.entries(data.folders)) {
                     const card = document.createElement('div');
                     card.className = 'folder-card';
                     card.onclick = () => browseFolder(name);
-                    
+
                     card.innerHTML = `
                         <div class="folder-icon">${folderIcons[name] || '●'}</div>
                         <div class="folder-name">${name}</div>
                         <div class="folder-count">${info.count} documents</div>
                     `;
-                    
+
                     folderView.appendChild(card);
                 }
-                
+
                 showMessage(`Loaded ${data.total_processed} processed documents`, 'success');
             } catch (error) {
                 showMessage(`Failed to load folders: ${error.message}`, 'error');
                 if (window.SemptifyFeedback) SemptifyFeedback.error('Failed to load folders.', { detail: error.message });
             }
         }
-        
+
         async function browseFolder(folderName) {
             try {
                 currentFolder = folderName;
                 const data = await fetchAPI(`/browse/${encodeURIComponent(folderName)}`);
-                
+
                 document.getElementById('folder-view').style.display = 'none';
                 document.getElementById('document-view').style.display = 'block';
-                
+
                 const documentsDiv = document.getElementById('documents');
                 documentsDiv.innerHTML = `<h2>${folderName}</h2>`;
-                
+
                 if (data.documents.length === 0) {
                     documentsDiv.innerHTML += '<p>No documents in this folder.</p>';
                     return;
                 }
-                
+
                 data.documents.forEach(doc => {
                     const item = document.createElement('div');
                     item.className = 'document-item';
-                    
-                    const aiLabel = doc.ai_label && doc.ai_label !== 'unknown' 
-                        ? `<span class="ai-label">${doc.ai_label}</span>` 
+
+                    const aiLabel = doc.ai_label && doc.ai_label !== 'unknown'
+                        ? `<span class="ai-label">${doc.ai_label}</span>`
                         : '';
-                    
+
                     item.innerHTML = `
                         <div class="document-info">
                             <div class="document-name">${doc.filename}</div>
                             <div class="document-meta">
-                                ID: ${doc.vault_id} | 
-                                Category: ${doc.filedored_category || 'N/A'} | 
+                                ID: ${doc.vault_id} |
+                                Category: ${doc.filedored_category || 'N/A'} |
                                 ${doc.extension ? `Type: ${doc.extension}` : ''}
                             </div>
                         </div>
                         ${aiLabel}
                     `;
-                    
+
                     documentsDiv.appendChild(item);
                 });
-                
+
             } catch (error) {
                 showMessage(`Failed to browse folder: ${error.message}`, 'error');
                 if (window.SemptifyFeedback) SemptifyFeedback.error('Failed to browse folder.', { detail: error.message });
             }
         }
-        
+
         function showFolders() {
             document.getElementById('document-view').style.display = 'none';
             document.getElementById('folder-view').style.display = 'grid';
             currentFolder = null;
         }
-        
+
         async function processAll() {
             await processDocuments(false);
         }
-        
+
         async function processWithAI() {
             await processDocuments(true);
         }
-        
+
         async function processDocuments(enableAI) {
             try {
                 showMessage('Processing documents...', 'info');
-                
+
                 const data = await fetchAPI('/process', {
                     method: 'POST',
                     body: JSON.stringify({
@@ -265,44 +265,44 @@
                         enable_ai: enableAI
                     })
                 });
-                
+
                 if (data.errors.length > 0) {
                     showMessage(`Processed ${data.processed.length} documents with ${data.errors.length} errors`, 'error');
                 } else {
                     showMessage(`Successfully processed ${data.processed.length} documents`, 'success');
                 }
-                
+
                 // Refresh folders
                 await loadFolders();
-                
+
             } catch (error) {
                 showMessage(`Processing failed: ${error.message}`, 'error');
                 if (window.SemptifyFeedback) SemptifyFeedback.error('Processing failed.', { detail: error.message });
             }
         }
-        
+
         async function checkFolders() {
             try {
                 showMessage('Checking folders...', 'info');
-                
+
                 const data = await fetchAPI('/folders/status', {
                     method: 'POST'
                 });
-                
+
                 if (data.status === 'complete') {
                     showMessage(`All folders ready. Created ${data.folders_created.length} folders.`, 'success');
                 } else {
                     showMessage(`Partial setup. Created: ${data.folders_created.length}, Failed: ${data.folders_failed.length}`, 'error');
                 }
-                
+
                 await loadFolders();
-                
+
             } catch (error) {
                 showMessage(`Folder check failed: ${error.message}`, 'error');
                 if (window.SemptifyFeedback) SemptifyFeedback.error('Folder check failed.', { detail: error.message });
             }
         }
-        
+
         // Load folders on page load
         window.onload = () => {
             loadFolders();

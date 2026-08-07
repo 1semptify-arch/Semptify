@@ -112,49 +112,49 @@ FORM_MAPPINGS = {
 DEFENSE_TEMPLATES = {
     "improper_notice": {
         "title": "Improper Notice",
-        "text": """The Plaintiff failed to provide proper notice as required by Minnesota 
+        "text": """The Plaintiff failed to provide proper notice as required by Minnesota
 Statute § 504B.321. Specifically, the notice was defective because: {details}.""",
         "statute": "Minn. Stat. § 504B.321",
     },
     "retaliation": {
         "title": "Retaliation",
-        "text": """This eviction action is retaliatory in violation of Minnesota Statute 
+        "text": """This eviction action is retaliatory in violation of Minnesota Statute
 § 504B.441. The eviction was filed after Defendant: {details}.""",
         "statute": "Minn. Stat. § 504B.441",
     },
     "habitability": {
         "title": "Breach of Warranty of Habitability",
-        "text": """Plaintiff breached the implied warranty of habitability under Minnesota 
+        "text": """Plaintiff breached the implied warranty of habitability under Minnesota
 Statute § 504B.161. The rental unit has the following uninhabitable conditions: {details}.""",
         "statute": "Minn. Stat. § 504B.161",
     },
     "improper_service": {
         "title": "Improper Service",
-        "text": """Defendant was not properly served with the summons and complaint as 
+        "text": """Defendant was not properly served with the summons and complaint as
 required by Minnesota Rules of Civil Procedure. {details}.""",
         "statute": "Minn. R. Civ. P. 4.03",
     },
     "rent_escrow": {
         "title": "Rent Paid or Escrowed",
-        "text": """Defendant has paid all rent due or has properly escrowed rent with the 
+        "text": """Defendant has paid all rent due or has properly escrowed rent with the
 court pursuant to Minnesota Statute § 504B.385. {details}.""",
         "statute": "Minn. Stat. § 504B.385",
     },
     "discrimination": {
         "title": "Discrimination",
-        "text": """This eviction action is discriminatory in violation of the Minnesota 
+        "text": """This eviction action is discriminatory in violation of the Minnesota
 Human Rights Act § 363A.09. Defendant believes the eviction is based on: {details}.""",
         "statute": "Minn. Stat. § 363A.09",
     },
     "waiver": {
         "title": "Waiver of Right to Evict",
-        "text": """Plaintiff waived the right to evict by: {details}. By accepting rent 
+        "text": """Plaintiff waived the right to evict by: {details}. By accepting rent
 or failing to act, Plaintiff waived any breach of the lease.""",
         "statute": "Common Law",
     },
     "cure_within_time": {
         "title": "Violation Cured Within Time",
-        "text": """Defendant cured the alleged lease violation within the time period 
+        "text": """Defendant cured the alleged lease violation within the time period
 specified in the notice. {details}.""",
         "statute": "Minn. Stat. § 504B.321",
     },
@@ -176,13 +176,13 @@ class CourtFormGenerator:
     ) -> dict[str, Any]:
         """
         Generate a court form with case data.
-        
+
         Args:
             form_type: Type of form (answer_to_complaint, motion_to_dismiss, etc.)
             case_data: Dictionary of case information from FormDataHub
             defenses: List of defense types to include
             output_format: pdf, html, or docx
-            
+
         Returns:
             Dictionary with form content and metadata
         """
@@ -257,9 +257,7 @@ class CourtFormGenerator:
                 template = DEFENSE_TEMPLATES[defense_type]
                 details = case_data.get(f"{defense_type}_details", "[Specific facts to be added]")
                 text = template["text"].format(details=details)
-                defense_paragraphs.append(
-                    f"{i}. {template['title']}\n\n{text}\n\nSee {template['statute']}."
-                )
+                defense_paragraphs.append(f"{i}. {template['title']}\n\n{text}\n\nSee {template['statute']}.")
             else:
                 defense_paragraphs.append(f"{i}. {defense_type}")
 
@@ -307,39 +305,39 @@ class CourtFormGenerator:
     <div class="header">
         <div class="court-name">STATE OF MINNESOTA</div>
         <div class="court-name">DISTRICT COURT</div>
-        <div>{data.get('county', '[COUNTY]')} COUNTY</div>
-        <div>{data.get('court_name', 'DISTRICT COURT')}</div>
+        <div>{data.get("county", "[COUNTY]")} COUNTY</div>
+        <div>{data.get("court_name", "DISTRICT COURT")}</div>
     </div>
-    
+
     <div class="case-caption">
-        <div class="case-number">Case No: {data.get('case_number', '[CASE NUMBER]')}</div>
-        <div class="party"><strong>{data.get('plaintiff_name', '[PLAINTIFF]')}</strong></div>
+        <div class="case-number">Case No: {data.get("case_number", "[CASE NUMBER]")}</div>
+        <div class="party"><strong>{data.get("plaintiff_name", "[PLAINTIFF]")}</strong></div>
         <div class="party" style="padding-left: 2em;">Plaintiff,</div>
         <div class="party">vs.</div>
-        <div class="party"><strong>{data.get('defendant_name', '[DEFENDANT]')}</strong></div>
+        <div class="party"><strong>{data.get("defendant_name", "[DEFENDANT]")}</strong></div>
         <div class="party" style="padding-left: 2em;">Defendant.</div>
     </div>
-    
+
     <div style="text-align: center; font-weight: bold; font-size: 14pt; margin: 2em 0;">
         ANSWER TO EVICTION COMPLAINT
     </div>
-    
+
     <div class="section">
-        <p>Defendant, {data.get('defendant_name', '[DEFENDANT]')}, hereby answers Plaintiff's 
+        <p>Defendant, {data.get("defendant_name", "[DEFENDANT]")}, hereby answers Plaintiff's
         Complaint as follows:</p>
     </div>
-    
+
     <div class="section">
         <div class="section-title">I. GENERAL DENIAL</div>
-        <p>Defendant denies each and every allegation in the Complaint except as specifically 
+        <p>Defendant denies each and every allegation in the Complaint except as specifically
         admitted herein.</p>
     </div>
-    
+
     <div class="section">
         <div class="section-title">II. AFFIRMATIVE DEFENSES</div>
-        {data.get('defenses_text', '<p>[DEFENSES TO BE ADDED]</p>')}
+        {data.get("defenses_text", "<p>[DEFENSES TO BE ADDED]</p>")}
     </div>
-    
+
     <div class="section">
         <div class="section-title">III. REQUEST FOR RELIEF</div>
         <p>WHEREFORE, Defendant respectfully requests that this Court:</p>
@@ -350,13 +348,13 @@ class CourtFormGenerator:
             <li>Grant such other relief as the Court deems just and proper.</li>
         </ol>
     </div>
-    
+
     <div class="signature-block">
-        <p>Dated: {data.get('signature_date', utc_now().strftime('%B %d, %Y'))}</p>
+        <p>Dated: {data.get("signature_date", utc_now().strftime("%B %d, %Y"))}</p>
         <div class="signature-line"></div>
-        <p>{data.get('defendant_name', '[DEFENDANT NAME]')}<br>
+        <p>{data.get("defendant_name", "[DEFENDANT NAME]")}<br>
         Pro Se Defendant<br>
-        {data.get('defendant_address', '[ADDRESS]')}</p>
+        {data.get("defendant_address", "[ADDRESS]")}</p>
     </div>
 </body>
 </html>"""
@@ -379,49 +377,49 @@ class CourtFormGenerator:
 <body>
     <div class="header">
         <div class="court-name">STATE OF MINNESOTA - DISTRICT COURT</div>
-        <div>{data.get('county', '[COUNTY]')} COUNTY</div>
+        <div>{data.get("county", "[COUNTY]")} COUNTY</div>
     </div>
-    
+
     <div class="case-caption">
-        <div style="float: right;">Case No: {data.get('case_number', '[CASE NUMBER]')}</div>
-        <div><strong>{data.get('plaintiff_name', '[PLAINTIFF]')}</strong>, Plaintiff</div>
+        <div style="float: right;">Case No: {data.get("case_number", "[CASE NUMBER]")}</div>
+        <div><strong>{data.get("plaintiff_name", "[PLAINTIFF]")}</strong>, Plaintiff</div>
         <div>vs.</div>
-        <div><strong>{data.get('defendant_name', '[DEFENDANT]')}</strong>, Defendant</div>
+        <div><strong>{data.get("defendant_name", "[DEFENDANT]")}</strong>, Defendant</div>
     </div>
-    
+
     <div style="text-align: center; font-weight: bold; font-size: 14pt; margin: 2em 0;">
         MOTION TO DISMISS
     </div>
-    
+
     <div class="section">
-        <p>Defendant {data.get('defendant_name', '[DEFENDANT]')} moves this Court to dismiss 
+        <p>Defendant {data.get("defendant_name", "[DEFENDANT]")} moves this Court to dismiss
         Plaintiff's Complaint with prejudice on the following grounds:</p>
     </div>
-    
+
     <div class="section">
         <div class="section-title">GROUNDS FOR DISMISSAL</div>
-        <p>{data.get('motion_grounds', '[GROUNDS TO BE ADDED]')}</p>
+        <p>{data.get("motion_grounds", "[GROUNDS TO BE ADDED]")}</p>
     </div>
-    
+
     <div class="section">
         <div class="section-title">SUPPORTING FACTS</div>
-        <p>{data.get('supporting_facts', '[FACTS TO BE ADDED]')}</p>
+        <p>{data.get("supporting_facts", "[FACTS TO BE ADDED]")}</p>
     </div>
-    
+
     <div class="section">
         <div class="section-title">LEGAL AUTHORITY</div>
-        <p>{data.get('legal_authority', '[CITATIONS TO BE ADDED]')}</p>
+        <p>{data.get("legal_authority", "[CITATIONS TO BE ADDED]")}</p>
     </div>
-    
+
     <div class="section">
-        <p>WHEREFORE, Defendant respectfully requests that this Court grant this Motion 
+        <p>WHEREFORE, Defendant respectfully requests that this Court grant this Motion
         and dismiss Plaintiff's Complaint with prejudice.</p>
     </div>
-    
+
     <div style="margin-top: 3em;">
-        <p>Dated: {utc_now().strftime('%B %d, %Y')}</p>
+        <p>Dated: {utc_now().strftime("%B %d, %Y")}</p>
         <div style="border-top: 1px solid #000; width: 250px; margin-top: 3em;"></div>
-        <p>{data.get('defendant_name', '[DEFENDANT]')}, Pro Se</p>
+        <p>{data.get("defendant_name", "[DEFENDANT]")}, Pro Se</p>
     </div>
 </body>
 </html>"""
@@ -441,29 +439,29 @@ class CourtFormGenerator:
 <body>
     <div class="header">
         <div class="court-name">STATE OF MINNESOTA - DISTRICT COURT</div>
-        <div>Case No: {data.get('case_number', '[CASE NUMBER]')}</div>
+        <div>Case No: {data.get("case_number", "[CASE NUMBER]")}</div>
     </div>
-    
+
     <div style="text-align: center; font-weight: bold; margin: 2em 0;">
         MOTION FOR CONTINUANCE
     </div>
-    
-    <p>Defendant {data.get('defendant_name', '[DEFENDANT]')} respectfully moves this Court 
-    to continue the hearing currently scheduled for {data.get('current_hearing_date', '[DATE]')}.</p>
-    
+
+    <p>Defendant {data.get("defendant_name", "[DEFENDANT]")} respectfully moves this Court
+    to continue the hearing currently scheduled for {data.get("current_hearing_date", "[DATE]")}.</p>
+
     <p><strong>GROUNDS:</strong></p>
-    <p>{data.get('reason_for_continuance', '[REASON TO BE ADDED]')}</p>
-    
-    <p>Defendant requests that the hearing be rescheduled to {data.get('requested_date', '[REQUESTED DATE]')} 
+    <p>{data.get("reason_for_continuance", "[REASON TO BE ADDED]")}</p>
+
+    <p>Defendant requests that the hearing be rescheduled to {data.get("requested_date", "[REQUESTED DATE]")}
     or the earliest available date convenient to the Court.</p>
-    
-    <p>This continuance will not prejudice Plaintiff and is necessary for Defendant to 
+
+    <p>This continuance will not prejudice Plaintiff and is necessary for Defendant to
     adequately prepare for the hearing.</p>
-    
+
     <div style="margin-top: 3em;">
-        <p>Dated: {utc_now().strftime('%B %d, %Y')}</p>
+        <p>Dated: {utc_now().strftime("%B %d, %Y")}</p>
         <div style="border-top: 1px solid #000; width: 250px; margin-top: 3em;"></div>
-        <p>{data.get('defendant_name', '[DEFENDANT]')}, Pro Se</p>
+        <p>{data.get("defendant_name", "[DEFENDANT]")}, Pro Se</p>
     </div>
 </body>
 </html>"""
@@ -482,40 +480,40 @@ class CourtFormGenerator:
 <body>
     <div class="header">
         <div style="font-weight: bold; text-transform: uppercase;">STATE OF MINNESOTA - DISTRICT COURT</div>
-        <div>Case No: {data.get('case_number', '[CASE NUMBER]')}</div>
+        <div>Case No: {data.get("case_number", "[CASE NUMBER]")}</div>
     </div>
-    
+
     <div style="text-align: center; font-weight: bold; margin: 2em 0;">
         DEFENDANT'S COUNTERCLAIM
     </div>
-    
-    <p>Defendant {data.get('defendant_name', '[DEFENDANT]')} hereby asserts the following 
-    counterclaims against Plaintiff {data.get('plaintiff_name', '[PLAINTIFF]')}:</p>
-    
+
+    <p>Defendant {data.get("defendant_name", "[DEFENDANT]")} hereby asserts the following
+    counterclaims against Plaintiff {data.get("plaintiff_name", "[PLAINTIFF]")}:</p>
+
     <h3>CLAIMS</h3>
-    <p>{data.get('violations', '[VIOLATIONS TO BE ADDED]')}</p>
-    
+    <p>{data.get("violations", "[VIOLATIONS TO BE ADDED]")}</p>
+
     <h3>DAMAGES</h3>
-    <p>As a result of Plaintiff's conduct, Defendant has suffered damages in the amount of 
-    ${data.get('damages_claimed', '[AMOUNT]')}, including but not limited to:</p>
+    <p>As a result of Plaintiff's conduct, Defendant has suffered damages in the amount of
+    ${data.get("damages_claimed", "[AMOUNT]")}, including but not limited to:</p>
     <ul>
         <li>Diminished value of rental premises</li>
         <li>Out-of-pocket expenses</li>
         <li>Emotional distress</li>
     </ul>
-    
+
     <h3>RELIEF REQUESTED</h3>
     <p>WHEREFORE, Defendant requests judgment against Plaintiff for:</p>
     <ol>
-        <li>Compensatory damages in the amount of ${data.get('damages_claimed', '[AMOUNT]')};</li>
+        <li>Compensatory damages in the amount of ${data.get("damages_claimed", "[AMOUNT]")};</li>
         <li>Costs and disbursements;</li>
         <li>Such other relief as the Court deems just.</li>
     </ol>
-    
+
     <div style="margin-top: 3em;">
-        <p>Dated: {utc_now().strftime('%B %d, %Y')}</p>
+        <p>Dated: {utc_now().strftime("%B %d, %Y")}</p>
         <div style="border-top: 1px solid #000; width: 250px; margin-top: 3em;"></div>
-        <p>{data.get('defendant_name', '[DEFENDANT]')}, Pro Se</p>
+        <p>{data.get("defendant_name", "[DEFENDANT]")}, Pro Se</p>
     </div>
 </body>
 </html>"""
@@ -534,14 +532,14 @@ class CourtFormGenerator:
         return f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>{mapping['title']}</title>
+    <title>{mapping["title"]}</title>
     <style>
         body {{ font-family: 'Times New Roman', serif; max-width: 8.5in; margin: 0 auto; padding: 1in; }}
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">{mapping['title']}</h1>
-    <p>{mapping['description']}</p>
+    <h1 style="text-align: center;">{mapping["title"]}</h1>
+    <p>{mapping["description"]}</p>
     <hr>
     {fields_html}
 </body>
@@ -560,6 +558,7 @@ class CourtFormGenerator:
         # Try to convert to PDF
         try:
             from weasyprint import HTML
+
             pdf_bytes = HTML(string=html).write_pdf()
             return pdf_bytes
         except ImportError:
@@ -567,6 +566,7 @@ class CourtFormGenerator:
 
         try:
             from xhtml2pdf import pisa
+
             result = io.BytesIO()
             pisa.CreatePDF(io.StringIO(html), dest=result)
             return result.getvalue()
@@ -575,7 +575,7 @@ class CourtFormGenerator:
 
         # Return HTML as fallback
         logger.warning("PDF generation libraries not available, returning HTML")
-        return html.encode('utf-8')
+        return html.encode("utf-8")
 
     def _generate_text(
         self,
@@ -586,13 +586,13 @@ class CourtFormGenerator:
         """Generate plain text version of form."""
         lines = [
             f"{'=' * 60}",
-            mapping['title'].upper(),
+            mapping["title"].upper(),
             f"{'=' * 60}",
             "",
         ]
 
         for field, value in form_data.items():
-            label = field.replace('_', ' ').title()
+            label = field.replace("_", " ").title()
             lines.append(f"{label}: {value}")
 
         return "\n".join(lines)

@@ -34,9 +34,7 @@ async def migrate():
 
     async with engine.begin() as conn:
         # Check if table exists
-        result = await conn.execute(text(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='complaints'"
-        ))
+        result = await conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='complaints'"))
         table_exists = result.fetchone() is not None
 
         if not table_exists:
@@ -52,9 +50,7 @@ async def migrate():
         for col_name, col_def in new_columns:
             if col_name not in existing_columns:
                 try:
-                    await conn.execute(text(
-                        f"ALTER TABLE complaints ADD COLUMN {col_name} {col_def}"
-                    ))
+                    await conn.execute(text(f"ALTER TABLE complaints ADD COLUMN {col_name} {col_def}"))
                     print(f"✅ Added column: {col_name}")
                 except Exception as e:
                     print(f"⚠️ Could not add {col_name}: {e}")
@@ -63,9 +59,7 @@ async def migrate():
 
         # Create index on agency_id if not exists
         try:
-            await conn.execute(text(
-                "CREATE INDEX IF NOT EXISTS ix_complaints_agency_id ON complaints(agency_id)"
-            ))
+            await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_complaints_agency_id ON complaints(agency_id)"))
             print("✅ Index on agency_id created/verified")
         except Exception as e:
             print(f"⚠️ Index issue: {e}")

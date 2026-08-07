@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GroqAnalysisResult:
     """Result from Groq document analysis."""
+
     doc_type: str
     confidence: float
     title: str
@@ -42,14 +43,14 @@ class GroqAIService:
 
     # Model options (sorted by capability)
     MODELS = {
-        "fast": "llama-3.1-8b-instant",      # Fastest, good for simple tasks
-        "balanced": "llama-3.3-70b-versatile", # Best balance of speed/quality
-        "best": "llama-3.3-70b-versatile",     # Highest quality
+        "fast": "llama-3.1-8b-instant",  # Fastest, good for simple tasks
+        "balanced": "llama-3.3-70b-versatile",  # Best balance of speed/quality
+        "best": "llama-3.3-70b-versatile",  # Highest quality
     }
 
     def __init__(self):
         settings = get_settings()
-        self.api_key = getattr(settings, 'groq_api_key', None)
+        self.api_key = getattr(settings, "groq_api_key", None)
         self.model = self.MODELS["balanced"]  # Default to 70B
 
     @property
@@ -57,20 +58,15 @@ class GroqAIService:
         """Check if Groq is configured."""
         return bool(self.api_key)
 
-    async def analyze_document(
-        self,
-        text: str,
-        filename: str,
-        doc_hint: str | None = None
-    ) -> GroqAnalysisResult:
+    async def analyze_document(self, text: str, filename: str, doc_hint: str | None = None) -> GroqAnalysisResult:
         """
         Analyze a document using Groq AI.
-        
+
         Args:
             text: The extracted text from the document
             filename: Original filename (helps with classification)
             doc_hint: Optional hint about document type
-            
+
         Returns:
             GroqAnalysisResult with classification and extracted data
         """
@@ -86,12 +82,7 @@ class GroqAIService:
             logger.error(f"Groq analysis failed: {e}")
             return self._fallback_analysis(text, filename)
 
-    def _build_analysis_prompt(
-        self,
-        text: str,
-        filename: str,
-        doc_hint: str | None = None
-    ) -> str:
+    def _build_analysis_prompt(self, text: str, filename: str, doc_hint: str | None = None) -> str:
         """Build the analysis prompt for Groq."""
 
         # Truncate text if too long (Groq has 8K context for most models)
@@ -145,34 +136,24 @@ Important:
 
     async def _call_groq(self, prompt: str) -> dict:
         """Make API call to Groq."""
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
         payload = {
             "model": self.model,
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a legal document analyst. Always respond with valid JSON only, no other text."
+                    "content": "You are a legal document analyst. Always respond with valid JSON only, no other text.",
                 },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.1,  # Low temp for consistent extraction
             "max_tokens": 2000,
-            "response_format": {"type": "json_object"}
+            "response_format": {"type": "json_object"},
         }
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                self.API_URL,
-                headers=headers,
-                json=payload
-            )
+            response = await client.post(self.API_URL, headers=headers, json=payload)
 
             if response.status_code != 200:
                 raise Exception(f"Groq API error: {response.status_code} - {response.text}")
@@ -193,13 +174,13 @@ Important:
             key_amounts=data.get("key_amounts", []),
             key_terms=data.get("key_terms", []),
             issues_detected=data.get("issues_detected", []),
-            analyzed_at=utc_now()
+            analyzed_at=utc_now(),
         )
 
     def _fallback_analysis(self, text: str, filename: str) -> GroqAnalysisResult:
         """Rule-based fallback when Groq is unavailable."""
         text_lower = text.lower()
-        filename_lower = filename.lower()
+        filename.lower()
 
         # Determine document type by keywords
         doc_type = "other"
@@ -240,7 +221,7 @@ Important:
             key_amounts=[],
             key_terms=[],
             issues_detected=[],
-            analyzed_at=utc_now()
+            analyzed_at=utc_now(),
         )
 
     async def quick_classify(self, text: str) -> tuple[str, float]:
@@ -267,7 +248,7 @@ Text (first 1000 chars):
             return "AI summary unavailable. Please review the document carefully."
 
         prompt = f"""You are helping a tenant understand a legal document.
-This is a {doc_type.replace('_', ' ')}.
+This is a {doc_type.replace("_", " ")}.
 
 Document text:
 {text[:3000]}
@@ -280,10 +261,7 @@ Write a 2-3 sentence summary in simple, plain English explaining:
 Be direct and helpful. Don't use legal jargon."""
 
         try:
-            headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
-            }
+            headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
             async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
@@ -293,8 +271,8 @@ Be direct and helpful. Don't use legal jargon."""
                         "model": self.MODELS["fast"],  # Use fast model for summaries
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.3,
-                        "max_tokens": 300
-                    }
+                        "max_tokens": 300,
+                    },
                 )
 
                 if response.status_code == 200:

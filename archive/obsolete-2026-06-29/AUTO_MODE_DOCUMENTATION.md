@@ -5,7 +5,7 @@
 The Auto Mode system provides **fully automated analysis** of every document uploaded to Semptify. When a user uploads a document, the system automatically:
 
 1. ✅ **Extracts timeline** - Dates, events, deadlines
-2. ✅ **Generates calendar** - Events with reminders  
+2. ✅ **Generates calendar** - Events with reminders
 3. ✅ **Identifies complaints** - Regulatory agencies to contact
 4. ✅ **Assesses rights** - Tenant protections & strengths
 5. ✅ **Detects missteps** - Legal procedural violations
@@ -29,10 +29,7 @@ Central orchestrator that coordinates all automated analyses.
 
 ```python
 results = await orchestrator.run_full_auto_analysis(
-    doc_id="doc_123",
-    user_id="user_456",
-    document_content="...eviction notice text...",
-    filename="Eviction_Notice.pdf"
+    doc_id="doc_123", user_id="user_456", document_content="...eviction notice text...", filename="Eviction_Notice.pdf"
 )
 ```
 
@@ -115,18 +112,18 @@ UI Updates in Real-Time
   "doc_id": "doc_123",
   "filename": "Eviction_Notice.pdf",
   "analysis_timestamp": "2024-03-23T10:30:00Z",
-  
+
   "summary": {
     "overall_progress": 85,
     "analysis_confidence": 0.92,
-    
+
     "timeline_events": 12,
     "calendar_events": 5,
     "complaints": 2,
     "rights": 8,
     "missteps": 3,
     "tactics": 4,
-    
+
     "summaries": {
       "timeline": "Extracted 12 timeline events...",
       "calendar": "Generated 5 calendar events...",
@@ -135,7 +132,7 @@ UI Updates in Real-Time
       "missteps": "3 potential legal missteps detected...",
       "tactics": "Recommended 4 defense tactics..."
     },
-    
+
     "recommended_actions": [
       {
         "action_id": "review_timeline",
@@ -170,7 +167,7 @@ UI Updates in Real-Time
         "link": "/tactics?doc_id=doc_123"
       }
     ],
-    
+
     "urgent_actions": [
       {
         "action": "address_missteps",
@@ -185,7 +182,7 @@ UI Updates in Real-Time
         "deadline": "Within 3 days"
       }
     ],
-    
+
     "next_steps": [
       "1. Review extracted timeline and calendar for accuracy",
       "2. ⚠️ ADDRESS MISSTEPS IMMEDIATELY",
@@ -357,12 +354,7 @@ Confidence (0.0-1.0) is calculated based on:
 ```python
 # Published event
 BusEventType.AUTO_ANALYSIS_COMPLETE
-{
-    'doc_id': 'doc_123',
-    'user_id': 'user_456',
-    'results': {...},
-    'summary': {...}
-}
+{"doc_id": "doc_123", "user_id": "user_456", "results": {...}, "summary": {...}}
 ```
 
 ---

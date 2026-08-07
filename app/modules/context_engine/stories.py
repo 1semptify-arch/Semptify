@@ -4,7 +4,6 @@ Story frame: `avoided_court` is the hero — documentation is the win.
 Stories are anonymized + moderated before publishing.
 """
 
-
 from sqlalchemy import and_, select
 
 from app.core.database import get_db_session
@@ -52,9 +51,7 @@ async def moderate_story(
 ) -> TenantStory:
     """Moderate a story — optionally edit, then mark moderated + publish/unpublish."""
     async with get_db_session() as db:
-        result = await db.execute(
-            select(TenantStory).where(TenantStory.id == story_id)
-        )
+        result = await db.execute(select(TenantStory).where(TenantStory.id == story_id))
         story = result.scalars().first()
         if not story:
             raise FileNotFoundError(f"Story {story_id} not found")
@@ -85,9 +82,7 @@ async def get_published_stories(
         ]
         if subject:
             conditions.append(TenantStory.subject == subject)
-        stmt = select(TenantStory).where(and_(*conditions)).order_by(
-            TenantStory.moderated_at.desc()
-        ).limit(limit)
+        stmt = select(TenantStory).where(and_(*conditions)).order_by(TenantStory.moderated_at.desc()).limit(limit)
         result = await db.execute(stmt)
         return list(result.scalars().all())
 
@@ -95,16 +90,17 @@ async def get_published_stories(
 async def get_pending_stories(limit: int = 50) -> list[TenantStory]:
     """Get stories pending moderation."""
     async with get_db_session() as db:
-        stmt = select(TenantStory).where(
-            TenantStory.is_moderated.is_(False)
-        ).order_by(TenantStory.created_at.asc()).limit(limit)
+        stmt = (
+            select(TenantStory)
+            .where(TenantStory.is_moderated.is_(False))
+            .order_by(TenantStory.created_at.asc())
+            .limit(limit)
+        )
         result = await db.execute(stmt)
         return list(result.scalars().all())
 
 
 async def get_story(story_id: int) -> TenantStory | None:
     async with get_db_session() as db:
-        result = await db.execute(
-            select(TenantStory).where(TenantStory.id == story_id)
-        )
+        result = await db.execute(select(TenantStory).where(TenantStory.id == story_id))
         return result.scalars().first()

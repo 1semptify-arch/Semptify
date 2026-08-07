@@ -1,8 +1,8 @@
 # Semptify Complete Page & User Flow Inventory
 
-**Generated:** December 21, 2025  
-**Total HTML Files:** 105 (83 active, 22 archived/duplicates)  
-**Total API Routers:** 55+  
+**Generated:** December 21, 2025
+**Total HTML Files:** 105 (83 active, 22 archived/duplicates)
+**Total API Routers:** 55+
 
 ---
 
@@ -298,8 +298,8 @@ START
   ├─→ index.html (Elbow UI)
   │     └─→ ??? (no clear next step)
   │
-  ├─→ home.html 
-  │     └─→ "Get Started" → ??? 
+  ├─→ home.html
+  │     └─→ "Get Started" → ???
   │
   ├─→ welcome.html
   │     └─→ onboarding/welcome.html

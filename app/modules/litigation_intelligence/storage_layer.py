@@ -18,6 +18,7 @@ from app.core.utc import utc_now
 
 try:
     import asyncpg
+
     POSTGRESQL_AVAILABLE = True
 except ImportError:
     POSTGRESQL_AVAILABLE = False
@@ -25,9 +26,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class LitigationCase:
     """Litigation case data structure."""
+
     case_id: str
     case_number: str
     case_title: str
@@ -41,9 +44,11 @@ class LitigationCase:
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
+
 @dataclass
 class EntityRecord:
     """Entity record for tracking legal entities."""
+
     entity_id: str
     original_name: str
     normalized_name: str
@@ -54,6 +59,7 @@ class EntityRecord:
     confidence: float
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
+
 
 class LitigationStorageLayer:
     """PostgreSQL storage layer for litigation intelligence."""
@@ -81,12 +87,7 @@ class LitigationStorageLayer:
             return
 
         try:
-            self.pool = await asyncpg.create_pool(
-                self.connection_string,
-                min_size=5,
-                max_size=20,
-                command_timeout=60
-            )
+            self.pool = await asyncpg.create_pool(self.connection_string, min_size=5, max_size=20, command_timeout=60)
 
             # Create tables if they don't exist
             await self._create_tables()
@@ -168,9 +169,15 @@ class LitigationStorageLayer:
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_cases_case_number ON litigation_cases(case_number)")
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_cases_case_type ON litigation_cases(case_type)")
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_entities_type ON litigation_entities(entity_type)")
-            await conn.execute("CREATE INDEX IF NOT EXISTS idx_entities_normalized ON litigation_entities(normalized_name)")
-            await conn.execute("CREATE INDEX IF NOT EXISTS idx_relationships_source ON entity_relationships(source_entity_id)")
-            await conn.execute("CREATE INDEX IF NOT EXISTS idx_relationships_target ON entity_relationships(target_entity_id)")
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_entities_normalized ON litigation_entities(normalized_name)"
+            )
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_relationships_source ON entity_relationships(source_entity_id)"
+            )
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_relationships_target ON entity_relationships(target_entity_id)"
+            )
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_patterns_case ON pattern_matches(case_id)")
 
             logger.info("Database tables and indexes created")
@@ -185,7 +192,8 @@ class LitigationStorageLayer:
             async with self.pool.acquire() as conn:
                 case_id = case_data.get("case_number", f"case_{utc_now().timestamp()}")
 
-                await conn.execute("""
+                await conn.execute(
+                    """
                     INSERT INTO litigation_cases (
                         case_id, case_number, case_title, case_type, court,
                         filing_date, status, parties, documents, intelligence_report
@@ -210,7 +218,7 @@ class LitigationStorageLayer:
                     case_data.get("status", "active"),
                     json.dumps(case_data.get("parties", {})),
                     json.dumps(case_data.get("documents", [])),
-                    json.dumps(case_data.get("intelligence_report", {}))
+                    json.dumps(case_data.get("intelligence_report", {})),
                 )
 
                 logger.info(f"Stored case {case_id}")
@@ -230,7 +238,8 @@ class LitigationStorageLayer:
             async with self.pool.acquire() as conn:
                 entity_id = entity_data.get("id", f"entity_{utc_now().timestamp()}")
 
-                await conn.execute("""
+                await conn.execute(
+                    """
                     INSERT INTO litigation_entities (
                         entity_id, original_name, normalized_name, entity_type,
                         aliases, attributes, relationships, confidence
@@ -252,7 +261,7 @@ class LitigationStorageLayer:
                     json.dumps(entity_data.get("aliases", [])),
                     json.dumps(entity_data.get("attributes", {})),
                     json.dumps(entity_data.get("relationships", [])),
-                    entity_data.get("confidence", 0.5)
+                    entity_data.get("confidence", 0.5),
                 )
 
                 logger.info(f"Stored entity {entity_id}")
@@ -270,7 +279,8 @@ class LitigationStorageLayer:
 
         try:
             async with self.pool.acquire() as conn:
-                await conn.execute("""
+                await conn.execute(
+                    """
                     INSERT INTO pattern_matches (
                         case_id, pattern_type, confidence, description,
                         affected_parties, legal_basis, precedent_cases, recommended_actions
@@ -283,7 +293,7 @@ class LitigationStorageLayer:
                     json.dumps(pattern_data.get("affected_parties", [])),
                     pattern_data.get("legal_basis", ""),
                     json.dumps(pattern_data.get("precedent_cases", [])),
-                    json.dumps(pattern_data.get("recommended_actions", []))
+                    json.dumps(pattern_data.get("recommended_actions", [])),
                 )
 
                 logger.info(f"Stored pattern match for case {case_id}")
@@ -293,9 +303,14 @@ class LitigationStorageLayer:
             logger.error(f"Failed to store pattern match: {e}")
             raise
 
-    async def store_entity_relationship(self, source_id: str, target_id: str,
-                                    relationship_type: str, weight: float = 1.0,
-                                    attributes: dict[str, Any] = None) -> str:
+    async def store_entity_relationship(
+        self,
+        source_id: str,
+        target_id: str,
+        relationship_type: str,
+        weight: float = 1.0,
+        attributes: dict[str, Any] = None,
+    ) -> str:
         """Store an entity relationship."""
         if not POSTGRESQL_AVAILABLE:
             logger.warning("PostgreSQL not available - relationship storage disabled")
@@ -303,13 +318,17 @@ class LitigationStorageLayer:
 
         try:
             async with self.pool.acquire() as conn:
-                await conn.execute("""
+                await conn.execute(
+                    """
                     INSERT INTO entity_relationships (
                         source_entity_id, target_entity_id, relationship_type, weight, attributes
                     ) VALUES ($1, $2, $3, $4, $5)
                 """,
-                    source_id, target_id, relationship_type, weight,
-                    json.dumps(attributes or {})
+                    source_id,
+                    target_id,
+                    relationship_type,
+                    weight,
+                    json.dumps(attributes or {}),
                 )
 
                 logger.info(f"Stored relationship {source_id} -> {target_id}")
@@ -327,9 +346,12 @@ class LitigationStorageLayer:
 
         try:
             async with self.pool.acquire() as conn:
-                result = await conn.fetchrow("""
+                result = await conn.fetchrow(
+                    """
                     SELECT * FROM litigation_cases WHERE case_id = $1
-                """, case_id)
+                """,
+                    case_id,
+                )
 
                 if result:
                     case_dict = dict(result)
@@ -352,9 +374,12 @@ class LitigationStorageLayer:
 
         try:
             async with self.pool.acquire() as conn:
-                result = await conn.fetchrow("""
+                result = await conn.fetchrow(
+                    """
                     SELECT * FROM litigation_entities WHERE entity_id = $1
-                """, entity_id)
+                """,
+                    entity_id,
+                )
 
                 if result:
                     entity_dict = dict(result)
@@ -369,8 +394,7 @@ class LitigationStorageLayer:
             logger.error(f"Failed to retrieve entity {entity_id}: {e}")
             return None
 
-    async def search_cases(self, filters: dict[str, Any] = None,
-                        limit: int = 100) -> list[dict[str, Any]]:
+    async def search_cases(self, filters: dict[str, Any] = None, limit: int = 100) -> list[dict[str, Any]]:
         """Search litigation cases with filters."""
         if not POSTGRESQL_AVAILABLE:
             logger.warning("PostgreSQL not available - case search disabled")
@@ -425,8 +449,9 @@ class LitigationStorageLayer:
 
         try:
             async with self.pool.acquire() as conn:
-                results = await conn.fetch("""
-                    SELECT er.*, 
+                results = await conn.fetch(
+                    """
+                    SELECT er.*,
                            e1.normalized_name as source_name,
                            e2.normalized_name as target_name
                     FROM entity_relationships er
@@ -434,7 +459,10 @@ class LitigationStorageLayer:
                     JOIN litigation_entities e2 ON er.target_entity_id = e2.entity_id
                     WHERE er.source_entity_id = $1 OR er.target_entity_id = $1
                     ORDER BY er.weight DESC
-                """, entity_id, entity_id)
+                """,
+                    entity_id,
+                    entity_id,
+                )
 
                 relationships = []
                 for result in results:
@@ -475,7 +503,8 @@ class LitigationStorageLayer:
 
         try:
             async with self.pool.acquire() as conn:
-                row = await conn.fetchrow("""
+                row = await conn.fetchrow(
+                    """
                     SELECT
                         COUNT(*) AS total_cases,
                         COUNT(*) FILTER (WHERE status = 'active') AS active_cases,
@@ -484,7 +513,9 @@ class LitigationStorageLayer:
                             FILTER (WHERE updated_at IS NOT NULL AND filing_date IS NOT NULL) AS avg_duration_days
                     FROM litigation_cases
                     WHERE filing_date >= $1
-                """, cutoff)
+                """,
+                    cutoff,
+                )
 
                 total = row["total_cases"] or 0
                 resolved = row["resolved_cases"] or 0
@@ -514,7 +545,7 @@ class LitigationStorageLayer:
             async with self.pool.acquire() as conn:
                 # Case statistics
                 case_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_cases,
                         COUNT(DISTINCT case_type) as case_types,
                         COUNT(DISTINCT court) as courts
@@ -523,7 +554,7 @@ class LitigationStorageLayer:
 
                 # Entity statistics
                 entity_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_entities,
                         COUNT(DISTINCT entity_type) as entity_types
                     FROM litigation_entities
@@ -531,7 +562,7 @@ class LitigationStorageLayer:
 
                 # Pattern statistics
                 pattern_stats = await conn.fetchrow("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as total_patterns,
                         COUNT(DISTINCT pattern_type) as pattern_types
                     FROM pattern_matches
@@ -541,7 +572,7 @@ class LitigationStorageLayer:
                     "cases": dict(case_stats) if case_stats else {},
                     "entities": dict(entity_stats) if entity_stats else {},
                     "patterns": dict(pattern_stats) if pattern_stats else {},
-                    "storage_type": "postgresql" if POSTGRESQL_AVAILABLE else "memory"
+                    "storage_type": "postgresql" if POSTGRESQL_AVAILABLE else "memory",
                 }
 
         except Exception as e:
@@ -554,10 +585,12 @@ class LitigationStorageLayer:
             await self.pool.close()
             logger.info("Litigation storage layer closed")
 
+
 # Factory function
 def create_storage_layer(connection_string: str) -> LitigationStorageLayer:
     """Create storage layer instance."""
     return LitigationStorageLayer(connection_string)
+
 
 # Example usage
 async def example_usage():
@@ -574,13 +607,8 @@ async def example_usage():
         "court": "Hennepin County",
         "filing_date": utc_now(),
         "status": "active",
-        "parties": {
-            "landlord": "Professional Properties LLC",
-            "tenant": "John Doe"
-        },
-        "documents": [
-            {"type": "lease_agreement", "date": "2023-01-01"}
-        ]
+        "parties": {"landlord": "Professional Properties LLC", "tenant": "John Doe"},
+        "documents": [{"type": "lease_agreement", "date": "2023-01-01"}],
     }
 
     case_id = await storage.store_case(case_data)
@@ -594,7 +622,7 @@ async def example_usage():
         "aliases": ["Professional Properties", "Professional Props LLC"],
         "attributes": {"type": "apartment_complex", "units": 150},
         "relationships": ["case_12345"],
-        "confidence": 0.9
+        "confidence": 0.9,
     }
 
     entity_id = await storage.store_entity(entity_data)
@@ -606,6 +634,8 @@ async def example_usage():
 
     await storage.close()
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(example_usage())

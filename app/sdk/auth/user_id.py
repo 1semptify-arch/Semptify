@@ -21,6 +21,7 @@ from app.core.user_id import (
 @dataclass(frozen=True)
 class UserIdComponents:
     """Parsed components of a Semptify user ID."""
+
     provider: str | None
     role: str | None
     unique_part: str | None

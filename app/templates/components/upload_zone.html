@@ -14,9 +14,9 @@
     <p class="upload-zone__subtitle">
         {{ subtitle or 'Supported: PDF, DOC, DOCX, images, text files' }}
     </p>
-    <input 
-        type="file" 
-        id="{{ input_id }}" 
+    <input
+        type="file"
+        id="{{ input_id }}"
         name="file"
         accept="{{ accept }}"
         {% if multiple %}multiple{% endif %}
@@ -65,26 +65,26 @@
 (function() {
     const zone = document.getElementById('{{ zone_id }}');
     const input = document.getElementById('{{ input_id }}');
-    
+
     if (!zone || !input) return;
-    
+
     // Click to browse
     zone.addEventListener('click', () => input.click());
-    
+
     // Drag and drop
     zone.addEventListener('dragover', (e) => {
         e.preventDefault();
         zone.classList.add('upload-zone--active');
     });
-    
+
     zone.addEventListener('dragleave', () => {
         zone.classList.remove('upload-zone--active');
     });
-    
+
     zone.addEventListener('drop', (e) => {
         e.preventDefault();
         zone.classList.remove('upload-zone--active');
-        
+
         if (e.dataTransfer.files.length > 0) {
             input.files = e.dataTransfer.files;
             input.dispatchEvent(new Event('change'));

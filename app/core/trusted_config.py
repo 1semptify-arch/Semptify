@@ -19,14 +19,15 @@ logger = logging.getLogger(__name__)
 # Trusted Domains Configuration
 # =============================================================================
 
+
 def _load_trusted_domains() -> dict[str, set[str]]:
     """
     Load trusted domains from environment variables or config file.
-    
+
     Environment variables:
     - TRUSTED_ADVOCATE_DOMAINS: JSON array of domains
     - TRUSTED_LEGAL_DOMAINS: JSON array of domains
-    
+
     Or from config file: trusted_domains.json
     """
     # Try environment variables first
@@ -37,11 +38,10 @@ def _load_trusted_domains() -> dict[str, set[str]]:
         try:
             advocate_domains = set(json.loads(advocate_env))
             legal_domains = set(json.loads(legal_env))
-            logger.info(f"Loaded {len(advocate_domains)} advocate domains and {len(legal_domains)} legal domains from environment")
-            return {
-                "advocate": advocate_domains,
-                "legal": legal_domains
-            }
+            logger.info(
+                f"Loaded {len(advocate_domains)} advocate domains and {len(legal_domains)} legal domains from environment"
+            )
+            return {"advocate": advocate_domains, "legal": legal_domains}
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse trusted domains from environment: {e}")
 
@@ -53,25 +53,26 @@ def _load_trusted_domains() -> dict[str, set[str]]:
                 data = json.load(f)
                 advocate_domains = set(data.get("advocate_domains", []))
                 legal_domains = set(data.get("legal_domains", []))
-                logger.info(f"Loaded {len(advocate_domains)} advocate domains and {len(legal_domains)} legal domains from {config_file}")
-                return {
-                    "advocate": advocate_domains,
-                    "legal": legal_domains
-                }
+                logger.info(
+                    f"Loaded {len(advocate_domains)} advocate domains and {len(legal_domains)} legal domains from {config_file}"
+                )
+                return {"advocate": advocate_domains, "legal": legal_domains}
         except (OSError, json.JSONDecodeError) as e:
             logger.error(f"Failed to load trusted domains from {config_file}: {e}")
 
     # Final fallback to minimal defaults (for development only)
-    logger.warning("Using minimal trusted domains fallback - configure TRUSTED_ADVOCATE_DOMAINS and TRUSTED_LEGAL_DOMAINS environment variables for production")
+    logger.warning(
+        "Using minimal trusted domains fallback - configure TRUSTED_ADVOCATE_DOMAINS and TRUSTED_LEGAL_DOMAINS environment variables for production"
+    )
     return {
         "advocate": {
-            "homeline.org",                    # HOME Line - Tenant Hotline
-            "legalaidmn.org",                  # Legal Aid MN
+            "homeline.org",  # HOME Line - Tenant Hotline
+            "legalaidmn.org",  # Legal Aid MN
         },
         "legal": {
-            "legalaidmn.org",                  # Legal Aid MN
-            "umn.edu",                         # U of M Law Clinic
-        }
+            "legalaidmn.org",  # Legal Aid MN
+            "umn.edu",  # U of M Law Clinic
+        },
     }
 
 
@@ -86,15 +87,16 @@ TRUSTED_LEGAL_DOMAINS = _TRUSTED_DOMAINS["legal"]
 # Invite Codes Configuration
 # =============================================================================
 
+
 def _load_invite_codes() -> dict[str, dict[str, Any]]:
     """
     Load invite codes from environment variables or config file.
-    
+
     Environment variable:
     - INVITE_CODES: JSON object of code -> config mappings
-    
+
     Or from config file: invite_codes.json
-    
+
     Format:
     {
         "CODE": {
@@ -116,7 +118,7 @@ def _load_invite_codes() -> dict[str, dict[str, Any]]:
                     "role": UserRole(config["role"]),
                     "org": config["org"],
                     "expires": datetime.fromisoformat(config["expires"]),
-                    "uses_remaining": config["uses_remaining"]
+                    "uses_remaining": config["uses_remaining"],
                 }
             logger.info(f"Loaded {len(processed_codes)} invite codes from environment")
             return processed_codes
@@ -135,7 +137,7 @@ def _load_invite_codes() -> dict[str, dict[str, Any]]:
                         "role": UserRole(config["role"]),
                         "org": config["org"],
                         "expires": datetime.fromisoformat(config["expires"]),
-                        "uses_remaining": config["uses_remaining"]
+                        "uses_remaining": config["uses_remaining"],
                     }
                 logger.info(f"Loaded {len(processed_codes)} invite codes from {config_file}")
                 return processed_codes
@@ -154,6 +156,7 @@ ACTIVE_INVITE_CODES = _load_invite_codes()
 # =============================================================================
 # Configuration Management
 # =============================================================================
+
 
 def reload_config():
     """Reload configuration from environment/config files."""

@@ -3,6 +3,7 @@
 Run via Forge UI: POST /dev/lab/app.modules.journal.router/test
 Run locally:     python -m pytest app/modules/journal/tests/ -v
 """
+
 from datetime import UTC
 
 import pytest
@@ -11,6 +12,7 @@ import pytest
 def test_journal_module_imports():
     """Journal module imports cleanly and exposes router."""
     from app.modules.journal import router
+
     assert router is not None
 
 
@@ -19,12 +21,14 @@ def test_journal_router_is_fastapi_router():
     from fastapi import APIRouter
 
     from app.modules.journal.router import router
+
     assert isinstance(router, APIRouter)
 
 
 def test_journal_router_has_list_endpoint():
     """Journal router exposes GET / (manifest adds /api/journal prefix)."""
     from app.modules.journal.router import router
+
     paths = [r.path for r in router.routes]
     assert "/" in paths, f"Missing list route: {paths}"
 
@@ -32,6 +36,7 @@ def test_journal_router_has_list_endpoint():
 def test_journal_router_has_create_endpoint():
     """Journal router exposes POST / (manifest adds /api/journal prefix)."""
     from app.modules.journal.router import router
+
     methods_by_path = {}
     for r in router.routes:
         for m in r.methods:
@@ -42,6 +47,7 @@ def test_journal_router_has_create_endpoint():
 def test_journal_router_has_get_endpoint():
     """Journal router exposes GET /{entry_id}."""
     from app.modules.journal.router import router
+
     paths = [r.path for r in router.routes]
     assert "/{entry_id}" in paths, f"Missing get route: {paths}"
 
@@ -66,6 +72,7 @@ def test_journal_contracts_registered():
 def test_journal_create_request_validation():
     """JournalEntryCreate requires a non-empty title."""
     from app.modules.journal.router import JournalEntryCreate
+
     with pytest.raises(ValueError):
         JournalEntryCreate(entry_type="note", title="")  # min_length=1
 

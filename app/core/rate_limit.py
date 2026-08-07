@@ -85,16 +85,11 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSO
     Returns a user-friendly JSON response with retry information.
     """
     # Extract limit details
-    limit_value = str(exc.detail) if hasattr(exc, 'detail') else "Rate limit exceeded"
+    limit_value = str(exc.detail) if hasattr(exc, "detail") else "Rate limit exceeded"
 
     # Log rate limit hit
     identifier = get_user_identifier(request)
-    logger.warning(
-        "Rate limit exceeded: %s on %s %s",
-        identifier,
-        request.method,
-        request.url.path
-    )
+    logger.warning("Rate limit exceeded: %s on %s %s", identifier, request.method, request.url.path)
 
     return JSONResponse(
         status_code=429,
@@ -103,18 +98,19 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSO
             "message": "Too many requests. Please slow down.",
             "detail": limit_value,
             "retry_after": 60,  # seconds
-            "documentation": "https://semptify.org/docs/api/rate-limits"
+            "documentation": "https://semptify.org/docs/api/rate-limits",
         },
         headers={
             "Retry-After": "60",
             "X-RateLimit-Limit": limit_value,
-        }
+        },
     )
 
 
 # =============================================================================
 # Helper decorators for common patterns
 # =============================================================================
+
 
 def limit_ai(func):
     """Decorator for AI/LLM endpoints."""

@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class DeliveryType(str, Enum):
     """Types of document delivery."""
+
     REVIEW_REQUIRED = "review_required"
     SIGNATURE_REQUIRED = "signature_required"
     PROCESS_SERVER = "process_server"  # Future feature
@@ -31,20 +32,22 @@ class DeliveryType(str, Enum):
 
 class DeliveryStatus(str, Enum):
     """Status of a document delivery."""
-    PENDING = "pending"           # Waiting for tenant action
-    VIEWED = "viewed"             # Tenant opened (if read receipt enabled)
-    SIGNED = "signed"             # Tenant signed
-    REJECTED = "rejected"         # Tenant rejected
-    EXPIRED = "expired"           # Past deadline
-    WITHDRAWN = "withdrawn"       # Sender withdrew
+
+    PENDING = "pending"  # Waiting for tenant action
+    VIEWED = "viewed"  # Tenant opened (if read receipt enabled)
+    SIGNED = "signed"  # Tenant signed
+    REJECTED = "rejected"  # Tenant rejected
+    EXPIRED = "expired"  # Past deadline
+    WITHDRAWN = "withdrawn"  # Sender withdrew
 
 
 class DocumentDelivery(BaseModel):
     """
     A document delivery from sender to recipient.
-    
+
     Stored in cloud overlay system. Immutable audit trail.
     """
+
     # Identity
     delivery_id: str = Field(default_factory=lambda: make_id("del"))
 
@@ -87,8 +90,10 @@ class DocumentDelivery(BaseModel):
     # Security chain
     security_hash: str | None = None  # Chain hash for audit
 
+
 class DeliveryInboxItem(BaseModel):
     """Simplified view of a delivery for inbox display."""
+
     delivery_id: str
     sender_name: str
     sender_organization: str | None
@@ -104,6 +109,7 @@ class DeliveryInboxItem(BaseModel):
 
 class DeliveryDetailResponse(BaseModel):
     """Full delivery details for viewing."""
+
     delivery: DocumentDelivery
     can_sign: bool  # True if SIGNATURE_REQUIRED and not yet signed
     can_reject: bool  # True if SIGNATURE_REQUIRED and not yet rejected
@@ -113,6 +119,7 @@ class DeliveryDetailResponse(BaseModel):
 
 class SendDocumentRequest(BaseModel):
     """Request to send a document to a tenant."""
+
     recipient_id: str
     document_id: str
     delivery_type: DeliveryType
@@ -123,6 +130,7 @@ class SendDocumentRequest(BaseModel):
 
 class SendDocumentResponse(BaseModel):
     """Response after sending a document."""
+
     success: bool
     delivery_id: str | None = None
     message: str
@@ -130,6 +138,7 @@ class SendDocumentResponse(BaseModel):
 
 class SignDocumentRequest(BaseModel):
     """Request for tenant to sign a document."""
+
     signature_type: str = "typed"  # typed, drawn, uploaded
     signature_value: str  # The actual signature (typed name or base64 image)
     agree_to_terms: bool = True  # Must be True
@@ -137,6 +146,7 @@ class SignDocumentRequest(BaseModel):
 
 class SignDocumentResponse(BaseModel):
     """Response after signing."""
+
     success: bool
     signed_at: datetime | None = None
     message: str
@@ -144,11 +154,13 @@ class SignDocumentResponse(BaseModel):
 
 class RejectDocumentRequest(BaseModel):
     """Request for tenant to reject a document."""
+
     reason: str  # Required explanation
 
 
 class RejectDocumentResponse(BaseModel):
     """Response after rejecting."""
+
     success: bool
     rejected_at: datetime | None = None
     message: str
@@ -156,6 +168,7 @@ class RejectDocumentResponse(BaseModel):
 
 class DeliveryListResponse(BaseModel):
     """List of deliveries for inbox/outbox."""
+
     deliveries: list[DeliveryInboxItem]
     count: int
     unread_count: int = 0

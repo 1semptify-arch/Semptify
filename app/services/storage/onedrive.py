@@ -4,10 +4,11 @@ Async OneDrive client using Microsoft Graph API.
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime
 
 import httpx
 
+from app.core.utc import utc_now
 from app.services.storage.base import StorageFile, StorageProvider
 
 logger = logging.getLogger(__name__)
@@ -97,7 +98,7 @@ class OneDriveProvider(StorageProvider):
                         mime_type=data.get("file", {}).get("mimeType", mime_type or "application/octet-stream"),
                         modified_at=datetime.fromisoformat(data.get("lastModifiedDateTime", "").replace("Z", "+00:00"))
                         if data.get("lastModifiedDateTime")
-                        else datetime.now(UTC),
+                        else utc_now(),
                     )
                 else:
                     logger.error(f"OneDrive upload failed: {response.status_code} - {response.text}")
@@ -175,7 +176,7 @@ class OneDriveProvider(StorageProvider):
                         ),
                         modified_at=datetime.fromisoformat(item.get("lastModifiedDateTime", "").replace("Z", "+00:00"))
                         if item.get("lastModifiedDateTime")
-                        else datetime.now(UTC),
+                        else utc_now(),
                         is_folder=is_folder,
                     )
                     files.append(storage_file)
@@ -210,7 +211,7 @@ class OneDriveProvider(StorageProvider):
                                         item.get("lastModifiedDateTime", "").replace("Z", "+00:00")
                                     )
                                     if item.get("lastModifiedDateTime")
-                                    else datetime.now(UTC),
+                                    else utc_now(),
                                     is_folder=is_folder,
                                 )
                             )

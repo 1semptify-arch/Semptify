@@ -1,9 +1,9 @@
 # Semptify 5.0 Build Guide (SSOT)
 # Semptify 5.0 Build Guide (SSOT)
 
-**Purpose:** Single source of truth for build status, testing results, and known issues.  
-**Last Updated:** May 20, 2026  
-**Build Type:** Core (Tenant Role Only)  
+**Purpose:** Single source of truth for build status, testing results, and known issues.
+**Last Updated:** May 20, 2026
+**Build Type:** Core (Tenant Role Only)
 **Status:** Clean Repository - All Issues Resolved ✅
 
 ---
@@ -12,7 +12,7 @@
 
 > "Document Everything. Avoid the Pitfalls."
 
-**Semptify 5.0 Core** = Lightweight tenant journal + document vault + rights education.  
+**Semptify 5.0 Core** = Lightweight tenant journal + document vault + rights education.
 No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 
 ---
@@ -109,7 +109,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 - [x] **Browser Preview Cross-Origin Issue** — Preview proxy at `127.0.0.1:58057` cannot load app URLs at `localhost:8000` due to frame security restrictions. Affects:
   - `/storage/reconnect` → `localhost:8000/storage/reconnect`
   - `/onboarding/select-role.html` → `localhost:8000/onboarding/select-role.html`
-  
+
   **Workaround:** Test directly at `http://localhost:8000` (not through preview proxy).
 
 ---
@@ -158,7 +158,7 @@ These serve different purposes than Core tenant journaling:
    ```python
    # Before (disabled)
    court_forms_router = None
-   
+
    # After (enabled)
    court_forms_router = _safe_router_import("app.routers.court_forms")
    ```
@@ -167,9 +167,9 @@ These serve different purposes than Core tenant journaling:
 ### Add-On Loading (Future)
 ```python
 # Environment-based feature flags
-SEMPFIFY_FEATURE_SET=core        # Only Core
-SEMPFIFY_FEATURE_SET=extended    # Core + Extended
-SEMPFIFY_FEATURE_SET=full        # Everything
+SEMPFIFY_FEATURE_SET = core  # Only Core
+SEMPFIFY_FEATURE_SET = extended  # Core + Extended
+SEMPFIFY_FEATURE_SET = full  # Everything
 ```
 
 ---
@@ -398,4 +398,3 @@ curl http://localhost:8000/api/health
 - [x] All non-Core routers disabled — Court/AI/Extended all set to None ✅
 - [x] Extended journey archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`
 - [x] SSOT Architecture Compliance - all redirects use navigation registry
-

@@ -71,7 +71,7 @@ class TestPackageCreation:
     @pytest.mark.asyncio
     async def test_create_package_success(self, service, create_request, sample_vault_docs):
         """Test successful package creation."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock) as mock_save:
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock) as mock_save:
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -91,11 +91,9 @@ class TestPackageCreation:
     async def test_create_package_missing_vault_doc(self, service, create_request):
         """Test package creation with missing vault document."""
         # Remove one vault doc from the list
-        incomplete_docs = [
-            {"vault_id": "vault_doc_001", "filename": "lease.pdf", "file_size_bytes": 1024}
-        ]
+        incomplete_docs = [{"vault_id": "vault_doc_001", "filename": "lease.pdf", "file_size_bytes": 1024}]
 
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,  # Asks for 3 docs
                 vault_docs=incomplete_docs,  # Only provides 1
@@ -110,8 +108,8 @@ class TestPackageCreation:
         """Test that sealed cases generate warnings."""
         create_request.is_sealed_case = True
 
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
-            with patch('app.services.mndes_exhibit_service.logger') as mock_logger:
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
+            with patch("app.services.mndes_exhibit_service.logger") as mock_logger:
                 await service.create_package(
                     request=create_request,
                     vault_docs=sample_vault_docs,
@@ -128,7 +126,7 @@ class TestAttestations:
     @pytest.mark.asyncio
     async def test_apply_attestations_success(self, service, create_request, sample_vault_docs):
         """Test successful attestation application."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             # Create package first
             package = await service.create_package(
                 request=create_request,
@@ -137,7 +135,7 @@ class TestAttestations:
             )
 
             # Mock getting package from DB
-            with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=package):
+            with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
                 attestation_request = MNDESAttestationRequest(
                     package_id=package.package_id,
                     attests_no_sexual_content=True,
@@ -156,14 +154,14 @@ class TestAttestations:
     @pytest.mark.asyncio
     async def test_apply_attestations_incomplete(self, service, create_request, sample_vault_docs):
         """Test attestation with incomplete checklist."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
                 user_id="user_123",
             )
 
-            with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=package):
+            with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
                 attestation_request = MNDESAttestationRequest(
                     package_id=package.package_id,
                     attests_no_sexual_content=True,
@@ -180,7 +178,7 @@ class TestAttestations:
     @pytest.mark.asyncio
     async def test_apply_attestations_package_not_found(self, service):
         """Test attestation with non-existent package."""
-        with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=None):
+        with patch.object(service, "get_package", new_callable=AsyncMock, return_value=None):
             attestation_request = MNDESAttestationRequest(
                 package_id="nonexistent_package",
                 attests_no_sexual_content=True,
@@ -200,14 +198,14 @@ class TestSubmissionConfirmation:
     @pytest.mark.asyncio
     async def test_confirm_submission_success(self, service, create_request, sample_vault_docs):
         """Test successful submission confirmation."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
                 user_id="user_123",
             )
 
-            with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=package):
+            with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
                 confirm_request = MNDESSubmissionConfirmRequest(
                     package_id=package.package_id,
                     exhibit_id=package.exhibits[0].exhibit_id,
@@ -224,7 +222,7 @@ class TestSubmissionConfirmation:
     @pytest.mark.asyncio
     async def test_confirm_submission_all_exhibits(self, service, create_request, sample_vault_docs):
         """Test that submission_complete is set when all exhibits are submitted."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -233,11 +231,11 @@ class TestSubmissionConfirmation:
 
             # Confirm all exhibits one by one
             for i, exhibit in enumerate(package.exhibits):
-                with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=package):
+                with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
                     confirm_request = MNDESSubmissionConfirmRequest(
                         package_id=package.package_id,
                         exhibit_id=exhibit.exhibit_id,
-                        mndes_tracking_number=f"MN{i+1:09d}",
+                        mndes_tracking_number=f"MN{i + 1:09d}",
                     )
                     package = await service.confirm_submission(confirm_request)
 
@@ -250,14 +248,14 @@ class TestComplianceSummary:
     @pytest.mark.asyncio
     async def test_get_compliance_summary(self, service, create_request, sample_vault_docs):
         """Test compliance summary generation."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
                 user_id="user_123",
             )
 
-            with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=package):
+            with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
                 summary = await service.get_compliance_summary(package.package_id)
 
                 assert summary.total_files == 3
@@ -268,7 +266,7 @@ class TestComplianceSummary:
     @pytest.mark.asyncio
     async def test_get_compliance_summary_not_found(self, service):
         """Test compliance summary for non-existent package."""
-        with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=None):
+        with patch.object(service, "get_package", new_callable=AsyncMock, return_value=None):
             with pytest.raises(ValueError, match="Package not_found not found"):
                 await service.get_compliance_summary("not_found")
 
@@ -279,14 +277,14 @@ class TestSubmissionChecklist:
     @pytest.mark.asyncio
     async def test_get_submission_checklist(self, service, create_request, sample_vault_docs):
         """Test submission checklist generation."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
                 user_id="user_123",
             )
 
-            with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=package):
+            with patch.object(service, "get_package", new_callable=AsyncMock, return_value=package):
                 checklist = await service.get_submission_checklist(package.package_id)
 
                 assert checklist["package_id"] == package.package_id
@@ -299,7 +297,7 @@ class TestSubmissionChecklist:
     @pytest.mark.asyncio
     async def test_get_submission_checklist_not_found(self, service):
         """Test checklist for non-existent package."""
-        with patch.object(service, 'get_package', new_callable=AsyncMock, return_value=None):
+        with patch.object(service, "get_package", new_callable=AsyncMock, return_value=None):
             with pytest.raises(ValueError, match="Package not_found not found"):
                 await service.get_submission_checklist("not_found")
 
@@ -310,7 +308,7 @@ class TestDatabasePersistence:
     @pytest.mark.asyncio
     async def test_package_to_db_model_conversion(self, service, create_request, sample_vault_docs):
         """Test conversion from Pydantic model to DB model."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -328,7 +326,7 @@ class TestDatabasePersistence:
     @pytest.mark.asyncio
     async def test_package_from_db_model_conversion(self, service, create_request, sample_vault_docs):
         """Test conversion from DB model to Pydantic model."""
-        with patch.object(service, '_save_package_to_db', new_callable=AsyncMock):
+        with patch.object(service, "_save_package_to_db", new_callable=AsyncMock):
             package = await service.create_package(
                 request=create_request,
                 vault_docs=sample_vault_docs,
@@ -372,6 +370,7 @@ class TestDefaultExhibitName:
 # Integration Tests (requires database)
 # ============================================================================
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 class TestMNDESIntegration:
@@ -383,6 +382,7 @@ class TestMNDESIntegration:
         # Skip if no DB available
         try:
             from app.core.database import get_db_session
+
             async with get_db_session() as session:
                 pass  # Just test connection
         except Exception:

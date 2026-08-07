@@ -1,4 +1,5 @@
 """Filedored Router — Virtual document organization post-processing."""
+
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -21,8 +22,10 @@ router = APIRouter(prefix="/api/filedored", tags=["Filedored"])
 # Request/Response Models
 # =============================================================================
 
+
 class ProcessRequest(BaseModel):
     """Request to process documents through filedored system."""
+
     vault_ids: list[str] | None = None
     process_all: bool = False
     enable_ai: bool = False
@@ -30,6 +33,7 @@ class ProcessRequest(BaseModel):
 
 class ProcessResponse(BaseModel):
     """Response from filedored processing."""
+
     processed: list[dict]
     errors: list[str]
     total: int
@@ -37,6 +41,7 @@ class ProcessResponse(BaseModel):
 
 class FolderStatusResponse(BaseModel):
     """Response for folder status check."""
+
     status: str
     folders_created: list[str]
     folders_failed: list[str]
@@ -45,6 +50,7 @@ class FolderStatusResponse(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.post("/process", response_model=ProcessResponse)
 async def process_documents(
@@ -55,7 +61,7 @@ async def process_documents(
 ):
     """
     Process documents through filedored system.
-    
+
     Can process specific documents by vault_id or all unprocessed documents.
     """
     processed = []
@@ -108,11 +114,13 @@ async def process_documents(
                     overlay_manager=overlay_manager,
                 )
 
-                processed.append({
-                    "vault_id": vault_id,
-                    "filename": doc.filename,
-                    "result": result,
-                })
+                processed.append(
+                    {
+                        "vault_id": vault_id,
+                        "filename": doc.filename,
+                        "result": result,
+                    }
+                )
 
             except Exception as e:
                 logger.error("Failed to process document %s: %s", vault_id, e)
@@ -206,26 +214,27 @@ async def browse_folder(
             folder_path = folder
 
         # Get FILEDORED overlays and filter by path in payload (no get_overlays_by_path method exists)
-        overlays_response = await overlay_manager.get_overlays(
-            overlay_type=OverlayType.FILEDORED
+        overlays_response = await overlay_manager.get_overlays(overlay_type=OverlayType.FILEDORED)
+        overlays = (
+            [o for o in overlays_response.overlays if o.payload.get("filedored_path", "").startswith(folder_path)]
+            if overlays_response.success
+            else []
         )
-        overlays = [
-            o for o in overlays_response.overlays
-            if o.payload.get("filedored_path", "").startswith(folder_path)
-        ] if overlays_response.success else []
 
         # Build response with document details
         documents = []
         for overlay in overlays:
-            documents.append({
-                "vault_id": overlay.document_id,
-                "filename": overlay.payload.get("original_filename", overlay.payload.get("filename", "Unknown")),
-                "overlay_path": overlay.vault_path,
-                "filedored_category": overlay.payload.get("filedored_category"),
-                "ai_label": overlay.payload.get("ai_label"),
-                "extension": overlay.payload.get("extension"),
-                "created_at": overlay.created_at,
-            })
+            documents.append(
+                {
+                    "vault_id": overlay.document_id,
+                    "filename": overlay.payload.get("original_filename", overlay.payload.get("filename", "Unknown")),
+                    "overlay_path": overlay.vault_path,
+                    "filedored_category": overlay.payload.get("filedored_category"),
+                    "ai_label": overlay.payload.get("ai_label"),
+                    "extension": overlay.payload.get("extension"),
+                    "created_at": overlay.created_at,
+                }
+            )
 
         return {
             "folder": folder_path,
@@ -285,16 +294,11 @@ async def list_folders(
         }
 
         # Count documents in each folder — single fetch, filter in memory
-        overlays_response = await overlay_manager.get_overlays(
-            overlay_type=OverlayType.FILEDORED
-        )
+        overlays_response = await overlay_manager.get_overlays(overlay_type=OverlayType.FILEDORED)
         all_overlays = overlays_response.overlays if overlays_response.success else []
         folder_counts = {}
         for name, path in folders.items():
-            count = sum(
-                1 for o in all_overlays
-                if o.payload.get("filedored_path", "").startswith(path)
-            )
+            count = sum(1 for o in all_overlays if o.payload.get("filedored_path", "").startswith(path))
             folder_counts[name] = {
                 "path": path,
                 "count": count,

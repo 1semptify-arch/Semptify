@@ -8,6 +8,7 @@ This module provides active defense against SSOT violations:
 
 Principle: Bypass attempts fail loudly, not silently.
 """
+
 import logging
 import re
 from collections.abc import Callable
@@ -62,7 +63,7 @@ def detect_hardcoded_url(value: str) -> bool:
     """Detect potential hardcoded URLs in strings."""
     patterns = [
         r'["\']/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\.html["\']',  # /path/file.html
-        r'["\']/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+["\']',        # /path/route
+        r'["\']/[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+["\']',  # /path/route
         r'window\.location\.href\s*=\s*["\'][^"\']+["\']',  # JS redirects
     ]
     for pattern in patterns:
@@ -73,23 +74,26 @@ def detect_hardcoded_url(value: str) -> bool:
 
 class SSOTViolation(Exception):
     """Raised when code attempts to bypass SSOT navigation."""
+
     pass
 
 
 def require_ssot_path(path: str, context: str = ""):
     """
     Validate a path is SSOT-compliant.
-    
+
     Args:
         path: The URL path to validate
         context: Description of where this check is occurring
-        
+
     Raises:
         SSOTViolation: If path is not in SSOT registry
     """
     if not is_ssot_path(path):
-        violation_msg = f"SSOT VIOLATION: Non-canonical path '{path}' used in {context}. " \
-                     f"Use navigation.get_stage() or navigation.get_onboarding_start() instead."
+        violation_msg = (
+            f"SSOT VIOLATION: Non-canonical path '{path}' used in {context}. "
+            f"Use navigation.get_stage() or navigation.get_onboarding_start() instead."
+        )
         logger.error(violation_msg)
         raise SSOTViolation(violation_msg)
 
@@ -97,17 +101,17 @@ def require_ssot_path(path: str, context: str = ""):
 def ssot_redirect(path: str, context: str = "", strict: bool = False) -> RedirectResponse:
     """
     Create a redirect response with SSOT validation.
-    
+
     All redirects in the app should use this instead of raw RedirectResponse.
-    
+
     Args:
         path: Destination path
         context: Where this redirect originates
         strict: If True, raises on non-SSOT paths. If False, warns and allows.
-        
+
     Returns:
         RedirectResponse (validated through evolution system)
-        
+
     Raises:
         SSOTViolation: Only if strict=True and path is non-canonical
     """
@@ -120,8 +124,10 @@ def ssot_redirect(path: str, context: str = "", strict: bool = False) -> Redirec
         path = resolved
     elif not is_ssot_path(path):
         # Non-SSOT path - warn but allow (evolution needs experimentation)
-        logger.warning(f"SSOT Advisory: Non-canonical path '{path}' used in {context}. "
-                      f"Consider adding to registry via register_stage().")
+        logger.warning(
+            f"SSOT Advisory: Non-canonical path '{path}' used in {context}. "
+            f"Consider adding to registry via register_stage()."
+        )
         if strict:
             raise SSOTViolation(f"Strict mode: Non-canonical path '{path}' blocked in {context}")
 
@@ -131,7 +137,7 @@ def ssot_redirect(path: str, context: str = "", strict: bool = False) -> Redirec
 def ssot_middleware_guard(request: Request) -> None:
     """
     Middleware-level SSOT check.
-    
+
     Validates that redirect targets in request state are SSOT-compliant.
     Call this in middleware that handles redirects.
     """
@@ -148,16 +154,18 @@ def ssot_middleware_guard(request: Request) -> None:
 # Enforcement Decorators
 # =============================================================================
 
+
 def enforce_ssot_paths(func: Callable) -> Callable:
     """
     Decorator: Validates all RedirectResponse returns are SSOT-compliant.
-    
+
     Usage:
         @router.get("/route")
         @enforce_ssot_paths
         async def my_route():
             return RedirectResponse(url="/forbidden")  # Raises SSOTViolation
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
         result = await func(*args, **kwargs)
@@ -179,9 +187,10 @@ def enforce_ssot_paths(func: Callable) -> Callable:
 def audit_hardcoded_urls(func: Callable) -> Callable:
     """
     Decorator: Logs potential hardcoded URLs in string returns.
-    
+
     For HTML/string responses that might contain inline JS with hardcoded paths.
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
         result = await func(*args, **kwargs)
@@ -189,10 +198,7 @@ def audit_hardcoded_urls(func: Callable) -> Callable:
         if isinstance(result, str) and len(result) > 100:
             # Check for hardcoded URLs in HTML/JS
             if detect_hardcoded_url(result):
-                logger.warning(
-                    f"SSOT AUDIT: {func.__name__} may contain hardcoded URLs. "
-                    f"Review for SSOT compliance."
-                )
+                logger.warning(f"SSOT AUDIT: {func.__name__} may contain hardcoded URLs. Review for SSOT compliance.")
 
         return result
 

@@ -25,13 +25,16 @@ UPLOADS_DIR = Path("uploads")
 DATA_DIR = Path("data")
 SQLITE_DB = Path("semptify.db")
 
+
 def get_timestamp():
     """Get formatted timestamp for backup naming."""
     return datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
+
 def ensure_backup_dir():
     """Create backup directory if it doesn't exist."""
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def backup_sqlite():
     """Backup SQLite database."""
@@ -47,6 +50,7 @@ def backup_sqlite():
     print(f"✓ SQLite backup created: {backup_path}")
     return backup_path
 
+
 def backup_postgresql(db_url: str):
     """Backup PostgreSQL database using pg_dump."""
     timestamp = get_timestamp()
@@ -55,7 +59,8 @@ def backup_postgresql(db_url: str):
     # Parse connection string
     # Format: postgresql+asyncpg://user:password@host:port/dbname
     import re
-    match = re.match(r'postgresql\+asyncpg://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', db_url)
+
+    match = re.match(r"postgresql\+asyncpg://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)", db_url)
     if not match:
         print("Invalid PostgreSQL URL format")
         return None
@@ -65,19 +70,29 @@ def backup_postgresql(db_url: str):
     print(f"Backing up PostgreSQL database to {backup_path}...")
 
     env = os.environ.copy()
-    env['PGPASSWORD'] = password
+    env["PGPASSWORD"] = password
 
     try:
-        result = subprocess.run([
-            'pg_dump',
-            '-h', host,
-            '-p', port,
-            '-U', user,
-            '-d', dbname,
-            '-f', str(backup_path),
-            '--no-owner',
-            '--no-acl',
-        ], env=env, capture_output=True, text=True)
+        result = subprocess.run(
+            [
+                "pg_dump",
+                "-h",
+                host,
+                "-p",
+                port,
+                "-U",
+                user,
+                "-d",
+                dbname,
+                "-f",
+                str(backup_path),
+                "--no-owner",
+                "--no-acl",
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
 
         if result.returncode != 0:
             print(f"pg_dump error: {result.stderr}")
@@ -88,6 +103,7 @@ def backup_postgresql(db_url: str):
     except FileNotFoundError:
         print("pg_dump not found. Install PostgreSQL client tools.")
         return None
+
 
 def backup_uploads():
     """Backup uploads directory."""
@@ -101,15 +117,11 @@ def backup_uploads():
     print(f"Backing up uploads to {backup_path}...")
 
     # Create tar.gz archive
-    shutil.make_archive(
-        str(backup_path).replace('.tar.gz', ''),
-        'gztar',
-        root_dir='.',
-        base_dir='uploads'
-    )
+    shutil.make_archive(str(backup_path).replace(".tar.gz", ""), "gztar", root_dir=".", base_dir="uploads")
 
     print(f"✓ Uploads backup created: {backup_path}")
     return backup_path
+
 
 def list_backups():
     """List available backups."""
@@ -126,12 +138,13 @@ def list_backups():
 
     for backup in backups:
         size = backup.stat().st_size
-        size_str = f"{size / 1024 / 1024:.2f} MB" if size > 1024*1024 else f"{size / 1024:.2f} KB"
+        size_str = f"{size / 1024 / 1024:.2f} MB" if size > 1024 * 1024 else f"{size / 1024:.2f} KB"
         mtime = datetime.fromtimestamp(backup.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
         print(f"  {backup.name:<45} {size_str:>10}  {mtime}")
 
     print("-" * 60)
     print(f"Total: {len(backups)} backup(s)")
+
 
 def restore_sqlite(backup_path: Path):
     """Restore SQLite database from backup."""
@@ -150,19 +163,21 @@ def restore_sqlite(backup_path: Path):
     print(f"✓ Database restored from {backup_path}")
     return True
 
+
 def get_latest_backup(prefix: str) -> Path | None:
     """Get the most recent backup matching prefix."""
     ensure_backup_dir()
     backups = sorted(BACKUP_DIR.glob(f"{prefix}*"), reverse=True)
     return backups[0] if backups else None
 
+
 def main():
     parser = argparse.ArgumentParser(description="Semptify Database Backup Tool")
-    parser.add_argument('--restore', metavar='BACKUP', help='Restore from backup (use "latest" for most recent)')
-    parser.add_argument('--list', action='store_true', help='List available backups')
-    parser.add_argument('--db-url', default=os.getenv('DATABASE_URL', ''), help='Database URL')
-    parser.add_argument('--uploads-only', action='store_true', help='Only backup uploads directory')
-    parser.add_argument('--db-only', action='store_true', help='Only backup database')
+    parser.add_argument("--restore", metavar="BACKUP", help='Restore from backup (use "latest" for most recent)')
+    parser.add_argument("--list", action="store_true", help="List available backups")
+    parser.add_argument("--db-url", default=os.getenv("DATABASE_URL", ""), help="Database URL")
+    parser.add_argument("--uploads-only", action="store_true", help="Only backup uploads directory")
+    parser.add_argument("--db-only", action="store_true", help="Only backup database")
 
     args = parser.parse_args()
 
@@ -175,8 +190,8 @@ def main():
 
     # Restore
     if args.restore:
-        if args.restore == 'latest':
-            backup_path = get_latest_backup('semptify_sqlite_')
+        if args.restore == "latest":
+            backup_path = get_latest_backup("semptify_sqlite_")
             if not backup_path:
                 print("No SQLite backups found.")
                 sys.exit(1)
@@ -194,10 +209,10 @@ def main():
     print("Semptify Backup")
     print("=" * 60)
 
-    db_url = args.db_url or os.getenv('DATABASE_URL', '')
+    db_url = args.db_url or os.getenv("DATABASE_URL", "")
 
     if not args.uploads_only:
-        if 'postgresql' in db_url:
+        if "postgresql" in db_url:
             backup_postgresql(db_url)
         else:
             backup_sqlite()
@@ -207,6 +222,7 @@ def main():
 
     print("\n✓ Backup completed!")
     print(f"  Backups stored in: {BACKUP_DIR.absolute()}")
+
 
 if __name__ == "__main__":
     main()

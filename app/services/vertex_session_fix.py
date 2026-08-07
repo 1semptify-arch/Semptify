@@ -9,10 +9,11 @@ import time
 
 logger = logging.getLogger(__name__)
 
+
 def generate_unique_session_id() -> str:
     """
     Generate a truly unique session ID for Vertex AI to avoid collisions.
-    
+
     The error occurs because the same session ID is being reused.
     This function combines timestamp and random components to ensure uniqueness.
     """
@@ -28,6 +29,7 @@ def generate_unique_session_id() -> str:
     logger.info(f"Generated unique session ID: {session_id}")
     return session_id
 
+
 def patch_vertex_session_creation():
     """
     Monkey-patch any Vertex AI session creation to use unique IDs.
@@ -40,13 +42,13 @@ def patch_vertex_session_creation():
 
         # Store original methods if they exist
         original_init = None
-        if hasattr(GenerativeModel, '__init__'):
+        if hasattr(GenerativeModel, "__init__"):
             original_init = GenerativeModel.__init__
 
         def patched_init(self, *args, **kwargs):
             # Add unique session ID if not present
-            if 'session_id' not in kwargs:
-                kwargs['session_id'] = generate_unique_session_id()
+            if "session_id" not in kwargs:
+                kwargs["session_id"] = generate_unique_session_id()
 
             return original_init(self, *args, **kwargs)
 
@@ -59,6 +61,7 @@ def patch_vertex_session_creation():
         logger.info("Vertex AI not available, no patch needed")
     except Exception as e:
         logger.error(f"Failed to patch Vertex AI: {e}")
+
 
 # Apply the patch immediately when imported
 patch_vertex_session_creation()

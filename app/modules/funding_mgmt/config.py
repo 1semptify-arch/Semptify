@@ -31,7 +31,7 @@ class FundingModuleConfig:
                 "Individual Donor",
                 "State/Local Grant",
                 "In-Kind Contribution",
-                "Other"
+                "Other",
             ]
 
         if self.application_stages is None:
@@ -43,5 +43,5 @@ class FundingModuleConfig:
                 "Under Review",
                 "Awarded",
                 "Declined",
-                "Withdrawn"
+                "Withdrawn",
             ]

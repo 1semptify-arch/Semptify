@@ -11,6 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
+
 class SecuritySettings(BaseSettings):
     """Production security configuration"""
 
@@ -35,12 +36,8 @@ class SecuritySettings(BaseSettings):
         default=os.getenv("CORS_ORIGINS", "https://localhost:8443,https://semptify.local").split(",")
     )
     ALLOW_CREDENTIALS: bool = Field(default=True)
-    ALLOW_METHODS: list[str] = Field(
-        default=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    )
-    ALLOW_HEADERS: list[str] = Field(
-        default=["Content-Type", "Authorization", "X-API-Key"]
-    )
+    ALLOW_METHODS: list[str] = Field(default=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    ALLOW_HEADERS: list[str] = Field(default=["Content-Type", "Authorization", "X-API-Key"])
 
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = Field(default=True)
@@ -120,6 +117,7 @@ class SecuritySettings(BaseSettings):
                 raise ValueError(f"Production security issues: {', '.join(issues)}")
 
         return True
+
 
 def get_security_settings() -> SecuritySettings:
     """Get security settings instance"""

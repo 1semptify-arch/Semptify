@@ -17,6 +17,7 @@ a semptify.module.json manifest. The loader:
 If any forbidden import is attempted (app.core.database, app.services.*,
 etc.), the loader raises ExternalModuleSecurityError and logs the violation.
 """
+
 import hashlib
 import importlib
 import importlib.util
@@ -35,6 +36,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Errors
 # =============================================================================
+
 
 class ExternalModuleError(Exception):
     """Base error for external module loading failures."""
@@ -87,6 +89,7 @@ FORBIDDEN_IMPORT_PREFIXES: tuple = (
 # Manifest
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class ExternalModuleManifest:
     """Parsed semptify.module.json manifest."""
@@ -125,8 +128,16 @@ class ExternalModuleManifest:
 def parse_manifest(data: dict[str, Any]) -> ExternalModuleManifest:
     """Parse and validate a manifest dict."""
     required_fields = (
-        "name", "vendor", "version", "description", "lifecycle",
-        "requires_role", "permissions", "dependencies", "entry_point", "content_hash",
+        "name",
+        "vendor",
+        "version",
+        "description",
+        "lifecycle",
+        "requires_role",
+        "permissions",
+        "dependencies",
+        "entry_point",
+        "content_hash",
     )
     missing = [f for f in required_fields if f not in data]
     if missing:
@@ -178,6 +189,7 @@ def load_manifest_file(manifest_path: Path) -> ExternalModuleManifest:
 # Content hash verification
 # =============================================================================
 
+
 def compute_module_hash(module_dir: Path) -> str:
     """Compute SHA-256 hash of all .py files in the module directory.
 
@@ -205,6 +217,7 @@ def verify_module_hash(module_dir: Path, expected_hash: str) -> bool:
 # Import guard
 # =============================================================================
 
+
 class _ImportGuard:
     """Meta path finder that blocks forbidden imports from external modules."""
 
@@ -220,7 +233,9 @@ class _ImportGuard:
                 self.violations.append(fullname)
                 logger.error(
                     "ExternalModuleSecurity: module=%s vendor=%s attempted forbidden import: %s",
-                    self.module_name, self.vendor, fullname,
+                    self.module_name,
+                    self.vendor,
+                    fullname,
                 )
                 raise ExternalModuleSecurityError(
                     f"External module '{self.module_name}' attempted forbidden import: {fullname}"
@@ -236,6 +251,7 @@ class _ImportGuard:
 # =============================================================================
 # Loader
 # =============================================================================
+
 
 @dataclass
 class LoadedExternalModule:
@@ -278,13 +294,15 @@ def load_external_module(module_dir: Path) -> LoadedExternalModule:
     if not verify_module_hash(module_dir, manifest.content_hash):
         actual = compute_module_hash(module_dir)
         raise ExternalModuleSecurityError(
-            f"Content hash mismatch for module '{manifest.name}'. "
-            f"Expected: {manifest.content_hash}, Actual: {actual}"
+            f"Content hash mismatch for module '{manifest.name}'. Expected: {manifest.content_hash}, Actual: {actual}"
         )
 
     logger.info(
         "ExternalLoader: loading module=%s vendor=%s version=%s lifecycle=%s",
-        manifest.name, manifest.vendor, manifest.version, manifest.lifecycle,
+        manifest.name,
+        manifest.vendor,
+        manifest.version,
+        manifest.lifecycle,
     )
 
     # 3. Install import guard
@@ -295,9 +313,7 @@ def load_external_module(module_dir: Path) -> LoadedExternalModule:
         # 4. Import the entry_point module
         entry_file = module_dir / manifest.entry_module_file
         if not entry_file.exists():
-            raise ExternalModuleError(
-                f"Entry point file not found: {entry_file}"
-            )
+            raise ExternalModuleError(f"Entry point file not found: {entry_file}")
 
         # Use a unique module name to avoid collisions
         py_module_name = f"app.modules.external.{manifest.vendor}.{manifest.name}"
@@ -319,7 +335,8 @@ def load_external_module(module_dir: Path) -> LoadedExternalModule:
 
         logger.info(
             "ExternalLoader: successfully loaded module=%s vendor=%s",
-            manifest.name, manifest.vendor,
+            manifest.name,
+            manifest.vendor,
         )
 
         return LoadedExternalModule(
@@ -356,25 +373,30 @@ def list_external_modules(base_dir: Path) -> list[dict[str, Any]]:
                 continue
             try:
                 manifest = load_manifest_file(manifest_path)
-                modules.append({
-                    "name": manifest.name,
-                    "vendor": manifest.vendor,
-                    "version": manifest.version,
-                    "description": manifest.description,
-                    "lifecycle": manifest.lifecycle,
-                    "permissions": manifest.permissions.to_list(),
-                    "module_path": manifest.module_path,
-                    "module_dir": str(module_dir),
-                })
+                modules.append(
+                    {
+                        "name": manifest.name,
+                        "vendor": manifest.vendor,
+                        "version": manifest.version,
+                        "description": manifest.description,
+                        "lifecycle": manifest.lifecycle,
+                        "permissions": manifest.permissions.to_list(),
+                        "module_path": manifest.module_path,
+                        "module_dir": str(module_dir),
+                    }
+                )
             except Exception as e:
                 logger.warning(
                     "ExternalLoader: failed to parse manifest in %s: %s",
-                    module_dir, e,
+                    module_dir,
+                    e,
                 )
-                modules.append({
-                    "name": module_dir.name,
-                    "vendor": vendor_dir.name,
-                    "error": str(e),
-                    "module_dir": str(module_dir),
-                })
+                modules.append(
+                    {
+                        "name": module_dir.name,
+                        "vendor": vendor_dir.name,
+                        "error": str(e),
+                        "module_dir": str(module_dir),
+                    }
+                )
     return modules

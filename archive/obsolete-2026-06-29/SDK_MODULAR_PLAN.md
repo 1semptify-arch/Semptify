@@ -7,6 +7,7 @@ The current SDK is designed as a unified client (`SemptifyClient`) that imports 
 ```python
 # Current: Everything coupled through SemptifyClient
 from sdk import SemptifyClient
+
 client = SemptifyClient()
 client.documents.upload()  # Requires all modules
 ```
@@ -76,16 +77,10 @@ sdk/
 **Solution:** Each module accepts multiple auth methods:
 ```python
 # Option 1: Direct token
-client = DocumentClient(
-    base_url="http://api.example.com",
-    auth_token="jwt_token_here"
-)
+client = DocumentClient(base_url="http://api.example.com", auth_token="jwt_token_here")
 
 # Option 2: API Key
-client = DocumentClient(
-    base_url="http://api.example.com",
-    api_key="api_key_here"
-)
+client = DocumentClient(base_url="http://api.example.com", api_key="api_key_here")
 
 # Option 3: OAuth flow (auth module integration)
 auth = AuthClient(base_url="http://api.example.com")
@@ -177,12 +172,14 @@ from semptify_auth import AuthClient
 ```python
 # Before (still works)
 from sdk import SemptifyClient
+
 client = SemptifyClient()
 client.documents.upload()
 
 # After (new options)
 from sdk import SemptifyClient  # Still available
 from sdk.documents import DocumentClient  # New standalone
+
 docs = DocumentClient()
 docs.upload()
 ```
@@ -191,6 +188,7 @@ docs.upload()
 ```python
 # Use only what's needed
 from sdk.documents import DocumentClient
+
 docs = DocumentClient(base_url="https://api.semptify.com", token="...")
 ```
 

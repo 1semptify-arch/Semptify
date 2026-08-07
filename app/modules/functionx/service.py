@@ -53,9 +53,7 @@ class FunctionXService:
                         status=item.get("status", "planned"),
                         created_at=datetime.fromisoformat(item["created_at"]),
                         last_executed_at=(
-                            datetime.fromisoformat(item["last_executed_at"])
-                            if item.get("last_executed_at")
-                            else None
+                            datetime.fromisoformat(item["last_executed_at"]) if item.get("last_executed_at") else None
                         ),
                     )
                     self._records[record.set_id] = record
@@ -75,9 +73,7 @@ class FunctionXService:
                 "status": record.status,
                 "created_at": record.created_at.isoformat(),
                 "last_executed_at": (
-                    record.last_executed_at.isoformat()
-                    if record.last_executed_at is not None
-                    else None
+                    record.last_executed_at.isoformat() if record.last_executed_at is not None else None
                 ),
             }
             for record in self._records.values()

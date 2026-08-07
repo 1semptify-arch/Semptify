@@ -31,8 +31,10 @@ logger = logging.getLogger(__name__)
 # PYDANTIC MODELS
 # =============================================================================
 
+
 class PluginInfo(BaseModel):
     """Plugin information model"""
+
     name: str = Field(..., description="Plugin name")
     display_name: str = Field(..., description="Plugin display name")
     description: str = Field(..., description="Plugin description")
@@ -44,22 +46,29 @@ class PluginInfo(BaseModel):
     loaded_at: str | None = Field(None, description="When plugin was loaded")
     actions: list[str] = Field(default_factory=list, description="Available actions")
 
+
 class PluginActionRequest(BaseModel):
     """Plugin action request model"""
+
     params: dict[str, Any] = Field(default_factory=dict, description="Action parameters")
     context: dict[str, Any] = Field(default_factory=dict, description="Action context")
 
+
 class PluginActionResponse(BaseModel):
     """Plugin action response model"""
+
     success: bool = Field(..., description="Action success status")
     result: dict[str, Any] | None = Field(None, description="Action result")
     error: str | None = Field(None, description="Error message if failed")
 
+
 class PluginListResponse(BaseModel):
     """Plugin list response model"""
+
     plugins: list[PluginInfo] = Field(..., description="List of plugins")
     total: int = Field(..., description="Total number of plugins")
     loaded: int = Field(..., description="Number of loaded plugins")
+
 
 # =============================================================================
 # ROUTER SETUP
@@ -74,6 +83,7 @@ router = APIRouter(
 # =============================================================================
 # API ENDPOINTS
 # =============================================================================
+
 
 @router.get("/", response_model=PluginListResponse)
 async def list_plugins(
@@ -129,6 +139,7 @@ async def list_plugins(
         logger.error(f"Error listing plugins: {e}")
         raise HTTPException(status_code=500, detail="Failed to list plugins")
 
+
 @router.get("/{plugin_name}", response_model=PluginInfo)
 async def get_plugin(
     plugin_name: str,
@@ -166,6 +177,7 @@ async def get_plugin(
         logger.error(f"Error getting plugin '{plugin_name}': {e}")
         raise HTTPException(status_code=500, detail="Failed to get plugin information")
 
+
 @router.post("/{plugin_name}/load")
 async def load_plugin(
     plugin_name: str,
@@ -189,6 +201,7 @@ async def load_plugin(
         logger.error(f"Error loading plugin '{plugin_name}': {e}")
         raise HTTPException(status_code=500, detail="Failed to load plugin")
 
+
 @router.post("/{plugin_name}/unload")
 async def unload_plugin(
     plugin_name: str,
@@ -211,6 +224,7 @@ async def unload_plugin(
     except Exception as e:
         logger.error(f"Error unloading plugin '{plugin_name}': {e}")
         raise HTTPException(status_code=500, detail="Failed to unload plugin")
+
 
 @router.post("/{plugin_name}/action/{action_name}", response_model=PluginActionResponse)
 async def execute_plugin_action(
@@ -252,10 +266,8 @@ async def execute_plugin_action(
         raise
     except Exception as e:
         logger.error(f"Error executing action '{action_name}' on plugin '{plugin_name}': {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to execute action: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to execute action: {str(e)}")
+
 
 @router.get("/marketplace/browse")
 async def browse_marketplace(
@@ -279,8 +291,9 @@ async def browse_marketplace(
                 "tags": ["example", "demo"],
                 "version": "1.0.0",
             }
-        ]
+        ],
     }
+
 
 @router.get("/health")
 async def plugin_system_health():

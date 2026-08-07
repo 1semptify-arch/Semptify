@@ -6,13 +6,13 @@ Provides typed access to all Semptify services for tenant rights protection.
 
 Usage:
     from sdk import SemptifyClient
-    
+
     client = SemptifyClient(base_url="http://localhost:8000")
     client.auth.login(provider="google_drive")
-    
+
     # Upload a document
     doc = client.documents.upload("eviction_notice.pdf")
-    
+
     # Get AI analysis
     analysis = client.copilot.analyze(doc.id)
 """

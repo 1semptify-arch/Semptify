@@ -115,4 +115,3 @@ building a parallel identity system.
 - [x] Staleness check script — `tools/docs_staleness_check.py` (21-day threshold).
 - [x] Recurring scheduler — `tools/recurring_scheduler.py` (runs staleness, changelog, and future OCR beta review on a weekly cadence).
 - [x] Existing flat docs relocated into `admin/`, `user-guides/`, etc., with cross-references updated.
- 

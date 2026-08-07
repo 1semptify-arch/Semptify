@@ -1,6 +1,6 @@
 # Data Storage Assessment & Interactive Timeline Design
 
-**Date:** 2025-04-22  
+**Date:** 2025-04-22
 **Scope:** PostgreSQL, User Cloud Storage (Google Drive/Dropbox/OneDrive), Timeline/Vault Data
 
 ---
@@ -86,7 +86,7 @@ Create a materialized view or service that aggregates all time-based data:
 -- Concept: Unified chronology view
 CREATE VIEW unified_chronology AS
 -- Documents (upload date)
-SELECT 
+SELECT
     'document' as item_type,
     d.id,
     d.user_id,
@@ -99,7 +99,7 @@ FROM documents d
 UNION ALL
 
 -- Timeline events (event date)
-SELECT 
+SELECT
     'timeline_event' as item_type,
     te.id,
     te.user_id,
@@ -112,7 +112,7 @@ FROM timeline_events te
 UNION ALL
 
 -- Calendar events (start date)
-SELECT 
+SELECT
     'calendar_event' as item_type,
     ce.id,
     ce.user_id,
@@ -125,7 +125,7 @@ FROM calendar_events ce
 UNION ALL
 
 -- Vault items (event time)
-SELECT 
+SELECT
     'vault_item' as item_type,
     vi.item_id::text,
     vi.user_id,
@@ -175,7 +175,8 @@ class TimelineViewRequest(BaseModel):
     end_date: Optional[str] = None
     item_types: List[str] = ["document", "vault_item", "timeline_event", "calendar_event"]
     evidence_only: bool = False
-    
+
+
 class TimelineItem(BaseModel):
     id: str
     item_type: str  # document | vault_item | timeline_event | calendar_event | payment
@@ -193,6 +194,7 @@ class TimelineItem(BaseModel):
     document_id: Optional[str]  # Link to document
     thumbnail_url: Optional[str]
 
+
 class TimelineViewResponse(BaseModel):
     items: List[TimelineItem]
     total: int
@@ -206,7 +208,7 @@ class TimelineViewResponse(BaseModel):
 ```html
 <!-- Timeline Container -->
 <div class="timeline-interactive">
-  
+
   <!-- Controls -->
   <div class="timeline-controls">
     <!-- Date Axis Selector -->
@@ -215,17 +217,17 @@ class TimelineViewResponse(BaseModel):
       <option value="record_time">Record Date (when created)</option>
       <option value="entry_time">Upload Date (when added to Semptify)</option>
     </select>
-    
+
     <!-- Range Slider -->
     <input type="range" id="range-slider" min="0" max="100" value="50">
-    
+
     <!-- View Mode -->
     <button-group>
       <button data-view="list">List</button>
       <button data-view="timeline">Timeline</button>
       <button data-view="calendar">Calendar</button>
     </button-group>
-    
+
     <!-- Filters -->
     <filter-chips>
       <chip data-type="document">Documents</chip>
@@ -234,7 +236,7 @@ class TimelineViewResponse(BaseModel):
       <chip data-type="evidence" data-highlight>Evidence Only</chip>
     </filter-chips>
   </div>
-  
+
   <!-- Timeline Visualization -->
   <div class="timeline-visualization">
     <!-- Year/Month Headers -->
@@ -247,7 +249,7 @@ class TimelineViewResponse(BaseModel):
       </div>
     </div>
   </div>
-  
+
   <!-- Detail Panel (slide-out) -->
   <div class="timeline-detail" id="detail-panel">
     <!-- Document/Event details -->
@@ -306,7 +308,7 @@ Frontend: Render with virtualization
 CREATE OR REPLACE VIEW unified_timeline AS
 WITH all_items AS (
     -- Documents
-    SELECT 
+    SELECT
         d.id,
         d.user_id,
         'document'::text as item_type,
@@ -318,11 +320,11 @@ WITH all_items AS (
         FALSE as is_evidence,
         'normal'::text as urgency
     FROM documents d
-    
+
     UNION ALL
-    
+
     -- Timeline events
-    SELECT 
+    SELECT
         te.id,
         te.user_id,
         'timeline_event'::text as item_type,
@@ -332,17 +334,17 @@ WITH all_items AS (
         te.event_date as record_time,
         te.event_date as event_time,
         te.is_evidence,
-        CASE 
+        CASE
             WHEN te.urgency IS NOT NULL THEN te.urgency
             WHEN te.is_deadline THEN 'critical'
             ELSE 'normal'
         END as urgency
     FROM timeline_events te
-    
+
     UNION ALL
-    
+
     -- Calendar events
-    SELECT 
+    SELECT
         ce.id,
         ce.user_id,
         'calendar_event'::text as item_type,
@@ -354,11 +356,11 @@ WITH all_items AS (
         ce.is_critical as is_evidence,
         CASE WHEN ce.is_critical THEN 'critical' ELSE 'normal' END as urgency
     FROM calendar_events ce
-    
+
     UNION ALL
-    
+
     -- Vault items
-    SELECT 
+    SELECT
         vi.item_id::text,
         vi.user_id,
         'vault_item'::text as item_type,

@@ -24,6 +24,7 @@ _user_preferences: dict[str, dict[str, Any]] = {}
 
 class AutoModeConfig(BaseModel):
     """Auto mode configuration"""
+
     enabled: bool = True
     auto_generate_timeline: bool = True
     auto_generate_calendar: bool = True
@@ -35,6 +36,7 @@ class AutoModeConfig(BaseModel):
 
 class AutoModeStatus(BaseModel):
     """Status of auto mode"""
+
     enabled: bool
     config: AutoModeConfig
     last_analysis: str | None = None
@@ -48,7 +50,7 @@ def get_user_preferences(user_id: str) -> dict[str, Any]:
             "enabled": True,
             "config": AutoModeConfig().dict(),
             "analysis_count": 0,
-            "last_analysis": None
+            "last_analysis": None,
         }
     return _user_preferences[user_id]
 
@@ -61,7 +63,7 @@ async def get_auto_mode_status(user: StorageUser = Depends(yellow_access)):
         enabled=prefs["enabled"],
         config=AutoModeConfig(**prefs["config"]),
         last_analysis=prefs.get("last_analysis"),
-        analysis_count=prefs.get("analysis_count", 0)
+        analysis_count=prefs.get("analysis_count", 0),
     )
 
 
@@ -74,24 +76,17 @@ async def toggle_auto_mode(enabled: bool, user: StorageUser = Depends(yellow_acc
     return {
         "status": "success",
         "auto_mode_enabled": enabled,
-        "message": f"Auto mode {'enabled' if enabled else 'disabled'}"
+        "message": f"Auto mode {'enabled' if enabled else 'disabled'}",
     }
 
 
 @router.post("/config")
-async def update_auto_mode_config(
-    config: AutoModeConfig,
-    user: StorageUser = Depends(yellow_access)
-):
+async def update_auto_mode_config(config: AutoModeConfig, user: StorageUser = Depends(yellow_access)):
     """Update auto mode configuration"""
     prefs = get_user_preferences(user.sub)
     prefs["config"] = config.dict()
 
-    return {
-        "status": "success",
-        "config": config,
-        "message": "Auto mode configuration updated"
-    }
+    return {"status": "success", "config": config, "message": "Auto mode configuration updated"}
 
 
 @router.get("/features")
@@ -102,33 +97,29 @@ async def get_available_features(user: StorageUser = Depends(yellow_access)):
             {
                 "name": "auto_generate_timeline",
                 "description": "Automatically extract dates and events from documents",
-                "available": True
+                "available": True,
             },
             {
                 "name": "auto_generate_calendar",
                 "description": "Create calendar events from timeline and deadlines",
-                "available": True
+                "available": True,
             },
             {
                 "name": "auto_identify_complaints",
                 "description": "Identify agencies for filing complaints",
-                "available": True
+                "available": True,
             },
             {
                 "name": "auto_assess_rights",
                 "description": "Automatically assess tenant rights and protections",
-                "available": True
+                "available": True,
             },
             {
                 "name": "auto_detect_missteps",
                 "description": "Detect legal missteps and procedural violations",
-                "available": True
+                "available": True,
             },
-            {
-                "name": "auto_suggest_tactics",
-                "description": "Suggest proactive defense tactics",
-                "available": True
-            }
+            {"name": "auto_suggest_tactics", "description": "Suggest proactive defense tactics", "available": True},
         ]
     }
 
@@ -141,6 +132,7 @@ async def get_analysis_summary(doc_id: str, user: StorageUser = Depends(yellow_a
 
         from app.core.database import get_db_session
         from app.models.models import Document
+
         async with get_db_session() as db:
             result = await db.execute(
                 select(Document).where(
@@ -182,10 +174,7 @@ async def get_analysis_summary(doc_id: str, user: StorageUser = Depends(yellow_a
 
 @router.post("/run-analysis/{doc_id}")
 async def run_analysis_on_document(
-    doc_id: str,
-    document_content: str,
-    filename: str = "document",
-    user: StorageUser = Depends(yellow_access)
+    doc_id: str, document_content: str, filename: str = "document", user: StorageUser = Depends(yellow_access)
 ):
     """Trigger auto mode analysis on a document"""
     orchestrator = AutoModeOrchestrator()
@@ -196,30 +185,24 @@ async def run_analysis_on_document(
             user_id=user.sub,
             document_content=document_content,
             filename=filename,
-            document_metadata={"uploaded_by": user.sub}
+            document_metadata={"uploaded_by": user.sub},
         )
 
         return {
             "status": "success",
-            "analysis": results.get('summary'),
-            "progress": results.get('summary', {}).get('progress', 0),
-            "confidence": results.get('summary', {}).get('confidence', 0),
-            "recommended_actions": results.get('summary', {}).get('recommended_actions', []),
-            "urgent_actions": results.get('summary', {}).get('urgent_actions', []),
-            "next_steps": results.get('summary', {}).get('next_steps', [])
+            "analysis": results.get("summary"),
+            "progress": results.get("summary", {}).get("progress", 0),
+            "confidence": results.get("summary", {}).get("confidence", 0),
+            "recommended_actions": results.get("summary", {}).get("recommended_actions", []),
+            "urgent_actions": results.get("summary", {}).get("urgent_actions", []),
+            "next_steps": results.get("summary", {}).get("next_steps", []),
         }
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        return {"status": "error", "error": str(e)}
 
 
 @router.post("/batch-analysis")
-async def run_batch_analysis(
-    limit: int = 5,
-    user: StorageUser = Depends(yellow_access)
-):
+async def run_batch_analysis(limit: int = 5, user: StorageUser = Depends(yellow_access)):
     """
     Run auto mode analysis on all existing uploaded documents.
     Returns aggregated summary with all findings.
@@ -236,17 +219,19 @@ async def run_batch_analysis(
     # Collect documents
     documents = []
     for user_folder in sorted(documents_root.iterdir()):
-        if user_folder.is_dir() and user_folder.name != 'open-mode-user':
+        if user_folder.is_dir() and user_folder.name != "open-mode-user":
             user_id = user_folder.name
             for doc_file in sorted(user_folder.iterdir())[:limit]:
-                if doc_file.is_file() and not doc_file.name.startswith('.'):
-                    documents.append({
-                        'doc_id': doc_file.stem[:20],
-                        'user_id': user_id,
-                        'filename': doc_file.name,
-                        'filepath': str(doc_file),
-                        'size': doc_file.stat().st_size
-                    })
+                if doc_file.is_file() and not doc_file.name.startswith("."):
+                    documents.append(
+                        {
+                            "doc_id": doc_file.stem[:20],
+                            "user_id": user_id,
+                            "filename": doc_file.name,
+                            "filepath": str(doc_file),
+                            "size": doc_file.stat().st_size,
+                        }
+                    )
 
     if not documents:
         return {"status": "error", "error": "No documents found"}
@@ -255,37 +240,37 @@ async def run_batch_analysis(
     async def analyze_doc(doc_info):
         try:
             # Extract text from file
-            content = await _extract_text(doc_info['filepath'])
+            content = await _extract_text(doc_info["filepath"])
 
             if not content or len(content.strip()) < 100:
-                return {'status': 'skipped', **doc_info}
+                return {"status": "skipped", **doc_info}
 
             # Run analysis
             orchestrator = AutoModeOrchestrator()
             results = await orchestrator.run_full_auto_analysis(
-                doc_id=doc_info['doc_id'],
-                user_id=doc_info['user_id'],
+                doc_id=doc_info["doc_id"],
+                user_id=doc_info["user_id"],
                 document_content=content,
-                filename=doc_info['filename'],
-                document_metadata={'uploaded_by': doc_info['user_id']}
+                filename=doc_info["filename"],
+                document_metadata={"uploaded_by": doc_info["user_id"]},
             )
 
-            return {'status': 'complete', **doc_info, 'analysis': results}
+            return {"status": "complete", **doc_info, "analysis": results}
         except Exception as e:
-            return {'status': 'error', 'error': str(e), **doc_info}
+            return {"status": "error", "error": str(e), **doc_info}
 
     async def _extract_text(filepath):
         """Extract text from file."""
         try:
-            if filepath.lower().endswith('.pdf'):
-                with open(filepath, 'rb') as f:
+            if filepath.lower().endswith(".pdf"):
+                with open(filepath, "rb") as f:
                     reader = PyPDF2.PdfReader(f)
                     text = ""
                     for page in list(reader.pages)[:5]:
                         text += page.extract_text() + "\n"
                     return text
             else:
-                with open(filepath, encoding='utf-8', errors='ignore') as f:
+                with open(filepath, encoding="utf-8", errors="ignore") as f:
                     return f.read()[:10000]  # First 10k chars
         except UnicodeDecodeError:
             return ""
@@ -295,56 +280,51 @@ async def run_batch_analysis(
     results = await asyncio.gather(*tasks)
 
     # Aggregate results
-    completed = sum(1 for r in results if r['status'] == 'complete')
+    completed = sum(1 for r in results if r["status"] == "complete")
 
-    totals = {
-        'timeline_events': 0,
-        'calendar_events': 0,
-        'complaints': 0,
-        'rights': 0,
-        'missteps': 0,
-        'tactics': 0
-    }
+    totals = {"timeline_events": 0, "calendar_events": 0, "complaints": 0, "rights": 0, "missteps": 0, "tactics": 0}
 
     all_actions = []
     all_urgent = []
     doc_summaries = []
 
     for result in results:
-        if result['status'] == 'complete':
-            summary = result.get('analysis', {}).get('summary', {})
-            totals['timeline_events'] += summary.get('timeline_events', 0)
-            totals['calendar_events'] += summary.get('calendar_events', 0)
-            totals['complaints'] += summary.get('complaints_identified', 0)
-            totals['rights'] += summary.get('rights_count', 0)
-            totals['missteps'] += summary.get('missteps_count', 0)
-            totals['tactics'] += summary.get('tactics_recommended', 0)
+        if result["status"] == "complete":
+            summary = result.get("analysis", {}).get("summary", {})
+            totals["timeline_events"] += summary.get("timeline_events", 0)
+            totals["calendar_events"] += summary.get("calendar_events", 0)
+            totals["complaints"] += summary.get("complaints_identified", 0)
+            totals["rights"] += summary.get("rights_count", 0)
+            totals["missteps"] += summary.get("missteps_count", 0)
+            totals["tactics"] += summary.get("tactics_recommended", 0)
 
-            all_actions.extend(summary.get('recommended_actions', []))
-            all_urgent.extend(summary.get('urgent_actions', []))
+            all_actions.extend(summary.get("recommended_actions", []))
+            all_urgent.extend(summary.get("urgent_actions", []))
 
-            doc_summaries.append({
-                'filename': result['filename'],
-                'progress': summary.get('overall_progress', 0),
-                'confidence': summary.get('analysis_confidence', 0),
-                'events': summary.get('timeline_events', 0),
-                'urgent_count': len(summary.get('urgent_actions', []))
-            })
+            doc_summaries.append(
+                {
+                    "filename": result["filename"],
+                    "progress": summary.get("overall_progress", 0),
+                    "confidence": summary.get("analysis_confidence", 0),
+                    "events": summary.get("timeline_events", 0),
+                    "urgent_count": len(summary.get("urgent_actions", [])),
+                }
+            )
 
     # Sort by priority
-    all_urgent.sort(key=lambda x: {'critical': 0, 'high': 1, 'medium': 2}.get(x.get('severity', 'medium'), 3))
-    all_actions.sort(key=lambda x: {'critical': 0, 'high': 1, 'medium': 2}.get(x.get('priority', 'medium'), 3))
+    all_urgent.sort(key=lambda x: {"critical": 0, "high": 1, "medium": 2}.get(x.get("severity", "medium"), 3))
+    all_actions.sort(key=lambda x: {"critical": 0, "high": 1, "medium": 2}.get(x.get("priority", "medium"), 3))
 
     return {
         "status": "complete",
         "batch_summary": {
             "total_documents": len(documents),
             "completed": completed,
-            "failed": sum(1 for r in results if r['status'] == 'error'),
-            "skipped": sum(1 for r in results if r['status'] == 'skipped')
+            "failed": sum(1 for r in results if r["status"] == "error"),
+            "skipped": sum(1 for r in results if r["status"] == "skipped"),
         },
         "aggregated_statistics": totals,
         "urgent_actions": all_urgent[:5],
         "recommended_actions": all_actions[:5],
-        "documents": doc_summaries
+        "documents": doc_summaries,
     }

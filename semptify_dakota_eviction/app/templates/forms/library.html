@@ -13,7 +13,7 @@
             </p>
         </div>
     </div>
-    
+
     <!-- Category Filter -->
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
         <a href="/forms/library?lang={{ lang }}" class="btn {% if not selected_category %}btn-primary{% else %}btn-outline{% endif %}" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
@@ -40,31 +40,31 @@
                 <p style="font-size: 0.8rem; color: var(--text-light);">{{ form.id }}</p>
             </div>
         </div>
-        
+
         {% if form.instructions %}
         <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem;">
             {{ form.instructions }}
         </p>
         {% endif %}
-        
+
         {% if form.deadline_days %}
         <p style="font-size: 0.85rem; color: #b45309; margin-bottom: 1rem;">
             ⏰ {% if lang == 'en' %}Deadline: {{ form.deadline_days }} days from service{% elif lang == 'es' %}Fecha límite: {{ form.deadline_days }} días desde la notificación{% elif lang == 'so' %}Wakhti dhammaad: {{ form.deadline_days }} maalmood ka dib adeegga{% else %}الموعد النهائي: {{ form.deadline_days }} أيام من التبليغ{% endif %}
         </p>
         {% endif %}
-        
+
         {% if form.required %}
         <span style="background: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
             {% if lang == 'en' %}REQUIRED{% elif lang == 'es' %}REQUERIDO{% elif lang == 'so' %}LAGAMA MAARMAAN{% else %}مطلوب{% endif %}
         </span>
         {% endif %}
-        
+
         {% if form.required_first %}
         <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">
             {% if lang == 'en' %}FILE FIRST{% elif lang == 'es' %}PRESENTE PRIMERO{% elif lang == 'so' %}MARKA HORE XAREE{% else %}قدم أولاً{% endif %}
         </span>
         {% endif %}
-        
+
         <div class="mt-2">
             <a href="{{ form.url }}" target="_blank" rel="noopener" class="btn btn-primary" style="font-size: 0.9rem;">
                 📥 {% if lang == 'en' %}Download{% elif lang == 'es' %}Descargar{% elif lang == 'so' %}Soo Deji{% else %}تحميل{% endif %}
@@ -88,7 +88,7 @@
     <h2 style="margin-bottom: 1rem;">
         📞 {% if lang == 'en' %}Legal Aid Resources{% elif lang == 'es' %}Recursos de Asistencia Legal{% elif lang == 'so' %}Ilaha Caawinta Sharciga{% else %}موارد المساعدة القانونية{% endif %}
     </h2>
-    
+
     <div class="grid grid-2">
         {% for resource in resources %}
         <div style="padding: 1rem; background: var(--bg); border-radius: 8px;">

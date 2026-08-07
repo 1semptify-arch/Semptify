@@ -17,14 +17,14 @@
       <div class="emergency-subtitle">Critical items requiring immediate attention</div>
     </div>
   </div>
-  
+
   <div class="emergency-content" id="{{ component_id }}_content">
     <div class="emergency-loading">
       <div class="emergency-loading-spinner"></div>
       <div class="emergency-loading-text">Checking for urgent items...</div>
     </div>
   </div>
-  
+
   <div class="emergency-footer">
     <div class="emergency-hotline">
       <div class="hotline-title">24/7 Emergency Hotline</div>
@@ -35,7 +35,7 @@
 </div>
 
 {# Store configuration in data attributes #}
-<div id="{{ component_id }}_config" 
+<div id="{{ component_id }}_config"
      data-component-id="{{ component_id }}"
      data-role="{{ role }}"
      data-show-only-critical="{{ show_only_critical|lower }}"
@@ -311,15 +311,15 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .emergency-item-actions {
     flex-direction: column;
   }
-  
+
   .emergency-action-btn {
     width: 100%;
   }
-  
+
   .emergency-hotline {
     text-align: left;
   }
@@ -337,25 +337,25 @@ document.addEventListener('DOMContentLoaded', function() {
     autoRefresh: configEl.dataset.autoRefresh === 'true',
     refreshInterval: parseInt(configEl.dataset.refreshInterval)
   };
-  
+
   // State
   let emergencyData = null;
   let refreshTimer = null;
-  
+
   // Initialize emergency actions
   initEmergencyActions();
-  
+
   function initEmergencyActions() {
     loadEmergencyData();
-    
+
     if (config.autoRefresh) {
       startAutoRefresh();
     }
   }
-  
+
   function loadEmergencyData() {
     const contentEl = document.getElementById(config.componentId + '_content');
-    
+
     // Show loading state
     contentEl.innerHTML = `
       <div class="emergency-loading">
@@ -363,17 +363,17 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="emergency-loading-text">Checking for urgent items...</div>
       </div>
     `;
-    
+
     // Simulate API call
     setTimeout(() => {
       emergencyData = generateMockEmergencyData();
       renderEmergencyActions();
     }, 1000);
   }
-  
+
   function generateMockEmergencyData() {
     const now = new Date();
-    
+
     return {
       items: [
         {
@@ -415,30 +415,30 @@ document.addEventListener('DOMContentLoaded', function() {
       ]
     };
   }
-  
+
   function renderEmergencyActions() {
     if (!emergencyData || !emergencyData.items) return;
-    
+
     let filteredItems = emergencyData.items;
     if (config.showOnlyCritical) {
       filteredItems = emergencyData.items.filter(item => item.priority === 'critical');
     }
-    
+
     if (filteredItems.length === 0) {
       renderEmptyState();
       return;
     }
-    
+
     const contentEl = document.getElementById(config.componentId + '_content');
     const html = filteredItems.map(item => createEmergencyItemHTML(item)).join('');
-    
+
     contentEl.innerHTML = html;
     attachEventListeners();
   }
-  
+
   function createEmergencyItemHTML(item) {
     const deadlineClass = getDeadlineClass(item.deadline);
-    
+
     return `
       <div class="emergency-item ${item.priority}" data-emergency-id="${item.id}">
         <div class="emergency-item-header">
@@ -463,16 +463,16 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function getDeadlineClass(deadline) {
     const now = new Date();
     const hoursUntil = (deadline - now) / (1000 * 60 * 60);
-    
+
     if (hoursUntil <= 24) return 'critical';
     if (hoursUntil <= 72) return 'urgent';
     return 'warning';
   }
-  
+
   function renderEmptyState() {
     const contentEl = document.getElementById(config.componentId + '_content');
     contentEl.innerHTML = `
@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
   }
-  
+
   function attachEventListeners() {
     const emergencyItems = document.querySelectorAll('.emergency-item');
     emergencyItems.forEach(item => {
@@ -494,11 +494,11 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
-  
+
   function handleEmergencyClick(itemEl) {
     const emergencyId = itemEl.dataset.emergencyId;
     const emergency = emergencyData.items.find(item => item.id === emergencyId);
-    
+
     if (emergency) {
       // Emit emergency selection event
       const emergencyEvent = new CustomEvent('tenant-emergency-select', {
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(emergencyEvent);
     }
   }
-  
+
   function executeEmergencyAction(emergencyId, action) {
     const emergency = emergencyData.items.find(item => item.id === emergencyId);
     if (emergency) {
@@ -527,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(actionEvent);
     }
   }
-  
+
   function viewEmergencyDetails(emergencyId) {
     const emergency = emergencyData.items.find(item => item.id === emergencyId);
     if (emergency) {
@@ -542,28 +542,28 @@ document.addEventListener('DOMContentLoaded', function() {
       document.dispatchEvent(detailsEvent);
     }
   }
-  
+
   function startAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
     }
-    
+
     refreshTimer = setInterval(() => {
       loadEmergencyData();
     }, config.refreshInterval * 1000);
   }
-  
+
   function stopAutoRefresh() {
     if (refreshTimer) {
       clearInterval(refreshTimer);
       refreshTimer = null;
     }
   }
-  
+
   // Make action handlers available globally
   window.executeEmergencyAction = executeEmergencyAction;
   window.viewEmergencyDetails = viewEmergencyDetails;
-  
+
   // Cleanup on page unload
   window.addEventListener('beforeunload', stopAutoRefresh);
 });

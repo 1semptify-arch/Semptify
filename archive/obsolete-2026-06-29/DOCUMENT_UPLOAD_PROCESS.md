@@ -179,7 +179,7 @@ curl -X POST http://localhost:8000/api/intake/upload/auto \
 
 ### Step 1: Notarization (OPTIONAL but RECOMMENDED)
 - **Purpose**: Create tamper-proof receipt
-- **Process**: 
+- **Process**:
   - Compute SHA-256 hash of file
   - Record upload timestamp, username, IP address
   - Generate notarization certificate
@@ -323,6 +323,7 @@ include_if(documents_router, tags=["Documents"])
 # At top of app/main.py
 try:
     from app.routers import documents
+
     documents_router = documents.router
 except ImportError:
     documents_router = None

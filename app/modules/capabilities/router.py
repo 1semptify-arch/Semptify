@@ -41,6 +41,7 @@ router = APIRouter(prefix="/api/capabilities", tags=["Capabilities"])
 # Schemas
 # =============================================================================
 
+
 class GrantRequest(BaseModel):
     module_name: str
     source: str = "admin_grant"
@@ -64,6 +65,7 @@ class CapabilityListResponse(BaseModel):
 # Helpers
 # =============================================================================
 
+
 def _require_admin_or_self(requesting_user: UserContext, target_user_id: str) -> None:
     """Raise 403 if the requesting user is not admin and is not inspecting themselves."""
     if requesting_user is None:
@@ -71,7 +73,7 @@ def _require_admin_or_self(requesting_user: UserContext, target_user_id: str) ->
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required.",
         )
-    if getattr(requesting_user, 'role', None) == 'admin':
+    if getattr(requesting_user, "role", None) == "admin":
         return
     if requesting_user.user_id == target_user_id:
         return
@@ -82,7 +84,7 @@ def _require_admin_or_self(requesting_user: UserContext, target_user_id: str) ->
 
 
 def _require_admin(requesting_user: UserContext) -> None:
-    if getattr(requesting_user, 'role', None) != 'admin':
+    if getattr(requesting_user, "role", None) != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required.",
@@ -92,6 +94,7 @@ def _require_admin(requesting_user: UserContext) -> None:
 # =============================================================================
 # Endpoints
 # =============================================================================
+
 
 @router.get("/{user_id}", response_model=CapabilityListResponse)
 async def list_capabilities(
@@ -116,7 +119,7 @@ async def grant_module(
     body: GrantRequest,
     current_user: UserContext = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    _ = Depends(require_capability("admin_capabilities"))
+    _=Depends(require_capability("admin_capabilities")),
 ):
     """Grant a module to a user. Admin only."""
     _require_admin(current_user)
@@ -135,7 +138,7 @@ async def revoke_module(
     body: RevokeRequest,
     current_user: UserContext = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    _ = Depends(require_capability("admin_capabilities"))
+    _=Depends(require_capability("admin_capabilities")),
 ):
     """Revoke a module from a user. Admin only."""
     _require_admin(current_user)
@@ -162,7 +165,7 @@ async def attach_overlay_endpoint(
     user_id: str,
     body: OverlayAttachRequest,
     current_user: UserContext = Depends(get_current_user),
-    _ = Depends(require_capability("admin_capabilities"))
+    _=Depends(require_capability("admin_capabilities")),
 ):
     """
     Attach a dev overlay to a user's session. Admin only.
@@ -186,7 +189,7 @@ async def attach_overlay_endpoint(
 async def detach_overlay_endpoint(
     user_id: str,
     current_user: UserContext = Depends(get_current_user),
-    _ = Depends(require_capability("admin_capabilities"))
+    _=Depends(require_capability("admin_capabilities")),
 ):
     """Detach the dev overlay from a user's session. Admin only."""
     _require_admin(current_user)

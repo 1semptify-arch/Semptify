@@ -31,6 +31,7 @@ from app.services.document_intake import (
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def client():
     """Test client."""
@@ -62,6 +63,7 @@ def sample_text_content():
 # ENGINE SINGLETON TESTS
 # =============================================================================
 
+
 class TestEngineSingleton:
     """Test engine singleton pattern."""
 
@@ -80,6 +82,7 @@ class TestEngineSingleton:
 # =============================================================================
 # DOCUMENT INTAKE TESTS
 # =============================================================================
+
 
 class TestDocumentIntake:
     """Test document intake functionality."""
@@ -172,6 +175,7 @@ class TestDocumentIntake:
 # DOCUMENT CLASSIFIER TESTS
 # =============================================================================
 
+
 class TestDocumentClassifier:
     """Test document type classification."""
 
@@ -209,6 +213,7 @@ class TestDocumentClassifier:
 # =============================================================================
 # DATA EXTRACTION TESTS
 # =============================================================================
+
 
 class TestDataExtractor:
     """Test data extraction functionality."""
@@ -274,6 +279,7 @@ class TestDataExtractor:
 # ISSUE DETECTION TESTS
 # =============================================================================
 
+
 class TestIssueDetector:
     """Test issue detection functionality."""
 
@@ -319,6 +325,7 @@ class TestIssueDetector:
 # =============================================================================
 # STATUS TRACKING TESTS
 # =============================================================================
+
 
 class TestStatusTracking:
     """Test processing status tracking."""
@@ -366,6 +373,7 @@ class TestStatusTracking:
 # =============================================================================
 # USER DOCUMENT MANAGEMENT TESTS
 # =============================================================================
+
 
 class TestUserDocumentManagement:
     """Test user document retrieval."""
@@ -419,6 +427,7 @@ class TestUserDocumentManagement:
 # =============================================================================
 # API ENDPOINT TESTS
 # =============================================================================
+
 
 class TestIntakeAPI:
     """Test intake API endpoints."""
@@ -587,6 +596,7 @@ class TestIntakeAnalysisAPI:
 # INTEGRATION TESTS
 # =============================================================================
 
+
 class TestIntakeIntegration:
     """Integration tests for full pipeline."""
 
@@ -596,22 +606,22 @@ class TestIntakeIntegration:
         # Realistic eviction notice content
         content = b"""
         NOTICE TO QUIT
-        
+
         To: John Doe
         Address: 123 Main Street, Minneapolis, MN 55401
-        
+
         From: ABC Properties LLC
-        
+
         You are hereby notified that you must vacate the above premises
         within fourteen (14) days of receiving this notice.
-        
+
         Monthly rent owed: $1,500.00
         Late fees: $75.00
         Total amount due: $1,575.00
-        
+
         Date: January 5, 2025
         Response deadline: January 19, 2025
-        
+
         Failure to respond by the deadline will result in court action.
         """
 
@@ -637,14 +647,14 @@ class TestIntakeIntegration:
             assert processed.extraction.doc_type in [
                 DocumentType.EVICTION_NOTICE,
                 DocumentType.NOTICE_TO_QUIT,
-                DocumentType.OTHER
+                DocumentType.OTHER,
             ]
 
     @pytest.mark.asyncio
     async def test_api_full_workflow(self, client, engine):
         """
         Test complete document intake workflow via the engine.
-        
+
         Note: API endpoints may be blocked by storage middleware in protected mode.
         This test validates core engine functionality regardless of API middleware state.
         """
@@ -676,6 +686,7 @@ class TestIntakeIntegration:
 # =============================================================================
 # EDGE CASE TESTS
 # =============================================================================
+
 
 class TestEdgeCases:
     """Test edge cases and error handling."""

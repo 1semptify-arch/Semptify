@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class EventType(str, Enum):
     """All event types in the system"""
+
     # Document events
     DOCUMENT_ADDED = "document_added"
     DOCUMENT_UPDATED = "document_updated"
@@ -92,6 +93,7 @@ class EventType(str, Enum):
 @dataclass
 class Event:
     """Event data structure"""
+
     type: EventType
     data: dict[str, Any]
     timestamp: datetime = field(default_factory=utc_now)
@@ -116,6 +118,7 @@ class EventBus:
     Central event bus for Semptify.
     Singleton pattern - one bus for entire application.
     """
+
     _instance: Optional["EventBus"] = None
     _initialized: bool = False
 
@@ -154,13 +157,9 @@ class EventBus:
     def unsubscribe(self, event_type: EventType, callback: Callable) -> None:
         """Unsubscribe a callback from an event type"""
         if event_type in self._subscribers:
-            self._subscribers[event_type] = [
-                cb for cb in self._subscribers[event_type] if cb != callback
-            ]
+            self._subscribers[event_type] = [cb for cb in self._subscribers[event_type] if cb != callback]
         if event_type in self._async_subscribers:
-            self._async_subscribers[event_type] = [
-                cb for cb in self._async_subscribers[event_type] if cb != callback
-            ]
+            self._async_subscribers[event_type] = [cb for cb in self._async_subscribers[event_type] if cb != callback]
 
     async def publish(
         self,
@@ -183,7 +182,7 @@ class EventBus:
         # Store in history
         self._event_history.append(event)
         if len(self._event_history) > self._max_history:
-            self._event_history = self._event_history[-self._max_history:]
+            self._event_history = self._event_history[-self._max_history :]
 
         logger.info(f"▸ Event: {event_type.value} from {source}")
 
@@ -223,7 +222,7 @@ class EventBus:
 
         self._event_history.append(event)
         if len(self._event_history) > self._max_history:
-            self._event_history = self._event_history[-self._max_history:]
+            self._event_history = self._event_history[-self._max_history :]
 
         # Call sync subscribers only
         if event_type in self._subscribers:

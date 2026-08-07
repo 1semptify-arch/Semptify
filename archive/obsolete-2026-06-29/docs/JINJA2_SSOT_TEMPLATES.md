@@ -66,6 +66,7 @@ from fastapi.templating import Jinja2Templates
 # Get templates instance from app state
 # or import from main.py
 
+
 @app.get("/tenant/my-page")
 async def my_page(request: Request):
     return templates.TemplateResponse(
@@ -75,7 +76,7 @@ async def my_page(request: Request):
             # Template variables
             "user_name": "John",
             "items": [...],
-        }
+        },
     )
 ```
 
@@ -84,16 +85,18 @@ async def my_page(request: Request):
 In `app/core/navigation.py`:
 
 ```python
-navigation.register_stage(FlowStage(
-    id="tenant_my_page",
-    name="My Page",
-    path="/tenant/my-page",
-    role=UserRole.TENANT,
-    category="primary",
-    icon="📝",
-    description="Description here",
-    requires_storage=True,
-))
+navigation.register_stage(
+    FlowStage(
+        id="tenant_my_page",
+        name="My Page",
+        path="/tenant/my-page",
+        role=UserRole.TENANT,
+        category="primary",
+        icon="📝",
+        description="Description here",
+        requires_storage=True,
+    )
+)
 ```
 
 ## Available Blocks
@@ -159,7 +162,7 @@ From `navigation` context processor:
 ```html
 <nav class="nav nav--vertical">
   {% for item in navigation.get_nav_items(role) %}
-    <a href="{{ item.path }}" 
+    <a href="{{ item.path }}"
        class="nav__link {% if request.url.path == item.path %}nav__link--active{% endif %}">
       {{ item.icon }} {{ item.name }}
     </a>
