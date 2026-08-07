@@ -40,15 +40,22 @@ staleness check only sees docs that appear in this file.
 ### 2. Commit-tagged categorized changelog
 
 Every commit touching something in a doc's `covers` list gets a category prefix
-in its message: `admin:`, `user:`, `help:`, or `adr:`. A git hook / CI step
-parses commit messages on push and appends a line to
-`docs/CHANGELOG-{category}.md` — timestamp, commit hash, short description,
-files touched.
+in its message: `admin:`, `user:`, `help:`, or `adr:`. The `commit-msg` hook
+enforces the prefix, and `tools/docs_changelog.py` parses the history and
+regenerates `docs/CHANGELOG-{category}.md` (timestamp, commit hash, short
+description, files touched).
 
 This produces a running, categorized log automatically. No one has to remember
 to write it by hand.
 
-> **Status:** implemented in `tools/docs_changelog.py`. Run it directly or via `tools/recurring_scheduler.py --run docs-changelog`.
+> **Status:** implemented in `tools/hooks/commit-msg` (enforcement) and
+> `tools/docs_changelog.py` (regeneration). Run the regenerator directly or via
+> `tools/recurring_scheduler.py --run docs-changelog`.
+>
+> Enable the `commit-msg` hook with `git config core.hooksPath tools/hooks`.
+> (`tools/hooks` also contains an existing `pre-commit` hook; if you only want
+> the category check, copy `tools/hooks/commit-msg` to your active git hooks
+> directory instead.)
 
 ### 3. Scheduled staleness check
 
@@ -108,3 +115,4 @@ building a parallel identity system.
 - [x] Staleness check script — `tools/docs_staleness_check.py` (21-day threshold).
 - [x] Recurring scheduler — `tools/recurring_scheduler.py` (runs staleness, changelog, and future OCR beta review on a weekly cadence).
 - [x] Existing flat docs relocated into `admin/`, `user-guides/`, etc., with cross-references updated.
+ 
