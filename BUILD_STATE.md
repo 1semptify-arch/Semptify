@@ -1,3 +1,57 @@
+## Session -- 2026-08-07 — Playwright suite fixed: 52 pass, 4 skip, 0 fail
+
+### Overview
+
+Fixed all three remaining Playwright issues. Rewrote `navigation_consistency.spec.js` to match the actual Jinja2 template structure (was testing for old static-file architecture). Fixed the `live_*` tests to skip gracefully when not running interactively. Deleted 5 dead standalone test scripts. The full Playwright suite now runs clean: 52 passed, 4 skipped (interactive OAuth tests), 0 failed.
+
+### Commits
+
+| Commit | Title | Files | Summary |
+|--------|-------|-------|---------|
+| `34985b98` | test: fix Playwright suite — 52 pass, 4 skipped, 0 fail | 12 | Rewrote navigation_consistency.spec.js, fixed live_* skips, deleted 5 dead scripts, added pg dev dep |
+
+### What was done
+
+1. **navigation_consistency.spec.js** — Complete rewrite:
+   - Changed `nav.core-nav` → `nav.header__nav` (actual base.html class)
+   - Changed paths from `/home.html` → `/home` (route paths, not static files)
+   - Removed mobile drawer/hamburger tests (no such elements exist in templates)
+   - Added separate handling for `gui/base.html` pages (`/help` uses `nav.gui-nav`)
+   - Updated SSOT violation check to detect `.html` extensions on nav links
+   - All 18 navigation tests now pass (was 3/48)
+
+2. **live_* tests** — Graceful skip:
+   - `live_capability_seeding.spec.js`: conditional `pg` import (only if `DATABASE_URL` set), wrapped in `test.describe` with `test.skip` unless `SEMPTIFY_LIVE_TESTS=1`
+   - `live_case_persistence.spec.js`, `live_upload_timeline.spec.js`, `live_migration_verification.spec.js`: same skip pattern
+   - `pg` added as dev dependency in `package.json`
+
+3. **Standalone test scripts** — Deleted 5 files (1,915 lines removed):
+   - `smoke_test.js`, `playwright_full_system_test.js`, `navigation_consistency_test.js`, `comprehensive_ssot_audit.js`, `user_flow_continuity_test.js`
+   - These used `require('playwright')` (not `@playwright/test`), weren't picked up by `npx playwright test`, and had stale `.html` path expectations
+
+### Playwright Results
+
+- **Total**: 52 passed, 4 skipped, 0 failed (1.0m runtime)
+- **capabilities_smoke**: 7/7 PASS
+- **onboarding_smoke**: 8/8 PASS
+- **role_hierarchy_smoke**: 2/2 PASS
+- **timeline_smoke**: 4/4 PASS
+- **rent_ledger_smoke**: 5/5 PASS
+- **navigation_consistency**: 26/26 PASS (was 3/48)
+- **live_* tests**: 4 skipped (require SEMPTIFY_LIVE_TESTS=1 + manual OAuth)
+
+### Known Working
+
+- Full Playwright suite runs clean with no failures.
+- `main` branch pushed to origin, in sync with `origin/main`.
+
+### Next Session
+
+- Run `live_*` tests interactively with `SEMPTIFY_LIVE_TESTS=1` against staging when OAuth is available.
+- Consider adding more `.spec.js` tests for modules that currently lack coverage.
+
+---
+
 ## Session -- 2026-08-07 — TIER 3: filedored consolidation, crawler review, Playwright smoke run
 
 ### Overview
