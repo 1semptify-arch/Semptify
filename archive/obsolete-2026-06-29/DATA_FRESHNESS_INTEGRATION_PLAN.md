@@ -1,4 +1,5 @@
 # Data Freshness Integration Plan
+
 ## Central Hub for FEMS, Accountability, Legal Library & More
 
 **Date:** June 14, 2026  
@@ -21,7 +22,8 @@ The Data Freshness Manager serves as the **central nervous system** for ensuring
 ## 🔗 Integration Architecture
 
 ### **Core Data Freshness Manager**
-```
+
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                Data Freshness Manager                        │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
@@ -45,9 +47,10 @@ The Data Freshness Manager serves as the **central nervous system** for ensuring
 
 **Purpose:** Real-time monitoring of data freshness with financial impact analysis
 
-**Integration Points:**
+#### Integration Points:
+
 ```python
-# FEMS-specific freshness rules
+## FEMS-specific freshness rules
 class FEMSFreshnessRules:
     FINANCIAL_DATA = FreshnessRule(
         rule_id="fems_financial_001",
@@ -74,9 +77,10 @@ class FEMSFreshnessRules:
             "compliance": ["ADA", "Emergency Services"]
         }
     )
-```
+```text
 
 **Benefits:**
+
 - Real-time financial data accuracy
 - Emergency contact information always current
 - Automated compliance reporting
@@ -87,8 +91,9 @@ class FEMSFreshnessRules:
 **Purpose:** Track and audit all data freshness activities for compliance
 
 **Integration Points:**
+
 ```python
-# Enhanced audit events for freshness
+## Enhanced audit events for freshness
 class FreshnessAuditEvents:
     DATA_REFRESHED = "data_refreshed"
     DATA_EXPIRED = "data_expired"
@@ -112,7 +117,8 @@ class FreshnessAuditEvents:
         )
 ```
 
-**Benefits:**
+### Benefits:
+
 - Complete audit trail of all data updates
 - Compliance verification for GDPR/CCPA
 - Automated reporting for regulators
@@ -122,9 +128,10 @@ class FreshnessAuditEvents:
 
 **Purpose:** Automated updates of legal content with freshness tracking
 
-**Integration Points:**
+#### Integration Points:
+
 ```python
-# Legal content freshness rules
+## Legal content freshness rules
 class LegalLibraryFreshness:
     STATE_STATUTES = FreshnessRule(
         rule_id="legal_statutes_001",
@@ -152,9 +159,10 @@ class LegalLibraryFreshness:
             "impact": "legal_strategy"
         }
     )
-```
+```text
 
 **Benefits:**
+
 - Always current legal information
 - Automatic notification of legal changes
 - Jurisdiction-specific updates
@@ -165,8 +173,9 @@ class LegalLibraryFreshness:
 **Purpose:** Validate complaints against current legal standards
 
 **Integration Points:**
+
 ```python
-# Complaint validation with fresh data
+## Complaint validation with fresh data
 class ComplaintFreshnessValidator:
     def validate_complaint_legal_basis(self, complaint: Complaint) -> bool:
         """Ensure complaint uses current legal standards."""
@@ -186,7 +195,8 @@ class ComplaintFreshnessValidator:
         return True
 ```
 
-**Benefits:**
+### Benefits:
+
 - Complaints always use current law
 - Automatic flagging of outdated legal basis
 - Legal defensibility of complaint process
@@ -196,9 +206,10 @@ class ComplaintFreshnessValidator:
 
 **Purpose:** Cross-reference fresh data across all modules
 
-**Integration Points:**
+#### Integration Points:
+
 ```python
-# Linker freshness-aware cross-references
+## Linker freshness-aware cross-references
 class FreshLinker:
     def create_cross_reference(self, source: str, target: str) -> CrossReference:
         """Create cross-reference with freshness validation."""
@@ -221,9 +232,10 @@ class FreshLinker:
             validity="current",
             confidence="high"
         )
-```
+```text
 
 **Benefits:**
+
 - Reliable cross-references
 - Warning system for stale connections
 - Confidence scoring based on data freshness
@@ -234,21 +246,25 @@ class FreshLinker:
 ## 🚀 Implementation Roadmap
 
 ### **Phase 1: Core Integration (Week 1)**
+
 1. **Fix unhashable dict error** in data freshness manager
 2. **Integrate Accountability Planner** with freshness alerts
 3. **Create FEMS monitoring dashboard** for freshness metrics
 
 ### **Phase 2: Legal Systems (Week 2)**
+
 1. **Connect Legal Library** to automated updates
 2. **Integrate Complaint System** with freshness validation
 3. **Implement jurisdiction-specific** freshness rules
 
 ### **Phase 3: Advanced Features (Week 3)**
+
 1. **Connect Linker** for cross-reference validation
 2. **Implement predictive freshness** based on update patterns
 3. **Create automated compliance reports**
 
 ### **Phase 4: Optimization (Week 4)**
+
 1. **Performance optimization** for large datasets
 2. **Machine learning** for update frequency prediction
 3. **Advanced analytics** for freshness patterns
@@ -258,12 +274,14 @@ class FreshLinker:
 ## 📊 Success Metrics
 
 ### **Technical Metrics:**
+
 - Data freshness: < 1% stale data across all systems
 - Update latency: < 5 minutes for critical data
 - System uptime: > 99.9% availability
 - Alert accuracy: < 1% false positives
 
 ### **Business Metrics:**
+
 - Legal compliance: 100% current legal information
 - User satisfaction: > 95% confidence in data accuracy
 - Operational efficiency: 50% reduction in manual updates
@@ -274,6 +292,7 @@ class FreshLinker:
 ## 🔧 Technical Implementation
 
 ### **Enhanced Data Freshness Manager**
+
 ```python
 class IntegratedDataFreshnessManager(DataFreshnessManager):
     def __init__(self):
@@ -293,6 +312,7 @@ class IntegratedDataFreshnessManager(DataFreshnessManager):
 ```
 
 ### **Unified Alert System**
+
 ```python
 class UnifiedFreshnessAlerts:
     def create_alert(self, rule_id: str, severity: str, message: str):

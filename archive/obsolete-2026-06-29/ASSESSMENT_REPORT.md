@@ -1,4 +1,5 @@
 # Semptify FastAPI v5.0.0 - Full Assessment Report
+
 **Generated:** December 7, 2025  
 **Assessment Type:** Full System Analysis  
 **Status:** ✅ ALL SYSTEMS OPERATIONAL
@@ -8,7 +9,7 @@
 ## 📊 EXECUTIVE SUMMARY
 
 | Metric | Value | Status |
-|--------|-------|--------|
+| -------- | ------- | -------- |
 | **Tests Passing** | 458/458 | ✅ 100% |
 | **Static Pages** | 21/21 | ✅ 100% |
 | **API Endpoints** | 285+ | ✅ Active |
@@ -17,20 +18,22 @@
 | **Mesh Handlers** | 29/29 | ✅ Active |
 | **Database Tables** | 14 | ✅ Healthy |
 | **Security** | No Exposed Secrets | ✅ Secure |
-| **Deployment** | Railway-ready | ✅ Configured |---
+| **Deployment** | Railway-ready | ✅ Configured | ---
 
 ## 🧪 TEST RESULTS
 
 ### Summary
-```
+
+```text
 ================= 458 passed, 2 warnings in ~485s =================
 ```
 
 ### ✅ All Tests Passing (458/458)
 
 ### Test Coverage by Module
+
 | Module | Tests | Status |
-|--------|-------|--------|
+| -------- | ------- | -------- |
 | Basic | 2 | ✅ Pass |
 | Authentication | 14 | ✅ Pass |
 | Calendar | 17 | ✅ Pass |
@@ -51,6 +54,7 @@
 | Court Learning | 12 | ✅ Pass |
 
 ### Warnings (Non-Critical)
+
 - 2 RuntimeWarnings: Coroutine 'PDFExtractor._azure_ocr' never awaited (occurs when Azure AI not configured)
 
 ---
@@ -60,7 +64,7 @@
 ### ✅ PASSED - No Exposed Secrets
 
 | Check | Status | Details |
-|-------|--------|---------|
+| ------- | -------- | --------- |
 | Hardcoded passwords | ✅ Clean | Removed from `config.py` |
 | API keys in source | ✅ Clean | All in `.env` (gitignored) |
 | Invite codes | ✅ Clean | Now env-driven |
@@ -68,7 +72,8 @@
 | `.env` in git | ✅ Clean | Properly gitignored |
 
 ### Required Environment Variables
-```
+
+```text
 DATABASE_URL=postgresql+asyncpg://...
 SECRET_KEY=your-secret-key
 INVITE_CODES=CODE1,CODE2,CODE3
@@ -85,7 +90,7 @@ GOOGLE_AI_API_KEY=...
 ### Railway Deployment ✅ READY
 
 | File | Status | Purpose |
-|------|--------|---------|
+| ------ | -------- | --------- |
 | `Dockerfile` | ✅ Created | Production container |
 | `railway.json` | ✅ Created | Railway config (DOCKERFILE builder) |
 | `Procfile` | ✅ Created | Start command |
@@ -94,7 +99,7 @@ GOOGLE_AI_API_KEY=...
 ### Windows Standalone ✅ READY
 
 | File | Status | Purpose |
-|------|--------|---------|
+| ------ | -------- | --------- |
 | `semptify_desktop.py` | ✅ Created | Desktop launcher with tray icon |
 | `build_windows.ps1` | ✅ Created | PyInstaller build script |
 | `Semptify.bat` | ✅ Created | Quick launch batch file |
@@ -106,7 +111,7 @@ GOOGLE_AI_API_KEY=...
 All pages load with HTTP 200:
 
 | Page | Purpose | Status |
-|------|---------|--------|
+| ------ | --------- | -------- |
 | `brain.html` | Positronic Brain interface | ✅ |
 | `calendar.html` | Calendar view (v1) | ✅ |
 | `calendar-v2.html` | Calendar view (v2) | ✅ |
@@ -134,8 +139,9 @@ All pages load with HTTP 200:
 ## 🔌 API ENDPOINTS (285+ Routes)
 
 ### Core Health Endpoints
+
 | Endpoint | Method | Status |
-|----------|--------|--------|
+| ---------- | -------- | -------- |
 | `/health` | GET | ✅ 200 |
 | `/healthz` | GET | ✅ 200 |
 | `/readyz` | GET | ✅ 200 |
@@ -143,8 +149,9 @@ All pages load with HTTP 200:
 | `/metrics/json` | GET | ✅ 200 |
 
 ### Storage & Auth (14 endpoints)
+
 | Endpoint | Method | Status |
-|----------|--------|--------|
+| ---------- | -------- | -------- |
 | `/storage/providers` | GET | ✅ 200 |
 | `/storage/status` | GET | ✅ 200 |
 | `/storage/session` | GET | ✅ 200 |
@@ -159,8 +166,9 @@ All pages load with HTTP 200:
 | `/storage/certificate/*` | Various | ✅ |
 
 ### Brain/Positronic (10 endpoints)
+
 | Endpoint | Method | Status |
-|----------|--------|--------|
+| ---------- | -------- | -------- |
 | `/brain/status` | GET | ✅ 200 |
 | `/brain/modules` | GET | ✅ 200 |
 | `/brain/state` | GET/PUT | ✅ |
@@ -172,8 +180,9 @@ All pages load with HTTP 200:
 | `/brain/ws` | WebSocket | ✅ |
 
 ### Documents API (15 endpoints)
+
 | Endpoint | Method | Status |
-|----------|--------|--------|
+| ---------- | -------- | -------- |
 | `/api/documents/` | GET | ✅ 200 |
 | `/api/documents/upload` | POST | ✅ |
 | `/api/documents/{id}` | GET | ✅ |
@@ -188,6 +197,7 @@ All pages load with HTTP 200:
 | `/api/documents/rights/` | GET | ✅ |
 
 ### Eviction Defense (50+ endpoints)
+
 - `/api/eviction-defense/*` - Full eviction defense API
 - `/eviction/*` - Eviction flow pages
 - `/eviction/forms/*` - Form generation API
@@ -195,6 +205,7 @@ All pages load with HTTP 200:
 - `/dakota/procedures/*` - Dakota County procedures
 
 ### Other Major APIs
+
 - `/api/timeline/` - Timeline management
 - `/api/calendar/` - Calendar & deadlines
 - `/api/copilot/` - AI copilot
@@ -222,11 +233,12 @@ All pages load with HTTP 200:
   "active_workflows": 0,
   "intensity": 0.0
 }
-```
+```text
 
 ### Connected Modules (11/11)
+
 | Module | Name | Capabilities | Status |
-|--------|------|--------------|--------|
+| -------- | ------ | -------------- | -------- |
 | `documents` | Document Manager | upload, analyze, classify, store | ✅ Active |
 | `timeline` | Timeline Engine | track_events, build_history, evidence_chain | ✅ Active |
 | `calendar` | Calendar & Deadlines | schedule, reminders, deadline_tracking | ✅ Active |
@@ -244,8 +256,9 @@ All pages load with HTTP 200:
 ## 🗄️ DATABASE STATUS
 
 ### Tables (11 Total)
+
 | Table | Rows | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `users` | 4 | User accounts |
 | `sessions` | 4 | Active sessions |
 | `storage_configs` | 4 | Storage preferences |
@@ -263,8 +276,9 @@ All pages load with HTTP 200:
 ## ⚙️ CONFIGURATION STATUS
 
 ### Environment (.env)
+
 | Setting | Value | Status |
-|---------|-------|--------|
+| --------- | ------- | -------- |
 | `APP_VERSION` | 5.0.0 | ✅ |
 | `SECURITY_MODE` | open | ⚠️ Dev mode |
 | `DEBUG` | true | ⚠️ Dev mode |
@@ -272,20 +286,23 @@ All pages load with HTTP 200:
 | `DATABASE_URL` | SQLite | ✅ |
 
 ### OAuth Providers
+
 | Provider | Configured | Status |
-|----------|------------|--------|
+| ---------- | ------------ | -------- |
 | Google Drive | ✅ Yes | Ready |
 | Dropbox | ✅ Yes | Ready |
 | OneDrive | ✅ Yes | Ready |
 
 ### Cloud Storage
+
 | Provider | Configured | Status |
-|----------|------------|--------|
+| ---------- | ------------ | -------- |
 | Cloudflare R2 | ✅ Yes | Ready |
 
 ### AI Services
+
 | Provider | Configured | Status |
-|----------|------------|--------|
+| ---------- | ------------ | -------- |
 | Azure AI | ✅ Yes | Available |
 | Groq (Llama 3.3) | ✅ Yes | Available |
 | OpenAI | ❌ No | Not configured |
@@ -296,8 +313,9 @@ All pages load with HTTP 200:
 ## 📈 CODEBASE METRICS
 
 ### Source Code
+
 | Metric | Count |
-|--------|-------|
+| -------- | ------- |
 | Python files (app/) | 88 |
 | Lines of code (app/) | 40,732 |
 | Test files | 16 |
@@ -306,8 +324,9 @@ All pages load with HTTP 200:
 | Total project files | 11,018 |
 
 ### API Statistics
+
 | Metric | Count |
-|--------|-------|
+| -------- | ------- |
 | Registered routes | 285+ |
 | WebSocket endpoints | 3 |
 | API routers | 25+ |
@@ -317,6 +336,7 @@ All pages load with HTTP 200:
 ## 📚 LEGAL RESOURCES
 
 ### Law Library
+
 - **General Laws Loaded:** 7 categories
   - Security Deposits
   - Habitability
@@ -327,6 +347,7 @@ All pages load with HTTP 200:
   - Lease Termination
 
 ### Dakota County Eviction Statistics (2024)
+
 - Total filings: 1,847
 - Tenant appeared: 62%
 - Tenant represented: 18%
@@ -342,17 +363,20 @@ All pages load with HTTP 200:
 ## ⚠️ RECOMMENDATIONS
 
 ### Immediate (Before Production)
+
 1. **Set SECURITY_MODE=enforced** - Currently in "open" mode
 2. **Set DEBUG=false** - Disable debug mode
 3. **Enable AI Provider** - Set `AI_PROVIDER=groq` for AI features
 4. **Test OAuth Flow** - Verify all 3 providers work in browser
 
 ### Short-term Improvements
+
 1. **Add more Dakota County laws** - Currently only general laws loaded
 2. **Configure xhtml2pdf** - Install for proper PDF generation
 3. **Set up log rotation** - Prevent log file growth
 
 ### Optional Enhancements
+
 1. **Enable OpenAI** - For more AI capabilities
 2. **Configure Ollama** - For local AI processing
 3. **Set up backup schedule** - R2 backup automation
@@ -362,7 +386,7 @@ All pages load with HTTP 200:
 ## ✅ WHAT'S WORKING
 
 1. **All 358 tests passing** (100%)
-2. **All 21 static pages loading** 
+2. **All 21 static pages loading**
 3. **All 11 brain modules connected**
 4. **All 285+ API endpoints responding**
 5. **Database healthy with 11 tables**
@@ -377,29 +401,34 @@ All pages load with HTTP 200:
 ## ✨ NEW FEATURES ADDED
 
 ### GUI Navigation System
+
 - **Central Hub**: New `/gui` route provides unified access to all GUI interfaces
 - **Interface Registry**: JSON-based system for organizing and categorizing GUI components
 - **Navigation Categories**: Organized by functionality (Analysis, Management, Tools, etc.)
 
 ### Auto Mode Analysis System
+
 - **Automated Analysis**: New `/auto-analysis` route for batch document processing
 - **Mode Selector**: Interactive component for choosing analysis modes
 - **Batch Processing**: Support for multiple document analysis with progress tracking
 - **Results Display**: Comprehensive results presentation with filtering and export
 
 ### UI Components & Templates
+
 - **Template System Migration**: Core routes now prefer Jinja2 templates over static files
 - **Base Template**: `base.html` provides consistent layout with block inheritance
 - **Component Library**: Reusable UI components for consistent user experience
 - **Responsive Design**: Mobile-friendly interfaces with modern CSS frameworks
 
 ### Testing Infrastructure
+
 - **Unit Tests**: New test files for legal filing validation and role-based access
 - **Integration Tests**: End-to-end testing for user flows and API endpoints
 - **Test Coverage**: Comprehensive testing for new features and existing functionality
 - **CI/CD Ready**: Test suite configured for automated deployment pipelines
 
 ### Navigation & User Experience
+
 - **Enhanced Navigation**: Updated sidebar with auto mode integration
 - **Quick Access**: Direct links to frequently used features
 - **User Journey**: Streamlined workflows for common tasks
@@ -412,34 +441,38 @@ All pages load with HTTP 200:
 ## 🚀 QUICK START COMMANDS
 
 ### Start Server
+
 ```powershell
-# Use the batch file on Desktop
+## Use the batch file on Desktop
 Start Semptify.bat
 
-# Or manually:
+## Or manually:
 cd C:\Semptify\Semptify-FastAPI
 .venv\Scripts\Activate.ps1
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Run Tests
+
 ```powershell
 cd C:\Semptify\Semptify-FastAPI
 python -m pytest -v
-```
+```text
 
 ### Enable AI
+
 ```powershell
-# Edit .env and set:
+## Edit .env and set:
 AI_PROVIDER=groq
 ```
 
 ### Enable Production Security
+
 ```powershell
-# Edit .env and set:
+## Edit .env and set:
 SECURITY_MODE=enforced
 DEBUG=false
-```
+```text
 
 ---
 
@@ -454,7 +487,7 @@ DEBUG=false
 ### Current ID Architecture
 
 | Entity | Format | Length | Example | Generation |
-|--------|--------|--------|---------|------------|
+| -------- | -------- | -------- | --------- | ------------ |
 | **User ID** | `{provider}{role}{random}` | 10 chars | `GU7x9kM2pQ` | Custom algorithm |
 | **Document ID** | UUID v4 | 36 chars | `550e8400-e29b-41d4-a716-446655440000` | `uuid.uuid4()` |
 | **Timeline Event ID** | UUID v4 | 36 chars | `550e8400-e29b-41d4-a716-446655440000` | `uuid.uuid4()` |
@@ -470,7 +503,7 @@ DEBUG=false
 ### ✅ What's Working Well
 
 | Aspect | Status | Why It Works |
-|--------|--------|--------------|
+| -------- | -------- | -------------- |
 | **User ID encoding** | ✅ Excellent | Provider+Role in ID = instant context without DB lookup |
 | **UUID for documents** | ✅ Good | Globally unique, no collisions, standard format |
 | **Foreign key consistency** | ✅ Good | All references use String(36) matching UUID length |
@@ -480,7 +513,7 @@ DEBUG=false
 ### ⚠️ Potential Issues
 
 | Issue | Severity | Impact | Recommendation |
-|-------|----------|--------|----------------|
+| ------- | ---------- | -------- | ---------------- |
 | **UUID length (36 chars)** | 🟡 Low | Slightly larger storage/indexes | Consider UUID without dashes (32 chars) |
 | **Mixed ID lengths in DB** | 🟡 Low | User=24, Doc=36, confusing | Standardize all to 36 or use consistent format |
 | **Case number user input** | 🟡 Medium | Potential duplicates/typos | Add validation regex for court case format |
@@ -490,6 +523,7 @@ DEBUG=false
 ### 📊 Database Schema ID Mapping
 
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
 │                        USER (id: 10 chars)                       │
 │                     "GU7x9kM2pQ" (provider+role+random)          │
@@ -504,20 +538,21 @@ DEBUG=false
 │  user_id: 36  │      │  user_id: 36  │      │  user_id: 36  │
 │               │      │  document_id  │      │               │
 └───────────────┘      └───────────────┘      └───────────────┘
-        │                        
-        ▼                        
+        │
+        ▼
 ┌───────────────┐      ┌───────────────┐      ┌───────────────┐
 │  COMPLAINTS   │      │   WITNESS     │      │CERTIFIED_MAIL │
 │  id: UUID-36  │      │  id: UUID-36  │      │  id: UUID-36  │
 │  user_id: 36  │      │  user_id: 36  │      │  user_id: 36  │
 │  doc_ids: JSON│      │  document_id  │      │  document_id  │
 └───────────────┘      └───────────────┘      └───────────────┘
-```
 
-### 🎯 Is It Efficient For Your Needs?
+```text
+
+### 🎯 Is It Efficient For Your Needs
 
 | Use Case | Current Solution | Efficiency | Notes |
-|----------|-----------------|------------|-------|
+| ---------- | ----------------- | ------------ | ------- |
 | **Find user's documents** | `WHERE user_id = ?` | ✅ Fast | Indexed |
 | **Get provider from session** | Parse user_id[0] | ✅ O(1) | No DB call needed |
 | **Link doc to timeline** | `document_id` FK | ✅ Fast | Direct reference |
@@ -528,31 +563,35 @@ DEBUG=false
 ### 🔧 Recommendations
 
 #### 1. **Add Entity Prefixes** (Optional Enhancement)
+
 ```python
-# Current
+## Current
 doc_id = str(uuid4())  # "550e8400-e29b-41d4..."
 
-# Recommended
+## Recommended
 doc_id = f"doc_{uuid4().hex}"  # "doc_550e8400e29b41d4..."
 ```
 
 Benefits:
+
 - Instantly know entity type from ID
 - Easier debugging
 - Prevents mixing IDs between entities
 
 #### 2. **Standardize Short ID Length**
+
 ```python
-# Current (inconsistent)
+## Current (inconsistent)
 node_id = f"{node_type}_{uuid.uuid4().hex[:8]}"   # 8 chars
 msg_id = f"msg_{uuid.uuid4().hex[:12]}"           # 12 chars
 
-# Recommended (consistent)
+## Recommended (consistent)
 SHORT_ID_LEN = 12  # ~70 trillion combinations
 node_id = f"{node_type}_{uuid.uuid4().hex[:SHORT_ID_LEN]}"
-```
+```text
 
 #### 3. **Add Case Entity** (If Needed)
+
 If you need formal case tracking across modules:
 
 ```python
@@ -574,7 +613,7 @@ class Case(Base):
 ### ✅ VERDICT: ID System is **EFFICIENT & FIT FOR PURPOSE**
 
 | Criterion | Score | Assessment |
-|-----------|-------|------------|
+| ----------- | ------- | ------------ |
 | **Uniqueness** | 10/10 | UUIDs guarantee no collisions |
 | **Performance** | 9/10 | Indexed lookups are fast |
 | **Readability** | 7/10 | UUIDs are long but standard |
@@ -582,7 +621,7 @@ class Case(Base):
 | **Simplicity** | 8/10 | Straightforward FK relationships |
 | **Security** | 9/10 | Non-sequential IDs prevent enumeration |
 
-**Overall: 88/100 - Excellent for your use case**
+#### Overall: 88/100 - Excellent for your use case
 
 The ID system is well-designed for a legal document management system. The User ID encoding is particularly clever - embedding provider and role means you can make routing decisions without database lookups.
 
@@ -592,7 +631,7 @@ The ID system is well-designed for a legal document management system. The User 
 
 ### How It Works - Complete Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           TOKEN AUTHENTICATION FLOW                          │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -649,7 +688,7 @@ The ID system is well-designed for a legal document management system. The User 
 ### Token Encryption Details
 
 | Component | Implementation | Security Level |
-|-----------|---------------|----------------|
+| ----------- | --------------- | ---------------- |
 | **Algorithm** | AES-256-GCM | ✅ Military-grade |
 | **Key Derivation** | `SHA256(SECRET_KEY + user_id)` | ✅ Unique per user |
 | **Nonce** | 12 random bytes per encryption | ✅ Prevents replay |
@@ -658,12 +697,12 @@ The ID system is well-designed for a legal document management system. The User 
 ### Code Flow
 
 ```python
-# 1. Key derivation - unique key per user
+## 1. Key derivation - unique key per user
 def _derive_key(user_id: str) -> bytes:
     combined = f"{settings.SECRET_KEY}:{user_id}".encode()
     return hashlib.sha256(combined).digest()  # 32 bytes = AES-256
 
-# 2. Encrypt token before storing
+## 2. Encrypt token before storing
 def _encrypt_token(token_data: dict, user_id: str) -> bytes:
     key = _derive_key(user_id)
     nonce = secrets.token_bytes(12)  # Random nonce
@@ -672,7 +711,7 @@ def _encrypt_token(token_data: dict, user_id: str) -> bytes:
     ciphertext = aesgcm.encrypt(nonce, plaintext, None)
     return nonce + ciphertext  # Store together
 
-# 3. Decrypt when needed
+## 3. Decrypt when needed
 def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
     key = _derive_key(user_id)
     nonce = encrypted[:12]
@@ -680,7 +719,7 @@ def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
     aesgcm = AESGCM(key)
     plaintext = aesgcm.decrypt(nonce, ciphertext, None)
     return json.loads(plaintext.decode())
-```
+```text
 
 ### Session Storage Schema
 
@@ -698,7 +737,7 @@ CREATE TABLE sessions (
 
 ### Token Refresh Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           AUTOMATIC TOKEN REFRESH                            │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -738,7 +777,7 @@ CREATE TABLE sessions (
 ### Security Features
 
 | Feature | Implementation | Status |
-|---------|---------------|--------|
+| --------- | --------------- | -------- |
 | **Token encryption at rest** | AES-256-GCM | ✅ Implemented |
 | **Per-user encryption keys** | SHA256(secret + user_id) | ✅ Implemented |
 | **Auto token refresh** | 5 min before expiry | ✅ Implemented |
@@ -747,9 +786,9 @@ CREATE TABLE sessions (
 | **HttpOnly cookies** | Prevents XSS token theft | ✅ Implemented |
 | **Session persistence** | Database-backed | ✅ Implemented |
 
-### What Happens on Server Restart?
+### What Happens on Server Restart
 
-```
+```text
 BEFORE (in-memory only):     AFTER (current implementation):
 ┌─────────────────────┐      ┌─────────────────────┐
 │ Server restart      │      │ Server restart      │
@@ -761,7 +800,7 @@ BEFORE (in-memory only):     AFTER (current implementation):
 
 ### Multi-Device Support
 
-```
+```text
 Device 1 (Home PC)          Device 2 (Phone)
        │                           │
        └───────┬───────────────────┘
@@ -778,7 +817,7 @@ Device 1 (Home PC)          Device 2 (Phone)
 ### ✅ TOKEN SYSTEM VERDICT: **SECURE & EFFICIENT**
 
 | Criterion | Score | Notes |
-|-----------|-------|-------|
+| ----------- | ------- | ------- |
 | **Encryption strength** | 10/10 | AES-256-GCM is excellent |
 | **Key management** | 9/10 | Per-user keys prevent mass compromise |
 | **Token refresh** | 10/10 | Automatic, transparent to user |
@@ -786,12 +825,12 @@ Device 1 (Home PC)          Device 2 (Phone)
 | **Multi-device** | 8/10 | Works, but shares session |
 | **Revocation** | 7/10 | Can logout, but no remote revoke |
 
-**Overall: 90/100 - Production-Ready Security**
+#### Overall: 90/100 - Production-Ready Security
 
 ### Potential Improvements
 
 | Improvement | Current | Recommended | Priority |
-|-------------|---------|-------------|----------|
+| ------------- | --------- | ------------- | ---------- |
 | **Per-device sessions** | Single session per user | Session per device | 🟡 Medium |
 | **Token rotation** | On refresh only | Rotate on each use | 🟢 Low |
 | **Remote logout** | Not implemented | Add revocation endpoint | 🟡 Medium |
@@ -803,7 +842,7 @@ Device 1 (Home PC)          Device 2 (Phone)
 
 ### Current Behavior
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    CURRENT: SINGLE USER PER BROWSER                          │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -832,7 +871,7 @@ Browser Cookie: semptify_uid = "GU7x9kM2pQ"  (ONE cookie only)
 ### What Happens Today
 
 | Scenario | Current Behavior | User Experience |
-|----------|-----------------|-----------------|
+| ---------- | ----------------- | ----------------- |
 | **User A logged in, User B wants to login** | Must logout A first | ❌ Inconvenient |
 | **User A logs out, User B logs in** | B gets new cookie, A's session stays in DB | ✅ Works |
 | **User B logs in without logout** | A's cookie overwritten, A's session orphaned | ⚠️ A loses access |
@@ -841,16 +880,16 @@ Browser Cookie: semptify_uid = "GU7x9kM2pQ"  (ONE cookie only)
 ### The Problem
 
 ```python
-# Current: Only ONE cookie per browser
+## Current: Only ONE cookie per browser
 COOKIE_USER_ID = "semptify_uid"  # Just one!
 
-# When User B logs in:
+## When User B logs in:
 response.set_cookie(
     key=COOKIE_USER_ID,      # Same key!
     value=user_b_id,         # Overwrites User A
 )
-# User A's cookie is GONE
-```
+## User A's cookie is GONE
+```text
 
 ### Solutions
 
@@ -859,16 +898,16 @@ response.set_cookie(
 Store multiple accounts, let user switch between them:
 
 ```python
-# New cookie structure
+## New cookie structure
 COOKIE_ACCOUNTS = "semptify_accounts"  # JSON list of user_ids
 COOKIE_ACTIVE = "semptify_active"      # Currently active user_id
 
-# Example cookie value:
+## Example cookie value:
 accounts = ["GU7x9kM2pQ", "DU3y8nP4rS"]  # User A (Google), User B (Dropbox)
 active = "GU7x9kM2pQ"                     # Currently using User A
 ```
 
-**Implementation:**
+### Implementation:
 
 ```python
 @router.get("/accounts")
@@ -927,26 +966,28 @@ async def add_account(provider: str, request: Request):
         url=f"/storage/auth/{provider}?add_account=true",
         status_code=302
     )
-```
+```text
 
 **UI Flow:**
 
 ```
+
 ┌─────────────────────────────────────────────────────────────────┐
 │                        ACCOUNT SWITCHER                          │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │  👤 john@gmail.com (Google Drive)           [Active] ✓  │   │
+│  │  👤 <john@gmail.com> (Google Drive)           [Active] ✓  │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │  👤 jane@outlook.com (OneDrive)             [Switch]    │   │
+│  │  👤 <jane@outlook.com> (OneDrive)             [Switch]    │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
 │  [+ Add Another Account]                                        │
 │                                                                 │
 │  [Logout All Accounts]                                          │
 └─────────────────────────────────────────────────────────────────┘
-```
+
+```text
 
 #### Option 2: **Incognito/Private Window Warning**
 
@@ -976,7 +1017,7 @@ async def initiate_oauth(
 
 Just document it - many apps do this:
 
-```
+```python
 For multiple accounts, use:
 - Different browser profiles (Chrome: Click profile icon → Add)
 - Different browsers (Chrome for account A, Firefox for B)
@@ -985,11 +1026,13 @@ For multiple accounts, use:
 
 ### Recommended Implementation
 
-**Phase 1 (Quick Fix):**
+#### Phase 1 (Quick Fix):
+
 - Add warning when already logged in ✅
 - Document multi-account options
 
-**Phase 2 (Full Solution):**
+#### Phase 2 (Full Solution):
+
 - Implement account switcher with `semptify_accounts` cookie
 - Add `/accounts`, `/switch/{id}`, `/add-account` endpoints
 - Update UI to show account dropdown
@@ -997,6 +1040,7 @@ For multiple accounts, use:
 ### Database Impact
 
 No schema changes needed! Each user already has their own:
+
 - `sessions` row (keyed by user_id)
 - `users` row (keyed by user_id)
 - Documents, timeline, etc. (all have user_id FK)
@@ -1006,7 +1050,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### Security Considerations
 
 | Concern | Mitigation |
-|---------|------------|
+| --------- | ------------ |
 | **One user sees another's data** | Active account determines all queries via `user_id` |
 | **Session hijacking** | Each account has own encrypted session |
 | **Cookie tampering** | Can only switch to accounts in your list |
@@ -1015,7 +1059,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### Code Changes Required
 
 | File | Changes |
-|------|---------|
+| ------ | --------- |
 | `app/routers/storage.py` | Add `/accounts`, `/switch`, `/add-account` endpoints |
 | `app/core/user_id.py` | Add `COOKIE_ACCOUNTS`, `COOKIE_ACTIVE` constants |
 | `app/core/security.py` | Update `require_user` to use active account |
@@ -1028,7 +1072,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### 🔴 HIGH PRIORITY - Fix Now
 
 | Issue | Module | Impact | Solution |
-|-------|--------|--------|----------|
+| ------- | -------- | -------- | ---------- |
 | **Unknown document categories** | Complaint Wizard | Warning on startup | Add `payment_record`, `photo` to document categories enum |
 | **Unknown pack types** | Complaint Wizard | Warning on startup | Add `eviction_data`, `lease_data`, `case_data`, `user_data` to pack types |
 | **Coroutine never awaited** | PDF Extractor | Memory leak risk | Fix `_azure_ocr` async handling when Azure not configured |
@@ -1036,7 +1080,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### 🟡 MEDIUM PRIORITY - Improve Soon
 
 | Issue | Module | Impact | Solution |
-|-------|--------|--------|----------|
+| ------- | -------- | -------- | ---------- |
 | **AI Provider disabled** | Copilot | No AI features | Set `AI_PROVIDER=groq` in `.env` |
 | **Security mode: open** | Auth | Dev-only access | Set `SECURITY_MODE=enforced` for production |
 | **Debug mode enabled** | Core | Performance overhead | Set `DEBUG=false` for production |
@@ -1046,7 +1090,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### 🟢 LOW PRIORITY - Nice to Have
 
 | Issue | Module | Impact | Solution |
-|-------|--------|--------|----------|
+| ------- | -------- | -------- | ---------- |
 | **No rate limiting** | API | DDoS vulnerability | Add `slowapi` or `fastapi-limiter` |
 | **No caching layer** | API | Performance | Add Redis caching for frequent queries |
 | **No health metrics export** | Monitoring | Observability | Add Prometheus metrics endpoint |
@@ -1059,7 +1103,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### Core Modules (11) - All Working ✅
 
 | Module | Actions | Capabilities | Status |
-|--------|---------|--------------|--------|
+| -------- | --------- | -------------- | -------- |
 | Document Manager | 4 | upload, analyze, classify, store | ✅ Active |
 | Timeline Engine | 3 | track_events, build_history, evidence_chain | ✅ Active |
 | Calendar & Deadlines | 4 | schedule, reminders, deadline_tracking | ✅ Active |
@@ -1075,7 +1119,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### Hub Modules (17) - All Registered ✅
 
 | Module | Type | Status |
-|--------|------|--------|
+| -------- | ------ | -------- |
 | Eviction Defense | Core | ✅ |
 | Timeline Engine | Core | ✅ |
 | Calendar & Deadlines | Core | ✅ |
@@ -1097,7 +1141,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ### Mesh Network Nodes (10) - All Active ✅
 
 | Node | Domain | Status |
-|------|--------|--------|
+| ------ | -------- | -------- |
 | legal_analysis | Law | 🟢 Started |
 | documents | Storage | 🟢 Started |
 | timeline | History | 🟢 Started |
@@ -1114,7 +1158,8 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ## 🏗️ ARCHITECTURE IMPROVEMENTS
 
 ### Current Architecture
-```
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    FastAPI Server                        │
 ├─────────────────────────────────────────────────────────┤
@@ -1155,8 +1200,9 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ## 📊 TEST COVERAGE ANALYSIS
 
 ### By Module
+
 | Module | Tests | Lines | Coverage |
-|--------|-------|-------|----------|
+| -------- | ------- | ------- | ---------- |
 | Auth | 14 | 450 | ~95% |
 | Calendar | 17 | 380 | ~90% |
 | Copilot | 10 | 520 | ~85% |
@@ -1168,6 +1214,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 | Vault Engine | 75 | 1200 | ~98% |
 
 ### Missing Test Coverage
+
 - WebSocket reconnection scenarios
 - OAuth token refresh edge cases
 - Concurrent file upload stress tests
@@ -1178,8 +1225,9 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ## 🚀 PERFORMANCE OPTIMIZATION
 
 ### Current Performance
+
 | Metric | Value | Target |
-|--------|-------|--------|
+| -------- | ------- | -------- |
 | Startup time | 1.5-2s | ✅ Good |
 | Health check | <50ms | ✅ Good |
 | Document upload | ~500ms | 🟡 Could improve |
@@ -1187,6 +1235,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 | AI analysis | ~1-3s | 🟡 API dependent |
 
 ### Recommendations
+
 1. **Lazy load modules** - Only init modules when first accessed
 2. **Connection pooling** - Increase pool size for high load
 3. **Background tasks** - Move PDF processing to Celery/dramatiq
@@ -1197,7 +1246,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ## 🔒 SECURITY CHECKLIST
 
 | Check | Status | Notes |
-|-------|--------|-------|
+| ------- | -------- | ------- |
 | Secrets in code | ✅ Clean | All in .env |
 | SQL injection | ✅ Protected | Using SQLAlchemy ORM |
 | XSS protection | ✅ Enabled | CSP headers present |
@@ -1212,6 +1261,7 @@ The account switcher just manages which `user_id` is "active" in the browser.
 ## 📋 ACTION ITEMS
 
 ### Before Production Deploy
+
 - [ ] Set `SECURITY_MODE=enforced`
 - [ ] Set `DEBUG=false`
 - [ ] Enable AI provider (`AI_PROVIDER=groq`)
@@ -1221,12 +1271,14 @@ The account switcher just manages which `user_id` is "active" in the browser.
 - [ ] Add health check monitoring
 
 ### Code Quality
+
 - [ ] Fix unknown document category warnings
 - [ ] Fix coroutine warning in PDF extractor
 - [ ] Add type hints to remaining functions
 - [ ] Increase test coverage to 95%+
 
 ### Infrastructure
+
 - [ ] Set up CI/CD pipeline
 - [ ] Configure staging environment
 - [ ] Implement blue-green deployments

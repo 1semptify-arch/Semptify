@@ -3,21 +3,24 @@
 ## Access Points
 
 ### 1. **Main Dashboard**
-```
+
+```text
 URL: http://localhost:8000
 Location: Left sidebar (bottom of header area)
 Feature: Collapsible Auto Mode panel
 ```
 
 ### 2. **Auto Analysis Results**
-```
+
+```text
 URL: http://localhost:8000/static/batch_analysis_results.html
 Location: Sidebar → "Auto Analysis" link (with "New" badge)
 Feature: Detailed analysis results for processed documents
 ```
 
 ### 3. **API Documentation**
-```
+
+```text
 URL: http://localhost:8000/docs
 Feature: Swagger UI with all available endpoints
 ```
@@ -27,6 +30,7 @@ Feature: Swagger UI with all available endpoints
 ## How to Use
 
 ### Step 1: Configure Auto Mode
+
 1. Click the **Auto Mode Settings** header in sidebar
 2. Toggle features on/off:
    - ✓ Timeline generation
@@ -39,12 +43,14 @@ Feature: Swagger UI with all available endpoints
 4. Click **Save Configuration**
 
 ### Step 2: Run Batch Analysis
+
 1. Click **Run Batch Analysis** button
 2. Watch status: "Processing X documents..."
 3. Wait for completion (typically 30-60 seconds)
 4. View updated counter: "Documents Processed: X"
 
 ### Step 3: View Results
+
 1. Click **Auto Analysis** in sidebar (or visit `/static/batch_analysis_results.html`)
 2. See detailed results:
    - Timeline events created
@@ -59,13 +65,15 @@ Feature: Swagger UI with all available endpoints
 ## API Endpoints
 
 ### Health Check
-```
+
+```text
 GET /health
 Response: {"status":"ok","timestamp":"..."}
 ```
 
 ### Batch Analysis
-```
+
+```text
 POST /api/auto-mode/batch-analysis?limit=10
 Response: {
   "status": "completed",
@@ -76,7 +84,8 @@ Response: {
 ```
 
 ### Get Configuration
-```
+
+```text
 GET /api/auto-mode/config
 Response: {
   "enabled": true,
@@ -86,14 +95,16 @@ Response: {
 ```
 
 ### Save Configuration
-```
+
+```text
 POST /api/auto-mode/config
 Body: {"enabled": true, "features": {...}}
 Response: {"saved": true}
 ```
 
 ### Get Status
-```
+
+```text
 GET /api/auto-mode/status
 Response: {
   "status": "idle|processing",
@@ -107,7 +118,7 @@ Response: {
 ## Files & Components
 
 | File | Size | Purpose |
-|------|------|---------|
+| ------ | ------ | --------- |
 | `auto_mode_panel.html` | 17 KB | Collapsible settings panel |
 | `sidebar_with_auto_mode.html` | 13 KB | Enhanced sidebar navigation |
 | `auto_mode_orchestrator.py` | ~8 KB | Backend analysis coordinator |
@@ -120,7 +131,7 @@ Response: {
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
-|----------|--------|
+| ---------- | -------- |
 | `Ctrl+B` | Begin batch analysis (when panel focused) |
 | `Ctrl+R` | Reset configuration to defaults |
 | `Ctrl+S` | Save configuration |
@@ -130,20 +141,24 @@ Response: {
 
 ## Troubleshooting
 
-**"Server not responding"**
-- Check: http://localhost:8000/health
+### "Server not responding"
+
+- Check: <http://localhost:8000/health>
 - If error: Restart server with PYTHONIOENCODING=utf-8
 
-**"Panel not showing"**
+### "Panel not showing"
+
 - Clear browser cache (Ctrl+Shift+Delete)
 - Check: static/components/auto_mode_panel.html exists
 - Check browser console (F12) for errors
 
-**"Batch analysis stuck"**
+### "Batch analysis stuck"
+
 - Wait 2-3 minutes (processing can take time)
 - Or restart server: Kill python.exe, restart uvicorn
 
-**"Configuration not saving"**
+### "Configuration not saving"
+
 - Check: localStorage enabled in browser
 - Try: Manually save with Save button
 - Check: Browser developer tools → Application → Storage
@@ -152,7 +167,7 @@ Response: {
 
 ## Example Workflow
 
-```
+```text
 1. User logs in → http://localhost:8000
 2. Sidebar loads with Auto Mode panel
 3. User clicks panel header to expand
@@ -204,7 +219,7 @@ localStorage key: `autoModeConfig`
 ## Support Resources
 
 - 📖 Full Documentation: [INTEGRATION_STATUS.md](./INTEGRATION_STATUS.md)
-- 🔧 API Reference: http://localhost:8000/docs
+- 🔧 API Reference: <http://localhost:8000/docs>
 - 🐛 Bug Reports: Check `/app/` log files
 - 📁 Sample Data: `/data/documents/` directory
 

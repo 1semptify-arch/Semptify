@@ -1,4 +1,5 @@
 # Semptify — Website & GUI Framework
+
 **Core Promise:** *Help tenants with tools and information to uphold tenant rights as a renter — in court if it goes that far, hopefully it won't.*
 
 **The plain-language version — the actual problem being solved:** Semptify replaces the shoebox. Every renter has some version of it — a pile of receipts, notices, texts, and photos shoved in a drawer, impossible to find when it matters. When a landlord claims you owe money, or a case goes to court, a tenant needs to be able to hand over one organized record and say "this is what actually happened, here's my proof." That single sentence is the North Star test for every feature in this document: **does it help organize and keep track of tenancy records so they're ready the moment they're needed?** If not, it doesn't belong, no matter how useful it seems otherwise.
@@ -26,7 +27,7 @@ This document defines the human-centered framework for Semptify's website and in
 ## 2. Who We Serve
 
 | Persona | Situation | What they need most |
-|---|---|---|
+| --- | --- | --- |
 | **The Blindsided Tenant** | Just received a notice (late rent, eviction, non-renewal) | Immediate clarity: "What does this mean? What's my deadline?" |
 | **The Builder** | Ongoing dispute (repairs ignored, harassment, unsafe conditions) | A place to log evidence over time — photos, dates, communications |
 | **The Court-Bound** | Has a hearing date | Document packaging, timeline export, "what to expect" prep |
@@ -42,7 +43,7 @@ Common thread: **most users are here because something already went wrong, or th
 Every feature in Semptify belongs to one of four pillars. This is the navigation spine of the entire site — nothing decorative, no orphaned features.
 
 | Pillar | Job | What lives here |
-|---|---|---|
+| --- | --- | --- |
 | **RECORD** | Capture and organize evidence | **Vault** (raw uploads — leases, notices, photos, texts, receipts), **Timeline** (auto-built chronological record), **Document Center** (processed *output* — organized packets, generated letters, exportable case files, certificates) |
 | **KNOW** | Answer questions, build legal literacy | **Library** — all legal reference lives here (state-by-state tenant rights, statutes, guides). This is also where the **AI Copilot** operates from — it's the "ask a question, get an answer" surface, not a storage location |
 | **ACT** | Take lawful action | Complaint wizard, court-prep toolkit, case builder, eviction defense tools, generated response letters |
@@ -72,38 +73,43 @@ ACT is where Semptify carries the most legal exposure, because it's the pillar c
 
 **ACT tools prepare and draft. They never submit, file, or represent.** The tenant (or their attorney) always takes the final action — clicking "file," printing and mailing, or walking into court. Semptify hands them something ready to use; it never acts on their behalf. This is the line that keeps Semptify a tool rather than an unlicensed legal practice.
 
-**1. Complaint Wizard**
+#### 1. Complaint Wizard
+
 - **Trigger:** available to any tenant, but proactively surfaced when `case-active` flag is set.
 - **Flow:** identify complaint type (HUD, state housing agency, local tenant rights office, state AG consumer protection) → pull relevant facts automatically from Timeline/Vault (dates, communications, photos) → generate a complaint draft using Library's jurisdiction-specific requirements → tenant reviews/edits every field → **output lands in Document Center** as a ready-to-submit draft, with plain-language instructions for where/how to actually file it themselves.
 - **Writes back to RECORD:** once a tenant marks a complaint as filed, that becomes a Timeline event automatically — "Complaint filed with [agency] on [date]" — so the case history and the action history are never two separate things to maintain.
 
-**2. Court Prep Toolkit**
+#### 2. Court Prep Toolkit
+
 - **Trigger:** auto-unlocks on the `court-bound` flag (a hearing date is added to Calendar). This is the clearest case of "unlock by situation, not by asking" from the capability model — nobody should have to know to look for this before they need it.
 - **Contents:** a document packet assembled from Document Center + Vault (auto-suggested, tenant confirms what's included), a plain-language "what to expect in the courtroom" guide pulled from Library, a practice Q&A session with the AI Copilot, and the escalating deadline alerts already defined under Calendar (2 weeks out → gather documents, 3 days out → what to expect, day-of → packet ready).
 - **Boundary:** this toolkit prepares a tenant to represent themselves or work with an attorney — it does not draft legal arguments framed as if from a licensed attorney, and every generated document carries the "not legal advice" microcopy already established as a site-wide rule.
 
-**3. Case Builder**
+#### 3. Case Builder
+
 - **What it actually is:** the connective tissue of the whole ACT pillar, not a separate silo. It assembles Timeline + Vault documents + relevant Library citations into one structured case file — the single artifact that feeds the Complaint Wizard, the Court Prep packet, and any Advocate/Legal Aid sharing.
 - **Why it matters architecturally:** without Case Builder, RECORD and ACT would be disconnected — a tenant would have to manually re-gather evidence every time they used a different ACT tool. Case Builder is what makes "documentation" and "action" feel like one continuous process instead of two separate systems.
 
-**4. Response Letter Generator**
+#### 4. Response Letter Generator
+
 - **Function:** template-based drafting for common tenant-to-landlord communication — repair requests, security deposit disputes, responses to a notice — using Library's state-specific requirements to get notice periods and statutory citations right.
 - **Guardrail specific to this tool:** because these letters are tenant-to-landlord (not tenant-to-court/agency), it's tempting to let the AI Copilot be more "creative" here. Resist that — every generated letter should stick to facts and statutory rights, matching the "we will not use deception" and "facts, not assumptions" principles already established for the accountability database. A letter with an exaggerated or unverified claim is a liability for the tenant who signs it.
 
-**5. Eviction Defense Tools**
+#### 5. Eviction Defense Tools
+
 - **Flow:** guided defense checklist (retaliation, discrimination, habitability failure, improper notice, rent paid but not credited) → tenant selects what applies → evidence auto-linked from Vault for each selected defense → generates a defense/counterclaim draft for Document Center.
 - **This is the highest-stakes tool in the entire platform** — it's the one most likely to be used in an actual courtroom. It should get the most conservative treatment of the "not legal advice" disclaimer, and ideally a stronger prompt than elsewhere encouraging the tenant to have a legal aid attorney review it before use, given the toolkit itself already documented that legal aid organizations are usually willing to review even when they won't litigate offensively.
 
-**6. Attorney / Legal Aid Intake Packet**
+#### 6. Attorney / Legal Aid Intake Packet
+
 - **The problem it solves:** low-cost and legal aid attorneys operate under severe capacity constraints — every hour spent reconstructing a tenant's timeline from scattered texts, photos, and paper is an hour not spent on the next tenant in the same situation. A tenant showing up with a shoebox costs their attorney far more billable/pro-bono time than one showing up organized.
 - **Function:** a one-click export from Case Builder, formatted specifically for fast attorney intake — chronological facts, clearly labeled evidence, dates that matter flagged up front, no editorializing. Not the same as the Document Center's court packet (which is for the court itself) — this one is optimized for a stranger-attorney's first 15 minutes with the case.
 - **Why this matters beyond one case:** this is a force multiplier on the entire legal aid ecosystem's limited capacity. If Semptify shaves real time off intake across enough cases, that's capacity freed up for other tenants in the same position — the effect compounds well beyond any single user.
 - **Also serves tenants who go it alone:** even a tenant who can't get an attorney and represents themselves benefits from the same organized packet — they walk into court informed instead of blind, which is the entire point of leveling the playing field rather than leaving anyone unprepared by default.
 
-
 ACT is never self-contained — every tool in it reads from RECORD and KNOW, and writes back into RECORD:
 
-```
+```text
 RECORD (Vault, Timeline) ──┐
                             ├──> Case Builder ──> Complaint Wizard ──> Document Center (output) ──> Timeline (new event)
 KNOW (Library) ─────────────┘                 └─> Court Prep ────────> Document Center (output)
@@ -111,8 +117,6 @@ KNOW (Library) ─────────────┘                 └─
 ```
 
 No ACT tool should ever be designed as if it operates independently of the tenant's existing case record — that would recreate exactly the kind of duplication and fragmentation already found and fixed in the Vault (three competing systems, no shared source of truth). ACT succeeds specifically because it *pulls from* RECORD and KNOW rather than duplicating what they already hold.
-
-
 
 ---
 
@@ -145,7 +149,7 @@ No ACT tool should ever be designed as if it operates independently of the tenan
 
 Principle: **one primary action per screen, always a visible "next step," never a dead end.**
 
-```
+```text
 Landing (public, no login required)
  ├── "What's your situation?" triage (notice received / ongoing issue / preparing / just learning)
  ├── Library preview (Know Your Rights — state-aware, always public, no login)
@@ -169,7 +173,8 @@ Secondary
  └── Help & Legal Aid Directory (always accessible, never hidden)
 ```
 
-**Navigation rules:**
+### Navigation rules:
+
 - Top-level nav is the three tenant-facing pillars, plus Home: **Home, Record, Know, Act.** GOVERN never appears as a tenant nav item.
 - The single most time-sensitive thing (a deadline) always surfaces at the top of the dashboard — never buried, regardless of which pillar it belongs to.
 - No feature is more than 2 taps from Home.
@@ -206,10 +211,10 @@ The product should proactively surface, not wait to be asked:
 
 Given the commitment not to gatekeep safety information, access should unlock based on **situation and verified relationship**, not payment. This is an *attribute-based access control* model: every user carries a set of capability flags, and every pillar checks those flags before showing a feature — rather than assigning someone to a fixed "plan."
 
-**Core flags (auto-granted by situation, not purchased):**
+#### Core flags (auto-granted by situation, not purchased):
 
 | Flag | How it's granted | What it unlocks |
-|---|---|---|
+| --- | --- | --- |
 | `tenant-core` | Default on storage connect | Vault, Timeline, Library, Copilot, basic Document Center |
 | `case-active` | Auto-set when a notice/dispute is logged | Full complaint wizard, case builder in ACT |
 | `court-bound` | Auto-set when a hearing date is added to Calendar | Court Prep toolkit, escalating deadline alerts |
@@ -222,7 +227,7 @@ Given the commitment not to gatekeep safety information, access should unlock ba
 ### Role × Pillar capacity matrix
 
 | Role | RECORD | KNOW | ACT | GOVERN |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Tenant (core)** | Full CRUD on own Vault/Timeline | Full access to Library + Copilot | Basic templates | No access |
 | **Tenant (case-active/court-bound)** | Same + auto Document Center packet generation | Same, plus contextual proactive alerts | Full complaint wizard, case builder, court prep | No access |
 | **Advocate/Helper** | View/comment only on *shared* items — no delete, no access to un-shared documents | Full access (they need it too) | Can co-draft with tenant; tenant retains final send/submit control | No access |
@@ -284,7 +289,7 @@ This is a stronger promise than "we don't store your files" — it's not a polic
 Every module/pipeline (Vault, Timeline, AI Planner, future ones) breaks into the same five space types, regardless of what it does:
 
 | Space Type | Purpose | Example (Document Vault) |
-|---|---|---|
+| --- | --- | --- |
 | **INTAKE** | What the user/system must provide to activate this module | file upload, folder selector, provider token |
 | **PROCESS** | What the module is doing / its current state while working | "scanning 12 files", progress bar, classification running |
 | **OUTPUT** | The result the module produces | classified doc list, extracted evidence, generated packet |
@@ -297,7 +302,7 @@ Exactly 5 types, same meaning, every module. Renaming a type (e.g. `INTAKE` → 
 
 Strict namespaced ID so the expediter (below) can resolve a space programmatically from any layer of the stack (Jinja2, JS, API response) with zero ambiguity:
 
-```
+```text
 {module}.{space_type}.{slot_index}
 
 vault.intake.01
@@ -336,9 +341,10 @@ spaces:
     source: endpoint
     endpoint: /api/vault/folders
     depends_on: vault.intake.01
-```
+```text
 
 Key fields:
+
 - **order** — explicit placement priority (lower = earlier). Default sort mechanism; sufficient for ~90% of cases.
 - **depends_on** — for spaces that cannot populate until another space resolves (e.g. can't show folders until the connection is confirmed). If a dependency hasn't resolved, that space renders in a pending/placeholder state instead of blocking the whole page. No full dependency-graph engine needed yet — check `depends_on` before firing each space's data call; upgrade to real topological sort only if circular/multi-level dependencies actually appear.
 - **source** — `static` (hardcoded), `endpoint` (calls a FastAPI route), or `computed` (derived from another space).
@@ -356,10 +362,12 @@ The orchestrator. A single service that:
 The render tree is the contract boundary: modules never know or care how they're displayed; the renderer never has to know module internals — it just iterates the resolved list and draws each space by `type`.
 
 ```
+
 Module Manifest (YAML) ──> Registry ──> System Expediter ──> Render Tree ──> Renderer
                                               │
                               (order + depends_on resolution,
                                calls static/endpoint/computed sources)
+
 ```
 
 ### 10.5 Applying It to Current Modules (worked example)
@@ -394,6 +402,7 @@ Per the Fast-Tag Routing System (`Semptify_AI_Orchestration_Blueprint.md`, Secti
 **Do not start this until the project owner explicitly says go.** Section 10 above is a spec for review, not a green light. If asked to execute, follow this exact order — do not skip ahead to the registry or expediter before the manifest schema for Vault is confirmed correct against Section 10.3.
 
 ### Task 1 — Manifest schema + validator (Vault only)
+
 - **Target:** new file, path TBD by whoever's executing but must live under `app/core/` (e.g. `app/core/object_spaces.py` or similar — confirm naming with project owner before creating, per the "no new files without a reason" rule)
 - **Input:** the YAML shape in Section 10.3
 - **Output:** a function/class that loads a manifest YAML, validates every field against the rules in 10.1–10.3, and raises a clear error (not a silent failure) on anything malformed — missing `id`, invalid `type`, `depends_on` pointing at a nonexistent space, etc.
@@ -401,17 +410,20 @@ Per the Fast-Tag Routing System (`Semptify_AI_Orchestration_Blueprint.md`, Secti
 - **Do not touch:** `app/modules/vault/router.py` or any live endpoint. This task only builds the manifest/validator layer — it does not wire anything into the running Vault module yet.
 
 ### Task 2 — Registry (loads all validated manifests)
+
 - **Depends on:** Task 1 passing verification.
 - **Output:** a startup-time loader that reads all manifest files from a designated folder (folder name TBD — propose one, confirm before creating), validates each via Task 1, and holds them in memory keyed by module name.
 - **Verification:** registry loads the Vault manifest from Task 1 and exposes it by `module` name; loading a folder with one broken manifest fails loud and names which file broke, without crashing app startup silently.
 
 ### Task 3 — System Expediter (Vault only, read-only)
+
 - **Depends on:** Task 2.
 - **Output:** resolves `order` + `depends_on` for the Vault manifest's spaces, calls each space's declared `source` (for Vault: real `static` and `endpoint` calls against the already-working Vault API — no new endpoints), and produces the render tree structure described in Section 10.4.
 - **Verification:** running the expediter against the Vault manifest produces a render tree where `vault.output.01` only resolves after `vault.intake.01` has resolved, and the tree can be printed/inspected as plain data (JSON-serializable) — no template rendering required yet.
 - **Explicitly out of scope for this task:** wiring this render tree into any HTML template or replacing any existing Vault page. This task proves the mechanism works, nothing more.
 
 ### Rules for whoever executes this (SWE-1.7 or GLM-5.2)
+
 - Follow `AGENTS.md` Known Failure Registry — especially #6 (imports at top of file only) and #13 (never create `_v2`/`_new` files; if a rewrite is needed, ask the project owner to rename the original first).
 - No bare `except:` — specific exception types only.
 - All new code targets Python 3.11.9 (`venv311`).

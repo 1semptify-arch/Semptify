@@ -15,6 +15,7 @@ Semptify needs sustainable, mission-aligned funding, but the founder is solo and
 ## Scope
 
 ### What it does
+
 - Stores funding entities (funders, sponsors, platforms, clinics, orgs, media, etc.) with type, status, website, mission/focus, and notes.
 - Stores contacts (people at those entities) with role, email, phone, and relationship status.
 - Tracks opportunities / applications with stage pipeline, amount, deadline, and outcome.
@@ -28,6 +29,7 @@ Semptify needs sustainable, mission-aligned funding, but the founder is solo and
 - Ships with a pre-seeded catalog of suggested funding entities derived from the Semptify funding strategy.
 
 ### What it does NOT do
+
 - Does NOT collect tenant data or connect to Semptify tenant accounts.
 - Does NOT display ads, affiliate links, sponsored listings, or paid endorsements.
 - Does NOT send SMS.
@@ -35,7 +37,7 @@ Semptify needs sustainable, mission-aligned funding, but the founder is solo and
 - Does NOT integrate with tenant cloud storage auth.
 - Does NOT store tenant PII; Funding Forge data is admin/system data only.
 
-## User-facing or internal?
+## User-facing or internal
 
 Internal tool for Semptify administrators/fundraisers only. No tenant-facing pages.
 
@@ -60,7 +62,7 @@ Admin-only access. Authentication uses username/password (with optional TOTP) fr
 All routes are under `/` (server-rendered) and `/api` (JSON).
 
 | Method | Path | Purpose |
-|--------|------|---------|
+| -------- | ------ | --------- |
 | GET | `/` | SPA shell (redirects to `/login` when not authenticated) |
 | GET | `/login` | Admin sign-in page |
 | POST | `/login` | Admin sign-in |

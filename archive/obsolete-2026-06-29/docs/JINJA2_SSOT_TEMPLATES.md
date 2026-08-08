@@ -1,10 +1,11 @@
 # Jinja2 SSOT Template System
 
-**Single Source of Truth for all Semptify page templates**
+## Single Source of Truth for all Semptify page templates
 
 ## Overview
 
 This system uses Jinja2 template inheritance to ensure:
+
 - **One base template** for consistent layout across all pages
 - **Reusable blocks** for page-specific content
 - **SSOT navigation registry** integration for all links
@@ -13,7 +14,7 @@ This system uses Jinja2 template inheritance to ensure:
 
 ## File Structure
 
-```
+```text
 app/templates/
 ├── base_ssot.html                    # SSOT Base template (extends this!)
 ├── pages/
@@ -53,7 +54,7 @@ Create `app/templates/pages/my_page_ssot.html`:
     </div>
   </div>
 {% endblock %}
-```
+```text
 
 ### 2. Create Route
 
@@ -63,8 +64,8 @@ In your router file:
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
-# Get templates instance from app state
-# or import from main.py
+## Get templates instance from app state
+## or import from main.py
 
 @app.get("/tenant/my-page")
 async def my_page(request: Request):
@@ -94,14 +95,14 @@ navigation.register_stage(FlowStage(
     description="Description here",
     requires_storage=True,
 ))
-```
+```text
 
 ## Available Blocks
 
 ### Required Blocks
 
 | Block | Description | Example |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | `title` | Page title (browser tab) | `{% block title %}Journal{% endblock %}` |
 | `role` | User role for navigation | `{% block role %}tenant{% endblock %}` |
 | `content` | Main page content | `{% block content %}...{% endblock %}` |
@@ -109,7 +110,7 @@ navigation.register_stage(FlowStage(
 ### Optional Blocks
 
 | Block | Description | Default |
-|-------|-------------|---------|
+| ------- | ------------- | --------- |
 | `meta_description` | SEO description | "Semptify - Free tenant rights..." |
 | `page_header` | Header title/subtitle | Shows page title |
 | `page_title` | Just the H1 title | "Semptify" |
@@ -125,6 +126,7 @@ navigation.register_stage(FlowStage(
 ### Automatically Available
 
 From `navigation` context processor:
+
 - `navigation` - Navigation registry instance
 - `request` - FastAPI Request object
 - `csrf_token` - CSRF token for forms
@@ -152,7 +154,7 @@ From `navigation` context processor:
 {% if request.url.path == navigation.get_path('tenant_journal') %}
   <span class="active">Journal</span>
 {% endif %}
-```
+```text
 
 ### Navigation Links with Active State
 
@@ -170,6 +172,7 @@ From `navigation` context processor:
 ## SSOT Design System Components
 
 ### Buttons
+
 ```html
 <button class="btn btn--primary">Primary</button>
 <button class="btn btn--secondary">Secondary</button>
@@ -180,9 +183,10 @@ From `navigation` context processor:
 <!-- Sizes -->
 <button class="btn btn--primary btn--sm">Small</button>
 <button class="btn btn--primary btn--lg">Large</button>
-```
+```text
 
 ### Cards
+
 ```html
 <div class="card">
   <div class="card__header">
@@ -200,6 +204,7 @@ From `navigation` context processor:
 ```
 
 ### Forms
+
 ```html
 <div class="form-group">
   <label class="form-label form-label--required" for="name">Name</label>
@@ -212,9 +217,10 @@ From `navigation` context processor:
   <input type="email" id="email" class="form-input" value="invalid">
   <p class="form-error">⚠️ Please enter a valid email</p>
 </div>
-```
+```text
 
 ### Badges
+
 ```html
 <span class="badge badge--primary">Primary</span>
 <span class="badge badge--secondary">Secondary</span>
@@ -225,6 +231,7 @@ From `navigation` context processor:
 ```
 
 ### Alerts
+
 ```html
 <div class="alert alert--info">
   <span>ℹ️</span>
@@ -233,11 +240,12 @@ From `navigation` context processor:
     <p class="text-sm">Details here</p>
   </div>
 </div>
-```
+```text
 
 ## Layout Patterns
 
 ### Standard Page with Sidebar
+
 ```html
 {% extends "base_ssot.html" %}
 
@@ -248,6 +256,7 @@ From `navigation` context processor:
 ```
 
 ### Full-Width Page (No Sidebar)
+
 ```html
 {% extends "base_ssot.html" %}
 
@@ -256,9 +265,10 @@ From `navigation` context processor:
 {% block content %}
   <!-- Full-width content -->
 {% endblock %}
-```
+```text
 
 ### Custom Sidebar
+
 ```html
 {% extends "base_ssot.html" %}
 
@@ -275,6 +285,7 @@ From `navigation` context processor:
 ## Jinja2 Control Flow
 
 ### If/Else
+
 ```html
 {% if entries|length > 0 %}
   {% for entry in entries %}
@@ -283,9 +294,10 @@ From `navigation` context processor:
 {% else %}
   <p>No entries found.</p>
 {% endif %}
-```
+```text
 
 ### For Loops
+
 ```html
 {% for deadline in deadlines %}
   <div class="{% if loop.first %}first{% endif %} {% if loop.last %}last{% endif %}">
@@ -295,15 +307,17 @@ From `navigation` context processor:
 ```
 
 ### Filters
+
 ```html
 {{ name|upper }}           {# Uppercase #}
 {{ text|truncate(100) }}   {# Truncate #}
 {{ date|date("%Y-%m-%d") }} {# Format date #}
 {{ html|safe }}            {# Render as HTML #}
 {{ value|default("N/A") }} {# Default value #}
-```
+```text
 
 ### Set Variable
+
 ```html
 {% set total = entries|length %}
 <p>Total: {{ total }}</p>
@@ -365,31 +379,36 @@ From `navigation` context processor:
     // Your JavaScript
   }
 {% endblock %}
-```
+```text
 
 ## Semptify Mandates Compliance
 
 ### ✅ Free Forever, No Ads
+
 - No ad-related code in templates
 - No tracking pixels
 - No sponsored content areas
 
 ### ✅ Privacy-First
+
 - "Privacy note" included in forms
 - Data stored in user cloud (not our servers)
 - Minimal data collection
 
 ### ✅ Tenant Rights Focus
+
 - Law Library links prominent
 - Legal aid hotline in footer
 - Rights-focused language
 
 ### ✅ Evidence Preservation
+
 - Document upload emphasized
 - Journal for timeline tracking
 - Clear action guidance
 
 ### ✅ Accessibility
+
 - ARIA labels on all interactive elements
 - Skip links for keyboard navigation
 - Focus states on all buttons/links
@@ -398,22 +417,26 @@ From `navigation` context processor:
 ## Testing Your Template
 
 ### 1. Verify Compilation
+
 ```bash
 python -c "from jinja2 import Environment, FileSystemLoader; env = Environment(loader=FileSystemLoader('app/templates')); env.get_template('pages/my_page_ssot.html').render()"
 ```
 
 ### 2. Check Responsiveness
+
 - Resize browser to test mobile/desktop
 - Verify hamburger menu appears on mobile
 - Check sidebar hides on mobile
 
 ### 3. Test Accessibility
+
 - Tab through all interactive elements
 - Verify focus indicators visible
 - Check ARIA labels present
 - Test with screen reader
 
 ### 4. Validate SSOT Compliance
+
 - No inline styles (`style="..."`)
 - No hardcoded colors
 - Uses `navigation.get_path()` for all links
@@ -422,6 +445,7 @@ python -c "from jinja2 import Environment, FileSystemLoader; env = Environment(l
 ## Migration from Legacy Templates
 
 ### Before (Legacy)
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -439,9 +463,10 @@ python -c "from jinja2 import Environment, FileSystemLoader; env = Environment(l
   </div>
 </body>
 </html>
-```
+```text
 
 ### After (SSOT)
+
 ```html
 {% extends "base_ssot.html" %}
 
@@ -461,6 +486,7 @@ python -c "from jinja2 import Environment, FileSystemLoader; env = Environment(l
 ## Best Practices
 
 ### DO:
+
 - ✅ Extend `base_ssot.html`
 - ✅ Use `{% block %}` for all content
 - ✅ Use SSOT component classes (`btn`, `card`, etc.)
@@ -470,6 +496,7 @@ python -c "from jinja2 import Environment, FileSystemLoader; env = Environment(l
 - ✅ Use semantic HTML
 
 ### DON'T:
+
 - ❌ Copy/paste full HTML structure
 - ❌ Use inline styles
 - ❌ Hardcode URLs
@@ -487,7 +514,8 @@ python -c "from jinja2 import Environment, FileSystemLoader; env = Environment(l
 4. **SSOT design system** = consistent styling
 5. **Semptify mandates** = built into every page
 
-**Start every new page with:**
+### Start every new page with:
+
 ```html
 {% extends "base_ssot.html" %}
 {% block title %}Title{% endblock %}

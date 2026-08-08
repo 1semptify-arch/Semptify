@@ -1,4 +1,5 @@
 # Semptify 5.0 — AI Build Orchestration Blueprint
+
 **System Level:** Layer 0 — sits above the GUI Framework and Master Inventory.
 **Objective:** Rule-based resource routing to get maximum use out of one $20/month subscription plus free tools, while protecting the security of a zero-knowledge, storage-as-identity system. Built and maintained by one person (you), using AI tools as labor and judgment aids — not a team with separate hired roles.
 
@@ -17,13 +18,13 @@ This is the single canonical version of this document. Earlier drafts (from this
 Four tags. Every task gets exactly one, appended to its description when logged.
 
 | Tag | Meaning | Routes to |
-|---|---|---|
+| --- | --- | --- |
 | **[RI]** — Research / Isolated | Gathering external facts, comparing approaches, legal rules, design patterns. No repo access needed. | Gemini or MSN Copilot (free) |
 | **[EI]** — Execution / Isolated | Code for a single file or endpoint, no cross-module dependencies. | Windsurf house models or GLM-5.2 |
 | **[EF]** — Execution / Full-Repo | Logic spanning multiple routers, models, or services. | Windsurf premium credits |
 | **[JF]** — Judgment / Fragile | Touches security, auth tokens, OAuth, database migrations, tenant data, or any architecture decision. | Claude first (design/decision), then handed down as an already-decided task to an execution resource |
 
-```
+```text
 [ incoming task ]
         │
    ┌────┴─────┐
@@ -51,7 +52,7 @@ Copilot  GLM-5.2   Credits      ▼
 Windsurf ($20/month) is the only paid subscription. Inside it: unlimited "house" model usage plus a limited pool of premium credits. Everything else is a separate, free, standalone tool — none of them talk to each other directly. You are the bridge, carrying context between them (Section 7 below reduces how manual that has to be).
 
 | Resource | Real Cost | Best For | Weak For | Context |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | **Windsurf — house models** | Unlimited (in $20/mo) | Default for [EI] routine execution — no rationing needed | Judgment calls, full-repo architecture decisions | Full repo |
 | **Windsurf — premium credits** | Limited pool (in $20/mo) | [EF] full-repo work, security sweeps, anything judgment-adjacent | Routine/simple execution — don't spend here | Full repo |
 | **GLM-5.2** | Free | [EI] overflow when premium credits should be conserved | Novel architecture decisions | Large, verify per session |
@@ -71,7 +72,8 @@ Columns for the Task Queue tab in `Semptify_Master_Inventory_LIVE.xlsx`:
 
 `Task ID | Tag | Description | Pillar | Target File/Path | Assigned Resource | Cost Tier | Status | Depends On | Context Baseline (Git Commit) | Verification Step | Date Logged | Date Resolved`
 
-**Column notes:**
+### Column notes:
+
 - **Tag** — one of [RI]/[EI]/[EF]/[JF] from Section 2
 - **Target File/Path** — the specific file/folder being touched (e.g. `app/modules/storage/router.py`) — this is what prevents two sessions from silently colliding on the same file
 - **Context Baseline (Git Commit)** — the commit hash the task was assigned under, so an execution tool never works against stale assumptions
@@ -86,10 +88,12 @@ Columns for the Task Queue tab in `Semptify_Master_Inventory_LIVE.xlsx`:
 
 Every module gets one of these — living in the Module Inventory tab, one line minimum, full version for anything security-sensitive.
 
-**One-line version (minimum):**
+### One-line version (minimum):
+
 `module.path — Inputs: X; Outputs: Y; Dependencies: Z; Status: Working/Partial/Deprecated`
 
-**Full version (for anything [JF]-tagged or security-sensitive):**
+### Full version (for anything [JF]-tagged or security-sensitive):
+
 - Module path:
 - Pillar: RECORD/KNOW/ACT/GOVERN
 - Status: Planned / Partial / Working / Deprecated
@@ -101,7 +105,8 @@ Every module gets one of these — living in the Module Inventory tab, one line 
 - Acceptance test: (what proves it works)
 - Rollback plan: (how to undo safely if it breaks)
 
-**Filled example — vault.router (already the resolved canonical vault):**
+### Filled example — vault.router (already the resolved canonical vault):
+
 - Module path: `app.modules.vault.router`
 - Pillar: RECORD
 - Status: Working (keystone — do not modify without judgment-call review)
@@ -139,9 +144,11 @@ You are the bridge between tools that don't talk to each other. That's real and 
 **Optional automation — a context-compiler script** (adapted below to your actual files, not the placeholder names an earlier draft assumed). Running this before switching to Gemini/Copilot/MSN Copilot bundles your real canonical docs into one paste-ready file, instead of you manually gathering them each time.
 
 Save as `scripts/compile_ai_context.py` (script provided separately — see below). Run before any handoff:
-```
+
+```python
 python scripts/compile_ai_context.py
 ```
+
 This produces `AI_HANDOFF_PACKET.md` — copy its full contents into Gemini, MSN Copilot, or a fresh Windsurf session to sync it instantly with where things actually stand.
 
 **Multi-session coordination (only relevant if you ever run more than one AI session at once):** never let two execution sessions work in the same file/folder simultaneously. If you do run parallel sessions, split by directory (e.g., one session on `app/modules/calendar/`, another on `app/modules/timeline/`) and rely on the Task Queue's Target File/Path column to catch overlaps before they happen.
@@ -153,7 +160,7 @@ This produces `AI_HANDOFF_PACKET.md` — copy its full contents into Gemini, MSN
 These are logged as the actual seed of your Task Queue, reflecting tonight's real state:
 
 | Task | Tag | Resource | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Make `user_id` authoritative from session, not form field | [JF]→[EI] | Claude decided → Windsurf house | Fix applied, confirm end-to-end |
 | Quarantine `vault_engine`/`vault_all_in_one` | [JF]→[EI] | Claude decided → Windsurf | Done |
 | Build `/api/vault/export` ZIP endpoint | [EI] | Windsurf house | In progress |

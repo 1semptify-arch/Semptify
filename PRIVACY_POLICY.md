@@ -13,6 +13,7 @@
 ### 100% Free
 
 **Semptify is completely free to use.** There are:
+
 - No subscription fees
 - No premium tiers
 - No hidden costs
@@ -24,6 +25,7 @@
 ### No User Registration
 
 **Semptify has NO user registration process.** We don't ask you to:
+
 - Create an account
 - Choose a username
 - Set a password
@@ -63,12 +65,14 @@ For compatibility purposes only, we may process (but do not log or store):
 The following information is processed temporarily during your session but **never stored in our databases**:
 
 ### 2.1 Authentication Tokens
+
 - OAuth tokens from your cloud storage provider (Google Drive, Dropbox, OneDrive)
 - These are **encrypted** using AES-256-GCM with a key derived from your user ID
 - Tokens are stored **only in your browser session** and encrypted session storage
 - When you log out, tokens are deleted
 
 ### 2.2 Session Identifiers
+
 - A randomly generated user ID stored in a browser cookie (`semptify_uid`)
 - This ID does **not** contain any personal information
 - Used only to maintain your session during use
@@ -84,7 +88,7 @@ All persistent data is stored in **your own cloud storage account** (Google Driv
 - Case information you enter
 - Any evidence or records you generate
 
-**You own this data. You control this data. You can delete this data at any time.**
+### You own this data. You control this data. You can delete this data at any time
 
 ---
 
@@ -93,17 +97,20 @@ All persistent data is stored in **your own cloud storage account** (Google Driv
 We store minimal functional records in our database that are **necessary for the application to work**:
 
 ### No User Registration
+
 There is **no registration process**. No username, no password, no email forms. You authenticate directly through your cloud storage provider's OAuth system.
 
 ### What we store:
+
 | Data | Purpose | Retention |
-|------|---------|-----------|
+| ------ | --------- | ----------- |
 | User ID (random string) | Session management | Until logout |
 | Cloud provider name | Know which OAuth to use | Session duration |
 | Encrypted access tokens | Authenticate with your cloud | Session duration only |
 | User-created case data | Your eviction case records | User-controlled deletion |
 
 ### What we DON'T store:
+
 - Your name (we never ask for it)
 - Your email (OAuth only, not stored by us)
 - Your address (only if you add it to legal documents YOU create)
@@ -118,17 +125,22 @@ There is **no registration process**. No username, no password, no email forms. 
 ## 5. Third-Party Services
 
 ### 5.1 Cloud Storage Providers
+
 Semptify integrates with:
+
 - **Google Drive** - Subject to [Google's Privacy Policy](https://policies.google.com/privacy)
 - **Dropbox** - Subject to [Dropbox's Privacy Policy](https://www.dropbox.com/privacy)
 - **OneDrive** - Subject to [Microsoft's Privacy Statement](https://privacy.microsoft.com/privacystatement)
 
 We only request the **minimum permissions necessary**:
+
 - Read/write access to the Semptify folder in your cloud storage
 - Email address for OAuth identification (not stored by us)
 
 ### 5.2 No Analytics Services
+
 We do **not** use:
+
 - Google Analytics
 - Facebook Pixel
 - Mixpanel
@@ -136,7 +148,9 @@ We do **not** use:
 - Any other tracking service
 
 ### 5.3 No Advertising - 100% Free
+
 **Semptify is completely free and ad-free.** We do **not**:
+
 - Display any advertisements
 - Charge subscription fees
 - Have premium/paid tiers
@@ -153,16 +167,19 @@ We do **not** use:
 ## 6. Data Security
 
 ### 6.1 Encryption
+
 - All OAuth tokens are encrypted using **AES-256-GCM**
 - Encryption keys are derived per-user using **PBKDF2** with 100,000 iterations
 - Keys are derived from your user ID (not stored separately)
 
 ### 6.2 Secure Transmission
+
 - All data transmitted over **HTTPS/TLS**
 - OAuth flows use industry-standard **OAuth 2.0** protocol
 - No data transmitted to third parties
 
 ### 6.3 Session Security
+
 - Sessions expire after inactivity
 - Logout immediately destroys session data
 - No persistent cookies beyond session management
@@ -172,21 +189,25 @@ We do **not** use:
 ## 7. Your Rights
 
 ### 7.1 Access Your Data
+
 - All your data is in YOUR cloud storage account
 - You can access it directly through Google Drive, Dropbox, or OneDrive
 - No need to request data from us - you already have it
 
 ### 7.2 Delete Your Data
+
 - Delete files directly from your cloud storage
 - Use the Semptify logout function to clear session data
 - Delete your Semptify folder from cloud storage for complete removal
 
 ### 7.3 Export Your Data
+
 - Your data is already in standard formats in your cloud storage
 - PDF documents, JSON data files - all portable
 - No lock-in, no proprietary formats
 
 ### 7.4 Revoke Access
+
 - Revoke Semptify's access through your cloud provider's app settings
 - Google: [Security Settings](https://myaccount.google.com/permissions)
 - Dropbox: [Connected Apps](https://www.dropbox.com/account/connected_apps)
@@ -205,7 +226,7 @@ Semptify is not intended for users under 18 years of age. We do not knowingly co
 For users in the European Economic Area (EEA):
 
 | Processing Activity | Legal Basis |
-|---------------------|-------------|
+| --------------------- | ------------- |
 | OAuth authentication | Legitimate interest (service functionality) |
 | Session management | Legitimate interest (service functionality) |
 | Cloud storage access | Contract (you authorize access) |
@@ -217,7 +238,7 @@ We do **not** process personal data for marketing, profiling, or automated decis
 ## 10. Data Retention
 
 | Data Type | Retention Period |
-|-----------|------------------|
+| ----------- | ------------------ |
 | Session tokens | Until logout or 7 days inactive |
 | User ID | Until account deletion |
 | Case data | Until you delete it |
@@ -234,13 +255,14 @@ California residents have additional rights:
 - **Right to Opt-Out**: We don't sell personal information
 - **Right to Non-Discrimination**: We don't discriminate based on privacy choices
 
-**We do NOT sell your personal information.**
+### We do NOT sell your personal information
 
 ---
 
 ## 12. Changes to This Policy
 
 We may update this Privacy Policy from time to time. Changes will be:
+
 - Posted on this page with a new effective date
 - Announced in the application if material changes occur
 
@@ -258,7 +280,7 @@ If you have questions about this Privacy Policy:
 ## 14. Summary
 
 | Question | Answer |
-|----------|--------|
+| ---------- | -------- |
 | Do you log my activity? | **No** |
 | Do you store my personal info? | **No** (only functional data you create) |
 | Do you sell my data? | **No** |
@@ -272,7 +294,6 @@ If you have questions about this Privacy Policy:
 
 ---
 
-**Semptify is built for privacy. Your case data is YOUR data.**
+### Semptify is built for privacy. Your case data is YOUR data
 
-**100% Free. No Ads. No Tracking. Donations Welcome.**
-
+### 100% Free. No Ads. No Tracking. Donations Welcome

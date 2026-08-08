@@ -1,4 +1,5 @@
 # 🔒 PRODUCTION DEPLOYMENT GUIDE
+
 ## Semptify 5.0 - Enforced Security Mode
 
 **Status**: ✅ Production Ready  
@@ -12,54 +13,54 @@
 ### Step 1: Prepare Environment
 
 ```bash
-# Copy production environment template
+## Copy production environment template
 cp .env.production.example .env.production
 
-# Edit with your production values
+## Edit with your production values
 nano .env.production
-```
+```text
 
 ### Step 2: Configure Required Values
 
 **CRITICAL - Must change before deployment:**
 
 ```env
-# Change these immediately!
+## Change these immediately!
 ENVIRONMENT=production
 DEBUG=false
 SECRET_KEY=your-actual-secret-key-here
 API_KEY=your-actual-api-key-here
 
-# Configure CORS for your domain
+## Configure CORS for your domain
 ALLOWED_ORIGINS=["https://yourdomain.com","https://api.yourdomain.com"]
 
-# Configure SSL certificates
+## Configure SSL certificates
 SSL_CERT_PATH=/etc/ssl/certs/your-cert.crt
 SSL_KEY_PATH=/etc/ssl/private/your-key.key
 
-# Database
+## Database
 DATABASE_URL=postgresql+asyncpg://user:password@prod-db:5432/semptify?ssl=require
 ```
 
 ### Step 3: Generate SSL Certificates
 
 ```bash
-# Using OpenSSL (for self-signed - use CA-signed in production)
+## Using OpenSSL (for self-signed - use CA-signed in production)
 openssl req -x509 -newkey rsa:4096 -nodes \
   -out /etc/ssl/certs/semptify.crt \
   -keyout /etc/ssl/private/semptify.key \
   -days 365
-```
+```text
 
 ### Step 4: Set File Permissions
 
 ```bash
-# Secure sensitive files
+## Secure sensitive files
 chmod 600 .env.production
 chmod 600 /etc/ssl/private/semptify.key
 chmod 644 /etc/ssl/certs/semptify.crt
 
-# Create log directory
+## Create log directory
 mkdir -p logs
 chmod 750 logs
 ```
@@ -67,52 +68,58 @@ chmod 750 logs
 ### Step 5: Start Server with Production Security
 
 ```bash
-# Load production env
+## Load production env
 export $(cat .env.production | xargs)
 
-# Start with enforced security
+## Start with enforced security
 python -m uvicorn app.main:app \
   --host 0.0.0.0 \
   --port 8443 \
   --ssl-keyfile=/etc/ssl/private/semptify.key \
   --ssl-certfile=/etc/ssl/certs/semptify.crt \
   --log-level info
-```
+```text
 
 ---
 
 ## 🔐 Security Features Enabled
 
 ### 1. **Enforced HTTPS**
+
 - ✅ SSL/TLS certificate required
 - ✅ HTTP redirects to HTTPS
 - ✅ HSTS header (1 year)
 - ✅ Strict Transport Security
 
 ### 2. **Authentication & Authorization**
+
 - ✅ API key required for all endpoints
 - ✅ JWT tokens with expiration (1 hour)
 - ✅ User session management
 - ✅ Role-based access control
 
 ### 3. **Rate Limiting**
+
 - ✅ 100 requests per 60 seconds per IP
 - ✅ Automatic throttling on excess
 - ✅ 429 Too Many Requests response
 
 ### 4. **CORS Protection**
+
 - ✅ Whitelist allowed origins only
 - ✅ Credentials required
 - ✅ Specific HTTP methods allowed
 - ✅ Custom headers allowed
 
 ### 5. **Input Validation**
+
 - ✅ Request size limits (10 MB)
 - ✅ Batch document limits (1-100)
 - ✅ Type validation on all inputs
 - ✅ SQL injection prevention
 
 ### 6. **Security Headers**
+
 - ✅ X-Content-Type-Options: nosniff
 - ✅ X-Frame-Options: DENY
 - ✅ X-XSS-Protection: 1; mode=block
@@ -121,24 +128,28 @@ python -m uvicorn app.main:app \
 - ✅ Permissions-Policy: disable geolocation, camera, microphone
 
 ### 7. **Database Security**
+
 - ✅ SSL/TLS enforced connections
 - ✅ Connection pooling (20 connections)
 - ✅ Query timeout (10 seconds)
 - ✅ No connection overflow allowed
 
 ### 8. **Cookie Security**
+
 - ✅ Secure flag (HTTPS only)
 - ✅ HttpOnly flag (no JavaScript access)
 - ✅ SameSite: Strict (CSRF protection)
 - ✅ 30-minute session timeout
 
 ### 9. **Logging & Monitoring**
+
 - ✅ All requests logged with timestamps
 - ✅ Error stack traces sanitized
 - ✅ No sensitive data in logs
 - ✅ Optional Sentry integration for error tracking
 
 ### 10. **IP Whitelisting (Optional)**
+
 - ✅ Can be enabled for additional security
 - ✅ Only specified IPs can access API
 - ✅ Ideal for internal deployments
@@ -150,6 +161,7 @@ python -m uvicorn app.main:app \
 Before production deployment, verify:
 
 ### Infrastructure
+
 - [ ] SSL/TLS certificates installed
 - [ ] Firewall configured (only 8443/TCP)
 - [ ] Load balancer configured (if used)
@@ -157,6 +169,7 @@ Before production deployment, verify:
 - [ ] Log files in secure location
 
 ### Configuration
+
 - [ ] `.env.production` created from template
 - [ ] All required values configured
 - [ ] SECRET_KEY changed (not default)
@@ -165,6 +178,7 @@ Before production deployment, verify:
 - [ ] Database connection uses SSL
 
 ### Application
+
 - [ ] DEBUG=false
 - [ ] ENVIRONMENT=production
 - [ ] HTTPS_ONLY=true
@@ -173,6 +187,7 @@ Before production deployment, verify:
 - [ ] SECURE_COOKIES=true
 
 ### Monitoring
+
 - [ ] Logging configured
 - [ ] Log rotation set up
 - [ ] Error alerts configured
@@ -180,6 +195,7 @@ Before production deployment, verify:
 - [ ] Performance metrics collected
 
 ### Access Control
+
 - [ ] Only production team has keys
 - [ ] IP whitelist configured (if enabled)
 - [ ] VPN access required (recommended)
@@ -192,34 +208,49 @@ Before production deployment, verify:
 ### If Any Security Check Fails:
 
 **1. DEBUG Mode Enabled**
+
 ```
+
 ERROR: DEBUG mode is ENABLED in production!
 Solution: Set DEBUG=false in .env.production
-```
+
+```text
 
 **2. SECRET_KEY Not Changed**
+
 ```
+
 ERROR: SECRET_KEY not changed from default!
 Solution: Generate new SECRET_KEY: python -c 'import secrets; print(secrets.token_hex(32))'
-```
+
+```text
 
 **3. HTTPS Not Enforced**
+
 ```
+
 ERROR: HTTPS NOT enforced!
 Solution: Set HTTPS_ONLY=true and provide SSL certificates
-```
+
+```text
 
 **4. Authentication Not Required**
-```
-ERROR: Authentication NOT required!
-Solution: Set AUTH_REQUIRED=true
+
 ```
 
+ERROR: Authentication NOT required!
+Solution: Set AUTH_REQUIRED=true
+
+```text
+
 **5. Rate Limiting Disabled**
+
 ```
+
 ERROR: Rate limiting NOT enabled!
 Solution: Set RATE_LIMIT_ENABLED=true
-```
+
+```text
 
 ---
 
@@ -228,13 +259,13 @@ Solution: Set RATE_LIMIT_ENABLED=true
 ### Daily Checks
 
 ```bash
-# Check server health
+## Check server health
 curl -k https://your-server:8443/health
 
-# Monitor logs
+## Monitor logs
 tail -f logs/production.log
 
-# Check for errors
+## Check for errors
 grep ERROR logs/production.log | tail -20
 ```
 
@@ -259,7 +290,7 @@ grep ERROR logs/production.log | tail -20
 ## 📊 Production Endpoints
 
 | Endpoint | Method | Auth Required | Rate Limit |
-|----------|--------|---------------|-----------|
+| ---------- | -------- | --------------- | ----------- |
 | `/health` | GET | No | Yes |
 | `/api/auto-mode/config` | GET/POST | Yes | Yes |
 | `/api/auto-mode/status` | GET | Yes | Yes |
@@ -277,17 +308,17 @@ curl -X POST https://your-server:8443/api/auto-mode/batch-analysis \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"limit": 10}'
-```
+```text
 
 ### Using JWT Token
 
 ```bash
-# Get token
+## Get token
 TOKEN=$(curl -X POST https://your-server:8443/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"user","password":"pass"}' | jq -r '.token')
 
-# Use token
+## Use token
 curl -X POST https://your-server:8443/api/auto-mode/batch-analysis \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -300,54 +331,60 @@ curl -X POST https://your-server:8443/api/auto-mode/batch-analysis \
 
 ### Server Won't Start
 
-**Check:**
+#### Check:
+
 1. SSL certificates exist and are readable
 2. Port 8443 is not already in use
 3. `.env.production` exists and is valid
 4. All required environment variables set
 
-**Debug:**
+#### Debug:
+
 ```bash
-# Check certificate
+## Check certificate
 openssl x509 -in /etc/ssl/certs/semptify.crt -text -noout
 
-# Check port
+## Check port
 lsof -i :8443
 
-# Test connection
+## Test connection
 openssl s_client -connect localhost:8443
-```
+```text
 
 ### Requests Being Rate Limited
 
 **Check:**
+
 1. Rate limit settings in `.env.production`
 2. Number of requests being made
 3. Client IP address
 
 **Debug:**
+
 ```bash
-# Check logs
+## Check logs
 grep "Rate limit" logs/production.log
 
-# Adjust if needed
+## Adjust if needed
 RATE_LIMIT_REQUESTS=200
 RATE_LIMIT_PERIOD=60
 ```
 
 ### SSL Certificate Errors
 
-**Check:**
+#### Check:
+
 1. Certificate not expired
 2. Certificate path correct
 3. Private key accessible
 4. Certificate signed by trusted CA
 
-**Renew certificate:**
+#### Renew certificate:
+
 ```bash
-# Using Let's Encrypt + Certbot
+## Using Let's Encrypt + Certbot
 sudo certbot renew --force-renewal
-```
+```text
 
 ---
 
@@ -365,6 +402,7 @@ sudo certbot renew --force-renewal
 Your system is now:
 
 ```
+
 ✅ HTTPS/TLS Enforced
 ✅ Authentication Required
 ✅ Rate Limiting Active
@@ -375,9 +413,10 @@ Your system is now:
 ✅ Cookies Secured
 ✅ Logging Configured
 ✅ Production Ready
+
 ```
 
-**Status**: 🟢 **PRODUCTION SECURE**
+### Status**: 🟢 **PRODUCTION SECURE
 
 ---
 

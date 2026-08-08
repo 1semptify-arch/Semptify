@@ -8,17 +8,22 @@ Built to track funding entities, contacts, grant/application pipelines, interact
 
 1. Ensure Python 3.11.9 and the Semptify `venv311` environment exist in the repo root.
 2. Copy the environment template:
+
    ```powershell
    Copy-Item .env.template .env
-   ```
+   ```text
+
 3. Edit `.env` and set `FUNDING_FORGE_ADMIN_USERNAME` and `FUNDING_FORGE_ADMIN_PASSWORD`.
+
 4. (Optional) Add Cloudflare R2 credentials and set `FUNDING_FORGE_STORAGE_BACKEND=r2` to persist uploads in R2.
 5. (Optional) Add Resend (`FUNDING_FORGE_RESEND_API_KEY`) or SMTP (`FUNDING_FORGE_SMTP_*`) credentials to send emails from Funding Forge.
 6. Run:
+
    ```powershell
    .\start_funding_forge.ps1
    ```
-7. Open http://127.0.0.1:8001 and sign in with the admin credentials.
+
+7. Open <http://127.0.0.1:8001> and sign in with the admin credentials.
 
 ## Features
 

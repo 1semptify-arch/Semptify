@@ -10,6 +10,7 @@
 ## Why This Is Parked
 
 The overlay system requires a **unified implementation** to avoid the current situation of 3 separate overlay systems that don't align. Implementing it now would:
+
 - Create technical debt before core mechanics are stable
 - Risk conflicts with the ongoing "single source of truth" refactoring
 - Duplicate effort if core patterns change
@@ -23,7 +24,7 @@ The overlay system requires a **unified implementation** to avoid the current si
 Three separate overlay systems exist that don't align:
 
 | System | Location | Storage | Gap |
-|--------|----------|---------|-----|
+| -------- | ---------- | --------- | ----- |
 | `OverlayManager` | `app/services/document_overlay.py` | Cloud: `Semptify5.0/Vault/.overlay/` | Separate from annotations |
 | `DocumentOverlayService` | `app/services/document_overlay_service.py` | **Local: `logs/document_overlays/records.json`** | Breaks statelessness |
 | Annotation Overlays | `app/routers/overlays.py` | Cloud: `.semptify/vault/overlays/` | Separate from processing |
@@ -37,7 +38,7 @@ Three separate overlay systems exist that don't align:
 ### 1. Seven Core Needs
 
 | Need | Description | Current State |
-|------|-------------|---------------|
+| ------ | ------------- | --------------- |
 | **1. Vault Immutability Protection** | Original documents in `Vault/documents/` never modified; all mutations in overlay layers | Partial (two locations) |
 | **2. Upload Traceability** | Every upload creates `vault_upload_manifest` overlay | Partial (local storage) |
 | **3. Processing Result Storage** | AI processing stores results in overlays, not originals | Partial |
@@ -58,7 +59,7 @@ VAULT_OVERLAY_DOCUMENTS  = f"{VAULT_OVERLAYS}/documents"       # Per-document ov
 VAULT_OVERLAY_QUERIES    = f"{VAULT_OVERLAYS}/queries"         # Query/output overlays
 VAULT_OVERLAY_FORMS      = f"{VAULT_OVERLAYS}/forms"           # Form-fill overlays
 VAULT_OVERLAY_REDACTIONS = f"{VAULT_OVERLAYS}/redactions"      # Redaction overlays
-```
+```text
 
 ### 3. OverlayType Enum
 
@@ -122,7 +123,7 @@ class UnifiedOverlay(BaseModel):
     
     # For query overlays: ephemeral flag
     ephemeral: bool = False      # True for watermarked views (not persisted)
-```
+```text
 
 ### 5. UnifiedOverlayManager (Cloud-Only, Stateless)
 
@@ -161,7 +162,7 @@ PII redaction as overlay layer; original untouched.
 See detailed comparison in research notes. Summary:
 
 | Approach | Verdict |
-|----------|---------|
+| ---------- | --------- |
 | **Layered Overlays** (chosen) | Best for legal integrity + statelessness |
 | PDF Incremental Updates | PDF-only, hard to separate layers |
 | Event Sourcing | Complex, overkill for current needs |
@@ -175,18 +176,22 @@ See detailed comparison in research notes. Summary:
 ## Implementation Plan (When Unparked)
 
 ### Phase 1: Core Types and Models
+
 - `app/core/overlay_types.py` - OverlayType enum
 - `app/models/unified_overlay_models.py` - Pydantic models
 
 ### Phase 2: Unified Manager
+
 - `app/services/unified_overlay_manager.py` - Cloud-only overlay operations
 
 ### Phase 3: Specialized Engines
+
 - `app/services/overlay_query_engine.py` - Court packets, watermarked output
 - `app/services/form_fill_overlay.py` - Form-fill system
 - `app/services/redaction_overlay.py` - PII redaction
 
 ### Phase 4: API and Migration
+
 - `app/routers/unified_overlays.py` - API endpoints
 - Migration path from legacy overlay systems
 

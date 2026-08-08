@@ -17,13 +17,16 @@ and relocated the reconnect flow to its architecturally correct owner.
 ## Commit 1 — `cb3a3c6` — Issue #1: route_user() async fix
 
 ### Problem
+
 Returning tenants with documents were landing on the upload wizard instead of their dashboard.
 
 ### Root Cause
+
 `route_user()` in `workflow_engine.py` was synchronous. When `documents_present` was not supplied
 by the caller, it defaulted to `False` — sending every returning user to the upload wizard.
 
 ### Fix
+
 - Converted `route_user()` to `async def`
 - When `documents_present is None`, now awaits `VaultUploadService.get_user_documents()` directly
 - Falls back to `False` on query failure (safe default, logged as warning)
@@ -41,11 +44,13 @@ by the caller, it defaulted to `False` — sending every returning user to the u
 ## Commit 2 — `a503d8f` — Issues #2 & #3 + Vault Restructure + Reconnect Relocation
 
 ### Issue #2: Gate Config Mismatch (app/modules/onboarding/config.py)
+
 - **Problem:** Config declared 2 gates; runtime checked and marked 3 (including `document_uploaded`)
 - **Fix:** Added `document_uploaded` to `config.gates` default list
 - **Result:** Status page `get_first_incomplete_gate()` now correctly detects incomplete pipeline
 
 ### Issue #3: Silent DB Error in Preamble (app/modules/preamble/router.py)
+
 - **Problem:** DB failure silently redirected user to role selection — potential loop, lost context
 - **Fix:** DB errors now return an honest **503 HTML page** with:
   - "Having trouble connecting — your data is safe"
@@ -54,25 +59,31 @@ by the caller, it defaulted to `False` — sending every returning user to the u
 - Upgraded `logger.warning` → `logger.error` so monitoring catches it
 
 ### Vault Path Restructure (app/core/vault_paths.py)
-**Before:**
-```
+
+#### Before:
+
+```text
 Semptify5.0/
 ├── Vault/          ← user files
 ├── auth/           ← system tokens (visible!)
 └── vault/          ← system metadata (confusing duplicate of Vault/)
 ```
-**After:**
-```
+
+#### After:
+
+```text
 Semptify5.0/
 ├── Vault/          ← user files (documents, certs, timeline, overlays)
 └── .semptify/      ← hidden system config (dot-prefix hidden from casual browsing)
     ├── auth/       ← token.enc, device_keys.json, provisioning.json
     └── vault/      ← manifest.json, README.md
 ```
+
 - Added `SYSTEM_FOLDER` constant as required parent folder
 - `config.py` updated to include `SYSTEM_FOLDER` in `CANONICAL_VAULT_FOLDERS` before its children
 
 ### Reconnect Relocation (app/modules/onboarding/reconnect.py — NEW FILE)
+
 - **Problem:** `/storage/reconnect` lived in `storage/router.py` — wrong owner
 - **Why it matters:** Reconnect restores the `storage_connected` gate. That gate is owned by
   the onboarding module. Storage should be infrastructure only (token refresh, health checks, APIs)
@@ -102,7 +113,7 @@ Semptify5.0/
 ## Files Changed
 
 | File | Change |
-|------|--------|
+| ------ | -------- |
 | `app/core/workflow_engine.py` | `route_user()` → async, vault query on None |
 | `app/core/vault_paths.py` | New `.semptify/` structure + `SYSTEM_FOLDER` |
 | `app/core/product_manifest.py` | Register `onboarding.reconnect` in CORE tier |

@@ -4,7 +4,7 @@ A local-only intelligence engine for crawling Minnesota court records (MCRO), Se
 
 ## Project Structure
 
-```
+```text
 legal_intel/
   app/
     __init__.py
@@ -34,24 +34,28 @@ legal_intel/
 ## Setup
 
 1. **Install dependencies:**
+
 ```bash
 cd legal_intel
 pip install -r requirements.txt
 playwright install chromium
-```
+```text
 
-2. **Configure database:**
+1. **Configure database:**
+
 ```bash
 cp .env.example .env
-# Edit .env with your PostgreSQL connection string
+## Edit .env with your PostgreSQL connection string
 ```
 
-3. **Create database:**
+1. **Create database:**
+
 ```bash
 createdb legal_intel
-```
+```text
 
-4. **Run the server:**
+1. **Run the server:**
+
 ```bash
 uvicorn app.main:app --reload
 ```
@@ -81,11 +85,13 @@ A Tkinter GUI is provided for easy interaction with the API.
 ### Running the GUI
 
 1. Start the FastAPI server:
+
 ```bash
 uvicorn app.main:app --reload
-```
+```text
 
-2. In a separate terminal, run the GUI:
+1. In a separate terminal, run the GUI:
+
 ```bash
 python gui.py
 ```
@@ -136,8 +142,8 @@ The crawlers have placeholder selectors that need to be updated to match the act
 
 ## Data Sources
 
-- **MCRO**: https://publicaccess.courts.state.mn.us/ (Minnesota Court Records)
-- **MN SOS**: https://mblsportal.sos.state.mn.us/Business/Search (Business filings)
-- **ND SOS**: https://firststop.sos.nd.gov/search/business (North Dakota business search)
-- **CourtListener**: https://www.courtlistener.com/api/rest/v3/ (Federal cases API)
-- **PlainSite**: https://www.plainsite.org/ (Attorney and entity litigation)
+- **MCRO**: <https://publicaccess.courts.state.mn.us/> (Minnesota Court Records)
+- **MN SOS**: <https://mblsportal.sos.state.mn.us/Business/Search> (Business filings)
+- **ND SOS**: <https://firststop.sos.nd.gov/search/business> (North Dakota business search)
+- **CourtListener**: <https://www.courtlistener.com/api/rest/v3/> (Federal cases API)
+- **PlainSite**: <https://www.plainsite.org/> (Attorney and entity litigation)

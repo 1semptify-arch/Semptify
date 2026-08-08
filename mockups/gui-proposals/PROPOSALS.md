@@ -29,7 +29,7 @@ structure, interaction style, density/composition, and primary persona served.
 **One-line**: Civic legal authority — feels like walking into a legal aid clinic.
 
 | Axis | Direction |
-|------|-----------|
+| ------ | ----------- |
 | Primary persona | The Court-Bound (has a hearing date) |
 | Typography | **Source Serif 4** (headings, body for legal text) + **Inter** (UI labels, nav) + **IBM Plex Mono** (citations, dates, case IDs) |
 | Palette | Paper cream `#F6F1E7` · Ink black `#1A1A1A` · Oxblood `#7A1F1F` (urgency only) · Slate rule `#3A4A5A` |
@@ -48,7 +48,7 @@ structure, interaction style, density/composition, and primary persona served.
 **One-line**: Therapeutic breathing room — feels like sitting with a steady social worker.
 
 | Axis | Direction |
-|------|-----------|
+| ------ | ----------- |
 | Primary persona | The Blindsided Tenant (just got a notice, panicking) |
 | Typography | **Inter** at large sizes, loose leading (1.7) + **IBM Plex Mono** only for metadata. Optional **Fraunces** for the single welcome headline. |
 | Palette | Warm sand `#EDE6D6` · Sage `#5C6B5A` · Deep slate `#2B3340` · Single warm amber `#C98A2B` for the one next-action button per screen |
@@ -67,7 +67,7 @@ structure, interaction style, density/composition, and primary persona served.
 **One-line**: Evidence-first utilitarian — feels like a detective's case binder.
 
 | Axis | Direction |
-|------|-----------|
+| ------ | ----------- |
 | Primary persona | The Builder (ongoing dispute, logging evidence over time) |
 | Typography | **IBM Plex Mono** (metadata strips, timestamps, tags) + **Inter** (body) + **Source Serif 4** italic (handwritten-note quotes) |
 | Palette | Kraft `#D9C7A3` · Ink `#232020` · Manila folder ochre `#B8862F` · Stamp red `#9E2B25` (only for "FILED" / deadline-stamped items) |
@@ -86,7 +86,7 @@ structure, interaction style, density/composition, and primary persona served.
 **One-line**: High-contrast emergency portal — maximum legibility on a phone in a parking lot.
 
 | Axis | Direction |
-|------|-----------|
+| ------ | ----------- |
 | Primary persona | The Blindsided Tenant + The Court-Bound (deadline-driven) |
 | Typography | **Inter Display** (or Inter at 700/800) for headlines + **IBM Plex Sans** for body + **IBM Plex Mono** for deadlines. Large minimum type (18px body, 24px+ on mobile). |
 | Palette | Pure black `#000` · Pure white `#FFF` · **One signal color**: amber `#F5A623` for deadlines, red `#D7263D` for emergencies only. Nothing else. |
@@ -105,7 +105,7 @@ structure, interaction style, density/composition, and primary persona served.
 **One-line**: Editorial research room — feels like a law library reading room.
 
 | Axis | Direction |
-|------|-----------|
+| ------ | ----------- |
 | Primary persona | The Preventer (no active dispute, educating) + The Court-Bound (studying) |
 | Typography | **Source Serif 4** (headings + long-form law text) + **Inter** (UI) + **IBM Plex Mono** (citations, statute IDs). Heavy typographic hierarchy with horizontal rules. |
 | Palette | Deep forest `#1F3A2E` · Parchment `#F2EAD3` · Brass `#A67C2E` · Ink `#1A1A1A`. Forest as primary brand color (distinct from current navy). |
@@ -122,7 +122,7 @@ structure, interaction style, density/composition, and primary persona served.
 ## Comparison at a glance
 
 | # | Name | Persona | Type pair | Mood | Layout | Density | Memorable element |
-|---|------|---------|-----------|------|--------|---------|-------------------|
+| --- | ------ | --------- | ----------- | ------ | -------- | --------- | ------------------- |
 | 1 | Courthouse Steps | Court-Bound | Source Serif + Inter + Mono | Civic / lawful | Columnar brief | Med-high | Docket header strip |
 | 2 | The Calm Room | Blindsided | Inter (large) + Mono | Therapeutic | Single-column, progressive | Low | "Breathe. Next step." card |
 | 3 | Field Notebook | Builder | Mono + Inter + Serif italic | Utilitarian / analog | Evidence-card grid + timeline rail | High | Stamp marks (FILED / DEADLINE) |

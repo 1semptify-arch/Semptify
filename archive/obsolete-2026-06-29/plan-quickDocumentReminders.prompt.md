@@ -1,24 +1,28 @@
 # Plan: Quick Document Button + Monthly Reminders
 
 ## Philosophy
-**"Document Everything First"** - Semptify believes in being proactive in tenancy by helping you before you're in trouble. The first word is always: **Document Everything!**
+
+### "Document Everything First"**- Semptify believes in being proactive in tenancy by helping you before you're in trouble. The first word is always:**Document Everything
 
 ---
 
 ## Features to Implement
 
 ### 1. Quick Document Button (Always Visible)
+
 One-tap upload from any page - make documenting frictionless.
 
 **Location:** Floating action button (FAB) in bottom-right corner of all pages
 
-**Behavior:**
+#### Behavior:
+
 - Camera icon 📸 + "Document" label
 - Click navigates to `document_intake.html?quick=true`
 - Uses existing `/api/vault/upload` endpoint with ID tokens
 - All existing security (Bearer tokens, CORS, validation) unchanged
 
-**Styling:**
+#### Styling:
+
 - Position: `fixed`, bottom-right, `z-index: 1000`
 - Color: Semptify blue (#3B5998), round FAB with shadow
 - Mobile: Larger touch target (56px minimum)
@@ -28,14 +32,17 @@ One-tap upload from any page - make documenting frictionless.
 ---
 
 ### 2. Monthly Documentation Reminders
+
 Proactive prompts to keep users documenting consistently.
 
-**Reminder Types:**
+#### Reminder Types:
+
 - **1st of month:** "Time to save this month's rent receipt"
 - **15th of month:** "Any maintenance issues to document?"
 - **Other days:** "Keep your case file growing - document something today"
 
-**Logic (localStorage-based):**
+#### Logic (localStorage-based):
+
 ```javascript
 // Track last documentation
 localStorage.getItem('lastDocumentDate')
@@ -46,9 +53,10 @@ localStorage.getItem('reminderDismissed')
 // Show reminder if:
 // - >30 days since last document AND
 // - Not dismissed this month
-```
+```text
 
 **Display:**
+
 - Toast notification using existing `notification-toast.js`
 - Dismissable with "Remind me later" or "I'll document now"
 - "Document now" navigates to `document_intake.html`
@@ -58,7 +66,9 @@ localStorage.getItem('reminderDismissed')
 ---
 
 ### 3. Security (Unchanged)
+
 All existing security measures remain in place:
+
 - Bearer token authentication
 - ID tokens for user identification
 - Existing `/api/vault/upload` endpoint
@@ -71,6 +81,7 @@ All existing security measures remain in place:
 ## Technical Implementation
 
 ### File: `static/js/header.js` (Modify)
+
 Add Quick Document FAB after existing header injection:
 
 ```javascript
@@ -176,9 +187,10 @@ document.head.appendChild(fabStyle);
     setTimeout(showReminder, 2000);
   }
 })();
-```
+```text
 
 ### File: `static/document_intake.html` (Modify)
+
 Add call to `markDocumentUploaded()` on successful upload:
 
 ```javascript
@@ -191,7 +203,7 @@ showConfetti && showConfetti();
 
 ## User Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    PROACTIVE DOCUMENTATION FLOW                     │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -228,7 +240,7 @@ showConfetti && showConfetti();
 ## Files to Modify/Create
 
 | File | Action | Purpose |
-|------|--------|---------|
+| ------ | -------- | --------- |
 | `static/js/header.js` | MODIFY | Add Quick Document FAB |
 | `static/js/reminders.js` | CREATE | Monthly reminder system |
 | `static/document_intake.html` | MODIFY | Add `markDocumentUploaded()` call |

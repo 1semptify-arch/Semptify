@@ -22,7 +22,7 @@ Semptify v5.0 backend has successfully completed critical testing phases:
 
 ### Representative Test Bundle (PASSING)
 
-```
+```text
 test_health.py                          ✓ Health checks
 test_basic.py                           ✓ Core API functionality  
 test_role_validation.py                 ✓ RBAC enforcement
@@ -45,22 +45,26 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
 ## Critical Fixes Applied (Session)
 
 ### 1. Database Permission Fix
+
 - **Issue**: `InsufficientPrivilege: must be owner of table users`
 - **Fix**: Transferred ownership of all 20 public schema tables from `postgres` superuser to `semptify` application user
 - **Status**: ✓ Applied and verified
 
 ### 2. Alembic Migrations
+
 - **Created**: `6405f204d7dc_add_oauth_states_table.py` — oauth_states table for provider state management
 - **Created**: `81c36d8f2466_add_completed_groups_to_user.py` — completed_groups column for workflow stage tracking
 - **Applied**: Both migrations successfully executed
 - **Current**: `alembic current` confirms `81c36d8f2466 (head)`
 
 ### 3. OAuth State Management
+
 - **Legacy Compatibility**: Added transitional in-memory maps (`SESSIONS`, `OAUTH_STATES` globals) for backward compatibility during DB migration
 - **Column References**: Fixed references to `users.completed_groups` in OAuth callback path
 - **Status**: ✓ Callbacks now execute without UndefinedColumnError
 
 ### 4. Storage Router Enhancements
+
 - Line 1247: Legacy state fallback (`OAUTH_STATES.pop(state, None)`)
 - Lines 2009, 2047, 2288, 2325: Proper cleanup of compatibility maps during session expiry
 - **Status**: ✓ Transitional state management working
@@ -83,41 +87,48 @@ Total: 63 PASSED in 58.38s | Coverage: 25%
 ### Deployment Steps
 
 1. **Backup Production Database**
+
    ```bash
    pg_dump -U semptify -d semptify > semptify_backup_$(date +%Y%m%d).sql
-   ```
+   ```text
 
 2. **Transfer Code to Production**
+
    ```bash
    git clone https://github.com/1semptify-arch/Semptify5.0.git /app/semptify
    cd /app/semptify && git checkout main
    ```
 
 3. **Install Dependencies**
+
    ```bash
    pip install -r requirements.txt
-   ```
+   ```text
 
 4. **Apply Database Migrations**
+
    ```bash
    python -m alembic upgrade head
    ```
 
 5. **Verify Migration**
+
    ```bash
    python -m alembic current
    # Should output: 81c36d8f2466 (head)
-   ```
+   ```text
 
 6. **Run Smoke Tests Against Production DB**
+
    ```bash
    pytest tests/test_health.py tests/test_storage.py -q --tb=short
    ```
 
 7. **Start Application**
+
    ```bash
    python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
-   ```
+   ```text
 
 ---
 
@@ -129,7 +140,7 @@ The OAuth callback handler at `app/routers/storage.py:1365` can now safely execu
 
 ```python
 matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
-# Database query now includes users.completed_groups column without error
+## Database query now includes users.completed_groups column without error
 ```
 
 ### Supported Providers
@@ -171,12 +182,14 @@ matched_user = await get_user_by_provider_subject(db, provider, provider_subject
 If production deployment encounters issues:
 
 1. **Downtime < 5 minutes**: Restart application process (may clear transition state)
-2. **Database Schema Issue**: 
+2. **Database Schema Issue**:
+
    ```bash
    python -m alembic downgrade 6405f204d7dc
    # This removes completed_groups and oauth_states table
    # Revert code to previous commit before re-deploying
    ```
+
 3. **OAuth Callback Failures**:
    - Check database permissions: `SELECT * FROM information_schema.role_table_grants WHERE table_name='users';`
    - Verify oauth_states table exists: `SELECT COUNT(*) FROM oauth_states;`
@@ -195,7 +208,7 @@ If production deployment encounters issues:
 
 ## Appendix: Migration Version Chain
 
-```
+```text
 Initial Schema
     ↓
 6405f204d7dc (add_oauth_states_table)

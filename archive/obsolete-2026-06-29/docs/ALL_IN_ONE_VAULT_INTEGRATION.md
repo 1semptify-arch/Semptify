@@ -31,25 +31,28 @@ The ALL-IN-ONE metadata layer is now fully integrated into Semptify 5.0. It prov
 ### 1. Run the Migration
 
 ```bash
-# Activate virtual environment
+## Activate virtual environment
 .\venv311\Scripts\activate
 
-# Run the migration
+## Run the migration
 cd c:\Semptify\Semptify-FastAPI
 alembic upgrade a1b2c3d4e5f6
-```
+```text
 
 ### 2. Verify Installation
 
 Start the server and check the logs:
+
 ```
+
 🏛️ ALL-IN-ONE Vault router connected - Unified evidence vault with three-timestamp model active
-```
+
+```text
 
 ### 3. Test the API
 
 ```bash
-# Ingest a vault item
+## Ingest a vault item
 curl -X POST http://localhost:8000/vault/items \
   -H "Content-Type: application/json" \
   -H "Cookie: se_user=YOUR_USER_ID" \
@@ -73,7 +76,7 @@ curl -X POST http://localhost:8000/vault/items \
 ### Vault Items
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | POST | `/vault/items` | Ingest new evidence |
 | GET | `/vault/items` | Search vault with filtering |
 | POST | `/vault/items/search` | Advanced search (POST body) |
@@ -84,13 +87,13 @@ curl -X POST http://localhost:8000/vault/items \
 ### Timeline Views
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | GET | `/vault/timeline` | Timeline view with three-timestamp ordering |
 
 ### Incidents
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | POST | `/vault/incidents` | Create incident/case |
 | GET | `/vault/incidents` | List incidents |
 | GET | `/vault/incidents/{id}` | Get incident with item count |
@@ -99,7 +102,7 @@ curl -X POST http://localhost:8000/vault/items \
 ### Deep Search
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | GET | `/vault/search/metadata` | Search by metadata field |
 | GET | `/vault/search/location` | Geographic search |
 
@@ -110,7 +113,7 @@ curl -X POST http://localhost:8000/vault/items \
 Every vault item stores three timestamps:
 
 | Timestamp | Meaning | Usage |
-|-----------|---------|-------|
+| ----------- | --------- | ------- |
 | `event_time` | When the event actually occurred | Factual timeline ordering |
 | `record_time` | When evidence was created/recorded | Document provenance |
 | `semptify_entry_time` | When added to Semptify | System ingestion time |
@@ -118,15 +121,15 @@ Every vault item stores three timestamps:
 ### Query by Different Timelines
 
 ```bash
-# Order by when events occurred
+## Order by when events occurred
 curl "/vault/timeline?timeline_mode=event_time"
 
-# Order by when evidence was created
+## Order by when evidence was created
 curl "/vault/timeline?timeline_mode=record_time"
 
-# Order by when added to Semptify
+## Order by when added to Semptify
 curl "/vault/timeline?timeline_mode=semptify_entry_time"
-```
+```text
 
 ---
 
@@ -158,23 +161,23 @@ curl "/vault/timeline?timeline_mode=semptify_entry_time"
 ### Search Metadata
 
 ```bash
-# Find all items with landlord = "ABC Management"
+## Find all items with landlord = "ABC Management"
 curl "/vault/search/metadata?field=landlord&value=ABC%20Management"
-```
+```text
 
 ### Location Search
 
 ```bash
-# Find items near coordinates
+## Find items near coordinates
 curl "/vault/search/location?lat=44.9778&lon=-93.2650&radius=1000"
 ```
 
 ### Combined Filters
 
 ```bash
-# Complex search
+## Complex search
 curl "/vault/items?item_type=notice&severity=critical&date_from=2026-01-01&timeline_mode=event_time"
-```
+```text
 
 ---
 
@@ -205,7 +208,7 @@ curl -X PUT http://localhost:8000/vault/items/123 \
   -d '{
     "related_incident_id": 456
   }'
-```
+```text
 
 ### Get Incident Timeline
 
@@ -220,7 +223,7 @@ curl "/vault/incidents/456/timeline?timeline_mode=event_time"
 ### Models
 
 | File | Model | Purpose |
-|------|-------|---------|
+| ------ | ------- | --------- |
 | `app/models/models.py` | `VaultItem` | Unified evidence storage |
 | `app/models/models.py` | `Incident` | Case grouping |
 | `app/models/models.py` | `VaultAuditLog` | Change tracking |
@@ -228,20 +231,20 @@ curl "/vault/incidents/456/timeline?timeline_mode=event_time"
 ### Services
 
 | File | Service | Purpose |
-|------|---------|---------|
+| ------ | --------- | --------- |
 | `app/services/vault_ingestion.py` | `VaultIngestionService` | Data contract enforcement |
 | `app/services/vault_search.py` | `VaultSearchService` | Deep search & timeline |
 
 ### API Router
 
 | File | Router | Prefix |
-|------|--------|--------|
+| ------ | -------- | -------- |
 | `app/routers/vault_all_in_one.py` | `vault_all_in_one` | `/vault` |
 
 ### Migration
 
 | File | Revision | Tables |
-|------|----------|--------|
+| ------ | ---------- | -------- |
 | `alembic/versions/a1b2c3d4e5f6_add_all_in_one_vault_tables.py` | a1b2c3d4e5f6 | vault_items, incidents, vault_audit_logs |
 
 ---
@@ -251,7 +254,7 @@ curl "/vault/incidents/456/timeline?timeline_mode=event_time"
 ### vault_items Table
 
 | Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
+| -------- | ------ | ------------- | ------------- |
 | item_id | SERIAL | PK | Auto-increment ID |
 | user_id | VARCHAR(24) | FK, Index | User ownership |
 | **event_time** | TIMESTAMPTZ | NOT NULL, Index | Factual occurrence |
@@ -273,7 +276,7 @@ curl "/vault/incidents/456/timeline?timeline_mode=event_time"
 ### Indexes
 
 | Index | Type | Purpose |
-|-------|------|---------|
+| ------- | ------ | --------- |
 | idx_vault_metadata_gin | GIN | Deep metadata search |
 | idx_vault_location_gin | GIN | Location search |
 | idx_vault_tags_gin | GIN | Tag filtering |
@@ -288,7 +291,7 @@ curl "/vault/incidents/456/timeline?timeline_mode=event_time"
 The vault services register with the module contract system:
 
 ```python
-# vault_ingestion.py
+## vault_ingestion.py
 FunctionGroupContract(
     module="vault",
     group_name="vault_ingestion",
@@ -299,7 +302,7 @@ FunctionGroupContract(
     deterministic=True,
 )
 
-# vault_search.py
+## vault_search.py
 FunctionGroupContract(
     module="vault",
     group_name="vault_search",
@@ -309,7 +312,7 @@ FunctionGroupContract(
     outputs=("items", "total_count", "timeline_sequence"),
     deterministic=True,
 )
-```
+```text
 
 ---
 
@@ -350,18 +353,18 @@ VAULT_TIMELINE = "Semptify5.0/Vault/timeline"
 ### 1. Always Provide All Three Timestamps
 
 ```python
-# Good - complete timestamp information
+## Good - complete timestamp information
 request = IngestionRequest(
     event_time=notice_date,        # When notice was served
     record_time=document_date,     # When document was created
     metadata={"source": "upload"},  # Semptify_entry_time auto-set
 )
-```
+```text
 
 ### 2. Preserve Raw Metadata
 
 ```python
-# Good - preserve everything
+## Good - preserve everything
 metadata = {
     "exif": raw_exif_data,
     "extracted_text": ocr_result,
@@ -373,22 +376,22 @@ metadata = {
 ### 3. Use Incidents for Case Organization
 
 ```python
-# Create incident for case
+## Create incident for case
 curl -X POST /vault/incidents -d '{"title": "Case 2026-001", "incident_type": "eviction"}'
 
-# Link all related items
+## Link all related items
 curl -X PUT /vault/items/1 -d '{"related_incident_id": 1}'
 curl -X PUT /vault/items/2 -d '{"related_incident_id": 1}'
 curl -X PUT /vault/items/3 -d '{"related_incident_id": 1}'
 
-# Get complete case timeline
+## Get complete case timeline
 curl /vault/incidents/1/timeline
-```
+```text
 
 ### 4. Leverage Deep Search
 
 ```python
-# Search by any metadata field
+## Search by any metadata field
 results = await search_service.deep_metadata_search(
     user_id=user_id,
     metadata_field="landlord",
@@ -412,20 +415,21 @@ results = await search_service.deep_metadata_search(
 ### Migration Failed
 
 ```bash
-# Check current revision
+## Check current revision
 alembic current
 
-# Check revision history
+## Check revision history
 alembic history
 
-# If needed, stamp to previous and retry
+## If needed, stamp to previous and retry
 alembic stamp 81c36d8f2466
 alembic upgrade a1b2c3d4e5f6
-```
+```text
 
 ### JSONB Queries Slow
 
 Verify GIN indexes are created:
+
 ```sql
 SELECT indexname FROM pg_indexes WHERE tablename = 'vault_items';
 -- Should show: idx_vault_metadata_gin, idx_vault_location_gin, idx_vault_tags_gin
@@ -434,13 +438,14 @@ SELECT indexname FROM pg_indexes WHERE tablename = 'vault_items';
 ### Timestamp Errors
 
 Ensure all timestamps are timezone-aware:
+
 ```python
 from datetime import datetime, timezone
 
-# Good - UTC timezone
+## Good - UTC timezone
 event_time = datetime(2026, 1, 15, 10, 30, tzinfo=timezone.utc)
 
-# Bad - no timezone (will be auto-converted to UTC)
+## Bad - no timezone (will be auto-converted to UTC)
 event_time = datetime(2026, 1, 15, 10, 30)
 ```
 

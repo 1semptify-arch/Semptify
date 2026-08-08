@@ -1,5 +1,6 @@
 # FNG TODO — "Fix Next, Grunt-work" list
-# (FNG = Fn New Guy. Mundane, bounded, non-urgent items. Pick one at a time.)
+
+## (FNG = Fn New Guy. Mundane, bounded, non-urgent items. Pick one at a time.)
 
 Last updated: 2026-07-02
 
@@ -12,6 +13,7 @@ This is why style changes don't always show up where expected. Do not add a
 4th system — reconcile into one of the existing three instead.
 
 ### System 1 — `app/templates/base.html` inline `<style>` block
+
 - Old dark-navy / card-with-border-radius theme
 - Powers the Jinja2 `{% extends "base.html" %}` page templates
 - Variables: `--color-bg-primary`, `--color-accent`, `--radius-md`, `--space-lg`, etc.
@@ -21,6 +23,7 @@ This is why style changes don't always show up where expected. Do not add a
   or similar) across dozens of pages.
 
 ### System 2 — `static/css/ssot-design-system.css`
+
 - The NEW flat / no-radius / no-shadow / tone-only system from the 2026-07-01
   design handoff (Inter font, `--tpl-1-header` through `--tpl-5-footer` tokens,
   dark mode via `[data-theme="dark"]`)
@@ -33,6 +36,7 @@ This is why style changes don't always show up where expected. Do not add a
   on equal-specificity `.card` rules)
 
 ### System 3 — `static/css/main.css` + `static/css/themes/{ocean,forest,royal,crimson,slate}.css`
+
 - A THIRD, older, gradient-based theme system using `data-theme="ocean"` etc.
 - Used only by a handful of static (non-Jinja2) dashboard pages:
   `static/tenant/index.html`, `static/advocate/index.html`,
@@ -43,6 +47,7 @@ This is why style changes don't always show up where expected. Do not add a
   static dashboards? Do not touch until decided.
 
 ### Remaining bounded design tasks (safe, one at a time)
+
 - [x] Audit `.card--interactive:hover` and any other base.html rule for leftover
       `box-shadow` that still leaks through from `ssot-design-system.css`'s own
       `.card:hover { box-shadow: var(--shadow-md); }` — spec says zero shadows
@@ -62,6 +67,7 @@ This is why style changes don't always show up where expected. Do not add a
 ---
 
 ## Tenant Home Rebuild (carried over from BUILD_STATE.md)
+
 - [ ] Fix broken emoji encoding in `tenant_home.html` (shows `?` instead of emoji)
 - [ ] Fix `/tenant/journal` link → should point to `/tenant/timeline`
 - [ ] Fix `/documents` link → non-existent route, needs correct target
@@ -69,6 +75,7 @@ This is why style changes don't always show up where expected. Do not add a
 ---
 
 ## How to use this file
+
 - Pick ONE item, do it, delete it from this file when done.
 - If an item turns out to be bigger than expected, stop, ask the user before
   proceeding (per AGENTS.md root-cause-fix discipline).

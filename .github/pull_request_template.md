@@ -1,3 +1,5 @@
+# Pull Request Template
+
 ## Description
 
 <!-- Briefly describe what this PR changes and why. -->
@@ -75,7 +77,7 @@ All items below are **mandatory** before merge. The CI pipeline enforces these a
 ## Reviewer Sign-off
 
 | Area | Reviewer | Status |
-|------|----------|--------|
+| ------ | ---------- | -------- |
 | Core gates CI pass | | ⬜ |
 | Vault immutability | | ⬜ |
 | Overlay contract | | ⬜ |

@@ -22,7 +22,7 @@ OUTPUT_FILE = "AI_HANDOFF_PACKET.md"
 TARGET_DOCS = [
     "Semptify_AI_Orchestration_Blueprint.md",
     "docs/Semptify_Site_GUI_Framework.md",
-    ".devin/workflows/preflight.md",
+    ".devin/skills/preflight/SKILL.md",
     "ACTIVE_CONTEXT.md",
     "BUILD_STATE.md",
 ]

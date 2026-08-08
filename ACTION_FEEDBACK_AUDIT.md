@@ -7,7 +7,7 @@
 ## 1. Headline Counts
 
 | Metric | Count |
-|---|---|
+| --- | --- |
 | `fetch()` calls across HTML pages | **124** across 32 files |
 | `catch` blocks (any error handling at all) | **48** across 21 files |
 | **Fetch calls with NO error handling (silent failures)** | **~76 (62%)** |
@@ -22,9 +22,11 @@
 ## 2. Current State — What's Broken
 
 ### A. Silent Failures (the big problem)
+
 **~76 fetch calls have no `.catch()` block.** If the network fails, the server 500s, or the JSON is malformed, the user sees nothing. The button stays clickable, no spinner, no error, no confirmation. They click again, same thing. They assume Semptify is broken.
 
-**Worst offenders (fetch calls with no catch):**
+#### Worst offenders (fetch calls with no catch):
+
 - `static/admin/dashboard.html` — 34 fetches, only 7 have catch (27 silent)
 - `static/admin/review-checklist.html` — 20 fetches, only 3 have catch (17 silent)
 - `static/admin/dev_lab.html` — 7 fetches, only 4 have catch (3 silent)
@@ -41,14 +43,17 @@
 - 19 more files with 1-2 fetches each, mostly no catch
 
 ### B. `alert()` as Primary Feedback (bad UX)
+
 **82 `alert()` calls across 17 files.** Browser-native alert() is:
+
 - Blocking (locks the page)
 - Ugly (browser chrome, not Semptify styling)
 - Inaccessible (screen readers handle it inconsistently)
 - Not dismissible without clicking OK
 - Can't be styled, can't show rich content, can't auto-dismiss
 
-**Worst offenders:**
+#### Worst offenders:
+
 - `static/admin/dashboard.html` — 22 alerts
 - `static/office/inbox.html` — 14 alerts
 - `static/admin/dev_lab.html` — 11 alerts
@@ -60,12 +65,14 @@
 - `static/tools/checklists.html` — 3 alerts
 
 ### C. No Unified Feedback System
+
 - **Zero toast/notification components exist.** No `showToast()`, no `notify()`, no `Toast` class.
 - Every page reinvents feedback: some use `alert()`, some use `innerHTML = 'Error: ...'`, some use `console.error()` (invisible to user), some do nothing.
 - The existing `loading-overlay.html` component is good but only handles the in-progress state, not success/failure.
 - No standard for: "what does a success message look like?", "what does an error message look like?", "how long does it stay?", "where does it appear?"
 
 ### D. Inconsistent Loading States
+
 - `loading-overlay.html` exists with spinner + `btn--loading` class — good foundation
 - 190 loading/spinner references across 27 files — but usage is inconsistent
 - Some pages show a full-screen overlay, some show an inline spinner, some just disable the button, some do nothing
@@ -80,12 +87,14 @@
 - **`static/library.html`** — 3 fetches, 3 catch blocks. Model page.
 - **`static/admin/dashboard.html`** — has a `setStatus()` pattern (34 matches) that could be promoted to the global helper.
 - **`static/tenant/dashboard.html:337-342`** — inline error message pattern:
+
   ```js
   } catch (err) {
     console.error('Dashboard load error:', err);
     document.getElementById('hero-summary').innerHTML = 'Sign in to see your case dashboard.';
   }
   ```
+
   This is the right idea, just needs to be a reusable helper.
 
 ---
@@ -115,9 +124,10 @@ SemptifyFeedback.story({
   task_completed: 'Uploaded photos and a written request to my vault.',
   outcome: 'When I sent the landlord the timestamped evidence, they sent a plumber within 48 hours.'
 });
-```
+```text
 
 ### Toast Component Spec
+
 - Fixed position, bottom-right (or top-center on mobile)
 - Four variants: success (green), error (red), info (blue), story (warm yellow)
 - Auto-dismiss after 5s for success/info, stay for error/story
@@ -127,12 +137,15 @@ SemptifyFeedback.story({
 - Calm tone, no animations that feel alarming
 
 ### Button Loading State
+
 - Reuse existing `.btn--loading` class from `loading-overlay.html`
 - `SemptifyFeedback.start(buttonEl, text)` sets the class + disables the button + updates `data-loading-text`
 - `SemptifyFeedback.done(buttonEl)` restores the button
 
 ### Integration Pattern
+
 Every fetch becomes:
+
 ```js
 async function uploadEvidence(file) {
   SemptifyFeedback.start(uploadBtn, 'Uploading...');
@@ -156,6 +169,7 @@ async function uploadEvidence(file) {
 ## 5. Retrofit Plan (Priority Order)
 
 ### Tier 1 — Critical (silent failures on user-facing pages)
+
 - [ ] Build `static/components/feedback.html` component
 - [ ] Include on every page via base template
 - [ ] Retrofit `static/tenant/journal.html` (3 alerts, 2 silent fetches)
@@ -167,6 +181,7 @@ async function uploadEvidence(file) {
 - [ ] Retrofit `static/onboarding/index.html` (3 fetches, 0 catch)
 
 ### Tier 2 — Admin pages (high fetch count, bad UX)
+
 - [ ] Retrofit `static/admin/dashboard.html` (22 alerts, 27 silent fetches — biggest offender)
 - [ ] Retrofit `static/admin/review-checklist.html` (20 fetches, 17 silent)
 - [ ] Retrofit `static/admin/dev_lab.html` (11 alerts, 3 silent fetches)
@@ -177,6 +192,7 @@ async function uploadEvidence(file) {
 - [ ] Retrofit `static/admin/login.html` (2 alerts)
 
 ### Tier 3 — Office/advocate pages
+
 - [ ] Retrofit `static/office/inbox.html` (14 alerts, 1 silent fetch)
 - [ ] Retrofit `static/office/delivery.html` (5 alerts, 0 silent — already good)
 - [ ] Retrofit `static/office/signer.html` (3 alerts)
@@ -184,11 +200,13 @@ async function uploadEvidence(file) {
 - [ ] Retrofit `static/overlays/viewer.html` (5 silent fetches)
 
 ### Tier 4 — Tools
+
 - [ ] Retrofit `static/tools/generators.html` (5 alerts, 1 silent fetch)
 - [ ] Retrofit `static/tools/calculators.html` (4 alerts, 1 silent fetch)
 - [ ] Retrofit `static/tools/checklists.html` (3 alerts, 1 silent fetch)
 
 ### Tier 5 — Remaining pages with fetches
+
 - [ ] Retrofit `static/components/preview-modal.html` (1 alert, 1 silent fetch)
 - [ ] Retrofit `static/components/vault-portal.html` (1 alert, 1 silent fetch)
 - [ ] Retrofit `static/filedored.html` (1 silent fetch)
@@ -208,12 +226,14 @@ async function uploadEvidence(file) {
 ## 6. Backend Side (Python)
 
 Every API endpoint should return a structured result that the frontend can display. Currently, endpoints return:
+
 - `{"status": "ok"}` (vague)
 - `{"detail": "..."}` (FastAPI error format)
 - Raw data (no metadata)
 - HTTP 500 with no body (silent crash)
 
 ### Proposed: Standardized Result Envelope
+
 ```python
 {
   "ok": true,
@@ -231,6 +251,7 @@ This is a bigger change — defer to Phase 4. For now, focus on the frontend ret
 ## 7. Ties Into Context Engine
 
 The `SemptifyFeedback.story()` call is the bridge between Action Feedback and Context Engine. When a user completes a task:
+
 1. Action Feedback shows success toast
 2. Context Engine returns a relevant story
 3. Story toast surfaces below the success toast

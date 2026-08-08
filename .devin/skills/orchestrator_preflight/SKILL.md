@@ -1,4 +1,5 @@
 ---
+name: orchestrator_preflight
 description: Run preflight before every Agent Orchestrator task dispatch
 ---
 

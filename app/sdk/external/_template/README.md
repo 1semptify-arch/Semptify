@@ -6,6 +6,7 @@
 ## Manifest
 
 The `semptify.module.json` file declares:
+
 - **name** — unique module name (lowercase, hyphens)
 - **vendor** — your organization name
 - **version** — semver
@@ -18,7 +19,7 @@ The `semptify.module.json` file declares:
 ## Available SDK Clients
 
 | Client | Permission | Description |
-|--------|------------|-------------|
+| -------- | ------------ | ------------- |
 | `VaultClient` | `vault.read` / `vault.write` | Read/write user's vault files |
 | `TimelineClient` | `timeline.read` / `timeline.write` | Read/create timeline events |
 | `OverlayClient` | `overlay.read` / `overlay.write` | Read/create overlays |
@@ -35,6 +36,7 @@ The `semptify.module.json` file declares:
 ## Forbidden Imports
 
 These will cause `ExternalModuleSecurityError` at load time:
+
 - `app.core.database`, `app.core.redis`, `app.core.security`
 - `app.services.*` (except via SDK clients)
 - `app.modules.*` (other internal modules)
@@ -64,7 +66,7 @@ These will cause `ExternalModuleSecurityError` at load time:
 ## Permissions Reference
 
 | Permission | Description |
-|------------|-------------|
+| ------------ | ------------- |
 | `vault.read` | Read user's vault files |
 | `vault.write` | Upload/modify vault files |
 | `timeline.read` | Read timeline events |

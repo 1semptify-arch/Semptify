@@ -11,6 +11,7 @@ Run once to refresh the orchestrator queue. Idempotent: overwrites the file.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -661,19 +662,45 @@ TASKS = [
 ]
 
 
+def _print_summary(tasks: list[dict]) -> None:
+    by_status: dict[str, int] = {}
+    by_priority: dict[str, int] = {}
+    for t in tasks:
+        by_status[t["status"]] = by_status.get(t["status"], 0) + 1
+        by_priority[t["priority"]] = by_priority.get(t["priority"], 0) + 1
+    print(f"total tasks: {len(tasks)}")
+    print("by status:", by_status)
+    print("by priority:", by_priority)
+    pending = [t for t in tasks if t["status"] != "resolved"]
+    if pending:
+        print(f"\npending ({len(pending)}):")
+        for t in pending:
+            print(f"  {t['id']} [{t['priority']}] {t['title']}")
+    else:
+        print("\nno pending tasks — queue is empty")
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Seed tools/agent_orchestrator_tasks.json with a fresh consolidated todo list.",
+    )
+    parser.add_argument(
+        "--status",
+        action="store_true",
+        help="Print task summary without writing docs_todos.json (read-only).",
+    )
+    args = parser.parse_args()
+
+    if args.status:
+        _print_summary(TASKS)
+        return 0
+
     out = "tools/docs_todos.json"
     with Path(out).open("w", encoding="utf-8", newline="\n") as fh:
         json.dump(TASKS, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
     print(f"wrote {len(TASKS)} doc-sourced tasks to {out}")
-    by_status: dict[str, int] = {}
-    by_priority: dict[str, int] = {}
-    for t in TASKS:
-        by_status[t["status"]] = by_status.get(t["status"], 0) + 1
-        by_priority[t["priority"]] = by_priority.get(t["priority"], 0) + 1
-    print("by status:", by_status)
-    print("by priority:", by_priority)
+    _print_summary(TASKS)
     return 0
 
 
