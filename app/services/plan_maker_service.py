@@ -17,13 +17,12 @@ No plan content is retained server-side after the request.
 
 from __future__ import annotations
 
-from app.core.id_gen import make_id
-from app.core.utc import utc_now
 import json
 import logging
-from datetime import datetime, timezone
-from dataclasses import dataclass, field, asdict
-from typing import Optional
+from dataclasses import asdict, dataclass, field
+
+from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +31,11 @@ logger = logging.getLogger(__name__)
 # Data Models
 # =============================================================================
 
+
 @dataclass
 class EntityRecord:
     """A named party with optional address and role."""
+
     name: str
     role: str = ""
     address: str = ""
@@ -45,17 +46,19 @@ class EntityRecord:
 @dataclass
 class EvidenceItem:
     """A single piece of evidence linked to this plan."""
+
     description: str
-    vault_id: Optional[str] = None
-    date_obtained: Optional[str] = None
+    vault_id: str | None = None
+    date_obtained: str | None = None
     status: str = "pending"  # pending | attached | missing
 
 
 @dataclass
 class NextStep:
     """An action item the user or advocate needs to take."""
+
     action: str
-    due_date: Optional[str] = None
+    due_date: str | None = None
     completed: bool = False
     notes: str = ""
 
@@ -70,6 +73,7 @@ class AccountabilityPlan:
       - Exportable to JSON for vault storage and portability
       - Passable to other Semptify modules (case_builder, public_exposure, etc.)
     """
+
     plan_id: str
     user_id: str
     title: str
@@ -206,16 +210,17 @@ DEFAULT_MODULES: list[str] = [
 # Service Functions
 # =============================================================================
 
+
 def create_plan(
     user_id: str,
     title: str,
     landlord_name: str = "",
     property_name: str = "",
     property_address: str = "",
-    issues: Optional[list[str]] = None,
+    issues: list[str] | None = None,
     narrative: str = "",
     lihtc_angle: str = "",
-    core_objectives: Optional[list[str]] = None,
+    core_objectives: list[str] | None = None,
     desired_outcomes: str = "",
     include_default_steps: bool = True,
 ) -> AccountabilityPlan:
@@ -226,11 +231,7 @@ def create_plan(
     now = utc_now().isoformat()
     plan_id = make_id("plan")
 
-    next_steps = (
-        [NextStep(action=s) for s in DEFAULT_NEXT_STEPS]
-        if include_default_steps
-        else []
-    )
+    next_steps = [NextStep(action=s) for s in DEFAULT_NEXT_STEPS] if include_default_steps else []
 
     plan = AccountabilityPlan(
         plan_id=plan_id,
@@ -271,9 +272,7 @@ def add_next_step(plan: AccountabilityPlan, step: NextStep) -> AccountabilityPla
     return plan
 
 
-def mark_step_complete(
-    plan: AccountabilityPlan, step_index: int
-) -> AccountabilityPlan:
+def mark_step_complete(plan: AccountabilityPlan, step_index: int) -> AccountabilityPlan:
     if 0 <= step_index < len(plan.next_steps):
         plan.next_steps[step_index].completed = True
         plan.updated_at = utc_now().isoformat()

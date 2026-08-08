@@ -9,6 +9,7 @@ upstream log records emit.
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import shutil
@@ -260,10 +261,8 @@ class LogFlusher:
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
             self._task = None
         try:
             await self._flush()

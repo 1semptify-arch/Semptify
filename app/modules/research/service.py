@@ -9,22 +9,22 @@ and insurance broker info.
 Multilingual-ready (labels), checkpointing, and ZIP bundling included.
 """
 
-import os
+import asyncio
 import io
 import json
 import logging
-import asyncio
-import zipfile
+import os
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from urllib.parse import quote_plus, quote
+import zipfile
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
+from urllib.parse import quote_plus
+
+import httpx
 
 from app.core.id_gen import make_id
 from app.core.utc import utc_now
-from dataclasses import dataclass, field
-
-import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,9 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 CFG = {
     # County Assessor — Hennepin County ArcGIS REST (free, no key)
-    "ASSESSOR_BASE": os.getenv("ASSESSOR_BASE", "https://gis.hennepin.us/arcgis/rest/services/Property/PropertyData/MapServer/0"),
+    "ASSESSOR_BASE": os.getenv(
+        "ASSESSOR_BASE", "https://gis.hennepin.us/arcgis/rest/services/Property/PropertyData/MapServer/0"
+    ),
     # County Recorder — NO FREE API (web scraping or honest status)
     "RECORDER_BASE": os.getenv("RECORDER_BASE", "https://www.hennepin.us/recorder"),
     # UCC — MN SOS (no free API, web scraping)
@@ -62,11 +64,12 @@ CFG = {
 @dataclass
 class FraudFlag:
     """A potential fraud indicator"""
+
     flag_type: str
     detail: str
     severity: str = "medium"  # low, medium, high, critical
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.flag_type,
             "detail": self.detail,
@@ -77,27 +80,28 @@ class FraudFlag:
 @dataclass
 class LandlordProfile:
     """Complete landlord/property research profile"""
+
     property_id: str
-    owner_name: Optional[str]
-    site_address: Optional[str]
-    mailing_address: Optional[str]
-    taxes: Dict[str, Any] = field(default_factory=dict)
-    assessed: Dict[str, Any] = field(default_factory=dict)
-    legal_description: Optional[str] = None
-    deeds: List[Dict[str, Any]] = field(default_factory=list)
-    liens: List[Dict[str, Any]] = field(default_factory=list)
-    ucc_filings: List[Dict[str, Any]] = field(default_factory=list)
-    news_mentions: List[Dict[str, Any]] = field(default_factory=list)
-    emergency_calls: List[Dict[str, Any]] = field(default_factory=list)
-    bankruptcy_cases: List[Dict[str, Any]] = field(default_factory=list)
-    insurance_brokers: List[Dict[str, Any]] = field(default_factory=list)
-    insurance_policies: List[Dict[str, Any]] = field(default_factory=list)
-    entity_info: Dict[str, Any] = field(default_factory=dict)
-    fraud_flags: List[FraudFlag] = field(default_factory=list)
-    sources: Dict[str, Any] = field(default_factory=dict)
+    owner_name: str | None
+    site_address: str | None
+    mailing_address: str | None
+    taxes: dict[str, Any] = field(default_factory=dict)
+    assessed: dict[str, Any] = field(default_factory=dict)
+    legal_description: str | None = None
+    deeds: list[dict[str, Any]] = field(default_factory=list)
+    liens: list[dict[str, Any]] = field(default_factory=list)
+    ucc_filings: list[dict[str, Any]] = field(default_factory=list)
+    news_mentions: list[dict[str, Any]] = field(default_factory=list)
+    emergency_calls: list[dict[str, Any]] = field(default_factory=list)
+    bankruptcy_cases: list[dict[str, Any]] = field(default_factory=list)
+    insurance_brokers: list[dict[str, Any]] = field(default_factory=list)
+    insurance_policies: list[dict[str, Any]] = field(default_factory=list)
+    entity_info: dict[str, Any] = field(default_factory=dict)
+    fraud_flags: list[FraudFlag] = field(default_factory=list)
+    sources: dict[str, Any] = field(default_factory=dict)
     generated_at: datetime = field(default_factory=lambda: utc_now())
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "property_id": self.property_id,
             "owner_name": self.owner_name,
@@ -126,13 +130,14 @@ class LandlordProfile:
 @dataclass
 class ResearchCheckpoint:
     """Checkpoint for research progress"""
+
     id: str
     user_id: str
     property_id: str
     profile: LandlordProfile
     created_at: datetime = field(default_factory=lambda: utc_now())
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -145,17 +150,17 @@ class ResearchCheckpoint:
 # =============================================================================
 # UTILITIES
 # =============================================================================
-def _clean_text(text: Optional[str]) -> str:
+def _clean_text(text: str | None) -> str:
     return (text or "").strip()
 
 
-def _safe(data: Optional[Dict[str, Any]], key: str, default: Any = None) -> Any:
+def _safe(data: dict[str, Any] | None, key: str, default: Any = None) -> Any:
     if not isinstance(data, dict):
         return default
     return data.get(key, default)
 
 
-def _mk_zip_bytes(files: Dict[str, str]) -> bytes:
+def _mk_zip_bytes(files: dict[str, str]) -> bytes:
     """Create zip in-memory from {path: text}"""
     bio = io.BytesIO()
     with zipfile.ZipFile(bio, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -170,26 +175,26 @@ def _mk_zip_bytes(files: Dict[str, str]) -> bytes:
 # =============================================================================
 class ResearchService:
     """Service for landlord/property research"""
-    
+
     def __init__(self):
-        self._client: Optional[httpx.AsyncClient] = None
-        self._profiles: Dict[str, LandlordProfile] = {}
-        self._checkpoints: Dict[str, ResearchCheckpoint] = {}
-        self._zip_cache: Dict[str, bytes] = {}
+        self._client: httpx.AsyncClient | None = None
+        self._profiles: dict[str, LandlordProfile] = {}
+        self._checkpoints: dict[str, ResearchCheckpoint] = {}
+        self._zip_cache: dict[str, bytes] = {}
         logger.info("🔍 Research Service initialized")
-    
+
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client"""
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(timeout=CFG["HTTP_TIMEOUT"])
         return self._client
-    
+
     async def _get_json(
         self,
         url: str,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """HTTP GET with retry policy"""
         client = await self._get_client()
         for attempt in range(1, CFG["HTTP_RETRIES"] + 2):
@@ -202,12 +207,12 @@ class ResearchService:
                 if attempt >= CFG["HTTP_RETRIES"] + 1:
                     return {"_error": str(e), "_url": url, "_params": params or {}}
         return {}
-    
+
     # =========================================================================
     # DATA SOURCE FETCHERS — ZERO-COST REAL APIs
     # =========================================================================
 
-    async def fetch_assessor(self, property_id: str) -> Dict[str, Any]:
+    async def fetch_assessor(self, property_id: str) -> dict[str, Any]:
         """Hennepin County ArcGIS REST — free public parcel data (no API key)."""
         base = CFG["ASSESSOR_BASE"]
         # ArcGIS REST query for PIN/parcel ID
@@ -244,7 +249,7 @@ class ResearchService:
             "raw": data,
         }
 
-    async def fetch_recorder_deeds(self, property_id: str) -> Dict[str, Any]:
+    async def fetch_recorder_deeds(self, property_id: str) -> dict[str, Any]:
         """County recorder — NO FREE API. Returns honest status."""
         logger.info("Recorder deeds: no free API available. Returning honest status.")
         return {
@@ -256,7 +261,7 @@ class ResearchService:
             "raw": {"_error": "No free API available", "_source": "recorder"},
         }
 
-    async def fetch_ucc(self, entity_name: str) -> Dict[str, Any]:
+    async def fetch_ucc(self, entity_name: str) -> dict[str, Any]:
         """UCC filings — NO FREE API. Returns honest status."""
         if not entity_name:
             return {"source": "ucc", "filings": []}
@@ -269,7 +274,7 @@ class ResearchService:
             "raw": {"_error": "No free API available", "_source": "ucc"},
         }
 
-    async def fetch_dispatch(self, property_id: str, site_address: Optional[str]) -> Dict[str, Any]:
+    async def fetch_dispatch(self, property_id: str, site_address: str | None) -> dict[str, Any]:
         """Minneapolis Open Data — free 911 call data (no API key)."""
         q = site_address or property_id
         base = CFG["DISPATCH_BASE"]
@@ -298,19 +303,25 @@ class ResearchService:
         for row in rows:
             if not isinstance(row, list):
                 continue
+
             # Map by known field names; fallback to position guesses if metadata unavailable
-            def _val(*names):
+            def _val(row, *names):
                 for name in names:
                     if name in col_map and col_map[name] < len(row):
                         return row[col_map[name]]
                 return ""
 
-            calls.append({
-                "description": _val("description", "desc", "reason") or (row[0] if len(row) > 0 and not columns else ""),
-                "date": _val("date", "datetime", "call_date") or (row[1] if len(row) > 1 and not columns else ""),
-                "address": _val("address", "location", "incident_address") or (row[2] if len(row) > 2 and not columns else ""),
-                "precinct": _val("precinct", "police_precinct", "precinct_number") or (row[3] if len(row) > 3 and not columns else ""),
-            })
+            calls.append(
+                {
+                    "description": _val(row, "description", "desc", "reason")
+                    or (row[0] if len(row) > 0 and not columns else ""),
+                    "date": _val(row, "date", "datetime", "call_date") or (row[1] if len(row) > 1 and not columns else ""),
+                    "address": _val(row, "address", "location", "incident_address")
+                    or (row[2] if len(row) > 2 and not columns else ""),
+                    "precinct": _val(row, "precinct", "police_precinct", "precinct_number")
+                    or (row[3] if len(row) > 3 and not columns else ""),
+                }
+            )
 
         return {
             "source": "dispatch",
@@ -319,14 +330,10 @@ class ResearchService:
             "raw": data,
         }
 
-    async def _fetch_news_rss(self, query: str) -> List[Dict[str, Any]]:
+    async def _fetch_news_rss(self, query: str) -> list[dict[str, Any]]:
         """Google News RSS — completely free, no API key."""
         encoded_q = quote_plus(query)
-        rss_url = (
-            f"https://news.google.com/rss/search"
-            f"?q={encoded_q}"
-            f"&hl=en-US&gl=US&ceid=US:en"
-        )
+        rss_url = f"https://news.google.com/rss/search?q={encoded_q}&hl=en-US&gl=US&ceid=US:en"
         try:
             client = await self._get_client()
             r = await client.get(rss_url, timeout=15.0)
@@ -338,13 +345,15 @@ class ResearchService:
                 link = item.find("link")
                 pub_date = item.find("pubDate")
                 description = item.find("description")
-                articles.append({
-                    "title": title.text if title is not None else "",
-                    "url": link.text if link is not None else "",
-                    "publishedAt": pub_date.text if pub_date is not None else "",
-                    "description": description.text if description is not None else "",
-                    "source": {"name": "Google News RSS"},
-                })
+                articles.append(
+                    {
+                        "title": title.text if title is not None else "",
+                        "url": link.text if link is not None else "",
+                        "publishedAt": pub_date.text if pub_date is not None else "",
+                        "description": description.text if description is not None else "",
+                        "source": {"name": "Google News RSS"},
+                    }
+                )
                 if len(articles) >= 25:
                     break
             return articles
@@ -352,7 +361,7 @@ class ResearchService:
             logger.warning(f"RSS news fetch failed: {e}")
             return []
 
-    async def fetch_news(self, entity_name: str, site_address: Optional[str]) -> Dict[str, Any]:
+    async def fetch_news(self, entity_name: str, site_address: str | None) -> dict[str, Any]:
         """NewsAPI free tier (100 req/day) + Google News RSS fallback."""
         terms = [t for t in [entity_name, site_address] if t]
         q = " OR ".join(terms) if terms else entity_name
@@ -381,13 +390,14 @@ class ResearchService:
             "raw": {"rss_count": len(rss_articles)},
         }
 
-    async def fetch_sos(self, entity_name: str) -> Dict[str, Any]:
+    async def fetch_sos(self, entity_name: str) -> dict[str, Any]:
         """MN Secretary of State — no free API. Ethical crawler on public search."""
         if not entity_name:
             return {"source": "sos", "entity": {}}
         logger.info("MN SOS: no free API. Attempting ethical web crawl.")
         try:
             from app.services.crawler import get_crawler
+
             crawler = get_crawler()
             search_url = f"{CFG['SOS_BASE']}?BusinessName={quote_plus(entity_name)}"
             result = await crawler.crawl(search_url)
@@ -427,7 +437,7 @@ class ResearchService:
             "raw": {"_error": "No free API available", "_source": "sos"},
         }
 
-    async def fetch_bankruptcy(self, entity_name: str) -> Dict[str, Any]:
+    async def fetch_bankruptcy(self, entity_name: str) -> dict[str, Any]:
         """CourtListener — free federal court API (token required, no cost)."""
         if not entity_name:
             return {"source": "bankruptcy", "cases": []}
@@ -443,13 +453,15 @@ class ResearchService:
             results = _safe(data, "results", [])
             cases = []
             for r in results[:10]:
-                cases.append({
-                    "case_name": _safe(r, "caseName"),
-                    "docket_number": _safe(r, "docketNumber"),
-                    "court": _safe(r, "court"),
-                    "date_filed": _safe(r, "dateFiled"),
-                    "status": _safe(r, "status"),
-                })
+                cases.append(
+                    {
+                        "case_name": _safe(r, "caseName"),
+                        "docket_number": _safe(r, "docketNumber"),
+                        "court": _safe(r, "court"),
+                        "date_filed": _safe(r, "dateFiled"),
+                        "status": _safe(r, "status"),
+                    }
+                )
             return {
                 "source": "bankruptcy",
                 "cases": cases,
@@ -467,7 +479,7 @@ class ResearchService:
                 "raw": {"_error": str(e)},
             }
 
-    async def fetch_insurance(self, entity_name: str) -> Dict[str, Any]:
+    async def fetch_insurance(self, entity_name: str) -> dict[str, Any]:
         """Insurance — NO FREE API. Returns honest status."""
         if not entity_name:
             return {"source": "insurance", "brokers": [], "policies": []}
@@ -480,66 +492,76 @@ class ResearchService:
             "note": "MN Dept of Commerce insurance lookup has no free API.",
             "raw": {"_error": "No free API available", "_source": "insurance"},
         }
-    
+
     # =========================================================================
     # FRAUD FLAG DETECTION
     # =========================================================================
     def detect_fraud_flags(
         self,
-        assessor: Dict[str, Any],
-        recorder: Dict[str, Any],
-        sos: Dict[str, Any],
-    ) -> List[FraudFlag]:
+        assessor: dict[str, Any],
+        recorder: dict[str, Any],
+        sos: dict[str, Any],
+    ) -> list[FraudFlag]:
         """Detect potential fraud indicators"""
-        flags: List[FraudFlag] = []
-        
+        flags: list[FraudFlag] = []
+
         # Owner mismatch between assessor and SOS
         assessor_owner = _safe(assessor, "owner_name", "")
         sos_entity = _safe(sos, "entity", {})
         sos_name = _safe(sos_entity, "legal_name", "")
         if assessor_owner and sos_name and assessor_owner.lower() != sos_name.lower():
-            flags.append(FraudFlag(
-                flag_type="owner_mismatch",
-                detail=f"Assessor owner '{assessor_owner}' != SOS '{sos_name}'",
-                severity="medium",
-            ))
-        
+            flags.append(
+                FraudFlag(
+                    flag_type="owner_mismatch",
+                    detail=f"Assessor owner '{assessor_owner}' != SOS '{sos_name}'",
+                    severity="medium",
+                )
+            )
+
         # Suspicious liens (recent, high count)
         liens = _safe(recorder, "liens", [])
         if isinstance(liens, list):
             if len(liens) >= 5:
-                flags.append(FraudFlag(
-                    flag_type="multiple_liens",
-                    detail=f"{len(liens)} liens recorded - high risk",
-                    severity="high",
-                ))
+                flags.append(
+                    FraudFlag(
+                        flag_type="multiple_liens",
+                        detail=f"{len(liens)} liens recorded - high risk",
+                        severity="high",
+                    )
+                )
             elif len(liens) >= 3:
-                flags.append(FraudFlag(
-                    flag_type="multiple_liens",
-                    detail=f"{len(liens)} liens recorded",
-                    severity="medium",
-                ))
-        
+                flags.append(
+                    FraudFlag(
+                        flag_type="multiple_liens",
+                        detail=f"{len(liens)} liens recorded",
+                        severity="medium",
+                    )
+                )
+
         # Entity inactive/delinquent
         status = _safe(sos_entity, "status", "").lower()
         if status in {"inactive", "dissolved", "delinquent"}:
-            flags.append(FraudFlag(
-                flag_type="entity_status",
-                detail=f"Entity status: {status}",
-                severity="high",
-            ))
-        
+            flags.append(
+                FraudFlag(
+                    flag_type="entity_status",
+                    detail=f"Entity status: {status}",
+                    severity="high",
+                )
+            )
+
         # Tax delinquency
         taxes = _safe(assessor, "taxes", {})
         if _safe(taxes, "delinquent") or _safe(taxes, "past_due"):
-            flags.append(FraudFlag(
-                flag_type="tax_delinquent",
-                detail="Property taxes are delinquent",
-                severity="medium",
-            ))
-        
+            flags.append(
+                FraudFlag(
+                    flag_type="tax_delinquent",
+                    detail="Property taxes are delinquent",
+                    severity="medium",
+                )
+            )
+
         return flags
-    
+
     # =========================================================================
     # MAIN RESEARCH FUNCTION
     # =========================================================================
@@ -547,21 +569,21 @@ class ResearchService:
         self,
         user_id: str,
         property_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Collect and bundle landlord/property data.
-        
+
         Returns profile, checkpoint, and ZIP token.
         """
         property_id = _clean_text(property_id)
         if not property_id:
             raise ValueError("property_id is required")
-        
+
         # Fetch Assessor first to get owner + site address
         assessor = await self.fetch_assessor(property_id)
         owner_name = _safe(assessor, "owner_name", "")
         site_address = _safe(assessor, "site_address", "")
-        
+
         # Parallel fetch remainder
         recorder, ucc, sos, news, dispatch, bankruptcy, insurance = await asyncio.gather(
             self.fetch_recorder_deeds(property_id),
@@ -572,10 +594,10 @@ class ResearchService:
             self.fetch_bankruptcy(owner_name),
             self.fetch_insurance(owner_name),
         )
-        
+
         # Detect fraud flags
         fraud_flags = self.detect_fraud_flags(assessor, recorder, sos)
-        
+
         # Build profile
         profile = LandlordProfile(
             property_id=property_id,
@@ -606,7 +628,7 @@ class ResearchService:
                 "insurance": insurance.get("raw"),
             },
         )
-        
+
         # Create checkpoint
         checkpoint = ResearchCheckpoint(
             id=make_id("chk"),
@@ -614,7 +636,7 @@ class ResearchService:
             property_id=property_id,
             profile=profile,
         )
-        
+
         # Build evidence ZIP
         profile_dict = profile.to_dict()
         files = {
@@ -624,69 +646,71 @@ class ResearchService:
         }
         zip_bytes = _mk_zip_bytes(files)
         zip_token = make_id("zip")
-        
+
         # Cache
         self._profiles[property_id] = profile
         self._checkpoints[checkpoint.id] = checkpoint
         self._zip_cache[property_id] = zip_bytes
-        
+
         logger.info(f"🔍 Research complete for property {property_id}: {len(fraud_flags)} fraud flags")
-        
+
         return {
             "landlord_profile": profile_dict,
             "checkpoint_id": checkpoint.id,
             "evidence_zip_token": zip_token,
             "fraud_flag_count": len(fraud_flags),
         }
-    
+
     def _generate_summary(self, profile: LandlordProfile) -> str:
         """Generate human-readable summary"""
         lines = [
-            f"LANDLORD/PROPERTY RESEARCH REPORT",
-            f"=" * 40,
-            f"",
+            "LANDLORD/PROPERTY RESEARCH REPORT",
+            "=" * 40,
+            "",
             f"Property ID: {profile.property_id}",
             f"Owner: {profile.owner_name or 'Unknown'}",
             f"Site Address: {profile.site_address or 'Unknown'}",
             f"Mailing Address: {profile.mailing_address or 'Unknown'}",
-            f"",
-            f"FINDINGS:",
-            f"---------",
+            "",
+            "FINDINGS:",
+            "---------",
             f"Liens: {len(profile.liens)}",
             f"UCC Filings: {len(profile.ucc_filings)}",
             f"Deeds/Transfers: {len(profile.deeds)}",
             f"Emergency Calls: {len(profile.emergency_calls)}",
             f"News Mentions: {len(profile.news_mentions)}",
             f"Bankruptcy Cases: {len(profile.bankruptcy_cases)}",
-            f"",
+            "",
             f"FRAUD FLAGS: {len(profile.fraud_flags)}",
-            f"-----------",
+            "-----------",
         ]
-        
+
         for flag in profile.fraud_flags:
             lines.append(f"  [{flag.severity.upper()}] {flag.flag_type}: {flag.detail}")
-        
-        lines.extend([
-            f"",
-            f"Generated: {profile.generated_at.isoformat()}",
-            f"",
-            f"This report was generated by Semptify Research Module.",
-        ])
-        
+
+        lines.extend(
+            [
+                "",
+                f"Generated: {profile.generated_at.isoformat()}",
+                "",
+                "This report was generated by Semptify Research Module.",
+            ]
+        )
+
         return "\n".join(lines)
-    
-    def get_profile(self, property_id: str) -> Optional[LandlordProfile]:
+
+    def get_profile(self, property_id: str) -> LandlordProfile | None:
         """Get a cached profile"""
         return self._profiles.get(property_id)
-    
-    def get_checkpoint(self, checkpoint_id: str) -> Optional[ResearchCheckpoint]:
+
+    def get_checkpoint(self, checkpoint_id: str) -> ResearchCheckpoint | None:
         """Get a checkpoint by ID"""
         return self._checkpoints.get(checkpoint_id)
-    
-    def get_zip(self, property_id: str) -> Optional[bytes]:
+
+    def get_zip(self, property_id: str) -> bytes | None:
         """Get cached ZIP bytes"""
         return self._zip_cache.get(property_id)
-    
+
     async def close(self):
         """Close HTTP client"""
         if self._client and not self._client.is_closed:
@@ -694,7 +718,7 @@ class ResearchService:
 
 
 # Global instance
-_research_service: Optional[ResearchService] = None
+_research_service: ResearchService | None = None
 
 
 def get_research_service() -> ResearchService:

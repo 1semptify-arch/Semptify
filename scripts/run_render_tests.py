@@ -12,12 +12,13 @@ Usage (on Render shell or locally with server running):
     python scripts/run_render_tests.py
     python scripts/run_render_tests.py --base-url https://semptify.org
 """
+
 import argparse
 import json
 import sys
-import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+import urllib.request
+from datetime import UTC, datetime
 
 DEFAULT_BASE = "http://localhost:8000"
 
@@ -68,7 +69,7 @@ def run_smoke_tests(base):
     for path, desc in endpoints:
         status, body = http_get(base + path)
         if status == 200:
-            record(f"GET {path} ({desc})", "PASS", f"200 OK")
+            record(f"GET {path} ({desc})", "PASS", "200 OK")
         elif status is None:
             record(f"GET {path} ({desc})", "FAIL", body[:100])
         else:
@@ -90,9 +91,10 @@ def run_law_library_tests(base):
         links = data.get("links", data) if isinstance(data, dict) else data
         if isinstance(links, list):
             record("links returned", "PASS", f"{len(links)} links")
-            https_count = sum(1 for l in links if isinstance(l, dict) and str(l.get("official_url", "")).startswith("https://"))
-            record("all URLs are https", "PASS" if https_count == len(links) else "FAIL",
-                   f"{https_count}/{len(links)}")
+            https_count = sum(
+                1 for link in links if isinstance(link, dict) and str(link.get("official_url", "")).startswith("https://")
+            )
+            record("all URLs are https", "PASS" if https_count == len(links) else "FAIL", f"{https_count}/{len(links)}")
         else:
             record("links returned", "FAIL", "not a list")
     except json.JSONDecodeError as e:
@@ -124,7 +126,7 @@ def final_report(base):
     print("  FINAL REPORT")
     print("=" * 70)
     print(f"\n  Server: {base}")
-    print(f"  Date:  {datetime.now(timezone.utc).isoformat()}")
+    print(f"  Date:  {datetime.now(UTC).isoformat()}")
     print(f"\n  PASS: {PASS}")
     print(f"  FAIL: {FAIL}")
     print(f"  TOTAL: {PASS + FAIL}")
@@ -137,8 +139,8 @@ def final_report(base):
 
     print("\n" + "=" * 70)
     print("\n  NOTE: To run the full pytest suite against this server:")
-    print(f"    pytest tests/ -v --tb=short")
-    print(f"  (requires conftest.py DB fixture fix or running against live DB)")
+    print("    pytest tests/ -v --tb=short")
+    print("  (requires conftest.py DB fixture fix or running against live DB)")
     print()
     return FAIL == 0
 

@@ -38,7 +38,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pre-commit ruff black mypy
+          pip install "pre-commit==3.6.0" ruff black mypy detect-secrets bandit pytest
+          pip install -r requirements.txt
 
       - name: Run pre-commit checks
         run: pre-commit run --all-files
@@ -128,7 +129,7 @@ jobs:
         run: pip install bandit[toml]
 
       - name: Run Bandit security scan
-        run: bandit -r app/ -f json -o bandit-report.json
+        run: bandit -r app/ -c .bandit -f json -o bandit-report.json
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4

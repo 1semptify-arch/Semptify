@@ -20,17 +20,18 @@ Examples:
     python tools/gui_test_bot.py --role tenant      # Test only tenant flows
 """
 
-import asyncio
 import argparse
+import asyncio
+import contextlib
 import json
 import traceback
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-from typing import Optional, List, Dict, Any
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
-from playwright.async_api import async_playwright, Page, Browser, BrowserContext
+from playwright.async_api import Browser, BrowserContext, Page, async_playwright
 
 # =============================================================================
 # CONFIGURATION
@@ -53,6 +54,7 @@ TEST_USERS = {
 # DATA CLASSES
 # =============================================================================
 
+
 class TestStatus(Enum):
     PASSED = "passed"
     FAILED = "failed"
@@ -62,15 +64,16 @@ class TestStatus(Enum):
 @dataclass
 class TestResult:
     """Single test result."""
+
     name: str
     status: TestStatus
     role: str
     duration_ms: float
-    error_message: Optional[str] = None
-    screenshot_path: Optional[str] = None
-    page_url: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    error_message: str | None = None
+    screenshot_path: str | None = None
+    page_url: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "status": self.status.value,
@@ -85,26 +88,27 @@ class TestResult:
 @dataclass
 class TestReport:
     """Complete test run report."""
+
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    results: List[TestResult] = field(default_factory=list)
-    config: Dict[str, Any] = field(default_factory=dict)
-    
+    results: list[TestResult] = field(default_factory=list)
+    config: dict[str, Any] = field(default_factory=dict)
+
     def add_result(self, result: TestResult):
         self.results.append(result)
-    
-    def get_summary(self) -> Dict[str, Any]:
+
+    def get_summary(self) -> dict[str, Any]:
         total = len(self.results)
         passed = len([r for r in self.results if r.status == TestStatus.PASSED])
         failed = len([r for r in self.results if r.status == TestStatus.FAILED])
         skipped = len([r for r in self.results if r.status == TestStatus.SKIPPED])
-        
-        by_role: Dict[str, Dict[str, int]] = {}
+
+        by_role: dict[str, dict[str, int]] = {}
         for r in self.results:
             if r.role not in by_role:
                 by_role[r.role] = {"passed": 0, "failed": 0, "skipped": 0, "total": 0}
             by_role[r.role]["total"] += 1
             by_role[r.role][r.status.value] += 1
-        
+
         return {
             "total": total,
             "passed": passed,
@@ -113,8 +117,8 @@ class TestReport:
             "pass_rate": round(passed / total * 100, 1) if total > 0 else 0,
             "by_role": by_role,
         }
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "timestamp": self.timestamp,
             "config": self.config,
@@ -127,22 +131,23 @@ class TestReport:
 # TEST BOT CLASS
 # =============================================================================
 
+
 class SemptifyGUITestBot:
     """Main test bot that simulates users through Playwright."""
-    
+
     def __init__(self, headed: bool = False, slow_mo: int = 0):
         self.headed = headed
         self.slow_mo = slow_mo
-        self.browser: Optional[Browser] = None
-        self.context: Optional[BrowserContext] = None
+        self.browser: Browser | None = None
+        self.context: BrowserContext | None = None
         self.report = TestReport()
         self.screenshots_dir = SCREENSHOTS_DIR
         self.reports_dir = REPORTS_DIR
-        
+
         # Create directories
         self.screenshots_dir.mkdir(parents=True, exist_ok=True)
         self.reports_dir.mkdir(parents=True, exist_ok=True)
-    
+
     async def setup(self):
         """Initialize Playwright browser."""
         self.playwright = await async_playwright().start()
@@ -154,7 +159,7 @@ class SemptifyGUITestBot:
             viewport={"width": 1280, "height": 900},
             record_video_dir=str(self.screenshots_dir / "videos") if self.headed else None,
         )
-    
+
     async def teardown(self):
         """Clean up browser resources."""
         if self.context:
@@ -162,13 +167,13 @@ class SemptifyGUITestBot:
         if self.browser:
             await self.browser.close()
         await self.playwright.stop()
-    
+
     async def new_page(self) -> Page:
         """Create a new page with error handling."""
         page = await self.context.new_page()
         page.set_default_timeout(10000)  # 10 second timeout
         return page
-    
+
     async def take_screenshot(self, page: Page, name: str) -> str:
         """Take a screenshot and return the path."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -176,7 +181,7 @@ class SemptifyGUITestBot:
         filepath = self.screenshots_dir / filename
         await page.screenshot(path=str(filepath), full_page=True)
         return str(filepath)
-    
+
     async def run_test(
         self,
         test_name: str,
@@ -187,11 +192,11 @@ class SemptifyGUITestBot:
         """Run a single test with timing and error handling."""
         start_time = asyncio.get_event_loop().time()
         screenshot_path = None
-        
+
         try:
             await test_func(page, role)
             duration = (asyncio.get_event_loop().time() - start_time) * 1000
-            
+
             return TestResult(
                 name=test_name,
                 status=TestStatus.PASSED,
@@ -199,16 +204,14 @@ class SemptifyGUITestBot:
                 duration_ms=duration,
                 page_url=page.url,
             )
-            
+
         except Exception as e:
             duration = (asyncio.get_event_loop().time() - start_time) * 1000
-            
+
             # Take screenshot on failure
-            try:
+            with contextlib.suppress(BaseException):
                 screenshot_path = await self.take_screenshot(page, f"FAILED_{test_name}")
-            except:
-                pass
-            
+
             return TestResult(
                 name=test_name,
                 status=TestStatus.FAILED,
@@ -218,18 +221,18 @@ class SemptifyGUITestBot:
                 screenshot_path=screenshot_path,
                 page_url=page.url,
             )
-    
+
     # =========================================================================
     # TEST SCENARIOS
     # =========================================================================
-    
+
     async def test_page_load(self, page: Page, role: str, path: str, title_check: str = None):
         """Generic page load test."""
         await page.goto(f"{BASE_URL}{path}")
-        
+
         # Wait for body to be visible
         await page.wait_for_selector("body", state="visible")
-        
+
         # Check for error messages
         error_selectors = [
             "text=Error",
@@ -238,22 +241,22 @@ class SemptifyGUITestBot:
             ".error",
             "[data-error]",
         ]
-        
+
         for selector in error_selectors:
             try:
                 error = await page.locator(selector).first.is_visible(timeout=500)
                 if error:
                     raise AssertionError(f"Error indicator found: {selector}")
-            except:
+            except Exception:
                 pass
-        
+
         # Check title if specified
         if title_check:
             title = await page.title()
             if title_check.lower() not in title.lower():
                 # Don't fail, just warn - titles change
                 pass
-    
+
     async def test_navigation_elements(self, page: Page, role: str):
         """Test that navigation elements are present and clickable."""
         # Common navigation elements
@@ -264,23 +267,23 @@ class SemptifyGUITestBot:
             ".sidebar",
             "header",
         ]
-        
+
         nav_found = False
         for selector in nav_selectors:
             try:
                 if await page.locator(selector).first.is_visible(timeout=1000):
                     nav_found = True
                     break
-            except:
+            except Exception:
                 continue
-        
+
         if not nav_found:
             raise AssertionError("No navigation elements found")
-    
+
     async def test_document_intake_flow(self, page: Page, role: str):
         """Test document intake page and upload UI."""
         await page.goto(f"{BASE_URL}/document-intake")
-        
+
         # Check for upload area or document list
         upload_selectors = [
             "input[type='file']",
@@ -290,23 +293,23 @@ class SemptifyGUITestBot:
             "text=Documents",
             "text=Add Document",
         ]
-        
+
         found = False
         for selector in upload_selectors:
             try:
                 if await page.locator(selector).first.is_visible(timeout=1000):
                     found = True
                     break
-            except:
+            except Exception:
                 continue
-        
+
         if not found:
             raise AssertionError("No document intake elements found")
-    
+
     async def test_timeline_view(self, page: Page, role: str):
         """Test timeline page displays correctly."""
         await page.goto(f"{BASE_URL}/timeline")
-        
+
         # Wait for timeline container
         timeline_selectors = [
             "[data-timeline]",
@@ -315,23 +318,23 @@ class SemptifyGUITestBot:
             "text=Timeline",
             "text=Events",
         ]
-        
+
         found = False
         for selector in timeline_selectors:
             try:
                 if await page.locator(selector).first.is_visible(timeout=2000):
                     found = True
                     break
-            except:
+            except Exception:
                 continue
-        
+
         if not found:
             raise AssertionError("Timeline elements not found")
-    
+
     async def test_vault_access(self, page: Page, role: str):
         """Test vault/document storage access."""
         await page.goto(f"{BASE_URL}/vault")
-        
+
         # Check vault UI elements
         vault_selectors = [
             "[data-vault]",
@@ -341,24 +344,24 @@ class SemptifyGUITestBot:
             "text=Files",
             "text=Documents",
         ]
-        
+
         found = False
         for selector in vault_selectors:
             try:
                 if await page.locator(selector).first.is_visible(timeout=1000):
                     found = True
                     break
-            except:
+            except Exception:
                 continue
-        
+
         if not found:
             raise AssertionError("Vault elements not found")
-    
+
     async def test_form_interactions(self, page: Page, role: str):
         """Test basic form interactions work."""
         # Navigate to a page likely to have forms
         await page.goto(f"{BASE_URL}/document-intake")
-        
+
         # Find and check form elements
         form_selectors = [
             "input",
@@ -366,35 +369,35 @@ class SemptifyGUITestBot:
             "select",
             "button[type='submit']",
         ]
-        
+
         found = False
         for selector in form_selectors:
             count = await page.locator(selector).count()
             if count > 0:
                 found = True
                 break
-        
+
         if not found:
             raise AssertionError("No form elements found")
-    
+
     async def test_responsive_layout(self, page: Page, role: str):
         """Test that page is responsive at different viewports."""
         viewports = [
-            {"width": 375, "height": 667},   # Mobile
+            {"width": 375, "height": 667},  # Mobile
             {"width": 768, "height": 1024},  # Tablet
-            {"width": 1280, "height": 900}, # Desktop
+            {"width": 1280, "height": 900},  # Desktop
         ]
-        
+
         for viewport in viewports:
             await page.set_viewport_size(viewport)
             await page.goto(f"{BASE_URL}/dashboard")
             await page.wait_for_load_state("networkidle")
-            
+
             # Check body exists and has content
             body = await page.locator("body").first
             if not body:
                 raise AssertionError(f"Body not found at viewport {viewport}")
-    
+
     async def test_api_health_via_ui(self, page: Page, role: str):
         """Test that API endpoints are accessible from UI context."""
         # Use page.evaluate to make API calls from browser context
@@ -406,20 +409,20 @@ class SemptifyGUITestBot:
                 return { error: e.message };
             }
         }""")
-        
+
         if result.get("error"):
             raise AssertionError(f"API health check failed: {result['error']}")
-        
+
         if not result.get("ok"):
             raise AssertionError(f"API health returned status {result.get('status')}")
-    
+
     async def test_dashboard_widgets(self, page: Page, role: str):
         """Test dashboard has expected widgets/content."""
         await page.goto(f"{BASE_URL}/dashboard")
-        
+
         # Wait for content to load
         await page.wait_for_load_state("domcontentloaded")
-        
+
         # Check for common dashboard elements
         dashboard_elements = [
             "main",
@@ -429,7 +432,7 @@ class SemptifyGUITestBot:
             ".card",
             ".widget",
         ]
-        
+
         found = False
         for selector in dashboard_elements:
             try:
@@ -437,20 +440,20 @@ class SemptifyGUITestBot:
                 if count > 0:
                     found = True
                     break
-            except:
+            except Exception:
                 continue
-        
+
         if not found:
             raise AssertionError("No dashboard content elements found")
-    
+
     # =========================================================================
     # ROLE-SPECIFIC TESTS
     # =========================================================================
-    
+
     async def run_tenant_tests(self, page: Page):
         """Run all tenant role tests."""
         role = "tenant"
-        
+
         tests = [
             ("Tenant - Home Page", lambda p, r: self.test_page_load(p, r, "/", "Semptify")),
             ("Tenant - Documents Page", lambda p, r: self.test_page_load(p, r, "/documents")),
@@ -463,20 +466,20 @@ class SemptifyGUITestBot:
             ("Tenant - API Health", self.test_api_health_via_ui),
             ("Tenant - Dashboard Widgets", self.test_dashboard_widgets),
         ]
-        
+
         for test_name, test_func in tests:
             result = await self.run_test(test_name, role, test_func, page)
             self.report.add_result(result)
-            
+
             if result.status == TestStatus.FAILED and self.headed:
                 # Pause on failure in headed mode for debugging
                 print(f"\n⚠️  Test failed: {test_name}")
                 print(f"   Screenshot: {result.screenshot_path}")
-    
+
     async def run_advocate_tests(self, page: Page):
         """Run all advocate role tests."""
         role = "advocate"
-        
+
         tests = [
             ("Advocate - Dashboard", lambda p, r: self.test_page_load(p, r, "/advocate")),
             ("Advocate - Client Management", lambda p, r: self.test_page_load(p, r, "/advocate/clients")),
@@ -484,15 +487,15 @@ class SemptifyGUITestBot:
             ("Advocate - Navigation", self.test_navigation_elements),
             ("Advocate - API Health", self.test_api_health_via_ui),
         ]
-        
+
         for test_name, test_func in tests:
             result = await self.run_test(test_name, role, test_func, page)
             self.report.add_result(result)
-    
+
     async def run_manager_tests(self, page: Page):
         """Run all manager role tests."""
         role = "manager"
-        
+
         tests = [
             ("Manager - Dashboard", lambda p, r: self.test_page_load(p, r, "/manager")),
             ("Manager - Team View", lambda p, r: self.test_page_load(p, r, "/manager/team")),
@@ -500,15 +503,15 @@ class SemptifyGUITestBot:
             ("Manager - Navigation", self.test_navigation_elements),
             ("Manager - API Health", self.test_api_health_via_ui),
         ]
-        
+
         for test_name, test_func in tests:
             result = await self.run_test(test_name, role, test_func, page)
             self.report.add_result(result)
-    
+
     async def run_legal_tests(self, page: Page):
         """Run all legal role tests."""
         role = "legal"
-        
+
         tests = [
             ("Legal - Dashboard", lambda p, r: self.test_page_load(p, r, "/legal")),
             ("Legal - Case Review", lambda p, r: self.test_page_load(p, r, "/legal/cases")),
@@ -516,15 +519,15 @@ class SemptifyGUITestBot:
             ("Legal - Navigation", self.test_navigation_elements),
             ("Legal - API Health", self.test_api_health_via_ui),
         ]
-        
+
         for test_name, test_func in tests:
             result = await self.run_test(test_name, role, test_func, page)
             self.report.add_result(result)
-    
+
     async def run_admin_tests(self, page: Page):
         """Run all admin role tests."""
         role = "admin"
-        
+
         tests = [
             ("Admin - Dashboard", lambda p, r: self.test_page_load(p, r, "/admin")),
             ("Admin - User Management", lambda p, r: self.test_page_load(p, r, "/admin/users")),
@@ -532,20 +535,20 @@ class SemptifyGUITestBot:
             ("Admin - Navigation", self.test_navigation_elements),
             ("Admin - API Health", self.test_api_health_via_ui),
         ]
-        
+
         for test_name, test_func in tests:
             result = await self.run_test(test_name, role, test_func, page)
             self.report.add_result(result)
-    
+
     # =========================================================================
     # MAIN RUNNER
     # =========================================================================
-    
-    async def run_all_tests(self, roles: List[str] = None):
+
+    async def run_all_tests(self, roles: list[str] = None):
         """Run tests for specified roles."""
         if roles is None or "all" in roles:
             roles = ["tenant", "advocate", "manager", "legal", "admin"]
-        
+
         print("=" * 70)
         print("SEMPTIFY GUI TEST BOT (Playwright)")
         print("=" * 70)
@@ -555,17 +558,17 @@ class SemptifyGUITestBot:
         print(f"Roles to Test: {', '.join(roles)}")
         print("=" * 70)
         print()
-        
+
         await self.setup()
-        
+
         try:
             for role in roles:
-                print(f"\n{'='*70}")
+                print(f"\n{'=' * 70}")
                 print(f"Testing Role: {role.upper()}")
-                print(f"{'='*70}")
-                
+                print(f"{'=' * 70}")
+
                 page = await self.new_page()
-                
+
                 try:
                     if role == "tenant":
                         await self.run_tenant_tests(page)
@@ -581,25 +584,25 @@ class SemptifyGUITestBot:
                     await page.close()
         finally:
             await self.teardown()
-        
+
         # Generate report
         await self.generate_report()
-    
+
     async def generate_report(self):
         """Generate HTML and JSON test reports."""
         summary = self.report.get_summary()
-        
+
         # JSON report
         json_path = self.reports_dir / f"gui_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(json_path, "w") as f:
             json.dump(self.report.to_dict(), f, indent=2)
-        
+
         # HTML report
         html_path = self.reports_dir / f"gui_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
         html_content = self._generate_html_report()
         with open(html_path, "w") as f:
             f.write(html_content)
-        
+
         # Console summary
         print("\n" + "=" * 70)
         print("TEST SUMMARY")
@@ -613,21 +616,21 @@ class SemptifyGUITestBot:
         print("Reports Generated:")
         print(f"  JSON: {json_path}")
         print(f"  HTML: {html_path}")
-        
-        if summary['failed'] > 0:
+
+        if summary["failed"] > 0:
             print("\nFailed Tests:")
             for r in self.report.results:
                 if r.status == TestStatus.FAILED:
                     print(f"  ❌ {r.name}")
                     if r.screenshot_path:
                         print(f"     Screenshot: {r.screenshot_path}")
-        
+
         print("=" * 70)
-    
+
     def _generate_html_report(self) -> str:
         """Generate HTML report content."""
         summary = self.report.get_summary()
-        
+
         results_html = ""
         for r in self.report.results:
             status_color = {
@@ -635,10 +638,12 @@ class SemptifyGUITestBot:
                 TestStatus.FAILED: "#dc3545",
                 TestStatus.SKIPPED: "#ffc107",
             }[r.status]
-            
+
             screenshot_link = f'<a href="file://{r.screenshot_path}">Screenshot</a>' if r.screenshot_path else "-"
-            error_detail = f'<pre style="color: #dc3545; font-size: 12px;">{r.error_message}</pre>' if r.error_message else "-"
-            
+            error_detail = (
+                f'<pre style="color: #dc3545; font-size: 12px;">{r.error_message}</pre>' if r.error_message else "-"
+            )
+
             results_html += f"""
             <tr style="border-bottom: 1px solid #ddd;">
                 <td style="padding: 10px;">{r.name}</td>
@@ -647,9 +652,9 @@ class SemptifyGUITestBot:
                 <td style="padding: 10px;">{r.duration_ms:.0f}ms</td>
                 <td style="padding: 10px;">{screenshot_link}</td>
             </tr>
-            {f'<tr><td colspan="5" style="padding: 10px; background: #f8f9fa;">{error_detail}</td></tr>' if r.error_message else ''}
+            {f'<tr><td colspan="5" style="padding: 10px; background: #f8f9fa;">{error_detail}</td></tr>' if r.error_message else ""}
             """
-        
+
         return f"""
 <!DOCTYPE html>
 <html>
@@ -676,26 +681,26 @@ class SemptifyGUITestBot:
     <div class="container">
         <h1>🧪 Semptify GUI Test Report</h1>
         <div class="timestamp">Generated: {self.report.timestamp}</div>
-        
+
         <div class="summary">
             <div class="summary-card">
                 <h3>TOTAL</h3>
-                <div class="number total">{summary['total']}</div>
+                <div class="number total">{summary["total"]}</div>
             </div>
             <div class="summary-card">
                 <h3>PASSED</h3>
-                <div class="number passed">{summary['passed']}</div>
+                <div class="number passed">{summary["passed"]}</div>
             </div>
             <div class="summary-card">
                 <h3>FAILED</h3>
-                <div class="number failed">{summary['failed']}</div>
+                <div class="number failed">{summary["failed"]}</div>
             </div>
             <div class="summary-card">
                 <h3>PASS RATE</h3>
-                <div class="number total">{summary['pass_rate']}%</div>
+                <div class="number total">{summary["pass_rate"]}%</div>
             </div>
         </div>
-        
+
         <h2>Detailed Results</h2>
         <table>
             <thead>
@@ -721,47 +726,33 @@ class SemptifyGUITestBot:
 # CLI ENTRY POINT
 # =============================================================================
 
+
 async def main():
     global BASE_URL
-    
-    parser = argparse.ArgumentParser(
-        description="Semptify GUI Test Bot - Artificial User Testing with Playwright"
-    )
+
+    parser = argparse.ArgumentParser(description="Semptify GUI Test Bot - Artificial User Testing with Playwright")
+    parser.add_argument("--headed", action="store_true", help="Run with visible browser window (for debugging)")
     parser.add_argument(
-        "--headed",
-        action="store_true",
-        help="Run with visible browser window (for debugging)"
-    )
-    parser.add_argument(
-        "--slow",
-        type=int,
-        default=0,
-        metavar="MS",
-        help="Slow motion delay in milliseconds (e.g., --slow 500)"
+        "--slow", type=int, default=0, metavar="MS", help="Slow motion delay in milliseconds (e.g., --slow 500)"
     )
     parser.add_argument(
         "--role",
         type=str,
         default="all",
         choices=["all", "tenant", "advocate", "manager", "legal", "admin"],
-        help="Which user role to test"
+        help="Which user role to test",
     )
-    parser.add_argument(
-        "--url",
-        type=str,
-        default=BASE_URL,
-        help=f"Base URL to test (default: {BASE_URL})"
-    )
-    
+    parser.add_argument("--url", type=str, default=BASE_URL, help=f"Base URL to test (default: {BASE_URL})")
+
     args = parser.parse_args()
-    
+
     # Update global BASE_URL if provided
     if args.url != BASE_URL:
         BASE_URL = args.url
-    
+
     # Create and run bot
     bot = SemptifyGUITestBot(headed=args.headed, slow_mo=args.slow)
-    
+
     roles = [args.role] if args.role != "all" else ["all"]
     await bot.run_all_tests(roles=roles)
 

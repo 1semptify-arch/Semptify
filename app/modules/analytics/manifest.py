@@ -4,8 +4,10 @@ Analytics Module Manifest
 Self-contained SDK module for Usage and performance analytics.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

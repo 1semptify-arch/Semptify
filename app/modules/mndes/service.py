@@ -21,29 +21,26 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
-from typing import Optional
 
-from app.core.mndes_compliance import (
-    mndes_validator,
-    MNDES_USER_WARNINGS,
-    MNDES_PORTAL_URL,
-    MNDESIssueCode,
-)
 from app.core.database import get_db_session
+from app.core.mndes_compliance import (
+    MNDES_PORTAL_URL,
+    MNDES_USER_WARNINGS,
+    mndes_validator,
+)
 from app.core.utc import utc_now
 from app.models.mndes_exhibit import (
+    MNDESAttestationRequest,
+    MNDESCaseType,
+    MNDESComplianceSummary,
     MNDESExhibit,
     MNDESExhibitCategory,
     MNDESExhibitPackage,
     MNDESExhibitStatus,
-    MNDESCaseType,
-    MNDESComplianceSummary,
     MNDESPackageCreateRequest,
-    MNDESAttestationRequest,
     MNDESSubmissionConfirmRequest,
 )
-from app.models.models import MNDESExhibitPackageDB, MNDESExhibitItemDB
+from app.models.models import MNDESExhibitPackageDB
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +56,7 @@ _packages: dict[str, MNDESExhibitPackage] = {}
 # Service
 # ============================================================================
 
+
 class MNDESExhibitService:
     """
     Core service for MNDES exhibit package management.
@@ -68,9 +66,7 @@ class MNDESExhibitService:
         package = await service.create_package(request, vault_index, user_id)
     """
 
-    def _package_to_db_model(
-        self, package: MNDESExhibitPackage
-    ) -> MNDESExhibitPackageDB:
+    def _package_to_db_model(self, package: MNDESExhibitPackage) -> MNDESExhibitPackageDB:
         """Convert Pydantic package model to DB model."""
         return MNDESExhibitPackageDB(
             package_id=package.package_id,
@@ -85,7 +81,9 @@ class MNDESExhibitService:
             attestation_provided=package.checklist_complete,
             attestation_date=package.updated_at if package.checklist_complete else None,
             attested_by=None,
-            status="draft" if not package.mndes_submission_started else ("submitted" if package.mndes_submission_complete else "ready"),
+            status="draft"
+            if not package.mndes_submission_started
+            else ("submitted" if package.mndes_submission_complete else "ready"),
             is_sealed_case=package.is_sealed_case or False,
             submitted_at=package.mndes_submission_started,
             confirmation_number=None,
@@ -93,9 +91,7 @@ class MNDESExhibitService:
             updated_at=package.updated_at or utc_now(),
         )
 
-    def _package_from_db_model(
-        self, db_package: MNDESExhibitPackageDB
-    ) -> MNDESExhibitPackage:
+    def _package_from_db_model(self, db_package: MNDESExhibitPackageDB) -> MNDESExhibitPackage:
         """Convert DB model to Pydantic package model."""
         exhibits_data = json.loads(db_package.exhibits_json) if db_package.exhibits_json else []
         exhibits = [MNDESExhibit(**ex) for ex in exhibits_data]
@@ -128,15 +124,14 @@ class MNDESExhibitService:
             logger.error("Failed to save package %s to DB: %s", package.package_id, e)
             raise
 
-    async def _get_package_from_db(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def _get_package_from_db(self, package_id: str) -> MNDESExhibitPackage | None:
         """Get package from database."""
         try:
             from sqlalchemy import select
+
             async with get_db_session() as session:
                 result = await session.execute(
-                    select(MNDESExhibitPackageDB).where(
-                        MNDESExhibitPackageDB.package_id == package_id
-                    )
+                    select(MNDESExhibitPackageDB).where(MNDESExhibitPackageDB.package_id == package_id)
                 )
                 db_package = result.scalar_one_or_none()
                 if db_package:
@@ -167,7 +162,8 @@ class MNDESExhibitService:
             logger.warning(
                 "MNDES package requested for sealed case %s by user %s — "
                 "sealed cases require court administration to upload.",
-                request.mn_case_number, user_id,
+                request.mn_case_number,
+                user_id,
             )
 
         exhibits: list[MNDESExhibit] = []
@@ -184,10 +180,7 @@ class MNDESExhibitService:
 
             validation = mndes_validator.validate_for_mndes(filename, file_size)
 
-            exhibit_name = (
-                (request.exhibit_names or {}).get(vault_id)
-                or self._default_exhibit_name(filename)
-            )
+            exhibit_name = (request.exhibit_names or {}).get(vault_id) or self._default_exhibit_name(filename)
 
             category = None
             if validation.file_category:
@@ -242,7 +235,7 @@ class MNDESExhibitService:
         )
         return package
 
-    async def get_package(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def get_package(self, package_id: str) -> MNDESExhibitPackage | None:
         """Get package from database (falls back to in-memory for legacy)."""
         # Try database first
         db_package = await self._get_package_from_db(package_id)
@@ -266,25 +259,29 @@ class MNDESExhibitService:
 
         updated_exhibits = []
         for ex in package.exhibits:
-            updated = ex.copy(update={
-                "user_attested_no_sexual_content": request.attests_no_sexual_content,
-                "user_attested_not_discovery": request.attests_not_discovery,
-                "user_attested_not_motion_attachment": request.attests_not_motion_attachment,
-                "updated_at": utc_now(),
-            })
+            updated = ex.copy(
+                update={
+                    "user_attested_no_sexual_content": request.attests_no_sexual_content,
+                    "user_attested_not_discovery": request.attests_not_discovery,
+                    "user_attested_not_motion_attachment": request.attests_not_motion_attachment,
+                    "updated_at": utc_now(),
+                }
+            )
             updated_exhibits.append(updated)
 
-        package = package.copy(update={
-            "exhibits": updated_exhibits,
-            "checklist_complete": (
-                request.attests_no_sexual_content
-                and request.attests_not_discovery
-                and request.attests_not_motion_attachment
-                and request.attests_understands_no_return
-                and request.attests_semptify_not_mndes
-            ),
-            "updated_at": utc_now(),
-        })
+        package = package.copy(
+            update={
+                "exhibits": updated_exhibits,
+                "checklist_complete": (
+                    request.attests_no_sexual_content
+                    and request.attests_not_discovery
+                    and request.attests_not_motion_attachment
+                    and request.attests_understands_no_return
+                    and request.attests_semptify_not_mndes
+                ),
+                "updated_at": utc_now(),
+            }
+        )
 
         # Save to database (primary) and in-memory (backward compat)
         await self._save_package_to_db(package)
@@ -308,22 +305,26 @@ class MNDESExhibitService:
         updated_exhibits = []
         for ex in package.exhibits:
             if ex.exhibit_id == request.exhibit_id:
-                ex = ex.copy(update={
-                    "mndes_submitted_by_user": True,
-                    "mndes_submitted_at": request.submitted_at or utc_now(),
-                    "mndes_tracking_number": request.mndes_tracking_number,
-                    "status": MNDESExhibitStatus.PRE_HEARING,
-                    "updated_at": utc_now(),
-                })
+                ex = ex.copy(
+                    update={
+                        "mndes_submitted_by_user": True,
+                        "mndes_submitted_at": request.submitted_at or utc_now(),
+                        "mndes_tracking_number": request.mndes_tracking_number,
+                        "status": MNDESExhibitStatus.PRE_HEARING,
+                        "updated_at": utc_now(),
+                    }
+                )
             updated_exhibits.append(ex)
 
         all_submitted = all(e.mndes_submitted_by_user for e in updated_exhibits)
-        package = package.copy(update={
-            "exhibits": updated_exhibits,
-            "mndes_submission_started": True,
-            "mndes_submission_complete": all_submitted,
-            "updated_at": utc_now(),
-        })
+        package = package.copy(
+            update={
+                "exhibits": updated_exhibits,
+                "mndes_submission_started": True,
+                "mndes_submission_complete": all_submitted,
+                "updated_at": utc_now(),
+            }
+        )
 
         # Save to database (primary) and in-memory (backward compat)
         await self._save_package_to_db(package)
@@ -331,7 +332,9 @@ class MNDESExhibitService:
 
         logger.info(
             "MNDES submission confirmed for exhibit %s in package %s (tracking: %s)",
-            request.exhibit_id, request.package_id, request.mndes_tracking_number,
+            request.exhibit_id,
+            request.package_id,
+            request.mndes_tracking_number,
         )
         return package
 
@@ -372,7 +375,8 @@ class MNDESExhibitService:
                     "detail": (
                         f"{summary.needs_conversion} files require format conversion "
                         "before upload (MP4, MP3, or PDF recommended)."
-                        if summary.needs_conversion else "No conversion needed."
+                        if summary.needs_conversion
+                        else "No conversion needed."
                     ),
                 },
                 {
@@ -382,7 +386,8 @@ class MNDESExhibitService:
                     "detail": (
                         f"{summary.needs_judge_exception} files require presiding judge approval "
                         "for proprietary format submission."
-                        if summary.needs_judge_exception else "No judge exception needed."
+                        if summary.needs_judge_exception
+                        else "No judge exception needed."
                     ),
                 },
                 {
@@ -406,8 +411,7 @@ class MNDESExhibitService:
                     "label": "Upload each exhibit individually at MNDES portal",
                     "complete": package.mndes_submission_started,
                     "detail": (
-                        f"Go to {MNDES_PORTAL_URL} and upload each file separately. "
-                        "Do NOT combine or zip exhibits."
+                        f"Go to {MNDES_PORTAL_URL} and upload each file separately. Do NOT combine or zip exhibits."
                     ),
                 },
                 {
@@ -435,7 +439,8 @@ class MNDESExhibitService:
             "jury_room_note": (
                 f"{summary.jury_room_eligible} audio/video exhibit(s) are eligible to be "
                 "viewed by jurors during deliberations if admitted."
-                if summary.jury_room_eligible else None
+                if summary.jury_room_eligible
+                else None
             ),
             "mndes_portal_url": "https://mndigitalexhibitsystem.courts.state.mn.us",
             "mndes_support_phone": "651-413-8160 (metro) | 1-833-707-2791 (other)",
@@ -449,40 +454,45 @@ class MNDESExhibitService:
     def _default_exhibit_name(self, filename: str) -> str:
         """Generate a default exhibit name from filename (user should edit)."""
         from pathlib import Path
+
         stem = Path(filename).stem.replace("_", " ").replace("-", " ")
         return stem[:80] if stem else filename[:80]
 
-    def _recalculate_package_summary(
-        self, package: MNDESExhibitPackage
-    ) -> MNDESExhibitPackage:
+    def _recalculate_package_summary(self, package: MNDESExhibitPackage) -> MNDESExhibitPackage:
         summary = self._build_compliance_summary(package.exhibits)
-        return package.copy(update={
-            "all_compliant": summary.all_clear,
-            "compliance_issues_count": summary.non_compliant,
-            "needs_judge_exception": summary.needs_judge_exception > 0,
-            "has_jury_room_exhibits": summary.jury_room_eligible > 0,
-        })
+        return package.copy(
+            update={
+                "all_compliant": summary.all_clear,
+                "compliance_issues_count": summary.non_compliant,
+                "needs_judge_exception": summary.needs_judge_exception > 0,
+                "has_jury_room_exhibits": summary.jury_room_eligible > 0,
+            }
+        )
 
-    def _build_compliance_summary(
-        self, exhibits: list[MNDESExhibit]
-    ) -> MNDESComplianceSummary:
+    def _build_compliance_summary(self, exhibits: list[MNDESExhibit]) -> MNDESComplianceSummary:
         compliant = sum(1 for e in exhibits if e.is_mndes_compliant)
         non_compliant = len(exhibits) - compliant
         needs_conversion = sum(1 for e in exhibits if e.conversion_required)
         needs_judge_exception = sum(1 for e in exhibits if e.judge_exception_required)
-        prohibited = sum(1 for e in exhibits if not e.is_mndes_compliant and not e.conversion_required and not e.judge_exception_required)
+        prohibited = sum(
+            1
+            for e in exhibits
+            if not e.is_mndes_compliant and not e.conversion_required and not e.judge_exception_required
+        )
         jury_room_eligible = sum(1 for e in exhibits if e.is_jury_room_eligible)
 
         issues = []
         for ex in exhibits:
             if not ex.is_mndes_compliant:
-                issues.append({
-                    "vault_id": ex.vault_id,
-                    "filename": ex.original_filename,
-                    "exhibit_name": ex.exhibit_name,
-                    "conversion_required": ex.conversion_required,
-                    "judge_exception_required": ex.judge_exception_required,
-                })
+                issues.append(
+                    {
+                        "vault_id": ex.vault_id,
+                        "filename": ex.original_filename,
+                        "exhibit_name": ex.exhibit_name,
+                        "conversion_required": ex.conversion_required,
+                        "judge_exception_required": ex.judge_exception_required,
+                    }
+                )
 
         return MNDESComplianceSummary(
             total_files=len(exhibits),

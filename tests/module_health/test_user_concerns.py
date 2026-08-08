@@ -1,4 +1,5 @@
 """Auto-generated regression test for user_concerns."""
+
 from tools.module_health import check_user_concerns
 
 

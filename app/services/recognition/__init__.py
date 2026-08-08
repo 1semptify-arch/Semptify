@@ -18,53 +18,53 @@ Usage:
     from app.services.recognition import DocumentRecognitionEngine
 import logging
 logger = logging.getLogger(__name__)
-    
+
     engine = DocumentRecognitionEngine()
     result = await engine.analyze(document_text, filename="eviction_notice.pdf")
-    
+
     logger.info(f"Document Type: {result.document_type}")
     logger.info(f"Confidence: {result.confidence.overall_score}")
     logger.info(f"Critical Issues: {result.legal_analysis.critical_issues}")
 """
 
-from .engine import DocumentRecognitionEngine
-from .models import (
-    RecognitionResult,
-    DocumentContext,
-    ReasoningChain,
-    LegalAnalysis,
-    RelationshipMap,
-    ConfidenceMetrics,
-    ExtractedEntity,
-    LegalIssue,
-    TimelineEntry,
-    PartyRelationship,
-    AmountRelationship,
-    DocumentType,
-    DocumentCategory,
-    ConfidenceLevel,
-    EntityType,
-    PartyRole,
-    IssueSeverity,
-)
-from .context_analyzer import ContextAnalyzer
-from .multi_pass_reasoner import MultiPassReasoner
-from .legal_expert import MinnesotaTenantLawExpert
-from .relationship_mapper import RelationshipMapper
 from .confidence_scorer import ConfidenceScorer
+from .context_analyzer import ContextAnalyzer
+from .engine import DocumentRecognitionEngine
 from .handwriting_analyzer import (
-    HandwritingAnalyzer,
-    HandwritingAnalysisResult,
-    SignatureProfile,
-    SignatureStatus,
-    HandwrittenElement,
-    HandwritingType,
     ForgeryIndicator,
     ForgeryType,
+    HandwritingAnalysisResult,
+    HandwritingAnalyzer,
+    HandwritingType,
+    HandwrittenElement,
     RiskLevel,
     SignatureComparison,
+    SignatureProfile,
+    SignatureStatus,
     analyze_handwriting,
 )
+from .legal_expert import MinnesotaTenantLawExpert
+from .models import (
+    AmountRelationship,
+    ConfidenceLevel,
+    ConfidenceMetrics,
+    DocumentCategory,
+    DocumentContext,
+    DocumentType,
+    EntityType,
+    ExtractedEntity,
+    IssueSeverity,
+    LegalAnalysis,
+    LegalIssue,
+    PartyRelationship,
+    PartyRole,
+    ReasoningChain,
+    RecognitionResult,
+    RelationshipMap,
+    TimelineEntry,
+)
+from .multi_pass_reasoner import MultiPassReasoner
+from .relationship_mapper import RelationshipMapper
 
 __all__ = [
     "DocumentRecognitionEngine",

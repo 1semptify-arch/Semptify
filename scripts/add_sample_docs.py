@@ -1,12 +1,13 @@
 """Add sample eviction case documents for timeline testing."""
+
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Load existing index
 index_file = Path(__file__).parent.parent / "data/documents/index.json"
-with open(index_file, "r") as f:
+with open(index_file) as f:
     index = json.load(f)
 
 # Sample documents for an eviction case timeline
@@ -15,7 +16,7 @@ sample_docs = [
         "filename": "Lease_Agreement_2024.pdf",
         "doc_type": "lease",
         "full_text": """RESIDENTIAL LEASE AGREEMENT
-        
+
 This Lease Agreement is entered into on December 15, 2023.
 Lease Term: January 1, 2024 through December 31, 2024.
 Monthly Rent: $1,450.00 due on the 1st of each month.
@@ -32,7 +33,7 @@ Move-in inspection scheduled for December 30, 2023.
         "filename": "Notice_Late_Rent_July2025.pdf",
         "doc_type": "notice",
         "full_text": """NOTICE OF LATE RENT
-        
+
 Date: July 8, 2025
 
 Dear Tenant,
@@ -55,7 +56,7 @@ Date Served: August 10, 2025
 
 TO: Dena Sazama, Bradley Crowe
 
-You are hereby notified that you are in default of your rental agreement. 
+You are hereby notified that you are in default of your rental agreement.
 The total amount due as of August 10, 2025 is $2,950.00.
 
 You must pay the full amount by August 24, 2025 or vacate the premises.
@@ -97,7 +98,7 @@ TO: Dena Sazama, Bradley Crowe
 
 This is your formal notice that your tenancy is terminated effective October 31, 2025.
 
-You must vacate the premises located at 123 Lexington Ave, Eagan, MN 55121 
+You must vacate the premises located at 123 Lexington Ave, Eagan, MN 55121
 no later than October 31, 2025 at 11:59 PM.
 
 Failure to vacate by this date will result in eviction proceedings.
@@ -187,7 +188,7 @@ added = 0
 for doc_data in sample_docs:
     doc_id = str(uuid.uuid4())
     storage_path = f"data/documents/{user_id}/{doc_id}_{doc_data['filename']}"
-    
+
     index[doc_id] = {
         "id": doc_id,
         "user_id": user_id,
@@ -207,8 +208,8 @@ for doc_data in sample_docs:
         "key_amounts": [],
         "key_terms": [],
         "law_references": None,
-        "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "analyzed_at": datetime.now(timezone.utc).isoformat(),
+        "uploaded_at": datetime.now(UTC).isoformat(),
+        "analyzed_at": datetime.now(UTC).isoformat(),
     }
     added += 1
     print(f"  + {doc_data['filename']}")

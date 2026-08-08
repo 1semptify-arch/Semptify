@@ -12,8 +12,8 @@ Design:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import ClassVar, Dict, List, Optional
+from dataclasses import dataclass
+from typing import ClassVar
 
 
 @dataclass(frozen=True)
@@ -22,18 +22,19 @@ class PortalPage:
 
     Immutable — SSOT for one public page.
     """
-    id: str                          # unique identifier (e.g. "about")
-    title: str                       # page title for <title> tag
-    path: str                        # URL path (e.g. "/about")
-    template: str                    # Jinja2 template path (e.g. "public/about.html")
-    description: str = ""            # meta description for SEO
-    keywords: str = ""               # meta keywords for SEO
-    og_title: str = ""               # OpenGraph title
-    og_description: str = ""         # OpenGraph description
-    in_sitemap: bool = True          # include in sitemap.xml
-    in_footer: bool = True           # include in footer links
-    footer_label: str = ""           # label for footer link (defaults to title)
-    order: int = 100                 # sort order in footer
+
+    id: str  # unique identifier (e.g. "about")
+    title: str  # page title for <title> tag
+    path: str  # URL path (e.g. "/about")
+    template: str  # Jinja2 template path (e.g. "public/about.html")
+    description: str = ""  # meta description for SEO
+    keywords: str = ""  # meta keywords for SEO
+    og_title: str = ""  # OpenGraph title
+    og_description: str = ""  # OpenGraph description
+    in_sitemap: bool = True  # include in sitemap.xml
+    in_footer: bool = True  # include in footer links
+    footer_label: str = ""  # label for footer link (defaults to title)
+    order: int = 100  # sort order in footer
 
 
 @dataclass
@@ -44,7 +45,7 @@ class PortalPageRegistry:
     All public pages flow from here.
     """
 
-    PAGES: ClassVar[List[PortalPage]] = [
+    PAGES: ClassVar[list[PortalPage]] = [
         PortalPage(
             id="portal",
             title="Semptify — Tenant Rights, Documented",
@@ -216,7 +217,7 @@ class PortalPageRegistry:
     ]
 
     @classmethod
-    def get_page(cls, page_id: str) -> Optional[PortalPage]:
+    def get_page(cls, page_id: str) -> PortalPage | None:
         """Get a single page by ID."""
         for p in cls.PAGES:
             if p.id == page_id:
@@ -224,7 +225,7 @@ class PortalPageRegistry:
         return None
 
     @classmethod
-    def get_page_by_path(cls, path: str) -> Optional[PortalPage]:
+    def get_page_by_path(cls, path: str) -> PortalPage | None:
         """Get a single page by URL path."""
         for p in cls.PAGES:
             if p.path == path:
@@ -232,12 +233,12 @@ class PortalPageRegistry:
         return None
 
     @classmethod
-    def get_footer_pages(cls) -> List[PortalPage]:
+    def get_footer_pages(cls) -> list[PortalPage]:
         """Return pages that should appear in the footer, sorted by order."""
         return sorted([p for p in cls.PAGES if p.in_footer], key=lambda p: p.order)
 
     @classmethod
-    def get_sitemap_pages(cls) -> List[PortalPage]:
+    def get_sitemap_pages(cls) -> list[PortalPage]:
         """Return pages that should appear in the sitemap, sorted by path."""
         return sorted([p for p in cls.PAGES if p.in_sitemap], key=lambda p: p.path)
 

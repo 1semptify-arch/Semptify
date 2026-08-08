@@ -5,16 +5,15 @@ Clean interface to the navigation SSOT registry.
 Zero FastAPI dependencies. Pure Python.
 """
 
-from typing import Optional, Set
-from app.core.navigation import navigation, FlowStage
+from app.core.navigation import FlowStage, navigation
 
 
-def get_stage(stage_id: str) -> Optional[FlowStage]:
+def get_stage(stage_id: str) -> FlowStage | None:
     """Return a FlowStage by ID, or None if not found."""
     return navigation.get_stage(stage_id)
 
 
-def get_path(stage_id: str, fallback: Optional[str] = None) -> Optional[str]:
+def get_path(stage_id: str, fallback: str | None = None) -> str | None:
     """
     Return the path for a stage ID.
 
@@ -41,7 +40,7 @@ def get_reconnect_path() -> str:
     return navigation.get_reconnect_flow()
 
 
-def get_next_path(current_stage_id: str, fallback: Optional[str] = None) -> Optional[str]:
+def get_next_path(current_stage_id: str, fallback: str | None = None) -> str | None:
     """
     Return the path for the next stage after current_stage_id.
 
@@ -69,6 +68,6 @@ def is_canonical_path(path: str) -> bool:
     return navigation.is_canonical_path(path)
 
 
-def all_paths() -> Set[str]:
+def all_paths() -> set[str]:
     """Return all registered canonical paths."""
     return set(navigation._CANONICAL_PATHS)

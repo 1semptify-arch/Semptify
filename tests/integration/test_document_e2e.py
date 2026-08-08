@@ -23,6 +23,7 @@ Run:
     .\\venv311\\Scripts\\Activate.ps1
     python -m tests.integration.test_document_e2e
 """
+
 import asyncio
 import os
 import shutil
@@ -73,16 +74,17 @@ def step(name, ok, detail=""):
 
 async def run():
     # Imports happen after env override
-    from app.services.vault_upload_service import get_vault_service
-    from app.services.document_intake import (
-        DocumentClassifier,
-        DataExtractor,
-        DocumentIntakeEngine,
-    )
-    from app.core.database import init_db, get_db_session
+    from sqlalchemy import select
+
+    from app.core.database import get_db_session, init_db
     from app.core.utc import utc_now
     from app.models.models import User
-    from sqlalchemy import select
+    from app.services.document_intake import (
+        DataExtractor,
+        DocumentClassifier,
+        DocumentIntakeEngine,
+    )
+    from app.services.vault_upload_service import get_vault_service
 
     print("\n=== SETUP: init DB + local vault ===")
     await init_db()
@@ -92,19 +94,22 @@ async def run():
 
     # Create a test user to satisfy FK constraints (unique per run to avoid state)
     import time
+
     user_id = f"e2e_test_{int(time.time())}"
     async with get_db_session() as session:
         existing = await session.execute(select(User).where(User.id == user_id))
         if existing.scalar_one_or_none() is None:
-            session.add(User(
-                id=user_id,
-                primary_provider="local",
-                storage_user_id="local_test_001",
-                default_role="user",
-                intensity_level="low",
-                created_at=utc_now(),
-                updated_at=utc_now(),
-            ))
+            session.add(
+                User(
+                    id=user_id,
+                    primary_provider="local",
+                    storage_user_id="local_test_001",
+                    default_role="user",
+                    intensity_level="low",
+                    created_at=utc_now(),
+                    updated_at=utc_now(),
+                )
+            )
             await session.commit()
     print(f"  user_id:   {user_id}")
     print(f"  vault_dir: {svc._local_dir}")
@@ -139,16 +144,11 @@ Federal fair housing: 42 U.S.C. 3601-3619.
             source_module="e2e_test",
             storage_provider="local",
         )
-        step("Upload lease", doc1 is not None and bool(doc1.vault_id),
-             f"vault_id={doc1.vault_id}")
-        step("Certification", doc1.is_certified,
-             f"registry_id={doc1.registry_id} integrity={doc1.integrity_status}")
-        step("Storage path", doc1.storage_path.endswith(".txt"),
-             f"path={doc1.storage_path}")
-        step("SHA-256 hash", len(doc1.sha256_hash) == 64,
-             f"hash={doc1.sha256_hash[:16]}...")
-        step("Certificate ID", doc1.certificate_id is not None,
-             f"cert={doc1.certificate_id}")
+        step("Upload lease", doc1 is not None and bool(doc1.vault_id), f"vault_id={doc1.vault_id}")
+        step("Certification", doc1.is_certified, f"registry_id={doc1.registry_id} integrity={doc1.integrity_status}")
+        step("Storage path", doc1.storage_path.endswith(".txt"), f"path={doc1.storage_path}")
+        step("SHA-256 hash", len(doc1.sha256_hash) == 64, f"hash={doc1.sha256_hash[:16]}...")
+        step("Certificate ID", doc1.certificate_id is not None, f"cert={doc1.certificate_id}")
     except Exception as e:
         step("Upload lease", False, f"EXCEPTION: {type(e).__name__}: {e}")
         traceback.print_exc()
@@ -159,22 +159,20 @@ Federal fair housing: 42 U.S.C. 3601-3619.
     file_path = TEST_VAULT / doc1.storage_path.lstrip("/")
     step("File exists on disk", file_path.exists(), str(file_path))
     if file_path.exists():
-        step("File content matches", file_path.read_bytes() == lease_text,
-             f"size={file_path.stat().st_size}")
+        step("File content matches", file_path.read_bytes() == lease_text, f"size={file_path.stat().st_size}")
 
     # ---- Step 3: Retrieve document from index ----
     print("\n=== STEP 3: Retrieve document from index ===")
     try:
         retrieved = await svc.get_document(doc1.vault_id)
-        step("get_document by vault_id", retrieved is not None,
-             f"filename={retrieved.filename if retrieved else None}")
+        step("get_document by vault_id", retrieved is not None, f"filename={retrieved.filename if retrieved else None}")
         if retrieved:
-            step("Retrieved matches upload",
-                 retrieved.vault_id == doc1.vault_id and retrieved.sha256_hash == doc1.sha256_hash,
-                 "id+hash match")
-            step("Retrieved is certified",
-                 retrieved.is_certified,
-                 f"registry_id={retrieved.registry_id}")
+            step(
+                "Retrieved matches upload",
+                retrieved.vault_id == doc1.vault_id and retrieved.sha256_hash == doc1.sha256_hash,
+                "id+hash match",
+            )
+            step("Retrieved is certified", retrieved.is_certified, f"registry_id={retrieved.registry_id}")
     except Exception as e:
         step("get_document", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -183,10 +181,8 @@ Federal fair housing: 42 U.S.C. 3601-3619.
     print("\n=== STEP 4: List user documents ===")
     try:
         docs = await svc.get_user_documents(user_id)
-        step("get_user_documents", len(docs) >= 1,
-             f"count={len(docs)}")
-        step("Listed doc matches", any(d.vault_id == doc1.vault_id for d in docs),
-             "vault_id present in list")
+        step("get_user_documents", len(docs) >= 1, f"count={len(docs)}")
+        step("Listed doc matches", any(d.vault_id == doc1.vault_id for d in docs), "vault_id present in list")
     except Exception as e:
         step("get_user_documents", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -195,8 +191,7 @@ Federal fair housing: 42 U.S.C. 3601-3619.
     print("\n=== STEP 5: Get document content ===")
     try:
         content = await svc.get_document_content(doc1.vault_id)
-        step("get_document_content", content == lease_text,
-             f"bytes={len(content) if content else 0}")
+        step("get_document_content", content == lease_text, f"bytes={len(content) if content else 0}")
     except Exception as e:
         step("get_document_content", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -211,9 +206,11 @@ Federal fair housing: 42 U.S.C. 3601-3619.
             mime_type="text/plain",
             storage_provider="local",
         )
-        step("Dedup returns same vault_id",
-             doc2.vault_id == doc1.vault_id,
-             f"doc1={doc1.vault_id[:12]} doc2={doc2.vault_id[:12]}")
+        step(
+            "Dedup returns same vault_id",
+            doc2.vault_id == doc1.vault_id,
+            f"doc1={doc1.vault_id[:12]} doc2={doc2.vault_id[:12]}",
+        )
     except Exception as e:
         step("Dedup upload", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -246,13 +243,9 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
             source_module="e2e_test",
             storage_provider="local",
         )
-        step("Upload notice", doc3 is not None and bool(doc3.vault_id),
-             f"vault_id={doc3.vault_id}")
-        step("Notice is certified", doc3.is_certified,
-             f"registry_id={doc3.registry_id}")
-        step("Notice has different vault_id",
-             doc3.vault_id != doc1.vault_id,
-             "unique id")
+        step("Upload notice", doc3 is not None and bool(doc3.vault_id), f"vault_id={doc3.vault_id}")
+        step("Notice is certified", doc3.is_certified, f"registry_id={doc3.registry_id}")
+        step("Notice has different vault_id", doc3.vault_id != doc1.vault_id, "unique id")
     except Exception as e:
         step("Upload notice", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -261,8 +254,7 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
     print("\n=== STEP 8: List user documents (expect 2) ===")
     try:
         docs = await svc.get_user_documents(user_id)
-        step("User has 2 documents", len(docs) == 2,
-             f"count={len(docs)}")
+        step("User has 2 documents", len(docs) == 2, f"count={len(docs)}")
     except Exception as e:
         step("List after 2nd upload", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -277,9 +269,7 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
             "text/plain",
             "lease_agreement.txt",
         )
-        step("Text extraction",
-             len(text) > 50 and "LEASE" in text.upper(),
-             f"chars={len(text)}")
+        step("Text extraction", len(text) > 50 and "LEASE" in text.upper(), f"chars={len(text)}")
     except Exception as e:
         step("Text extraction", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -290,9 +280,7 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
     try:
         if text:
             doc_type, confidence = DocumentClassifier.classify(text, "lease_agreement.txt")
-            step("Classification",
-                 doc_type is not None,
-                 f"type={doc_type} confidence={confidence:.2f}")
+            step("Classification", doc_type is not None, f"type={doc_type} confidence={confidence:.2f}")
         else:
             step("Classification", False, "no text to classify")
     except Exception as e:
@@ -306,12 +294,9 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
             dates = DataExtractor.extract_dates(text)
             amounts = DataExtractor.extract_amounts(text)
             parties = DataExtractor.extract_parties(text, doc_type)
-            step("Date extraction", len(dates) > 0,
-                 f"found={len(dates)} dates")
-            step("Amount extraction", len(amounts) > 0,
-                 f"found={len(amounts)} amounts")
-            step("Party extraction", len(parties) > 0,
-                 f"found={len(parties)} parties")
+            step("Date extraction", len(dates) > 0, f"found={len(dates)} dates")
+            step("Amount extraction", len(amounts) > 0, f"found={len(amounts)} amounts")
+            step("Party extraction", len(parties) > 0, f"found={len(parties)} parties")
         else:
             step("Data extraction", False, "no text")
     except Exception as e:
@@ -321,8 +306,10 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
     # ---- Step 12: Law linker citation detection on extracted text ----
     print("\n=== STEP 12: Law linker citation detection ===")
     try:
-        from app.core.law_source_registry import resolve_source, build_official_url
         import re
+
+        from app.core.law_source_registry import build_official_url, resolve_source
+
         citations_found = []
         if text:
             patterns = [
@@ -334,20 +321,20 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
                     citation_text = m.group(0).strip()
                     source = resolve_source(citation_text)
                     url = build_official_url(citation_text)
-                    citations_found.append({
-                        "text": citation_text,
-                        "url": url,
-                        "source": source.source_name if source else None,
-                    })
-        step("Citations detected", len(citations_found) >= 3,
-             f"found={len(citations_found)}")
+                    citations_found.append(
+                        {
+                            "text": citation_text,
+                            "url": url,
+                            "source": source.source_name if source else None,
+                        }
+                    )
+        step("Citations detected", len(citations_found) >= 3, f"found={len(citations_found)}")
         if citations_found:
             for c in citations_found[:5]:
                 print(f"      - {c['text'][:40]:40s} -> {c['url']}")
             # Verify URLs are well-formed
-            good_urls = sum(1 for c in citations_found if c['url'] and c['url'].startswith('https://'))
-            step("All URLs are https", good_urls == len(citations_found),
-                 f"{good_urls}/{len(citations_found)}")
+            good_urls = sum(1 for c in citations_found if c["url"] and c["url"].startswith("https://"))
+            step("All URLs are https", good_urls == len(citations_found), f"{good_urls}/{len(citations_found)}")
     except Exception as e:
         step("Law linker citations", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -361,8 +348,7 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
             extracted_data=extracted,
             storage_provider="local",
         )
-        step("mark_processed", updated is not None and updated.processed,
-             f"processed={updated.processed}")
+        step("mark_processed", updated is not None and updated.processed, f"processed={updated.processed}")
     except Exception as e:
         step("mark_processed", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -375,8 +361,11 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
             document_type="lease",
             storage_provider="local",
         )
-        step("update_document_type", updated is not None and updated.document_type == "lease",
-             f"type={updated.document_type if updated else None}")
+        step(
+            "update_document_type",
+            updated is not None and updated.document_type == "lease",
+            f"type={updated.document_type if updated else None}",
+        )
     except Exception as e:
         step("update_document_type", False, f"EXCEPTION: {e}")
         traceback.print_exc()
@@ -388,11 +377,10 @@ Minn. Stat. Sec. 504B.321. You have 7 days to file an Answer.
         step("Certificate file exists", cert_path.exists(), str(cert_path))
         if cert_path.exists():
             import json
+
             cert_data = json.loads(cert_path.read_text())
-            step("Certificate has vault_id", cert_data.get("vault_id") == doc1.vault_id,
-                 "matches")
-            step("Certificate has sha256", cert_data.get("sha256") == doc1.sha256_hash,
-                 "matches")
+            step("Certificate has vault_id", cert_data.get("vault_id") == doc1.vault_id, "matches")
+            step("Certificate has sha256", cert_data.get("sha256") == doc1.sha256_hash, "matches")
     except Exception as e:
         step("Certificate verification", False, f"EXCEPTION: {e}")
         traceback.print_exc()

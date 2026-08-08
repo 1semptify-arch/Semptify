@@ -8,15 +8,14 @@ Run:       python scripts/compile_ai_context_gui.py
            (or double-click the desktop launcher)
 """
 
+import contextlib
+import importlib
 import os
 import sys
-import importlib
-from pathlib import Path
-from datetime import datetime
-
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, scrolledtext, simpledialog
-
+from datetime import datetime
+from pathlib import Path
+from tkinter import filedialog, messagebox, scrolledtext, simpledialog, ttk
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT_DEFAULT = SCRIPT_DIR.parent
@@ -69,18 +68,12 @@ class ContextKitGUI:
         row = ttk.Frame(loc)
         row.pack(fill="x", padx=10, pady=8)
         ttk.Label(row, text="Folder:").pack(side="left")
-        ttk.Entry(row, textvariable=self.project_root).pack(
-            side="left", fill="x", expand=True, padx=(6, 6)
-        )
+        ttk.Entry(row, textvariable=self.project_root).pack(side="left", fill="x", expand=True, padx=(6, 6))
         ttk.Button(row, text="Browse…", command=self._browse_root).pack(side="left")
-        ttk.Button(row, text="Check files", command=self._refresh_status).pack(
-            side="left", padx=(4, 0)
-        )
+        ttk.Button(row, text="Check files", command=self._refresh_status).pack(side="left", padx=(4, 0))
 
         # 2. Which files?
-        files_frame = ttk.LabelFrame(
-            self.root, text="Step 2: Files to include"
-        )
+        files_frame = ttk.LabelFrame(self.root, text="Step 2: Files to include")
         files_frame.pack(fill="both", expand=False, **pad)
 
         list_row = ttk.Frame(files_frame)
@@ -112,12 +105,8 @@ class ContextKitGUI:
             command=self._compile,
         )
         self.compile_btn.pack(side="left", ipadx=10, ipady=4)
-        ttk.Button(actions, text="Open the file", command=self._open_packet).pack(
-            side="left", padx=(8, 0)
-        )
-        ttk.Button(actions, text="Copy to clipboard", command=self._copy_packet).pack(
-            side="left", padx=(8, 0)
-        )
+        ttk.Button(actions, text="Open the file", command=self._open_packet).pack(side="left", padx=(8, 0))
+        ttk.Button(actions, text="Copy to clipboard", command=self._copy_packet).pack(side="left", padx=(8, 0))
         ttk.Button(actions, text="Clear log", command=self._clear_log).pack(side="right")
 
         # Notebook: What happened + What's inside
@@ -184,9 +173,7 @@ class ContextKitGUI:
 
     def _add_doc_file(self):
         root_dir = self.project_root.get()
-        path = filedialog.askopenfilename(
-            initialdir=root_dir, title="Pick a file to include"
-        )
+        path = filedialog.askopenfilename(initialdir=root_dir, title="Pick a file to include")
         if path:
             try:
                 rel = _plain(os.path.relpath(path, root_dir))
@@ -270,8 +257,9 @@ class ContextKitGUI:
             cac.TARGET_DOCS = list(self.docs)
 
             # Capture prints
-            import io
             import contextlib
+            import io
+
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 cac.compile_handoff_packet()
@@ -295,7 +283,7 @@ class ContextKitGUI:
     def _load_preview(self, path):
         self.preview.delete("1.0", "end")
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 self.preview.insert("1.0", f.read())
         except FileNotFoundError:
             self.preview.insert("1.0", "(No file yet — click 'Make the AI file' first.)")
@@ -308,6 +296,7 @@ class ContextKitGUI:
             os.startfile(self.packet_path)
         except AttributeError:
             import subprocess
+
             opener = "open" if sys.platform == "darwin" else "xdg-open"
             subprocess.Popen([opener, self.packet_path])
 
@@ -343,10 +332,8 @@ class ContextKitGUI:
 
 def main():
     root = tk.Tk()
-    try:
+    with contextlib.suppress(tk.TclError):
         ttk.Style().theme_use("clam")
-    except tk.TclError:
-        pass
     ContextKitGUI(root)
     root.mainloop()
 
