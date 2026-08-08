@@ -12,14 +12,14 @@ Usage:
     python scripts/validate_contracts.py --page welcome
 """
 
-import sys
 import argparse
+import sys
 
 # Adjust path so imports work from project root
 sys.path.insert(0, ".")
 
 from app.core.page_contracts import PAGE_CONTRACTS, validate_all_contracts
-from app.core.process_registry import PROCESS_GROUPS, ALL_GROUP_NAMES
+from app.core.process_registry import ALL_GROUP_NAMES, PROCESS_GROUPS
 
 
 def check_registry_integrity() -> list[str]:
@@ -46,9 +46,7 @@ def check_registry_integrity() -> list[str]:
 
     expected_ids = set(range(1, len(PROCESS_GROUPS) + 1))
     if seen_ids != expected_ids:
-        errors.append(
-            f"Group IDs are not sequential. Expected {sorted(expected_ids)}, got {sorted(seen_ids)}"
-        )
+        errors.append(f"Group IDs are not sequential. Expected {sorted(expected_ids)}, got {sorted(seen_ids)}")
 
     return errors
 
@@ -72,8 +70,7 @@ def check_coverage_completeness() -> list[str]:
     for group_name in ALL_GROUP_NAMES:
         if group_name not in active_groups:
             warnings.append(
-                f"No page has group '{group_name}' as 'active'. "
-                "This group has no primary coverage in the registry."
+                f"No page has group '{group_name}' as 'active'. This group has no primary coverage in the registry."
             )
 
     return warnings
@@ -111,9 +108,7 @@ def run_validation(verbose: bool = False, page_filter: str = "") -> int:
             return 1
         contracts_to_check = {page_filter: PAGE_CONTRACTS[page_filter]}
 
-    violations = validate_all_contracts() if not page_filter else {
-        page_filter: PAGE_CONTRACTS[page_filter].validate()
-    }
+    violations = validate_all_contracts() if not page_filter else {page_filter: PAGE_CONTRACTS[page_filter].validate()}
 
     if violations:
         for page_id, errors in violations.items():
@@ -127,11 +122,7 @@ def run_validation(verbose: bool = False, page_filter: str = "") -> int:
     if verbose:
         print("\n  Registered contracts:")
         for page_id, contract in contracts_to_check.items():
-            coverage_summary = ", ".join(
-                f"{g}={v}"
-                for g, v in contract.group_coverage.items()
-                if v != "n-a"
-            )
+            coverage_summary = ", ".join(f"{g}={v}" for g, v in contract.group_coverage.items() if v != "n-a")
             print(f"    {page_id:30s} roles={len(contract.roles_supported)} | {coverage_summary}")
 
     # 3. Coverage completeness warnings

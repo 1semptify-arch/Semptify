@@ -4,7 +4,7 @@ Semptify 5.0 - Advanced Document Recognition Engine
 
 World-class document recognition using multi-layered analysis:
 1. Structural Analysis - Document layout, headers, signatures
-2. Contextual Analysis - Surrounding text, document flow  
+2. Contextual Analysis - Surrounding text, document flow
 3. Keyword Pattern Matching - Legal terminology with weights
 4. Reasoning Logic - Cross-referencing signals for confidence
 5. Entity Extraction - Parties, dates, amounts with context
@@ -14,12 +14,11 @@ This engine prioritizes QUALITY over speed - every classification
 includes detailed reasoning and confidence scoring.
 """
 
+import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Optional, Tuple
-import logging
+from enum import StrEnum
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,10 +26,12 @@ logger = logging.getLogger(__name__)
 # DOCUMENT TYPE TAXONOMY
 # =============================================================================
 
-class DocumentCategory(str, Enum):
+
+class DocumentCategory(StrEnum):
     """High-level document categories."""
+
     COURT = "court"
-    LANDLORD = "landlord"  
+    LANDLORD = "landlord"
     TENANT = "tenant"
     FINANCIAL = "financial"
     PROPERTY = "property"
@@ -38,8 +39,9 @@ class DocumentCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
-class DocumentType(str, Enum):
+class DocumentType(StrEnum):
     """Specific document types within categories."""
+
     # Court documents
     SUMMONS = "summons"
     COMPLAINT = "complaint"
@@ -51,7 +53,7 @@ class DocumentType(str, Enum):
     SUBPOENA = "subpoena"
     ANSWER = "answer"
     AFFIDAVIT = "affidavit"
-    
+
     # Landlord documents
     LEASE = "lease"
     EVICTION_NOTICE = "eviction_notice"
@@ -61,34 +63,35 @@ class DocumentType(str, Enum):
     LEASE_VIOLATION = "lease_violation"
     NON_RENEWAL = "non_renewal"
     ENTRY_NOTICE = "entry_notice"
-    
+
     # Financial documents
     RECEIPT = "receipt"
     INVOICE = "invoice"
     LEDGER = "ledger"
     DEPOSIT_STATEMENT = "deposit_statement"
-    
-    # Property documents  
+
+    # Property documents
     INSPECTION = "inspection"
     CONDITION_REPORT = "condition_report"
     REPAIR_REQUEST = "repair_request"
     WORK_ORDER = "work_order"
-    
+
     # Communication
     LETTER = "letter"
     EMAIL = "email"
     TEXT_MESSAGE = "text_message"
-    
+
     # Evidence
     PHOTO = "photo"
     VIDEO = "video"
-    
+
     UNKNOWN = "unknown"
 
 
 @dataclass
 class RecognitionSignal:
     """A single signal contributing to document classification."""
+
     source: str  # "keyword", "structure", "context", "entity", "reasoning"
     indicator: str  # What was found
     weight: float  # 0.0 to 1.0
@@ -99,47 +102,49 @@ class RecognitionSignal:
 @dataclass
 class ExtractedEntity:
     """An extracted entity with context."""
+
     entity_type: str  # "date", "party", "amount", "address", "case_number"
     value: str  # The extracted value
-    normalized: Optional[str] = None  # Normalized form (e.g., ISO date)
+    normalized: str | None = None  # Normalized form (e.g., ISO date)
     context_label: str = ""  # What this entity represents
     confidence: float = 0.0
     source_text: str = ""  # Original text where found
     position: int = 0  # Character position in document
 
 
-@dataclass  
+@dataclass
 class RecognitionResult:
     """Complete document recognition result."""
+
     # Classification
     category: DocumentCategory
     doc_type: DocumentType
     confidence: float  # 0.0 to 1.0
-    
+
     # Detailed info
     title: str
     summary: str
-    
+
     # Reasoning trail
     signals: list[RecognitionSignal] = field(default_factory=list)
     reasoning_chain: list[str] = field(default_factory=list)
-    
+
     # Extracted entities
     dates: list[ExtractedEntity] = field(default_factory=list)
     parties: list[ExtractedEntity] = field(default_factory=list)
     amounts: list[ExtractedEntity] = field(default_factory=list)
     case_numbers: list[ExtractedEntity] = field(default_factory=list)
     addresses: list[ExtractedEntity] = field(default_factory=list)
-    
+
     # Key terms for law matching
     key_terms: list[str] = field(default_factory=list)
-    
+
     # Urgency indicators
     has_deadline: bool = False
-    deadline_date: Optional[str] = None
-    days_to_respond: Optional[int] = None
+    deadline_date: str | None = None
+    days_to_respond: int | None = None
     urgency_level: str = "normal"  # "critical", "high", "normal", "low"
-    
+
     def to_dict(self) -> dict:
         return {
             "category": self.category.value,
@@ -205,7 +210,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["court", "respond"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.COMPLAINT: {
         "primary_keywords": [
             ("complaint", 0.85),
@@ -225,7 +229,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["plaintiff", "defendant"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.EVICTION_FILING: {
         "primary_keywords": [
             ("unlawful detainer", 1.0),
@@ -245,7 +248,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["court"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.JUDGMENT: {
         "primary_keywords": [
             ("judgment is entered", 1.0),
@@ -264,7 +266,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["court"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.WRIT: {
         "primary_keywords": [
             ("writ of restitution", 1.0),
@@ -281,7 +282,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["court", "command"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.COURT_ORDER: {
         "primary_keywords": [
             ("it is ordered", 0.95),
@@ -299,7 +299,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["order"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.MOTION: {
         "primary_keywords": [
             ("motion to", 0.9),
@@ -340,7 +339,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["court", "motion"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.ANSWER: {
         "primary_keywords": [
             ("answer to complaint", 1.0),
@@ -358,7 +356,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["defendant"],
         "category": DocumentCategory.COURT,
     },
-    
     DocumentType.AFFIDAVIT: {
         "primary_keywords": [
             ("affidavit", 0.9),
@@ -377,9 +374,7 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["sworn"],
         "category": DocumentCategory.COURT,
     },
-    
     # === LANDLORD DOCUMENTS ===
-    
     DocumentType.LEASE: {
         "primary_keywords": [
             ("lease agreement", 1.0),
@@ -401,7 +396,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["tenant", "landlord"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     DocumentType.EVICTION_NOTICE: {
         "primary_keywords": [
             ("notice to vacate", 0.95),
@@ -419,7 +413,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["vacate"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     DocumentType.NOTICE_TO_QUIT: {
         "primary_keywords": [
             ("notice to quit", 1.0),
@@ -437,7 +430,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["quit"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     DocumentType.RENT_INCREASE: {
         "primary_keywords": [
             ("rent increase", 0.95),
@@ -455,7 +447,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["rent", "increase"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     DocumentType.LATE_NOTICE: {
         "primary_keywords": [
             ("late rent notice", 0.95),
@@ -473,7 +464,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["rent", "late"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     DocumentType.LEASE_VIOLATION: {
         "primary_keywords": [
             ("lease violation", 0.95),
@@ -491,7 +481,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["violation"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     DocumentType.ENTRY_NOTICE: {
         "primary_keywords": [
             ("notice of entry", 0.95),
@@ -509,9 +498,7 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["entry", "premises"],
         "category": DocumentCategory.LANDLORD,
     },
-    
     # === FINANCIAL DOCUMENTS ===
-    
     DocumentType.RECEIPT: {
         "primary_keywords": [
             ("receipt", 0.8),
@@ -529,7 +516,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["paid"],
         "category": DocumentCategory.FINANCIAL,
     },
-    
     DocumentType.DEPOSIT_STATEMENT: {
         "primary_keywords": [
             ("security deposit", 0.9),
@@ -547,9 +533,7 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["deposit"],
         "category": DocumentCategory.FINANCIAL,
     },
-    
     # === PROPERTY DOCUMENTS ===
-    
     DocumentType.INSPECTION: {
         "primary_keywords": [
             ("inspection report", 0.95),
@@ -567,7 +551,6 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["inspection"],
         "category": DocumentCategory.PROPERTY,
     },
-    
     DocumentType.REPAIR_REQUEST: {
         "primary_keywords": [
             ("repair request", 0.95),
@@ -586,9 +569,7 @@ DOCUMENT_PATTERNS = {
         "context_requirements": ["repair"],
         "category": DocumentCategory.PROPERTY,
     },
-    
     # === COMMUNICATION ===
-    
     DocumentType.LETTER: {
         "primary_keywords": [
             ("dear", 0.5),
@@ -739,7 +720,7 @@ DAKOTA_COUNTY_COURTS = {
 DAKOTA_COUNTY_CASE_PATTERNS = [
     r"19HA-CV-\d{2}-\d{4,}",  # Standard Housing: 19HA-CV-24-5678
     r"19AV-CV-\d{2}-\d{4,}",  # Alt Housing/Eviction: 19AV-CV-25-0000
-    r"19-CV-\d{2}-\d{4,}",    # General Civil: 19-CV-24-5678  
+    r"19-CV-\d{2}-\d{4,}",  # General Civil: 19-CV-24-5678
     r"Court\s*File\s*No\.?\s*:?\s*(19[A-Z]{0,2}-CV-\d{2}-\d+)",  # Court File No. format
     r"Dakota\s+County.*Case\s*(?:No\.?|#)?\s*:?\s*([\w\-]+)",
 ]
@@ -895,10 +876,11 @@ MN_JUDICIAL_FORMS = {
 # DOCUMENT RECOGNITION ENGINE
 # =============================================================================
 
+
 class DocumentRecognitionEngine:
     """
     Advanced document recognition using multi-layered analysis.
-    
+
     Analysis Layers:
     1. Structural - Header patterns, formatting, signatures
     2. Keyword - Primary and supporting keywords with weights
@@ -906,32 +888,50 @@ class DocumentRecognitionEngine:
     4. Entity - Parties, dates, amounts extraction
     5. Reasoning - Cross-referencing signals for final classification
     """
-    
+
     def __init__(self):
         self.month_map = {
-            'january': 1, 'jan': 1, 'february': 2, 'feb': 2, 
-            'march': 3, 'mar': 3, 'april': 4, 'apr': 4,
-            'may': 5, 'june': 6, 'jun': 6, 'july': 7, 'jul': 7, 
-            'august': 8, 'aug': 8, 'september': 9, 'sep': 9, 'sept': 9,
-            'october': 10, 'oct': 10, 'november': 11, 'nov': 11, 
-            'december': 12, 'dec': 12
+            "january": 1,
+            "jan": 1,
+            "february": 2,
+            "feb": 2,
+            "march": 3,
+            "mar": 3,
+            "april": 4,
+            "apr": 4,
+            "may": 5,
+            "june": 6,
+            "jun": 6,
+            "july": 7,
+            "jul": 7,
+            "august": 8,
+            "aug": 8,
+            "september": 9,
+            "sep": 9,
+            "sept": 9,
+            "october": 10,
+            "oct": 10,
+            "november": 11,
+            "nov": 11,
+            "december": 12,
+            "dec": 12,
         }
-    
+
     def recognize(self, text: str, filename: str = "") -> RecognitionResult:
         """
         Perform full document recognition.
-        
+
         Args:
             text: Full document text
             filename: Original filename (provides hints)
-            
+
         Returns:
             RecognitionResult with classification, entities, and reasoning
         """
         # Normalize text
         text_lower = text.lower()
         filename_lower = filename.lower()
-        
+
         # Initialize result
         result = RecognitionResult(
             category=DocumentCategory.UNKNOWN,
@@ -940,7 +940,7 @@ class DocumentRecognitionEngine:
             title="Unrecognized Document",
             summary="",
         )
-        
+
         # === LAYER 0: Dakota County Form Detection (Fast Path) ===
         dakota_type, form_code, dakota_confidence = self._detect_dakota_county_form(text, filename)
         if dakota_type and dakota_confidence > 0.90:
@@ -949,13 +949,15 @@ class DocumentRecognitionEngine:
             result.category = self._get_category(dakota_type)
             result.confidence = dakota_confidence
             result.reasoning_chain.append(f"Dakota County form detected: {form_code}")
-            result.signals.append(RecognitionSignal(
-                source="dakota_county",
-                indicator=f"form_{form_code}",
-                weight=dakota_confidence,
-                evidence=form_code,
-                reasoning=f"Matched Dakota County form {form_code}"
-            ))
+            result.signals.append(
+                RecognitionSignal(
+                    source="dakota_county",
+                    indicator=f"form_{form_code}",
+                    weight=dakota_confidence,
+                    evidence=form_code,
+                    reasoning=f"Matched Dakota County form {form_code}",
+                )
+            )
             # Still extract entities for completeness
             result.dates = self._extract_dates(text)
             result.parties = self._extract_parties(text)
@@ -966,7 +968,7 @@ class DocumentRecognitionEngine:
             result.key_terms = self._extract_key_terms(text_lower)
             self._analyze_urgency(result)
             return result
-        
+
         # === LAYER 0.5: MCRO Document Detection (Minnesota Courts) ===
         mcro_result = self._detect_mcro_document(text, filename)
         if mcro_result:
@@ -977,13 +979,15 @@ class DocumentRecognitionEngine:
                 result.category = self._get_category(mcro_type)
                 result.confidence = mcro_confidence
                 result.reasoning_chain.append(f"MCRO document detected: {mcro_type.value}")
-                result.signals.append(RecognitionSignal(
-                    source="mcro",
-                    indicator=f"mcro_{mcro_type.value}",
-                    weight=mcro_confidence,
-                    evidence=mcro_evidence,
-                    reasoning=f"Matched MCRO document pattern: {mcro_evidence}"
-                ))
+                result.signals.append(
+                    RecognitionSignal(
+                        source="mcro",
+                        indicator=f"mcro_{mcro_type.value}",
+                        weight=mcro_confidence,
+                        evidence=mcro_evidence,
+                        reasoning=f"Matched MCRO document pattern: {mcro_evidence}",
+                    )
+                )
                 # Extract entities
                 result.dates = self._extract_dates(text)
                 result.parties = self._extract_parties(text)
@@ -994,74 +998,76 @@ class DocumentRecognitionEngine:
                 result.key_terms = self._extract_key_terms(text_lower)
                 self._analyze_urgency(result)
                 return result
-        
+
         # === LAYER 1: Structural Analysis ===
         structural_signals = self._analyze_structure(text)
         result.signals.extend(structural_signals)
-        
+
         # === LAYER 2: Keyword Analysis ===
         keyword_signals, type_scores = self._analyze_keywords(text_lower)
         result.signals.extend(keyword_signals)
-        
+
         # Boost scores if Dakota County form was partially detected
         if dakota_type and dakota_confidence > 0.5:
             if dakota_type in type_scores:
                 type_scores[dakota_type] += dakota_confidence
             else:
                 type_scores[dakota_type] = dakota_confidence
-            result.signals.append(RecognitionSignal(
-                source="dakota_county",
-                indicator=f"form_hint_{form_code}",
-                weight=dakota_confidence,
-                evidence=form_code,
-                reasoning=f"Partial match for Dakota County form {form_code}"
-            ))
-        
+            result.signals.append(
+                RecognitionSignal(
+                    source="dakota_county",
+                    indicator=f"form_hint_{form_code}",
+                    weight=dakota_confidence,
+                    evidence=form_code,
+                    reasoning=f"Partial match for Dakota County form {form_code}",
+                )
+            )
+
         # === LAYER 3: Context Analysis ===
         context_signals = self._analyze_context(text_lower, type_scores)
         result.signals.extend(context_signals)
-        
+
         # === LAYER 4: Entity Extraction ===
         result.dates = self._extract_dates(text)
         result.parties = self._extract_parties(text)
         result.amounts = self._extract_amounts(text)
         result.case_numbers = self._extract_case_numbers(text)
         result.addresses = self._extract_addresses(text)
-        
+
         # Add entity signals
         entity_signals = self._generate_entity_signals(result)
         result.signals.extend(entity_signals)
-        
+
         # === LAYER 5: Reasoning & Final Classification ===
         best_type, confidence, reasoning = self._reason_classification(
             type_scores, result.signals, text_lower, filename_lower
         )
-        
+
         result.doc_type = best_type
         result.category = self._get_category(best_type)
         result.confidence = confidence
         result.reasoning_chain = reasoning
-        
+
         # Generate title and summary
         result.title, result.summary = self._generate_title_summary(result, text)
-        
+
         # Extract key terms for law matching
         result.key_terms = self._extract_key_terms(text_lower)
-        
+
         # Analyze urgency
         self._analyze_urgency(result)
-        
+
         return result
-    
+
     def _detect_dakota_county_form(self, text: str, filename: str = "") -> tuple[DocumentType | None, str, float]:
         """
         Detect if document is a Dakota County court form.
-        
+
         Returns:
             Tuple of (doc_type, form_code, confidence) or (None, "", 0.0)
         """
         text_upper = text.upper()
-        
+
         # Check for Dakota County case numbers first
         for pattern in DAKOTA_COUNTY_CASE_PATTERNS:
             if re.search(pattern, text, re.IGNORECASE):
@@ -1072,20 +1078,20 @@ class DocumentRecognitionEngine:
                             return (
                                 form_info["doc_type"],
                                 form_code,
-                                0.95  # High confidence for explicit form match
+                                0.95,  # High confidence for explicit form match
                             )
-        
+
         # Check for explicit form codes in text or filename
         combined = f"{text_upper} {filename.upper()}"
         for form_code, form_info in DAKOTA_COUNTY_FORMS.items():
             if form_code in combined:
                 return (form_info["doc_type"], form_code, 0.98)
-        
+
         # Check MN Judicial Branch forms
         for form_code, form_info in MN_JUDICIAL_FORMS.items():
             if form_code in combined:
                 return (form_info["doc_type"], form_code, 0.95)
-        
+
         # Check for First Judicial District / Dakota County indicators
         if re.search(r"first\s+judicial\s+district", text, re.IGNORECASE):
             if re.search(r"dakota\s+county", text, re.IGNORECASE):
@@ -1094,29 +1100,29 @@ class DocumentRecognitionEngine:
                     for pattern in form_info["patterns"]:
                         if re.search(pattern, text, re.IGNORECASE):
                             return (form_info["doc_type"], form_code, 0.85)
-        
+
         return (None, "", 0.0)
-    
+
     def _detect_mcro_document(self, text: str, filename: str = "") -> tuple | None:
         """
         Detect MCRO (Minnesota Court Records Online) documents.
-        
+
         These documents have specific patterns from the MN court system.
         MCRO documents are typically downloaded from: https://publicaccess.courts.state.mn.us/
-        
+
         Returns:
             Tuple of (DocumentType, confidence, evidence) or None
         """
         text_lower = text.lower()
         filename_lower = filename.lower()
-        
+
         # Check for MCRO filename pattern (e.g., MCRO_19AV-CV-25-0000.pdf)
         mcro_filename = bool(re.search(r"mcro[_-]?\d*[a-z]{0,2}[-_]?cv[-_]?\d{2}[-_]?\d+", filename_lower))
-        
+
         # Alternative MCRO indicators in filename
         if not mcro_filename:
             mcro_filename = "mcro" in filename_lower or "mncourts" in filename_lower
-        
+
         # Check for Minnesota court markers
         mn_court_markers = [
             (r"state\s+of\s+minnesota", 0.4),
@@ -1143,27 +1149,27 @@ class DocumentRecognitionEngine:
             (r"\d{2}[-]?[a-z]{2}[-]?\d{2}[-]?\d{3,}", 0.5),  # Case number pattern like 27-CV-24-12345
             (r"minnesota\s+(?:rules?\s+of\s+)?(?:civil|court)", 0.4),
         ]
-        
+
         mn_score = 0.0
         mn_evidence = []
         for pattern, weight in mn_court_markers:
             if re.search(pattern, text_lower):
                 mn_score += weight
                 mn_evidence.append(pattern)
-        
+
         # If MCRO filename, boost the score significantly
         if mcro_filename:
             mn_score += 0.5
             mn_evidence.append("mcro_filename")
-        
+
         # Need some MN court context to proceed
         if mn_score < 0.4:
             return None
-        
+
         # Now check MCRO document types
         best_match = None
         best_confidence = 0.0
-        
+
         for doc_type_name, doc_info in MCRO_PATTERNS.get("document_types", {}).items():
             for pattern in doc_info["patterns"]:
                 match = re.search(pattern, text_lower)
@@ -1174,18 +1180,18 @@ class DocumentRecognitionEngine:
                         base_confidence += 0.15
                     # Boost for MN court markers
                     base_confidence += min(mn_score * 0.08, 0.12)
-                    
+
                     if base_confidence > best_confidence:
                         best_match = (
                             doc_info["doc_type"],
                             min(base_confidence, 0.98),
-                            f"{doc_type_name}: {match.group(0)[:50]}"
+                            f"{doc_type_name}: {match.group(0)[:50]}",
                         )
                         best_confidence = base_confidence
-        
+
         if best_match:
             return best_match
-        
+
         # If we have MCRO filename or strong MN markers but couldn't detect type
         if mcro_filename or mn_score >= 0.8:
             # Look at filename for hints
@@ -1203,7 +1209,7 @@ class DocumentRecognitionEngine:
                 return (DocumentType.ANSWER, 0.85, "MCRO filename contains 'answer'")
             if "affidavit" in filename_lower:
                 return (DocumentType.AFFIDAVIT, 0.85, "MCRO filename contains 'affidavit'")
-            
+
             # High confidence MN document but couldn't determine type - try content analysis
             if "plaintiff" in text_lower and ("complaint" in text_lower or "wherefore" in text_lower):
                 return (DocumentType.COMPLAINT, 0.80, "MN court doc with complaint indicators")
@@ -1211,103 +1217,115 @@ class DocumentRecognitionEngine:
                 return (DocumentType.SUMMONS, 0.80, "MN court doc with summons indicators")
             if "ordered" in text_lower and "court" in text_lower:
                 return (DocumentType.COURT_ORDER, 0.75, "MN court doc with order indicators")
-            
+
             # Generic court filing fallback
             return (DocumentType.COMPLAINT, 0.65, f"Minnesota court document (score: {mn_score:.2f})")
-        
+
         return None
-    
+
     def _analyze_structure(self, text: str) -> list[RecognitionSignal]:
         """Layer 1: Analyze document structure."""
         signals = []
-        
+
         # Check for court document structure
         for pattern_name, patterns in COURT_STRUCTURE_PATTERNS.items():
             for pattern in patterns:
                 match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
                 if match:
-                    signals.append(RecognitionSignal(
-                        source="structure",
-                        indicator=f"court_{pattern_name}",
-                        weight=0.6,
-                        evidence=match.group(0)[:100],
-                        reasoning=f"Document has court {pattern_name} structure"
-                    ))
-        
+                    signals.append(
+                        RecognitionSignal(
+                            source="structure",
+                            indicator=f"court_{pattern_name}",
+                            weight=0.6,
+                            evidence=match.group(0)[:100],
+                            reasoning=f"Document has court {pattern_name} structure",
+                        )
+                    )
+
         # Check for formal letter structure
-        if re.search(r'^Dear\s+', text, re.MULTILINE | re.IGNORECASE):
-            signals.append(RecognitionSignal(
-                source="structure",
-                indicator="letter_salutation",
-                weight=0.4,
-                evidence="Dear...",
-                reasoning="Document begins with letter salutation"
-            ))
-        
+        if re.search(r"^Dear\s+", text, re.MULTILINE | re.IGNORECASE):
+            signals.append(
+                RecognitionSignal(
+                    source="structure",
+                    indicator="letter_salutation",
+                    weight=0.4,
+                    evidence="Dear...",
+                    reasoning="Document begins with letter salutation",
+                )
+            )
+
         # Check for legal document numbering
-        if re.search(r'^\s*\d+\.\s+[A-Z]', text, re.MULTILINE):
-            signals.append(RecognitionSignal(
-                source="structure",
-                indicator="numbered_paragraphs",
-                weight=0.5,
-                evidence="Numbered paragraphs",
-                reasoning="Document uses legal-style numbered paragraphs"
-            ))
-        
+        if re.search(r"^\s*\d+\.\s+[A-Z]", text, re.MULTILINE):
+            signals.append(
+                RecognitionSignal(
+                    source="structure",
+                    indicator="numbered_paragraphs",
+                    weight=0.5,
+                    evidence="Numbered paragraphs",
+                    reasoning="Document uses legal-style numbered paragraphs",
+                )
+            )
+
         # Check for signature lines
-        if re.search(r'_{3,}\s*$', text, re.MULTILINE):
-            signals.append(RecognitionSignal(
-                source="structure",
-                indicator="signature_line",
-                weight=0.3,
-                evidence="___________",
-                reasoning="Document has signature lines"
-            ))
-        
+        if re.search(r"_{3,}\s*$", text, re.MULTILINE):
+            signals.append(
+                RecognitionSignal(
+                    source="structure",
+                    indicator="signature_line",
+                    weight=0.3,
+                    evidence="___________",
+                    reasoning="Document has signature lines",
+                )
+            )
+
         return signals
-    
-    def _analyze_keywords(self, text_lower: str) -> Tuple[list[RecognitionSignal], dict]:
+
+    def _analyze_keywords(self, text_lower: str) -> tuple[list[RecognitionSignal], dict]:
         """Layer 2: Analyze keywords with weights."""
         signals = []
-        type_scores = {doc_type: 0.0 for doc_type in DocumentType}
-        
+        type_scores = dict.fromkeys(DocumentType, 0.0)
+
         for doc_type, patterns in DOCUMENT_PATTERNS.items():
             type_score = 0.0
             found_primary = False
-            
+
             # Check primary keywords (high weight)
             for keyword, weight in patterns["primary_keywords"]:
                 if keyword in text_lower:
                     found_primary = True
                     type_score += weight
-                    signals.append(RecognitionSignal(
-                        source="keyword",
-                        indicator=f"primary:{keyword}",
-                        weight=weight,
-                        evidence=self._get_keyword_context(text_lower, keyword),
-                        reasoning=f"Primary keyword '{keyword}' strongly indicates {doc_type.value}"
-                    ))
-            
+                    signals.append(
+                        RecognitionSignal(
+                            source="keyword",
+                            indicator=f"primary:{keyword}",
+                            weight=weight,
+                            evidence=self._get_keyword_context(text_lower, keyword),
+                            reasoning=f"Primary keyword '{keyword}' strongly indicates {doc_type.value}",
+                        )
+                    )
+
             # Check supporting keywords (only if primary found or as weak signal)
             for keyword, weight in patterns["supporting_keywords"]:
                 if keyword in text_lower:
                     # Lower weight if no primary keyword found
                     actual_weight = weight if found_primary else weight * 0.3
                     type_score += actual_weight
-                    
+
                     if found_primary:  # Only add signal if meaningful
-                        signals.append(RecognitionSignal(
-                            source="keyword",
-                            indicator=f"supporting:{keyword}",
-                            weight=actual_weight,
-                            evidence=self._get_keyword_context(text_lower, keyword),
-                            reasoning=f"Supporting keyword '{keyword}' reinforces {doc_type.value}"
-                        ))
-            
+                        signals.append(
+                            RecognitionSignal(
+                                source="keyword",
+                                indicator=f"supporting:{keyword}",
+                                weight=actual_weight,
+                                evidence=self._get_keyword_context(text_lower, keyword),
+                                reasoning=f"Supporting keyword '{keyword}' reinforces {doc_type.value}",
+                            )
+                        )
+
             type_scores[doc_type] = type_score
-        
+
         return signals, type_scores
-    
+
     def _get_keyword_context(self, text: str, keyword: str, window: int = 50) -> str:
         """Get surrounding context for a keyword."""
         pos = text.find(keyword)
@@ -1315,79 +1333,89 @@ class DocumentRecognitionEngine:
             return keyword
         start = max(0, pos - window)
         end = min(len(text), pos + len(keyword) + window)
-        context = text[start:end].replace('\n', ' ').strip()
+        context = text[start:end].replace("\n", " ").strip()
         return f"...{context}..."
-    
+
     def _analyze_context(self, text_lower: str, type_scores: dict) -> list[RecognitionSignal]:
         """Layer 3: Context analysis for disambiguation."""
         signals = []
-        
+
         # Get top candidates
         top_types = sorted(type_scores.items(), key=lambda x: x[1], reverse=True)[:3]
-        
+
         for doc_type, score in top_types:
             if score <= 0:
                 continue
-                
+
             patterns = DOCUMENT_PATTERNS.get(doc_type, {})
             context_reqs = patterns.get("context_requirements", [])
-            
+
             # Check if context requirements are met
             reqs_met = sum(1 for req in context_reqs if req in text_lower)
             if context_reqs:
                 context_ratio = reqs_met / len(context_reqs)
-                
+
                 if context_ratio >= 0.5:
-                    signals.append(RecognitionSignal(
-                        source="context",
-                        indicator=f"context_match:{doc_type.value}",
-                        weight=0.4 * context_ratio,
-                        evidence=f"Met {reqs_met}/{len(context_reqs)} context requirements",
-                        reasoning=f"Document context supports {doc_type.value} classification"
-                    ))
+                    signals.append(
+                        RecognitionSignal(
+                            source="context",
+                            indicator=f"context_match:{doc_type.value}",
+                            weight=0.4 * context_ratio,
+                            evidence=f"Met {reqs_met}/{len(context_reqs)} context requirements",
+                            reasoning=f"Document context supports {doc_type.value} classification",
+                        )
+                    )
                 else:
-                    signals.append(RecognitionSignal(
-                        source="context",
-                        indicator=f"context_mismatch:{doc_type.value}",
-                        weight=-0.2,
-                        evidence=f"Only met {reqs_met}/{len(context_reqs)} context requirements",
-                        reasoning=f"Weak context support for {doc_type.value}"
-                    ))
-        
+                    signals.append(
+                        RecognitionSignal(
+                            source="context",
+                            indicator=f"context_mismatch:{doc_type.value}",
+                            weight=-0.2,
+                            evidence=f"Only met {reqs_met}/{len(context_reqs)} context requirements",
+                            reasoning=f"Weak context support for {doc_type.value}",
+                        )
+                    )
+
         return signals
-    
+
     def _extract_dates(self, text: str) -> list[ExtractedEntity]:
         """Extract dates with context labels."""
         dates = []
-        
+
         # Pattern definitions
         date_patterns = [
             # Month DD, YYYY
-            (r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\b', 'long'),
+            (
+                r"\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\b",
+                "long",
+            ),
             # Month DD YYYY (no comma)
-            (r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\b', 'short_month'),
+            (
+                r"\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\b",
+                "short_month",
+            ),
             # MM/DD/YYYY
-            (r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b', 'slash'),
+            (r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b", "slash"),
             # MM-DD-YYYY
-            (r'\b(\d{1,2})-(\d{1,2})-(\d{4})\b', 'dash'),
+            (r"\b(\d{1,2})-(\d{1,2})-(\d{4})\b", "dash"),
             # YYYY-MM-DD (ISO)
-            (r'\b(\d{4})-(\d{2})-(\d{2})\b', 'iso'),
+            (r"\b(\d{4})-(\d{2})-(\d{2})\b", "iso"),
         ]
-        
+
         found_dates = set()
-        
+
         for pattern, fmt in date_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 try:
-                    if fmt == 'long':
+                    if fmt == "long":
                         month = self.month_map[match.group(1).lower()]
                         day = int(match.group(2))
                         year = int(match.group(3))
-                    elif fmt == 'short_month':
-                        month = self.month_map[match.group(1).lower().rstrip('.')]
+                    elif fmt == "short_month":
+                        month = self.month_map[match.group(1).lower().rstrip(".")]
                         day = int(match.group(2))
                         year = int(match.group(3))
-                    elif fmt == 'slash' or fmt == 'dash':
+                    elif fmt == "slash" or fmt == "dash":
                         month = int(match.group(1))
                         day = int(match.group(2))
                         year = int(match.group(3))
@@ -1395,40 +1423,42 @@ class DocumentRecognitionEngine:
                         year = int(match.group(1))
                         month = int(match.group(2))
                         day = int(match.group(3))
-                    
+
                     # Validate date
                     if not (1 <= month <= 12 and 1 <= day <= 31 and 1900 <= year <= 2100):
                         continue
-                    
+
                     date_str = f"{year:04d}-{month:02d}-{day:02d}"
                     if date_str in found_dates:
                         continue
                     found_dates.add(date_str)
-                    
+
                     # Get context to determine label
                     start = max(0, match.start() - 100)
                     end = min(len(text), match.end() + 50)
                     context = text[start:end].lower()
-                    
+
                     label = self._determine_date_label(context)
-                    confidence = 0.9 if fmt in ('long', 'iso') else 0.8
-                    
-                    dates.append(ExtractedEntity(
-                        entity_type="date",
-                        value=match.group(0),
-                        normalized=date_str,
-                        context_label=label,
-                        confidence=confidence,
-                        source_text=context,
-                        position=match.start()
-                    ))
+                    confidence = 0.9 if fmt in ("long", "iso") else 0.8
+
+                    dates.append(
+                        ExtractedEntity(
+                            entity_type="date",
+                            value=match.group(0),
+                            normalized=date_str,
+                            context_label=label,
+                            confidence=confidence,
+                            source_text=context,
+                            position=match.start(),
+                        )
+                    )
                 except (ValueError, KeyError):
                     continue
-        
+
         # Sort by position in document
         dates.sort(key=lambda x: x.position)
         return dates
-    
+
     def _determine_date_label(self, context: str) -> str:
         """Determine what a date represents based on context."""
         # High priority labels (specific meanings)
@@ -1446,104 +1476,109 @@ class DocumentRecognitionEngine:
             (["dated", "this", "signed"], "Document Date"),
             (["notice", "notified"], "Notice Date"),
         ]
-        
+
         for keywords, label in labels:
             if any(kw in context for kw in keywords):
                 return label
-        
+
         return "Date Referenced"
-    
+
     def _extract_parties(self, text: str) -> list[ExtractedEntity]:
         """Extract party names with roles."""
         parties = []
-        
+
         # Patterns for party extraction
         party_patterns = [
             # Court case parties
-            (r'(?:PLAINTIFF|Plaintiff)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|,\s*(?:v\.?|vs\.?))', 'Plaintiff/Landlord'),
-            (r'(?:DEFENDANT|Defendant)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|$)', 'Defendant/Tenant'),
-            (r'(?:PETITIONER|Petitioner)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|,)', 'Petitioner'),
-            (r'(?:RESPONDENT|Respondent)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|$)', 'Respondent'),
-            
+            (r"(?:PLAINTIFF|Plaintiff)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|,\s*(?:v\.?|vs\.?))", "Plaintiff/Landlord"),
+            (r"(?:DEFENDANT|Defendant)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|$)", "Defendant/Tenant"),
+            (r"(?:PETITIONER|Petitioner)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|,)", "Petitioner"),
+            (r"(?:RESPONDENT|Respondent)[:\s,]*([A-Z][A-Za-z\s,\.]+?)(?:\n|$)", "Respondent"),
             # Lease parties
-            (r'(?:LANDLORD|Landlord|LESSOR|Lessor)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|,|;)', 'Landlord'),
-            (r'(?:TENANT|Tenant|LESSEE|Lessee|RENTER|Renter)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|,|;)', 'Tenant'),
-            (r'(?:PROPERTY MANAGER|Property Manager|AGENT|Agent)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|,|;)', 'Property Manager'),
-            
+            (r"(?:LANDLORD|Landlord|LESSOR|Lessor)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|,|;)", "Landlord"),
+            (r"(?:TENANT|Tenant|LESSEE|Lessee|RENTER|Renter)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|,|;)", "Tenant"),
+            (
+                r"(?:PROPERTY MANAGER|Property Manager|AGENT|Agent)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|,|;)",
+                "Property Manager",
+            ),
             # Attorney
-            (r'(?:Attorney for \w+)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|Bar)', 'Attorney'),
+            (r"(?:Attorney for \w+)[:\s]+([A-Z][A-Za-z\s,\.]+?)(?:\n|Bar)", "Attorney"),
         ]
-        
+
         for pattern, role in party_patterns:
             for match in re.finditer(pattern, text, re.MULTILINE):
-                name = match.group(1).strip().rstrip(',.')
+                name = match.group(1).strip().rstrip(",.")
                 # Clean up name
-                name = re.sub(r'\s+', ' ', name)
-                
+                name = re.sub(r"\s+", " ", name)
+
                 if len(name) > 2 and len(name) < 80:
                     # Avoid duplicates
                     if not any(p.value == name for p in parties):
-                        parties.append(ExtractedEntity(
-                            entity_type="party",
-                            value=name,
-                            context_label=role,
-                            confidence=0.85,
-                            source_text=match.group(0),
-                            position=match.start()
-                        ))
-        
+                        parties.append(
+                            ExtractedEntity(
+                                entity_type="party",
+                                value=name,
+                                context_label=role,
+                                confidence=0.85,
+                                source_text=match.group(0),
+                                position=match.start(),
+                            )
+                        )
+
         return parties
-    
+
     def _extract_amounts(self, text: str) -> list[ExtractedEntity]:
         """Extract monetary amounts with context."""
         amounts = []
-        
+
         # Amount patterns
         amount_patterns = [
-            r'\$\s*([\d,]+\.?\d*)',
-            r'([\d,]+\.?\d*)\s*(?:dollars?|USD)',
+            r"\$\s*([\d,]+\.?\d*)",
+            r"([\d,]+\.?\d*)\s*(?:dollars?|USD)",
         ]
-        
+
         found_amounts = set()
-        
+
         for pattern in amount_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 try:
-                    amount_str = match.group(1).replace(',', '')
+                    amount_str = match.group(1).replace(",", "")
                     amount = float(amount_str)
-                    
+
                     # Skip unrealistic amounts
                     if amount <= 0 or amount > 10000000:
                         continue
-                    
+
                     # Avoid duplicates
                     if amount in found_amounts:
                         continue
                     found_amounts.add(amount)
-                    
+
                     # Get context
                     start = max(0, match.start() - 80)
                     end = min(len(text), match.end() + 40)
                     context = text[start:end].lower()
-                    
+
                     label = self._determine_amount_label(context, amount)
-                    
-                    amounts.append(ExtractedEntity(
-                        entity_type="amount",
-                        value=f"${amount:,.2f}",
-                        normalized=str(amount),
-                        context_label=label,
-                        confidence=0.9,
-                        source_text=context,
-                        position=match.start()
-                    ))
+
+                    amounts.append(
+                        ExtractedEntity(
+                            entity_type="amount",
+                            value=f"${amount:,.2f}",
+                            normalized=str(amount),
+                            context_label=label,
+                            confidence=0.9,
+                            source_text=context,
+                            position=match.start(),
+                        )
+                    )
                 except ValueError:
                     continue
-        
+
         # Sort by amount (largest first, usually most important)
         amounts.sort(key=lambda x: float(x.normalized or 0), reverse=True)
         return amounts
-    
+
     def _determine_amount_label(self, context: str, amount: float) -> str:
         """Determine what an amount represents."""
         labels = [
@@ -1556,11 +1591,11 @@ class DocumentRecognitionEngine:
             (["owed", "due", "balance", "arrears", "total due", "amount owed"], "Amount Owed"),
             (["paid", "payment", "received", "amount paid"], "Payment Amount"),
         ]
-        
+
         for keywords, label in labels:
             if any(kw in context for kw in keywords):
                 return label
-        
+
         # Heuristic based on amount - be more generous with Rent detection
         if 400 <= amount <= 4000:
             # Check for rent context clues
@@ -1571,53 +1606,55 @@ class DocumentRecognitionEngine:
             return "Significant Amount"
         elif amount < 200:
             return "Fee/Charge"
-        
+
         return "Amount"
-    
+
     def _extract_case_numbers(self, text: str) -> list[ExtractedEntity]:
         """Extract court case numbers."""
         case_numbers = []
-        
+
         patterns = [
             # Minnesota format: 19AV-CV-25-0000
-            (r'\b(\d{2}[A-Z]{2}[-\s]?[A-Z]{2}[-\s]?\d{2,4}[-\s]?\d+)\b', 'MN Format'),
+            (r"\b(\d{2}[A-Z]{2}[-\s]?[A-Z]{2}[-\s]?\d{2,4}[-\s]?\d+)\b", "MN Format"),
             # General: Case No. 12345
-            (r'(?:Case|File)\s*(?:No\.?|Number|#)\s*:?\s*([A-Z0-9\-]+)', 'General'),
+            (r"(?:Case|File)\s*(?:No\.?|Number|#)\s*:?\s*([A-Z0-9\-]+)", "General"),
             # Civil case: CV-2025-1234
-            (r'\b(CV[-\s]?\d{4}[-\s]?\d+)\b', 'Civil'),
+            (r"\b(CV[-\s]?\d{4}[-\s]?\d+)\b", "Civil"),
         ]
-        
+
         for pattern, fmt in patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 case_num = match.group(1).strip()
                 if len(case_num) >= 5:
-                    case_numbers.append(ExtractedEntity(
-                        entity_type="case_number",
-                        value=case_num,
-                        context_label=f"Case Number ({fmt})",
-                        confidence=0.95,
-                        position=match.start()
-                    ))
-        
+                    case_numbers.append(
+                        ExtractedEntity(
+                            entity_type="case_number",
+                            value=case_num,
+                            context_label=f"Case Number ({fmt})",
+                            confidence=0.95,
+                            position=match.start(),
+                        )
+                    )
+
         return case_numbers
-    
+
     def _extract_addresses(self, text: str) -> list[ExtractedEntity]:
         """Extract property addresses."""
         addresses = []
-        
+
         # Address pattern - require street type and filter short matches
-        pattern = r'\b(\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd|Way|Circle|Cir)\.?(?:\s*(?:,\s*)?(?:Apt|Unit|Suite|#)\s*[\w\d]+)?)\b'
-        
+        pattern = r"\b(\d+\s+[\w\s]+(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd|Way|Circle|Cir)\.?(?:\s*(?:,\s*)?(?:Apt|Unit|Suite|#)\s*[\w\d]+)?)\b"
+
         for match in re.finditer(pattern, text, re.IGNORECASE):
             addr = match.group(1).strip()
             # Must be reasonable length and contain a number at start
             if len(addr) > 15 and addr[0].isdigit():
                 # Avoid things that look like dates or phone numbers
-                if not re.match(r'^\d{4}\s', addr):  # Skip if starts with 4-digit year
+                if not re.match(r"^\d{4}\s", addr):  # Skip if starts with 4-digit year
                     # Get context to determine if it's the property address
                     start = max(0, match.start() - 50)
-                    context = text[start:match.start()].lower()
-                    
+                    context = text[start : match.start()].lower()
+
                     label = "Address"
                     if "property" in context or "premises" in context:
                         label = "Property Address"
@@ -1625,142 +1662,161 @@ class DocumentRecognitionEngine:
                         label = "Landlord Address"
                     elif "tenant" in context:
                         label = "Tenant Address"
-                    
+
                     # Avoid duplicates
                     if not any(a.value == addr for a in addresses):
-                        addresses.append(ExtractedEntity(
-                            entity_type="address",
-                            value=addr,
-                            context_label=label,
-                            confidence=0.8,
-                            position=match.start()
-                        ))
-        
+                        addresses.append(
+                            ExtractedEntity(
+                                entity_type="address",
+                                value=addr,
+                                context_label=label,
+                                confidence=0.8,
+                                position=match.start(),
+                            )
+                        )
+
         return addresses
-    
+
     def _generate_entity_signals(self, result: RecognitionResult) -> list[RecognitionSignal]:
         """Generate signals based on extracted entities."""
         signals = []
-        
+
         # Case number strongly indicates court document
         if result.case_numbers:
-            signals.append(RecognitionSignal(
-                source="entity",
-                indicator="has_case_number",
-                weight=0.7,
-                evidence=result.case_numbers[0].value,
-                reasoning="Document contains court case number"
-            ))
-        
+            signals.append(
+                RecognitionSignal(
+                    source="entity",
+                    indicator="has_case_number",
+                    weight=0.7,
+                    evidence=result.case_numbers[0].value,
+                    reasoning="Document contains court case number",
+                )
+            )
+
         # Multiple parties with plaintiff/defendant roles
-        plaintiff_found = any('plaintiff' in p.context_label.lower() for p in result.parties)
-        defendant_found = any('defendant' in p.context_label.lower() for p in result.parties)
+        plaintiff_found = any("plaintiff" in p.context_label.lower() for p in result.parties)
+        defendant_found = any("defendant" in p.context_label.lower() for p in result.parties)
         if plaintiff_found and defendant_found:
-            signals.append(RecognitionSignal(
-                source="entity",
-                indicator="has_court_parties",
-                weight=0.6,
-                evidence="Plaintiff and Defendant identified",
-                reasoning="Document has court case party structure"
-            ))
-        
+            signals.append(
+                RecognitionSignal(
+                    source="entity",
+                    indicator="has_court_parties",
+                    weight=0.6,
+                    evidence="Plaintiff and Defendant identified",
+                    reasoning="Document has court case party structure",
+                )
+            )
+
         # Deadline dates
-        deadline_dates = [d for d in result.dates if 'deadline' in d.context_label.lower()]
+        deadline_dates = [d for d in result.dates if "deadline" in d.context_label.lower()]
         if deadline_dates:
-            signals.append(RecognitionSignal(
-                source="entity",
-                indicator="has_deadline",
-                weight=0.5,
-                evidence=deadline_dates[0].value,
-                reasoning="Document contains response deadline"
-            ))
-        
+            signals.append(
+                RecognitionSignal(
+                    source="entity",
+                    indicator="has_deadline",
+                    weight=0.5,
+                    evidence=deadline_dates[0].value,
+                    reasoning="Document contains response deadline",
+                )
+            )
+
         # Judgment amounts
-        judgment_amounts = [a for a in result.amounts if 'judgment' in a.context_label.lower()]
+        judgment_amounts = [a for a in result.amounts if "judgment" in a.context_label.lower()]
         if judgment_amounts:
-            signals.append(RecognitionSignal(
-                source="entity",
-                indicator="has_judgment_amount",
-                weight=0.6,
-                evidence=judgment_amounts[0].value,
-                reasoning="Document contains judgment amount"
-            ))
-        
+            signals.append(
+                RecognitionSignal(
+                    source="entity",
+                    indicator="has_judgment_amount",
+                    weight=0.6,
+                    evidence=judgment_amounts[0].value,
+                    reasoning="Document contains judgment amount",
+                )
+            )
+
         return signals
-    
+
     def _reason_classification(
-        self,
-        type_scores: dict,
-        signals: list[RecognitionSignal],
-        text_lower: str,
-        filename_lower: str
-    ) -> Tuple[DocumentType, float, list[str]]:
+        self, type_scores: dict, signals: list[RecognitionSignal], text_lower: str, filename_lower: str
+    ) -> tuple[DocumentType, float, list[str]]:
         """
         Layer 5: Apply reasoning logic to determine final classification.
-        
+
         This layer cross-references all signals and applies logical rules
         to arrive at the most accurate classification.
         """
         reasoning = []
-        
+
         # Calculate weighted scores from signals
-        signal_boost = {doc_type: 0.0 for doc_type in DocumentType}
-        
+        signal_boost = dict.fromkeys(DocumentType, 0.0)
+
         for signal in signals:
             # Structure signals boost court documents
             if signal.source == "structure" and "court" in signal.indicator:
-                for dt in [DocumentType.SUMMONS, DocumentType.COMPLAINT, DocumentType.JUDGMENT, 
-                          DocumentType.COURT_ORDER, DocumentType.MOTION, DocumentType.WRIT]:
+                for dt in [
+                    DocumentType.SUMMONS,
+                    DocumentType.COMPLAINT,
+                    DocumentType.JUDGMENT,
+                    DocumentType.COURT_ORDER,
+                    DocumentType.MOTION,
+                    DocumentType.WRIT,
+                ]:
                     signal_boost[dt] += signal.weight * 0.5
-            
+
             # Entity signals
             if signal.indicator == "has_case_number":
-                for dt in [DocumentType.SUMMONS, DocumentType.COMPLAINT, DocumentType.JUDGMENT,
-                          DocumentType.COURT_ORDER, DocumentType.MOTION, DocumentType.WRIT,
-                          DocumentType.ANSWER, DocumentType.EVICTION_FILING]:
+                for dt in [
+                    DocumentType.SUMMONS,
+                    DocumentType.COMPLAINT,
+                    DocumentType.JUDGMENT,
+                    DocumentType.COURT_ORDER,
+                    DocumentType.MOTION,
+                    DocumentType.WRIT,
+                    DocumentType.ANSWER,
+                    DocumentType.EVICTION_FILING,
+                ]:
                     signal_boost[dt] += signal.weight
-            
+
             if signal.indicator == "has_court_parties":
                 for dt in [DocumentType.COMPLAINT, DocumentType.SUMMONS, DocumentType.ANSWER]:
                     signal_boost[dt] += signal.weight
-            
+
             if signal.indicator == "has_judgment_amount":
                 signal_boost[DocumentType.JUDGMENT] += signal.weight
-            
+
             if signal.indicator == "has_deadline":
                 signal_boost[DocumentType.SUMMONS] += signal.weight * 0.5
-        
+
         # Combine scores
         final_scores = {}
         for doc_type in DocumentType:
             base_score = type_scores.get(doc_type, 0)
             boost = signal_boost.get(doc_type, 0)
             final_scores[doc_type] = base_score + boost
-        
+
         # Apply filename hints
         filename_hints = {
-            'summons': DocumentType.SUMMONS,
-            'complaint': DocumentType.COMPLAINT,
-            'judgment': DocumentType.JUDGMENT,
-            'order': DocumentType.COURT_ORDER,
-            'motion': DocumentType.MOTION,
-            'writ': DocumentType.WRIT,
-            'lease': DocumentType.LEASE,
-            'notice': DocumentType.EVICTION_NOTICE,
-            'receipt': DocumentType.RECEIPT,
-            'inspection': DocumentType.INSPECTION,
+            "summons": DocumentType.SUMMONS,
+            "complaint": DocumentType.COMPLAINT,
+            "judgment": DocumentType.JUDGMENT,
+            "order": DocumentType.COURT_ORDER,
+            "motion": DocumentType.MOTION,
+            "writ": DocumentType.WRIT,
+            "lease": DocumentType.LEASE,
+            "notice": DocumentType.EVICTION_NOTICE,
+            "receipt": DocumentType.RECEIPT,
+            "inspection": DocumentType.INSPECTION,
         }
-        
+
         for hint, doc_type in filename_hints.items():
             if hint in filename_lower:
                 final_scores[doc_type] += 0.5
                 reasoning.append(f"Filename suggests {doc_type.value}")
-        
+
         # Get top candidates
         sorted_types = sorted(final_scores.items(), key=lambda x: x[1], reverse=True)
         best_type, best_score = sorted_types[0]
         second_type, second_score = sorted_types[1] if len(sorted_types) > 1 else (DocumentType.UNKNOWN, 0)
-        
+
         # Calculate confidence
         if best_score <= 0:
             confidence = 0.1
@@ -1778,24 +1834,24 @@ class DocumentRecognitionEngine:
         else:
             confidence = min(0.9, 0.5 + best_score * 0.2)
             reasoning.append(f"Clear match: {best_type.value} (score: {best_score:.2f})")
-        
+
         # Add signal summary to reasoning
         strong_signals = [s for s in signals if s.weight >= 0.7]
         if strong_signals:
             reasoning.append(f"Strong signals: {', '.join(s.indicator for s in strong_signals[:3])}")
-        
+
         return best_type, round(confidence, 3), reasoning
-    
+
     def _get_category(self, doc_type: DocumentType) -> DocumentCategory:
         """Get category for a document type."""
         patterns = DOCUMENT_PATTERNS.get(doc_type)
         if patterns:
             return patterns.get("category", DocumentCategory.UNKNOWN)
         return DocumentCategory.UNKNOWN
-    
-    def _generate_title_summary(self, result: RecognitionResult, text: str) -> Tuple[str, str]:
+
+    def _generate_title_summary(self, result: RecognitionResult, text: str) -> tuple[str, str]:
         """Generate human-readable title and summary."""
-        
+
         # Title templates
         titles = {
             DocumentType.SUMMONS: "Court Summons",
@@ -1818,110 +1874,114 @@ class DocumentRecognitionEngine:
             DocumentType.INSPECTION: "Inspection Report",
             DocumentType.REPAIR_REQUEST: "Repair Request",
         }
-        
+
         title = titles.get(result.doc_type, "Document")
-        
+
         # Add case number if available
         if result.case_numbers:
             title = f"{title} - Case {result.case_numbers[0].value}"
-        
+
         # Generate summary based on document type
         summaries = {
             DocumentType.SUMMONS: "This is a court summons requiring you to appear in court or respond to a lawsuit. "
-                                  "You MUST respond within the deadline specified or a default judgment may be entered against you.",
-            
+            "You MUST respond within the deadline specified or a default judgment may be entered against you.",
             DocumentType.COMPLAINT: "This is a legal complaint filed against you outlining the claims being made. "
-                                    "Review the allegations carefully and consider seeking legal help.",
-            
+            "Review the allegations carefully and consider seeking legal help.",
             DocumentType.EVICTION_FILING: "This is an eviction lawsuit filed with the court. The landlord is seeking "
-                                          "to remove you from the property through legal process. You have the right to respond.",
-            
+            "to remove you from the property through legal process. You have the right to respond.",
             DocumentType.JUDGMENT: "This is a court judgment. If entered against you, you may be required to pay money "
-                                   "or vacate the property. Review appeal options with an attorney.",
-            
+            "or vacate the property. Review appeal options with an attorney.",
             DocumentType.WRIT: "This is a writ of restitution authorizing the sheriff to remove you from the property. "
-                              "This typically means you must vacate immediately.",
-            
+            "This typically means you must vacate immediately.",
             DocumentType.COURT_ORDER: "This is an order from the court. You are required to comply with its terms.",
-            
             DocumentType.LEASE: "This is a rental/lease agreement. Review all terms carefully before signing.",
-            
             DocumentType.EVICTION_NOTICE: "This is a notice from your landlord regarding eviction. "
-                                          "Review the notice period and your rights under Minnesota law.",
-            
+            "Review the notice period and your rights under Minnesota law.",
             DocumentType.NOTICE_TO_QUIT: "This is a notice requiring you to pay overdue rent or vacate. "
-                                         "In Minnesota, you typically have 14 days to pay before eviction can be filed.",
-            
+            "In Minnesota, you typically have 14 days to pay before eviction can be filed.",
             DocumentType.RECEIPT: "This is a payment receipt documenting a rent or deposit payment. "
-                                  "Keep this document as proof of payment.",
-            
+            "Keep this document as proof of payment.",
             DocumentType.DEPOSIT_STATEMENT: "This is a security deposit statement showing deductions and balance. "
-                                            "Review for accuracy within 21 days of move-out.",
+            "Review for accuracy within 21 days of move-out.",
         }
-        
+
         summary = summaries.get(result.doc_type, "Document has been analyzed.")
-        
+
         # Add deadline warning if applicable
-        deadline_dates = [d for d in result.dates if 'deadline' in d.context_label.lower()]
+        deadline_dates = [d for d in result.dates if "deadline" in d.context_label.lower()]
         if deadline_dates:
             summary += f" IMPORTANT: Response deadline appears to be {deadline_dates[0].value}."
-        
+
         # Add judgment amount if applicable
         if result.doc_type == DocumentType.JUDGMENT:
-            judgment_amounts = [a for a in result.amounts if 'judgment' in a.context_label.lower()]
+            judgment_amounts = [a for a in result.amounts if "judgment" in a.context_label.lower()]
             if judgment_amounts:
                 summary += f" Judgment amount: {judgment_amounts[0].value}."
-        
+
         return title, summary
-    
+
     def _extract_key_terms(self, text_lower: str) -> list[str]:
         """Extract key legal terms for law matching."""
         terms = []
-        
+
         legal_terms = [
-            "unlawful detainer", "eviction", "possession", "writ of restitution",
-            "default judgment", "summary judgment", "service of process",
-            "security deposit", "habitability", "reasonable notice",
-            "quiet enjoyment", "lease violation", "breach of lease",
-            "tenant rights", "landlord obligations", "constructive eviction",
-            "retaliation", "discrimination", "reasonable accommodation",
-            "lead paint", "mold", "bedbugs", "repairs",
+            "unlawful detainer",
+            "eviction",
+            "possession",
+            "writ of restitution",
+            "default judgment",
+            "summary judgment",
+            "service of process",
+            "security deposit",
+            "habitability",
+            "reasonable notice",
+            "quiet enjoyment",
+            "lease violation",
+            "breach of lease",
+            "tenant rights",
+            "landlord obligations",
+            "constructive eviction",
+            "retaliation",
+            "discrimination",
+            "reasonable accommodation",
+            "lead paint",
+            "mold",
+            "bedbugs",
+            "repairs",
         ]
-        
+
         for term in legal_terms:
             if term in text_lower:
                 terms.append(term.title())
-        
+
         # Check for MN statute references
-        for statute_num, statute_name in MN_LEGAL_TERMS["statutes"]:
+        for statute_num, _statute_name in MN_LEGAL_TERMS["statutes"]:
             if statute_num.lower() in text_lower:
                 terms.append(f"MN Stat. {statute_num}")
-        
+
         return terms[:15]  # Limit to top 15
-    
+
     def _analyze_urgency(self, result: RecognitionResult):
         """Analyze document urgency based on content."""
         from datetime import date
-        
+
         today = date.today()
-        
+
         # Check for deadlines
         for d in result.dates:
-            if 'deadline' in d.context_label.lower() or 'respond' in d.context_label.lower():
+            if "deadline" in d.context_label.lower() or "respond" in d.context_label.lower():
                 if d.normalized is None:
                     continue
                 try:
-                    parts = d.normalized.split('-')
+                    parts = d.normalized.split("-")
                     deadline = date(int(parts[0]), int(parts[1]), int(parts[2]))
                     days_left = (deadline - today).days
-                    
+
                     result.has_deadline = True
                     result.deadline_date = d.normalized
                     result.days_to_respond = days_left
-                    
-                    if days_left < 0:
-                        result.urgency_level = "critical"
-                    elif days_left <= 3:
+
+                    if days_left < 0 or days_left <= 3:
                         result.urgency_level = "critical"
                     elif days_left <= 7:
                         result.urgency_level = "high"
@@ -1932,11 +1992,11 @@ class DocumentRecognitionEngine:
                     break
                 except Exception:
                     continue
-        
+
         # Court documents are generally high priority
         if result.category == DocumentCategory.COURT and result.urgency_level == "normal":
             result.urgency_level = "high"
-        
+
         # Writs are always critical
         if result.doc_type == DocumentType.WRIT:
             result.urgency_level = "critical"
@@ -1946,7 +2006,7 @@ class DocumentRecognitionEngine:
 # SINGLETON & INTEGRATION
 # =============================================================================
 
-_recognition_engine: Optional[DocumentRecognitionEngine] = None
+_recognition_engine: DocumentRecognitionEngine | None = None
 
 
 def get_recognition_engine() -> DocumentRecognitionEngine:
@@ -1960,11 +2020,11 @@ def get_recognition_engine() -> DocumentRecognitionEngine:
 def recognize_document(text: str, filename: str = "") -> RecognitionResult:
     """
     Convenience function for document recognition.
-    
+
     Args:
         text: Full document text
         filename: Original filename
-        
+
     Returns:
         RecognitionResult with complete analysis
     """

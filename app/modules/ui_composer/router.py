@@ -11,17 +11,17 @@ All endpoints return server-rendered HTML (Jinja2) for HTMX or direct browser us
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 
 from app.services.ui_composer import (
-    compose_page,
-    render_fragment,
-    get_process_status,
-    PAGE_INTENTS,
     COMPONENT_TYPES,
+    PAGE_INTENTS,
+    compose_page,
+    get_process_status,
+    render_fragment,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,6 +37,7 @@ def _get_user_id_from_request(request: Request) -> str:
     """
     try:
         from app.core.cookie_auth import verify_user_id
+
         user_id_cookie = request.cookies.get("semptify_uid", "")
         if not user_id_cookie:
             return ""
@@ -66,7 +67,7 @@ async def compose_page_endpoint(
     user_id = _get_user_id_from_request(request)
 
     # Build a minimal context from query params (real context comes from Context Loop)
-    context: Dict[str, Any] = {
+    context: dict[str, Any] = {
         "document_count": document_count,
     }
 
@@ -77,6 +78,7 @@ async def compose_page_endpoint(
 
     # Render via the generic template
     from app.main import templates
+
     return templates.TemplateResponse(
         request,
         "generic_page.html",
@@ -107,7 +109,7 @@ async def render_fragment_endpoint(
         )
 
     # Build data dict from query params
-    data: Dict[str, Any] = dict(request.query_params)
+    data: dict[str, Any] = dict(request.query_params)
 
     try:
         fragment = render_fragment(component_type, data)
@@ -116,6 +118,7 @@ async def render_fragment_endpoint(
 
     # Render just the component fragment
     from app.main import templates
+
     return templates.TemplateResponse(
         request,
         "components/component_fragment.html",
@@ -134,14 +137,18 @@ async def process_status_endpoint(
     """
     status = get_process_status(workflow_id)
 
-    fragment = render_fragment("process_indicator", {
-        "workflow_id": workflow_id,
-        "step_label": status["step_label"],
-        "state": status["state"],
-        "progress_pct": status["progress_pct"],
-    })
+    fragment = render_fragment(
+        "process_indicator",
+        {
+            "workflow_id": workflow_id,
+            "step_label": status["step_label"],
+            "state": status["state"],
+            "progress_pct": status["progress_pct"],
+        },
+    )
 
     from app.main import templates
+
     return templates.TemplateResponse(
         request,
         "components/component_fragment.html",

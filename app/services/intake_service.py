@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import logging
 import mailbox
 import re
@@ -26,17 +25,19 @@ from datetime import UTC, datetime
 from email import policy
 from email.parser import BytesParser
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.id_gen import make_id
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.core.utc import utc_now
 from app.models.models import ThirdPartyContact, TimelineEvent
 from app.services.redaction_service import redact_text_for_user
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ def _extract_email_part(address: str) -> str:
     return address.strip().lower()
 
 
-def _extract_display_name(address: str) -> Optional[str]:
+def _extract_display_name(address: str) -> str | None:
     """Return the display name from 'Name <email@example.com>' if present."""
     match = re.search(r"^([^<]+?)\s*<", address)
     if match:
@@ -85,7 +86,7 @@ def _extract_display_name(address: str) -> Optional[str]:
     return None
 
 
-def _parse_date_rfc2822(value: str) -> Optional[datetime]:
+def _parse_date_rfc2822(value: str) -> datetime | None:
     """Parse an RFC 2822 date string to an offset-aware UTC datetime."""
     from email.utils import parsedate_to_datetime
 
@@ -99,7 +100,7 @@ def _parse_date_rfc2822(value: str) -> Optional[datetime]:
         return None
 
 
-def _parse_loose_date(value: str) -> Optional[datetime]:
+def _parse_loose_date(value: str) -> datetime | None:
     """Best-effort parse of common date/time strings."""
     value = value.strip()
     if not value:
@@ -133,6 +134,7 @@ def _parse_loose_date(value: str) -> Optional[datetime]:
 # =============================================================================
 # Low-level parsers
 # =============================================================================
+
 
 def parse_eml(file_bytes: bytes) -> dict:
     """Parse a single RFC 5322 `.eml` file into structured communication data."""
@@ -221,12 +223,24 @@ def parse_sms_csv(file_bytes: bytes) -> list[dict]:
         return []
 
     fieldnames = [fn.lower().strip() for fn in reader.fieldnames]
-    alias_map = _build_alias_map(fieldnames, {
-        "from": ["from", "sender", "from_address", "from number", "from_number", "from phone", "from_phone", "source"],
-        "to": ["to", "recipient", "to_address", "to number", "to_number", "to phone", "to_phone", "destination"],
-        "body": ["body", "message", "text", "content", "sms"],
-        "date": ["date", "timestamp", "time", "datetime", "sent", "received"],
-    })
+    alias_map = _build_alias_map(
+        fieldnames,
+        {
+            "from": [
+                "from",
+                "sender",
+                "from_address",
+                "from number",
+                "from_number",
+                "from phone",
+                "from_phone",
+                "source",
+            ],
+            "to": ["to", "recipient", "to_address", "to number", "to_number", "to phone", "to_phone", "destination"],
+            "body": ["body", "message", "text", "content", "sms"],
+            "date": ["date", "timestamp", "time", "datetime", "sent", "received"],
+        },
+    )
 
     messages = []
     for row in reader:
@@ -235,13 +249,15 @@ def parse_sms_csv(file_bytes: bytes) -> list[dict]:
         from_field = _get_with_alias(raw, alias_map, "from", "")
         to_field = _get_with_alias(raw, alias_map, "to", "")
 
-        messages.append({
-            "source": "sms_import",
-            "from_address": from_field,
-            "to_address": to_field,
-            "body": body,
-            "date": _parse_loose_date(_get_with_alias(raw, alias_map, "date", "")) or utc_now(),
-        })
+        messages.append(
+            {
+                "source": "sms_import",
+                "from_address": from_field,
+                "to_address": to_field,
+                "body": body,
+                "date": _parse_loose_date(_get_with_alias(raw, alias_map, "date", "")) or utc_now(),
+            }
+        )
     return messages
 
 
@@ -255,13 +271,15 @@ def parse_sms_xml(file_bytes: bytes) -> list[dict]:
 
     messages = []
     for sms in root.findall("sms"):
-        messages.append({
-            "source": "sms_import",
-            "from_address": sms.get("address", ""),
-            "to_address": sms.get("contact_name", ""),
-            "body": sms.get("body", ""),
-            "date": _parse_loose_date(sms.get("date", "")) or utc_now(),
-        })
+        messages.append(
+            {
+                "source": "sms_import",
+                "from_address": sms.get("address", ""),
+                "to_address": sms.get("contact_name", ""),
+                "body": sms.get("body", ""),
+                "date": _parse_loose_date(sms.get("date", "")) or utc_now(),
+            }
+        )
     return messages
 
 
@@ -276,12 +294,15 @@ def parse_call_logs_csv(file_bytes: bytes) -> list[dict]:
         return []
 
     fieldnames = [fn.lower().strip() for fn in reader.fieldnames]
-    alias_map = _build_alias_map(fieldnames, {
-        "number": ["number", "phone", "phone_number", "phone number", "caller", "recipient", "contact"],
-        "date": ["date", "timestamp", "time", "datetime"],
-        "duration": ["duration", "duration_seconds", "duration seconds", "length"],
-        "type": ["type", "call_type", "call type", "direction"],
-    })
+    alias_map = _build_alias_map(
+        fieldnames,
+        {
+            "number": ["number", "phone", "phone_number", "phone number", "caller", "recipient", "contact"],
+            "date": ["date", "timestamp", "time", "datetime"],
+            "duration": ["duration", "duration_seconds", "duration seconds", "length"],
+            "type": ["type", "call_type", "call type", "direction"],
+        },
+    )
 
     calls = []
     for row in reader:
@@ -293,14 +314,16 @@ def parse_call_logs_csv(file_bytes: bytes) -> list[dict]:
         except ValueError:
             duration_val = 0
 
-        calls.append({
-            "source": "call_log_import",
-            "number": number,
-            "normalized_number": _normalized_phone(number),
-            "date": _parse_loose_date(_get_with_alias(raw, alias_map, "date", "")) or utc_now(),
-            "duration_seconds": duration_val,
-            "call_type": _get_with_alias(raw, alias_map, "type", ""),
-        })
+        calls.append(
+            {
+                "source": "call_log_import",
+                "number": number,
+                "normalized_number": _normalized_phone(number),
+                "date": _parse_loose_date(_get_with_alias(raw, alias_map, "date", "")) or utc_now(),
+                "duration_seconds": duration_val,
+                "call_type": _get_with_alias(raw, alias_map, "type", ""),
+            }
+        )
     return calls
 
 
@@ -328,12 +351,13 @@ async def transcribe_voicemail(file_bytes: bytes, mime_type: str = "audio/mpeg")
 # Contact extraction / upsert
 # =============================================================================
 
+
 async def extract_and_upsert_contacts(
     db: AsyncSession,
     user_id: str,
     communications: list[dict],
-    user_email: Optional[str] = None,
-    user_phone: Optional[str] = None,
+    user_email: str | None = None,
+    user_phone: str | None = None,
 ) -> list[ThirdPartyContact]:
     """
     Scan communication metadata/bodies for third-party contact info and upsert
@@ -353,13 +377,16 @@ async def extract_and_upsert_contacts(
             if key in ("from_address", "to_address"):
                 email = _extract_email_part(value)
                 if email and email not in user_emails:
-                    candidates.setdefault(email.lower(), {
-                        "name": comm.get("from_name") or comm.get("to_name") or "",
-                        "email": email,
-                        "phone": None,
-                        "entity_type": "other",
-                        "source": comm.get("source", "manual_entry"),
-                    })
+                    candidates.setdefault(
+                        email.lower(),
+                        {
+                            "name": comm.get("from_name") or comm.get("to_name") or "",
+                            "email": email,
+                            "phone": None,
+                            "entity_type": "other",
+                            "source": comm.get("source", "manual_entry"),
+                        },
+                    )
 
             if key in ("from_address", "to_address", "number"):
                 # Scan text fields for phone numbers too.
@@ -367,13 +394,16 @@ async def extract_and_upsert_contacts(
                 for phone in phones:
                     norm = _normalized_phone(phone)
                     if norm and norm not in user_phones:
-                        candidates.setdefault(norm, {
-                            "name": comm.get("from_name") or comm.get("to_name") or "",
-                            "email": None,
-                            "phone": phone,
-                            "entity_type": "other",
-                            "source": comm.get("source", "manual_entry"),
-                        })
+                        candidates.setdefault(
+                            norm,
+                            {
+                                "name": comm.get("from_name") or comm.get("to_name") or "",
+                                "email": None,
+                                "phone": phone,
+                                "entity_type": "other",
+                                "source": comm.get("source", "manual_entry"),
+                            },
+                        )
 
         # Also scan the message body for emails/phone numbers.
         body = comm.get("body", "")
@@ -381,23 +411,29 @@ async def extract_and_upsert_contacts(
             for email in _EMAIL_RE.findall(body):
                 email = email.lower()
                 if email and email not in user_emails:
-                    candidates.setdefault(email, {
-                        "name": "",
-                        "email": email,
-                        "phone": None,
-                        "entity_type": "other",
-                        "source": comm.get("source", "manual_entry"),
-                    })
+                    candidates.setdefault(
+                        email,
+                        {
+                            "name": "",
+                            "email": email,
+                            "phone": None,
+                            "entity_type": "other",
+                            "source": comm.get("source", "manual_entry"),
+                        },
+                    )
             for phone in _PHONE_RE.findall(body):
                 norm = _normalized_phone(phone)
                 if norm and norm not in user_phones:
-                    candidates.setdefault(norm, {
-                        "name": "",
-                        "email": None,
-                        "phone": phone,
-                        "entity_type": "other",
-                        "source": comm.get("source", "manual_entry"),
-                    })
+                    candidates.setdefault(
+                        norm,
+                        {
+                            "name": "",
+                            "email": None,
+                            "phone": phone,
+                            "entity_type": "other",
+                            "source": comm.get("source", "manual_entry"),
+                        },
+                    )
 
     upserted: list[ThirdPartyContact] = []
     for key, data in candidates.items():
@@ -451,15 +487,16 @@ async def extract_and_upsert_contacts(
 # Redaction + timeline persistence
 # =============================================================================
 
+
 async def import_communications(
     db: AsyncSession,
     user_id: str,
     file_bytes: bytes,
     filename: str,
-    user_email: Optional[str] = None,
-    user_phone: Optional[str] = None,
-    user_name: Optional[str] = None,
-    case_record_id: Optional[str] = None,
+    user_email: str | None = None,
+    user_phone: str | None = None,
+    user_name: str | None = None,
+    case_record_id: str | None = None,
     keep_voicemail_audio: bool = False,
 ) -> dict:
     """
@@ -493,13 +530,15 @@ async def import_communications(
         communications = parse_sms_xml(file_bytes)
     elif suffix in (".mp3", ".mp4", ".m4a", ".wav", ".ogg", ".flac", ".amr"):
         transcript = await transcribe_voicemail(file_bytes)
-        communications = [{
-            "source": "voicemail_import",
-            "body": transcript,
-            "date": utc_now(),
-            "from_address": "",
-            "to_address": "",
-        }]
+        communications = [
+            {
+                "source": "voicemail_import",
+                "body": transcript,
+                "date": utc_now(),
+                "from_address": "",
+                "to_address": "",
+            }
+        ]
         if not keep_voicemail_audio:
             # The caller still holds the file; we just note the policy.
             logger.info("Voicemail raw audio will be discarded per policy (keep_voicemail_audio=False).")
@@ -515,7 +554,7 @@ async def import_communications(
         user_phone=user_phone,
     )
 
-    allowlist = [c.email for c in contacts if c.email] + [c.phone for c in contacts if c.phone]
+    [c.email for c in contacts if c.email] + [c.phone for c in contacts if c.phone]
 
     timeline_events: list[TimelineEvent] = []
     for comm in communications:
@@ -561,6 +600,7 @@ async def import_communications(
 # =============================================================================
 # CSV/alias helpers
 # =============================================================================
+
 
 def _build_alias_map(
     fieldnames: list[str],

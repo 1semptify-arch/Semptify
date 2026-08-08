@@ -207,16 +207,16 @@ def make_prompt(task: dict) -> str:
         line_part = f" lines {task['line_start']}" if task.get("line_start") else ""
         location = f"Target: `{task['file_path']}`{line_part}"
     when = task.get("created_at", "")
-    return f"""AGENT TASK — {model_name} ({task.get('priority', 'medium').upper()} priority)
+    return f"""AGENT TASK — {model_name} ({task.get("priority", "medium").upper()} priority)
 Semptify repository — Python 3.11.9 / FastAPI / PostgreSQL
 
-Task: {task['title']}
+Task: {task["title"]}
 Category: {category_label}
 {location}
 Created: {when}
 
 Description:
-{task.get('description') or '(no description)'}
+{task.get("description") or "(no description)"}
 
 MANDATORY RULES FROM AGENTS.md:
 1. Work on a feature branch; never touch main directly.

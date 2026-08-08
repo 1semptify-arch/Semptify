@@ -1,13 +1,13 @@
 """Tests for manager dashboard presence and statistics."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
 
+from app.core.manager_dashboard import ONLINE_THRESHOLD_MINUTES, get_staff_list
 from app.core.utc import utc_now
-from app.core.manager_dashboard import get_staff_list, ONLINE_THRESHOLD_MINUTES
-from app.models.models import User, InviteCode
+from app.models.models import InviteCode, User
 
 
 def _make_session(users_by_id, redeemed_codes):
@@ -21,6 +21,7 @@ def _make_session(users_by_id, redeemed_codes):
             filter_mock.all.return_value = redeemed_codes
             query_mock.filter.return_value = filter_mock
         elif model is User:
+
             def _first():
                 # filter_by was called with keyword args, e.g. filter_by(id=user_id)
                 kwargs = query_mock.filter_by.call_args.kwargs

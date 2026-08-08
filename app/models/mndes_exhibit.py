@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # Enums
 # ============================================================================
 
+
 class MNDESExhibitStatus(StrEnum):
     """
     Lifecycle status of an exhibit in MNDES.
@@ -43,33 +44,35 @@ class MNDESExhibitStatus(StrEnum):
     WITHDRAWN    — Party withdrew the exhibit before ruling.
     PENDING_EXCEPTION — Proprietary format; awaiting judge exception ruling.
     """
-    PRE_HEARING        = "pre_hearing"
-    OFFERED            = "offered"
-    ADMITTED           = "admitted"
-    REJECTED           = "rejected"
-    WITHDRAWN          = "withdrawn"
-    PENDING_EXCEPTION  = "pending_exception"
+
+    PRE_HEARING = "pre_hearing"
+    OFFERED = "offered"
+    ADMITTED = "admitted"
+    REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"
+    PENDING_EXCEPTION = "pending_exception"
 
 
 class MNDESExhibitCategory(StrEnum):
     DOCUMENT = "document"
-    IMAGE    = "image"
-    AUDIO    = "audio"
-    VIDEO    = "video"
-    PHYSICAL = "physical"   # Cannot be digitized; tracked but not uploaded
+    IMAGE = "image"
+    AUDIO = "audio"
+    VIDEO = "video"
+    PHYSICAL = "physical"  # Cannot be digitized; tracked but not uploaded
 
 
 class MNDESCaseType(StrEnum):
-    CIVIL    = "civil"
+    CIVIL = "civil"
     CRIMINAL = "criminal"
-    FAMILY   = "family"
+    FAMILY = "family"
     EVICTION = "eviction"
-    OTHER    = "other"
+    OTHER = "other"
 
 
 # ============================================================================
 # Core Exhibit Model
 # ============================================================================
+
 
 class MNDESExhibit(BaseModel):
     """
@@ -91,8 +94,7 @@ class MNDESExhibit(BaseModel):
     # Exhibit identity
     exhibit_name: str = Field(..., description="Brief descriptive name (e.g. 'Photo of rear door')")
     exhibit_number: str | None = Field(
-        None,
-        description="Number assigned by judge/scheduling order. Leave blank unless ordered."
+        None, description="Number assigned by judge/scheduling order. Leave blank unless ordered."
     )
     original_filename: str
     file_extension: str
@@ -102,60 +104,42 @@ class MNDESExhibit(BaseModel):
     # MNDES compliance flags
     is_mndes_compliant: bool = Field(default=False)
     is_jury_room_eligible: bool = Field(
-        default=False,
-        description="True for audio/video — must be permitted in jury room (criminal) per Order §2"
+        default=False, description="True for audio/video — must be permitted in jury room (criminal) per Order §2"
     )
-    conversion_required: bool = Field(
-        default=False,
-        description="File required format conversion before MNDES upload"
-    )
+    conversion_required: bool = Field(default=False, description="File required format conversion before MNDES upload")
     judge_exception_required: bool = Field(
-        default=False,
-        description="True if proprietary format; requires presiding judge approval per Order §6"
+        default=False, description="True if proprietary format; requires presiding judge approval per Order §6"
     )
     judge_exception_granted: bool | None = Field(
-        default=None,
-        description="None = pending; True = granted; False = denied"
+        default=None, description="None = pending; True = granted; False = denied"
     )
 
     # Case-level safety flags (from Semptify case data)
     no_contact_order: bool = Field(
-        default=False,
-        description="OFP/HRO/DANCO active — sharing via MNDES requires special handling"
+        default=False, description="OFP/HRO/DANCO active — sharing via MNDES requires special handling"
     )
-    is_sealed_case: bool = Field(
-        default=False,
-        description="Sealed cases: cannot upload directly; contact court admin"
-    )
-    is_in_camera: bool = Field(
-        default=False,
-        description="In-camera review exhibits go to judge's chambers, not MNDES"
-    )
+    is_sealed_case: bool = Field(default=False, description="Sealed cases: cannot upload directly; contact court admin")
+    is_in_camera: bool = Field(default=False, description="In-camera review exhibits go to judge's chambers, not MNDES")
 
     # User attestations (required before submission)
     user_attested_no_sexual_content: bool | None = Field(
-        default=None,
-        description="User confirmed exhibit does not contain sexual content or nudity"
+        default=None, description="User confirmed exhibit does not contain sexual content or nudity"
     )
     user_attested_not_discovery: bool | None = Field(
-        default=None,
-        description="User confirmed this is not discovery material (Alford Packets, etc.)"
+        default=None, description="User confirmed this is not discovery material (Alford Packets, etc.)"
     )
     user_attested_not_motion_attachment: bool | None = Field(
-        default=None,
-        description="User confirmed this is not a motion/affidavit attachment (those go to eFS)"
+        default=None, description="User confirmed this is not a motion/affidavit attachment (those go to eFS)"
     )
 
     # MNDES submission tracking
     status: MNDESExhibitStatus = Field(default=MNDESExhibitStatus.PRE_HEARING)
     mndes_tracking_number: str | None = Field(
-        None,
-        description="Tracking number assigned by MNDES after user uploads. User enters this."
+        None, description="Tracking number assigned by MNDES after user uploads. User enters this."
     )
     mndes_submitted_at: datetime | None = None
     mndes_submitted_by_user: bool = Field(
-        default=False,
-        description="User confirmed they manually completed submission at MNDES portal"
+        default=False, description="User confirmed they manually completed submission at MNDES portal"
     )
 
     # Timestamps
@@ -167,6 +151,7 @@ class MNDESExhibit(BaseModel):
     file_types_version: str = Field(default="2025-01")
 
     model_config = ConfigDict(use_enum_values=True)
+
     @property
     def is_case_record(self) -> bool:
         """
@@ -205,6 +190,7 @@ class MNDESExhibit(BaseModel):
 # Exhibit Package — a group of exhibits for one case submission
 # ============================================================================
 
+
 class MNDESExhibitPackage(BaseModel):
     """
     A collection of exhibits being prepared for a single MN court case.
@@ -241,8 +227,10 @@ class MNDESExhibitPackage(BaseModel):
 # API Request/Response Models
 # ============================================================================
 
+
 class MNDESValidateRequest(BaseModel):
     """Request to validate vault files for MNDES compliance."""
+
     vault_ids: list[str] = Field(..., min_length=1)
     mn_case_number: str
     case_type: MNDESCaseType = MNDESCaseType.CIVIL
@@ -252,16 +240,13 @@ class MNDESValidateRequest(BaseModel):
 
 class MNDESPackageCreateRequest(BaseModel):
     """Request to create an exhibit package for a case."""
+
     vault_ids: list[str] = Field(..., min_length=1)
     mn_case_number: str
     case_type: MNDESCaseType = MNDESCaseType.CIVIL
-    case_caption: str | None = Field(
-        None,
-        description="Optional case caption (e.g., 'Smith v. Jones')."
-    )
+    case_caption: str | None = Field(None, description="Optional case caption (e.g., 'Smith v. Jones').")
     exhibit_names: dict[str, str] | None = Field(
-        None,
-        description="Optional map of vault_id -> exhibit name. Defaults auto-generated."
+        None, description="Optional map of vault_id -> exhibit name. Defaults auto-generated."
     )
     no_contact_order: bool = False
     is_sealed_case: bool = False
@@ -269,33 +254,29 @@ class MNDESPackageCreateRequest(BaseModel):
 
 class MNDESAttestationRequest(BaseModel):
     """User attestation before MNDES submission — required per Order §10."""
+
     package_id: str
     attests_no_sexual_content: bool
     attests_not_discovery: bool
     attests_not_motion_attachment: bool
     attests_understands_no_return: bool = Field(
-        ...,
-        description="User acknowledges court will not return digital exhibits"
+        ..., description="User acknowledges court will not return digital exhibits"
     )
-    attests_semptify_not_mndes: bool = Field(
-        ...,
-        description="User understands Semptify ≠ MNDES submission"
-    )
+    attests_semptify_not_mndes: bool = Field(..., description="User understands Semptify ≠ MNDES submission")
 
 
 class MNDESSubmissionConfirmRequest(BaseModel):
     """User confirms they completed manual submission at the MNDES portal."""
+
     package_id: str
     exhibit_id: str
-    mndes_tracking_number: str | None = Field(
-        None,
-        description="Tracking number assigned by MNDES (from the portal)"
-    )
+    mndes_tracking_number: str | None = Field(None, description="Tracking number assigned by MNDES (from the portal)")
     submitted_at: datetime | None = None
 
 
 class MNDESComplianceSummary(BaseModel):
     """Summary of MNDES compliance for a package or set of files."""
+
     total_files: int
     compliant: int
     non_compliant: int

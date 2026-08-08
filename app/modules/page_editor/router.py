@@ -3,18 +3,16 @@ Page Editor API Router
 Interactive editor for static HTML and Jinja2 templates
 """
 
-import os
+import logging
 from pathlib import Path
-from typing import List, Dict, Optional
-from fastapi import APIRouter, HTTPException, Query, Body
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.core.navigation import navigation
+from app.core.security import StorageUser, yellow_access
 from app.core.ssot_guard import ssot_redirect
-from app.core.security import require_user, StorageUser, yellow_access
-from fastapi import Depends
-import logging
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/editor", tags=["page-editor"])
@@ -45,59 +43,61 @@ class SaveRequest(BaseModel):
 
 
 class FileListResponse(BaseModel):
-    static: List[FileInfo]
-    templates: List[FileInfo]
+    static: list[FileInfo]
+    templates: list[FileInfo]
 
 
 def get_file_type(filename: str) -> str:
     """Determine file type from extension"""
-    if filename.endswith('.html'):
-        return 'html'
-    elif filename.endswith('.jinja'):
-        return 'jinja'
-    elif filename.endswith('.css'):
-        return 'css'
-    elif filename.endswith('.js'):
-        return 'javascript'
-    elif filename.endswith('.py'):
-        return 'python'
-    elif filename.endswith('.md'):
-        return 'markdown'
+    if filename.endswith(".html"):
+        return "html"
+    elif filename.endswith(".jinja"):
+        return "jinja"
+    elif filename.endswith(".css"):
+        return "css"
+    elif filename.endswith(".js"):
+        return "javascript"
+    elif filename.endswith(".py"):
+        return "python"
+    elif filename.endswith(".md"):
+        return "markdown"
     else:
-        return 'text'
+        return "text"
 
 
-def scan_directory(base_path: Path, rel_prefix: str = "") -> List[FileInfo]:
+def scan_directory(base_path: Path, rel_prefix: str = "") -> list[FileInfo]:
     """Recursively scan directory for editable files"""
     files = []
-    editable_extensions = {'.html', '.css', '.js', '.py', '.md', '.jinja', '.json'}
-    
+    editable_extensions = {".html", ".css", ".js", ".py", ".md", ".jinja", ".json"}
+
     if not base_path.exists():
         return files
-    
-    for item in base_path.rglob('*'):
+
+    for item in base_path.rglob("*"):
         if item.is_file() and item.suffix in editable_extensions:
             # Calculate relative path from project root
             rel_path = str(item.relative_to(Path.cwd()))
-            
+
             # Determine folder for grouping
             try:
                 folder = str(item.parent.relative_to(base_path))
-                if folder == '.':
-                    folder = 'Root'
+                if folder == ".":
+                    folder = "Root"
             except ValueError:
-                folder = 'Other'
-            
+                folder = "Other"
+
             stat = item.stat()
-            files.append(FileInfo(
-                name=item.name,
-                path=rel_path,
-                folder=folder,
-                type=get_file_type(item.name),
-                size=stat.st_size,
-                modified=stat.st_mtime
-            ))
-    
+            files.append(
+                FileInfo(
+                    name=item.name,
+                    path=rel_path,
+                    folder=folder,
+                    type=get_file_type(item.name),
+                    size=stat.st_size,
+                    modified=stat.st_mtime,
+                )
+            )
+
     # Sort by folder then name
     files.sort(key=lambda f: (f.folder, f.name))
     return files
@@ -111,12 +111,9 @@ async def list_files(
     try:
         static_files = scan_directory(STATIC_PATH)
         template_files = scan_directory(TEMPLATES_PATH)
-        
-        return FileListResponse(
-            static=static_files,
-            templates=template_files
-        )
-    except Exception as e:
+
+        return FileListResponse(static=static_files, templates=template_files)
+    except Exception:
         logger.exception("Error scanning files")
         raise HTTPException(status_code=500, detail="Error scanning files")
 
@@ -131,35 +128,31 @@ async def get_file(
         # Security: Ensure path is within project directory
         file_path = Path(path).resolve()
         project_root = Path.cwd().resolve()
-        
+
         # Check if path is within project
         try:
             file_path.relative_to(project_root)
         except ValueError:
             raise HTTPException(status_code=403, detail="Access denied: Path outside project")
-        
+
         # Check if file exists
         if not file_path.exists():
             raise HTTPException(status_code=404, detail=f"File not found: {path}")
-        
+
         if not file_path.is_file():
             raise HTTPException(status_code=400, detail="Path is not a file")
-        
+
         # Read file content
         try:
-            content = file_path.read_text(encoding='utf-8')
+            content = file_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             raise HTTPException(status_code=400, detail="File is not text-readable")
-        
-        return FileContent(
-            path=path,
-            content=content,
-            type=get_file_type(file_path.name)
-        )
-        
+
+        return FileContent(path=path, content=content, type=get_file_type(file_path.name))
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Error reading file")
         raise HTTPException(status_code=500, detail="Error reading file")
 
@@ -174,32 +167,32 @@ async def save_file(
         # Security: Ensure path is within project directory
         file_path = Path(request.path).resolve()
         project_root = Path.cwd().resolve()
-        
+
         # Check if path is within project
         try:
             file_path.relative_to(project_root)
         except ValueError:
             raise HTTPException(status_code=403, detail="Access denied: Path outside project")
-        
+
         # Check if parent directory exists
         if not file_path.parent.exists():
             raise HTTPException(status_code=400, detail=f"Directory does not exist: {file_path.parent}")
-        
+
         # Write file content
-        file_path.write_text(request.content, encoding='utf-8')
-        
+        file_path.write_text(request.content, encoding="utf-8")
+
         return JSONResponse(
             content={
                 "success": True,
                 "message": f"Saved {request.path}",
                 "path": request.path,
-                "size": len(request.content)
+                "size": len(request.content),
             }
         )
-        
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Error saving file")
         raise HTTPException(status_code=500, detail="Error saving file")
 
@@ -212,9 +205,9 @@ async def preview_file(
     """Generate preview of HTML content"""
     try:
         content = request.content
-        
+
         # For Jinja2 templates, add base template wrapper for preview
-        if request.path.endswith('.jinja') or request.path.endswith('_ssot.html'):
+        if request.path.endswith(".jinja") or request.path.endswith("_ssot.html"):
             # Simple preview - just return the raw template
             # In production, you'd render with sample data
             preview_html = f"""
@@ -240,11 +233,11 @@ async def preview_file(
             </html>
             """
             return JSONResponse(content={"html": preview_html})
-        
+
         # For static HTML, return as-is (with safety checks)
-        if request.path.endswith('.html'):
+        if request.path.endswith(".html"):
             return JSONResponse(content={"html": content})
-        
+
         # For other files, wrap in preview
         preview_html = f"""
         <!DOCTYPE html>
@@ -262,8 +255,8 @@ async def preview_file(
         </html>
         """
         return JSONResponse(content={"html": preview_html})
-        
-    except Exception as e:
+
+    except Exception:
         logger.exception("Error generating preview")
         raise HTTPException(status_code=500, detail="Error generating preview")
 
@@ -271,36 +264,36 @@ async def preview_file(
 @router.get("/search")
 async def search_files(
     q: str = Query(..., min_length=2, description="Search query"),
-    type: Optional[str] = Query(None, description="File type filter"),
+    type: str | None = Query(None, description="File type filter"),
     user: StorageUser = Depends(yellow_access),
 ):
     """Search files by name or content"""
     try:
         all_files = scan_directory(STATIC_PATH) + scan_directory(TEMPLATES_PATH)
         results = []
-        
+
         query = q.lower()
-        
+
         for file in all_files:
             # Search in filename
             if query in file.name.lower():
                 results.append(file)
                 continue
-            
+
             # Search in content (limit to first 100 matches for performance)
             if len(results) < 100:
                 try:
                     file_path = Path(file.path)
                     if file_path.exists() and file_path.stat().st_size < 1024 * 1024:  # Skip files > 1MB
-                        content = file_path.read_text(encoding='utf-8', errors='ignore')
+                        content = file_path.read_text(encoding="utf-8", errors="ignore")
                         if query in content.lower():
                             results.append(file)
                 except UnicodeDecodeError as e:
                     logger.warning(f"Optional operation failed: {e}")
-        
+
         return {"results": results[:100], "total": len(results)}
-        
-    except Exception as e:
+
+    except Exception:
         logger.exception("Error searching")
         raise HTTPException(status_code=500, detail="Error searching")
 

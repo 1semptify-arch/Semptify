@@ -4,8 +4,10 @@ Court Packet Module Manifest
 Self-contained SDK module for Court packet assembly.
 """
 
-from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 import logging
+
+from app.sdk import ModuleCapability, ModuleManifest, ProductTier
+
 logger = logging.getLogger(__name__)
 
 

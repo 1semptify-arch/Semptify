@@ -5,9 +5,11 @@ Provides versioned API endpoints while maintaining backward compatibility.
 Current version: v1
 """
 
+import logging
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,19 +19,15 @@ LATEST_VERSION = "v1"
 SUPPORTED_VERSIONS = ["v1"]
 
 
-def create_versioned_router(
-    prefix: str = "",
-    tags: list[str] | None = None,
-    **kwargs
-) -> APIRouter:
+def create_versioned_router(prefix: str = "", tags: list[str] | None = None, **kwargs) -> APIRouter:
     """
     Create a router with versioning support.
-    
+
     Args:
         prefix: Additional prefix after version (e.g., "/documents")
         tags: OpenAPI tags
         **kwargs: Additional APIRouter kwargs
-    
+
     Returns:
         APIRouter configured for versioning
     """
@@ -66,18 +64,17 @@ def get_v1_calendar_router() -> APIRouter:
 async def api_version_info(request: Request) -> JSONResponse:
     """
     Return API version information.
-    
+
     GET /api/version
     """
-    return JSONResponse({
-        "current_version": LATEST_VERSION,
-        "supported_versions": SUPPORTED_VERSIONS,
-        "deprecation_notices": [],
-        "documentation": {
-            "v1": "/docs",
-            "openapi": "/openapi.json"
+    return JSONResponse(
+        {
+            "current_version": LATEST_VERSION,
+            "supported_versions": SUPPORTED_VERSIONS,
+            "deprecation_notices": [],
+            "documentation": {"v1": "/docs", "openapi": "/openapi.json"},
         }
-    })
+    )
 
 
 # Router for version info endpoint
@@ -89,10 +86,11 @@ version_router.add_api_route("/version", api_version_info, methods=["GET"])
 # Version Deprecation Utilities
 # =============================================================================
 
+
 def deprecation_warning(version: str, sunset_date: str) -> dict:
     """
     Generate deprecation warning headers.
-    
+
     Use in endpoint response:
         return JSONResponse(
             content={...},
@@ -102,23 +100,23 @@ def deprecation_warning(version: str, sunset_date: str) -> dict:
     return {
         "Deprecation": f"version={version}",
         "Sunset": sunset_date,
-        "Link": f'</api/version>; rel="successor-version"'
+        "Link": '</api/version>; rel="successor-version"',
     }
 
 
 class APIVersionHeader:
     """
     Dependency to extract and validate API version from header.
-    
+
     Usage:
         @router.get("/resource")
         async def get_resource(version: str = Depends(APIVersionHeader())):
             ...
     """
-    
+
     def __init__(self, default: str = LATEST_VERSION):
         self.default = default
-    
+
     async def __call__(self, request: Request) -> str:
         version = request.headers.get("X-API-Version", self.default)
         if version not in SUPPORTED_VERSIONS:

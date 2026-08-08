@@ -6,6 +6,7 @@ Lifecycle: dev_only — admin-only while under active construction.
 Architecture: Feature Module (reads from Pipeline Modules — documents, vault,
 intake, unified_overlay_manager — but never calls other Feature Modules).
 """
+
 from app.modules.document_center.router import router
 
 __all__ = ["router"]

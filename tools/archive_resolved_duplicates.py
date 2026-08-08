@@ -72,7 +72,7 @@ def main() -> int:
         wb = openpyxl.load_workbook(WORKBOOK_PATH)
     except PermissionError:
         print(
-            f"Could not open {WORKBOOK_PATH.name} — it's probably open in Excel. " "Close it and try again.",
+            f"Could not open {WORKBOOK_PATH.name} — it's probably open in Excel. Close it and try again.",
             file=sys.stderr,
         )
         return 1

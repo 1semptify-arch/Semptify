@@ -21,6 +21,7 @@ def backend():
 
 # ── MemorySessionBackend ─────────────────────────────────────────────────────
 
+
 class TestMemorySessionBackend:
     @pytest.mark.asyncio
     async def test_set_and_get(self, backend):
@@ -70,6 +71,7 @@ class TestMemorySessionBackend:
     async def test_expired_session_removed(self, backend):
         await backend.set("key1", {"user": "alice"}, ttl_seconds=1)
         from app.core.utc import utc_now
+
         backend._expiry["key1"] = utc_now() - timedelta(seconds=10)
         result = await backend.get("key1")
         assert result is None
@@ -78,6 +80,7 @@ class TestMemorySessionBackend:
     async def test_expired_not_in_exists(self, backend):
         await backend.set("key1", {"user": "alice"}, ttl_seconds=1)
         from app.core.utc import utc_now
+
         backend._expiry["key1"] = utc_now() - timedelta(seconds=10)
         assert await backend.exists("key1") is False
 
@@ -86,6 +89,7 @@ class TestMemorySessionBackend:
         await backend.set("key1", {"user": "alice"}, ttl_seconds=1)
         await backend.set("key2", {"user": "bob"}, ttl_seconds=3600)
         from app.core.utc import utc_now
+
         backend._expiry["key1"] = utc_now() - timedelta(seconds=10)
         backend._cleanup_expired()
         assert "key1" not in backend._store
@@ -101,6 +105,7 @@ class TestMemorySessionBackend:
 
 # ── RedisSessionBackend ──────────────────────────────────────────────────────
 
+
 class TestRedisSessionBackend:
     def test_key_prefix(self):
         rb = RedisSessionBackend(prefix="test:")
@@ -113,10 +118,12 @@ class TestRedisSessionBackend:
 
 # ── Module-level functions ───────────────────────────────────────────────────
 
+
 class TestModuleFunctions:
     @pytest.mark.asyncio
     async def test_get_session_backend_returns_memory_by_default(self):
         import app.core.sessions as mod
+
         mod._session_backend = None
         backend = get_session_backend()
         assert isinstance(backend, MemorySessionBackend)
@@ -124,18 +131,21 @@ class TestModuleFunctions:
     @pytest.mark.asyncio
     async def test_configure_memory(self):
         import app.core.sessions as mod
+
         configure_session_backend(redis_url=None)
         assert isinstance(mod._session_backend, MemorySessionBackend)
 
     @pytest.mark.asyncio
     async def test_configure_redis(self):
         import app.core.sessions as mod
+
         configure_session_backend(redis_url="redis://localhost:6379")
         assert isinstance(mod._session_backend, RedisSessionBackend)
 
     @pytest.mark.asyncio
     async def test_close_memory_backend(self):
         import app.core.sessions as mod
+
         configure_session_backend(redis_url=None)
         await close_session_backend()
         assert mod._session_backend is None
@@ -143,6 +153,7 @@ class TestModuleFunctions:
     @pytest.mark.asyncio
     async def test_close_redis_backend(self):
         import app.core.sessions as mod
+
         configure_session_backend(redis_url="redis://localhost:6379")
         rb = mod._session_backend
         rb._client = AsyncMock()
