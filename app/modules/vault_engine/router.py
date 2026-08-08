@@ -22,7 +22,7 @@ from .service import (
 )
 
 
-router = APIRouter(prefix="/api/vault-engine", tags=["Vault Engine"])
+router = APIRouter(tags=["Vault Engine"])
 
 
 # =============================================================================

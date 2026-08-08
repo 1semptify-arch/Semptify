@@ -36,7 +36,7 @@ from app.modules.agent_orchestrator.service import AgentOrchestratorService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/agent-orchestrator", tags=["Agent Orchestrator"])
+router = APIRouter(tags=["Agent Orchestrator"])
 
 
 # =============================================================================

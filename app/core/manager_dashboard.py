@@ -11,13 +11,16 @@ Provides:
 - Organization-wide activity feed
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict, Any
 
 from app.core.utc import utc_now
 from app.models.models import User, InviteCode, Document
 import logging
 logger = logging.getLogger(__name__)
+
+# A user is considered "online" if their last activity is within this window.
+ONLINE_THRESHOLD_MINUTES = 15
 
 
 def get_dashboard_stats(
@@ -141,14 +144,37 @@ def get_staff_list(
             for user_id in code.used_by:
                 user = db_session.query(User).filter_by(id=user_id).first()
                 if user:
+                    last_seen = _last_seen_for_user(user)
                     staff.append({
                         "name": f"User {user_id[:8]}",
                         "role": code.role,
-                        "status": "offline",  # TODO: Implement presence tracking
-                        "last_seen": user.last_login.isoformat() if user.last_login else None,
+                        "status": _presence_status(last_seen),
+                        "last_seen": last_seen.isoformat() if last_seen else None,
                     })
-    
+
     return staff
+
+
+def _last_seen_for_user(user) -> Optional[datetime]:
+    """Return the most recent activity timestamp for a user."""
+    candidates = [user.last_login, user.updated_at]
+    valid = [c for c in candidates if c is not None]
+    if not valid:
+        return None
+    return max(valid)
+
+
+def _presence_status(last_seen: Optional[datetime]) -> str:
+    """Determine online/offline status from the last activity timestamp."""
+    if last_seen is None:
+        return "offline"
+
+    # Ensure the comparison uses timezone-aware datetimes.
+    if last_seen.tzinfo is None:
+        last_seen = last_seen.replace(tzinfo=timezone.utc)
+
+    threshold = utc_now() - timedelta(minutes=ONLINE_THRESHOLD_MINUTES)
+    return "online" if last_seen >= threshold else "offline"
 
 
 def get_pending_signatures(

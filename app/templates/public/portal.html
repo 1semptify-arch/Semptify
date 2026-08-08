@@ -1,11 +1,11 @@
 {% extends "public_base.html" %}
 
 {% block title %}Semptify — Tenant Rights, Documented{% endblock %}
-{% block description %}Semptify is a tenant rights organization building technology to protect and advance lawful tenant rights through documentation, education, and evidence preservation. Free for tenants, forever.{% endblock %}
-{% block keywords %}tenant rights, tenant organizer, housing, renter rights, landlord tenant, eviction defense, habitability, security deposit, housing advocacy, free tenant tools{% endblock %}
+{% block description %}Semptify is a tenant rights organization building technology to protect and advance lawful tenant rights through documentation, education, and evidence preservation. No cost to tenants.{% endblock %}
+{% block keywords %}tenant rights, tenant organizer, housing, renter rights, landlord tenant, eviction defense, habitability, security deposit, housing advocacy{% endblock %}
 
 {% block og_title %}Semptify — Tenant Rights, Documented{% endblock %}
-{% block og_description %}A tenant rights organization building technology to protect and advance lawful tenant rights. Free for tenants, forever.{% endblock %}
+{% block og_description %}A tenant rights organization building technology to protect and advance lawful tenant rights. No cost to tenants.{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -37,16 +37,15 @@
 
 <!-- Mission statement -->
 <section class="section">
-    <h2 class="section-title">What is Semptify?</h2>
+    <h2 class="section-title">What Semptify does for you</h2>
     <p style="color: var(--text-light); font-size: 1.1rem; margin-bottom: 1rem;">
-        Semptify is a tenant rights organization building technology to protect and advance
-        lawful tenant rights through documentation, education, and evidence preservation.
-        We are on the side of tenants — always.
+        Upload your documents. Track your deadlines. Build your case. All in one place,
+        no cost, and your documents stay in your own cloud storage — we never see your data.
     </p>
     <div class="info-banner">
         <p>
-            "Everyone deserves a safe, clean place to live.<br>
-            Knowledge and documentation go further than confrontation."
+            <strong>Document problems as they happen.</strong> Photos, dates, and written notices
+            are the strongest evidence if you ever need to dispute a charge, a notice, or a repair.
         </p>
     </div>
 </section>
@@ -55,7 +54,7 @@
 <section class="section">
     <h2 class="section-title">Our Services</h2>
     <p class="section-description">
-        Pick what fits your situation. Everything is free for tenants. No advertising, ever.
+        Pick what fits your situation. Everything is no cost to tenants. No advertising, ever.
     </p>
 
     {% for category_id, category in categories.items() %}

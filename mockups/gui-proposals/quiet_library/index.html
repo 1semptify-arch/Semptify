@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify — The Quiet Library</title>
+  <meta name="description" content="A calm, lawful place to learn your housing rights and take evidence-first action.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      border-radius: 0 !important;
+    }
+
+    :root {
+      --forest: #1F3A2E;
+      --parchment: #F2EAD3;
+      --brass: #A67C2E;
+      --ink: #1A1A1A;
+      --forest-tint: rgba(31, 58, 46, 0.08);
+      --card: #F8F1E0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--ink);
+      background-color: var(--parchment);
+      background-image:
+        radial-gradient(circle at 10% 0%, rgba(166, 124, 46, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 100% 100%, rgba(31, 58, 46, 0.07) 0%, transparent 50%);
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--forest);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    a:hover {
+      color: var(--brass);
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--brass);
+      outline-offset: 2px;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -2.5rem;
+      left: 0;
+      z-index: 200;
+      padding: 0.5rem 1rem;
+      background: var(--forest);
+      color: var(--parchment);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      text-decoration: none;
+      transition: top 0.15s ease;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Masthead */
+    .masthead {
+      background: var(--forest);
+      color: var(--parchment);
+      border-bottom: 2px solid var(--brass);
+    }
+
+    .masthead-inner {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+    }
+
+    .site-title {
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--parchment);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .site-title:hover {
+      color: var(--brass);
+    }
+
+    .site-tagline {
+      display: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: rgba(242, 234, 211, 0.9);
+      text-transform: uppercase;
+    }
+
+    .index-toggle {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      color: var(--parchment);
+      border: 1px solid var(--parchment);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .index-toggle:hover {
+      background: var(--parchment);
+      color: var(--forest);
+    }
+
+    .index-toggle[aria-expanded="true"] {
+      background: var(--brass);
+      border-color: var(--brass);
+      color: var(--parchment);
+    }
+
+    /* Page grid */
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.25rem 4rem;
+    }
+
+    .index-pane {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: min(80vw, 280px);
+      height: 100vh;
+      z-index: 100;
+      padding: 2rem;
+      background: var(--parchment);
+      border-right: 2px solid var(--forest);
+      transform: translateX(-101%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+    }
+
+    .index-pane.open {
+      transform: translateX(0);
+    }
+
+    .index-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      background: transparent;
+      color: var(--forest);
+      border: 1px solid var(--forest);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .index-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      background: rgba(26, 26, 26, 0.55);
+    }
+
+    .index-backdrop.open {
+      display: block;
+    }
+
+    .index-title {
+      margin: 0 0 1rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--forest);
+    }
+
+    .index-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .index-list li + li {
+      border-top: 1px solid rgba(31, 58, 46, 0.12);
+    }
+
+    .index-list a {
+      display: block;
+      padding: 0.55rem 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--ink);
+      transition: color 0.15s ease, padding-left 0.15s ease;
+    }
+
+    .index-list a:hover {
+      color: var(--brass);
+      padding-left: 0.35rem;
+    }
+
+    .reading-column {
+      padding-top: 1.5rem;
+    }
+
+    .right-rail {
+      margin-top: 2.5rem;
+    }
+
+    .rail-card {
+      padding: 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--brass);
+      border-top: 4px solid var(--brass);
+    }
+
+    .rail-card > * + * {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(166, 124, 46, 0.35);
+    }
+
+    .cta {
+      display: block;
+      width: 100%;
+      padding: 0.9rem 1rem;
+      background: var(--forest);
+      color: var(--parchment);
+      border: 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .cta:hover {
+      background: #142920;
+    }
+
+    .cta:active {
+      background: var(--brass);
+      color: var(--ink);
+    }
+
+    .rail-note {
+      margin: 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    .emergency-callout {
+      padding: 1rem;
+      background: var(--forest-tint);
+      border: 2px solid var(--forest);
+    }
+
+    .rail-card h2 {
+      margin: 0 0 0.5rem;
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.1rem;
+      color: var(--forest);
+    }
+
+    .emergency-callout h2 {
+      margin: 0 0 0.5rem;
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.1rem;
+      color: var(--forest);
+    }
+
+    .emergency-callout p {
+      margin: 0;
+      font-family: 'Source Serif 4', serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .emergency-callout a {
+      font-weight: 600;
+    }
+
+    /* Sections */
+    .reading-column > section {
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--brass);
+    }
+
+    .reading-column > section:last-of-type {
+      border-bottom: 0;
+    }
+
+    .drawer-open {
+      overflow: hidden;
+    }
+
+    .section-index {
+      display: block;
+      margin-bottom: 0.35rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--brass);
+    }
+
+    h1, h2, h3 {
+      font-family: 'Source Serif 4', serif;
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--forest);
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      letter-spacing: -0.025em;
+    }
+
+    h2 {
+      margin: 0 0 1rem;
+      font-size: 1.45rem;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .subhead {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+
+    .pull-quote {
+      margin: 1.25rem 0 0;
+      padding: 0 0 0 1.25rem;
+      border-left: 4px solid var(--brass);
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.25rem;
+      font-style: italic;
+      line-height: 1.45;
+      color: var(--forest);
+    }
+
+    .pull-quote p {
+      margin: 0;
+    }
+
+    /* Catalog cards */
+    .catalog-grid {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .catalog-card {
+      position: relative;
+      padding: 1.25rem;
+      background: var(--card);
+      border: 1px solid var(--brass);
+      border-top: 4px solid var(--brass);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .catalog-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 6px 6px 0 var(--forest);
+    }
+
+    .card-header {
+      padding-bottom: 0.6rem;
+      margin-bottom: 0.85rem;
+      border-bottom: 1px solid var(--brass);
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--forest);
+    }
+
+    .card-roman {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.6rem;
+      height: 1.6rem;
+      background: var(--brass);
+      color: var(--parchment);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .card-sep {
+      color: var(--brass);
+      font-weight: 400;
+    }
+
+    .catalog-card h3 {
+      margin: 0 0 0.35rem;
+    }
+
+    .catalog-card p {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+
+    .card-footer {
+      margin-top: 1rem;
+      padding-top: 0.65rem;
+      border-top: 1px dashed var(--brass);
+    }
+
+    .call-no {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--brass);
+    }
+
+    /* Audience list */
+    .persona-list {
+      list-style: none;
+      margin: 1rem 0 0;
+      padding: 0;
+    }
+
+    .persona-list li {
+      padding: 0.75rem 0;
+      border-top: 1px solid rgba(166, 124, 46, 0.4);
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.05rem;
+    }
+
+    .persona-list li:first-child {
+      border-top: 2px solid var(--brass);
+    }
+
+    .persona-label {
+      display: inline-block;
+      margin-right: 0.6rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brass);
+    }
+
+    /* Footer */
+    .page-footer {
+      padding: 2.5rem 0;
+      border-top: 1px solid var(--brass);
+      text-align: center;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .page-footer a {
+      margin: 0 0.4rem;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .page-footer a:hover {
+      color: var(--brass);
+      text-decoration: underline;
+    }
+
+    .footer-note {
+      margin: 0.75rem 0 0;
+      color: var(--forest);
+    }
+
+    /* Desktop multi-pane */
+    @media (min-width: 1024px) {
+      .site-tagline {
+        display: inline;
+      }
+
+      .index-toggle {
+        display: none;
+      }
+
+      .index-close {
+        display: none;
+      }
+
+      .page {
+        display: grid;
+        grid-template-columns: 220px minmax(auto, 680px) 300px;
+        grid-template-areas:
+          "index reading rail"
+          "footer footer footer";
+        gap: 2.5rem;
+        align-items: start;
+        padding: 2rem 2rem 4rem;
+      }
+
+      .index-pane {
+        position: sticky;
+        top: 2rem;
+        grid-area: index;
+        width: auto;
+        height: auto;
+        padding: 0 1.5rem 0 0;
+        border-right: 1px solid var(--brass);
+        border-left: 0;
+        transform: none;
+        transition: none;
+        align-self: start;
+      }
+
+      .index-backdrop {
+        display: none !important;
+      }
+
+      .reading-column {
+        grid-area: reading;
+        padding-top: 0;
+      }
+
+      .right-rail {
+        grid-area: rail;
+        margin-top: 0;
+        align-self: start;
+        position: sticky;
+        top: 2rem;
+      }
+
+      .page-footer {
+        grid-area: footer;
+      }
+
+      h1 {
+        font-size: 3.25rem;
+      }
+
+      .catalog-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="masthead" role="banner">
+    <div class="masthead-inner">
+      <a class="site-title" href="#">SEMTIFY</a>
+      <span class="site-tagline">PUBLIC SERVICE · HOUSING RIGHTS · EST. 2026</span>
+      <button class="index-toggle" type="button" aria-expanded="false" aria-controls="index-pane">INDEX</button>
+    </div>
+  </header>
+
+  <div class="index-backdrop" aria-hidden="true"></div>
+
+  <main id="main-content" class="page" role="main">
+    <nav class="index-pane" id="index-pane" aria-label="Page index">
+      <button class="index-close" type="button" aria-label="Close index">Close</button>
+      <h2 class="index-title">INDEX</h2>
+      <ul class="index-list">
+        <li><a href="#record">I. RECORD</a></li>
+        <li><a href="#know">II. KNOW</a></li>
+        <li><a href="#act">III. ACT</a></li>
+        <li><a href="#govern">IV. GOVERN</a></li>
+        <li><a href="#privacy">PRIVACY</a></li>
+        <li><a href="#begin">BEGIN</a></li>
+      </ul>
+    </nav>
+
+    <article class="reading-column">
+      <section class="hero" id="welcome">
+        <h1>A quiet place to learn your rights — and act on them.</h1>
+        <p class="subhead">Semptify is a public-service tool that helps tenants protect their housing rights. Calm, lawful, evidence-first.</p>
+      </section>
+
+      <section class="truth" aria-labelledby="truth-heading">
+        <span class="section-index" aria-hidden="true">§ 01</span>
+        <h2 id="truth-heading">The law is on your side</h2>
+        <blockquote class="pull-quote">
+          <p>“When the law protects a tenant, we say so clearly. We do not soften it.”</p>
+        </blockquote>
+      </section>
+
+      <section class="pillars" aria-labelledby="pillars-heading">
+        <span class="section-index" aria-hidden="true">§ 02</span>
+        <h2 id="pillars-heading">The four pillars</h2>
+        <div class="catalog-grid">
+          <article class="catalog-card" id="record">
+            <header class="card-header">
+              <span class="card-meta">
+                <span class="card-roman">I</span>
+                <span class="card-sep">·</span> RECORD <span class="card-sep">·</span> EVIDENCE
+              </span>
+            </header>
+            <h3>Capture and organize evidence</h3>
+            <p>Vault, timeline, calendar.</p>
+            <footer class="card-footer">
+              <span class="call-no">REF · TEN-REC-001</span>
+            </footer>
+          </article>
+
+          <article class="catalog-card" id="know">
+            <header class="card-header">
+              <span class="card-meta">
+                <span class="card-roman">II</span>
+                <span class="card-sep">·</span> KNOW <span class="card-sep">·</span> FACTS
+              </span>
+            </header>
+            <h3>Facts only</h3>
+            <p>Library, state laws, context engine.</p>
+            <footer class="card-footer">
+              <span class="call-no">REF · TEN-KNO-002</span>
+            </footer>
+          </article>
+
+          <article class="catalog-card" id="act">
+            <header class="card-header">
+              <span class="card-meta">
+                <span class="card-roman">III</span>
+                <span class="card-sep">·</span> ACT <span class="card-sep">·</span> LAWFUL ACTION
+              </span>
+            </header>
+            <h3>Case builder, court forms, complaints</h3>
+            <p>Build a clear record and take the next lawful step.</p>
+            <footer class="card-footer">
+              <span class="call-no">REF · TEN-ACT-003</span>
+            </footer>
+          </article>
+
+          <article class="catalog-card" id="govern">
+            <header class="card-header">
+              <span class="card-meta">
+                <span class="card-roman">IV</span>
+                <span class="card-sep">·</span> GOVERN <span class="card-sep">·</span> INTEGRITY
+              </span>
+            </header>
+            <h3>Audit trail, transparency</h3>
+            <p>A clear history of every action, for you and for the record.</p>
+            <footer class="card-footer">
+              <span class="call-no">REF · TEN-GOV-004</span>
+            </footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="audience" aria-labelledby="audience-heading">
+        <span class="section-index" aria-hidden="true">§ 03</span>
+        <h2 id="audience-heading">Who this is for</h2>
+        <ul class="persona-list">
+          <li><span class="persona-label">01</span> The Blindsided Tenant.</li>
+          <li><span class="persona-label">02</span> The Builder.</li>
+          <li><span class="persona-label">03</span> The Court-Bound.</li>
+          <li><span class="persona-label">04</span> The Preventer.</li>
+          <li><span class="persona-label">05</span> The Advocate / Helper.</li>
+        </ul>
+      </section>
+    </article>
+
+    <aside class="right-rail" aria-label="Next steps">
+      <div class="rail-card">
+        <button class="cta" id="begin" type="button">Begin</button>
+
+        <section class="rail-section" id="privacy" aria-labelledby="privacy-heading">
+          <h2 id="privacy-heading"><span class="section-index" aria-hidden="true">§ 04</span> Your documents stay yours</h2>
+          <p class="rail-note">No account needed. Your documents stay in your own cloud storage.</p>
+        </section>
+
+        <section class="emergency-callout" aria-labelledby="deadline-heading">
+          <h2 id="deadline-heading"><span class="section-index" aria-hidden="true">§ 05</span> If you have a deadline</h2>
+          <p>Facing an eviction notice or a hearing date? <a href="#begin">Begin now</a>. Deadlines matter.</p>
+        </section>
+      </div>
+    </aside>
+
+    <footer class="page-footer" role="contentinfo">
+      <nav aria-label="Footer">
+        <a href="#">ABOUT</a> ·
+        <a href="#">PRIVACY</a> ·
+        <a href="#">CONTACT</a>
+      </nav>
+      <p class="footer-note">Semptify is a public-service housing-rights tool. No ads, ever.</p>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      var toggle = document.querySelector('.index-toggle');
+      var closeBtn = document.querySelector('.index-close');
+      var pane = document.getElementById('index-pane');
+      var backdrop = document.querySelector('.index-backdrop');
+      var body = document.body;
+
+      function setOpen(isOpen) {
+        pane.classList.toggle('open', isOpen);
+        backdrop.classList.toggle('open', isOpen);
+        body.classList.toggle('drawer-open', isOpen);
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', String(isOpen));
+        }
+        if (isOpen) {
+          var focusTarget = closeBtn || pane.querySelector('a');
+          if (focusTarget) focusTarget.focus();
+        }
+      }
+
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          setOpen(!pane.classList.contains('open'));
+        });
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          setOpen(false);
+          if (toggle) toggle.focus();
+        });
+      }
+
+      if (backdrop) {
+        backdrop.addEventListener('click', function () {
+          setOpen(false);
+          if (toggle) toggle.focus();
+        });
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && pane.classList.contains('open')) {
+          setOpen(false);
+          if (toggle) toggle.focus();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

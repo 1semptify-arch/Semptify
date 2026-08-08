@@ -228,7 +228,7 @@ class LinkedProvider(Base):
 # =============================================================================
 
 
-class DeepOCRStatus(str, enum.Enum):
+class DeepOCRStatus(enum.StrEnum):
     """Status values for the Deep OCR pipeline."""
 
     PENDING = "pending"
@@ -956,6 +956,79 @@ class Contact(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
 
 
+class ThirdPartyEntityType(enum.Enum):
+    """
+    Allowed third-party entity types for the ThirdPartyContact table.
+    Stored as a string value in the database to keep the fallback-stub path
+    simple and to match the existing enum-as-string convention in this file.
+    """
+
+    landlord = "landlord"
+    property_manager = "property_manager"
+    agency = "agency"
+    attorney = "attorney"
+    other = "other"
+
+
+class ThirdPartyContact(Base):
+    """
+    Third-party contacts linked to a tenant's case record.
+
+    Stores landlord, property manager, agency, attorney, and other party
+    contact data extracted from imports or entered manually. This is
+    landlord/entity data permitted in the DB under the SSOT database boundary
+    rule; it is distinct from the authenticating tenant's own PII, which must
+    never be stored here.
+
+    Fields:
+    - user_id: ownership (who imported/entered this contact)
+    - case_record_id: optional case linkage; stored as a string because the
+      canonical case_records table is not yet implemented. A future migration
+      can promote this to a real ForeignKey.
+    - entity_type: landlord | property_manager | agency | attorney | other
+    - name / email / phone / address: third-party contact points
+    - source: how the contact was captured (manual_entry, email_import,
+      call_log_import, sms_import, voicemail_import, agency_lookup)
+    - source_document_id: trace back to the originating imported file/document
+    - created_at / updated_at: audit timestamps
+    """
+
+    __tablename__ = "third_party_contacts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
+
+    # Case linkage. Nullable because the canonical case_records table does not
+    # exist yet; index it for fast lookup once the table is added.
+    case_record_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+
+    # Entity classification
+    entity_type: Mapped[str] = mapped_column(String(50), index=True)
+    # ThirdPartyEntityType enum value: landlord, property_manager, agency,
+    # attorney, other
+
+    # Contact details
+    name: Mapped[str] = mapped_column(String(255), index=True)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # Audit/source trail
+    source: Mapped[str] = mapped_column(String(100), index=True)
+    # Sources: manual_entry, email_import, call_log_import, sms_import,
+    #          voicemail_import, agency_lookup
+
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+    # Originating file/document identifier, when source is an import.
+
+    # Status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
 class ContactInteraction(Base):
     """
     Log of interactions with contacts (calls, emails, meetings).
@@ -1430,6 +1503,9 @@ class VaultIndexDB(Base):
     # Source tracking
     source_module: Mapped[str] = mapped_column(String(50), default="direct")
 
+    # Document Center review state (field confirmations/corrections and manual status)
+    review_state_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # Timestamps
     uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
@@ -1478,6 +1554,38 @@ class VaultHashIndexDB(Base):
     ref_count: Mapped[int] = mapped_column(Integer, default=1)
 
     # Timestamp
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+# =============================================================================
+# Document Shares — real Document Center sharing with recipient and scope
+# =============================================================================
+
+
+class DocumentShare(Base):
+    """
+    Tracks documents shared from the Document Center to a recipient.
+
+    The recipient can be another Semptify user_id, an advocate/legal ID,
+    or an email address. The scope controls what the recipient can do:
+    view, comment, or download. Access is gated by share_token.
+    """
+
+    __tablename__ = "document_shares"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    owner_user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
+    vault_id: Mapped[str] = mapped_column(String(36), ForeignKey("vault_index.vault_id"), index=True)
+
+    recipient_identifier: Mapped[str] = mapped_column(String(255), nullable=False)
+    scope: Mapped[str] = mapped_column(String(20), nullable=False)  # view, comment, download
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    share_token: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+    accessed_at: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+    access_count: Mapped[int] = mapped_column(Integer, default=0)
+
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
 
 
@@ -1699,6 +1807,142 @@ class ModuleRegistry(Base):
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
     updated_by: Mapped[str | None] = mapped_column(String(256), nullable=True)
+
+
+class Resource(Base):
+    """
+    Community resource directory listings for tenant housing-rights support.
+
+    These are neutral, factual, non-promotional listings of agencies and
+    services directly relevant to tenant housing rights. Listings are
+    admin-curated and bulk-imported; stale `last_verified` entries are
+    surfaced for review because an outdated phone number can actively harm
+    someone in crisis.
+    """
+
+    __tablename__ = "resources"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+
+    # Display and classification
+    name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    category: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    # Category examples: legal_aid, housing_counseling, tenant_union,
+    # emergency_shelter, rental_assistance, dispute_resolution
+
+    # Service area: free-form geographic scope (e.g., "Hennepin County, MN",
+    # "Minnesota", "National"). Indexed for filtering.
+    service_area: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+
+    # Languages offered, stored as a JSON array of ISO-639-1 codes.
+    # Examples: ["en", "es", "so", "hmn"]
+    languages: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+
+    # Contact points: JSON object {phone, email, website, address}
+    contact_info: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+    # Provenance and freshness
+    source: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_verified: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True, index=True)
+
+    # Status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+
+    # Audit
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
-    updated_by: Mapped[str | None] = mapped_column(String(256), nullable=True)
+
+
+# =============================================================================
+# Dispute Tracker
+# =============================================================================
+
+
+class DisputeRecord(Base):
+    """Tenant dispute record — structure and pointers only, PII content in overlays.
+
+    Tenant-facing, T2. Landlord/entity data is allowed per the DB boundary rule.
+    Descriptions, witness statements, and tenant contact details are stored as
+    overlay references, not in this table.
+    """
+
+    __tablename__ = "dispute_records"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    # Allowed structural data
+    landlord_entity: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    property_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    dispute_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # fees, lease_violation, retaliation, habitability
+    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)  # active, resolved, dismissed, on_hold
+    jurisdiction: Mapped[str] = mapped_column(String(10), default="MN", nullable=False)
+
+    # PII/content pointers (actual text lives in the user's cloud overlay)
+    content_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    evidence_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+class ComparisonEntry(Base):
+    """Fee or term comparison entry attached to a dispute record.
+
+    Amounts are stored in cents. The comparison rationale and any PII live in
+    the source overlay.
+    """
+
+    __tablename__ = "comparison_entries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    dispute_record_id: Mapped[str] = mapped_column(String(36), ForeignKey("dispute_records.id"), index=True, nullable=False)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    comparison_type: Mapped[str] = mapped_column(String(50), nullable=False)  # fee, term, notice, deposit
+    fee_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    period: Mapped[str | None] = mapped_column(String(50), nullable=True)  # monthly, yearly, one_time
+    effective_date: Mapped[datetime | None] = mapped_column(DateTimeTZ, nullable=True)
+
+    # Pointers to source content and evidence
+    source_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)
+
+
+# =============================================================================
+# Eviction Timeline
+# =============================================================================
+
+
+class EvictionTimelineEvent(Base):
+    """Eviction-specific timeline event — structure and pointers only.
+
+    Tenant-facing, T2. `subject_id` is a placeholder with no FK while the
+    accountability_ledger boundary is deferred. The event narrative and any
+    PII content are stored in the user''s cloud overlay.
+    """
+
+    __tablename__ = "eviction_timeline_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True, nullable=False)
+
+    # Placeholder subject — no FK until accountability_ledger model is decided
+    subject_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
+
+    event_type: Mapped[str] = mapped_column(String(50), index=True, nullable=False)  # notice, payment, maintenance, communication, court, filing
+    event_date: Mapped[datetime] = mapped_column(DateTimeTZ, index=True, nullable=False)
+    source: Mapped[str] = mapped_column(String(50), default="manual", nullable=False)  # manual, document, court, email
+
+    # Pointers only — content in overlays
+    source_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    content_overlay_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+
+    jurisdiction: Mapped[str] = mapped_column(String(10), default="MN", nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now, nullable=False)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale(request) | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -545,6 +545,7 @@
                     <span id="storage-session-dot" class="storage-session-dot"></span>
                     <span id="storage-session-label" class="storage-session-label-text">Checking storage&hellip;</span>
                 </button>
+                {% include "components/locale_selector.html" %}
             </div>
         </div>
     </header>

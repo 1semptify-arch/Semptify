@@ -48,13 +48,15 @@ else:
 
 import asyncio
 import datetime
+import json
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -66,6 +68,7 @@ from app.core.config import get_settings
 from app.core.cookie_auth import extract_user_id
 from app.core.database import close_db, init_db
 from app.core.navigation import navigation
+from app.core.security import UserContext, green_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 
@@ -83,6 +86,22 @@ BASE_PATH = get_base_path()
 
 # Jinja2 templates for frontend UI pages
 templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
+# Expose SSOT navigation to all Jinja2 templates so templates use navigation.get_stage(...).path
+# instead of hardcoded URL strings (Known Failure #9).
+templates.env.globals["navigation"] = navigation
+
+# Expose concrete subject starters for AI-assist surfaces (Task 3 content pass).
+from app.core.subject_starters import get_subject_starters as _get_subject_starters
+
+templates.env.globals["subject_starters"] = _get_subject_starters()
+
+# Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
+# templates (Task 6 i18n).
+from app.core.i18n import SUPPORTED_LOCALES, _jinja2_gettext, get_locale, i18n
+
+templates.env.globals["_"] = _jinja2_gettext
+templates.env.globals["supported_locales"] = SUPPORTED_LOCALES
+templates.env.globals["get_locale"] = get_locale
 
 from datetime import datetime as _dt
 
@@ -114,6 +133,39 @@ def register_stateless_routes(app: FastAPI):
         ctx = {"request": request, "year": _dt.utcnow().year}
         return templates.TemplateResponse("index.html", ctx)
 
+    @app.get("/api/i18n/locale", include_in_schema=False)
+    async def get_current_locale(request: Request):
+        """Return the resolved locale and supported locale list for JS."""
+        return JSONResponse(
+            {
+                "locale": i18n.get_locale(request),
+                "supported_locales": SUPPORTED_LOCALES,
+            }
+        )
+
+    @app.post("/api/i18n/set-locale", include_in_schema=False)
+    async def set_locale(request: Request, locale: str = Form(...)):
+        """Set the `semptify_locale` cookie and return the user to their prior page."""
+        if locale not in SUPPORTED_LOCALES:
+            raise HTTPException(status_code=400, detail="Unsupported locale")
+
+        referer = request.headers.get("referer", "/")
+        target_path = urlparse(referer).path or "/"
+        response = ssot_redirect(target_path, context="i18n.set-locale", strict=False)
+
+        # Mirrors cookie settings used by cookie_auth for consistency.
+        secure = request.url.scheme == "https"
+        response.set_cookie(
+            key="semptify_locale",
+            value=locale,
+            max_age=365 * 24 * 60 * 60,
+            path="/",
+            samesite="lax",
+            secure=secure,
+            httponly=False,
+        )
+        return response
+
 
 # Add custom Jinja2 filters
 def format_date_filter(value):
@@ -143,15 +195,31 @@ from app.core.utc import utc_now
 
 
 def setup_logging():
-    """Configure logging based on settings using enhanced logging config."""
-    from app.core.logging_config import setup_logging as configure_logging
+    """Configure logging based on settings using enhanced logging config.
 
+    Uses setup_application_logging from app.core.logging_service so the
+    buffering handler + R2/local flusher are wired in (Master Handoff Task 4).
+    Falls back to the base logging_config if the buffering service is unavailable.
+    """
     logging_settings = get_settings()
-    configure_logging(
-        level=logging_settings.log_level.upper(),
-        json_format=logging_settings.log_json_format,
-        log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
-    )
+    try:
+        from app.core.logging_service import setup_application_logging
+
+        setup_application_logging(
+            level=logging_settings.log_level.upper(),
+            json_format=logging_settings.log_json_format,
+            log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
+            flush_interval=logging_settings.log_flush_interval_seconds,
+            retention_days=logging_settings.log_retention_days,
+        )
+    except (ImportError, RuntimeError, ValueError):
+        from app.core.logging_config import setup_logging as configure_logging
+
+        configure_logging(
+            level=logging_settings.log_level.upper(),
+            json_format=logging_settings.log_json_format,
+            log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
+        )
 
 
 # =============================================================================
@@ -489,10 +557,15 @@ async def lifespan(_app: FastAPI):
             # Complaint Wizard legacy standalone (app.modules.complaint_wizard_module) removed.
             # Canonical complaint wizard lives at app.modules.complaints.router (EXTENDED tier).
 
-            # Mesh Network - DISABLED (major memory consumer)
-            # from app.services.mesh_handlers import register_all_mesh_handlers
-            # mesh_stats = register_all_mesh_handlers()
-            # logger.info("   ðŸ•¸ï¸ Mesh Network initialized")
+            # Mesh Network - re-enabled with bounded request/collaboration history
+            if enable_heavy:
+                try:
+                    from app.services.mesh_handlers import register_all_mesh_handlers
+
+                    mesh_stats = register_all_mesh_handlers()
+                    logger.info("   Mesh Network initialized (%s modules)", mesh_stats.get("modules_registered", "?"))
+                except Exception as e:
+                    logger.warning(f"   Mesh Network init failed (non-fatal): {e}")
 
             # Plugin System - DISABLED
             # from app.sdk.plugin_manager import plugin_manager
@@ -500,7 +573,7 @@ async def lifespan(_app: FastAPI):
             # plugin_stats = plugin_manager.load_all()
 
             if enable_heavy:
-                logger.info("   Core + heavy services active (mesh/plugins disabled for memory optimization)")
+                logger.info("   Core + heavy services active (plugins disabled for memory optimization)")
             else:
                 logger.info("   Core services only - heavy/mesh/plugins disabled for memory optimization")
 
@@ -570,6 +643,21 @@ async def lifespan(_app: FastAPI):
 
     register_shutdown_handler()
 
+    # Start buffered-log flusher (Master Handoff Task 4)
+    try:
+        from app.core.logging_service import get_log_flusher
+
+        _log_flusher = get_log_flusher()
+        if _log_flusher is not None:
+            _log_flusher.start()
+            lifespan_logger.info(
+                "   Log flusher started (interval=%ss, retention=%sd)",
+                _log_flusher.interval,
+                _log_flusher.retention_days,
+            )
+    except (ImportError, RuntimeError, ValueError) as e:
+        lifespan_logger.warning("   Log flusher start skipped: %s", e)
+
     # DISABLED: Distributed mesh network (memory hog)
     # try:
     #     await start_mesh_network()
@@ -588,6 +676,17 @@ async def lifespan(_app: FastAPI):
     # Wait for background tasks to complete
     await task_manager.wait_for_completion(timeout=10.0)
     lifespan_logger.info("   Background tasks completed")
+
+    # Stop buffered-log flusher (Master Handoff Task 4)
+    try:
+        from app.core.logging_service import get_log_flusher
+
+        _log_flusher = get_log_flusher()
+        if _log_flusher is not None:
+            await _log_flusher.stop()
+            lifespan_logger.info("   Log flusher stopped (final flush complete)")
+    except (ImportError, RuntimeError, ValueError) as e:
+        lifespan_logger.warning("   Log flusher stop skipped: %s", e)
 
     # DISABLED: Distributed mesh network
     # try:
@@ -1504,6 +1603,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.add_exception_handler(RequestValidationError, semptify_exception_handler)
     fastapi_app.add_exception_handler(StarletteHTTPException, semptify_exception_handler)
 
+    async def admin_elevation_handler(request: Request, exc: Exception):
+        """Redirect HTML requests to admin login; return JSON 401 for API calls."""
+        if request.url.path.endswith(".html"):
+            admin_login_stage = navigation.get_stage("admin_login")
+            admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
+            return ssot_redirect(admin_login_path, context="admin elevation required")
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Admin authentication required"},
+        )
+
+    from app.core.admin_elevation import AdminElevationRequired
+
+    fastapi_app.add_exception_handler(AdminElevationRequired, admin_elevation_handler)
+
     logger.info("Global error handling system registered")
 
     # =========================================================================
@@ -1656,6 +1770,27 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.add_middleware(CORSMiddleware, **cors_config)
     logger.info("ðŸ”’ CORS middleware configured (production=%s)", is_production)
 
+    # =========================================================================
+    # Feature Flag Middleware — returns 503 for routes whose flag is disabled
+    # (Master Handoff Task 4)
+    # =========================================================================
+    from app.core.feature_flags import FeatureFlagMiddleware
+
+    fastapi_app.add_middleware(FeatureFlagMiddleware)
+    logger.info("Feature flag middleware registered")
+
+    # =========================================================================
+    # Admin Network Middleware — outermost guard for /admin paths.
+    # Returns 404 for any /admin request from a non-admin (Tailscale/private)
+    # network, hiding the existence of admin endpoints from the public internet.
+    # Registered last so it wraps the entire stack (runs first on requests).
+    # (Master Handoff Task 4)
+    # =========================================================================
+    from app.core.admin_gating import AdminNetworkMiddleware
+
+    fastapi_app.add_middleware(AdminNetworkMiddleware)
+    logger.info("Admin network gating middleware registered (Tailscale/private-network only)")
+
     # Request ID middleware
     @fastapi_app.middleware("http")
     async def add_request_id(request: Request, call_next):
@@ -1771,7 +1906,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     "page": _p,
                     "footer_pages": _portal_pages.get_footer_pages(),
                 }
-                if _p.id == "services":
+                if _p.id in ("services", "portal"):
                     catalog = _get_catalog()
                     context["services"] = catalog["services"]
                     context["categories"] = catalog["categories"]
@@ -2066,10 +2201,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.cookie_auth import extract_user_id
 
         logger.info("=== ADMIN ELEVATION PAGE REQUESTED ===")
+
+        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
+        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
+
         # If already elevated, go straight to dashboard
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         if verify_elevation_cookie(str(elev_cookie) if elev_cookie else None):
-            return ssot_redirect("/admin/dashboard", context="admin_login already elevated")
+            return ssot_redirect(admin_dashboard_path, context="admin_login already elevated")
         # Check if user has an OAuth session
         oauth_uid = extract_user_id(request)
         has_session = oauth_uid is not None
@@ -2178,7 +2317,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }});
             var data = await res.json();
             if (data.success) {{
-                window.location.href = data.redirect || "/admin/dashboard";
+                window.location.href = data.redirect || "{admin_dashboard_path}";
             }} else {{
                 document.getElementById("error").textContent = data.detail || data.error || "Invalid code";
                 document.getElementById("btn2").disabled = false;
@@ -2238,6 +2377,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.admin_elevation import set_elevation_cookie
         from app.core.cookie_auth import extract_user_id
 
+        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
+        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
+        storage_select_stage = navigation.get_stage("storage_select")
+        storage_select_path = storage_select_stage.path if storage_select_stage else "/onboarding/providers"
+
         try:
             data = await request.json()
             username = data.get("username", "").strip()
@@ -2271,11 +2415,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not has_oauth:
             return {
                 "success": True,
-                "redirect": "/onboarding/providers?role=admin",
+                "redirect": f"{storage_select_path}?role=admin",
                 "message": "Please connect your storage to continue",
             }
 
-        return {"success": True, "redirect": "/admin/dashboard"}
+        return {"success": True, "redirect": admin_dashboard_path}
 
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
@@ -2283,7 +2427,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.admin_elevation import clear_elevation_cookie
 
         clear_elevation_cookie(response)
-        return ssot_redirect("/admin/login", context="admin_logout")
+        admin_login_stage = navigation.get_stage("admin_login")
+        admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
+        return ssot_redirect(admin_login_path, context="admin_logout")
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
     @fastapi_app.get("/admin/home.html", response_class=HTMLResponse)
@@ -2293,7 +2439,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if home_path.exists():
             return FileResponse(str(home_path))
         # Fallback to login if home.html missing
-        return ssot_redirect("/admin/login", context="admin_home missing home.html")
+        admin_login_stage = navigation.get_stage("admin_login")
+        admin_login_path = admin_login_stage.path if admin_login_stage else "/admin/login"
+        return ssot_redirect(admin_login_path, context="admin_home missing home.html")
 
     # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
     # Does NOT check OAuth role — elevation is separate from storage identity
@@ -2303,13 +2451,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Requires a valid admin elevation cookie issued by /admin/api/login-step2.
         Elevation is valid for 2 hours and requires TOTP re-verification.
         """
-        from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        from app.core.admin_elevation import (
+            ELEVATION_COOKIE_NAME,
+            AdminElevationRequired,
+            verify_elevation_cookie,
+        )
 
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
         if not payload:
-            # Redirect to elevation prompt — stealth: looks like a normal login page
-            return ssot_redirect("/admin/login", context="_require_elevation missing/expired")
+            # Abort to admin elevation prompt — stealth: looks like a normal login page
+            raise AdminElevationRequired("Admin elevation required")
         return payload["uid"]
 
     require_admin = _require_elevation
@@ -2353,6 +2505,51 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if dashboard_path.exists():
             return FileResponse(str(dashboard_path))
         return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/system-health", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/system-health.html", response_class=HTMLResponse)
+    async def admin_system_health_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve the System Health & Updates page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "system-health.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>System Health page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/run-modules", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/run-modules.html", response_class=HTMLResponse)
+    async def admin_run_modules_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve the Run Modules page (migrated orchestrator dashboard)."""
+        # Serve the generated orchestrator dashboard from tools/
+        page_path = BASE_PATH / "tools" / "orchestrator_dashboard.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Run Modules page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/testing", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/testing.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/invite-codes", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/invite-codes.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/correspondence", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/correspondence.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/user-concerns", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/user-concerns.html", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/advanced", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/advanced.html", response_class=HTMLResponse)
+    async def admin_tile_stub_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve stub tile pages from the Admin Hub."""
+        page_path = BASE_PATH / "static" / "admin" / "tile_stub.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Tile page not found</h1>", status_code=404)
 
     @fastapi_app.get("/admin/contract-browser.html", response_class=HTMLResponse)
     async def admin_contract_browser(
@@ -2468,6 +2665,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Agent Orchestrator not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/script-catalog.html", response_class=HTMLResponse)
+    async def admin_script_catalog_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Script Catalog admin page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "script_catalog.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Script Catalog not found</h1>", status_code=404)
+
     @fastapi_app.get("/ai-helper", response_class=HTMLResponse)
     async def ai_helper_page(request: Request):
         """Serve the AI Helper page - one-click prompt + bundle for external AI consultation."""
@@ -2483,6 +2691,98 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     ):
         """Serve Dev Lab admin page (alias for /admin/forge.html)."""
         return await admin_forge_page(request, admin_uid)
+
+    # =========================================================================
+    # Admin Logging + Feature Flag API (Master Handoff Task 4)
+    # All endpoints require admin elevation (TOTP-verified). The
+    # AdminNetworkMiddleware (registered above) additionally gates these to
+    # Tailscale/private-network clients only.
+    # =========================================================================
+    @fastapi_app.get("/admin/api/logs", tags=["admin"])
+    async def admin_get_logs(
+        n: int = 100,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Return the last n buffered log entries (live tail)."""
+        from app.core.logging_service import get_log_tail
+
+        return {"entries": get_log_tail(n=min(max(n, 1), 1000))}
+
+    @fastapi_app.put("/admin/api/logs/level", tags=["admin"])
+    async def admin_set_log_level(
+        level: str,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Set the runtime root log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)."""
+        from app.core.logging_service import set_log_level
+
+        return {"level": set_log_level(level)}
+
+    @fastapi_app.get("/admin/api/flags", tags=["admin"])
+    async def admin_get_flags(admin_uid: str = Depends(require_admin)):
+        """Return the current state of all feature flags."""
+        from app.core.feature_flags import FeatureFlags
+
+        return {"flags": FeatureFlags.all_flags()}
+
+    @fastapi_app.put("/admin/api/flags/{name}", tags=["admin"])
+    async def admin_set_flag(
+        name: str,
+        enabled: bool,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Set a feature flag to a specific value."""
+        from app.core.feature_flags import FeatureFlags
+
+        return {"name": name, "enabled": FeatureFlags.set_flag(name, enabled)}
+
+    @fastapi_app.post("/admin/api/flags/{name}/toggle", tags=["admin"])
+    async def admin_toggle_flag(
+        name: str,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Toggle a feature flag."""
+        from app.core.feature_flags import FeatureFlags
+
+        return {"name": name, "enabled": FeatureFlags.toggle_flag(name)}
+
+    @fastapi_app.get("/admin/api/script-catalog", tags=["admin"])
+    async def admin_script_catalog_api(admin_uid: str = Depends(require_admin)):
+        """Return the script catalog JSON (admin-only)."""
+        catalog_path = BASE_PATH / "static" / "data" / "script_catalog.json"
+        if catalog_path.exists():
+            return json.loads(catalog_path.read_text(encoding="utf-8"))
+        return {"error": "Script catalog not found"}
+
+    @fastapi_app.get("/admin/api/registry", tags=["admin"])
+    async def admin_registry_api(admin_uid: str = Depends(require_admin)):
+        """Return the module registry as JSON (admin-only)."""
+        from app.core.module_registry_loader import load_registry
+
+        return load_registry()
+
+    @fastapi_app.post("/admin/api/verify", tags=["admin"])
+    async def admin_verify_api(admin_uid: str = Depends(require_admin)):
+        """Run sync_registry + verify_modules and return the updated registry."""
+        from app.core.module_registry_loader import run_sync_and_verify
+
+        return await run_sync_and_verify()
+
+    @fastapi_app.get("/admin/health", tags=["admin"])
+    async def admin_health(admin_uid: str = Depends(require_admin)):
+        """Admin-only health/status snapshot (separate from public /status)."""
+        from app.core.logging_service import get_log_buffer, get_log_flusher
+
+        buffer = get_log_buffer()
+        flusher = get_log_flusher()
+        return {
+            "status": "ok",
+            "log_buffer_size": len(buffer.tail(0)) if buffer else 0,
+            "log_flusher_running": bool(flusher and flusher._running),
+            "log_flush_interval_seconds": flusher.interval if flusher else None,
+            "log_retention_days": flusher.retention_days if flusher else None,
+            "ts": utc_now().isoformat(),
+        }
 
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(
@@ -2525,12 +2825,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return HTMLResponse(content="<h1>Overlay Viewer not found</h1>", status_code=404)
 
     @fastapi_app.get("/admin", response_class=HTMLResponse)
-    async def admin_root_redirect(
+    async def admin_hub_page(
         request: Request,
         admin_uid: str = Depends(require_admin),
     ):
-        """Redirect /admin to dashboard - ADMIN role required."""
-        return ssot_redirect("/admin/dashboard.html", context="admin_root_redirect")
+        """Serve the Admin Hub - the single landing page for all administration."""
+        hub_path = BASE_PATH / "static" / "admin" / "hub.html"
+        if hub_path.exists():
+            content = hub_path.read_text(encoding="utf-8")
+            return HTMLResponse(content=content)
+        admin_dashboard_stage = navigation.get_stage("admin_dashboard")
+        admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
+        return ssot_redirect(admin_dashboard_path, context="admin_hub missing hub.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):
@@ -2811,10 +3117,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         This is the universal help page for everyone (tenants, landlords, guests).
         Also serves as the fatal-error fallback page.
         """
-        help_path = BASE_PATH / "static" / "tenant" / "help.html"
-        if help_path.exists():
-            return FileResponse(str(help_path), media_type="text/html")
-        return templates.TemplateResponse(request, "pages/help.html")
+        try:
+            return templates.TemplateResponse(request, "pages/help.html")
+        except Exception:
+            help_path = BASE_PATH / "static" / "tenant" / "help.html"
+            if help_path.exists():
+                return FileResponse(str(help_path), media_type="text/html")
+            raise
 
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):
@@ -2970,6 +3279,38 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def gui_act_page(request: Request):
         """GUI Act — placeholder."""
         return templates.TemplateResponse(request, "gui/act.html")
+
+    @fastapi_app.get("/gui/packet-builder", response_class=HTMLResponse)
+    async def gui_packet_builder_page(request: Request):
+        """GUI Packet Builder — build and download curated document packets."""
+        return templates.TemplateResponse(request, "gui/packet_builder.html")
+
+    @fastapi_app.get("/gui/page/{subject}", response_class=HTMLResponse)
+    async def gui_assembled_page(request: Request, subject: str):
+        """Render a subject page assembled by Page Composer and Page Shell."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        from app.core.cookie_auth import verify_user_id
+        from app.modules.context_engine.taxonomy import ALL_SUBJECTS
+        from app.modules.page_composer.assembly import assemble_page
+        from app.modules.page_shell.renderer import render_page_shell
+
+        if subject not in ALL_SUBJECTS:
+            raise HTTPException(status_code=404, detail=f"Unknown subject: {subject}")
+
+        user_id = verify_user_id(request.cookies.get("semptify_uid", "")) or ""
+        result = await assemble_page(subject=subject, user_id=user_id)
+        return templates.TemplateResponse(
+            request,
+            "gui/assembled_page.html",
+            {
+                "subject": subject,
+                "shell_html": render_page_shell(result.page_config),
+                "assembly_metadata": result.metadata,
+            },
+        )
 
     # =========================================================================
     # Calendar Page
@@ -3834,6 +4175,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         who_involved = form_data.get("who_involved", "")
         location = form_data.get("location", "")
 
+        # Collect vault IDs uploaded via media capture (photo/audio) so they are
+        # attached to the timeline event as evidence.
+        attached_ids: list[str] = []
+        for raw in form_data.getlist("attached_document_ids"):
+            if raw:
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, list):
+                        attached_ids.extend(str(v) for v in parsed if v)
+                    else:
+                        attached_ids.append(str(parsed))
+                except (json.JSONDecodeError, TypeError):
+                    attached_ids.append(str(raw))
+
         if not description:
             raise HTTPException(status_code=400, detail="Description is required")
 
@@ -3878,12 +4233,73 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 who_involved=who_involved,
                 location=location,
                 is_evidence=False,
+                attached_document_ids=json.dumps(attached_ids) if attached_ids else None,
                 created_at=utc_now(),
             )
             db.add(event)
             await db.commit()
 
         return {"success": True, "event_id": event.id}
+
+    @fastapi_app.post("/api/media/capture")
+    async def media_capture_post(
+        request: Request,
+        file: UploadFile = File(...),  # noqa: A001
+        media_type: str = Form("photo"),
+        user: UserContext = Depends(green_access),
+    ):
+        """Upload a photo or audio clip captured via getUserMedia to the user's vault."""
+        try:
+            content = await file.read()
+        finally:
+            await file.close()
+
+        if not content:
+            raise HTTPException(status_code=400, detail="Empty media file")
+
+        allowed_types = {"photo", "audio"}
+        if media_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid media_type. Must be one of {allowed_types}.",
+            )
+
+        # Resolve a real access token if the cookie-only token is stale/missing.
+        real_token = user.access_token
+        if not real_token or real_token in ("auto", "no-token"):
+            try:
+                from app.core.oauth_token_manager import get_valid_token_for_user
+
+                real_token = get_valid_token_for_user(user.user_id)
+            except Exception as exc:
+                logger.warning("Could not load token for media capture: %s", exc)
+                real_token = None
+
+        filename = file.filename or f"{media_type}_{utc_now().timestamp()}.webm"
+        mime_type = file.content_type or ("image/jpeg" if media_type == "photo" else "audio/webm")
+        document_type = "photo" if media_type == "photo" else "audio_recording"
+
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.upload(
+            user_id=user.user_id,
+            filename=filename,
+            content=content,
+            mime_type=mime_type,
+            document_type=document_type,
+            description=f"{media_type.title()} captured on tenant capture page",
+            tags=["media_capture", media_type, "evidence"],
+            source_module="media_capture",
+            access_token=real_token,
+            storage_provider=user.provider.value if user.provider else "local",
+        )
+
+        return {
+            "success": True,
+            "vault_id": doc.vault_id,
+            "media_type": media_type,
+        }
 
     @fastapi_app.get("/tenant/journal", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/journal/", response_class=HTMLResponse)

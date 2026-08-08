@@ -14,12 +14,78 @@ from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from enum import Enum
+import importlib
 import json
 import os
 import subprocess
 import sys
+import types
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Restricted execution sandbox for hardcoded test-case code
+# =============================================================================
+
+# Builtin names permitted inside exec()'d test snippets.
+# Dangerous builtins (open, eval, exec, compile, input, breakpoint, exit, quit)
+# are intentionally excluded.
+_SAFE_BUILTIN_NAMES = frozenset([
+    'abs', 'all', 'any', 'ascii', 'bin', 'bool', 'bytearray', 'bytes',
+    'callable', 'chr', 'classmethod', 'complex', 'dict',
+    'divmod', 'enumerate', 'filter', 'float', 'format', 'frozenset',
+    'hash', 'hex', 'id', 'int', 'isinstance', 'issubclass',
+    'iter', 'len', 'list', 'map', 'max', 'memoryview', 'min', 'next',
+    'oct', 'ord', 'pow', 'property', 'range', 'repr', 'reversed', 'round',
+    'set', 'slice', 'sorted', 'staticmethod', 'str', 'sum', 'super', 'tuple',
+    'zip', 'AssertionError', 'AttributeError', 'Exception',
+    'ImportError', 'IndexError', 'KeyError', 'LookupError', 'NameError',
+    'RuntimeError', 'StopIteration', 'TypeError', 'ValueError', 'ZeroDivisionError',
+    'True', 'False', 'None',
+])
+
+_builtins_source = __builtins__ if isinstance(__builtins__, dict) else vars(__builtins__)
+_SAFE_BUILTINS = {
+    name: _builtins_source[name]
+    for name in _SAFE_BUILTIN_NAMES
+    if name in _builtins_source
+}
+
+# Modules that hardcoded default test snippets are allowed to import.
+# Any module outside this set (or special-cased below) is rejected by the
+# custom __import__ guard. Relative imports are not allowed.
+_SAFE_ALLOWED_MODULES = frozenset([
+    'tempfile',
+    'time',
+    'pyotp',
+    'app.core.security',
+    'app.core.advanced_rate_limiter',
+    'app.core.advanced_security',
+    'app.core.cache_manager',
+])
+
+# The default test snippet uses os.unlink to clean up a temp file. Expose
+# only that operation so that dangerous attributes like os.system cannot be
+# reached from inside the sandbox.
+_safe_os = types.SimpleNamespace()
+_safe_os.__name__ = 'os'
+_safe_os.unlink = os.unlink
+
+
+def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
+    """Restricted __import__ used by exec()'d test code."""
+    if level != 0:
+        raise ImportError("Relative imports are not allowed in test sandbox")
+    if name == 'os':
+        return _safe_os
+    if name not in _SAFE_ALLOWED_MODULES:
+        raise ImportError(f"Import of module '{name}' is not allowed in test sandbox")
+    return importlib.import_module(name)
+
+
+_SAFE_BUILTINS['__import__'] = _safe_import
+
 
 class TestType(Enum):
     """Test types."""
@@ -342,20 +408,29 @@ class TestFramework:
     async def _execute_code(self, code: str, context: str) -> Any:
         """Execute Python code in a controlled environment."""
         try:
-            # Create a safe execution environment
+            # WARNING: this executes hardcoded test-case strings only.
+            # If any future code path allows request-supplied test_code,
+            # setup_code, or teardown_code, this sandboxing MUST be
+            # revisited and the eval/exec audit re-run.
+
+            # Build a restricted builtins namespace. Dangerous builtins
+            # such as open, eval, exec, compile, input, and breakpoint are
+            # excluded. A custom __import__ restricts imports to the small
+            # set of modules required by the hardcoded default test suites.
             local_vars = {
                 'datetime': datetime,
                 'timezone': timezone,
                 'logger': logger,
-                'asyncio': asyncio
+                'asyncio': asyncio,
+                '__builtins__': _SAFE_BUILTINS.copy(),
             }
-            
+
             # Execute the code
             exec(code, local_vars)
-            
+
             # Return result if available
             return local_vars.get('result', None)
-            
+
         except Exception as e:
             logger.error(f"Code execution failed in {context}: {e}")
             raise

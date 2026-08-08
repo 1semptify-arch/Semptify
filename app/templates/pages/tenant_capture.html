@@ -203,17 +203,92 @@
     font-weight: 500;
     color: var(--color-text-primary);
 }
+
+/* Media Capture */
+.media-capture {
+    margin-top: 0.75rem;
+}
+
+.media-capture__controls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.media-capture__consent {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.media-capture__stage {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.media-capture__preview-wrap {
+    margin-bottom: 0.75rem;
+}
+
+.media-capture__preview,
+.media-capture__photo-result,
+.media-capture__canvas {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+    display: block;
+}
+
+.media-capture__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.media-capture__gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.media-capture__gallery-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+}
+
+.media-capture__remove {
+    background: transparent;
+    border: none;
+    color: var(--color-warning);
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-decoration: underline;
+}
+
+.media-capture__notice {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="capture-container">
-    
+
     <div class="capture-header">
         <h1>What happened?</h1>
         <p>Record it now while it's fresh. You can add more details later.</p>
     </div>
-    
+
     <!-- Success Message -->
     <div class="success-message" id="successMsg">
         <div class="success-icon">✅</div>
@@ -224,10 +299,10 @@
             <a href="/tenant/home" class="btn btn--primary">Go to Home</a>
         </div>
     </div>
-    
+
     <form id="captureForm" action="/api/tenant/capture" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        
+
         <!-- Type Selection -->
         <div class="type-grid">
             <div class="type-card {% if capture_type == 'notice' %}active{% endif %}" data-type="notice">
@@ -255,22 +330,23 @@
                 <div class="type-label">Something Else</div>
             </div>
         </div>
-        
+
         <input type="hidden" name="capture_type" id="captureType" value="{{ capture_type or 'other' }}">
-        
+
         <div class="form-section">
             <!-- Urgency -->
             <div class="urgency-banner">
                 <input type="checkbox" id="isUrgent" name="is_urgent" value="true">
                 <label for="isUrgent">This needs immediate attention</label>
             </div>
-            
+
             <!-- What Happened -->
             <div class="form-group">
                 <label for="whatHappened">What happened? *</label>
                 <textarea id="whatHappened" name="description" required placeholder="Describe what happened...">{{ prefill_description or '' }}</textarea>
+                {% with target='whatHappened' %}{% include 'components/voice_input.html' %}{% endwith %}
             </div>
-            
+
             <!-- When -->
             <div class="form-group datetime-row">
                 <div>
@@ -282,19 +358,19 @@
                     <input type="time" id="eventTime" name="event_time">
                 </div>
             </div>
-            
+
             <!-- Who -->
             <div class="form-group">
                 <label for="whoInvolved">Who was involved?</label>
                 <input type="text" id="whoInvolved" name="who_involved" placeholder="e.g., Property manager John, Maintenance worker">
             </div>
-            
+
             <!-- Where -->
             <div class="form-group">
                 <label for="whereLocation">Where did this happen?</label>
                 <input type="text" id="whereLocation" name="location" placeholder="e.g., My apartment, Leasing office, Parking lot">
             </div>
-            
+
             <!-- Upload -->
             <div class="form-group">
                 <label>Have any photos, documents, or recordings?</label>
@@ -307,17 +383,24 @@
                 </div>
                 <input type="file" id="fileInput" name="files" multiple hidden>
                 <div id="fileList" style="margin-top: 0.75rem;"></div>
+
+                <!-- Media Capture -->
+                <div class="form-group">
+                    <label>Capture photo or audio now</label>
+                    <div id="mediaCapture"></div>
+                </div>
             </div>
-            
+
             <!-- Submit -->
             <button type="submit" class="submit-btn">Save This Record</button>
         </div>
     </form>
-    
+
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/media_capture.js"></script>
 <script>
 // Type selection
 const typeCards = document.querySelectorAll('.type-card');
@@ -353,15 +436,15 @@ document.getElementById('eventDate').valueAsDate = new Date();
 // Form submission
 document.getElementById('captureForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData(e.target);
-    
+
     try {
         const response = await fetchWithCSRF('/api/tenant/capture', {
             method: 'POST',
             body: formData
         });
-        
+
         if (response.ok) {
             document.getElementById('successMsg').classList.add('show');
             document.getElementById('captureForm').style.display = 'none';
@@ -372,5 +455,10 @@ document.getElementById('captureForm').addEventListener('submit', async (e) => {
         showFlash('Network error. Please check connection.', 'error');
     }
 });
+
+// Initialize camera / microphone capture widget
+if (typeof initMediaCapture === 'function') {
+    initMediaCapture('#mediaCapture', '#captureForm');
+}
 </script>
 {% endblock %}

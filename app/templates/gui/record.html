@@ -2,95 +2,75 @@
 
 {% block title %}Record — Semptify{% endblock %}
 {% block nav_record %}active{% endblock %}
+{% block container_class %}gui-viewport-locked{% endblock %}
 
 {% block content %}
-<section class="frame-panel">
-    <div class="frame-panel--header">
-        <span class="frame-panel--title">Your Record</span>
-        <button id="exportBtn" class="frame-btn" type="button" disabled>Export my case</button>
-    </div>
-    <div class="frame-panel--body">
-        <p style="color:#94a3b8; font-size:0.9375rem;">
-            Everything you've captured about your tenancy — documents, deadlines, and events.
-        </p>
-    </div>
-</section>
+<div class="gui-screen">
 
-<section class="frame-panel">
-    <div class="frame-panel--header">
-        <span class="frame-panel--title">Record tools</span>
-    </div>
-    <div class="frame-panel--body">
-        <div class="frame-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-            <a href="/calendar" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                <span style="font-size:1.25rem;">▸</span>
-                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Calendar</strong>
-                <span style="color:#94a3b8; font-size:0.875rem;">Deadlines, hearings, reminders.</span>
-            </a>
-            <a href="/timeline" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                <span style="font-size:1.25rem;">▸</span>
-                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Timeline</strong>
-                <span style="color:#94a3b8; font-size:0.875rem;">Every event in one vertical list.</span>
-            </a>
-            <a href="/comms-log" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none;">
-                <span style="font-size:1.25rem;">▸</span>
-                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Comms Log</strong>
-                <span style="color:#94a3b8; font-size:0.875rem;">Log calls, emails, texts, and visits.</span>
-            </a>
-            <a href="/gui/record" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none; opacity:0.6;">
-                <span style="font-size:1.25rem;">▸</span>
-                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Journal</strong>
-                <span style="color:#94a3b8; font-size:0.875rem;">Notes attached to events. Coming soon.</span>
-            </a>
-            <a href="/gui/record" class="frame-card" style="display:block; padding:1rem; background:var(--zone-bg-secondary); text-decoration:none; opacity:0.6;">
-                <span style="font-size:1.25rem;">▸</span>
-                <strong style="display:block; color:#e2e8f0; margin-top:0.5rem;">Rent Ledger</strong>
-                <span style="color:#94a3b8; font-size:0.875rem;">Track payments. Coming soon.</span>
-            </a>
-        </div>
-    </div>
-</section>
+    <div class="gui-screen--primary">
+        <section class="frame-panel">
+            <div class="frame-panel--header">
+                <span class="frame-panel--title">Your Record</span>
+                <button id="exportBtn" class="frame-btn" type="button" disabled>Export my case</button>
+            </div>
+            <div class="frame-panel--body">
+                <p style="color:#94a3b8; font-size:0.9375rem;">
+                    Everything you've captured about your tenancy — documents, deadlines, and events.
+                </p>
+            </div>
+        </section>
 
-<section class="frame-panel" id="uploadPanel">
-    <div class="frame-panel--header">
-        <span class="frame-panel--title">Upload a document</span>
-    </div>
-    <div class="frame-panel--body">
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="frame-item" id="dropZone" style="background:var(--zone-bg-tertiary); cursor:pointer; justify-content:center; text-align:center;">
-                <div class="frame-item--main">
-                    <div class="frame-item--title" id="dropTitle">Tap here to choose a file</div>
-                    <div class="frame-item--meta" id="dropHint">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
+        <section class="frame-panel" id="uploadPanel">
+            <div class="frame-panel--header">
+                <span class="frame-panel--title">Upload a document</span>
+            </div>
+            <div class="frame-panel--body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="frame-item" id="dropZone" style="background:var(--zone-bg-tertiary); cursor:pointer; justify-content:center; text-align:center;">
+                        <div class="frame-item--main">
+                            <div class="frame-item--title" id="dropTitle">Tap here to choose a file</div>
+                            <div class="frame-item--meta" id="dropHint">Photos, letters, PDFs, screenshots — anything about your tenancy.</div>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInput" name="file" accept="*/*" style="display:none;">
+                    <div id="uploadStatus" style="font-size:0.8125rem; color:#94a3b8; margin-top:0.5rem;"></div>
+                </form>
+            </div>
+        </section>
+
+        <section class="frame-panel">
+            <div class="frame-panel--header">
+                <span class="frame-panel--title">Documents</span>
+                <span id="docCount" style="font-size:0.8125rem; color:#64748b;"></span>
+            </div>
+            <div class="frame-panel--body" id="docList">
+                <div class="frame-empty" id="docEmpty">
+                    <div class="frame-empty--icon">∅</div>
+                    <p>No documents yet.</p>
+                    <p class="frame-empty--hint">Upload your first file above.</p>
                 </div>
             </div>
-            <input type="file" id="fileInput" name="file" accept="*/*" style="display:none;">
-            <div id="uploadStatus" style="font-size:0.8125rem; color:#94a3b8; margin-top:0.5rem;"></div>
-        </form>
+        </section>
     </div>
-</section>
 
-<section class="frame-panel">
-    <div class="frame-panel--header">
-        <span class="frame-panel--title">Documents</span>
-        <span id="docCount" style="font-size:0.8125rem; color:#64748b;"></span>
+    <div class="gui-screen--secondary">
+        <a href="/calendar" class="frame-btn frame-btn--primary">Calendar</a>
+        <a href="/timeline" class="frame-btn">Timeline</a>
+        <a href="/comms-log" class="frame-btn">Comms Log</a>
     </div>
-    <div class="frame-panel--body" id="docList">
-        <div class="frame-empty" id="docEmpty">
-            <div class="frame-empty--icon">∅</div>
-            <p>No documents yet.</p>
-            <p class="frame-empty--hint">Upload your first file above.</p>
-        </div>
-    </div>
-</section>
 
-<section class="frame-panel">
-    <div class="frame-panel--body">
-        <p style="font-size:0.8125rem; color:#64748b;">
-            Semptify does not give legal advice.
-            <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">Find legal help near you</a>.
-        </p>
+    <div class="gui-screen--support">
+        <section class="frame-panel">
+            <div class="frame-panel--body">
+                <p style="font-size:0.8125rem; color:#64748b;">
+                    Semptify does not give legal advice.
+                    <a href="https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help" style="color:#3b82f6;">Find legal help near you</a>.
+                </p>
+            </div>
+        </section>
     </div>
-</section>
+
+</div>
 {% endblock %}
 
 {% block scripts %}

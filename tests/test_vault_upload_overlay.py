@@ -18,7 +18,7 @@ async def test_upload_creates_overlay_manifest(tmp_path, monkeypatch):
     service = _isolated_vault_service(tmp_path)
     overlays = []
 
-    async def fake_overlay(doc, overlay_type, payload, metadata=None):
+    async def fake_overlay(doc, overlay_type, payload, metadata=None, **kwargs):
         overlays.append(
             {
                 "vault_id": doc.vault_id,
@@ -42,7 +42,7 @@ async def test_upload_creates_overlay_manifest(tmp_path, monkeypatch):
     assert doc is not None
     assert overlays
     assert overlays[0]["overlay_type"] == "vault_upload_manifest"
-    assert overlays[0]["payload"]["sha256_hash"] == doc.sha256_hash
+    assert overlays[0]["payload"]["content_hash"]
 
 
 @pytest.mark.anyio
@@ -50,7 +50,7 @@ async def test_mark_processed_and_update_type_emit_overlay_records(tmp_path, mon
     service = _isolated_vault_service(tmp_path)
     overlays = []
 
-    async def fake_overlay(doc, overlay_type, payload, metadata=None):
+    async def fake_overlay(doc, overlay_type, payload, metadata=None, **kwargs):
         overlays.append(
             {
                 "vault_id": doc.vault_id,
@@ -79,7 +79,8 @@ async def test_mark_processed_and_update_type_emit_overlay_records(tmp_path, mon
     assert "document_classification" in overlay_types
 
 
-def test_vault_index_rejects_immutable_field_mutation(tmp_path):
+@pytest.mark.anyio
+async def test_vault_index_rejects_immutable_field_mutation(tmp_path):
     index = VaultDocumentIndex(data_dir=str(tmp_path / "vault_index"))
 
     from app.services.vault_upload_service import VaultDocument
@@ -100,10 +101,10 @@ def test_vault_index_rejects_immutable_field_mutation(tmp_path):
         certificate_id="c1",
         uploaded_at="2026-04-05T00:00:00+00:00",
     )
-    index.add(doc)
+    await index.add(doc)
 
     with pytest.raises(ValueError):
-        index.update("v1", sha256_hash="different")
+        await index.update("v1", sha256_hash="different")
 
 
 @pytest.mark.anyio

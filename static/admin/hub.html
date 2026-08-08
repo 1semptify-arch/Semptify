@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semptify Admin Hub</title>
+<link rel="stylesheet" href="/css/admin-nav.css">
+<style>
+  :root {
+    --zone-run: #1e2a1e;
+    --zone-test: #1e232a;
+    --zone-invite: #2a241e;
+    --zone-mail: #241e2a;
+    --zone-concerns: #2a1e1e;
+    --zone-health: #1e2a29;
+    --zone-advanced: #262626;
+    --text-main: #e8e8e8;
+    --text-dim: #9a9a9a;
+    --bg: #121212;
+    --ok: #22c55e;
+    --warning: #eab308;
+    --broken: #ef4444;
+    --unverified: #9a9a9a;
+    --orphaned: #f97316;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 2rem;
+  }
+  h1 { font-weight: 600; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--text-dim); margin-bottom: 1.5rem; font-size: 0.9rem; }
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  #update-now {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    background: #2f6f4f;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  #update-now:disabled { background: #444; cursor: wait; }
+  #update-status { color: var(--text-dim); font-size: 0.85rem; margin-left: 0.75rem; }
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .tile {
+    border: none;
+    box-shadow: none;
+    border-radius: 8px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+  }
+  .tile:hover { filter: brightness(1.15); }
+  .tile h2 { margin: 0 0 0.4rem 0; font-size: 1.05rem; }
+  .tile p { margin: 0 0 0.75rem 0; color: var(--text-dim); font-size: 0.85rem; line-height: 1.4; }
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+  .badge { font-size: 1rem; }
+  .status-ok { color: var(--ok); }
+  .status-warning { color: var(--warning); }
+  .status-broken { color: var(--broken); }
+  .status-unverified { color: var(--unverified); }
+  .status-orphaned { color: var(--orphaned); }
+</style>
+</head>
+<body>
+
+<h1>Semptify Admin Hub</h1>
+<p class="subtitle">Select a platform administration area. Each tile shows live verification status from the module registry.</p>
+
+<div class="topbar">
+  <button id="update-now">Update Now</button>
+  <span id="update-status"></span>
+</div>
+
+<div class="hub-grid" id="hub-grid"><!-- tiles injected by renderTiles() --></div>
+
+<script>
+const REGISTRY_ENDPOINT = "/admin/api/registry";
+const VERIFY_ENDPOINT = "/admin/api/verify";
+
+const TILE_DEFS = [
+  { id: "run_modules",   name: "Run Modules",                zone: "--zone-run",      desc: "Launch and monitor operational modules.",        route: "/admin/run-modules" },
+  { id: "testing",       name: "Testing",                     zone: "--zone-test",     desc: "Test suite runner and conformance checks.",       route: "/admin/testing" },
+  { id: "invite_codes",  name: "Invite Codes & Authorizations",zone: "--zone-invite",  desc: "Issue, revoke, and audit invite codes and roles.",route: "/admin/invite-codes" },
+  { id: "correspondence",name: "Correspondence",              zone: "--zone-mail",     desc: "Semptify-originated emails and templates.",       route: "/admin/correspondence" },
+  { id: "user_concerns", name: "User Concerns",                zone: "--zone-concerns",desc: "Support queue and flagged issues.",               route: "/admin/user-concerns" },
+  { id: "system_health", name: "System Health & Updates",     zone: "--zone-health",   desc: "Module verification and update status.",         route: "/admin/system-health" },
+  { id: "advanced",      name: "Advanced / Dev Tools",        zone: "--zone-advanced", desc: "Build Orchestrator, Guardrail Engine, Sync Monitor.", route: "/admin/advanced" },
+];
+
+const BADGE = {
+  ok: { symbol: "🟢", class: "status-ok", label: "OK" },
+  warning: { symbol: "🟡", class: "status-warning", label: "Needs attention" },
+  broken: { symbol: "🔴", class: "status-broken", label: "Broken" },
+  unverified: { symbol: "⚪", class: "status-unverified", label: "Untested" },
+  orphaned: { symbol: "🟠", class: "status-orphaned", label: "Orphaned" },
+};
+
+async function fetchRegistry() {
+  try {
+    const res = await fetch(REGISTRY_ENDPOINT);
+    if (!res.ok) throw new Error(res.statusText);
+    return await res.json();
+  } catch (e) {
+    console.error("Registry fetch failed:", e);
+    return [];
+  }
+}
+
+function renderTiles(registryById) {
+  const grid = document.getElementById("hub-grid");
+  grid.innerHTML = "";
+  for (const tile of TILE_DEFS) {
+    const reg = registryById[tile.id] || { status: "unverified", last_verified: null };
+    const meta = BADGE[reg.status] || BADGE.unverified;
+    const el = document.createElement("a");
+    el.className = "tile";
+    el.href = tile.route;
+    el.style.background = `var(${tile.zone})`;
+    el.style.textDecoration = "none";
+    el.style.color = "inherit";
+    el.innerHTML = `
+      <h2>${tile.name}</h2>
+      <p>${tile.desc}</p>
+      <div class="status-row">
+        <span class="badge ${meta.class}" title="${meta.label}">${meta.symbol}</span>
+        <span>${reg.last_verified ? new Date(reg.last_verified).toLocaleString() : "never verified"}</span>
+      </div>
+    `;
+    grid.appendChild(el);
+  }
+}
+
+async function loadHub() {
+  const registry = await fetchRegistry();
+  const byId = Object.fromEntries(registry.map(r => [r.id, r]));
+  renderTiles(byId);
+}
+
+document.getElementById("update-now").addEventListener("click", async (e) => {
+  const btn = e.target;
+  const status = document.getElementById("update-status");
+  btn.disabled = true;
+  status.textContent = "Running sync + verify...";
+  try {
+    const res = await fetch(VERIFY_ENDPOINT, { method: "POST" });
+    if (!res.ok) throw new Error(res.statusText);
+    status.textContent = "Done.";
+    await loadHub();
+  } catch (e) {
+    status.textContent = `Failed: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+loadHub();
+</script>
+</body>
+</html>

@@ -6,6 +6,13 @@ Tests for the Dakota County eviction defense wizard.
 import pytest
 from httpx import AsyncClient
 
+# The Dakota County eviction module is intentionally disabled
+# (DAKOTA_AVAILABLE = False in app/main.py). The /eviction/* HTML routes
+# are not registered. Skip all tests until the module is re-enabled.
+pytestmark = pytest.mark.skip(
+    reason="Dakota County eviction module is intentionally disabled (DAKOTA_AVAILABLE = False)"
+)
+
 
 # =============================================================================
 # Eviction Home & Navigation Tests

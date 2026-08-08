@@ -490,4 +490,12 @@ def get_websocket_stats() -> Dict[str, Any]:
 
 # Cleanup on shutdown
 import atexit
-atexit.register(lambda: asyncio.run(get_websocket_manager().shutdown()))
+
+
+def _shutdown_websocket_manager():
+    global _websocket_manager
+    if _websocket_manager is not None:
+        asyncio.run(_websocket_manager.shutdown())
+
+
+atexit.register(_shutdown_websocket_manager)

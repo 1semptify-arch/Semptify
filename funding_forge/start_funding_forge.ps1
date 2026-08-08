@@ -8,7 +8,7 @@
     Cloudflare R2 for persistent document storage.
 #>
 $ErrorActionPreference = "Stop"
-$RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $RepoRoot
 
 if (-not (Test-Path "$RepoRoot\venv311")) {

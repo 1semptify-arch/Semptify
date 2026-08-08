@@ -40,11 +40,13 @@ EXEMPT_PATHS = {
     "/api/user/lookup",
     "/api/session/restore",
     "/api/portal/",  # Portal services catalog — public, no auth
+    "/api/i18n/",  # i18n — public locale read/set endpoints
     "/onboarding/ssot-navigation",  # SSOT API for static file navigation
     "/onboarding-assets/",  # Static onboarding pages (storage-select, etc)
     "/health",
     "/.well-known/",  # Domain verification files (Microsoft, Google, etc.)
     # Public website sub-pages (semptify.org guest portal)
+    "/portal",
     "/about",
     "/services",
     "/renters-guide",

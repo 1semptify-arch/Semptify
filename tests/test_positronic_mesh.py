@@ -9,6 +9,13 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 
+# The Positronic Mesh router is intentionally disabled in product_manifest.py
+# (experimental, guarded by ENABLE_HEAVY_SERVICES). Skip all tests in this file
+# until the mesh module is re-enabled.
+pytestmark = pytest.mark.skip(
+    reason="Mesh router is intentionally disabled (experimental, guarded by ENABLE_HEAVY_SERVICES)"
+)
+
 client = TestClient(app)
 
 USER_COOKIE = {"semptify_uid": "GUa8Km3xPq"}

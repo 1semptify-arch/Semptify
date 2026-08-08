@@ -25,8 +25,9 @@ from app.core.config import get_settings
 from app.core.path_utils import normalize_cloud_path
 from app.core.vault_paths import (
     AUTH_FOLDER,
+    CANONICAL_VAULT_FOLDERS,
     DEVICE_KEYS_FILE,
-    PROVISIONING_FILE,
+    PROVISIONING_FILE,  # noqa: F401  # re-exported for tests
     README_FILE,
     REHOME_FILE,
     SEMPTIFY_ROOT,
@@ -471,7 +472,7 @@ class VaultManager:
         await self.storage.upload_file(
             file_content=json.dumps(payload, indent=2).encode(),
             destination_path=AUTH_FOLDER,
-            filename="provisioning_state.json",
+            filename="provisioning.json",
             mime_type="application/json",
         )
 
@@ -613,7 +614,7 @@ class VaultManager:
                 filename="VAULT_MANIFEST.txt",
                 mime_type="text/plain",
             )
-            created.append({"type": "file", "path": MANIFEST_FILE})
+            created.append({"type": "file", "path": f"{SEMPTIFY_ROOT}/VAULT_MANIFEST.txt"})
 
         except Exception as exc:
             await self._write_provisioning_state(

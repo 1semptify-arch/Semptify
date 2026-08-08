@@ -1,9 +1,9 @@
 /**
  * Shared Admin Navigation Component
  * Renders consistent admin navigation across all admin pages
- * 
+ *
  * Usage: Include this script and call renderAdminNav(containerId, currentPage)
- * 
+ *
  * @param {string} containerId - ID of element to render nav into
  * @param {string} currentPage - Current page identifier (e.g., 'dashboard', 'manual')
  */
@@ -13,6 +13,7 @@ function renderAdminNav(containerId, currentPage) {
 
   const navItems = [
     { id: 'dashboard', label: '🏠 Dashboard', href: '/admin/dashboard.html' },
+    { id: 'script-catalog', label: 'Script Catalog', href: '/admin/script-catalog.html' },
     { id: 'function-browser', label: '⚙️ Functions', href: '/admin/function-browser.html' },
     { id: 'contract-browser', label: '📋 Contracts', href: '/admin/contract-browser.html' },
     { id: 'page-editor', label: '📝 Editor', href: '/admin/page-editor.html' },

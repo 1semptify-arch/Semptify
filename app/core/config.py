@@ -78,20 +78,51 @@ class Settings:
     # open = no auth (dev/testing); enforced = storage OAuth required (production)
     security_mode: Literal["open", "enforced"] = os.getenv("SECURITY_MODE", "open")
     secret_key: str = _resolve_secret_key()
-    database_url: str = _resolve_database_url()
     upload_dir: str = "uploads"
     vault_dir: str = "uploads/vault"
     max_upload_size_mb: int = 50
+
+    def __init__(self):
+        # Re-resolve DATABASE_URL at instantiation so tests can override it via
+        # os.environ without re-importing the settings module.
+        self.database_url = _resolve_database_url()
+
     allowed_extensions: str = "pdf,png,jpg,jpeg,gif,doc,docx,txt,mp3,mp4,wav"
     ai_provider: Literal["openai", "azure", "ollama", "groq", "anthropic", "gemini", "none"] = "anthropic"
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_json_format: bool = os.getenv("LOG_JSON_FORMAT", "False").lower() in ("1", "true", "yes", "on")
+    # Buffered logging + R2/local archive (Master Handoff Task 4)
+    log_retention_days: int = int(os.getenv("LOG_RETENTION_DAYS", "90"))
+    log_flush_interval_seconds: int = int(os.getenv("LOG_FLUSH_INTERVAL_SECONDS", "60"))
+
+    # i18n (Master Handoff Task 6)
+    default_locale: str = os.getenv("DEFAULT_LOCALE", "en")
+    supported_locales: str = os.getenv(
+        "SUPPORTED_LOCALES",
+        "en,es,so,hmn,ar,am,ti,zh,fr,de,ko,ja,pt,it",
+    )
+    # Admin network gating — Tailscale CGNAT + RFC1918 + localhost by default.
+    # Override with ADMIN_IP_RANGES="100.64.0.0/10,10.0.0.0/8,127.0.0.0/8"
+    admin_ip_ranges: str = os.getenv(
+        "ADMIN_IP_RANGES",
+        "100.64.0.0/10,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128",
+    )
+    # Cloudflare R2 for log archive (optional — falls back to local logs/archive/)
+    r2_account_id: str = os.getenv("R2_ACCOUNT_ID", "")
+    r2_access_key_id: str = os.getenv("R2_ACCESS_KEY_ID", "")
+    r2_secret_access_key: str = os.getenv("R2_SECRET_ACCESS_KEY", "")
+    r2_bucket_name: str = os.getenv("R2_BUCKET_NAME", "")
+    r2_logs_prefix: str = os.getenv("R2_LOGS_PREFIX", "semptify-logs")
     cors_origins: str = os.getenv("CORS_ORIGINS", "https://semptify.org,http://localhost:8000")
 
     # Explicit public URL for OAuth callbacks (bypasses request.base_url detection)
     # Local: http://localhost:8000
     # Production: https://semptify.org
     # NOTE: Read directly from env at instantiation — do not rely on module-level cache
+    @property
+    def supported_locales_list(self) -> list[str]:
+        return [loc.strip() for loc in self.supported_locales.split(",") if loc.strip()]
+
     @property
     def public_base_url(self) -> str:
         return os.getenv("PUBLIC_BASE_URL", "")

@@ -35,24 +35,22 @@ import functools
 import hashlib
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 
-from app.core.id_gen import make_id
 from app.core.config import get_settings
-from app.core.utc import utc_now
 from app.core.database import get_db_session
-from app.core.vault_paths import CANONICAL_VAULT_FOLDERS, SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
+from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
+from app.core.utc import utc_now
+from app.core.vault_paths import CANONICAL_VAULT_FOLDERS, VAULT_CERTIFICATES, VAULT_DOCUMENTS, VAULT_ROOT
+from app.models.models import VaultHashIndexDB, VaultIndexDB, VaultUserIndexDB
 from app.models.unified_overlay_models import CreateOverlayRequest
-from app.models.models import VaultIndexDB, VaultUserIndexDB, VaultHashIndexDB
+from app.services.storage import get_provider
 from app.services.unified_overlay_manager import get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
-
-from app.services.storage import get_provider
 
 # Note: document_registry and DB certification models are imported lazily at
 # call time (inside _certify_and_register) to avoid import-order issues where
@@ -63,15 +61,17 @@ from app.services.storage import get_provider
 # Data Classes
 # =============================================================================
 
+
 @dataclass
 class VaultDocument:
     """A document stored in user's vault.
-    
+
     Every VaultDocument is automatically registered in the Document Registry
     upon upload, ensuring chain of custody and tamper-proof identification.
     A VaultDocument without registry_id is considered 'uncertified' and
     should not be processed by downstream modules.
     """
+
     vault_id: str  # Primary identifier (Semptify internal)
     user_id: str
     filename: str  # Original filename
@@ -79,35 +79,37 @@ class VaultDocument:
     sha256_hash: str
     file_size: int
     mime_type: str
-    document_type: Optional[str]  # lease, notice, photo, etc.
-    description: Optional[str]
+    document_type: str | None  # lease, notice, photo, etc.
+    description: str | None
     tags: list[str]
     storage_path: str  # Path in cloud storage
     storage_provider: str  # google_drive, dropbox, onedrive, local
-    provider_file_id: Optional[str] = None
-    certificate_id: Optional[str] = None
-    uploaded_at: Optional[str] = None
+    provider_file_id: str | None = None
+    certificate_id: str | None = None
+    uploaded_at: str | None = None
     # Registration - every vault doc auto-registers for chain of custody
-    registry_id: Optional[str] = None  # SEM-YYYY-NNNNNN-XXXX format
+    registry_id: str | None = None  # SEM-YYYY-NNNNNN-XXXX format
     integrity_status: str = "unverified"  # verified, tampered, unverified
     # Processing state
     processed: bool = False
+    # Document Center review state JSON (field confirmations/corrections + manual status)
+    review_state_json: str | None = None
     # Source tracking
     source_module: str = "direct"  # Which module initiated upload
-    
+
     @property
     def is_certified(self) -> bool:
         """Check if document has completed registration and has chain of custody."""
         return self.registry_id is not None and self.integrity_status == "verified"
-    
+
     @property
     def sem_id(self) -> str:
         """Get Semptify document ID (registry_id if available, else vault_id)."""
         return self.registry_id or self.vault_id
-    
+
     def to_dict(self) -> dict:
         return asdict(self)
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "VaultDocument":
         return cls(**data)
@@ -117,9 +119,10 @@ class VaultDocument:
 # Vault Document Index (DB-backed with local cache for fast queries)
 # =============================================================================
 
+
 class VaultDocumentIndex:
     """DB-backed index of vault documents for fast queries without hitting cloud storage.
-    
+
     Uses PostgreSQL as the source of truth with optional local disk cache.
     All writes go to DB first, then optionally to disk for redundancy.
     """
@@ -137,14 +140,14 @@ class VaultDocumentIndex:
         "certificate_id",
         "uploaded_at",
     }
-    
+
     def __init__(self, data_dir: str = "data/vault_index"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         # In-memory cache (loaded from DB on demand)
         self._documents: dict[str, VaultDocument] = {}
         self._loaded_from_db: set[str] = set()  # Track which vault_ids were loaded from DB
-    
+
     def _doc_to_db_model(self, doc: VaultDocument) -> VaultIndexDB:
         """Convert VaultDocument to DB model."""
         return VaultIndexDB(
@@ -165,11 +168,12 @@ class VaultDocumentIndex:
             registry_id=doc.registry_id,
             integrity_status=doc.integrity_status,
             processed=doc.processed,
+            review_state_json=doc.review_state_json,
             source_module=doc.source_module,
             uploaded_at=datetime.fromisoformat(doc.uploaded_at) if doc.uploaded_at else utc_now(),
             updated_at=utc_now(),
         )
-    
+
     def _doc_from_db_model(self, db_doc: VaultIndexDB) -> VaultDocument:
         """Convert DB model to VaultDocument."""
         return VaultDocument(
@@ -191,19 +195,21 @@ class VaultDocumentIndex:
             registry_id=db_doc.registry_id,
             integrity_status=db_doc.integrity_status,
             processed=db_doc.processed,
+            review_state_json=db_doc.review_state_json,
             source_module=db_doc.source_module,
         )
-    
+
     async def _add_to_db(self, doc: VaultDocument) -> None:
         """Add document to database index."""
         try:
             from sqlalchemy import select
+
             async with get_db_session() as session:
                 # Add to vault_index
                 db_doc = self._doc_to_db_model(doc)
                 await session.merge(db_doc)
                 await session.flush()  # Ensure vault_index row exists before FK check
-                
+
                 # Add to user index
                 user_idx = VaultUserIndexDB(
                     user_id=doc.user_id,
@@ -211,7 +217,7 @@ class VaultDocumentIndex:
                     added_at=utc_now(),
                 )
                 await session.merge(user_idx)
-                
+
                 # Add/update hash index
                 result = await session.execute(
                     select(VaultHashIndexDB).where(VaultHashIndexDB.sha256_hash == doc.sha256_hash)
@@ -229,21 +235,20 @@ class VaultDocumentIndex:
                         created_at=utc_now(),
                     )
                     session.add(hash_idx)
-                
+
                 await session.commit()
                 logger.debug("Document %s added to DB index", doc.vault_id)
         except Exception as e:
             logger.error("Failed to add document %s to DB index: %s", doc.vault_id, e)
             raise
-    
-    async def _get_from_db(self, vault_id: str) -> Optional[VaultDocument]:
+
+    async def _get_from_db(self, vault_id: str) -> VaultDocument | None:
         """Get document from database."""
         try:
             from sqlalchemy import select
+
             async with get_db_session() as session:
-                result = await session.execute(
-                    select(VaultIndexDB).where(VaultIndexDB.vault_id == vault_id)
-                )
+                result = await session.execute(select(VaultIndexDB).where(VaultIndexDB.vault_id == vault_id))
                 db_doc = result.scalar_one_or_none()
                 if db_doc:
                     return self._doc_from_db_model(db_doc)
@@ -251,11 +256,12 @@ class VaultDocumentIndex:
         except Exception as e:
             logger.error("Failed to get document %s from DB: %s", vault_id, e)
             return None
-    
-    async def _get_by_hash_from_db(self, sha256_hash: str) -> Optional[VaultDocument]:
+
+    async def _get_by_hash_from_db(self, sha256_hash: str) -> VaultDocument | None:
         """Find document by hash from database."""
         try:
             from sqlalchemy import select
+
             async with get_db_session() as session:
                 result = await session.execute(
                     select(VaultHashIndexDB).where(VaultHashIndexDB.sha256_hash == sha256_hash)
@@ -267,11 +273,12 @@ class VaultDocumentIndex:
         except Exception as e:
             logger.error("Failed to get document by hash from DB: %s", e)
             return None
-    
-    async def _get_user_docs_from_db(self, user_id: str, document_type: Optional[str] = None) -> list[VaultDocument]:
+
+    async def _get_user_docs_from_db(self, user_id: str, document_type: str | None = None) -> list[VaultDocument]:
         """Get user's documents from database."""
         try:
             from sqlalchemy import select
+
             async with get_db_session() as session:
                 result = await session.execute(
                     select(VaultIndexDB)
@@ -286,15 +293,14 @@ class VaultDocumentIndex:
         except Exception as e:
             logger.error("Failed to get user docs from DB: %s", e)
             return []
-    
+
     async def _update_in_db(self, vault_id: str, **kwargs) -> None:
         """Update document in database."""
         try:
             from sqlalchemy import select
+
             async with get_db_session() as session:
-                result = await session.execute(
-                    select(VaultIndexDB).where(VaultIndexDB.vault_id == vault_id)
-                )
+                result = await session.execute(select(VaultIndexDB).where(VaultIndexDB.vault_id == vault_id))
                 db_doc = result.scalar_one_or_none()
                 if db_doc:
                     for key, value in kwargs.items():
@@ -308,20 +314,20 @@ class VaultDocumentIndex:
         except Exception as e:
             logger.error("Failed to update document %s in DB: %s", vault_id, e)
             raise
-    
+
     def _legacy_load(self):
         """Load index from disk (legacy migration support)."""
         index_file = self.data_dir / "vault_index.json"
         if index_file.exists():
             try:
-                with open(index_file, encoding="utf-8") as f:
+                with index_file.open(encoding="utf-8") as f:
                     data = json.load(f)
                 for vault_id, doc_data in data.get("documents", {}).items():
                     doc = VaultDocument.from_dict(doc_data)
                     self._documents[vault_id] = doc
             except Exception as e:
                 logger.error("Failed to load legacy vault index: %s", e)
-    
+
     def _legacy_save(self):
         """Save index to disk (backup/redundancy)."""
         index_file = self.data_dir / "vault_index.json"
@@ -329,17 +335,17 @@ class VaultDocumentIndex:
             "documents": {vid: doc.to_dict() for vid, doc in self._documents.items()},
             "updated_at": utc_now().isoformat(),
         }
-        with open(index_file, "w", encoding="utf-8") as f:
+        with index_file.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
-    
+
     async def add(self, doc: VaultDocument) -> None:
         """Add document to index (DB primary, disk backup)."""
         self._documents[doc.vault_id] = doc
         self._loaded_from_db.add(doc.vault_id)
         await self._add_to_db(doc)
         self._legacy_save()  # Redundant backup
-    
-    async def get(self, vault_id: str) -> Optional[VaultDocument]:
+
+    async def get(self, vault_id: str) -> VaultDocument | None:
         """Get document by vault ID (from cache or DB)."""
         # Check cache first
         if vault_id in self._documents:
@@ -350,8 +356,8 @@ class VaultDocumentIndex:
             self._documents[vault_id] = doc
             self._loaded_from_db.add(vault_id)
         return doc
-    
-    async def get_by_hash(self, sha256_hash: str) -> Optional[VaultDocument]:
+
+    async def get_by_hash(self, sha256_hash: str) -> VaultDocument | None:
         """Find document by hash (deduplication)."""
         # Check cache first
         for doc in self._documents.values():
@@ -359,22 +365,22 @@ class VaultDocumentIndex:
                 return doc
         # Load from DB
         return await self._get_by_hash_from_db(sha256_hash)
-    
-    async def get_user_documents(self, user_id: str, document_type: Optional[str] = None) -> list[VaultDocument]:
+
+    async def get_user_documents(self, user_id: str, document_type: str | None = None) -> list[VaultDocument]:
         """Get all documents for a user, optionally filtered by type."""
         return await self._get_user_docs_from_db(user_id, document_type)
-    
-    async def update(self, vault_id: str, **kwargs) -> Optional[VaultDocument]:
+
+    async def update(self, vault_id: str, **kwargs) -> VaultDocument | None:
         """Update document metadata."""
         # Check immutable fields
         attempted_immutable = set(kwargs.keys()) & self.IMMUTABLE_FIELDS
         if attempted_immutable:
             fields = ", ".join(sorted(attempted_immutable))
             raise ValueError(f"Immutable vault fields cannot be modified: {fields}")
-        
+
         # Update in DB
         await self._update_in_db(vault_id, **kwargs)
-        
+
         # Update cache
         doc = self._documents.get(vault_id)
         if doc:
@@ -383,7 +389,7 @@ class VaultDocumentIndex:
                     setattr(doc, key, value)
             self._legacy_save()
         return doc
-    
+
     def delete(self, vault_id: str) -> bool:
         """Remove document from index (does not delete from storage)."""
         doc = self._documents.pop(vault_id, None)
@@ -398,23 +404,24 @@ class VaultDocumentIndex:
 # Vault Upload Service
 # =============================================================================
 
+
 class VaultUploadService:
     """
     Centralized service for all document uploads.
     Routes uploads to user's vault, then modules access from there.
     """
-    
+
     VAULT_ROOT_FOLDER = VAULT_ROOT
     VAULT_FOLDER = VAULT_DOCUMENTS
     CERTS_FOLDER = VAULT_CERTIFICATES
-    
+
     def __init__(self):
         self.index = VaultDocumentIndex()
-    
+
     def _compute_sha256(self, content: bytes) -> str:
         """Compute SHA-256 hash of file content."""
         return hashlib.sha256(content).hexdigest()
-    
+
     def _get_safe_filename(self, vault_id: str, original_filename: str) -> str:
         """Generate safe filename for storage."""
         ext = original_filename.rsplit(".", 1)[-1].lower() if "." in original_filename else "bin"
@@ -439,13 +446,20 @@ class VaultUploadService:
         path = self._local_file_path(destination_path, filename)
         path.write_bytes(file_content)
 
-    def _local_read_file(self, storage_path: str) -> Optional[bytes]:
+    def _local_read_file(self, storage_path: str) -> bytes | None:
         if not hasattr(self, "_local_dir") or self._local_dir is None:
             return None
         file_path = Path(self._local_dir) / storage_path.strip("/")
         if not file_path.exists():
             return None
         return file_path.read_bytes()
+
+    def _ensure_local_storage_allowed(self, storage_provider: str) -> None:
+        """Reject local document writes when production storage enforcement is active."""
+        if storage_provider == "local" and get_settings().security_mode == "enforced":
+            raise RuntimeError(
+                "local storage is disabled when SECURITY_MODE=enforced; caller must supply a cloud storage_provider"
+            )
 
     def _validate_upload_input(self, filename: str, content: bytes, mime_type: str) -> None:
         """Validate upload size and extension before storing immutable artifacts."""
@@ -461,9 +475,7 @@ class VaultUploadService:
 
         ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
         allowed_extensions = {
-            item.strip().lower()
-            for item in str(settings.allowed_extensions).split(",")
-            if item.strip()
+            item.strip().lower() for item in str(settings.allowed_extensions).split(",") if item.strip()
         }
         if ext and ext not in allowed_extensions:
             raise ValueError(f"file extension not allowed: {ext}")
@@ -481,7 +493,7 @@ class VaultUploadService:
     ) -> None:
         """
         Create cloud-only overlay record using unified overlay manager.
-        
+
         All overlays are stored in user's cloud storage, not locally.
         """
         try:
@@ -509,34 +521,35 @@ class VaultUploadService:
 
         except Exception as ex:
             logger.debug("Overlay creation skipped for %s: %s", doc.vault_id, ex)
-    
+
     async def _ensure_folders(self, storage) -> None:
         """Ensure vault folders exist in storage."""
         from app.core.path_utils import normalize_cloud_path
+
         try:
             for folder_path in CANONICAL_VAULT_FOLDERS:
                 await storage.create_folder(normalize_cloud_path(folder_path))
         except Exception as e:
             logger.warning("Could not create folders: %s", e)
-    
+
     async def upload(
         self,
         user_id: str,
         filename: str,
         content: bytes,
         mime_type: str,
-        document_type: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[list[str]] = None,
+        document_type: str | None = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         source_module: str = "direct",
-        access_token: Optional[str] = None,
-        storage_provider: str = "local",
+        access_token: str | None = None,
+        storage_provider: str | None = None,
     ) -> VaultDocument:
         """
         Upload a document to user's vault.
-        
+
         This is THE method all modules should call to store documents.
-        
+
         Args:
             user_id: User ID
             filename: Original filename
@@ -547,16 +560,29 @@ class VaultUploadService:
             tags: Optional tags list
             source_module: Which module initiated upload (intake, briefcase, etc.)
             access_token: Cloud storage access token (if using cloud storage)
-            storage_provider: Storage provider (google_drive, dropbox, onedrive, local)
-        
+            storage_provider: Storage provider (google_drive, dropbox, onedrive, local).
+                Defaults to local storage only in development mode.
+
         Returns:
             VaultDocument with vault_id and storage details
         """
+        if storage_provider is None or storage_provider == "local":
+            if get_settings().security_mode == "enforced":
+                raise RuntimeError(
+                    "local storage is disabled when SECURITY_MODE=enforced; caller must supply a cloud storage_provider"
+                )
+            if storage_provider is None:
+                logger.warning(
+                    "No storage_provider supplied; falling back to local storage in dev mode (source_module=%s)",
+                    source_module,
+                )
+                storage_provider = "local"
+
         self._validate_upload_input(filename=filename, content=content, mime_type=mime_type)
 
         # Compute hash for deduplication
         sha256_hash = self._compute_sha256(content)
-        
+
         # Check for duplicate
         existing = await self.index.get_by_hash(sha256_hash)
         if existing and existing.user_id == user_id:
@@ -567,13 +593,13 @@ class VaultUploadService:
                 "Stale vault index entry detected for %s: storage file missing, uploading new copy",
                 existing.vault_id,
             )
-        
+
         # Generate IDs
         vault_id = make_id("doc")
         safe_filename = self._get_safe_filename(vault_id, filename)
         file_size = len(content)
         now = utc_now().isoformat()
-        
+
         # Store document (returns storage path and provider file id)
         storage_path, provider_file_id = await self._store_document(
             user_id=user_id,
@@ -583,7 +609,7 @@ class VaultUploadService:
             access_token=access_token,
             storage_provider=storage_provider,
         )
-        
+
         # Create certificate
         certificate_id = await self._create_certificate(
             vault_id=vault_id,
@@ -598,7 +624,7 @@ class VaultUploadService:
             access_token=access_token,
             provider_file_id=provider_file_id,
         )
-        
+
         # Create vault document record
         doc = VaultDocument(
             vault_id=vault_id,
@@ -618,7 +644,7 @@ class VaultUploadService:
             uploaded_at=now,
             source_module=source_module,
         )
-        
+
         # =========================================================================
         # CERTIFICATION: Every vault document must be registered for chain of custody.
         # The in-memory registry generates the SEM-YYYY-NNNNNN-XXXX ID and computes
@@ -639,7 +665,7 @@ class VaultUploadService:
                     filename=filename,
                     mime_type=mime_type,
                     ip_address=None,
-                )
+                ),
             )
             doc.registry_id = reg_doc.document_id
             doc.integrity_status = reg_doc.integrity_status.value
@@ -676,17 +702,19 @@ class VaultUploadService:
                 logger.warning(
                     "VAULT_UPLOAD_MANIFEST overlay creation failed for %s: %s — "
                     "doc is indexed with registry_id but cert overlay is missing",
-                    vault_id, overlay_err,
+                    vault_id,
+                    overlay_err,
                 )
 
             logger.info(f"✅ Document certified: {reg_doc.document_id} for vault {vault_id}")
 
         except Exception as e:
             import traceback
+
             logger.error(f"Certification failed for {vault_id}: {type(e).__name__}: {e}")
             logger.error(f"Certification traceback for {vault_id}:\n{traceback.format_exc()}")
             raise RuntimeError(f"Document certification failed for {vault_id}. Please retry or contact support.") from e
-        
+
         # Add to index (now with registry info if available)
         await self.index.add(doc)
 
@@ -695,16 +723,16 @@ class VaultUploadService:
         # Any module that needs an overlay calls UnifiedOverlayManager directly.
 
         logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
-        
+
         # Emit event for other modules
         await self._emit_upload_event(doc)
-        
+
         return doc
-    
+
     async def _verify_existing_document(
         self,
         existing: VaultDocument,
-        access_token: Optional[str],
+        access_token: str | None,
     ) -> bool:
         """Verify that an existing indexed document still exists in storage."""
         if existing.storage_provider == "local":
@@ -742,12 +770,13 @@ class VaultUploadService:
         safe_filename: str,
         content: bytes,
         mime_type: str,
-        access_token: Optional[str],
+        access_token: str | None,
         storage_provider: str,
     ) -> str:
         """Store document in user's connected cloud storage or local test storage."""
 
         if storage_provider == "local":
+            self._ensure_local_storage_allowed(storage_provider)
             await self._local_upload_file(
                 file_content=content,
                 destination_path=self.VAULT_FOLDER,
@@ -768,7 +797,7 @@ class VaultUploadService:
         )
         # storage_file.path is the cloud path; storage_file.id is provider-specific file id
         return (f"{self.VAULT_FOLDER}/{safe_filename}", getattr(storage_file, "id", None))
-    
+
     async def _create_certificate(
         self,
         vault_id: str,
@@ -777,12 +806,12 @@ class VaultUploadService:
         sha256_hash: str,
         file_size: int,
         mime_type: str,
-        document_type: Optional[str],
+        document_type: str | None,
         storage_path: str,
         storage_provider: str,
-        access_token: Optional[str],
-        provider_file_id: Optional[str] = None,
-    ) -> Optional[str]:
+        access_token: str | None,
+        provider_file_id: str | None = None,
+    ) -> str | None:
         """Create certification record for document.
 
         Includes an independent RFC 3161 timestamp from a third-party TSA so the
@@ -825,6 +854,7 @@ class VaultUploadService:
         cert_content = json.dumps(certificate, indent=2).encode("utf-8")
 
         if storage_provider == "local":
+            self._ensure_local_storage_allowed(storage_provider)
             await self._local_upload_file(
                 file_content=cert_content,
                 destination_path=self.CERTS_FOLDER,
@@ -843,11 +873,12 @@ class VaultUploadService:
             mime_type="application/json",
         )
         return certificate_id
-    
+
     async def _emit_upload_event(self, doc: VaultDocument) -> None:
         """Emit event for document upload so other modules can react."""
         try:
-            from app.core.event_bus import event_bus, EventType
+            from app.core.event_bus import EventType, event_bus
+
             await event_bus.publish(
                 EventType.DOCUMENT_ADDED,
                 {
@@ -863,28 +894,24 @@ class VaultUploadService:
             )
         except Exception as e:
             logger.debug("Event emission failed: %s", e)
-    
+
     # =========================================================================
     # Document Access Methods (for modules to use)
     # =========================================================================
-    
-    async def get_document(self, vault_id: str) -> Optional[VaultDocument]:
+
+    async def get_document(self, vault_id: str) -> VaultDocument | None:
         """Get document metadata by vault ID."""
         return await self.index.get(vault_id)
-    
-    async def get_user_documents(
-        self,
-        user_id: str,
-        document_type: Optional[str] = None
-    ) -> list[VaultDocument]:
+
+    async def get_user_documents(self, user_id: str, document_type: str | None = None) -> list[VaultDocument]:
         """Get all documents for a user."""
         return await self.index.get_user_documents(user_id, document_type)
-    
+
     async def get_document_content(
         self,
         vault_id: str,
-        access_token: Optional[str] = None,
-    ) -> Optional[bytes]:
+        access_token: str | None = None,
+    ) -> bytes | None:
         """
         Get document content from storage.
         Modules call this to read document content from vault.
@@ -920,18 +947,23 @@ class VaultUploadService:
             except Exception as e:
                 logger.warning("Download attempt failed for vault_id=%s path=%s (%s): %s", vault_id, path, why, e)
 
-        logger.error("All download attempts failed for vault_id=%s storage_path=%s provider_file_id=%s", vault_id, doc.storage_path, getattr(doc, "provider_file_id", None))
+        logger.error(
+            "All download attempts failed for vault_id=%s storage_path=%s provider_file_id=%s",
+            vault_id,
+            doc.storage_path,
+            getattr(doc, "provider_file_id", None),
+        )
         return None
-    
+
     async def mark_processed(
         self,
         vault_id: str,
-        extracted_data: Optional[dict] = None,
-        parties: Optional[list] = None,
-        timeline_events: Optional[list] = None,
-        access_token: Optional[str] = None,
+        extracted_data: dict | None = None,
+        parties: list | None = None,
+        timeline_events: list | None = None,
+        access_token: str | None = None,
         storage_provider: str = "google_drive",
-    ) -> Optional[VaultDocument]:
+    ) -> VaultDocument | None:
         """Mark document as processed. Extraction results go to user cloud overlays only.
         No extracted content is written to our database — only the processed=True state flag.
         """
@@ -965,14 +997,14 @@ class VaultUploadService:
                     storage_provider=storage_provider,
                 )
         return doc
-    
+
     async def update_document_type(
         self,
         vault_id: str,
         document_type: str,
-        access_token: Optional[str] = None,
+        access_token: str | None = None,
         storage_provider: str = "google_drive",
-    ) -> Optional[VaultDocument]:
+    ) -> VaultDocument | None:
         """Update document type after classification."""
         doc = await self.index.update(vault_id, document_type=document_type)
         if doc:
@@ -991,18 +1023,18 @@ class VaultUploadService:
 # Module-level singleton
 # =============================================================================
 
-_vault_service: Optional[VaultUploadService] = None
+_vault_service: VaultUploadService | None = None
 
 
 # Global service instance
-_vault_service: Optional[VaultUploadService] = None
+_vault_service: VaultUploadService | None = None
 
 
 def get_vault_service() -> VaultUploadService:
     """Get or create the vault upload service singleton."""
     if _vault_service is None:
         # Use global assignment instead of global statement
-        globals()['_vault_service'] = VaultUploadService()
+        globals()["_vault_service"] = VaultUploadService()
     return _vault_service
 
 
@@ -1012,61 +1044,67 @@ def get_vault_service() -> VaultUploadService:
 try:
     from app.core.module_contracts import FunctionGroupContract, register_function_group
 
-    register_function_group(FunctionGroupContract(
-        module="vault",
-        group_name="vault_upload",
-        title="Document Vault Upload (SSOT)",
-        description=(
-            "CANONICAL upload handler. All document ingestion goes through VaultUploadService.upload(). "
-            "Pipeline: validate → deduplicate (SHA256) → store to cloud → certificate → registry (get registry_id) → emit event. "
-            "VAULT DOES NOT: create overlays, trigger intake, run analysis, or start workflows. "
-            "Overlays are created on-demand by the requesting process. "
-            "Intake/analysis is triggered by the caller after upload returns. "
-            "No other service may implement upload logic."
-        ),
-        inputs=("user_id", "filename", "content", "mime_type", "access_token", "storage_provider"),
-        outputs=("vault_id", "registry_id", "certificate_id", "provider_file_id", "storage_path"),
-        dependencies=(
-            "app.services.vault_upload_service",
-            "app.core.vault_paths.VAULT_DOCUMENTS",
-            "app.core.vault_paths.VAULT_CERTIFICATES",
-        ),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="vault",
+            group_name="vault_upload",
+            title="Document Vault Upload (SSOT)",
+            description=(
+                "CANONICAL upload handler. All document ingestion goes through VaultUploadService.upload(). "
+                "Pipeline: validate → deduplicate (SHA256) → store to cloud → certificate → registry (get registry_id) → emit event. "
+                "VAULT DOES NOT: create overlays, trigger intake, run analysis, or start workflows. "
+                "Overlays are created on-demand by the requesting process. "
+                "Intake/analysis is triggered by the caller after upload returns. "
+                "No other service may implement upload logic."
+            ),
+            inputs=("user_id", "filename", "content", "mime_type", "access_token", "storage_provider"),
+            outputs=("vault_id", "registry_id", "certificate_id", "provider_file_id", "storage_path"),
+            dependencies=(
+                "app.services.vault_upload_service",
+                "app.core.vault_paths.VAULT_DOCUMENTS",
+                "app.core.vault_paths.VAULT_CERTIFICATES",
+            ),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="vault",
-        group_name="vault_folders",
-        title="Vault Folder Structure (SSOT)",
-        description=(
-            "All vault folder paths come from app/core/vault_paths.py. "
-            "NEVER hardcode Semptify5.0/ paths. NEVER duplicate these constants."
-        ),
-        inputs=("user_id", "access_token", "provider"),
-        outputs=("CANONICAL_VAULT_FOLDERS",),
-        dependencies=("app.core.vault_paths",),
-        deterministic=True,
-    ))
+    register_function_group(
+        FunctionGroupContract(
+            module="vault",
+            group_name="vault_folders",
+            title="Vault Folder Structure (SSOT)",
+            description=(
+                "All vault folder paths come from app/core/vault_paths.py. "
+                "NEVER hardcode Semptify5.0/ paths. NEVER duplicate these constants."
+            ),
+            inputs=("user_id", "access_token", "provider"),
+            outputs=("CANONICAL_VAULT_FOLDERS",),
+            dependencies=("app.core.vault_paths",),
+            deterministic=True,
+        )
+    )
 
-    register_function_group(FunctionGroupContract(
-        module="vault",
-        group_name="vault_init",
-        title="Vault Initialization (Folder Creation)",
-        description=(
-            "Creates canonical vault folder structure in user cloud storage. "
-            "Used by onboarding (Step 1). vault_initialized gate MUST only be "
-            "marked by vault_verify() after ALL three onboarding steps pass — "
-            "never by install_vault_for_user() or any intermediate step."
-        ),
-        inputs=("user_id", "access_token", "provider"),
-        outputs=("folders_created", "activation_code"),
-        dependencies=(
-            "app.sdk.vault.client.VaultClient",
-            "app.core.vault_paths.CANONICAL_VAULT_FOLDERS",
-            "app.modules.onboarding.gates.mark_gate",
-        ),
-        deterministic=True,
-    ))
-except Exception:
+    register_function_group(
+        FunctionGroupContract(
+            module="vault",
+            group_name="vault_init",
+            title="Vault Initialization (Folder Creation)",
+            description=(
+                "Creates canonical vault folder structure in user cloud storage. "
+                "Used by onboarding (Step 1). vault_initialized gate MUST only be "
+                "marked by vault_verify() after ALL three onboarding steps pass — "
+                "never by install_vault_for_user() or any intermediate step."
+            ),
+            inputs=("user_id", "access_token", "provider"),
+            outputs=("folders_created", "activation_code"),
+            dependencies=(
+                "app.sdk.vault.client.VaultClient",
+                "app.core.vault_paths.CANONICAL_VAULT_FOLDERS",
+                "app.modules.onboarding.gates.mark_gate",
+            ),
+            deterministic=True,
+        )
+    )
+except Exception as e:
     # Contract registration is best-effort — never break the module if registry is unavailable
-    pass
+    logger.debug("Contract registration skipped: %s", e)

@@ -4,11 +4,17 @@ Lifecycle: stable (all roles).
 
 Endpoints
 ---------
-GET  /api/dc/list                      — vault docs with overlay status for left pane
-GET  /api/dc/document/{vault_id}/overlays — real overlay progress from UnifiedOverlayManager
-GET  /api/dc/document/{vault_id}/view    — inline file stream for viewer iframe
-GET  /api/dc/unlocks                    — feature unlock thresholds across all docs
-POST /api/dc/document/{vault_id}/type    — set/correct document type from viewer dropdown
+GET  /api/dc/list                          — vault docs with overlay status for left pane
+GET  /api/dc/document/{vault_id}/overlays  — real overlay progress from UnifiedOverlayManager
+GET  /api/dc/document/{vault_id}/view      — inline file stream for viewer iframe
+GET  /api/dc/document/{vault_id}/review-state — persisted field confirmations + manual status
+POST /api/dc/document/{vault_id}/review-state — save field confirmations + manual status
+POST /api/dc/document/{vault_id}/share     — create a real share link for this document
+GET  /api/dc/document/{vault_id}/shares    — list shares for this document
+GET  /api/dc/shared/{share_token}          — metadata for a shared document
+GET  /api/dc/shared/{share_token}/content  — view/download a shared document
+GET  /api/dc/unlocks                       — feature unlock thresholds across all docs
+POST /api/dc/document/{vault_id}/type      — set/correct document type from viewer dropdown
 
 Overlay Integration (2026-06-29):
   The DC right panel reads REAL overlays from UnifiedOverlayManager.get_overlays()
@@ -16,18 +22,31 @@ Overlay Integration (2026-06-29):
   Pipeline status flags (pending/processing/complete/failed/needs_reprocess) are
   read from the `DocumentPipelineIndex` so the frontend can show honest, calm
   messages instead of a silent "processing_incomplete" dead end.
+
+Review State (2026-07-25):
+  Field confirm/correct state and a manual verification status are persisted in
+  `VaultIndexDB.review_state_json` so the verification checklist survives reloads
+  and the "Verified"/"Mismatched" filters are meaningful.
+
+Sharing (2026-07-25):
+  The Share verb creates a `DocumentShare` row with a token and scope. Shared
+  access is gated by that token and requires an authenticated recipient.
 """
 
 import json
 import logging
+import secrets
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.core.cookie_auth import verify_user_id
+from app.core.database import get_db_session
+from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType
 from app.core.user_id import COOKIE_USER_ID
 from app.core.utc import utc_now
+from app.models.models import DocumentShare
 
 logger = logging.getLogger(__name__)
 
@@ -400,7 +419,7 @@ async def dc_list_documents(request: Request) -> JSONResponse:
 
             # overlay_count is null in list view — real count requires per-doc
             # cloud fetch via /api/dc/document/{vault_id}/overlays.
-            verification_status = "verified" if doc.registry_id else ("review" if doc.processed else "new")
+            verification_status = _verification_status_for_doc(doc)
 
             documents.append(
                 {
@@ -422,6 +441,31 @@ async def dc_list_documents(request: Request) -> JSONResponse:
             "generated_at": utc_now().isoformat(),
         }
     )
+
+
+def _review_state_for_doc(doc) -> dict:
+    """Return the parsed Document Center review state for a vault document."""
+    try:
+        return json.loads(doc.review_state_json or "{}")
+    except Exception:
+        return {}
+
+
+def _verification_status_for_doc(doc) -> str:
+    """Return the effective DC verification status for a vault document.
+
+    A manually-set status in `review_state_json` takes precedence. Otherwise
+    fall back to the document's registry/processing flags.
+    """
+    review_state = _review_state_for_doc(doc)
+    manual_status = review_state.get("manual_status")
+    if manual_status in {"verified", "mismatched", "review", "new"}:
+        return manual_status
+    if doc.registry_id:
+        return "verified"
+    if doc.processed:
+        return "review"
+    return "new"
 
 
 def _compute_unlocks(docs: list) -> list[dict]:
@@ -774,3 +818,323 @@ async def dc_set_document_type(vault_id: str, request: Request) -> JSONResponse:
     except Exception as e:
         logger.error("DC set_type error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
         return JSONResponse(status_code=500, content={"error": "set_type_failed", "detail": str(e)})
+
+
+@router.get("/document/{vault_id}/review-state")
+async def dc_get_review_state(vault_id: str, request: Request) -> JSONResponse:
+    """Return the persisted Document Center review state for a vault document.
+
+    Includes field confirmation/correction state and any manual verification status.
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+        if doc.user_id != user_id:
+            return JSONResponse(status_code=403, content={"error": "access_denied"})
+
+        review_state = _review_state_for_doc(doc)
+        return JSONResponse(
+            {
+                "vault_id": vault_id,
+                "field_confirm_state": review_state.get("field_confirm_state", {}),
+                "manual_status": review_state.get("manual_status"),
+                "effective_status": _verification_status_for_doc(doc),
+                "generated_at": utc_now().isoformat(),
+            }
+        )
+    except Exception as e:
+        logger.error("DC review-state get error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "review_state_failed", "detail": str(e)})
+
+
+@router.post("/document/{vault_id}/review-state")
+async def dc_post_review_state(vault_id: str, request: Request) -> JSONResponse:
+    """Save the Document Center review state for a vault document.
+
+    Body: {"field_confirm_state": {...}, "manual_status": "verified|mismatched|review|new"}
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        body = await request.json()
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"error": "invalid_json", "detail": str(e)})
+
+    field_confirm_state = body.get("field_confirm_state")
+    manual_status = body.get("manual_status")
+    if manual_status is not None and manual_status not in {"verified", "mismatched", "review", "new"}:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "invalid_manual_status", "allowed": ["verified", "mismatched", "review", "new"]},
+        )
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+        if doc.user_id != user_id:
+            return JSONResponse(status_code=403, content={"error": "access_denied"})
+
+        review_state = _review_state_for_doc(doc)
+        if field_confirm_state is not None:
+            if not isinstance(field_confirm_state, dict):
+                return JSONResponse(status_code=400, content={"error": "field_confirm_state_must_be_object"})
+            review_state["field_confirm_state"] = field_confirm_state
+        if manual_status is not None:
+            review_state["manual_status"] = manual_status
+
+        await vault_service.index.update(vault_id, review_state_json=json.dumps(review_state))
+        updated_doc = await vault_service.get_document(vault_id)
+        return JSONResponse(
+            {
+                "ok": True,
+                "vault_id": vault_id,
+                "effective_status": _verification_status_for_doc(updated_doc) if updated_doc else "new",
+                "manual_status": review_state.get("manual_status"),
+                "generated_at": utc_now().isoformat(),
+            }
+        )
+    except Exception as e:
+        logger.error("DC review-state post error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "review_state_save_failed", "detail": str(e)})
+
+
+@router.post("/document/{vault_id}/share")
+async def dc_share_document(vault_id: str, request: Request) -> JSONResponse:
+    """Create a real share link for a vault document.
+
+    Body: {"recipient": "user_id, advocate ID, or email", "scope": "view|comment|download", "message": "optional"}
+    Returns a share_token and share_url the owner can send to the recipient.
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        body = await request.json()
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"error": "invalid_json", "detail": str(e)})
+
+    recipient = str(body.get("recipient", "")).strip()
+    scope = str(body.get("scope", "view")).strip().lower()
+    message = str(body.get("message", "")).strip() or None
+
+    if not recipient:
+        return JSONResponse(status_code=400, content={"error": "recipient_required"})
+    if scope not in {"view", "comment", "download"}:
+        return JSONResponse(
+            status_code=400, content={"error": "invalid_scope", "allowed": ["view", "comment", "download"]}
+        )
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+        if doc.user_id != user_id:
+            return JSONResponse(status_code=403, content={"error": "access_denied"})
+
+        share_token = secrets.token_urlsafe(32)
+        share = DocumentShare(
+            id=make_id("share"),
+            owner_user_id=user_id,
+            vault_id=vault_id,
+            recipient_identifier=recipient,
+            scope=scope,
+            message=message,
+            share_token=share_token,
+            created_at=utc_now(),
+        )
+        async with get_db_session() as db:
+            db.add(share)
+            await db.commit()
+
+        share_url = f"/api/dc/shared/{share_token}"
+        logger.info("DC share: vault_id=%s owner=%s recipient=%s scope=%s", vault_id, user_id, recipient, scope)
+        return JSONResponse(
+            {
+                "ok": True,
+                "vault_id": vault_id,
+                "share_token": share_token,
+                "share_url": share_url,
+                "scope": scope,
+                "recipient": recipient,
+                "created_at": share.created_at.isoformat(),
+            }
+        )
+    except Exception as e:
+        logger.error("DC share error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "share_failed", "detail": str(e)})
+
+
+@router.get("/document/{vault_id}/shares")
+async def dc_list_shares(vault_id: str, request: Request) -> JSONResponse:
+    """List active shares for a vault document (owner only)."""
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+        if doc.user_id != user_id:
+            return JSONResponse(status_code=403, content={"error": "access_denied"})
+
+        from sqlalchemy import select
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DocumentShare).where(
+                    DocumentShare.vault_id == vault_id,
+                    DocumentShare.owner_user_id == user_id,
+                )
+            )
+            shares = result.scalars().all()
+
+        return JSONResponse(
+            {
+                "vault_id": vault_id,
+                "shares": [
+                    {
+                        "id": s.id,
+                        "share_token": s.share_token,
+                        "recipient": s.recipient_identifier,
+                        "scope": s.scope,
+                        "message": s.message,
+                        "share_url": f"/api/dc/shared/{s.share_token}",
+                        "expires_at": s.expires_at.isoformat() if s.expires_at else None,
+                        "created_at": s.created_at.isoformat(),
+                        "access_count": s.access_count,
+                    }
+                    for s in shares
+                ],
+            }
+        )
+    except Exception as e:
+        logger.error("DC list shares error vault_id=%s user=%s: %s", vault_id, user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "list_shares_failed", "detail": str(e)})
+
+
+@router.get("/shared/{share_token}")
+async def dc_shared_document(share_token: str, request: Request) -> JSONResponse:
+    """Return metadata for a shared document. Requires an authenticated recipient.
+
+    The recipient must be logged in. In the future the recipient identifier can be
+    matched against the user's verified email or advocate ID; for now the token gates
+    access and scope is enforced at content endpoints.
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from sqlalchemy import select
+
+        async with get_db_session() as db:
+            result = await db.execute(select(DocumentShare).where(DocumentShare.share_token == share_token))
+            share = result.scalar_one_or_none()
+
+        if not share:
+            return JSONResponse(status_code=404, content={"error": "share_not_found"})
+        if share.expires_at and share.expires_at < utc_now():
+            return JSONResponse(status_code=410, content={"error": "share_expired"})
+
+        # Update access metrics
+        async with get_db_session() as db:
+            share = await db.merge(share)
+            share.access_count += 1
+            share.accessed_at = utc_now()
+            await db.commit()
+
+        return JSONResponse(
+            {
+                "vault_id": share.vault_id,
+                "scope": share.scope,
+                "message": share.message,
+                "content_url": f"/api/dc/shared/{share_token}/content",
+                "download_url": f"/api/dc/shared/{share_token}/content?download=1",
+                "owner_user_id": share.owner_user_id,
+                "created_at": share.created_at.isoformat(),
+            }
+        )
+    except Exception as e:
+        logger.error("DC shared document error token=%s: %s", share_token, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "shared_document_failed", "detail": str(e)})
+
+
+@router.get("/shared/{share_token}/content")
+async def dc_shared_document_content(share_token: str, request: Request):
+    """Stream the content of a shared document (view or download scope)."""
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from sqlalchemy import select
+
+        async with get_db_session() as db:
+            result = await db.execute(select(DocumentShare).where(DocumentShare.share_token == share_token))
+            share = result.scalar_one_or_none()
+
+        if not share:
+            return JSONResponse(status_code=404, content={"error": "share_not_found"})
+        if share.expires_at and share.expires_at < utc_now():
+            return JSONResponse(status_code=410, content={"error": "share_expired"})
+        if share.scope not in {"view", "download"}:
+            return JSONResponse(status_code=403, content={"error": "scope_not_allowed", "detail": share.scope})
+
+        from app.services.vault_upload_service import get_vault_service
+
+        vault_service = get_vault_service()
+        doc = await vault_service.get_document(share.vault_id)
+        if not doc:
+            return JSONResponse(status_code=404, content={"error": "document_not_found"})
+
+        access_token: str | None = None
+        if doc.storage_provider != "local":
+            from app.core.oauth_token_manager import get_valid_token_for_user
+
+            access_token = get_valid_token_for_user(doc.user_id)
+            if not access_token:
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "error": "storage_unavailable",
+                        "detail": "The document owner must reconnect storage for this share to work.",
+                    },
+                )
+
+        content = await vault_service.get_document_content(share.vault_id, access_token)
+        if not content:
+            return JSONResponse(status_code=404, content={"error": "document_content_unavailable"})
+
+        mime = doc.mime_type or "application/octet-stream"
+        safe_name = doc.filename.replace('"', "").replace("\\", "")
+        download = request.query_params.get("download")
+        if download or share.scope == "download":
+            headers = {"Content-Disposition": f'attachment; filename="{safe_name}"'}
+        else:
+            headers = {"Content-Disposition": f'inline; filename="{safe_name}"'}
+        return Response(content=content, media_type=mime, headers=headers)
+    except Exception as e:
+        logger.error("DC shared content error token=%s: %s", share_token, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "shared_content_failed", "detail": str(e)})

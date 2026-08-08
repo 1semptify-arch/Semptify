@@ -101,6 +101,22 @@ class ProductTier(StrEnum):
         return [cls.CORE, cls.EXTENDED, cls.ADVOCATE, cls.ADMIN, cls.RESEARCH, cls.DEV]
 
 
+class FeesPolicy(StrEnum):
+    """Semantic classification for how the word "fee" may be used in a module.
+
+    - tenant_no_fees: the module is tenant-facing or public-facing and must not
+      imply Semptify charges fees. Landlord-charged "fee" language is only
+      allowed when it clearly refers to third-party charges, not Semptify.
+    - exempt_advanced: the module is advanced/admin/research-only and uses
+      "fee" as a domain term describing landlord conduct found in tenant
+      evidence (e.g. `detect_repeated_fees`). The exemption is conditional on
+      the module remaining unreachable by the tenant role.
+    """
+
+    TENANT_NO_FEES = "tenant_no_fees"
+    EXEMPT_ADVANCED = "exempt_advanced"
+
+
 # =============================================================================
 # Module Entry
 # =============================================================================
@@ -141,6 +157,14 @@ class ModuleEntry:
             rules. Modules at MEDIUM_HIGH+ must display the canonical disclaimer
             and referral block on output surfaces.
 
+        --- Fees Terminology Policy ---
+        fees_policy: Whether this module is allowed to use "fee" as a domain term
+            describing landlord conduct (exempt_advanced) or must avoid any
+            implication that Semptify charges fees (tenant_no_fees). The
+            exemption is conditional on the module remaining unreachable by the
+            tenant role. Defaults to tenant_no_fees. Advanced/admin/research
+            tiers default to exempt_advanced when no explicit value is supplied.
+
         --- External Module Fields (ignored for internal modules) ---
         external_repo: Git URL for external module source
         external_version: Pinned version string
@@ -169,6 +193,10 @@ class ModuleEntry:
     # Defaults to LOW (safest). Legal-adjacent modules MUST override.
     # See app/core/upl_guardrails.py for tier definitions and enforcement rules.
     upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW
+
+    # Fees terminology policy — tenant_no_fees by default. Advanced/admin/research
+    # modules default to exempt_advanced in _register() when no value is supplied.
+    fees_policy: FeesPolicy = FeesPolicy.TENANT_NO_FEES
 
     # External module fields (ignored for internal)
     external_repo: str = ""
@@ -348,6 +376,7 @@ def _register(
     feature_flag: str = "",
     dev_notes: str = "",
     upl_risk_tier: UPLRiskTier = UPLRiskTier.LOW,
+    fees_policy: FeesPolicy | None = None,
     # External module fields
     external_repo: str = "",
     external_version: str = "",
@@ -359,7 +388,18 @@ def _register(
     Accepts all Module Flag Overlay fields (Phase 2.1) in addition to the
     original registration fields. Existing callers do not need to change —
     new fields default to safe values (lifecycle='stable', origin='internal').
+
+    If fees_policy is not supplied, CORE and DEV modules default to
+    tenant_no_fees; EXTENDED/ADVOCATE/ADMIN/RESEARCH modules default to
+    exempt_advanced. This convention is enforced by the fees_policy guardrail,
+    which fails the build if an exempt_advanced module becomes tenant-reachable.
     """
+    if fees_policy is None:
+        if tier in (ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN, ProductTier.RESEARCH):
+            fees_policy = FeesPolicy.EXEMPT_ADVANCED
+        else:
+            fees_policy = FeesPolicy.TENANT_NO_FEES
+
     entry = ModuleEntry(
         module_path=module_path,
         router_attr=router_attr,
@@ -376,6 +416,7 @@ def _register(
         feature_flag=feature_flag,
         dev_notes=dev_notes,
         upl_risk_tier=upl_risk_tier,
+        fees_policy=fees_policy,
         external_repo=external_repo,
         external_version=external_version,
         external_signature=external_signature,
@@ -457,6 +498,13 @@ _register(
     dev_notes="Canonical timeline API (DB-backed TimelineEvent model). Briefcase router's in-memory timeline-event CRUD removed 2026-07-15 as duplicate. Workflow router is NOT a duplicate — it only reads timeline counts for routing decisions.",
 )
 _register(
+    "app.modules.eviction_timeline.router",
+    prefix="/api/eviction-timeline",
+    tags=("Eviction Timeline",),
+    tier=ProductTier.CORE,
+    dev_notes="Tenant-facing eviction case timeline. T2 data. subject_id is a placeholder with no FK — accountability_ledger boundary is deferred.",
+)
+_register(
     "app.modules.briefcase.router",
     tags=("Briefcase",),
     tier=ProductTier.CORE,
@@ -507,6 +555,23 @@ _register(
     log_message="Journal router connected at /api/journal",
 )
 _register("app.modules.public_forms.router", tags=("Public Forms",), tier=ProductTier.CORE)
+_register(
+    "app.modules.voice.router",
+    prefix="/api/voice",
+    tags=("Voice",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Voice-to-text fallback. Web Speech API is the default; this router is the server fallback.",
+    log_message="Voice router connected at /api/voice",
+)
+_register(
+    "app.modules.resource_directory.router",
+    tags=("Resource Directory",),
+    tier=ProductTier.CORE,
+    lifecycle="beta",
+    dev_notes="Community resource directory for tenant housing-rights support. Public list/read endpoints plus Tailscale-gated admin CRUD and CSV import. last_verified staleness tracking is a safety requirement.",
+    log_message="Resource Directory router connected at /api/resources and /admin/resources",
+)
 _register(
     "app.modules.search.router",
     prefix="/api/search",
@@ -688,6 +753,7 @@ _register(
     tags=("Housing Accountability",),
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
+    fees_policy=FeesPolicy.EXEMPT_ADVANCED,
     dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.",
 )
 _register(
@@ -696,6 +762,7 @@ _register(
     tags=("Pattern History",),
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
+    fees_policy=FeesPolicy.EXEMPT_ADVANCED,
     dev_notes="Depends on housing_accountability pattern matching.",
 )
 
@@ -707,6 +774,18 @@ _register(
     tier=ProductTier.EXTENDED,
     lifecycle="beta",
     dev_notes="Bridge between Semptify and external systems. CRUD for cross-system ID mappings.",
+)
+
+# Dispute Tracker — property management dispute resolution + comparison tracking
+_register(
+    "app.modules.dispute_tracker.router",
+    prefix="/api/dispute-tracker",
+    tags=("Dispute Tracker",),
+    tier=ProductTier.EXTENDED,
+    lifecycle="beta",
+    fees_policy=FeesPolicy.TENANT_NO_FEES,
+    dev_notes="Greenfield tenant-facing module for property-management disputes and fee/term comparison tracking. T2 data sensitivity (descriptions, parties, dates).",
+    log_message="Dispute Tracker router connected at /api/dispute-tracker",
 )
 
 # Role management
@@ -727,6 +806,49 @@ _register("app.modules.advocate.router", tags=("Advocate", "Clients", "Case Mana
 # ADMIN TIER — Dashboards, Analytics, Batch Ops (Disabled by Default)
 # =============================================================================
 
+_register(
+    "app.modules.system_health.router",
+    prefix="/api/admin/system",
+    tags=("System Health",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    log_message="System Health router connected — admin status and registry summary",
+)
+_register(
+    "app.modules.run_modules.router",
+    prefix="/api/admin/run",
+    tags=("Run Modules",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    log_message="Run Modules router connected — admin-only execution surface",
+)
+_register(
+    "app.modules.correspondence.router",
+    prefix="/api/admin/correspondence",
+    tags=("Correspondence",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Wiring-only pass. Templates/log endpoints return no PII; /send returns 501 until data model and T2 handling are designed.",
+    log_message="Correspondence router connected — admin-only (PII-free wiring pass)",
+)
+_register(
+    "app.modules.user_concerns.router",
+    prefix="/api/admin/user-concerns",
+    tags=("User Concerns",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Wiring-only pass. List/summary endpoints return no PII; write endpoints return 501 until T2 data model and retention policy are designed.",
+    log_message="User Concerns router connected — admin-only (PII-free wiring pass)",
+)
+_register(
+    "app.modules.advanced.router",
+    prefix="/api/admin/advanced",
+    tags=("Advanced / Dev Tools",),
+    tier=ProductTier.ADMIN,
+    requires_role=("admin",),
+    dev_notes="Admin-only dev tools. Non-cost-guard endpoints (guardrail, sync, build status) come first. Cost-guard detect_repeated_fees is a PII-free fee-metadata wrapper.",
+    log_message="Advanced router connected — admin-only build/guardrail/sync/cost-guard tools",
+)
 _register(
     "app.modules.admin_console.router",
     prefix="/admin-console",
@@ -1137,19 +1259,23 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     "tenant": [
         "app.modules.vault.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
+        "app.modules.voice.router",
         "app.modules.rent.router",
         "app.modules.state_laws.router",
         "app.modules.law_library.router",
         "app.modules.contacts.router",
         "app.modules.search.router",
         "app.modules.packet_builder.router",
+        "app.modules.dispute_tracker.router",
     ],
     "advocate": [
         # Everything tenant gets
         "app.modules.vault.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.documents.router",
         "app.modules.journal.router",
         "app.modules.rent.router",
@@ -1167,6 +1293,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.intake.router",
         "app.modules.guided_intake.router",
         "app.modules.plan_maker.router",
+        "app.modules.dispute_tracker.router",
         # Plus collaboration
         "app.modules.document_delivery.router",
         "app.modules.communication.router",
@@ -1176,6 +1303,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
     "manager": [
         "app.modules.documents.router",
         "app.modules.timeline.router",
+        "app.modules.eviction_timeline.router",
         "app.modules.contacts.router",
         "app.modules.state_laws.router",
         "app.modules.search.router",

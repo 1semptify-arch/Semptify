@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify — Field Notebook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Inter:wght@400;600;800&family=Source+Serif+4:ital,wght@0,400;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --kraft: #D9C7A3;
+      --kraft-warm: #CAB88F;
+      --paper: #F5EFE3;
+      --paper-line: #EBE4D5;
+      --ink: #232020;
+      --manila: #B8862F;
+      --stamp-red: #9E2B25;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+      --font-serif: 'Source Serif 4', Georgia, serif;
+      --max-width: 1160px;
+    }
+
+    * {
+      box-sizing: border-box;
+      border-radius: 0 !important;
+    }
+
+    *:focus {
+      outline: none;
+    }
+
+    *:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      color: var(--ink);
+      background-color: var(--kraft);
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.09), transparent 40%),
+        radial-gradient(circle at 80% 90%, rgba(0, 0, 0, 0.06), transparent 45%),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.014) 2px, rgba(0, 0, 0, 0.014) 3px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 0, 0, 0.011) 2px, rgba(0, 0, 0, 0.011) 3px);
+      line-height: 1.6;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      z-index: 100;
+      padding: 0.5rem 1rem;
+      background: var(--ink);
+      color: var(--kraft);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    .page {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    @media (min-width: 900px) {
+      .page {
+        padding: 2rem;
+      }
+    }
+
+    .notebook {
+      position: relative;
+      padding-left: 0;
+    }
+
+    .notebook::before {
+      display: none;
+    }
+
+    @media (min-width: 900px) {
+      .notebook {
+        padding-left: 180px;
+      }
+
+      .notebook::before {
+        display: block;
+        content: '';
+        position: absolute;
+        left: 150px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--ink);
+      }
+    }
+
+    .entry {
+      position: relative;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fade-in 0.5s ease-out forwards;
+    }
+
+    .entry:nth-child(1) { animation-delay: 0.05s; }
+    .entry:nth-child(2) { animation-delay: 0.1s; }
+    .entry:nth-child(3) { animation-delay: 0.15s; }
+    .entry:nth-child(4) { animation-delay: 0.2s; }
+    .entry:nth-child(5) { animation-delay: 0.25s; }
+    .entry:nth-child(6) { animation-delay: 0.3s; }
+    .entry:nth-child(7) { animation-delay: 0.35s; }
+
+    .entry:last-child {
+      margin-bottom: 0;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .rail-date {
+      display: none;
+    }
+
+    @media (min-width: 900px) {
+      .rail-date {
+        display: block;
+        position: absolute;
+        left: -180px;
+        top: 0.85rem;
+        width: 130px;
+        padding-right: 12px;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: right;
+        text-transform: uppercase;
+        color: var(--ink);
+        z-index: 1;
+      }
+
+      .rail-date::after {
+        content: '';
+        position: absolute;
+        left: 146px;
+        top: 0.15rem;
+        width: 10px;
+        height: 10px;
+        background: var(--paper);
+        border: 2px solid var(--ink);
+      }
+    }
+
+    .card {
+      background-color: var(--paper);
+      border: 1px solid var(--ink);
+      box-shadow: 6px 6px 0 rgba(35, 32, 32, 0.1);
+    }
+
+    .card--urgent {
+      border: 1px solid var(--stamp-red);
+      border-left: 6px solid var(--stamp-red);
+    }
+
+    .card--slim .card__body {
+      padding: 0.75rem 1rem;
+    }
+
+    .card__meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.55rem 0.75rem;
+      background: var(--manila);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .card__body {
+      padding: 1.25rem;
+    }
+
+    @media (min-width: 900px) {
+      .card__body {
+        padding: 1.75rem;
+      }
+    }
+
+    .card__title {
+      margin: 0 0 0.75rem;
+      font-family: var(--font-body);
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .cover__title {
+      margin: 0 0 0.5rem;
+      font-size: clamp(2.8rem, 12vw, 5.5rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    .card__subtitle {
+      margin: 0 0 1.5rem;
+      font-size: clamp(1rem, 2.6vw, 1.35rem);
+      line-height: 1.4;
+      max-width: 48ch;
+    }
+
+    p {
+      max-width: 65ch;
+      margin: 0 0 1rem;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    .mono-note {
+      margin-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+    }
+
+    .pull-quote {
+      margin: 1.25rem 0;
+      padding-left: 1rem;
+      border-left: 3px solid var(--manila);
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.15rem;
+      line-height: 1.5;
+      max-width: 55ch;
+    }
+
+    .stamp {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: clamp(0.65rem, 1.4vw, 0.8rem);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      line-height: 1;
+      text-transform: uppercase;
+      color: var(--ink);
+      border: 3px double currentColor;
+      padding: 0.55em 0.9em;
+      transform: rotate(-8deg);
+      box-shadow: 4px 4px 0 rgba(35, 32, 32, 0.08);
+      background: rgba(245, 239, 227, 0.85);
+    }
+
+    .stamp--danger {
+      color: var(--stamp-red);
+      background: rgba(245, 239, 227, 0.95);
+    }
+
+    .stamp--small {
+      font-size: clamp(0.6rem, 1.2vw, 0.7rem);
+      padding: 0.45em 0.65em;
+    }
+
+    .cover__top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .cover__intro {
+      flex: 1 1 60%;
+      min-width: 260px;
+    }
+
+    .cover__stamp {
+      flex: 0 0 auto;
+      margin-top: 0.25rem;
+    }
+
+    .cta {
+      display: inline-block;
+      padding: 0.9rem 1.7rem;
+      background: var(--ink);
+      color: var(--kraft);
+      border: 2px solid var(--ink);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+
+    .cta:hover {
+      background: var(--manila);
+      color: var(--ink);
+    }
+
+    .cta:active {
+      background: var(--ink);
+      color: var(--kraft);
+      transform: translateY(1px);
+    }
+
+    .cta--danger {
+      background: var(--stamp-red);
+      border-color: var(--stamp-red);
+      color: var(--paper);
+    }
+
+    .cta--danger:hover {
+      background: var(--paper);
+      color: var(--stamp-red);
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    @media (min-width: 720px) {
+      .pillars {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .pillars__item {
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(35, 32, 32, 0.2);
+    }
+
+    .pillars__header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .pillars__num {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--manila);
+    }
+
+    .pillars__name {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .pillars__desc {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .personas {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .personas li {
+      padding: 0.65rem 0;
+      border-bottom: 1px solid rgba(35, 32, 32, 0.12);
+    }
+
+    .personas li:first-child {
+      padding-top: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-right: 0.5rem;
+      padding: 0.15em 0.5em;
+      background: var(--ink);
+      color: var(--kraft);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .footer__links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0 0 0.5rem;
+      padding: 0;
+      list-style: none;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .footer__links a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .footer__links a:hover {
+      text-decoration: underline;
+    }
+
+    .footer__note {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <main id="main" class="page">
+    <div class="notebook">
+
+      <section class="entry" aria-labelledby="cover-title">
+        <div class="rail-date"><span>TODAY</span></div>
+        <article class="card card--cover">
+          <div class="card__meta">
+            <span>CASE: —</span>
+            <span aria-hidden="true">·</span>
+            <span>OPENED: —</span>
+            <span aria-hidden="true">·</span>
+            <span>STATUS: WELCOME</span>
+          </div>
+          <div class="card__body">
+            <div class="cover__top">
+              <div class="cover__intro">
+                <h1 id="cover-title" class="cover__title">Semptify</h1>
+                <p class="card__subtitle">A public-service tool to protect the rights of tenants facing housing problems.</p>
+              </div>
+              <span class="stamp cover__stamp" aria-hidden="true">PUBLIC SERVICE · HOUSING RIGHTS</span>
+            </div>
+            <a class="cta" href="#begin">Begin</a>
+            <p class="mono-note">No account needed. Your documents stay in your own cloud storage.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="entry" aria-labelledby="law-title">
+        <div class="rail-date"><time datetime="2026-07-22">2026-07-22</time></div>
+        <article class="card">
+          <div class="card__meta">
+            <span>TYPE: STATEMENT</span>
+            <span aria-hidden="true">·</span>
+            <span>SOURCE: SEMPTIFY</span>
+          </div>
+          <div class="card__body">
+            <h2 id="law-title" class="card__title">The law is on your side</h2>
+            <p>Tenants have rights that the law will enforce. Semptify is built to help you turn facts, dates, and documents into a clear, court-ready record.</p>
+            <p class="pull-quote">“When the law protects a tenant, we say so clearly.”</p>
+            <span class="stamp stamp--small">FILED · 2026-07-22</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="entry" aria-labelledby="pillars-title">
+        <div class="rail-date"><time datetime="2026-07-21">2026-07-21</time></div>
+        <article class="card">
+          <div class="card__meta">
+            <span>TYPE: STRUCTURE</span>
+            <span aria-hidden="true">·</span>
+            <span>REF: I–IV</span>
+          </div>
+          <div class="card__body">
+            <h2 id="pillars-title" class="card__title">The four pillars</h2>
+            <ul class="pillars">
+              <li class="pillars__item">
+                <div class="pillars__header">
+                  <span class="pillars__num">I.</span>
+                  <h3 class="pillars__name">Record</h3>
+                  <span class="stamp stamp--small">RECORD</span>
+                </div>
+                <p class="pillars__desc">Capture & organize evidence.</p>
+              </li>
+              <li class="pillars__item">
+                <div class="pillars__header">
+                  <span class="pillars__num">II.</span>
+                  <h3 class="pillars__name">Know</h3>
+                  <span class="stamp stamp--small">KNOW</span>
+                </div>
+                <p class="pillars__desc">Facts only.</p>
+              </li>
+              <li class="pillars__item">
+                <div class="pillars__header">
+                  <span class="pillars__num">III.</span>
+                  <h3 class="pillars__name">Act</h3>
+                  <span class="stamp stamp--small">ACT</span>
+                </div>
+                <p class="pillars__desc">Lawful, guided action.</p>
+              </li>
+              <li class="pillars__item">
+                <div class="pillars__header">
+                  <span class="pillars__num">IV.</span>
+                  <h3 class="pillars__name">Govern</h3>
+                  <span class="stamp stamp--small">GOVERN</span>
+                </div>
+                <p class="pillars__desc">Platform integrity.</p>
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="entry" aria-labelledby="personas-title">
+        <div class="rail-date"><time datetime="2026-07-18">2026-07-18</time></div>
+        <article class="card">
+          <div class="card__meta">
+            <span>TYPE: PERSONAS</span>
+            <span aria-hidden="true">·</span>
+            <span>COUNT: 5</span>
+          </div>
+          <div class="card__body">
+            <h2 id="personas-title" class="card__title">Who this is for</h2>
+            <ul class="personas">
+              <li><span class="tag">01 · BLINDSIDED</span> Just got a notice.</li>
+              <li><span class="tag">02 · BUILDER</span> Logging evidence over time.</li>
+              <li><span class="tag">03 · COURT-BOUND</span> Has a hearing date.</li>
+              <li><span class="tag">04 · PREVENTER</span> Wants to be ready.</li>
+              <li><span class="tag">05 · ADVOCATE</span> Helping a tenant.</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="entry" aria-labelledby="privacy-title">
+        <div class="rail-date"><time datetime="2026-07-14">2026-07-14</time></div>
+        <article class="card">
+          <div class="card__meta">
+            <span>TYPE: PRIVACY</span>
+            <span aria-hidden="true">·</span>
+            <span>STORAGE: USER-OWNED</span>
+          </div>
+          <div class="card__body">
+            <h2 id="privacy-title" class="card__title">Your documents stay yours</h2>
+            <p>Your documents live in your own Google Drive or Dropbox, not on Semptify servers. Semptify is a lens, not a vault-keeper.</p>
+            <span class="stamp stamp--small">FILED · 2026-07-14</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="entry" aria-labelledby="deadline-title">
+        <div class="rail-date"><span>URGENT</span></div>
+        <article class="card card--urgent">
+          <div class="card__meta">
+            <span>TYPE: URGENT</span>
+            <span aria-hidden="true">·</span>
+            <span>PRIORITY: HIGH</span>
+          </div>
+          <div class="card__body">
+            <h2 id="deadline-title" class="card__title">If you have a deadline</h2>
+            <span class="stamp stamp--danger">DEADLINE · BEGIN NOW</span>
+            <p>Facing an eviction notice or a hearing date? Begin now. Deadlines matter.</p>
+            <a class="cta cta--danger" href="#begin">Begin</a>
+          </div>
+        </article>
+      </section>
+
+      <footer class="entry">
+        <div class="rail-date"><span>ABOUT</span></div>
+        <div class="card card--slim">
+          <div class="card__body">
+            <nav aria-label="Footer">
+              <ul class="footer__links">
+                <li><a href="#about">About</a></li>
+                <li aria-hidden="true">·</li>
+                <li><a href="#privacy">Privacy</a></li>
+                <li aria-hidden="true">·</li>
+                <li><a href="#contact">Contact</a></li>
+              </ul>
+            </nav>
+            <p class="footer__note">Semptify is a public-service housing-rights tool. No ads, ever.</p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+</body>
+</html>
