@@ -314,6 +314,15 @@ def main() -> int:
         stub_count = verify_stub_tasks()
         task_count, missing = verify_orchestrator_tasks()
 
+        # Belt-and-suspenders guard against the historical wipe where 0 live
+        # stubs + an empty workbook write would silently empty the queue.
+        # If the queue is non-empty before and empty after a write, stop.
+        if not args.check and previous_tasks and task_count == 0:
+            raise SyncError(
+                "orchestrator queue would be emptied (0 tasks after sync). "
+                "If this is intentional, resolve or archive the previous tasks first."
+            )
+
         if not args.check:
             tasks_text = ORCHESTRATOR_TASKS.read_text(encoding="utf-8")
             embed_tasks_into_html(tasks_text, ORCHESTRATOR_HTML)
