@@ -1,3 +1,33 @@
+## Session -- 2026-08-08 — todo-049 resolved: F821 undefined names already have correct imports
+
+### Overview
+
+Task todo-049 called for adding missing imports to resolve F821 undefined-name errors across `app/modules/pdf_tools/router.py` (`fitz`), `app/modules/vault/router.py:1445-1508` (`VaultItem`), `app/modules/security/advanced_security.py:278-280` (`defaultdict`), `app/modules/*/batch_operations.py:266-374` (`operation_id`, `WebSocketMessage`, `timedelta`), `app/sdk/generate_module.py:280-387` (`utc_now`, `logger`), and an unspecified `router.py:36-38,443-486` (`original_filename`, `overlay`). All listed target files already import or define the names correctly.
+
+### What was done
+
+- Confirmed `app/modules/pdf_tools/router.py` imports `pymupdf as fitz`.
+- Confirmed `app/modules/vault/router.py` imports `VaultItem` from `app.models.models` and uses it at lines 1479 and 1509.
+- Confirmed `app/core/advanced_security.py` imports `defaultdict` from `collections`.
+- Confirmed `app/core/batch_operations.py` imports `WebSocketMessage` and `timedelta`.
+- Confirmed `app/sdk/generate_module.py` imports `utc_now` and defines `logger`.
+- Ran `ruff check . --select F821` — no errors globally.
+- Updated todo tracking:
+  - `tools/new_audit_tasks.json` — todo-049 marked resolved
+  - `tools/docs_todos.json` — todo-049 marked resolved
+  - `tools/agent_orchestrator_tasks.json` — todo-049 marked resolved
+
+### Verification
+
+- `ruff check . --select F821`: PASS (0 errors)
+- `python -m py_compile app/modules/pdf_tools/router.py app/modules/vault/router.py app/core/advanced_security.py app/core/batch_operations.py app/sdk/generate_module.py`: PASS
+
+### Next Session
+
+- todo-050: Replace sync httpx.Client with httpx.AsyncClient
+
+---
+
 ## Session -- 2026-08-08 — todo-048 resolved: no `await` on sync `get_valid_token_for_user` and no wrong `db` argument
 
 ### Overview

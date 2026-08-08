@@ -63,8 +63,8 @@
     "target_model": "swe-1.7",
     "priority": "high",
     "file_path": "app/modules/pdf_tools/router.py; app/modules/vault/router.py:1445-1508; app/modules/security/advanced_security.py:278-280; app/modules/*/batch_operations.py:266-374; app/sdk/generate_module.py:280-387; router.py:36-38,443-486",
-    "status": "pending",
-    "notes": "BLOCKED until todo-045 (sync_orchestrator stub-detection bug) is resolved and reported \u00e2\u20ac\u201d do not start. Acceptance: ruff check . --select F821 returns 0 in these files.",
+    "status": "resolved",
+    "notes": "Target call sites already have correct imports. Confirmed: pdf_tools/router.py imports `pymupdf as fitz`; vault/router.py imports `VaultItem` from app.models.models; advanced_security.py imports `defaultdict`; batch_operations.py imports `WebSocketMessage` and `timedelta`; generate_module.py imports `utc_now` and defines `logger`. `ruff check . --select F821` returns 0 globally.",
     "created_at": "2026-08-08T00:00:00Z",
     "updated_at": "2026-08-08T00:00:00Z",
     "assigned_agent": ""

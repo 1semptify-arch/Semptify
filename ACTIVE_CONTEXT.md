@@ -1,8 +1,23 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-08-08 (todo-048 resolved: no await on sync token calls, no wrong db argument)
+**Last Updated**: 2026-08-08 (todo-049 resolved: F821 undefined names already have correct imports)
 
 ## ✅ Completed 2026-08-08 Session
+
+### Session — todo-049 resolved: F821 undefined names already have correct imports
+
+- **Task**: Add missing imports (F821 undefined names) across 6 target file regions
+- **Status**: Resolved — no code changes needed; all target names are already imported or defined
+- **Call sites confirmed clean**:
+  - `app/modules/pdf_tools/router.py`: `import pymupdf as fitz`
+  - `app/modules/vault/router.py:1445-1508`: `VaultItem` imported from `app.models.models`
+  - `app/core/advanced_security.py:278-280`: `defaultdict` imported from `collections`
+  - `app/core/batch_operations.py:266-374`: `WebSocketMessage` and `timedelta` imported
+  - `app/sdk/generate_module.py:280-387`: `utc_now` imported, `logger` defined
+- **Verification**:
+  - `ruff check . --select F821`: 0 errors
+  - `python -m py_compile` on target files: PASS
+- **Todo tracking updated**: `todo-049` marked resolved in `new_audit_tasks.json`, `docs_todos.json`, `agent_orchestrator_tasks.json`
 
 ### Session — todo-048 resolved: no `await` on sync `get_valid_token_for_user`, no wrong `db` argument
 
@@ -18,7 +33,7 @@
   - Verification: 3 passed
 - **Todo tracking updated**: `todo-048` marked resolved in `new_audit_tasks.json`, `docs_todos.json`, `agent_orchestrator_tasks.json`
 
-### Session — todo-047 resolved: sync token calls migrated out of async routes
+### Session — todo-045 resolved: sync_orchestrator queue-wipe guard verified
 
 - **Task**: Fix stub-detection logic in `tools/sync_orchestrator.py` (historical queue wipe: 171 → 16 tasks)
 - **Status**: Resolved — protection already in place
