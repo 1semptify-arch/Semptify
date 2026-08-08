@@ -1,3 +1,50 @@
+## Session -- 2026-08-07 — TIER 2 cleanup: orphan files, print() fix, datetime CI, sync guard
+
+### Overview
+
+Completed all TIER 2 cleanup items from the audit. Removed 20 orphan/scratch/duplicate files (8,729 lines deleted), replaced a debug `print()` in the global exception handler with proper `logger.error(exc_info=True)`, tightened the datetime-lint CI workflow to catch all `datetime.now()` variants (not just `timezone.utc`), and added a guard in `sync_orchestrator.py` to prevent silent queue wipe when 0 tasks remain after sync.
+
+### Commits
+
+| Commit | Title | Files | Summary |
+|--------|-------|-------|---------|
+| `c4b84a60` | chore: TIER 2 cleanup — remove orphan files, fix print() in error handler, tighten datetime CI | 23 | Deleted 20 orphan files, fixed print()→logger.error, datetime-lint.yml grep all datetime.now(), sync_orchestrator queue wipe guard |
+
+### What was shipped
+
+- **Orphan file cleanup**: Deleted duplicate `app/services/vault_engine.py` (identical to `app/modules/vault_engine/service.py`), `Untitled-1.txt`, 2 `.bak` files, 7 temp test scripts, 4 stale reports/JSON files, `create_shortcut.vbs`, `fix_*.py` scripts, `tmp_inspect.ps1`.
+- **print() → logging**: `app/core/error_handling.py` — replaced `print(..., file=sys.stderr)` debug with `logger.error(exc_info=True, extra=...)`.
+- **datetime-lint.yml**: Now greps for all `datetime.now(` patterns (excluding comments/docstrings/utc.py), not just `datetime.now(timezone.utc)`. Bumped `actions/checkout` to v4.
+- **sync_orchestrator.py**: Added guard — if queue is non-empty before sync and 0 tasks after, raises `SyncError` instead of silently wiping.
+- **CRLF normalization**: Already handled by `.gitattributes` (`* text=auto`, `*.py text eol=lf`, etc.) — Git auto-normalizes on commit. No manual action needed.
+- **Hardcoded ssot_redirect URLs**: All `ssot_redirect()` calls already pass through `navigation.resolve_path()` for SSOT validation. No violations found.
+- **Missing template/static references**: Subagent scan found no missing references.
+
+### Verification
+
+- `python -m py_compile app/core/error_handling.py tools/sync_orchestrator.py`: PASS
+- `pre-commit run` (all hooks): ALL PASS (15/15 applicable hooks passed)
+- Playwright smoke suite: skipped (no server running on port 8000)
+
+### Known Working
+
+- All pre-commit hooks pass.
+- `main` branch pushed to origin, in sync with `origin/main`.
+
+### Known Broken / Pending
+
+- Playwright smoke tests not run; run them when a dev server is available.
+- `scripts/filedored.py` (v1.0.0) vs `.devin/workflows/filedored_semptify_folder_and_filer.py` (v5.0.0) — two versions exist, may need consolidation.
+- `scripts/eviction_crawler.py` vs `scripts/mn_court_crawler.py` — two MN eviction crawlers, may serve different purposes but worth reviewing for consolidation.
+
+### Next Session
+
+- Run full Playwright suite against a running server.
+- Review filedored script versions for consolidation.
+- Review crawler scripts for consolidation.
+
+---
+
 ## Session -- 2026-08-07 — Pre-commit config fix, ruff rules, datetime.now(UTC) → utc_now()
 
 ### Guardrail Engine Run — 2026-08-07T20:28:25+00:00
