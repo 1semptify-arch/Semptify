@@ -11,20 +11,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Check for datetime.now(timezone.utc) usage
+    - name: Check for direct datetime.now() usage
       run: |
         # Count violations (exclude app/core/utc.py which is the implementation)
-        violations=$(grep -r "datetime\.now(timezone\.utc)" app/ --include="*.py" --exclude="utc.py" | wc -l)
+        # Also exclude comments/docstrings that mention datetime.now() as guidance
+        violations=$(grep -rn "datetime\.now(" app/ --include="*.py" --exclude="utc.py" | grep -v "# .*datetime\.now" | grep -v '"""' | grep -v "'''" | wc -l)
 
         if [ $violations -gt 0 ]; then
-          echo "❌ Found $violations instances of datetime.now(timezone.utc)"
-          echo "Use utc_now() from app.core.utc instead"
+          echo "❌ Found $violations instances of datetime.now() — use utc_now() from app.core.utc instead"
           echo ""
           echo "Violations:"
-          grep -r "datetime\.now(timezone\.utc)" app/ --include="*.py" --exclude="utc.py" | head -20
+          grep -rn "datetime\.now(" app/ --include="*.py" --exclude="utc.py" | grep -v "# .*datetime\.now" | grep -v '"""' | grep -v "'''" | head -20
           exit 1
         else
-          echo "✅ All datetime usage is consistent"
+          echo "✅ All datetime usage is consistent — utc_now() used everywhere"
         fi

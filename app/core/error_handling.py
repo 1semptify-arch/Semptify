@@ -142,16 +142,11 @@ def create_error_response(error: SemptifyError, include_details: bool = False) -
 async def semptify_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler for Semptify application."""
 
-    # Log the error
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    # DEBUG: print full traceback to stderr for Render log capture
-    import sys as _sys
-    import traceback as _tb
-
-    print(
-        f"[EXCEPTION DEBUG] {request.url.path}: {type(exc).__name__}: {exc}\n{_tb.format_exc()}",
-        file=_sys.stderr,
-        flush=True,
+    # Log the error with full traceback
+    logger.error(
+        f"[EXCEPTION] {request.url.path}: {type(exc).__name__}: {exc}",
+        exc_info=True,
+        extra={"request_path": request.url.path},
     )
 
     # Browser fallback: redirect HTML requests to the public help page with status banner.
